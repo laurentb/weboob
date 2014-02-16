@@ -84,10 +84,11 @@ class OperationsPage(BasePage):
             color = tds[self.COL_AMOUNT].find('span').attrib['class']
             if color == 'black':
                 continue
-            if color == 'red':
-                amount = '-' + amount
 
             operation.parse(date, label)
             operation.set_amount(amount)
+
+            if color == 'red' and operation.amount > 0:
+                operation.amount = - operation.amount
 
             yield operation
