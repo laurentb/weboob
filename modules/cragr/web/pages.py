@@ -325,11 +325,13 @@ class TransactionsPage(BasePage):
             t.type = self.TYPES.get(t.category, t.TYPE_UNKNOWN)
 
             # Parse operation date in label (for card transactions for example)
-            m = re.match('(.*) (\d{2})/(\d{2})$', t.label)
+            m = re.match('(?P<text>.*) (?P<dd>[0-3]\d)/(?P<mm>[0-1]\d)$', t.label)
+            if not m:
+                m = re.match('^(?P<dd>[0-3]\d)/(?P<mm>[0-1]\d) (?P<text>.*)$', t.label)
             if m:
-                if t.type == t.TYPE_CARD:
-                    t.rdate = date_guesser.guess_date(int(m.group(2)), int(m.group(3)), change_current_date=False)
-                t.label = m.group(1).strip()
+                if t.type in (t.TYPE_CARD, t.TYPE_WITHDRAWAL):
+                    t.rdate = date_guesser.guess_date(int(m.groupdict()['dd']), int(m.groupdict()['mm']), change_current_date=False)
+                t.label = m.groupdict()['text'].strip()
 
             # Strip city or other useless information from label.
             t.label = re.sub('(.*)  .*', r'\1', t.label).strip()
