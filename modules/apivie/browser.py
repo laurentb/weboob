@@ -63,7 +63,7 @@ class ApivieBrowser(BaseBrowser):
 
     def get_account(self, _id):
         try:
-            return next(a for a in self.get_accounts_list() if a.id == id)
+            return next(a for a in self.iter_accounts() if a.id == _id)
         except StopIteration:
             return None
 
