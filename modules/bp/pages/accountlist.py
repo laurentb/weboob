@@ -42,7 +42,7 @@ class AccountList(BasePage):
     def get_accounts_list(self):
         return self.accounts.itervalues()
 
-    def parse_table(self, what, actype=None):
+    def parse_table(self, what, actype=Account.TYPE_UNKNOWN):
         tables = self.document.xpath("//table[@id='%s']" % what, smart_strings=False)
         if len(tables) < 1:
             return
