@@ -69,7 +69,7 @@ class AccountsList(BasePage):
                     account.label = unicode(a.find("span").text)
                     for pattern, actype in self.TYPES.iteritems():
                         if account.label.startswith(pattern):
-                            account.type = type
+                            account.type = actype
                     account._link_id = a.get('href', '')
 
                 elif td.attrib.get('headers', '') == 'NumeroCompte':
