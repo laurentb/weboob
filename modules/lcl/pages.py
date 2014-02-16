@@ -79,9 +79,12 @@ class LoginPage(BasePage):
         try:
             self.browser.select_form(name='form')
         except:
-            pass
-        else:
-            self.browser.submit(nologin=True)
+            try:
+                self.browser.select_form(predicate=lambda x: x.attrs.get('id','')=='setInfosCGS')
+            except:
+                return
+
+        self.browser.submit(nologin=True)
 
     def myXOR(self,value,seed):
         s=''
@@ -124,7 +127,7 @@ class LoginPage(BasePage):
         return True
 
     def is_error(self):
-        errors = self.document.xpath(u'//div[@class="erreur"]')
+        errors = self.document.xpath(u'//div[@class="erreur" or @class="messError"]')
         return len(errors) > 0
 
 class ContractsPage(BasePage):

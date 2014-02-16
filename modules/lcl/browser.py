@@ -41,6 +41,8 @@ class LCLBrowser(BaseBrowser):
         'https://particuliers.secure.lcl.fr/outil/UAUT\?from=.*': LoginPage,
         'https://particuliers.secure.lcl.fr/outil/UAUT/Accueil/preRoutageLogin': LoginPage,
         'https://particuliers.secure.lcl.fr//outil/UAUT/Contract/routing': LoginPage,
+        'https://particuliers.secure.lcl.fr/outil/UWER/Accueil/majicER': LoginPage,
+        'https://particuliers.secure.lcl.fr/outil/UWER/Enregistrement/forwardAcc': LoginPage,
         'https://particuliers.secure.lcl.fr/outil/UAUT/Contrat/choixContrat.*': ContractsPage,
         'https://particuliers.secure.lcl.fr/outil/UAUT/Contract/getContract.*': ContractsPage,
         'https://particuliers.secure.lcl.fr/outil/UAUT/Contract/selectContracts.*': ContractsPage,
