@@ -29,6 +29,7 @@ __all__ = ['Cmso']
 class Cmso(BaseBrowser):
     PROTOCOL = 'https'
     DOMAIN = 'www.cmso.com'
+    ENCODING = 'iso-8859-1'
     PAGES = {'https://www.cmso.com/domimobile/m.jsp\?a=signin.*':       LoginPage,
              'https://www.cmso.com/domimobile/m.jsp\?a=sommaire.*':     AccountsPage,
              'https://www.cmso.com/domimobile/m.jsp\?a=solde.*':        TransactionsPage,
