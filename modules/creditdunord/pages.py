@@ -94,6 +94,8 @@ class AccountsPage(CDNBasePage):
             if label.startswith(pattern):
                 return actype
 
+        return Account.TYPE_UNKNOWN
+
     def get_history_link(self):
         return self.parser.strip(self.get_from_js(",url: Ext.util.Format.htmlDecode('", "'"))
 
