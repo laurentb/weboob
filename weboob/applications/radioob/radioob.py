@@ -24,7 +24,7 @@ import re
 import requests
 
 from weboob.capabilities.radio import ICapRadio, Radio
-from weboob.capabilities.audio import ICapAudio, BaseAudio
+from weboob.capabilities.audio import ICapAudio, BaseAudio, Playlist, Album
 from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
@@ -49,6 +49,75 @@ class RadioListFormatter(PrettyFormatter):
         return result
 
 
+class SongListFormatter(PrettyFormatter):
+    MANDATORY_FIELDS = ('id', 'title')
+
+    def get_title(self, obj):
+        result = obj.title
+
+        if hasattr(obj, 'author') and not empty(obj.author):
+            result += ' (%s)' % obj.author
+
+        return result
+
+    def get_description(self, obj):
+        result = ''
+        if hasattr(obj, 'description') and not empty(obj.description):
+            result += '%-30s' % obj.description
+
+        return result
+
+
+class AlbumTrackListInfoFormatter(PrettyFormatter):
+    MANDATORY_FIELDS = ('id', 'title', 'tracks_list')
+
+    def get_title(self, obj):
+        result = obj.title
+
+        if hasattr(obj, 'author') and not empty(obj.author):
+            result += ' (%s)' % obj.author
+
+        return result
+
+    def get_description(self, obj):
+        result = ''
+        for song in obj.tracks_list:
+            result += '- %s%-30s%s ' % (self.BOLD, song.title, self.NC)
+
+            if hasattr(song, 'duration') and not empty(song.duration):
+                result += '%-10s ' % song.duration
+            else:
+                result += '%-10s ' % ' '
+
+            result += '(%s)\r\n\t' % (song.id)
+
+        return result
+
+
+class PlaylistTrackListInfoFormatter(PrettyFormatter):
+    MANDATORY_FIELDS = ('id', 'title', 'tracks_list')
+
+    def get_title(self, obj):
+        return obj.title
+
+    def get_description(self, obj):
+        result = ''
+        for song in obj.tracks_list:
+            result += '- %s%-30s%s ' % (self.BOLD, song.title, self.NC)
+
+            if hasattr(song, 'author') and not empty(song.author):
+                result += '(%-15s) ' % song.author
+
+            if hasattr(song, 'duration') and not empty(song.duration):
+                result += '%-10s ' % song.duration
+            else:
+                result += '%-10s ' % ' '
+
+            result += '(%s)\r\n\t' % (song.id)
+
+        return result
+
+
 class Radioob(ReplApplication):
     APPNAME = 'radioob'
     VERSION = '0.j'
@@ -57,11 +126,16 @@ class Radioob(ReplApplication):
                   "like the current song."
     SHORT_DESCRIPTION = "search, show or listen to radio stations"
     CAPS = (ICapRadio, ICapAudio)
-    EXTRA_FORMATTERS = {'radio_list': RadioListFormatter}
-    COMMANDS_FORMATTERS = {'ls':     'radio_list',
-                           'search': 'radio_list',
+    EXTRA_FORMATTERS = {'radio_list': RadioListFormatter,
+                        'song_list': SongListFormatter,
+                        'album_tracks_list_info': AlbumTrackListInfoFormatter,
+                        'playlist_tracks_list_info': PlaylistTrackListInfoFormatter,
+                        }
+
+    COMMANDS_FORMATTERS = {'ls': 'radio_list',
                            'playlist': 'radio_list',
-                          }
+                           }
+
     COLLECTION_OBJECTS = (Radio, BaseAudio, )
     PLAYLIST = []
 
@@ -152,24 +226,30 @@ class Radioob(ReplApplication):
 
         try:
             stream_id = int(stream_id)
-        except (ValueError,TypeError):
+        except (ValueError, TypeError):
             stream_id = 0
 
-        radio = self.get_object(_id, 'get_radio')
-        audio = self.get_object(_id, 'get_audio')
+        obj = self.retrieve_obj(_id)
 
-        if radio is None and audio is None:
-            print >>sys.stderr, 'Radio or Audio file not found:', _id
+        if obj is None:
+            print >>sys.stderr, 'No object matches with this id:', _id
             return 3
 
-        if audio is None:
+        if isinstance(obj, Radio):
             try:
-                stream = radio.streams[stream_id]
+                streams = [obj.streams[stream_id]]
             except IndexError:
-                print >>sys.stderr, 'Stream #%d not found' % stream_id
+                print >>sys.stderr, 'Stream %d not found' % stream_id
                 return 1
+        elif isinstance(obj, BaseAudio):
+            streams = [obj]
+
         else:
-            stream = audio
+            streams = obj.tracks_list
+
+        if len(streams) == 0:
+            print >>sys.stderr, 'Radio or Audio file not found:', _id
+            return 3
 
         try:
             player_name = self.config.get('media_player')
@@ -178,30 +258,57 @@ class Radioob(ReplApplication):
                 self.logger.debug(u'You can set the media_player key to the player you prefer in the radioob '
                                   'configuration file.')
 
-            r = requests.get(stream.url, stream=True)
-            buf = r.iter_content(512).next()
-            r.close()
-            playlistFormat = None
-            for line in buf.split("\n"):
-                if playlistFormat is None:
-                    if line == "[playlist]":
-                        playlistFormat = "pls"
-                    elif line == "#EXTM3U":
-                        playlistFormat = "m3u"
-                    else:
-                        break
-                elif playlistFormat == "pls":
-                    if line.startswith('File'):
-                        stream.url = line.split('=', 1).pop(1).strip()
-                        break
-                elif playlistFormat == "m3u":
-                    if line[0] != "#":
-                        stream.url = line.strip()
-                        break
+            for stream in streams:
+                if isinstance(stream, BaseAudio) and not stream.url:
+                    stream = self.get_object(stream.id, 'get_audio')
+                else:
+                    r = requests.get(stream.url, stream=True)
+                    buf = r.iter_content(512).next()
+                    r.close()
+                    playlistFormat = None
+                    for line in buf.split("\n"):
+                        if playlistFormat is None:
+                            if line == "[playlist]":
+                                playlistFormat = "pls"
+                            elif line == "#EXTM3U":
+                                playlistFormat = "m3u"
+                            else:
+                                break
+                        elif playlistFormat == "pls":
+                            if line.startswith('File'):
+                                stream.url = line.split('=', 1).pop(1).strip()
+                                break
+                        elif playlistFormat == "m3u":
+                            if line[0] != "#":
+                                stream.url = line.strip()
+                                break
 
-            self.player.play(stream, player_name=player_name, player_args=media_player_args)
+                self.player.play(stream, player_name=player_name, player_args=media_player_args)
+
         except (InvalidMediaPlayer, MediaPlayerNotFound) as e:
             print '%s\nRadio URL: %s' % (e, stream.url)
+
+    def retrieve_obj(self, _id):
+
+        if self.interactive:
+            try:
+                obj = self.objects[int(_id) - 1]
+                _id = obj.id
+            except (IndexError, ValueError):
+                pass
+
+        m = re.match('^(\w+)\.(.*)', _id)
+        if m:
+            if m.group(1) == 'album':
+                return self.get_object(_id, 'get_album')
+
+            elif m.group(1) == 'playlist':
+                return self.get_object(_id, 'get_playlist')
+
+            else:
+                return self.get_object(_id, 'get_audio')
+
+        return self.get_object(_id, 'get_radio')
 
     def do_playlist(self, line):
         """
@@ -269,7 +376,6 @@ class Radioob(ReplApplication):
             print >>sys.stderr, 'Playlist command only support "add", "remove", "display" and "export" arguments.'
             return 2
 
-
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
@@ -285,35 +391,67 @@ class Radioob(ReplApplication):
             print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
             return 2
 
-        radio = self.get_object(_id, 'get_radio')
-        audio = self.get_object(_id, 'get_audio')
-        if radio is None and audio is None:
-            print >>sys.stderr, 'Radio or Audio file not found:', _id
+        obj = self.retrieve_obj(_id)
+
+        if isinstance(obj, Album):
+            self.set_formatter('album_tracks_list_info')
+        elif isinstance(obj, Playlist):
+            self.set_formatter('playlist_tracks_list_info')
+
+        if obj is None:
+            print >>sys.stderr, 'No object matches with this id:', _id
             return 3
 
-        if audio is None:
-            self.format(radio)
-        else:
-            self.format(audio)
+        self.format(obj)
 
     @defaultcount(10)
     def do_search(self, pattern=None):
         """
-        search PATTERN
+        search (radio|song|album|playlist) PATTERN
 
-        List radios matching a PATTERN.
+        List (radio|song|album|playlist) matching a PATTERN.
 
-        If PATTERN is not given, this command will list all the radios.
+        If PATTERN is not given, this command will list all the  (radio|song|album|playlist).
         """
+
+        if not pattern:
+            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('playlist')
+            return 2
+
+        cmd, args = self.parse_command_args(pattern, 2, req_n=1)
+        if not args:
+            args = ""
+
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'All radios')
         self.change_path([u'search'])
-        for backend, radio in self.do('iter_radios_search', pattern=pattern):
-            self.add_object(radio)
-            self.format(radio)
-        for backend, audio in self.do('search_audio', pattern=pattern):
-            self.add_object(audio)
-            self.format(audio)
 
+        if cmd == "radio":
+            self.set_formatter('radio_list')
+            for backend, radio in self.do('iter_radios_search', pattern=args):
+                self.add_object(radio)
+                self.format(radio)
+
+        elif cmd == "song":
+            self.set_formatter('song_list')
+            for backend, audio in self.do('search_audio', pattern=args):
+                self.add_object(audio)
+                self.format(audio)
+
+        elif cmd == "album":
+            self.set_formatter('song_list')
+            for backend, album in self.do('search_album', pattern=args):
+                self.add_object(album)
+                self.format(album)
+
+        elif cmd == "playlist":
+            self.set_formatter('song_list')
+            for backend, playlist in self.do('search_playlist', pattern=args):
+                self.add_object(playlist)
+                self.format(playlist)
+
+        else:
+            print >>sys.stderr, 'Search command only supports "radio", "song", "album" and "playlist" arguments.'
+            return 2
 
     def do_ls(self, line):
         """
