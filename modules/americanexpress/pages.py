@@ -107,7 +107,7 @@ class TransactionsPage(BasePage):
             day, month = self.parser.tocleanstring(cols[self.COL_DATE]).split(' ', 1)
             day = int(day)
             month = self.MONTHS.index(month.rstrip('.')) + 1
-            date = guesser.guess_date(day, month)
+            date = guesser.guess_date(day, month, False)
 
             try:
                 detail = self.parser.select(cols[self.COL_TEXT], 'div.hiddenROC', 1)
