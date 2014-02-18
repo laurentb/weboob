@@ -301,16 +301,9 @@ class Radioob(ReplApplication):
             except (IndexError, ValueError):
                 pass
 
-        m = re.match('^(\w+)\.(.*)', _id)
+        m = ICapAudio.get_object_method(_id)
         if m:
-            if m.group(1) == 'album':
-                return self.get_object(_id, 'get_album')
-
-            elif m.group(1) == 'playlist':
-                return self.get_object(_id, 'get_playlist')
-
-            else:
-                return self.get_object(_id, 'get_audio')
+            return self.get_object(_id, m)
 
         return self.get_object(_id, 'get_radio')
 

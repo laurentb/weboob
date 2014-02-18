@@ -110,6 +110,20 @@ class ICapAudio(ICapFile):
     """
     Audio file provider
     """
+
+    @classmethod
+    def get_object_method(cls, _id):
+        m = re.match('^(\w+)\.(.*)', _id)
+        if m:
+            if m.group(1) == 'album':
+                return 'get_album'
+
+            elif m.group(1) == 'playlist':
+                return 'get_playlist'
+
+            else:
+                return 'get_audio'
+
     def search_audio(self, pattern, sortby=ICapFile.SEARCH_RELEVANCE):
         """
         search for a audio file
