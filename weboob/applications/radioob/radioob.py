@@ -408,7 +408,7 @@ class Radioob(ReplApplication):
 
         List (radio|song|album|playlist) matching a PATTERN.
 
-        If PATTERN is not given, this command will list all the  (radio|song|album|playlist).
+        If PATTERN is not given, this command will list all the (radio|song|album|playlist).
         """
 
         if not pattern:
