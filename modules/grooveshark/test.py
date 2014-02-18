@@ -26,33 +26,34 @@ class GroovesharkTest(BackendTest):
     BACKEND = 'grooveshark'
 
     def test_grooveshark_audio_search(self):
-        result = list(self.backend.search_audio("Loic Lantoine"))
+        result = list(self.backend.search_audio("Gronibard"))
         self.assertTrue(len(result) > 0)
+        v = result[0]
+        self.backend.fillobj(v, ('url',))
+        self.assertTrue(v.url is not None, 'URL for audio "%s" not found: %s' % (v.id, v.url))
 
     def test_grooveshark_user_playlist_not_logged(self):
         if self.backend.browser.is_logged():
             raise SkipTest("User credentials defined")
-        l1 = list(self.backend.iter_resources([BaseAudio], [u'playlists']))
-        assert len(l1)==0
+        l1 = list(self.backend.iter_resources([BaseAudio], []))
+        assert len(l1) == 0
 
     def test_grooveshark_user_playlist_logged(self):
         if not self.backend.browser.is_logged():
             raise SkipTest("User credentials not defined")
-        l1 = list(self.backend.iter_resources([BaseAudio], [u'playlists']))
+        l1 = list(self.backend.iter_resources([BaseAudio], []))
         assert len(l1)
-        c = l1[0]
-        l2 = list(self.backend.iter_resources([BaseAudio], c.split_path))
-        assert len(l2)
-        v = l2[0]
-        self.backend.fillobj(v, ('url',))
-        self.assertTrue(v.url is not None, 'URL for audio "%s" not found: %s' % (v.id, v.url))
 
     def test_grooveshark_album_search(self):
-        l1 = list(self.backend.iter_resources([BaseAudio], [u'albums', u'live']))
-        assert len(l1)
-        c = l1[0]
-        l2 = list(self.backend.iter_resources([BaseAudio], c.split_path))
-        assert len(l2)
-        v = l2[0]
-        self.backend.fillobj(v, ('url',))
-        self.assertTrue(v.url is not None, 'URL for audio "%s" not found: %s' % (v.id, v.url))
+        result = list(self.backend.search_album("Gronibard"))
+        self.assertTrue(len(result) > 0)
+        v = result[0]
+        self.backend.fillobj(v)
+        assert len(v.tracks_list)
+
+    def test_grooveshark_playlist_search(self):
+        result = list(self.backend.search_playlist("johann"))
+        self.assertTrue(len(result) > 0)
+        v = result[0]
+        self.backend.fillobj(v)
+        assert len(v.tracks_list)

@@ -19,12 +19,20 @@
 
 
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.capabilities.audio import ICapAudio, BaseAudio
-from weboob.capabilities.collection import ICapCollection, Collection, CollectionNotFound
+from weboob.capabilities.audio import ICapAudio, BaseAudio, Album, Playlist, decode_id
+from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from .browser import GroovesharkBrowser
 from weboob.tools.value import ValueBackendPassword, Value
 
 __all__ = ['GroovesharkBackend']
+
+
+def cmp_id(p1, p2):
+    if p1.id == p2.id:
+        return 0
+    if p1.id > p2.id:
+        return 1
+    return -1
 
 
 class GroovesharkBackend(BaseBackend, ICapAudio, ICapCollection):
@@ -49,7 +57,8 @@ class GroovesharkBackend(BaseBackend, ICapAudio, ICapCollection):
     def fill_audio(self, audio, fields):
         if 'url' in fields:
             with self.browser:
-                audio.url = unicode(self.browser.get_stream_url_from_song_id(audio.id))
+                _id = BaseAudio.decode_id(audio.id)
+                audio.url = unicode(self.browser.get_stream_url_from_song_id(_id))
         if 'thumbnail' in fields and audio.thumbnail:
             with self.browser:
                 audio.thumbnail.data = self.browser.readurl(audio.thumbnail.url)
@@ -58,60 +67,67 @@ class GroovesharkBackend(BaseBackend, ICapAudio, ICapCollection):
         with self.browser:
             return self.browser.search_audio(pattern)
 
+    @decode_id(BaseAudio.decode_id)
     def get_audio(self, _id):
         with self.browser:
             return self.browser.get_audio_from_song_id(_id)
 
+    def fill_album(self, album, fields):
+        _id = Album.decode_id(album.id)
+        album.tracks_list = []
+        for song in self.browser.get_all_songs_from_album(_id):
+            album.tracks_list.append(song)
+
+    def search_album(self, pattern, sortby=ICapAudio.SEARCH_RELEVANCE):
+        with self.browser:
+            return self.browser.search_albums(pattern)
+
+    @decode_id(Album.decode_id)
+    def get_album(self, _id):
+        with self.browser:
+            album = self.browser.get_album_by_id(_id)
+            album.tracks_list = []
+            for song in self.browser.get_all_songs_from_album(_id):
+                album.tracks_list.append(song)
+
+            album.tracks_list.sort(cmp=cmp_id)
+            return album
+
+    def fill_playlist(self, playlist, fields):
+        playlist.tracks_list = []
+        _id = Playlist.decode_id(playlist.id)
+        for song in self.browser.get_all_songs_from_playlist(_id):
+            playlist.tracks_list.append(song)
+
+    def search_playlist(self, pattern, sortby=ICapAudio.SEARCH_RELEVANCE):
+        with self.browser:
+            lower_pattern = pattern.lower()
+            for playlist in self.browser.get_all_user_playlists():
+                if lower_pattern in playlist.title.lower():
+                    yield playlist
+
+    @decode_id(Playlist.decode_id)
+    def get_playlist(self, _id):
+        with self.browser:
+            playlist = Playlist(_id)
+            playlist.tracks_list = []
+            for song in self.browser.get_all_songs_from_playlist(_id):
+                playlist.tracks_list.append(song)
+
+            return playlist
+
     def iter_resources(self, objs, split_path):
         with self.browser:
-            if BaseAudio in objs:
-                collection = self.get_collection(objs, split_path)
-                if collection.path_level == 0:
-                    yield Collection([u'albums'], u'Search for Albums')
-                    if self.browser.is_logged():
-                        yield Collection([u'playlists'], u'Grooveshark Playlists')
-                if collection.path_level == 1:
-                    if collection.split_path[0] == u'playlists':
-                        for item in self.browser.get_all_user_playlists(collection.split_path):
-                            yield item
-                    elif collection.split_path[0] == u'albums':
-                        print u'Enter cd [%s\'s name] then ls to launch search' % collection.split_path[0]
-                if collection.path_level == 2:
-                    if collection.split_path[0] == u'albums':
-                        for item in self.browser.search_albums(collection.split_path):
-                            yield item
-                    if collection.split_path[0] == u'playlists':
-                        for audio in self.browser.get_all_songs_from_playlist(collection.split_path[1]):
-                            yield audio
-                if collection.path_level == 3 and collection.split_path[0] == u'albums':
-                    for audio in self.browser.get_all_songs_from_album(collection.split_path[2]):
-                        yield audio
+            if Playlist in objs:
+                self._restrict_level(split_path)
+            if self.browser.is_logged():
+                for item in self.browser.get_all_user_playlists():
+                    yield item
 
     def validate_collection(self, objs, collection):
         if collection.path_level == 0:
             return
 
-        if BaseAudio in objs and (collection.split_path == [u'albums'] or collection.split_path == [u'playlists']):
-            return
-
-        if BaseAudio in objs and collection.path_level == 2 and \
-                (collection.split_path[0] == u'albums' or collection.split_path[0] == u'playlists'):
-            if collection.split_path[0] == u'playlists':
-                try:
-                    int(collection.split_path[1])
-                except ValueError:
-                    raise CollectionNotFound(collection.split_path)
-
-            return
-
-        if BaseAudio in objs and collection.path_level == 3 and \
-                (collection.split_path[0] == u'albums'):
-            try:
-                int(collection.split_path[2])
-            except ValueError:
-                raise CollectionNotFound(collection.split_path)
-            return
-
         raise CollectionNotFound(collection.split_path)
 
-    OBJECTS = {BaseAudio: fill_audio}
+    OBJECTS = {BaseAudio: fill_audio, Album: fill_album, Playlist: fill_playlist}
