@@ -34,13 +34,17 @@ __all__ = ['Radioob']
 
 
 class RadioListFormatter(PrettyFormatter):
-    MANDATORY_FIELDS = ('id', 'title', 'description')
+    MANDATORY_FIELDS = ('id', 'title')
 
     def get_title(self, obj):
         return obj.title
 
     def get_description(self, obj):
-        result = '%-30s' % obj.description
+        result = ''
+
+        if hasattr(obj, 'description') and not empty(obj.description):
+            result += '%-30s' % obj.description
+
         if hasattr(obj, 'current') and not empty(obj.current):
             if obj.current.who:
                 result += ' (Current: %s - %s)' % (obj.current.who, obj.current.what)
