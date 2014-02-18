@@ -39,8 +39,9 @@ class SenscritiqueBrowser(BaseBrowser):
         '%s://%s/film/(.*?)' % (PROTOCOL, DOMAIN): EventPage,
     }
 
-    LIMIT = 25
-    LIMIT_NB_PAGES = 10
+    LIMIT = 25  # number of results returned for each ajax call (defined in the website).
+
+    LIMIT_NB_PAGES = 10 #  arbitrary limit to avoid infinitive loop that can occurs if total number of films is a multiple of LIMIT (in website it causes an infinite scroll)
 
     HEADER_AJAX = {"User-Agent": "Mozilla/5.0 (Windows; U; Windows "
                    "NT 5.1; en-US; rv:1.9.2.8) Gecko/20100722 Firefox/3.6.8"

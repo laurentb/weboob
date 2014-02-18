@@ -58,6 +58,10 @@ class SenscritiqueBackend(BaseBackend, ICapCalendarEvent):
         '16': u'Bouygues',
     }.iteritems())])
 
+    """
+    dict that represents ids list of general-interest channels included in a tv package
+    {'tv package id': ['general-interest channels ids list']}
+    """
     general = {
         9: [46, 2, 48, 56],
         1: [49, 46, 21, 2, 36, 59, 54, 48, 56, 50, 32, 1, 51, 24, 38, 34, 37, 6, 25, 11, 53, 26, 47],
@@ -69,6 +73,11 @@ class SenscritiqueBackend(BaseBackend, ICapCalendarEvent):
         16: [49, 46, 2, 36, 59, 54, 32, 24, 34, 37, 53, 47],
     }
 
+
+    """
+    dict that represents ids list of cinema channels included in a tv package
+    {'tv package id': ['cinema channels ids list']}
+    """
     cinema = {
         9: [10, 7],
         1: [10, 7, 9, 8, 52, 19, 18, 17, 16, 20, 15, 14, 4055, 44, 3, 45, 42, 41, 43, 13, 12],
