@@ -25,6 +25,7 @@ from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.pricecomparison import Product, Price, Shop
 import re
+from decimal import Decimal
 
 __all__ = ['MainPage','ListingAutoPage']
 
@@ -38,6 +39,7 @@ class MainPage(BasePage):
         yield product
 
 class ListingAutoPage(BasePage):
+
     def _extract(self, tr, name):
         'Extract content from td element with class name'
         td = tr.cssselect('td.' + name + ' a')
@@ -45,9 +47,9 @@ class ListingAutoPage(BasePage):
             return ''
         return td[-1].text_content().strip()
 
-    def iter_prices(self):
-        for tr in self.document.getroot().cssselect('tr.lcline[id],tr.lclineJB[id]'):
-            id = tr.attrib['id'][3:]
+    def iter_prices(self, numpage):
+        for tr in self.document.getroot().cssselect('tr.lcline[id],tr.lclineJB[id],tr.lclineJ[id]'):
+            id = '{numpage}.{id}'.format(numpage=numpage, id=tr.attrib['id'][3:])
             title = self._extract(tr, 'lcbrand')
             if not title:
                 continue
@@ -61,13 +63,22 @@ class ListingAutoPage(BasePage):
             cost = ', ' + self._extract(tr, 'lcprice')
 
             price = Price(id)
-            price.cost = int(re.findall(r'\d+',cost.replace(' ',''))[0])
+            price.cost = Decimal(re.findall(r'\d+',cost.replace(' ',''))[0])
             price.currency = u'€'
             price.message = unicode(title)
 
             price.set_empty_fields(NotAvailable)
             yield price
 
+    def get_next(self):
+        for a in self.document.getroot().cssselect('a.page'):
+            s = a.getprevious()
+            if s is not None and s.tag=='span':
+                m = re.search('num=(\d+)', a.get('href'))
+                if not m:
+                    return None
+                return int(m.group(1))
+        return None
 
 #class ComparisonResultsPage(BasePage):
     #def get_product_name(self):

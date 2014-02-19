@@ -19,6 +19,7 @@
 
 
 import urllib
+import re
 
 from weboob.tools.browser import BaseBrowser
 
@@ -51,18 +52,31 @@ class LaCentraleBrowser(BaseBrowser):
 
     def iter_prices(self, product):
         if not self.is_on_page(ListingAutoPage):
-            url = '/listing_auto.php?witchSearch=0'
+            url = '/listing_auto.php?num=1&witchSearch=0'
             url += self.buildUrl(product, 'Citadine={}','urban')
             url += self.buildUrl(product, 'prix_maxi={}','maxprice')
             url += self.buildUrl(product, 'km_maxi={}','maxdist')
             url += self.buildUrl(product, 'nbportes=%3D{}','nbdoors')
             url += self.buildUrl(product, 'cp={}','dept')
             url += self.buildUrl(product, 'origin={}','origin')
-            print url
+            #print url
             self.location(url)
 
         assert self.is_on_page(ListingAutoPage)
-        return self.page.iter_prices()
+
+        numpage = 1
+        while True:
+            # parse the current page
+            for price in self.page.iter_prices(numpage):
+                yield price
+
+            # check if next page
+            numpage = self.page.get_next()
+            if not numpage:
+                break
+            url = re.sub('num=(\d+)','num={}'.format(numpage),url)
+            self.location(url)
+            assert self.is_on_page(ListingAutoPage)
 
 #    def iter_prices(self, zipcode, product):
 #        data = {'aff_param_0_0':            '',
