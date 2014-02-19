@@ -77,7 +77,7 @@ class Translaboob(ReplApplication):
         Translate from one language to another.
         * FROM : source language
         * TO   : destination language
-        * TEXT : language to translate, standart input if - is given
+        * TEXT : language to translate, standard input if - is given
 
         Language  Abbreviation
         ----------------------
