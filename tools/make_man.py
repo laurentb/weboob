@@ -164,7 +164,7 @@ def analyze_application(app, script_name):
                                         script_name, app.VERSION.replace('.', '\\&.'))
     name = ".SH NAME\n%s \- %s" % (script_name, application.SHORT_DESCRIPTION)
     condition = """.SH CONDITION
-The -c and --condition is a flexible way to sort and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY-MM-DD format.
+The \-c and \-\-condition is a flexible way to sort and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY\-MM\-DD format.
 The syntax of one expression is "\\fBfield operator value\\fR". The field to test is always the left member of the expression.
 .LP
 The field is a member of the objects returned by the command. For example, a bank account has "balance", "coming" or "label" fields.
@@ -204,7 +204,7 @@ Display accounts with a lot of money.
 Get transactions containing "rewe".
 .PP
 .nf
-.B boobank history account@backend \-\-condition 'date>2013-12-01 AND date<2013-12-09'
+.B boobank history account@backend \-\-condition 'date>2013\-12\-01 AND date<2013\-12\-09'
 .fi
 Get transactions betweens the 2th December and 8th December 2013.
 """
