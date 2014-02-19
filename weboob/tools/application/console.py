@@ -395,6 +395,8 @@ class ConsoleApplication(BaseApplication):
             question = u'[%s] %s' % (v.id, question)
 
         if isinstance(v, ValueBackendPassword):
+            print question.encode(sys.stdout.encoding or locale.getpreferredencoding()) + ':'
+            question = v.label
             choices = OrderedDict()
             choices['c'] = 'Run an external tool during backend load'
             if not v.noprompt:
@@ -408,7 +410,7 @@ class ConsoleApplication(BaseApplication):
             else:
                 d = 's'
 
-            r = self.ask('%s: How do you want to store it?' % question, choices=choices, tiny=True, default=d)
+            r = self.ask('*** How do you want to store it?', choices=choices, tiny=True, default=d)
             if r == 'p':
                 return ''
             if r == 'c':
@@ -441,10 +443,10 @@ class ConsoleApplication(BaseApplication):
                 question = u'%s (%s)' % (question, '/'.join((s.upper() if s == v.default else s)
                                                             for s in (v.choices.iterkeys())))
                 for key, value in v.choices.iteritems():
-                    print '%s%s%s: %s' % (self.BOLD, key, self.NC, value)
+                    print '     %s%s%s: %s' % (self.BOLD, key, self.NC, value)
             else:
                 for n, (key, value) in enumerate(v.choices.iteritems()):
-                    print '%s%2d)%s %s' % (self.BOLD, n + 1, self.NC, value)
+                    print '     %s%2d)%s %s' % (self.BOLD, n + 1, self.NC, value)
                     aliases[str(n + 1)] = key
                 question = u'%s (choose in list)' % question
         if v.masked:
