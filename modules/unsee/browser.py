@@ -77,13 +77,7 @@ class UnseeBrowser(BaseBrowser):
         headers = {'Content-type': 'multipart/form-data; boundary=%s' % b, 'Content-length': len(data)}
         return Request(url, data=self._make_multipart(fields, b), headers=headers)
 
-    def post_image(self, name, contents, max_age):
-        if max_age >= 86400:
-            time = 'week'
-        elif max_age >= 3600:
-            time = 'day'
-        else:
-            time = 'hour'
+    def post_image(self, name, contents, time):
         # time='first' for one-shot view
 
         params = [('time', time), ('image[]', FileField(name or '-', contents))]

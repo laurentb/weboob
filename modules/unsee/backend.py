@@ -19,7 +19,8 @@
 
 
 from weboob.tools.backend import BaseBackend
-from weboob.capabilities.paste import ICapPaste, BasePaste
+from weboob.capabilities.paste import BasePaste
+from weboob.tools.capabilities.paste import BasePasteBackend
 from weboob.tools.capabilities.paste import image_mime
 import re
 
@@ -35,7 +36,7 @@ class UnPaste(BasePaste):
         return 'https://unsee.cc/%s' % id
 
 
-class UnseeBackend(BaseBackend, ICapPaste):
+class UnseeBackend(BaseBackend, BasePasteBackend):
     NAME = 'unsee'
     DESCRIPTION = u'unsee.cc expiring image hosting'
     MAINTAINER = u'Vincent A'
@@ -45,10 +46,12 @@ class UnseeBackend(BaseBackend, ICapPaste):
 
     BROWSER = UnseeBrowser
 
+    EXPIRATIONS = {3600: 'hour', 86400: 'day', 86400 * 7: 'week'}
+
     def can_post(self, contents, title=None, public=None, max_age=None):
         if re.search(r'[^a-zA-Z0-9=+/\s]', contents):
             return 0
-        elif max_age < 3600:
+        elif max_age is not None and not self.get_closest_expiration(max_age):
             return 0
         else:
             mime = image_mime(contents, ('gif', 'jpeg', 'png'))
@@ -63,7 +66,12 @@ class UnseeBackend(BaseBackend, ICapPaste):
         return UnPaste(*a, **kw)
 
     def post_paste(self, paste, max_age=None):
-        d = self.browser.post_image(paste.title, paste.contents.decode('base64'), max_age)
+        if max_age is None:
+            max_code = 'week'
+        else:
+            max_code = self.EXPIRATIONS[self.get_closest_expiration(max_age)]
+
+        d = self.browser.post_image(paste.title, paste.contents.decode('base64'), max_code)
         paste.id = d['id']
         return paste
 
