@@ -39,10 +39,13 @@ class LaCentraleBackend(BaseBackend, ICapPriceComparison):
     BROWSER = LaCentraleBrowser
 
     # inherited from ICapPriceComparison
-    def search_products(self, patterns=None):
+    def search_products(self, patternString=None):
         # convert pattern to criteria
         criteria = { }
-        for pattern in patterns.split(','):
+        patterns = []
+        if patternString:
+            patterns = patternString.split(',')
+        for pattern in patterns:
             pattern = pattern.lower()
             if u'€' in pattern:
                 criteria['maxprice'] = pattern[:pattern.find(u'€')].strip()

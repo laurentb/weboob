@@ -37,7 +37,6 @@ class LaCentraleBrowser(BaseBrowser):
          'http://www.lacentrale.fr/': MainPage,
          'http://www.lacentrale.fr/listing_auto.php?.*': ListingAutoPage,
         }
-#http://www.lacentrale.fr/listing_auto.php?witchSearch=0&SS_CATEGORIE=40&mo_comm=&Citadine=citadine=&km_maxi=120000&annee2=&conso=&co2=&opt=&version=&transmission=&couleur=&nbportes=%3D5&photo=&new_annonce=&cp=31&origine=1
 
     def iter_products(self, criteria):
         if not self.is_on_page(MainPage):
@@ -67,7 +66,7 @@ class LaCentraleBrowser(BaseBrowser):
         numpage = 1
         while True:
             # parse the current page
-            for price in self.page.iter_prices(numpage):
+            for price in self.page.iter_prices(product, numpage):
                 yield price
 
             # check if next page

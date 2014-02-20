@@ -47,7 +47,7 @@ class ListingAutoPage(BasePage):
             return ''
         return td[-1].text_content().strip()
 
-    def iter_prices(self, numpage):
+    def iter_prices(self, product, numpage):
         for tr in self.document.getroot().cssselect('tr.lcline[id],tr.lclineJB[id],tr.lclineJ[id]'):
             id = '{numpage}.{id}'.format(numpage=numpage, id=tr.attrib['id'][3:])
             title = self._extract(tr, 'lcbrand')
@@ -63,9 +63,12 @@ class ListingAutoPage(BasePage):
             cost = ', ' + self._extract(tr, 'lcprice')
 
             price = Price(id)
+            price.product = product
             price.cost = Decimal(re.findall(r'\d+',cost.replace(' ',''))[0])
             price.currency = u'€'
             price.message = unicode(title)
+            price.shop = Shop(price.id)
+            price.shop.set_empty_fields(NotAvailable)
 
             price.set_empty_fields(NotAvailable)
             yield price
