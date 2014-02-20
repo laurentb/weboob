@@ -33,6 +33,7 @@ class ColissimoBackend(BaseBackend, ICapParcel):
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '0.i'
+    LICENSE = 'AGPLv3+'
 
     BROWSER = ColissimoBrowser
 
