@@ -47,7 +47,7 @@ class HistoryFormatter(IFormatter):
             result += u'%sStatus:%s  %s\n' % (self.BOLD, self.NC, self.colored(status, status_color))
             result += u'%sInfo:%s  %s\n\n' % (self.BOLD, self.NC, obj.info)
             result += u' Date                  Location          Activity                                          \n'
-            result += u'---------------------+-----------------+---------------------------------------------------\n'
+            result += u'---------------------+-----------------+---------------------------------------------------'
             return result
 
         return ' %s   %s %s' % (self.colored('%-19s' % obj.date, 'blue'),
