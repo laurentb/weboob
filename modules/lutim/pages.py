@@ -31,6 +31,6 @@ class PageAll(BasePage):
     def get_info(self):
         for link in self.browser.links():
             linkurl = link.absolute_url
-            m = re.match(re.escape(self.url) + '([a-zA-Z0-9]+)$', linkurl)
+            m = re.match(re.escape(self.url) + r'([a-zA-Z0-9]+)\?dl$', linkurl)
             if m:
                 return {'id': m.group(1)}
