@@ -53,7 +53,7 @@ class BasePasteBackend(ICapPaste):
 def image_mime(data_base64, supported_formats=('gif', 'jpeg', 'png')):
     try:
         beginning = data_base64[:24].decode('base64')
-    except binascii.Error, e:
+    except binascii.Error:
         return None
 
     if 'gif' in supported_formats and 'GIF8' in beginning:
