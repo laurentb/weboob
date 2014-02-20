@@ -19,7 +19,7 @@
 
 from weboob.tools.json import json
 from weboob.tools.browser import BaseBrowser, BrowserBanned
-from .pages import TrackPage
+from .pages import TrackPage, ErrorPage
 
 
 __all__ = ['ColispriveBrowser']
@@ -31,6 +31,7 @@ class ColispriveBrowser(BaseBrowser):
     ENCODING = 'utf8'
 
     PAGES = {'https://www.colisprive.com/moncolis/pages/detailColis.aspx.*': TrackPage,
+             'https://www.colisprive.com/moncolis/Default.aspx.*': ErrorPage,
              }
 
     def get_tracking_info(self, _id):

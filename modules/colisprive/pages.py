@@ -22,7 +22,7 @@ from weboob.tools.browser import BasePage
 from weboob.capabilities.parcel import Parcel, Event
 
 
-__all__ = ['TrackPage']
+__all__ = ['TrackPage', 'ErrorPage']
 
 
 class TrackPage(BasePage):
@@ -50,3 +50,6 @@ class TrackPage(BasePage):
             p.history.append(ev)
 
         return p
+
+class ErrorPage(BasePage):
+    pass
