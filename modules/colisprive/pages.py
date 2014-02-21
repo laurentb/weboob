@@ -24,6 +24,9 @@ from weboob.capabilities.parcel import Parcel, Event
 
 __all__ = ['TrackPage', 'ErrorPage']
 
+def update_status(p, status):
+    if p.status < status:
+        p.status = status
 
 class TrackPage(BasePage):
     def get_info(self, _id):
@@ -33,6 +36,7 @@ class TrackPage(BasePage):
         status = self.parser.tocleanstring(statustr.xpath('td')[1])
 
         p.info = status
+        p.status = p.STATUS_UNKNOWN
 
         p.history = []
         for i, tr in enumerate(self.document.xpath('//div[@class="mainbloc4Evt"]//tr')):
@@ -46,9 +50,26 @@ class TrackPage(BasePage):
             ev = Event(i)
             ev.location = None
             ev.activity = self.parser.tocleanstring(tds[1])
+            if u"Votre colis a été expédié par votre webmarchand" in ev.activity:
+                update_status(p, p.STATUS_PLANNED)
+            elif u"Votre colis est pris en charge par Colis Privé" in ev.activity:
+                update_status(p, p.STATUS_IN_TRANSIT)
+            elif u"Votre colis est arrivé sur notre agence régionale" in ev.activity:
+                update_status(p, p.STATUS_IN_TRANSIT)
+            elif u"Votre colis est en cours de livraison" in ev.activity:
+                update_status(p, p.STATUS_IN_TRANSIT)
+            elif u"Votre colis a été livré" in ev.activity:
+                update_status(p, p.STATUS_ARRIVED)
             ev.date = date(*reversed([int(x) for x in self.parser.tocleanstring(tds[0]).split('/')]))
             p.history.append(ev)
 
+        try:
+            datelivre = self.document.xpath('//div[@class="NoInstNoRecla"]')
+            clean = self.parser.tocleanstring(datelivre[0])
+            if "Votre colis a déja été livré" in clean:
+                p.status = p.STATUS_ARRIVED
+        except:
+            pass
         return p
 
 class ErrorPage(BasePage):
