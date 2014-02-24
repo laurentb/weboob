@@ -31,7 +31,7 @@ __all__ = ['SearchPage']
 
 
 class SearchPage(BasePage):
-    URL_REGEXP = re.compile(r'/video/(.+)\.html')
+    URL_REGEXP = re.compile(r'/(.+)/(.+)\.jpeg')
 
     def iter_videos(self):
         try:
@@ -40,12 +40,12 @@ class SearchPage(BasePage):
             # It means there are no results.
             return
         for li in ul.findall('li'):
-            id = re.sub(self.URL_REGEXP, r'\1', li.find('a').attrib['href'])
+            url =  li.find('a').find('img').attrib['src']
 
-            video = InaVideo('boutique.%s' % id)
+            id = re.sub(self.URL_REGEXP, r'\2', url)
+            video = InaVideo(id)
 
-            url = u'http://boutique.ina.fr%s' % li.find('a').find('img').attrib['src']
-            video.thumbnail = BaseImage(url)
+            video.thumbnail = BaseImage(u'http://boutique.ina.fr%s' % url)
             video.thumbnail.url = video.thumbnail.id
 
             video.title = unicode(self.parser.select(li, 'p.titre', 1).text)

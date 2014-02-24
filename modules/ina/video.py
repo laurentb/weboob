@@ -27,10 +27,4 @@ __all__ = ['InaVideo']
 class InaVideo(BaseVideo):
     @classmethod
     def id2url(cls, _id):
-        if not '.' in _id:
-            return None
-        site, _id = _id.split('.', 1)
-        if site == 'boutique':
-            return 'http://boutique.ina.fr/video/%s.html' % _id
-        if site == 'www':
-            return 'http://www.ina.fr/%s.html' % _id
+        return "http://player.ina.fr/notices/%s.mrss" % _id
