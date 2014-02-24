@@ -62,10 +62,5 @@ class AmericanExpressBackend(BaseBackend, ICapBank):
         with self.browser:
             transactions = list(self.browser.get_history(account))
             transactions.sort(key=lambda tr: tr.rdate, reverse=True)
-            return [tr for tr in transactions if not tr._is_coming]
+            return transactions
 
-    def iter_coming(self, account):
-        with self.browser:
-            transactions = list(self.browser.get_history(account))
-            transactions.sort(key=lambda tr: tr.rdate, reverse=True)
-            return [tr for tr in transactions if tr._is_coming]

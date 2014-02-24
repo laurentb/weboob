@@ -26,6 +26,7 @@ from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.capabilities.bank import Account
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
+from weboob.tools.date import ChaoticDateGuesser
 
 
 __all__ = ['LoginPage', 'AccountsPage', 'TransactionsPage']
@@ -78,10 +79,18 @@ class TransactionsPage(BasePage):
 
         return True
 
-    def get_debit_date(self):
+    def get_end_debit_date(self):
         for option in self.document.xpath('//select[@id="viewPeriod"]/option'):
             if 'selected' in option.attrib:
-                m = re.search('(\d+) ([\w\.]+) (\d{4})$', option.text.strip())
+                m = re.search('(\d+) ([\w\.]+) (\d{4})$', option.text.strip(), re.UNICODE)
+                if m:
+                    return datetime.date(int(m.group(3)),
+                                         self.MONTHS.index(m.group(2).rstrip('.')) + 1,
+                                         int(m.group(1)))
+    def get_beginning_debit_date(self):
+        for option in self.document.xpath('//select[@id="viewPeriod"]/option'):
+            if 'selected' in option.attrib:
+                m = re.search('^(\d+) ([\w\.]+) (\d{4})', option.text.strip(), re.UNICODE)
                 if m:
                     return datetime.date(int(m.group(3)),
                                          self.MONTHS.index(m.group(2).rstrip('.')) + 1,
@@ -94,10 +103,11 @@ class TransactionsPage(BasePage):
 
     MONTHS = ['janv', u'févr', u'mars', u'avr', u'mai', u'juin', u'juil', u'août', u'sept', u'oct', u'nov', u'déc']
 
-    def get_history(self, guesser):
-        debit_date = self.get_debit_date()
-        if debit_date is not None:
-            guesser.current_date = debit_date
+    def get_history(self):
+        #adding a time delta because amex have hard time to put the date in a good interval
+        beginning_date = self.get_beginning_debit_date() - datetime.timedelta(days=30)
+        end_date = self.get_end_debit_date()
+        guesser = ChaoticDateGuesser(beginning_date, end_date)
 
         for tr in reversed(self.document.xpath('//div[@id="txnsSection"]//tr[@class="tableStandardText"]')):
             cols = tr.findall('td')
@@ -107,7 +117,7 @@ class TransactionsPage(BasePage):
             day, month = self.parser.tocleanstring(cols[self.COL_DATE]).split(' ', 1)
             day = int(day)
             month = self.MONTHS.index(month.rstrip('.')) + 1
-            date = guesser.guess_date(day, month, False)
+            date = guesser.guess_date(day, month)
 
             try:
                 detail = self.parser.select(cols[self.COL_TEXT], 'div.hiddenROC', 1)

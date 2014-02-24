@@ -21,7 +21,7 @@
 from urlparse import urlsplit, parse_qsl
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from weboob.tools.date import LinearDateGuesser
+from weboob.tools.date import ChaoticDateGuesser
 
 from .pages import LoginPage, AccountsPage, TransactionsPage
 
@@ -85,9 +85,6 @@ class AmericanExpressBrowser(BaseBrowser):
 
         url = account._link
 
-        coming = True
-        date_guesser = LinearDateGuesser()
-
         while url is not None:
             self.select_form(name='leftnav')
             self.form.action = self.absurl(url)
@@ -95,10 +92,7 @@ class AmericanExpressBrowser(BaseBrowser):
 
             assert self.is_on_page(TransactionsPage)
 
-            for tr in self.page.get_history(date_guesser):
-                if tr.amount > 0:
-                    coming = False
-                tr._is_coming = coming
+            for tr in self.page.get_history():
                 yield tr
 
             if self.page.is_last():
