@@ -38,6 +38,11 @@ def load_lxmlsoup():
     return LxmlSoupParser
 
 
+def load_xml():
+    from .lxmlparser import LxmlXmlParser
+    return LxmlXmlParser
+
+
 def load_html5lib():
     from .html5libparser import Html5libParser
     return Html5libParser
@@ -82,6 +87,7 @@ def get_parser(preference_order=('lxml', 'lxmlsoup')):
     """
     if not isinstance(preference_order, (tuple, list)):
         preference_order = [preference_order]
+
     for kind in preference_order:
         if not 'load_%s' % kind in globals():
             continue
