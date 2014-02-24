@@ -90,7 +90,6 @@ class ArteBrowser(BaseBrowser):
         return self.fill_live_video(video, json_url)
 
     def fill_live_video(self, video, json_url):
-
         response = self.openurl(json_url)
         result = simplejson.loads(response.read(), self.ENCODING)
 
@@ -110,12 +109,13 @@ class ArteBrowser(BaseBrowser):
 
             video.url = u'%s' % url
             video.ext = u'%s' % ext
-            date_string = result['videoJsonPlayer']['VDA'][:-6]
+            if 'VDA' in result['videoJsonPlayer']:
+                date_string = result['videoJsonPlayer']['VDA'][:-6]
 
-            try:
-                video.date = datetime.datetime.strptime(date_string, '%d/%m/%Y %H:%M:%S')
-            except TypeError:
-                video.date = datetime.datetime(*(time.strptime(date_string, '%d/%m/%Y %H:%M:%S')[0:6]))
+                try:
+                    video.date = datetime.datetime.strptime(date_string, '%d/%m/%Y %H:%M:%S')
+                except TypeError:
+                    video.date = datetime.datetime(*(time.strptime(date_string, '%d/%m/%Y %H:%M:%S')[0:6]))
 
             if 'VDU' in result['videoJsonPlayer'].keys():
                 video.duration = int(result['videoJsonPlayer']['VDU'])
