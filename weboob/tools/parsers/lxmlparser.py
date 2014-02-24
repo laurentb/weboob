@@ -60,7 +60,7 @@ class LxmlParser(IParser):
         return self.tocleanstring(doc)
 
     @classmethod
-    def select(cls, element, selector, nb=None, method='cssselect'):
+    def select(cls, element, selector, nb=None, method='cssselect', **kwargs):
         """
         Select one or many elements from an element, using lxml cssselect by default.
 
@@ -78,9 +78,9 @@ class LxmlParser(IParser):
         :rtype: Element
         """
         if method == 'cssselect':
-            results = element.cssselect(selector)
+            results = element.cssselect(selector, **kwargs)
         elif method == 'xpath':
-            results = element.xpath(selector)
+            results = element.xpath(selector, **kwargs)
         else:
             raise NotImplementedError('Only the cssselect and xpath methods are supported')
         if nb is None:
