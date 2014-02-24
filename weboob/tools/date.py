@@ -201,6 +201,27 @@ class LinearDateGuesser(object):
                 self.set_current_date(parsed_date)
         return parsed_date
 
+class ChaoticDateGuesser(LinearDateGuesser):
+    """
+    This class aim to find the guess the date when you know the
+    day and month and the minimum year
+    """
+    def __init__(self, min_date, current_date=None, date_max_bump=timedelta(7)):
+        if min_date is None:
+            raise ValueError("min_date is not set")
+        self.min_date = min_date
+        super(ChaoticDateGuesser, self).__init__(current_date, date_max_bump)
+
+    def guess_date(self, day, month):
+        """Returns a possible date between min_date and current_date"""
+        parsed_date = super(ChaoticDateGuesser, self).guess_date(day, month, False)
+        if parsed_date >= self.min_date:
+            return parsed_date
+        else:
+            raise ValueError("%s is inferior to min_date %s" % (parsed_date, self.min_date))
+
+
+
 DATE_TRANSLATE_FR = [(re.compile(u'janvier', re.I),   u'january'),
                      (re.compile(u'février', re.I),   u'february'),
                      (re.compile(u'mars', re.I),      u'march'),

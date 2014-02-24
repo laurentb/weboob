@@ -21,7 +21,6 @@
 from urlparse import urlsplit, parse_qsl
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from weboob.tools.date import ChaoticDateGuesser
 
 from .pages import LoginPage, AccountsPage, TransactionsPage
 
