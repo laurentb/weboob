@@ -110,7 +110,7 @@ class GenericNewsPage(BasePage):
 
     def get_title(self):
         try:
-            return self.parser.select(
+            return u'%s' % self.parser.select(
                 self.main_div,
                 self.element_title_selector,
                 1).text_content().strip()
