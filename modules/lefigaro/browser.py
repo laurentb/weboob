@@ -29,15 +29,15 @@ class IndexPage(BasePage):
 
 class NewspaperFigaroBrowser(BaseBrowser):
     "NewspaperFigaroBrowser class"
-    ENCODING = None
-    PAGES = {
-             "http://\w+.lefigaro.fr/flash-.*/(\d{4})/(\d{2})/(\d{2})/(.*$)": FlashActuPage,
+    ENCODING = "UTF-8"
+    PAGES = {"http://\w+.lefigaro.fr/flash-.*/(\d{4})/(\d{2})/(\d{2})/(.*$)": FlashActuPage,
              "http://\w+.lefigaro.fr/bd/(\d{4})/(\d{2})/(\d{2})/(.*$)": FlashActuPage,
              "http://\w+.lefigaro.fr/(?!flash-|bd|actualite).+/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://\w+.lefigaro.fr/actualite/(\d{4})/(\d{2})/(\d{2})/(.*$)": ActuPage,
              "http://\w+.lefigaro.fr/actualite-.*/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://\w+.lefigaro.fr/": IndexPage,
-            }
+             "http://feeds.lefigaro.fr/c/32266/f/438190/s/\w+/sc/\d{2}/\d{1}/\w+/story01.htm": FlashActuPage,
+             }
 
     def is_logged(self):
         return False
