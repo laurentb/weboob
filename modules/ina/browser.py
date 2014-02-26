@@ -38,7 +38,6 @@ class InaBrowser(BaseBrowser):
     @id2url(InaVideo.id2url)
     def get_video(self, url, video=None):
         self.location(url)
-        #assert self.is_on_page(VideoPage)
         return self.page.get_video(video)
 
     def search_videos(self, pattern):
