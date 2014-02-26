@@ -156,7 +156,8 @@ class AccountsPage(BasePage):
                 continue
             if link.startswith("/outil/UWLM/ListeMouvements"):
                 account = Account()
-                account._link_id=link+"&mode=45"
+                #by default the website propose the last 7 days or last 45 days but we can force to have the last 55days
+                account._link_id=link+"&mode=55"
                 account._coming_links = []
                 parameters=link.split("?").pop().split("&")
                 for parameter in parameters:
