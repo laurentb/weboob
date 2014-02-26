@@ -32,10 +32,9 @@ class LaCentraleBackend(BaseBackend, ICapPriceComparison):
     NAME = 'lacentrale'
     MAINTAINER = u'Vicnet'
     EMAIL = 'vicnet@weboob.org'
-    VERSION = '0.h'
+    VERSION = '0.i'
     DESCRIPTION = 'Vehicule prices at LaCentrale.fr'
     LICENSE = 'AGPLv3+'
-#    CONFIG = BackendConfig(Value('zipcode',                 label='Zipcode', regexp='\d+'))
     BROWSER = LaCentraleBrowser
 
     # inherited from ICapPriceComparison
