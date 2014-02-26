@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import ICapBank
+from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -46,10 +46,16 @@ class BanqueAccordBackend(BaseBackend, ICapBank):
 
     def iter_accounts(self):
         with self.browser:
-            return [self.browser.get_account()]
+             return self.browser.get_accounts_list()
 
-    def get_account(self, id):
-        return self.browser.get_account()
+    def get_account(self, _id):
+        with self.browser:
+            account = self.browser.get_account(_id)
+
+        if account:
+            return account
+        else:
+            raise AccountNotFound()
 
     def iter_history(self, account):
         with self.browser:

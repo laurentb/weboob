@@ -21,6 +21,7 @@
 from decimal import Decimal
 import re
 
+from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -88,6 +89,15 @@ class LoginPage(BasePage):
         self.browser.location(self.browser.buildurl(form.attrib['action'], identifiant=login, code=code), no_login=True)
 
 class IndexPage(BasePage):
+    def get_list(self):
+        for line in self.document.xpath('//li[@id="menu-n2-mesproduits"]//li//a'):
+            if line.get('onclick') is None:
+                continue
+            account = Account()
+            account.id = line.get('onclick').split("'")[1]
+            account.label = self.parser.tocleanstring(line)
+            yield account
+
     def get_card_name(self):
         return self.parser.tocleanstring(self.document.xpath('//h1')[0])
 

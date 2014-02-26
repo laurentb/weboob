@@ -18,8 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import urllib
+
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, IndexPage, AccountsPage, OperationsPage
 
@@ -67,21 +68,32 @@ class BanqueAccordBrowser(BaseBrowser):
         if not self.is_logged():
             raise BrowserIncorrectPassword()
 
+    def get_accounts_list(self):
+        if not self.is_on_page(IndexPage):
+             self.location('https://www.banque-accord.fr/site/s/detailcompte/detailcompte.html')
 
-    def get_account(self):
+        for a in self.page.get_list():
+            post = {'numeroCompte': a.id,}
+            self.location('/site/s/detailcompte/detailcompte.html', urllib.urlencode(post))
+            self.location('/site/s/detailcompte/ongletdetailcompte.html')
+            a.balance = self.page.get_balance()
+            yield a
+
+
+
+    def get_account(self, id):
+        assert isinstance(id, basestring)
         if not self.is_on_page(IndexPage):
             self.home()
 
-        account = Account()
-        account.id = '0'
-        account.label = self.page.get_card_name()
-
-        self.location('/site/s/detailcompte/ongletdetailcompte.html')
-        account.balance = self.page.get_balance()
-
-        return account
+        for a in self.get_accounts_list():
+            if a.id == id:
+                return a
+        return None
 
     def iter_history(self, account):
+        post = {'numeroCompte': account.id,}
+        self.location('/site/s/detailcompte/detailcompte.html', urllib.urlencode(post))
         self.location('/site/s/detailcompte/ongletdernieresoperations.html')
 
         assert self.is_on_page(OperationsPage)
