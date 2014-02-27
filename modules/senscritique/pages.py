@@ -74,8 +74,7 @@ class ProgramPage(BasePage):
 
     def create_event(self, a, event_date):
         event = SensCritiquenCalendarEvent(a.attrib['href'])
-
-        title = self.parser.select(a, "span[@class='elgr-product-title']", 1, method='xpath').text
+        title = self.parser.select(a, "div/img", 1, method='xpath').attrib['alt'].replace('Affiche ', '')
         channel_info = self.parser.select(a, "div/div[@class='elgr-data-channel']", method='xpath')
         if channel_info:
             channel = channel_info[0].text.strip()
