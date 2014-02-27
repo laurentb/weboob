@@ -35,6 +35,11 @@ STATUS = {Parcel.STATUS_PLANNED:    ('PLANNED', 'red'),
           Parcel.STATUS_UNKNOWN:    ('', 'white'),
          }
 
+
+def get_backend_name(backend):
+    return backend.name
+
+
 class HistoryFormatter(IFormatter):
     MANDATORY_FIELDS = ()
 
@@ -140,8 +145,17 @@ class Parceloob(ReplApplication):
 
         Display status for all of the tracked parcels.
         """
+        backends = map(get_backend_name, self.enabled_backends)
         self.start_format()
         for id in self.storage.get('tracking', default=[]):
+            # It should be safe to do it here, since all objects in storage
+            # are stored with the fullid
+            _id, backend_name = id.rsplit('@', 1)
+            # If the user use the -b or -e option, do not try to get
+            # the status of parcel of not loaded backends
+            if backend_name not in backends:
+                continue
+
             p = self.get_object(id, 'get_parcel_tracking')
             if p is None:
                 continue
