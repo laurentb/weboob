@@ -22,7 +22,7 @@
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountsList, AccountHistory, UpdateInfoPage, AuthenticationPage
+from .pages import LoginPage, AccountsList, AccountHistory, CardHistory, UpdateInfoPage, AuthenticationPage
 
 
 __all__ = ['Boursorama']
@@ -42,6 +42,7 @@ class Boursorama(BaseBrowser):
              '.*connexion.phtml.*': LoginPage,
              '.*/comptes/synthese.phtml': AccountsList,
              '.*/comptes/banque/detail/mouvements.phtml.*': AccountHistory,
+             '.*/comptes/banque/cartes/mouvements.phtml.*': CardHistory,
              '.*/comptes/epargne/mouvements.phtml.*': AccountHistory,
              '.*/date_anniversaire.phtml.*':    UpdateInfoPage,
             }
@@ -121,7 +122,7 @@ class Boursorama(BaseBrowser):
 
         while link is not None:
             self.location(link)
-            if not self.is_on_page(AccountHistory):
+            if not self.is_on_page(AccountHistory) and not self.is_on_page(CardHistory):
                 raise NotImplementedError()
 
             for tr in self.page.get_operations():

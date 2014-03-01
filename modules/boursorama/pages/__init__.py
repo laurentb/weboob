@@ -20,6 +20,7 @@
 
 
 from .account_history import AccountHistory
+from .card_history import CardHistory
 from .accounts_list import AccountsList
 from .login import LoginPage, UpdateInfoPage
 
@@ -31,6 +32,7 @@ class AccountPrelevement(AccountsList):
 __all__ = ['LoginPage',
            'AccountsList',
            'AccountHistory',
+           'CardHistory',
            'UpdateInfoPage',
            'AuthenticationPage',
           ]

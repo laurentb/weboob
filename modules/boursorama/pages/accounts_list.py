@@ -39,7 +39,17 @@ class AccountsList(BasePage):
                     account._link_id = None
                     for td in tr.getiterator('td'):
                         if td.attrib.get('class', '') == 'account-cb':
-                            break
+                            try:
+                                a = td.xpath('./*/a[@class="gras"]')[0]
+                            except IndexError:
+                                # ignore account
+                                break
+                            account.type = Account.TYPE_CARD
+                            account.label = self.parser.tocleanstring(a)
+                            try:
+                                account._link_id = td.xpath('.//a')[0].attrib['href']
+                            except KeyError:
+                                pass
 
                         elif td.attrib.get('class', '') == 'account-name':
                             try:
