@@ -253,7 +253,9 @@ class AccountsPage(BasePage):
         for field in self.document.xpath('//input'):
             params[field.attrib['name']] = field.attrib.get('value', '')
 
-        for div in self.document.xpath('//div[@class="btit bnofil"]'):
+        for div in self.document.getroot().cssselect('div.btit'):
+            if div.text is None:
+                continue
             account_type = self.ACCOUNT_TYPES.get(div.text.strip(), Account.TYPE_UNKNOWN)
 
             if account_type is None:
