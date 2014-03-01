@@ -40,10 +40,11 @@ class CardHistory(BasePage):
     def get_operations(self):
         for form in self.document.xpath('//form[@name="marques"]'):
             for tr in form.xpath('.//tbody/tr'):
-                if tr.attrib.get('class', '') == 'total' or 'style' in tr.attrib:
+                tds = tr.xpath('./td')
+
+                if tr.attrib.get('class', '') == 'total' or 'style' in tr.attrib or len(tds) < 3:
                     continue
 
-                tds = tr.xpath('./td')
                 date = self.parser.tocleanstring(tds[0])
                 label = self.parser.tocleanstring(tds[1])
                 amount = self.parser.tocleanstring(tds[2])
