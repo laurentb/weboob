@@ -21,6 +21,7 @@
 import argparse
 import subprocess
 import datetime
+import importlib
 import os
 import sys
 import codecs
@@ -99,6 +100,105 @@ class BaseRecipe(Recipe):
         self.write('test.py', self.template('base_test'))
 
 
+class CapRecipe(Recipe):
+    NAME = 'cap'
+
+    LINES = {'def'    :  '    def %s(%s):',
+             'docbound': '        """',
+             'docline':  '        %s',
+             'body'   :  '        raise NotImplementedError()'
+             }
+
+    def __init__(self, args):
+        super(CapRecipe, self).__init__(args)
+        self.capname = args.capname
+
+    @classmethod
+    def configure_subparser(cls, subparsers):
+        subparser = super(CapRecipe, cls).configure_subparser(subparsers)
+        subparser.add_argument('capname', help='Capability name')
+        return subparser
+
+    def find_module_cap(self):
+        if '.' not in self.capname:
+            return self.search_cap()
+
+        PREFIX = 'weboob.capabilities.'
+        if not self.capname.startswith(PREFIX):
+            self.capname = PREFIX + self.capname
+
+        try:
+            self.capmodulename, self.capname = self.capname.rsplit('.', 1)
+        except ValueError:
+            self.error('Cap name must be in format module.ICapSomething or ICapSomething')
+
+        try:
+            module = importlib.import_module(self.capmodulename)
+        except ImportError:
+            self.error('Module %r not found' % self.capmodulename)
+        try:
+            cap = getattr(module, self.capname)
+        except AttributeError:
+            self.error('Module %r has no such capability %r' % (self.capmodulename, self.capname))
+        return cap
+
+    def search_cap(self):
+        import pkgutil
+        import weboob.capabilities
+
+        modules = pkgutil.walk_packages(weboob.capabilities.__path__, prefix='weboob.capabilities.')
+        for _, capmodulename, __ in modules:
+            module = importlib.import_module(capmodulename)
+            if hasattr(module, self.capname):
+                self.capmodulename = capmodulename
+                return getattr(module, self.capname)
+
+        self.error('Capability %r not found' % self.capname)
+
+    def error(self, message):
+        print >>sys.stderr, message
+        sys.exit(1)
+
+    def methods_code(self, klass):
+        import inspect
+        import re
+
+        codes = []
+
+        for name, member in inspect.getmembers(klass):
+            if inspect.ismethod(member):
+                argspec = inspect.getargspec(member)
+                args = ', '.join(argspec[0])
+
+                code = []
+                code.append(self.LINES['def'] % (name, args))
+                doc = inspect.getdoc(member)
+                if doc:
+                    code.append(self.LINES['docbound'])
+                    for line in doc.split('\n'):
+                        if line:
+                            line = re.sub('"""', '\\"\\"\\"', line)
+                            code.append(self.LINES['docline'] % line)
+                        else:
+                            code.append('')
+                    code.append(self.LINES['docbound'])
+                code.append('        raise NotImplementedError()')
+                codes.append('\n'.join(code))
+
+        return '\n\n'.join(codes)
+
+    def generate(self):
+        cap = self.find_module_cap()
+
+        self.methods_code = self.methods_code(cap)
+
+        self.write('__init__.py', self.template('init'))
+        self.write('backend.py', self.template('cap_backend'))
+        self.write('browser.py', self.template('base_browser'))
+        self.write('pages.py', self.template('base_pages'))
+        self.write('test.py', self.template('base_test'))
+
+
 class ComicRecipe(Recipe):
     NAME = 'comic'
 
@@ -134,7 +234,7 @@ def main():
         default=gitconfig('user.email'), type=u8)
     subparsers = parser.add_subparsers()
 
-    recipes = [BaseRecipe, ComicRecipe, ComicTestRecipe]
+    recipes = [BaseRecipe, ComicRecipe, ComicTestRecipe, CapRecipe]
     for recipe in recipes:
         recipe.configure_subparser(subparsers)
 
