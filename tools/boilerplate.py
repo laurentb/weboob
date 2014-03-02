@@ -182,7 +182,7 @@ class CapRecipe(Recipe):
                         else:
                             code.append('')
                     code.append(self.LINES['docbound'])
-                code.append('        raise NotImplementedError()')
+                code.append(self.LINES['body'])
                 codes.append('\n'.join(code))
 
         return '\n\n'.join(codes)
