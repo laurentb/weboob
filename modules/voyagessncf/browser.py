@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from random import randint
 
 from weboob.tools.browser import BaseBrowser
 
@@ -40,6 +41,11 @@ class VoyagesSNCFBrowser(BaseBrowser):
         'http://www.voyages-sncf.com/billet-train/resultat.*':              ResultsPage,
         'http://(?P<country>\w{2})\.voyages-sncf.com/\w{2}/.*':             ForeignPage,
     }
+
+    def __init__(self, *args, **kwargs):
+        BaseBrowser.__init__(self, *args, **kwargs)
+        self.addheaders += (('X-Forwarded-For', '82.228.147.%s' % randint(1,254)),)
+
 
     def get_stations(self):
         self.location('/completion/VSC/FR/fr/cityList.js')
