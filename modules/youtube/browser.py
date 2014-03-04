@@ -48,8 +48,8 @@ class YoutubeBrowser(BaseBrowser):
         self.location('https://accounts.google.com/ServiceLogin?uilel=3&service=youtube&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26nomobiletemp%3D1%26hl%3Den_US%26next%3D%252F&hl=en_US&ltmpl=sso')
         self.page.login(self.username, self.password)
 
-    def get_video_url(self, player_url):
+    def get_video_url(self, video, player_url):
         self.location(player_url + '&has_verified=1')
 
         assert self.is_on_page(VideoPage)
-        return self.page.get_video_url()
+        return self.page.get_video_url(video)
