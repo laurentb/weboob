@@ -79,6 +79,7 @@ class DelubacBrowser(BaseBrowser):
         return self.page.get_account(_id)
 
     def iter_history(self, account):
+        self.stay_or_go(DashboardPage)
         self.location(account._url)
 
         while True:
