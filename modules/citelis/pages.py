@@ -22,7 +22,7 @@ from decimal import Decimal
 import datetime
 import re
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -67,7 +67,9 @@ class SummaryPage(BasePage):
 
 
 class UselessPage(BasePage):
-    pass
+    def on_loaded(self):
+        for error in self.document.xpath('//li[@class="error"]'):
+            raise BrowserIncorrectPassword(self.parser.tocleanstring(error))
 
 
 class TransactionSearchPage(BasePage):
