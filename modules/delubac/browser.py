@@ -20,7 +20,7 @@
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, DashboardPage, OperationsPage
+from .pages import LoginPage, DashboardPage, OperationsPage, LCRPage
 
 
 __all__ = ['DelubacBrowser']
@@ -39,6 +39,7 @@ class DelubacBrowser(BaseBrowser):
         '%s://%s/(simpleIndex|index).do(\;.*)?' % (PROTOCOL, DOMAIN): LoginPage,
         '%s://%s/tbord.do(\?.*)?' % (PROTOCOL, DOMAIN): DashboardPage,
         '%s://%s/releve.do(\?.*)?' % (PROTOCOL, DOMAIN): OperationsPage,
+        '%s://%s/encoursList.do(\?.*)?' % (PROTOCOL, DOMAIN): LCRPage,
     }
 
     PAGES_REV = {

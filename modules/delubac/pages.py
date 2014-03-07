@@ -26,7 +26,7 @@ from weboob.tools.browser import BasePage
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['LoginPage', 'DashboardPage', 'OperationsPage']
+__all__ = ['LoginPage', 'DashboardPage', 'OperationsPage', 'LCRPage']
 
 
 class LoginPage(BasePage):
@@ -96,6 +96,24 @@ class OperationsPage(BasePage):
         next_button = self.document.xpath(self._NEXT_XPATH)
         if next_button:
             return next_button[0]
+
+class LCRPage(OperationsPage):
+    def iter_history(self):
+        date = None
+        for line in self.document.xpath('//table[@id="encoursTable"]/tbody/tr'):
+            if line.attrib.get('class', '').startswith('PL_LIGLST_'):
+                ref = self.parser.tocleanstring(line.xpath('./td[2]')[0])
+                tr = Transaction(ref)
+
+                raw = self.parser.tocleanstring(line.xpath('./td[1]')[0])
+                amount = self.parser.tocleanstring(line.xpath('./td')[-1])
+                tr.parse(date=date, raw=raw)
+                tr.set_amount(amount)
+                yield tr
+            elif line.find('td').attrib.get('class', '').startswith('PL_TOT'):
+                m = re.search('(\d+/\d+/\d+)', line.xpath('./td')[0].text)
+                if m:
+                    date = m.group(1)
 
 
 class Transaction(FrenchTransaction):
