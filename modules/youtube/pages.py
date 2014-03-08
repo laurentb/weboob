@@ -935,7 +935,8 @@ class VideoPage(BaseYoutubePage):
 
         self._sort_formats(formats)
 
-        return formats[0]['url'], formats[0]['ext']
+        best = formats[-1]
+        return best['url'], best['ext']
 
     def _sort_formats(self, formats):
         if not formats:
