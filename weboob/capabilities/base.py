@@ -309,7 +309,7 @@ class CapBaseObject(object):
     backend = None
     _fields = None
 
-    def __init__(self, id, backend=None):
+    def __init__(self, id=u'', backend=None):
         self.id = to_unicode(id)
         self.backend = backend
         self._fields = deepcopy(self._fields)
