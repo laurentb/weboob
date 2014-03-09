@@ -866,8 +866,8 @@ class Cookie(object):
             value = renderer(value)
         return '; '.join(
             [''.join((prefix, name, '=', value))] +
-            [key if isinstance(value, bool) else '='.join((key, value))
-            for key, value in self.attributes().items()])
+            [k if isinstance(v, bool) else '='.join((k, v))
+            for k, v in self.attributes().items()])
 
     def __eq__(self, other):
         attrs = ['name', 'value'] + list(self.attribute_names.keys())

@@ -139,7 +139,7 @@ def test_brokenpost():
         r = b.location(r.url + '/feed')
         assert 'hello' in r.text
         assert 'world' in r.text
-    except HTTPError, e:
+    except HTTPError as e:
         if str(e).startswith('503 '):
             raise SkipTest('Quota exceeded')
         else:
