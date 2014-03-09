@@ -21,11 +21,12 @@
 from urlparse import urlsplit, parse_qsl, urlparse
 from datetime import datetime, timedelta
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser2 import LoginBrowser, URL, Wget, need_login
+from weboob.tools.browser import  BrowserIncorrectPassword
 from weboob.capabilities.bank import Transfer, TransferError
 
-from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, EmptyPage, \
-                   OperationsPage, CardPage, ComingPage, NoOperationsPage, InfoPage, \
+from .pages import LoginPage, LoginErrorPage, AccountsPage, \
+                   OperationsPage, CardPage, ComingPage, NoOperationsPage, \
                    TransfertPage, ChangePasswordPage, VerifCodePage
 
 
@@ -33,88 +34,68 @@ __all__ = ['CreditMutuelBrowser']
 
 
 # Browser
-class CreditMutuelBrowser(BaseBrowser):
-    PROTOCOL = 'https'
-    DOMAIN = 'www.creditmutuel.fr'
-    CERTHASH = '57beeba81e7a65d5fe15853219bcfcc2b2da27e0e618a78e6d97a689908ea57b'
-    ENCODING = 'iso-8859-1'
-    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
-    PAGES = {'https://www.creditmutuel.fr/groupe/fr/index.html':   LoginPage,
-             'https://www.creditmutuel.fr/.*/fr/identification/default.cgi': LoginErrorPage,
-             'https://www.creditmutuel.fr/.*/fr/banque/situation_financiere.cgi': AccountsPage,
-             'https://www.creditmutuel.fr/.*/fr/banque/espace_personnel.aspx': UserSpacePage,
-             'https://www.creditmutuel.fr/.*/fr/banque/mouvements.cgi.*': OperationsPage,
-             'https://www.creditmutuel.fr/.*/fr/banque/mvts_instance.cgi.*': ComingPage,
-             'https://www.creditmutuel.fr/.*/fr/banque/nr/nr_devbooster.aspx.*': OperationsPage,
-             'https://www.creditmutuel.fr/.*/fr/banque/operations_carte\.cgi.*': CardPage,
-             'https://www.creditmutuel.fr/.*/fr/banque/CR/arrivee\.asp.*': NoOperationsPage,
-             'https://www.creditmutuel.fr/.*/fr/banque/BAD.*': InfoPage,
-             'https://www.creditmutuel.fr/.*/fr/banque/.*Vir.*': TransfertPage,
-             'https://www.creditmutuel.fr/.*/fr/validation/change_password.cgi': ChangePasswordPage,
-             'https://www.creditmutuel.fr/.*/fr/validation/verif_code.cgi.*': VerifCodePage,
-             'https://www.creditmutuel.fr/.*/fr/': EmptyPage,
-             'https://www.creditmutuel.fr/.*/fr/banques/index.html': EmptyPage,
-             'https://www.creditmutuel.fr/.*/fr/banque/paci_beware_of_phishing.html.*': EmptyPage,
-             'https://www.creditmutuel.fr/.*/fr/validation/(?!change_password|verif_code).*': EmptyPage,
-            }
+class CreditMutuelBrowser(LoginBrowser):
+    PROFILE = Wget()
+    BASEURL = 'https://www.creditmutuel.fr'
+
+    login =       URL('/groupe/fr/index.html',                               LoginPage)
+    login_error = URL('/(?P<subbank>.*)/fr/identification/default.cgi',      LoginErrorPage)
+    accounts =    URL('/(?P<subbank>.*)/fr/banque/situation_financiere.cgi', AccountsPage)
+    user_space =  URL('/(?P<subbank>.*)/fr/banque/espace_personnel.aspx')
+    operations =  URL('/(?P<subbank>.*)/fr/banque/mouvements.cgi.*',
+                      '/(?P<subbank>.*)/fr/banque/nr/nr_devbooster.aspx.*',
+                      OperationsPage)
+    coming =      URL('/(?P<subbank>.*)/fr/banque/mvts_instance.cgi.*',      ComingPage)
+    card =        URL('/(?P<subbank>.*)/fr/banque/operations_carte.cgi.*',   CardPage)
+    noop =        URL('/(?P<subbank>.*)/fr/banque/CR/arrivee.asp.*',         NoOperationsPage)
+    info =        URL('/(?P<subbank>.*)/fr/banque/BAD.*')
+    transfert =   URL('/(?P<subbank>.*)/fr/banque/WI_VPLV_VirUniSaiCpt.asp\?(?P<params>.*)', TransfertPage)
+    change_pass = URL('/(?P<subbank>.*)/fr/validation/change_password.cgi',  ChangePasswordPage)
+    verify_pass = URL('/(?P<subbank>.*)/fr/validation/verif_code.cgi.*',     VerifCodePage)
+    empty =       URL('/(?P<subbank>.*)/fr/',
+                      '/(?P<subbank>.*)/fr/banques/index.html',
+                      '/(?P<subbank>.*)/fr/banque/paci_beware_of_phishing.html.*',
+                      '/(?P<subbank>.*)/fr/validation/(?!change_password|verif_code).*',
+                      )
 
     currentSubBank = None
 
-    def is_logged(self):
-        return not self.is_on_page(LoginPage) and not self.is_on_page(LoginErrorPage)
-
     def home(self):
-        return self.location('https://www.creditmutuel.fr/groupe/fr/index.html')
+        return self.login.go()
 
-    def login(self):
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
-
-        if not self.is_on_page(LoginPage):
-            self.location('https://www.creditmutuel.fr/', no_login=True)
+    def do_login(self):
+        self.login.stay_or_go()
 
         self.page.login(self.username, self.password)
 
-        if not self.is_logged() or self.is_on_page(LoginErrorPage):
+        if not self.page.logged or self.login_error.is_here():
             raise BrowserIncorrectPassword()
 
         self.getCurrentSubBank()
 
+    @need_login
     def get_accounts_list(self):
-        if not self.is_on_page(AccountsPage):
-            self.location('https://www.creditmutuel.fr/%s/fr/banque/situation_financiere.cgi' % self.currentSubBank)
-        return self.page.get_list()
+        return self.accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts()
 
     def get_account(self, id):
         assert isinstance(id, basestring)
 
-        l = self.get_accounts_list()
-        for a in l:
+        for a in self.get_accounts_list():
             if a.id == id:
                 return a
 
-        return None
-
     def getCurrentSubBank(self):
         # the account list and history urls depend on the sub bank of the user
-        url = urlparse(self.geturl())
+        url = urlparse(self.url)
         self.currentSubBank = url.path.lstrip('/').split('/')[0]
 
     def list_operations(self, page_url):
         if page_url.startswith('/'):
             self.location(page_url)
         else:
-            self.location('https://%s/%s/fr/banque/%s' % (self.DOMAIN, self.currentSubBank, page_url))
+            self.location('%s/%s/fr/banque/%s' % (self.BASEURL, self.currentSubBank, page_url))
 
-        go_next = True
-        while go_next:
-            if not self.is_on_page(OperationsPage):
-                return
-
-            for op in self.page.get_history():
-                yield op
-
-            go_next = self.page.go_next()
+        return self.pagination(lambda: self.page.get_history())
 
     def get_history(self, account):
         transactions = []
@@ -127,7 +108,7 @@ class CreditMutuelBrowser(BaseBrowser):
             elif last_debit is None:
                 last_debit = (tr.date - timedelta(days=10)).month
 
-        coming_link = self.page.get_coming_link() if self.is_on_page(OperationsPage) else None
+        coming_link = self.page.get_coming_link() if self.operations.is_here() else None
         if coming_link is not None:
             for tr in self.list_operations(coming_link):
                 transactions.append(tr)
@@ -152,44 +133,44 @@ class CreditMutuelBrowser(BaseBrowser):
 
     def transfer(self, account, to, amount, reason=None):
         # access the transfer page
-        transfert_url = 'WI_VPLV_VirUniSaiCpt.asp?RAZ=ALL&Cat=6&PERM=N&CHX=A'
-        self.location('https://%s/%s/fr/banque/%s' % (self.DOMAIN, self.currentSubBank, transfert_url))
+        params = 'RAZ=ALL&Cat=6&PERM=N&CHX=A'
+        page = self.transfert.go(subbank=self.currentSubBank, params=params)
 
         # fill the form
-        self.select_form(name='FormVirUniSaiCpt')
-        self['IDB'] = [account[-1]]
-        self['ICR'] = [to[-1]]
-        self['MTTVIR'] = '%s' % str(amount).replace('.', ',')
+        form = self.page.get_form(name='FormVirUniSaiCpt')
+        form['IDB'] = account[-1]
+        form['ICR'] = to[-1]
+        form['MTTVIR'] = '%s' % str(amount).replace('.', ',')
         if reason is not None:
-            self['LIBDBT'] = reason
-            self['LIBCRT'] = reason
-        self.submit()
+            form['LIBDBT'] = reason
+            form['LIBCRT'] = reason
+        page = form.submit()
 
         # look for known errors
-        content = unicode(self.response().get_data(), self.ENCODING)
+        content = page.response.text
         insufficient_amount_message     = u'Montant insuffisant.'
         maximum_allowed_balance_message = u'Solde maximum autorisé dépassé.'
 
-        if content.find(insufficient_amount_message) != -1:
+        if insufficient_amount_message in content:
             raise TransferError('The amount you tried to transfer is too low.')
 
-        if content.find(maximum_allowed_balance_message) != -1:
+        if maximum_allowed_balance_message in content:
             raise TransferError('The maximum allowed balance for the target account has been / would be reached.')
 
         # look for the known "all right" message
         ready_for_transfer_message = u'Confirmez un virement entre vos comptes'
-        if not content.find(ready_for_transfer_message):
+        if ready_for_transfer_message in content:
             raise TransferError('The expected message "%s" was not found.' % ready_for_transfer_message)
 
         # submit the confirmation form
-        self.select_form(name='FormVirUniCnf')
+        form = page.get_form(name='FormVirUniCnf')
         submit_date = datetime.now()
-        self.submit()
+        page = form.submit()
 
         # look for the known "everything went well" message
-        content = unicode(self.response().get_data(), self.ENCODING)
+        content = page.response.text
         transfer_ok_message = u'Votre virement a été exécuté ce jour'
-        if not content.find(transfer_ok_message):
+        if not transfer_ok_message in content:
             raise TransferError('The expected message "%s" was not found.' % transfer_ok_message)
 
         # We now have to return a Transfer object
