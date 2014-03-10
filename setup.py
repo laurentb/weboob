@@ -115,6 +115,7 @@ def install_weboob():
         'lxml',
         'feedparser',
         'mechanize',
+        'requests',
         'gdata',
         'python-dateutil',
         'PyYAML',
