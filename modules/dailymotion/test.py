@@ -27,6 +27,10 @@ from random import choice
 class DailymotionTest(BackendTest):
     BACKEND = 'dailymotion'
 
+    # Not easy to find a kids video which will always be there
+    # This might break in the future
+    KIDS_VIDEO_TITLE = 'Telmo et Tula'
+
     def test_search(self):
         l = list(self.backend.search_videos('chirac'))
         self.assertTrue(len(l) > 0)
@@ -41,3 +45,19 @@ class DailymotionTest(BackendTest):
         v = choice(l)
         self.backend.fillobj(v, ('url',))
         self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
+
+    def test_kids_video(self):
+        l = list(self.backend.search_videos(DailymotionTest.KIDS_VIDEO_TITLE))
+        self.assertTrue(len(l) > 0)
+        for elt in l[:10]:
+            video_id = elt.id
+            video = self.backend.get_video(video_id) 
+            self.assertIsNotNone(video.title)
+            if DailymotionTest.KIDS_VIDEO_TITLE in video.title:
+                self.assertTrue(video.url and video.url.startswith('http://'), 'URL for video "%s" not found: %s' %
+                        (video.id, video.url))
+                return
+
+        self.fail("Can't find test video '%s' in kids.dailymotion.com video "
+                  "on dailymotion, maybe the test video should be changed."
+                  % DailymotionTest.KIDS_VIDEO_TITLE)

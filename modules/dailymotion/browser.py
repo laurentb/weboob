@@ -22,7 +22,7 @@ from urllib import quote_plus
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.browser.decorators import id2url
 
-from .pages import IndexPage, VideoPage
+from .pages import IndexPage, VideoPage, KidsVideoPage
 from .video import DailymotionVideo
 
 
@@ -36,7 +36,8 @@ class DailymotionBrowser(BaseBrowser):
              r'http://[w\.]*dailymotion\.com/[a-z\-]{2,5}/1': IndexPage,
              r'http://[w\.]*dailymotion\.com/[a-z\-]{2,5}/(\w+/)?search/.*': IndexPage,
              r'http://[w\.]*dailymotion\.com/video/(?P<id>.+)': VideoPage,
-            }
+             r'http://kids\.dailymotion\.com/(?P<from>[^\/#]+)#(.*&)?video=(?P<id>.+)': KidsVideoPage,
+             }
 
     @id2url(DailymotionVideo.id2url)
     def get_video(self, url, video=None):
