@@ -51,7 +51,7 @@ class DailymotionTest(BackendTest):
         self.assertTrue(len(l) > 0)
         for elt in l[:10]:
             video_id = elt.id
-            video = self.backend.get_video(video_id) 
+            video = self.backend.get_video(video_id)
             self.assertIsNotNone(video.title)
             if DailymotionTest.KIDS_VIDEO_TITLE in video.title:
                 self.assertTrue(video.url and video.url.startswith('http://'), 'URL for video "%s" not found: %s' %

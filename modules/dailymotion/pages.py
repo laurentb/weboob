@@ -96,7 +96,6 @@ class VideoPage(BasePage):
 
         return video
 
-
     def set_video_metadata(self, video):
 
         head = self.parser.select(self.document.getroot(), 'head', 1)
@@ -133,7 +132,6 @@ class VideoPage(BasePage):
         except BrokenPageError:
             video.description = u''
 
-
     def set_video_url(self, video):
 
         embed_page = self.browser.readurl('http://www.dailymotion.com/embed/video/%s' % video.id)
@@ -143,10 +141,10 @@ class VideoPage(BasePage):
             raise BrokenPageError('Unable to find information about video')
 
         info = json.loads(m.group(1))
-        for key in ['stream_h264_hd1080_url','stream_h264_hd_url',
-                    'stream_h264_hq_url','stream_h264_url',
+        for key in ['stream_h264_hd1080_url', 'stream_h264_hd_url',
+                    'stream_h264_hq_url', 'stream_h264_url',
                     'stream_h264_ld_url']:
-            if info.get(key):#key in info and info[key]:
+            if info.get(key):
                 max_quality = key
                 break
         else:
