@@ -21,6 +21,7 @@ from __future__ import absolute_import
 
 import requests
 import re
+import sys
 from copy import deepcopy
 from cStringIO import StringIO
 
@@ -30,7 +31,7 @@ from weboob.tools.parsers.lxmlparser import LxmlHtmlParser
 from weboob.tools.log import getLogger
 
 from .browser import DomainBrowser
-from .filters import Filter, CleanText
+from .filters import _Filter, CleanText
 
 
 class URL(object):
@@ -114,7 +115,7 @@ class _PagesBrowserMeta(type):
 
         new_class = super(_PagesBrowserMeta, cls).__new__(cls, name, bases, attrs)
         if new_class._urls is None:
-            new_class._urls = {}
+            new_class._urls = OrderedDict()
         else:
             new_class._urls = deepcopy(new_class._urls)
         new_class._urls.update(urls)
@@ -387,14 +388,17 @@ class AbstractElement(object):
             self.env = deepcopy(page.params)
 
     def use_selector(self, func):
-        if isinstance(func, Filter):
+        if isinstance(func, _Filter):
             value = func(self)
         elif callable(func):
             value = func()
         else:
-            value = func
+            value = deepcopy(func)
 
         return value
+
+    def parse(self, obj):
+        pass
 
     def xpath(self, *args, **kwargs):
         return self.el.xpath(*args, **kwargs)
@@ -411,9 +415,6 @@ class ListElement(AbstractElement):
 
     def __call__(self):
         return self.__iter__()
-
-    def parse(self, el):
-        pass
 
     def __iter__(self):
         self.parse(self.el)
@@ -464,12 +465,31 @@ class ListElement(AbstractElement):
                 for obj in attr(self.page, self, el):
                     yield self.store(obj)
 
+
 class SkipItem(Exception):
     pass
 
+
+class _ItemElementMeta(type):
+    """
+    Private meta-class used to keep order of obj_* attributes in ItemElement.
+    """
+    def __new__(cls, name, bases, attrs):
+        filters = [(re.sub('^obj_', '', attr_name), attrs[attr_name]) for attr_name, obj in attrs.items() if attr_name.startswith('obj_')]
+        # constants first, then filters, then methods
+        filters.sort(key=lambda x: x[1]._creation_counter if hasattr(x[1], '_creation_counter') else (sys.maxint if callable(x[1]) else 0))
+
+        new_class = super(_ItemElementMeta, cls).__new__(cls, name, bases, attrs)
+        new_class._attrs = [f[0] for f in filters]
+        return new_class
+
+
 class ItemElement(AbstractElement):
+    __metaclass__ = _ItemElementMeta
+
+    _attrs = None
     klass = None
-    __filter__ = None
+    condition = None
 
     class Index(object):
         pass
@@ -477,9 +497,6 @@ class ItemElement(AbstractElement):
     def __init__(self, *args, **kwargs):
         super(ItemElement, self).__init__(*args, **kwargs)
         self.obj = None
-
-    def parse(self, obj):
-        pass
 
     def build_object(self):
         return self.klass()
@@ -492,22 +509,15 @@ class ItemElement(AbstractElement):
             return obj
 
     def __iter__(self):
-        if self.__filter__ is not None:
-            try:
-                skip = not self.__filter__(self.el)
-            except TypeError:
-                skip = not self.__filter__.im_func(self.el)
-            if skip:
-                return
+        if self.condition is not None and not self.condition():
+            return
 
         try:
             if self.obj is None:
                 self.obj = self.build_object()
             self.parse(self.el)
-            for attr in dir(self):
-                m = re.match('obj_(.*)', attr)
-                if m:
-                    self.handle_attr(m.group(1), getattr(self, attr))
+            for attr in self._attrs:
+                self.handle_attr(attr, getattr(self, 'obj_%s' % attr))
         except SkipItem:
             return
 

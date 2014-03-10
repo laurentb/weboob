@@ -23,10 +23,11 @@ import datetime
 import re
 
 from weboob.capabilities.bank import Transaction, Account
-from weboob.capabilities import NotAvailable
+from weboob.capabilities import NotAvailable, NotLoaded
 from weboob.tools.misc import to_unicode
 from weboob.tools.log import getLogger
 
+from weboob.tools.browser2.page import TableElement
 from weboob.tools.browser2.filters import Filter, CleanText, CleanDecimal
 
 
@@ -166,10 +167,17 @@ class FrenchTransaction(Transaction):
 
                 return
 
+    class TransactionsElement(TableElement):
+        columns = {'date':      [u'Date'],
+                   'vdate':     [u'Valeur'],
+                   'raw':       [u'Opération', u'Libellé'],
+                   'credit':    [u'Crédit', 'Montant'],
+                   'debit':     [u'Débit'],
+                  }
+
     class Date(CleanText):
         def __call__(self, item):
             date = super(FrenchTransaction.Date, self).__call__(item)
-            item.obj.rdate = date
             return date
 
         def filter(self, date):
@@ -195,6 +203,8 @@ class FrenchTransaction(Transaction):
         class Filter(CleanText):
             def __call__(self, item):
                 raw = super(Filter, self).__call__(item)
+                if item.obj.rdate is NotLoaded:
+                    item.obj.rdate = item.obj.date
                 item.obj.category = NotAvailable
                 if '  ' in raw:
                     item.obj.category, useless, item.obj.label = [part.strip() for part in raw.partition('  ')]

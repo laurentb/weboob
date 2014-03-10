@@ -23,7 +23,15 @@ from decimal import Decimal
 import re
 
 
-class Filter(object):
+class _Filter(object):
+    _creation_counter = 0
+
+    def __init__(self):
+        self._creation_counter = _Filter._creation_counter
+        _Filter._creation_counter += 1
+
+
+class Filter(_Filter):
     """
     Class used to filter on a HTML element given as call parameter to return
     matching elements.
@@ -38,6 +46,7 @@ class Filter(object):
     """
 
     def __init__(self, selector=None):
+        super(Filter, self).__init__()
         self.selector = selector
 
     def __call__(self, item):
@@ -56,7 +65,8 @@ class Filter(object):
         """
         return value
 
-class Env(Filter):
+
+class Env(_Filter):
     """
     Filter to get environment value of the item.
 
@@ -64,12 +74,13 @@ class Env(Filter):
     method on ItemElement.
     """
     def __init__(self, name):
+        super(Env, self).__init__()
         self.name = name
 
     def __call__(self, item):
         return item.env[self.name]
 
-class TableCell(Filter):
+class TableCell(_Filter):
     """
     Used with TableElement, it get the cell value from its name.
 
@@ -89,6 +100,7 @@ class TableCell(Filter):
     """
 
     def __init__(self, *names):
+        super(TableCell, self).__init__()
         self.names = names
 
     def __call__(self, item):
@@ -136,3 +148,15 @@ class Link(Filter):
     """
     def filter(self, el):
         return el[0].attrib.get('href', '')
+
+
+class Attr(_Filter):
+    """
+    Get the attribute of object.
+    """
+    def __init__(self, name):
+        super(Attr, self).__init__()
+        self.name = name
+
+    def __call__(self, item):
+        return item.use_selector(getattr(item, 'obj_%s' % self.name))

@@ -24,7 +24,7 @@ import re
 from dateutil.relativedelta import relativedelta
 
 from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement, SkipItem, FormNotFound, TableElement
-from weboob.tools.browser2.filters import Filter, Env, CleanText, CleanDecimal, Link, TableCell
+from weboob.tools.browser2.filters import Filter, Env, CleanText, CleanDecimal, Link, TableCell, Attr
 from weboob.tools.browser import  BrowserIncorrectPassword
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
@@ -78,17 +78,23 @@ class AccountsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
-            def __filter__(self, el):
-                if len(el.xpath('./td')) < 2:
+            def condition(self):
+                if len(self.el.xpath('./td')) < 2:
                     return False
 
-                first_td = el.xpath('./td')[0]
+                first_td = self.el.xpath('./td')[0]
                 return ((first_td.attrib.get('class', '') == 'i g' or first_td.attrib.get('class', '') == 'p g')
                         and first_td.find('a') is not None)
 
             class Label(Filter):
                 def filter(self, text):
                     return text.lstrip(' 0123456789').title()
+
+            class Type(Filter):
+                def filter(self, label):
+                    for pattern, actype in AccountsPage.TYPES.iteritems():
+                        if label.startswith(pattern):
+                            return actype
 
             obj_id = Env('id')
             obj_label = Label(CleanText('./td[1]/a'))
@@ -98,11 +104,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_currency = FrenchTransaction.Currency('./td[2] | ./td[3]')
             obj__link_id = Link('./td[1]/a')
             obj__card_links = []
-
-            def obj_type(self):
-                for pattern, actype in AccountsPage.TYPES.iteritems():
-                    if self.obj.label.startswith(pattern):
-                        return actype
+            obj_type = Type(Attr('label'))
 
             def parse(self, el):
                 link = el.xpath('./td[1]/a')[0].get('href', '')
@@ -196,7 +198,7 @@ class OperationsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Transaction
 
-            __filter__ = lambda el: len(el.xpath('./td')) >= 4 and len(el.xpath('./td[@class="i g" or @class="p g" or contains(@class, "_c1 c _c1")]')) > 0
+            condition = lambda self: len(self.el.xpath('./td')) >= 4 and len(self.el.xpath('./td[@class="i g" or @class="p g" or contains(@class, "_c1 c _c1")]')) > 0
 
             class OwnRaw(Filter):
                 def __call__(self, item):
@@ -209,9 +211,9 @@ class OperationsPage(LoggedPage, HTMLPage):
 
                     return u' '.join(parts)
 
-            obj_raw = Transaction.Raw(OwnRaw())
             obj_date = Transaction.Date(TableCell('date'))
             obj_vdate = Transaction.Date(TableCell('vdate', 'date'))
+            obj_raw = Transaction.Raw(OwnRaw())
             obj_amount = Transaction.Amount(TableCell('credit'), TableCell('debit'))
 
     def find_amount(self, title):
@@ -238,7 +240,7 @@ class ComingPage(OperationsPage, LoggedPage):
 
         class item(ItemElement):
             klass = Transaction
-            __filter__ = lambda el: len(el.xpath('./td')) >= 3
+            condition = lambda self: len(self.el.xpath('./td')) >= 3
 
             obj_date = Transaction.Date('./td[1]')
             obj_raw = Transaction.Raw('./td[2]')
@@ -255,8 +257,8 @@ class CardPage(OperationsPage, LoggedPage):
             class item(ItemElement):
                 def __iter__(self):
                     card_link = self.el.get('href')
-                    history_url = '%s/%s/fr/banque/%s' % (self.browser.BASEURL, self.browser.currentSubBank, card_link)
-                    page = self.browser.location(history_url)
+                    history_url = '%s/%s/fr/banque/%s' % (self.page.browser.BASEURL, self.page.browser.currentSubBank, card_link)
+                    page = self.page.browser.location(history_url)
 
                     for op in page.get_history():
                         yield op
@@ -272,7 +274,7 @@ class CardPage(OperationsPage, LoggedPage):
 
             class item(ItemElement):
                 klass = Transaction
-                __filter__ = lambda el: len(el.xpath('./td')) >= 4
+                condition = lambda self: len(self.el.xpath('./td')) >= 4
 
                 obj_raw = Transaction.Raw('./td[last()-2] | ./td[last()-1]')
                 obj_type = Transaction.TYPE_CARD
