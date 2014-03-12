@@ -475,12 +475,17 @@ class _ItemElementMeta(type):
     Private meta-class used to keep order of obj_* attributes in ItemElement.
     """
     def __new__(cls, name, bases, attrs):
+        _attrs = []
+        for base in bases:
+            if hasattr(base, '_attrs'):
+                _attrs += base._attrs
+
         filters = [(re.sub('^obj_', '', attr_name), attrs[attr_name]) for attr_name, obj in attrs.items() if attr_name.startswith('obj_')]
         # constants first, then filters, then methods
         filters.sort(key=lambda x: x[1]._creation_counter if hasattr(x[1], '_creation_counter') else (sys.maxint if callable(x[1]) else 0))
 
         new_class = super(_ItemElementMeta, cls).__new__(cls, name, bases, attrs)
-        new_class._attrs = [f[0] for f in filters]
+        new_class._attrs = _attrs + [f[0] for f in filters]
         return new_class
 
 
@@ -530,7 +535,6 @@ class ItemElement(AbstractElement):
 
 class TableElement(ListElement):
     head_xpath = None
-    columns = None
     cleaner = CleanText
 
     def __init__(self, *args, **kwargs):
@@ -538,9 +542,15 @@ class TableElement(ListElement):
 
         self._cols = {}
 
+        columns = {}
+        for attrname in dir(self):
+            m = re.match('col_(.*)', attrname)
+            if m:
+                columns[m.group(1)] = getattr(self, attrname)
+
         for colnum, el in enumerate(self.el.xpath(self.head_xpath)):
             title = self.cleaner.clean(el)
-            for name, titles in self.columns.iteritems():
+            for name, titles in columns.iteritems():
                 if title in titles or title == titles:
                     self._cols[name] = colnum
 

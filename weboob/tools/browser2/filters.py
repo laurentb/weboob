@@ -89,9 +89,9 @@ class TableCell(_Filter):
         class table(TableElement):
             head_xpath = '//table/thead/th'
             item_xpath = '//table/tbody/tr'
-            columns = {'date':  u'Date',
-                       'label': [u'Name', 'Label'],
-                      }
+
+            col_date =    u'Date'
+            col_label =   [u'Name', u'Label']
 
             class item(ItemElement):
                 klass = Object
@@ -99,15 +99,19 @@ class TableCell(_Filter):
                 obj_label = CleanText(TableCell('label'))
     """
 
-    def __init__(self, *names):
+    def __init__(self, *names, **kwargs):
         super(TableCell, self).__init__()
         self.names = names
+        self.default = kwargs.pop('default', None)
 
     def __call__(self, item):
         for name in self.names:
             idx = item.parent.get_colnum(name)
             if idx is not None:
                 return item.xpath('./td[%s]' % (idx + 1))
+
+        if self.default is not None:
+            return self.default
         raise KeyError('Unable to find column %s' % ' or '.join(self.names))
 
 class CleanText(Filter):
