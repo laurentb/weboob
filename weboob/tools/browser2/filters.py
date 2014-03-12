@@ -171,8 +171,9 @@ class Regexp(Filter):
     Apply a regex.
 
     >>> from lxml.html import etree
-    >>> f = Regexp(CleanText('//p'), r'Date: (\d+)/(\d+)/(\d+)', r'\3-\2-\1')
+    >>> f = Regexp(CleanText('//p'), r'Date: (\d+)/(\d+)/(\d+)', '\\3-\\2-\\1')
     >>> f(etree.fromstring('<html><body><p>Date: <span>13/08/1988</span></p></body></html>'))
+    u'1988-08-13'
     """
     def __init__(self, selector, pattern, template=None, flags=0, default=None):
         super(Regexp, self).__init__(selector)
