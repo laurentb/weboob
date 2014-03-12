@@ -27,11 +27,18 @@ from weboob.capabilities import NotAvailable, NotLoaded
 from weboob.tools.misc import to_unicode
 from weboob.tools.log import getLogger
 
-from weboob.tools.browser2.page import TableElement
-from weboob.tools.browser2.filters import Filter, CleanText, CleanDecimal
+from weboob.tools.browser2.page import TableElement, ItemElement
+from weboob.tools.browser2.filters import Filter, CleanText, CleanDecimal, TableCell
 
 
 __all__ = ['FrenchTransaction']
+
+
+class classproperty(object):
+    def __init__(self, f):
+        self.f = f
+    def __get__(self, obj, owner):
+        return self.f(owner)
 
 
 class FrenchTransaction(Transaction):
@@ -167,13 +174,29 @@ class FrenchTransaction(Transaction):
 
                 return
 
-    class TransactionsElement(TableElement):
-        columns = {'date':      [u'Date'],
-                   'vdate':     [u'Valeur'],
-                   'raw':       [u'Opération', u'Libellé'],
-                   'credit':    [u'Crédit', 'Montant'],
-                   'debit':     [u'Débit'],
-                  }
+    @classproperty
+    def TransactionElement(k):
+        class _TransactionElement(ItemElement):
+            klass = k
+
+            obj_date = klass.Date(TableCell('date'))
+            obj_vdate = klass.Date(TableCell('vdate', 'date'))
+            obj_raw = klass.Raw(TableCell('raw'))
+            obj_amount = klass.Amount(TableCell('credit'), TableCell('debit', default=''))
+
+        return _TransactionElement
+
+    @classproperty
+    def TransactionsElement(klass):
+        class _TransactionsElement(TableElement):
+            col_date =       [u'Date']
+            col_vdate =      [u'Valeur']
+            col_raw =        [u'Opération', u'Libellé']
+            col_credit =     [u'Crédit', u'Montant']
+            col_debit =      [u'Débit']
+
+            item = klass.TransactionElement
+        return _TransactionsElement
 
     class Date(CleanText):
         def __call__(self, item):
