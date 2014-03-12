@@ -98,7 +98,6 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             obj_id = Env('id')
             obj_label = Label(CleanText('./td[1]/a'))
-            obj_balance = CleanDecimal('./td[2] | ./td[3]')
             obj_coming = Env('coming')
             obj_balance = Env('balance')
             obj_currency = FrenchTransaction.Currency('./td[2] | ./td[3]')
