@@ -322,7 +322,9 @@ class Form(OrderedDict):
         """
         Get the Request object from the form.
         """
-        return requests.Request(self.method, self.url, data=self)
+        req = requests.Request(self.method, self.url, data=self)
+        req.headers.setdefault('Referer', self.page.url)
+        return req
 
     def submit(self):
         """
