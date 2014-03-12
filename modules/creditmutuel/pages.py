@@ -268,6 +268,8 @@ class CardPage(OperationsPage, LoggedPage):
 
             def parse(self, el):
                 label = CleanText('//div[contains(@class, "lister")]//p[@class="c"]')(el)
+                if not label:
+                    return
                 label = re.findall('(\d+ [^ ]+ \d+)', label)[-1]
                 # use the trick of relativedelta to get the last day of month.
                 self.env['debit_date'] = parse_french_date(label) + relativedelta(day=31)
