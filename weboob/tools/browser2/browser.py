@@ -20,7 +20,12 @@
 from __future__ import absolute_import
 
 from urlparse import urlparse, urljoin
-import requests
+
+try:
+    import requests
+except ImportError:
+    raise ImportError('Please install python-requests >= 2.0')
+
 
 from weboob.tools.log import getLogger
 
