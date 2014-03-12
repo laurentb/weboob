@@ -23,8 +23,8 @@ from decimal import Decimal
 import re
 from dateutil.relativedelta import relativedelta
 
-from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement, SkipItem, FormNotFound, TableElement
-from weboob.tools.browser2.filters import Filter, Env, CleanText, CleanDecimal, Link, TableCell, Attr
+from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement, SkipItem, FormNotFound
+from weboob.tools.browser2.filters import Filter, Env, CleanText, CleanDecimal, Link, Attr
 from weboob.tools.browser import  BrowserIncorrectPassword
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
@@ -184,20 +184,11 @@ class Pagination(object):
 
 class OperationsPage(LoggedPage, HTMLPage):
     @method
-    class get_history(Pagination, TableElement):
+    class get_history(Pagination, Transaction.TransactionsElement):
         head_xpath = '//table[@class="liste"]//thead//tr/th'
         item_xpath = '//table[@class="liste"]//tbody/tr'
 
-        columns = {'date':  u'Date',
-                   'vdate': u'Valeur',
-                   'raw':   u'Opération',
-                   'debit': u'Débit',
-                   'credit': u'Crédit',
-                  }
-
-        class item(ItemElement):
-            klass = Transaction
-
+        class item(Transaction.TransactionElement):
             condition = lambda self: len(self.el.xpath('./td')) >= 4 and len(self.el.xpath('./td[@class="i g" or @class="p g" or contains(@class, "_c1 c _c1")]')) > 0
 
             class OwnRaw(Filter):
@@ -211,10 +202,7 @@ class OperationsPage(LoggedPage, HTMLPage):
 
                     return u' '.join(parts)
 
-            obj_date = Transaction.Date(TableCell('date'))
-            obj_vdate = Transaction.Date(TableCell('vdate', 'date'))
             obj_raw = Transaction.Raw(OwnRaw())
-            obj_amount = Transaction.Amount(TableCell('credit'), TableCell('debit'))
 
     def find_amount(self, title):
         try:
@@ -235,16 +223,13 @@ class OperationsPage(LoggedPage, HTMLPage):
 
 class ComingPage(OperationsPage, LoggedPage):
     @method
-    class get_history(Pagination, ListElement):
-        item_xpath = '//table[@class="liste"]/tbody/tr'
+    class get_history(Pagination, Transaction.TransactionsElement):
+        head_xpath = '//table[@class="liste"]//thead//tr/th/text()'
+        item_xpath = '//table[@class="liste"]//tbody/tr'
 
-        class item(ItemElement):
-            klass = Transaction
-            condition = lambda self: len(self.el.xpath('./td')) >= 3
+        col_date = u"Date de l'annonce"
 
-            obj_date = Transaction.Date('./td[1]')
-            obj_raw = Transaction.Raw('./td[2]')
-            obj_amount = Transaction.Amount('./td[last()]')
+        class item(Transaction.TransactionElement):
             obj__is_coming = True
 
 
@@ -263,7 +248,8 @@ class CardPage(OperationsPage, LoggedPage):
                     for op in page.get_history():
                         yield op
 
-        class list_history(ListElement):
+        class list_history(Transaction.TransactionsElement):
+            head_xpath = '//table[@class="liste"]//thead/tr/th'
             item_xpath = '//table[@class="liste"]/tbody/tr'
 
             def parse(self, el):
@@ -274,16 +260,11 @@ class CardPage(OperationsPage, LoggedPage):
                 # use the trick of relativedelta to get the last day of month.
                 self.env['debit_date'] = parse_french_date(label) + relativedelta(day=31)
 
-            class item(ItemElement):
-                klass = Transaction
+            class item(Transaction.TransactionElement):
                 condition = lambda self: len(self.el.xpath('./td')) >= 4
 
                 obj_raw = Transaction.Raw('./td[last()-2] | ./td[last()-1]')
                 obj_type = Transaction.TYPE_CARD
-                obj_date = Env('debit_date')
-                obj_rdate = Transaction.Date('./td[1]')
-                obj_vdate = Transaction.Date('./td[1]')
-                obj_amount = Transaction.Amount('./td[last()]')
 
 
 class NoOperationsPage(OperationsPage, LoggedPage):
