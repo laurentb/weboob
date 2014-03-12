@@ -19,6 +19,7 @@
 
 from __future__ import absolute_import
 
+import re
 from urlparse import urlparse, urljoin
 
 try:
@@ -118,6 +119,7 @@ class BaseBrowser(object):
 
     PROFILE = Firefox()
     TIMEOUT = 10.0
+    REFRESH_MAX = 0.0
 
     def __init__(self, logger=None):
         self.logger = getLogger('browser', logger)
@@ -157,7 +159,7 @@ class BaseBrowser(object):
         self.url = self.response.url
         return response
 
-    def open(self, url, referrer=None, **kwargs):
+    def open(self, url, referrer=None, allow_redirects=True, **kwargs):
         """
         Make an HTTP request like a browser does:
          * follow redirects (unless disabled)
@@ -188,6 +190,9 @@ class BaseBrowser(object):
 
         :rtype: :class:`requests.Response`
         """
+        return self._open(url, referrer, allow_redirects, **kwargs)
+
+    def _open(self, url, referrer=None, allow_redirects=True, **kwargs):
         if isinstance(url, requests.Request):
             req = url
             url = req.url
@@ -196,7 +201,7 @@ class BaseBrowser(object):
 
         # guess method
         if req.method is None:
-            if req.data is None:
+            if req.data:
                 req.method = 'POST'
             else:
                 req.method = 'GET'
@@ -217,7 +222,38 @@ class BaseBrowser(object):
         preq = self.session.prepare_request(req)
 
         # call python-requests
-        response = self.session.send(preq)
+        response = self.session.send(preq, allow_redirects=allow_redirects)
+
+        if allow_redirects:
+            response = self.handle_refresh(response)
+
+        return response
+
+    REFRESH_RE = re.compile("^(?P<sleep>[\d\.]+)(; url=[\"']?(?P<url>.*?)[\"']?)?$", re.IGNORECASE)
+    def handle_refresh(self, response):
+        """
+        Called by _open, to handle Refresh HTTP header.
+
+        It only redirect to the refresh URL if the sleep time is inferior to
+        REFRESH_MAX.
+        """
+        if not 'Refresh' in response.headers:
+            return response
+
+        m = self.REFRESH_RE.match(response.headers['Refresh'])
+        if m:
+            # XXX perhaps we should not redirect if the refresh url is equal to the current url.
+            url = m.groupdict().get('url', None) or response.request.url
+            sleep = float(m.groupdict()['sleep'])
+
+            if sleep <= self.REFRESH_MAX:
+                self.logger.debug('Refresh to %s' % url)
+                return self._open(url)
+            else:
+                self.logger.debug('Do not refresh to %s because %s > REFRESH_MAX(%s)' % (url, sleep, self.REFRESH_MAX))
+                return response
+
+        self.logger.warning('Unable to handle refresh "%s"' % response.headers['Refresh'])
 
         return response
 
@@ -332,7 +368,7 @@ class DomainBrowser(BaseBrowser):
             req = url
         return super(DomainBrowser, self).open(req, *args, **kwargs)
 
-    def home(self):
+    def go_home(self):
         """
         Go to the "home" page, usually the BASEURL.
         """
