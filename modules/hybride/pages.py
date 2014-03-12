@@ -18,10 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import time, datetime
-from weboob.tools.browser import BasePage
 from .calendar import HybrideCalendarEvent
+
 import weboob.tools.date as date_util
 import re
+
+from weboob.tools.browser2.page import HTMLPage, method, ItemElement, SkipItem, ListElement
+from weboob.tools.browser2.filters import Filter, Link, CleanText, Env
+
 
 __all__ = ['ProgramPage', 'EventPage']
 
@@ -32,80 +36,115 @@ def format_date(date):
         return date_util.parse_french_date(splitted_date)
 
 
-class ProgramPage(BasePage):
-    def list_events(self, date_from, date_to=None, city=None, categories=None):
-        divs = self.document.getroot().xpath("//div[@class='catItemView groupLeading']")
-        for div in divs:
-            if(self.is_event_in_valid_period(div, date_from, date_to)):
-                event = self.create_event(div, city, categories)
-                if event:
-                    yield event
-
-    def create_event(self, div, city=None, categories=None):
-        re_id = re.compile('/programme/item/(.*?).html', re.DOTALL)
-        header = self.parser.select(div, "div[@class='catItemHeader']", 1, method='xpath')
-        date = self.parser.select(header, "span[@class='catItemDateCreated']", 1, method='xpath')
-        a_id = self.parser.select(header, "h3[@class='catItemTitle']/a", 1, method='xpath')
-        _id = re_id.search(a_id.attrib['href']).group(1)
-        if _id:
-            event = HybrideCalendarEvent(_id)
-            event.start_date = format_date(date.text)
-            event.end_date = datetime.combine(event.start_date, time.max)
-            event.summary = u'%s' % a_id.text_content().strip()
-            if self.is_valid_event(event, city, categories):
-                return event
-
-    def is_valid_event(self, event, city, categories):
-        if city and city != '' and city.upper() != event.city.upper():
-            return False
-
-        if categories and len(categories) > 0 and event.category not in categories:
-            return False
-
-        return True
-
-    def is_event_in_valid_period(self, div, date_from, date_to=None):
-        header = self.parser.select(div, "div[@class='catItemHeader']", 1, method='xpath')
-        date = self.parser.select(header, "span[@class='catItemDateCreated']", 1, method='xpath')
-        event_date = format_date(date.text)
-        if event_date > date_from:
-            if not date_to:
-                return True
-            else:
-                if event_date < date_to:
-                    return True
-        return False
+class Date(Filter):
+    def filter(self, text):
+        return format_date(text)
 
 
-class EventPage(BasePage):
-    def get_event(self, url, event=None):
-        if not event:
-            re_id = re.compile('http://www.lhybride.org/programme/item/(.*?).html', re.DOTALL)
-            event = HybrideCalendarEvent(re_id.search(url).group(1))
+class CombineDate(Filter):
+    def filter(sel, text):
+        return datetime.combine(format_date(text), time.max)
 
-        event.url = url
 
-        div = self.document.getroot().xpath("//div[@class='itemView']")[0]
-        header = self.parser.select(div, "div[@class='itemHeader']", 1, method='xpath')
+class ProgramPage(HTMLPage):
 
-        date = self.parser.select(header, "span[@class='itemDateCreated']", 1, method='xpath')
-        event.start_date = format_date(date.text)
-        event.end_date = datetime.combine(event.start_date, time.max)
+    date_from = None
+    date_to = None
+    city = None
+    categories = None
 
-        summary = self.parser.select(header, "h2[@class='itemTitle']", 1, method='xpath')
-        event.summary = u'%s' % summary.text_content().strip()
+    def set_filters(self, date_from, date_to, city, categories):
+        self.date_from = date_from
+        self.date_to = date_to
+        self.city = city
+        self.categories = categories
 
-        description = ''
+    @method
+    class list_events(ListElement):
+        item_xpath = '//div[@class="catItemView groupLeading"]'
 
-        description_intro = self.parser.select(div, "div[@class='itemBody']/div[@class='itemIntroText']/table/tbody/tr/td",
-                                               method='xpath')
-        if description_intro and len(description_intro) > 0:
-            description += u'%s' % description_intro[0].text_content()
+        class item(ItemElement):
+            klass = HybrideCalendarEvent
 
-        description_content = self.parser.select(div, "div[@class='itemBody']/div[@class='itemFullText']/table/tbody/tr/td",
-                                                 method='xpath')
-        if description_content and len(description_content) > 0:
-            description += u'%s' % description_content[0].text_content()
+            def condition(self):
+                return self.check_date() and self.check_city() and self.check_category()
 
-        event.description = u'%s' % description
-        return event
+            def check_date(self):
+                date = self.el.xpath("div[@class='catItemHeader']/span[@class='catItemDateCreated']")[0]
+                event_date = format_date(date.text)
+                if self.page.date_from and event_date >= self.page.date_from:
+                    if not self.page.date_to:
+                        return True
+                    else:
+                        if event_date <= self.page.date_to:
+                            return True
+                return False
+
+            def check_city(self):
+                return  (not self.page.city or (self.page.city and
+                                                self.page.city.upper() == HybrideCalendarEvent.get_city().upper())
+                        )
+
+            def check_category(self):
+                return  (not self.page.categories or HybrideCalendarEvent.get_category() in self.page.categories)
+
+            class CheckId(Filter):
+                def filter(self, a_id):
+                    re_id = re.compile('/programme/item/(.*?).html', re.DOTALL)
+                    _id = re_id.search(a_id).group(1)
+                    if _id:
+                        return _id
+                    raise SkipItem()
+
+            obj_id = CheckId(Link('div[@class="catItemHeader"]/h3[@class="catItemTitle"]/a'))
+            obj_start_date = Date(CleanText('div[@class="catItemHeader"]/span[@class="catItemDateCreated"]'))
+            obj_end_date = CombineDate(CleanText('div[@class="catItemHeader"]/span[@class="catItemDateCreated"]'))
+            obj_summary = CleanText('div[@class="catItemHeader"]/h3[@class="catItemTitle"]/a')
+            obj_city = HybrideCalendarEvent.get_city()
+            obj_category = HybrideCalendarEvent.get_category()
+
+
+class EventPage(HTMLPage):
+
+    @method
+    class get_event(ItemElement):
+        klass = HybrideCalendarEvent
+
+        def parse(self, el):
+            div = el.xpath("//div[@class='itemView']")[0]
+
+            if self.obj.id:
+                event = self.obj
+                event.url = self.page.url
+                event.description = self.get_description(div)
+                raise SkipItem()
+
+            re_id = re.compile('http://www.lhybride.org/programme/item/(.*?)', re.DOTALL)
+            self.env['id'] = re_id.search(self.page.url).group(1)
+            self.env['url'] = self.page.url
+            self.env['description'] = self.get_description(div)
+
+        def get_description(self, div):
+            description = ''
+
+            description_intro = div.xpath("div[@class='itemBody']/div[@class='itemIntroText']/table/tbody/tr/td")
+
+            if description_intro and len(description_intro) > 0:
+                description += u'%s' % description_intro[0].text_content()
+
+            description_content = div.xpath("div[@class='itemBody']/div[@class='itemFullText']/table/tbody/tr/td")
+
+            if description_content and len(description_content) > 0:
+                description += u'%s' % description_content[0].text_content()
+
+            return u'%s' % description
+
+        obj_id = Env('id')
+        base = '//div[@class="itemView"]/div[@class="itemHeader"]'
+        obj_start_date = Date(CleanText('%s/span[@class="itemDateCreated"]' % base))
+        obj_end_date = CombineDate(CleanText('%s/span[@class="itemDateCreated"]' % base))
+        obj_summary = CleanText('%s/h2[@class="itemTitle"]' % base)
+        obj_city = HybrideCalendarEvent.get_city()
+        obj_category = HybrideCalendarEvent.get_category()
+        obj_url = Env('url')
+        obj_description = Env('description')

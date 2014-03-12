@@ -39,22 +39,18 @@ class HybrideBackend(BaseBackend, ICapCalendarEvent):
 
     def search_events(self, query):
         if self.has_matching_categories(query):
-            with self.browser:
-                return self.browser.list_events(query.start_date,
-                                                query.end_date,
-                                                query.city,
-                                                query.categories)
+            return self.browser.list_events(query.start_date,
+                                            query.end_date,
+                                            query.city,
+                                            query.categories)
 
     def list_events(self, date_from, date_to=None):
-        with self.browser:
-            return self.browser.list_events(date_from, date_to)
+        return self.browser.list_events(date_from, date_to)
 
     def get_event(self, _id):
-        with self.browser:
-            return self.browser.get_event(_id)
+        return self.browser.get_event(_id)
 
     def fill_obj(self, event, fields):
-        with self.browser:
-            return self.browser.get_event(event.id, event)
+        return self.browser.get_event(event.id, event)
 
     OBJECTS = {HybrideCalendarEvent: fill_obj}
