@@ -164,3 +164,35 @@ class Attr(_Filter):
 
     def __call__(self, item):
         return item.use_selector(getattr(item, 'obj_%s' % self.name))
+
+
+class Regexp(Filter):
+    """
+    Apply a regex.
+
+    >>> from lxml.html import etree
+    >>> f = Regexp(CleanText('//p'), r'Date: (\d+)/(\d+)/(\d+)', r'\3-\2-\1')
+    >>> f(etree.fromstring('<html><body><p>Date: <span>13/08/1988</span></p></body></html>'))
+    """
+    def __init__(self, selector, pattern, template=None, flags=0, default=None):
+        super(Regexp, self).__init__(selector)
+        self.pattern = pattern
+        self.regex = re.compile(pattern, flags)
+        self.template = template
+        self.default = default
+
+    def filter(self, txt):
+        if isinstance(txt, (tuple,list)):
+            txt = ' '.join([t.strip() for t in txt.itertext()])
+
+        mobj = self.regex.search(txt)
+        if not mobj:
+            if self.default is not None:
+                return self.default
+            else:
+                raise KeyError('Unable to match %s' % self.pattern)
+
+        if self.template is None:
+            return next(g for g in mobj.groups() if g is not None)
+        else:
+            return mobj.expand(self.template)
