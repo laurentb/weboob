@@ -24,15 +24,9 @@ class HybrideCalendarEvent(BaseCalendarEvent):
 
     def __init__(self):
         BaseCalendarEvent.__init__(self)
+        self.city = u'Lille'
         self.location = u'18 rue Gosselet'
         self.sequence = 1
         self.transp = TRANSP.TRANSPARENT
         self.status = STATUS.CONFIRMED
-
-    @classmethod
-    def get_city(cls):
-        return u'Lille'
-
-    @classmethod
-    def get_category(cls):
-        return CATEGORIES.CINE
+        self.category = CATEGORIES.CINE

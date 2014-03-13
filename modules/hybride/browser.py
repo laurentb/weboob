@@ -17,11 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-#from weboob.tools.browser.decorators import id2url
-#from weboob.tools.browser import BaseBrowser
-#from .calendar import HybrideCalendarEvent
 from .pages import ProgramPage, EventPage
-
 
 from weboob.tools.browser2 import PagesBrowser, URL, Firefox
 
@@ -36,9 +32,10 @@ class HybrideBrowser(PagesBrowser):
     event_page = URL('/programme/item/(?P<_id>.*)', EventPage)
 
     def list_events(self, date_from, date_to=None, city=None, categories=None):
-        self.program_page.stay_or_go()
-        self.page.set_filters(date_from, date_to, city, categories)
-        return self.page.list_events()
+        return self.program_page.stay_or_go().list_events(date_from=date_from,
+                                                          date_to=date_to,
+                                                          city=city,
+                                                          categories=categories)
 
     def get_event(self, _id, event=None):
         return self.event_page.stay_or_go(_id=_id).get_event(obj=event)
