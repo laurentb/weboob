@@ -6,7 +6,7 @@ grep -n 'class [^( ]\+:$' ${PYFILES} && echo 'Error: old class style found, alwa
 grep -n $'\t\|\s$' $PYFILES && echo 'Error: tabs or trailing whitespace found, remove them' && exit 4
 grep -Fn '.setlocale' ${PYFILES} && echo 'Error: do not use setlocale' && exit 5
 grep -Fn '__future__ import with_statement' ${PYFILES} && echo 'Error: with_statement useless as we do not support Python 2.5' &&  exit 6
-grep -nE 'except [[:alnum:] ]+,[[:alnum:] ]+' ${PYFILES} && echo 'Error: use new "as" way of naming exceptions' && exit 7
+grep -nE '^[[:space:]]+except [[:alnum:] ]+,[[:alnum:] ]+' ${PYFILES} && echo 'Error: use new "as" way of naming exceptions' && exit 7
 
 FLAKE8=""
 if which flake8 >/dev/null 2>&1; then
