@@ -88,7 +88,7 @@ class Firefox(Profile):
             'Accept-Language': 'en-us,en;q=0.5',
             'Accept-Encoding': 'gzip, deflate',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0.3) Gecko/20100101 Firefox/10.0.3',
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:24.0) Gecko/20100101 Firefox/24.0',
             'DNT': '1'}
         # It also has "Connection: Keep-Alive", that should only be added this way:
         #FIXME session.config['keep_alive'] = True
