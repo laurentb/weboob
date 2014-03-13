@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2014 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from weboob.tools.misc import limit
 from weboob.tools.test import BackendTest
 from weboob.capabilities.video import BaseVideo
 
@@ -28,15 +29,16 @@ class YoujizzTest(BackendTest):
     def test_search(self):
         self.assertTrue(len(self.backend.search_videos('anus', nsfw=False)) == 0)
 
-        l = list(self.backend.search_videos('anus', nsfw=True))
+        l = list(limit(self.backend.search_videos('anus', nsfw=True), 100))
         self.assertTrue(len(l) > 0)
         v = l[0]
         self.backend.fillobj(v, ('url',))
         self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
-        self.backend.browser.openurl(v.url)
+        r = self.backend.browser.open(v.url, stream=True)
+        self.assertTrue(r.status_code == 200)
 
     def test_latest(self):
-        l = list(self.backend.iter_resources([BaseVideo], [u'latest_nsfw']))
+        l = list(limit(self.backend.iter_resources([BaseVideo], [u'latest_nsfw']), 100))
         self.assertTrue(len(l) > 0)
         v = l[0]
         self.backend.fillobj(v, ('url',))

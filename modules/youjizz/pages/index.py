@@ -25,8 +25,7 @@ from weboob.tools.browser2 import HTMLPage
 from weboob.tools.browser2.page import ListElement, method, ItemElement
 from weboob.tools.browser2.filters import Filter, Link, CleanText
 from weboob.capabilities.image import BaseImage
-
-from ..video import YoujizzVideo
+from weboob.capabilities.video import BaseVideo
 
 
 __all__ = ['IndexPage']
@@ -40,7 +39,7 @@ class IndexPage(HTMLPage):
         next_page = Link(u'//a[text()="Next »"]')
 
         class item(ItemElement):
-            klass = YoujizzVideo
+            klass = BaseVideo
 
             class Id(Filter):
                 def filter(self, link):
@@ -66,6 +65,7 @@ class IndexPage(HTMLPage):
             obj_id = Id(Link('.//a'))
             obj_title = CleanText('.//span[@id="title1"]')
             obj_duration = Duration(CleanText('.//span[@class="thumbtime"]//span'))
+            obj_nsfw = True
 
             def obj_thumbnail(self):
                 thumbnail = BaseImage(self.xpath('.//img')[0].attrib['data-original'])

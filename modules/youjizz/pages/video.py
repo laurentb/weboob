@@ -25,9 +25,8 @@ from weboob.tools.browser2 import HTMLPage
 from weboob.tools.browser2.page import method, ItemElement
 from weboob.tools.browser2.filters import CleanText, Env
 from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.video import BaseVideo
 from weboob.tools.misc import to_unicode
-
-from ..video import YoujizzVideo
 
 
 __all__ = ['VideoPage']
@@ -36,10 +35,12 @@ __all__ = ['VideoPage']
 class VideoPage(HTMLPage):
     @method
     class get_video(ItemElement):
-        klass = YoujizzVideo
+        klass = BaseVideo
 
         obj_id = Env('id')
         obj_title = CleanText('//title')
+        obj_nsfw = True
+        obj_ext = u'flv'
 
         def obj_duration(self):
             # youjizz HTML is crap, we must parse it with regexps

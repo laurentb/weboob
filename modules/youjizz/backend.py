@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Roger Philibert
+# Copyright(C) 2010-2014 Roger Philibert
 #
 # This file is part of weboob.
 #
@@ -25,7 +25,6 @@ from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
 
 from .browser import YoujizzBrowser
-from .video import YoujizzVideo
 
 
 __all__ = ['YoujizzBackend']
@@ -52,11 +51,9 @@ class YoujizzBackend(BaseBackend, ICapVideo, ICapCollection):
     def fill_video(self, video, fields):
         if fields != ['thumbnail']:
             # if we don't want only the thumbnail, we probably want also every fields
-            with self.browser:
-                video = self.browser.get_video(YoujizzVideo.id2url(video.id), video)
+            video = self.browser.get_video(video.id, video)
         if 'thumbnail' in fields and video.thumbnail:
-            with self.browser:
-                video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
+            video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
 
         return video
 
@@ -77,4 +74,4 @@ class YoujizzBackend(BaseBackend, ICapVideo, ICapCollection):
             return
         raise CollectionNotFound(collection.split_path)
 
-    OBJECTS = {YoujizzVideo: fill_video}
+    OBJECTS = {BaseVideo: fill_video}

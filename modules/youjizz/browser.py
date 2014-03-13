@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Roger Philibert
+# Copyright(C) 2010-2014 Roger Philibert
 #
 # This file is part of weboob.
 #
@@ -19,11 +19,9 @@
 
 
 from weboob.tools.browser2 import PagesBrowser, URL
-from weboob.tools.browser.decorators import id2url
 
 from .pages.index import IndexPage
 from .pages.video import VideoPage
-from .video import YoujizzVideo
 
 
 __all__ = ['YoujizzBrowser']
@@ -32,11 +30,13 @@ __all__ = ['YoujizzBrowser']
 class YoujizzBrowser(PagesBrowser):
     BASEURL = 'http://www.youjizz.com'
 
-    index = URL(r'/?(index.php)?$', IndexPage)
+    index = URL(r'/?(index.php)?$',
+                r'/page/\d+.html',
+                IndexPage)
     search = URL(r'/search/(?P<pattern>.+)-(?P<pagenum>\d+).html', IndexPage)
     video = URL(r'/videos/(?P<id>.*).html', VideoPage)
 
-    @id2url(YoujizzVideo.id2url)
+    @video.id2url
     def get_video(self, url, video=None):
         self.location(url)
         assert self.video.is_here()
