@@ -85,24 +85,44 @@ class URL(object):
         >>> url = URL('http://exawple.org/(?P<pagename>).html')
         >>> url.stay_or_go(pagename='index')
         """
+        return self.browser.location(self.build(**kwargs))
+
+    def build(self, **kwargs):
         patterns = []
         for url in self.urls:
             patterns += normalize(url)
 
         for pattern, args in patterns:
             url = pattern % kwargs
-            return self.browser.location(url)
+            return url
+
+    def match(self, url):
+        for regex in self.urls:
+            if regex.startswith('/'):
+                regex = self.browser.BASEURL + regex
+            m = re.match(regex, url)
+            if m:
+                return m
 
     def handle(self, response):
         """
         Handle a HTTP response to get an instance of the klass if it matches.
         """
-        for regex in self.urls:
-            if regex.startswith('/'):
-                regex = self.browser.BASEURL + regex
-            m = re.match(regex, response.url)
-            if m:
-                return self.klass(self.browser, response, m.groupdict())
+        m = self.match(response.url)
+        if m:
+            return self.klass(self.browser, response, m.groupdict())
+
+    def id2url(self, func):
+        def inner(browser, _id, *args, **kwargs):
+            if re.match('^https?://.*', _id):
+                _id = self.match(_id)
+                if _id is None:
+                    return
+
+            url = self.build(id=_id)
+
+            return func(browser, url, *args, **kwargs)
+        return inner
 
 
 class _PagesBrowserMeta(type):
