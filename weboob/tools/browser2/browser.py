@@ -125,7 +125,7 @@ class BaseBrowser(object):
         self.logger = getLogger('browser', logger)
         self._setup_session(self.PROFILE)
         if proxy is not None:
-            self.session.proxies = {'http': proxy, 'https': proxy}
+            self.session.proxies = proxy
         self.url = None
         self.response = None
 

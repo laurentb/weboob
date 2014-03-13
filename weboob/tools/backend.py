@@ -313,12 +313,31 @@ class BaseBackend(object):
         if not self.BROWSER:
             return None
 
+        tmpproxy = None
+        tmpproxys = None
+
         if '_proxy' in self._private_config:
-            kwargs['proxy'] = self._private_config['_proxy']
+            tmpproxy = self._private_config['_proxy']
         elif 'http_proxy' in os.environ:
-            kwargs['proxy'] = os.environ['http_proxy']
+            tmpproxy = os.environ['http_proxy']
         elif 'HTTP_PROXY' in os.environ:
-            kwargs['proxy'] = os.environ['HTTP_PROXY']
+            tmpproxy = os.environ['HTTP_PROXY']
+        if '_proxys' in self._private_config:
+            tmpproxys = self._private_config['_proxy_ssl']
+        elif 'https_proxy' in os.environ:
+            tmpproxys = os.environ['https_proxy']
+        elif 'HTTPS_PROXY' in os.environ:
+            tmpproxys = os.environ['HTTPS_PROXY']
+        print tmpproxys
+
+        if tmpproxy is not None or tmpproxys is not None:
+            kwargs['proxy'] = {}
+            if tmpproxy is not None:
+              kwargs['proxy']['http'] = tmpproxy
+            if tmpproxys is not None:
+              kwargs['proxy']['https'] = tmpproxys
+
+
         kwargs['logger'] = self.logger
 
         if hasattr(self.BROWSER, 'SAVE_RESPONSES') and self.BROWSER.SAVE_RESPONSES and self.BROWSER.responses_dirname:
