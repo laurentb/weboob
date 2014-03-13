@@ -114,6 +114,14 @@ class URL(object):
 
     def id2url(self, func):
         def inner(browser, _id, *args, **kwargs):
+            # id2url is called with the global instance of URL, so there is no
+            # browser set. As except for this kind of thing, the class instance
+            # won't be called, we don't care about changing the 'browser'
+            # attriibute to let match() looks for the BASEURL attribute.
+            # A solution could be to set browser to the class instead of the
+            # instance, but it is possible to a browser to have a variable
+            # BASEURL.
+            self.browser = browser
             if re.match('^https?://.*', _id):
                 _id = self.match(_id)
                 if _id is None:
