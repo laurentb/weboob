@@ -23,6 +23,7 @@ from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword, ValueBool
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BrowserIncorrectPassword, BrokenPageError
+from weboob.tools.browser2 import BaseBrowser
 
 from re import match, compile, sub
 from urllib import urlencode
@@ -31,15 +32,7 @@ from lxml import etree
 from datetime import date
 from StringIO import StringIO
 
-from ssl import DER_cert_to_PEM_cert
-from hashlib import sha256
-
-
 import os
-
-# import a library that adds certificate verification and proxy support to
-# HTTPSConnection
-from hellhttp import HellHTTPS
 
 
 __all__ = ['CmbBackend']
@@ -53,7 +46,8 @@ class CmbBackend(BaseBackend, ICapBank):
     LICENSE = 'AGPLv3+'
     AUTH_CERT = os.path.dirname(__file__)
     AUTH_CERT += '/Verisign_Class_3_Public_Primary_Certification_Authority.pem'
-    CERTHASH = '684d79eb02f59497b5a9c5dcc4c26db1ee637db12f29d703fdf6a80aafef892d'
+    # CERTHASH is not used anymore
+    # CERTHASH = '684d79eb02f59497b5a9c5dcc4c26db1ee637db12f29d703fdf6a80aafef892d'
     DESCRIPTION = u'Crédit Mutuel de Bretagne'
     CONFIG = BackendConfig(
             ValueBackendPassword('login', label='Identifiant', masked=False),
@@ -97,7 +91,9 @@ class CmbBackend(BaseBackend, ICapBank):
             )
             ]
 
+    BROWSER = BaseBrowser
     cookie = None
+    islogged = False
     headers = {
             'User-Agent':
                 'Mozilla/5.0 (iPad; U; CPU OS 3_2_1 like Mac OSX; en-us) ' +
@@ -110,55 +106,28 @@ class CmbBackend(BaseBackend, ICapBank):
         return certhash == self.CERTHASH
 
     def login(self):
-        params = urlencode({
+        data = {
             'codeEspace': 'NO',
             'codeEFS': '01',
             'codeSi': '001',
             'noPersonne': self.config['login'].get(),
             'motDePasse': self.config['password'].get()
-            })
-        if 'no_check' in self.config and self.config['no_check'].get() == "y":
-            conn = HellHTTPS("www.cmb.fr")
-        else:
-            conn = HellHTTPS("www.cmb.fr", ca_file=self.AUTH_CERT, callBack=self.sslCallBack)
-        conn.connect()
-        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-        conn.request("POST",
-                     "/domiweb/servlet/Identification",
-                     params,
-                     headers)
-        response = conn.getresponse()
-        conn.close()
-        if response.status == 302:
-            self.cookie = response.getheader('Set-Cookie').split(';')[0]
-            self.cookie += ';'
-            return True
+            }
+
+        response = self.browser.open("https://www.cmb.fr/domiweb/servlet/Identification", None, False, data=data)
+
+        if response.status_code == 302:
+          self.islogged=True
+          return True
         else:
             raise BrowserIncorrectPassword()
         return False
 
     def iter_accounts(self):
-        if not self.cookie:
+        if not self.islogged:
             self.login()
 
-        def do_http():
-            if 'no_check' in self.config and self.config['no_check'].get() == "y":
-                conn = HellHTTPS("www.cmb.fr")
-            else:
-                conn = HellHTTPS("www.cmb.fr", ca_file=self.AUTH_CERT, callBack=self.sslCallBack)
-            conn.connect()
-            headers = self.headers
-            headers['Cookie'] = self.cookie
-            conn.request("GET",
-                         '/domiweb/prive/particulier/releve/0-releve.act',
-                         {},
-                         headers)
-            response = conn.getresponse()
-            data = response.read()
-            conn.close()
-            return data
-
-        data = do_http()
+        data = self.browser.open("https://www.cmb.fr/domiweb/prive/particulier/releve/0-releve.act").content
         parser = etree.HTMLParser()
         tree = etree.parse(StringIO(data), parser)
 
@@ -167,7 +136,7 @@ class CmbBackend(BaseBackend, ICapBank):
             title = tree.xpath('/html/head/title')[0].text
             if title == u"Utilisateur non identifié":
                 self.login()
-                data = do_http()
+                data = self.browser.open("https://www.cmb.fr/domiweb/prive/particulier/releve/0-releve.act").content
 
                 parser = etree.HTMLParser()
                 tree = etree.parse(StringIO(data), parser)
@@ -216,7 +185,7 @@ class CmbBackend(BaseBackend, ICapBank):
         raise AccountNotFound()
 
     def iter_history(self, account):
-        if not self.cookie:
+        if not self.islogged:
             self.login()
 
         page = "/domiweb/prive/particulier/releve/"
@@ -230,21 +199,7 @@ class CmbBackend(BaseBackend, ICapBank):
         page += account._cmbvaleur2
         page += "&deviseOrigineEcran=EUR"
 
-        def do_http():
-            if 'no_check' in self.config and self.config['no_check'].get() == "y":
-                conn = HellHTTPS("www.cmb.fr")
-            else:
-                conn = HellHTTPS("www.cmb.fr", ca_file=self.AUTH_CERT, callBack=self.sslCallBack)
-            conn.connect()
-            headers = self.headers
-            headers['Cookie'] = self.cookie
-            conn.request("GET", page, {}, headers)
-            response = conn.getresponse()
-            data = response.read()
-            conn.close
-            return data
-
-        data = do_http()
+        data = self.browser.open(page).content
         parser = etree.HTMLParser()
         tree = etree.parse(StringIO(data), parser)
 
@@ -253,7 +208,7 @@ class CmbBackend(BaseBackend, ICapBank):
             title = tree.xpath('/html/head/title')[0].text
             if title == u"Utilisateur non identifié":
                 self.login()
-                data = do_http()
+                data = self.browser.open(page).content
 
                 parser = etree.HTMLParser()
                 tree = etree.parse(StringIO(data), parser)
