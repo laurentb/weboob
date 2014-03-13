@@ -75,7 +75,7 @@ class URL(object):
         >>> url = URL('http://exawple.org/(?P<pagename>).html')
         >>> url.stay_or_go(pagename='index')
         """
-        if self.browser.page and isinstance(self.browser.page, self.klass):
+        if self.is_here():
             return self.browser.page
 
         return self.go(**kwargs)
@@ -89,7 +89,8 @@ class URL(object):
         >>> url = URL('http://exawple.org/(?P<pagename>).html')
         >>> url.stay_or_go(pagename='index')
         """
-        return self.browser.location(self.build(**kwargs))
+        r = self.browser.location(self.build(**kwargs))
+        return r.page or r
 
     def build(self, **kwargs):
         patterns = []
@@ -117,6 +118,9 @@ class URL(object):
         """
         Handle a HTTP response to get an instance of the klass if it matches.
         """
+        if self.klass is None:
+            return
+
         m = self.match(response.url)
         if m:
             return self.klass(self.browser, response, m.groupdict())
@@ -228,10 +232,11 @@ class PagesBrowser(DomainBrowser):
             # Call load hook.
             self.page.on_load()
 
-        return response
+        # Returns self.response in case on_load recalls location()
+        return self.response
 
     def pagination(self, func, *args, **kwargs):
-        """
+        r"""
         This helper function can be used to handle pagination pages easily.
 
         When the called function raises an exception `NextPage`, it goes on the
@@ -272,6 +277,7 @@ class NextPage(Exception):
     See PagesBrowser.pagination.
     """
     def __init__(self, request):
+        super(NextPage, self).__init__()
         self.request = request
 
 
@@ -347,6 +353,10 @@ class Form(OrderedDict):
                 name = el.attrib['name']
             except KeyError:
                 continue
+
+            if el.attrib['type'] == 'checkbox' and not 'checked' in el:
+                continue
+
             value = el.attrib.get('value', u'')
             self[name] = value
 
@@ -544,6 +554,8 @@ class ItemElement(AbstractElement):
         self.obj = None
 
     def build_object(self):
+        if self.klass is None:
+            return
         return self.klass()
 
     def __call__(self, obj=None):
