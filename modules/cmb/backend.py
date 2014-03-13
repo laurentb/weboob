@@ -114,7 +114,7 @@ class CmbBackend(BaseBackend, ICapBank):
             'motDePasse': self.config['password'].get()
             }
 
-        response = self.browser.open("https://www.cmb.fr/domiweb/servlet/Identification", None, False, data=data)
+        response = self.browser.open("https://www.cmb.fr/domiweb/servlet/Identification", allow_redirects=False, data=data)
 
         if response.status_code == 302:
           self.islogged=True
