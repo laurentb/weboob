@@ -145,6 +145,7 @@ class BaseBrowser(object):
             print >>sys.stderr, 'Debug data will be saved in this directory: %s' % self.responses_dirname
         elif not os.path.isdir(self.responses_dirname):
             os.makedirs(self.responses_dirname)
+
         # get the content-type, remove optionnal charset part
         mimetype = response.headers.get('Content-Type', '').split(';')[0]
         # due to http://bugs.python.org/issue1043134
@@ -153,12 +154,20 @@ class BaseBrowser(object):
         else:
             # try to get an extension (and avoid adding 'None')
             ext = mimetypes.guess_extension(mimetype, False) or ''
-        response_filepath = os.path.join(self.responses_dirname, unicode(self.responses_count)+ext)
+
+        path = re.sub('[^A-z0-9\.-_]+', '_', urlparse(response.url).path.rpartition('/')[2])
+        if path.endswith(ext):
+            ext = ''
+        filename = '%02d-%d%s%s%s' % \
+            (self.responses_count, response.status_code, '-' if path else '', path, ext)
+
+        response_filepath = os.path.join(self.responses_dirname, filename)
         with open(response_filepath, 'w') as f:
             f.write(response.content)
         match_filepath = os.path.join(self.responses_dirname, 'url_response_match.txt')
         with open(match_filepath, 'a') as f:
-            f.write('%s\t%s\n' % (response.url, os.path.basename(response_filepath)))
+            f.write('# %d %s %s\n' % (response.status_code, response.reason, response.headers.get('Content-Type', '')))
+            f.write('%s\t%s\n' % (response.url, filename))
         self.responses_count += 1
 
         msg = u'Response saved to %s' % response_filepath
