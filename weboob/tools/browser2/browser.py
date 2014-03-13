@@ -188,6 +188,23 @@ class BaseBrowser(object):
         return self._open(url, referrer, allow_redirects, **kwargs)
 
     def _open(self, url, referrer=None, allow_redirects=True, **kwargs):
+        req = self.build_request(url, referrer, **kwargs)
+        preq = self.session.prepare_request(req)
+
+        # call python-requests
+        response = self.session.send(preq, allow_redirects=allow_redirects)
+
+        if allow_redirects:
+            response = self.handle_refresh(response)
+
+        return response
+
+    def build_request(self, url, referrer=None, **kwargs):
+        """
+        Does the same job as open(), but returns a Request without
+        submitting it.
+        This allows further customization to the Request.
+        """
         if isinstance(url, requests.Request):
             req = url
             url = req.url
@@ -207,15 +224,7 @@ class BaseBrowser(object):
             # Yes, it is a misspelling.
             req.headers.setdefault('Referer', referrer)
 
-        preq = self.session.prepare_request(req)
-
-        # call python-requests
-        response = self.session.send(preq, allow_redirects=allow_redirects)
-
-        if allow_redirects:
-            response = self.handle_refresh(response)
-
-        return response
+        return req
 
     REFRESH_RE = re.compile("^(?P<sleep>[\d\.]+)(; url=[\"']?(?P<url>.*?)[\"']?)?$", re.IGNORECASE)
 
