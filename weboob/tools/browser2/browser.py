@@ -46,6 +46,7 @@ class Profile(object):
 
         Warning: Do not enable lzma, bzip or bzip2, sdch encodings
         as python-requests does not support it yet.
+        Supported as of 2.2: gzip, deflate, compress.
         In doubt, do not change the default Accept-Encoding header
         of python-requests.
         """
@@ -90,7 +91,7 @@ class Firefox(Profile):
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0.3) Gecko/20100101 Firefox/10.0.3',
             'DNT': '1'}
         # It also has "Connection: Keep-Alive", that should only be added this way:
-        #session.config['keep_alive'] = True
+        #FIXME session.config['keep_alive'] = True
 
 
 class Wget(Profile):
@@ -108,7 +109,7 @@ class Wget(Profile):
         session.headers.update({
             'Accept': '*/*',
             'User-Agent': 'Wget/%s' % self.version})
-        #session.config['keep_alive'] = True
+        #FIXME session.config['keep_alive'] = True
 
 
 class BaseBrowser(object):
@@ -163,7 +164,6 @@ class BaseBrowser(object):
         """
         Make an HTTP request like a browser does:
          * follow redirects (unless disabled)
-         * handle cookies
          * provide referrers (unless disabled)
 
         Unless a `method` is explicitly provided, it makes a GET request,
