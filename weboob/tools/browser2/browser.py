@@ -92,8 +92,6 @@ class Firefox(Profile):
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:24.0) Gecko/20100101 Firefox/24.0',
             'DNT': '1'}
-        # It also has "Connection: Keep-Alive", that should only be added this way:
-        #FIXME session.config['keep_alive'] = True
 
 
 class Wget(Profile):
@@ -111,7 +109,6 @@ class Wget(Profile):
         session.headers.update({
             'Accept': '*/*',
             'User-Agent': 'Wget/%s' % self.version})
-        #FIXME session.config['keep_alive'] = True
 
 
 class BaseBrowser(object):
@@ -138,12 +135,8 @@ class BaseBrowser(object):
 
         if self.TIMEOUT:
             session.timeout = self.TIMEOUT
-        # Raise exceptions on HTTP errors
-        #session.config['safe_mode'] = False
-        #session.config['danger_mode'] = True
-        ## weboob only can provide proxy and auth options
-        #session.config['trust_env'] = False
-        # TODO max_retries?
+        ## weboob only can provide proxy and HTTP auth options
+        session.trust_env = False
         # TODO connect config['verbose'] to our logger
 
         profile.setup_session(session)
@@ -225,6 +218,7 @@ class BaseBrowser(object):
         return response
 
     REFRESH_RE = re.compile("^(?P<sleep>[\d\.]+)(; url=[\"']?(?P<url>.*?)[\"']?)?$", re.IGNORECASE)
+
     def handle_refresh(self, response):
         """
         Called by _open, to handle Refresh HTTP header.
