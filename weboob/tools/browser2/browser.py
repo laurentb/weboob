@@ -157,7 +157,14 @@ class BaseBrowser(object):
         self.url = self.response.url
         return response
 
-    def open(self, url, referrer=None, allow_redirects=True, **kwargs):
+    def open(self, url, referrer=None,
+                   allow_redirects=True,
+                   stream=None,
+                   timeout=None,
+                   verify=None,
+                   cert=None,
+                   proxies=None,
+                   **kwargs):
         """
         Make an HTTP request like a browser does:
          * follow redirects (unless disabled)
@@ -187,14 +194,17 @@ class BaseBrowser(object):
 
         :rtype: :class:`requests.Response`
         """
-        return self._open(url, referrer, allow_redirects, **kwargs)
-
-    def _open(self, url, referrer=None, allow_redirects=True, **kwargs):
         req = self.build_request(url, referrer, **kwargs)
         preq = self.session.prepare_request(req)
 
         # call python-requests
-        response = self.session.send(preq, allow_redirects=allow_redirects)
+        response = self.session.send(preq,
+                                     allow_redirects=allow_redirects,
+                                     stream=stream,
+                                     timeout=timeout,
+                                     verify=verify,
+                                     cert=cert,
+                                     proxies=proxies)
 
         if allow_redirects:
             response = self.handle_refresh(response)
@@ -232,7 +242,7 @@ class BaseBrowser(object):
 
     def handle_refresh(self, response):
         """
-        Called by _open, to handle Refresh HTTP header.
+        Called by open, to handle Refresh HTTP header.
 
         It only redirect to the refresh URL if the sleep time is inferior to
         REFRESH_MAX.
@@ -248,7 +258,7 @@ class BaseBrowser(object):
 
             if sleep <= self.REFRESH_MAX:
                 self.logger.debug('Refresh to %s' % url)
-                return self._open(url)
+                return self.open(url)
             else:
                 self.logger.debug('Do not refresh to %s because %s > REFRESH_MAX(%s)' % (url, sleep, self.REFRESH_MAX))
                 return response

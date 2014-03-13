@@ -162,15 +162,18 @@ class PagesBrowser(DomainBrowser):
 
     def open(self, *args, **kwargs):
         response = super(PagesBrowser, self).open(*args, **kwargs)
+        response.page = None
 
         # Try to handle the response page with an URL instance.
         for url in self._urls.itervalues():
             page = url.handle(response)
             if page is not None:
                 self.logger.debug('Handle %s with %s' % (response.url, page.__class__.__name__))
-                return page
+                response.page = page
+                break
 
-        self.logger.debug('Unable to handle %s' % response.url)
+        if response.page is None:
+            self.logger.debug('Unable to handle %s' % response.url)
         return response
 
     def location(self, *args, **kwargs):
@@ -178,24 +181,17 @@ class PagesBrowser(DomainBrowser):
             # Call leave hook.
             self.page.on_leave()
 
-        page = self.open(*args, **kwargs)
-
-        # If open() returns a BasePage instance, store it as the current page.
-        if isinstance(page, BasePage):
-            response = page.response
-            self.page = page
-        else:
-            response = page
-            self.page = None
+        response = self.open(*args, **kwargs)
 
         self.response = response
+        self.page = response.page
         self.url = response.url
 
         if self.page is not None:
             # Call load hook.
             self.page.on_load()
 
-        return page
+        return response
 
     def pagination(self, func, *args, **kwargs):
         """
