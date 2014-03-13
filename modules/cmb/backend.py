@@ -26,7 +26,6 @@ from weboob.tools.browser import BrowserIncorrectPassword, BrokenPageError
 from weboob.tools.browser2 import BaseBrowser
 
 from re import match, compile, sub
-from urllib import urlencode
 from decimal import Decimal
 from lxml import etree
 from datetime import date
@@ -99,11 +98,6 @@ class CmbBackend(BaseBackend, ICapBank):
                 'Mozilla/5.0 (iPad; U; CPU OS 3_2_1 like Mac OSX; en-us) ' +
                 'AppleWebKit/531.21.10 (KHTML, like Gecko) Mobile/7B405'
             }
-
-    def sslCallBack(self, cert):
-        pemcert = DER_cert_to_PEM_cert(cert)
-        certhash = sha256(pemcert).hexdigest()
-        return certhash == self.CERTHASH
 
     def login(self):
         data = {

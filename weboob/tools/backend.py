@@ -328,9 +328,8 @@ class BaseBackend(object):
             tmpproxys = os.environ['https_proxy']
         elif 'HTTPS_PROXY' in os.environ:
             tmpproxys = os.environ['HTTPS_PROXY']
-        print tmpproxys
 
-        if tmpproxy is not None or tmpproxys is not None:
+        if any((tmpproxy, tmpproxys)):
             kwargs['proxy'] = {}
             if tmpproxy is not None:
               kwargs['proxy']['http'] = tmpproxy

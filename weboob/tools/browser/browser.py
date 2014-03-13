@@ -40,7 +40,6 @@ import hashlib
 import time
 import urllib
 import urllib2
-from urlparse import urlsplit
 import mimetypes
 from contextlib import closing
 from gzip import GzipFile
