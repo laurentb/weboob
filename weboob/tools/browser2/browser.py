@@ -121,9 +121,11 @@ class BaseBrowser(object):
     TIMEOUT = 10.0
     REFRESH_MAX = 0.0
 
-    def __init__(self, logger=None):
+    def __init__(self, logger=None, proxy=None):
         self.logger = getLogger('browser', logger)
         self._setup_session(self.PROFILE)
+        if proxy is not None:
+            self.session.proxies = {'http': proxy, 'https': proxy}
         self.url = None
         self.response = None
 
