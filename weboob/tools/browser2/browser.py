@@ -21,6 +21,10 @@ from __future__ import absolute_import
 
 import re
 from urlparse import urlparse, urljoin
+import mimetypes
+import os
+import tempfile
+import sys
 
 try:
     import requests
@@ -121,7 +125,10 @@ class BaseBrowser(object):
     TIMEOUT = 10.0
     REFRESH_MAX = 0.0
 
-    def __init__(self, logger=None, proxy=None):
+    VERIFY = True
+    SAVE_RESPONSES = False
+
+    def __init__(self, logger=None, proxy=None, responses_dirname=None):
         self.logger = getLogger('browser', logger)
         self._setup_session(self.PROFILE)
         if proxy is not None:
@@ -129,19 +136,53 @@ class BaseBrowser(object):
         self.url = None
         self.response = None
 
+        self.responses_dirname = responses_dirname
+        self.responses_count = 0
+
+    def _save(self, response, warning=False, **kwargs):
+        if self.responses_dirname is None:
+            self.responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
+            print >>sys.stderr, 'Debug data will be saved in this directory: %s' % self.responses_dirname
+        elif not os.path.isdir(self.responses_dirname):
+            os.makedirs(self.responses_dirname)
+        # get the content-type, remove optionnal charset part
+        mimetype = response.headers.get('Content-Type', '').split(';')[0]
+        # due to http://bugs.python.org/issue1043134
+        if mimetype == 'text/plain':
+            ext = '.txt'
+        else:
+            # try to get an extension (and avoid adding 'None')
+            ext = mimetypes.guess_extension(mimetype, False) or ''
+        response_filepath = os.path.join(self.responses_dirname, unicode(self.responses_count)+ext)
+        with open(response_filepath, 'w') as f:
+            f.write(response.content)
+        match_filepath = os.path.join(self.responses_dirname, 'url_response_match.txt')
+        with open(match_filepath, 'a') as f:
+            f.write('%s\t%s\n' % (response.url, os.path.basename(response_filepath)))
+        self.responses_count += 1
+
+        msg = u'Response saved to %s' % response_filepath
+        if warning:
+            self.logger.warning(msg)
+        else:
+            self.logger.info(msg)
+
     def _setup_session(self, profile):
         """
         Set up a python-requests session for our usage.
         """
         session = requests.Session()
 
+        session.verify = self.VERIFY
         if self.TIMEOUT:
             session.timeout = self.TIMEOUT
         ## weboob only can provide proxy and HTTP auth options
         session.trust_env = False
-        # TODO connect config['verbose'] to our logger
 
         profile.setup_session(session)
+
+        if self.SAVE_RESPONSES:
+            session.hooks['response'].append(self._save)
 
         self.session = session
 
