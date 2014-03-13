@@ -34,6 +34,10 @@ from .browser import DomainBrowser
 from .filters import _Filter, CleanText
 
 
+class UrlNotResolvable(Exception):
+    pass
+
+
 class URL(object):
     """
     A description of an URL on the PagesBrowser website.
@@ -93,8 +97,13 @@ class URL(object):
             patterns += normalize(url)
 
         for pattern, args in patterns:
-            url = pattern % kwargs
+            try:
+                url = pattern % kwargs
+            except KeyError:
+                continue
             return url
+
+        raise UrlNotResolvable('Unable to resolve URL with %r. Available are %s' % (kwargs, ', '.join([pattern for pattern, args in patterns])))
 
     def match(self, url):
         for regex in self.urls:
