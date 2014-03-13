@@ -24,6 +24,8 @@ from urlparse import urlparse, urljoin
 
 try:
     import requests
+    if int(requests.__version__.split('.')[0]) < 2:
+        raise ImportError()
 except ImportError:
     raise ImportError('Please install python-requests >= 2.0')
 
