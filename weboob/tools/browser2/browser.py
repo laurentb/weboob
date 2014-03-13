@@ -209,6 +209,8 @@ class BaseBrowser(object):
         if allow_redirects:
             response = self.handle_refresh(response)
 
+        response.raise_for_status()
+
         return response
 
     def build_request(self, url, referrer=None, **kwargs):
