@@ -23,6 +23,9 @@ from decimal import Decimal
 import re
 
 
+_NO_DEFAULT = object()
+
+
 class _Filter(object):
     _creation_counter = 0
 
@@ -102,7 +105,7 @@ class TableCell(_Filter):
     def __init__(self, *names, **kwargs):
         super(TableCell, self).__init__()
         self.names = names
-        self.default = kwargs.pop('default', None)
+        self.default = kwargs.pop('default', _NO_DEFAULT)
 
     def __call__(self, item):
         for name in self.names:
@@ -110,7 +113,7 @@ class TableCell(_Filter):
             if idx is not None:
                 return item.xpath('./td[%s]' % (idx + 1))
 
-        if self.default is not None:
+        if self.default is not _NO_DEFAULT:
             return self.default
         raise KeyError('Unable to find column %s' % ' or '.join(self.names))
 
@@ -175,7 +178,7 @@ class Regexp(Filter):
     >>> f(etree.fromstring('<html><body><p>Date: <span>13/08/1988</span></p></body></html>'))
     u'1988-08-13'
     """
-    def __init__(self, selector, pattern, template=None, flags=0, default=None):
+    def __init__(self, selector, pattern, template=None, flags=0, default=_NO_DEFAULT):
         super(Regexp, self).__init__(selector)
         self.pattern = pattern
         self.regex = re.compile(pattern, flags)
@@ -188,7 +191,7 @@ class Regexp(Filter):
 
         mobj = self.regex.search(txt)
         if not mobj:
-            if self.default is not None:
+            if self.default is not _NO_DEFAULT:
                 return self.default
             else:
                 raise KeyError('Unable to match %s' % self.pattern)
