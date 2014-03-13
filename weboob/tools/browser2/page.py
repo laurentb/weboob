@@ -497,6 +497,7 @@ class ItemElement(AbstractElement):
     _attrs = None
     klass = None
     condition = None
+    validate = None
 
     class Index(object):
         pass
@@ -526,6 +527,9 @@ class ItemElement(AbstractElement):
             for attr in self._attrs:
                 self.handle_attr(attr, getattr(self, 'obj_%s' % attr))
         except SkipItem:
+            return
+
+        if self.validate is not None and not self.validate_object(self.obj):
             return
 
         yield self.obj
