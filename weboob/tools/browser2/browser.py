@@ -206,13 +206,6 @@ class BaseBrowser(object):
             else:
                 req.method = 'GET'
 
-        # Python httplib does not handle
-        # empty POST requests properly, so some websites refuse it.
-        # https://github.com/kennethreitz/requests/issues/223
-        # http://bugs.python.org/issue14721
-        if req.data is not None and len(req.data) == 0:
-            req.headers.setdefault('Content-Length', '0')
-
         if referrer is None:
             referrer = self.get_referrer(self.url, url)
         if referrer:
