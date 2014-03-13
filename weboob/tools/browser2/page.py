@@ -415,7 +415,11 @@ class ListElement(AbstractElement):
 
         self.objects = {}
 
-    def __call__(self):
+    def __call__(self, *args, **kwargs):
+
+        for key, value in kwargs.iteritems():
+            self.env[key] = value
+
         return self.__iter__()
 
     def __iter__(self):
