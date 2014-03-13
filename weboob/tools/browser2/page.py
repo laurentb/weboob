@@ -566,7 +566,7 @@ class ItemElement(AbstractElement):
         except SkipItem:
             return
 
-        if self.validate is not None and not self.validate_object(self.obj):
+        if self.validate is not None and not self.validate(self.obj):
             return
 
         yield self.obj
