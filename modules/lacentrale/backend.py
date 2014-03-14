@@ -28,6 +28,7 @@ from .browser import LaCentraleBrowser
 __all__ = ['LaCentraleBackend']
 
 
+# I implement capability
 class LaCentraleBackend(BaseBackend, ICapPriceComparison):
     NAME = 'lacentrale'
     MAINTAINER = u'Vicnet'
@@ -66,29 +67,35 @@ class LaCentraleBackend(BaseBackend, ICapPriceComparison):
             for product in self.browser.iter_products(criteria):
                 yield product
 
+    # inherited from ICapPriceComparison
     def iter_prices(self, product):
         # inherited from ICapPriceComparison
         with self.browser:
             return self.browser.iter_prices(product)
 
-#    def get_price(self, id):
-		# inherited from ICapPriceComparison
-#        with self.browser:
-#            if isinstance(id, Price):
-#                price = id
-#            else:
-#                p_id, s_id = id.split('.', 2)
-#                product = Product(p_id)
-#                for price in self.iter_prices(product):
-#                    if price.id == id:
-#                        break
-#                else:
-#                    return None
+    # inherited from ICapPriceComparison
+    def get_price(self, id):
+        # id is a url code part for one car page
+        with self.browser:
+            return self.browser.get_price(id)
+        ## inherited from ICapPriceComparison
+        #with self.browser:
+           #if isinstance(id, Price):
+                #print "get_price by price", id
+                #price = id
+           #else:
+               ##p_id, s_id = id.split('.', 2)
+               ##product = Product(p_id)
+               ##for price in self.iter_prices(product):
+                   ##if price.id == id:
+                       ##break
+               ##else:
+               #return None
+           ##price.shop.info = self.browser.get_shop_info(price.id.split('.', 2)[-1])
+           #return price
 
-#            price.shop.info = self.browser.get_shop_info(price.id.split('.', 2)[-1])
-#            return price
+    #def fill_price(self, price, fields):
+        #print "VO lacentrale fill_price", price
+       #return self.get_price(price)
 
- #   def fill_price(self, price, fields):
- #       return self.get_price(price)
-
- #   OBJECTS = {Price: fill_price, }
+    #OBJECTS = {Price: fill_price, }
