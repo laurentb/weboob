@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012 Laurent Bachelier
+# Copyright(C) 2012-2014 Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -36,8 +36,7 @@ except ImportError:
 
 from weboob.tools.log import getLogger
 
-
-# TODO define __all__
+from .cookies import WeboobCookieJar
 
 
 class Profile(object):
@@ -137,7 +136,7 @@ class BaseBrowser(object):
         self.response = None
 
         self.responses_dirname = responses_dirname
-        self.responses_count = 0
+        self.responses_count = 1
 
     def _save(self, response, warning=False, **kwargs):
         if self.responses_dirname is None:
@@ -162,8 +161,12 @@ class BaseBrowser(object):
             (self.responses_count, response.status_code, '-' if path else '', path, ext)
 
         response_filepath = os.path.join(self.responses_dirname, filename)
+
         with open(response_filepath, 'w') as f:
             f.write(response.content)
+        if response.cookies and len(response.cookies):
+            WeboobCookieJar.from_cookiejar(response.cookies).export(response_filepath + '-cookies.txt')
+
         match_filepath = os.path.join(self.responses_dirname, 'url_response_match.txt')
         with open(match_filepath, 'a') as f:
             f.write('# %d %s %s\n' % (response.status_code, response.reason, response.headers.get('Content-Type', '')))
@@ -194,6 +197,9 @@ class BaseBrowser(object):
             session.hooks['response'].append(self._save)
 
         self.session = session
+
+        cj = WeboobCookieJar()
+        session.cookies = cj
 
     def location(self, url, **kwargs):
         """
