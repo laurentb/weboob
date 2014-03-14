@@ -138,7 +138,7 @@ class ContractsPage(BasePage):
         # XXX We select automatically the default contract in list. We should let user
         # ask what contract he wants to see, or display accounts for all contracts.
         self.browser.select_form(nr=0)
-        self.browser.submit()
+        self.browser.submit(nologin=True)
 
 
 class AccountsPage(BasePage):
