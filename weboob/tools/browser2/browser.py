@@ -129,6 +129,8 @@ class BaseBrowser(object):
 
     PROXIES = None
 
+    MAX_RETRIES = 2
+
     def __init__(self, logger=None, proxy=None, responses_dirname=None):
         self.logger = getLogger('browser', logger)
         self.PROXIES = proxy
@@ -197,6 +199,13 @@ class BaseBrowser(object):
         session.proxies = self.PROXIES
 
         session.verify = self.VERIFY
+
+        # defines a max_retries. It's mandatory in case a server is not
+        # handling keep alive correctly, like the proxy burp
+        a = requests.adapters.HTTPAdapter(max_retries=self.MAX_RETRIES)
+        session.mount('http://', a)
+        session.mount('https://', a)
+
         if self.TIMEOUT:
             session.timeout = self.TIMEOUT
         ## weboob only can provide proxy and HTTP auth options
