@@ -182,7 +182,7 @@ class CmbBackend(BaseBackend, ICapBank):
         if not self.islogged:
             self.login()
 
-        page = "/domiweb/prive/particulier/releve/"
+        page = "https://www.cmb.fr/domiweb/prive/particulier/releve/"
         if account._cmbtype == 'D':
             page += "10-releve.act"
         else:
