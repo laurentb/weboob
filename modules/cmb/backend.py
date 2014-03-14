@@ -90,7 +90,6 @@ class CmbBackend(BaseBackend, ICapBank):
             ]
 
     BROWSER = BaseBrowser
-    cookie = None
     islogged = False
     headers = {
             'User-Agent':
