@@ -166,6 +166,12 @@ class BaseBrowser(object):
             f.write(response.content)
         if response.cookies and len(response.cookies):
             WeboobCookieJar.from_cookiejar(response.cookies).export(response_filepath + '-cookies.txt')
+        with open(response_filepath + '-request.txt', 'w') as f:
+            for key, value in response.request.headers.iteritems():
+                f.write('%s: %s\n' % (key, value))
+        with open(response_filepath + '-response.txt', 'w') as f:
+            for key, value in response.headers.iteritems():
+                f.write('%s: %s\n' % (key, value))
 
         match_filepath = os.path.join(self.responses_dirname, 'url_response_match.txt')
         with open(match_filepath, 'a') as f:
