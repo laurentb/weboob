@@ -127,11 +127,12 @@ class BaseBrowser(object):
     VERIFY = True
     SAVE_RESPONSES = False
 
+    PROXIES = None
+
     def __init__(self, logger=None, proxy=None, responses_dirname=None):
         self.logger = getLogger('browser', logger)
+        self.PROXIES = proxy
         self._setup_session(self.PROFILE)
-        if proxy is not None:
-            self.session.proxies = proxy
         self.url = None
         self.response = None
 
@@ -192,6 +193,8 @@ class BaseBrowser(object):
         Set up a python-requests session for our usage.
         """
         session = requests.Session()
+
+        session.proxies = self.PROXIES
 
         session.verify = self.VERIFY
         if self.TIMEOUT:
@@ -260,6 +263,15 @@ class BaseBrowser(object):
         """
         req = self.build_request(url, referrer, **kwargs)
         preq = self.session.prepare_request(req)
+
+        if proxies is None:
+            proxies = self.PROXIES
+
+        if verify is None:
+            verify = self.VERIFY
+
+        if timeout is None:
+            timeout = self.TIMEOUT
 
         # call python-requests
         response = self.session.send(preq,
