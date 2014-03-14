@@ -162,10 +162,16 @@ class BaseBrowser(object):
 
         response_filepath = os.path.join(self.responses_dirname, filename)
 
+        request = response.request
         with open(response_filepath + '-request.txt', 'w') as f:
-            for key, value in response.request.headers.iteritems():
+            f.write('%s %s\n\n\n' % (request.method, request.url))
+            for key, value in request.headers.iteritems():
                 f.write('%s: %s\n' % (key, value))
+            if request.body is not None:  # separate '' from None
+                f.write('\n\n\n%s' % request.body)
         with open(response_filepath + '-response.txt', 'w') as f:
+            f.write('Time: %3.3fs\n' % response.elapsed.total_seconds())
+            f.write('%s %s\n\n\n' % (response.status_code, response.reason))
             for key, value in response.headers.iteritems():
                 f.write('%s: %s\n' % (key, value))
 
