@@ -50,8 +50,7 @@ class CmbBackend(BaseBackend, ICapBank):
     DESCRIPTION = u'Crédit Mutuel de Bretagne'
     CONFIG = BackendConfig(
             ValueBackendPassword('login', label='Identifiant', masked=False),
-            ValueBackendPassword('password', label='Mot de passe', masked=True),
-            ValueBool('no_check', label='SSL Check ?', default=True))
+            ValueBackendPassword('password', label='Mot de passe', masked=True))
     LABEL_PATTERNS = [
             (   # card
                 compile('^CARTE (?P<text>.*)'),
