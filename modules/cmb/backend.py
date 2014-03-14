@@ -91,11 +91,6 @@ class CmbBackend(BaseBackend, ICapBank):
 
     BROWSER = BaseBrowser
     islogged = False
-    headers = {
-            'User-Agent':
-                'Mozilla/5.0 (iPad; U; CPU OS 3_2_1 like Mac OSX; en-us) ' +
-                'AppleWebKit/531.21.10 (KHTML, like Gecko) Mobile/7B405'
-            }
 
     def login(self):
         data = {
