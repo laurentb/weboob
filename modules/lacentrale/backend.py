@@ -78,24 +78,8 @@ class LaCentraleBackend(BaseBackend, ICapPriceComparison):
         # id is a url code part for one car page
         with self.browser:
             return self.browser.get_price(id)
-        ## inherited from ICapPriceComparison
-        #with self.browser:
-           #if isinstance(id, Price):
-                #print "get_price by price", id
-                #price = id
-           #else:
-               ##p_id, s_id = id.split('.', 2)
-               ##product = Product(p_id)
-               ##for price in self.iter_prices(product):
-                   ##if price.id == id:
-                       ##break
-               ##else:
-               #return None
-           ##price.shop.info = self.browser.get_shop_info(price.id.split('.', 2)[-1])
-           #return price
 
-    #def fill_price(self, price, fields):
-        #print "VO lacentrale fill_price", price
-       #return self.get_price(price)
+    def fill_price(self, price, fields):
+        return self.get_price(price.id)
 
-    #OBJECTS = {Price: fill_price, }
+    OBJECTS = {Price: fill_price, }

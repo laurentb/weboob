@@ -18,14 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-#from decimal import Decimal
-#import re
+from decimal import Decimal
+import re
 
 from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.capabilities import NotAvailable, NotLoaded
 from weboob.capabilities.pricecomparison import Product, Price, Shop
-import re
-from decimal import Decimal
 
 __all__ = ['MainPage','ListingAutoPage']
 
@@ -42,6 +40,11 @@ class MainPage(BasePage):
 def get_decimal(s):
     return re.findall(r'\d+', s.replace(' ',''))[0]
 
+def new_shop(id):
+    shop = Shop(id)
+    shop.set_empty_fields(NotLoaded)
+    return shop
+
 def new_price(id, product, cost, title):
     price = Price(id)
     price.product = product
@@ -49,10 +52,7 @@ def new_price(id, product, cost, title):
     price.currency = u'€'
     price.message = unicode(title)
     price.set_empty_fields(NotAvailable)
-    
-    price.shop = Shop(price.id)
-    price.shop.set_empty_fields(NotAvailable) # NotLoaded
-    
+    price.shop = new_shop(id)
     return price
 
 # I manage listing page and extract information
