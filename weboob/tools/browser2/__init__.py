@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .browser import BaseBrowser, DomainBrowser, Wget, Firefox, UrlNotAllowed
+from .browser import BaseBrowser, DomainBrowser, Wget, Firefox, UrlNotAllowed, Profile
 from .page import PagesBrowser, BasePage, URL, HTMLPage, LoginBrowser, need_login
 
 
-__all__ = ['BaseBrowser', 'DomainBrowser', 'Wget', 'Firefox', 'UrlNotAllowed',
+__all__ = ['BaseBrowser', 'DomainBrowser', 'Wget', 'Firefox', 'UrlNotAllowed', 'Profile',
            'PagesBrowser', 'BasePage', 'URL', 'HTMLPage', 'LoginBrowser', 'need_login']
