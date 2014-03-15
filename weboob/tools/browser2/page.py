@@ -92,6 +92,21 @@ class URL(object):
         r = self.browser.location(self.build(**kwargs))
         return r.page or r
 
+    def open(self, data=None, **kwargs):
+        """
+        Request to open on this url.
+
+        Arguments are optional parameters for url.
+
+        :param data: POST data
+        :type url: str or dict or None
+
+        >>> url = URL('http://exawple.org/(?P<pagename>).html')
+        >>> url.open(pagename='index)
+        """
+        r = self.browser.open(self.build(**kwargs), data=data)
+        return r.page or r
+
     def build(self, **kwargs):
         patterns = []
         for url in self.urls:
