@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from weboob.tools.misc import html2text
 from weboob.tools.browser import BasePage
 import dateutil.parser
 import re
@@ -37,7 +37,7 @@ class SearchPage(BasePage):
                 yield advert
 
     def create_job_advert(self, row):
-        re_id = re.compile('../resultats.tableauresultatrechercheoffre:detailOffre/(.*?)\?(.*?)', re.DOTALL)
+        re_id = re.compile('/candidat/rechercheoffres/resultats\.composantresultatrechercheoffre\.tableauresultatrechercheoffre:detailoffre/(.*?)\?(.*?)', re.DOTALL)
         a = self.parser.select(row, 'td[@headers="offre"]/a', 1, method='xpath')
         if re_id.match(a.attrib['href']):
             _id = u'%s' % (re_id.search(a.attrib['href']).group(1))
@@ -62,45 +62,42 @@ class AdvertPage(BasePage):
 
         advert.title = u'%s' % self.parser.select(content, 'h4', 1, method='xpath').text.strip()
         advert.job_name = u'%s' % self.parser.select(content, 'h4', 1, method='xpath').text.strip()
-        advert.description = u'%s' % self.parser.select(content, 'p[@itemprop="description"]', 1, method='xpath').text
+
+        description = self.parser.select(content, 'p[@itemprop="description"]', 1, method='xpath')
+        advert.description = html2text(self.parser.tostring(description))
+
         society_name = self.parser.select(content, 'div[@class="vcard"]/p[@class="title"]/span', method='xpath')
 
         if society_name:
             advert.society_name = u'%s' % society_name[0].text
 
         advert.url = url
+
         place = u'%s' % self.parser.select(content,
-                                           'ul/li/div[@class="value"]/ul/li[@itemprop="addressRegion"]',
+                                           'dl/dd/ul/li[@itemprop="addressRegion"]',
                                            1, method='xpath').text
-        if place:
-            advert.place = place.strip()
+        advert.place = place.strip()
 
         contract_type = u'%s' % self.parser.select(content,
-                                                   'ul/li/div[@class="value"]/span[@itemprop="employmentType"]',
+                                                   'dl/dd/span[@itemprop="employmentType"]',
                                                    1, method='xpath').text
 
-        if contract_type:
-            advert.contract_type = contract_type.strip()
+        advert.contract_type = contract_type.strip()
 
         experience = u'%s' % self.parser.select(content,
-                                                'ul/li/div[@class="value"]/span[@itemprop="experienceRequirements"]',
+                                                'dl/dd/span[@itemprop="experienceRequirements"]',
                                                 1, method='xpath').text
-
-        if experience:
-            advert.experience = experience.strip()
+        advert.experience = experience.strip()
 
         formation = u'%s' % self.parser.select(content,
-                                               'ul/li/div[@class="value"]/span[@itemprop="qualifications"]',
+                                               'dl/dd/span[@itemprop="qualifications"]',
                                                1, method='xpath').text
-
-        if formation:
-            advert.formation = formation.strip()
+        advert.formation = formation.strip()
 
         pay = u'%s' % self.parser.select(content,
-                                         'ul/li/div[@class="value"]/span[@itemprop="baseSalary"]',
+                                         'dl/dd/span[@itemprop="baseSalary"]',
                                          1, method='xpath').text
-        if pay:
-            advert.pay = pay.strip()
+        advert.pay = pay.strip()
 
         return advert
 
