@@ -25,7 +25,7 @@ from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.capabilities import NotAvailable, NotLoaded
 from weboob.capabilities.pricecomparison import Product, Price, Shop
 
-__all__ = ['MainPage','ListingAutoPage']
+__all__ = ['MainPage', 'ListingAutoPage', 'AnnoncePage']
 
 # I manage main page, ie do nothing yet
 class MainPage(BasePage):
