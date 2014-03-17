@@ -20,7 +20,7 @@
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.capabilities.bank import Account, Transaction
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.tools.value import ValueBackendPassword, ValueBool
+from weboob.tools.value import ValueBackendPassword
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BrowserIncorrectPassword, BrokenPageError
 from weboob.tools.browser2 import BaseBrowser
@@ -31,7 +31,6 @@ from lxml import etree
 from datetime import date
 from StringIO import StringIO
 
-import os
 
 
 __all__ = ['CmbBackend']
