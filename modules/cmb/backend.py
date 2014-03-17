@@ -43,10 +43,6 @@ class CmbBackend(BaseBackend, ICapBank):
     EMAIL = 'Johann.Broudin@6-8.fr'
     VERSION = '0.i'
     LICENSE = 'AGPLv3+'
-    # AUTH_CERT and CERTHASH are not used anymore at the moment
-    # AUTH_CERT = os.path.dirname(__file__)
-    # AUTH_CERT += '/Verisign_Class_3_Public_Primary_Certification_Authority.pem'
-    # CERTHASH = '684d79eb02f59497b5a9c5dcc4c26db1ee637db12f29d703fdf6a80aafef892d'
     DESCRIPTION = u'Crédit Mutuel de Bretagne'
     CONFIG = BackendConfig(
             ValueBackendPassword('login', label='Identifiant', masked=False),
