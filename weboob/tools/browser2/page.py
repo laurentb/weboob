@@ -24,10 +24,10 @@ import re
 import sys
 from copy import deepcopy
 from cStringIO import StringIO
+import lxml.html as html
 
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.regex_helper import normalize
-from weboob.tools.parsers.lxmlparser import LxmlHtmlParser
 from weboob.tools.log import getLogger
 
 from .browser import DomainBrowser
@@ -384,8 +384,8 @@ class HTMLPage(BasePage):
 
     def __init__(self, browser, response, *args, **kwargs):
         super(HTMLPage, self).__init__(browser, response, *args, **kwargs)
-        parser = LxmlHtmlParser()
-        self.doc = parser.parse(StringIO(response.content), response.encoding)
+        parser = html.HTMLParser(encoding=response.encoding)
+        self.doc = html.parse(StringIO(response.content), parser)
 
     def get_form(self, xpath=None, name=None, nr=None):
         """
