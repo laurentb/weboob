@@ -168,6 +168,21 @@ class Attr(_Filter):
     def __call__(self, item):
         return item.use_selector(getattr(item, 'obj_%s' % self.name))
 
+class CleanChars(Filter):
+    """
+    Remove chars.
+    """
+    def __init__(self, selector, symbols):
+        super(CleanChars, self).__init__(selector)
+        self.symbols = symbols
+
+    def filter(self, txt):
+        if isinstance(txt, (tuple,list)):
+            txt = ' '.join([t.strip() for t in txt.itertext()])
+
+        for symbol in self.symbols:
+            txt = txt.replace(symbol, '')
+        return txt
 
 class Regexp(Filter):
     """
