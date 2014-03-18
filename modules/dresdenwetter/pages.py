@@ -40,7 +40,7 @@ class StartPage(HTMLPage):
             obj_unit = Env('unit')
             obj_lastvalue = Env('lastvalue')
             obj_gaugeid = u"wetter"
-            obj_forecast = Env('forecast')
+            obj_forecast = NotAvailable
 
 
             def get_name(self, text):
@@ -72,4 +72,3 @@ class StartPage(HTMLPage):
                 lastvalue.level = float(level)
                 lastvalue.alarm = NotAvailable
                 self.env['lastvalue'] = lastvalue
-                self.env['forecast'] = NotAvailable
