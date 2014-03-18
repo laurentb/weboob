@@ -55,7 +55,7 @@ class GaugeFormatter(IFormatter):
             for sensor in obj.sensors:
                 sensorname = sensor.name
                 # This is a int value, do not display it as a float
-                if sensor.lastvalue.level:
+                if not empty(sensor.lastvalue.level):
                     if int(sensor.lastvalue.level) == sensor.lastvalue.level:
                         lastvalue = "%d " % sensor.lastvalue.level
                     else:
