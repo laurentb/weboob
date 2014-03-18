@@ -41,8 +41,10 @@ def empty(value):
 
     :rtype: :class:`bool`
     """
-    for cls in (None, NotLoaded, NotAvailable):
-        if value is cls:
+    if value is None:
+        return True
+    for cls in (NotLoadedType, NotAvailableType):
+        if type(value) is cls:
             return True
     return False
 
