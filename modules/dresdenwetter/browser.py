@@ -18,27 +18,18 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser2 import PagesBrowser, URL
 from .pages import StartPage
 
 
 __all__ = ['DresdenWetterBrowser']
 
 
-class DresdenWetterBrowser(BaseBrowser):
-    DOMAIN = u'www.dresden-wetter.de'
-    ENCODING = None
-    PAGES = {'.*': StartPage}
+class DresdenWetterBrowser(PagesBrowser):
+    BASEURL = 'http://www.dresden-wetter.de'
 
-    homepage = '/Current_Vantage_Pro.htm'
+    home =  URL('/Current_Vantage_Pro.htm', StartPage)
 
-    def __init__(self, *args, **kwargs):
-        BaseBrowser.__init__(self, *args, **kwargs)
-
-    def home(self):
-        self.location(self.homepage)
 
     def get_sensors_list(self):
-        if not self.is_on_page(StartPage):
-            self.home()
-        return self.page.get_sensors_list()
+        return self.home.stay_or_go().get_sensors_list()

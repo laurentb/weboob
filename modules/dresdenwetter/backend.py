@@ -43,7 +43,9 @@ class DresdenWetterBackend(BaseBackend, ICapGauge):
             gauge.name = u"Private Wetterstation Dresden"
             gauge.city = u"Dresden"
             gauge.object = u"Weather"
-            gauge.sensors = self.browser.get_sensors_list()
+            gauge.sensors = []
+            for sensor in self.browser.get_sensors_list():
+                gauge.sensors.append(sensor)
             yield gauge
 
     def _get_gauge_by_id(self, id):
