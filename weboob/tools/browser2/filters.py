@@ -209,7 +209,7 @@ class Regexp(Filter):
             if self.default is not _NO_DEFAULT:
                 return self.default
             else:
-                raise KeyError('Unable to match %s' % self.pattern)
+                raise KeyError('Unable to match %s in %s' % (self.pattern, txt))
 
         if self.template is None:
             return next(g for g in mobj.groups() if g is not None)
