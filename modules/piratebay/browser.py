@@ -34,7 +34,7 @@ class PiratebayBrowser(BaseBrowser):
     ENCODING = 'utf-8'
 
     def __init__(self, url, *args, **kwargs):
-        url = url or 'https://thepiratebay.pe/'
+        url = url or 'https://thepiratebay.se/'
         url_parsed = urlsplit(url)
         self.PROTOCOL = url_parsed.scheme
         self.DOMAIN = url_parsed.netloc
