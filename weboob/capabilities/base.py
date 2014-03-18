@@ -82,7 +82,10 @@ class AttributeCreationWarning(UserWarning):
     """
 
 
-class NotAvailableMeta(type):
+class NotAvailableType(object):
+    """
+    NotAvailable is a constant to use on non available fields.
+    """
     def __str__(self):
         return unicode(self).decode('utf-8')
 
@@ -92,15 +95,17 @@ class NotAvailableMeta(type):
     def __nonzero__(self):
         return False
 
+NotAvailable = NotAvailableType()
 
-class NotAvailable(object):
+
+class NotLoadedType(object):
     """
-    Constant to use on non available fields.
+    NotLoaded is a constant to use on not loaded fields.
+
+    When you use :func:`weboob.tools.backend.BaseBackend.fillobj` on a object based on :class:`CapBaseObject`,
+    it will request all fields with this value.
     """
-    __metaclass__ = NotAvailableMeta
 
-
-class NotLoadedMeta(type):
     def __str__(self):
         return unicode(self).decode('utf-8')
 
@@ -110,15 +115,7 @@ class NotLoadedMeta(type):
     def __nonzero__(self):
         return False
 
-
-class NotLoaded(object):
-    """
-    Constant to use on not loaded fields.
-
-    When you use :func:`weboob.tools.backend.BaseBackend.fillobj` on a object based on :class:`CapBaseObject`,
-    it will request all fields with this value.
-    """
-    __metaclass__ = NotLoadedMeta
+NotLoaded = NotLoadedType()
 
 
 class IBaseCap(object):
