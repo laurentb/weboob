@@ -121,14 +121,20 @@ class CleanText(Filter):
     """
     Get a cleaned text from an element.
 
-    It replaces all tabs and multiple spaces to one space and strip the result
+    It first replaces all tabs and multiple spaces to one space and strip the result
     string.
+    Second, it replaces all symbols given in second argument.
     """
+    def __init__(self, selector, symbols=''):
+        super(CleanText, self).__init__(selector)
+        self.symbols = symbols
+
     def filter(self, txt):
         if isinstance(txt, (tuple,list)):
             txt = ' '.join(map(self.clean, txt))
 
-        return self.clean(txt)
+        txt = self.clean(txt)
+        return self.remove(txt, self.symbols)
 
     @classmethod
     def clean(self, txt):
@@ -137,6 +143,12 @@ class CleanText(Filter):
             txt = u' '.join(txt)                 # 'foo   bar'
         txt = re.sub(u'[\s\xa0\t]+', u' ', txt)   # 'foo bar'
         return txt.strip()
+
+    @classmethod
+    def remove(self, txt, symbols):
+        for symbol in symbols:
+            txt = txt.replace(symbol, '')
+        return txt
 
 class CleanDecimal(CleanText):
     """
@@ -168,21 +180,6 @@ class Attr(_Filter):
     def __call__(self, item):
         return item.use_selector(getattr(item, 'obj_%s' % self.name))
 
-class CleanChars(Filter):
-    """
-    Remove chars.
-    """
-    def __init__(self, selector, symbols):
-        super(CleanChars, self).__init__(selector)
-        self.symbols = symbols
-
-    def filter(self, txt):
-        if isinstance(txt, (tuple,list)):
-            txt = ' '.join([t.strip() for t in txt.itertext()])
-
-        for symbol in self.symbols:
-            txt = txt.replace(symbol, '')
-        return txt
 
 class Regexp(Filter):
     """

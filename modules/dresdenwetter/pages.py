@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement
-from weboob.tools.browser2.filters import CleanText, Env, Regexp, Attr, CleanChars
+from weboob.tools.browser2.filters import CleanText, Env, Regexp, Attr
 from weboob.capabilities.gauge import GaugeMeasure, GaugeSensor
 from weboob.capabilities.base import NotAvailable
 
@@ -36,7 +36,7 @@ class StartPage(HTMLPage):
             klass = GaugeSensor
 
             obj_name = Regexp(CleanText('.'), '(.*?) {0,}: .*', "\\1")
-            obj_id = CleanChars(Regexp(Attr('name'), '(.*)', "dd-\\1"), " .():")
+            obj_id = CleanText(Regexp(Attr('name'), '(.*)', "dd-\\1"), " .():")
             obj_unit = Env('unit')
             obj_lastvalue = Env('lastvalue')
             obj_gaugeid = u"wetter"
