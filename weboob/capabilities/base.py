@@ -91,6 +91,12 @@ class NotAvailableType(object):
     def __str__(self):
         return unicode(self).decode('utf-8')
 
+    def __copy__(self):
+        return self
+
+    def __deepcopy__(self, memo):
+        return self
+
     def __unicode__(self):
         return u'Not available'
 
@@ -110,6 +116,12 @@ class NotLoadedType(object):
 
     def __str__(self):
         return unicode(self).decode('utf-8')
+
+    def __copy__(self):
+        return self
+
+    def __deepcopy__(self, memo):
+        return self
 
     def __unicode__(self):
         return u'Not loaded'
