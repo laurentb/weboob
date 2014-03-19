@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from .browser import BaseBrowser, DomainBrowser, Wget, Firefox, UrlNotAllowed, Profile
-from .page import PagesBrowser, BasePage, URL, HTMLPage, LoginBrowser, need_login
+from .page import PagesBrowser, BasePage, URL, HTMLPage, LoginBrowser, need_login, JsonPage
 
 
 __all__ = ['BaseBrowser', 'DomainBrowser', 'Wget', 'Firefox', 'UrlNotAllowed', 'Profile',
-           'PagesBrowser', 'BasePage', 'URL', 'HTMLPage', 'LoginBrowser', 'need_login']
+           'PagesBrowser', 'BasePage', 'URL', 'HTMLPage', 'LoginBrowser', 'need_login', 'JsonPage']

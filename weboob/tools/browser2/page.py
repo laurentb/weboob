@@ -28,6 +28,10 @@ import lxml.html as html
 
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.regex_helper import normalize
+
+from weboob.tools.parsers.lxmlparser import LxmlHtmlParser
+from weboob.tools.parsers.jsonparser import JsonParser
+
 from weboob.tools.log import getLogger
 
 from .browser import DomainBrowser
@@ -395,6 +399,11 @@ class Form(OrderedDict):
         """
         return self.page.browser.location(self.request)
 
+class JsonPage(BasePage):
+    def __init__(self, browser, response, *args, **kwargs):
+        super(JsonPage, self).__init__(browser, response, *args, **kwargs)
+        parser = JsonParser()
+        self.doc = parser.parse(StringIO(response.content), response.encoding)
 
 class HTMLPage(BasePage):
     """
