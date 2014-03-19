@@ -97,19 +97,23 @@ class URL(object):
         for url in self.urls:
             patterns += normalize(url)
 
-        for pattern, args in patterns:
+        for pattern, _ in patterns:
             try:
                 url = pattern % kwargs
             except KeyError:
                 continue
             return url
 
-        raise UrlNotResolvable('Unable to resolve URL with %r. Available are %s' % (kwargs, ', '.join([pattern for pattern, args in patterns])))
+        raise UrlNotResolvable('Unable to resolve URL with %r. Available are %s' % (kwargs, ', '.join([pattern for pattern, _ in patterns])))
 
-    def match(self, url):
+    def match(self, url, base=None):
+        if base is None:
+            assert self.browser is not None
+            base = self.browser.BASEURL
+
         for regex in self.urls:
             if regex.startswith('/'):
-                regex = self.browser.BASEURL + regex
+                regex = base + regex
             m = re.match(regex, url)
             if m:
                 return m
@@ -127,16 +131,8 @@ class URL(object):
 
     def id2url(self, func):
         def inner(browser, _id, *args, **kwargs):
-            # id2url is called with the global instance of URL, so there is no
-            # browser set. As except for this kind of thing, the class instance
-            # won't be called, we don't care about changing the 'browser'
-            # attriibute to let match() looks for the BASEURL attribute.
-            # A solution could be to set browser to the class instead of the
-            # instance, but it is possible to a browser to have a variable
-            # BASEURL.
-            self.browser = browser
             if re.match('^https?://.*', _id):
-                _id = self.match(_id)
+                _id = self.match(_id, browser.BASEURL)
                 if _id is None:
                     return
 
@@ -150,11 +146,11 @@ class _PagesBrowserMeta(type):
     """
     Private meta-class used to keep order of URLs instances of PagesBrowser.
     """
-    def __new__(cls, name, bases, attrs):
+    def __new__(mcs, name, bases, attrs):
         urls = [(url_name, attrs.pop(url_name)) for url_name, obj in attrs.items() if isinstance(obj, URL)]
         urls.sort(key=lambda x: x[1]._creation_counter)
 
-        new_class = super(_PagesBrowserMeta, cls).__new__(cls, name, bases, attrs)
+        new_class = super(_PagesBrowserMeta, mcs).__new__(mcs, name, bases, attrs)
         if new_class._urls is None:
             new_class._urls = OrderedDict()
         else:
@@ -163,7 +159,7 @@ class _PagesBrowserMeta(type):
         return new_class
 
 class PagesBrowser(DomainBrowser):
-    """
+    r"""
     A browser which works pages and keep state of navigation.
 
     To use it, you have to derive it and to create URL objects as class
@@ -531,7 +527,7 @@ class _ItemElementMeta(type):
     """
     Private meta-class used to keep order of obj_* attributes in ItemElement.
     """
-    def __new__(cls, name, bases, attrs):
+    def __new__(mcs, name, bases, attrs):
         _attrs = []
         for base in bases:
             if hasattr(base, '_attrs'):
@@ -541,7 +537,7 @@ class _ItemElementMeta(type):
         # constants first, then filters, then methods
         filters.sort(key=lambda x: x[1]._creation_counter if hasattr(x[1], '_creation_counter') else (sys.maxint if callable(x[1]) else 0))
 
-        new_class = super(_ItemElementMeta, cls).__new__(cls, name, bases, attrs)
+        new_class = super(_ItemElementMeta, mcs).__new__(mcs, name, bases, attrs)
         new_class._attrs = _attrs + [f[0] for f in filters]
         return new_class
 
