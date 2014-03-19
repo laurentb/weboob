@@ -260,6 +260,10 @@ class Time(Filter):
     regexp = re.compile(ur'(?P<hh>\d+):?(?P<mm>\d+)(:(?P<ss>\d+))?')
     kwargs = {'hour': 'hh', 'minute': 'mm', 'second': 'ss'}
 
+    def __init__(self, selector, default=_NO_DEFAULT):
+        super(Time, self).__init__(selector)
+        self.default = default
+
     def filter(self, txt):
         m = self.regexp.search(txt)
         if m:
@@ -267,6 +271,11 @@ class Time(Filter):
             for key, index in self.kwargs.iteritems():
                 kwargs[key] = int(m.groupdict()[index] or 0)
             return self.klass(**kwargs)
+
+        if self.default is not _NO_DEFAULT:
+            return self.default
+        else:
+            raise ValueError('Unable to find time in %r' % txt)
 
 
 class Duration(Time):
