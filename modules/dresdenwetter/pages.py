@@ -48,7 +48,7 @@ class StartPage(HTMLPage):
                     unit = u'°C'
                 else:
                     value = text.split(':')[-1].split()[0]
-                    unit = text.split(':')[-1].split()[1]
+                    unit = text.split(':')[-1].split(None, 1)[1]
                 return value, unit
 
             def parse(self, el):
