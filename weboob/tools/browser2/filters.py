@@ -244,3 +244,12 @@ class Time(Filter):
             mm = int(m.groupdict()['mm'] or 0)
             ss = int(m.groupdict()['ss'] or 0)
             return datetime.time(hh, mm, ss)
+
+class Attr(_Filter):
+    def __init__(self, xpath, attr):
+        super(Attr, self).__init__()
+        self.xpath = xpath
+        self.attr = attr
+
+    def __call__(self, item):
+        return item.xpath(self.xpath)[0].attrib[self.attr]
