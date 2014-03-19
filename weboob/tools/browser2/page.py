@@ -348,16 +348,25 @@ class Form(OrderedDict):
         self.method = el.attrib.get('method', 'GET')
         self.url = el.attrib.get('action', page.url)
 
-        for el in el.xpath('.//input'):
+        for inp in el.xpath('.//input | .//select | .//textarea'):
             try:
-                name = el.attrib['name']
+                name = inp.attrib['name']
             except KeyError:
                 continue
 
-            if el.attrib['type'] == 'checkbox' and not 'checked' in el:
+            if inp.attrib['type'] in ('checkbox', 'radio') and not 'checked' in inp:
                 continue
 
-            value = el.attrib.get('value', u'')
+            if inp.tag == 'select':
+                options = inp.xpath('.//option[@selected]')
+                if len(options) == 0:
+                    options = inp.xpath('.//option')
+                if len(options) == 0:
+                    value = u''
+                else:
+                    value = options[0].attrib.get('value', options[0].text or u'')
+            else:
+                value = inp.attrib.get('value', inp.text or u'')
             self[name] = value
 
     @property
@@ -459,7 +468,6 @@ class ListElement(AbstractElement):
         self.objects = {}
 
     def __call__(self, *args, **kwargs):
-
         for key, value in kwargs.iteritems():
             self.env[key] = value
 
