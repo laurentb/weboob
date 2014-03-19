@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement
-from weboob.tools.browser2.filters import Env, CleanText, Regexp, Field, Date, Map
+from weboob.tools.browser2.filters import Env, CleanText, Regexp, Field, Date, Map, Attr
 from weboob.capabilities.gauge import Gauge, GaugeMeasure, GaugeSensor
 from weboob.capabilities.base import NotAvailable, NotLoaded
 
@@ -53,7 +53,7 @@ class ListPage(HTMLPage):
 
             def parse(self, el):
                 div = el.getparent()
-                img = div.find('.//img').attrib['src'].split('/')[1]
+                img = Regexp(Attr('.//img', 'src'), "(.*?)/(.*)", "\\2")(div)
                 data = unicode(el.attrib['onmouseover']) \
                     .strip('pegelein(').strip(')').replace(",'", ",").split("',")
 
