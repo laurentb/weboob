@@ -22,7 +22,7 @@ import urllib
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountsPage, TransactionsPage, UnavailablePage
+from .pages import LoginPage, AccountsPage, TransactionsPage, CBTransactionsPage, UnavailablePage
 
 
 __all__ = ['AXABanque']
@@ -31,12 +31,13 @@ __all__ = ['AXABanque']
 class AXABanque(BaseBrowser):
     PROTOCOL = 'https'
     DOMAIN = 'www.axabanque.fr'
-    PAGES = {'https?://www.axabanque.fr/connexion/index.html.*':                         LoginPage,
-             'https?://www.axabanque.fr/login_errors/indisponibilite.*':                 UnavailablePage,
-             'https?://www.axabanque.fr/.*page-indisponible.html.*':                     UnavailablePage,
-             'https?://www.axabanque.fr/transactionnel/client/liste-comptes.html':       AccountsPage,
-             'https?://www.axabanque.fr/webapp/axabanque/jsp/panorama.faces':            TransactionsPage,
-             'https?://www.axabanque.fr/webapp/axabanque/jsp/detail.*.faces':            TransactionsPage,
+    PAGES = {'https?://www.axabanque.fr/connexion/index.html.*':                            LoginPage,
+             'https?://www.axabanque.fr/login_errors/indisponibilite.*':                    UnavailablePage,
+             'https?://www.axabanque.fr/.*page-indisponible.html.*':                        UnavailablePage,
+             'https?://www.axabanque.fr/transactionnel/client/liste-comptes.html':          AccountsPage,
+             'https?://www.axabanque.fr/webapp/axabanque/jsp/panorama.faces':               TransactionsPage,
+             'https?://www.axabanque.fr/webapp/axabanque/jsp/detailCarteBleu.*.faces':      CBTransactionsPage,
+             'https?://www.axabanque.fr/webapp/axabanque/jsp/detail(?!CarteBleu).*.faces':  TransactionsPage,
             }
 
     def is_logged(self):

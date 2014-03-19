@@ -28,7 +28,7 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
 
 
-__all__ = ['LoginPage', 'AccountsPage', 'TransactionsPage', 'UnavailablePage']
+__all__ = ['LoginPage', 'AccountsPage', 'TransactionsPage', 'CBTransactionsPage', 'UnavailablePage']
 
 
 class BasePage(_BasePage):
@@ -110,44 +110,49 @@ class AccountsPage(BasePage):
         return args
 
     def get_list(self):
-        for table in self.document.getroot().cssselect('div#table-panorama table.table-client'):
-            account = Account()
-
+        for table in self.document.getroot().cssselect('div#table-panorama table.table-produit'):
             tds = table.xpath('./tbody/tr')[0].findall('td')
             if len(tds) < 3:
                 continue
 
-            link = table.xpath('./tfoot//a')[0]
-            if not 'onclick' in link.attrib:
-                continue
+            boxes = table.xpath('./tbody//tr')
+            foot = table.xpath('./tfoot//tr')
 
-            args = self.js2args(link.attrib['onclick'])
+            for box in boxes:
+                account = Account()
 
-            self.logger.debug('Args: %r' % args)
-            if not 'paramNumCompte' in args:
-                try:
-                    label = unicode(table.xpath('./caption')[0].text.strip())
-                except Exception:
-                    label = 'Unable to determine'
-                self.logger.warning('Unable to get account ID for %r' % label)
-                continue
+                if len(box.xpath('.//a')) != 0 and 'onclick' in box.xpath('.//a')[0].attrib:
+                    args = self.js2args(box.xpath('.//a')[0].attrib['onclick'])
+                    account.label =  u'{0} {1}'.format(unicode(table.xpath('./caption')[0].text.strip()), unicode(box.xpath('.//a')[0].text.strip()))
+                elif len(foot[0].xpath('.//a')) != 0 and 'onclick' in foot[0].xpath('.//a')[0].attrib:
+                    args = self.js2args(foot[0].xpath('.//a')[0].attrib['onclick'])
+                    account.label =  unicode(table.xpath('./caption')[0].text.strip())
+                else:
+                    continue
 
-            account.id = args['paramNumCompte']
-            account.label = unicode(table.xpath('./caption')[0].text.strip())
+                self.logger.debug('Args: %r' % args)
+                if not 'paramNumCompte' in args:
+                    try:
+                        label = unicode(table.xpath('./caption')[0].text.strip())
+                    except Exception:
+                        label = 'Unable to determine'
+                    self.logger.warning('Unable to get account ID for %r' % label)
+                    continue
 
-            account_type_str = table.attrib['class'].split(' ')[-1][len('tableaux-comptes-'):]
-            account.type = self.ACCOUNT_TYPES.get(account_type_str, Account.TYPE_UNKNOWN)
+                account.id = args['paramNumCompte'] + args['paramNumContrat']
+                account_type_str = table.attrib['class'].split(' ')[-1][len('tableaux-comptes-'):]
+                account.type = self.ACCOUNT_TYPES.get(account_type_str, Account.TYPE_UNKNOWN)
 
-            currency_title = table.xpath('./thead//th[@class="montant"]')[0].text.strip()
-            m = re.match('Montant \((\w+)\)', currency_title)
-            if not m:
-                self.logger.warning('Unable to parse currency %r' % currency_title)
-            else:
-                account.currency = account.get_currency(m.group(1))
+                currency_title = table.xpath('./thead//th[@class="montant"]')[0].text.strip()
+                m = re.match('Montant \((\w+)\)', currency_title)
+                if not m:
+                    self.logger.warning('Unable to parse currency %r' % currency_title)
+                else:
+                    account.currency = account.get_currency(m.group(1))
 
-            account.balance = Decimal(FrenchTransaction.clean_amount(u''.join([txt.strip() for txt in tds[-1].itertext()])))
-            account._args = args
-            yield account
+                account.balance = Decimal(FrenchTransaction.clean_amount(u''.join([txt.strip() for txt in box.cssselect("td.montant")[0].itertext()])))
+                account._args = args
+                yield account
 
 
 class Transaction(FrenchTransaction):
@@ -249,3 +254,30 @@ class TransactionsPage(BasePage):
             t.set_amount(credit, debit)
 
             yield t
+
+class CBTransactionsPage(TransactionsPage):
+    COL_CB_CREDIT = 2
+
+    def get_history(self):
+        tables = self.document.xpath('//table[@id="idDetail:dataCumulAchat"]')
+        transactions =list()
+        for tr in tables[0].xpath('.//tr'):
+            tds = tr.findall('td')
+            if len(tds) < 3:
+                continue
+
+            t = Transaction(0)
+            date = u''.join([txt.strip() for txt in tds[self.COL_DATE].itertext()])
+            raw = u''.join([txt.strip() for txt in tds[self.COL_TEXT].itertext()])
+            credit = u''.join([txt.strip() for txt in tds[self.COL_CB_CREDIT].itertext()])
+            debit = ""
+
+            t.parse(date, re.sub(r'[ ]+', ' ', raw))
+            t.set_amount(credit, debit)
+            transactions.append(t)
+
+        for histo in super(CBTransactionsPage, self).get_history():
+            transactions.append(histo)
+
+        transactions.sort(key=lambda transaction: transaction.date, reverse=True)
+        return iter(transactions)
