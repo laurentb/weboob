@@ -36,5 +36,4 @@ class SachsenBrowser(PagesBrowser):
 
     def iter_history(self, sensor, **kwargs):
         self.history.go(params=int(sensor.gaugeid))
-        kwargs['sensor'] = sensor
-        return self.page.iter_history(**kwargs)
+        return self.page.iter_history(sensor=sensor)
