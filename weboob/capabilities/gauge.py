@@ -48,7 +48,7 @@ class GaugeMeasure(CapBaseObject):
     alarm =     StringField('Alarm level')
 
     def __init__(self):
-        CapBaseObject.__init__(self, None)
+        CapBaseObject.__init__(self)
 
     def __repr__(self):
         if empty(self.level):
