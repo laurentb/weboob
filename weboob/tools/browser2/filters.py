@@ -161,14 +161,33 @@ class CleanDecimal(CleanText):
         text = text.replace('.','').replace(',','.')
         return Decimal(re.sub(ur'[^\d\-\.]', '', text))
 
-class Link(Filter):
+
+class Attr(Filter):
+    def __init__(self, selector, attr, default=_NO_DEFAULT):
+        super(Attr, self).__init__(selector)
+        self.attr = attr
+        self.default = default
+
+    def filter(self, el):
+        try:
+            return el[0].attrib[self.attr]
+        except IndexError:
+            raise ValueError('Unable to find link %s' % self.selector)
+        except KeyError:
+            if self.default is not _NO_DEFAULT:
+                return self.default
+            else:
+                raise KeyError('Link %s does not has attribute %s' % (el[0], attr))
+
+
+class Link(Attr):
     """
     Get the link uri of an element.
 
     If the <a> tag is not found, an exception IndexError is raised.
     """
-    def filter(self, el):
-        return el[0].attrib.get('href', '')
+    def __init__(self, selector, default=_NO_DEFAULT):
+        super(Link, self).__init__(selector, 'href', default)
 
 
 class Field(_Filter):
@@ -254,13 +273,3 @@ class Duration(Time):
     klass = datetime.timedelta
     regexp = re.compile(ur'((?P<hh>\d+)[:;])?(?P<mm>\d+)[;:](?P<ss>\d+)')
     kwargs = {'hours': 'hh', 'minutes': 'mm', 'seconds': 'ss'}
-
-
-class Attr(_Filter):
-    def __init__(self, xpath, attr):
-        super(Attr, self).__init__()
-        self.xpath = xpath
-        self.attr = attr
-
-    def __call__(self, item):
-        return item.xpath(self.xpath)[0].attrib[self.attr]
