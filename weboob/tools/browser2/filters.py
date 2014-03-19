@@ -19,6 +19,8 @@
 
 from __future__ import absolute_import
 
+from dateutil.parser import parse as parse_date
+import datetime
 from decimal import Decimal
 import re
 
@@ -206,9 +208,37 @@ class Regexp(Filter):
             if self.default is not _NO_DEFAULT:
                 return self.default
             else:
-                raise KeyError('Unable to match %s in %s' % (self.pattern, txt))
+                raise KeyError('Unable to match %s in %r' % (self.pattern, txt))
 
         if self.template is None:
             return next(g for g in mobj.groups() if g is not None)
         else:
             return mobj.expand(self.template)
+
+class Map(Filter):
+    def __init__(self, selector, map, default=_NO_DEFAULT):
+        super(Map, self).__init__(selector)
+        self.map = map
+        self.default = default
+
+    def filter(self, txt):
+        try:
+            return self.map[txt]
+        except KeyError:
+            if self.default is not _NO_DEFAULT:
+                return self.default
+            else:
+                raise KeyError('Unable to handle %r' % txt)
+
+class Date(Filter):
+    def filter(self, txt):
+        return parse_date(txt)
+
+class Time(Filter):
+    def filter(self, txt):
+        m = re.search('((?P<hh>\d+):)?(?P<mm>\d+):(?P<ss>\d+)', txt)
+        if m:
+            hh = int(m.groupdict()['hh'] or 0)
+            mm = int(m.groupdict()['mm'] or 0)
+            ss = int(m.groupdict()['ss'] or 0)
+            return datetime.time(hh, mm, ss)
