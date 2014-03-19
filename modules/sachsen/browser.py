@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2012 Romain Bignon, Florent Fourcot
+# Copyright(C) 2010-2014 Florent Fourcot
 #
 # This file is part of weboob.
 #
@@ -18,36 +18,23 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
-
-
+from weboob.tools.browser2 import PagesBrowser, URL
 from .pages import ListPage, HistoryPage
 
 
 __all__ = ['SachsenBrowser']
 
 
-class SachsenBrowser(BaseBrowser):
-    DOMAIN = u'www.umwelt.sachsen.de'
-    ENCODING = None
-    PAGES = {'.*inhalt_re.html.*': ListPage,
-             '.*hwz/MP/.*': HistoryPage
-            }
+class SachsenBrowser(PagesBrowser):
+    BASEURL = 'http://www.umwelt.sachsen.de'
 
-    homepage = '/de/wu/umwelt/lfug/lfug-internet/hwz/inhalt_re.html'
-
-    def __init__(self, *args, **kwargs):
-        BaseBrowser.__init__(self, *args, **kwargs)
-
-    def home(self):
-        self.location(self.homepage)
+    homepage = URL('/de/wu/umwelt/lfug/lfug-internet/hwz/inhalt_re.html.*', ListPage)
+    history = URL('/de/wu/umwelt/lfug/lfug-internet/hwz/MP/(?P<params>.*)/index.html', HistoryPage)
 
     def get_rivers_list(self):
-        if not self.is_on_page(ListPage):
-            self.location(self.homepage)
-        return self.page.get_rivers_list()
+        return self.homepage.stay_or_go().get_rivers_list()
 
-    def iter_history(self, sensor):
-        self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/MP/%d/index.html'
-                % int(sensor.gaugeid))
-        return self.page.iter_history(sensor)
+    def iter_history(self, sensor, **kwargs):
+        self.history.go(params=int(sensor.gaugeid))
+        kwargs['sensor'] = sensor
+        return self.page.iter_history(**kwargs)

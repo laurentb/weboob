@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2012 Romain Bignon, Florent Fourcot
+# Copyright(C) 2010-2014 Florent Fourcot
 #
 # This file is part of weboob.
 #
@@ -65,6 +65,8 @@ class SachsenLevelBackend(BaseBackend, ICapGauge):
     def iter_sensors(self, gauge, pattern=None):
         if not isinstance(gauge, Gauge):
             gauge = self._get_gauge_by_id(gauge)
+            if gauge is None:
+                raise SensorNotFound()
         if pattern is None:
             for sensor in gauge.sensors:
                 yield sensor
