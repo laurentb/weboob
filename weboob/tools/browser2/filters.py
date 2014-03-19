@@ -23,7 +23,7 @@ from dateutil.parser import parse as parse_date
 import datetime
 from decimal import Decimal
 import re
-
+from weboob.capabilities.base import NotAvailable
 
 _NO_DEFAULT = object()
 
@@ -232,6 +232,8 @@ class Map(Filter):
 
 class Date(Filter):
     def filter(self, txt):
+        if txt is NotAvailable:
+            return NotAvailable
         return parse_date(txt)
 
 class Time(Filter):
