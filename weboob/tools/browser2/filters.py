@@ -23,7 +23,7 @@ from dateutil.parser import parse as parse_date
 import datetime
 from decimal import Decimal
 import re
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import empty
 
 _NO_DEFAULT = object()
 
@@ -68,7 +68,7 @@ class Filter(_Filter):
         """
         This method have to be overrided by children classes.
         """
-        return value
+        raise NotImplementedError()
 
 
 class Env(_Filter):
@@ -139,15 +139,15 @@ class CleanText(Filter):
         return self.remove(txt, self.symbols)
 
     @classmethod
-    def clean(self, txt):
+    def clean(cls, txt):
         if not isinstance(txt, basestring):
             txt = [t.strip() for t in txt.itertext()]
             txt = u' '.join(txt)                 # 'foo   bar'
-        txt = re.sub(u'[\s\xa0\t]+', u' ', txt)   # 'foo bar'
+        txt = re.sub(u'[\\s\xa0\t]+', u' ', txt)   # 'foo bar'
         return txt.strip()
 
     @classmethod
-    def remove(self, txt, symbols):
+    def remove(cls, txt, symbols):
         for symbol in symbols:
             txt = txt.replace(symbol, '')
         return txt
@@ -159,7 +159,7 @@ class CleanDecimal(CleanText):
     def filter(self, text):
         text = super(CleanDecimal, self).filter(text)
         text = text.replace('.','').replace(',','.')
-        return Decimal(re.sub(u'[^\d\-\.]', '', text))
+        return Decimal(re.sub(ur'[^\d\-\.]', '', text))
 
 class Link(Filter):
     """
@@ -184,7 +184,7 @@ class Field(_Filter):
 
 
 class Regexp(Filter):
-    """
+    r"""
     Apply a regex.
 
     >>> from lxml.html import etree
@@ -216,14 +216,14 @@ class Regexp(Filter):
             return mobj.expand(self.template)
 
 class Map(Filter):
-    def __init__(self, selector, map, default=_NO_DEFAULT):
+    def __init__(self, selector, map_dict, default=_NO_DEFAULT):
         super(Map, self).__init__(selector)
-        self.map = map
+        self.map_dict = map_dict
         self.default = default
 
     def filter(self, txt):
         try:
-            return self.map[txt]
+            return self.map_dict[txt]
         except KeyError:
             if self.default is not _NO_DEFAULT:
                 return self.default
@@ -232,18 +232,29 @@ class Map(Filter):
 
 class Date(Filter):
     def filter(self, txt):
-        if txt is NotAvailable:
-            return NotAvailable
+        if empty(txt):
+            return txt
         return parse_date(txt)
 
 class Time(Filter):
+    klass = datetime.time
+    regexp = re.compile(ur'(?P<hh>\d+):?(?P<mm>\d+)(:(?P<ss>\d+))?')
+    kwargs = {'hour': 'hh', 'minute': 'mm', 'second': 'ss'}
+
     def filter(self, txt):
-        m = re.search('((?P<hh>\d+):)?(?P<mm>\d+):(?P<ss>\d+)', txt)
+        m = self.regexp.search(txt)
         if m:
-            hh = int(m.groupdict()['hh'] or 0)
-            mm = int(m.groupdict()['mm'] or 0)
-            ss = int(m.groupdict()['ss'] or 0)
-            return datetime.time(hh, mm, ss)
+            kwargs = {}
+            for key, index in self.kwargs.iteritems():
+                kwargs[key] = int(m.groupdict()[index] or 0)
+            return self.klass(**kwargs)
+
+
+class Duration(Time):
+    klass = datetime.timedelta
+    regexp = re.compile(ur'((?P<hh>\d+)[:;])?(?P<mm>\d+)[;:](?P<ss>\d+)')
+    kwargs = {'hours': 'hh', 'minutes': 'mm', 'seconds': 'ss'}
+
 
 class Attr(_Filter):
     def __init__(self, xpath, attr):

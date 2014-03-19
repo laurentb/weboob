@@ -18,12 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import datetime
 import re
 
 from weboob.tools.browser2 import HTMLPage
 from weboob.tools.browser2.page import ListElement, method, ItemElement
-from weboob.tools.browser2.filters import Filter, Link, CleanText
+from weboob.tools.browser2.filters import Filter, Link, CleanText, Duration
 from weboob.capabilities.image import BaseImage
 from weboob.capabilities.video import BaseVideo
 
@@ -44,23 +43,6 @@ class IndexPage(HTMLPage):
             class Id(Filter):
                 def filter(self, link):
                     return re.sub(r'/videos/(.+)\.html', r'\1', link)
-
-            class Duration(Filter):
-                def filter(self, txt):
-                    time_txt = txt.replace(';', ':')
-                    hours, minutes, seconds = 0, 0, 0
-                    if ':' in time_txt:
-                        t = time_txt.split(':')
-                        t.reverse()
-                        seconds = int(t[0])
-                        minutes = int(t[1])
-                        if len(t) == 3:
-                            hours = int(t[2])
-                    elif time_txt != 'N/A':
-                        raise ValueError('Unable to parse the video duration: %s' % time_txt)
-
-                    return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
-
 
             obj_id = Id(Link('.//a'))
             obj_title = CleanText('.//span[@id="title1"]')

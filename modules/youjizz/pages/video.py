@@ -18,13 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import datetime
 import re
 
 from weboob.tools.browser2 import HTMLPage
 from weboob.tools.browser2.page import method, ItemElement
-from weboob.tools.browser2.filters import CleanText, Env
-from weboob.capabilities.base import NotAvailable
+from weboob.tools.browser2.filters import CleanText, Env, Duration
 from weboob.capabilities.video import BaseVideo
 from weboob.tools.misc import to_unicode
 
@@ -41,19 +39,7 @@ class VideoPage(HTMLPage):
         obj_title = CleanText('//title')
         obj_nsfw = True
         obj_ext = u'flv'
-
-        def obj_duration(self):
-            # youjizz HTML is crap, we must parse it with regexps
-            m = re.search(r'<strong>.*?Runtime.*?</strong> (.+?)</div>', self.page.response.text)
-            if m:
-                txt = m.group(1).strip()
-                if txt == 'Unknown':
-                    return NotAvailable
-                else:
-                    minutes, seconds = (int(v) for v in to_unicode(txt).split(':'))
-                    return datetime.timedelta(minutes=minutes, seconds=seconds)
-            else:
-                raise ValueError('Unable to retrieve video duration')
+        obj_duration = Duration(CleanText('//div[@id="video_text"]'))
 
         def obj_url(self):
             real_id = int(self.env['id'].split('-')[-1])
