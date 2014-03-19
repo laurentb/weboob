@@ -37,8 +37,6 @@ class StartPage(HTMLPage):
 
             obj_name = Regexp(CleanText('.'), '(.*?) {0,}: .*', "\\1")
             obj_id = CleanText(Regexp(Field('name'), '(.*)', "dd-\\1"), " .():")
-            obj_unit = Env('unit')
-            obj_lastvalue = Env('lastvalue')
             obj_gaugeid = u"wetter"
             obj_forecast = NotAvailable
 
@@ -49,13 +47,16 @@ class StartPage(HTMLPage):
                 else:
                     value = text.split(':')[-1].split()[0]
                     unit = text.split(':')[-1].split(None, 1)[1]
-                return value, unit
+                return [value, unit]
+
+            def obj_lastvalue(self):
+                lastvalue = GaugeMeasure()
+                lastvalue.level = float(Env('parse')(self)[0])
+                lastvalue.alarm = NotAvailable
+                return lastvalue
+
+            def obj_unit(self):
+                return Env('parse')(self)[1]
 
             def parse(self, el):
-                text = CleanText(el)(self)
-
-                level, self.env['unit'] = self.split_unit(text)
-                lastvalue = GaugeMeasure()
-                lastvalue.level = float(level)
-                lastvalue.alarm = NotAvailable
-                self.env['lastvalue'] = lastvalue
+                self.env['parse'] = self.split_unit(CleanText(el)(self))
