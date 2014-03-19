@@ -164,6 +164,8 @@ class BaseBrowser(object):
             (self.responses_count, response.status_code, '-' if path else '', path, ext)
 
         response_filepath = os.path.join(self.responses_dirname, filename)
+        with open(response_filepath, 'w') as f:
+            f.write(response.content)
 
         request = response.request
         with open(response_filepath + '-request.txt', 'w') as f:
