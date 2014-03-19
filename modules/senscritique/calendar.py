@@ -22,13 +22,10 @@ from weboob.capabilities.calendar import BaseCalendarEvent, TRANSP, STATUS, CATE
 
 class SensCritiquenCalendarEvent(BaseCalendarEvent):
 
-    def __init__(self, _id):
-        BaseCalendarEvent.__init__(self, _id)
+    def __init__(self):
+        BaseCalendarEvent.__init__(self)
         self.sequence = 1
         self.transp = TRANSP.TRANSPARENT
         self.status = STATUS.CONFIRMED
         self.category = CATEGORIES.TELE
-
-    @classmethod
-    def id2url(cls, _id):
-        return 'http://www.senscritique.com%s' % _id
+        self.resume = None

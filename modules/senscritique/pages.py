@@ -23,11 +23,14 @@ from .calendar import SensCritiquenCalendarEvent
 
 from datetime import date, datetime, time
 
+from weboob.tools.browser2.page import HTMLPage, method, ItemElement, SkipItem, ListElement, JsonPage
+from weboob.tools.browser2.filters import Filter, Link, CleanText, Env, Attr, Regexp
 
-__all__ = ['ProgramPage']
+
+__all__ = ['AjaxPage', 'EventPage', 'JsonResumePage']
 
 
-class ProgramPage(BasePage):
+class AjaxPage(HTMLPage):
 
     CHANNELS_PARAM = {
         'einst-3 elgr-data-logo': u'Action',
@@ -57,106 +60,124 @@ class ProgramPage(BasePage):
         'einst-4055 elgr-data-logo': u'Paramount Channel',
     }
 
-    def find_event(self, _id):
-        a = self.document.getroot().xpath("//a[@href='%s']" % _id, method='xpath')
-        if a:
-            event_date = self.get_event_date(a[0])
-            return self.create_event(a[0], event_date)
-
     def count_events(self):
-        return len(self.document.getroot().xpath("//a"))
+        return len(self.doc.xpath("//a"))
 
-    def list_events(self, date_from, date_to=None):
-        for a in self.document.getroot().xpath("//a"):
-            event_date = self.get_event_date(a)
-            if self.is_valid_event(date_from, date_to, event_date):
-                yield self.create_event(a, event_date)
+    @method
+    class list_events(ListElement):
+        item_xpath = '//a'
 
-    def create_event(self, a, event_date):
-        event = SensCritiquenCalendarEvent(a.attrib['href'])
-        title = self.parser.select(a, "div/img", 1, method='xpath').attrib['alt'].replace('Affiche ', '')
-        channel_info = self.parser.select(a, "div/div[@class='elgr-data-channel']", method='xpath')
-        if channel_info:
-            channel = channel_info[0].text.strip()
-        else:
-            channel_info = self.parser.select(a,
-                                              'div[@class="elgr-product-data"]/span',
-                                              1,
-                                              method='xpath').attrib['class']
-            channel = self.CHANNELS_PARAM.get(channel_info)
-        event.summary = u'%s - %s' % (title, channel)
+        class item(ItemElement):
+            klass = SensCritiquenCalendarEvent
 
-        event.start_date = event_date
-        event.end_date = datetime.combine(event_date.date(), time.max)
-        return event
-
-    def is_valid_event(self, date_from, date_to, event_date):
-        if event_date >= date_from:
-            if not date_to:
+            def condition(self):
+                if '_id' in self.env and self.env['_id']:
+                    return Regexp(Link('.'), '/film/(.*)')(self) == self.env['_id']
                 return True
-            else:
-                if event_date < date_to:
+
+            def validate(self, obj):
+                if 'date_from' in self.env and self.env['date_from'] and obj.start_date > self.env['date_from']:
+                    if not self.env['date_to']:
+                        return True
+                    else:
+                        if obj.end_date < self.env['date_to']:
+                            return True
+
+                if '_id' in self.env:
                     return True
-        return False
 
-    def get_event_date(self, a):
-        div_date = self.parser.select(a, "div/div[@class='elgr-data-diffusion']", 1, method='xpath')
-        _date = self.parse_start_date(div_date)
+                return False
 
-        str_time = self.parser.select(div_date, "time", 1, method='xpath').attrib['datetime'][:-6]
-        _time = datetime.strptime(str_time, '%H:%M:%S')
+            class Date(Filter):
+                def filter(self, el):
+                    spans_date = el[0].xpath("span[@class='d-date']")
+                    _date = date.today()
+                    if len(spans_date) == 2:
+                        day_number = int(spans_date[1].text)
 
-        return datetime.combine(_date, _time.time())
+                        month = _date.month
+                        year = _date.year
+                        if day_number < _date.day:
+                            month = _date.month + 1
+                            if _date.month == 12:
+                                year = _date.year + 1
 
-    def parse_start_date(self, div_date):
-        spans_date = self.parser.select(div_date, "span[@class='d-date']", method='xpath')
+                        _date = date(day=day_number, month=month, year=year)
 
-        _date = date.today()
-        if len(spans_date) == 2:
-            day_number = int(spans_date[1].text)
+                    str_time = el[0].xpath("time")[0].attrib['datetime'][:-6]
+                    _time = datetime.strptime(str_time, '%H:%M:%S')
 
-            month = _date.month
-            year = _date.year
-            if day_number < _date.day:
-                month = _date.month + 1
-                if _date.month == 12:
-                    year = _date.year + 1
+                    return datetime.combine(_date, _time.time())
 
-            _date = date(day=day_number, month=month, year=year)
+            class CombineDate(Filter):
+                def filter(self, _date):
+                    return datetime.combine(_date, time.max)
 
-        return _date
+            class Summary(Filter):
+                def filter(self, el):
+                    title = el[0].xpath("div/img")[0].attrib['alt'].replace('Affiche ', '')
+                    channel_info = el[0].xpath("div/div[@class='elgr-data-channel']")
+                    if channel_info:
+                        channel = channel_info[0].text.strip()
+                    else:
+                        channel_info = el[0].xpath('div[@class="elgr-product-data"]/span')[0].attrib['class']
+                        channel = self.page.CHANNELS_PARAM.get(channel_info)
+                    return u'%s - %s' % (title, channel)
+
+            obj_id = Regexp(Link('.'), '/film/(.*)')
+            obj_start_date = Date('div/div[@class="elgr-data-diffusion"]')
+            obj_end_date = CombineDate(obj_start_date)
+            obj_summary = CleanText(Summary('.'))
 
 
-class EventPage(BasePage):
-    def get_event(self, url, event):
+class Description(Filter):
+    def filter(self, el):
+        header = el[0].xpath("//div[@class='pvi-hero-product']")[0]
 
-        event.url = url
+        title = header.xpath("div[@class='d-rubric-inner']/h1")[0].text.strip()
+        year = header.xpath("div[@class='d-rubric-inner']/small")[0].text.strip()
 
-        header = self.document.getroot().xpath("//div[@class='pvi-hero-product']")[0]
-
-        title = self.parser.select(header, "div[@class='d-rubric-inner']/h1", 1, method='xpath').text.strip()
-        year = self.parser.select(header, "div[@class='d-rubric-inner']/small", 1, method='xpath').text.strip()
-
-        _infos = self.parser.select(header, "ul[@class='pvi-product-specs']/li", method='xpath')
+        _infos = header.xpath("ul[@class='pvi-product-specs']/li")
         infos = ''
         for li in _infos:
-            infos += u'- %s\n' % self.parser.tocleanstring(li)
+            infos += u'- %s\n' % CleanText(li)(self)
 
-        section = self.document.getroot().xpath("//section[@class='pvi-productDetails']")[0]
-        _infos = self.parser.select(section, "ul/li", method='xpath')
+        section = "//section[@class='pvi-productDetails']"
+        _infos = el[0].xpath("%s/ul/li" % section)
         for li in _infos:
-            infos += u'- %s\n' % self.parser.tocleanstring(li)
+            infos += u'- %s\n' % CleanText(li)(self)
 
-        _resume = self.parser.select(section, "p[@data-rel='full-resume']", method='xpath')
+        return u'%s %s\n\n%s\n\n' % (title, year, infos)
+
+
+class Resume(Filter):
+    def filter(self, el):
+        _resume = el[0].xpath("p[@data-rel='full-resume']")
         if not _resume:
-            _resume = self.parser.select(section, "p[@data-rel='small-resume']", method='xpath')
+            _resume = el[0].xpath("p[@data-rel='small-resume']")
             if _resume:
-                resume = html2text(self.parser.tostring(_resume[0]))
-            else:
-                resume = ""
-        else:
-            _id = self.parser.select(_resume[0], 'button', 1, method='xpath').attrib['data-sc-product-id']
-            resume = self.browser.get_resume(url, _id)
+                resume = html2text(CleanText(_resume[0])(self))[6:]
+                return resume
 
-        event.description = u'%s %s\n\n%s\n\n%s' % (title, year, infos, resume)
-        return event
+
+class EventPage(HTMLPage):
+    @method
+    class get_event(ItemElement):
+        klass = SensCritiquenCalendarEvent
+
+        def parse(self, el):
+            event = self.obj
+            event.url = self.page.url
+            resume = Resume('//section[@class="pvi-productDetails"]')(self)
+            if not resume:
+                resume = self.obj.resume
+            description = Description('.')(self)
+            event.description = u'%s%s' % (description, resume)
+            return event
+
+
+class JsonResumePage(JsonPage):
+    def get_resume(self):
+        print self.doc
+        if self.doc['json']['success']:
+            return self.doc['json']['data']

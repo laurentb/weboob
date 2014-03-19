@@ -73,7 +73,6 @@ class SenscritiqueBackend(BaseBackend, ICapCalendarEvent):
         16: [49, 46, 2, 36, 59, 54, 32, 24, 34, 37, 53, 47],
     }
 
-
     """
     dict that represents ids list of cinema channels included in a tv package
     {'tv package id': ['cinema channels ids list']}
@@ -108,29 +107,25 @@ class SenscritiqueBackend(BaseBackend, ICapCalendarEvent):
 
     def search_events(self, query):
         if self.has_matching_categories(query):
-            with self.browser:
-                package, channels = self.get_package_and_channels()
-                return self.browser.list_events(query.start_date,
-                                                query.end_date,
-                                                package,
-                                                channels)
+            package, channels = self.get_package_and_channels()
+            return self.browser.list_events(query.start_date,
+                                            query.end_date,
+                                            package,
+                                            channels)
 
     def list_events(self, date_from, date_to=None):
-        with self.browser:
-            items = []
-            package, channels = self.get_package_and_channels()
-            for item in self.browser.list_events(date_from, date_to, package, channels):
-                items.append(item)
+        items = []
+        package, channels = self.get_package_and_channels()
+        for item in self.browser.list_events(date_from, date_to, package, channels):
+            items.append(item)
 
-            items.sort(cmp=cmp_start_date)
-            return items
+        items.sort(cmp=cmp_start_date)
+        return items
 
     def get_event(self, _id):
-        with self.browser:
-            return self.browser.get_event(_id)
+        return self.browser.get_event(_id)
 
     def fill_obj(self, event, fields):
-        with self.browser:
-            return self.browser.get_event(event.id, event)
+        return self.browser.get_event(event.id, event)
 
     OBJECTS = {SensCritiquenCalendarEvent: fill_obj}
