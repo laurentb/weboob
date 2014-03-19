@@ -109,7 +109,7 @@ class Boobsize(ReplApplication):
 
     def bcall_error_handler(self, backend, error, backtrace):
         if isinstance(error, SensorNotFound):
-            msg = unicode(error) or 'Sensor not found (hint: try sensors command)'
+            msg = unicode(error) or 'Sensor not found (hint: try details command)'
             print >>sys.stderr, 'Error(%s): %s' % (backend.name, msg)
         else:
             return ReplApplication.bcall_error_handler(self, backend, error, backtrace)
