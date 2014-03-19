@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement
-from weboob.tools.browser2.filters import Env, CleanText, Regexp, Attr, Date, Map
+from weboob.tools.browser2.filters import Env, CleanText, Regexp, Field, Date, Map
 from weboob.capabilities.gauge import Gauge, GaugeMeasure, GaugeSensor
 from weboob.capabilities.base import NotAvailable, NotLoaded
 
@@ -48,7 +48,7 @@ class ListPage(HTMLPage):
 
             obj_id = CleanText(Env('id'))
             obj_name = CleanText(Env('name'), "'")
-            obj_city = Regexp(Attr('name'), '^([^\s]+).*')
+            obj_city = Regexp(Field('name'), '^([^\s]+).*')
             obj_object = Env('object')
 
             def parse(self, el):

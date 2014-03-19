@@ -24,7 +24,7 @@ import re
 from dateutil.relativedelta import relativedelta
 
 from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement, SkipItem, FormNotFound
-from weboob.tools.browser2.filters import Filter, Env, CleanText, CleanDecimal, Link, Attr
+from weboob.tools.browser2.filters import Filter, Env, CleanText, CleanDecimal, Link, Field
 from weboob.tools.browser import  BrowserIncorrectPassword
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
@@ -103,7 +103,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_currency = FrenchTransaction.Currency('./td[2] | ./td[3]')
             obj__link_id = Link('./td[1]/a')
             obj__card_links = []
-            obj_type = Type(Attr('label'))
+            obj_type = Type(Field('label'))
 
             def parse(self, el):
                 link = el.xpath('./td[1]/a')[0].get('href', '')

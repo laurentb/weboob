@@ -171,12 +171,12 @@ class Link(Filter):
         return el[0].attrib.get('href', '')
 
 
-class Attr(_Filter):
+class Field(_Filter):
     """
     Get the attribute of object.
     """
     def __init__(self, name):
-        super(Attr, self).__init__()
+        super(Field, self).__init__()
         self.name = name
 
     def __call__(self, item):
