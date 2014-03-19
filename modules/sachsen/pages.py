@@ -17,9 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime, date, time
 from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement
-from weboob.tools.browser2.filters import Env
+from weboob.tools.browser2.filters import Env, CleanText, Regexp, Attr, Date, Map
 from weboob.capabilities.gauge import Gauge, GaugeMeasure, GaugeSensor
 from weboob.capabilities.base import NotAvailable, NotLoaded
 
@@ -37,20 +36,38 @@ class ListPage(HTMLPage):
         class item(ItemElement):
             klass = Gauge
 
+            forecasts = {'pf_gerade.png': u'stable',
+                         'pf_unten.png':  u'Go down',
+                         'pf_oben.png':   u'Go up',
+                        }
             alarmlevel = {"as1.gif": u"Alarmstufe 1", "as2.gif": u"Alarmstufe 2",
                           "as3.gif": u"Alarmstufe 3", "as4.gig": u"Alarmstufe 4",
                           "qua_grau.gif": u"No alarm function", "p_gruen.gif": u"",
                           "qua_weiss.gif": u"no data", "as0.gif": u"",
                           "MNW.gif": u""}
 
-            obj_id = Env('id')
-            obj_name = Env('name')
-            obj_city = Env('city')
+            obj_id = CleanText(Env('id'))
+            obj_name = CleanText(Env('name'), "'")
+            obj_city = Regexp(Attr('name'), '^([^\s]+).*')
             obj_object = Env('object')
-            obj_sensors = Env('sensors')
 
-            def init_sensor(self, _id, name, unit, value, forecast, alarm, date):
-                sensor = GaugeSensor("%s-%s" % (_id, name.lower()))
+            def parse(self, el):
+                div = el.getparent()
+                img = div.find('.//img').attrib['src'].split('/')[1]
+                data = unicode(el.attrib['onmouseover']) \
+                    .strip('pegelein(').strip(')').replace(",'", ",").split("',")
+
+                self.env['id'] = data[7].strip()
+                self.env['name'] = data[0]
+                self.env['object'] = data[1]
+                self.env['datetime'] = data[2]
+                self.env['levelvalue'] = data[3]
+                self.env['flowvalue'] = data[4]
+                self.env['forecast'] = data[5]
+                self.env['alarm'] = img
+
+            def add_sensor(self, sensors, name, unit, value, forecast, alarm, date):
+                sensor = GaugeSensor("%s-%s" % (self.obj.id, name.lower()))
                 sensor.name = name
                 sensor.unit = unit
                 sensor.forecast = forecast
@@ -58,62 +75,26 @@ class ListPage(HTMLPage):
                 lastvalue.alarm = alarm
                 try:
                     lastvalue.level = float(value)
-                except:
+                except ValueError:
                     lastvalue.level = NotAvailable
                 lastvalue.date = date
                 sensor.lastvalue = lastvalue
                 sensor.history = NotLoaded
-                sensor.gaugeid = unicode(_id)
+                sensor.gaugeid = self.obj.id
 
-                return sensor
+                sensors.append(sensor)
 
-            def parse(self, el):
-                div = el.getparent()
-                img = div.find('.//img').attrib['src'].split('/')[1]
-                data = el.attrib['onmouseover'] \
-                    .strip('pegelein(').strip(')').replace(",'", ",").split("',")
-
-                self.env['id'] = data[7].strip()
-                self.env['name'] = unicode(data[0].strip("'"))
-                self.env['city'] = self.env['name'].split(' ')[0]
-                self.env['object'] = unicode(data[1])
-
+            def obj_sensors(self):
                 sensors = []
-                try:
-                    datenumbers = data[2].split(' ')[0].split(".")
-                    timenumbers = data[2].split(' ')[1].split(":")
-                    lastdate = date(*reversed([int(x) for x in datenumbers]))
-                    lasttime = time(*[int(x) for x in timenumbers])
-                    lastdate = datetime.combine(lastdate, lasttime)
-                except:
-                    lastdate = NotAvailable
 
-                bildforecast = data[5]
-                if bildforecast == "pf_gerade.png":
-                    forecast = u"stable"
-                elif bildforecast == "pf_unten.png":
-                    forecast = u"Go down"
-                elif bildforecast == "pf_oben.png":
-                    forecast = u"Go up"
-                else:
-                    forecast = NotAvailable
+                lastdate = Date(Regexp(Env('datetime'), r'(\d+)\.(\d+)\.(\d+) (\d+):(\d+)', r'\3-\2-\1 \4:\5'))(self)
+                forecast = Map(Env('forecast'), self.forecasts, default=NotAvailable)(self)
+                alarm = Map(Env('alarm'), self.alarmlevel, default=u'')(self)
 
-                try:
-                    alarm = self.alarmlevel[img]
-                except KeyError:
-                    alarm = u""
+                self.add_sensor(sensors, u"Level", u"cm", self.env['levelvalue'], forecast, alarm, lastdate)
+                self.add_sensor(sensors, u"Flow", u"m3/s", self.env['flowvalue'], forecast, alarm, lastdate)
 
-                levelsensor = self.init_sensor(self.env['id'], u"Level",
-                                               u"cm", data[3], forecast,
-                                               alarm, lastdate)
-                sensors.append(levelsensor)
-
-                flowsensor = self.init_sensor(self.env['id'], u"Flow",
-                                              u"m3/s", data[4], forecast,
-                                              alarm, lastdate)
-                sensors.append(flowsensor)
-
-                self.env['sensors'] = sensors
+                return sensors
 
 
 class HistoryPage(HTMLPage):
@@ -125,30 +106,17 @@ class HistoryPage(HTMLPage):
             klass = GaugeMeasure
             verif = re.compile("\d\d.\d\d.\d+ \d\d:\d\d")
 
-            obj_date = Env('date')
-            obj_level = Env('level')
-            obj_id = None
-
             def condition(self):
-                if self.verif.match(self.el[0].text_content()):
-                    return True
-                return False
+                return self.verif.match(self.el[0].text_content())
 
-            def parse(self, line):
-                leveldate = date(*reversed([int(x)
-                    for x in line[0].text_content().split(' ')[0].split(".")]))
-                leveltime = time(*[int(x)
-                    for x in line[0].text_content().split(' ')[1].split(":")])
-                self.env['date'] = datetime.combine(leveldate, leveltime)
+            obj_id = None
+            obj_date = Date(Regexp(CleanText('.'), r'(\d+)\.(\d+)\.(\d+) (\d+):(\d+)', r'\3-\2-\1 \4:\5'))
 
-                if self.env['sensor'].name == u"Level":
-                    try:
-                        self.env['level'] = float(line[1].text_content())
-                    except:
-                        self.env['level'] = NotAvailable
-                elif self.env['sensor'].name == u"Flow":
-                    try:
-                        self.env['level'] = float(line[2].text_content())
-                    except:
-                        self.env['level'] = NotAvailable
+            sensor_types = [u'Level', u'Flow']
+            def obj_level(self):
+                index = self.sensor_types.index(self.env['sensor'].name) + 1
+                try:
+                    return float(self.el[index].text_content())
+                except ValueError:
+                    return NotAvailable
                 # TODO: history.alarm
