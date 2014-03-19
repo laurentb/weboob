@@ -60,10 +60,10 @@ class GaugeFormatter(IFormatter):
                         lastvalue = "%d " % sensor.lastvalue.level
                     else:
                         lastvalue = "%r " % sensor.lastvalue.level
+                    if not empty(sensor.unit):
+                        lastvalue += "%s" % sensor.unit
                 else:
                     lastvalue = u"? "
-                if not empty(sensor.unit):
-                    lastvalue += "%s" % sensor.unit
                 if first:
                     result = u' %s %s %s ' %\
                              (self.colored('%-27s' % name[:27], 'red'),
