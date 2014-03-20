@@ -18,13 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.misc import html2text
-from weboob.tools.browser import BasePage
 from .calendar import SensCritiquenCalendarEvent
 
 from datetime import date, datetime, time
 
-from weboob.tools.browser2.page import HTMLPage, method, ItemElement, SkipItem, ListElement, JsonPage
-from weboob.tools.browser2.filters import Filter, Link, CleanText, Env, Attr, Regexp
+from weboob.tools.browser2.page import HTMLPage, method, ItemElement, ListElement, JsonPage
+from weboob.tools.browser2.filters import Filter, Link, CleanText, Regexp
 
 
 __all__ = ['AjaxPage', 'EventPage', 'JsonResumePage']
@@ -178,6 +177,5 @@ class EventPage(HTMLPage):
 
 class JsonResumePage(JsonPage):
     def get_resume(self):
-        print self.doc
         if self.doc['json']['success']:
             return self.doc['json']['data']

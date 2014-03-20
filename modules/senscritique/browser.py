@@ -18,13 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser2 import PagesBrowser, URL, Profile, Firefox
-from weboob.tools.json import json as simplejson
 
 from .calendar import SensCritiquenCalendarEvent
 from .pages import AjaxPage, EventPage, JsonResumePage
 
-import urllib
-import urllib2
 import re
 
 __all__ = ['SenscritiqueBrowser']
@@ -85,8 +82,9 @@ class SenscritiqueBrowser(PagesBrowser):
 
     def set_package_settings(self, package, channels):
         url = 'http://www.senscritique.com/sc/tv_guides/saveSettings.json'
-        params = "network=%s" % package
-        params += ''.join(["&channels%%5B%%5D=%d" % (channel) for channel in channels])
+        params = {'network':    package}
+        for channel in channels:
+            params['channels[]'] = channel
         self.open(url, data=params)
 
     def list_events(self, date_from, date_to=None, package=None, channels=None):
@@ -99,7 +97,7 @@ class SenscritiqueBrowser(PagesBrowser):
         self._setup_session(SensCritiqueAjaxProfile())
         while True:
             self.DATA['page'] = '%d' % page_nb
-            page = self.ajax_page.open(data=urllib.urlencode(self.DATA))
+            page = self.ajax_page.open(data=self.DATA)
             nb_events = page.count_events()
             events = page.list_events(date_from=date_from, date_to=date_to)
 
@@ -119,7 +117,7 @@ class SenscritiqueBrowser(PagesBrowser):
             self._setup_session(SensCritiqueAjaxProfile())
             while True:
                 self.DATA['page'] = '%d' % page_nb
-                page = self.ajax_page.open(data=urllib.urlencode(self.DATA))
+                page = self.ajax_page.open(data=self.DATA)
                 event = page.list_events(_id=_id)
                 nb_events = page.count_events()
                 if event or nb_events < self.LIMIT or page >= self.LIMIT_NB_PAGES:
@@ -140,9 +138,8 @@ class SenscritiqueBrowser(PagesBrowser):
 
     def get_resume(self, _id):
         self._setup_session(SensCritiqueJsonProfile())
-        re_id = re.compile('/(.*)/(.*?).json', re.DOTALL)
+        re_id = re.compile('^/?(.*)/.*', re.DOTALL)
         a_id = re_id.search(_id).group(1)
-        print a_id
 
         return self.json_page.go(_id=a_id).get_resume()
         # return "get resume"
