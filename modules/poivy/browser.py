@@ -62,7 +62,8 @@ class PoivyBrowser(LoginBrowser):
 
     @need_login
     def get_history(self):
-        return self.history.stay_or_go().get_calls()
+        self.history.stay_or_go()
+        return self.pagination(lambda: self.page.get_calls())
 
     @need_login
     def iter_bills(self, parentid):

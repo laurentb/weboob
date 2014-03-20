@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser2.page import HTMLPage, LoggedPage, method, ListElement, ItemElement
-from weboob.tools.browser2.filters import Env, CleanText, CleanDecimal, Field, Attr, Filter, Time, Date
+from weboob.tools.browser2.filters import Env, CleanText, CleanDecimal, Field, Attr, Filter, Time, Date, Link
 from weboob.capabilities.bill import Subscription, Detail
 from datetime import datetime
 
@@ -87,11 +87,20 @@ class HistoryPage(LoggedPage, HTMLPage):
     class get_calls(ListElement):
         item_xpath = '//table/tbody/tr'
 
+        def next_page(self):
+            link_path = "//div[@class='date-navigator center']/span/a"
+            text = CleanText(link_path)(self.page.doc)
+            if "Previous" in text:
+                link = Link(link_path)(self.page.doc)
+                return link
+            return
+
         class item(ItemElement):
             klass = Detail
 
+            obj_id = None
             obj_datetime = Env('datetime')
-            obj_price = CleanDecimal('td[7]', replace_dots=False)
+            obj_price = CleanDecimal('td[7]', replace_dots=False, default=0)
             obj_currency = u'EUR'
             obj_label = Env('label')
 
