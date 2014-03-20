@@ -21,7 +21,7 @@
 import datetime
 from decimal import Decimal
 
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import BasePage
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 
@@ -46,7 +46,7 @@ class AccountsPage(BasePage):
         a.currency = u'MIAM'
         try:
             a.coming = Decimal(Transaction.clean_amount(self.document.xpath('//table[@id="solde_acquisition_lignes"]//th[@class="col_montant"]')[0].text))
-        except BrokenPageError:
+        except IndexError:
             a.coming = Decimal('0')
         yield a
 
