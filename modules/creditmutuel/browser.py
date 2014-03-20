@@ -25,7 +25,7 @@ from weboob.tools.browser2 import LoginBrowser, URL, Wget, need_login
 from weboob.tools.browser import  BrowserIncorrectPassword
 from weboob.capabilities.bank import Transfer, TransferError
 
-from .pages import LoginPage, LoginErrorPage, AccountsPage, \
+from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
                    OperationsPage, CardPage, ComingPage, NoOperationsPage, \
                    TransfertPage, ChangePasswordPage, VerifCodePage
 
@@ -40,7 +40,7 @@ class CreditMutuelBrowser(LoginBrowser):
     login =       URL('/groupe/fr/index.html',                               LoginPage)
     login_error = URL('/(?P<subbank>.*)/fr/identification/default.cgi',      LoginErrorPage)
     accounts =    URL('/(?P<subbank>.*)/fr/banque/situation_financiere.cgi', AccountsPage)
-    user_space =  URL('/(?P<subbank>.*)/fr/banque/espace_personnel.aspx')
+    user_space =  URL('/(?P<subbank>.*)/fr/banque/espace_personnel.aspx',    UserSpacePage)
     operations =  URL('/(?P<subbank>.*)/fr/banque/mouvements.cgi.*',
                       '/(?P<subbank>.*)/fr/banque/nr/nr_devbooster.aspx.*',
                       OperationsPage)
