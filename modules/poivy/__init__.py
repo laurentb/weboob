@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013 Florent Fourcot
+# Copyright(C) 2013-2014 Florent Fourcot
 #
 # This file is part of weboob.
 #

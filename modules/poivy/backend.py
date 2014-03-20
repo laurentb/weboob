@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013 Florent Fourcot
+# Copyright(C) 2013-2014 Florent Fourcot
 #
 # This file is part of weboob.
 #
@@ -52,17 +52,14 @@ class PoivyBackend(BaseBackend, ICapBill):
             yield subscription
 
     def get_subscription(self, _id):
-        with self.browser:
-            subscription = self.browser.get_subscription(_id)
+        subscription = self.browser.get_subscription(_id)
         if subscription:
             return subscription
         else:
             raise SubscriptionNotFound()
 
     def iter_bills_history(self, subscription):
-        with self.browser:
-            for history in self.browser.get_history():
-                yield history
+        return self.browser.get_history()
 
     # No details on the website
     def get_details(self, subscription):
@@ -75,5 +72,5 @@ class PoivyBackend(BaseBackend, ICapBill):
         balance.id = "%s-balance" % subscription.id
         balance.price = subscription._balance
         balance.label = u"Balance %s" % subscription.id
-        balance.currency = 'EUR'
+        balance.currency = u'EUR'
         return balance
