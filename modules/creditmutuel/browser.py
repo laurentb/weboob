@@ -33,7 +33,6 @@ from .pages import LoginPage, LoginErrorPage, AccountsPage, \
 __all__ = ['CreditMutuelBrowser']
 
 
-# Browser
 class CreditMutuelBrowser(LoginBrowser):
     PROFILE = Wget()
     BASEURL = 'https://www.creditmutuel.fr'
@@ -60,8 +59,6 @@ class CreditMutuelBrowser(LoginBrowser):
 
     currentSubBank = None
 
-    def home(self):
-        return self.login.go()
 
     def do_login(self):
         self.login.stay_or_go()
