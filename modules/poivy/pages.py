@@ -20,10 +20,8 @@
 from weboob.tools.browser2.page import HTMLPage, LoggedPage, method, ListElement, ItemElement
 from weboob.tools.browser2.filters import Env, CleanText, CleanDecimal, Field, Attr, Filter, Time, Date
 from weboob.capabilities.bill import Subscription, Detail
-from decimal import Decimal, InvalidOperation
-from datetime import datetime, date, time
+from datetime import datetime
 
-import re
 
 __all__ = ['LoginPage', 'HomePage', 'HistoryPage', 'BillsPage', 'ErrorPage']
 
@@ -33,11 +31,6 @@ class ErrorPage(HTMLPage):
 
 
 class LoginPage(HTMLPage):
-    def _predicate_form(self, form):
-        try:
-            return form.attrs['class'] == "form-detail"
-        except:
-            return False
 
     def login(self, login, password):
         captcha = self.doc.xpath('//label[@class="label_captcha_input"]')

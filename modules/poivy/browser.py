@@ -19,6 +19,7 @@
 
 
 from weboob.tools.browser2 import LoginBrowser, URL, need_login
+from weboob.tools.browser import BrowserBanned, BrowserIncorrectPassword
 from .pages import HomePage, LoginPage, HistoryPage, BillsPage, ErrorPage
 
 __all__ = ['PoivyBrowser']
@@ -68,5 +69,5 @@ class PoivyBrowser(LoginBrowser):
         return self.bills.stay_or_go().get_bills()
 
     @need_login
-    def get_bill(self, id):
+    def get_bill(self, _id):
         return self._find_id_list(self.iter_bills(), _id)
