@@ -18,12 +18,29 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement
-from weboob.tools.browser2.filters import CleanText, Env, Regexp, Field
+from weboob.tools.browser2.filters import CleanText, Regexp, Field, Filter
 from weboob.capabilities.gauge import GaugeMeasure, GaugeSensor
 from weboob.capabilities.base import NotAvailable
 
 
 __all__ = ['StartPage']
+
+
+class Split(Filter):
+    def __init__(self, selector, mode):
+        super(Split, self).__init__(selector)
+        self.mode = mode
+
+    def filter(self, txt):
+        if u"Temperatur" in txt:
+            value = txt.split(': ')[1].split(u'°')[0]
+            unit = u'°C'
+        else:
+            value = txt.split(':')[-1].split()[0]
+            unit = txt.split(':')[-1].split()[1]
+            if unit == u"W/m":
+                unit = u"W/m²"
+        return [value, unit][self.mode]
 
 
 class StartPage(HTMLPage):
@@ -39,24 +56,10 @@ class StartPage(HTMLPage):
             obj_id = CleanText(Regexp(Field('name'), '(.*)', "dd-\\1"), " .():")
             obj_gaugeid = u"wetter"
             obj_forecast = NotAvailable
-
-            def split_unit(self, text):
-                if u"Temperatur" in text:
-                    value = text.split(': ')[1].split(u'°')[0]
-                    unit = u'°C'
-                else:
-                    value = text.split(':')[-1].split()[0]
-                    unit = text.split(':')[-1].split(None, 1)[1]
-                return [value, unit]
+            obj_unit = Split(CleanText('.'), 1)
 
             def obj_lastvalue(self):
                 lastvalue = GaugeMeasure()
-                lastvalue.level = float(Env('parse')(self)[0])
+                lastvalue.level = float(Split(CleanText('.'), 0)(self))
                 lastvalue.alarm = NotAvailable
                 return lastvalue
-
-            def obj_unit(self):
-                return Env('parse')(self)[1]
-
-            def parse(self, el):
-                self.env['parse'] = self.split_unit(CleanText(el)(self))

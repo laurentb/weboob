@@ -58,4 +58,4 @@ class DresdenWetterTest(BackendTest):
         Test the last sensor return by module"
         """
         sensor = list(self.backend.iter_sensors("wetter", "Globalstrahlung"))
-        assert sensor[0].unit == u"W/m 2"
+        assert sensor[0].unit == u"W/m²"
