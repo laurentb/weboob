@@ -26,11 +26,9 @@ from copy import deepcopy
 from cStringIO import StringIO
 import lxml.html as html
 
+from weboob.tools.json import json
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.regex_helper import normalize
-
-from weboob.tools.parsers.lxmlparser import LxmlHtmlParser
-from weboob.tools.parsers.jsonparser import JsonParser
 
 from weboob.tools.log import getLogger
 
@@ -84,7 +82,7 @@ class URL(object):
 
         return self.go(**kwargs)
 
-    def go(self, **kwargs):
+    def go(self, params=None, data=None, **kwargs):
         """
         Request to go on this url.
 
@@ -93,10 +91,10 @@ class URL(object):
         >>> url = URL('http://exawple.org/(?P<pagename>).html')
         >>> url.stay_or_go(pagename='index')
         """
-        r = self.browser.location(self.build(**kwargs))
+        r = self.browser.location(self.build(**kwargs), params=params, data=data)
         return r.page or r
 
-    def open(self, data=None, **kwargs):
+    def open(self, params=None, data=None, **kwargs):
         """
         Request to open on this url.
 
@@ -106,9 +104,9 @@ class URL(object):
         :type url: str or dict or None
 
         >>> url = URL('http://exawple.org/(?P<pagename>).html')
-        >>> url.open(pagename='index)
+        >>> url.open(pagename='index')
         """
-        r = self.browser.open(self.build(**kwargs), data=data)
+        r = self.browser.open(self.build(**kwargs), params=params, data=data)
         return r.page or r
 
     def build(self, **kwargs):
@@ -402,8 +400,7 @@ class Form(OrderedDict):
 class JsonPage(BasePage):
     def __init__(self, browser, response, *args, **kwargs):
         super(JsonPage, self).__init__(browser, response, *args, **kwargs)
-        parser = JsonParser()
-        self.doc = parser.parse(StringIO(response.content), response.encoding)
+        self.doc = json.loads(response.text)
 
 class HTMLPage(BasePage):
     """
