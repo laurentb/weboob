@@ -57,7 +57,6 @@ class InsertX(Filter):
         self.string = string
         self.selectors = selectors
 
-
     def map_filter(self, selector, item):
         if isinstance(selector, basestring):
             value = item.xpath(selector)
@@ -112,7 +111,7 @@ class HistoryPage(LoggedPage, HTMLPage):
             obj_currency = u'EUR'
             obj_label = InsertX([CleanText('td[3]'), CleanText('td[4]'),
                                  CleanText('td[5]'), CleanText('td[6]')],
-                                 u"%s from %s to %s - %s")
+                                u"%s from %s to %s - %s")
 
             def parse(self, el):
                 mydate = Date(CleanText('td[1]'))(el)
