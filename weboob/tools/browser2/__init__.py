@@ -22,4 +22,4 @@ from .page import PagesBrowser, BasePage, URL, HTMLPage, LoginBrowser, need_logi
 
 
 __all__ = ['BaseBrowser', 'DomainBrowser', 'Wget', 'Firefox', 'UrlNotAllowed', 'Profile',
-           'PagesBrowser', 'BasePage', 'URL', 'HTMLPage', 'LoginBrowser', 'need_login', 'JsonPage']
+           'PagesBrowser', 'BasePage', 'URL', 'HTMLPage', 'LoginBrowser', 'need_login', 'JsonPage', 'LoggedPage']

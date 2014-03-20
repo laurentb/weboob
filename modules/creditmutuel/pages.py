@@ -23,17 +23,13 @@ from decimal import Decimal
 import re
 from dateutil.relativedelta import relativedelta
 
-from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement, SkipItem, FormNotFound
+from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement, SkipItem, FormNotFound, LoggedPage
 from weboob.tools.browser2.filters import Filter, Env, CleanText, CleanDecimal, Link, Field
 from weboob.tools.browser import  BrowserIncorrectPassword
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_french_date
-
-
-class LoggedPage(object):
-    logged = True
 
 
 class LoginPage(HTMLPage):

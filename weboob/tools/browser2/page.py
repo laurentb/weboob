@@ -639,3 +639,7 @@ class TableElement(ListElement):
 
     def get_colnum(self, name):
         return self._cols.get(name, None)
+
+
+class LoggedPage(object):
+    logged = True
