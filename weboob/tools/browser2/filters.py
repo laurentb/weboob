@@ -177,7 +177,7 @@ class Attr(Filter):
             if self.default is not _NO_DEFAULT:
                 return self.default
             else:
-                raise KeyError('Link %s does not has attribute %s' % (el[0], attr))
+                raise KeyError('Link %s does not has attribute %s' % (el[0], self.attr))
 
 
 class Link(Attr):
