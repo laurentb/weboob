@@ -341,7 +341,7 @@ class BaseApplication(object):
             level = logging.WARNING
         if self.options.insecure:
             from weboob.tools.browser import StandardBrowser
-            from weboob.tools.browser2 import BaseBrowser as Browser2
+            from weboob.tools.browser2 import BaseBrowser as Browser2  # NOQA
             StandardBrowser.INSECURE = True
             Browser2.VERIFY = False
 
