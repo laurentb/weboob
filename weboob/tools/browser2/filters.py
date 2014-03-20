@@ -156,9 +156,14 @@ class CleanDecimal(CleanText):
     """
     Get a cleaned Decimal value from an element.
     """
+    def __init__(self, selector, replace_dots=True):
+        super(CleanDecimal, self).__init__(selector)
+        self.replace_dots = replace_dots
+
     def filter(self, text):
         text = super(CleanDecimal, self).filter(text)
-        text = text.replace('.','').replace(',','.')
+        if self.replace_dots:
+            text = text.replace('.','').replace(',','.')
         return Decimal(re.sub(ur'[^\d\-\.]', '', text))
 
 
