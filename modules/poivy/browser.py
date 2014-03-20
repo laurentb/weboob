@@ -17,9 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 from weboob.tools.browser2 import LoginBrowser, URL, need_login
-from weboob.tools.browser import BrowserBanned, BrowserIncorrectPassword
+from weboob.tools.browser import BrowserIncorrectPassword
 from .pages import HomePage, LoginPage, HistoryPage, BillsPage, ErrorPage
 
 __all__ = ['PoivyBrowser']
@@ -40,8 +39,7 @@ class PoivyBrowser(LoginBrowser):
 
         self.login.stay_or_go()
 
-        if not self.page.login(self.username, self.password):
-            raise BrowserBanned('Too many connections from you IP address: captcha enabled')
+        self.page.login(self.username, self.password)
 
         if self.login.is_here() or self.warning.is_here():
             raise BrowserIncorrectPassword()
