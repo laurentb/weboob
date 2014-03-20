@@ -367,8 +367,11 @@ class Form(OrderedDict):
             except KeyError:
                 continue
 
-            if inp.attrib['type'] in ('checkbox', 'radio') and not 'checked' in inp:
-                continue
+            try:
+                if inp.attrib['type'] in ('checkbox', 'radio') and not 'checked' in inp:
+                    continue
+            except KeyError:
+                pass
 
             if inp.tag == 'select':
                 options = inp.xpath('.//option[@selected]')
