@@ -18,11 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
-
 from weboob.tools.browser2 import HTMLPage
 from weboob.tools.browser2.page import ListElement, method, ItemElement
-from weboob.tools.browser2.filters import Filter, Link, CleanText, Duration
+from weboob.tools.browser2.filters import Link, CleanText, Duration, Regexp
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.image import BaseImage
 from weboob.capabilities.video import BaseVideo
@@ -41,11 +39,7 @@ class IndexPage(HTMLPage):
         class item(ItemElement):
             klass = BaseVideo
 
-            class Id(Filter):
-                def filter(self, link):
-                    return re.sub(r'/videos/(.+)\.html', r'\1', link)
-
-            obj_id = Id(Link('.//a'))
+            obj_id = Regexp(Link('.//a'), r'/videos/(.+)\.html')
             obj_title = CleanText('.//span[@id="title1"]')
             obj_duration = Duration(CleanText('.//span[@class="thumbtime"]//span'), default=NotAvailable)
             obj_nsfw = True
