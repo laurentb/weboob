@@ -21,7 +21,7 @@ from __future__ import absolute_import
 
 from dateutil.parser import parse as parse_date
 import datetime
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import re
 from weboob.capabilities.base import empty
 
@@ -156,16 +156,22 @@ class CleanDecimal(CleanText):
     """
     Get a cleaned Decimal value from an element.
     """
-    def __init__(self, selector, replace_dots=True):
+    def __init__(self, selector, replace_dots=True, default=_NO_DEFAULT):
         super(CleanDecimal, self).__init__(selector)
         self.replace_dots = replace_dots
+        self.default = default
 
     def filter(self, text):
         text = super(CleanDecimal, self).filter(text)
         if self.replace_dots:
             text = text.replace('.','').replace(',','.')
-        return Decimal(re.sub(ur'[^\d\-\.]', '', text))
-
+        try:
+            return Decimal(re.sub(ur'[^\d\-\.]', '', text))
+        except InvalidOperation as e:
+            if self.default is not _NO_DEFAULT:
+                return Decimal(self.default)
+            else:
+                raise InvalidOperation(e)
 
 class Attr(Filter):
     def __init__(self, selector, attr, default=_NO_DEFAULT):
