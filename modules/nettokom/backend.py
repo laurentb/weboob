@@ -79,5 +79,5 @@ class NettoKomBackend(BaseBackend, ICapBill):
         balance.id = "%s-balance" % subscription.id
         balance.price = subscription._balance
         balance.label = u"Balance %s" % subscription.id
-        balance.currency = 'EUR'
+        balance.currency = u'EUR'
         return balance
