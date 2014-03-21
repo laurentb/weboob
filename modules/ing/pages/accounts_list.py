@@ -59,7 +59,7 @@ class AccountsList(BasePage):
         # TODO: no idea abount how proxy account are displayed
         for a in self.document.xpath('//a[@class="mainclic"]'):
             account = Account()
-            account.currency = 'EUR'
+            account.currency = u'EUR'
             account.id = unicode(a.find('span[@class="account-number"]').text)
             account._id = account.id
             account.label = unicode(a.find('span[@class="title"]').text)
