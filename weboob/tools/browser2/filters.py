@@ -54,15 +54,17 @@ class Filter(_Filter):
         super(Filter, self).__init__()
         self.selector = selector
 
-    def __call__(self, item):
-        if isinstance(self.selector, basestring):
-            value = item.xpath(self.selector)
-        elif callable(self.selector):
-            value = self.selector(item)
+    @classmethod
+    def select(cls, selector, item):
+        if isinstance(selector, basestring):
+            return item.xpath(selector)
+        elif callable(selector):
+            return selector(item)
         else:
-            value = self.selector
+            return selector
 
-        return self.filter(value)
+    def __call__(self, item):
+        return self.filter(self.select(self.selector, item))
 
     def filter(self, value):
         """
@@ -84,6 +86,7 @@ class Env(_Filter):
 
     def __call__(self, item):
         return item.env[self.name]
+
 
 class TableCell(_Filter):
     """
@@ -119,6 +122,7 @@ class TableCell(_Filter):
             return self.default
         raise KeyError('Unable to find column %s' % ' or '.join(self.names))
 
+
 class CleanText(Filter):
     """
     Get a cleaned text from an element.
@@ -152,6 +156,7 @@ class CleanText(Filter):
             txt = txt.replace(symbol, '')
         return txt
 
+
 class CleanDecimal(CleanText):
     """
     Get a cleaned Decimal value from an element.
@@ -172,6 +177,7 @@ class CleanDecimal(CleanText):
                 return Decimal(self.default)
             else:
                 raise InvalidOperation(e)
+
 
 class Attr(Filter):
     def __init__(self, selector, attr, default=_NO_DEFAULT):
@@ -245,6 +251,7 @@ class Regexp(Filter):
         else:
             return mobj.expand(self.template)
 
+
 class Map(Filter):
     def __init__(self, selector, map_dict, default=_NO_DEFAULT):
         super(Map, self).__init__(selector)
@@ -260,11 +267,13 @@ class Map(Filter):
             else:
                 raise KeyError('Unable to handle %r' % txt)
 
+
 class Date(Filter):
     def filter(self, txt):
         if empty(txt):
             return txt
         return parse_date(txt)
+
 
 class Time(Filter):
     klass = datetime.time
@@ -293,3 +302,24 @@ class Duration(Time):
     klass = datetime.timedelta
     regexp = re.compile(ur'((?P<hh>\d+)[:;])?(?P<mm>\d+)[;:](?P<ss>\d+)')
     kwargs = {'hours': 'hh', 'minutes': 'mm', 'seconds': 'ss'}
+
+
+class MultiFilter(Filter):
+    def __init__(self, *args):
+        super(MultiFilter, self).__init__(args)
+
+    def __call__(self, item):
+        values = [self.select(selector, item) for selector in self.selector]
+        return self.filter(tuple(values))
+
+    def filter(self, values):
+        raise NotImplementedError()
+
+
+class Format(MultiFilter):
+    def __init__(self, fmt, *args):
+        super(Format, self).__init__(*args)
+        self.fmt = fmt
+
+    def filter(self, values):
+        return self.fmt % values

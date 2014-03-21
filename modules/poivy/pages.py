@@ -19,7 +19,7 @@
 
 from weboob.tools.browser import BrowserBanned
 from weboob.tools.browser2.page import HTMLPage, LoggedPage, method, ListElement, ItemElement
-from weboob.tools.browser2.filters import Env, CleanText, CleanDecimal, Field, Attr, Filter, Time, Date, Link
+from weboob.tools.browser2.filters import Env, CleanText, CleanDecimal, Field, Attr, Time, Date, Link, Format
 from weboob.capabilities.bill import Subscription, Detail
 from datetime import datetime
 
@@ -28,7 +28,7 @@ __all__ = ['LoginPage', 'HomePage', 'HistoryPage', 'BillsPage', 'ErrorPage']
 
 
 class ErrorPage(HTMLPage):
-        pass
+    pass
 
 
 class LoginPage(HTMLPage):
@@ -49,31 +49,6 @@ class LoginPage(HTMLPage):
         form.submit()
 
 
-class InsertX(Filter):
-    """
-    Insert a list of Filters inside a string
-    """
-    def __init__(self, selectors, string):
-        self.string = string
-        self.selectors = selectors
-
-    def map_filter(self, selector, item):
-        if isinstance(selector, basestring):
-            value = item.xpath(selector)
-        elif callable(selector):
-            value = selector(item)
-        else:
-            value = selector
-        return value
-
-    def __call__(self, item):
-        myliste = [self.map_filter(selector, item) for selector in self.selectors]
-        return self.filter(tuple(myliste))
-
-    def filter(self, mytupple):
-        return self.string % mytupple
-
-
 class HomePage(LoggedPage, HTMLPage):
 
     @method
@@ -85,7 +60,7 @@ class HomePage(LoggedPage, HTMLPage):
 
             obj_id = CleanText('//span[@class="welcome-text"]/b')
             obj__balance = CleanDecimal(CleanText('//span[@class="balance"]'), replace_dots=False)
-            obj_label = InsertX([Field('id'), Field('_balance')], u"Poivy - %s - %s €")
+            obj_label = Format(u"Poivy - %s - %s €", Field('id'), Field('_balance'))
 
 
 class HistoryPage(LoggedPage, HTMLPage):
@@ -109,9 +84,9 @@ class HistoryPage(LoggedPage, HTMLPage):
             obj_datetime = Env('datetime')
             obj_price = CleanDecimal('td[7]', replace_dots=False, default=0)
             obj_currency = u'EUR'
-            obj_label = InsertX([CleanText('td[3]'), CleanText('td[4]'),
-                                 CleanText('td[5]'), CleanText('td[6]')],
-                                u"%s from %s to %s - %s")
+            obj_label = Format(u"%s from %s to %s - %s",
+                               CleanText('td[3]'), CleanText('td[4]'),
+                               CleanText('td[5]'), CleanText('td[6]'))
 
             def parse(self, el):
                 mydate = Date(CleanText('td[1]'))(el)
