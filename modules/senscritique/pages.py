@@ -169,7 +169,7 @@ class EventPage(HTMLPage):
             event.url = self.page.url
             resume = Resume('//section[@class="pvi-productDetails"]')(self)
             if not resume:
-                resume = self.obj.resume
+                resume = self.obj._resume
             description = Description('.')(self)
             event.description = u'%s%s' % (description, resume)
             return event

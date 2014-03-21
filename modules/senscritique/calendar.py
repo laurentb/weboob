@@ -28,4 +28,3 @@ class SensCritiquenCalendarEvent(BaseCalendarEvent):
         self.transp = TRANSP.TRANSPARENT
         self.status = STATUS.CONFIRMED
         self.category = CATEGORIES.TELE
-        self.resume = None
