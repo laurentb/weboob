@@ -43,21 +43,6 @@ def load_xml():
     return LxmlXmlParser
 
 
-def load_html5lib():
-    from .html5libparser import Html5libParser
-    return Html5libParser
-
-
-def load_elementtidy():
-    from .elementtidyparser import ElementTidyParser
-    return ElementTidyParser
-
-
-def load_builtin():
-    from .htmlparser import HTMLParser
-    return HTMLParser
-
-
 def load_json():
     # This parser doesn't read HTML, don't include it in the
     # preference_order default value below.
@@ -82,7 +67,6 @@ def load_raw():
 def get_parser(preference_order=('lxml', 'lxmlsoup')):
     """
     Get a parser from a preference order list.
-    This allows Weboob to run on systems without lxml, which is the default parser.
     Return a parser implementing IParser.
     """
     if not isinstance(preference_order, (tuple, list)):
