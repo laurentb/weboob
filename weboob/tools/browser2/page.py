@@ -433,8 +433,8 @@ class HTMLPage(BasePage):
         for el in self.doc.xpath(xpath):
             if name is not None and el.attrib.get('name', '') != name:
                 continue
-            i += i
             if nr is not None and i != nr:
+                i += 1
                 continue
 
             return self.FORM_CLASS(self, el)
