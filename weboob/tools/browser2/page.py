@@ -62,11 +62,18 @@ class URL(object):
         self._creation_counter = URL._creation_counter
         URL._creation_counter += 1
 
-    def is_here(self):
+    def is_here(self, **kwargs):
         """
         Returns True if the current page of browser matches this URL.
+        If arguments are provided, and only then, they are checked against the arguments
+        that were used to build the current page URL.
         """
-        return self.browser.page and isinstance(self.browser.page, self.klass)
+        if len(kwargs):
+            params = self.match(self.browser.absurl(self.build(**kwargs), base=True)).groupdict()
+        else:
+            params = None
+        return self.browser.page and isinstance(self.browser.page, self.klass) \
+            and (params is None or params == self.browser.page.params)
 
     def stay_or_go(self, **kwargs):
         """
@@ -77,7 +84,7 @@ class URL(object):
         >>> url = URL('http://exawple.org/(?P<pagename>).html')
         >>> url.stay_or_go(pagename='index')
         """
-        if self.is_here():
+        if self.is_here(**kwargs):
             return self.browser.page
 
         return self.go(**kwargs)
