@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2011 Laurent Bachelier
+# Copyright(C) 2011-2014 Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -18,19 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-
 import re
 
 from weboob.tools.capabilities.paste import BasePasteBackend
 from weboob.tools.backend import BaseBackend
 from weboob.capabilities.base import NotLoaded
 
-from .browser import PastealaconBrowser
-from .paste import PastealaconPaste
-
-
-__all__ = ['PastealaconBackend']
+from .browser import PastealaconBrowser, PastealaconPaste
 
 
 class PastealaconBackend(BaseBackend, BasePasteBackend):
@@ -53,7 +47,7 @@ class PastealaconBackend(BaseBackend, BasePasteBackend):
 
     def can_post(self, contents, title=None, public=None, max_age=None):
         try:
-            contents.encode(self.browser.ENCODING)
+            contents.encode('ISO-8859-1')
         except UnicodeEncodeError:
             return 0
         if public is False:
@@ -67,20 +61,17 @@ class PastealaconBackend(BaseBackend, BasePasteBackend):
         return 1
 
     def get_paste(self, _id):
-        with self.browser:
-            return self.browser.get_paste(_id)
+        return self.browser.get_paste(_id)
 
     def fill_paste(self, paste, fields):
         # if we only want the contents
         if fields == ['contents']:
             if paste.contents is NotLoaded:
-                with self.browser:
-                    contents = self.browser.get_contents(paste.id)
-                    paste.contents = contents
+                contents = self.browser.get_contents(paste.id)
+                paste.contents = contents
         # get all fields
         elif fields is None or len(fields):
-            with self.browser:
-                self.browser.fill_paste(paste)
+            self.browser.fill_paste(paste)
         return paste
 
     def post_paste(self, paste, max_age=None):
@@ -88,7 +79,6 @@ class PastealaconBackend(BaseBackend, BasePasteBackend):
             expiration = self.get_closest_expiration(max_age)
         else:
             expiration = None
-        with self.browser:
-            self.browser.post_paste(paste, expiration=self.EXPIRATIONS.get(expiration))
+        self.browser.post_paste(paste, expiration=self.EXPIRATIONS.get(expiration))
 
     OBJECTS = {PastealaconPaste: fill_paste}

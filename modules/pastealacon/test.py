@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2011 Laurent Bachelier
+# Copyright(C) 2011-2014 Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -20,9 +20,10 @@
 
 from weboob.tools.test import BackendTest
 from weboob.capabilities.base import NotLoaded
-from weboob.tools.browser import BrowserUnavailable
 
 from weboob.capabilities.paste import PasteNotFound
+
+from .browser import Spam
 
 
 class PastealaconTest(BackendTest):
@@ -62,10 +63,11 @@ class PastealaconTest(BackendTest):
 
     def test_spam(self):
         p = self.backend.new_paste(None, title=u'viagra', contents=u'http://example.com/')
-        self.assertRaises(BrowserUnavailable, self.backend.post_paste, p)
+        self.assertRaises(Spam, self.backend.post_paste, p)
 
     def test_notfound(self):
-        for _id in ('424242424242424242424242424242424242', 'http://pastealacon.com/424242424242424242424242424242424242'):
+        for _id in ('424242424242424242424242424242424242',
+                    'http://pastealacon.com/424242424242424242424242424242424242'):
             # html method
             p = self.backend.get_paste(_id)
             self.assertRaises(PasteNotFound, self.backend.fillobj, p, ['title'])

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2011 Laurent Bachelier
+# Copyright(C) 2011-2014 Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -17,43 +17,84 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from mechanize import RobustFactory
 import re
 
-from weboob.tools.browser import BaseBrowser, BrowserUnavailable, BrowserHTTPNotFound
+import requests
 
-from weboob.capabilities.paste import PasteNotFound
-from weboob.tools.browser.decorators import id2url, check_url
-
-from .pages import PastePage, CaptchaPage, PostPage
-from .paste import PastealaconPaste
-
-__all__ = ['PastealaconBrowser']
+from weboob.capabilities.paste import BasePaste, PasteNotFound
+from weboob.tools.browser2 import HTMLPage, PagesBrowser, URL
 
 
-class PastealaconBrowser(BaseBrowser):
-    DOMAIN = 'pastealacon.com'
-    ENCODING = 'ISO-8859-1'
-    PASTE_URL = 'http://%s/(?P<id>\d+)' % DOMAIN
-    PAGES = {PASTE_URL: PastePage,
-             'http://%s/%s' % (DOMAIN, re.escape('pastebin.php?captcha=1')): CaptchaPage,
-             'http://%s/' % DOMAIN: PostPage}
+class Spam(Exception):
+    def __init__(self):
+        super(Spam, self).__init__("Detected as spam and unable to handle the captcha")
 
-    def __init__(self, *args, **kwargs):
-        kwargs['factory'] = RobustFactory()
-        BaseBrowser.__init__(self, *args, **kwargs)
 
-    @id2url(PastealaconPaste.id2url)
-    @check_url(PASTE_URL)
+class PastealaconPaste(BasePaste):
+    # all pastes are public
+    public = True
+
+    # TODO perhaps move this logic elsewhere, remove this and id2url from capability
+    # (page_url is required by pastoob)
+    @property
+    def page_url(self):
+        return '%s%s' % (PastealaconBrowser.BASEURL, self.id)
+
+
+class PastePage(HTMLPage):
+    # TODO use magic Browser2 methods (if possible)
+    def fill_paste(self, paste):
+        # there is no 404, try to detect if there really is a content
+        if len(self.doc.xpath('id("content")/div[@class="syntax"]//ol')) != 1:
+            raise PasteNotFound()
+
+        header = self.doc.xpath('id("content")/h3')[0]
+        matches = re.match(r'Posted by (?P<author>.+) on (?P<date>.+) \(', header.text)
+        paste.title = matches.groupdict().get('author')
+        paste.contents = unicode(self.doc.xpath('//textarea[@id="code"]')[0].text)
+        return paste
+
+    def get_id(self):
+        return self.params['id']
+
+
+class CaptchaPage(HTMLPage):
+    pass
+
+
+class PostPage(HTMLPage):
+    # TODO handle encoding in Browser2
+    def post(self, paste, expiration=None):
+        encoding = 'ISO-8859-1'
+
+        form = self.get_form(name='editor')
+        form['code2'] = paste.contents.encode(encoding)
+        form['poster'] = paste.title.encode(encoding)
+        if expiration:
+            form['expiry'] = expiration
+        form.submit()
+
+
+class PastealaconBrowser(PagesBrowser):
+    BASEURL = 'http://pastealacon.com/'
+
+    paste = URL(r'(?P<id>\d+)', PastePage)
+    captcha = URL(r'%s' % re.escape('pastebin.php?captcha=1'), CaptchaPage)
+    raw = URL(r'%s(?P<id>\d+)' % re.escape('pastebin.php?dl='))
+    post = URL(r'$', PostPage)
+
+    @paste.id2url
     def get_paste(self, url):
-        _id = re.match('^%s$' % self.PASTE_URL, url).groupdict()['id']
-        return PastealaconPaste(_id)
+        url = self.absurl(url, base=True)
+        m = self.paste.match(url)
+        if m:
+            return PastealaconPaste(m.groupdict()['id'])
 
     def fill_paste(self, paste):
         """
         Get as much as information possible from the paste page
         """
-        self.location(paste.page_url)
+        self.paste.stay_or_go(id=paste.id)
         return self.page.fill_paste(paste)
 
     def get_contents(self, _id):
@@ -63,13 +104,16 @@ class PastealaconBrowser(BaseBrowser):
         Returns unicode.
         """
         try:
-            return self.readurl('http://%s/pastebin.php?dl=%s' % (self.DOMAIN, _id), if_fail='raise').decode(self.ENCODING)
-        except BrowserHTTPNotFound:
-            raise PasteNotFound()
+            return self.raw.open(id=_id).text
+        # TODO maybe have Browser2 raise a specialized exception
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == requests.codes.not_found:
+                raise PasteNotFound()
+            else:
+                raise e
 
     def post_paste(self, paste, expiration=None):
-        self.home()
-        self.page.post(paste, expiration=expiration)
-        if self.is_on_page(CaptchaPage):
-            raise BrowserUnavailable("Detected as spam and unable to handle the captcha")
+        self.post.stay_or_go().post(paste, expiration=expiration)
+        if self.captcha.is_here():
+            raise Spam()
         paste.id = self.page.get_id()
