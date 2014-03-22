@@ -28,6 +28,8 @@ class PasteNotFound(UserError):
     """
     Raised when a paste is not found.
     """
+    def __init__(self):
+        return super(PasteNotFound, self).__init__("Paste not found")
 
 
 class BasePaste(CapBaseObject):
