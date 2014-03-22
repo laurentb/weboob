@@ -20,6 +20,9 @@ import requests.cookies
 import cookielib
 
 
+__all__ = ['WeboobCookieJar']
+
+
 class WeboobCookieJar(requests.cookies.RequestsCookieJar):
     @classmethod
     def from_cookiejar(klass, cj):
@@ -34,3 +37,33 @@ class WeboobCookieJar(requests.cookies.RequestsCookieJar):
         """
         cj = requests.cookies.merge_cookies(cookielib.LWPCookieJar(), self)
         cj.save(filename, ignore_discard=True, ignore_expires=True)
+
+    def _cookies_from_attrs_set(self, attrs_set, request):
+        for tup in self._normalized_cookie_tuples(attrs_set):
+            cookie = self._cookie_from_cookie_tuple(tup, request)
+            if cookie:
+                yield cookie
+
+    def make_cookies(self, response, request):
+        """Return sequence of Cookie objects extracted from response object."""
+        # get cookie-attributes for RFC 2965 and Netscape protocols
+        headers = response.info()
+        rfc2965_hdrs = headers.getheaders("Set-Cookie2")
+        ns_hdrs = headers.getheaders("Set-Cookie")
+
+        rfc2965 = self._policy.rfc2965
+        netscape = self._policy.netscape
+
+        if netscape:
+            for cookie in self._cookies_from_attrs_set(cookielib.parse_ns_headers(ns_hdrs), request):
+                self._process_rfc2109_cookies([cookie])
+                yield cookie
+
+        if rfc2965:
+            for cookie in self._cookies_from_attrs_set(cookielib.split_header_words(rfc2965_hdrs), request):
+                yield cookie
+
+    def copy(self):
+        new_cj = type(self)()
+        new_cj.update(self)
+        return new_cj

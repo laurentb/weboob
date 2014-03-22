@@ -33,7 +33,6 @@ try:
 except ImportError:
     raise ImportError('Please install python-requests >= 2.0')
 
-
 from weboob.tools.log import getLogger
 
 from .cookies import WeboobCookieJar
@@ -220,8 +219,7 @@ class BaseBrowser(object):
 
         self.session = session
 
-        cj = WeboobCookieJar()
-        session.cookies = cj
+        session.cookies = WeboobCookieJar()
 
     def location(self, url, **kwargs):
         """
@@ -273,7 +271,9 @@ class BaseBrowser(object):
         :rtype: :class:`requests.Response`
         """
         req = self.build_request(url, referrer, **kwargs)
+
         preq = self.session.prepare_request(req)
+        preq._cookies = WeboobCookieJar.from_cookiejar(preq._cookies)
 
         if proxies is None:
             proxies = self.PROXIES
