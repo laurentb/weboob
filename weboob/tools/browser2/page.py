@@ -130,7 +130,7 @@ class URL(object):
 
         for regex in self.urls:
             if regex.startswith('/'):
-                regex = base + regex
+                regex = re.escape(base) + regex
             m = re.match(regex, url)
             if m:
                 return m
