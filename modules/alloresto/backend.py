@@ -45,13 +45,10 @@ class AlloRestoBackend(BaseBackend, ICapBank):
                                    self.config['password'].get())
 
     def iter_accounts(self):
-        with self.browser:
-            for account in self.browser.get_accounts_list():
-                yield account
+        return self.browser.get_accounts_list()
 
     def get_account(self, _id):
-        with self.browser:
-            account = self.browser.get_account(_id)
+        account = self.browser.get_account(_id)
 
         if account:
             return account
@@ -59,10 +56,8 @@ class AlloRestoBackend(BaseBackend, ICapBank):
             raise AccountNotFound()
 
     def iter_history(self, account):
-        with self.browser:
-            return self.browser.get_history(account)
+        return self.browser.get_history(account)
 
     def iter_coming(self, account):
-        with self.browser:
-            return self.browser.get_coming(account)
+        return self.browser.get_coming(account)
 

@@ -21,7 +21,8 @@
 import datetime
 from decimal import Decimal
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser2.page import HTMLPage, LoggedPage, method, ItemElement
+from weboob.tools.browser2.filters import CleanDecimal, CleanText, Filter, TableCell
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 
@@ -29,46 +30,47 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Tra
 __all__ = ['LoginPage', 'AccountsPage']
 
 
-class LoginPage(BasePage):
+class LoginPage(HTMLPage):
     def login(self, username, password):
-        self.browser.select_form(nr=0)
-        self.browser['uname'] = username.encode(self.browser.ENCODING)
-        self.browser['pass'] = password.encode(self.browser.ENCODING)
-        self.browser.submit(nologin=True)
+        form = self.get_form(nr=1)
+        form['uname'] = username
+        form['pass'] = password
+        form.submit()
 
 
-class AccountsPage(BasePage):
-    def get_list(self):
-        a = Account()
-        a.id = '0'
-        a.label = u'Compte miams'
-        a.balance = Decimal(self.parser.tocleanstring(self.document.xpath('//div[@class="compteur"]//strong')[0]))
-        a.currency = u'MIAM'
-        try:
-            a.coming = Decimal(Transaction.clean_amount(self.document.xpath('//table[@id="solde_acquisition_lignes"]//th[@class="col_montant"]')[0].text))
-        except IndexError:
-            a.coming = Decimal('0')
-        yield a
+class AccountsPage(LoggedPage, HTMLPage):
+    @method
+    class iter_accounts(ItemElement):
+        def __call__(self):
+            return self
 
-    COL_DATE = 0
-    COL_LABEL = 1
-    COL_AMOUNT = 2
+        klass = Account
 
-    MONTHS = ['janv', u'févr', u'mars', u'avr', u'mai', u'juin', u'juil', u'août', u'sept', u'oct', u'nov', u'déc']
-    def get_transactions(self, _type='consommable'):
-        for tr in self.document.xpath('//table[@id="solde_%s_lignes"]/tbody/tr' % _type):
-            cols = tr.findall('td')
+        obj_id = '0'
+        obj_label = u'Compte miams'
+        obj_balance = CleanDecimal('//div[@class="compteur"]//strong')
+        obj_currency = u'MIAM'
+        obj_coming = CleanDecimal('//table[@id="solde_acquisition_lignes"]//th[@class="col_montant"]', default=Decimal('0'))
 
-            t = Transaction(0)
-
-            day, month, year = self.parser.tocleanstring(cols[self.COL_DATE]).split(' ')
+    class MyDate(Filter):
+        MONTHS = ['janv', u'févr', u'mars', u'avr', u'mai', u'juin', u'juil', u'août', u'sept', u'oct', u'nov', u'déc']
+        def filter(self, txt):
+            day, month, year = txt.split(' ')
             day = int(day)
             year = int(year)
             month = self.MONTHS.index(month.rstrip('.')) + 1
-            date = datetime.date(year, month, day)
+            return datetime.date(year, month, day)
 
-            label = self.parser.tocleanstring(cols[self.COL_LABEL])
-            t.parse(date, label)
-            t.set_amount(self.parser.tocleanstring(cols[self.COL_AMOUNT]))
+    def get_transactions(self, type='consommable'):
+        class get_history(Transaction.TransactionsElement):
+            head_xpath = '//table[@id="solde_%s_lignes"]//thead//tr/th/text()' % type
+            item_xpath = '//table[@id="solde_%s_lignes"]//tbody/tr' % type
 
-            yield t
+            col_date = u"Date de valeur"
+            col_raw = u"Motif"
+
+            class item(Transaction.TransactionElement):
+                obj_amount = Transaction.Amount('./td[last()]')
+                obj_date = AccountsPage.MyDate(CleanText(TableCell('date')))
+
+        return get_history(self)()
