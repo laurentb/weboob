@@ -648,4 +648,11 @@ class TableElement(ListElement):
 
 
 class LoggedPage(object):
+    """
+    A page that only logged users can reach. If we did not get a redirection
+    for this page, we are sure that the login is still active.
+
+    Do not use this class for page we mixed content (logged/anonymous) or for
+    pages with a login form.
+    """
     logged = True
