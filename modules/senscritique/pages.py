@@ -20,7 +20,7 @@
 from weboob.tools.misc import html2text
 from .calendar import SensCritiquenCalendarEvent
 
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 
 from weboob.tools.browser2.page import HTMLPage, method, ItemElement, ListElement, JsonPage
 from weboob.tools.browser2.filters import Filter, Link, CleanText, Regexp
@@ -79,7 +79,7 @@ class AjaxPage(HTMLPage):
                     if not self.env['date_to']:
                         return True
                     else:
-                        if obj.end_date < self.env['date_to']:
+                        if obj.end_date <= self.env['date_to']:
                             return True
 
                 if '_id' in self.env:
@@ -102,6 +102,9 @@ class AjaxPage(HTMLPage):
                                 year = _date.year + 1
 
                         _date = date(day=day_number, month=month, year=year)
+
+                    elif spans_date[0].attrib['data-sc-day'] == 'Demain':
+                        _date += timedelta(days=1)
 
                     str_time = el[0].xpath("time")[0].attrib['datetime'][:-6]
                     _time = datetime.strptime(str_time, '%H:%M:%S')
