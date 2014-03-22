@@ -147,15 +147,14 @@ class URL(object):
             return self.klass(self.browser, response, m.groupdict())
 
     def id2url(self, func):
-        def inner(browser, _id, *args, **kwargs):
-            if re.match('^https?://.*', _id):
-                _id = self.match(_id, browser.BASEURL)
-                if _id is None:
+        def inner(browser, id_or_url, *args, **kwargs):
+            if re.match('^https?://.*', id_or_url):
+                if not self.match(id_or_url, browser.BASEURL):
                     return
+            else:
+                id_or_url = self.build(id=id_or_url)
 
-            url = self.build(id=_id)
-
-            return func(browser, url, *args, **kwargs)
+            return func(browser, id_or_url, *args, **kwargs)
         return inner
 
 
