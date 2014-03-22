@@ -323,3 +323,16 @@ class Format(MultiFilter):
 
     def filter(self, values):
         return self.fmt % values
+
+
+class Join(CleanText):
+    def __init__(self, pattern, selector):
+        super(Join, self).__init__(selector)
+        self.pattern = pattern
+
+    def filter(self, el):
+        res = ''
+        for li in el:
+            res += self.pattern % self.clean(li)
+
+        return res

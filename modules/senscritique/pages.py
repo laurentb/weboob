@@ -23,7 +23,7 @@ from .calendar import SensCritiquenCalendarEvent
 from datetime import date, datetime, time, timedelta
 
 from weboob.tools.browser2.page import HTMLPage, method, ItemElement, ListElement, JsonPage
-from weboob.tools.browser2.filters import Filter, Link, CleanText, Regexp, Attr
+from weboob.tools.browser2.filters import Filter, Link, CleanText, Regexp, Attr, Join, Format
 
 
 __all__ = ['AjaxPage', 'EventPage', 'JsonResumePage']
@@ -134,22 +134,13 @@ class AjaxPage(HTMLPage):
 
 class Description(Filter):
     def filter(self, el):
-        header = el[0].xpath("//div[@class='pvi-hero-product']")[0]
-
-        title = CleanText("div[@class='d-rubric-inner']/h1")(header)
-        year = CleanText("div[@class='d-rubric-inner']/small")(header)
-
-        _infos = header.xpath("ul[@class='pvi-product-specs']/li")
-        infos = ''
-        for li in _infos:
-            infos += u'- %s\n' % CleanText(li)(self)
-
+        header = "//div[@class='pvi-hero-product']"
         section = "//section[@class='pvi-productDetails']"
-        _infos = el[0].xpath("%s/ul/li" % section)
-        for li in _infos:
-            infos += u'- %s\n' % CleanText(li)(self)
-
-        return u'%s %s\n\n%s\n\n' % (title, year, infos)
+        return Format(u'%s %s\n\n%s%s\n\n',
+                      CleanText("%s/div[@class='d-rubric-inner']/h1" % header),
+                      CleanText("%s/div[@class='d-rubric-inner']/small" % header),
+                      Join(u'- %s\n', "%s/ul[@class='pvi-product-specs']/li" % header),
+                      Join(u'- %s\n', "%s/ul/li" % section))(el[0])
 
 
 class Resume(Filter):
