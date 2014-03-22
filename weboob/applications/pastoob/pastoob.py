@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2011 Laurent Bachelier
+# Copyright(C) 2011-2014 Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -16,8 +16,6 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-
-
 
 
 import os
@@ -45,6 +43,25 @@ class Pastoob(ReplApplication):
     def main(self, argv):
         self.load_config()
         return ReplApplication.main(self, argv)
+
+    def do_info(self, line):
+        """
+        info ID [ID2 [...]]
+
+        Get information about pastes.
+        """
+        if not line:
+            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
+            return 2
+
+        self.start_format()
+        for _id in line.split(' '):
+            paste = self.get_object(_id, 'get_paste', ['id', 'title', 'language', 'public', 'contents'])
+            if not paste:
+                print >>sys.stderr, 'Paste not found: %s' % _id
+
+            self.format(paste)
+
 
     def do_get(self, line):
         """
