@@ -97,6 +97,7 @@ class Traveloob(ReplApplication):
         departures STATION [ARRIVAL [DATE]]]
 
         List all departures for a given station.
+        The format for the date is "yyyy-mm-dd HH:MM" or "HH:MM".
         """
         station, arrival, date = self.parse_command_args(line, 3, 1)
 
