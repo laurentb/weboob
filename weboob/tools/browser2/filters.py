@@ -333,6 +333,6 @@ class Join(Filter):
     def filter(self, el):
         res = u''
         for li in el:
-            res += self.pattern % self.clean(li)
+            res += self.pattern % CleanText.clean(li)
 
         return res
