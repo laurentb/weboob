@@ -65,15 +65,6 @@ class SenscritiqueBrowser(PagesBrowser):
 
     LIMIT_NB_PAGES = 10  # arbitrary limit to avoid infinitive loop that can occurs if total number of films is a multiple of LIMIT (in website it causes an infinite scroll)
 
-    """
-    HEADER_RESUME = {"User-Agent": "Mozilla/5.0 (Windows; U; Windows "
-                     "NT 5.1; en-US; rv:1.9.2.8) Gecko/20100722 Firefox/3.6.8"
-                     " GTB7.1 (.NET CLR 3.5.30729)",
-                     "Accept": "application/json, text/javascript, */*; q=0.01",
-                     "X-Requested-With": "XMLHttpRequest",
-                     }
-    """
-
     DATA = {'order': 'chrono',
             'without_product_done': '0',
             'period': 'cette-semaine',
@@ -112,6 +103,7 @@ class SenscritiqueBrowser(PagesBrowser):
 
     def get_event(self, _id, event=None):
         if not event:
+            self._setup_session(Firefox())
             self.program_page.stay_or_go()
             page_nb = 1
 
