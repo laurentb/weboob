@@ -72,7 +72,7 @@ class URL(object):
             params = self.match(self.browser.absurl(self.build(**kwargs), base=True)).groupdict()
         else:
             params = None
-        return self.browser.page and isinstance(self.browser.page, self.klass) \
+        return self.browser.page and self.klass and isinstance(self.browser.page, self.klass) \
             and (params is None or params == self.browser.page.params)
 
     def stay_or_go(self, **kwargs):
