@@ -80,7 +80,7 @@ class SenscritiqueBrowser(PagesBrowser):
 
     def list_events(self, date_from, date_to=None, package=None, channels=None):
         self._setup_session(Firefox())
-        self.program_page.stay_or_go()
+        self.program_page.go()
         page_nb = 1
 
         if package and channels:
