@@ -799,8 +799,7 @@ class VideoPage(BaseYoutubePage):
         url_map = {}
         def _get_urls(_manifest):
             lines = _manifest.split('\n')
-            urls = filter(lambda l: l and not l.startswith('#'),
-                            lines)
+            urls = filter(lambda l: l and not l.startswith('#'), lines)
             return urls
         manifest = self.browser.readurl(manifest_url)
         formats_urls = _get_urls(manifest)
@@ -847,7 +846,7 @@ class VideoPage(BaseYoutubePage):
                     break
         if 'token' not in video_info:
             if 'reason' in video_info:
-                raise BrokenPageError(u'YouTube said: %s' % video_info['reason'][0], expected=True)
+                raise UserError(video_info['reason'][0])
             else:
                 raise BrokenPageError(u'"token" parameter not in video info for unknown reason')
 
@@ -893,7 +892,6 @@ class VideoPage(BaseYoutubePage):
             return formats
 
         if 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
-            self.report_rtmp_download()
             formats = [{
                 'format_id': '_rtmp',
                 'protocol': 'rtmp',
@@ -987,7 +985,7 @@ class VideoPage(BaseYoutubePage):
             )
         formats.sort(key=_formats_key)
 
-    def _search_regex(self, pattern, string, name, default=_NO_DEFAULT, fatal=True, flags=0):
+    def _search_regex(self, pattern, text, name, default=_NO_DEFAULT, fatal=True, flags=0):
         """
         Perform a regex search on the given string, using a single or a list of
         patterns returning the first matching group.
@@ -995,11 +993,12 @@ class VideoPage(BaseYoutubePage):
         RegexNotFoundError, depending on fatal, specifying the field name.
         """
         if isinstance(pattern, (str, unicode, type(re.compile('')))):
-            mobj = re.search(pattern, string, flags)
+            mobj = re.search(pattern, text, flags)
         else:
             for p in pattern:
-                mobj = re.search(p, string, flags)
-                if mobj: break
+                mobj = re.search(p, text, flags)
+                if mobj:
+                    break
 
         if mobj:
             # return the first matching group
