@@ -19,9 +19,8 @@
 
 from weboob.tools.browser import BrowserBanned
 from weboob.tools.browser2.page import HTMLPage, LoggedPage, method, ListElement, ItemElement
-from weboob.tools.browser2.filters import Env, CleanText, CleanDecimal, Field, Attr, Time, DateTime, Link, Format
+from weboob.tools.browser2.filters import CleanText, CleanDecimal, Field, Attr, DateTime, Link, Format
 from weboob.capabilities.bill import Subscription, Detail
-from datetime import datetime
 
 
 __all__ = ['LoginPage', 'HomePage', 'HistoryPage', 'BillsPage', 'ErrorPage']
