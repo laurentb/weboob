@@ -268,11 +268,18 @@ class Map(Filter):
                 raise KeyError('Unable to handle %r' % txt)
 
 
-class Date(Filter):
+class DateTime(Filter):
     def filter(self, txt):
         if empty(txt):
             return txt
         return parse_date(txt)
+
+
+class Date(DateTime):
+    def filter(self, txt):
+        datetime = super(Date, self).filter(txt)
+        if datetime is not None:
+            return datetime.date
 
 
 class Time(Filter):

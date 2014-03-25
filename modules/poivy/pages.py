@@ -19,7 +19,7 @@
 
 from weboob.tools.browser import BrowserBanned
 from weboob.tools.browser2.page import HTMLPage, LoggedPage, method, ListElement, ItemElement
-from weboob.tools.browser2.filters import Env, CleanText, CleanDecimal, Field, Attr, Time, Date, Link, Format
+from weboob.tools.browser2.filters import Env, CleanText, CleanDecimal, Field, Attr, Time, DateTime, Link, Format
 from weboob.capabilities.bill import Subscription, Detail
 from datetime import datetime
 
@@ -81,7 +81,7 @@ class HistoryPage(LoggedPage, HTMLPage):
             klass = Detail
 
             obj_id = None
-            obj_datetime = Date(CleanText('td[1] | td[2]'))
+            obj_datetime = DateTime(CleanText('td[1] | td[2]'))
             obj_price = CleanDecimal('td[7]', replace_dots=False, default=0)
             obj_currency = u'EUR'
             obj_label = Format(u"%s from %s to %s - %s",

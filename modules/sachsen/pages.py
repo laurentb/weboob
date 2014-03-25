@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement
-from weboob.tools.browser2.filters import Env, CleanText, Regexp, Field, Date, Map, Attr
+from weboob.tools.browser2.filters import Env, CleanText, Regexp, Field, DateTime, Map, Attr
 from weboob.capabilities.gauge import Gauge, GaugeMeasure, GaugeSensor
 from weboob.capabilities.base import NotAvailable, NotLoaded
 
@@ -87,7 +87,7 @@ class ListPage(HTMLPage):
             def obj_sensors(self):
                 sensors = []
 
-                lastdate = Date(Regexp(Env('datetime'), r'(\d+)\.(\d+)\.(\d+) (\d+):(\d+)', r'\3-\2-\1 \4:\5', default=NotAvailable))(self)
+                lastdate = DateTime(Regexp(Env('datetime'), r'(\d+)\.(\d+)\.(\d+) (\d+):(\d+)', r'\3-\2-\1 \4:\5', default=NotAvailable))(self)
                 forecast = Map(Env('forecast'), self.forecasts, default=NotAvailable)(self)
                 alarm = Map(Env('alarm'), self.alarmlevel, default=u'')(self)
 
@@ -109,7 +109,7 @@ class HistoryPage(HTMLPage):
             def condition(self):
                 return self.verif.match(self.el[0].text_content())
 
-            obj_date = Date(Regexp(CleanText('.'), r'(\d+)\.(\d+)\.(\d+) (\d+):(\d+)', r'\3-\2-\1 \4:\5'))
+            obj_date = DateTime(Regexp(CleanText('.'), r'(\d+)\.(\d+)\.(\d+) (\d+):(\d+)', r'\3-\2-\1 \4:\5'))
             sensor_types = [u'Level', u'Flow']
 
             def obj_level(self):
