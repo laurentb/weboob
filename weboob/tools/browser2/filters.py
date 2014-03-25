@@ -189,6 +189,8 @@ class Attr(Filter):
         try:
             return el[0].attrib[self.attr]
         except IndexError:
+            if self.default is not _NO_DEFAULT:
+                return self.default
             raise ValueError('Unable to find link %s' % self.selector)
         except KeyError:
             if self.default is not _NO_DEFAULT:
