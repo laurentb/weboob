@@ -124,7 +124,6 @@ class BaseBrowser(object):
     REFRESH_MAX = 0.0
 
     VERIFY = True
-    SAVE_RESPONSES = False
 
     PROXIES = None
 
@@ -199,7 +198,7 @@ class BaseBrowser(object):
 
         session.proxies = self.PROXIES
 
-        session.verify = self.VERIFY
+        session.verify = self.VERIFY and not self.logger.settings['ssl_insecure']
 
         # defines a max_retries. It's mandatory in case a server is not
         # handling keep alive correctly, like the proxy burp
@@ -214,7 +213,7 @@ class BaseBrowser(object):
 
         profile.setup_session(session)
 
-        if self.SAVE_RESPONSES:
+        if self.logger.settings['save_responses']:
             session.hooks['response'].append(self._save)
 
         self.session = session
@@ -279,7 +278,7 @@ class BaseBrowser(object):
             proxies = self.PROXIES
 
         if verify is None:
-            verify = self.VERIFY
+            verify = self.VERIFY and not self.logger.settings['ssl_insecure']
 
         if timeout is None:
             timeout = self.TIMEOUT

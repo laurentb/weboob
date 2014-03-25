@@ -17,11 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from collections import defaultdict
 from logging import Formatter, getLogger as _getLogger
 import sys
 
 
-__all__ = ['getLogger', 'createColoredFormatter']
+__all__ = ['getLogger', 'createColoredFormatter', 'settings']
 
 
 RESET_SEQ = "\033[0m"
@@ -36,10 +37,16 @@ COLORS = {
 }
 
 
+# Global settings f logger.
+settings = defaultdict(lambda: None)
+
+
 def getLogger(name, parent=None):
     if parent:
         name = parent.name + '.' + name
-    return _getLogger(name)
+    logger =  _getLogger(name)
+    logger.settings = settings
+    return logger
 
 
 class ColoredFormatter(Formatter):

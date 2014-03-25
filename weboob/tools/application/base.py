@@ -31,7 +31,7 @@ from weboob.tools.browser.browser import FormFieldConversionWarning
 from weboob.core import Weboob, CallErrors
 from weboob.core.backendscfg import BackendsConfig
 from weboob.tools.config.iconfig import ConfigError
-from weboob.tools.log import createColoredFormatter, getLogger
+from weboob.tools.log import createColoredFormatter, getLogger, settings as log_settings
 from weboob.tools.misc import to_unicode
 from .results import ResultsConditionError
 
@@ -140,6 +140,7 @@ class BaseApplication(object):
         self.config = None
         self.options = None
         self.condition = None
+        self.storage = None
         if option_parser is None:
             self._parser = OptionParser(self.SYNOPSIS, version=self._get_optparse_version())
         else:
@@ -327,12 +328,6 @@ class BaseApplication(object):
 
         if self.options.debug or self.options.save_responses:
             level = logging.DEBUG
-            from weboob.tools.browser import StandardBrowser
-            from weboob.tools.browser2 import BaseBrowser as Browser2
-            StandardBrowser.DEBUG_MECHANIZE = True
-            # required to actually display or save the stuff
-            logger = logging.getLogger("mechanize")
-            logger.setLevel(logging.INFO)
         elif self.options.verbose:
             level = logging.INFO
         elif self.options.quiet:
@@ -340,10 +335,7 @@ class BaseApplication(object):
         else:
             level = logging.WARNING
         if self.options.insecure:
-            from weboob.tools.browser import StandardBrowser
-            from weboob.tools.browser2 import BaseBrowser as Browser2  # NOQA
-            StandardBrowser.INSECURE = True
-            Browser2.VERIFY = False
+            log_settings['ssl_insecure'] = True
 
         # this only matters to developers
         if not self.options.debug and not self.options.save_responses:
@@ -355,10 +347,8 @@ class BaseApplication(object):
         if self.options.save_responses:
             responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
             print >>sys.stderr, 'Debug data will be saved in this directory: %s' % responses_dirname
-            StandardBrowser.SAVE_RESPONSES = True
-            Browser2.SAVE_RESPONSES = True
-            StandardBrowser.responses_dirname = responses_dirname
-            Browser2.responses_dirname = responses_dirname
+            log_settings['save_responses'] = True
+            log_settings['responses_dirname'] = responses_dirname
             handlers.append(self.create_logging_file_handler(os.path.join(responses_dirname, 'debug.log')))
 
         # file logger
@@ -375,16 +365,16 @@ class BaseApplication(object):
         return args
 
     @classmethod
-    def create_default_logger(klass):
+    def create_default_logger(cls):
         # stdout logger
-        format = '%(asctime)s:%(levelname)s:%(name)s:' + klass.VERSION +\
+        format = '%(asctime)s:%(levelname)s:%(name)s:' + cls.VERSION +\
                  ':%(filename)s:%(lineno)d:%(funcName)s %(message)s'
         handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(createColoredFormatter(sys.stdout, format))
         return handler
 
     @classmethod
-    def setup_logging(klass, level, handlers):
+    def setup_logging(cls, level, handlers):
         logging.root.handlers = []
 
         logging.root.setLevel(level)
@@ -405,7 +395,7 @@ class BaseApplication(object):
             return handler
 
     @classmethod
-    def run(klass, args=None):
+    def run(cls, args=None):
         """
         This static method can be called to run the application.
 
@@ -421,13 +411,13 @@ class BaseApplication(object):
         >>> MyApplication.run()
         """
 
-        klass.setup_logging(logging.INFO, [klass.create_default_logger()])
+        cls.setup_logging(logging.INFO, [cls.create_default_logger()])
 
         if args is None:
             args = [(sys.stdin.encoding and arg.decode(sys.stdin.encoding) or to_unicode(arg)) for arg in sys.argv]
 
         try:
-            app = klass()
+            app = cls()
         except BackendsConfig.WrongPermissions as e:
             print >>sys.stderr, e
             sys.exit(1)
