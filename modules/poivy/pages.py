@@ -81,18 +81,12 @@ class HistoryPage(LoggedPage, HTMLPage):
             klass = Detail
 
             obj_id = None
-            obj_datetime = Env('datetime')
+            obj_datetime = Date(CleanText('td[1] | td[2]'))
             obj_price = CleanDecimal('td[7]', replace_dots=False, default=0)
             obj_currency = u'EUR'
             obj_label = Format(u"%s from %s to %s - %s",
                                CleanText('td[3]'), CleanText('td[4]'),
                                CleanText('td[5]'), CleanText('td[6]'))
-
-            def parse(self, el):
-                mydate = Date(CleanText('td[1]'))(el)
-                mytime = Time(CleanText('td[2]'))(el)
-
-                self.env['datetime'] = datetime.combine(mydate, mytime)
 
 
 #TODO
