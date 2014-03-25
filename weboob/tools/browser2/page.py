@@ -19,6 +19,7 @@
 
 from __future__ import absolute_import
 
+from urllib import unquote
 import requests
 import re
 import sys
@@ -33,10 +34,14 @@ from weboob.tools.regex_helper import normalize
 from weboob.tools.log import getLogger
 
 from .browser import DomainBrowser
-from .filters import _Filter, CleanText
+from .filters import _Filter, CleanText, AttributeNotFound, XPathNotFound
 
 
 class UrlNotResolvable(Exception):
+    pass
+
+
+class DataError(Exception):
     pass
 
 
@@ -68,12 +73,17 @@ class URL(object):
         If arguments are provided, and only then, they are checked against the arguments
         that were used to build the current page URL.
         """
+        assert self.klass is not None, "You can use this method only if the is a BasePage class handler."
+
         if len(kwargs):
             params = self.match(self.browser.absurl(self.build(**kwargs), base=True)).groupdict()
         else:
             params = None
-        return self.browser.page and self.klass and isinstance(self.browser.page, self.klass) \
-            and (params is None or params == self.browser.page.params)
+
+        # XXX use unquote on current params values because if there are spaces
+        # or special characters in them, it is encoded only in but not in kwargs.
+        return self.browser.page and isinstance(self.browser.page, self.klass) \
+            and (params is None or params == dict([(k,unquote(v)) for k,v in self.browser.page.params.iteritems()]))
 
     def stay_or_go(self, **kwargs):
         """
@@ -525,7 +535,7 @@ class ListElement(AbstractElement):
         next_page = getattr(self, 'next_page')
         try:
             value = self.use_selector(next_page)
-        except IndexError:
+        except (AttributeNotFound, XPathNotFound):
             return
 
         if value is None:
@@ -537,7 +547,7 @@ class ListElement(AbstractElement):
     def store(self, obj):
         if obj.id:
             if obj.id in self.objects:
-                raise ValueError('There are two objects with the same ID! %s' % obj.id)
+                raise DataError('There are two objects with the same ID! %s' % obj.id)
             self.objects[obj.id] = obj
         return obj
 

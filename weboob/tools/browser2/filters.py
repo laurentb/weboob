@@ -23,17 +23,54 @@ from dateutil.parser import parse as parse_date
 import datetime
 from decimal import Decimal, InvalidOperation
 import re
+
 from weboob.capabilities.base import empty
 
+
 _NO_DEFAULT = object()
+
+
+class ParseError(Exception):
+    pass
+
+
+class FilterError(ParseError):
+    pass
+
+
+class XPathNotFound(FilterError):
+    pass
+
+
+class ColumnNotFound(FilterError):
+    pass
+
+
+class AttributeNotFound(FilterError):
+    pass
+
+
+class RegexpError(FilterError):
+    pass
+
+
+class ItemNotFound(FilterError):
+    pass
 
 
 class _Filter(object):
     _creation_counter = 0
 
-    def __init__(self):
+    def __init__(self, default=_NO_DEFAULT):
+        self.default = default
         self._creation_counter = _Filter._creation_counter
         _Filter._creation_counter += 1
+
+    def default_or_raise(self, exception):
+        if self.default is not _NO_DEFAULT:
+            return self.default
+        else:
+            raise exception
 
 
 class Filter(_Filter):
@@ -50,8 +87,8 @@ class Filter(_Filter):
     Decimal('229.90')
     """
 
-    def __init__(self, selector=None):
-        super(Filter, self).__init__()
+    def __init__(self, selector=None, default=_NO_DEFAULT):
+        super(Filter, self).__init__(default=default)
         self.selector = selector
 
     @classmethod
@@ -108,9 +145,8 @@ class TableCell(_Filter):
     """
 
     def __init__(self, *names, **kwargs):
-        super(TableCell, self).__init__()
+        super(TableCell, self).__init__(**kwargs)
         self.names = names
-        self.default = kwargs.pop('default', _NO_DEFAULT)
 
     def __call__(self, item):
         for name in self.names:
@@ -118,9 +154,7 @@ class TableCell(_Filter):
             if idx is not None:
                 return item.xpath('./td[%s]' % (idx + 1))
 
-        if self.default is not _NO_DEFAULT:
-            return self.default
-        raise KeyError('Unable to find column %s' % ' or '.join(self.names))
+        return self.default_or_raise(ColumnNotFound('Unable to find column %s' % ' or '.join(self.names)))
 
 
 class CleanText(Filter):
@@ -162,9 +196,8 @@ class CleanDecimal(CleanText):
     Get a cleaned Decimal value from an element.
     """
     def __init__(self, selector, replace_dots=True, default=_NO_DEFAULT):
-        super(CleanDecimal, self).__init__(selector)
+        super(CleanDecimal, self).__init__(selector, default=default)
         self.replace_dots = replace_dots
-        self.default = default
 
     def filter(self, text):
         text = super(CleanDecimal, self).filter(text)
@@ -173,30 +206,21 @@ class CleanDecimal(CleanText):
         try:
             return Decimal(re.sub(ur'[^\d\-\.]', '', text))
         except InvalidOperation as e:
-            if self.default is not _NO_DEFAULT:
-                return Decimal(self.default)
-            else:
-                raise InvalidOperation(e)
+            return self.default_or_raise(e)
 
 
 class Attr(Filter):
     def __init__(self, selector, attr, default=_NO_DEFAULT):
-        super(Attr, self).__init__(selector)
+        super(Attr, self).__init__(selector, default=default)
         self.attr = attr
-        self.default = default
 
     def filter(self, el):
         try:
             return el[0].attrib[self.attr]
         except IndexError:
-            if self.default is not _NO_DEFAULT:
-                return self.default
-            raise ValueError('Unable to find link %s' % self.selector)
+            return self.default_or_raise(XPathNotFound('Unable to find link %s' % self.selector))
         except KeyError:
-            if self.default is not _NO_DEFAULT:
-                return self.default
-            else:
-                raise KeyError('Link %s does not has attribute %s' % (el[0], self.attr))
+            return self.default_or_raise(AttributeNotFound('Link %s does not has attribute %s' % (el[0], self.attr)))
 
 
 class Link(Attr):
@@ -206,7 +230,7 @@ class Link(Attr):
     If the <a> tag is not found, an exception IndexError is raised.
     """
     def __init__(self, selector, default=_NO_DEFAULT):
-        super(Link, self).__init__(selector, 'href', default)
+        super(Link, self).__init__(selector, 'href', default=default)
 
 
 class Field(_Filter):
@@ -231,11 +255,10 @@ class Regexp(Filter):
     u'1988-08-13'
     """
     def __init__(self, selector, pattern, template=None, flags=0, default=_NO_DEFAULT):
-        super(Regexp, self).__init__(selector)
+        super(Regexp, self).__init__(selector, default=default)
         self.pattern = pattern
         self.regex = re.compile(pattern, flags)
         self.template = template
-        self.default = default
 
     def filter(self, txt):
         if isinstance(txt, (tuple,list)):
@@ -243,10 +266,7 @@ class Regexp(Filter):
 
         mobj = self.regex.search(txt)
         if not mobj:
-            if self.default is not _NO_DEFAULT:
-                return self.default
-            else:
-                raise KeyError('Unable to match %s in %r' % (self.pattern, txt))
+            return self.default_or_raise(RegexpError('Unable to match %s in %r' % (self.pattern, txt)))
 
         if self.template is None:
             return next(g for g in mobj.groups() if g is not None)
@@ -256,25 +276,24 @@ class Regexp(Filter):
 
 class Map(Filter):
     def __init__(self, selector, map_dict, default=_NO_DEFAULT):
-        super(Map, self).__init__(selector)
+        super(Map, self).__init__(selector, default=default)
         self.map_dict = map_dict
-        self.default = default
 
     def filter(self, txt):
         try:
             return self.map_dict[txt]
         except KeyError:
-            if self.default is not _NO_DEFAULT:
-                return self.default
-            else:
-                raise KeyError('Unable to handle %r' % txt)
+            return self.default_or_raise(ItemNotFound('Unable to handle %r on %r' % (txt, self.map_dict)))
 
 
 class DateTime(Filter):
     def filter(self, txt):
         if empty(txt):
             return txt
-        return parse_date(txt)
+        try:
+            return parse_date(txt)
+        except ValueError as e:
+            return self.default_or_raise(ParseError('Unable to parse %r: %s' % (txt, e)))
 
 
 class Date(DateTime):
@@ -290,8 +309,7 @@ class Time(Filter):
     kwargs = {'hour': 'hh', 'minute': 'mm', 'second': 'ss'}
 
     def __init__(self, selector, default=_NO_DEFAULT):
-        super(Time, self).__init__(selector)
-        self.default = default
+        super(Time, self).__init__(selector, default=default)
 
     def filter(self, txt):
         m = self.regexp.search(txt)
@@ -301,10 +319,7 @@ class Time(Filter):
                 kwargs[key] = int(m.groupdict()[index] or 0)
             return self.klass(**kwargs)
 
-        if self.default is not _NO_DEFAULT:
-            return self.default
-        else:
-            raise ValueError('Unable to find time in %r' % txt)
+        return self.default_or_raise(ParseError('Unable to find time in %r' % txt))
 
 
 class Duration(Time):
