@@ -69,13 +69,8 @@ class HistoryPage(LoggedPage, HTMLPage):
     class get_calls(ListElement):
         item_xpath = '//table/tbody/tr'
 
-        def next_page(self):
-            link_path = "//div[@class='date-navigator center']/span/a"
-            text = CleanText(link_path)(self.page.doc)
-            if "Previous" in text:
-                link = Link(link_path)(self.page.doc)
-                return link
-            return
+        next_page = Link("//div[@class='date-navigator center']/span/a[contains(text(), 'Previous')]",
+                         default=None)
 
         class item(ItemElement):
             klass = Detail
