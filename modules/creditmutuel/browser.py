@@ -92,6 +92,9 @@ class CreditMutuelBrowser(LoginBrowser):
         else:
             self.location('%s/%s/fr/banque/%s' % (self.BASEURL, self.currentSubBank, page_url))
 
+        if not self.operations.is_here():
+            return iter([])
+
         return self.pagination(lambda: self.page.get_history())
 
     def get_history(self, account):
