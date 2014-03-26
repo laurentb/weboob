@@ -152,7 +152,7 @@ class PdfPage():
                     lines[duree] = ''
                 detail.label = unicode(splits[0], encoding='utf-8', errors='replace') + u" " + lines[corres] + u" " + lines[duree]
                 # Special case with only 3 columns, we insert a price
-                if "Activation de votre ligne" in detail.label:
+                if "Activation de votre ligne" in detail.label or u"Résiliation" in detail.label:
                     lines.insert(price, '0')
                 try:
                     detail.price = Decimal(lines[price].replace(',', '.'))
