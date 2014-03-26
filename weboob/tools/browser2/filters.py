@@ -302,7 +302,6 @@ class Date(DateTime):
         if datetime is not None:
             return datetime.date
 
-
 class Time(Filter):
     klass = datetime.time
     regexp = re.compile(ur'(?P<hh>\d+):?(?P<mm>\d+)(:(?P<ss>\d+))?')
@@ -338,6 +337,14 @@ class MultiFilter(Filter):
 
     def filter(self, values):
         raise NotImplementedError()
+
+
+class Combine(MultiFilter):
+    def __init__(self, date, time):
+        super(Combine, self).__init__(date, time)
+
+    def filter(self, values):
+        return datetime.datetime.combine(values[0], values[1])
 
 
 class Format(MultiFilter):
