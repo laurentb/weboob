@@ -18,38 +18,32 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
-from weboob.tools.browser.decorators import id2url
+from weboob.tools.browser2 import PagesBrowser, URL
 
 from .pages import ProgramPage, EventPage
-from .calendar import BiplanCalendarEvent
 
 __all__ = ['BiplanBrowser']
 
 
-class BiplanBrowser(BaseBrowser):
-    PROTOCOL = 'http'
-    DOMAIN = 'www.lebiplan.org'
-    ENCODING = None
+class BiplanBrowser(PagesBrowser):
+    BASEURL = 'http://www.lebiplan.org'
 
-    PAGES = {
-        #'%s://%s/fr/biplan-prog-concert.php' % (PROTOCOL, DOMAIN): ProgramPage,
-        '%s://%s/fr/biplan-prog(.*?).php' % (PROTOCOL, DOMAIN): ProgramPage,
-        '%s://%s/(.*?)' % (PROTOCOL, DOMAIN): EventPage,
-    }
+    program_page = URL('/fr/biplan-prog-(?P<_category>.*)', ProgramPage)
+    event_page = URL('/(?P<_id>.*).html', EventPage)
 
     def list_events_concert(self, date_from, date_to=None, city=None, categories=None):
-        self.location('%s://%s/fr/biplan-prog-concert.php' % (self.PROTOCOL, self.DOMAIN))
-        assert self.is_on_page(ProgramPage)
-        return self.page.list_events(date_from, date_to, city, categories, is_concert=True)
+        return self.program_page.go(_category='concert').list_events(date_from=date_from,
+                                                                     date_to=date_to,
+                                                                     city=city,
+                                                                     categories=categories,
+                                                                     is_concert=True)
 
     def list_events_theatre(self, date_from, date_to=None, city=None, categories=None):
-        self.location('%s://%s/fr/biplan-prog-theatre.php' % (self.PROTOCOL, self.DOMAIN))
-        assert self.is_on_page(ProgramPage)
-        return self.page.list_events(date_from, date_to, city, categories, is_concert=False)
+        return self.program_page.go(_category='theatre').list_events(date_from=date_from,
+                                                                     date_to=date_to,
+                                                                     city=city,
+                                                                     categories=categories,
+                                                                     is_Concert=False)
 
-    @id2url(BiplanCalendarEvent.id2url)
-    def get_event(self, url, event=None):
-        self.location(url)
-        assert self.is_on_page(EventPage)
-        return self.page.get_event(url, event)
+    def get_event(self, _id, event=None):
+        return self.event_page.go(_id=_id).get_event(obj=event)

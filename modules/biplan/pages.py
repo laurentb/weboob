@@ -21,164 +21,129 @@ import re
 from datetime import datetime, time
 
 import weboob.tools.date as date_util
-from weboob.tools.browser import BasePage
 from .calendar import BiplanCalendarEventConcert, BiplanCalendarEventTheatre
+
+from weboob.tools.browser2.page import HTMLPage, method, ItemElement, SkipItem, ListElement
+from weboob.tools.browser2.filters import Filter, Link, CleanText, Env, Regexp, Combine, CleanHTML
+
 
 __all__ = ['ProgramPage', 'EventPage']
 
 
-def parse_b(b):
-    to_return = []
-    for item in b.replace('\n', '\t').replace(' ', '\t').split('\t'):
-        if not (item is None or item == ''):
-            to_return.append(u'%s' % item)
-    return to_return
-
-
-class ProgramPage(BasePage):
-    def list_events(self, date_from, date_to=None, city=None, categories=None, is_concert=True):
-        divs = self.document.getroot().xpath("//div[@class='ligne']")
-        for i in range(2, len(divs)):
-            event = self.create_event(divs[i], date_from, date_to, city, categories, is_concert=is_concert)
-            if event:
-                yield event
-
-    def create_event(self, div, date_from, date_to, city=None, categories=None, is_concert=True):
-        re_id = re.compile('/(.*?).html', re.DOTALL)
-        a_id = self.parser.select(div, "div/a", 1, method='xpath')
-        b = self.parser.select(div, "div/div/b", 2, method='xpath')
-
-        _id = re_id.search(a_id.attrib['href']).group(1)
-        date = self.parse_date(b[0].text_content())
-
-        re_time = re.compile('(\d{1,2}h[\d{1,2}]?)', re.DOTALL)
-        start_end_date = re_time.findall(b[1].text_content().split('-')[0].strip())
-
-        if start_end_date:
-            time_price = parse_b(b[1].text_content())
-
-            start_time = self.parse_start_time(start_end_date[0])
-            start_date = datetime.combine(date, start_time)
-
-            if len(start_end_date) > 1:
-                end_time = self.parse_start_time(start_end_date[1])
-                end_date = datetime.combine(start_date, end_time)
-            else:
-                end_date = datetime.combine(start_date, time.max)
-
-        if _id and self.is_event_in_valid_period(start_date, date_from, date_to):
-            if is_concert:
-                event = BiplanCalendarEventConcert(_id)
-            else:
-                event = BiplanCalendarEventTheatre(_id)
-
-            event.start_date = start_date
-            event.end_date = end_date
-
-            price = time_price[time_price.index('-') + 1:]
-            parsed_price = re.findall(r"\d*\,\d+|\d+", " ".join(price))
-
-            if parsed_price and len(parsed_price) > 0:
-                event.price = float(parsed_price[0].replace(',', '.'))
-            else:
-                event.price = float(0)
-
-            event.summary = u'%s' % self.parser.select(div, "div/div/div/a/strong", 1, method='xpath').text
-
-            if self.is_valid_event(event, city, categories):
-                return event
-
-    def is_valid_event(self, event, city, categories):
-        if city and city != '' and city.upper() != event.city.upper():
-            return False
-
-        if categories and len(categories) > 0 and event.category not in categories:
-            return False
-
-        return True
-
-    def is_event_in_valid_period(self, event_date, date_from, date_to):
-        if event_date >= date_from:
-            if not date_to:
-                return True
-            else:
-                if event_date <= date_to:
-                    return True
-        return False
-
-    def parse_start_time(self, _time):
-        start_time = _time.split('h')
-        time_hour = start_time[0]
-        time_minutes = 0
-        if len(start_time) > 1 and start_time[1]:
-            time_minutes = start_time[1]
-        return time(int(time_hour), int(time_minutes))
-
-    def parse_date(self, b):
-        content = parse_b(b)
-        a_date = content[1:content.index('-')]
-
-        for fr, en in date_util.DATE_TRANSLATE_FR:
-            a_date[1] = fr.sub(en, a_date[1])
-
-        if (datetime.now().month > datetime.strptime(a_date[1], "%B").month):
-            a_date.append(u'%i' % (datetime.now().year + 1))
-        else:
-            a_date.append(u'%i' % (datetime.now().year))
-
-        return date_util.parse_french_date(" ".join(a_date))
-
-
-class EventPage(BasePage):
-    def get_event(self, url, event=None):
-        div = self.document.getroot().xpath("//div[@id='popup']")[0]
-        if not event:
-            re_id = re.compile('http://www.lebiplan.org/(.*?).html', re.DOTALL)
-            _id = re_id.search(url).group(1)
-            if div.attrib['class'] == 'theatre-popup':
-                event = BiplanCalendarEventTheatre(_id)
-            else:
-                event = BiplanCalendarEventConcert(_id)
-
-        b = self.parser.select(div, "div/b", 1, method='xpath').text_content()
-        splitted_b = b.split('-')
-
-        parsed_price = re.findall(r"\d*\,\d+|\d+", " ".join(parse_b(splitted_b[-1])))
+class BiplanPrice(Filter):
+    def filter(self, el):
+        index = 1 if len(el) > 1 else 0
+        content = CleanText.clean(CleanText('.', ['HORAIRES'])(el[index]))
+        a_price = content.split(' - ')[-1]
+        parsed_price = re.findall(r"\d*\,\d+|\d+", " ".join(a_price))
 
         if parsed_price and len(parsed_price) > 0:
-            event.price = float(parsed_price[0].replace(',', '.'))
-        else:
-            event.price = float(0)
+            return float(parsed_price[0].replace(',', '.'))
 
-        _date = date_util.parse_french_date(" ".join(parse_b(splitted_b[0])))
+        return float(0)
 
-        re_time = re.compile('(\d{1,2}h[\d{1,2}]?)', re.DOTALL)
-        start_end_date = re_time.findall(splitted_b[2])
 
-        if start_end_date:
-            start_time = self.parse_start_time(start_end_date[0])
+class BiplanDate(Filter):
+    def filter(self, el):
+        content = CleanText.clean(CleanText(CleanHTML('.'), ['*'])(el[0]))
+        a_date = content[0:content.index(' - ')]
 
-            if len(start_end_date) > 1:
-                end_time = self.parse_start_time(start_end_date[1])
+        for fr, en in date_util.DATE_TRANSLATE_FR:
+            a_date = fr.sub(en, a_date)
+
+        try:
+            _month = datetime.strptime(a_date, "%A %d %B").month
+            if (datetime.now().month > _month):
+                a_date += u' %i' % (datetime.now().year + 1)
             else:
-                end_time = time.max
+                a_date += u' %i' % (datetime.now().year)
+        except ValueError:
+            pass
 
-        event.start_date = datetime.combine(_date, start_time)
-        event.end_date = datetime.combine(_date, end_time)
+        return datetime.strptime(a_date, "%A %d %B %Y")
 
-        event.url = url
 
-        event.summary = u'%s' % self.parser.select(div, "div/div/span", 1, method='xpath').text_content()
-        event.description = u'%s' % self.parser.select(div,
-                                                       "div/div[@class='presentation-popup']",
-                                                       1,
-                                                       method='xpath').text_content().strip()
-        return event
+class StartTime(Filter):
+    def filter(self, el):
+        index = 1 if len(el) > 1 else 0
+        content = CleanText.clean(CleanText('.', ['HORAIRES'])(el[index]))
+        a_time = content.split(' - ')[-2]
+        regexp = re.compile(ur'(?P<hh>\d+)h?(?P<mm>\d+)')
+        m = regexp.search(a_time)
+        return time(int(m.groupdict()['hh'] or 0), int(m.groupdict()['mm'] or 0))
 
-    def parse_start_time(self, _time):
-        start_time = _time.split('h')
-        time_hour = start_time[0]
-        time_minutes = 0
-        if len(start_time) > 1 and start_time[1]:
-            time_minutes = start_time[1]
-        return time(int(time_hour), int(time_minutes))
+
+class EndTime(Filter):
+    def filter(self, el):
+        return time.max
+
+
+class ProgramPage(HTMLPage):
+
+    @method
+    class list_events(ListElement):
+        item_xpath = '//div[@class="ligne"]'
+
+        class item(ItemElement):
+            klass = BiplanCalendarEventConcert if Env('is_concert') else BiplanCalendarEventTheatre
+
+            def condition(self):
+                if(self.el.xpath('./div')):
+                    return True
+                return False
+
+            def validate(self, obj):
+                return (self.is_valid_event(obj, self.env['city'], self.env['categories']) and
+                        self.is_event_in_valid_period(obj.start_date, self.env['date_from'], self.env['date_to']))
+
+            def is_valid_event(self, event, city, categories):
+                if city and city != '' and city.upper() != event.city.upper():
+                    return False
+
+                if categories and len(categories) > 0 and event.category not in categories:
+                    return False
+
+                return True
+
+            def is_event_in_valid_period(self, event_date, date_from, date_to):
+                if event_date >= date_from:
+                    if not date_to:
+                        return True
+                    else:
+                        if event_date <= date_to:
+                            return True
+                return False
+
+            obj_id = Regexp(Link('./div/a'), '/(.*?).html')
+            obj_start_date = Combine(BiplanDate('div/div/b'), StartTime('div/div/b'))
+            obj_end_date = Combine(BiplanDate('div/div/b'), EndTime('.'))
+            obj_price = BiplanPrice('div/div/b')
+            obj_summary = CleanText("div/div/div/a/strong")
+
+
+class EventPage(HTMLPage):
+
+    @method
+    class get_event(ItemElement):
+        klass = BiplanCalendarEventConcert if Env('is_concert') else BiplanCalendarEventTheatre
+
+        def parse(self, el):
+            _div = "//div/div/div[@id='popup']"
+            div = el.xpath("%s" % _div)[0]
+            if self.obj.id:
+                event = self.obj
+                event.url = self.page.url
+                event.description = CleanHTML("%s/div/div[@class='presentation-popup']" % _div)(self)
+                raise SkipItem()
+
+            self.env['is_concert'] = not div.attrib['class'] == 'theatre-popup'
+            self.env['url'] = self.page.url
+
+        obj_id = Env('_id')
+        base = "//div[@id='popup']"
+        obj_price = BiplanPrice("%s/div/b" % base)
+        obj_start_date = Combine(BiplanDate("%s/div/b" % base), StartTime("%s/div/b" % base))
+        obj_end_date = Combine(BiplanDate("%s/div/b" % base), EndTime("."))
+        obj_url = Env('url')
+        obj_summary = CleanText('%s/div/div/span' % base)
+        obj_description = CleanHTML('%s/div/div[@class="presentation-popup"]' % base)
