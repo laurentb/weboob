@@ -29,11 +29,11 @@ class SachsenBrowser(PagesBrowser):
     BASEURL = 'http://www.umwelt.sachsen.de'
 
     homepage = URL('/de/wu/umwelt/lfug/lfug-internet/hwz/inhalt_re.html.*', ListPage)
-    history = URL('/de/wu/umwelt/lfug/lfug-internet/hwz/MP/(?P<params>.*)/index.html', HistoryPage)
+    history = URL('/de/wu/umwelt/lfug/lfug-internet/hwz/MP/(?P<idgauge>.*)/index.html', HistoryPage)
 
     def get_rivers_list(self):
         return self.homepage.stay_or_go().get_rivers_list()
 
     def iter_history(self, sensor, **kwargs):
-        self.history.go(params=int(sensor.gaugeid))
+        self.history.go(idgauge=sensor.gaugeid)
         return self.page.iter_history(sensor=sensor)
