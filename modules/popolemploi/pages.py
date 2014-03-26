@@ -49,7 +49,7 @@ class SearchPage(BasePage):
                 advert.society_name = society[0].text
             advert.place = u'%s' % self.parser.select(row, 'td[@headers="lieu"]', 1, method='xpath').text_content()
             date = self.parser.select(row, 'td[@headers="dateEmission"]', 1, method='xpath')
-            advert.publication_date = dateutil.parser.parse(date.text).date()
+            advert.publication_date = dateutil.parser.parse(date.text, dayfirst=True).date()
             return advert
 
 
