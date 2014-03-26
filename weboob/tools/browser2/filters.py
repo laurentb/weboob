@@ -23,7 +23,9 @@ from dateutil.parser import parse as parse_date
 import datetime
 from decimal import Decimal, InvalidOperation
 import re
+import lxml.html as html
 
+from weboob.tools.misc import html2text
 from weboob.capabilities.base import empty
 
 
@@ -156,6 +158,9 @@ class TableCell(_Filter):
 
         return self.default_or_raise(ColumnNotFound('Unable to find column %s' % ' or '.join(self.names)))
 
+class CleanHTML(Filter):
+    def filter(self, txt):
+        return html2text(html.tostring(txt[0], encoding=unicode))
 
 class CleanText(Filter):
     """
