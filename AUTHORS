@@ -253,6 +253,7 @@ Yann Rouillard <yann@pleiades.fr.eu.org>
 
 Raphaël Rigo <devel-weboob@syscall.eu>
 		* Patch for poleemploi
+		* support for credit card history in boursorama
 
 Discover how to contribute to this great software:
 http://weboob.org/How_to_contribute
