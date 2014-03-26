@@ -94,6 +94,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                     for pattern, actype in AccountsPage.TYPES.iteritems():
                         if label.startswith(pattern):
                             return actype
+                    return Account.TYPE_UNKNOWN
 
             obj_id = Env('id')
             obj_label = Label(CleanText('./td[1]/a'))
