@@ -24,7 +24,7 @@ import re
 from dateutil.relativedelta import relativedelta
 
 from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement, SkipItem, FormNotFound, LoggedPage
-from weboob.tools.browser2.filters import Filter, Env, CleanText, CleanDecimal, Link, Field
+from weboob.tools.browser2.filters import Filter, Env, CleanText, CleanDecimal, Link, Field, TableCell
 from weboob.tools.browser import  BrowserIncorrectPassword
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
@@ -191,7 +191,7 @@ class OperationsPage(LoggedPage, HTMLPage):
 
             class OwnRaw(Filter):
                 def __call__(self, item):
-                    parts = [txt.strip() for txt in item.el.xpath('./td[last()-2]')[0].itertext() if len(txt.strip()) > 0]
+                    parts = [txt.strip() for txt in TableCell('raw')(item)[0].itertext() if len(txt.strip()) > 0]
 
                     # To simplify categorization of CB, reverse order of parts to separate
                     # location and institution.
