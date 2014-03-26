@@ -143,7 +143,6 @@ class GroovesharkBrowser(BaseBrowser):
             audio.thumbnail = BaseImage(u'http://images.gs-cdn.net/static/albums/40_' + song['CoverArtFilename'])
             audio.thumbnail.url = audio.thumbnail.id
             audio.duration = datetime.timedelta(seconds=int(float(song['EstimateDuration'])))
-            audio.rating = float(song['AvgRating'])
             try:
                 audio.date = datetime.date(year=int(song['Year']), month=1, day=1)
             except ValueError:
