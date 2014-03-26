@@ -105,5 +105,5 @@ class LeclercMobileBackend(BaseBackend, ICapBill):
             balance = self.browser.get_balance()
             balance.label = u"Balance %s" % subscription.id
             balance.id = "%s-balance" % subscription.id
-            balance.currency = 'EUR'
+            balance.currency = u'EUR'
             return balance
