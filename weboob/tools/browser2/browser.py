@@ -272,7 +272,11 @@ class BaseBrowser(object):
         req = self.build_request(url, referrer, **kwargs)
 
         preq = self.session.prepare_request(req)
-        preq._cookies = WeboobCookieJar.from_cookiejar(preq._cookies)
+        if hasattr(preq, '_cookies'):
+            # The _cookies attribute is not present in requests < 2.2. As in
+            # previous version it doesn't calls extract_cookies_to_jar(), it is
+            # not a problem as we keep our own cookiejar instance.
+            preq._cookies = WeboobCookieJar.from_cookiejar(preq._cookies)
 
         if proxies is None:
             proxies = self.PROXIES
