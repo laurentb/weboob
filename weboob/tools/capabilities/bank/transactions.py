@@ -191,7 +191,7 @@ class FrenchTransaction(Transaction):
         class _TransactionsElement(TableElement):
             col_date =       [u'Date']
             col_vdate =      [u'Valeur']
-            col_raw =        [u'Opération', u'Libellé']
+            col_raw =        [u'Opération', u'Libellé', u'Intitulé opération']
             col_credit =     [u'Crédit', u'Montant']
             col_debit =      [u'Débit']
 
