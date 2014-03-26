@@ -251,5 +251,8 @@ Alexandre Bonhomme <alexandre.bonhomme@etudiant.univ-lille1.fr>
 Yann Rouillard <yann@pleiades.fr.eu.org>
 		* Add kids.dailymotion.com for dailymotion
 
+Raphaël Rigo <devel-weboob@syscall.eu>
+		* Patch for poleemploi
+
 Discover how to contribute to this great software:
 http://weboob.org/How_to_contribute
