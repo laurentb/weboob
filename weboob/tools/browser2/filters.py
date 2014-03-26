@@ -165,8 +165,8 @@ class CleanText(Filter):
     string.
     Second, it replaces all symbols given in second argument.
     """
-    def __init__(self, selector, symbols=''):
-        super(CleanText, self).__init__(selector)
+    def __init__(self, selector, symbols='', **kwargs):
+        super(CleanText, self).__init__(selector, **kwargs)
         self.symbols = symbols
 
     def filter(self, txt):
