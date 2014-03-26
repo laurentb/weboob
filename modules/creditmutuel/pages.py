@@ -130,11 +130,11 @@ class AccountsPage(LoggedPage, HTMLPage):
 
                 # Handle real balances
                 page = self.page.browser.open(link).page
-                coming = page.find_amount(u"Opérations à venir")
-                accounting = page.find_amount(u"Solde comptable")
+                coming = page.find_amount(u"Opérations à venir") if page else None
+                accounting = page.find_amount(u"Solde comptable") if page else None
 
                 if accounting is not None and accounting + (coming or Decimal('0')) != balance:
-                    self.logger.warning('%s + %s != %s' % (accounting, coming, balance))
+                    self.page.logger.warning('%s + %s != %s' % (accounting, coming, balance))
 
                 if accounting is not None:
                     balance = accounting
