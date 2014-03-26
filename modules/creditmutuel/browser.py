@@ -48,7 +48,7 @@ class CreditMutuelBrowser(LoginBrowser):
     card =        URL('/(?P<subbank>.*)/fr/banque/operations_carte.cgi.*',   CardPage)
     noop =        URL('/(?P<subbank>.*)/fr/banque/CR/arrivee.asp.*',         NoOperationsPage)
     info =        URL('/(?P<subbank>.*)/fr/banque/BAD.*')
-    transfert =   URL('/(?P<subbank>.*)/fr/banque/WI_VPLV_VirUniSaiCpt.asp\?(?P<params>.*)', TransfertPage)
+    transfert =   URL('/(?P<subbank>.*)/fr/banque/WI_VPLV_VirUniSaiCpt.asp\?(?P<parameters>.*)', TransfertPage)
     change_pass = URL('/(?P<subbank>.*)/fr/validation/change_password.cgi',  ChangePasswordPage)
     verify_pass = URL('/(?P<subbank>.*)/fr/validation/verif_code.cgi.*',     VerifCodePage)
     empty =       URL('/(?P<subbank>.*)/fr/',
@@ -133,8 +133,8 @@ class CreditMutuelBrowser(LoginBrowser):
 
     def transfer(self, account, to, amount, reason=None):
         # access the transfer page
-        params = 'RAZ=ALL&Cat=6&PERM=N&CHX=A'
-        page = self.transfert.go(subbank=self.currentSubBank, params=params)
+        parameters = 'RAZ=ALL&Cat=6&PERM=N&CHX=A'
+        page = self.transfert.go(subbank=self.currentSubBank, parameters=parameters)
 
         # fill the form
         form = self.page.get_form(name='FormVirUniSaiCpt')
