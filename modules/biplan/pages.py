@@ -88,9 +88,7 @@ class ProgramPage(HTMLPage):
             klass = BiplanCalendarEventConcert if Env('is_concert') else BiplanCalendarEventTheatre
 
             def condition(self):
-                if(self.el.xpath('./div')):
-                    return True
-                return False
+                return (self.el.xpath('./div'))
 
             def validate(self, obj):
                 return (self.is_valid_event(obj, self.env['city'], self.env['categories']) and
@@ -136,7 +134,7 @@ class EventPage(HTMLPage):
                 event.description = CleanHTML("%s/div/div[@class='presentation-popup']" % _div)(self)
                 raise SkipItem()
 
-            self.env['is_concert'] = not div.attrib['class'] == 'theatre-popup'
+            self.env['is_concert'] = (div.attrib['class'] != 'theatre-popup')
             self.env['url'] = self.page.url
 
         obj_id = Env('_id')
