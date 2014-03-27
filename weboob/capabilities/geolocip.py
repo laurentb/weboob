@@ -40,7 +40,6 @@ class IpLocation(CapBaseObject):
 
     def __init__(self, ipaddr):
         CapBaseObject.__init__(self, ipaddr)
-        self.ipaddr = ipaddr
 
 
 class ICapGeolocIp(IBaseCap):
