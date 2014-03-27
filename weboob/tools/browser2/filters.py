@@ -344,9 +344,9 @@ class MultiFilter(Filter):
         raise NotImplementedError()
 
 
-class Combine(MultiFilter):
+class CombineDate(MultiFilter):
     def __init__(self, date, time):
-        super(Combine, self).__init__(date, time)
+        super(CombineDate, self).__init__(date, time)
 
     def filter(self, values):
         return datetime.datetime.combine(values[0], values[1])

@@ -24,7 +24,7 @@ import weboob.tools.date as date_util
 from .calendar import BiplanCalendarEventConcert, BiplanCalendarEventTheatre
 
 from weboob.tools.browser2.page import HTMLPage, method, ItemElement, SkipItem, ListElement
-from weboob.tools.browser2.filters import Filter, Link, CleanText, Env, Regexp, Combine, CleanHTML
+from weboob.tools.browser2.filters import Filter, Link, CleanText, Env, Regexp, CombineDate, CleanHTML
 
 
 __all__ = ['ProgramPage', 'EventPage']
@@ -115,8 +115,8 @@ class ProgramPage(HTMLPage):
                 return False
 
             obj_id = Regexp(Link('./div/a'), '/(.*?).html')
-            obj_start_date = Combine(BiplanDate('div/div/b'), StartTime('div/div/b'))
-            obj_end_date = Combine(BiplanDate('div/div/b'), EndTime('.'))
+            obj_start_date = CombineDate(BiplanDate('div/div/b'), StartTime('div/div/b'))
+            obj_end_date = CombineDate(BiplanDate('div/div/b'), EndTime('.'))
             obj_price = BiplanPrice('div/div/b')
             obj_summary = CleanText("div/div/div/a/strong")
 
@@ -142,8 +142,8 @@ class EventPage(HTMLPage):
         obj_id = Env('_id')
         base = "//div[@id='popup']"
         obj_price = BiplanPrice("%s/div/b" % base)
-        obj_start_date = Combine(BiplanDate("%s/div/b" % base), StartTime("%s/div/b" % base))
-        obj_end_date = Combine(BiplanDate("%s/div/b" % base), EndTime("."))
+        obj_start_date = CombineDate(BiplanDate("%s/div/b" % base), StartTime("%s/div/b" % base))
+        obj_end_date = CombineDate(BiplanDate("%s/div/b" % base), EndTime("."))
         obj_url = Env('url')
         obj_summary = CleanText('%s/div/div/span' % base)
         obj_description = CleanHTML('%s/div/div[@class="presentation-popup"]' % base)
