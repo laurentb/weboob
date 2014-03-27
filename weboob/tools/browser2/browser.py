@@ -155,7 +155,7 @@ class BaseBrowser(object):
             # try to get an extension (and avoid adding 'None')
             ext = mimetypes.guess_extension(mimetype, False) or ''
 
-        path = re.sub('[^A-z0-9\.-_]+', '_', urlparse(response.url).path.rpartition('/')[2])
+        path = re.sub('[^A-z0-9\.-_]+', '_', urlparse(response.url).path.rpartition('/')[2])[-10:]
         if path.endswith(ext):
             ext = ''
         filename = '%02d-%d%s%s%s' % \
