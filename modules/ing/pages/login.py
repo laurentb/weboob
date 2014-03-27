@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2009-2011  Romain Bignon, Florent Fourcot
+# Copyright(C) 2009-2014  Florent Fourcot, Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -17,13 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from StringIO import StringIO
 
-from weboob.tools.mech import ClientForm
 from logging import error
 
 from weboob.tools.browser import BasePage, BrowserIncorrectPassword
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
-
+from weboob.tools.browser2.page import HTMLPage
 
 __all__ = ['LoginPage', 'INGVirtKeyboard', 'StopPage']
 
@@ -43,9 +43,9 @@ class INGVirtKeyboard(VirtKeyboard):
     color = 64
 
     def __init__(self, basepage):
-        divkeyboard = basepage.document.find("//div[@id='clavierdisplayLogin']")
+        divkeyboard = basepage.doc.find("//div[@id='clavierdisplayLogin']")
         if divkeyboard is None:
-            divkeyboard = basepage.document.find("//div[@id='claviertransfer']")
+            divkeyboard = basepage.doc.find("//div[@id='claviertransfer']")
         try:
             img = divkeyboard.xpath("img")[1]
         except:
@@ -63,7 +63,7 @@ class INGVirtKeyboard(VirtKeyboard):
         coords["42"] = (125, 45, 153, 73)
         coords["52"] = (165, 45, 193, 73)
 
-        VirtKeyboard.__init__(self, basepage.browser.openurl(url), coords, self.color)
+        VirtKeyboard.__init__(self, StringIO(basepage.browser.open(url).content), coords, self.color)
 
         self.check_symbols(self.symbols, basepage.browser.responses_dirname)
 
@@ -84,23 +84,19 @@ class INGVirtKeyboard(VirtKeyboard):
         return code
 
 
-class LoginPage(BasePage):
-    def on_loaded(self):
-        pass
-
+class LoginPage(HTMLPage):
     def prelogin(self, login, birthday):
         # First step : login and birthday
-        self.browser.select_form('zone1Form')
-        self.browser.set_all_readonly(False)
-        self.browser['zone1Form:numClient'] = str(login)
-        self.browser['zone1Form:dateDay'] = str(birthday[0:2])
-        self.browser['zone1Form:dateMonth'] = str(birthday[2:4])
-        self.browser['zone1Form:dateYear'] = str(birthday[4:9])
-        self.browser['zone1Form:idRememberMyCifCheck'] = False
-        self.browser.submit(nologin=True)
+        form = self.get_form(name='zone1Form')
+        form['zone1Form:numClient'] = login
+        form['zone1Form:dateDay'] = birthday[0:2]
+        form['zone1Form:dateMonth'] = birthday[2:4]
+        form['zone1Form:dateYear'] = birthday[4:9]
+        form['zone1Form:idRememberMyCifCheck'] = False
+        form.submit()
 
     def error(self):
-        err = self.document.find('//span[@class="error"]')
+        err = self.doc.find('//span[@class="error"]')
         return err is not None
 
     def login(self, password):
@@ -111,22 +107,20 @@ class LoginPage(BasePage):
             error("Error: %s" % err)
             return False
         realpasswd = ""
-        span = self.document.find('//span[@id="digitpaddisplayLogin"]')
+        span = self.doc.find('//span[@id="digitpaddisplayLogin"]')
         i = 0
         for font in span.getiterator('font'):
             if font.attrib.get('class') == "vide":
                 realpasswd += password[i]
             i += 1
         self.browser.logger.debug('We are looking for : ' + realpasswd)
-        self.browser.select_form('mrc')
-        self.browser.set_all_readonly(False)
         self.browser.logger.debug("Coordonates: " + vk.get_string_code(realpasswd))
-        self.browser.controls.append(ClientForm.TextControl('text', 'mrc:mrg', {'value': ''}))
-        self.browser.controls.append(ClientForm.TextControl('text', 'AJAXREQUEST', {'value': ''}))
-        self.browser['AJAXREQUEST'] = '_viewRoot'
-        self.browser['mrc:mrldisplayLogin'] = vk.get_string_code(realpasswd)
-        self.browser['mrc:mrg'] = 'mrc:mrg'
-        self.browser.submit(nologin=True)
+
+        form = self.get_form(name='mrc')
+        form['mrc:mrg'] = 'mrc:mrg'
+        form['AJAXREQUEST'] = '_viewRoot'
+        form['mrc:mrldisplayLogin'] = vk.get_string_code(realpasswd)
+        form.submit()
 
 
 class StopPage(BasePage):

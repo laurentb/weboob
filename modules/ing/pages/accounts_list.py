@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2009-2011  Romain Bignon, Florent Fourcot
+# Copyright(C) 2009-2014  Florent Fourcot, Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -25,7 +25,8 @@ import hashlib
 
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
-from weboob.tools.browser import BasePage
+from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement
+from weboob.tools.browser2.filters import Attr, CleanText, CleanDecimal, Filter, Field, MultiFilter
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -42,9 +43,31 @@ class Transaction(FrenchTransaction):
                 ]
 
 
-class AccountsList(BasePage):
-    def on_loaded(self):
-        pass
+class AddPref(MultiFilter):
+    prefixes = {u'Courant': u'CC-', u'Livret A': 'LA-', u'Orange': 'LEO-',
+            u'Durable': u'LDD-', u"Titres": 'TITRE-', u'PEA': u'PEA-'}
+
+    def filter(self, values):
+        el, label = values
+        for key, pref in self.prefixes.items():
+            if key in label:
+                return pref + el
+        return el
+
+
+class AddType(Filter):
+    types = {u'Courant': Account.TYPE_CHECKING, u'Livret A': Account.TYPE_SAVINGS,
+             u'Orange': Account.TYPE_SAVINGS, u'Durable': Account.TYPE_SAVINGS,
+             u'Titres': Account.TYPE_MARKET, u'PEA': Account.TYPE_MARKET}
+
+    def filter(self, label):
+        for key, acc_type in self.types.items():
+            if key in label:
+                return acc_type
+        return Account.TYPE_UNKNOWN
+
+
+class AccountsList(HTMLPage):
 
     monthvalue = {u'janv.': '01', u'févr.': '02', u'mars': '03', u'avr.': '04',
             u'mai': '05', u'juin': '06', u'juil.': '07', u'août': '08',
@@ -55,38 +78,22 @@ class AccountsList(BasePage):
             u'cb_ach': u'Carte achat', u'chq': u'Chèque',
             u'frais': u'Frais bancaire', u'sepaplvt': u'Prélèvement'}
 
-    def get_list(self):
-        # TODO: no idea abount how proxy account are displayed
-        for a in self.document.xpath('//a[@class="mainclic"]'):
-            account = Account()
-            account.currency = u'EUR'
-            account.id = unicode(a.find('span[@class="account-number"]').text)
-            account._id = account.id
-            account.label = unicode(a.find('span[@class="title"]').text)
-            balance = a.find('span[@class="solde"]/label').text
-            account.balance = Decimal(FrenchTransaction.clean_amount(balance))
-            account.coming = NotAvailable
-            if "Courant" in account.label:
-                account.id = "CC-" + account.id
-                account.type = Account.TYPE_CHECKING
-            elif "Livret A" in account.label:
-                account.id = "LA-" + account.id
-                account.type = Account.TYPE_SAVINGS
-            elif "Orange" in account.label:
-                account.id = "LEO-" + account.id
-                account.type = Account.TYPE_SAVINGS
-            elif "Durable" in account.label:
-                account.id = "LDD-" + account.id
-                account.type = Account.TYPE_SAVINGS
-            elif "Titres" in account.label:
-                account.id = "TITRE-" + account.id
-                account.type = Account.TYPE_MARKET
-            elif "PEA" in account.label:
-                account.id = "PEA-" + account.id
-                account.type = Account.TYPE_MARKET
-            jid = self.document.find('//input[@name="javax.faces.ViewState"]')
-            account._jid = jid.attrib['value']
-            yield account
+    @method
+    class get_list(ListElement):
+        item_xpath = '//a[@class="mainclic"]'
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_currency = u'EUR'
+            obj__id = CleanText('span[@class="account-number"]')
+            obj_label = CleanText('span[@class="title"]')
+            obj_id = AddPref(Field('_id'), Field('label'))
+            obj_type = AddType(Field('label'))
+            obj_balance = CleanDecimal('span[@class="solde"]/label')
+            obj_coming = NotAvailable
+            obj__jid = Attr('//input[@name="javax.faces.ViewState"]', 'value')
+
 
     def get_transactions(self, index):
         i = 0

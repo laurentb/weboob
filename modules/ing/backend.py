@@ -26,7 +26,7 @@ from weboob.capabilities.base import UserError
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
-from .browser import Ing
+from .browser import IngBrowser
 
 __all__ = ['INGBackend']
 
@@ -49,7 +49,7 @@ class INGBackend(BaseBackend, ICapBank, ICapBill):
                                                 regexp='^(\d{8}|)$',
                                                 masked=False)
                           )
-    BROWSER = Ing
+    BROWSER = IngBrowser
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(),
