@@ -104,6 +104,10 @@ class TransactionsPage(BasePage):
     MONTHS = ['janv', u'févr', u'mars', u'avr', u'mai', u'juin', u'juil', u'août', u'sept', u'oct', u'nov', u'déc']
 
     def get_history(self):
+        #checking if the card is still valid
+        if self.document.xpath('//div[@id="errorbox"]'):
+            return
+
         #adding a time delta because amex have hard time to put the date in a good interval
         beginning_date = self.get_beginning_debit_date() - datetime.timedelta(days=90)
         end_date = self.get_end_debit_date()
