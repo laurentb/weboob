@@ -45,7 +45,7 @@ class Transaction(FrenchTransaction):
 
 class AddPref(MultiFilter):
     prefixes = {u'Courant': u'CC-', u'Livret A': 'LA-', u'Orange': 'LEO-',
-            u'Durable': u'LDD-', u"Titres": 'TITRE-', u'PEA': u'PEA-'}
+                u'Durable': u'LDD-', u"Titres": 'TITRE-', u'PEA': u'PEA-'}
 
     def filter(self, values):
         el, label = values
@@ -77,11 +77,11 @@ class Hashmd5(MultiFilter):
                 concat += u'%s' % value
         return hashlib.md5(concat.encode('utf-8')).hexdigest()
 
+
 class INGDate(Date):
     monthvalue = {u'janv.': '01', u'févr.': '02', u'mars': '03', u'avr.': '04',
                   u'mai': '05', u'juin': '06', u'juil.': '07', u'août': '08',
-                  u'sept.': '09', u'oct.': '10', u'nov.': '11', u'déc.': '12'
-                 }
+                  u'sept.': '09', u'oct.': '10', u'nov.': '11', u'déc.': '12'}
 
     def filter(self, txt):
         if txt == 'hier':
@@ -109,6 +109,7 @@ class INGCategory(Filter):
         except:
             return txt
 
+
 class AccountsList(LoggedPage, HTMLPage):
 
     i = 0
@@ -129,12 +130,9 @@ class AccountsList(LoggedPage, HTMLPage):
             obj_coming = NotAvailable
             obj__jid = Attr('//input[@name="javax.faces.ViewState"]', 'value')
 
-
     @method
     class get_transactions(ListElement):
         item_xpath = '//table'
-        i = 0
-
 
         class item(ItemElement):
             klass = Transaction
@@ -146,7 +144,6 @@ class AccountsList(LoggedPage, HTMLPage):
             obj_rdate = Field('date')
             obj_id = Hashmd5(Field('date'), Field('raw'), Field('amount'))
             obj_category = INGCategory(Attr('.//td[@class="picto"]/span', 'class'))
-
 
             def condition(self):
                 if self.el.find('.//td[@class="date"]') is None:
