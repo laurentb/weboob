@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from decimal import Decimal
 from datetime import date, timedelta
 import datetime
 import re
@@ -27,7 +26,7 @@ import hashlib
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser2.page import HTMLPage, LoggedPage, method, ListElement, ItemElement
-from weboob.tools.browser2.filters import Attr, CleanText, CleanDecimal, Filter, Field, MultiFilter, Env, Date, Lower
+from weboob.tools.browser2.filters import Attr, CleanText, CleanDecimal, Filter, Field, MultiFilter, Date, Lower
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
