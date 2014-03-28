@@ -114,7 +114,7 @@ class AccountsList(LoggedPage, HTMLPage):
                         u'frais': u'Frais bancaire', u'sepaplvt': u'Prélèvement'}
 
             # we use lower for compatibility with the old website
-            obj_raw = Lower('.//td[@class="lbl"]')
+            obj_raw = Transaction.Raw(Lower('.//td[@class="lbl"]'))
             obj_amount = CleanDecimal('.//td[starts-with(@class, "amount")]')
             obj__textdate = Env('_textdate')
             obj_date = Date(Field('_textdate'), dayfirst=True)
