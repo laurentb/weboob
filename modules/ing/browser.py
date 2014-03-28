@@ -53,6 +53,7 @@ class IngBrowser(LoginBrowser):
     starttitre = URL('/general\?command=goToAccount&zone=COMPTE', TitrePage)
     titrepage = URL('https://bourse.ingdirect.fr/priv/portefeuille-TR.php', TitrePage)
     titrehistory = URL('https://bourse.ingdirect.fr/priv/compte.php\?ong=3', TitreHistory)
+    titrerealtime = URL('https://bourse.ingdirect.fr/streaming/compteTempsReelCK.php', TitrePage)
 
 
     # CapBill
@@ -104,8 +105,8 @@ class IngBrowser(LoginBrowser):
         if not isinstance(account, Account):
             account = self.get_account(account)
         if account.type == Account.TYPE_MARKET:
-            for tr in self.get_history_titre(account):
-                yield tr
+            for result in self.get_history_titre(account):
+                yield result
             return
         elif account.type != Account.TYPE_CHECKING and\
                 account.type != Account.TYPE_SAVINGS:
@@ -190,7 +191,7 @@ class IngBrowser(LoginBrowser):
 
     def go_investments(self, account):
         if self.where != "start":
-            self.location(self.accountspage)
+            self.accountspage.go()
         data = {"AJAX:EVENTS_COUNT": 1,
                 "AJAXREQUEST": "_viewRoot",
                 "ajaxSingle": "index:setAccount",
@@ -200,23 +201,23 @@ class IngBrowser(LoginBrowser):
                 "javax.faces.ViewState": account._jid,
                 "cptnbr": account._id
                 }
-        self.location(self.accountspage, urllib.urlencode(data))
-        self.location('https://secure.ingdirect.fr/general?command=goToAccount&zone=COMPTE')
-        self.where = "titre"
+        self.accountspage.go(data=data)
 
-        self.location(self.titrepage)
+        self.starttitre.go()
+        self.where = "titre"
+        self.titrepage.go()
 
     def get_investments(self, account):
         if account.type != Account.TYPE_MARKET:
             raise NotImplementedError()
         self.go_investments(account)
 
-        self.location('https://bourse.ingdirect.fr/streaming/compteTempsReelCK.php')
+        self.titrerealtime.go()
         return self.page.iter_investments()
 
     def get_history_titre(self, account):
         self.go_investments(account)
-        self.location('https://bourse.ingdirect.fr/priv/compte.php?ong=3')
+        self.titrehistory.go()
         return self.page.iter_history()
 
     def get_subscriptions(self):

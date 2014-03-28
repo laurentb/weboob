@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013  Florent Fourcot
+# Copyright(C) 2013-2014  Florent Fourcot
 #
 # This file is part of weboob.
 #
@@ -19,35 +19,34 @@
 
 
 from decimal import Decimal
-from datetime import date
 
 from weboob.capabilities.bank import Investment
-from weboob.tools.browser import BasePage
+from weboob.tools.browser2.page import RawPage, HTMLPage, method, ListElement, ItemElement
+from weboob.tools.browser2.filters import CleanDecimal, CleanText, Date
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 __all__ = ['TitrePage']
 
+
 class Transaction(FrenchTransaction):
     pass
 
-class TitrePage(BasePage):
-    def on_loaded(self):
-        pass
 
+class TitrePage(RawPage):
     def iter_investments(self):
         # We did not get some html, but something like that (XX is a quantity, YY a price):
         # message='[...]
         #popup=2{6{E:ALO{PAR{{reel{695{380{ALSTOM REGROUPT#XX#YY,YY &euro;#YY,YY &euro;#1 YYY,YY &euro;#-YYY,YY &euro;#-42,42%#-0,98 %#42,42 %#|1|AXA#cotationValeur.php?val=E:CS&amp;pl=6&amp;nc=1&amp;
         #popup=2{6{E:CS{PAR{{reel{695{380{AXA#XX#YY,YY &euro;#YY,YYY &euro;#YYY,YY &euro;#YY,YY &euro;#3,70%#42,42 %#42,42 %#|1|blablablab #cotationValeur.php?val=P:CODE&amp;pl=6&amp;nc=1&amp;
         # [...]
-        lines = self.document.split("popup=2")
+        lines = self.doc.split("popup=2")
         lines.pop(0)
         for line in lines:
             columns = line.split('#')
             code = columns[0].split('{')[2]
             invest = Investment(code)
-            invest.code = code
-            invest.label = columns[0].split('{')[-1]
+            invest.code = unicode(code)
+            invest.label = unicode(columns[0].split('{')[-1])
             invest.quantity = int(columns[1])
             invest.unitprice = Decimal(FrenchTransaction.clean_amount(columns[2]))
             invest.unitvalue = Decimal(FrenchTransaction.clean_amount(columns[3]))
@@ -56,26 +55,18 @@ class TitrePage(BasePage):
 
             yield invest
 
-class TitreHistory(BasePage):
-    def on_loaded(self):
-        pass
 
-    def iter_history(self):
-        try:
-            table = self.document.xpath('//table[@class="datas retour"]')[0]
-        except IndexError:
-            return # noop
+class TitreHistory(HTMLPage):
+    @method
+    class iter_history(ListElement):
+        item_xpath = '//table[@class="datas retour"]/tr'
 
-        trs = table.xpath('tr')
-        trs.pop(0)
-        trs.pop(-1)
-        for tr in trs:
-            td = tr.xpath('td')
-            op = Transaction(1)
-            textraw = td[3].text_content()
-            if len(td[2].xpath('a')) > 0:
-                textraw += u" " + td[2].xpath('a')[0].text_content()
-            amount = op.clean_amount(td[6].text_content())
-            op.parse(date(*reversed([int(x) for x in td[1].text_content().split('/')])), raw = textraw)
-            op.amount = Decimal(amount)
-            yield op
+        class item(ItemElement):
+            klass = Transaction
+
+            def condition(self):
+                return len(self.el.xpath('td[@class="impaire"]')) > 0
+
+            obj_raw = Transaction.Raw('td[4] | td[3]/a')
+            obj_date = Date(CleanText('td[2]'), dayfirst=True)
+            obj_amount = CleanDecimal('td[7]')

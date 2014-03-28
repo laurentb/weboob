@@ -99,11 +99,9 @@ class INGBackend(BaseBackend, ICapBank, ICapBill):
             return self.browser.transfer(account, recipient, amount, reason)
 
     def iter_investment(self, account):
-        with self.browser:
-            if not isinstance(account, Account):
-                account = self.get_account(account)
-            for investment in self.browser.get_investments(account):
-                yield investment
+        if not isinstance(account, Account):
+            account = self.get_account(account)
+        return self.browser.get_investments(account)
 
     def iter_subscription(self):
         for subscription in self.browser.get_subscriptions():
