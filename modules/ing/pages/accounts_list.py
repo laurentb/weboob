@@ -74,6 +74,38 @@ class Hashmd5(MultiFilter):
             concat += u'%s' % value
         return hashlib.md5(concat.encode('utf-8')).hexdigest()
 
+class INGDate(Date):
+    monthvalue = {u'janv.': '01', u'févr.': '02', u'mars': '03', u'avr.': '04',
+                  u'mai': '05', u'juin': '06', u'juil.': '07', u'août': '08',
+                  u'sept.': '09', u'oct.': '10', u'nov.': '11', u'déc.': '12'
+                 }
+
+    def filter(self, txt):
+        if txt == 'hier':
+            return (date.today() - timedelta(days=1))
+        elif txt == "aujourd'hui":
+            return date.today()
+        else:
+            frenchmonth = txt.split(' ')[1]
+            month = self.monthvalue[frenchmonth]
+            txt = txt.replace(' ', '')
+            txt = txt.replace(frenchmonth, '/%s/' % month)
+            return super(INGDate, self).filter(txt)
+
+
+class INGCategory(Filter):
+    catvalue = {u'virt': u"Virement", u'autre': u"Autre",
+                u'plvt': u'Prélèvement', u'cb_ret': u"Carte retrait",
+                u'cb_ach': u'Carte achat', u'chq': u'Chèque',
+                u'frais': u'Frais bancaire', u'sepaplvt': u'Prélèvement'}
+
+    def filter(self, txt):
+        txt = txt.split('-')[0].lower()
+        try:
+            return self.catvalue[txt]
+        except:
+            return txt
+
 class AccountsList(LoggedPage, HTMLPage):
 
     i = 0
@@ -104,23 +136,13 @@ class AccountsList(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Transaction
 
-            monthvalue = {u'janv.': '01', u'févr.': '02', u'mars': '03', u'avr.': '04',
-                          u'mai': '05', u'juin': '06', u'juil.': '07', u'août': '08',
-                          u'sept.': '09', u'oct.': '10', u'nov.': '11', u'déc.': '12',
-                         }
-            catvalue = {u'virt': u"Virement", u'autre': u"Autre",
-                        u'plvt': u'Prélèvement', u'cb_ret': u"Carte retrait",
-                        u'cb_ach': u'Carte achat', u'chq': u'Chèque',
-                        u'frais': u'Frais bancaire', u'sepaplvt': u'Prélèvement'}
-
             # we use lower for compatibility with the old website
             obj_raw = Transaction.Raw(Lower('.//td[@class="lbl"]'))
             obj_amount = CleanDecimal('.//td[starts-with(@class, "amount")]')
-            obj__textdate = Env('_textdate')
-            obj_date = Date(Field('_textdate'), dayfirst=True)
+            obj_date = INGDate(CleanText('.//td[@class="date"]'), dayfirst=True)
             obj_rdate = Field('date')
-            obj_id = Hashmd5(Field('_textdate'), Field('raw'), Field('amount'))
-            obj_category = Env('category')
+            obj_id = Hashmd5(Field('date'), Field('raw'), Field('amount'))
+            obj_category = INGCategory(Attr('.//td[@class="picto"]/span', 'class'))
 
 
             def condition(self):
@@ -130,27 +152,6 @@ class AccountsList(LoggedPage, HTMLPage):
                     AccountsList.i += 1
                     return False
                 return True
-
-            def parse(self, table):
-                textdate = table.find('.//td[@class="date"]').text_content()
-                # Do not parse transactions already parsed
-                if textdate == 'hier':
-                    textdate = (date.today() - timedelta(days=1)).strftime('%d/%m/%Y')
-                elif textdate == "aujourd'hui":
-                    textdate = date.today().strftime('%d/%m/%Y')
-                else:
-                    frenchmonth = textdate.split(' ')[1]
-                    month = self.monthvalue[frenchmonth]
-                    textdate = textdate.replace(' ', '')
-                    textdate = textdate.replace(frenchmonth, '/%s/' %month)
-                self.env['_textdate'] = textdate
-                category = table.find('.//td[@class="picto"]/span')
-                category = unicode(category.attrib['class'].split('-')[0].lower())
-                try:
-                    category = self.catvalue[category]
-                except:
-                    pass
-                self.env['category'] = category
 
     def get_history_jid(self):
         span = self.doc.xpath('//span[@id="index:panelASV"]')
