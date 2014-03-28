@@ -120,6 +120,7 @@ class AccountsList(LoggedPage, HTMLPage):
             obj_date = Date(Field('_textdate'), dayfirst=True)
             obj_rdate = Field('date')
             obj_id = Hashmd5(Field('_textdate'), Field('raw'), Field('amount'))
+            obj_category = Env('category')
 
 
             def condition(self):
