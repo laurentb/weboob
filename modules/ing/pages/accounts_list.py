@@ -20,6 +20,7 @@
 
 from decimal import Decimal
 from datetime import date, timedelta
+import datetime
 import re
 import hashlib
 
@@ -71,7 +72,10 @@ class Hashmd5(MultiFilter):
     def filter(self, values):
         concat = ''
         for value in values:
-            concat += u'%s' % value
+            if type(value) is datetime.date:
+                concat += value.strftime('%d/%m/%Y')
+            else:
+                concat += u'%s' % value
         return hashlib.md5(concat.encode('utf-8')).hexdigest()
 
 class INGDate(Date):
