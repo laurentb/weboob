@@ -104,7 +104,7 @@ class SenscritiqueBrowser(PagesBrowser):
     def get_event(self, _id, event=None):
         if not event:
             self._setup_session(Firefox())
-            self.program_page.stay_or_go()
+            self.program_page.go()
             page_nb = 1
 
             self._setup_session(SensCritiqueAjaxProfile())
