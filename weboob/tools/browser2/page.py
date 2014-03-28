@@ -421,6 +421,13 @@ class JsonPage(BasePage):
         super(JsonPage, self).__init__(browser, response, *args, **kwargs)
         self.doc = json.loads(response.text)
 
+
+class RawPage(BasePage):
+    def __init__(self, browser, response, *args, **kwargs):
+        super(RawPage, self).__init__(browser, response, *args, **kwargs)
+        self.doc = response.content
+
+
 class HTMLPage(BasePage):
     """
     HTML page.
