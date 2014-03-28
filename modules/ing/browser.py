@@ -16,8 +16,8 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-import urllib
 import hashlib
+import urllib
 
 from weboob.tools.browser2 import LoginBrowser, URL, need_login
 from weboob.tools.browser import BrowserIncorrectPassword
@@ -127,6 +127,7 @@ class IngBrowser(LoginBrowser):
         while True:
             i = index
             for transaction in self.page.get_transactions(index=index):
+                transaction.id = hashlib.md5(transaction._hash).hexdigest()
                 while transaction.id in hashlist:
                     transaction.id = hashlib.md5(transaction.id + "1").hexdigest()
                 hashlist.append(transaction.id)

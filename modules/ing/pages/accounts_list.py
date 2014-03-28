@@ -21,7 +21,6 @@
 from datetime import date, timedelta
 import datetime
 import re
-import hashlib
 
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
@@ -67,7 +66,7 @@ class AddType(Filter):
         return Account.TYPE_UNKNOWN
 
 
-class Hashmd5(MultiFilter):
+class PreHashmd5(MultiFilter):
     def filter(self, values):
         concat = ''
         for value in values:
@@ -75,7 +74,7 @@ class Hashmd5(MultiFilter):
                 concat += value.strftime('%d/%m/%Y')
             else:
                 concat += u'%s' % value
-        return hashlib.md5(concat.encode('utf-8')).hexdigest()
+        return concat.encode('utf-8')
 
 
 class INGDate(Date):
@@ -142,7 +141,7 @@ class AccountsList(LoggedPage, HTMLPage):
             obj_amount = CleanDecimal('.//td[starts-with(@class, "amount")]')
             obj_date = INGDate(CleanText('.//td[@class="date"]'), dayfirst=True)
             obj_rdate = Field('date')
-            obj_id = Hashmd5(Field('date'), Field('raw'), Field('amount'))
+            obj__hash = PreHashmd5(Field('date'), Field('raw'), Field('amount'))
             obj_category = INGCategory(Attr('.//td[@class="picto"]/span', 'class'))
 
             def condition(self):
