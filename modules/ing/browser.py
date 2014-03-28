@@ -145,16 +145,16 @@ class IngBrowser(LoginBrowser):
                     }
             self.accountspage.go(data=data)
 
+    @need_login
     def get_recipients(self, account):
-        if not self.is_on_page(TransferPage):
-            self.location(self.transferpage)
+        self.transferpage.stay_or_go()
         if self.page.ischecked(account):
             return self.page.get_recipients()
         else:
             # It is hard to check the box and to get the real list.
             # We try an alternative way like normal users
             self.get_history(account.id).next()
-            self.location(self.dotransferpage)
+            self.transferpage.stay_or_go()
             return self.page.get_recipients()
 
     def transfer(self, account, recipient, amount, reason):
@@ -168,15 +168,14 @@ class IngBrowser(LoginBrowser):
                 recipient = destination
                 break
         if found:
-            self.openurl(self.transferpage,
-                    self.page.buildonclick(recipient, account))
+            self.transferpage.open(data=self.page.buildonclick(recipient, account))
             self.page.transfer(recipient, amount, reason)
-            self.location(self.valtransferpage)
-            if not self.is_on_page(TransferConfirmPage):
+            self.valtransferpage.go()
+            if not self.valtransferpage.is_here():
                 raise TransferError("Invalid transfer (no confirmation page)")
             else:
                 self.page.confirm(self.password)
-                self.location(self.valtransferpage)
+                self.valtransferpage.go()
                 return self.page.recap()
         else:
             raise TransferError('Recipient not found')

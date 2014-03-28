@@ -80,23 +80,21 @@ class INGBackend(BaseBackend, ICapBank, ICapBill):
             yield history
 
     def iter_transfer_recipients(self, account):
-        with self.browser:
-            if not isinstance(account, Account):
-                account = self.get_account(account)
-            for recipient in self.browser.get_recipients(account):
-                yield recipient
+        if not isinstance(account, Account):
+            account = self.get_account(account)
+        for recipient in self.browser.get_recipients(account):
+            yield recipient
 
     def transfer(self, account, recipient, amount, reason):
-        with self.browser:
-            if not reason:
-                raise UserError('Reason is mandatory to do a transfer on ING website')
-            if not isinstance(account, Account):
-                account = self.get_account(account)
-            if not isinstance(recipient, Recipient):
-                # Remove weboob identifier prefix (LA-, CC-...)
-                if "-" in recipient:
-                    recipient = recipient.split('-')[1]
-            return self.browser.transfer(account, recipient, amount, reason)
+        if not reason:
+            raise UserError('Reason is mandatory to do a transfer on ING website')
+        if not isinstance(account, Account):
+            account = self.get_account(account)
+        if not isinstance(recipient, Recipient):
+            # Remove weboob identifier prefix (LA-, CC-...)
+            if "-" in recipient:
+                recipient = recipient.split('-')[1]
+        return self.browser.transfer(account, recipient, amount, reason)
 
     def iter_investment(self, account):
         if not isinstance(account, Account):

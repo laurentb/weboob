@@ -22,21 +22,18 @@ from decimal import Decimal
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import VirtKeyboardError
 from weboob.capabilities.bank import Recipient, AccountNotFound, Transfer
-from weboob.tools.browser import BasePage, BrokenPageError
-from weboob.tools.mech import ClientForm
+from weboob.tools.browser2.page import HTMLPage, LoggedPage
+from weboob.tools.browser import BrokenPageError
 from .login import INGVirtKeyboard
 from logging import error
 
 __all__ = ['TransferPage']
 
 
-class TransferPage(BasePage):
-    def on_loaded(self):
-        pass
-
+class TransferPage(LoggedPage, HTMLPage):
     def get_recipients(self):
         # First, internals recipients
-        table = self.document.xpath('//table[@id="transfer_form:receiptAccount"]')
+        table = self.doc.xpath('//table[@id="transfer_form:receiptAccount"]')
         for tr in table[0].xpath('tbody/tr'):
             tds = tr.xpath('td')
             id = tds[0].xpath('input')[0].attrib['value']
@@ -50,7 +47,7 @@ class TransferPage(BasePage):
             yield recipient
 
         # Second, externals recipients
-        select = self.document.xpath('//select[@id="transfer_form:externalAccounts"]')
+        select = self.doc.xpath('//select[@id="transfer_form:externalAccounts"]')
         if len(select) > 0:
             recipients = select[0].xpath('option')
             recipients.pop(0)
@@ -66,66 +63,55 @@ class TransferPage(BasePage):
         # remove prefix (CC-, LA-, ...)
         if "-" in id:
             id = id.split('-')[1]
-        option = self.document.xpath('//input[@value="%s"]' % id)
+        option = self.doc.xpath('//input[@value="%s"]' % id)
         if len(option) == 0:
             raise AccountNotFound()
         else:
             option = option[0]
         try:
-            if option.attrib["checked"] == "checked":
-                return True
-            else:
-                return False
+            return option.attrib["checked"] == "checked"
         except:
             return False
 
     def transfer(self, recipient, amount, reason):
-        self.browser.select_form("transfer_form")
-        self.browser.set_all_readonly(False)
-        for a in self.browser.controls[:]:
-            #for label in a.get_labels():
-            if "transfer_form:_link_hidden_" in str(a) or "transfer_form:j_idcl" in str(a):
-                self.browser.controls.remove(a)
-            if "transfer_form:valide" in str(a):
-                self.browser.controls.remove(a)
-        self.browser.controls.append(ClientForm.TextControl('text',
-            'AJAXREQUEST', {'value': "_viewRoot"}))
-        self.browser.controls.append(ClientForm.TextControl('text',
-            'AJAX:EVENTS_COUNT', {'value': "1"}))
-        self.browser['transfer_form:transferMotive'] = reason.encode('ISO-8859-1')
-        self.browser.controls.append(ClientForm.TextControl('text', 'transfer_form:valide', {'value': "transfer_form:valide"}))
-        self.browser['transfer_form:validateDoTransfer'] = "needed"
-        self.browser['transfer_form:transferAmount'] = str(amount)
+        form = self.get_form(name="transfer_form")
+        form.pop('transfer_form:_link_hidden_')
+        form.pop('transfer_form:j_idcl')
+        form['AJAXREQUEST'] = "_viewRoot"
+        form['AJAX:EVENTS_COUNT'] = "1"
+        form['transfer_form:transferMotive'] = reason
+        form["transfer_form:valide"] = "transfer_form:valide"
+        form["transfer_form:validateDoTransfer"] = "needed"
+        form["transfer_form:transferAmount"] = str(amount)
         if recipient._type == "int":
-            self.browser['transfer_recipient_radio'] = [recipient.id]
+            form['transfer_recipient_radio'] = recipient.id
         else:
-            self.browser['transfer_form:externalAccounts'] = [recipient.id]
-        self.browser.submit()
+            form['transfer_form:externalAccounts'] = recipient.id
+        form.submit()
 
     def buildonclick(self, recipient, account):
-        javax = self.document.xpath('//input[@id="javax.faces.ViewState"]')[0].attrib['value']
+        javax = self.doc.xpath('//input[@id="javax.faces.ViewState"]')[0].attrib['value']
         if recipient._type == "ext":
-            select = self.document.xpath('//select[@id="transfer_form:externalAccounts"]')[0]
+            select = self.doc.xpath('//select[@id="transfer_form:externalAccounts"]')[0]
             onclick = select.attrib['onchange']
             params = onclick.split(',')[3].split('{')[1]
             idparam = params.split("'")[1]
             param = params.split("'")[3]
-            request = self.browser.buildurl('', ("AJAXREQUEST", "transfer_form:transfer_radios_form"),
-                                            ("transfer_form:generalMessages", ""),
-                                            ("transfer_issuer_radio", account.id[3:]),
-                                            ("transfer_form:externalAccounts", recipient.id),
-                                            ("transfer_date", 0),
-                                            ("transfer_form:transferAmount", ""),
-                                            ("transfer_form:transferMotive", ""),
-                                            ("transfer_form:validateDoTransfer", "needed"),
-                                            ("transfer_form", "transfer_form"),
-                                            ("autoScrol", ""),
-                                            ("javax.faces.ViewState", javax),
-                                            (idparam, param))
-            request = request[1:]  # remove the "?"
+            request = {"AJAXREQUEST": "transfer_form:transfer_radios_form",
+                       "transfer_form:generalMessages": "",
+                       "transfer_issuer_radio": account.id[3:],
+                       "transfer_form:externalAccounts": recipient.id,
+                       "transfer_date": "0",
+                       "transfer_form:transferAmount": "",
+                       "transfer_form:transferMotive": "",
+                       "transfer_form:validateDoTransfer": "needed",
+                       "transfer_form": "transfer_form",
+                       "autoScrol": "",
+                       "javax.faces.ViewState": javax,
+                       idparam: param}
             return request
         elif recipient._type == "int":
-            for input in self.document.xpath('//input[@value=%s]' % recipient.id):
+            for input in self.doc.xpath('//input[@value=%s]' % recipient.id):
                 if input.attrib['name'] == "transfer_recipient_radio":
                     onclick = input.attrib['onclick']
                     break
@@ -133,23 +119,22 @@ class TransferPage(BasePage):
             params = onclick.split(',')[3].split('{')[1]
             idparam = params.split("'")[1]
             param = params.split("'")[3]
-            request = self.browser.buildurl('', ("AJAXREQUEST", "transfer_form:transfer_radios_form"),
-                                      ('transfer_issuer_radio', account.id[3:]),
-                                      ("transfer_recipient_radio", recipient.id),
-                                      ("transfer_form:externalAccounts", "na"),
-                                      ("transfer_date", 0),
-                                      ("transfer_form:transferAmount", ""),
-                                      ("transfer_form:transferMotive", ""),
-                                      ("transfer_form:validateDoTransfer", "needed"),
-                                      ("transfer_form", "transfer_form"),
-                                      ("autoScroll", ""),
-                                      ("javax.faces.ViewState", javax),
-                                      (idparam, param))
-            request = request[1:]
+            request = {"AJAXREQUEST": "transfer_form:transfer_radios_form",
+                       'transfer_issuer_radio': account.id[3:],
+                       "transfer_recipient_radio": recipient.id,
+                       "transfer_form:externalAccounts": "na",
+                       "transfer_date": 0,
+                       "transfer_form:transferAmount": "",
+                       "transfer_form:transferMotive": "",
+                       "transfer_form:validateDoTransfer": "needed",
+                       "transfer_form": "transfer_form",
+                       "autoScroll": "",
+                       "javax.faces.ViewState": javax,
+                       idparam: param}
             return request
 
 
-class TransferConfirmPage(BasePage):
+class TransferConfirmPage(HTMLPage):
     def on_loaded(self):
         pass
 
@@ -160,14 +145,14 @@ class TransferConfirmPage(BasePage):
             error("Error: %s" % err)
             return
         realpasswd = ""
-        span = self.document.find('//span[@id="digitpadtransfer"]')
+        span = self.doc.find('//span[@id="digitpadtransfer"]')
         i = 0
         for font in span.getiterator('font'):
             if font.attrib.get('class') == "vide":
                 realpasswd += password[i]
             i += 1
         confirmform = None
-        divform = self.document.xpath('//div[@id="transfer_panel"]')[0]
+        divform = self.doc.xpath('//div[@id="transfer_panel"]')[0]
         for form in divform.xpath('./form'):
             try:
                 if form.attrib['name'][0:4] == "j_id":
@@ -179,26 +164,24 @@ class TransferConfirmPage(BasePage):
             raise BrokenPageError('Unable to find confirm form')
         formname = confirmform.attrib['name']
         self.browser.logger.debug('We are looking for : ' + realpasswd)
-        self.browser.select_form(formname)
-        self.browser.set_all_readonly(False)
-        for a in self.browser.controls[:]:
-            if "_link_hidden_" in str(a) or "j_idcl" in str(a):
-                self.browser.controls.remove(a)
+
+        form = self.get_form(name=formname)
+        for elem in form:
+            if "_link_hidden_" in elem or "j_idcl" in elem:
+                form.pop(elem)
+
         coordinates = vk.get_string_code(realpasswd)
         self.browser.logger.debug("Coordonates: " + coordinates)
 
-        self.browser.controls.append(ClientForm.TextControl('text',
-            'AJAXREQUEST', {'value': '_viewRoot'}))
-        self.browser.controls.append(ClientForm.TextControl(
-            'text', '%s:mrgtransfer' % formname,
-            {'value': '%s:mrgtransfer' % formname}))
-        self.browser['%s:mrltransfer' % formname] = coordinates
-        self.browser.submit(nologin=True)
+        form['AJAXREQUEST'] = '_viewRoot'
+        form['%s:mrgtransfer' % formname] = '%s:mrgtransfer' % formname
+        form['%s:mrltransfer' % formname] = coordinates
+        form.submit()
 
     def recap(self):
-        if len(self.document.xpath('//p[@class="alert alert-success"]')) == 0:
+        if len(self.doc.xpath('//p[@class="alert alert-success"]')) == 0:
             raise BrokenPageError('Unable to find confirmation')
-        div = self.document.find(
+        div = self.doc.find(
                 '//div[@class="encadre transfert-validation"]')
         transfer = Transfer(0)
         transfer.amount = Decimal(FrenchTransaction.clean_amount(
