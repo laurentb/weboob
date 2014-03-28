@@ -305,7 +305,7 @@ class Date(DateTime):
     def filter(self, txt):
         datetime = super(Date, self).filter(txt)
         if datetime is not None:
-            return datetime.date
+            return datetime.date()
 
 class Time(Filter):
     klass = datetime.time
