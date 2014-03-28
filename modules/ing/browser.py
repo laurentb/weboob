@@ -36,9 +36,6 @@ class IngBrowser(LoginBrowser):
     BASEURL = 'https://secure.ingdirect.fr'
 
     #         '.*onHoldTransferManagement.jsf': TransferPage,
-    #         '.*displayCoordonneesCommand.*':  StopPage,
-    #         '.*compteTempsReelCK.php.*':      (TitrePage, 'raw'),
-    #         '.*compte.php\?ong=3':            TitreHistory,
 
     # Login and error
     loginpage = URL('/public/displayLogin.jsf.*', LoginPage)
@@ -94,11 +91,6 @@ class IngBrowser(LoginBrowser):
                 return a
 
         return None
-
-    def viewing_html(self):
-        # To prevent unknown mimetypes sent by server, we assume we
-        # are always on a HTML document.
-        return True
 
     @need_login
     def get_history(self, account):
@@ -207,6 +199,7 @@ class IngBrowser(LoginBrowser):
         self.where = "titre"
         self.titrepage.go()
 
+
     def get_investments(self, account):
         if account.type != Account.TYPE_MARKET:
             raise NotImplementedError()
@@ -220,6 +213,8 @@ class IngBrowser(LoginBrowser):
         self.titrehistory.go()
         return self.page.iter_history()
 
+
+    ############# CapBill #############
     def get_subscriptions(self):
         self.location('/protected/pages/common/estatement/eStatement.jsf')
         return self.page.iter_account()
