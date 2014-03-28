@@ -196,6 +196,12 @@ class CleanText(Filter):
         return txt
 
 
+class Lower(CleanText):
+    def filter(self, txt):
+        txt = super(Lower, self).filter(txt)
+        return txt.lower()
+
+
 class CleanDecimal(CleanText):
     """
     Get a cleaned Decimal value from an element.
