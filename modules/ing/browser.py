@@ -47,11 +47,12 @@ class IngBrowser(LoginBrowser):
     # CapBank
     accountspage = URL('/protected/pages/index.jsf', AccountsList)
     transferpage = URL('/protected/pages/cc/transfer/transferManagement.jsf', TransferPage)
-    dotransferpage = URL('/general?command=DisplayDoTransferCommand', TransferPage)
+    dotransferpage = URL('/general\?command=DisplayDoTransferCommand', TransferPage)
     valtransferpage = URL('/protected/pages/cc/transfer/create/transferCreateValidation.jsf', TransferConfirmPage)
     #transferonhold = URL('
+    starttitre = URL('/general\?command=goToAccount&zone=COMPTE', TitrePage)
     titrepage = URL('https://bourse.ingdirect.fr/priv/portefeuille-TR.php', TitrePage)
-    titrehistory = URL('https://bourse.ingdirect.fr/priv/compte.php?ong=3', TitreHistory)
+    titrehistory = URL('https://bourse.ingdirect.fr/priv/compte.php\?ong=3', TitreHistory)
 
 
     # CapBill
