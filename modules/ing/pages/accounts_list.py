@@ -110,8 +110,9 @@ class INGCategory(Filter):
 
 
 class AccountsList(LoggedPage, HTMLPage):
-
-    i = 0
+    def __init__(self, browser, response, *args, **kwargs):
+        super(AccountsList, self).__init__(browser, response, *args, **kwargs)
+        self.i = 0
 
     @method
     class get_list(ListElement):
@@ -147,8 +148,8 @@ class AccountsList(LoggedPage, HTMLPage):
             def condition(self):
                 if self.el.find('.//td[@class="date"]') is None:
                     return False
-                if AccountsList.i < self.env['index']:
-                    AccountsList.i += 1
+                if self.page.i < self.env['index']:
+                    self.page.i += 1
                     return False
                 return True
 
