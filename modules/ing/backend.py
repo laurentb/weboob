@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2013 Romain Bignon, Florent Fourcot
+# Copyright(C) 2010-2014 Romain Bignon, Florent Fourcot
 #
 # This file is part of weboob.
 #
@@ -69,17 +69,15 @@ class INGBackend(BaseBackend, ICapBank, ICapBill):
             yield account
 
     def get_account(self, _id):
-        with self.browser:
-            account = self.browser.get_account(_id)
+        account = self.browser.get_account(_id)
         if account:
             return account
         else:
             raise AccountNotFound()
 
     def iter_history(self, account):
-        with self.browser:
-            for history in self.browser.get_history(account.id):
-                yield history
+        for history in self.browser.get_history(account.id):
+            yield history
 
     def iter_transfer_recipients(self, account):
         with self.browser:

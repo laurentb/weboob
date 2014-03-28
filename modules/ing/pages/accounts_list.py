@@ -25,8 +25,8 @@ import hashlib
 
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
-from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement
-from weboob.tools.browser2.filters import Attr, CleanText, CleanDecimal, Filter, Field, MultiFilter
+from weboob.tools.browser2.page import HTMLPage, LoggedPage, method, ListElement, ItemElement
+from weboob.tools.browser2.filters import Attr, CleanText, CleanDecimal, Filter, Field, MultiFilter, Env, Date, Lower
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -67,16 +67,16 @@ class AddType(Filter):
         return Account.TYPE_UNKNOWN
 
 
-class AccountsList(HTMLPage):
+class Hashmd5(MultiFilter):
+    def filter(self, values):
+        concat = ''
+        for value in values:
+            concat += u'%s' % value
+        return hashlib.md5(concat.encode('utf-8')).hexdigest()
 
-    monthvalue = {u'janv.': '01', u'févr.': '02', u'mars': '03', u'avr.': '04',
-            u'mai': '05', u'juin': '06', u'juil.': '07', u'août': '08',
-            u'sept.': '09', u'oct.': '10', u'nov.': '11', u'déc.': '12',
-            }
-    catvalue = {u'virt': u"Virement", u'autre': u"Autre",
-            u'plvt': u'Prélèvement', u'cb_ret': u"Carte retrait",
-            u'cb_ach': u'Carte achat', u'chq': u'Chèque',
-            u'frais': u'Frais bancaire', u'sepaplvt': u'Prélèvement'}
+class AccountsList(LoggedPage, HTMLPage):
+
+    i = 0
 
     @method
     class get_list(ListElement):
@@ -95,62 +95,76 @@ class AccountsList(HTMLPage):
             obj__jid = Attr('//input[@name="javax.faces.ViewState"]', 'value')
 
 
-    def get_transactions(self, index):
+    @method
+    class get_transactions(ListElement):
+        item_xpath = '//table'
         i = 0
-        for table in self.document.xpath('//table'):
-            try:
+
+
+        class item(ItemElement):
+            klass = Transaction
+
+            monthvalue = {u'janv.': '01', u'févr.': '02', u'mars': '03', u'avr.': '04',
+                          u'mai': '05', u'juin': '06', u'juil.': '07', u'août': '08',
+                          u'sept.': '09', u'oct.': '10', u'nov.': '11', u'déc.': '12',
+                         }
+            catvalue = {u'virt': u"Virement", u'autre': u"Autre",
+                        u'plvt': u'Prélèvement', u'cb_ret': u"Carte retrait",
+                        u'cb_ach': u'Carte achat', u'chq': u'Chèque',
+                        u'frais': u'Frais bancaire', u'sepaplvt': u'Prélèvement'}
+
+            # we use lower for compatibility with the old website
+            obj_raw = Lower('.//td[@class="lbl"]')
+            obj_amount = CleanDecimal('.//td[starts-with(@class, "amount")]')
+            obj__textdate = Env('_textdate')
+            obj_date = Date(Field('_textdate'), dayfirst=True)
+            obj_rdate = Field('date')
+            obj_id = Hashmd5(Field('_textdate'), Field('raw'), Field('amount'))
+
+
+            def condition(self):
+                if self.el.find('.//td[@class="date"]') is None:
+                    return False
+                if AccountsList.i < self.env['index']:
+                    AccountsList.i += 1
+                    return False
+                return True
+
+            def parse(self, table):
                 textdate = table.find('.//td[@class="date"]').text_content()
-            except AttributeError:
-                continue
-            # Do not parse transactions already parsed
-            if i < index:
-                i += 1
-                continue
-            if textdate == 'hier':
-                textdate = (date.today() - timedelta(days=1)).strftime('%d/%m/%Y')
-            elif textdate == "aujourd'hui":
-                textdate = date.today().strftime('%d/%m/%Y')
-            else:
-                frenchmonth = textdate.split(' ')[1]
-                month = self.monthvalue[frenchmonth]
-                textdate = textdate.replace(' ', '')
-                textdate = textdate.replace(frenchmonth, '/%s/' %month)
-            # We use lower for compatibility with old website
-            textraw = self.parser.tocleanstring(table.find('.//td[@class="lbl"]')).lower()
-            # The id will be rewrite
-            op = Transaction(1)
-            amount = op.clean_amount(table.xpath('.//td[starts-with(@class, "amount")]')[0].text_content())
-            id = hashlib.md5(textdate.encode('utf-8') + textraw.encode('utf-8')
-                    + amount.encode('utf-8')).hexdigest()
-            op.id = id
-            op.parse(date = date(*reversed([int(x) for x in textdate.split('/')])),
-                     raw = textraw)
-            category = table.find('.//td[@class="picto"]/span')
-            category = unicode(category.attrib['class'].split('-')[0].lower())
-            try:
-                op.category = self.catvalue[category]
-            except:
-                op.category = category
-            op.amount = Decimal(amount)
-            yield op
+                # Do not parse transactions already parsed
+                if textdate == 'hier':
+                    textdate = (date.today() - timedelta(days=1)).strftime('%d/%m/%Y')
+                elif textdate == "aujourd'hui":
+                    textdate = date.today().strftime('%d/%m/%Y')
+                else:
+                    frenchmonth = textdate.split(' ')[1]
+                    month = self.monthvalue[frenchmonth]
+                    textdate = textdate.replace(' ', '')
+                    textdate = textdate.replace(frenchmonth, '/%s/' %month)
+                self.env['_textdate'] = textdate
+                category = table.find('.//td[@class="picto"]/span')
+                category = unicode(category.attrib['class'].split('-')[0].lower())
+                try:
+                    category = self.catvalue[category]
+                except:
+                    pass
+                self.env['category'] = category
 
     def get_history_jid(self):
-        span = self.document.xpath('//span[@id="index:panelASV"]')
+        span = self.doc.xpath('//span[@id="index:panelASV"]')
         if len(span) > 1:
             # Assurance Vie, we do not support this kind of account.
             return None
 
-        span = self.document.xpath('//span[starts-with(@id, "index:j_id")]')[0]
-        jid = span.attrib['id'].split(':')[1]
+        span = Attr('//span[starts-with(@id, "index:j_id")]', 'id')(self.doc)
+        jid = span.split(':')[1]
         return jid
 
     def islast(self):
-        havemore = self.document.getroot().cssselect('.show-more-transactions')
+        havemore = self.doc.getroot().cssselect('.show-more-transactions')
         if len(havemore) == 0:
             return True
 
-        nomore = self.document.getroot().cssselect('.no-more-transactions')
-        if len(nomore) > 0:
-            return True
-        else:
-            return False
+        nomore = self.doc.getroot().cssselect('.no-more-transactions')
+        return (len(nomore) > 0)

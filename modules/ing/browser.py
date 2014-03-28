@@ -86,11 +86,7 @@ class IngBrowser(LoginBrowser):
     def get_account(self, id):
         assert isinstance(id, basestring)
 
-        if not self.is_on_page(AccountsList) or self.where != "start":
-            self.location(self.accountspage)
-        self.where = "start"
-
-        l = self.page.get_list()
+        l = self.get_accounts_list()
         for a in l:
             if a.id == id:
                 return a
@@ -102,6 +98,7 @@ class IngBrowser(LoginBrowser):
         # are always on a HTML document.
         return True
 
+    @need_login
     def get_history(self, account):
         if not isinstance(account, Account):
             account = self.get_account(account)
@@ -114,7 +111,7 @@ class IngBrowser(LoginBrowser):
             raise NotImplementedError()
 
         if self.where != "start":
-            self.location(self.accountspage)
+            self.accountspage.go()
         data = {"AJAX:EVENTS_COUNT": 1,
                 "AJAXREQUEST": "_viewRoot",
                 "ajaxSingle": "index:setAccount",
@@ -124,7 +121,7 @@ class IngBrowser(LoginBrowser):
                 "javax.faces.ViewState": account._jid,
                 "cptnbr": account._id
                 }
-        self.location(self.accountspage, urllib.urlencode(data))
+        self.accountspage.go(data=data)
         self.where = "history"
         jid = self.page.get_history_jid()
         if jid is None:
@@ -135,7 +132,7 @@ class IngBrowser(LoginBrowser):
         hashlist = []
         while True:
             i = index
-            for transaction in self.page.get_transactions(index):
+            for transaction in self.page.get_transactions(index=index):
                 while transaction.id in hashlist:
                     transaction.id = hashlib.md5(transaction.id + "1").hexdigest()
                 hashlist.append(transaction.id)
@@ -152,7 +149,7 @@ class IngBrowser(LoginBrowser):
                     "index:%s:moreTransactions" % jid: "index:%s:moreTransactions" % jid,
                     "javax.faces.ViewState": account._jid
                     }
-            self.location(self.accountspage, urllib.urlencode(data))
+            self.accountspage.go(data=data)
 
     def get_recipients(self, account):
         if not self.is_on_page(TransferPage):
