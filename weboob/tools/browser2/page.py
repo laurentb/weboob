@@ -384,7 +384,7 @@ class Form(OrderedDict):
                 continue
 
             try:
-                if inp.attrib['type'] in ('checkbox', 'radio') and not 'checked' in inp:
+                if inp.attrib['type'] in ('checkbox', 'radio') and not 'checked' in inp.attrib:
                     continue
             except KeyError:
                 pass
