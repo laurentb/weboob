@@ -27,7 +27,7 @@ from weboob.capabilities.bank import Transfer, TransferError
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
                    OperationsPage, CardPage, ComingPage, NoOperationsPage, \
-                   TransfertPage, ChangePasswordPage, VerifCodePage
+                   TransfertPage, ChangePasswordPage, VerifCodePage, EmptyPage
 
 
 __all__ = ['CreditMutuelBrowser']
@@ -47,15 +47,15 @@ class CreditMutuelBrowser(LoginBrowser):
     coming =      URL('/(?P<subbank>.*)/fr/banque/mvts_instance.cgi.*',      ComingPage)
     card =        URL('/(?P<subbank>.*)/fr/banque/operations_carte.cgi.*',   CardPage)
     noop =        URL('/(?P<subbank>.*)/fr/banque/CR/arrivee.asp.*',         NoOperationsPage)
-    info =        URL('/(?P<subbank>.*)/fr/banque/BAD.*')
+    info =        URL('/(?P<subbank>.*)/fr/banque/BAD.*',                    EmptyPage)
     transfert =   URL('/(?P<subbank>.*)/fr/banque/WI_VPLV_VirUniSaiCpt.asp\?(?P<parameters>.*)', TransfertPage)
     change_pass = URL('/(?P<subbank>.*)/fr/validation/change_password.cgi',  ChangePasswordPage)
     verify_pass = URL('/(?P<subbank>.*)/fr/validation/verif_code.cgi.*',     VerifCodePage)
-    empty =       URL('/(?P<subbank>.*)/fr/',
+    empty =       URL('/(?P<subbank>.*)/fr/$',
                       '/(?P<subbank>.*)/fr/banques/index.html',
-                      '/(?P<subbank>.*)/fr/banque/paci_beware_of_phishing.html.*',
+                      '/(?P<subbank>.*)/fr/banque/paci_beware_of_phishing.*',
                       '/(?P<subbank>.*)/fr/validation/(?!change_password|verif_code).*',
-                      )
+                      EmptyPage)
 
     currentSubBank = None
 

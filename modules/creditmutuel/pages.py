@@ -44,6 +44,9 @@ class LoginErrorPage(HTMLPage):
     pass
 
 
+class EmptyPage(LoggedPage, HTMLPage):
+    pass
+
 class UserSpacePage(LoggedPage, HTMLPage):
     pass
 
