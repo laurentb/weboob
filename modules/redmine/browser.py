@@ -199,7 +199,11 @@ class RedmineBrowser(BaseBrowser):
 
         fields = {}
         for key, div in self.page.iter_custom_fields():
-            fields[key] = div.attrib['value']
+            if 'value' in div.attrib:
+                fields[key] = div.attrib['value']
+            else:
+                olist = div.xpath('.//option[@selected="selected"]')
+                fields[key] = ', '.join({i.attrib['value'] for i in olist})
 
         return fields
 

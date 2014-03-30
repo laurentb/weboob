@@ -120,7 +120,8 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
         raise CollectionNotFound(collection.split_path)
 
     ############# CapBugTracker ###################################################
-    def _build_project(self, project_dict):
+    @classmethod
+    def _build_project(cls, project_dict):
         project = Project(project_dict['name'], project_dict['name'])
         project.members = [User(int(u[0]), u[1]) for u in project_dict['members']]
         project.versions = [Version(int(v[0]), v[1]) for v in project_dict['versions']]
@@ -129,6 +130,20 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
         project.statuses = [Status(int(s[0]), s[1], 0) for s in project_dict['statuses']]
         return project
 
+    @staticmethod
+    def _attr_to_id(availables, text):
+        if not text:
+            return None
+
+        if isinstance(text, basestring) and text.isdigit():
+            return text
+
+        for value, key in availables:
+            if key.lower() == text.lower():
+                return value
+
+        return text
+
     def iter_issues(self, query):
         """
         Iter issues with optionnal patterns.
@@ -136,13 +151,13 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
         @param  query [Query]
         @return [iter(Issue)] issues
         """
-        # TODO link between text and IDs.
+        params = self.browser.get_project(query.project)
         kwargs = {'subject':          query.title,
-                  'author_id':        query.author,
-                  'assigned_to_id':   query.assignee,
-                  'fixed_version_id': query.version,
-                  'category_id':      query.category,
-                  'status_id':        query.status,
+                  'author_id':        self._attr_to_id(params['members'], query.author),
+                  'assigned_to_id':   self._attr_to_id(params['members'], query.assignee),
+                  'fixed_version_id': self._attr_to_id(params['versions'], query.version),
+                  'category_id':      self._attr_to_id(params['categories'], query.category),
+                  'status_id':        self._attr_to_id(params['statuses'], query.status),
                  }
         r = self.browser.query_issues(query.project, **kwargs)
         project = self._build_project(r['project'])
@@ -152,6 +167,8 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
             obj.title = issue['subject']
             obj.creation = issue['created_on']
             obj.updated = issue['updated_on']
+            obj.start = issue['start_date']
+            obj.due = issue['due_date']
 
             if isinstance(issue['author'], tuple):
                 obj.author = project.find_user(*issue['author'])
@@ -162,6 +179,7 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
             else:
                 obj.assignee = issue['assigned_to']
 
+            obj.tracker = issue['tracker']
             obj.category = issue['category']
 
             if issue['fixed_version'] is not None:
@@ -169,6 +187,7 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
             else:
                 obj.version = None
             obj.status = project.find_status(issue['status'])
+            obj.priority = issue['priority']
             yield obj
 
     def get_issue(self, issue):
@@ -189,6 +208,8 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
         issue.body = params['body']
         issue.creation = params['created_on']
         issue.updated = params['updated_on']
+        issue.start = params['start_date']
+        issue.due = params['due_date']
         issue.fields = {}
         for key, value in params['fields'].iteritems():
             issue.fields[key] = value
@@ -214,9 +235,11 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
             issue.history.append(update)
         issue.author = issue.project.find_user(*params['author'])
         issue.assignee = issue.project.find_user(*params['assignee'])
+        issue.tracker = params['tracker'][1]
         issue.category = params['category'][1]
         issue.version = issue.project.find_version(*params['version'])
         issue.status = issue.project.find_status(params['status'][1])
+        issue.priority = params['priority'][1]
 
         return issue
 
@@ -239,8 +262,12 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
         kwargs = {'title':      issue.title,
                   'version':    issue.version.id if issue.version else None,
                   'assignee':   issue.assignee.id if issue.assignee else None,
+                  'tracker':    issue.tracker if issue.tracker else None,
                   'category':   issue.category,
                   'status':     issue.status.id if issue.status else None,
+                  'priority':   issue.priority if issue.priority else None,
+                  'start':      issue.start if issue.start else None,
+                  'due':        issue.due if issue.due else None,
                   'body':       issue.body,
                   'fields':     issue.fields,
                  }
