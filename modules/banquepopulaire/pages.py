@@ -417,7 +417,7 @@ class TransactionsPage(BasePage):
         if len(self.document.xpath('//table[@id="TabFact"]')) > 0:
             return self.get_card_history(account, coming)
 
-        raise BrokenPageError('Unable to find what kind of history it is.')
+        raise NotImplementedError('Unable to find what kind of history it is.')
 
     COL_COMPTA_DATE = 0
     COL_LABEL = 1
