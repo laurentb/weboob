@@ -448,16 +448,17 @@ class IssuePage(NewIssuePage):
         params['updates'] = []
         for div in self.parser.select(content, 'div.journal'):
             update = {}
-            alist = div.find('h4').xpath('.//a')
-            update['id'] = alist[0].text[1:]
-            if len(alist) == 4:
-                update['author'] = (int(alist[-2].attrib['href'].split('/')[-1]),
-                                    to_unicode(alist[-2].text))
+            update['id'] = div.xpath('.//h4//a')[0].text[1:]
+            user_link = div.xpath('.//h4//a[contains(@href, "/users/")]')
+            if len(user_link) > 0:
+                update['author'] = (int(user_link[0].attrib['href'].split('/')[-1]),
+                                    to_unicode(user_link[0].text))
             else:
-                m = re.match('Updated by (.*)', alist[0].tail.strip())
-                if m:
-                    update['author'] = (0, to_unicode(m.group(1)))
-            update['date'] = self.parse_datetime(alist[-1].attrib['title'])
+                for txt in div.xpath('.//h4//text()'):
+                    m = re.search('Updated by (.*)', txt.strip())
+                    if m:
+                        update['author'] = (0, to_unicode(m.group(1)))
+            update['date'] = self.parse_datetime(div.xpath('.//h4//a[last()]')[0].attrib['title'])
             if div.find('div') is not None:
                 comment = div.find('div')
                 subdiv = comment.find('div')
