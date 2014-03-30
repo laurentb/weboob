@@ -340,7 +340,10 @@ class NewIssuePage(BaseIssuePage):
         #XXX: else set to "" ?
 
     def set_note(self, message):
-        self.browser['notes'] = message.encode('utf-8')
+        try:
+            self.browser['notes'] = message.encode('utf-8')
+        except ClientForm.ControlNotFoundError:
+            self.browser['issue[notes]'] = message.encode('utf-8')
 
     def set_fields(self, fields):
         for key, div in self.iter_custom_fields():
