@@ -459,14 +459,16 @@ class IssuePage(NewIssuePage):
                     if m:
                         update['author'] = (0, to_unicode(m.group(1)))
             update['date'] = self.parse_datetime(div.xpath('.//h4//a[last()]')[0].attrib['title'])
-            if div.find('div') is not None:
-                comment = div.find('div')
+
+            comments = div.xpath('.//div[starts-with(@id, "journal-")]')
+            if len(comments) > 0:
+                comment = comments[0]
                 subdiv = comment.find('div')
                 if subdiv is not None:
                     # a subdiv which contains changes is found, move the tail text
                     # of this div to comment text, and remove it.
                     comment.text = (comment.text or '') + (subdiv.tail or '')
-                comment.remove(comment.find('div'))
+                    comment.remove(comment.find('div'))
                 update['message'] = self.parser.tostring(comment).strip()
             else:
                 update['message'] = None
