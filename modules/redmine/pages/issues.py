@@ -430,7 +430,7 @@ class IssuePage(NewIssuePage):
             else:
                 # XXX: use _parse_selection()?
                 olist = div.xpath('.//option[@selected="selected"]')
-                value = ', '.join({i.attrib['value'] for i in olist})
+                value = ', '.join([i.attrib['value'] for i in olist])
             params['fields'][key] = value
 
         params['attachments'] = []
