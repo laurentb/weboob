@@ -62,17 +62,19 @@ class ArteBrowser(BaseBrowser):
             video = self.create_video(result['video'])
         try:
             video.url = u'%s' % result['video']['VSR'][0]['VUR']
+            video.ext = u'%s' % result['video']['VSR'][0]['VMT']
         except:
-            video.url = self.get_default_url(url)
+            video.url, video.ext = self.get_default_url(url)
 
         return video
 
     def get_default_url(self, url):
         result = self.get_video_by_quality(url, 'ALL')
         try:
-            return u'%s' % result['video']['VSR'][0]['VUR']
+            return u'%s' % result['video']['VSR'][0]['VUR'], \
+                   u'%s' % result['video']['VSR'][0]['VMT']
         except:
-            return NotAvailable
+            return NotAvailable, NotAvailable
 
     def get_video_by_quality(self, url, quality):
         _url = url \
