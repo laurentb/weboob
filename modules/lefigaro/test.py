@@ -28,22 +28,9 @@ __all__ = ['LeFigaroTest']
 class LeFigaroTest(BackendTest):
     BACKEND = 'lefigaro'
 
-    def test_new_messages(self):
-        for message in self.backend.iter_unread_messages():
-            pass
-
-    def test_content(self):
-        urls = ['http://www.lefigaro.fr/international/2011/10/24/01003-20111024ARTFIG00704-les-islamo-conservateurs-maitres-du-jeu-tunisien.php',
-                'http://www.lefigaro.fr/international/2012/01/29/01003-20120129ARTFIG00191-floride-la-primaire-suspendue-a-l-humeur-des-hispaniques.php']
-
-        for url in urls:
-            thread = self.backend.get_thread(url)
-            assert len(thread.root.content)
-            assert '<script' not in thread.root.content
-            assert 'object' not in thread.root.content
-            assert 'BFM' not in thread.root.content
-
-            assert 'AUSSI' not in thread.root.content
-
-            # no funny tags means html2text does not crash
-            assert len(html2text(thread.root.content))
+    def test_lefigaro(self):
+        l = list(self.backend.iter_threads())
+        assert len(l)
+        thread = self.backend.get_thread(l[0].id)
+        assert len(thread.root.content)
+        assert len(html2text(thread.root.content))
