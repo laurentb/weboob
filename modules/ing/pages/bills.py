@@ -50,7 +50,7 @@ class BillsPage(LoggedPage, HTMLPage):
         _id = _id.split("'")[5]
         form = self.get_form(name="statements_form")
         form['AJAXREQUEST'] = 'statements_form:stat_region'
-        form['id'] = _id
+        form[_id] = _id
         form.submit()
 
     @method
