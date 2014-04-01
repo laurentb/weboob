@@ -71,6 +71,8 @@ class IngBrowser(LoginBrowser):
         self.page.login(self.password)
         if self.page.error():
             raise BrowserIncorrectPassword()
+        if self.errorpage.is_here():
+            raise BrowserIncorrectPassword('Please login on website to fill the form and retry')
 
     @need_login
     def get_accounts_list(self):
@@ -227,7 +229,7 @@ class IngBrowser(LoginBrowser):
                 "transfer_issuer_radio": subscription.id
                 }
         self.billpage.go(data=data)
-        return self.page.iter_bills(subid=subscription.id)
+        return self.pagination(lambda: self.page.iter_bills(subid=subscription.id))
 
     def predownload(self, bill):
         self.page.postpredown(bill._localid)

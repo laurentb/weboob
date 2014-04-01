@@ -57,6 +57,26 @@ class BillsPage(LoggedPage, HTMLPage):
     class iter_bills(ListElement):
         item_xpath = '//ul[@id="statements_form:statementsel"]/li'
 
+        def next_page(self):
+            lis = self.page.doc.xpath('//form[@name="years_form"]//li')
+            selected = False
+            ref = None
+            for li in lis:
+                if "rich-list-item selected" in li.attrib['class']:
+                    selected = True
+                else:
+                    if selected:
+                        ref = li.find('a').attrib['id']
+                        break
+            if ref is None:
+                return
+            form = self.page.get_form(name="years_form")
+            form.pop('years_form:j_idcl')
+            form.pop('years_form:_link_hidden_')
+            form['AJAXREQUEST'] = "years_form:year_region"
+            form[ref] = ref
+            return form.request
+
         class item(ItemElement):
             klass = Bill
 

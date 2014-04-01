@@ -94,7 +94,6 @@ class INGVirtKeyboard(VirtKeyboard):
         return coordinates
 
 
-
 class LoginPage(HTMLPage):
     def prelogin(self, login, birthday):
         # First step : login and birthday
