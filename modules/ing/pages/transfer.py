@@ -17,12 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.captcha.virtkeyboard import VirtKeyboardError
 from weboob.capabilities.bank import Recipient, AccountNotFound, Transfer
 from weboob.tools.browser2.page import HTMLPage, LoggedPage, ListElement, ItemElement, method
 from weboob.tools.browser2.filters import CleanText, CleanDecimal
 from .login import INGVirtKeyboard
-from logging import error
 
 __all__ = ['TransferPage']
 
@@ -128,20 +126,7 @@ class TransferPage(LoggedPage, HTMLPage):
 
 class TransferConfirmPage(HTMLPage):
     def confirm(self, password):
-        try:
-            vk = INGVirtKeyboard(self)
-        except VirtKeyboardError as err:
-            error("Error: %s" % err)
-            return
-
-        realpasswd = ""
-        span = self.doc.find('//span[@id="digitpadtransfer"]')
-        for i, font in enumerate(span.getiterator('font')):
-            if font.attrib.get('class') == "vide":
-                realpasswd += password[i]
-        self.browser.logger.debug('We are looking for : ' + realpasswd)
-        coordinates = vk.get_string_code(realpasswd)
-        self.browser.logger.debug("Coordonates: " + coordinates)
+        vk = INGVirtKeyboard(self)
 
         form = self.get_form(xpath='//div[@id="transfer_panel"]//form')
         for elem in form:
@@ -150,7 +135,7 @@ class TransferConfirmPage(HTMLPage):
 
         form['AJAXREQUEST'] = '_viewRoot'
         form['%s:mrgtransfer' % form.name] = '%s:mrgtransfer' % form.name
-        form['%s:mrltransfer' % form.name] = coordinates
+        form['%s:mrltransfer' % form.name] = vk.get_coordinates('//span[@id="digitpadtransfer"]', password)
         form.submit()
 
     @method

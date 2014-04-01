@@ -19,10 +19,8 @@
 
 from StringIO import StringIO
 
-from logging import error
-
 from weboob.tools.browser import BasePage, BrowserIncorrectPassword
-from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
+from weboob.tools.captcha.virtkeyboard import VirtKeyboard
 from weboob.tools.browser2.page import HTMLPage
 
 __all__ = ['LoginPage', 'INGVirtKeyboard', 'StopPage']
@@ -43,6 +41,7 @@ class INGVirtKeyboard(VirtKeyboard):
     color = 64
 
     def __init__(self, basepage):
+        self.basepage = basepage
         divkeyboard = basepage.doc.find("//div[@id='clavierdisplayLogin']")
         if divkeyboard is None:
             divkeyboard = basepage.doc.find("//div[@id='claviertransfer']")
@@ -83,6 +82,18 @@ class INGVirtKeyboard(VirtKeyboard):
             code += str(y)
         return code
 
+    def get_coordinates(self, xpath, password):
+        temppasswd = ""
+        span = self.basepage.doc.find(xpath)
+        for i, font in enumerate(span.getiterator('font')):
+            if font.attrib.get('class') == "vide":
+                temppasswd += password[i]
+        self.basepage.browser.logger.debug('We are looking for : ' + temppasswd)
+        coordinates = self.get_string_code(temppasswd)
+        self.basepage.browser.logger.debug("Coordonates: " + coordinates)
+        return coordinates
+
+
 
 class LoginPage(HTMLPage):
     def prelogin(self, login, birthday):
@@ -101,26 +112,14 @@ class LoginPage(HTMLPage):
 
     def login(self, password):
         # 2) And now, the virtual Keyboard
-        try:
-            vk = INGVirtKeyboard(self)
-        except VirtKeyboardError as err:
-            error("Error: %s" % err)
-            return False
-        realpasswd = ""
-        span = self.doc.find('//span[@id="digitpaddisplayLogin"]')
-        for i, font in enumerate(span.getiterator('font')):
-            if font.attrib.get('class') == "vide":
-                realpasswd += password[i]
-        self.browser.logger.debug('We are looking for : ' + realpasswd)
-        self.browser.logger.debug("Coordonates: " + vk.get_string_code(realpasswd))
+        vk = INGVirtKeyboard(self)
 
         form = self.get_form(name='mrc')
         form['mrc:mrg'] = 'mrc:mrg'
         form['AJAXREQUEST'] = '_viewRoot'
-        form['mrc:mrldisplayLogin'] = vk.get_string_code(realpasswd)
+        form['mrc:mrldisplayLogin'] = vk.get_coordinates('//span[@id="digitpaddisplayLogin"]', password)
         form.submit()
 
 
 class StopPage(BasePage):
-    def on_loaded(self):
-        raise BrowserIncorrectPassword('Please login on website to fill the form and retry')
+    pass
