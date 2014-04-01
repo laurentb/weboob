@@ -19,6 +19,7 @@
 
 
 from weboob.capabilities.bill import ICapBill, Subscription, SubscriptionNotFound, Detail
+from weboob.capabilities.base import find_id_list
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -48,17 +49,15 @@ class PoivyBackend(BaseBackend, ICapBill):
                                    self.config['password'].get())
 
     def iter_subscription(self):
-        for subscription in self.browser.get_subscription_list():
-            yield subscription
+        return self.browser.get_subscription_list()
 
     def get_subscription(self, _id):
-        subscription = self.browser.get_subscription(_id)
-        if subscription:
-            return subscription
-        else:
-            raise SubscriptionNotFound()
+        return find_id_list(self.iter_subscription(), _id, error=SubscriptionNotFound)
 
     def iter_bills_history(self, subscription):
+        # Try if we have a real subscription before to load the history
+        if not isinstance(subscription, Subscription):
+            subscription = self.get_subscription(subscription)
         return self.browser.get_history()
 
     # No details on the website

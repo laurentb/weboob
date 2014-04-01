@@ -22,7 +22,7 @@ from weboob.capabilities.bank import ICapBank, AccountNotFound,\
     Account, Recipient
 from weboob.capabilities.bill import ICapBill, Bill, Subscription,\
     SubscriptionNotFound, BillNotFound
-from weboob.capabilities.base import UserError
+from weboob.capabilities.base import UserError, find_id_list
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -65,25 +65,20 @@ class INGBackend(BaseBackend, ICapBank, ICapBill):
             return self.iter_subscription()
 
     def iter_accounts(self):
-        for account in self.browser.get_accounts_list():
-            yield account
+        return self.browser.get_accounts_list()
 
     def get_account(self, _id):
-        account = self.browser.get_account(_id)
-        if account:
-            return account
-        else:
-            raise AccountNotFound()
+        return find_id_list(self.browser.get_accounts_list(), _id, error=AccountNotFound)
 
     def iter_history(self, account):
-        for history in self.browser.get_history(account.id):
-            yield history
+        if not isinstance(account, Account):
+            account = self.get_account(account)
+        return self.browser.get_history(account)
 
     def iter_transfer_recipients(self, account):
         if not isinstance(account, Account):
             account = self.get_account(account)
-        for recipient in self.browser.get_recipients(account):
-            yield recipient
+        return self.browser.get_recipients(account)
 
     def transfer(self, account, recipient, amount, reason):
         if not reason:
@@ -102,21 +97,14 @@ class INGBackend(BaseBackend, ICapBank, ICapBill):
         return self.browser.get_investments(account)
 
     def iter_subscription(self):
-        for subscription in self.browser.get_subscriptions():
-            yield subscription
+        return self.browser.get_subscriptions()
 
     def get_subscription(self, _id):
-        for subscription in self.browser.get_subscriptions():
-            if subscription.id == _id:
-                return subscription
-        raise SubscriptionNotFound()
+        return find_id_list(self.browser.get_subscriptions(), _id, error=SubscriptionNotFound)
 
     def get_bill(self, id):
         subscription = self.get_subscription(id.split('-')[0])
-        for bill in self.browser.get_bills(subscription):
-            if bill.id == id:
-                return bill
-        raise BillNotFound()
+        return find_id_list(self.browser.get_bills(subscription), id, error=BillNotFound)
 
     def iter_bills(self, subscription):
         if not isinstance(subscription, Subscription):

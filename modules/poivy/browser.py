@@ -48,25 +48,7 @@ class PoivyBrowser(LoginBrowser):
     def get_subscription_list(self):
         return self.homepage.stay_or_go().get_list()
 
-    def _find_id_list(self, mylist, _id):
-        for a in mylist:
-            if a.id == _id:
-                return a
-        return None
-
-    @need_login
-    def get_subscription(self, _id):
-        return self._find_id_list(self.get_subscription_list(), _id)
-
     @need_login
     def get_history(self):
         self.history.stay_or_go()
         return self.pagination(lambda: self.page.get_calls())
-
-    @need_login
-    def iter_bills(self, parentid):
-        return self.bills.stay_or_go().get_bills()
-
-    @need_login
-    def get_bill(self, _id):
-        return self._find_id_list(self.iter_bills(), _id)

@@ -46,6 +46,16 @@ def empty(value):
             return True
     return False
 
+def find_id_list(mylist, _id, error=None):
+    """
+    Very simple tools to return an object with the matching _id
+    """
+    for a in mylist:
+        if a.id == _id:
+            return a
+    if error is not None:
+        raise error()
+    return None
 
 class UserError(Exception):
     """

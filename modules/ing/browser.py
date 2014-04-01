@@ -80,20 +80,8 @@ class IngBrowser(LoginBrowser):
         self.where = "start"
         return self.page.get_list()
 
-    def get_account(self, id):
-        assert isinstance(id, basestring)
-
-        l = self.get_accounts_list()
-        for a in l:
-            if a.id == id:
-                return a
-
-        return None
-
     @need_login
     def get_history(self, account):
-        if not isinstance(account, Account):
-            account = self.get_account(account)
         if account.type == Account.TYPE_MARKET:
             for result in self.get_history_titre(account):
                 yield result
@@ -152,7 +140,7 @@ class IngBrowser(LoginBrowser):
         else:
             # It is hard to check the box and to get the real list.
             # We try an alternative way like normal users
-            self.get_history(account.id).next()
+            self.get_history(account).next()
             self.transferpage.stay_or_go()
             return self.page.get_recipients()
 
