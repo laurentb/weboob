@@ -19,7 +19,7 @@
 import hashlib
 
 from weboob.tools.browser2 import LoginBrowser, URL, need_login
-from weboob.tools.browser import BrowserIncorrectPassword
+from weboob.tools.browser import BrowserIncorrectPassword, BrokenPageError
 from weboob.capabilities.bank import Account, TransferError
 
 from .pages import AccountsList, LoginPage, TitrePage, TitreHistory,\
@@ -173,6 +173,9 @@ class IngBrowser(LoginBrowser):
             else:
                 self.page.confirm(self.password)
                 self.valtransferpage.go()
+                recap = self.page.recap()
+                if len(list(recap)) == 0:
+                    raise BrokenPageError('Unable to find confirmation')
                 return self.page.recap()
         else:
             raise TransferError('Recipient not found')
