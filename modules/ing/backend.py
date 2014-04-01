@@ -19,9 +19,9 @@
 
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound,\
-        Account, Recipient
+    Account, Recipient
 from weboob.capabilities.bill import ICapBill, Bill, Subscription,\
-        SubscriptionNotFound, BillNotFound
+    SubscriptionNotFound, BillNotFound
 from weboob.capabilities.base import UserError
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -48,7 +48,7 @@ class INGBackend(BaseBackend, ICapBank, ICapBill):
                                                 label='Date de naissance',
                                                 regexp='^(\d{8}|)$',
                                                 masked=False)
-                          )
+                           )
     BROWSER = IngBrowser
 
     def create_default_browser(self):

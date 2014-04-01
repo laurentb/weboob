@@ -22,10 +22,8 @@ from weboob.tools.browser2 import LoginBrowser, URL, need_login
 from weboob.tools.browser import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account, TransferError
 
-from .pages import AccountsList, LoginPage, \
-                   TransferPage, TransferConfirmPage, \
-                   BillsPage, StopPage, TitrePage, \
-                   TitreHistory
+from .pages import AccountsList, LoginPage, TitrePage, TitreHistory,\
+    TransferPage, TransferConfirmPage, BillsPage, StopPage
 
 
 __all__ = ['IngBrowser']
@@ -50,7 +48,6 @@ class IngBrowser(LoginBrowser):
     titrepage = URL('https://bourse.ingdirect.fr/priv/portefeuille-TR.php', TitrePage)
     titrehistory = URL('https://bourse.ingdirect.fr/priv/compte.php\?ong=3', TitreHistory)
     titrerealtime = URL('https://bourse.ingdirect.fr/streaming/compteTempsReelCK.php', TitrePage)
-
 
     # CapBill
     billpage = URL('/protected/pages/common/estatement/eStatement.jsf', BillsPage)
@@ -121,7 +118,7 @@ class IngBrowser(LoginBrowser):
             self.logger.info('There is no history for this account')
             return
 
-        index = 0 # index, we get always the same page, but with more informations
+        index = 0  # index, we get always the same page, but with more informations
         hashlist = []
         while True:
             i = index
@@ -198,7 +195,6 @@ class IngBrowser(LoginBrowser):
         self.where = "titre"
         self.titrepage.go()
 
-
     def get_investments(self, account):
         if account.type != Account.TYPE_MARKET:
             raise NotImplementedError()
@@ -211,7 +207,6 @@ class IngBrowser(LoginBrowser):
         self.go_investments(account)
         self.titrehistory.go()
         return self.page.iter_history()
-
 
     ############# CapBill #############
     @need_login
@@ -227,7 +222,7 @@ class IngBrowser(LoginBrowser):
                 "autoScroll": "",
                 "javax.faces.ViewState": subscription._javax,
                 "transfer_issuer_radio": subscription.id
-               }
+                }
         self.billpage.go(data=data)
         return self.page.iter_bills(subid=subscription.id)
 

@@ -39,7 +39,7 @@ class INGVirtKeyboard(VirtKeyboard):
                '7': 'fb495b5cf7f46201af0b4977899b56d4',
                '8': 'e8fea1e1aa86f8fca7f771db9a1dca4d',
                '9': '82e63914f2e52ec04c11cfc6fecf7e08'
-              }
+               }
     color = 64
 
     def __init__(self, basepage):

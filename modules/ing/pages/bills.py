@@ -25,6 +25,7 @@ from weboob.tools.browser2.page import ListElement, ItemElement, method
 
 __all__ = ['BillsPage']
 
+
 class FormId(Filter):
     def filter(self, txt):
         formid = txt.split("parameters")[1]
@@ -45,7 +46,6 @@ class BillsPage(LoggedPage, HTMLPage):
             obj_label = CleanText('label')
             obj__formid = FormId(Attr('input', 'onclick'))
 
-
     def postpredown(self, _id):
         _id = _id.split("'")[5]
         form = self.get_form(name="statements_form")
@@ -60,8 +60,7 @@ class BillsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Bill
 
-            def condition(self):
-                return not (u"tous les relev" in CleanText('a[1]')(self.el))
+            condition = lambda self: not (u"tous les relev" in CleanText('a[1]')(self.el))
 
             obj_label = CleanText('a[1]', replace=[(' ', '-')])
             obj_id = Format(u"%s-%s", Env('subid'), Field('label'))
