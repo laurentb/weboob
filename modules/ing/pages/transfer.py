@@ -19,39 +19,37 @@
 
 from weboob.capabilities.bank import Recipient, AccountNotFound, Transfer
 from weboob.tools.browser2.page import HTMLPage, LoggedPage, ListElement, ItemElement, method
-from weboob.tools.browser2.filters import CleanText, CleanDecimal
+from weboob.tools.browser2.filters import CleanText, CleanDecimal, Attr, Format
 from .login import INGVirtKeyboard
 
 __all__ = ['TransferPage']
 
 
 class TransferPage(LoggedPage, HTMLPage):
-    def get_recipients(self):
-        # First, internals recipients
-        table = self.doc.xpath('//table[@id="transfer_form:receiptAccount"]')
-        for tr in table[0].xpath('tbody/tr'):
-            tds = tr.xpath('td')
-            id = tds[0].xpath('input')[0].attrib['value']
-            name = tds[0].xpath('label')[0].text
-            name += u" " + tds[1].xpath('label')[0].text.replace('\n', '')
-            name += u" " + tds[2].xpath('label')[0].text.replace('\n', '')
-            recipient = Recipient()
-            recipient.id = id
-            recipient.label = name
-            recipient._type = "int"
-            yield recipient
 
-        # Second, externals recipients
-        select = self.doc.xpath('//select[@id="transfer_form:externalAccounts"]')
-        if len(select) > 0:
-            recipients = select[0].xpath('option')
-            recipients.pop(0)
-            for option in recipients:
-                recipient = Recipient()
-                recipient.id = option.attrib['value']
-                recipient.label = option.text
-                recipient._type = "ext"
-                yield recipient
+    @method
+    class get_recipients(ListElement):
+        class ExternalRecipients(ListElement):
+            item_xpath = '//select[@id="transfer_form:externalAccounts"]/option'
+
+            class item(ItemElement):
+                klass = Recipient
+                condition = lambda self: Attr('.', 'value')(self.el) != "na"
+
+                obj_id = Attr('.', 'value')
+                obj_label = CleanText('.')
+                obj__type = 'ext'
+
+        class InternalRecipients(ListElement):
+            item_xpath = '//table[@id="transfer_form:receiptAccount"]/tbody/tr'
+
+            class item(ItemElement):
+                klass = Recipient
+
+                obj_id = Attr('td[1]/input', 'value')
+                obj_label = Format(u"%s %s %s", CleanText('td[1]/label'),
+                                   CleanText('td[2]/label'), CleanText('td[3]/label'))
+                obj__type = "int"
 
     def ischecked(self, _id):
         # remove prefix (CC-, LA-, ...)
