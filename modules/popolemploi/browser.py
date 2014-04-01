@@ -48,7 +48,7 @@ class PopolemploiBrowser(BaseBrowser):
         assert self.is_on_page(SearchPage)
         return self.page.iter_job_adverts()
 
-    def advanced_search_job(self, metier=None, place=None, contrat=None, salary=None,
+    def advanced_search_job(self, metier='', place=None, contrat=None, salary=None,
                             qualification=None, limit_date=None, domain=None):
 
         data = {
@@ -90,7 +90,7 @@ class PopolemploiBrowser(BaseBrowser):
             place_type = 'FRANCE'
             place_number = '01'
 
-        params = 'A_%s_%s_%s__%s_P_%s_%s_%s_______INDIFFERENT______________%s' % (metier,
+        params = 'A_%s_%s_%s__%s_P_%s_%s_%s_______INDIFFERENT______________%s' % (urllib.quote(metier).replace('%', '$00'),
                                                                                   place_type,
                                                                                   place_number,
                                                                                   contrat,
