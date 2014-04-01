@@ -28,7 +28,7 @@ __all__ = ['BillsPage']
 class FormId(Filter):
     def filter(self, txt):
         formid = txt.split("parameters")[1]
-        formid = txt.split("'")[2]
+        formid = formid.split("'")[2]
         return formid
 
 
@@ -60,7 +60,10 @@ class BillsPage(HTMLPage):
         class item(ItemElement):
             klass = Bill
 
-            obj_label = CleanText('a[1]')
+            def condition(self):
+                return not (u"tous les relev" in CleanText('a[1]')(self.el))
+
+            obj_label = CleanText('a[1]', replace=[(' ', '-')])
             obj_id = Format(u"%s-%s", Env('subid'), Field('label'))
             obj_format = u"pdf"
             obj__url = Attr('a[2]', 'href')
