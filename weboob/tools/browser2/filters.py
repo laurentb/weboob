@@ -170,16 +170,18 @@ class CleanText(Filter):
     string.
     Second, it replaces all symbols given in second argument.
     """
-    def __init__(self, selector, symbols='', **kwargs):
+    def __init__(self, selector, symbols='', replace=[], **kwargs):
         super(CleanText, self).__init__(selector, **kwargs)
         self.symbols = symbols
+        self.toreplace = replace
 
     def filter(self, txt):
         if isinstance(txt, (tuple,list)):
             txt = ' '.join(map(self.clean, txt))
 
         txt = self.clean(txt)
-        return self.remove(txt, self.symbols)
+        txt = self.remove(txt, self.symbols)
+        return self.replace(txt, self.toreplace)
 
     @classmethod
     def clean(cls, txt):
@@ -193,6 +195,12 @@ class CleanText(Filter):
     def remove(cls, txt, symbols):
         for symbol in symbols:
             txt = txt.replace(symbol, '')
+        return txt
+
+    @classmethod
+    def replace(cls, txt, replace):
+        for before, after in replace:
+            txt = txt.replace(before, after)
         return txt
 
 
