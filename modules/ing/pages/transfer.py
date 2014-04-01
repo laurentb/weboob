@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2009-2011  Romain Bignon, Florent Fourcot
+# Copyright(C) 2009-2014  Romain Bignon, Florent Fourcot
 #
 # This file is part of weboob.
 #
@@ -135,9 +135,6 @@ class TransferPage(LoggedPage, HTMLPage):
 
 
 class TransferConfirmPage(HTMLPage):
-    def on_loaded(self):
-        pass
-
     def confirm(self, password):
         try:
             vk = INGVirtKeyboard(self)

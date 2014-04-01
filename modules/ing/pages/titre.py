@@ -64,8 +64,7 @@ class TitreHistory(HTMLPage):
         class item(ItemElement):
             klass = Transaction
 
-            def condition(self):
-                return len(self.el.xpath('td[@class="impaire"]')) > 0
+            condition = lambda self: len(self.el.xpath('td[@class="impaire"]')) > 0
 
             obj_raw = Transaction.Raw('td[4] | td[3]/a')
             obj_date = Date(CleanText('td[2]'), dayfirst=True)
