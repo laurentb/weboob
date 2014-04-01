@@ -220,7 +220,7 @@ class IngBrowser(LoginBrowser):
 
     @need_login
     def get_bills(self, subscription):
-        self.billpage.stay_or_go()
+        self.billpage.go()
         data = {"AJAXREQUEST": "_viewRoot",
                 "accountsel_form": "accountsel_form",
                 subscription._formid: subscription._formid,
