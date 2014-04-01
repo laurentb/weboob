@@ -376,6 +376,7 @@ class Form(OrderedDict):
         self.el = el
         self.method = el.attrib.get('method', 'GET')
         self.url = el.attrib.get('action', page.url)
+        self.name = el.attrib.get('name', '')
 
         for inp in el.xpath('.//input | .//select | .//textarea'):
             try:
