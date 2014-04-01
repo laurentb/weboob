@@ -229,13 +229,7 @@ class IngBrowser(LoginBrowser):
                 "transfer_issuer_radio": subscription.id
                }
         self.billpage.go(data=data)
-        while True:
-            for bill in self.page.iter_bills(subscription.id):
-                yield bill
-            if self.page.islast():
-                return
-
-            self.page.next_page()
+        return self.page.iter_bills(subid=subscription.id)
 
     def predownload(self, bill):
-        self.page.postpredown(bill._localid)
+        self.page.postpredown(localid=bill._localid)

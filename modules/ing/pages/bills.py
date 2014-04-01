@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2009-2012  Romain Bignon, Florent Fourcot
+# Copyright(C) 2009-2014  Florent Fourcot
 #
 # This file is part of weboob.
 #
@@ -17,10 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.mech import ClientForm
 from weboob.capabilities.bill import Bill, Subscription
 from weboob.tools.browser2 import HTMLPage
-from weboob.tools.browser2.filters import Filter, Attr, CleanText
+from weboob.tools.browser2.filters import Filter, Attr, CleanText, Format, Field, Env
 from weboob.tools.browser2.page import ListElement, ItemElement, method
 
 
@@ -46,33 +45,23 @@ class BillsPage(HTMLPage):
             obj_label = CleanText('label')
             obj__formid = FormId(Attr('input', 'onclick'))
 
-    def postpredown(self, id):
-        self.browser.select_form("statements_form")
-        self.browser.set_all_readonly(False)
-        self.browser.controls.append(ClientForm.TextControl('text', 'AJAXREQUEST', {'value': 'statements_form:stat_region'}))
-        self.browser.controls.append(ClientForm.TextControl('text', id, {'value': id}))
-        self.browser.submit(nologin=True)
 
-    def islast(self):
-        return True
+    def postpredown(self, _id):
+        _id = _id.split("'")[5]
+        form = self.get_form(name="statements_form")
+        form['AJAXREQUEST'] = 'statements_form:stat_region'
+        form['id'] = _id
+        form.submit()
 
-    def next_page(self):
-        pass
+    @method
+    class iter_bills(ListElement):
+        item_xpath = '//ul[@id="statements_form:statementsel"]/li'
 
-    def iter_bills(self, subscriptionid):
-        ul = self.document.xpath('//ul[@id="statements_form:statementsel"]')
-        lis = ul[0].xpath('li')
-        lis.pop(0)  # Select alls
-        for li in lis:
-            acheck = li.xpath('a')[0]
-            adirect = li.xpath('a')[1]
-            label = unicode(acheck.text_content())
-            id = subscriptionid + '-' + label.replace(' ', '-')
-            bill = Bill()
-            bill.id = id
-            bill.label = label
-            bill.format = u"pdf"
-            onmouse = adirect.attrib['onmouseover']
-            bill._localid = onmouse.split("'")[5]
-            bill._url = adirect.attrib['href']
-            yield bill
+        class item(ItemElement):
+            klass = Bill
+
+            obj_label = CleanText('a[1]')
+            obj_id = Format(u"%s-%s", Env('subid'), Field('label'))
+            obj_format = u"pdf"
+            obj__url = Attr('a[2]', 'href')
+            obj__localid = Attr('a[2]', 'onmouseover')
