@@ -127,5 +127,4 @@ class INGBackend(BaseBackend, ICapBank, ICapBill):
         if not isinstance(bill, Bill):
             bill = self.get_bill(bill)
         self.browser.predownload(bill)
-        with self.browser:
-            return self.browser.readurl("https://secure.ingdirect.fr" + bill._url)
+        return self.browser.open("https://secure.ingdirect.fr" + bill._url)

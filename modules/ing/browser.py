@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 import hashlib
-import urllib
 
 from weboob.tools.browser2 import LoginBrowser, URL, need_login
 from weboob.tools.browser import BrowserIncorrectPassword
@@ -217,8 +216,9 @@ class IngBrowser(LoginBrowser):
     ############# CapBill #############
     @need_login
     def get_subscriptions(self):
-        return self.billpage.stay_or_go().iter_account()
+        return self.billpage.go().iter_account()
 
+    @need_login
     def get_bills(self, subscription):
         self.billpage.stay_or_go()
         data = {"AJAXREQUEST": "_viewRoot",
@@ -232,4 +232,4 @@ class IngBrowser(LoginBrowser):
         return self.page.iter_bills(subid=subscription.id)
 
     def predownload(self, bill):
-        self.page.postpredown(localid=bill._localid)
+        self.page.postpredown(bill._localid)
