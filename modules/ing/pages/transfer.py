@@ -55,20 +55,15 @@ class TransferPage(LoggedPage, HTMLPage):
                 recipient._type = "ext"
                 yield recipient
 
-    def ischecked(self, account):
-        id = account.id
+    def ischecked(self, _id):
         # remove prefix (CC-, LA-, ...)
-        if "-" in id:
-            id = id.split('-')[1]
-        option = self.doc.xpath('//input[@value="%s"]' % id)
-        if len(option) == 0:
-            raise AccountNotFound()
-        else:
-            option = option[0]
+        if "-" in _id:
+            _id = _id.split('-')[1]
         try:
-            return option.attrib["checked"] == "checked"
+            option = self.doc.xpath('//input[@value="%s"]' % _id)[0]
         except:
-            return False
+            raise AccountNotFound()
+        return option.attrib.get("checked") == "checked"
 
     def transfer(self, recipient, amount, reason):
         form = self.get_form(name="transfer_form")
@@ -138,13 +133,12 @@ class TransferConfirmPage(HTMLPage):
         except VirtKeyboardError as err:
             error("Error: %s" % err)
             return
+
         realpasswd = ""
         span = self.doc.find('//span[@id="digitpadtransfer"]')
-        i = 0
-        for font in span.getiterator('font'):
+        for i, font in enumerate(span.getiterator('font')):
             if font.attrib.get('class') == "vide":
                 realpasswd += password[i]
-            i += 1
         self.browser.logger.debug('We are looking for : ' + realpasswd)
         coordinates = vk.get_string_code(realpasswd)
         self.browser.logger.debug("Coordonates: " + coordinates)

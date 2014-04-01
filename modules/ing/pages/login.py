@@ -108,11 +108,9 @@ class LoginPage(HTMLPage):
             return False
         realpasswd = ""
         span = self.doc.find('//span[@id="digitpaddisplayLogin"]')
-        i = 0
-        for font in span.getiterator('font'):
+        for i, font in enumerate(span.getiterator('font')):
             if font.attrib.get('class') == "vide":
                 realpasswd += password[i]
-            i += 1
         self.browser.logger.debug('We are looking for : ' + realpasswd)
         self.browser.logger.debug("Coordonates: " + vk.get_string_code(realpasswd))
 

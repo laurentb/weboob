@@ -145,7 +145,7 @@ class IngBrowser(LoginBrowser):
     @need_login
     def get_recipients(self, account):
         self.transferpage.stay_or_go()
-        if self.page.ischecked(account):
+        if self.page.ischecked(account.id):
             return self.page.get_recipients()
         else:
             # It is hard to check the box and to get the real list.
