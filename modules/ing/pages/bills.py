@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.bill import Bill, Subscription
-from weboob.tools.browser2 import HTMLPage
+from weboob.tools.browser2 import HTMLPage, LoggedPage
 from weboob.tools.browser2.filters import Filter, Attr, CleanText, Format, Field, Env
 from weboob.tools.browser2.page import ListElement, ItemElement, method
 
@@ -32,7 +32,7 @@ class FormId(Filter):
         return formid
 
 
-class BillsPage(HTMLPage):
+class BillsPage(LoggedPage, HTMLPage):
     @method
     class iter_account(ListElement):
         item_xpath = '//ul[@class="unstyled striped"]/li'
