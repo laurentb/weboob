@@ -19,34 +19,32 @@
 
 from weboob.tools.mech import ClientForm
 from weboob.capabilities.bill import Bill, Subscription
-from weboob.tools.browser import BasePage
+from weboob.tools.browser2 import HTMLPage
+from weboob.tools.browser2.filters import Filter, Attr, CleanText
+from weboob.tools.browser2.page import ListElement, ItemElement, method
 
 
 __all__ = ['BillsPage']
 
+class FormId(Filter):
+    def filter(self, txt):
+        formid = txt.split("parameters")[1]
+        formid = txt.split("'")[2]
+        return formid
 
-class BillsPage(BasePage):
-    def on_loaded(self):
-        pass
 
-    def iter_account(self):
-        ul = self.document.xpath('//ul[@class="unstyled striped"]')
-        javax = self.document.xpath("//form[@id='accountsel_form']/input[@name='javax.faces.ViewState']")
-        javax = javax[0].attrib['value']
-        #subscriber = unicode(self.document.find('//h5').text)
-        for li in ul[0].xpath('li'):
-            inputs = li.xpath('input')[0]
-            label = li.xpath('label')[0]
-            label = unicode(label.text)
-            formid = inputs.attrib['onclick']
-            formid = formid.split("parameters")[1]
-            formid = formid.split("'")[2]
-            id = inputs.attrib['value']
-            subscription = Subscription(id)
-            subscription.label = label
-            subscription._formid = formid
-            subscription._javax = javax
-            yield subscription
+class BillsPage(HTMLPage):
+    @method
+    class iter_account(ListElement):
+        item_xpath = '//ul[@class="unstyled striped"]/li'
+
+        class item(ItemElement):
+            klass = Subscription
+
+            obj__javax = Attr("//form[@id='accountsel_form']/input[@name='javax.faces.ViewState']", 'value')
+            obj_id = Attr('input', "value")
+            obj_label = CleanText('label')
+            obj__formid = FormId(Attr('input', 'onclick'))
 
     def postpredown(self, id):
         self.browser.select_form("statements_form")

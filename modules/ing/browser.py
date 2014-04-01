@@ -215,13 +215,12 @@ class IngBrowser(LoginBrowser):
 
 
     ############# CapBill #############
+    @need_login
     def get_subscriptions(self):
-        self.location('/protected/pages/common/estatement/eStatement.jsf')
-        return self.page.iter_account()
+        return self.billpage.stay_or_go().iter_account()
 
     def get_bills(self, subscription):
-        if not self.is_on_page(BillsPage):
-            self.location(self.billpage)
+        self.billpage.stay_or_go()
         data = {"AJAXREQUEST": "_viewRoot",
                 "accountsel_form": "accountsel_form",
                 subscription._formid: subscription._formid,
@@ -229,7 +228,7 @@ class IngBrowser(LoginBrowser):
                 "javax.faces.ViewState": subscription._javax,
                 "transfer_issuer_radio": subscription.id
                }
-        self.location(self.billpage, urllib.urlencode(data))
+        self.billpage.go(data=data)
         while True:
             for bill in self.page.iter_bills(subscription.id):
                 yield bill
