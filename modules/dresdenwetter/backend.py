@@ -21,6 +21,7 @@
 from .browser import DresdenWetterBrowser
 from weboob.capabilities.gauge import ICapGauge, GaugeSensor, Gauge,\
         SensorNotFound
+from weboob.capabilities.base import find_id_list
 from weboob.tools.backend import BaseBackend
 
 
@@ -46,22 +47,16 @@ class DresdenWetterBackend(BaseBackend, ICapGauge):
             gauge.sensors = list(self.browser.get_sensors_list())
             yield gauge
 
-    def _get_gauge_by_id(self, id):
-        for gauge in self.iter_gauges():
-            if id == gauge.id:
-                return gauge
-        return None
-
     def _get_sensor_by_id(self, id):
         for gauge in self.iter_gauges():
             for sensor in gauge.sensors:
                 if id == sensor.id:
                     return sensor
-        return None
+        raise SensorNotFound()
 
     def iter_sensors(self, gauge, pattern=None):
         if not isinstance(gauge, Gauge):
-            gauge = self._get_gauge_by_id(gauge)
+            gauge = find_id_list(self.iter_gauges(), gauge, error=SensorNotFound)
         if pattern is None:
             for sensor in gauge.sensors:
                 yield sensor
@@ -78,6 +73,4 @@ class DresdenWetterBackend(BaseBackend, ICapGauge):
     def get_last_measure(self, sensor):
         if not isinstance(sensor, GaugeSensor):
             sensor = self._get_sensor_by_id(sensor)
-        if sensor is None:
-            raise SensorNotFound()
         return sensor.lastvalue
