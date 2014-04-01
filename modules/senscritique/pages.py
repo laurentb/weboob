@@ -29,8 +29,47 @@ from weboob.tools.browser2.filters import Filter, Link, CleanText, Regexp, Attr,
 __all__ = ['AjaxPage', 'EventPage', 'JsonResumePage']
 
 
-class AjaxPage(HTMLPage):
+class Channel(Filter):
+    def filter(self, el):
+        channel_info = el[0].xpath('div/div[@class="elgr-data-channel"]')
+        if channel_info:
+            channel = CleanText('.')(channel_info[0])
+        else:
+            channel_info = Attr('div[@class="elgr-product-data"]/span', 'class')(el[0])
+            channel = self.page.CHANNELS_PARAM.get(channel_info)
+        return channel
 
+
+class Date(Filter):
+    def filter(self, el):
+        spans_date = el[0].xpath("span[@class='d-date']")
+        _date = date.today()
+        if len(spans_date) == 2:
+            day_number = int(spans_date[1].text)
+            month = _date.month
+            year = _date.year
+            if day_number < _date.day:
+                month = _date.month + 1
+                if _date.month == 12:
+                    year = _date.year + 1
+            _date = date(day=day_number, month=month, year=year)
+        elif spans_date[0].attrib['data-sc-day'] == 'Demain':
+            _date += timedelta(days=1)
+        str_time = el[0].xpath("time")[0].attrib['datetime'][:-6]
+        _time = datetime.strptime(str_time, '%H:%M:%S')
+        return datetime.combine(_date, _time.time())
+
+
+class FormatDate(Filter):
+    def __init__(self, pattern, selector):
+        super(FormatDate, self).__init__(selector)
+        self.pattern = pattern
+
+    def filter(self, date):
+        return date.strftime(self.pattern)
+
+
+class AjaxPage(HTMLPage):
     CHANNELS_PARAM = {
         'einst-3 elgr-data-logo': u'Action',
         'einst-8 elgr-data-logo': u'Canal+ Décalé',
@@ -71,7 +110,10 @@ class AjaxPage(HTMLPage):
 
             def condition(self):
                 if '_id' in self.env and self.env['_id']:
-                    return Regexp(Link('.'), '/film/(.*)')(self) == self.env['_id']
+                    return Format(u'%s#%s#%s',
+                                  Regexp(Link('.'), '/film/(.*)'),
+                                  FormatDate("%Y%m%d%H%M", Date('div/div[@class="elgr-data-diffusion"]')),
+                                  CleanText(Channel('.'), replace=[(' ', '-')]))(self) == self.env['_id']
                 return True
 
             def validate(self, obj):
@@ -87,30 +129,6 @@ class AjaxPage(HTMLPage):
 
                 return False
 
-            class Date(Filter):
-                def filter(self, el):
-                    spans_date = el[0].xpath("span[@class='d-date']")
-                    _date = date.today()
-                    if len(spans_date) == 2:
-                        day_number = int(spans_date[1].text)
-
-                        month = _date.month
-                        year = _date.year
-                        if day_number < _date.day:
-                            month = _date.month + 1
-                            if _date.month == 12:
-                                year = _date.year + 1
-
-                        _date = date(day=day_number, month=month, year=year)
-
-                    elif spans_date[0].attrib['data-sc-day'] == 'Demain':
-                        _date += timedelta(days=1)
-
-                    str_time = el[0].xpath("time")[0].attrib['datetime'][:-6]
-                    _time = datetime.strptime(str_time, '%H:%M:%S')
-
-                    return datetime.combine(_date, _time.time())
-
             class CombineDate(Filter):
                 def filter(self, _date):
                     return datetime.combine(_date, time.max)
@@ -118,15 +136,13 @@ class AjaxPage(HTMLPage):
             class Summary(Filter):
                 def filter(self, el):
                     title = Regexp(Attr('div/img', 'alt'), '^Affiche(.*)')(el[0])
-                    channel_info = el[0].xpath('div/div[@class="elgr-data-channel"]')
-                    if channel_info:
-                        channel = CleanText('.')(channel_info[0])
-                    else:
-                        channel_info = Attr('div[@class="elgr-product-data"]/span', 'class')(el[0])
-                        channel = self.page.CHANNELS_PARAM.get(channel_info)
+                    channel = Channel('.')(el[0])
                     return u'%s - %s' % (title, channel)
 
-            obj_id = Regexp(Link('.'), '/film/(.*)')
+            obj_id = Format(u'%s#%s#%s',
+                            Regexp(Link('.'), '/film/(.*)'),
+                            FormatDate("%Y%m%d%H%M", Date('div/div[@class="elgr-data-diffusion"]')),
+                            CleanText(Channel('.'), replace=[(' ', '-')]))
             obj_start_date = Date('div/div[@class="elgr-data-diffusion"]')
             obj_end_date = CombineDate(obj_start_date)
             obj_summary = CleanText(Summary('.'))

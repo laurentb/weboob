@@ -132,5 +132,5 @@ class SenscritiqueBrowser(PagesBrowser):
     def get_resume(self, _id):
         self._setup_session(SensCritiqueJsonProfile())
         re_id = re.compile('^/?.*/(.*)', re.DOTALL)
-        a_id = re_id.search(_id).group(1)
+        a_id = re_id.search(_id.split('#')[0]).group(1)
         return self.json_page.go(_id=a_id).get_resume()
