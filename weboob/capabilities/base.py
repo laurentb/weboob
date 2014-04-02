@@ -466,19 +466,19 @@ class Currency(object):
     def get_currency(klass, text):
         u"""
         >>> Currency.get_currency(u'42')
-        0
+        None
         >>> Currency.get_currency(u'42 €')
-        1
+        u'EUR'
         >>> Currency.get_currency(u'$42')
-        3
+        u'USD'
         >>> Currency.get_currency(u'42.000,00€')
-        1
+        u'EUR'
         >>> Currency.get_currency(u'$42 USD')
-        3
+        u'USD'
         >>> Currency.get_currency(u'%42 USD')
-        3
+        u'USD'
         >>> Currency.get_currency(u'US1D')
-        0
+        None
         """
         curtexts = klass.EXTRACTOR.sub(' ', text.upper()).split()
         for curtext in curtexts:
