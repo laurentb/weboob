@@ -32,8 +32,6 @@ __all__ = ['IngBrowser']
 class IngBrowser(LoginBrowser):
     BASEURL = 'https://secure.ingdirect.fr'
 
-    #         '.*onHoldTransferManagement.jsf': TransferPage,
-
     # Login and error
     loginpage = URL('/public/displayLogin.jsf.*', LoginPage)
     errorpage = URL('.*displayCoordonneesCommand.*', StopPage)
@@ -43,19 +41,18 @@ class IngBrowser(LoginBrowser):
     transferpage = URL('/protected/pages/cc/transfer/transferManagement.jsf', TransferPage)
     dotransferpage = URL('/general\?command=DisplayDoTransferCommand', TransferPage)
     valtransferpage = URL('/protected/pages/cc/transfer/create/transferCreateValidation.jsf', TransferConfirmPage)
-    #transferonhold = URL('
+    # CapBank-Market
     starttitre = URL('/general\?command=goToAccount&zone=COMPTE', TitrePage)
     titrepage = URL('https://bourse.ingdirect.fr/priv/portefeuille-TR.php', TitrePage)
     titrehistory = URL('https://bourse.ingdirect.fr/priv/compte.php\?ong=3', TitreHistory)
     titrerealtime = URL('https://bourse.ingdirect.fr/streaming/compteTempsReelCK.php', TitrePage)
-
     # CapBill
     billpage = URL('/protected/pages/common/estatement/eStatement.jsf', BillsPage)
 
-    where = None
 
     def __init__(self, *args, **kwargs):
         self.birthday = kwargs.pop('birthday', None)
+        self.where = None
         LoginBrowser.__init__(self, *args, **kwargs)
 
     def do_login(self):
