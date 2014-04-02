@@ -46,7 +46,7 @@ def empty(value):
             return True
     return False
 
-def find_id_list(mylist, _id, error=None):
+def find_object(mylist, _id, error=None):
     """
     Very simple tools to return an object with the matching _id
     """

@@ -20,7 +20,7 @@
 from .browser import SachsenBrowser
 from weboob.capabilities.gauge import ICapGauge, GaugeSensor, Gauge,\
         SensorNotFound
-from weboob.capabilities.base import find_id_list
+from weboob.capabilities.base import find_object
 from weboob.tools.backend import BaseBackend
 
 
@@ -56,7 +56,7 @@ class SachsenLevelBackend(BaseBackend, ICapGauge):
 
     def iter_sensors(self, gauge, pattern=None):
         if not isinstance(gauge, Gauge):
-            gauge = find_id_list(self.browser.get_rivers_list(), gauge, error=SensorNotFound)
+            gauge = find_object(self.browser.get_rivers_list(), gauge, error=SensorNotFound)
         if pattern is None:
             for sensor in gauge.sensors:
                 yield sensor

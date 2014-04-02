@@ -22,7 +22,7 @@ from weboob.capabilities.bank import ICapBank, AccountNotFound,\
     Account, Recipient
 from weboob.capabilities.bill import ICapBill, Bill, Subscription,\
     SubscriptionNotFound, BillNotFound
-from weboob.capabilities.base import UserError, find_id_list
+from weboob.capabilities.base import UserError, find_object
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -68,7 +68,7 @@ class INGBackend(BaseBackend, ICapBank, ICapBill):
         return self.browser.get_accounts_list()
 
     def get_account(self, _id):
-        return find_id_list(self.browser.get_accounts_list(), _id, error=AccountNotFound)
+        return find_object(self.browser.get_accounts_list(), _id, error=AccountNotFound)
 
     def iter_history(self, account):
         if not isinstance(account, Account):
@@ -100,11 +100,11 @@ class INGBackend(BaseBackend, ICapBank, ICapBill):
         return self.browser.get_subscriptions()
 
     def get_subscription(self, _id):
-        return find_id_list(self.browser.get_subscriptions(), _id, error=SubscriptionNotFound)
+        return find_object(self.browser.get_subscriptions(), _id, error=SubscriptionNotFound)
 
     def get_bill(self, id):
         subscription = self.get_subscription(id.split('-')[0])
-        return find_id_list(self.browser.get_bills(subscription), id, error=BillNotFound)
+        return find_object(self.browser.get_bills(subscription), id, error=BillNotFound)
 
     def iter_bills(self, subscription):
         if not isinstance(subscription, Subscription):
