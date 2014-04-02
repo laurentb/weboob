@@ -38,19 +38,20 @@ __all__ = ['IndexPage', 'VideoPage', 'KidsVideoPage']
 
 class IndexPage(BasePage):
     def iter_videos(self):
-        for div in self.parser.select(self.document.getroot(), 'div.dmpi_video_item'):
-            _id = div.attrib.get('data-id', None)
+        for div in self.parser.select(self.document.getroot(), 'div.sd_video_griditem'):
+            smalldiv = self.parser.select(div, 'div.sd_video_previewtwig', 1)
+            _id = smalldiv.attrib.get('data-id', None)
 
             if _id is None:
                 self.browser.logger.warning('Unable to find the ID of a video')
                 continue
 
             video = DailymotionVideo(_id)
-            video.title = unicode(self.parser.select(div, 'h3 a', 1).text).strip()
-            video.author = unicode(self.parser.select(div, 'div.dmpi_user_login', 1).find('a').find('span').text).strip()
-            video.description = html2text(self.parser.tostring(self.parser.select(div, 'div.dmpi_video_description', 1))).strip() or unicode()
+            video.title = unicode(self.parser.select(div, 'div a img', 1).attrib['title']).strip()
+            video.author = unicode(self.parser.select(div, 'a.link-on-hvr', 1).text).strip()
+            video.description = NotAvailable
             try:
-                parts = self.parser.select(div, 'div.duration', 1).text.split(':')
+                parts = self.parser.select(div, 'div.badge-duration', 1).text.split(':')
             except BrokenPageError:
                 # it's probably a live, np.
                 video.duration = NotAvailable
