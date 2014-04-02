@@ -56,7 +56,7 @@ class SachsenLevelBackend(BaseBackend, ICapGauge):
 
     def iter_sensors(self, gauge, pattern=None):
         if not isinstance(gauge, Gauge):
-            gauge = find_object(self.browser.get_rivers_list(), gauge, error=SensorNotFound)
+            gauge = find_object(self.browser.get_rivers_list(), id=gauge, error=SensorNotFound)
         if pattern is None:
             for sensor in gauge.sensors:
                 yield sensor

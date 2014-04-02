@@ -52,7 +52,7 @@ class PoivyBackend(BaseBackend, ICapBill):
         return self.browser.get_subscription_list()
 
     def get_subscription(self, _id):
-        return find_object(self.iter_subscription(), _id, error=SubscriptionNotFound)
+        return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
 
     def iter_bills_history(self, subscription):
         # Try if we have a real subscription before to load the history

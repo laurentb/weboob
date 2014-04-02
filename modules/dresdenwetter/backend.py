@@ -56,7 +56,7 @@ class DresdenWetterBackend(BaseBackend, ICapGauge):
 
     def iter_sensors(self, gauge, pattern=None):
         if not isinstance(gauge, Gauge):
-            gauge = find_object(self.iter_gauges(), gauge, error=SensorNotFound)
+            gauge = find_object(self.iter_gauges(), id=gauge, error=SensorNotFound)
         if pattern is None:
             for sensor in gauge.sensors:
                 yield sensor

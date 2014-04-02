@@ -68,7 +68,7 @@ class INGBackend(BaseBackend, ICapBank, ICapBill):
         return self.browser.get_accounts_list()
 
     def get_account(self, _id):
-        return find_object(self.browser.get_accounts_list(), _id, error=AccountNotFound)
+        return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
 
     def iter_history(self, account):
         if not isinstance(account, Account):
@@ -100,11 +100,11 @@ class INGBackend(BaseBackend, ICapBank, ICapBill):
         return self.browser.get_subscriptions()
 
     def get_subscription(self, _id):
-        return find_object(self.browser.get_subscriptions(), _id, error=SubscriptionNotFound)
+        return find_object(self.browser.get_subscriptions(), id=_id, error=SubscriptionNotFound)
 
-    def get_bill(self, id):
-        subscription = self.get_subscription(id.split('-')[0])
-        return find_object(self.browser.get_bills(subscription), id, error=BillNotFound)
+    def get_bill(self, _id):
+        subscription = self.get_subscription(_id.split('-')[0])
+        return find_object(self.browser.get_bills(subscription), id=_id, error=BillNotFound)
 
     def iter_bills(self, subscription):
         if not isinstance(subscription, Subscription):

@@ -46,13 +46,20 @@ def empty(value):
             return True
     return False
 
-def find_object(mylist, _id, error=None):
+def find_object(mylist, error=None, **kwargs):
     """
-    Very simple tools to return an object with the matching _id
+    Very simple tools to return an object with the matching parameters in
+    kwargs.
     """
     for a in mylist:
-        if a.id == _id:
+        found = True
+        for key, value in kwargs.iteritems():
+            if getattr(a, key) != value:
+                found = False
+                break
+        if found:
             return a
+
     if error is not None:
         raise error()
     return None
