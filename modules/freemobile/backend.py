@@ -78,4 +78,4 @@ class FreeMobileBackend(BaseBackend, ICapBill):
     def download_bill(self, bill):
         if not isinstance(bill, Bill):
             bill = self.get_bill(bill)
-        return self.browser.readurl(bill._url)
+        return self.browser.open(bill._url).content
