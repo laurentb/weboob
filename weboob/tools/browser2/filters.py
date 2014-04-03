@@ -239,7 +239,7 @@ class Attr(Filter):
 
     def filter(self, el):
         try:
-            return el[0].attrib[self.attr]
+            return u'%s' % el[0].attrib[self.attr]
         except IndexError:
             return self.default_or_raise(XPathNotFound('Unable to find link %s' % self.selector))
         except KeyError:
