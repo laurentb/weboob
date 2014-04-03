@@ -172,9 +172,12 @@ class ArteBrowser(BaseBrowser):
         else:
             video.title = u'%s' % (item['VTI'])
         video.rating = int(item['VRT'])
-        url = u'%s' % item['programImage']
-        video.thumbnail = BaseImage(url)
-        video.thumbnail.url=video.thumbnail.id
+
+        if 'programImage' in item:
+            url = u'%s' % item['programImage']
+            video.thumbnail = BaseImage(url)
+            video.thumbnail.url=video.thumbnail.id
+
         video.duration = datetime.timedelta(seconds=int(item['videoDurationSeconds']))
         video.set_empty_fields(NotAvailable, ('url',))
         if 'VDE' in item:
