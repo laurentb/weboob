@@ -61,4 +61,4 @@ class Freemobile(LoginBrowser):
         return self.detailspage.stay_or_go().get_details(subscription)
 
     def iter_bills(self, subscription):
-        return self.detailspage.stay_or_go().date_bills(subscription)
+        return self.detailspage.stay_or_go().date_bills(subid=subscription.id)

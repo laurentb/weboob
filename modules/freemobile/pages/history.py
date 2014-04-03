@@ -25,7 +25,8 @@ from datetime import datetime
 from decimal import Decimal
 
 from weboob.tools.browser2.page import HTMLPage, method, ItemElement, ListElement, LoggedPage
-from weboob.tools.browser2.filters import Date, CleanText, Attr, Filter, CleanDecimal, Regexp, Field, DateTime, Format
+from weboob.tools.browser2.filters import Date, CleanText, Attr, Filter,\
+    CleanDecimal, Regexp, Field, DateTime, Format, Env
 from weboob.capabilities.bill import Detail, Bill
 
 
@@ -117,8 +118,8 @@ class DetailsPage(LoggedPage, BadUTF8Page):
             obj__url = Attr('.//div[@class="pdf"]/a', 'href')
             obj__localid = Regexp(Field('_url'), '&l=(\d*)&id', u'\\1')
             obj_label = Regexp(Field('_url'), '&date=(\d*)$', u'\\1')
-            obj_id = Field('label')
-            obj_date = FormatDate(Field('id'))
+            obj_id = Format('%s.%s', Env('subid'), Field('label'))
+            obj_date = FormatDate(Field('label'))
             obj_format = u"pdf"
             obj_price = CleanDecimal('div[@class="montant"]', default=Decimal(0), replace_dots=False)
 
