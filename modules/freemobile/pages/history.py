@@ -45,14 +45,13 @@ class BadUTF8Page(HTMLPage):
 
 
 class DetailsPage(LoggedPage, BadUTF8Page):
+    def load_virtual(self, phonenumber):
+        for div in self.doc.xpath('//div[@class="infosLigne pointer"]'):
+            if CleanText('.')(div).split("-")[-1].strip() == phonenumber:
+                return Attr('.', 'onclick')(div).split('(')[1][1]
+
     def on_load(self):
         self.details = {}
-        for div in self.doc.xpath('//div[@class="infosLigne pointer"]'):
-            phonenumber = CleanText('.')(div)
-            phonenumber = phonenumber.split("-")[-1].strip()
-            virtualnumber = div.attrib['onclick'].split('(')[1][1]
-            self.details['num' + str(phonenumber)] = virtualnumber
-
         for div in self.doc.xpath('//div[@class="infosConso"]'):
             num = div.attrib['id'].split('_')[1][0]
             self.details[num] = []
@@ -104,8 +103,7 @@ class DetailsPage(LoggedPage, BadUTF8Page):
 
     # XXX
     def get_details(self, subscription):
-        num = self.details['num' + subscription.id]
-        for detail in self.details[num]:
+        for detail in self.details[subscription._virtual]:
             detail.id = subscription.id + detail.id
             yield detail
 
@@ -151,7 +149,8 @@ class HistoryPage(LoggedPage, BadUTF8Page):
                 txt = self.el.xpath('td[1]')[0].text
                 return (txt is not None) and (txt != "Date")
 
-            obj_datetime = DateTime(CleanText('td[1]'), dayfirst=True)
-            obj_label = Format(u'%s %s %s %s', CleanText('td[2]'), CleanText('td[3]'),
-                               CleanText('td[4]'), CleanText('td[5]'))
+            obj_id = None
+            obj_datetime = DateTime(CleanText('td[1]', symbols=u'à'), dayfirst=True)
+            obj_label = Format(u'%s %s %s', CleanText('td[2]'), CleanText('td[3]'),
+                               CleanText('td[4]'))
             obj_price = CleanDecimal('td[5]', default=Decimal(0))

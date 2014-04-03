@@ -49,12 +49,13 @@ class Freemobile(LoginBrowser):
 
         self.detailspage.go()
         for subscription in subscriptions:
+            subscription._virtual = self.page.load_virtual(subscription.id)
             subscription.renewdate = self.page.get_renew_date(subscription)
             yield subscription
 
     def get_history(self, subscription):
         self.historypage.go(data={'login': subscription._login})
-        return self.page.get_calls()
+        return sorted([x for x in self.page.get_calls()], key=lambda self: self.datetime, reverse=True)
 
     def get_details(self, subscription):
         return self.detailspage.stay_or_go().get_details(subscription)
