@@ -26,6 +26,7 @@ import sys
 from copy import deepcopy
 from cStringIO import StringIO
 import lxml.html as html
+import lxml.etree as etree
 
 from weboob.tools.json import json
 from weboob.tools.ordereddict import OrderedDict
@@ -332,7 +333,7 @@ class LoginBrowser(PagesBrowser):
         self.password = password
 
     def do_login(self):
-        """"
+        """
         Abstract method to implement to login on website.
 
         It is call when a login is needed.
@@ -417,10 +418,18 @@ class Form(OrderedDict):
         """
         return self.page.browser.location(self.request)
 
+
 class JsonPage(BasePage):
     def __init__(self, browser, response, *args, **kwargs):
         super(JsonPage, self).__init__(browser, response, *args, **kwargs)
         self.doc = json.loads(response.text)
+
+
+class XMLPage(BasePage):
+    def __init__(self, browser, response, *args, **kwargs):
+        super(XMLPage, self).__init__(browser, response, *args, **kwargs)
+        parser = etree.XMLParser(encoding=response.encoding)
+        self.doc = etree.parse(StringIO(response.content), parser)
 
 
 class RawPage(BasePage):
