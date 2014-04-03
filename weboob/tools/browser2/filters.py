@@ -170,23 +170,27 @@ class CleanText(Filter):
     string.
     Second, it replaces all symbols given in second argument.
     """
-    def __init__(self, selector, symbols='', replace=[], **kwargs):
+    def __init__(self, selector, symbols='', replace=[], childs=True, **kwargs):
         super(CleanText, self).__init__(selector, **kwargs)
         self.symbols = symbols
         self.toreplace = replace
+        self.childs = childs
 
     def filter(self, txt):
         if isinstance(txt, (tuple,list)):
-            txt = ' '.join(map(self.clean, txt))
+            txt = ' '.join([self.clean(item, childs=self.childs) for item in txt])
 
-        txt = self.clean(txt)
+        txt = self.clean(txt, childs=self.childs)
         txt = self.remove(txt, self.symbols)
         return self.replace(txt, self.toreplace)
 
     @classmethod
-    def clean(cls, txt):
+    def clean(cls, txt, childs=True):
         if not isinstance(txt, basestring):
-            txt = [t.strip() for t in txt.itertext()]
+            if childs:
+                txt = [t.strip() for t in txt.itertext()]
+            else:
+                txt = [txt.text.strip()]
             txt = u' '.join(txt)                 # 'foo   bar'
         txt = re.sub(u'[\\s\xa0\t]+', u' ', txt)   # 'foo bar'
         return txt.strip()
@@ -195,7 +199,7 @@ class CleanText(Filter):
     def remove(cls, txt, symbols):
         for symbol in symbols:
             txt = txt.replace(symbol, '')
-        return txt
+        return txt.strip()
 
     @classmethod
     def replace(cls, txt, replace):
