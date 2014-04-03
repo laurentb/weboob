@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012  Florent Fourcot
+# Copyright(C) 2012-2014  Florent Fourcot
 #
 # This file is part of weboob.
 #
@@ -19,19 +19,15 @@
 
 
 import time
+from StringIO import StringIO
+from PIL import Image
 
-try:
-    from PIL import Image
-except ImportError:
-    raise ImportError('Please install python-imaging')
-
-from weboob.tools.browser import BasePage
+from weboob.tools.browser2.page import HTMLPage
 
 __all__ = ['LoginPage']
 
 
 class FreeKeyboard(object):
-    DEBUG = False
     symbols = {'0': '001111111111110011111111111111111111111111111110000000000011110000000000011111111111111111011111111111111001111111111110',
                '1': '001110000000000001110000000000001110000000000011111111111111111111111111111111111111111111000000000000000000000000000000',
                '2': '011110000001111011110000111111111000001111111110000011110011110000111100011111111111000011011111110000011001111000000011',
@@ -42,16 +38,16 @@ class FreeKeyboard(object):
                '7': '111000000000000111000000000000111000000011111111000011111111111011111111111111111111000000111111000000000111100000000000',
                '8': '001110001111110011111111111111111111111111111110000110000011110000110000011111111111111111011111111111111001111001111110',
                '9': '001111111000110011111111100111111111111100111110000001100011110000001100011111111111111111011111111111111001111111111110'
-              }
+               }
 
     def __init__(self, basepage):
         self.basepage = basepage
         self.fingerprints = []
-        for htmlimg in basepage.document.xpath('//img[@class="ident_chiffre_img pointer"]'):
+        for htmlimg in self.basepage.doc.xpath('//img[@class="ident_chiffre_img pointer"]'):
             url = htmlimg.attrib.get("src")
-            fichier = basepage.browser.openurl(url)
-            image = Image.open(fichier)
-            matrix = image.load()
+            imgfile = StringIO(basepage.browser.open(url).content)
+            img = Image.open(imgfile)
+            matrix = img.load()
             s = ""
             # The digit is only displayed in the center of image
             for x in range(15, 23):
@@ -64,37 +60,27 @@ class FreeKeyboard(object):
                         s += "0"
 
             self.fingerprints.append(s)
-            if self.DEBUG:
-                image.save('/tmp/' + s + '.png')
 
     def get_symbol_code(self, digit):
         fingerprint = self.symbols[digit]
-        i = 0
-        for string in self.fingerprints:
+        for i, string in enumerate(self.fingerprints):
             if string == fingerprint:
                 return i
-            i += 1
         # Image contains some noise, and the match is not always perfect
         # (this is why we can't use md5 hashs)
         # But if we can't find the perfect one, we can take the best one
-        i = 0
         best = 0
         result = None
-        for string in self.fingerprints:
-            j = 0
+        for i, string in enumerate(self.fingerprints):
             match = 0
-            for bit in string:
+            for j, bit in enumerate(string):
                 if bit == fingerprint[j]:
                     match += 1
-                j += 1
             if match > best:
                 best = match
                 result = i
-            i += 1
         self.basepage.browser.logger.debug(self.fingerprints[result] + " match " + digit)
         return result
-
-        # TODO : exception
 
     def get_string_code(self, string):
         code = ''
@@ -107,21 +93,16 @@ class FreeKeyboard(object):
         for c in string:
             time.sleep(0.5)
             url = 'https://mobile.free.fr/moncompte/chiffre.php?pos=' + c + '&small=1'
-            self.basepage.browser.openurl(url)
+            self.basepage.browser.open(url)
 
 
-class LoginPage(BasePage):
-    def on_loaded(self):
-        pass
-
+class LoginPage(HTMLPage):
     def login(self, login, password):
         vk = FreeKeyboard(self)
-
-        # Fucking form without name...
-        self.browser.select_form(nr=0)
-        self.browser.set_all_readonly(False)
         code = vk.get_string_code(login)
-        self.browser['login_abo'] = code.encode('utf-8')
-        vk.get_small(code)
-        self.browser['pwd_abo'] = password.encode('utf-8')
-        self.browser.submit(nologin=True)
+        vk.get_small(code)  # If img are not downloaded, the server do not accept the login
+
+        form = self.get_form(xpath='//form[@id="form_connect"]')
+        form['login_abo'] = code
+        form['pwd_abo'] = password
+        form.submit()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012  Florent Fourcot
+# Copyright(C) 2012-2014  Florent Fourcot
 #
 # This file is part of weboob.
 #
@@ -17,35 +17,28 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from .history import BadUTF8Page
 from weboob.capabilities.bill import Subscription
-from weboob.tools.browser import BasePage
-
+from weboob.tools.browser2.page import method, ListElement, ItemElement
+from weboob.tools.browser2.filters import CleanText, Attr, Field, Format, Filter
 
 __all__ = ['HomePage']
 
 
-class HomePage(BasePage):
-    def on_loaded(self):
-        pass
+class GetID(Filter):
+    def filter(self, txt):
+        return txt.split('=')[-1]
 
-    def get_list(self):
-        for divglobal in self.document.xpath('//div[@class="abonne"]'):
-            for link in divglobal.xpath('.//div[@class="acceuil_btn"]/a'):
-                login = link.attrib['href'].split('=').pop()
-                if login.isdigit():
-                    break
-            divabo = divglobal.xpath('div[@class="idAbonne pointer"]')[0]
-            owner = unicode(divabo.xpath('p')[0].text.replace(' - ', ''))
-            phone = unicode(divabo.xpath('p/span')[0].text)
-            self.browser.logger.debug('Found ' + login + ' as subscription identifier')
-            self.browser.logger.debug('Found ' + owner + ' as subscriber')
-            self.browser.logger.debug('Found ' + phone + ' as phone number')
-            phoneplan = unicode(self.document.xpath('//div[@class="forfaitChoisi"]')[0].text.lstrip().rstrip())
-            self.browser.logger.debug('Found ' + phoneplan + ' as subscription type')
 
-            subscription = Subscription(phone)
-            subscription.label = phone + ' - ' + phoneplan
-            subscription.subscriber = owner
-            subscription._login = login
+class HomePage(BadUTF8Page):
+    @method
+    class get_list(ListElement):
+        item_xpath = '//div[@class="abonne"]'
 
-            yield subscription
+        class item(ItemElement):
+            klass = Subscription
+
+            obj_subscriber = CleanText('div[@class="idAbonne pointer"]/p[1]', symbols='-', childs=False)
+            obj_id = CleanText('div[@class="idAbonne pointer"]/p/span')
+            obj__login = GetID(Attr('.//div[@class="acceuil_btn"]/a', 'href'))
+            obj_label = Format(u'%s - %s', Field('id'), CleanText('//div[@class="forfaitChoisi"]'))

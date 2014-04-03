@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012  Romain Bignon
+# Copyright(C) 2012-2014 Florent Fourcot
 #
 # This file is part of weboob.
 #
@@ -17,93 +17,47 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser2 import LoginBrowser, URL, need_login
+from weboob.tools.browser import BrowserIncorrectPassword
 from .pages import HomePage, LoginPage, HistoryPage, DetailsPage
 
 __all__ = ['Freemobile']
 
 
-class Freemobile(BaseBrowser):
-    DOMAIN = 'mobile.free.fr'
-    PROTOCOL = 'https'
-    CERTHASH = 'c35987d4cff8c16cc1548704e7eabb80e6d509e5f26c408ae6775a4350d2e68f'
-    ENCODING = None  # refer to the HTML encoding
-    PAGES = {'.*moncompte/index.php': LoginPage,
-             '.*page=home':           HomePage,
-             '.*page=suiviconso':     DetailsPage,
-             '.*page=consotel_current_month': HistoryPage
-            }
-    #DEBUG_HTTP = True
+class Freemobile(LoginBrowser):
+    BASEURL = 'https://mobile.free.fr'
 
-    def home(self):
-        self.location('https://mobile.free.fr/moncompte/index.php')
+    homepage = URL('/moncompte/index.php\?page=home', HomePage)
+    detailspage = URL('/moncompte/index.php\?page=suiviconso', DetailsPage)
+    loginpage = URL('/moncompte/index.php', LoginPage)
+    historypage = URL('/moncompte/ajax.php\?page=consotel_current_month', HistoryPage)
 
-    def is_logged(self):
-        return not self.is_on_page(LoginPage)
-
-    def login(self):
+    def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
         assert self.username.isdigit()
 
-        if not self.is_on_page(LoginPage):
-            self.location('https://mobile.free.fr/moncompte/index.php')
+        self.loginpage.stay_or_go().login(self.username, self.password)
 
-        self.page.login(self.username, self.password)
-
-        if self.is_on_page(LoginPage):
+        self.homepage.go()
+        if self.loginpage.is_here():
             raise BrowserIncorrectPassword()
 
+    @need_login
     def get_subscription_list(self):
-        if not self.is_on_page(HomePage):
-            self.location('/moncompte/index.php?page=home')
+        subscriptions = self.homepage.stay_or_go().get_list()
 
-        subscriptions = self.page.get_list()
-        self.location('/moncompte/index.php?page=suiviconso')
+        self.detailspage.go()
         for subscription in subscriptions:
             subscription.renewdate = self.page.get_renew_date(subscription)
             yield subscription
 
-    def get_subscription(self, id):
-        assert isinstance(id, basestring)
-
-        if not self.is_on_page(HomePage):
-            self.location('/moncompte/index.php?page=home')
-
-        for a in self.get_subscription_list():
-            if a.id == id:
-                return a
-
-        return None
-
     def get_history(self, subscription):
-        if not self.is_on_page(HistoryPage):
-            self.location('/moncompte/ajax.php?page=consotel_current_month', 'login=' + subscription._login)
-        num = 0
-        for call in self.page.get_calls():
-            call.id = subscription.id + "-%s" % num
-            num += 1
-            yield call
+        self.historypage.go(data={'login': subscription._login})
+        return self.page.get_calls()
 
     def get_details(self, subscription):
-        if not self.is_on_page(DetailsPage):
-            self.location('/moncompte/index.php?page=suiviconso')
-        return self.page.get_details(subscription)
+        return self.detailspage.stay_or_go().get_details(subscription)
 
     def iter_bills(self, subscription):
-        if not self.is_on_page(DetailsPage):
-            self.location('/moncompte/index.php?page=suiviconso')
-        return self.page.date_bills(subscription)
-
-    def get_bill(self, id):
-        assert isinstance(id, basestring)
-        subid = id.split('.')[0]
-        sub = self.get_subscription(subid)
-
-        if not self.is_on_page(DetailsPage):
-            self.location('/moncompte/index.php?page=suiviconso')
-        l = self.page.date_bills(sub)
-        for a in l:
-            if a.id == id:
-                return a
+        return self.detailspage.stay_or_go().date_bills(subscription)
