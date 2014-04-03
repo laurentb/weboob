@@ -45,7 +45,7 @@ class FreeKeyboard(object):
               }
 
     def __init__(self, basepage):
-        self.basepage = None
+        self.basepage = basepage
         self.fingerprints = []
         for htmlimg in basepage.document.xpath('//img[@class="ident_chiffre_img pointer"]'):
             url = htmlimg.attrib.get("src")
@@ -64,7 +64,6 @@ class FreeKeyboard(object):
                         s += "0"
 
             self.fingerprints.append(s)
-            self.basepage = basepage
             if self.DEBUG:
                 image.save('/tmp/' + s + '.png')
 
