@@ -19,6 +19,7 @@
 import re
 
 from weboob.tools.backend import BaseBackend
+from weboob.capabilities.base import find_object
 from weboob.capabilities.gauge import ICapGauge, GaugeSensor, Gauge, SensorNotFound
 
 from .browser import VlilleBrowser
@@ -47,11 +48,9 @@ class VlilleBackend(BaseBackend, ICapGauge):
 
     def iter_sensors(self, gauge, pattern=None):
         if not isinstance(gauge, Gauge):
-            gauge = self._get_gauge_by_id(gauge)
-            if gauge is None:
-                raise SensorNotFound()
+            gauge = find_object(self.iter_gauges(), id=gauge, error=SensorNotFound)
 
-        gauge.sensors = self.browser.get_station_infos(gauge)
+        gauge = self.browser.get_station_infos(gauge).next()
         if pattern is None:
             for sensor in gauge.sensors:
                 yield sensor
@@ -68,11 +67,13 @@ class VlilleBackend(BaseBackend, ICapGauge):
             raise SensorNotFound()
         return sensor.lastvalue
 
+    """
     def _get_gauge_by_id(self, id):
         for gauge in self.browser.get_station_list():
             if id == gauge.id:
                 return gauge
         return None
+    """
 
     def _get_sensor_by_id(self, id):
         reSensorId = re.search('(\d+)-((bikes|attach|status))', id, re.IGNORECASE)

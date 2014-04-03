@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser2 import PagesBrowser, URL
 
 from .pages import ListStationsPage, InfoStationPage
 
@@ -26,23 +26,14 @@ from .pages import ListStationsPage, InfoStationPage
 __all__ = ['VlilleBrowser']
 
 
-class VlilleBrowser(BaseBrowser):
-    PROTOCOL = 'http'
-    DOMAIN = 'www.vlille.fr/stations'
-    ENCODING = None
+class VlilleBrowser(PagesBrowser):
 
-    PAGES = {
-        '%s://%s/les-stations-vlille.aspx' % (PROTOCOL, DOMAIN): ListStationsPage,
-        '%s://%s/xml-station.aspx\?borne=.*' % (PROTOCOL, DOMAIN): InfoStationPage,
-        '%s://%s/xml-stations.aspx' % (PROTOCOL, DOMAIN): ListStationsPage,
-    }
+    BASEURL = 'http://www.vlille.fr'
+    list_page = URL('/stations/les-stations-vlille.aspx', ListStationsPage)
+    info_page = URL('/stations/xml-station.aspx\?borne=(?P<idgauge>.*)', InfoStationPage)
 
     def get_station_list(self):
-        if not self.is_on_page(ListStationsPage):
-            self.location('%s://%s/les-stations-vlille.aspx' % (self.PROTOCOL, self.DOMAIN))
-            #self.location(u'%s://%s/xml-stations.aspx' % (self.PROTOCOL, self.DOMAIN))
-        return self.page.get_station_list()
+        return self.list_page.go().get_station_list()
 
     def get_station_infos(self, gauge):
-        self.location('%s://%s/xml-station.aspx?borne=%s' % (self.PROTOCOL, self.DOMAIN, gauge.id))
-        return self.page.get_station_infos(gauge.id)
+        return self.info_page.go(idgauge=gauge.id).get_station_infos(obj=gauge)
