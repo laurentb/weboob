@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013      Romain Bignon
+# Copyright(C) 2013-2014      Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -75,11 +75,15 @@ class BanqueAccordBrowser(BaseBrowser):
         for a in self.page.get_list():
             post = {'numeroCompte': a.id,}
             self.location('/site/s/detailcompte/detailcompte.html', urllib.urlencode(post))
-            self.location('/site/s/detailcompte/ongletdetailcompte.html')
-            a.balance = self.page.get_balance()
+
+            a.balance = self.page.get_loan_balance()
+            if a.balance is not None:
+                a.type = a.TYPE_LOAN
+            else:
+                self.location('/site/s/detailcompte/ongletdetailcompte.html')
+                a.balance = self.page.get_balance()
+                a.type = a.TYPE_CARD
             yield a
-
-
 
     def get_account(self, id):
         assert isinstance(id, basestring)
@@ -92,7 +96,10 @@ class BanqueAccordBrowser(BaseBrowser):
         return None
 
     def iter_history(self, account):
-        post = {'numeroCompte': account.id,}
+        if account.type != account.TYPE_CARD:
+            return iter([])
+
+        post = {'numeroCompte': account.id}
         self.location('/site/s/detailcompte/detailcompte.html', urllib.urlencode(post))
         self.location('/site/s/detailcompte/ongletdernieresoperations.html')
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013      Romain Bignon
+# Copyright(C) 2013-2014      Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -97,6 +97,13 @@ class IndexPage(BasePage):
             account.id = line.get('onclick').split("'")[1]
             account.label = self.parser.tocleanstring(line)
             yield account
+
+    def get_loan_balance(self):
+        xpath = '//table//td/strong[contains(text(), "Montant emprunt")]/../../td[2]'
+        try:
+            return - Decimal(FrenchTransaction.clean_amount(self.parser.tocleanstring(self.document.xpath(xpath)[0])))
+        except IndexError:
+            return None
 
     def get_card_name(self):
         return self.parser.tocleanstring(self.document.xpath('//h1')[0])
