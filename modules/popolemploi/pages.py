@@ -25,7 +25,7 @@ import re
 from .job import PopolemploiJobAdvert
 
 
-__all__ = ['SearchPage', 'AdvertPage', 'ChangeLocationPage', 'ChangeLocationReturnPage']
+__all__ = ['SearchPage', 'AdvertPage']
 
 
 class SearchPage(BasePage):
@@ -100,11 +100,3 @@ class AdvertPage(BasePage):
         advert.pay = pay.strip()
 
         return advert
-
-
-class ChangeLocationReturnPage(BasePage):
-    pass
-
-
-class ChangeLocationPage(BasePage):
-    pass
