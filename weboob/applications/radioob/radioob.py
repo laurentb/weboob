@@ -21,6 +21,8 @@ import subprocess
 import sys
 import os
 import re
+import requests
+import magic
 
 from weboob.capabilities.radio import ICapRadio, Radio
 from weboob.capabilities.audio import ICapAudio, BaseAudio
@@ -28,7 +30,6 @@ from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
 from weboob.tools.application.formatters.iformatter import PrettyFormatter
-
 
 __all__ = ['Radioob']
 
@@ -177,6 +178,32 @@ class Radioob(ReplApplication):
             if not player_name:
                 self.logger.debug(u'You can set the media_player key to the player you prefer in the radioob '
                                   'configuration file.')
+
+            r=requests.get(stream.url, stream=True)
+            buf=r.iter_content(256).next()
+            m=magic.open(magic.MIME_TYPE)
+            m.load()
+            mime=m.buffer(buf).strip()
+            if mime == "text/plain" or \
+                    mime == "audio/x-scpls" or \
+                    mime == "application/x-mpegurl":
+                playlistFormat=None
+                r=requests.get(stream.url, stream=True)
+                for line in r.iter_lines():
+                    if playlistFormat is None:
+                        if line == "[playlist]":
+                            playlistFormat = "pls"
+                        elif line == "#EXTM3U":
+                            playlistFormat = "m3u"
+                    elif playlistFormat == "pls":
+                        if line.startswith('File'):
+                            stream.url = line.split('=', 1).pop(1).strip()
+                            break
+                    elif playlistFormat == "m3u":
+                        if line[0] != "#":
+                            stream.url = line.strip();
+                            break
+
             self.player.play(stream, player_name=player_name, player_args=media_player_args)
         except (InvalidMediaPlayer, MediaPlayerNotFound) as e:
             print '%s\nRadio URL: %s' % (e, stream.url)
