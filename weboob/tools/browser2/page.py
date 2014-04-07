@@ -753,7 +753,7 @@ class TableElement(ListElement):
                 columns[m.group(1)] = getattr(self, attrname)
 
         for colnum, el in enumerate(self.el.xpath(self.head_xpath)):
-            title = self.cleaner.clean(el)
+            title = self.cleaner.clean(el).capitalize()
             for name, titles in columns.iteritems():
                 if title in titles or title == titles:
                     self._cols[name] = colnum
