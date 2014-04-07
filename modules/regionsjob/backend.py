@@ -19,12 +19,10 @@
 
 
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.capabilities.job import ICapJob
+from weboob.capabilities.job import ICapJob, BaseJobAdvert
 from .browser import RegionsjobBrowser
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
-
-from .job import RegionsJobAdvert
 
 
 __all__ = ['RegionsjobBackend']
@@ -153,21 +151,19 @@ class RegionsjobBackend(BaseBackend, ICapJob):
         return self.create_browser(self.config['website'].get())
 
     def search_job(self, pattern=''):
-        with self.browser:
-            return self.browser.search_job(pattern=pattern)
+        return self.browser.search_job(pattern=pattern)
 
     def advanced_search_job(self):
-        return self.browser.advanced_search_job(metier=self.config['metier'].get(),
-                                                fonction=int(self.config['fonction'].get()),
-                                                secteur=int(self.config['secteur'].get()),
-                                                contract=int(self.config['contract'].get()),
-                                                experience=int(self.config['experience'].get()))
+        return self.browser.search_job(pattern=self.config['metier'].get(),
+                                       fonction=int(self.config['fonction'].get()),
+                                       secteur=int(self.config['secteur'].get()),
+                                       contract=int(self.config['contract'].get()),
+                                       experience=int(self.config['experience'].get()))
 
     def get_job_advert(self, _id, advert=None):
-        with self.browser:
-            return self.browser.get_job_advert(_id, advert)
+        return self.browser.get_job_advert(_id, advert)
 
     def fill_obj(self, advert, fields):
-        self.get_job_advert(advert.id, advert)
+        return self.get_job_advert(advert.id, advert)
 
-    OBJECTS = {RegionsJobAdvert: fill_obj}
+    OBJECTS = {BaseJobAdvert: fill_obj}

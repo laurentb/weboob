@@ -18,54 +18,31 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 import urllib
 
-from weboob.tools.browser import BaseBrowser
-from weboob.tools.browser.decorators import id2url
+from weboob.tools.browser2 import PagesBrowser, URL
 
 from .pages import SearchPage, AdvertPage
-from .job import RegionsJobAdvert
-
 
 __all__ = ['RegionsjobBrowser']
 
 
-class RegionsjobBrowser(BaseBrowser):
-    PROTOCOL = 'http'
-    ENCODING = 'utf-8'
+class RegionsjobBrowser(PagesBrowser):
 
-    PAGES = {
-        '%s://(.*?)/offre_emploi/index.aspx\?v=___(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_' % (PROTOCOL): SearchPage,
-        '%s://(.*?)/offre_emploi/detailoffre.aspx\?numoffre=(.*?)&de=consultation' % (PROTOCOL): AdvertPage,
-    }
+    advert_page = URL('/offre_emploi/detailoffre.aspx\?numoffre=(?P<_id>.*)&de=consultation', AdvertPage)
+    search_page = URL('/offre_emploi/index.aspx\?v=___0_(?P<fonction>.*)_(?P<experience>.*)_0_(?P<contract>.*)_0_0_(?P<secteur>.*)_0_(?P<metier>.*)_', SearchPage)
 
     def __init__(self, website, *args, **kwargs):
-        self.DOMAIN = website
-        BaseBrowser.__init__(self, *args, **kwargs)
+        self.BASEURL = 'http://%s' % website
+        PagesBrowser.__init__(self, *args, **kwargs)
 
-    def search_job(self, pattern=''):
-        self.location('%s://%s/offre_emploi/index.aspx?v=___0_0_0_0_0_0_0_0_0_%s_'
-                      % (self.PROTOCOL, self.DOMAIN, urllib.quote_plus(pattern.encode(self.ENCODING))))
-        assert self.is_on_page(SearchPage)
-        return self.page.iter_job_adverts(self.DOMAIN)
+    def search_job(self, pattern='', fonction=0, secteur=0, contract=0, experience=0):
+        return self.search_page.go(fonction=fonction,
+                                   experience=experience,
+                                   contract=contract,
+                                   secteur=secteur,
+                                   metier=urllib.quote_plus(pattern.encode('utf-8'))
+                                   ).iter_job_adverts(domain=self.BASEURL)
 
-    def advanced_search_job(self, metier, fonction, secteur, contract, experience):
-        self.location('%s://%s/offre_emploi/index.aspx?v=___%s_%s_%s_%s_%s_%s_%s_%s_%s_%s_'
-                      % (self.PROTOCOL,
-                         self.DOMAIN,
-                         '0',
-                         fonction,
-                         experience,
-                         '0',
-                         contract,
-                         '0',
-                         '0',
-                         secteur,
-                         '0',
-                         urllib.quote_plus(metier.encode(self.ENCODING))))
-        assert self.is_on_page(SearchPage)
-        return self.page.iter_job_adverts(self.DOMAIN)
-
-    @id2url(RegionsJobAdvert.id2url)
-    def get_job_advert(self, url, advert):
-        self.location(url)
-        assert self.is_on_page(AdvertPage)
-        return self.page.get_job_advert(url, advert)
+    def get_job_advert(self, _id, advert):
+        splitted_id = _id.split('#')
+        self.BASEURL = splitted_id[0]
+        return self.advert_page.go(_id=splitted_id[1]).get_job_advert(obj=advert)
