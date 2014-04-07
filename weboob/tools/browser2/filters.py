@@ -332,6 +332,28 @@ class Date(DateTime):
         if datetime is not None:
             return datetime.date()
 
+
+class DateGuesser(Filter):
+    def __init__(self, selector, date_guesser, **kwargs):
+        super(DateGuesser, self).__init__(selector)
+        self.date_guesser = date_guesser
+        self.kwargs = kwargs
+
+    def filter(self, values):
+        date_guesser = self.date_guesser
+        # In case Env() is used to kive date_guesser.
+        if isinstance(date_guesser, _Filter):
+            date_guesser = self.select(date_guesser)
+
+        if isinstance(values, basestring):
+            values = re.split('[/-]', values)
+        if len(values) == 2:
+            day, month = map(int, values)
+        else:
+            raise ParseError('Unable to take (day,month) tuple from %r' % values)
+        return date_guesser.guess_date(day, month, **self.kwargs)
+
+
 class Time(Filter):
     klass = datetime.time
     regexp = re.compile(ur'(?P<hh>\d+):?(?P<mm>\d+)(:(?P<ss>\d+))?')
