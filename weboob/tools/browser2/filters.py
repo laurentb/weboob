@@ -346,11 +346,12 @@ class DateGuesser(Filter):
         self.date_guesser = date_guesser
         self.kwargs = kwargs
 
-    def filter(self, values):
+    def __call__(self, item):
+        values = self.select(self.selector, item)
         date_guesser = self.date_guesser
         # In case Env() is used to kive date_guesser.
         if isinstance(date_guesser, _Filter):
-            date_guesser = self.select(date_guesser)
+            date_guesser = self.select(date_guesser, item)
 
         if isinstance(values, basestring):
             values = re.split('[/-]', values)
