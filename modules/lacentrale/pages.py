@@ -27,6 +27,7 @@ from weboob.capabilities.pricecomparison import Product, Price, Shop
 
 __all__ = ['MainPage', 'ListingAutoPage', 'AnnoncePage']
 
+
 # I manage main page, ie do nothing yet
 class MainPage(BasePage):
     def iter_products(self, criteria):
@@ -37,13 +38,16 @@ class MainPage(BasePage):
         product._criteria = criteria
         yield product
 
+
 def get_decimal(s):
-    return re.findall(r'\d+', s.replace(' ',''))[0]
+    return re.findall(r'\d+', s.replace(' ', ''))[0]
+
 
 def new_shop(id):
     shop = Shop(id)
     shop.set_empty_fields(NotLoaded)
     return shop
+
 
 def new_price(id, product, cost, title):
     price = Price(id)
@@ -54,6 +58,7 @@ def new_price(id, product, cost, title):
     price.set_empty_fields(NotAvailable)
     price.shop = new_shop(id)
     return price
+
 
 # I manage listing page and extract information
 class ListingAutoPage(BasePage):
@@ -67,10 +72,12 @@ class ListingAutoPage(BasePage):
 
     def _extract_id(self, tr):
         tdas = tr.cssselect('td.lcbrand a')
-        if tdas is None or len(tdas)==0: return None
+        if tdas is None or len(tdas) == 0:
+            return None
         tda = tdas[0]
         m = re.search('annonce-(\d+)\.html', tda.get('href'))
-        if not m: return None
+        if not m:
+            return None
         return m.group(1)
 
     def iter_prices(self, product, numpage):
@@ -84,7 +91,7 @@ class ListingAutoPage(BasePage):
             title += ', ' + self._extract(ntr, 'lcversion')
             title += ', ' + self._extract(tr, 'lcyear')
             dist = self._extract(tr, 'lcmileage') + 'km'
-            title += ', ' + dist.replace(' ','')
+            title += ', ' + dist.replace(' ', '')
 
             cost = ', ' + self._extract(tr, 'lcprice')
 
@@ -93,12 +100,13 @@ class ListingAutoPage(BasePage):
     def get_next(self):
         for a in self.document.getroot().cssselect('a.page'):
             s = a.getprevious()
-            if s is not None and s.tag=='span':
+            if s is not None and s.tag == 'span':
                 m = re.search('num=(\d+)', a.get('href'))
                 if not m:
                     return None
                 return int(m.group(1))
         return None
+
 
 # I manage one car page (annonce) )and extract information
 class AnnoncePage(BasePage):
@@ -115,7 +123,8 @@ class AnnoncePage(BasePage):
         for td in e.cssselect('td.InfoLib'):
             if name in td.text_content():
                 ntd = td.getnext()
-                if ntd is None: continue
+                if ntd is None:
+                    continue
                 return ntd.text_content().strip()
         return None
 
@@ -124,7 +133,8 @@ class AnnoncePage(BasePage):
         for span in e.cssselect('span.VendeurLib'):
             if name in span.text_content():
                 li = span.getparent()
-                if li is None: continue
+                if li is None:
+                    continue
                 # get all text
                 s = li.text_content()
                 # get text without header
@@ -138,7 +148,7 @@ class AnnoncePage(BasePage):
     def get_shop(self, id):
         shop = Shop(id)
         for e in self.document.getroot().cssselect('div#Vendeur'):
-            shop.name = self._extract_vendor(e,'Nom') + '(' + self._extract_vendor(e,'Vendeur') + ')'
+            shop.name = self._extract_vendor(e, 'Nom') + '(' + self._extract_vendor(e, 'Vendeur') + ')'
         shop.location = ''
         for adr in self.document.getroot().cssselect('span#AdresseL1,span#AdresseL2'):
             if shop.location:
@@ -156,12 +166,12 @@ class AnnoncePage(BasePage):
         for e in self.document.getroot().cssselect('div#DescBar'):
             product = Product(1)
             product.name = unicode('Occasion')
-            cost = self._extract(e,'PriceLc')
-            title = self._extract(e,'BrandLc')
-            title += ', ' + self._extract(e,'modeleCom')
-            title += ', ' + self._extract_info(e,'Version')
-            title += ', ' + self._extract_info(e,'Ann')
-            title += ', ' + get_decimal(self._extract_info(e,'Kilom')) + 'km'
+            cost = self._extract(e, 'PriceLc')
+            title = self._extract(e, 'BrandLc')
+            title += ', ' + self._extract(e, 'modeleCom')
+            title += ', ' + self._extract_info(e, 'Version')
+            title += ', ' + self._extract_info(e, 'Ann')
+            title += ', ' + get_decimal(self._extract_info(e, 'Kilom')) + 'km'
             price = new_price(id, product, cost, title)
             price.shop = self.get_shop(id)
             return price

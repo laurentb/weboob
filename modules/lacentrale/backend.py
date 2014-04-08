@@ -41,7 +41,7 @@ class LaCentraleBackend(BaseBackend, ICapPriceComparison):
     # inherited from ICapPriceComparison
     def search_products(self, patternString=None):
         # convert pattern to criteria
-        criteria = { }
+        criteria = {}
         patterns = []
         if patternString:
             patterns = patternString.split(',')
@@ -51,12 +51,12 @@ class LaCentraleBackend(BaseBackend, ICapPriceComparison):
                 criteria['maxprice'] = pattern[:pattern.find(u'€')].strip()
             if u'km' in pattern:
                 criteria['maxdist'] = pattern[:pattern.find(u'km')].strip()
-            if u'p' in pattern[-1]: # last char = p
+            if u'p' in pattern[-1]:  # last char = p
                 criteria['nbdoors'] = pattern[:pattern.find(u'p')].strip()
             if u'cit' in pattern:
                 criteria['urban'] = 'citadine&SS_CATEGORIE=40'
             if u'dep' in pattern:
-                criteria['dept'] = re.findall('\d+',pattern)[0]
+                criteria['dept'] = re.findall('\d+', pattern)[0]
             if u'pro' in pattern:
                 criteria['origin'] = 1
             if u'part' in pattern:

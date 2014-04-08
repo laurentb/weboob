@@ -33,11 +33,10 @@ class LaCentraleBrowser(BaseBrowser):
     PROTOCOL = 'http'
     DOMAIN = 'www.lacentrale.fr'
     ENCODING = 'windows-1252'
-    PAGES = {
-         'http://www.lacentrale.fr/': MainPage,
-         'http://www.lacentrale.fr/listing_auto.php?.*': ListingAutoPage,
-         'http://www.lacentrale.fr/auto-occasion-annonce-.*': AnnoncePage,
-        }
+    PAGES = {'http://www.lacentrale.fr/': MainPage,
+             'http://www.lacentrale.fr/listing_auto.php?.*': ListingAutoPage,
+             'http://www.lacentrale.fr/auto-occasion-annonce-.*': AnnoncePage,
+             }
 
     def iter_products(self, criteria):
         if not self.is_on_page(MainPage):
@@ -55,12 +54,12 @@ class LaCentraleBrowser(BaseBrowser):
         if not self.is_on_page(ListingAutoPage):
             #TODO use urllib.urlencode(data) ?
             url = '/listing_auto.php?num=1&witchSearch=0'
-            url += self._buildUrl(product, 'Citadine={}','urban')
-            url += self._buildUrl(product, 'prix_maxi={}','maxprice')
-            url += self._buildUrl(product, 'km_maxi={}','maxdist')
-            url += self._buildUrl(product, 'nbportes=%3D{}','nbdoors')
-            url += self._buildUrl(product, 'cp={}','dept')
-            url += self._buildUrl(product, 'origine={}','origin')
+            url += self._buildUrl(product, 'Citadine={}', 'urban')
+            url += self._buildUrl(product, 'prix_maxi={}', 'maxprice')
+            url += self._buildUrl(product, 'km_maxi={}', 'maxdist')
+            url += self._buildUrl(product, 'nbportes=%3D{}', 'nbdoors')
+            url += self._buildUrl(product, 'cp={}', 'dept')
+            url += self._buildUrl(product, 'origine={}', 'origin')
             #print url
             self.location(url)
 
@@ -76,7 +75,7 @@ class LaCentraleBrowser(BaseBrowser):
             numpage = self.page.get_next()
             if not numpage:
                 break
-            url = re.sub('num=(\d+)','num={}'.format(numpage),url)
+            url = re.sub('num=(\d+)', 'num={}'.format(numpage), url)
             self.location(url)
             assert self.is_on_page(ListingAutoPage)
 
