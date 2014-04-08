@@ -49,7 +49,7 @@ def new_price(id, product, cost, title):
     price = Price(id)
     price.product = product
     price.cost = Decimal(get_decimal(cost))
-    price.currency = u'€'
+    price.currency = u'EUR'
     price.message = unicode(title)
     price.set_empty_fields(NotAvailable)
     price.shop = new_shop(id)
