@@ -32,7 +32,7 @@ __all__ = ['LaCentraleBackend']
 class LaCentraleBackend(BaseBackend, ICapPriceComparison):
     NAME = 'lacentrale'
     MAINTAINER = u'Vicnet'
-    EMAIL = 'vicnet@weboob.org'
+    EMAIL = 'vo.publique@gmail.com'
     VERSION = '0.i'
     DESCRIPTION = 'Vehicule prices at LaCentrale.fr'
     LICENSE = 'AGPLv3+'
