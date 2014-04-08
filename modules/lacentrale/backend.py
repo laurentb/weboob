@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
-from weboob.capabilities.pricecomparison import ICapPriceComparison, Price, Product
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.capabilities.pricecomparison import ICapPriceComparison, Price
+from weboob.tools.backend import BaseBackend
 #from weboob.tools.value import Value
 
 from .browser import LaCentraleBrowser

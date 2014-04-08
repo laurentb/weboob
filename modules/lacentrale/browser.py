@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import urllib
 import re
 
 from weboob.tools.browser import BaseBrowser

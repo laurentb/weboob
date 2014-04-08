@@ -21,7 +21,7 @@
 from decimal import Decimal
 import re
 
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import BasePage
 from weboob.capabilities import NotAvailable, NotLoaded
 from weboob.capabilities.pricecomparison import Product, Price, Shop
 
