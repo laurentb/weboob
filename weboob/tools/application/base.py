@@ -247,6 +247,7 @@ class BaseApplication(object):
         return version
 
     def _do_complete_obj(self, backend, fields, obj):
+        obj.backend = backend.name
         if fields is None or len(fields) > 0:
             backend.fillobj(obj, fields)
         return obj
@@ -254,12 +255,12 @@ class BaseApplication(object):
     def _do_complete_iter(self, backend, count, fields, res):
         modif = 0
         for i, sub in enumerate(res):
+            sub = self._do_complete_obj(backend, fields, sub)
             if self.condition and not self.condition.is_valid(sub):
                 modif += 1
             else:
                 if count and i - modif == count:
                     raise MoreResultsAvailable()
-                sub = self._do_complete_obj(backend, fields, sub)
                 yield sub
 
     def _do_complete(self, backend, count, selected_fields, function, *args, **kwargs):
