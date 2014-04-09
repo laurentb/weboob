@@ -92,22 +92,29 @@ class ResultsCondition(IResultsCondition):
         self.condition_str = condition_str
 
     def is_valid(self, obj):
-        d = dict(obj.iter_fields())
+        d = obj.to_dict()
         # We evaluate all member of a list at each iteration.
         for _or in self.condition:
             myeval = True
             for condition in _or:
                 if condition.left in d:
-                    # We have to change the type of v, always gived as string by application
-                    typed = type(d[condition.left])
-                    try:
-                        if isinstance(d[condition.left], date_utils.date):
-                            tocompare = date(*[int(x) for x in condition.right.split('-')])
-                        else:
-                            tocompare = typed(condition.right)
-                        myeval = functions[condition.op](tocompare, d[condition.left])
-                    except:
-                        myeval = False
+                    # in the case of id, test id@backend and id
+                    if condition.left == 'id':
+                        tocompare = condition.right
+                        evalfullid = functions[condition.op](tocompare, d['id'])
+                        evalid = functions[condition.op](tocompare, obj.id)
+                        myeval = evalfullid or evalid
+                    else:
+                        # We have to change the type of v, always gived as string by application
+                        typed = type(d[condition.left])
+                        try:
+                            if isinstance(d[condition.left], date_utils.date):
+                                tocompare = date(*[int(x) for x in condition.right.split('-')])
+                            else:
+                                tocompare = typed(condition.right)
+                            myeval = functions[condition.op](tocompare, d[condition.left])
+                        except:
+                            myeval = False
                 else:
                     raise ResultsConditionError(u'Field "%s" is not valid.' % condition.left)
                 # Do not try all AND conditions if one is false
