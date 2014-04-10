@@ -19,7 +19,7 @@
 
 
 import urllib
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import re
 
 from weboob.tools.browser import BasePage as _BasePage, BrowserUnavailable, BrokenPageError
@@ -150,7 +150,11 @@ class AccountsPage(BasePage):
                 else:
                     account.currency = account.get_currency(m.group(1))
 
-                account.balance = Decimal(FrenchTransaction.clean_amount(u''.join([txt.strip() for txt in box.cssselect("td.montant")[0].itertext()])))
+                try:
+                    account.balance = Decimal(FrenchTransaction.clean_amount(u''.join([txt.strip() for txt in box.cssselect("td.montant")[0].itertext()])))
+                except InvalidOperation:
+                    #The account doesn't have a amount
+                    pass
                 account._args = args
                 yield account
 
@@ -261,6 +265,9 @@ class CBTransactionsPage(TransactionsPage):
     def get_history(self):
         tables = self.document.xpath('//table[@id="idDetail:dataCumulAchat"]')
         transactions =list()
+
+        if len(tables) == 0:
+            return transactions
         for tr in tables[0].xpath('.//tr'):
             tds = tr.findall('td')
             if len(tds) < 3:
