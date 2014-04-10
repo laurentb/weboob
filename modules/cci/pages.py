@@ -17,63 +17,59 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import dateutil.parser
+from weboob.tools.browser2.page import HTMLPage, method, ItemElement, TableElement
+from weboob.tools.browser2.filters import Filter, Link, CleanText, Format, Env, DateTime, CleanHTML, TableCell, Join
 
-from weboob.tools.browser import BasePage
 from weboob.capabilities.job import BaseJobAdvert
 
 __all__ = ['SearchPage']
 
 
-class SearchPage(BasePage):
-    def iter_job_adverts(self, pattern):
-        trs = self.document.getroot().xpath("//tr[@class='texteCol2TableauClair']") \
-            + self.document.getroot().xpath("//tr[@class='texteCol2TableauFonce']")
+class Child(Filter):
+    def filter(self, el):
+        return list(el[0].iterchildren())
 
-        for tr in trs:
-            tds = self.parser.select(tr, 'td', method='xpath')
-            a = self.parser.select(tds[2], 'a', 1, method='xpath')
-            advert = BaseJobAdvert(a.attrib['href'].replace('#', ''))
-            advert.title = u'%s' % a.text_content()
-            advert.society_name = u'CCI %s' % tds[3].text
-            advert.place = u'%s' % tds[0].text
-            advert.job_name = u'%s' % tds[1].text
-            if pattern is not None:
-                if pattern in advert.title or pattern in advert.job_name:
-                    yield advert
-            else:
-                yield advert
 
-    def get_job_advert(self, _id, advert):
-        if advert is None:
-            advert = BaseJobAdvert(_id)
+class SearchPage(HTMLPage):
+    @method
+    class iter_job_adverts(TableElement):
+        item_xpath = "//tr[(@class='texteCol2TableauClair' or @class='texteCol2TableauFonce')]"
+        head_xpath = "//tr[1]/td[@class='titreCol2Tableau']/text()"
 
-        items = self.document.getroot().xpath("//div[@id='divrecueil']")[0]
-        keep_next = False
-        for item in items:
+        col_place = u'Région'
+        col_job_name = u'Filière'
+        col_id = u'Intitulé du poste'
+        col_society_name = u'CCI(R)'
 
-            if keep_next:
-                if item.tag == 'div' and item.attrib['id'] == u'offre':
-                    first_div = self.parser.select(item, 'div/span', 2, method='xpath')
-                    advert.society_name = u'CCI %s' % first_div[0].text_content()
-                    advert.job_name = u'%s' % first_div[1].text_content()
+        class item(ItemElement):
+            klass = BaseJobAdvert
 
-                    second_div = self.parser.select(item, 'div/fieldset', 2, method='xpath')
+            def validate(self, advert):
+                if advert and 'pattern' in self.env and self.env['pattern']:
+                    return self.env['pattern'].upper() in advert.title.upper() or \
+                        self.env['pattern'].upper() in advert.job_name.upper()
+                return True
 
-                    ps_1 = self.parser.select(second_div[0], 'p[@class="normal"]', method='xpath')
-                    h2s_1 = self.parser.select(second_div[0], 'h2[@class="titreParagraphe"]', method='xpath')
-                    description = ""
-                    if len(ps_1) == 5 and len(h2s_1) == 5:
-                        for i in range(0, 5):
-                            description += "\r\n-- %s --\r\n" % h2s_1[i].text
-                            description += "%s\r\n" % ps_1[i].text_content()
-                    advert.description = description
-                    advert.url = self.url + '#' + advert.id
-                    date = self.parser.select(item, 'div/fieldset/p[@class="dateOffre"]', 1, method='xpath')
-                    advert.publication_date = dateutil.parser.parse(date.text_content()).date()
-                break
+            obj_id = CleanText(Link(Child(TableCell('id'))), replace=[('#', '')])
+            obj_title = Format('%s - %s', CleanText(TableCell('id')), CleanText(TableCell('job_name')))
+            obj_society_name = Format(u'CCI %s', CleanText(TableCell('society_name')))
+            obj_place = CleanText(TableCell('place'))
+            obj_job_name = CleanText(TableCell('id'))
 
-            if item.tag == 'a' and u'%s' % item.attrib['name'] == u'%s' % _id:
-                keep_next = True
+    @method
+    class get_job_advert(ItemElement):
+        klass = BaseJobAdvert
 
-        return advert
+        obj_url = Format('%s#%s', Env('url'), Env('id'))
+        obj_description = Join('%s\r\n',
+                               'div/fieldset/*[(@class="titreParagraphe" or @class="normal")]',
+                               textCleaner=CleanHTML)
+        obj_title = CleanText('div/span[@class="intituleposte"]')
+        obj_job_name = CleanText('div/span[@class="intituleposte"]')
+        obj_society_name = Format('CCI %s', CleanText('div/span[@class="crci crcititle"]'))
+        obj_publication_date = DateTime(CleanText('div/fieldset/p[@class="dateOffre"]'), dayfirst=True)
+
+        def parse(self, el):
+            self.el = el.xpath("//a[@name='%s']/following-sibling::div[1]" % self.obj.id)[0]
+            self.env['url'] = self.page.url
+            self.env['id'] = self.obj.id

@@ -18,8 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.capabilities.job import ICapJob, BaseJobAdvert
+from weboob.tools.value import Value
 
 from .browser import CciBrowser
 
@@ -37,19 +38,18 @@ class CciBackend(BaseBackend, ICapJob):
 
     BROWSER = CciBrowser
 
+    CONFIG = BackendConfig(Value('metier', label='Job name', masked=False, default=''))
+
     def search_job(self, pattern=None):
-        with self.browser:
-            for job_advert in self.browser.search_job(pattern):
-                yield job_advert
+        return self.browser.search_job(pattern)
 
     def advanced_search_job(self):
-        return []
+        return self.browser.search_job(pattern=self.config['metier'].get())
 
     def get_job_advert(self, _id, advert=None):
-        with self.browser:
-            return self.browser.get_job_advert(_id, advert)
+        return self.browser.get_job_advert(_id, advert)
 
     def fill_obj(self, advert, fields):
-        self.get_job_advert(advert.id, advert)
+        return self.get_job_advert(advert.id, advert)
 
     OBJECTS = {BaseJobAdvert: fill_obj}

@@ -17,8 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser2 import PagesBrowser, URL
+from weboob.capabilities.job import BaseJobAdvert
 
 from .pages import SearchPage
 
@@ -26,21 +26,15 @@ from .pages import SearchPage
 __all__ = ['CciBrowser']
 
 
-class CciBrowser(BaseBrowser):
-    PROTOCOL = 'http'
-    DOMAIN = 'www.cci.fr/web/recrutement/les-offres-d-emploi'
-    ENCODING = "UTF-8"
+class CciBrowser(PagesBrowser):
+    BASEURL = 'http://www.cci.fr'
 
-    PAGES = {
-        '%s://%s' % (PROTOCOL, DOMAIN): SearchPage,
-    }
+    search_page = URL('/web/recrutement/les-offres-d-emploi', SearchPage)
 
     def search_job(self, pattern):
-        self.location('%s://%s' % (self.PROTOCOL, self.DOMAIN))
-        assert self.is_on_page(SearchPage)
-        return self.page.iter_job_adverts(pattern)
+        return self.search_page.go().iter_job_adverts(pattern=pattern)
 
     def get_job_advert(self, _id, advert):
-        self.location('%s://%s' % (self.PROTOCOL, self.DOMAIN))
-        assert self.is_on_page(SearchPage)
-        return self.page.get_job_advert(_id, advert)
+        if advert is None:
+            advert = BaseJobAdvert(_id)
+        return self.search_page.stay_or_go().get_job_advert(obj=advert)
