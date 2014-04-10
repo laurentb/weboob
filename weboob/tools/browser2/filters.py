@@ -160,7 +160,13 @@ class TableCell(_Filter):
 
 class CleanHTML(Filter):
     def filter(self, txt):
-        return html2text(html.tostring(txt[0], encoding=unicode))
+        if isinstance(txt, (tuple,list)):
+            return ' '.join([self.clean(item) for item in txt])
+        return self.clean(txt)
+
+    @classmethod
+    def clean(cls, txt):
+        return html2text(html.tostring(txt, encoding=unicode))
 
 class CleanText(Filter):
     """
@@ -409,13 +415,14 @@ class Format(MultiFilter):
 
 
 class Join(Filter):
-    def __init__(self, pattern, selector):
+    def __init__(self, pattern, selector, textCleaner=CleanText):
         super(Join, self).__init__(selector)
         self.pattern = pattern
+        self.textCleaner = textCleaner
 
     def filter(self, el):
         res = u''
         for li in el:
-            res += self.pattern % CleanText.clean(li)
+            res += self.pattern % self.textCleaner.clean(li)
 
         return res
