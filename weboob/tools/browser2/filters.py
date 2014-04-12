@@ -133,17 +133,18 @@ class TableCell(_Filter):
 
     For example:
 
-        class table(TableElement):
-            head_xpath = '//table/thead/th'
-            item_xpath = '//table/tbody/tr'
-
-            col_date =    u'Date'
-            col_label =   [u'Name', u'Label']
-
-            class item(ItemElement):
-                klass = Object
-                obj_date = Date(TableCell('date'))
-                obj_label = CleanText(TableCell('label'))
+    >>> from weboob.capabilities.bank import Transaction
+    >>> from .page import TableElement, ItemElement
+    >>> class table(TableElement):
+    ...     head_xpath = '//table/thead/th'
+    ...     item_xpath = '//table/tbody/tr'
+    ...     col_date =    u'Date'
+    ...     col_label =   [u'Name', u'Label']
+    ...     class item(ItemElement):
+    ...         klass = Transaction
+    ...         obj_date = Date(TableCell('date'))
+    ...         obj_label = CleanText(TableCell('label'))
+    ...
     """
 
     def __init__(self, *names, **kwargs):

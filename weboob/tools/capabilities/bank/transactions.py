@@ -102,11 +102,11 @@ class FrenchTransaction(Transaction):
         PATTERN class attribute) with a list containing tuples of regexp
         and the associated type, for example::
 
-            PATTERNS = [(re.compile('^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
-                        (re.compile('^PRLV (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
-                        (re.compile('^(?P<text>.*) CARTE \d+ PAIEMENT CB (?P<dd>\d{2})(?P<mm>\d{2}) ?(.*)$'),
-                                                                  FrenchTransaction.TYPE_CARD)
-                       ]
+        >>> PATTERNS = [(re.compile('^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+        ...             (re.compile('^PRLV (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
+        ...             (re.compile('^(?P<text>.*) CARTE \d+ PAIEMENT CB (?P<dd>\d{2})(?P<mm>\d{2}) ?(.*)$'),
+        ...                                                       FrenchTransaction.TYPE_CARD)
+        ...            ]
 
         In regexps, you can define this patterns:
 

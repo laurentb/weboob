@@ -39,11 +39,15 @@ from .filters import _Filter, CleanText, AttributeNotFound, XPathNotFound
 
 
 class UrlNotResolvable(Exception):
-    pass
+    """
+    Raised when trying to locate on an URL instance which url pattern is not resolvable as a real url.
+    """
 
 
 class DataError(Exception):
-    pass
+    """
+    Returned data from pages are incoherent.
+    """
 
 
 class URL(object):
@@ -128,6 +132,12 @@ class URL(object):
         return r.page or r
 
     def build(self, **kwargs):
+        """
+        Build an url with the given arguments from URL's regexps.
+
+        :rtype: :class:`str`
+        :raises: :class:`UrlNotResolvable` if unable to resolve a correct url with the given arguments.
+        """
         patterns = []
         for url in self.urls:
             patterns += normalize(url)
@@ -142,6 +152,9 @@ class URL(object):
         raise UrlNotResolvable('Unable to resolve URL with %r. Available are %s' % (kwargs, ', '.join([pattern for pattern, _ in patterns])))
 
     def match(self, url, base=None):
+        """
+        Check if the given url match this object.
+        """
         if base is None:
             assert self.browser is not None
             base = self.browser.BASEURL
@@ -165,6 +178,9 @@ class URL(object):
             return self.klass(self.browser, response, m.groupdict())
 
     def id2url(self, func):
+        r"""
+        Helper decorator to get an URL if the given first parameter is an ID.
+        """
         def inner(browser, id_or_url, *args, **kwargs):
             if re.match('^https?://.*', id_or_url):
                 if not self.match(id_or_url, browser.BASEURL):
@@ -203,11 +219,17 @@ class PagesBrowser(DomainBrowser):
 
     Example:
 
-        class MyBrowser(PagesBrowser):
-            BASEURL = 'http://example.org'
-
-            home = URL('/(index\.html)?', HomePage)
-            list = URL('/list\.html', ListPage)
+    >>> class HomePage(BasePage):
+    ...     pass
+    ...
+    >>> class ListPage(BasePage):
+    ...     pass
+    ...
+    >>> class MyBrowser(PagesBrowser):
+    ...     BASEURL = 'http://example.org'
+    ...     home = URL('/(index\.html)?', HomePage)
+    ...     list = URL('/list\.html', ListPage)
+    ...
 
     You can then use URL instances to go on pages.
     """
@@ -232,6 +254,12 @@ class PagesBrowser(DomainBrowser):
             url.browser = self
 
     def open(self, *args, **kwargs):
+        """
+        Same method than
+        :meth:`weboob.tools.browser2.browser.DomainBrowser.open`, but the
+        response contains an attribute `page` if the url matches any
+        :class:`URL` object.
+        """
         response = super(PagesBrowser, self).open(*args, **kwargs)
         response.page = None
 
@@ -248,6 +276,12 @@ class PagesBrowser(DomainBrowser):
         return response
 
     def location(self, *args, **kwargs):
+        """
+        Same method than
+        :meth:`weboob.tools.browser2.browser.BaseBrowser.location`, but if the
+        url matches any :class:`URL` object, an attribute `page` is added to
+        response, and the attribute :attr:`PagesBrowser.page` is set.
+        """
         if self.page is not None:
             # Call leave hook.
             self.page.on_leave()
@@ -269,10 +303,10 @@ class PagesBrowser(DomainBrowser):
         r"""
         This helper function can be used to handle pagination pages easily.
 
-        When the called function raises an exception `NextPage`, it goes on the
-        wanted page and recall the function.
+        When the called function raises an exception :class:`NextPage`, it goes
+        on the wanted page and recall the function.
 
-        NextPage constructor can take an url or a Request object.
+        :class:`NextPage` constructor can take an url or a Request object.
 
         >>> class Page(HTMLPage):
         ...     def iter_values(self):
@@ -303,10 +337,10 @@ def pagination(func):
     r"""
     This helper decorator can be used to handle pagination pages easily.
 
-    When the called function raises an exception `NextPage`, it goes on the
-    wanted page and recall the function.
+    When the called function raises an exception :class:`NextPage`, it goes on
+    the wanted page and recall the function.
 
-    NextPage constructor can take an url or a Request object.
+    :class:`NextPage` constructor can take an url or a Request object.
 
     >>> class Page(HTMLPage):
     ...     @pagination
@@ -325,8 +359,7 @@ def pagination(func):
     >>> list(b.page.iter_values())
     ['One', 'Two', 'Three', 'Four']
     """
-    def inner(self, *args, **kwargs):
-        page = self
+    def inner(page, *args, **kwargs):
         while 1:
             try:
                 for r in func(page, *args, **kwargs):
@@ -344,7 +377,7 @@ class NextPage(Exception):
     Exception used for example in a BasePage to tell PagesBrowser.pagination to
     go on the next page.
 
-    See PagesBrowser.pagination.
+    See :meth:`PagesBrowser.pagination` or decorator :func:`pagination`.
     """
     def __init__(self, request):
         super(NextPage, self).__init__()
@@ -395,13 +428,19 @@ class BasePage(object):
         self.params = params
 
     def on_load(self):
-        pass
+        """
+        Event called when browser loads this page.
+        """
 
     def on_leave(self):
-        pass
+        """
+        Event called when browser leaves this page.
+        """
 
 class FormNotFound(Exception):
-    pass
+    """
+    Raised when :meth:`HTMLPage.get_form` can't find a form.
+    """
 
 class Form(OrderedDict):
     """
@@ -489,13 +528,19 @@ class HTMLPage(BasePage):
         parser = html.HTMLParser(encoding=response.encoding)
         self.doc = html.parse(StringIO(response.content), parser)
 
-    def get_form(self, xpath=None, name=None, nr=None):
+    def get_form(self, xpath='//form', name=None, nr=None):
         """
-        Get a Form object from a xpath selector.
-        """
-        if xpath is None:
-            xpath = '//form'
+        Get a :class:`Form` object from a selector.
 
+        :param xpath: xpath string to select forms
+        :type xpath: :class:`str`
+        :param name: if supplied, select a form with the given name
+        :type name: :class:`str`
+        :param nr: if supplied, take the n-th selected form
+        :type nr: :class:`int`
+        :rtype: :class:`Form`
+        :raises: :class:`FormNotFound` if no form is found
+        """
         i = 0
         for el in self.doc.xpath(xpath):
             if name is not None and el.attrib.get('name', '') != name:
@@ -617,12 +662,14 @@ class ListElement(AbstractElement):
 
 
 class SkipItem(Exception):
-    pass
+    """
+    Raise this exception in an :class:`ItemElement` subclass to skip an item.
+    """
 
 
 class _ItemElementMeta(type):
     """
-    Private meta-class used to keep order of obj_* attributes in ItemElement.
+    Private meta-class used to keep order of obj_* attributes in :class:`ItemElement`.
     """
     def __new__(mcs, name, bases, attrs):
         _attrs = []

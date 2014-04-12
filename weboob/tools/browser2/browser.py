@@ -120,10 +120,25 @@ class BaseBrowser(object):
     """
 
     PROFILE = Firefox()
+    """
+    Default profile used by browser to navigate on websites.
+    """
+
     TIMEOUT = 10.0
+    """
+    Default timeout during requests.
+    """
+
     REFRESH_MAX = 0.0
+    """
+    When handling a Refresh header, the browsers considers it only if the sleep
+    time in lesser than this value.
+    """
 
     VERIFY = True
+    """
+    Check SSL certificates.
+    """
 
     PROXIES = None
 
@@ -222,7 +237,7 @@ class BaseBrowser(object):
 
     def location(self, url, **kwargs):
         """
-        Like open() but also changes the current URL and response.
+        Like :meth:`open` but also changes the current URL and response.
         This is the most common method to request web pages.
 
         Other than that, has the exact same behavior of open().
@@ -393,7 +408,10 @@ class BaseBrowser(object):
 
 
 class UrlNotAllowed(Exception):
-    pass
+    """
+    Raises by :class:`DomainBrowser` when `RESTRICT_URL` is set and trying to go
+    on an url not matching `BASEURL`.
+    """
 
 
 class DomainBrowser(BaseBrowser):
@@ -410,6 +428,7 @@ class DomainBrowser(BaseBrowser):
     See absurl().
     """
 
+    RESTRICT_URL = False
     """
     URLs allowed to load.
     This can be used to force SSL (if the BASEURL is SSL) or any other leakage.
@@ -417,7 +436,6 @@ class DomainBrowser(BaseBrowser):
     Set it to a list of allowed URLs if you have multiple allowed URLs.
     More complex behavior is possible by overloading url_allowed()
     """
-    RESTRICT_URL = False
 
     def url_allowed(self, url):
         """
@@ -458,6 +476,10 @@ class DomainBrowser(BaseBrowser):
         return urljoin(base, uri)
 
     def open(self, req, *args, **kwargs):
+        """
+        Like :meth:`BaseBrowser.open` but hanldes urls without domains, using
+        the :attr:`BASEURL` attribute.
+        """
         uri = req.url if isinstance(req, requests.Request) else req
 
         url = self.absurl(uri)
