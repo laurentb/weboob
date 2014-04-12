@@ -299,6 +299,46 @@ class PagesBrowser(DomainBrowser):
             else:
                 return
 
+def pagination(func):
+    r"""
+    This helper decorator can be used to handle pagination pages easily.
+
+    When the called function raises an exception `NextPage`, it goes on the
+    wanted page and recall the function.
+
+    NextPage constructor can take an url or a Request object.
+
+    >>> class Page(HTMLPage):
+    ...     @pagination
+    ...     def iter_values(self):
+    ...         for el in self.doc.xpath('//li'):
+    ...             yield el.text
+    ...         for next in self.doc.xpath('//a'):
+    ...             raise NextPage(next.attrib['href'])
+    ...
+    >>> class Browser(PagesBrowser):
+    ...     BASEURL = 'http://people.symlink.me'
+    ...     list = URL('/~rom1/projects/weboob/list-(?P<pagenum>\d+).html', Page)
+    ...
+    >>> b = Browser()
+    >>> b.list.go(pagenum=1)
+    >>> list(b.page.iter_values())
+    ['One', 'Two', 'Three', 'Four']
+    """
+    def inner(self, *args, **kwargs):
+        page = self
+        while 1:
+            try:
+                for r in func(page, *args, **kwargs):
+                    yield r
+            except NextPage as e:
+                result = page.browser.location(e.request)
+                page = result.page
+            else:
+                return
+
+    return inner
+
 class NextPage(Exception):
     """
     Exception used for example in a BasePage to tell PagesBrowser.pagination to

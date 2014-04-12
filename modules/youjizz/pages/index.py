@@ -19,7 +19,7 @@
 
 
 from weboob.tools.browser2 import HTMLPage
-from weboob.tools.browser2.page import ListElement, method, ItemElement
+from weboob.tools.browser2.page import ListElement, method, ItemElement, pagination
 from weboob.tools.browser2.filters import Link, CleanText, Duration, Regexp
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.image import BaseImage
@@ -30,6 +30,7 @@ __all__ = ['IndexPage']
 
 
 class IndexPage(HTMLPage):
+    @pagination
     @method
     class iter_videos(ListElement):
         item_xpath = '//span[@id="miniatura"]'

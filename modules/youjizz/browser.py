@@ -47,10 +47,10 @@ class YoujizzBrowser(PagesBrowser):
         self.search.go(pattern=pattern, pagenum=1)
         assert self.search.is_here(pattern=pattern, pagenum=1)
 
-        return self.pagination(lambda: self.page.iter_videos())
+        return self.page.iter_videos()
 
     def latest_videos(self):
         self.index.go()
         assert self.index.is_here()
 
-        return self.pagination(lambda: self.page.iter_videos())
+        return self.page.iter_videos()
