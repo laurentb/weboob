@@ -76,11 +76,11 @@ class ProgramPage(HTMLPage):
                 return self.check_date(obj) and self.check_city(obj) and self.check_category(obj)
 
             def check_date(self, obj):
-                if self.env['date_from'] and obj.start_date > self.env['date_from']:
+                if self.env['date_from'] and obj.start_date >= self.env['date_from']:
                     if not self.env['date_to']:
                         return True
                     else:
-                        if obj.end_date < self.env['date_to']:
+                        if obj.end_date <= self.env['date_to']:
                             return True
                 return False
 
