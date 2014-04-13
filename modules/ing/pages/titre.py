@@ -47,7 +47,8 @@ class TitrePage(RawPage):
             invest = Investment(code)
             invest.code = unicode(code)
             invest.label = unicode(columns[0].split('{')[-1])
-            invest.quantity = int(columns[1])
+            # XXX sometimes there are decimal (!) quantities
+            invest.quantity = int(columns[1].split(',')[0])
             invest.unitprice = Decimal(FrenchTransaction.clean_amount(columns[2]))
             invest.unitvalue = Decimal(FrenchTransaction.clean_amount(columns[3]))
             invest.valuation = Decimal(FrenchTransaction.clean_amount(columns[4]))
