@@ -81,7 +81,7 @@ class URL(object):
         assert self.klass is not None, "You can use this method only if the is a BasePage class handler."
 
         if len(kwargs):
-            params = self.match(self.browser.absurl(self.build(**kwargs), base=True)).groupdict()
+            params = self.match(self.build(**kwargs)).groupdict()
         else:
             params = None
 
@@ -147,7 +147,8 @@ class URL(object):
                 url = pattern % kwargs
             except KeyError:
                 continue
-            return url
+
+            return self.browser.absurl(url, base=True)
 
         raise UrlNotResolvable('Unable to resolve URL with %r. Available are %s' % (kwargs, ', '.join([pattern for pattern, _ in patterns])))
 
