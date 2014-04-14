@@ -20,10 +20,9 @@
 
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.ordereddict import OrderedDict
-from weboob.capabilities.job import ICapJob
+from weboob.capabilities.job import ICapJob, BaseJobAdvert
 from weboob.tools.value import Value
 from .browser import IndeedBrowser
-from .job import IndeedJobAdvert
 
 __all__ = ['IndeedBackend']
 
@@ -73,21 +72,19 @@ class IndeedBackend(BaseBackend, ICapJob):
                            Value('radius', label=u'Radius', choices=radius_choices, default=''))
 
     def search_job(self, pattern=None):
-        with self.browser:
-            return self.browser.search_job(pattern=pattern)
+        return self.browser.search_job(metier=pattern)
 
     def advanced_search_job(self):
-        return self.browser.advanced_search_job(metier=self.config['metier'].get(),
-                                                limit_date=self.config['limit_date'].get(),
-                                                contrat=self.config['contrat'].get(),
-                                                place=self.config['place'].get(),
-                                                radius=self.config['radius'].get())
+        return self.browser.search_job(metier=self.config['metier'].get(),
+                                       limit_date=self.config['limit_date'].get(),
+                                       contrat=self.config['contrat'].get(),
+                                       place=self.config['place'].get(),
+                                       radius=self.config['radius'].get())
 
     def get_job_advert(self, _id, advert=None):
-        with self.browser:
-            return self.browser.get_job_advert(_id, advert)
+        return self.browser.get_job_advert(_id, advert)
 
     def fill_obj(self, advert, fields):
-        self.get_job_advert(advert.id, advert)
+        return self.get_job_advert(advert.id, advert)
 
-    OBJECTS = {IndeedJobAdvert: fill_obj}
+    OBJECTS = {BaseJobAdvert: fill_obj}
