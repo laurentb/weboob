@@ -26,7 +26,7 @@ __all__ = ['BNPEnterprise']
 
 
 class BNPEnterprise(BaseBrowser):
-    DOMAIN = 'entreprisesplus.bnpparibas.net'
+    DOMAIN = 'entreprises.bnpparibas.net'
     PROTOCOL = 'https'
     CERTHASH = '6789f1e08e18d6578dca88ce2e0354a99dbe7824736c01c9c4fa3b456d03b9e9'
 
