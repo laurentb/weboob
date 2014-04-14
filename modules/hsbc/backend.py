@@ -20,6 +20,7 @@
 
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
+from weboob.capabilities.base import find_object
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -51,12 +52,7 @@ class HSBCBackend(BaseBackend, ICapBank):
             yield account
 
     def get_account(self, _id):
-        with self.browser:
-            account = self.browser.get_account(_id)
-        if account:
-            return account
-        else:
-            raise AccountNotFound()
+        return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
 
     def iter_history(self, account):
         for tr in self.browser.get_history(account):

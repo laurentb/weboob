@@ -20,25 +20,26 @@
 from urlparse import urlparse, parse_qs
 import re
 
-from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement, SkipItem, LoggedPage
-from weboob.tools.browser2.filters import Filter, Env, CleanText, CleanDecimal, Link, Field, DateGuesser, TableCell
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
-class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
-                (re.compile('^PRLV (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
-                (re.compile('^(?P<text>.*) CARTE \d+ PAIEMENT CB\s+(?P<dd>\d{2})(?P<mm>\d{2}) ?(.*)$'),
-                                                          FrenchTransaction.TYPE_CARD),
-                (re.compile('^RETRAIT DAB (?P<dd>\d{2})(?P<mm>\d{2}) (?P<text>.*) CARTE [\*\d]+'),
-                                                          FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^CHEQUE( (?P<text>.*))?$'),  FrenchTransaction.TYPE_CHECK),
-                (re.compile('^(F )?COTIS\.? (?P<text>.*)'),FrenchTransaction.TYPE_BANK),
-                (re.compile('^(REMISE|REM CHQ) (?P<text>.*)'),FrenchTransaction.TYPE_DEPOSIT),
-               ]
+from weboob.tools.browser import  BrowserIncorrectPassword
+from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement, SkipItem, LoggedPage, pagination
+from weboob.tools.browser2.filters import Filter, Env, CleanText, CleanDecimal, Link, Field, DateGuesser, TableCell
 
-    _is_coming = False
+
+class Transaction(FrenchTransaction):
+    PATTERNS = [(re.compile(r'^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+                (re.compile(r'^PRLV (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
+                (re.compile(r'^CB (?P<text>.*)\s+(?P<dd>\d+)/(?P<mm>\d+)\s*(?P<loc>.*)'),
+                                                          FrenchTransaction.TYPE_CARD),
+                (re.compile(r'^DAB (?P<dd>\d{2})/(?P<mm>\d{2}) ((?P<HH>\d{2})H(?P<MM>\d{2}) )?(?P<text>.*?)( CB N°.*)?$'),
+                                                          FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile(r'^CHEQUE$'),                  FrenchTransaction.TYPE_CHECK),
+                (re.compile(r'^COTIS\.? (?P<text>.*)'),    FrenchTransaction.TYPE_BANK),
+                (re.compile(r'^REMISE (?P<text>.*)'),      FrenchTransaction.TYPE_DEPOSIT),
+               ]
 
 class AccountsPage(LoggedPage, HTMLPage):
     def get_frame(self):
@@ -114,6 +115,7 @@ class Pagination(object):
 
 
 class CBOperationPage(LoggedPage, HTMLPage):
+    @pagination
     @method
     class get_history(Pagination, Transaction.TransactionsElement):
         head_xpath = '//table//tr/th'
@@ -127,18 +129,22 @@ class CBOperationPage(LoggedPage, HTMLPage):
 
 class CPTOperationPage(LoggedPage, HTMLPage):
     def get_history(self):
-         for script in self.doc.xpath('//script'):
-             if script.text is None or script.text.find('\nCL(0') < 0:
-                 continue
+        for script in self.doc.xpath('//script'):
+            if script.text is None or script.text.find('\nCL(0') < 0:
+                continue
 
-             for m in re.finditer(r"CL\((\d+),'(.+)','(.+)','(.+)','([\d -\.,]+)',('([\d -\.,]+)',)?'\d+','\d+','[\w\s]+'\);", script.text, flags=re.MULTILINE):
-                 op = Transaction(m.group(1))
-                 op.parse(date=m.group(3), raw=re.sub(u'[ ]+', u' ', m.group(4).replace(u'\n', u' ')))
-                 op.set_amount(m.group(5))
-                 op._coming = (re.match('\d+/\d+/\d+', m.group(2)) is None)
-                 yield op
+            for m in re.finditer(r"CL\((\d+),'(.+)','(.+)','(.+)','([\d -\.,]+)',('([\d -\.,]+)',)?'\d+','\d+','[\w\s]+'\);", script.text, flags=re.MULTILINE):
+                op = Transaction(m.group(1))
+                op.parse(date=m.group(3), raw=re.sub(u'[ ]+', u' ', m.group(4).replace(u'\n', u' ')))
+                op.set_amount(m.group(5))
+                op._coming = (re.match(r'\d+/\d+/\d+', m.group(2)) is None)
+                yield op
 
 class LoginPage(HTMLPage):
+    def on_load(self):
+        for message in self.doc.getroot().cssselect('div.csPanelErrors, div.csPanelAlert'):
+            raise BrowserIncorrectPassword(CleanText('.')(message))
+
     def login(self, login):
         form = self.get_form(nr=2)
         form['userid'] = login
@@ -152,12 +158,15 @@ class LoginPage(HTMLPage):
         else:
             return a.attrib['href']
 
-    def login_w_secure(self, login, password, secret):
+    def login_w_secure(self, password, secret):
         form = self.get_form(nr=0)
         form['memorableAnswer'] = secret
         inputs = self.doc.xpath(u'//input[starts-with(@id, "keyrcc_password_first")]')
         split_pass = u''
-        for i,inpu in enumerate(inputs):
+        if len(password) != len(inputs):
+            raise BrowserIncorrectPassword('Your password must be %d chars long' % len(inputs))
+
+        for i, inpu in enumerate(inputs):
             #The good field are 1,2,3 and the bad one are 11,12,21,23,24,31 and so one
             if int(inpu.attrib['id'].split('first')[1]) < 10:
                 split_pass += password[i]

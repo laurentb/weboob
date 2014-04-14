@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import ssl
 from datetime import timedelta
 
 from weboob.tools.date import LinearDateGuesser
@@ -30,21 +31,29 @@ __all__ = ['HSBC']
 
 
 class HSBC(LoginBrowser):
-    VERIFY = False
     BASEURL = 'https://client.hsbc.fr'
-    CERTHASH = '48d84a782728eeeb622e9ff721688365e24f555ae1aec49b3be33831c7fe24e6'
-    connection =        URL('https://www.hsbc.fr/1/2/hsbc-france/particuliers/connexion', LoginPage)
-    login =             URL('https://www.hsbc.fr/1/*', LoginPage)
-    cptPage =            URL('/cgi-bin/emcgi.*\&CPT_IdPrestation.*',
-                            '/cgi-bin/emcgi.*\&Ass_IdPrestation.*',
-                            CPTOperationPage)
-    cbPage =          URL('/cgi-bin/emcgi.*\&CB_IdPrestation.*',
-                             CBOperationPage)
-    accounts =          URL('/cgi-bin/emcgi', AccountsPage)
+
+    connection =      URL(r'https://www.hsbc.fr/1/2/hsbc-france/particuliers/connexion', LoginPage)
+    login =           URL(r'https://www.hsbc.fr/1/*', LoginPage)
+    cptPage =         URL(r'/cgi-bin/emcgi.*\&CPT_IdPrestation.*',
+                          r'/cgi-bin/emcgi.*\&Ass_IdPrestation.*',
+                          CPTOperationPage)
+    cbPage =          URL(r'/cgi-bin/emcgi.*\&CB_IdPrestation.*',
+                          CBOperationPage)
+    accounts =        URL(r'/cgi-bin/emcgi', AccountsPage)
 
     def __init__(self, username, password, secret, *args, **kwargs):
         self.secret = secret
         LoginBrowser.__init__(self, username, password, *args, **kwargs)
+
+    def prepare_request(self, req):
+        preq = super(HSBC, self).prepare_request(req)
+
+        conn = self.session.adapters['https://'].get_connection(preq.url)
+        conn.ssl_version = ssl.PROTOCOL_TLSv1
+
+        return preq
+
 
     def home(self):
         return self.login.go()
@@ -58,7 +67,7 @@ class HSBC(LoginBrowser):
             raise BrowserIncorrectPassword()
         self.location(no_secure_key_link)
 
-        self.page.login_w_secure(self.login, self.password, self.secret)
+        self.page.login_w_secure(self.password, self.secret)
         self.page.useless_form()
 
         home_url = self.page.get_frame()
@@ -90,7 +99,7 @@ class HSBC(LoginBrowser):
 
         if self.cbPage.is_here():
             guesser = LinearDateGuesser(date_max_bump=timedelta(45))
-            return self.pagination(lambda: self.page.get_history(date_guesser=guesser))
+            return self.page.get_history(date_guesser=guesser)
         else:
             return self._get_history()
 
