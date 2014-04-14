@@ -247,6 +247,9 @@ class BaseApplication(object):
         return version
 
     def _do_complete_obj(self, backend, fields, obj):
+        if not obj:
+            return obj
+
         obj.backend = backend.name
         if fields is None or len(fields) > 0:
             backend.fillobj(obj, fields)
