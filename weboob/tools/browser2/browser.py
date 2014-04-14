@@ -285,8 +285,8 @@ class BaseBrowser(object):
         :rtype: :class:`requests.Response`
         """
         req = self.build_request(url, referrer, **kwargs)
+        preq = self.prepare_request(req)
 
-        preq = self.session.prepare_request(req)
         if hasattr(preq, '_cookies'):
             # The _cookies attribute is not present in requests < 2.2. As in
             # previous version it doesn't calls extract_cookies_to_jar(), it is
@@ -344,6 +344,14 @@ class BaseBrowser(object):
             req.headers.setdefault('Referer', referrer)
 
         return req
+
+    def prepare_request(self, req):
+        """
+        Get a prepared request from a Request object.
+
+        This method aims to be overloaded by children classes.
+        """
+        return self.session.prepare_request(req)
 
     REFRESH_RE = re.compile("^(?P<sleep>[\d\.]+)(; url=[\"']?(?P<url>.*?)[\"']?)?$", re.IGNORECASE)
 
