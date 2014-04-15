@@ -28,7 +28,7 @@ __all__ = ['Paypal']
 class Paypal(BaseBrowser):
     DOMAIN = 'www.paypal.com'
     PROTOCOL = 'https'
-    CERTHASH = ['96753399cf183334cef00a72719ea8e13cfe68d1e953006348f41f884180de15', '9a4d78f2b26abed567a05e967f1e429202a95e215212b5e320efea833742486a']
+    CERTHASH = ['b8f6c76050ed3035aab08474b1da0ff783f20d114b1740e8db275fe433ff69af', '96753399cf183334cef00a72719ea8e13cfe68d1e953006348f41f884180de15']
     ENCODING = 'UTF-8'
     PAGES = {
         '/cgi-bin/webscr\?cmd=_login-run$':             LoginPage,
