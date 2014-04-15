@@ -750,12 +750,15 @@ class TableElement(ListElement):
         for attrname in dir(self):
             m = re.match('col_(.*)', attrname)
             if m:
-                columns[m.group(1)] = getattr(self, attrname)
+                cols = getattr(self, attrname)
+                if not isinstance(cols, (list,tuple)):
+                    cols = [cols]
+                columns[m.group(1)] = [s.lower() for s in cols]
 
         for colnum, el in enumerate(self.el.xpath(self.head_xpath)):
-            title = self.cleaner.clean(el).capitalize()
+            title = self.cleaner.clean(el).lower()
             for name, titles in columns.iteritems():
-                if title in titles or title == titles:
+                if title in titles:
                     self._cols[name] = colnum
 
     def get_colnum(self, name):
