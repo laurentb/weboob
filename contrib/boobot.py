@@ -19,6 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from datetime import datetime
 import logging
 import re
 import os
@@ -28,6 +29,7 @@ from threading import Thread, Event
 from math import log
 import urlparse
 import urllib
+from random import randint, choice
 
 from irc.bot import SingleServerIRCBot
 import mechanize
@@ -39,6 +41,7 @@ from weboob.tools.browser import StandardBrowser, BrowserUnavailable
 from weboob.tools.misc import get_backtrace
 from weboob.tools.misc import to_unicode
 from weboob.tools.storage import StandardStorage
+from weboob.tools.application.base import ApplicationStorage
 
 IRC_CHANNELS = os.getenv('BOOBOT_CHANNELS', '#weboob').split(',')
 IRC_NICKNAME = os.getenv('BOOBOT_NICKNAME', 'boobot')
@@ -177,7 +180,7 @@ class MyThread(Thread):
         self.weboob = Weboob(storage=StandardStorage(STORAGE_FILE))
         self.weboob.load_backends()
         self.bot = bot
-        self.bot.weboob = self.weboob
+        self.bot.set_weboob(self.weboob)
 
     def run(self):
         for ev in self.bot.joined.itervalues():
@@ -236,6 +239,12 @@ class Boobot(SingleServerIRCBot):
         for channel in channels:
             self.joined[channel] = Event()
         self.weboob = None
+        self.storage = None
+
+    def set_weboob(self, weboob):
+        self.weboob = weboob
+        self.storage = ApplicationStorage('boobot', weboob.storage)
+        self.storage.load({})
 
     def on_welcome(self, c, event):
         for channel in self.joined.keys():
@@ -272,6 +281,52 @@ class Boobot(SingleServerIRCBot):
         for m in re.findall(u'(https?://[^\s\xa0+]+)', text):
             for msg in self.on_url(m):
                 self.send_message(msg, channel)
+
+        m = re.match('^%(?P<cmd>\w+)(?P<args>.*)$', text)
+        if m and hasattr(self, 'cmd_%s' % m.groupdict()['cmd']):
+            getattr(self, 'cmd_%s' %  m.groupdict()['cmd'])(nick, channel, m.groupdict()['args'].strip())
+
+    def cmd_addquote(self, nick, channel, text):
+        quotes = self.storage.get(channel, 'quotes', default=[])
+        quotes.append({'author': nick, 'timestamp': datetime.now(), 'text': text})
+        self.storage.set(channel, 'quotes', quotes)
+        self.storage.save()
+
+    def cmd_searchquote(self, nick, channel, text):
+        try:
+            pattern = re.compile(text, re.IGNORECASE)
+        except Exception as e:
+            self.send_message(str(e), channel)
+            return
+
+        quotes = []
+        for quote in self.storage.get(channel, 'quotes', default=[]):
+            if pattern.search(quote['text']):
+                quotes.append(quote)
+
+        try:
+            quote = choice(quotes)
+        except IndexError:
+            self.send_message('No match', channel)
+        else:
+            self.send_message('%s' % quote['text'], channel)
+
+    def cmd_getquote(self, nick, channel, text):
+        quotes = self.storage.get(channel, 'quotes', default=[])
+        if len(quotes) == 0:
+            return
+
+        try:
+            n = int(text)
+        except ValueError:
+            n = randint(0, len(quotes)-1)
+
+        try:
+            quote = quotes[n]
+        except IndexError:
+            self.send_message('Unable to find quote #%s' % n, channel)
+        else:
+            self.send_message('[%s] %s' % (n, quote['text']), channel)
 
     def on_boobid(self, boobid):
         _id, backend_name = boobid.split('@', 1)
