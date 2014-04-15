@@ -260,7 +260,7 @@ class Boobot(SingleServerIRCBot):
 
     def send_message(self, msg, channel=None):
         for m in msg.splitlines():
-            self.connection.privmsg(channel or self.mainchannel, m)
+            self.connection.privmsg(to_unicode(channel or self.mainchannel), to_unicode(m)[:450])
 
     def on_pubmsg(self, c, event):
         # irclib 5.0 compatibility
@@ -340,7 +340,7 @@ class Boobot(SingleServerIRCBot):
                             yield msg
                     except Exception as e:
                         print get_backtrace()
-                        yield 'Oops: [%s] %s' % (type(e).__name__, e)
+                        yield u'Oops: [%s] %s' % (type(e).__name__, e)
                     break
 
     def on_url(self, url):
@@ -357,7 +357,7 @@ class Boobot(SingleServerIRCBot):
             yield u'URL (error): %s' % e
         except Exception as e:
             print get_backtrace()
-            yield 'Oops: [%s] %s' % (type(e).__name__, e)
+            yield u'Oops: [%s] %s' % (type(e).__name__, e)
 
     def obj_info_video(self, backend, id):
         v = backend.get_video(id)
