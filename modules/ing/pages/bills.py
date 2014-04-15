@@ -20,7 +20,7 @@
 from weboob.capabilities.bill import Bill, Subscription
 from weboob.tools.browser2 import HTMLPage, LoggedPage
 from weboob.tools.browser2.filters import Filter, Attr, CleanText, Format, Field, Env
-from weboob.tools.browser2.page import ListElement, ItemElement, method
+from weboob.tools.browser2.page import ListElement, ItemElement, method, pagination
 
 
 __all__ = ['BillsPage']
@@ -53,6 +53,7 @@ class BillsPage(LoggedPage, HTMLPage):
         form[_id] = _id
         form.submit()
 
+    @pagination
     @method
     class iter_bills(ListElement):
         item_xpath = '//ul[@id="statements_form:statementsel"]/li'
