@@ -24,7 +24,7 @@ import re
 
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
-from weboob.tools.browser2.page import HTMLPage, LoggedPage, method, ListElement, ItemElement
+from weboob.tools.browser2.page import HTMLPage, LoggedPage, method, ListElement, ItemElement, pagination
 from weboob.tools.browser2.filters import Attr, CleanText, CleanDecimal, Filter, Field, MultiFilter, Date, Lower
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -130,6 +130,7 @@ class AccountsList(LoggedPage, HTMLPage):
             obj_coming = NotAvailable
             obj__jid = Attr('//input[@name="javax.faces.ViewState"]', 'value')
 
+    @pagination
     @method
     class get_transactions(ListElement):
         item_xpath = '//table'

@@ -214,7 +214,7 @@ class IngBrowser(LoginBrowser):
                 "transfer_issuer_radio": subscription.id
                 }
         self.billpage.go(data=data)
-        return self.pagination(lambda: self.page.iter_bills(subid=subscription.id))
+        return self.page.iter_bills(subid=subscription.id)
 
     def predownload(self, bill):
         self.page.postpredown(bill._localid)
