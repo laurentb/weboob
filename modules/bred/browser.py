@@ -31,15 +31,15 @@ __all__ = ['BredBrowser']
 class BredBrowser(BaseBrowser):
     PROTOCOL = 'https'
     DOMAIN = 'www.bred.fr'
-    CERTHASH = ['375f1fed165d34aacaaf71674ab14ca6c1b38404cf748278714fde3c58385ff0', '0853a056453b56aea6a29085ef3f3721b18db2052aa8e84220720d44e0eb22af']
+    CERTHASH = ['9b77dab9c84e1dc9e0798de561a6541ff15f038f60b36ca74c29be1def6c19a3', '375f1fed165d34aacaaf71674ab14ca6c1b38404cf748278714fde3c58385ff0', '0853a056453b56aea6a29085ef3f3721b18db2052aa8e84220720d44e0eb22af']
     ENCODING = 'iso-8859-15'
-    PAGES = {'https://www.\w+.fr/mylittleform.*':                      LoginPage,
-             'https://www.\w+.fr/Andromede/MainAuth.*':                LoginResultPage,
-             'https://www.\w+.fr/Andromede/Main':                      AccountsPage,
-             'https://www.\w+.fr/Andromede/Ecriture':                  TransactionsPage,
-             'https://www.\w+.fr/Andromede/applications/index.jsp':    EmptyPage,
-             'https://www.bred.fr/':                                   EmptyPage,
-             'https://www.dispobank.fr/?':                             LoginPage,
+    PAGES = {r'https://www.\w+.fr/mylittleform.*':                      LoginPage,
+             r'https://www.\w+.fr/Andromede/MainAuth.*':                LoginResultPage,
+             r'https://www.\w+.fr/Andromede/Main':                      AccountsPage,
+             r'https://www.\w+.fr/Andromede/Ecriture':                  TransactionsPage,
+             r'https://www.\w+.fr/Andromede/applications/index.jsp':    EmptyPage,
+             r'https://www.bred.fr/':                                   EmptyPage,
+             r'https://www.dispobank.fr/?':                             LoginPage,
             }
 
     URLS = {'bred': {'home': 'https://www.bred.fr/Andromede/Main',
