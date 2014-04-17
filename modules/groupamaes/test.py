@@ -28,4 +28,5 @@ class GroupamaesTest(BackendTest):
         l = list(self.backend.iter_accounts())
         if len(l) > 0:
             a = l[0]
+            self.assertTrue(self.backend.get_account(l[0].id) is not None)
             list(self.backend.iter_history(a))

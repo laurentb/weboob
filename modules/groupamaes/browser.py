@@ -59,9 +59,3 @@ class GroupamaesBrowser(LoginBrowser):
         transactions = list(self.operations_futures.go().get_list())
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions
-
-    def get_account(self, id):
-        assert isinstance(id, basestring)
-        for a in self.get_accounts_list():
-            if a.id == id:
-                return a

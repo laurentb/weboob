@@ -20,7 +20,7 @@
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-
+from weboob.capabilities.base import find_object
 
 from .browser import GroupamaesBrowser
 
@@ -54,8 +54,4 @@ class GroupamaesBackend(BaseBackend, ICapBank):
         return self.browser.get_history()
 
     def get_account(self, _id):
-        account = self.browser.get_account(_id)
-        if account:
-            return account
-        else:
-            raise AccountNotFound()
+        return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
