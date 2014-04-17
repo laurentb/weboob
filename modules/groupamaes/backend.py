@@ -30,7 +30,7 @@ __all__ = ['GroupamaesBackend']
 
 class GroupamaesBackend(BaseBackend, ICapBank):
     NAME = 'groupamaes'
-    DESCRIPTION = u'groupama-es website'
+    DESCRIPTION = u"Groupama Épargne Salariale"
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
     LICENSE = 'AGPLv3+'
