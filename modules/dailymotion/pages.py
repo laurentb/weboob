@@ -38,7 +38,7 @@ __all__ = ['IndexPage', 'VideoPage', 'KidsVideoPage']
 
 class IndexPage(BasePage):
     def iter_videos(self):
-        for div in self.parser.select(self.document.getroot(), 'div.pl_videos_videolistitem'):
+        for div in self.parser.select(self.document.getroot(), 'div.sd_video_listitem'):
             smalldiv = self.parser.select(div, 'div.sd_video_previewtwig', 1)
             _id = smalldiv.attrib.get('data-id', None)
 
