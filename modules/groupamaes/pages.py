@@ -21,7 +21,6 @@
 from weboob.tools.browser2.page import HTMLPage, method, TableElement, ItemElement, LoggedPage
 from weboob.tools.browser2.filters import CleanText, CleanDecimal, TableCell, Date
 from weboob.capabilities.bank import Account, Transaction
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import LinearDateGuesser
 
 __all__ = ['LoginPage', 'LoginErrorPage', 'AvoirPage', 'OperationsFuturesPage', 'OperationsTraiteesPage']
