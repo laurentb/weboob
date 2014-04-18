@@ -25,12 +25,12 @@ __all__ = ['Freemobile']
 
 
 class Freemobile(LoginBrowser):
-    BASEURL = 'https://mobile.free.fr'
+    BASEURL = 'https://mobile.free.fr/moncompte/'
 
-    homepage = URL('/moncompte/index.php\?page=home', HomePage)
-    detailspage = URL('/moncompte/index.php\?page=suiviconso', DetailsPage)
-    loginpage = URL('/moncompte/index.php', LoginPage)
-    historypage = URL('/moncompte/ajax.php\?page=consotel_current_month', HistoryPage)
+    homepage = URL('index.php\?page=home', HomePage)
+    detailspage = URL('index.php\?page=suiviconso', DetailsPage)
+    loginpage = URL('index.php', LoginPage)
+    historypage = URL('ajax.php\?page=consotel_current_month', HistoryPage)
 
     def do_login(self):
         assert isinstance(self.username, basestring)
