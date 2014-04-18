@@ -353,10 +353,11 @@ class ReplApplication(Cmd, ConsoleApplication):
             kwargs['backends'] = backends
         fields = kwargs.pop('fields', self.selected_fields)
         if not fields and fields != []:
-            if '$direct' in fields:
-                fields = []
-            elif '$full' in fields:
-                fields = None
+            fields = self.selected_fields
+        if '$direct' in fields:
+            fields = []
+        elif '$full' in fields:
+            fields = None
         return self.weboob.do(self._do_complete, self.options.count, fields, function, *args, **kwargs)
 
     # -- command tools ------------
