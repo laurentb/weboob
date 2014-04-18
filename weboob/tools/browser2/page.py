@@ -603,7 +603,7 @@ class ListElement(AbstractElement):
 
     def __init__(self, *args, **kwargs):
         super(ListElement, self).__init__(*args, **kwargs)
-
+        self.logger = getLogger(self.__class__.__name__.lower())
         self.objects = {}
 
     def __call__(self, *args, **kwargs):
@@ -650,8 +650,10 @@ class ListElement(AbstractElement):
     def store(self, obj):
         if obj.id:
             if obj.id in self.objects:
-                raise DataError('There are two objects with the same ID! %s' % obj.id)
-            self.objects[obj.id] = obj
+                self.logger.error('There are two objects with the same ID! %s' % obj.id)
+                return
+            else:
+                self.objects[obj.id] = obj
         return obj
 
     def handle_element(self, el):
@@ -659,7 +661,9 @@ class ListElement(AbstractElement):
             attr = getattr(self, attrname)
             if isinstance(attr, type) and issubclass(attr, AbstractElement) and attr != type(self):
                 for obj in attr(self.page, self, el):
-                    yield self.store(obj)
+                    obj = self.store(obj)
+                    if obj:
+                        yield obj
 
 
 class SkipItem(Exception):
