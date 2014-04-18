@@ -161,8 +161,8 @@ class URL(object):
             base = self.browser.BASEURL
 
         for regex in self.urls:
-            if regex.startswith('/'):
-                regex = re.escape(base) + regex
+            if not re.match(r'^\w+://.*', regex):
+                regex = re.escape(base).rstrip('/') + '/' + regex.lstrip('/')
             m = re.match(regex, url)
             if m:
                 return m
