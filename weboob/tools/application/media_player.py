@@ -20,6 +20,8 @@
 
 import os
 from subprocess import PIPE, Popen
+import cookielib
+import urllib2
 
 from weboob.tools.log import getLogger
 
@@ -83,12 +85,18 @@ class MediaPlayer(object):
         if media.url.startswith('rtmp'):
             self._play_rtmp(media, player_name, args=player_args)
         else:
-            self._play_default(media, player_name)
+            self._play_default(media, player_name, args=player_args)
 
-    def _play_default(self, media, player_name):
+    def _play_default(self, media, player_name, args=None):
         """
         Play media.url with the media player.
         """
+        # if flag play_proxy...
+        if hasattr(media, '_play_proxy') and media._play_proxy == True:
+           # use urllib2 to handle redirect and cookies
+            self._play_proxy(media, player_name, args)
+            return None
+
         args = player_name.split(' ')
 
         player_name = args[0]
@@ -96,6 +104,46 @@ class MediaPlayer(object):
 
         print 'Invoking "%s".' % (' '.join(args))
         os.spawnlp(os.P_WAIT, player_name, *args)
+
+    def _play_proxy(self, media, player_name, args):
+        """
+        Load data with python urllib2 and pipe data to a media player.
+
+        We need this function for url that use redirection and cookies.
+        This function is used if the non-standard,
+        non-API compliant '_play_proxy' attribute of the 'media' object is defined and is True.
+        """
+        if args is None:
+            for (binary, stdin_args) in PLAYERS:
+                if binary == player_name:
+                    args = stdin_args
+
+        assert args is not None
+
+        print ':: Play_proxy streaming from %s' % media.url
+        print ':: to %s %s' % (player_name, args)
+        print player_name + ' ' + args
+        proc = Popen(player_name + ' ' + args, stdin=PIPE, shell=True)
+
+        # Handle cookies (and redirection 302...)
+        cj = cookielib.CookieJar()
+        url_opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+
+        url_handler = url_opener.open(media.url)
+        file_size = int(url_handler.info().getheaders("Content-Length")[0])
+        file_size_dl = 0
+        block_sz = 8192
+        while file_size_dl < file_size:
+            _buffer = url_handler.read(block_sz)
+            if not buffer:
+                break
+
+            file_size_dl += len(_buffer)
+            try:
+                proc.stdin.write(_buffer)
+            except:
+                print "play_proxy broken pipe. Can't write anymore."
+                break
 
     def _play_rtmp(self, media, player_name, args):
         """
