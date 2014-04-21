@@ -40,6 +40,10 @@ class Split(Filter):
             unit = txt.split(':')[-1].split()[1]
             if unit == u"W/m":
                 unit = u"W/m²"
+        try:
+            value = float(value)
+        except ValueError:
+            value = NotAvailable
         return [value, unit][self.mode]
 
 
@@ -60,6 +64,6 @@ class StartPage(HTMLPage):
 
             def obj_lastvalue(self):
                 lastvalue = GaugeMeasure()
-                lastvalue.level = float(Split(CleanText('.'), 0)(self))
+                lastvalue.level = Split(CleanText('.'), 0)(self)
                 lastvalue.alarm = NotAvailable
                 return lastvalue
