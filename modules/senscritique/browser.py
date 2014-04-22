@@ -23,6 +23,7 @@ from .calendar import SensCritiquenCalendarEvent
 from .pages import AjaxPage, EventPage, JsonResumePage
 
 import re
+from lxml.etree import XMLSyntaxError
 
 __all__ = ['SenscritiqueBrowser']
 
@@ -88,13 +89,16 @@ class SenscritiqueBrowser(PagesBrowser):
 
         self._setup_session(SensCritiqueAjaxProfile())
         while True:
-            self.DATA['page'] = '%d' % page_nb
-            page = self.ajax_page.open(data=self.DATA)
-            nb_events = page.count_events()
-            events = page.list_events(date_from=date_from, date_to=date_to)
+            try:
+                self.DATA['page'] = '%d' % page_nb
+                page = self.ajax_page.open(data=self.DATA)
+                nb_events = page.count_events()
+                events = page.list_events(date_from=date_from, date_to=date_to)
 
-            for event in events:
-                yield event
+                for event in events:
+                    yield event
+            except XMLSyntaxError:
+                break
 
             if nb_events < self.LIMIT or page_nb >= self.LIMIT_NB_PAGES:
                 break
