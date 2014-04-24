@@ -104,6 +104,7 @@ class AjaxPage(HTMLPage):
     @method
     class list_events(ListElement):
         item_xpath = '//a'
+        ignore_duplicate = True
 
         class item(ItemElement):
             klass = SensCritiquenCalendarEvent
