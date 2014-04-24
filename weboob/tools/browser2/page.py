@@ -600,6 +600,7 @@ class AbstractElement(object):
 class ListElement(AbstractElement):
     item_xpath = None
     flush_at_end = False
+    ignore_duplicate = False
 
     def __init__(self, *args, **kwargs):
         super(ListElement, self).__init__(*args, **kwargs)
@@ -650,10 +651,12 @@ class ListElement(AbstractElement):
     def store(self, obj):
         if obj.id:
             if obj.id in self.objects:
-                self.logger.error('There are two objects with the same ID! %s' % obj.id)
-                return
-            else:
-                self.objects[obj.id] = obj
+                if self.ignore_duplicate:
+                    self.logger.warning('There are two objects with the same ID! %s' % obj.id)
+                    return
+                else:
+                    raise DataError('There are two objects with the same ID! %s' % obj.id)
+            self.objects[obj.id] = obj
         return obj
 
     def handle_element(self, el):
