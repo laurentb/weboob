@@ -649,7 +649,7 @@ class ListElement(AbstractElement):
 
 
     def store(self, obj):
-        if obj.id is not None:
+        if obj.id:
             if obj.id in self.objects:
                 if self.ignore_duplicate:
                     self.logger.warning('There are two objects with the same ID! %s' % obj.id)
