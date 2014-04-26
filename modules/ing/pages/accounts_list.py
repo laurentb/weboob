@@ -137,7 +137,7 @@ class AccountsList(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_id = None  # will be overwrited by the browser 
+            obj_id = None  # will be overwrited by the browser
             # we use lower for compatibility with the old website
             obj_raw = Transaction.Raw(Lower('.//td[@class="lbl"]'))
             obj_amount = CleanDecimal('.//td[starts-with(@class, "amount")]')
