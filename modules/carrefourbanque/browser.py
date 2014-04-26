@@ -18,36 +18,23 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import urllib
+from weboob.tools.browser2 import LoginBrowser, URL, need_login
+from weboob.tools.browser import BrowserIncorrectPassword
 
-from weboob.tools.browser import BaseBrowser
-
-from .pages import LoginPage, HomePage, AccountsPage, TransactionsPage
+from .pages import LoginPage, HomePage, TransactionsPage
 
 
 __all__ = ['CarrefourBanque']
 
 
-class CarrefourBanque(BaseBrowser):
-    PROTOCOL = 'https'
-    DOMAIN = 'services.carrefour-banque.fr'
-    ENCODING = 'iso-8859-15'
-    PAGES = {'https?://services.carrefour-banque.fr/s2pnet/publ/identification.do':             LoginPage,
-             'https?://services.carrefour-banque.fr/stscripts/run.stn/s2p/SommairePS2P':        HomePage,
-             'https?://services.carrefour-banque.fr/s2pnet/priv/disponible.do':                 AccountsPage,
-             'https?://services.carrefour-banque.fr/s2pnet/priv/consult.do\?btnTelechargement': (TransactionsPage, 'raw'),
-            }
+class CarrefourBanque(LoginBrowser):
+    BASEURL = 'https://www.carrefour-banque.fr'
 
-    def is_logged(self):
-        return self.page is not None and not self.is_on_page(LoginPage)
+    login = URL('/espace-client/connexion', LoginPage)
+    home = URL('/espace-client$', HomePage)
+    transactions = URL('/espace-client/carte-credit/solde-dernieres-operations.*', TransactionsPage)
 
-    def home(self):
-        if self.is_logged():
-            self.location('/s2pnet/priv/disponible.do')
-        else:
-            self.login()
-
-    def login(self):
+    def do_login(self):
         """
         Attempt to log in.
         Note: this method does nothing if we are already logged in.
@@ -55,41 +42,21 @@ class CarrefourBanque(BaseBrowser):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
-        if self.is_logged():
-            return
+        self.login.go()
+        self.page.enter_login(self.username)
+        self.page.enter_password(self.password)
 
-        args = {'login': '',
-                'loginCBPASS': self.username.encode(self.ENCODING),
-                'motPasse': self.password.encode(self.ENCODING),
-                'testJS': 'true',
-                'x': 8,
-                'y': 4,
-               }
+        if not self.home.is_here():
+            raise BrowserIncorrectPassword()
 
-        self.location('https://services.carrefour-banque.fr/s2pnet/publ/identification.do', urllib.urlencode(args), no_login=True)
-
-        assert self.is_on_page(LoginPage)
-
-        # raises BrowserIncorrectPassword if no redirect form is found
-        self.page.redirect()
-
+    @need_login
     def get_accounts_list(self):
-        if not self.is_on_page(AccountsPage):
-            self.location('/s2pnet/priv/disponible.do')
+        self.home.stay_or_go()
         return self.page.get_list()
 
-    def get_account(self, id):
-        assert isinstance(id, basestring)
-
-        l = self.get_accounts_list()
-        for a in l:
-            if a.id == id:
-                return a
-
-        return None
-
+    @need_login
     def iter_history(self, account):
-        self.location('/s2pnet/priv/consult.do?btnTelechargement')
+        self.location(account._link)
 
-        assert self.is_on_page(TransactionsPage)
+        assert self.transactions.is_here()
         return self.page.get_history(account)
