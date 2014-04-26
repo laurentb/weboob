@@ -61,4 +61,15 @@ class CardHistory(BasePage):
                 yield operation
 
     def get_next_url(self):
-        return None
+        items = self.document.getroot().cssselect('ul.menu-lvl-1 li')
+
+        current = False
+        for li in reversed(items):
+            if li.attrib.get('class', '') == 'active':
+                current = True
+            elif current:
+                a = li.find('a')
+                if 'year' in a.attrib.get('href', ''):
+                    return a.attrib['href']
+                else:
+                    return None
