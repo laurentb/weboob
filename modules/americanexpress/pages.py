@@ -50,13 +50,12 @@ class AccountsPage(BasePage):
             a = Account()
             a.id = self.parser.tocleanstring(box.xpath('.//tr[@id="summaryImageHeaderRow"]//div[@class="summaryTitles"]')[0])
             a.label = self.parser.tocleanstring(box.xpath('.//span[@class="cardTitle"]')[0])
-            a.balance = Decimal('0.0')
-            coming = self.parser.tocleanstring(self.parser.select(box, 'td#colOSBalance div.summaryValues', 1))
-            if coming in (u'Indisponible', ''):
-                a.coming = NotAvailable
+            balance = self.parser.tocleanstring(self.parser.select(box, 'td#colOSBalance div.summaryValues', 1))
+            if balance in (u'Indisponible', ''):
+                a.balance = NotAvailable
             else:
-                a.coming = - abs(Decimal(Transaction.clean_amount(coming)))
-                a.currency = a.get_currency(coming)
+                a.balance = - abs(Decimal(Transaction.clean_amount(balance)))
+                a.currency = a.get_currency(balance)
             a._link = self.parser.select(box, 'div.summaryTitles a.summaryLink', 1).attrib['href']
 
             yield a
