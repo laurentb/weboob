@@ -345,8 +345,8 @@ class DateTime(Filter):
         self.translations = translations
 
     def filter(self, txt):
-        if empty(txt):
-            return txt
+        if empty(txt) or txt == '':
+            return self.default_or_raise(ParseError('Unable to parse %r' % txt))
         try:
             if self.translations:
                  for search, repl in self.translations:
