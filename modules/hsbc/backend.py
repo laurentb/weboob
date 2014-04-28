@@ -39,7 +39,7 @@ class HSBCBackend(BaseBackend, ICapBank):
     DESCRIPTION = 'HSBC France'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Identifiant', masked=False),
                            ValueBackendPassword('password',   label='Mot de passe'),
-                           Value(               'secret',     label=u'Réponse secrète (optionnel)', default=''))
+                           Value(               'secret',     label=u'Réponse secrète'))
     BROWSER = HSBC
 
     def create_default_browser(self):
