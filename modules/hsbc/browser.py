@@ -79,16 +79,7 @@ class HSBC(LoginBrowser):
     def get_accounts_list(self):
         return self.accounts.stay_or_go().iter_accounts()
 
-    def get_account(self, id):
-        assert isinstance(id, basestring)
-        l = self.get_accounts_list()
-
-        for a in l:
-            if a.id == id:
-                return a
-
-        return None
-
+    @need_login
     def get_history(self, account):
         if account._link_id is None:
             return
