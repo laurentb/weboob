@@ -142,7 +142,7 @@ class CPTOperationPage(LoggedPage, HTMLPage):
 
 class LoginPage(HTMLPage):
     def on_load(self):
-        for message in self.doc.getroot().cssselect('div.csPanelErrors, div.csPanelAlert'):
+        for message in self.doc.getroot().cssselect('div.csPanelErrors'):
             raise BrowserIncorrectPassword(CleanText('.')(message))
 
     def login(self, login):
