@@ -488,7 +488,10 @@ class Form(OrderedDict):
         """
         Get the Request object from the form.
         """
-        req = requests.Request(self.method, self.url, data=self)
+        if self.method.lower() == 'get':
+            req = requests.Request(self.method, self.url, params=self)
+        else:
+            req = requests.Request(self.method, self.url, data=self)
         req.headers.setdefault('Referer', self.page.url)
         return req
 
