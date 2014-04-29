@@ -21,7 +21,6 @@
 from lxml.html import etree
 from decimal import Decimal
 import re
-import datetime
 
 from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage, BrowserIncorrectPassword
@@ -74,8 +73,7 @@ class AccountHistoryPage(BasePage):
             label           = re.sub(r'[ \xa0]+', ' ', label).strip()
             amount          = tables[i].xpath("./td[5]/text() | ./td[6]/text()")
 
-            operation.parse(date=date_val, raw=label)
-            operation.rdate = datetime.datetime.strptime(date_oper,"%d/%m/%Y")
+            operation.parse(date=date_oper, raw=label, vdate=date_val)
 
             if amount[1] == u'\xa0':
                 amount = amount[0]
