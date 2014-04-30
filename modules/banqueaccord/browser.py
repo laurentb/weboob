@@ -18,9 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import urllib
-
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser2 import LoginBrowser, need_login, URL
+from weboob.tools.browser import BrowserIncorrectPassword
 
 from .pages import LoginPage, IndexPage, AccountsPage, OperationsPage
 
@@ -28,80 +27,53 @@ from .pages import LoginPage, IndexPage, AccountsPage, OperationsPage
 __all__ = ['BanqueAccordBrowser']
 
 
-class BanqueAccordBrowser(BaseBrowser):
-    PROTOCOL = 'https'
-    DOMAIN = 'www.banque-accord.fr'
-    ENCODING = None
+class BanqueAccordBrowser(LoginBrowser):
+    BASEURL = 'https://www.banque-accord.fr/site/s/'
+    TIMEOUT = 20.0
 
-    PAGES = {
-        'https://www.banque-accord.fr/site/s/login/login.html':                             LoginPage,
-        'https://www.banque-accord.fr/site/s/detailcompte/detailcompte.html':               IndexPage,
-        'https://www.banque-accord.fr/site/s/detailcompte/ongletdetailcompte.html':         AccountsPage,
-        'https://www.banque-accord.fr/site/s/detailcompte/ongletdernieresoperations.html':  OperationsPage,
-    }
+    login = URL('login/login.html', LoginPage)
+    index = URL('detailcompte/detailcompte.html', IndexPage)
+    accounts = URL('detailcompte/ongletdetailcompte.html', AccountsPage)
+    operations = URL('detailcompte/ongletdernieresoperations.html', OperationsPage)
 
-    def is_logged(self):
-        return self.page is not None and not self.is_on_page(LoginPage)
-
-    def home(self):
-        if self.is_logged():
-            self.location('/site/s/detailcompte/detailcompte.html')
-        else:
-            self.login()
-
-    def login(self):
+    def do_login(self):
         """
         Attempt to log in.
         Note: this method does nothing if we are already logged in.
         """
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
-
-        if self.is_logged():
-            return
-
-        self.location('/site/s/login/login.html', no_login=True)
-        assert self.is_on_page(LoginPage)
+        self.login.go()
 
         self.page.login(self.username, self.password)
 
-        if not self.is_logged():
+        if not self.index.is_here():
             raise BrowserIncorrectPassword()
 
+    @need_login
     def get_accounts_list(self):
-        if not self.is_on_page(IndexPage):
-             self.location('https://www.banque-accord.fr/site/s/detailcompte/detailcompte.html')
+        self.index.stay_or_go()
 
         for a in self.page.get_list():
             post = {'numeroCompte': a.id,}
-            self.location('/site/s/detailcompte/detailcompte.html', urllib.urlencode(post))
+            self.index.go(data=post)
 
             a.balance = self.page.get_loan_balance()
             if a.balance is not None:
                 a.type = a.TYPE_LOAN
             else:
-                self.location('/site/s/detailcompte/ongletdetailcompte.html')
+                self.accounts.go()
                 a.balance = self.page.get_balance()
                 a.type = a.TYPE_CARD
             yield a
 
-    def get_account(self, id):
-        assert isinstance(id, basestring)
-        if not self.is_on_page(IndexPage):
-            self.home()
-
-        for a in self.get_accounts_list():
-            if a.id == id:
-                return a
-        return None
-
+    @need_login
     def iter_history(self, account):
         if account.type != account.TYPE_CARD:
             return iter([])
 
         post = {'numeroCompte': account.id}
-        self.location('/site/s/detailcompte/detailcompte.html', urllib.urlencode(post))
-        self.location('/site/s/detailcompte/ongletdernieresoperations.html')
+        self.index.go(data=post)
+        self.operations.go()
 
-        assert self.is_on_page(OperationsPage)
         return self.page.get_history()
