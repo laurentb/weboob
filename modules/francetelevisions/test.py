@@ -27,11 +27,11 @@ class PluzzTest(BackendTest):
 
     def test_search(self):
         # If the test fails, it might be good news!
-        l = list(self.backend.search_videos('Plus belle la vie'))
+        l = list(self.backend.search_videos('d art'))
         self.assertTrue(len(l) > 0)
         v = l[0]
         self.backend.fillobj(v, ('url',))
-        self.assertTrue(v.url and v.url.startswith('mms://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
+        self.assertTrue(v.url, 'URL for video "%s" not found: %s' % (v.id, v.url))
 
     def test_latest(self):
         l = list(self.backend.iter_resources([BaseVideo], [u'latest']))

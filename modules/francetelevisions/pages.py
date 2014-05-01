@@ -17,71 +17,74 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import datetime
-import re
-from dateutil.parser import parse as parse_dt
-
-from weboob.capabilities import UserError
 from weboob.capabilities.image import BaseImage
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.capabilities.video import BaseVideo
 
+from datetime import timedelta
+from dateutil.parser import parse as parse_date
 
-from .video import PluzzVideo
+from weboob.tools.browser2.page import HTMLPage, method, ItemElement, ListElement, JsonPage
+from weboob.tools.browser2.filters import Filter, Link, CleanText, Regexp, Attr, Format, DateTime, Env
 
 
 __all__ = ['IndexPage', 'VideoPage']
 
 
-class IndexPage(BasePage):
-    def iter_videos(self):
-        for div in self.parser.select(self.document.getroot(), 'article.rs-cell'):
-            title = self.parser.select(div, 'h3 a', 1)
-            url = title.attrib['href']
-            m = re.match('^http://pluzz.francetv.fr/videos/(.+).html$', url)
-            if not m:
-                self.logger.debug('url %s does not match' % url)
-                continue
-            _id = m.group(1)
-            video = PluzzVideo(_id)
-            video.title = unicode(title.text.strip())
-            for p in div.xpath('.//p[@class="bientot"]'):
-                video.title += ' - %s' % p.text.split('|')[0].strip()
-            date = div.xpath('.//p[@class="diffusion"]')[0].text.split('|')[0].strip()
-            pattern = re.compile(r'(\d{2}-\d{2}-\d{2})(.*?)(\d{2}:\d{2})')
-            match = pattern.search(date)
-            if match:
-                video.date = parse_dt("%s %s" % (match.group(1), match.group(3)))
-            duration = div.xpath('.//span[@class="type-duree"]')[0].text.split('|')[1].strip()
-            if duration[-1:] == "'":
-                t = [0, int(duration[:-1])]
-            else:
-                t = map(int, duration.split(':'))
-            video.duration = datetime.timedelta(hours=t[0], minutes=t[1])
-
-            url = self.parser.select(div, 'a.vignette img', 1).attrib['src']
-            video.thumbnail = BaseImage(url)
-            video.thumbnail.url = video.thumbnail.id
-
-            yield video
-
-
-class VideoPage(BasePage):
-    def on_loaded(self):
-        p = self.parser.select(self.document.getroot(), 'p.alert')
-        if len(p) > 0:
-            raise UserError(p[0].text)
-
-    def get_info_url(self):
-        try:
-            div = self.parser.select(self.document.getroot(), 'a#current_video', 1)
-        except BrokenPageError:
-            return None
+class DurationPluzz(Filter):
+    def filter(self, el):
+        duration = Regexp(CleanText('.'), '.+\|(.+)')(el[0])
+        if duration[-1:] == "'":
+            t = [0, int(duration[:-1])]
         else:
-            m = re.match(
-                '^%s(\d+)$' % re.escape('http://info.francetelevisions.fr/?id-video='),
-                div.attrib['href'])
-            if m:
-                return r'http://pluzz.francetv.fr/appftv/webservices/video/getInfosOeuvre.php?mode=zeri&id-diffusion=%s' % m.group(1)
+            t = map(int, duration.split(':'))
+        return timedelta(hours=t[0], minutes=t[1])
 
-    def get_id(self):
-        return self.groups[0]
+
+class IndexPage(HTMLPage):
+
+    @method
+    class iter_videos(ListElement):
+        item_xpath = '//div[@id="section-list_results"]/article'
+
+        class item(ItemElement):
+            klass = BaseVideo
+
+            obj_title = Format('%s - %s', CleanText('h3/a'), CleanText('div[@class="rs-cell-details"]/a'))
+            obj_id = Regexp(Link('h3/a'), '^http://pluzz.francetv.fr/videos/.+,(.+).html$')
+            obj_date = DateTime(Regexp(CleanText('div/p[@class="diffusion"]', replace=[(u'à', u''), (u'  ', u' ')]), '.+(\d{2}-\d{2}-\d{2}.+\d{2}).+'))
+            obj_duration = DurationPluzz('div/span[@class="type-duree"]')
+
+            def obj_thumbnail(self):
+                url = Attr('a[@class="vignette"]/img', 'data-src')(self)
+                thumbnail = BaseImage(url)
+                thumbnail.url = thumbnail.id
+                return thumbnail
+
+
+class VideoPage(JsonPage):
+    @method
+    class get_video(ItemElement):
+        klass = BaseVideo
+
+        def parse(self, el):
+            for video in el['videos']:
+                if video['format'] != 'm3u8-download':
+                    continue
+                self.env['url'] = video['url']
+            self.env['date'] = parse_date(el['diffusion']['date_debut'], dayfirst=True)
+            self.env['title'] = u'%s - %s' % (el['titre'], el['sous_titre'])
+            hours, minutes, seconds = el['duree'].split(':')
+            self.env['duration'] = timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds))
+            url = 'http://pluzz.francetv.fr%s' % (el['image'])
+            thumbnail = BaseImage(url)
+            thumbnail.url = thumbnail.id
+            self.env['thumbnail'] = thumbnail
+            self.env['description'] = el['synopsis']
+
+        obj_id = Env('_id')
+        obj_title = Env('title')
+        obj_url = Env('url')
+        obj_date = Env('date')
+        obj_duration = Env('duration')
+        obj_thumbnail = Env('thumbnail')
+        obj_description = Env('description')

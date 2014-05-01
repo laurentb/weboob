@@ -17,76 +17,26 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import datetime
-
-from lxml import etree
-
-from weboob.tools.browser import BaseBrowser
-from weboob.tools.browser.decorators import id2url
-
+from weboob.tools.browser2 import PagesBrowser, URL
 from .pages import IndexPage, VideoPage
-from .video import PluzzVideo
-
 
 __all__ = ['PluzzBrowser']
 
 
-class PluzzBrowser(BaseBrowser):
-    DOMAIN = 'pluzz.francetv.fr'
+class PluzzBrowser(PagesBrowser):
     ENCODING = 'utf-8'
-    PAGES = {r'http://[w\.]*pluzz.francetv.fr/replay/1': IndexPage,
-             r'http://[w\.]*pluzz.francetv.fr/recherche.*': IndexPage,
-             r'http://[w\.]*pluzz.francetv.fr/videos/(.+).html': VideoPage,
-            }
 
-    @id2url(PluzzVideo.id2url)
-    def get_video(self, url, video=None):
-        self.location(url)
-        assert self.is_on_page(VideoPage)
+    BASEURL = 'http://pluzz.francetv.fr'
 
-        _id = self.page.get_id()
-        if video is None:
-            video = PluzzVideo(_id)
-
-        infourl = self.page.get_info_url()
-        if infourl is not None:
-            self.parse_info(self.openurl(infourl).read(), video)
-
-        return video
-
-    def home(self):
-        self.search_videos('')
+    index_page = URL('recherche\?recherche=(?P<pattern>.*)', IndexPage)
+    latest_page = URL('lesplusrecents', IndexPage)
+    video_page = URL('http://webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/\?idDiffusion=(?P<_id>.*)&catalogue=Pluzz', VideoPage)
 
     def search_videos(self, pattern):
-        self.location(self.buildurl('/recherche', recherche=pattern.encode('utf-8')))
+        return self.index_page.go(pattern=pattern).iter_videos()
 
-        assert self.is_on_page(IndexPage)
-        return self.page.iter_videos()
+    def get_video(self, _id, video=None):
+        return self.video_page.go(_id=_id).get_video(obj=video)
 
     def latest_videos(self):
-        self.home()
-
-        assert self.is_on_page(IndexPage)
-        return self.page.iter_videos()
-
-    def parse_info(self, data, video):
-        parser = etree.XMLParser(encoding='utf-8')
-        root = etree.XML(data, parser)
-        assert root.tag == 'oeuvre'
-
-        video.title = unicode(root.findtext('titre'))
-
-        hours, minutes, seconds = root.findtext('duree').split(':')
-        video.duration = datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds))
-
-        for vid in root.find('videos'):
-            if vid.findtext('statut') == 'ONLINE' and vid.findtext('format') == 'wmv':
-                video.url = unicode(vid.findtext('url'))
-
-        date = root.findtext('diffusions/diffusion')
-        if date:
-            video.date = datetime.datetime.strptime(date, '%d/%m/%Y %H:%M')
-
-        video.description = unicode(root.findtext('synopsis'))
-
-        return video
+        return self.latest_page.go().iter_videos()

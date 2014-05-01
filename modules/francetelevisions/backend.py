@@ -18,14 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-
 from weboob.capabilities.video import ICapVideo, BaseVideo
 from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
 
 from .browser import PluzzBrowser
-from .video import PluzzVideo
 
 
 __all__ = ['PluzzBackend']
@@ -41,21 +38,17 @@ class PluzzBackend(BaseBackend, ICapVideo, ICapCollection):
     BROWSER = PluzzBrowser
 
     def get_video(self, _id):
-        with self.browser:
-            return self.browser.get_video(_id)
+        return self.browser.get_video(_id)
 
     def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
-        with self.browser:
-            return self.browser.search_videos(pattern)
+        return self.browser.search_videos(pattern)
 
     def fill_video(self, video, fields):
         if fields != ['thumbnail']:
             # if we don't want only the thumbnail, we probably want also every fields
-            with self.browser:
-                video = self.browser.get_video(PluzzVideo.id2url(video.id), video)
+            video = self.browser.get_video(video.id, video)
         if 'thumbnail' in fields and video.thumbnail:
-            with self.browser:
-                video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
+            video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
 
         return video
 
@@ -76,4 +69,4 @@ class PluzzBackend(BaseBackend, ICapVideo, ICapCollection):
             return
         raise CollectionNotFound(collection.split_path)
 
-    OBJECTS = {PluzzVideo: fill_video}
+    OBJECTS = {BaseVideo: fill_video}
