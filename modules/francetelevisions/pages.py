@@ -51,7 +51,9 @@ class IndexPage(HTMLPage):
 
             obj_title = Format('%s - %s', CleanText('h3/a'), CleanText('div[@class="rs-cell-details"]/a'))
             obj_id = Regexp(Link('h3/a'), '^http://pluzz.francetv.fr/videos/.+,(.+).html$')
-            obj_date = DateTime(Regexp(CleanText('div/p[@class="diffusion"]', replace=[(u'à', u''), (u'  ', u' ')]), '.+(\d{2}-\d{2}-\d{2}.+\d{2}).+'))
+            obj_date = DateTime(Regexp(CleanText('div/p[@class="diffusion"]',
+                                       replace=[(u'à', u''), (u'  ', u' ')]),
+                                       '.+(\d{2}-\d{2}-\d{2}.+\d{1,2}:\d{1,2}).+'))
             obj_duration = DurationPluzz('div/span[@class="type-duree"]')
 
             def obj_thumbnail(self):
