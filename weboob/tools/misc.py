@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2013 Romain Bignon
+# Copyright(C) 2010-2014 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from logging import warning
+import warnings
 from time import time, sleep
 from tempfile import gettempdir
 import os
@@ -68,9 +68,8 @@ try:
     h2t.LINKS_EACH_PARAGRAPH = True
     html2text = h2t.html2text
 except ImportError:
-    warning('python-html2text is not present. HTML pages will not be converted into text.')
-
     def html2text(html):
+        warnings.warn('python-html2text is not present. HTML pages are not converted into text.', stacklevel=2)
         return html
 
 
