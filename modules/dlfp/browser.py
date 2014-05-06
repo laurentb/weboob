@@ -213,12 +213,14 @@ class DLFP(BaseBrowser):
         self.location('/compte/connexion', urllib.urlencode(data), no_login=True)
         if not self.is_logged():
             raise BrowserIncorrectPassword()
+        self._token = self.page.document.xpath('//input[@name="authenticity_token"]')
 
     def is_logged(self):
         return (self.username is None or (self.page and self.page.is_logged()))
 
     def close_session(self):
-        self.openurl('/compte/deconnexion', '')
+        if self._token:
+            self.openurl('/compte/deconnexion', urllib.urlencode({'authenticity_token': self._token[0].attrib['value']}))
 
     def plusse(self, url):
         return self.relevance(url, 'for')
