@@ -159,6 +159,30 @@ class TableCell(_Filter):
 
         return self.default_or_raise(ColumnNotFound('Unable to find column %s' % ' or '.join(self.names)))
 
+class Dict(Filter):
+    @classmethod
+    def select(cls, selector, item):
+        if isinstance(selector, basestring):
+            if isinstance(item, dict):
+                content = item
+            else:
+                content = item.el
+
+            for el in selector.split('/'):
+                if el not in content:
+                    raise ParseError()
+
+                content = content.get(el)
+
+            return content
+        elif callable(selector):
+            return selector(item)
+        else:
+            return selector
+
+    def filter(self, txt):
+        return txt
+
 class CleanHTML(Filter):
     def filter(self, txt):
         if isinstance(txt, (tuple,list)):
