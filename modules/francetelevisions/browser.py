@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import requests
+
 from weboob.tools.browser2 import PagesBrowser, URL
 from .pages import IndexPage, VideoPage
 
@@ -36,7 +38,18 @@ class PluzzBrowser(PagesBrowser):
         return self.index_page.go(pattern=pattern).iter_videos()
 
     def get_video(self, _id, video=None):
-        return self.video_page.go(_id=_id).get_video(obj=video)
+        video = self.video_page.go(_id=_id).get_video(obj=video)
+        for item in self.read_url(video.url):
+            pass
+
+        video.url = item
+        return video
+
+    def read_url(self, url):
+        r = requests.get(url, stream=True)
+        buf = r.iter_lines()
+        r.close()
+        return buf
 
     def latest_videos(self):
         return self.latest_page.go().iter_videos()

@@ -21,7 +21,6 @@ from weboob.capabilities.image import BaseImage
 from weboob.capabilities.video import BaseVideo
 
 from datetime import timedelta
-from dateutil.parser import parse as parse_date
 
 from weboob.tools.browser2.page import HTMLPage, method, ItemElement, ListElement, JsonPage
 from weboob.tools.browser2.filters import Filter, Link, CleanText, Regexp, Attr, Format, DateTime, Env, Dict, Duration
@@ -72,6 +71,7 @@ class VideoPage(JsonPage):
             for video in el['videos']:
                 if video['format'] != 'm3u8-download':
                     continue
+
                 self.env['url'] = video['url']
 
         obj_id = Env('_id')
@@ -80,7 +80,7 @@ class VideoPage(JsonPage):
         obj_date = DateTime(Dict('diffusion/date_debut'))
         obj_duration = Duration(Dict('duree'))
         obj_description = Dict('synopsis')
-        obj_ext = 'mp4'
+        obj_ext = 'm3u8'
 
         def obj_thumbnail(self):
             url = Format('http://pluzz.francetv.fr%s', Dict('image'))(self)
