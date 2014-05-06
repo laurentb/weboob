@@ -43,6 +43,8 @@ class Entry(object):
 
         if "link" in entry:
             self.link = entry["link"]
+            if not self.id:
+                self.id = entry["link"]
         else:
             self.link = None
 
@@ -94,6 +96,6 @@ class Newsfeed(object):
             yield Entry(entry, self.rssid_func)
 
     def get_entry(self, id):
-        for entry in self.feed['entries']:
+        for entry in self.iter_entries():
             if entry.id == id:
-                return Entry(entry, self.rssid_func)
+                return entry
