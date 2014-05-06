@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013 Julien Hebert
+# Copyright(C) 2013-2014 Julien Hebert, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -18,12 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.json import json
 from weboob.capabilities.base import NotAvailable, NotLoaded
+from weboob.tools.json import json
 
 from .iformatter import IFormatter
 
-__all__ = ['JsonFormatter']
+__all__ = ['JsonFormatter', 'JsonLineFormatter']
 
 
 class Encoder(json.JSONEncoder):
@@ -44,6 +44,9 @@ class Encoder(json.JSONEncoder):
 
 
 class JsonFormatter(IFormatter):
+    """
+    Formats the whole list as a single JSON list object.
+    """
     def __init__(self):
         IFormatter.__init__(self)
         self.queue = []
@@ -53,3 +56,12 @@ class JsonFormatter(IFormatter):
 
     def format_dict(self, item):
         self.queue.append(item)
+
+
+class JsonLineFormatter(IFormatter):
+    """
+    Formats the list as received, with a JSON object per line.
+    The advantage is that it can be streamed.
+    """
+    def format_dict(self, item):
+        print json.dumps(item, cls=Encoder)
