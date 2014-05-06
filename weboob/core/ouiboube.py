@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2013 Romain Bignon
+# Copyright(C) 2010-2014 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import pkg_resources
 import os
 
 from weboob.core.bcall import BackendsCall
@@ -62,6 +61,7 @@ class WebNip(object):
                          }
 
         if modules_path is None:
+            import pkg_resources
             modules_path = pkg_resources.resource_filename('weboob_modules', '')
 
         if modules_path:
@@ -194,13 +194,13 @@ class WebNip(object):
         :type caps: tuple[:class:`weboob.capabilities.base.IBaseCap`]
         :rtype: iter[:class:`weboob.tools.backend.BaseBackend`]
         """
-        for name, backend in sorted(self.backend_instances.iteritems()):
+        for _, backend in sorted(self.backend_instances.iteritems()):
             if caps is None or backend.has_caps(caps):
                 with backend:
                     yield backend
 
     def do(self, function, *args, **kwargs):
-        """
+        r"""
         Do calls on loaded backends with specified arguments, in separated
         threads.
 
@@ -354,7 +354,7 @@ class Weboob(WebNip):
         """
         self.repositories.update(progress)
 
-        modules_to_check = set([module_name for name, module_name, params in self.backends_config.iter_backends()])
+        modules_to_check = set([module_name for _, module_name, _ in self.backends_config.iter_backends()])
         for module_name in modules_to_check:
             minfo = self.repositories.get_module_info(module_name)
             if minfo and not minfo.is_installed():
