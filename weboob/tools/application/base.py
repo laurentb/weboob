@@ -162,6 +162,7 @@ class BaseApplication(object):
         logging_options.add_option('-a', '--save-responses', action='store_true', help='save every response')
         self._parser.add_option_group(logging_options)
         self._parser.add_option('--shell-completion', action='store_true', help=optparse.SUPPRESS_HELP)
+        self._is_default_count = True
 
     def deinit(self):
         self.weboob.want_stop()
@@ -263,7 +264,10 @@ class BaseApplication(object):
                 modif += 1
             else:
                 if count and i - modif == count:
-                    raise MoreResultsAvailable()
+                    if self._is_default_count:
+                        raise MoreResultsAvailable()
+                    else:
+                        return
                 yield sub
 
     def _do_complete(self, backend, count, selected_fields, function, *args, **kwargs):

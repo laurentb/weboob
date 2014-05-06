@@ -167,7 +167,6 @@ class ReplApplication(Cmd, ConsoleApplication):
         self._parser.add_option_group(formatting_options)
 
         self._interactive = False
-        self._is_default_count = True
         self.working_path = WorkingPath()
         self._change_prompt()
 
