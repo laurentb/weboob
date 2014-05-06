@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
+import requests
 import subprocess
 import sys
 import os
@@ -97,6 +97,17 @@ class Videoob(ReplApplication):
             if not check_exec('mimms'):
                 return 1
             args = ('mimms', '-r', video.url, dest)
+        elif video.url.endswith('m3u8'):
+            if not check_exec('avconv'):
+                return 1
+
+            r = requests.get(video.url, stream=True)
+            buf = r.iter_lines()
+            r.close()
+            for item in buf:
+                pass
+
+            args = ('avconv', '-i', item, '-codec', 'copy', dest)
         else:
             if check_exec('wget'):
                 args = ('wget', '-c', video.url, '-O', dest)
