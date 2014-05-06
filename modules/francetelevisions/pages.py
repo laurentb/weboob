@@ -24,7 +24,7 @@ from datetime import timedelta
 from dateutil.parser import parse as parse_date
 
 from weboob.tools.browser2.page import HTMLPage, method, ItemElement, ListElement, JsonPage
-from weboob.tools.browser2.filters import Filter, Link, CleanText, Regexp, Attr, Format, DateTime, Env
+from weboob.tools.browser2.filters import Filter, Link, CleanText, Regexp, Attr, Format, DateTime, Env, Dict, Duration
 
 
 __all__ = ['IndexPage', 'VideoPage']
@@ -73,21 +73,17 @@ class VideoPage(JsonPage):
                 if video['format'] != 'm3u8-download':
                     continue
                 self.env['url'] = video['url']
-            self.env['date'] = parse_date(el['diffusion']['date_debut'], dayfirst=True)
-            self.env['title'] = u'%s - %s' % (el['titre'], el['sous_titre'])
-            hours, minutes, seconds = el['duree'].split(':')
-            self.env['duration'] = timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds))
-            url = 'http://pluzz.francetv.fr%s' % (el['image'])
-            thumbnail = BaseImage(url)
-            thumbnail.url = thumbnail.id
-            self.env['thumbnail'] = thumbnail
-            self.env['description'] = el['synopsis']
 
         obj_id = Env('_id')
-        obj_title = Env('title')
+        obj_title = Format(u'%s - %s', Dict('titre'), Dict('sous_titre'))
         obj_url = Env('url')
-        obj_date = Env('date')
-        obj_duration = Env('duration')
-        obj_thumbnail = Env('thumbnail')
-        obj_description = Env('description')
+        obj_date = DateTime(Dict('diffusion/date_debut'))
+        obj_duration = Duration(Dict('duree'))
+        obj_description = Dict('synopsis')
         obj_ext = 'mp4'
+
+        def obj_thumbnail(self):
+            url = Format('http://pluzz.francetv.fr%s', Dict('image'))(self)
+            thumbnail = BaseImage(url)
+            thumbnail.url = thumbnail.id
+            return thumbnail
