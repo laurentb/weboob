@@ -90,3 +90,4 @@ class VideoPage(JsonPage):
         obj_duration = Env('duration')
         obj_thumbnail = Env('thumbnail')
         obj_description = Env('description')
+        obj_ext = 'mp4'
