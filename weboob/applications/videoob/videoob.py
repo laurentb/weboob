@@ -97,17 +97,10 @@ class Videoob(ReplApplication):
             if not check_exec('mimms'):
                 return 1
             args = ('mimms', '-r', video.url, dest)
-        elif video.url.endswith('m3u8'):
-            if not check_exec('avconv'):
-                return 1
-
-            r = requests.get(video.url, stream=True)
-            buf = r.iter_lines()
-            r.close()
-            for item in buf:
-                pass
-
-            args = ('avconv', '-i', item, '-codec', 'copy', dest)
+        elif u'm3u8' == video.ext:
+            _dest, _ = os.path.splitext(dest)
+            dest = u'%s.%s' % (_dest, 'mp4')
+            args = ('wget',) + tuple(line for line in self.read_url(video.url) if not line.startswith('#')) + ('-O', dest)
         else:
             if check_exec('wget'):
                 args = ('wget', '-c', video.url, '-O', dest)
@@ -117,6 +110,12 @@ class Videoob(ReplApplication):
                 return 1
 
         os.spawnlp(os.P_WAIT, args[0], *args)
+
+    def read_url(self, url):
+        r = requests.get(url, stream=True)
+        buf = r.iter_lines()
+        r.close()
+        return buf
 
     def complete_download(self, text, line, *ignored):
         args = line.split(' ')
