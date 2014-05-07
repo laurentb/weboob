@@ -36,6 +36,7 @@ from weboob.tools.misc import local2utc
 from .browser import OkCBrowser
 from .optim.visibility import Visibility
 from .optim.queries_queue import QueriesQueue
+from .optim.profiles_walker import ProfilesWalker
 
 
 __all__ = ['OkCBackend']
@@ -75,7 +76,8 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
     DESCRIPTION = u'OkCupid dating website'
     CONFIG = BackendConfig(Value('username',                label='Username'),
                            ValueBackendPassword('password', label='Password'))
-    STORAGE = {'queries_queue': {'queue': []},
+    STORAGE = {'profiles_walker': {'viewed': []},
+            'queries_queue': {'queue': []},
                'sluts': {},
                #'notes': {},
               }
@@ -88,6 +90,7 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
     def init_optimizations(self):
         self.add_optimization('VISIBILITY', Visibility(self.weboob.scheduler, self.browser))
         self.add_optimization('QUERIES_QUEUE', QueriesQueue(self.weboob.scheduler, self.storage, self.browser))
+        self.add_optimization('PROFILE_WALKER', ProfilesWalker(self.weboob.scheduler, self.storage, self.browser))
 
     def iter_events(self):
         all_events = {}

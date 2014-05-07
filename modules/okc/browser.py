@@ -22,7 +22,7 @@ import urllib
 from weboob.tools.browser import BaseBrowser, BasePage
 from weboob.tools.ordereddict import OrderedDict
 
-from .pages import LoginPage, ThreadPage, MessagesPage, PostMessagePage, ProfilePage, PhotosPage, VisitsPage
+from .pages import LoginPage, ThreadPage, MessagesPage, PostMessagePage, ProfilePage, PhotosPage, VisitsPage, QuickMatchPage
 
 __all__ = ['OkCBrowser']
 
@@ -43,7 +43,8 @@ class OkCBrowser(BaseBrowser):
             ('http://%s/messages\?.*' % DOMAIN, MessagesPage),
             ('http://%s/profile/.*/photos' % DOMAIN, PhotosPage),
             ('http://%s/profile/[^/]*' % DOMAIN, ProfilePage),
-            ('http://%s/visitors' % DOMAIN, VisitsPage)
+            ('http://%s/visitors' % DOMAIN, VisitsPage),
+            ('http://%s/quickmatch' % DOMAIN, QuickMatchPage)
     ))
 
     logged_in = False
@@ -182,21 +183,11 @@ class OkCBrowser(BaseBrowser):
     #    else:
     #        return True
 
-    #def search_profiles(self, **kwargs):
-    #    if self.search_query is None:
-    #        r = self.api_request('searchs', '[default]')
-    #        self.search_query = r['result']['search']['query']
-
-    #    params = {}
-    #    for key, value in json.loads(self.search_query).iteritems():
-    #        if isinstance(value, dict):
-    #            for k, v in value.iteritems():
-    #                params['%s%s' % (key, k.capitalize())] = v
-    #        else:
-    #            params[key] = value or ''
-    #    r = self.api_request('searchs', 'advanced', '30,0', params)
-    #    ids = [s['id'] for s in r['result']['search']]
-    #    return set(ids)
+    @check_login
+    def search_profiles(self, **kwargs):
+       self.location(self.absurl('/quickmatch'))
+       user_id = self.page.get_id()
+       return set([user_id])
 
     @check_login
     def get_profile(self, id):

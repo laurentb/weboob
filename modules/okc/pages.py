@@ -204,4 +204,10 @@ class VisitsPage(BasePage):
                 'date': visitor_timestamp
             })
         return visitors
+
+class QuickMatchPage(BasePage):
+    def get_id(self):
+        element = self.parser.select(self.document.getroot(), '//*[@id="sn"]', method='xpath')[0]
+        visitor_id = unicode(element.get('value'))
+        return visitor_id
         
