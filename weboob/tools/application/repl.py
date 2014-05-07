@@ -1026,10 +1026,7 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         for obj in objects:
             if only is False or not hasattr(obj, 'id') or obj.id in only:
-                if isinstance(obj, CapBaseObject):
-                    self.cached_format(obj)
-                else:
-                    print obj
+                self.cached_format(obj)
 
         if path:
             # Let's go back to the parent directory
