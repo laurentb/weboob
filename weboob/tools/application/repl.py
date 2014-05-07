@@ -1029,6 +1029,7 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         if sort:
             objects.sort(cmp=comp_object)
+            collections = self._merge_collections_with_same_path(collections)
             collections.sort(cmp=comp_object)
             for collection in collections:
                 self._format_collection(collection, only)
@@ -1041,6 +1042,22 @@ class ReplApplication(Cmd, ConsoleApplication):
         else:
             # Save collections only if we listed the current path.
             self.collections = collections
+
+    def _find_collection(self, collection, collections):
+        for col in collections:
+            if col.split_path == collection.split_path:
+                return col
+        return None
+
+    def _merge_collections_with_same_path(self, collections):
+        to_return = []
+        for collection in collections:
+            col = self._find_collection(collection, to_return)
+            if col:
+                col.backend += " %s" % collection.backend
+            else:
+                to_return.append(collection)
+        return to_return
 
 
     def _format_collection(self, collection, only):
