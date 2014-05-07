@@ -261,4 +261,14 @@ class OkCBrowser(BaseBrowser):
             self.open('http://m.okcupid.com/profile', data=data)
         return True
 
+    @check_login
+    def do_rate(self, id):
+        # Need to be in quickmatch page
+        abs_url, rating,params = self.page.get_rating_params()
+        # print abs_url, rating, params
+        data = urllib.urlencode(params)
+        self.addheaders = [('Referer', self.page.url), ('Content-Type', 'application/x-www-form-urlencoded;charset=UTF-8')]
+        self.open('http://m.okcupid.com%s' %abs_url, data=data)
+        return True
+
 

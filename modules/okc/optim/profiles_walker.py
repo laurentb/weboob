@@ -81,6 +81,7 @@ class ProfilesWalker(Optimization):
             try:
                 with self.browser:
                     # profile = self.browser.get_profile(id)
+                    self.browser.do_rate(id)
                     self.browser.visit_profile(id)
                 self.logger.info(u'Visited profile %s ' % (id))
 

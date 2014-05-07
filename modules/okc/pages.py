@@ -210,4 +210,49 @@ class QuickMatchPage(BasePage):
         element = self.parser.select(self.document.getroot(), '//*[@id="sn"]', method='xpath')[0]
         visitor_id = unicode(element.get('value'))
         return visitor_id
-        
+    
+    def get_rating_params(self):
+        # initialization
+        userid = None
+        tuid = None
+
+        # looking for CURRENTUSERID
+        js = self.parser.select(self.document.getroot(), "//script", method='xpath')
+        for script in js:
+            script = script.text
+
+            if script is None:
+                continue
+            for line in script.splitlines():
+                match = re.match('.*var\s*CURRENTUSERID\s*=\s*"(\d+)"', line)
+                if match is not None:
+                    (userid,) = match.groups()
+
+        # Looking for target userid (tuid)
+        element = self.parser.select(self.document.getroot(), '//*[@id="star_5_top"]', method='xpath')[0]
+        onclick = element.get("onclick")
+
+        if onclick is None:
+            pass
+        for line in onclick.splitlines():
+            match = re.match("^Quickmatch\.vote\(\d,\s*'(\w*)'*", line)
+            if match is not None:
+                (tuid,) = match.groups()
+
+        # Building params hash
+        if userid and tuid:
+            params = {
+                'voterid': userid,
+                'target_userid': tuid,
+                'target_objectid': 0,
+                'type': 'vote',
+                'vote_type': 'personality',
+                'score': 5,
+            }
+            return '/vote_handler', 1,params
+        else:
+            raise Exception('Unexpected reply page')
+
+
+        # VoteHandler.process('vote', 'personality', stars, tuid, pass.succeed, pass.failure);
+        # var params = {voterid: CURRENTUSERID,target_userid: tuid,target_objectid: 0,type: vote_or_note,vote_type: vote_type,score: rating}
