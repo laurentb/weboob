@@ -17,7 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .base import CapBaseObject, IBaseCap, StringField, DateField, IntField, FloatField, Field
+from .base import CapBaseObject, StringField, DateField, IntField, FloatField, Field
+from .collection import ICapCollection, CollectionNotFound, Collection
+
+from datetime import time, datetime
+from weboob.tools.date import parse_date
 
 __all__ = ['BaseCalendarEvent', 'ICapCalendarEvent']
 
@@ -98,7 +102,7 @@ class Query(CapBaseObject):
             self.categories.append(value)
 
 
-class ICapCalendarEvent(IBaseCap):
+class ICapCalendarEvent(ICapCollection):
     """
     Capability of calendar event type sites
     """
@@ -155,3 +159,31 @@ class ICapCalendarEvent(IBaseCap):
         :type is_attending : bool
         """
         raise NotImplementedError()
+
+    def iter_resources(self, objs, split_path):
+        """
+        Iter events by category
+        """
+        if len(split_path) == 0 and self.ASSOCIATED_CATEGORIES != 'ALL':
+            for category in self.ASSOCIATED_CATEGORIES:
+                collection = Collection([category], category)
+                yield collection
+
+        elif len(split_path) == 1 and split_path[0] in self.ASSOCIATED_CATEGORIES:
+            query = Query()
+            query.categories = split_path
+            query.start_date = datetime.combine(parse_date('today'), time.min)
+            query.end_date = parse_date('')
+            query.city = ''
+            for event in self.search_events(query):
+                yield event
+
+    def validate_collection(self, objs, collection):
+        """
+        Validate Collection
+        """
+        if collection.path_level == 0:
+            return
+        if collection.path_level == 1 and collection.split_path[0] in CATEGORIES.values:
+            return
+        raise CollectionNotFound(collection.split_path)
