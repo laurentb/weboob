@@ -90,21 +90,6 @@ def defaultcount(default_count=10):
         return inner
     return deco
 
-# First sort in alphabetical of backend
-# Second, first with ID
-def comp_object(obj1, obj2):
-    if obj1.backend == obj2.backend:
-        if obj1.id == obj2.id:
-            return 0
-        elif obj1.id > obj2.id:
-            return 1
-        else:
-            return -1
-    elif obj1.backend > obj2.backend:
-        return 1
-    else:
-        return -1
-
 
 class ReplApplication(Cmd, ConsoleApplication):
     """
@@ -979,6 +964,22 @@ class ReplApplication(Cmd, ConsoleApplication):
             page = Page(core=browser, data=data, uri=browser._response.geturl())
             browser = Browser(view=page.view)
 
+    # First sort in alphabetical of backend
+    # Second, sort with ID
+    def comp_object(self, obj1, obj2):
+        if obj1.backend == obj2.backend:
+            if obj1.id == obj2.id:
+                return 0
+            elif obj1.id > obj2.id:
+                return 1
+            else:
+                return -1
+        elif obj1.backend > obj2.backend:
+            return 1
+        else:
+            return -1
+
+
     @defaultcount(40)
     def do_ls(self, line):
         """
@@ -1028,9 +1029,9 @@ class ReplApplication(Cmd, ConsoleApplication):
                     self._format_obj(res, only)
 
         if sort:
-            objects.sort(cmp=comp_object)
+            objects.sort(cmp=self.comp_object)
             collections = self._merge_collections_with_same_path(collections)
-            collections.sort(cmp=comp_object)
+            collections.sort(cmp=self.comp_object)
             for collection in collections:
                 self._format_collection(collection, only)
             for obj in objects:

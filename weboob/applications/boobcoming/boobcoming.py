@@ -24,30 +24,7 @@ from weboob.tools.date import parse_date
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.capabilities.base import empty
 from weboob.capabilities.calendar import ICapCalendarEvent, Query, CATEGORIES, BaseCalendarEvent
-from weboob.tools.application import repl
 from weboob.tools.application.repl import ReplApplication, defaultcount
-
-def _comp_object(obj1, obj2):
-    if isinstance(obj1, BaseCalendarEvent) and isinstance(obj2, BaseCalendarEvent):
-        if obj1.start_date == obj2.start_date:
-            return 0
-        if obj1.start_date > obj2.start_date:
-            return 1
-        return -1
-    else:
-        if obj1.backend == obj2.backend:
-            if obj1.id == obj2.id:
-                return 0
-            elif obj1.id > obj2.id:
-                return 1
-            else:
-                return -1
-        elif obj1.backend > obj2.backend:
-            return 1
-        else:
-            return -1
-
-repl.comp_object = _comp_object
 
 
 __all__ = ['Boobcoming']
@@ -178,6 +155,17 @@ class Boobcoming(ReplApplication):
                            'info': 'upcoming',
                            'export': 'ical_formatter'
                            }
+
+    def comp_object(self, obj1, obj2):
+        if isinstance(obj1, BaseCalendarEvent) and isinstance(obj2, BaseCalendarEvent):
+            if obj1.start_date == obj2.start_date:
+                return 0
+            if obj1.start_date > obj2.start_date:
+                return 1
+            return -1
+        else:
+            return super(Boobcoming, self).comp_object(obj1, obj2)
+
 
     @defaultcount(10)
     def do_search(self, line):
