@@ -22,7 +22,7 @@ import urllib
 from weboob.tools.browser import BaseBrowser, BasePage
 from weboob.tools.ordereddict import OrderedDict
 
-from .pages import LoginPage, ThreadPage, MessagesPage, PostMessagePage, ProfilePage, PhotosPage
+from .pages import LoginPage, ThreadPage, MessagesPage, PostMessagePage, ProfilePage, PhotosPage, VisitsPage
 
 __all__ = ['OkCBrowser']
 
@@ -43,6 +43,7 @@ class OkCBrowser(BaseBrowser):
             ('http://%s/messages\?.*' % DOMAIN, MessagesPage),
             ('http://%s/profile/.*/photos' % DOMAIN, PhotosPage),
             ('http://%s/profile/[^/]*' % DOMAIN, ProfilePage),
+            ('http://%s/visitors' % DOMAIN, VisitsPage)
     ))
 
     logged_in = False
@@ -120,10 +121,10 @@ class OkCBrowser(BaseBrowser):
     #    r = self.api_request('me', 'flashs')
     #    return r['result']['all']
 
-    #@check_login
-    #def get_visits(self):
-    #    r = self.api_request('me', 'visits')
-    #    return r['result']['news'] + r['result']['olds']
+    @check_login
+    def get_visits(self):
+       self.location('http://m.okcupid.com/visitors')
+       return self.page.get_visits()
 
     @check_login
     def get_threads_list(self, count=30):

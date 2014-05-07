@@ -27,13 +27,15 @@ from dateutil.parser import parse as _parse_dt
 
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
-#from weboob.capabilities.dating import ICapDating, OptimizationNotFound, Event
+from weboob.capabilities.dating import ICapDating, OptimizationNotFound, Event
 from weboob.capabilities.contact import ICapContact, ContactPhoto, Contact
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.misc import local2utc
 
 from .browser import OkCBrowser
+from .optim.visibility import Visibility
+from .optim.queries_queue import QueriesQueue
 
 
 __all__ = ['OkCBackend']
@@ -64,7 +66,7 @@ def parse_dt(s):
     return local2utc(d)
 
 
-class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost):
+class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapDating):
     NAME = 'okc'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
@@ -73,7 +75,7 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost):
     DESCRIPTION = u'OkCupid dating website'
     CONFIG = BackendConfig(Value('username',                label='Username'),
                            ValueBackendPassword('password', label='Password'))
-    STORAGE = {
+    STORAGE = {'queries_queue': {'queue': []},
                'sluts': {},
                #'notes': {},
               }
@@ -81,6 +83,32 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost):
 
     def create_default_browser(self):
         return self.create_browser(self.config['username'].get(), self.config['password'].get())
+
+    # ---- ICapDating methods ---------------------
+    def init_optimizations(self):
+        self.add_optimization('VISIBILITY', Visibility(self.weboob.scheduler, self.browser))
+        self.add_optimization('QUERIES_QUEUE', QueriesQueue(self.weboob.scheduler, self.storage, self.browser))
+
+    def iter_events(self):
+        all_events = {}
+        with self.browser:
+            all_events[u'visits'] =  (self.browser.get_visits, 'Visited by %s')
+        for type, (events, message) in all_events.iteritems():
+            for event in events():
+                e = Event(event['who']['id'])
+
+                e.date = parse_dt(event['date'])
+                e.type = type
+                # if 'who' in event:
+                #     e.contact = self._get_partial_contact(event['who'])
+                # else:
+                #     e.contact = self._get_partial_contact(event)
+
+                # if not e.contact:
+                #     continue
+
+                # e.message = message % e.contact.name
+                yield e
 
     # ---- ICapMessages methods ---------------------
 

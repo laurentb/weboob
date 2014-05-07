@@ -174,3 +174,19 @@ class PostMessagePage(BasePage):
         self.browser['r1'] = id
         self.browser['body'] = content
         self.browser.submit()
+
+class VisitsPage(BasePage):
+    def get_visits(self):
+        ul_item = self.parser.select(self.document.getroot(), '//*[@id="page_content"]/ul[3]', method='xpath')[0]
+        visitors = []
+        for li in ul_item:
+            visitor_id = unicode(li.get('id')[4:])
+            visitor_timestamp = unicode(self.parser.select(li, './/div/span', method='xpath')[0].text.strip())
+            visitors.append({
+                'who': {
+                    'id': visitor_id
+                },
+                'date': visitor_timestamp
+            })
+        return visitors
+        
