@@ -986,7 +986,8 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         List objects in current path.
         If an argument is given, list the specified path.
-        Use -U option to not sort results.
+        Use -U option to not sort results. It allows to use a "fast path" to
+        return results as soon as possible.
         """
         # TODO: real parsing of options
         path = line.strip()
@@ -1006,27 +1007,30 @@ class ReplApplication(Cmd, ConsoleApplication):
             # We have an argument, let's ch to the directory before the ls
             self.working_path.cd1(path)
 
-        objects, collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
-
+        objects = []
+        collections = []
         self.objects = []
+
+        self.start_format()
+
+        for res in self._fetch_objects(objs=self.COLLECTION_OBJECTS):
+            if isinstance(res, Collection):
+                collections.append(res)
+                if sort is False:
+                    self._format_collection(res, only)
+            else:
+                if sort:
+                    objects.append(res)
+                else:
+                    self._format_obj(res, only)
 
         if sort:
             objects.sort(cmp=comp_object)
             collections.sort(cmp=comp_object)
-
-        self.start_format()
-        for collection in collections:
-            if only is False or collection.basename in only:
-                if collection.basename and collection.title:
-                    print u'%s~ (%s) %s (%s)%s' % \
-                    (self.BOLD, collection.basename, collection.title, collection.backend, self.NC)
-                else:
-                    print u'%s~ (%s) (%s)%s' % \
-                    (self.BOLD, collection.basename, collection.backend, self.NC)
-
-        for obj in objects:
-            if only is False or not hasattr(obj, 'id') or obj.id in only:
-                self.cached_format(obj)
+            for collection in collections:
+                self._format_collection(collection, only)
+            for obj in objects:
+                self._format_obj(obj, only)
 
         if path:
             # Let's go back to the parent directory
@@ -1034,6 +1038,22 @@ class ReplApplication(Cmd, ConsoleApplication):
         else:
             # Save collections only if we listed the current path.
             self.collections = collections
+
+
+    def _format_collection(self, collection, only):
+        if only is False or collection.basename in only:
+            if collection.basename and collection.title:
+                print u'%s~ (%s) %s (%s)%s' % \
+                (self.BOLD, collection.basename, collection.title, collection.backend, self.NC)
+            else:
+                print u'%s~ (%s) (%s)%s' % \
+                (self.BOLD, collection.basename, collection.backend, self.NC)
+
+
+    def _format_obj(self, obj, only):
+        if only is False or not hasattr(obj, 'id') or obj.id in only:
+            self.cached_format(obj)
+
 
     def do_cd(self, line):
         """
@@ -1072,22 +1092,16 @@ class ReplApplication(Cmd, ConsoleApplication):
         self._change_prompt()
 
     def _fetch_objects(self, objs):
-        objects = []
-        collections = []
         split_path = self.working_path.get()
 
         try:
             for backend, res in self.do('iter_resources', objs=objs,
                                                           split_path=split_path,
                                                           caps=ICapCollection):
-                if isinstance(res, Collection):
-                    collections.append(res)
-                else:
-                    objects.append(res)
+                yield res
         except CallErrors as errors:
             self.bcall_errors_handler(errors, CollectionNotFound)
 
-        return (objects, collections)
 
     def all_collections(self):
         """
