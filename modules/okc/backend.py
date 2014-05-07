@@ -28,7 +28,7 @@ from dateutil.parser import parse as _parse_dt
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
 from weboob.capabilities.dating import ICapDating, OptimizationNotFound, Event
-from weboob.capabilities.contact import ICapContact, ContactPhoto, Contact
+from weboob.capabilities.contact import ICapContact, ContactPhoto, Contact, Query, QueryError
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.misc import local2utc
@@ -358,26 +358,26 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
             if c and (c.status & status) and (not ids or c.id in ids):
                 yield c
 
-    #def send_query(self, id):
-    #    if isinstance(id, Contact):
-    #        id = id.id
+    def send_query(self, id):
+       if isinstance(id, Contact):
+           id = id.id
 
-    #    queries_queue = None
-    #    try:
-    #        queries_queue = self.get_optimization('QUERIES_QUEUE')
-    #    except OptimizationNotFound:
-    #        pass
+       queries_queue = None
+       try:
+           queries_queue = self.get_optimization('QUERIES_QUEUE')
+       except OptimizationNotFound:
+           pass
 
-    #    if queries_queue and queries_queue.is_running():
-    #        if queries_queue.enqueue_query(id):
-    #            return Query(id, 'A charm has been sent')
-    #        else:
-    #            return Query(id, 'Unable to send charm: it has been enqueued')
-    #    else:
-    #        with self.browser:
-    #            if not self.browser.send_charm(id):
-    #                raise QueryError('No enough charms available')
-    #            return Query(id, 'A charm has been sent')
+       if queries_queue and queries_queue.is_running():
+           if queries_queue.enqueue_query(id):
+               return Query(id, 'A profile was visited')
+           else:
+               return Query(id, 'Unable to visit profile: it has been enqueued')
+       else:
+           with self.browser:
+               if not self.browser.visit_profile(id):
+                   raise QueryError('Could not visit profile')
+               return Query(id, 'Profile was visited')
 
     #def get_notes(self, id):
     #    if isinstance(id, Contact):

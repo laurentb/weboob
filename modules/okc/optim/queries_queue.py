@@ -58,16 +58,16 @@ class QueriesQueue(Optimization):
 
     def enqueue_query(self, id, priority=999):
         id_queue = [_id[1] for _id in self.queue]
-        if int(id) in id_queue:
+        if id in id_queue:
             raise QueryError('This id is already queued')
-        self.queue.append((int(priority), int(id)))
+        self.queue.append((int(priority), id))
         self.save()
         # Try to flush queue to send it now.
         self.flush_queue()
 
         # Check if the enqueued query has been sent
         for p, i in self.queue:
-            if i == int(id):
+            if i == id:
                 return False
         return True
 
@@ -86,11 +86,11 @@ class QueriesQueue(Optimization):
                         continue
 
                     with self.browser:
-                        if self.browser.send_charm(id):
-                            self.logger.info('Charm sent to %s' % id)
+                        if self.browser.visit_profile(id):
+                            self.logger.info('Profile of %s visited' % id)
                         else:
                             self.queue.append((priority, id))
-                            self.logger.info("Charm can't be send to %s" % id)
+                            self.logger.info("Could not visit profile of %s visited" % id)
                             break
 
                     # As the charm has been correctly sent (no exception raised),

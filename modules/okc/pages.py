@@ -100,6 +100,21 @@ class MessagesPage(BasePage):
 
 
 class ProfilePage(BasePage):
+    def get_visit_button_params(self):
+        links = self.parser.select(self.document.getroot(), "//a", method='xpath')
+        for a in links:
+            # Premium users can browse anonymusly, need to click on a button to let the other person her profile was visited
+            onclick = a.get("onclick")
+
+            if onclick is None:
+                continue
+            for line in onclick.splitlines():
+                match = re.match("^Profile\.action\({stalk:(\d*),u:'(\w*)',tuid:'(\d+)'}", line)
+                if match is not None:
+                    return match.groups()
+        # Default case : no premium, profile already visited
+        return None, None, None
+
     def get_profile(self):
         title = self.parser.select(self.document.getroot(), 'title', 1)
         if title.text == 'OkCupid: Account Not Found':

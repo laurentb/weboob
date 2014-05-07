@@ -252,3 +252,22 @@ class OkCBrowser(BaseBrowser):
     #        return True
     #    except ValueError:
     #        return False
+
+    @check_login
+    def visit_profile(self, id):
+        self.location(self.absurl('/profile/%s' % id))
+        stalk, u, tuid = self.page.get_visit_button_params()
+        if stalk and u and tuid:
+            # Premium users, need to click on "visit button" to let the other person know his profile was visited
+
+            data = urllib.urlencode({
+                'ajax' : 1,
+                'stalk': stalk,
+                'u':u,
+                'tuid': tuid
+                })
+            self.addheaders = [('Referer', self.page.url), ('Content-Type', 'application/x-www-form-urlencoded;charset=UTF-8')]
+            self.open('http://m.okcupid.com/profile', data=data)
+        return True
+
+
