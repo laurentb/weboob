@@ -78,11 +78,11 @@ class ProfilesWalker(Optimization):
                 id = self.profiles_queue.pop()
             except KeyError:
                 return  # empty queue
-
             try:
                 with self.browser:
-                    profile = self.browser.get_profile(id)
-                self.logger.info(u'Visited profile %s (%s)' % (profile['pseudo'], id))
+                    # profile = self.browser.get_profile(id)
+                    self.browser.visit_profile(id)
+                self.logger.info(u'Visited profile %s ' % (id))
 
                 # Get score from the aum_score module
                 #d = self.nucentral_core.callService(context.Context.fromComponent(self), 'aum_score', 'score', profile)
@@ -98,6 +98,7 @@ class ProfilesWalker(Optimization):
                 self.profiles_queue.add(id)
                 return
             except Exception as e:
+    
                 print e
         finally:
             if self.view_cron is not None:
