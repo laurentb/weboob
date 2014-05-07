@@ -54,6 +54,6 @@ class GoogleTranslateBrowser(BaseBrowser):
             'eotf': '1',
             'text': text.encode('utf-8'),
             }
-        self.location('http://'+self.DOMAIN, urllib.urlencode(d))
+        self.location('https://'+self.DOMAIN, urllib.urlencode(d))
         translation = self.page.get_translation()
         return translation
