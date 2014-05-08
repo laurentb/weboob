@@ -65,6 +65,8 @@ class BanqueAccordBrowser(LoginBrowser):
                 self.accounts.go()
                 a.balance = self.page.get_balance()
                 a.type = a.TYPE_CARD
+            if a.balance is None:
+                continue
             yield a
 
     @need_login

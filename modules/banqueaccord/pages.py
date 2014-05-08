@@ -154,7 +154,11 @@ class IndexPage(LoggedPage, HTMLPage):
 class AccountsPage(LoggedPage, HTMLPage):
     def get_balance(self):
         balance = Decimal('0.0')
-        for line in self.doc.xpath('//div[@class="detail"]/table//tr'):
+        lines = self.doc.xpath('//div[@class="detail"]/table//tr')
+        if len(lines) == 0:
+            return None
+
+        for line in lines:
             try:
                 left = line.xpath('./td[@class="gauche"]')[0]
                 right = line.xpath('./td[@class="droite"]')[0]
@@ -163,9 +167,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 continue
 
             if len(left.xpath('./span[@class="precision"]')) == 0 or \
-               (left.text is None or
-                not 'total' in left.text.lower() or
-                u'prélevé' in left.xpath('./span[@class="precision"]')[0].text.lower()):
+               (left.text is None or not 'total' in left.text.lower()):
                 continue
 
             balance -= CleanDecimal('.', replace_dots=False)(right)
