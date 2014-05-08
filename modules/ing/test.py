@@ -20,6 +20,7 @@
 
 from weboob.tools.test import BackendTest
 from weboob.capabilities.bank import Account
+import random
 
 
 class INGTest(BackendTest):
@@ -28,15 +29,28 @@ class INGTest(BackendTest):
     def test_accounts(self):
         l = list(self.backend.iter_accounts())
         for account in l:
+            # Test if get_account works
+            _id = self.backend.get_account(account.id)
+            self.assertTrue(_id.id == account.id)
+            # Methods can use Account objects or id. Try one of them
+            id_or_account = random.choice([account, account.id])
             if account.type == Account.TYPE_CHECKING or account.type == Account.TYPE_CHECKING:
-                history = list(self.backend.iter_history(account))
+                history = list(self.backend.iter_history(id_or_account))
                 self.assertTrue(len(history) > 0)
+                recipients = list(self.backend.iter_transfer_recipients(id_or_account))
+                self.assertTrue(len(recipients) > 0)
             elif account.type == Account.TYPE_MARKET:
-                invest = list(self.backend.iter_investment(account))
+                invest = list(self.backend.iter_investment(id_or_account))
+                self.backend.iter_history(id_or_account)  # can be empty. Only try to call it
                 self.assertTrue(len(invest) > 0)
 
     def test_subscriptions(self):
         l = list(self.backend.iter_subscription())
         for sub in l:
+            _id = self.backend.get_subscription(sub.id)
+            self.assertTrue(_id.id == sub.id)
             bills = list(self.backend.iter_bills(sub))
             self.assertTrue(len(bills) > 0)
+            _id = self.backend.get_bill(bills[0].id)
+            self.assertTrue(_id.id == bills[0].id)
+            self.backend.download_bill(bills[0].id)
