@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from dateutil.relativedelta import relativedelta
 from decimal import Decimal, InvalidOperation
 import re
 from cStringIO import StringIO
@@ -30,6 +31,10 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
 __all__ = ['LoginPage', 'IndexPage', 'AccountsPage', 'OperationsPage']
+
+
+class Transaction(FrenchTransaction):
+    PATTERNS = [(re.compile(ur'^(?P<text>.*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_CARD)]
 
 
 class VirtKeyboard(MappedVirtKeyboard):
@@ -105,12 +110,43 @@ class IndexPage(LoggedPage, HTMLPage):
             def condition(self):
                 return self.el.get('onclick') is not None
 
+    loan_init_date = Transaction.Date(CleanText('//table//td[contains(text(), "Date de sous")]/../td[2]'))
+    loan_next_date = Transaction.Date(CleanText('//table//td[contains(text(), "Prochaine")]/../td[2]'))
+    loan_nb = CleanText('//table//td[contains(text(), "Nombre de mensu") and contains(text(), "rembours")]/../td[2]')
+    loan_total_amount = CleanDecimal('//table//td/strong[contains(text(), "Montant emprunt")]/../../td[2]', replace_dots=False)
+    loan_amount = CleanDecimal('//table//td/strong[contains(text(), "Montant de la")]/../../td[2]', replace_dots=False)
+
     def get_loan_balance(self):
-        xpath = '//table//td/strong[contains(text(), "Montant emprunt")]/../../td[2]'
         try:
-            return - CleanDecimal(xpath, replace_dots=False)(self.doc)
+            total_amount = - self.loan_total_amount(self.doc)
         except InvalidOperation:
             return None
+
+        nb = int(self.loan_nb(self.doc))
+        amount = self.loan_amount(self.doc)
+
+        return total_amount + (nb*amount)
+
+    def iter_loan_transactions(self):
+        init_date = self.loan_init_date(self.doc)
+        next_date = self.loan_next_date(self.doc)
+        nb = int(self.loan_nb(self.doc))
+        total_amount = - self.loan_total_amount(self.doc)
+        amount = self.loan_amount(self.doc)
+
+        for _ in xrange(nb):
+            next_date = next_date - relativedelta(months=1)
+            tr = Transaction()
+            tr.raw = tr.label = u'Mensualité'
+            tr.date = tr.rdate = tr.vdate = next_date
+            tr.amount = amount
+            yield tr
+
+        tr = Transaction()
+        tr.raw = tr.label = u'Emprunt initial'
+        tr.date = tr.rdate = init_date
+        tr.amount = total_amount
+        yield tr
 
     def get_card_name(self):
         return CleanText('//h1[1]')(self.doc)
@@ -136,12 +172,9 @@ class AccountsPage(LoggedPage, HTMLPage):
         return balance
 
 
-class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile(ur'^(?P<text>.*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_CARD)]
-
 class OperationsPage(LoggedPage, HTMLPage):
     @method
-    class get_history(ListElement):
+    class iter_transactions(ListElement):
         item_xpath = '//div[contains(@class, "mod-listeoperations")]//table/tbody/tr'
 
         class credit(ItemElement):
