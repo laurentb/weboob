@@ -69,11 +69,13 @@ class BanqueAccordBrowser(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
-        if account.type != account.TYPE_CARD:
-            return iter([])
-
         post = {'numeroCompte': account.id}
+
         self.index.go(data=post)
+
+        if account.type == account.TYPE_LOAN:
+            return self.page.iter_loan_transactions()
+
         self.operations.go()
 
-        return self.page.get_history()
+        return sorted(self.page.iter_transactions(), key=lambda tr: tr.rdate, reverse=True)
