@@ -306,7 +306,10 @@ class FrenchTransaction(Transaction):
                 except InvalidOperation:
                     pass
 
-            try:
-                return CleanDecimal(self.credit_selector)(item)
-            except InvalidOperation:
-                return Decimal('0')
+            if self.credit_selector:
+                try:
+                    return CleanDecimal(self.credit_selector)(item)
+                except InvalidOperation:
+                    pass
+
+            return Decimal('0')
