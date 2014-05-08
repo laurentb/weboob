@@ -42,7 +42,7 @@ class CardHistory(BasePage):
             for tr in form.xpath('.//tbody/tr'):
                 tds = tr.xpath('./td')
 
-                if tr.attrib.get('class', '') in ('total', 'visible-phone') or 'style' in tr.attrib or len(tds) < 3:
+                if tr.attrib.get('class', '') in ('total gras', 'visible-phone') or 'style' in tr.attrib or len(tds) < 3:
                     continue
 
                 date = self.parser.tocleanstring(tds[0])

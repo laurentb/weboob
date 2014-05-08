@@ -47,7 +47,7 @@ class AccountHistory(BasePage):
     def get_operations(self):
         for form in self.document.xpath('//form[@name="marques"]'):
             for tr in form.xpath('.//tbody/tr'):
-                if tr.attrib.get('class', '') == 'total' or 'style' in tr.attrib:
+                if 'total' in tr.attrib.get('class', '') or 'style' in tr.attrib:
                     continue
 
                 date = self.parser.tocleanstring(tr.cssselect('td.operation span.DateOperation')[0])
