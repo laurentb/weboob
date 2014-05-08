@@ -26,7 +26,7 @@ import sys
 import tempfile
 import warnings
 
-from weboob.capabilities.base import ConversionWarning
+from weboob.capabilities.base import ConversionWarning, CapBaseObject
 from weboob.tools.browser.browser import FormFieldConversionWarning
 from weboob.core import Weboob, CallErrors
 from weboob.core.backendscfg import BackendsConfig
@@ -249,6 +249,8 @@ class BaseApplication(object):
 
     def _do_complete_obj(self, backend, fields, obj):
         if not obj:
+            return obj
+        if not isinstance(obj, CapBaseObject):
             return obj
 
         obj.backend = backend.name
