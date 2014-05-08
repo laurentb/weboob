@@ -115,4 +115,6 @@ class INGBackend(BaseBackend, ICapBank, ICapBill):
         if not isinstance(bill, Bill):
             bill = self.get_bill(bill)
         self.browser.predownload(bill)
-        return self.browser.open("https://secure.ingdirect.fr" + bill._url, stream=True).content
+        request = self.browser.open("https://secure.ingdirect.fr" + bill._url, stream=True)
+        assert(request.headers['content-type'] == "application/pdf")
+        return request.content
