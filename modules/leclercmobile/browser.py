@@ -116,9 +116,11 @@ class Leclercmobile(BaseBrowser):
         if not self.is_on_page(HistoryPage):
             self.location(self.conso)
         response = self.openurl(self.bills + "0")
-        pdf = PdfPage(StringIO.StringIO(response.read()))
-        for detail in pdf.get_details():
-            yield detail
+        mimetype = response.info().get('Content-Type', '').split(';')[0]
+        if mimetype == "application/pdf":
+            pdf = PdfPage(StringIO.StringIO(response.read()))
+            for detail in pdf.get_details():
+                yield detail
 
     def iter_bills(self, parentid):
         if not self.is_on_page(HistoryPage):
