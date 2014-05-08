@@ -83,6 +83,7 @@ class ProfilesWalker(Optimization):
                     # profile = self.browser.get_profile(id)
                     self.browser.do_rate(id)
                     self.browser.visit_profile(id)
+                    self.browser.post_mail(id, u"Sympa ton profil :)")
                 self.logger.info(u'Visited profile %s ' % (id))
 
                 # Get score from the aum_score module
@@ -99,7 +100,6 @@ class ProfilesWalker(Optimization):
                 self.profiles_queue.add(id)
                 return
             except Exception as e:
-    
                 print e
         finally:
             if self.view_cron is not None:
