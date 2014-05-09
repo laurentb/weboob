@@ -421,7 +421,7 @@ class BasePage(object):
     """
     logged = False
 
-    def __init__(self, browser, response, params):
+    def __init__(self, browser, response, params=None):
         self.browser = browser
         self.logger = getLogger(self.__class__.__name__.lower(), browser.logger)
         self.response = response
@@ -495,11 +495,11 @@ class Form(OrderedDict):
         req.headers.setdefault('Referer', self.page.url)
         return req
 
-    def submit(self):
+    def submit(self, **kwargs):
         """
         Submit the form and tell browser to be located to the new page.
         """
-        return self.page.browser.location(self.request)
+        return self.page.browser.location(self.request, **kwargs)
 
 
 class JsonPage(BasePage):
