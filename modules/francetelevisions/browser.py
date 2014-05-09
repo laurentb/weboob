@@ -42,7 +42,7 @@ class PluzzBrowser(PagesBrowser):
         for item in self.read_url(video.url):
             pass
 
-        video.url = item
+        video.url = u'%s' % item
         return video
 
     def read_url(self, url):

@@ -80,7 +80,7 @@ class VideoPage(JsonPage):
         obj_date = DateTime(Dict('diffusion/date_debut'))
         obj_duration = Duration(Dict('duree'))
         obj_description = Dict('synopsis')
-        obj_ext = 'm3u8'
+        obj_ext = u'm3u8'
 
         def obj_thumbnail(self):
             url = Format('http://pluzz.francetv.fr%s', Dict('image'))(self)
