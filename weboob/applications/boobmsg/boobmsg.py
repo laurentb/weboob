@@ -363,6 +363,10 @@ class Boobmsg(ReplApplication):
                 # It's an original message
                 thread_id = receiver
                 parent_id = None
+                try:
+                    thread_id = self.threads[int(thread_id) - 1].id
+                except (IndexError,ValueError):
+                    pass
 
             thread = Thread(thread_id)
             message = Message(thread,
