@@ -89,7 +89,7 @@ class TinderBrowser(DomainBrowser):
 
     def get_threads(self):
         resp = self.request('/updates', data={'last_activity_date': '2014-05-01T06:13:16.971Z'})
-        return resp['matches']
+        return sorted(resp['matches'], key=lambda m: m['last_activity_date'], reverse=True)
 
     def post_message(self, match_id, content):
         self.request('/user/matches/%s' % match_id, data={'message': content})
