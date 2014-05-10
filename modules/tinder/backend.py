@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import datetime
 from dateutil.parser import parse as parse_date
 
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Thread, Message
@@ -101,6 +102,12 @@ class TinderBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating):
             t.title = u'Discussion with %s' % thread['person']['name']
             parent = None
             contact = self.storage.get('contacts', t.id, default={'lastmsg': 0})
+
+            birthday = parse_date(thread['person']['birth_date']).date()
+            signature = u'Age: %d (%s)' % ((datetime.date.today() - birthday).days / 365.25, birthday)
+            signature += u'\nLast ping: %s' % parse_date(thread['person']['ping_time']).strftime('%Y-%m-%d %H:%M:%S')
+            signature += u'\nPhotos:\n\t%s' % '\n\t'.join([photo['url'] for photo in thread['person']['photos']])
+            signature += u'\n\n%s' % thread['person']['bio']
             for msg in thread['messages']:
                 flags = 0
                 if int(contact['lastmsg']) < msg['timestamp']:
@@ -115,6 +122,7 @@ class TinderBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating):
                               content=unicode(msg['message']),
                               children=[],
                               parent=parent,
+                              signature=signature if msg['to'] == self.browser.my_id else u'',
                               flags=flags)
                 if parent is None:
                     t.root = msg
