@@ -100,7 +100,6 @@ class TinderBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating):
             t = Thread(thread['_id'])
             t.flags = Thread.IS_DISCUSSION
             t.title = u'Discussion with %s' % thread['person']['name']
-            parent = None
             contact = self.storage.get('contacts', t.id, default={'lastmsg': 0})
 
             birthday = parse_date(thread['person']['birth_date']).date()
@@ -108,6 +107,17 @@ class TinderBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating):
             signature += u'\nLast ping: %s' % parse_date(thread['person']['ping_time']).strftime('%Y-%m-%d %H:%M:%S')
             signature += u'\nPhotos:\n\t%s' % '\n\t'.join([photo['url'] for photo in thread['person']['photos']])
             signature += u'\n\n%s' % thread['person']['bio']
+
+            t.root = Message(thread=t, id=1, title=t.title,
+                             sender=unicode(thread['person']['name']),
+                             receivers=[self.browser.my_name],
+                             date=parse_date(thread['created_date']),
+                             content=u'Match!',
+                             children=[],
+                             signature=signature,
+                             flags=Message.IS_UNREAD if int(contact['lastmsg']) < 1 else 0)
+            parent = t.root
+
             for msg in thread['messages']:
                 flags = 0
                 if int(contact['lastmsg']) < msg['timestamp']:
@@ -124,10 +134,7 @@ class TinderBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating):
                               parent=parent,
                               signature=signature if msg['to'] == self.browser.my_id else u'',
                               flags=flags)
-                if parent is None:
-                    t.root = msg
-                else:
-                    parent.children.append(msg)
+                parent.children.append(msg)
                 parent = msg
 
             yield t

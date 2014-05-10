@@ -18,6 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import datetime
+from dateutil.parser import parse as parse_date
 import re
 
 from weboob.tools.browser2 import DomainBrowser, HTMLPage, Profile
@@ -116,6 +118,12 @@ class TinderBrowser(DomainBrowser):
             return
 
         profile = self.recs.pop()
+
+        birthday = parse_date(profile['birth_date'])
+        if birthday.date() > datetime.date(1994, 1, 1):
+            print self.request('/pass/%s' % profile['_id'])
+            return
+
         resp = self.request('/like/%s' % profile['_id'])
 
         if resp['match']:
