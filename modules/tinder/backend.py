@@ -18,6 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from dateutil.parser import parse as parse_date
+
+from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Thread, Message
 from weboob.capabilities.dating import ICapDating, Optimization
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
@@ -61,7 +64,7 @@ class ProfilesWalker(Optimization):
                 self.view_cron = self.sched.schedule(1, self.view_profile)
 
 
-class TinderBackend(BaseBackend, ICapDating):
+class TinderBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating):
     NAME = 'tinder'
     DESCRIPTION = u'Tinder dating mobile application'
     MAINTAINER = u'Roger Philibert'
@@ -72,6 +75,8 @@ class TinderBackend(BaseBackend, ICapDating):
                            ValueBackendPassword('password', label='Facebook password'))
 
     BROWSER = TinderBrowser
+    STORAGE = {'contacts': {},
+              }
 
     def create_default_browser(self):
         facebook = FacebookBrowser()
@@ -79,5 +84,68 @@ class TinderBackend(BaseBackend, ICapDating):
                        self.config['password'].get())
         return TinderBrowser(facebook)
 
+    # ---- ICapDating methods -----------------------
+
     def init_optimizations(self):
         self.add_optimization('PROFILE_WALKER', ProfilesWalker(self.weboob.scheduler, self.storage, self.browser))
+
+    # ---- ICapMessages methods ---------------------
+
+    def fill_thread(self, thread, fields):
+        return self.get_thread(thread)
+
+    def iter_threads(self):
+        for thread in self.browser.get_threads():
+            t = Thread(thread['_id'])
+            t.flags = Thread.IS_DISCUSSION
+            t.title = u'Discussion with %s' % thread['person']['name']
+            parent = None
+            contact = self.storage.get('contacts', t.id, default={'lastmsg': 0})
+            for msg in thread['messages']:
+                flags = 0
+                if int(contact['lastmsg']) < msg['timestamp']:
+                    flags = Message.IS_UNREAD
+
+                msg = Message(thread=t,
+                              id=msg['timestamp'],
+                              title=t.title,
+                              sender=unicode(self.browser.my_name if msg['from'] == self.browser.my_id else thread['person']['name']),
+                              receivers=[unicode(self.browser.my_name if msg['to'] == self.browser.my_id else thread['person']['name'])],
+                              date=parse_date(msg['sent_date']),
+                              content=unicode(msg['message']),
+                              children=[],
+                              parent=parent,
+                              flags=flags)
+                if parent is None:
+                    t.root = msg
+                else:
+                    parent.children.append(msg)
+                parent = msg
+
+            yield t
+
+    def get_thread(self, _id):
+        for t in self.iter_threads():
+            if t.id == _id:
+                return t
+
+    def iter_unread_messages(self):
+        for thread in self.iter_threads():
+            for message in thread.iter_all_messages():
+                if message.flags & message.IS_UNREAD:
+                    yield message
+
+    def set_message_read(self, message):
+        contact = self.storage.get('contacts', message.thread.id, default={'lastmsg': 0})
+        if int(contact['lastmsg']) < int(message.id):
+            contact['lastmsg'] = int(message.id)
+            self.storage.set('contacts', message.thread.id, contact)
+            self.storage.save()
+
+    # ---- ICapMessagesPost methods ---------------------
+
+    def post_message(self, message):
+        self.browser.post_message(message.thread.id, message.content)
+
+    OBJECTS = {Thread: fill_thread,
+              }

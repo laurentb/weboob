@@ -82,10 +82,25 @@ class TinderBrowser(DomainBrowser):
         self.session.headers['Authorization'] = 'Token token="%s"' % me['token']
         self.session.headers['X-Auth-Token'] = me['token']
 
+        self.my_id = me['user']['_id']
+        self.my_name = me['user']['name']
+
         self.update_recs()
 
+    def get_threads(self):
+        resp = self.request('/updates', data={'last_activity_date': '2014-05-01T06:13:16.971Z'})
+        return resp['matches']
+
+    def post_message(self, match_id, content):
+        self.request('/user/matches/%s' % match_id, data={'message': content})
+
     def update_recs(self):
-        self.recs = self.request('/user/recs')['results']
+        resp = self.request('/user/recs')
+
+        try:
+            self.recs = resp['results']
+        except KeyError:
+            self.recs = []
 
     def request(self, *args, **kwargs):
         if 'data' in kwargs:
@@ -102,7 +117,8 @@ class TinderBrowser(DomainBrowser):
 
         profile = self.recs.pop()
         resp = self.request('/like/%s' % profile['_id'])
+
         if resp['match']:
             self.logger.error('Match with %s!' % profile['name'])
         else:
-            self.logger.info('Liked %s' % profile['name'])
+            self.logger.info('Liked %s (%r)' % (profile['name'], profile['common_likes']))
