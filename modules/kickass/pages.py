@@ -37,11 +37,11 @@ class TorrentsPage(BasePage):
                 url = NotAvailable
                 if not 'id' in tr.attrib:
                     continue
-                title = tr.getchildren()[0].getchildren()[1].getchildren()[1].text
-                if not title:
+                title = tr.find('.//a[@class="cellMainLink"]')
+                if title is None:
                     title = u''
                 else:
-                    title = unicode(title)
+                    title = unicode(title.text)
                 for red in tr.getchildren()[0].getchildren()[1].getchildren()[1].getchildren():
                     title += red.text_content()
                 idt = tr.getchildren()[0].getchildren()[1].getchildren()[1].attrib.get('href', '').replace('/', '') \
@@ -102,7 +102,7 @@ class TorrentPage(BasePage):
                     leech = 0
 
         title = self.parser.select(self.document.getroot(),
-                                   'h1.torrentName span', 1)
+                                   'h1.novertmarg span', 1)
         title = unicode(title.text)
 
         for a in self.parser.select(self.document.getroot(),
