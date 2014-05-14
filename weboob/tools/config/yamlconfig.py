@@ -63,16 +63,12 @@ class YamlConfig(IConfig):
         os.rename(f.name, self.path)
 
     def get(self, *args, **kwargs):
-        default = None
-        if 'default' in kwargs:
-            default = kwargs['default']
-
         v = self.values
         for a in args[:-1]:
             try:
                 v = v[a]
             except KeyError:
-                if not default is None:
+                if 'default' in kwargs:
                     v[a] = {}
                     v = v[a]
                 else:
@@ -83,7 +79,7 @@ class YamlConfig(IConfig):
         try:
             v = v[args[-1]]
         except KeyError:
-            v = default
+            v = kwargs.get('default')
 
         return v
 
