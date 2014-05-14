@@ -112,7 +112,7 @@ class VideoPage(BasePage):
     def parse_video_channel(self, el):
         _id = el[0].text
         video = CanalplusVideo(_id)
-        video.title = el[2][3][0].text
+        video.title = u'%s' % el[2][5][0].text
         video.date = datetime.now()
         return video
 

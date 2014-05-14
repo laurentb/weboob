@@ -92,13 +92,12 @@ class CanalplusBrowser(BaseBrowser):
             subchannels = self.iter_resources(split_path[0:1])
             try:
                 channel = [subchannel for subchannel in subchannels
-                            if split_path == subchannel.split_path][0]
+                           if split_path == subchannel.split_path][0]
                 self.location("http://service.canal-plus.com/video/rest/getMEAs/cplus/%s" % channel._link_id)
                 assert self.is_on_page(VideoPage)
                 for video in self.page.iter_channel():
                     yield video
             except IndexError:
                 raise CollectionNotFound(split_path)
-
         else:
             raise CollectionNotFound(split_path)
