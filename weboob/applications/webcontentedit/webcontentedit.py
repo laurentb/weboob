@@ -163,19 +163,28 @@ class WebContentEdit(ReplApplication):
 
     def do_get(self, line):
         """
-        get ID [revision]
+        get ID [-r revision]
 
         Get page contents
         """
         if not line:
             print >>sys.stderr, 'Error: please give a page ID'
             return 2
-        line = line.rsplit(' ', 1)
-        if len(line) > 1:
-            revision = Revision(line[1])
-        else:
-            revision = None
-        _id, backend_name = self.parse_id(line[0])
+
+        _part_line = line.strip().split(' ')
+        revision = None
+        if '-r' in _part_line:
+            r_index = _part_line.index('-r')
+            if len(_part_line) -1 > r_index:
+                revision = Revision(_part_line[r_index+1])
+                _part_line.remove(revision.id)
+            _part_line.remove('-r')
+
+            if not _part_line:
+                print >>sys.stderr, 'Error: please give a page ID'
+                return 2
+
+        _id, backend_name = self.parse_id(" ".join(_part_line))
 
         backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
 
