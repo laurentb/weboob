@@ -55,7 +55,7 @@ class MediawikiBackend(BaseBackend, ICapContent):
                                    username, password)
 
     def get_content(self, _id, revision=None):
-        _id = _id.replace(' ', '_').encode('utf-8')
+        _id = _id.replace(' ', '_')
         content = Content(_id)
         page = _id
         rev = revision.id if revision else None
