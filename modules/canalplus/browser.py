@@ -74,7 +74,7 @@ class CanalplusBrowser(BaseBrowser):
     def get_video(self, url, video=None):
         self.location(url)
         video = self.page.get_video(video)
-        video.url = self.read_url(video.url)[self.quality]
+        video.url = u'%s' % self.read_url(video.url)[self.quality]
         return video
 
     def read_url(self, url):
