@@ -56,7 +56,7 @@ class CanalplusBrowser(BaseBrowser):
     PARSER = XMLParser()
     FORMATS = {
         'sd': 0,
-        'hd': 3,
+        'hd': -1,
         }
 
     def __init__(self, quality, *args, **kwargs):
