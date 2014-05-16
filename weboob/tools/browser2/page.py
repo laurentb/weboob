@@ -517,9 +517,15 @@ class JsonPage(BasePage):
 
 
 class XMLPage(BasePage):
+    ENCODING = None
+    """
+    Force a page encoding.
+    It is recommended to use None for autodetection.
+    """
+
     def __init__(self, browser, response, *args, **kwargs):
         super(XMLPage, self).__init__(browser, response, *args, **kwargs)
-        parser = etree.XMLParser(encoding=response.encoding)
+        parser = etree.XMLParser(encoding=self.ENCODING or response.encoding)
         self.doc = etree.parse(StringIO(response.content), parser)
 
 
@@ -535,9 +541,15 @@ class HTMLPage(BasePage):
     """
     FORM_CLASS = Form
 
+    ENCODING = None
+    """
+    Force a page encoding.
+    It is recommended to use None for autodetection.
+    """
+
     def __init__(self, browser, response, *args, **kwargs):
         super(HTMLPage, self).__init__(browser, response, *args, **kwargs)
-        parser = html.HTMLParser(encoding=response.encoding)
+        parser = html.HTMLParser(encoding=self.ENCODING or response.encoding)
         self.doc = html.parse(StringIO(response.content), parser)
 
     def get_form(self, xpath='//form', name=None, nr=None):
