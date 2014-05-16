@@ -174,7 +174,7 @@ class ICapCalendarEvent(ICapCollection):
             query.categories = split_path
             query.start_date = datetime.combine(parse_date('today'), time.min)
             query.end_date = parse_date('')
-            query.city = ''
+            query.city = u''
             for event in self.search_events(query):
                 yield event
 
