@@ -143,9 +143,14 @@ class URL(object):
             patterns += normalize(url)
 
         for pattern, _ in patterns:
-            try:
-                url = pattern % kwargs
-            except KeyError:
+            url = pattern
+            # only use full-name substitutions, to allow % in URLs
+            for kwkey in kwargs:
+                search = '%%(%s)s' % kwkey
+                if search in pattern:
+                    url = url.replace(search, unicode(kwargs[kwkey]))
+            # if there are named substitutions left, ignore pattern
+            if re.search('%\([A-z_]+\)s', url):
                 continue
 
             return self.browser.absurl(url, base=True)
