@@ -145,12 +145,15 @@ class URL(object):
         for pattern, _ in patterns:
             url = pattern
             # only use full-name substitutions, to allow % in URLs
-            for kwkey in kwargs:
+            for kwkey in kwargs.keys():  # need to use keys() because of pop()
                 search = '%%(%s)s' % kwkey
                 if search in pattern:
-                    url = url.replace(search, unicode(kwargs[kwkey]))
+                    url = url.replace(search, unicode(kwargs.pop(kwkey)))
             # if there are named substitutions left, ignore pattern
             if re.search('%\([A-z_]+\)s', url):
+                continue
+            # if not all kwargs were used
+            if len(kwargs):
                 continue
 
             return self.browser.absurl(url, base=True)
