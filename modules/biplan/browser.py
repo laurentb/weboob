@@ -43,7 +43,7 @@ class BiplanBrowser(PagesBrowser):
                                                                      date_to=date_to,
                                                                      city=city,
                                                                      categories=categories,
-                                                                     is_Concert=False)
+                                                                     is_concert=False)
 
     def get_event(self, _id, event=None):
         return self.event_page.go(_id=_id).get_event(obj=event)

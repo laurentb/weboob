@@ -85,7 +85,8 @@ class ProgramPage(HTMLPage):
         item_xpath = '//div[@class="ligne"]'
 
         class item(ItemElement):
-            klass = BiplanCalendarEventConcert if Env('is_concert') else BiplanCalendarEventTheatre
+            def klass(self):
+                return BiplanCalendarEventConcert() if self.env['is_concert'] else BiplanCalendarEventTheatre()
 
             def condition(self):
                 return (self.el.xpath('./div'))

@@ -38,6 +38,6 @@ class BiplanCalendarEventConcert(BiplanCalendarEvent):
 
 
 class BiplanCalendarEventTheatre(BiplanCalendarEvent):
-    def __init__(self, _id):
+    def __init__(self):
         BiplanCalendarEvent.__init__(self)
         self.category = CATEGORIES.THEATRE
