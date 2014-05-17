@@ -138,6 +138,7 @@ class URL(object):
         :rtype: :class:`str`
         :raises: :class:`UrlNotResolvable` if unable to resolve a correct url with the given arguments.
         """
+        browser = kwargs.pop('browser', self.browser)
         patterns = []
         for url in self.urls:
             patterns += normalize(url)
@@ -156,7 +157,7 @@ class URL(object):
             if len(kwargs):
                 continue
 
-            return self.browser.absurl(url, base=True)
+            return browser.absurl(url, base=True)
 
         raise UrlNotResolvable('Unable to resolve URL with %r. Available are %s' % (kwargs, ', '.join([pattern for pattern, _ in patterns])))
 
@@ -195,7 +196,7 @@ class URL(object):
                 if not self.match(id_or_url, browser.BASEURL):
                     return
             else:
-                id_or_url = self.build(id=id_or_url)
+                id_or_url = self.build(id=id_or_url, browser=browser)
 
             return func(browser, id_or_url, *args, **kwargs)
         return inner
