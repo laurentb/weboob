@@ -40,7 +40,7 @@ class ProfilesWalker(Optimization):
         self.browser = browser
         self.logger = getLogger('walker', browser.logger)
 
-        self.config = storage.get('priority_connection', 'config', default=None)
+        self.config = storage.get('profile_walker', 'config', default=None)
         if self.config == {}:
             self.config = None
 
@@ -70,7 +70,7 @@ class ProfilesWalker(Optimization):
 
     def set_config(self, params):
         self.config = params
-        self.storage.set('priority_connection', 'config', self.config)
+        self.storage.set('profile_walker', 'config', self.config)
         self.storage.save()
 
     def get_config(self):

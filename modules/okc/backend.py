@@ -157,7 +157,7 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
 
         child = None
         msg = None
-        slut = self._get_slut(mails['member']['pseudo'])
+        slut = self._get_slut(thread.id)
         if contacts is None:
             contacts = {}
 
@@ -166,7 +166,7 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
 
         for mail in mails['messages']:
             flags = Message.IS_HTML
-            if parse_dt(mail['date']) > slut['lastmsg'] and mail['id_from'] != self.browser.get_my_name():
+            if parse_dt(mail['date']) > slut['lastmsg']:
                 flags |= Message.IS_UNREAD
 
                 if get_profiles:
@@ -187,7 +187,7 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
                           receivers=[my_name if mail['id_from'] != my_name else mails['member']['pseudo']],
                           date=parse_dt(mail['date']),
                           content=unescape(mail['message']).strip(),
-                          signature=signature,
+                          signature='<pre>%s</pre>' % signature,
                           children=[],
                           flags=flags)
             if child:
@@ -203,39 +203,19 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
 
         return thread
 
-    #def iter_unread_messages(self, thread=None):
-    #    try:
-    #        contacts = {}
-    #        with self.browser:
-    #            threads = self.browser.get_threads_list()
-    #        for thread in threads:
-    #            if thread['member'].get('isBan', thread['member'].get('dead', False)):
-    #                with self.browser:
-    #                    self.browser.delete_thread(int(thread['member']['id']))
-    #                continue
-    #            if self.antispam and not self.antispam.check_thread(thread):
-    #                self.logger.info('Skipped a spam-unread-thread from %s' % thread['member']['pseudo'])
-    #                self.report_spam(thread['member']['pseudo'])
-    #                continue
-    #            slut = self._get_slut(thread['member']['pseudo'])
-    #            if parse_dt(thread['date']) > slut['lastmsg']:
-    #                t = self.get_thread(thread['member']['pseudo'], contacts, get_profiles=True)
-    #                for m in t.iter_all_messages():
-    #                    if m.flags & m.IS_UNREAD:
-    #                        yield m
-
-    #    except BrowserUnavailable as e:
-    #        self.logger.debug('No messages, browser is unavailable: %s' % e)
-    #        pass # don't care about waiting
+    def iter_unread_messages(self, thread=None):
+        contacts = {}
+        for thread in self.browser.get_threads_list():
+            t = self.get_thread(thread['username'], contacts, get_profiles=True)
+            for m in t.iter_all_messages():
+                if m.flags & m.IS_UNREAD:
+                    yield m
 
     def set_message_read(self, message):
-        if message.sender == self.browser.get_my_name():
-            return
-
-        slut = self._get_slut(message.sender)
+        slut = self._get_slut(message.thread.id)
         if slut['lastmsg'] < message.date:
             slut['lastmsg'] = message.date
-            self.storage.set('sluts', message.sender, slut)
+            self.storage.set('sluts', message.thread.id, slut)
             self.storage.save()
 
     def _get_slut(self, id):
@@ -357,25 +337,25 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
                 yield c
 
     def send_query(self, id):
-       if isinstance(id, Contact):
-           id = id.id
+        if isinstance(id, Contact):
+            id = id.id
 
-       queries_queue = None
-       try:
-           queries_queue = self.get_optimization('QUERIES_QUEUE')
-       except OptimizationNotFound:
-           pass
+        queries_queue = None
+        try:
+            queries_queue = self.get_optimization('QUERIES_QUEUE')
+        except OptimizationNotFound:
+            pass
 
-       if queries_queue and queries_queue.is_running():
-           if queries_queue.enqueue_query(id):
-               return Query(id, 'A profile was visited')
-           else:
-               return Query(id, 'Unable to visit profile: it has been enqueued')
-       else:
-           with self.browser:
-               if not self.browser.visit_profile(id):
-                   raise QueryError('Could not visit profile')
-               return Query(id, 'Profile was visited')
+        if queries_queue and queries_queue.is_running():
+            if queries_queue.enqueue_query(id):
+                return Query(id, 'A profile was visited')
+            else:
+                return Query(id, 'Unable to visit profile: it has been enqueued')
+        else:
+            with self.browser:
+                if not self.browser.visit_profile(id):
+                    raise QueryError('Could not visit profile')
+                return Query(id, 'Profile was visited')
 
     #def get_notes(self, id):
     #    if isinstance(id, Contact):

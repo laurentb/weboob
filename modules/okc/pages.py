@@ -43,6 +43,7 @@ class ThreadPage(BasePage):
                 threads.append({
                         u'username' : unicode(elem.getchildren()[0].get('href').split('/')[-1].split('?')[0]),
                         u'id' : unicode(elem.get('id', '').split('_')[1]),
+                        u'date' : unicode(elem.find('.//p[@class="date"]').text)
                 })
 
         return threads
@@ -57,7 +58,10 @@ class MessagesPage(BasePage):
             'messages' : [],
         }
 
-        mails['member']['pseudo'] = self.document.xpath('//li[starts-with(@id, "usr_")]')[0].attrib['id'].split('_', 1)[-1]
+        try:
+            mails['member']['pseudo'] = self.document.xpath('//li[starts-with(@id, "usr_")]')[0].attrib['id'].split('_', 1)[-1]
+        except IndexError:
+            mails['member']['pseudo'] = 'Unknown'
 
         for li_msg in reversed(ul_item.getchildren()):
             div = li_msg.getchildren()[1]
