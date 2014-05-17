@@ -74,7 +74,7 @@ class VideoPage(JsonPage):
 
                 self.env['url'] = video['url']
 
-        obj_id = Env('_id')
+        obj_id = Env('id')
         obj_title = Format(u'%s - %s', Dict('titre'), Dict('sous_titre'))
         obj_url = Env('url')
         obj_date = DateTime(Dict('diffusion/date_debut'))
