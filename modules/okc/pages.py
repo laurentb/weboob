@@ -188,8 +188,8 @@ class PhotosPage(BasePage):
 class PostMessagePage(BasePage):
     def post_mail(self, id, content):
         self.browser.select_form(name='f2')
-        self.browser['r1'] = id
-        self.browser['body'] = content
+        self.browser['r1'] = id.encode('utf-8')
+        self.browser['body'] = content.encode('utf-8')
         self.browser.submit()
 
 class VisitsPage(BasePage):

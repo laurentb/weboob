@@ -25,7 +25,6 @@ from html2text import unescape
 from dateutil import tz
 from dateutil.parser import parse as _parse_dt
 
-from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
 from weboob.capabilities.dating import ICapDating, OptimizationNotFound, Event
 from weboob.capabilities.contact import ICapContact, ContactPhoto, Contact, Query, QueryError
@@ -140,12 +139,17 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
             thread = id
             id = thread.id
 
+        if not thread and isinstance(id, basestring) and not id.isdigit():
+            for t in self.browser.get_threads_list():
+                if t['username'] == id:
+                    id = t['id']
+                    break
+            else:
+                return None
+
         if not thread:
             thread = Thread(int(id))
             thread.flags = Thread.IS_DISCUSSION
-            full = False
-        else:
-            full = True
 
         with self.browser:
             mails = self.browser.get_thread_mails(id, 100)
@@ -192,13 +196,8 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
 
             child = msg
 
-        if full and msg:
-            # If we have get all the messages, replace NotLoaded with None as
-            # parent.
+        if msg:
             msg.parent = None
-        if not full and not msg:
-            # Perhaps there are hidden messages
-            msg = NotLoaded
 
         thread.root = msg
 
@@ -353,7 +352,7 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
             threads = self.browser.get_threads_list(count=100)
 
         for thread in threads:
-            c = self._get_partial_contact(thread['member'])
+            c = self.get_contact(thread['username'])
             if c and (c.status & status) and (not ids or c.id in ids):
                 yield c
 

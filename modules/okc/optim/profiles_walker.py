@@ -25,17 +25,24 @@ from random import randint
 from weboob.tools.browser import BrowserUnavailable
 from weboob.capabilities.dating import Optimization
 from weboob.tools.log import getLogger
+from weboob.tools.value import Value, ValuesDict
 
 
 __all__ = ['ProfilesWalker']
 
 
 class ProfilesWalker(Optimization):
+    CONFIG = ValuesDict(Value('first_message', label='First message to send to matched profiles', default=''))
+
     def __init__(self, sched, storage, browser):
         self.sched = sched
         self.storage = storage
         self.browser = browser
         self.logger = getLogger('walker', browser.logger)
+
+        self.config = storage.get('priority_connection', 'config', default=None)
+        if self.config == {}:
+            self.config = None
 
         self.view_cron = None
         self.visited_profiles = set(storage.get('profiles_walker', 'viewed'))
@@ -43,6 +50,9 @@ class ProfilesWalker(Optimization):
         self.profiles_queue = set()
 
     def save(self):
+        if self.config is None:
+            return False
+
         self.storage.set('profiles_walker', 'viewed', list(self.visited_profiles))
         self.storage.save()
 
@@ -58,6 +68,15 @@ class ProfilesWalker(Optimization):
     def is_running(self):
         return self.view_cron is not None
 
+    def set_config(self, params):
+        self.config = params
+        self.storage.set('priority_connection', 'config', self.config)
+        self.storage.save()
+
+    def get_config(self):
+        return self.config
+
+
     def view_profile(self):
         try:
             id = self.browser.find_match_profile()
@@ -69,7 +88,8 @@ class ProfilesWalker(Optimization):
                     # profile = self.browser.get_profile(id)
                     self.browser.do_rate(id)
                     self.browser.visit_profile(id)
-                    self.browser.post_mail(id, u"Sympa ton profil :)")
+                    if self.config['first_message'] != '':
+                        self.browser.post_mail(id, unicode(self.config['first_message']))
                 self.logger.info(u'Visited profile %s ' % (id))
 
                 # Get score from the aum_score module
