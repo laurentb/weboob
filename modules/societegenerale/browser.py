@@ -106,24 +106,15 @@ class SocieteGenerale(BaseBrowser):
     def iter_history(self, account):
         self.location(account._link_id)
 
-        if not self.is_on_page(AccountHistory):
-            # TODO: support other kind of accounts
-            self.logger.warning('This account is not supported')
-            raise NotImplementedError('This account is not supported')
-
-        transactions = list(self.page.iter_transactions(coming=False))
-
-        for card_link in account._card_links:
-            self.location(card_link)
-
-            if self.is_on_page(CardsList):
-                for card_link in self.page.iter_cards():
-                    self.location(card_link)
-                    transactions += list(self.page.iter_transactions(coming=True))
-            elif self.is_on_page(AccountHistory):
+        transactions = []
+        if self.is_on_page(CardsList):
+            for card_link in self.page.iter_cards():
+                self.location(card_link)
                 transactions += list(self.page.iter_transactions(coming=True))
-            else:
-                self.logger.warning('This card is not supported')
+        elif self.is_on_page(AccountHistory):
+            transactions += list(self.page.iter_transactions(coming=(account.type == account.TYPE_CARD)))
+        else:
+            self.logger.warning('This account is not supported')
 
         def key(tr):
             # Can't compare datetime and date, so cast them.

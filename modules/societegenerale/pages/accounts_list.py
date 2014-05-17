@@ -55,7 +55,6 @@ class AccountsList(BasePage):
 
 
     def get_list(self):
-        accounts = []
         for tr in self.document.getiterator('tr'):
             if not 'LGNTableRow' in tr.attrib.get('class', '').split():
                 continue
@@ -66,19 +65,19 @@ class AccountsList(BasePage):
                     a = td.find('a')
                     if a is None:
                         break
-                    account.label = unicode(a.find("span").text)
+                    account.label = self.parser.tocleanstring(a)
                     for pattern, actype in self.TYPES.iteritems():
                         if account.label.startswith(pattern):
                             account.type = actype
                     account._link_id = a.get('href', '')
 
                 elif td.attrib.get('headers', '') == 'NumeroCompte':
-                    id = td.text
-                    id = id.replace(u'\xa0','')
-                    account.id = id
+                    account.id = self.parser.tocleanstring(td)
 
                 elif td.attrib.get('headers', '') == 'Libelle':
-                    pass
+                    text = self.parser.tocleanstring(td)
+                    if text != '':
+                        account.label = text
 
                 elif td.attrib.get('headers', '') == 'Solde':
                     div = td.xpath('./div[@class="Solde"]')
@@ -97,15 +96,11 @@ class AccountsList(BasePage):
                 continue
 
             if 'CARTE_' in account._link_id:
-                ac = accounts[0]
-                ac._card_links.append(account._link_id)
-                if not ac.coming:
-                    ac.coming = Decimal('0.0')
-                ac.coming += account.balance
-            else:
-                account._card_links = []
-                accounts.append(account)
-        return iter(accounts)
+                account.type = account.TYPE_CARD
+                account.coming = account.balance
+                account.balance = Decimal('0')
+
+            yield account
 
 
 class CardsList(BasePage):
