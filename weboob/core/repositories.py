@@ -120,8 +120,7 @@ class Repository(object):
     KEYDIR = '.keys'
     KEYRING = 'trusted.gpg'
 
-    def __init__(self, browser, url):
-        self.browser = browser
+    def __init__(self, url):
         self.url = url
         self.name = u''
         self.update = 0
@@ -155,7 +154,7 @@ class Repository(object):
             return self.url[len('file://'):]
         return self.url
 
-    def retrieve_index(self, repo_path):
+    def retrieve_index(self, browser, repo_path):
         """
         Retrieve the index file of this repository. It can use network
         if this is a remote repository.
@@ -176,7 +175,7 @@ class Repository(object):
         else:
             # This is a remote repository, download file
             try:
-                fp = BytesIO(self.browser.open(posixpath.join(self.url, self.INDEX)).content)
+                fp = BytesIO(browser.open(posixpath.join(self.url, self.INDEX)).content)
             except BrowserUnavailable as e:
                 raise RepositoryUnavailable(unicode(e))
 
@@ -189,7 +188,7 @@ class Repository(object):
         # Save the repository index in ~/.weboob/repositories/
         self.save(repo_path, private=True)
 
-    def retrieve_keyring(self, keyring_path):
+    def retrieve_keyring(self, browser, keyring_path):
         # ignore local
         if self.local:
             return
@@ -204,8 +203,8 @@ class Repository(object):
         if not keyring.exists() or self.key_update > keyring.version:
             # This is a remote repository, download file
             try:
-                keyring_data = self.browser.open(posixpath.join(self.url, self.KEYRING)).content
-                sig_data = self.browser.open(posixpath.join(self.url, self.KEYRING + '.sig')).content
+                keyring_data = browser.open(posixpath.join(self.url, self.KEYRING)).content
+                sig_data = browser.open(posixpath.join(self.url, self.KEYRING + '.sig')).content
             except BrowserUnavailable as e:
                 raise RepositoryUnavailable(unicode(e))
             if keyring.exists():
@@ -501,7 +500,7 @@ class Repositories(object):
         for name in sorted(os.listdir(self.repos_dir)):
             path = os.path.join(self.repos_dir, name)
             try:
-                repository = Repository(self.browser, path)
+                repository = Repository(path)
                 self.repositories.append(repository)
             except RepositoryUnavailable as e:
                 print('Unable to load repository %s (%s), try to update repositories.' % (name, e), file=sys.stderr)
@@ -561,15 +560,15 @@ class Repositories(object):
         gpgv = Keyring.find_gpgv()
         for line in self._parse_source_list():
             progress.progress(0.0, 'Getting %s' % line)
-            repository = Repository(self.browser, line)
+            repository = Repository(line)
             filename = self.url2filename(repository.url)
             prio_filename = '%02d-%s' % (len(self.repositories), filename)
             repo_path = os.path.join(self.repos_dir, prio_filename)
             keyring_path = os.path.join(self.keyrings_dir, filename)
             try:
-                repository.retrieve_index(repo_path)
+                repository.retrieve_index(self.browser, repo_path)
                 if gpgv:
-                    repository.retrieve_keyring(keyring_path)
+                    repository.retrieve_keyring(self.browser, keyring_path)
                 else:
                     progress.error('Cannot find gpgv to check for repository authenticity.\n'
                                     'You should install GPG for better security.')
@@ -584,7 +583,7 @@ class Repositories(object):
         """
         l = []
         for line in self._parse_source_list():
-            repository = Repository(self.browser, line)
+            repository = Repository(line)
             filename = self.url2filename(repository.url)
             prio_filename = '%02d-%s' % (len(l), filename)
             repo_path = os.path.join(self.repos_dir, prio_filename)
