@@ -22,7 +22,7 @@ from urlparse import urlsplit, parse_qsl, urlparse
 from datetime import datetime, timedelta
 
 from weboob.tools.browser2 import LoginBrowser, URL, Wget, need_login
-from weboob.tools.browser import  BrowserIncorrectPassword
+from weboob.tools.exceptions import  BrowserIncorrectPassword
 from weboob.capabilities.bank import Transfer, TransferError
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \

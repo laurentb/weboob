@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2014 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -45,6 +45,7 @@ from contextlib import closing
 from gzip import GzipFile
 import warnings
 
+from weboob.tools.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserPasswordExpired, BrowserForbidden, BrowserBanned, BrowserHTTPNotFound, BrowserHTTPError
 from weboob.tools.decorators import retry
 from weboob.tools.log import getLogger
 from weboob.tools.mech import ClientForm
@@ -62,37 +63,8 @@ else:
 
 
 __all__ = ['BrowserIncorrectPassword', 'BrowserForbidden', 'BrowserBanned', 'BrowserUnavailable', 'BrowserRetry',
-           'BrowserHTTPNotFound', 'BrowserHTTPError', 'BrokenPageError', 'BasePage',
+           'BrowserPasswordExpired', 'BrowserHTTPNotFound', 'BrowserHTTPError', 'BrokenPageError', 'BasePage',
            'StandardBrowser', 'BaseBrowser']
-
-
-# Exceptions
-class BrowserIncorrectPassword(Exception):
-    pass
-
-
-class BrowserForbidden(Exception):
-    pass
-
-
-class BrowserBanned(BrowserIncorrectPassword):
-    pass
-
-
-class BrowserPasswordExpired(BrowserIncorrectPassword):
-    pass
-
-
-class BrowserUnavailable(Exception):
-    pass
-
-
-class BrowserHTTPNotFound(BrowserUnavailable):
-    pass
-
-
-class BrowserHTTPError(BrowserUnavailable):
-    pass
 
 
 class BrowserRetry(Exception):

@@ -34,7 +34,7 @@ from weboob.capabilities.account import ICapAccount, Account, AccountRegisterErr
 from weboob.core.backendscfg import BackendAlreadyExists
 from weboob.core.modules import ModuleLoadError
 from weboob.core.repositories import ModuleInstallError
-from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden
+from weboob.tools.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt, ValueBackendPassword
 from weboob.tools.misc import to_unicode
 from weboob.tools.ordereddict import OrderedDict
