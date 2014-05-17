@@ -22,7 +22,7 @@ import urllib
 from weboob.tools.browser import BaseBrowser, BasePage
 from weboob.tools.ordereddict import OrderedDict
 
-from .pages import LoginPage, ThreadPage, MessagesPage, PostMessagePage, ProfilePage, PhotosPage, VisitsPage, QuickMatchPage
+from .pages import LoginPage, ThreadPage, MessagesPage, PostMessagePage, ProfilePage, PhotosPage, VisitsPage, QuickMatchPage, SentPage
 
 __all__ = ['OkCBrowser']
 
@@ -52,7 +52,8 @@ class OkCBrowser(BaseBrowser):
             ('http://%s/profile/.*/photos' % DOMAIN, PhotosPage),
             ('http://%s/profile/[^/]*' % DOMAIN, ProfilePage),
             ('http://%s/visitors' % DOMAIN, VisitsPage),
-            ('http://%s/quickmatch' % DOMAIN, QuickMatchPage)
+            ('http://%s/quickmatch' % DOMAIN, QuickMatchPage),
+            ('http://%s/mailbox' % DOMAIN, SentPage),
     ))
 
     logged_in = False

@@ -258,3 +258,7 @@ class QuickMatchPage(BasePage):
 
         # VoteHandler.process('vote', 'personality', stars, tuid, pass.succeed, pass.failure);
         # var params = {voterid: CURRENTUSERID,target_userid: tuid,target_objectid: 0,type: vote_or_note,vote_type: vote_type,score: rating}
+
+
+class SentPage(BasePage):
+    pass
