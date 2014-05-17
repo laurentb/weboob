@@ -372,6 +372,9 @@ class ContactNotes(QWidget):
         self.ui.textEdit.setText(data)
 
     def _getNotes_eb(self, backend, error, backtrace):
+        if isinstance(error, NotImplementedError):
+            return
+
         self.ui.textEdit.setEnabled(True)
         self.ui.saveButton.setEnabled(True)
         content = unicode(self.tr('Unable to load notes:\n%s\n')) % to_unicode(error)
