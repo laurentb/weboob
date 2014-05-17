@@ -7,3 +7,4 @@ Terminal=false
 Type=Application
 StartupNotify=true
 Categories=Network;Qt;
+Keywords=messaging;chat;forum;

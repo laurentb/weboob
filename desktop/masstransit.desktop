@@ -7,3 +7,4 @@ Terminal=false
 Type=Application
 StartupNotify=true
 Categories=Network;GTK;
+Keywords=departures;train;stations;timetable;travel;

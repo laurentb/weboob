@@ -7,3 +7,4 @@ Terminal=false
 Type=Application
 StartupNotify=true
 Categories=Utility;Qt;
+Keywords=configuration;weboob;
