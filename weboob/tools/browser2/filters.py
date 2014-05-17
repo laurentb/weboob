@@ -25,16 +25,13 @@ from decimal import Decimal, InvalidOperation
 import re
 import lxml.html as html
 
+from weboob.tools.exceptions import ParseError
 from weboob.tools.misc import html2text
 from weboob.tools.compat import basestring
 from weboob.capabilities.base import empty
 
 
 _NO_DEFAULT = object()
-
-
-class ParseError(Exception):
-    pass
 
 
 class FilterError(ParseError):

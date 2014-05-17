@@ -46,3 +46,5 @@ class BrowserHTTPError(BrowserUnavailable):
     pass
 
 
+class ParseError(Exception):
+    pass
