@@ -177,7 +177,7 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
             signature = u''
             if mail.get('src', None):
                 signature += u'Sent from my %s\n\n' % mail['src']
-            if mail['id_from'] in contacts:
+            if contacts.get(mail['id_from'], None) is not None:
                 signature += contacts[mail['id_from']].get_text()
 
             msg = Message(thread=thread,
