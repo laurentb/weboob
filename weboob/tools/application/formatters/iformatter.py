@@ -107,7 +107,7 @@ class IFormatter(object):
     def output(self, formatted):
         if self.outfile != sys.stdout:
             with open(self.outfile, "a+") as outfile:
-                outfile.write(formatted.encode('utf-8'))
+                outfile.write(formatted.encode('utf-8') + os.linesep)
 
         else:
             for line in formatted.split('\n'):
@@ -216,7 +216,7 @@ class PrettyFormatter(IFormatter):
                                     self.colored(title, 'yellow', 'bold'))
 
         if desc is not None:
-            result += u'\n\t%s' % self.colored(desc, 'white')
+            result += u'%s\t%s' % (os.linesep, self.colored(desc, 'white'))
 
         return result
 
