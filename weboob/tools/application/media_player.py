@@ -18,6 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import print_function
+
 import os
 from subprocess import PIPE, Popen
 import cookielib
@@ -102,7 +104,7 @@ class MediaPlayer(object):
         player_name = args[0]
         args.append(media.url)
 
-        print 'Invoking "%s".' % (' '.join(args))
+        print('Invoking "%s".' % (' '.join(args)))
         os.spawnlp(os.P_WAIT, player_name, *args)
 
     def _play_proxy(self, media, player_name, args):
@@ -120,9 +122,9 @@ class MediaPlayer(object):
 
         assert args is not None
 
-        print ':: Play_proxy streaming from %s' % media.url
-        print ':: to %s %s' % (player_name, args)
-        print player_name + ' ' + args
+        print(':: Play_proxy streaming from %s' % media.url)
+        print(':: to %s %s' % (player_name, args))
+        print(player_name + ' ' + args)
         proc = Popen(player_name + ' ' + args, stdin=PIPE, shell=True)
 
         # Handle cookies (and redirection 302...)
@@ -142,7 +144,7 @@ class MediaPlayer(object):
             try:
                 proc.stdin.write(_buffer)
             except:
-                print "play_proxy broken pipe. Can't write anymore."
+                print("play_proxy broken pipe. Can't write anymore.")
                 break
 
     def _play_rtmp(self, media, player_name, args):
@@ -181,9 +183,9 @@ class MediaPlayer(object):
         player_name = player_name.split(' ')
         args = args.split(' ')
 
-        print ':: Streaming from %s' % media_url
-        print ':: to %s %s' % (player_name, args)
-        print ':: %s' % rtmp
+        print(':: Streaming from %s' % media_url)
+        print(':: to %s %s' % (player_name, args))
+        print(':: %s' % rtmp)
         p1 = Popen(rtmp.split(), stdout=PIPE)
         Popen(player_name + args, stdin=p1.stdout, stderr=PIPE)
 

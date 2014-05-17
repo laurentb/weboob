@@ -22,6 +22,8 @@ from datetime import date, datetime
 from binascii import crc32
 import re
 
+from weboob.tools.compat import basestring, long
+
 from .base import CapBaseObject, Field, StringField, DateField, DecimalField, IntField, UserError, Currency
 from .collection import ICapCollection
 

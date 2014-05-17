@@ -20,7 +20,10 @@
 
 from copy import copy
 from threading import Thread
-import Queue
+try:
+    import Queue
+except ImportError:
+    import queue as Queue
 
 from weboob.capabilities.base import CapBaseObject
 from weboob.tools.misc import get_backtrace

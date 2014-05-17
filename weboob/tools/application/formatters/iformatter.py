@@ -18,6 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import print_function
+
 import os
 import sys
 import subprocess
@@ -118,7 +120,7 @@ class IFormatter(object):
 
                 if isinstance(line, unicode):
                     line = line.encode('utf-8')
-                print line
+                print(line)
                 self.print_lines += 1
 
     def start_format(self, **kwargs):

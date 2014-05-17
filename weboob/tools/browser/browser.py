@@ -18,6 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import print_function
+import sys
+
+if sys.version_info >= (3,0):
+    raise ImportError("This module isn't compatible with python3")
+
 
 from copy import copy
 from httplib import BadStatusLine
@@ -28,7 +34,6 @@ except ImportError:
     raise ImportError('Please install python-mechanize')
 
 import os
-import sys
 import re
 import tempfile
 from threading import RLock
@@ -288,7 +293,7 @@ class StandardBrowser(mechanize.Browser):
         """
         if self.responses_dirname is None:
             self.responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
-            print >>sys.stderr, 'Debug data will be saved in this directory: %s' % self.responses_dirname
+            print('Debug data will be saved in this directory: %s' % self.responses_dirname, file=sys.stderr)
         elif not os.path.isdir(self.responses_dirname):
             os.makedirs(self.responses_dirname)
         # get the content-type, remove optionnal charset part
@@ -391,7 +396,7 @@ class StandardBrowser(mechanize.Browser):
                                 value = [self.str(is_list.index(args[label]))]
                             except ValueError as e:
                                 if args[label]:
-                                    print >>sys.stderr, '[%s] %s: %s' % (label, args[label], e)
+                                    print('[%s] %s: %s' % (label, args[label], e), file=sys.stderr)
                                 return
                         else:
                             value = [self.str(args[label])]

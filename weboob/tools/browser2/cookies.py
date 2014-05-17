@@ -17,7 +17,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import requests.cookies
-import cookielib
+try:
+    import cookielib
+except ImportError:
+    import http.cookiejar as cookielib
 
 
 __all__ = ['WeboobCookieJar']

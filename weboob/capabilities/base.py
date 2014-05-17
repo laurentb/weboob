@@ -24,6 +24,7 @@ import re
 from decimal import Decimal
 from copy import deepcopy, copy
 
+from weboob.tools.compat import unicode, long
 from weboob.tools.misc import to_unicode
 from weboob.tools.date import new_date, new_datetime
 from weboob.tools.ordereddict import OrderedDict

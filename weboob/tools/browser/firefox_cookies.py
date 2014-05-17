@@ -18,6 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import print_function
+
 try:
     import sqlite3 as sqlite
 except ImportError as e:
@@ -40,7 +42,7 @@ class FirefoxCookieJar(CookieJar):
         try:
             db = sqlite.connect(database=self.sqlite_file, timeout=10.0)
         except sqlite.OperationalError as err:
-            print 'Unable to open %s database: %s' % (self.sqlite_file, err)
+            print('Unable to open %s database: %s' % (self.sqlite_file, err))
             return None
 
         return db

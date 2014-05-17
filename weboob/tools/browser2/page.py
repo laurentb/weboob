@@ -19,18 +19,22 @@
 
 from __future__ import absolute_import
 
-from urllib import unquote
+try:
+    from urllib.parse import unquote
+except ImportError:
+    from urllib import unquote
 import requests
 import re
 import sys
 from copy import deepcopy
-from cStringIO import StringIO
+from io import BytesIO
 import lxml.html as html
 import lxml.etree as etree
 
 from weboob.tools.json import json
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.regex_helper import normalize
+from weboob.tools.compat import basestring
 
 from weboob.tools.log import getLogger
 
@@ -527,7 +531,7 @@ class XMLPage(BasePage):
     def __init__(self, browser, response, *args, **kwargs):
         super(XMLPage, self).__init__(browser, response, *args, **kwargs)
         parser = etree.XMLParser(encoding=self.ENCODING or response.encoding)
-        self.doc = etree.parse(StringIO(response.content), parser)
+        self.doc = etree.parse(BytesIO(response.content), parser)
 
 
 class RawPage(BasePage):
@@ -551,7 +555,7 @@ class HTMLPage(BasePage):
     def __init__(self, browser, response, *args, **kwargs):
         super(HTMLPage, self).__init__(browser, response, *args, **kwargs)
         parser = html.HTMLParser(encoding=self.ENCODING or response.encoding)
-        self.doc = html.parse(StringIO(response.content), parser)
+        self.doc = html.parse(BytesIO(response.content), parser)
 
     def get_form(self, xpath='//form', name=None, nr=None):
         """

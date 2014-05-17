@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 import datetime, uuid
 from dateutil.relativedelta import relativedelta
@@ -321,15 +322,15 @@ class Boobank(ReplApplication):
 
         account = self.get_object(id, 'get_account', [])
         if not account:
-            print >>sys.stderr, 'Error: account "%s" not found (Hint: try the command "list")' % id
+            print('Error: account "%s" not found (Hint: try the command "list")' % id, file=sys.stderr)
             return 2
 
         if end_date is not None:
             try:
                 end_date = parse_date(end_date)
             except ValueError:
-                print >>sys.stderr, '"%s" is an incorrect date format (for example "%s")' % \
-                            (end_date, (datetime.date.today() - relativedelta(months=1)).strftime('%Y-%m-%d'))
+                print('"%s" is an incorrect date format (for example "%s")' % \
+                            (end_date, (datetime.date.today() - relativedelta(months=1)).strftime('%Y-%m-%d')), file=sys.stderr)
                 return 3
             old_count = self.options.count
             self.options.count = None
@@ -399,7 +400,7 @@ class Boobank(ReplApplication):
 
         account = self.get_object(id_from, 'get_account', [])
         if not account:
-            print >>sys.stderr, 'Error: account %s not found' % id_from
+            print('Error: account %s not found' % id_from, file=sys.stderr)
             return 1
 
         if not id_to:
@@ -415,13 +416,13 @@ class Boobank(ReplApplication):
         id_to, backend_name_to = self.parse_id(id_to)
 
         if account.backend != backend_name_to:
-            print >>sys.stderr, "Transfer between different backends is not implemented"
+            print("Transfer between different backends is not implemented", file=sys.stderr)
             return 4
 
         try:
             amount = Decimal(amount)
         except (TypeError, ValueError, InvalidOperation):
-            print >>sys.stderr, 'Error: please give a decimal amount to transfer'
+            print('Error: please give a decimal amount to transfer', file=sys.stderr)
             return 2
 
         if self.interactive:
@@ -434,10 +435,10 @@ class Boobank(ReplApplication):
                     to = recipient.label
                     break
 
-            print 'Amount: %s%s' % (amount, account.currency_text)
-            print 'From:   %s' % account.label
-            print 'To:     %s' % to
-            print 'Reason: %s' % (reason or '')
+            print('Amount: %s%s' % (amount, account.currency_text))
+            print('From:   %s' % account.label)
+            print('To:     %s' % to)
+            print('Reason: %s' % (reason or ''))
             if not self.ask('Are you sure to do this transfer?', default=True):
                 return
 
@@ -453,7 +454,7 @@ class Boobank(ReplApplication):
         """
         account = self.get_object(id, 'get_account', [])
         if not account:
-            print >>sys.stderr, 'Error: account "%s" not found (Hint: try the command "list")' % id
+            print('Error: account "%s" not found (Hint: try the command "list")' % id, file=sys.stderr)
             return 2
 
         self.start_format()

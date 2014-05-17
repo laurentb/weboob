@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import sys
 import logging
 import re
@@ -237,8 +239,8 @@ class QtDo(QObject):
                     msg += u'<br />%s' % to_unicode(line)
             if ul_opened:
                 msg += u'</li></ul>'
-            print >>sys.stderr, error
-            print >>sys.stderr, backtrace
+            print(error, file=sys.stderr)
+            print(backtrace, file=sys.stderr)
         QMessageBox.critical(None, unicode(self.tr('Error with backend %s')) % backend.name,
                              msg, QMessageBox.Ok)
 

@@ -18,6 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import print_function
+
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.json import json
 
@@ -52,7 +54,7 @@ class JsonFormatter(IFormatter):
         self.queue = []
 
     def flush(self):
-        print json.dumps(self.queue, cls=Encoder)
+        print(json.dumps(self.queue, cls=Encoder))
 
     def format_dict(self, item):
         self.queue.append(item)
@@ -64,4 +66,4 @@ class JsonLineFormatter(IFormatter):
     The advantage is that it can be streamed.
     """
     def format_dict(self, item):
-        print json.dumps(item, cls=Encoder)
+        print(json.dumps(item, cls=Encoder))

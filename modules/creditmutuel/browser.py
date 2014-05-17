@@ -18,9 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from urlparse import urlsplit, parse_qsl, urlparse
+try:
+    from urlparse import urlsplit, parse_qsl, urlparse
+except ImportError:
+    from urllib.parse import urlsplit, parse_qsl, urlparse
+
 from datetime import datetime, timedelta
 
+from weboob.tools.compat import basestring
 from weboob.tools.browser2 import LoginBrowser, URL, Wget, need_login
 from weboob.tools.exceptions import  BrowserIncorrectPassword
 from weboob.capabilities.bank import Transfer, TransferError

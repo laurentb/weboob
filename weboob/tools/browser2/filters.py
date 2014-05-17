@@ -26,6 +26,7 @@ import re
 import lxml.html as html
 
 from weboob.tools.misc import html2text
+from weboob.tools.compat import basestring
 from weboob.capabilities.base import empty
 
 
@@ -258,7 +259,7 @@ class CleanDecimal(CleanText):
         if self.replace_dots:
             text = text.replace('.','').replace(',','.')
         try:
-            return Decimal(re.sub(ur'[^\d\-\.]', '', text))
+            return Decimal(re.sub(r'[^\d\-\.]', '', text))
         except InvalidOperation as e:
             return self.default_or_raise(e)
 
@@ -388,7 +389,7 @@ class DateGuesser(Filter):
 
 class Time(Filter):
     klass = datetime.time
-    regexp = re.compile(ur'(?P<hh>\d+):?(?P<mm>\d+)(:(?P<ss>\d+))?')
+    regexp = re.compile(r'(?P<hh>\d+):?(?P<mm>\d+)(:(?P<ss>\d+))?')
     kwargs = {'hour': 'hh', 'minute': 'mm', 'second': 'ss'}
 
     def __init__(self, selector, default=_NO_DEFAULT):
@@ -407,7 +408,7 @@ class Time(Filter):
 
 class Duration(Time):
     klass = datetime.timedelta
-    regexp = re.compile(ur'((?P<hh>\d+)[:;])?(?P<mm>\d+)[;:](?P<ss>\d+)')
+    regexp = re.compile(r'((?P<hh>\d+)[:;])?(?P<mm>\d+)[;:](?P<ss>\d+)')
     kwargs = {'hours': 'hh', 'minutes': 'mm', 'seconds': 'ss'}
 
 

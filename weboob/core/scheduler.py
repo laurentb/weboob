@@ -18,9 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import print_function
 
+from threading import Event, RLock
+try:
+    from threading import _Timer as Timer
+except ImportError:
+    from threading import Timer
 
-from threading import Timer, Event, RLock, _Timer
 from weboob.tools.log import getLogger
 from weboob.tools.misc import get_backtrace
 
@@ -45,14 +50,14 @@ class IScheduler(object):
         raise NotImplementedError()
 
 
-class RepeatedTimer(_Timer):
+class RepeatedTimer(Timer):
     def run(self):
         while not self.finished.isSet():
             try:
                 self.function(*self.args, **self.kwargs)
             except Exception:
                 # do not stop timer because of an exception
-                print get_backtrace()
+                print(get_backtrace())
             self.finished.wait(self.interval)
         self.finished.set()
 

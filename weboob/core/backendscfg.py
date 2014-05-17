@@ -23,7 +23,10 @@
 import stat
 import os
 import sys
-from ConfigParser import RawConfigParser, DuplicateSectionError
+try:
+    from ConfigParser import RawConfigParser, DuplicateSectionError
+except ImportError:
+    from configparser import RawConfigParser, DuplicateSectionError
 from logging import warning
 
 __all__ = ['BackendsConfig', 'BackendAlreadyExists']
