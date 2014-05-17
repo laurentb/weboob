@@ -22,7 +22,7 @@ from weboob.capabilities.bank import Account, Transaction
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from weboob.capabilities.base import NotAvailable
-from weboob.tools.browser import BrowserIncorrectPassword, BrokenPageError
+from weboob.tools.exceptions import BrowserIncorrectPassword, ParseError
 from weboob.tools.browser2 import BaseBrowser
 
 from re import match, compile, sub
@@ -124,9 +124,9 @@ class CmbBackend(BaseBackend, ICapBank):
                 tree = etree.parse(StringIO(data), parser)
                 table = tree.xpath('/html/body/table')
                 if len(table) == 0:
-                    raise BrokenPageError()
+                    raise ParseError()
             else:
-                raise BrokenPageError()
+                raise ParseError()
 
         for tr in tree.xpath('/html/body//table[contains(@class, "Tb")]/tr'):
             if tr.get('class', None) not in ('LnTit', 'LnTot', 'LnMnTiers', None):
@@ -196,9 +196,9 @@ class CmbBackend(BaseBackend, ICapBank):
                 tree = etree.parse(StringIO(data), parser)
                 tables = tree.xpath('/html/body/table')
                 if len(tables) == 0:
-                    raise BrokenPageError()
+                    raise ParseError()
             else:
-                raise BrokenPageError()
+                raise ParseError()
 
         i = 0
 

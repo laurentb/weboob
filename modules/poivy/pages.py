@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import BrowserBanned
+from weboob.tools.exceptions import BrowserBanned
 from weboob.tools.browser2.page import HTMLPage, LoggedPage, method, ListElement, ItemElement, pagination
 from weboob.tools.browser2.filters import CleanText, CleanDecimal, Field, Attr, DateTime, Link, Format
 from weboob.capabilities.bill import Subscription, Detail

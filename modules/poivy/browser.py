@@ -18,8 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser2 import LoginBrowser, URL, need_login
-from weboob.tools.browser import BrowserIncorrectPassword
+from weboob.tools.exceptions import BrowserIncorrectPassword
 from .pages import HomePage, LoginPage, HistoryPage, BillsPage, ErrorPage
+
 
 __all__ = ['PoivyBrowser']
 

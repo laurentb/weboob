@@ -19,7 +19,7 @@
 
 from StringIO import StringIO
 
-from weboob.tools.browser import BasePage, BrowserIncorrectPassword
+from weboob.tools.exceptions import BrowserIncorrectPassword
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard
 from weboob.tools.browser2.page import HTMLPage
 
@@ -120,5 +120,5 @@ class LoginPage(HTMLPage):
         form.submit()
 
 
-class StopPage(BasePage):
+class StopPage(HTMLPage):
     pass
