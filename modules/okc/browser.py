@@ -31,6 +31,14 @@ class OkCException(Exception):
     pass
 
 
+def check_login(func):
+    def inner(self, *args, **kwargs):
+        if not self.logged_in:
+            self.login()
+        return func(self, *args, **kwargs)
+    return inner
+
+
 class OkCBrowser(BaseBrowser):
     DOMAIN = 'm.okcupid.com'
     PROTOCOL = 'https'
@@ -59,13 +67,6 @@ class OkCBrowser(BaseBrowser):
 
     def is_logged(self):
         return self.logged_in
-
-    def check_login(func):
-        def inner(self, *args, **kwargs):
-            if not self.logged_in:
-                self.login()
-            return func(self, *args, **kwargs)
-        return inner
 
     def get_consts(self):
         return { 'conts' : 'blah' }
@@ -137,13 +138,7 @@ class OkCBrowser(BaseBrowser):
         id = int(id)
         self.location(self.absurl('/messages?readmsg=true&threadid=%i&folder=1' % id))
 
-        # Find the peer username
-        mails = self.page.get_thread_mails(count)
-        for mail in mails['messages']:
-            if mail['id_from'] != self.get_my_name():
-                mails['member']['pseudo'] = mail['id_from']
-                break
-        return mails
+        return self.page.get_thread_mails(count)
 
     @check_login
     def post_mail(self, id, content):
@@ -184,10 +179,10 @@ class OkCBrowser(BaseBrowser):
     #        return True
 
     @check_login
-    def search_profiles(self, **kwargs):
-       self.location(self.absurl('/quickmatch'))
-       user_id = self.page.get_id()
-       return set([user_id])
+    def find_match_profile(self, **kwargs):
+        self.location(self.absurl('/quickmatch'))
+        user_id = self.page.get_id()
+        return user_id
 
     @check_login
     def get_profile(self, id):

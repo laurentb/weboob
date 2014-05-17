@@ -37,7 +37,6 @@ class ProfilesWalker(Optimization):
         self.browser = browser
         self.logger = getLogger('walker', browser.logger)
 
-        self.walk_cron = None
         self.view_cron = None
         self.visited_profiles = set(storage.get('profiles_walker', 'viewed'))
         self.logger.info(u'Loaded %d already visited profiles from storage.' % len(self.visited_profiles))
@@ -48,36 +47,23 @@ class ProfilesWalker(Optimization):
         self.storage.save()
 
     def start(self):
-        self.walk_cron = self.sched.repeat(60, self.enqueue_profiles)
         self.view_cron = self.sched.schedule(randint(5, 10), self.view_profile)
         return True
 
     def stop(self):
-        self.sched.cancel(self.walk_cron)
         self.sched.cancel(self.view_cron)
-        self.walk_cron = None
         self.view_cron = None
         return True
 
     def is_running(self):
-        return self.walk_cron is not None
-
-    def enqueue_profiles(self):
-        try:
-            with self.browser:
-                profiles_to_visit = self.browser.search_profiles().difference(self.visited_profiles)
-                self.logger.info(u'Enqueuing profiles to visit: %s' % profiles_to_visit)
-                self.profiles_queue = set(profiles_to_visit)
-            self.save()
-        except BrowserUnavailable:
-            return
+        return self.view_cron is not None
 
     def view_profile(self):
         try:
-            try:
-                id = self.profiles_queue.pop()
-            except KeyError:
-                return  # empty queue
+            id = self.browser.find_match_profile()
+            if id in self.visited_profiles:
+                return
+
             try:
                 with self.browser:
                     # profile = self.browser.get_profile(id)

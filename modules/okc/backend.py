@@ -34,8 +34,6 @@ from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.misc import local2utc
 
 from .browser import OkCBrowser
-from .optim.visibility import Visibility
-from .optim.queries_queue import QueriesQueue
 from .optim.profiles_walker import ProfilesWalker
 
 
@@ -88,8 +86,6 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
 
     # ---- ICapDating methods ---------------------
     def init_optimizations(self):
-        self.add_optimization('VISIBILITY', Visibility(self.weboob.scheduler, self.browser))
-        self.add_optimization('QUERIES_QUEUE', QueriesQueue(self.weboob.scheduler, self.storage, self.browser))
         self.add_optimization('PROFILE_WALKER', ProfilesWalker(self.weboob.scheduler, self.storage, self.browser))
 
     def iter_events(self):
@@ -261,7 +257,7 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
             # Check wether we already have a thread with this user
             threads = self.browser.get_threads_list()
             for thread in threads:
-                if thread['username'] == message.thread.id:
+                if thread['id'] == message.thread.id:
                     self.browser.post_reply(thread['id'], content)
                     break
             else:

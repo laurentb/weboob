@@ -41,7 +41,7 @@ class ThreadPage(BasePage):
             _class = elem.get('class', '')
             if 'clearfix' in _class.split():
                 threads.append({
-                        u'username' : unicode(elem.getchildren()[0].get('href').split('/')[-1]),
+                        u'username' : unicode(elem.getchildren()[0].get('href').split('/')[-1].split('?')[0]),
                         u'id' : unicode(elem.get('id', '').split('_')[1]),
                 })
 
@@ -57,11 +57,13 @@ class MessagesPage(BasePage):
             'messages' : [],
         }
 
-        for li_msg in ul_item.getchildren():
+        mails['member']['pseudo'] = self.document.xpath('//li[starts-with(@id, "usr_")]')[0].attrib['id'].split('_', 1)[-1]
+
+        for li_msg in reversed(ul_item.getchildren()):
             div = li_msg.getchildren()[1]
             txt = self.parser.tostring(div.getchildren()[1])
             date = div.getchildren()[2].text
-            id_from = li_msg.getchildren()[0].get('href').split('/')[-1]
+            id_from = li_msg.getchildren()[0].get('href').split('/')[-1].split('?')[0]
 
             if date is not None:
                 date = unicode(date)
@@ -210,7 +212,7 @@ class QuickMatchPage(BasePage):
         element = self.parser.select(self.document.getroot(), '//*[@id="sn"]', method='xpath')[0]
         visitor_id = unicode(element.get('value'))
         return visitor_id
-    
+
     def get_rating_params(self):
         # initialization
         userid = None
