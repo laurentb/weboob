@@ -64,7 +64,10 @@ class MessagesPage(BasePage):
             mails['member']['pseudo'] = 'Unknown'
 
         for li in reversed(self.document.xpath('//ul[@id="thread"]//li[contains(@id, "message_")]')):
-            txt = self.parser.tostring(li.xpath('.//div[@class="message_body"]')[0])
+            try:
+                txt = self.parser.tostring(li.xpath('.//div[@class="message_body"]')[0])
+            except IndexError:
+                continue # 'Match' message
             txt = html2text(txt).strip()
 
             m = re.search(r'(\d+), ', li.xpath('.//span[@class="timestamp"]//script')[0].text)
