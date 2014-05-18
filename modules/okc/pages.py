@@ -18,10 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
+from datetime import datetime
 
 from weboob.tools.browser import BasePage
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.contact import ProfileNode
+from weboob.tools.misc import local2utc, html2text
 
 
 class LoginPage(BasePage):
@@ -50,27 +52,26 @@ class ThreadPage(BasePage):
 
 
 class MessagesPage(BasePage):
-    def get_thread_mails(self, count):
-        ul_item = self.parser.select(self.document.getroot(), "//ul[@id='rows']", method='xpath')[0]
-
+    def get_thread_mails(self):
         mails = {
             'member' : {},
             'messages' : [],
         }
 
         try:
-            mails['member']['pseudo'] = self.document.xpath('//li[starts-with(@id, "usr_")]')[0].attrib['id'].split('_', 1)[-1]
+            mails['member']['pseudo'] = self.parser.tocleanstring(self.document.getroot().cssselect('div#message_heading div.username span.name')[0])
         except IndexError:
             mails['member']['pseudo'] = 'Unknown'
 
-        for li_msg in reversed(ul_item.getchildren()):
-            div = li_msg.getchildren()[1]
-            txt = self.parser.tostring(div.getchildren()[1])
-            date = div.getchildren()[2].text
-            id_from = li_msg.getchildren()[0].get('href').split('/')[-1].split('?')[0]
+        for li in reversed(self.document.xpath('//ul[@id="thread"]//li[contains(@id, "message_")]')):
+            txt = self.parser.tostring(li.xpath('.//div[@class="message_body"]')[0])
+            txt = html2text(txt).strip()
 
-            if date is not None:
-                date = unicode(date)
+            m = re.search(r'(\d+), ', li.xpath('.//span[@class="timestamp"]//script')[0].text)
+            assert m
+            date = local2utc(datetime.fromtimestamp(int(m.group(1))))
+
+            id_from = li.find('a').attrib['href'].split('/')[-1].split('?')[0]
 
             mails['messages'].append({
                 'date' : date,

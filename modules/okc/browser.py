@@ -48,7 +48,7 @@ class OkCBrowser(BaseBrowser):
             ('http://%s/home' % DOMAIN, BasePage),
             ('http://%s/messages' % DOMAIN, ThreadPage),
             ('http://%s/messages\?compose=1' % DOMAIN, PostMessagePage),
-            ('http://%s/messages\?.*' % DOMAIN, MessagesPage),
+            ('http://\w+.okcupid.com/messages\?.*', MessagesPage),
             ('http://%s/profile/.*/photos' % DOMAIN, PhotosPage),
             ('http://%s/profile/[^/]*' % DOMAIN, ProfilePage),
             ('http://%s/visitors' % DOMAIN, VisitsPage),
@@ -130,16 +130,16 @@ class OkCBrowser(BaseBrowser):
        return self.page.get_visits()
 
     @check_login
-    def get_threads_list(self, count=30):
+    def get_threads_list(self):
         self.location('http://m.okcupid.com/messages')
         return self.page.get_threads()
 
     @check_login
-    def get_thread_mails(self, id, count=30):
+    def get_thread_mails(self, id):
         id = int(id)
-        self.location(self.absurl('/messages?readmsg=true&threadid=%i&folder=1' % id))
+        self.location('http://www.okcupid.com/messages?readmsg=true&threadid=%i&folder=1' % id)
 
-        return self.page.get_thread_mails(count)
+        return self.page.get_thread_mails()
 
     @check_login
     def post_mail(self, id, content):

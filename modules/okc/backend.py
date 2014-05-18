@@ -21,7 +21,6 @@
 
 import time
 import datetime
-from html2text import unescape
 from dateutil import tz
 from dateutil.parser import parse as _parse_dt
 
@@ -152,7 +151,7 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
             thread.flags = Thread.IS_DISCUSSION
 
         with self.browser:
-            mails = self.browser.get_thread_mails(id, 100)
+            mails = self.browser.get_thread_mails(id)
             my_name = self.browser.get_my_name()
 
         child = None
@@ -165,8 +164,8 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
             thread.title = u'Discussion with %s' % mails['member']['pseudo']
 
         for mail in mails['messages']:
-            flags = Message.IS_HTML
-            if parse_dt(mail['date']) > slut['lastmsg']:
+            flags = 0
+            if mail['date'] > slut['lastmsg']:
                 flags |= Message.IS_UNREAD
 
                 if get_profiles:
@@ -181,13 +180,13 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
                 signature += contacts[mail['id_from']].get_text()
 
             msg = Message(thread=thread,
-                          id=int(time.strftime('%Y%m%d%H%M%S', parse_dt(mail['date']).timetuple())),
+                          id=int(time.strftime('%Y%m%d%H%M%S', mail['date'].timetuple())),
                           title=thread.title,
                           sender=mail['id_from'],
                           receivers=[my_name if mail['id_from'] != my_name else mails['member']['pseudo']],
-                          date=parse_dt(mail['date']),
-                          content=unescape(mail['message']).strip(),
-                          signature='<pre>%s</pre>' % signature,
+                          date=mail['date'],
+                          content=mail['message'],
+                          signature=signature,
                           children=[],
                           flags=flags)
             if child:
@@ -329,7 +328,7 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
 
     def iter_contacts(self, status=Contact.STATUS_ALL, ids=None):
         with self.browser:
-            threads = self.browser.get_threads_list(count=100)
+            threads = self.browser.get_threads_list()
 
         for thread in threads:
             c = self.get_contact(thread['username'])
