@@ -322,7 +322,7 @@ class BaseBackend(object):
             tmpproxy = os.environ['http_proxy']
         elif 'HTTP_PROXY' in os.environ:
             tmpproxy = os.environ['HTTP_PROXY']
-        if '_proxys' in self._private_config:
+        if '_proxy_ssl' in self._private_config:
             tmpproxys = self._private_config['_proxy_ssl']
         elif 'https_proxy' in os.environ:
             tmpproxys = os.environ['https_proxy']
