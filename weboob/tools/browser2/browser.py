@@ -257,6 +257,7 @@ class BaseBrowser(object):
                    verify=None,
                    cert=None,
                    proxies=None,
+                   data_encoding=None,
                    **kwargs):
         """
         Make an HTTP request like a browser does:
@@ -287,7 +288,7 @@ class BaseBrowser(object):
 
         :rtype: :class:`requests.Response`
         """
-        req = self.build_request(url, referrer, **kwargs)
+        req = self.build_request(url, referrer, data_encoding=data_encoding, **kwargs)
         preq = self.prepare_request(req)
 
         if hasattr(preq, '_cookies'):
@@ -321,7 +322,7 @@ class BaseBrowser(object):
 
         return response
 
-    def build_request(self, url, referrer=None, **kwargs):
+    def build_request(self, url, referrer=None, data_encoding=None, **kwargs):
         """
         Does the same job as open(), but returns a Request without
         submitting it.
@@ -339,6 +340,13 @@ class BaseBrowser(object):
                 req.method = 'POST'
             else:
                 req.method = 'GET'
+
+        # convert unicode strings to proper encoding
+        if isinstance(req.data, unicode) and data_encoding:
+            req.data = req.data.encode(data_encoding)
+        if isinstance(req.data, dict) and data_encoding:
+            req.data = {k: v.encode(data_encoding) if isinstance(v, unicode) else v
+                        for k, v in req.data.iteritems()}
 
         if referrer is None:
             referrer = self.get_referrer(self.url, url)

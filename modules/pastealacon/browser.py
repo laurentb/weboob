@@ -63,13 +63,10 @@ class CaptchaPage(HTMLPage):
 
 
 class PostPage(HTMLPage):
-    # TODO handle encoding in Browser2
     def post(self, paste, expiration=None):
-        encoding = 'ISO-8859-1'
-
         form = self.get_form(name='editor')
-        form['code2'] = paste.contents.encode(encoding)
-        form['poster'] = paste.title.encode(encoding)
+        form['code2'] = paste.contents
+        form['poster'] = paste.title
         if expiration:
             form['expiry'] = expiration
         form.submit()

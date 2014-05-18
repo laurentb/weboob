@@ -512,6 +512,7 @@ class Form(OrderedDict):
         """
         Submit the form and tell browser to be located to the new page.
         """
+        kwargs.setdefault('data_encoding', self.page.encoding)
         return self.page.browser.location(self.request, **kwargs)
 
 
@@ -554,7 +555,8 @@ class HTMLPage(BasePage):
 
     def __init__(self, browser, response, *args, **kwargs):
         super(HTMLPage, self).__init__(browser, response, *args, **kwargs)
-        parser = html.HTMLParser(encoding=self.ENCODING or response.encoding)
+        self.encoding = self.ENCODING or response.encoding
+        parser = html.HTMLParser(encoding=self.encoding)
         self.doc = html.parse(BytesIO(response.content), parser)
 
     def get_form(self, xpath='//form', name=None, nr=None):
