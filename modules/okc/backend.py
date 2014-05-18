@@ -286,7 +286,7 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
                 contact = Contact(_id, profile['id'], Contact.STATUS_OFFLINE)
             contact.url = 'http://%s/profile/%s' % (self.browser.DOMAIN, _id)
             contact.profile = profile['data']
-            contact.summary = profile['summary']
+            contact.summary = profile.get('summary', '')
 
             if contact.profile['details']['last_online'].value == u'Online now!':
                 contact.status = Contact.STATUS_ONLINE

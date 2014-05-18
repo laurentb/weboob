@@ -147,34 +147,25 @@ class ProfilePage(BasePage):
 
         div_essays = self.parser.select(self.document.getroot(), "//div[@class='essay']", method='xpath')
         h3_essays = self.parser.select(self.document.getroot(), "//div[@id='page_content']//h3", method='xpath')
-        essays = dict(zip(h3_essays, div_essays))
+        essays = OrderedDict(zip(h3_essays, div_essays))
 
-        profile['summary'] = unicode(div_essays[0].text.strip())
-
+        profile['data']['look_for'] = ProfileNode('look_for', u'Look for', OrderedDict(), flags=ProfileNode.SECTION)
+        profile['data']['details'] = ProfileNode('details', u'Details', OrderedDict(), flags=ProfileNode.SECTION)
         profile['data']['essays'] = ProfileNode('essays', u'Essays', OrderedDict(), flags=ProfileNode.SECTION)
 
         for label, val in essays.iteritems():
             label = unicode(label.text).strip()
-            val = unicode(val.text).strip()
-            key = label.replace(' ', '_')
-            profile['data']['essays'].value[key] = ProfileNode(key, label, val)
-        #profile['data']['look_for'].value['orientation'] = ProfileNode('orientation', 'Orientation', div_essays[9].getchildren()[0].getchildren()[0].text.strip())
-        #profile['data']['look_for'].value['location'] = ProfileNode('location', 'Location', div_essays[9].getchildren()[0].getchildren()[2].text.strip())
-        #profile['data']['look_for'].value['relationship'] = ProfileNode('relationship', 'Relationship', div_essays[9].getchildren()[0].getchildren()[3].text.strip())
-        #profile['data']['look_for'].value['what_for'] = ProfileNode('what_for', 'What for', div_essays[9].getchildren()[0].getchildren()[4].text.split('\n')[1].strip().split(', '))
-
-        #age = div_essays[9].getchildren()[0].getchildren()[1].text[5:].strip().split(u'–')
-        #profile['data']['look_for'].value['age_min'] = ProfileNode('age_min', 'Age min', int(age[0]))
-        #profile['data']['look_for'].value['age_max'] = ProfileNode('age_max', 'Age max', int(age[1]))
-
-        #div_essays = div_essays[1:-1]
-        #h3_essays = h3_essays[1:-1]
-
-        #for i, title in enumerate(h3_essays):
-        #    profile['data']['essays'].value['essay_%i' % i] = ProfileNode('essay_%i' % i, title.text, div_essays[i].text.strip())
+            txt = self.parser.tocleanstring(val)
+            if 'looking for' in label:
+                for i, li in enumerate(val.xpath('.//li')):
+                    profile['data']['look_for'].value['look_for_%s' % i] = ProfileNode('look_for_%s' % i, '', li.text.strip())
+            elif 'summary' in label and not 'summary' in profile:
+                profile['summary'] = txt
+            else:
+                key = label.replace(' ', '_')
+                profile['data']['essays'].value[key] = ProfileNode(key, label, txt)
 
         details_div = self.parser.select(self.document.getroot(), "//div[@id='details']//li", method='xpath')
-        profile['data']['details'] = ProfileNode('details', u'Details', OrderedDict(), flags=ProfileNode.SECTION)
         for elem in details_div:
             label = unicode(elem.getchildren()[0].text.strip())
             val = unicode(elem.getchildren()[1].text.strip())
