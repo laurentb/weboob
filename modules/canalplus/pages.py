@@ -22,7 +22,7 @@ import re
 
 from weboob.tools.browser import BasePage
 from weboob.capabilities.collection import Collection
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.image import BaseImage
 
 from .video import CanalplusVideo
@@ -101,7 +101,9 @@ class VideoPage(BasePage):
 
     def iter_results(self):
         for vid in self.document.getchildren():
-            yield self.parse_video(vid)
+            video = self.parse_video(vid)
+            video.url = NotLoaded
+            yield video
 
     def iter_channel(self):
         for vid in self.document.getchildren():
