@@ -66,6 +66,8 @@ class Value(object):
         self.label = kwargs.get('label', kwargs.get('description', None))
         self.description = kwargs.get('description', kwargs.get('label', None))
         self.default = kwargs.get('default', None)
+        if isinstance(self.default, str):
+            self.default = to_unicode(self.default)
         self.regexp = kwargs.get('regexp', None)
         self.choices = kwargs.get('choices', None)
         if isinstance(self.choices, (list, tuple)):
@@ -107,9 +109,9 @@ class Value(object):
         """
         Set a value.
         """
-        self.check_valid(v)
         if isinstance(v, str):
             v = to_unicode(v)
+        self.check_valid(v)
         self._value = v
 
     def dump(self):

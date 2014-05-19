@@ -330,7 +330,7 @@ class ConsoleApplication(BaseApplication):
             if key not in params or edit:
                 params[key] = self.ask(value, default=params[key] if (key in params) else value.default)
             else:
-                print(u' [%s] %s: %s' % (key, value.description, '(masked)' if value.masked else params[key]))
+                print(u' [%s] %s: %s' % (key, value.description, '(masked)' if value.masked else to_unicode(params[key])))
         if asked_config:
             print('-------------------------%s' % ('-' * len(module.name)))
 
@@ -370,7 +370,7 @@ class ConsoleApplication(BaseApplication):
         if isinstance(question, Value):
             v = copy(question)
             if default is not None:
-                v.default = default
+                v.default = to_unicode(default) if isinstance(default, str) else default
             if masked is not None:
                 v.masked = masked
             if regexp is not None:
@@ -442,7 +442,7 @@ class ConsoleApplication(BaseApplication):
 
             if v.tiny:
                 question = u'%s (%s)' % (question, '/'.join((s.upper() if s == v.default else s)
-                                                            for s in (v.choices.iterkeys())))
+                                                            for s in v.choices.iterkeys()))
                 for key, value in v.choices.iteritems():
                     print('     %s%s%s: %s' % (self.BOLD, key, self.NC, value))
             else:
