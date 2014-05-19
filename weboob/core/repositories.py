@@ -38,12 +38,11 @@ from .modules import Module
 from weboob.tools.log import getLogger
 from weboob.tools.misc import to_unicode
 from weboob.tools.browser2.browser import BaseBrowser, Weboob as WeboobProfile
+from requests.exceptions import HTTPError
 try:
     from configparser import RawConfigParser, DEFAULTSECT
 except ImportError:
     from ConfigParser import RawConfigParser, DEFAULTSECT
-
-BrowserUnavailable = object()
 
 
 __all__ = ['IProgress', 'ModuleInstallError', 'ModuleInfo', 'RepositoryUnavailable',
@@ -176,7 +175,7 @@ class Repository(object):
             # This is a remote repository, download file
             try:
                 fp = BytesIO(browser.open(posixpath.join(self.url, self.INDEX)).content)
-            except BrowserUnavailable as e:
+            except HTTPError as e:
                 raise RepositoryUnavailable(unicode(e))
 
         self.parse_index(fp)
@@ -205,7 +204,7 @@ class Repository(object):
             try:
                 keyring_data = browser.open(posixpath.join(self.url, self.KEYRING)).content
                 sig_data = browser.open(posixpath.join(self.url, self.KEYRING + '.sig')).content
-            except BrowserUnavailable as e:
+            except HTTPError as e:
                 raise RepositoryUnavailable(unicode(e))
             if keyring.exists():
                 if not keyring.is_valid(keyring_data, sig_data):
@@ -529,7 +528,7 @@ class Repositories(object):
 
         try:
             icon = self.browser.open(icon_url)
-        except BrowserUnavailable:
+        except HTTPError:
             pass  # no icon, no problem
         else:
             with open(dest_path, 'wb') as fp:
@@ -656,7 +655,7 @@ class Repositories(object):
         progress.progress(0.2, 'Downloading module...')
         try:
             tardata = self.browser.open(module.url).content
-        except BrowserUnavailable as e:
+        except HTTPError as e:
             raise ModuleInstallError('Unable to fetch module: %s' % e)
 
         # Check signature
