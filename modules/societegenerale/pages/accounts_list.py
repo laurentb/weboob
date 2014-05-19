@@ -72,7 +72,7 @@ class AccountsList(BasePage):
                     account._link_id = a.get('href', '')
 
                 elif td.attrib.get('headers', '') == 'NumeroCompte':
-                    account.id = self.parser.tocleanstring(td)
+                    account.id = self.parser.tocleanstring(td).replace(u'\xa0', '')
 
                 elif td.attrib.get('headers', '') == 'Libelle':
                     text = self.parser.tocleanstring(td)
