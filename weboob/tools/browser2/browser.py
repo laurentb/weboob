@@ -345,7 +345,7 @@ class BaseBrowser(object):
         if isinstance(req.data, unicode) and data_encoding:
             req.data = req.data.encode(data_encoding)
         if isinstance(req.data, dict) and data_encoding:
-            req.data = dict([(k, v.encode(data_encoding)) if isinstance(v, unicode) else v
+            req.data = dict([(k, v.encode(data_encoding) if isinstance(v, unicode) else v)
                              for k, v in req.data.iteritems()])
 
         if referrer is None:
