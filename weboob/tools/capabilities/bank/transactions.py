@@ -27,6 +27,7 @@ from weboob.capabilities import NotAvailable, NotLoaded
 from weboob.tools.misc import to_unicode
 from weboob.tools.log import getLogger
 
+from weboob.tools.exceptions import ParseError
 from weboob.tools.browser2.page import TableElement, ItemElement
 from weboob.tools.browser2.filters import Filter, CleanText, CleanDecimal, TableCell
 
@@ -279,7 +280,7 @@ class FrenchTransaction(Transaction):
                                 else:
                                     item.obj.rdate = datetime.date(yy, mm, dd)
                             except ValueError as e:
-                                self._logger.warning('Unable to date in label %r: %s' % (raw, e))
+                                raise ParseError('Unable to date in label %r: %s' % (raw, e))
 
                         break
 
