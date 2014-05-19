@@ -41,7 +41,7 @@ class SubscriptionsFormatter(PrettyFormatter):
 
 class Boobill(ReplApplication):
     APPNAME = 'boobill'
-    VERSION = '0.i'
+    VERSION = '0.j'
     COPYRIGHT = 'Copyright(C) 2012 Florent Fourcot'
     DESCRIPTION = 'Console application allowing to get and download bills.'
     SHORT_DESCRIPTION = "get and download bills"

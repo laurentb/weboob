@@ -75,7 +75,7 @@ class RecipeListFormatter(PrettyFormatter):
 
 class Cookboob(ReplApplication):
     APPNAME = 'cookboob'
-    VERSION = '0.i'
+    VERSION = '0.j'
     COPYRIGHT = 'Copyright(C) 2013 Julien Veyssier'
     DESCRIPTION = "Console application allowing to search for recipes on various websites."
     SHORT_DESCRIPTION = "search and consult recipes"

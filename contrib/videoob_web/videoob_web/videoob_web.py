@@ -41,7 +41,7 @@ template_lookup = TemplateLookup(directories=[os.path.join(os.path.dirname(__fil
 
 class VideoobWeb(BaseApplication):
     APPNAME = 'videoob-webserver'
-    VERSION = '0.i'
+    VERSION = '0.j'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz'
     DESCRIPTION = 'WSGI web server application allowing to search for videos on various websites.'
     CAPS = ICapVideo

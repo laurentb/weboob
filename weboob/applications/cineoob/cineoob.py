@@ -177,7 +177,7 @@ class PersonBiographyFormatter(PrettyFormatter):
 
 class Cineoob(ReplApplication):
     APPNAME = 'cineoob'
-    VERSION = '0.i'
+    VERSION = '0.j'
     COPYRIGHT = 'Copyright(C) 2013 Julien Veyssier'
     DESCRIPTION = "Console application allowing to search for movies and persons on various cinema databases " \
                   ", list persons related to a movie, list movies related to a person and list common movies " \

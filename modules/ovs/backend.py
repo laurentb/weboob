@@ -65,7 +65,7 @@ class OvsBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContact):
     DESCRIPTION = u'OnVaSortir website. Handles private messages only'
     MAINTAINER = u'Vincent A'
     EMAIL = 'dev@indigo.re'
-    VERSION = '0.i'
+    VERSION = '0.j'
 
     CONFIG = BackendConfig(Value('username',                label='Username', default=''),
                            ValueBackendPassword('password', label='Password', default=''),

@@ -29,7 +29,7 @@ class ParolesnetBackend(BaseBackend, ICapLyrics):
     NAME = 'parolesnet'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.i'
+    VERSION = '0.j'
     DESCRIPTION = 'paroles.net lyrics website'
     LICENSE = 'AGPLv3+'
     BROWSER = ParolesnetBrowser

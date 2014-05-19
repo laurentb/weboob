@@ -36,7 +36,7 @@ class VoyagesSNCFBackend(BaseBackend, ICapTravel):
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     LICENSE = 'AGPLv3+'
-    VERSION = '0.i'
+    VERSION = '0.j'
     CONFIG = BackendConfig(Value('age', label='Passenger age', default='ADULT',
                                  choices=OrderedDict((('ADULT', '26-59 ans'),
                                                       ('SENIOR', '60 et +'),

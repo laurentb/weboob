@@ -33,7 +33,7 @@ class HybrideBackend(BaseBackend, ICapCalendarEvent):
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
     LICENSE = 'AGPLv3+'
-    VERSION = '0.i'
+    VERSION = '0.j'
     ASSOCIATED_CATEGORIES = [CATEGORIES.CINE]
     BROWSER = HybrideBrowser
 

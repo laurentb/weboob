@@ -40,7 +40,7 @@ class SomaFMBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'somafm'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
-    VERSION = '0.i'
+    VERSION = '0.j'
     DESCRIPTION = u'SomaFM web radio'
     LICENSE = 'AGPLv3+'
     BROWSER = StandardBrowser

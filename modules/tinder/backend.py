@@ -71,7 +71,7 @@ class TinderBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating):
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
     LICENSE = 'AGPLv3+'
-    VERSION = '0.i'
+    VERSION = '0.j'
     CONFIG = BackendConfig(Value('username',                label='Facebook email'),
                            ValueBackendPassword('password', label='Facebook password'))
 

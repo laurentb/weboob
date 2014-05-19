@@ -32,7 +32,7 @@ class SeLogerBackend(BaseBackend, ICapHousing):
     NAME = 'seloger'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.i'
+    VERSION = '0.j'
     DESCRIPTION = 'French housing website'
     LICENSE = 'AGPLv3+'
     ICON = 'http://static.poliris.com/z/portail/svx/portals/sv6_gen/favicon.png'

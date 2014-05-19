@@ -27,7 +27,7 @@ class NihonNoOtoBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'nihonnooto'
     MAINTAINER = u'Thomas Lecavelier'
     EMAIL = 'thomas-weboob@lecavelier.name'
-    VERSION = '0.i'
+    VERSION = '0.j'
     DESCRIPTION = u'« Le son du Japon » french operated web radio, diffusing japanese music'
     # License of your module
     LICENSE = 'AGPLv3+'

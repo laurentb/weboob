@@ -31,7 +31,7 @@ class AllocineBackend(BaseBackend, ICapCinema):
     NAME = 'allocine'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.i'
+    VERSION = '0.j'
     DESCRIPTION = u'AlloCiné French cinema database service'
     LICENSE = 'AGPLv3+'
     BROWSER = AllocineBrowser

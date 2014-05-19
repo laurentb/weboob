@@ -37,7 +37,7 @@ class HelloBankBackend(BaseBackend, ICapBank, ICapMessages):
     NAME = 'hellobank'
     MAINTAINER = u'Christophe Lampin'
     EMAIL = 'weboob@lampin.net'
-    VERSION = '0.i'
+    VERSION = '0.j'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Hello Bank!'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Identifiant', masked=False),

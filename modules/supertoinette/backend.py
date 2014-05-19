@@ -29,7 +29,7 @@ class SupertoinetteBackend(BaseBackend, ICapRecipe):
     NAME = 'supertoinette'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.i'
+    VERSION = '0.j'
     DESCRIPTION = u'Super Toinette, la cuisine familiale French recipe website'
     LICENSE = 'AGPLv3+'
     BROWSER = SupertoinetteBrowser

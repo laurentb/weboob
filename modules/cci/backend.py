@@ -34,7 +34,7 @@ class CciBackend(BaseBackend, ICapJob):
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
     LICENSE = 'AGPLv3+'
-    VERSION = '0.i'
+    VERSION = '0.j'
 
     BROWSER = CciBrowser
 

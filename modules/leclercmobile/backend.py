@@ -34,7 +34,7 @@ class LeclercMobileBackend(BaseBackend, ICapBill):
     NAME = 'leclercmobile'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '0.i'
+    VERSION = '0.j'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'Leclerc Mobile website'
     CONFIG = BackendConfig(ValueBackendPassword('login',

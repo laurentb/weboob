@@ -32,7 +32,7 @@ class DresdenWetterBackend(BaseBackend, ICapGauge):
     NAME = 'dresdenwetter'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '0.i'
+    VERSION = '0.j'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u"Private wetter station Dresden"
     BROWSER = DresdenWetterBrowser

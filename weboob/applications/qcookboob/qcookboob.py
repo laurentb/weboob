@@ -26,7 +26,7 @@ from .main_window import MainWindow
 
 class QCookboob(QtApplication):
     APPNAME = 'qcookboob'
-    VERSION = '0.i'
+    VERSION = '0.j'
     COPYRIGHT = 'Copyright(C) 2013 Julien Veyssier'
     DESCRIPTION = "Qt application allowing to search recipes."
     SHORT_DESCRIPTION = "search recipes"

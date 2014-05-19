@@ -143,7 +143,7 @@ def install_weboob():
 
     setup(
         name='weboob',
-        version='0.i',
+        version='0.j',
         description='Weboob, Web Outside Of Browsers',
         long_description=open('README').read(),
         author='Romain Bignon',

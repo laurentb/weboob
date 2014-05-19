@@ -34,7 +34,7 @@ class SevenFiftyGramsBackend(BaseBackend, ICapRecipe):
     NAME = '750g'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.i'
+    VERSION = '0.j'
     DESCRIPTION = u'750g French recipe website'
     LICENSE = 'AGPLv3+'
     BROWSER = SevenFiftyGramsBrowser

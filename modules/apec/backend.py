@@ -33,7 +33,7 @@ class ApecBackend(BaseBackend, ICapJob):
     DESCRIPTION = u'apec website'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
-    VERSION = '0.i'
+    VERSION = '0.j'
 
     BROWSER = ApecBrowser
 

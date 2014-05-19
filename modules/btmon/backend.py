@@ -31,7 +31,7 @@ class BtmonBackend(BaseBackend, ICapTorrent):
     NAME = 'btmon'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.i'
+    VERSION = '0.j'
     DESCRIPTION = 'BTMon BitTorrent database'
     LICENSE = 'AGPLv3+'
     BROWSER = BtmonBrowser

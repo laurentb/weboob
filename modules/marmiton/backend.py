@@ -31,7 +31,7 @@ class MarmitonBackend(BaseBackend, ICapRecipe):
     NAME = 'marmiton'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.i'
+    VERSION = '0.j'
     DESCRIPTION = u'Marmiton French recipe website'
     LICENSE = 'AGPLv3+'
     BROWSER = MarmitonBrowser

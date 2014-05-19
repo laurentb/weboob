@@ -41,7 +41,7 @@ class PixtoilelibreBackend(BaseBackend, ICapPaste):
     MAINTAINER = u'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '0.i'
+    VERSION = '0.j'
 
     BROWSER = PixtoilelibreBrowser
 

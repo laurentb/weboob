@@ -32,7 +32,7 @@ class FreeMobileBackend(BaseBackend, ICapBill):
     NAME = 'freemobile'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '0.i'
+    VERSION = '0.j'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'Free Mobile website'
     CONFIG = BackendConfig(ValueBackendPassword('login',

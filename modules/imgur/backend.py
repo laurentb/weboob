@@ -49,7 +49,7 @@ class ImgurBackend(BaseBackend, ICapPaste):
     MAINTAINER = u'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '0.i'
+    VERSION = '0.j'
 
     CLIENT_ID = '87a8e692cb09382'
 

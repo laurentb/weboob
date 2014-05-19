@@ -12,7 +12,7 @@ class BTDiggBackend(BaseBackend, ICapTorrent):
     NAME = 'btdigg'
     MAINTAINER = u'Matthieu Rakotojaona'
     EMAIL = 'matthieu.rakotojaona@gmail.com'
-    VERSION = '0.i'
+    VERSION = '0.j'
     DESCRIPTION = 'The BitTorrent DHT search engine.'
     LICENSE = 'CC0'
     BROWSER = BTDiggBrowser
