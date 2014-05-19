@@ -28,14 +28,6 @@ from .calendar import SensCritiquenCalendarEvent
 __all__ = ['SenscritiqueBackend']
 
 
-def cmp_start_date(p1, p2):
-    if p1.start_date == p2.start_date:
-        return 0
-    if p1.start_date > p2.start_date:
-        return 1
-    return -1
-
-
 class SenscritiqueBackend(BaseBackend, ICapCalendarEvent):
     NAME = 'senscritique'
     DESCRIPTION = u'senscritique website'
@@ -119,7 +111,7 @@ class SenscritiqueBackend(BaseBackend, ICapCalendarEvent):
         for item in self.browser.list_events(date_from, date_to, package, channels):
             items.append(item)
 
-        items.sort(cmp=cmp_start_date)
+        items.sort(key=lambda o:o.start_date)
         return items
 
     def get_event(self, _id):
