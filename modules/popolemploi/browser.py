@@ -49,7 +49,7 @@ class PopolemploiBrowser(BaseBrowser):
 
         splitted_place = place.split('|')
 
-        params = 'A_%s_%s_%s__%s_P_%s_%s_%s_______INDIFFERENT______________%s' % (urllib.quote(metier).replace('%', '$00'),
+        params = 'A_%s_%s_%s__%s_P_%s_%s_%s_______INDIFFERENT______________%s' % (urllib.quote(metier.encode('utf-8')).replace('%', '$00'),
                                                                                   splitted_place[1],
                                                                                   splitted_place[2],
                                                                                   contrat,
