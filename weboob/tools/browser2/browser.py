@@ -173,7 +173,7 @@ class BaseBrowser(object):
             # try to get an extension (and avoid adding 'None')
             ext = mimetypes.guess_extension(mimetype, False) or ''
 
-        path = re.sub('[^A-z0-9\.-_]+', '_', urlparse(response.url).path.rpartition('/')[2])[-10:]
+        path = re.sub(r'[^A-z0-9\.-_]+', '_', urlparse(response.url).path.rpartition('/')[2])[-10:]
         if path.endswith(ext):
             ext = ''
         filename = '%02d-%d%s%s%s' % \
@@ -345,8 +345,8 @@ class BaseBrowser(object):
         if isinstance(req.data, unicode) and data_encoding:
             req.data = req.data.encode(data_encoding)
         if isinstance(req.data, dict) and data_encoding:
-            req.data = {k: v.encode(data_encoding) if isinstance(v, unicode) else v
-                        for k, v in req.data.iteritems()}
+            req.data = dict([(k, v.encode(data_encoding)) if isinstance(v, unicode) else v
+                             for k, v in req.data.iteritems()])
 
         if referrer is None:
             referrer = self.get_referrer(self.url, url)
@@ -364,7 +364,7 @@ class BaseBrowser(object):
         """
         return self.session.prepare_request(req)
 
-    REFRESH_RE = re.compile("^(?P<sleep>[\d\.]+)(; url=[\"']?(?P<url>.*?)[\"']?)?$", re.IGNORECASE)
+    REFRESH_RE = re.compile(r"^(?P<sleep>[\d\.]+)(; url=[\"']?(?P<url>.*?)[\"']?)?$", re.IGNORECASE)
 
     def handle_refresh(self, response):
         """
