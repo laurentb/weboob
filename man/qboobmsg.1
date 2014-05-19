@@ -1,5 +1,5 @@
 .\" -*- coding: utf-8 -*-
-.TH QBOOBMSG 1 "08 January 2014" "qboobmsg 0\&.h"
+.TH QBOOBMSG 1 "19 May 2014" "qboobmsg 0\&.i"
 .SH NAME
 qboobmsg \- send and receive message threads
 .SH SYNOPSIS
@@ -25,6 +25,8 @@ Qt application allowing to read messages on various websites and reply to them.
 .br
 * fourchan (4chan image board)
 .br
+* guerrillamail (GuerrillaMail temp mailbox)
+.br
 * hds (Histoires de Sexe French erotic novels)
 .br
 * hellobank (Hello Bank!)
@@ -34,6 +36,8 @@ Qt application allowing to read messages on various websites and reply to them.
 * lefigaro (Le Figaro French newspaper website)
 .br
 * liberation (Libération newspaper website)
+.br
+* mailinator (mailinator temp mailbox)
 .br
 * minutes20 (2 Minutes French newspaper website)
 .br
@@ -52,6 +56,8 @@ Qt application allowing to read messages on various websites and reply to them.
 * sfr (SFR French mobile phone provider)
 .br
 * taz (Taz newspaper website)
+.br
+* tinder (Tinder dating mobile application)
 .SH OPTIONS
 .TP
 \fB\-\-version\fR
@@ -87,7 +93,7 @@ file to save logs
 save every response
 
 .SH CONDITION
-The -c and --condition is a flexible way to sort and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY-MM-DD format.
+The \-c and \-\-condition is a flexible way to sort and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY\-MM\-DD format.
 The syntax of one expression is "\fBfield operator value\fR". The field to test is always the left member of the expression.
 .LP
 The field is a member of the objects returned by the command. For example, a bank account has "balance", "coming" or "label" fields.
@@ -127,7 +133,7 @@ Display accounts with a lot of money.
 Get transactions containing "rewe".
 .PP
 .nf
-.B boobank history account@backend \-\-condition 'date>2013-12-01 AND date<2013-12-09'
+.B boobank history account@backend \-\-condition 'date>2013\-12\-01 AND date<2013\-12\-09'
 .fi
 Get transactions betweens the 2th December and 8th December 2013.
 

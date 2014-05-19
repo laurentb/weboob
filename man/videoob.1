@@ -1,5 +1,5 @@
 .\" -*- coding: utf-8 -*-
-.TH VIDEOOB 1 "08 January 2014" "videoob 0\&.h"
+.TH VIDEOOB 1 "19 May 2014" "videoob 0\&.i"
 .SH NAME
 videoob \- search and play videos
 .SH SYNOPSIS
@@ -55,8 +55,18 @@ Console application allowing to search for videos on various websites, play and 
 \fBdownload\fR \fIID\fR [\fIFILENAME\fR]
 .br
 Download a video
+.br
+
+.br
+Braces\-enclosed tags are replaced with data fields. Use the 'info'
+.br
+command to see what fields are available on a given video.
+.br
+
+.br
+Example: download KdRRge4XYIo@youtube '{title}.{ext}'
 .TP
-\fBinfo\fR \fIID\fR
+\fBinfo\fR \fIID\fR [\fIID\fR2 [...]]
 .br
 Get information about a video.
 .TP
@@ -72,13 +82,19 @@ If no argument is given, print the current behavior.
 .br
 Play a video with a found player.
 .TP
-\fBplaylist\fR cmd [args]playlist add ID [ID2 ID3 ...]
+\fBplaylist\fR cmd [args]
+.br
+playlist add ID [ID2 ID3 ...]
 .br
 playlist remove ID [ID2 ID3 ...]
 .br
 playlist export [FILENAME]
 .br
 playlist display
+.br
+playlist download [PATH]
+.br
+playlist play
 .TP
 \fBsearch\fR \fIPATTERN\fR
 .br
@@ -197,7 +213,15 @@ List objects in current path.
 .br
 If an argument is given, list the specified path.
 .br
-Use \-U option to not sort results.
+Use \-U option to not sort results. It allows to use a "fast path" to
+.br
+return results as soon as possible.
+.br
+Use \-d option to display informations about a collection (and to not
+.br
+display the content of it). It has the same behavior than the well
+.br
+know UNIX "ls" command.
 .br
 
 .br
@@ -268,8 +292,8 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (csv, htmltable, json, multiline, simple, table,
-video_list, webkit)
+select output formatter (csv, htmltable, json, json_line, multiline, simple,
+table, video_list, webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
@@ -281,7 +305,7 @@ do not display item keys
 file to export result
 
 .SH CONDITION
-The -c and --condition is a flexible way to sort and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY-MM-DD format.
+The \-c and \-\-condition is a flexible way to sort and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY\-MM\-DD format.
 The syntax of one expression is "\fBfield operator value\fR". The field to test is always the left member of the expression.
 .LP
 The field is a member of the objects returned by the command. For example, a bank account has "balance", "coming" or "label" fields.
@@ -321,7 +345,7 @@ Display accounts with a lot of money.
 Get transactions containing "rewe".
 .PP
 .nf
-.B boobank history account@backend \-\-condition 'date>2013-12-01 AND date<2013-12-09'
+.B boobank history account@backend \-\-condition 'date>2013\-12\-01 AND date<2013\-12\-09'
 .fi
 Get transactions betweens the 2th December and 8th December 2013.
 

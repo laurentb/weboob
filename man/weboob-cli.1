@@ -1,5 +1,5 @@
 .\" -*- coding: utf-8 -*-
-.TH WEBOOB-CLI 1 "08 January 2014" "weboob-cli 0\&.h"
+.TH WEBOOB-CLI 1 "19 May 2014" "weboob-cli 0\&.i"
 .SH NAME
 weboob-cli \- call a method on backends
 .SH SYNOPSIS
@@ -64,7 +64,8 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (csv, htmltable, json, multiline, simple, table, webkit)
+select output formatter (csv, htmltable, json, json_line, multiline, simple,
+table, webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
@@ -76,7 +77,7 @@ do not display item keys
 file to export result
 
 .SH CONDITION
-The -c and --condition is a flexible way to sort and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY-MM-DD format.
+The \-c and \-\-condition is a flexible way to sort and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY\-MM\-DD format.
 The syntax of one expression is "\fBfield operator value\fR". The field to test is always the left member of the expression.
 .LP
 The field is a member of the objects returned by the command. For example, a bank account has "balance", "coming" or "label" fields.
@@ -116,7 +117,7 @@ Display accounts with a lot of money.
 Get transactions containing "rewe".
 .PP
 .nf
-.B boobank history account@backend \-\-condition 'date>2013-12-01 AND date<2013-12-09'
+.B boobank history account@backend \-\-condition 'date>2013\-12\-01 AND date<2013\-12\-09'
 .fi
 Get transactions betweens the 2th December and 8th December 2013.
 

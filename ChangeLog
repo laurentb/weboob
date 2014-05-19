@@ -1,3 +1,467 @@
+Weboob 0.i (2014-05-19)
+
+	General
+	* New Browser: browser2 is here! See below
+	* First steps in python3 support
+	* New GPG key for laurentb (see
+	  https://laurent.bachelier.name/gpgtransition.txt)
+	* New module: btdigg (CapTorrent)
+	* New module: Mailinator (CapMessage)
+	* New module: guerrillamail (CapMessage)
+	* New module: SensCritique (CapCalendar)
+	* New module: imgur (CapPaste)
+	* New module: unsee (CapPaste)
+	* New module: lut.im (CapPaste)
+	* New module: pixtoilelibre (CapPaste)
+	* New module: ColisPrive (CapParcel)
+	* New module: AlloResto (CapBank)
+	* New module: LaCentrale (CapPriceComparison)
+	* New module: Groupamaes (CapBank)
+	* New module: Tinder (CapDating)
+
+	Core
+	* Import pkg_resources only when needed, to prevent a hard useless
+	  dependency
+
+	Core: browser2
+	* Add a new browser based on python-requests
+	* Full support of SSL
+	* Add the option _proxy_ssl for backends
+	* New management of Html FORMs
+	* New URL class
+	* Better debugging (save HTTP requests/responses)
+	* Simple support of pagination (@pagination decorator)
+	* Introduce ListElement and ItemElement (parser helper)
+	* Add a lot of Filters for ItemElement
+	* Add TableElement, to help the parsing of a table
+	* 24 modules are already using browser2!
+	* And a lot more...
+
+	Core: browser1
+	* Unify no_login and nologin
+	* Fix call of logger (can be unset)
+	* Move exceptions in weboob.tools.exceptions (compatibility with browser2)
+
+	Core: BackendCalls
+	* Rewrite BackendCalls with queues
+
+	Core: repositories
+	* Make GPG ignore local settings
+
+	Core: configuration
+	* Support for password retrieval from any cli tools
+	* Prompt user during configuration of a backend
+
+	Core: ManPages
+	* Escape more '-'
+
+	Core: Parsers
+	* Add a xml parser
+	* Remove unused/obsolete parsers
+
+	Core: DateTools
+	* Add ChaoticDateGuesser
+
+	Applications: base
+	* Add version information in Debug
+	* catch ^C on global bcall errors handler
+	* Allow to use condition on the fullid
+	* Do not display warning message if -n or count is set
+
+	Applications: console
+	* Fix: masked parameter wasn't considered
+	* Fix: password encoding issues
+	* Display backend@issues.weboob.org and not backend.EMAIL
+
+	Applications: media_player
+	* Add a play_proxy option
+
+	Applications: Qt
+	* Add keywords in .desktop files (#1356)
+
+	Applications: REPL
+	* Exclude backends that do not implement the required method (#1325)
+	* New obj_to_filename() method (from videoob)
+	* Do not fetch the collections when not needed
+	* Fix selecting a field in non-interactive mode
+	* Use a fast path for ls if -U is set
+	* Add documentation of the "ls -d" option
+	* Gather collections having the same path
+	* Override comp_obj from repl in order to sort by start_date
+
+	Applications: formatters
+	* Add a json formatter that works on a line level (json_line)
+
+	Applications: yamlconfig
+	* Allow a default equal to None
+
+	Application: boobcoming
+	* Add documentation
+	* Add icon
+	* Use ls/cd commands to navigate into categories
+	* Improve collection management
+
+	Application: boobsize
+	* Add icon
+	* Display null values
+	* Fix hints in not found error
+
+	Application: boobtracker
+	* Support colors for issues
+	* Create/edit tickets in a text editor
+	* Fix email address regexp
+	* Fix crash in interactive mode
+	* New options --tracker, --priority, --start, --due
+
+	Application: parceloob
+	* Remove trailing \n
+	* Ignore status of not loaded backends
+	* Always untrack if the id is in the storage
+
+	Application: pastoob
+	* Paste binary files with "post_bin FILENAME" and "get_bin ID"
+	* Add 'info' command
+
+	Application: Qhavedate
+	* Ignore error when notes are not implemented on contacts
+
+	Application: radioob
+	* Fix audio objects search
+	* Pick up first available stream when radio provides a playlist (#1345)
+
+	Application: translaboob
+	* Fix a typo in the documentation
+
+	Application: videoob
+	* Braces-enclosed tags are replaced with data
+	* Play/info: ability to give several videos
+	* Add command 'videoob playlist download'
+	* Add command 'videoob playlist play'
+	* Move obj_to_filename() into ReplApplication
+	* Use wget to download m3u8 videos
+
+	Application: webcontentedit
+	* add a -r parameter to get command to precise revision id
+
+	Application: wetboobs
+	* Remove ICapGauge
+
+	Capabilities: Base
+	* Change currencies integer constants to ISO code strings
+	* Do not require an id,  because of ItemElement which constructs objects
+	  without arguments
+	* Introduce find_object
+
+	Capabilities: CapWeather
+	* Fix: zero temperature can not be displayed (#1333)
+	* Accept date objects for the forecast
+
+	Capabilities: CapCalendar
+	* Raise NotImplementedError on "attends" method
+	* Add TELE category
+
+	Capabilities: CapBugTracker
+	* Fix some conversion warnings
+
+	Capabilities: CapBank
+	* Add Account.TYPE_CARD
+	* Add TransactionsElement and TransactionElement (helpers with browser2)
+
+	Capabilities: CapContact
+	* Factorize aum's Contact.get_text() and boobmsg formatter
+
+	Capabilities: CapGeoloc
+	* Remove unused ipaddr field
+
+	Capabilities: CapMessage
+	* Avoid warnings in GenericNewspaperBackend and GenericNewsPage
+
+	Capabilities: CapPast
+	* Show a user-friendly error message for CapNotFound
+
+	Capabilities: CapTracker
+	* Add trackers and priorities fields to Project
+	* Add start, due, tracker and priority fields to Issue
+
+	Modules: banquepopulaire, bnporc, bp, cic, cragr, creditdunord,
+	creditmutuel, ing, lcl, societegenerale
+	* Improvements on transaction and account types detection
+
+	Module: AmericanExpress
+	* Fix wrong date guessing
+	* Increase timedelta to 90
+	* Check if a card is valid
+	* Set card balance to Account.balance instead of Account.coming
+
+	Module: Apec
+	* Updates reflecting site changes
+
+	Module: Apivie
+	* Fix getting an account from list
+	* Fix parsing of negative transactions
+
+	Module: Arte
+	* Encode UTF-8 strings in search
+	* Fix naming of collections
+	* ArteLive: new website
+	* Improve the parsing of dates
+	* Fix bug when VDA field not found in json file
+	* Fix problem on extension
+
+	Module: AxaBanque
+	* Adding support for sub accounts
+	* Fix parsing of accounts without amount
+
+	Module: Banque Accord
+	* Add icon
+	* Fix parsing of negative amount
+	* Fix detection of card pages
+	* Fix virtual keyboard
+	* Add a hash for symbol 5 on virtkeymap
+	* Adding support for Leroy Merlin
+	* Support LOAN accounts
+	* Upgrade to browser2
+
+	Module: Banque Populaire
+	* Fix: parsing of accounts (site changed)
+	* Fix: parsing of accounts on specific regions
+	* If an account type is not supported, raise NotImplementedError
+
+	Module: Biplan
+	* Fix bug while parsing start/end time
+	* Updates reflecting site changes
+	* Upgrade to browser2
+
+	Module: Bnporc
+	* New certificate
+	* Fix encoding issues
+	* Disable unused parameter rotating_password
+	* Change the domain to entreprises.bnpparibas.net for BNPEnterprise
+
+	Module: Boursorama
+	* Fix crash when there is no ID on transaction
+	* Handle card history
+
+	Module: BP
+	* New certificate
+	* List market account (#1298)
+	* An account type must not be None
+
+	Module: Bred
+	* Support dispobank
+	* New certificate
+
+	Module: CanalPlus
+	* Fix browsing categories (site changed)
+
+	Module: Carrefour Banque
+	* Upgrade to browser2
+	* Fix: Site changed
+
+	Module: CCI
+	* Upgrade to browser2
+
+	Module: Citelis
+	* New icon
+	* Fix: detection of login errors
+
+	Module: cmb
+	* Change a function call to avoid useless None
+	* Upgrade to browser2
+
+	Module: cmso
+	* Setting encoding to iso
+
+	Module: Colissimo
+	* Add icon
+	* Fix license
+
+	Module: Cragr
+	* Fix parsing dates in labels (compatibility with Perigord)
+
+	Module: Credit Du Nord
+	* If type is not found, set TYPE_UNKNOWN instead of None
+	* Add "Banque Rhône-Alpes"
+
+	Module: Credit Mutuel
+	* New icon
+	* Upgrade to browser2
+	* Fix parsing of user private accounts
+	* Fix crash on unknown accounts types
+
+	Module: cuisineaz
+	* Fix cuisineaz preparation and cooking time (site changed)
+
+	Module: Dailymotion
+	* Fix empty fields in dailymotion plugin
+	* Change extension from flv to mp4
+	* New icon
+	* Add support for videos available at kids.dailymotion.com
+	* Fix the search (site changed)
+
+	Module: Delubac
+	* Support LCR
+	* Fix navigation
+
+	Module: DLFP
+	* Fix logout (site changed)
+
+	Module: DresdenWetter
+	* Upgrade to browser2
+
+	Module: Fortuneo
+	* New certificate
+	* Do not override rdate with operation date
+
+	Module: France Televisions
+	* Upgrade to browser2
+
+	Module: Freemobile
+	* Fix date of subscriptions when next month has less days than expected
+	(#1347)
+	* Upgrade to browser2
+
+	Module: googletranslate
+	* Fix : site is now only available using https
+
+	Module: grooveshark
+	* Fix: no more field AvgRate (site changed)
+
+	Module: HSBC
+	* Fix: support of the SecureKey
+	* Upgrade to browser2
+
+	Module: hybride
+	* Upgrade to browser2
+
+	Module: INA
+	* Site changed
+
+	Module: indeed
+	* Upgrade to browser2
+
+	Module: ING
+	* Update regexps used to detect categories (site changed)
+	* Upgrade to browser2
+	* Support pagination in iter_bills
+	* Do not crash on invest objects when quantities are >999
+
+	Module: Kickass
+	* Fix title getter (site changed)
+
+	Module: LeclercMobile
+	* Do not crash if the subscription is closed
+
+	Module: LeFigaro
+	* Fix: site changed
+	* Fix the tests
+
+	Module: LCL
+	* New maintener
+	* Support changes in login screens
+	* Get more history
+	* Remove logging checking on the contract page
+
+	Module: Liberation
+	* Add icon
+
+	Module: lolix
+	* Fix the size of the icon
+
+	Module: mediawiki
+	* Fix encoding error
+
+	Module: MeteoFrance
+	* Strip the text before to return it
+
+	Module: OKC
+	* Add the visit to a profile
+	* Add a profile walker
+	* First sent message is configurable
+	* Do not crash on removed contacts
+	* Do not crash on 'like' messages
+
+	Module: pastealacon
+	* Upgrade to browser2
+
+	Module: Paypal
+	* Certificate changed (three times)
+
+	Module: piratebay
+	* New domain (thepiratebay.se)
+
+	Module: Pole Emploi
+	* Updates reflecting site changes
+	* Fix parsing of dates
+	* Fix bug in url encoding
+	* Fix place selection
+
+	Module: Poivy
+	* Upgrade to browser2
+	* Support pagination for the history
+
+	Module: Redmine
+	* Add Issue.fields attribute to support custom fields
+	* Support new versions of redmine
+	* Use the right method to get project
+	* If a category does not exist, try to create it
+	* Fix compatibility with redmine 2.4
+	* Support start/end/tracker/priority
+	* Fix finding the control to add a note
+
+	Module: RegionsJob
+	* Add icon
+	* Upgrade to browser2
+
+	Module: sachsen
+	* Upgrade to browser2
+
+	Module: Société Générale
+	* Display card as accounts (#1362)
+
+	Module: Sueurdemetal
+	* Add date_end parameter in get_concerts_date call
+	* Fix date and category filters
+
+	Module: voyagessncf
+	* If station ID is not found, try to look for it as a name
+	* Forge a random IP source address to avoid redirection to other website
+	(#1327)
+
+	Module: vlille
+	* Upgrade to browser2
+
+	Module: Weather
+	* Fix: there are not always ten days of forecast (#1343)
+
+	Module: youjizz
+	* Handle videos longer than 59 minutes
+	* Support pagination
+	* Upgrade to browser2
+
+	Module: youtube
+	* Fix: site changed
+	* Fix: unexpected argument to BrokenPageError
+
+	Tools: boilerplate
+	* Add 'cap' recipe to prepare methods
+	* Upgrade to browser2
+
+	Tools: local_install
+	* Run tools/stale_pyc.py before local installation
+
+	Tools: pyflakes
+	* Ignore 'except' in a comment
+
+	Misc: boobot
+	* Add quoting commands
+	* Fix unicode issues
+
+	Misc: Windows Installer
+	* Better script to generate the .exe
+	* Better management for 64 bits systems	 
+
+
 Weboob 0.h (2014-01-08)
 
 	General
