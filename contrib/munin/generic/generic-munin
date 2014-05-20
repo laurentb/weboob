@@ -55,7 +55,7 @@ class GenericMuninPlugin(object):
             self.object_list = os.environ["get_object_list"]
         self.tomonitore = None
         if 'id_monitored' in os.environ:
-            self.tomonitore = os.environ['id_monitored'].split(' ')
+            self.tomonitore = os.environ['id_monitored'].decode('utf-8').split(' ')
         self.exclude = None
         if 'exclude' in os.environ:
             self.exclude = os.environ['exclude'].split(' ')
@@ -263,7 +263,7 @@ class GenericMuninPlugin(object):
                 if self.monitored(result):
                     value = self.get_value(result)
                     if value is not NotAvailable:
-                        self.write_output('%s.value %f' % (self.result2id(result), value))
+                        self.write_output('%s.value %f' % (self.result2id(result).encode('iso-8859-15'), value))
         except CallErrors, errors:
             self.print_errors(errors)
             self.print_cache(self.name)
