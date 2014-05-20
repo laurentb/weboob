@@ -1,4 +1,4 @@
-1. Replace weboob egg file
+1. Generate and Replace weboob egg file (./setup.py install --qt bdist_egg)
 
 2. update settings.cmd
 

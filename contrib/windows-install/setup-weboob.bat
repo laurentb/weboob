@@ -18,17 +18,17 @@ echo 2.Check Python 2.7 Installation
 
 set KEY_NAME=HKLM\Software\Python\PythonCore\2.7\InstallPath
 if %ARCHITECTURE% == x64 (
-	set KEY_NAME=HKLM\SOFTWARE\Wow6432Node\Python\PythonCore\2.7\InstallPath							
+	set KEY_NAME=HKLM\SOFTWARE\Python\PythonCore\2.7\InstallPath
 )
 
 REG QUERY !KEY_NAME! > nul || 	(
 									set PYTHON_MSI=python-2.7.5.msi
 									if %ARCHITECTURE% == x64 (
-										set PYTHON_MSI=python-2.7.5.amd64.msi								
+										set PYTHON_MSI=python-2.7.5.amd64.msi			
 									)
 									
 									echo 2.1 Download !PYTHON_MSI!
-									"%WGET%" -o python_donwload "http://www.python.org/ftp/python/2.7.5/!PYTHON_MSI!"
+									"%WGET%" -o python_donwload --no-check-certificate "http://www.python.org/ftp/python/2.7.5/!PYTHON_MSI!"
 									
 									echo 2.2 Setup !PYTHON_MSI!
 									!PYTHON_MSI!
@@ -100,6 +100,9 @@ echo -- feedparser
 echo.
 echo -- pillow
 %PythonPath%Scripts\easy_install.exe pillow==2.3.0 || goto :InstallFailed
+echo.
+echo -- requests
+%PythonPath%Scripts\easy_install.exe requests==2.3.0 || goto :InstallFailed
 
 echo.
 echo 6.Install WeBoob
@@ -136,7 +139,7 @@ for %%i in (%LIST_APPLIQUATIONS_QT%) do (
 		del "%StartupFolder%\Weboob\%%i.exe"
 	)
 
-	"Bat_To_Exe_Converter_%ARCHITECTURE%.exe" -bat "%%i.bat" -save "%StartupFolder%\Weboob\%%i.exe" -icon "%PythonPath%\Lib\site-packages\%WEBOOB%\share\icons\hicolor\64x64\apps\%%i.ico" %%i"
+	"Bat_To_Exe_Converter_%ARCHITECTURE%.exe" -bat "%%i.bat" -save "%StartupFolder%\Weboob\%%i.exe" -icon "%PythonPath%\Lib\site-packages\%WEBOOB%\share\icons\hicolor\64x64\apps\%%i.ico" "%%i"
 	del "%%i.bat"
 	del "%PythonPath%\Lib\site-packages\%WEBOOB%\share\icons\hicolor\64x64\apps\%%i.ico"
 )
@@ -144,6 +147,10 @@ for %%i in (%LIST_APPLIQUATIONS_QT%) do (
 goto :InstallSucceed
 
 :InstallSucceed
+
+del ez_setup.py
+del convertPNG2ICO.py
+
 echo.
 echo INSTALLATION PROCESS SUCCEED
 goto :Quit
