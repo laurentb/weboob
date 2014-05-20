@@ -72,7 +72,7 @@ class TinderBrowser(DomainBrowser):
     BASEURL = 'https://api.gotinder.com/'
     PROFILE = IPhoneClient()
 
-    recs = None
+    recs = []
 
     def __init__(self, facebook, *args, **kwargs):
         super(TinderBrowser, self).__init__(*args, **kwargs)
