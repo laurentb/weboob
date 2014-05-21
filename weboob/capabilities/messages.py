@@ -60,7 +60,8 @@ class Message(_Message):
     children =      Field('Children fields', list)
     flags =         IntField('Flags (IS_* constants)', default=0)
 
-    def __init__(self, thread, id,
+    def __init__(self, thread=NotLoaded,
+                       id=NotLoaded,
                        title=NotLoaded,
                        sender=NotLoaded,
                        receivers=NotLoaded,
@@ -71,7 +72,6 @@ class Message(_Message):
                        children=NotLoaded,
                        flags=0):
         CapBaseObject.__init__(self, id)
-        assert thread is not None
         self.thread = thread
         self.title = title
         self.sender = sender
