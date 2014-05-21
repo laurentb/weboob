@@ -71,9 +71,6 @@ class ThreadPage(HTMLPage):
     class get_thread(ItemElement):
         klass = Thread
 
-        def parse(self, el):
-            pass
-
         obj_id = Format('%s#%s', Env('user'), Env('_id'))
         obj_title = Format('%s \n\t %s',
                            CleanText('//div[@class="permalink-inner permalink-tweet-container"]/div/div/div/a'),
@@ -89,9 +86,6 @@ class ThreadPage(HTMLPage):
 
         class item(ItemElement):
             klass = Message
-
-            def parse(self, el):
-                pass
 
             obj_id = Regexp(Link('./div/div/a[@class="details with-icn js-details"]'), '/.+/status/(.+)')
             obj_title = Regexp(CleanText('./div/p'), '(.{50}|.+).+')
