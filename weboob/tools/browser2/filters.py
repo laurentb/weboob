@@ -339,22 +339,26 @@ class Map(Filter):
 
 
 class DateTime(Filter):
-    def __init__(self, selector, default=_NO_DEFAULT, dayfirst=False):
+    def __init__(self, selector, default=_NO_DEFAULT, dayfirst=False, translations=None):
         super(DateTime, self).__init__(selector, default=default)
         self.dayfirst = dayfirst
+        self.translations = translations
 
     def filter(self, txt):
         if empty(txt):
             return txt
         try:
+            if self.translations:
+                 for search, repl in self.translations:
+                     txt = search.sub(repl, txt)
             return parse_date(txt, dayfirst=self.dayfirst)
         except ValueError as e:
             return self.default_or_raise(ParseError('Unable to parse %r: %s' % (txt, e)))
 
 
 class Date(DateTime):
-    def __init__(self, selector, default=_NO_DEFAULT, dayfirst=False):
-        super(Date, self).__init__(selector, default=default, dayfirst=dayfirst)
+    def __init__(self, selector, default=_NO_DEFAULT, dayfirst=False, translations=None):
+        super(Date, self).__init__(selector, default=default, dayfirst=dayfirst, translations=translations)
 
     def filter(self, txt):
         datetime = super(Date, self).filter(txt)
