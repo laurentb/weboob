@@ -62,7 +62,7 @@ class LoginPage(HTMLPage):
             obj_title = Format('%s \n\t %s',
                                CleanText('./div/div[@class="stream-item-header"]/a'),
                                CleanText('./div/p'))
-            obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span', 'data-time'), DATE_TRANSLATE_FR)
+            obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span', 'data-time'))
 
 
 class ThreadPage(HTMLPage):
@@ -78,7 +78,7 @@ class ThreadPage(HTMLPage):
 
         obj_date = DateTime(Regexp(CleanText('//div[@class="permalink-inner permalink-tweet-container"]/div/div/div/div[@class="client-and-actions"]/span'),
                                    '(\d+:\d+).+- (.+\d{4})',
-                                   '\\2 \\1'))
+                                   '\\2 \\1'), translations=DATE_TRANSLATE_FR)
 
     @method
     class iter_comments(ListElement):
