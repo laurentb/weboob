@@ -735,7 +735,7 @@ class HTTPSConnection2(httplib.HTTPSConnection):
     _HOSTS = {}
     _PROTOCOLS = [ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_SSLv3]
 
-    def _create_connection(self):
+    def _my_create_connection(self):
         sock = socket.create_connection((self.host, self.port), self.timeout)
         if self._tunnel_host:
             self._tunnel()
@@ -746,7 +746,7 @@ class HTTPSConnection2(httplib.HTTPSConnection):
 
     def connect(self):
         for proto in self._get_protocols():
-            sock = self._create_connection()
+            sock = self._my_create_connection()
             try:
                 self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=proto)
                 self._HOSTS['%s:%s' % (self.host, self.port)] = [proto]
