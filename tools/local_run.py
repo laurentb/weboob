@@ -26,8 +26,9 @@ env['WEBOOB_BACKENDS'] = os.getenv('WEBOOB_LOCAL_BACKENDS',
                                    os.getenv('WEBOOB_BACKENDS',
                                              os.path.expanduser('~/.config/weboob/backends')))
 
+modpath = os.getenv('WEBOOB_MODULES', os.path.join(project, 'modules'))
 with open(os.path.join(wd, 'sources.list'), 'w') as f:
-    f.write("file://%s\n" % os.path.join(project, 'modules'))
+    f.write("file://%s\n" % modpath)
 
 # Hide output unless there is an error
 p = subprocess.Popen(
