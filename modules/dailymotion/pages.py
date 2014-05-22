@@ -95,6 +95,10 @@ class VideoPage(BasePage):
 
         video.set_empty_fields(NotAvailable)
 
+        # Dailymotion video url is protected by a redirection with cookie verification
+        # so we need to use the "play_proxy" method using urllib2 proxy streaming to handle this
+        video._play_proxy = True
+
         return video
 
     def set_video_metadata(self, video):
@@ -152,10 +156,6 @@ class VideoPage(BasePage):
             raise BrokenPageError(u'Unable to extract video URL')
 
         video.url = unicode(info[max_quality])
-
-        # dailymotion video url is protected by a redirection with cookie verification
-        # so we need to do a "play_proxy" using urllib2 proxy streaming to handle this
-        video._play_proxy = True
 
 class KidsVideoPage(VideoPage):
 

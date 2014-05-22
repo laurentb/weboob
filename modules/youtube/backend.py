@@ -115,6 +115,11 @@ class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
         self._set_video_url(video)
 
         video.set_empty_fields(NotAvailable)
+
+        # Youtube video url is https, using ssl encryption
+        # so we need to use the "play_proxy" method using urllib2 proxy streaming to handle this
+        video._play_proxy = True
+
         return video
 
     def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
