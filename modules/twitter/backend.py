@@ -22,7 +22,7 @@ from datetime import time, datetime, timedelta
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.capabilities.messages import ICapMessages, Thread, ICapMessagesPost
-from weboob.capabilities.collection import ICapCollection, CollectionNotFound
+from weboob.capabilities.collection import ICapCollection, CollectionNotFound, Collection
 from weboob.capabilities.base import find_object
 from weboob.tools.exceptions import BrowserForbidden
 from .browser import TwitterBrowser
@@ -42,7 +42,8 @@ class TwitterBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapCollection
     STORAGE = {'seen': {}}
 
     CONFIG = BackendConfig(Value('username',                label='Username', default=''),
-                           ValueBackendPassword('password', label='Password', default=''))
+                           ValueBackendPassword('password', label='Password', default=''),
+                           Value('profils_subscribe',       label='Profils subscribe', default=''))
 
     def create_default_browser(self):
         return self.create_browser(self.config['username'].get(), self.config['password'].get())
@@ -100,9 +101,17 @@ class TwitterBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapCollection
     def iter_resources(self, objs, split_path):
         collection = self.get_collection(objs, split_path)
         if collection.path_level == 0:
-            return self.browser.get_collections()
+            if self.config['username']:
+                me = self.browser.get_me()
+                yield Collection([me], me)
+            profils = self.config['profils_subscribe'].get()
+            if profils:
+                for profil in profils.split(','):
+                    yield Collection([profil], profil)
+
         if collection.path_level == 1:
-            return self.browser.get_tweets_from_collection(collection.split_path[0])
+            for el in self.browser.get_tweets_from_collection(collection.split_path[0]):
+                yield el
 
     def validate_collection(self, objs, collection):
         if collection.path_level == 0:
