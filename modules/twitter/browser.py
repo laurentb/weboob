@@ -20,8 +20,8 @@
 from weboob.tools.browser2 import LoginBrowser, URL, need_login
 from weboob.tools.browser import BrowserIncorrectPassword
 from weboob.capabilities.messages import Message
-
-from .pages import LoginPage, LoginErrorPage, ThreadPage, HomePage, Tweet
+from weboob.capabilities.collection import Collection
+from .pages import LoginPage, LoginErrorPage, ThreadPage, TwitterBasePage, Tweet
 
 
 __all__ = ['TwitterBrowser']
@@ -33,7 +33,7 @@ class TwitterBrowser(LoginBrowser):
     thread_page = URL(u'(?P<user>.+)/status/(?P<_id>.+)', ThreadPage)
     login_error = URL(u'login/error.+', LoginErrorPage)
     tweet = URL(u'i/tweet/create', Tweet)
-    home = URL(u'(?P<me>.+)', HomePage)
+    twitter_page = URL(u'(?P<path>.+)', TwitterBasePage)
     login = URL(u'', LoginPage)
 
     def do_login(self):
@@ -45,7 +45,9 @@ class TwitterBrowser(LoginBrowser):
         if not self.page.logged or self.login_error.is_here():
             raise BrowserIncorrectPassword()
 
-        self.me = self.page.get_me()
+    @need_login
+    def get_me(self):
+        return self.login.stay_or_go().get_me()
 
     @need_login
     def iter_threads(self):
@@ -94,3 +96,11 @@ class TwitterBrowser(LoginBrowser):
                 thread.root.children.append(comment)
 
         return thread
+
+    def get_collections(self):
+        if self.username:
+            me = self.get_me()
+            yield Collection([me], me)
+
+    def get_tweets_from_collection(self, path):
+        return self.twitter_page.go(path=path).iter_threads()

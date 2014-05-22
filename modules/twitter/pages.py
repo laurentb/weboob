@@ -24,7 +24,7 @@ from weboob.tools.browser2.page import HTMLPage, JsonPage, method, ListElement, 
 from weboob.tools.browser2.filters import CleanText, Format, Link, Regexp, Env, DateTime, Attr, Filter
 from weboob.capabilities.messages import Thread, Message
 
-__all__ = ['LoginPage', 'LoginErrorPage', 'ThreadPage', 'HomePage', 'Tweet']
+__all__ = ['LoginPage', 'LoginErrorPage', 'ThreadPage', 'TwitterBasePage', 'Tweet']
 
 
 class DatetimeFromTimestamp(Filter):
@@ -32,7 +32,22 @@ class DatetimeFromTimestamp(Filter):
         return datetime.fromtimestamp(float(el))
 
 
-class LoginPage(HTMLPage):
+class TwitterBasePage(HTMLPage):
+    @method
+    class iter_threads(ListElement):
+        item_xpath = '//li[@data-item-type="tweet"]/div'
+
+        class item(ItemElement):
+            klass = Thread
+
+            obj_id = Regexp(Link('./div/div/a[@class="details with-icn js-details"]'), '/(.+)/status/(.+)', '\\1#\\2')
+            obj_title = Format('%s \n\t %s',
+                               CleanText('./div/div[@class="stream-item-header"]/a'),
+                               CleanText('./div/p'))
+            obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span', 'data-time'))
+
+
+class LoginPage(TwitterBasePage):
     def login(self, login, passwd):
         form = self.get_form(xpath='//form[@action="https://twitter.com/sessions"]')
         form['session[username_or_email]'] = login
@@ -99,8 +114,4 @@ class LoginErrorPage(HTMLPage):
 
 
 class Tweet(JsonPage):
-    pass
-
-
-class HomePage(HTMLPage):
     pass

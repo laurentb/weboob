@@ -22,6 +22,7 @@ from datetime import time, datetime, timedelta
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.capabilities.messages import ICapMessages, Thread, ICapMessagesPost
+from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.capabilities.base import find_object
 from weboob.tools.exceptions import BrowserForbidden
 from .browser import TwitterBrowser
@@ -30,7 +31,7 @@ from .browser import TwitterBrowser
 __all__ = ['TwitterBackend']
 
 
-class TwitterBackend(BaseBackend, ICapMessages, ICapMessagesPost):
+class TwitterBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapCollection):
     NAME = 'twitter'
     DESCRIPTION = u'twitter website'
     MAINTAINER = u'Bezleputh'
@@ -95,5 +96,20 @@ class TwitterBackend(BaseBackend, ICapMessages, ICapMessagesPost):
             raise BrowserForbidden()
         self.browser.post(find_object(self.iter_threads(), id=message.full_id.split('.')[0]),
                           message.content)
+
+    def iter_resources(self, objs, split_path):
+        collection = self.get_collection(objs, split_path)
+        if collection.path_level == 0:
+            return self.browser.get_collections()
+        if collection.path_level == 1:
+            return self.browser.get_tweets_from_collection(collection.split_path[0])
+
+    def validate_collection(self, objs, collection):
+        if collection.path_level == 0:
+            return
+        if collection.path_level == 1:
+            return
+
+        raise CollectionNotFound(collection.split_path)
 
     OBJECTS = {Thread: fill_thread}
