@@ -35,16 +35,16 @@ class DatetimeFromTimestamp(Filter):
 class TwitterBasePage(HTMLPage):
     @method
     class iter_threads(ListElement):
-        item_xpath = '//li[@data-item-type="tweet"]/div'
+        item_xpath = '//*[@data-item-type="tweet"]/div'
 
         class item(ItemElement):
             klass = Thread
 
-            obj_id = Regexp(Link('./div/div/a[@class="details with-icn js-details"]'), '/(.+)/status/(.+)', '\\1#\\2')
+            obj_id = Regexp(Link('./div/div/a[@class="details with-icn js-details"]|./div/div/span/a[@class="ProfileTweet-timestamp js-permalink js-nav js-tooltip"]'), '/(.+)/status/(.+)', '\\1#\\2')
             obj_title = Format('%s \n\t %s',
-                               CleanText('./div/div[@class="stream-item-header"]/a'),
+                               CleanText('./div/div[@class="stream-item-header"]/a|./div/div[@class="ProfileTweet-authorDetails"]/a'),
                                CleanText('./div/p'))
-            obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span', 'data-time'))
+            obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span|./div/div/span/a[@class="ProfileTweet-timestamp js-permalink js-nav js-tooltip"]/span', 'data-time'))
 
 
 class LoginPage(TwitterBasePage):
