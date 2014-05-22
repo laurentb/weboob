@@ -28,10 +28,10 @@ from weboob.tools.ordereddict import OrderedDict
 class NewspaperPresseuropBrowser(BaseBrowser):
     "NewspaperPresseuropBrowser class"
     PAGES = OrderedDict((
-             ("http://www.presseurop.eu/.*/news-brief/.*", DailySinglePage),
-             ("http://www.presseurop.eu/.*/today/.*", DailyTitlesPage),
-             ("http://www.presseurop.eu/.*/cartoon/.*", CartoonPage),
-             ("http://www.presseurop.eu/.*", PresseuropPage),
+             ("http://www.voxeurop.eu/.*/news-brief/.*", DailySinglePage),
+             ("http://www.voxeurop.eu/.*/today/.*", DailyTitlesPage),
+             ("http://www.voxeurop.eu/.*/cartoon/.*", CartoonPage),
+             ("http://www.voxeurop.eu/.*", PresseuropPage),
             ))
 
     def is_logged(self):
@@ -53,7 +53,7 @@ class NewspaperPresseuropBrowser(BaseBrowser):
         return self.page.get_daily_date()
 
     def get_daily_infos(self, _id):
-        url = "http://www.presseurop.eu/fr/today/" + _id
+        url = "http://www.voxeurop.eu/fr/today/" + _id
         self.location(url)
         title = self.page.get_title()
         article_date = date(*[int(x)
