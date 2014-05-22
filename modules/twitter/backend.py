@@ -49,7 +49,18 @@ class TwitterBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapCollection
         return self.create_browser(self.config['username'].get(), self.config['password'].get())
 
     def iter_threads(self):
-        return self.browser.iter_threads()
+        if self.config['username'].get():
+            return self.browser.iter_threads()
+        else:
+            profils = self.config['profils_subscribe'].get()
+            if profils:
+                tweets = []
+                for profil in profils.split(','):
+                    for tweet in self.browser.get_tweets_from_collection(profil):
+                        tweets.append(tweet)
+                tweets.sort(key=lambda o: o.date, reverse=True)
+                return tweets
+
 
     def get_thread(self, _id, thread=None, getseen=True):
         seen = None
@@ -93,7 +104,7 @@ class TwitterBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapCollection
             self.storage.save()
 
     def post_message(self, message):
-        if not self.browser.username:
+        if self.config['username'].get():
             raise BrowserForbidden()
         self.browser.post(find_object(self.iter_threads(), id=message.full_id.split('.')[0]),
                           message.content)
@@ -101,7 +112,7 @@ class TwitterBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapCollection
     def iter_resources(self, objs, split_path):
         collection = self.get_collection(objs, split_path)
         if collection.path_level == 0:
-            if self.config['username']:
+            if self.config['username'].get():
                 me = self.browser.get_me()
                 yield Collection([me], me)
             profils = self.config['profils_subscribe'].get()
