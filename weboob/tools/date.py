@@ -47,6 +47,10 @@ class date(real_date):
     def strftime(self, fmt):
         return strftime(self, fmt)
 
+    @classmethod
+    def from_date(cls, d):
+        return cls(d.year, d.month, d.day)
+
 
 class datetime(real_datetime):
     def strftime(self, fmt):
@@ -57,6 +61,10 @@ class datetime(real_datetime):
 
     def date(self):
         return date(self.year, self.month, self.day)
+
+    @classmethod
+    def from_datetime(cls, dt):
+        return cls(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, dt.tzinfo)
 
 
 def new_date(d):
@@ -201,6 +209,7 @@ class LinearDateGuesser(object):
                 self.set_current_date(parsed_date)
         return parsed_date
 
+
 class ChaoticDateGuesser(LinearDateGuesser):
     """
     This class aim to find the guess the date when you know the
@@ -219,7 +228,6 @@ class ChaoticDateGuesser(LinearDateGuesser):
             return parsed_date
         else:
             raise ValueError("%s is inferior to min_date %s" % (parsed_date, self.min_date))
-
 
 
 DATE_TRANSLATE_FR = [(re.compile(u'janvier', re.I),   u'january'),
@@ -250,6 +258,7 @@ DATE_TRANSLATE_FR = [(re.compile(u'janvier', re.I),   u'january'),
                      (re.compile(u'vendredi', re.I),  u'friday'),
                      (re.compile(u'samedi', re.I),    u'saturday'),
                      (re.compile(u'dimanche', re.I),  u'sunday')]
+
 
 def parse_french_date(date):
     for fr, en in DATE_TRANSLATE_FR:
