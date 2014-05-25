@@ -46,7 +46,13 @@ class TwitterBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapCollection
                            Value('profils_subscribe',       label='Profils subscribe', default=''))
 
     def create_default_browser(self):
-        return self.create_browser(self.config['username'].get(), self.config['password'].get())
+        username = self.config['username'].get()
+        if username:
+            password = self.config['password'].get()
+        else:
+            password = None
+
+        return self.create_browser(username, password)
 
     def iter_threads(self):
         if self.config['username'].get():
@@ -60,7 +66,6 @@ class TwitterBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapCollection
                         tweets.append(tweet)
                 tweets.sort(key=lambda o: o.date, reverse=True)
                 return tweets
-
 
     def get_thread(self, _id, thread=None, getseen=True):
         seen = None
