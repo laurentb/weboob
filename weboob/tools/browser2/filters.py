@@ -362,8 +362,10 @@ class Date(DateTime):
 
     def filter(self, txt):
         datetime = super(Date, self).filter(txt)
-        if datetime is not None:
+        if hasattr(datetime, 'date'):
             return datetime.date()
+        else:
+            return datetime
 
 
 class DateGuesser(Filter):
