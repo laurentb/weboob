@@ -20,7 +20,7 @@
 from weboob.tools.browser2 import LoginBrowser, URL, need_login
 from weboob.tools.browser import BrowserIncorrectPassword
 from weboob.capabilities.messages import Message
-from .pages import LoginPage, LoginErrorPage, ThreadPage, TwitterBasePage, Tweet
+from .pages import LoginPage, LoginErrorPage, ThreadPage, TwitterBasePage, Tweet, TrendsPage
 
 
 __all__ = ['TwitterBrowser']
@@ -32,6 +32,9 @@ class TwitterBrowser(LoginBrowser):
     thread_page = URL(u'(?P<user>.+)/status/(?P<_id>.+)', ThreadPage)
     login_error = URL(u'login/error.+', LoginErrorPage)
     tweet = URL(u'i/tweet/create', Tweet)
+    trends = URL(u'trends', TrendsPage)
+    hashtag = URL(u'hashtag/(?P<path>.+)', TwitterBasePage)
+    search = URL(u'search\?q="(?P<path>.+)"', TwitterBasePage)
     twitter_page = URL(u'(?P<path>.+)/with_replies', TwitterBasePage)
     login = URL(u'', LoginPage)
 
@@ -51,6 +54,16 @@ class TwitterBrowser(LoginBrowser):
     @need_login
     def iter_threads(self):
         return self.login.stay_or_go().iter_threads()
+
+    def get_trendy_subjects(self):
+        if self.username:
+            return self.get_logged_trendy_subject()
+        else:
+            return self.trends.open().get_trendy_subjects()
+
+    @need_login
+    def get_logged_trendy_subject(self):
+        return self.trends.open().get_trendy_subjects()
 
     @need_login
     def post(self, thread, message):
@@ -96,5 +109,11 @@ class TwitterBrowser(LoginBrowser):
 
         return thread
 
-    def get_tweets_from_collection(self, path):
+    def get_tweets_from_profil(self, path):
         return self.twitter_page.go(path=path).iter_threads()
+
+    def get_tweets_from_hashtag(self, path):
+        return self.hashtag.go(path=path[1:]).iter_threads()
+
+    def get_tweets_from_search(self, path):
+        return self.search.go(path=path).iter_threads()

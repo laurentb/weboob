@@ -19,17 +19,30 @@
 
 from datetime import datetime
 from weboob.tools.date import DATE_TRANSLATE_FR
+from io import StringIO
+import lxml.html as html
 
 from weboob.tools.browser2.page import HTMLPage, JsonPage, method, ListElement, ItemElement, FormNotFound
 from weboob.tools.browser2.filters import CleanText, Format, Link, Regexp, Env, DateTime, Attr, Filter
 from weboob.capabilities.messages import Thread, Message
-
-__all__ = ['LoginPage', 'LoginErrorPage', 'ThreadPage', 'TwitterBasePage', 'Tweet']
+from weboob.capabilities.base import CapBaseObject
+__all__ = ['LoginPage', 'LoginErrorPage', 'ThreadPage', 'TwitterBasePage', 'Tweet', 'TrendsPage']
 
 
 class DatetimeFromTimestamp(Filter):
     def filter(self, el):
         return datetime.fromtimestamp(float(el))
+
+
+class TwitterJsonHMLPage(JsonPage):
+
+    ENCODING = None
+
+    def __init__(self, browser, response, *args, **kwargs):
+        super(TwitterJsonHMLPage, self).__init__(browser, response, *args, **kwargs)
+        self.encoding = self.ENCODING or response.encoding
+        parser = html.HTMLParser(encoding=self.encoding)
+        self.doc = html.parse(StringIO(self.doc['module_html']), parser)
 
 
 class TwitterBasePage(HTMLPage):
@@ -107,6 +120,18 @@ class ThreadPage(HTMLPage):
             obj_content = CleanText('./div/p')
             obj_sender = Regexp(Link('./div/div/a[@class="details with-icn js-details"]'), '/(.+)/status/.+')
             obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span', 'data-time'))
+
+
+class TrendsPage(TwitterJsonHMLPage):
+
+    @method
+    class get_trendy_subjects(ListElement):
+        item_xpath = '//li[@class="trend-item js-trend-item  "]'
+
+        class item(ItemElement):
+            klass = CapBaseObject
+
+            obj_id = Attr('.', 'data-trend-name')
 
 
 class LoginErrorPage(HTMLPage):

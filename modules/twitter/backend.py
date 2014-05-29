@@ -118,23 +118,45 @@ class TwitterBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapCollection
         collection = self.get_collection(objs, split_path)
         if collection.path_level == 0:
             if self.config['username'].get():
-                me = self.browser.get_me()
-                yield Collection([me], me)
-            profils = self.config['profils_subscribe'].get()
-            if profils:
-                for profil in profils.split(','):
-                    yield Collection([profil], profil)
+                yield Collection([u'me'], u'me')
+            yield Collection([u'profils'], u'profils')
+            yield Collection([u'trendy'], u'trendy')
 
         if collection.path_level == 1:
-            for el in self.browser.get_tweets_from_collection(collection.split_path[0]):
-                yield el
+            if collection.split_path[0] == u'me':
+                for el in self.browser.get_tweets_from_profil(self.browser.get_me()):
+                    yield el
+
+            if collection.split_path[0] == u'profils':
+                profils = self.config['profils_subscribe'].get()
+                if profils:
+                    for profil in profils.split(','):
+                        yield Collection([profil], profil)
+
+            if collection.split_path[0] == u'trendy':
+                for obj in self.browser.get_trendy_subjects():
+                    yield Collection([obj.id], obj.id)
+
+        if collection.path_level == 2:
+            if collection.split_path[0] == u'profils':
+                for el in self.browser.get_tweets_from_profil(collection.split_path[1]):
+                    yield el
+
+            if collection.split_path[0] == u'trendy':
+                if collection.split_path[1].startswith('#'):
+                    for el in self.browser.get_tweets_from_hashtag(collection.split_path[1]):
+                        yield el
+                else:
+                    for el in self.browser.get_tweets_from_search(collection.split_path[1]):
+                        yield el
 
     def validate_collection(self, objs, collection):
         if collection.path_level == 0:
             return
-        if collection.path_level == 1:
+        if collection.path_level == 1 and collection.split_path[0] in [u'profils', u'trendy', u'me']:
             return
-
+        if collection.path_level == 2:
+            return
         raise CollectionNotFound(collection.split_path)
 
     OBJECTS = {Thread: fill_thread}
