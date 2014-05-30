@@ -35,7 +35,7 @@ class TwitterBrowser(LoginBrowser):
     trends = URL(u'trends', TrendsPage)
     hashtag = URL(u'hashtag/(?P<path>.+)', TwitterBasePage)
     search = URL(u'search\?q="(?P<path>.+)"', TwitterBasePage)
-    twitter_page = URL(u'(?P<path>.+)/with_replies', TwitterBasePage)
+    profil = URL(u'(?P<path>.+)/with_replies', TwitterBasePage)
     login = URL(u'', LoginPage)
 
     def do_login(self):
@@ -110,7 +110,7 @@ class TwitterBrowser(LoginBrowser):
         return thread
 
     def get_tweets_from_profil(self, path):
-        return self.twitter_page.go(path=path).iter_threads()
+        return self.profil.go(path=path).iter_threads()
 
     def get_tweets_from_hashtag(self, path):
         return self.hashtag.go(path=path[1:]).iter_threads()
