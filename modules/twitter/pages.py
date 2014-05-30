@@ -22,11 +22,11 @@ from weboob.tools.date import DATE_TRANSLATE_FR
 from io import StringIO
 import lxml.html as html
 
-from weboob.tools.browser2.page import HTMLPage, JsonPage, method, ListElement, ItemElement, FormNotFound
+from weboob.tools.browser2.page import HTMLPage, JsonPage, method, ListElement, ItemElement, FormNotFound, pagination
 from weboob.tools.browser2.filters import CleanText, Format, Link, Regexp, Env, DateTime, Attr, Filter
 from weboob.capabilities.messages import Thread, Message
 from weboob.capabilities.base import CapBaseObject
-__all__ = ['LoginPage', 'LoginErrorPage', 'ThreadPage', 'TwitterBasePage', 'Tweet', 'TrendsPage']
+__all__ = ['LoginPage', 'LoginErrorPage', 'ThreadPage', 'TwitterBasePage', 'Tweet', 'TrendsPage', 'TimelinePage']
 
 
 class DatetimeFromTimestamp(Filter):
@@ -34,15 +34,20 @@ class DatetimeFromTimestamp(Filter):
         return datetime.fromtimestamp(float(el))
 
 
-class TwitterJsonHMLPage(JsonPage):
+class TwitterJsonHTMLPage(JsonPage):
 
     ENCODING = None
+    has_next = None
 
     def __init__(self, browser, response, *args, **kwargs):
-        super(TwitterJsonHMLPage, self).__init__(browser, response, *args, **kwargs)
+        super(TwitterJsonHTMLPage, self).__init__(browser, response, *args, **kwargs)
         self.encoding = self.ENCODING or response.encoding
         parser = html.HTMLParser(encoding=self.encoding)
-        self.doc = html.parse(StringIO(self.doc['module_html']), parser)
+        if hasattr(self.doc, 'module_html'):
+            self.doc = html.parse(StringIO(self.doc['module_html']), parser)
+        else:
+            self.has_next = self.doc['has_more_items']
+            self.doc = html.parse(StringIO(self.doc['items_html']), parser)
 
 
 class TwitterBasePage(HTMLPage):
@@ -79,19 +84,6 @@ class LoginPage(TwitterBasePage):
     def get_me(self):
         return Regexp(Link('//a[@data-nav="profile"]'), '/(.+)')(self.doc)
 
-    @method
-    class iter_threads(ListElement):
-        item_xpath = '//li[@data-item-type="tweet"]/div'
-
-        class item(ItemElement):
-            klass = Thread
-
-            obj_id = Regexp(Link('./div/div/a[@class="details with-icn js-details"]'), '/(.+)/status/(.+)', '\\1#\\2')
-            obj_title = Format('%s \n\t %s',
-                               CleanText('./div/div[@class="stream-item-header"]/a'),
-                               CleanText('./div/p'))
-            obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span', 'data-time'))
-
 
 class ThreadPage(HTMLPage):
 
@@ -122,7 +114,7 @@ class ThreadPage(HTMLPage):
             obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span', 'data-time'))
 
 
-class TrendsPage(TwitterJsonHMLPage):
+class TrendsPage(TwitterJsonHTMLPage):
 
     @method
     class get_trendy_subjects(ListElement):
@@ -132,6 +124,26 @@ class TrendsPage(TwitterJsonHMLPage):
             klass = CapBaseObject
 
             obj_id = Attr('.', 'data-trend-name')
+
+
+class TimelinePage(TwitterJsonHTMLPage):
+    @pagination
+    @method
+    class iter_threads(ListElement):
+        item_xpath = '//*[@data-item-type="tweet"]/div'
+
+        def next_page(self):
+            if self.page.has_next:
+                return u'https://twitter.com/i/timeline?max_position=%s' % self.objects.keys()[-1].split('#')[-1]
+
+        class item(ItemElement):
+            klass = Thread
+
+            obj_id = Regexp(Link('./div/div/a[@class="details with-icn js-details"]|./div/div/span/a[@class="ProfileTweet-timestamp js-permalink js-nav js-tooltip"]'), '/(.+)/status/(.+)', '\\1#\\2')
+            obj_title = Format('%s \n\t %s',
+                               CleanText('./div/div[@class="stream-item-header"]/a|./div/div[@class="ProfileTweet-authorDetails"]/a'),
+                               CleanText('./div/p'))
+            obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span|./div/div/span/a[@class="ProfileTweet-timestamp js-permalink js-nav js-tooltip"]/span', 'data-time'))
 
 
 class LoginErrorPage(HTMLPage):

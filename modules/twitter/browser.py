@@ -20,7 +20,7 @@
 from weboob.tools.browser2 import LoginBrowser, URL, need_login
 from weboob.tools.browser import BrowserIncorrectPassword
 from weboob.capabilities.messages import Message
-from .pages import LoginPage, LoginErrorPage, ThreadPage, TwitterBasePage, Tweet, TrendsPage
+from .pages import LoginPage, LoginErrorPage, ThreadPage, TwitterBasePage, Tweet, TrendsPage, TimelinePage
 
 
 __all__ = ['TwitterBrowser']
@@ -36,6 +36,7 @@ class TwitterBrowser(LoginBrowser):
     hashtag = URL(u'hashtag/(?P<path>.+)', TwitterBasePage)
     search = URL(u'search\?q="(?P<path>.+)"', TwitterBasePage)
     profil = URL(u'(?P<path>.+)/with_replies', TwitterBasePage)
+    timeline = URL(u'i/timeline', TimelinePage)
     login = URL(u'', LoginPage)
 
     def do_login(self):
@@ -53,7 +54,7 @@ class TwitterBrowser(LoginBrowser):
 
     @need_login
     def iter_threads(self):
-        return self.login.stay_or_go().iter_threads()
+        return self.timeline.go().iter_threads()
 
     def get_trendy_subjects(self):
         if self.username:
