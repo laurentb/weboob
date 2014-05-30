@@ -60,8 +60,10 @@ class TwitterBasePage(HTMLPage):
 
             obj_id = Regexp(Link('./div/div/a[@class="details with-icn js-details"]|./div/div/span/a[@class="ProfileTweet-timestamp js-permalink js-nav js-tooltip"]'), '/(.+)/status/(.+)', '\\1#\\2')
             obj_title = Format('%s \n\t %s',
-                               CleanText('./div/div[@class="stream-item-header"]/a|./div/div[@class="ProfileTweet-authorDetails"]/a'),
-                               CleanText('./div/p'))
+                               CleanText('./div/div[@class="stream-item-header"]/a|./div/div[@class="ProfileTweet-authorDetails"]/a',
+                                         replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')]),
+                               CleanText('./div/p',
+                                         replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')]))
             obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span|./div/div/span/a[@class="ProfileTweet-timestamp js-permalink js-nav js-tooltip"]/span', 'data-time'))
 
 
@@ -93,8 +95,10 @@ class ThreadPage(HTMLPage):
 
         obj_id = Format('%s#%s', Env('user'), Env('_id'))
         obj_title = Format('%s \n\t %s',
-                           CleanText('//div[@class="permalink-inner permalink-tweet-container"]/div/div/div/a'),
-                           CleanText('//div[@class="permalink-inner permalink-tweet-container"]/div/p'))
+                           CleanText('//div[@class="permalink-inner permalink-tweet-container"]/div/div/div/a',
+                                     replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')]),
+                           CleanText('//div[@class="permalink-inner permalink-tweet-container"]/div/p',
+                                     replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')]))
 
         obj_date = DateTime(Regexp(CleanText('//div[@class="permalink-inner permalink-tweet-container"]/div/div/div/div[@class="client-and-actions"]/span'),
                                    '(\d+:\d+).+- (.+\d{4})',
@@ -108,8 +112,9 @@ class ThreadPage(HTMLPage):
             klass = Message
 
             obj_id = Regexp(Link('./div/div/a[@class="details with-icn js-details"]'), '/.+/status/(.+)')
-            obj_title = Regexp(CleanText('./div/p'), '(.{50}|.+).+')
-            obj_content = CleanText('./div/p')
+            obj_title = Regexp(CleanText('./div/p', replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')]),
+                               '(.{50}|.+).+')
+            obj_content = CleanText('./div/p', replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')])
             obj_sender = Regexp(Link('./div/div/a[@class="details with-icn js-details"]'), '/(.+)/status/.+')
             obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span', 'data-time'))
 
@@ -141,8 +146,10 @@ class TimelinePage(TwitterJsonHTMLPage):
 
             obj_id = Regexp(Link('./div/div/a[@class="details with-icn js-details"]|./div/div/span/a[@class="ProfileTweet-timestamp js-permalink js-nav js-tooltip"]'), '/(.+)/status/(.+)', '\\1#\\2')
             obj_title = Format('%s \n\t %s',
-                               CleanText('./div/div[@class="stream-item-header"]/a|./div/div[@class="ProfileTweet-authorDetails"]/a'),
-                               CleanText('./div/p'))
+                               CleanText('./div/div[@class="stream-item-header"]/a|./div/div[@class="ProfileTweet-authorDetails"]/a',
+                                         replace=[('@ ', '@'), ('# ', '#')]),
+                               CleanText('./div/p',
+                                         replace=[('@ ', '@'), ('# ', '#')]))
             obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span|./div/div/span/a[@class="ProfileTweet-timestamp js-permalink js-nav js-tooltip"]/span', 'data-time'))
 
 
