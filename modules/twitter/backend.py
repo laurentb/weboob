@@ -43,6 +43,8 @@ class TwitterBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapCollection
 
     CONFIG = BackendConfig(Value('username',                label='Username', default=''),
                            ValueBackendPassword('password', label='Password', default=''),
+                           Value('hashtags_subscribe',      label='Hashtags subscribe', default=''),
+                           Value('search_subscribe',        label='Searh subscribe', default=''),
                            Value('profils_subscribe',       label='Profils subscribe', default=''))
 
     def create_default_browser(self):
@@ -59,13 +61,26 @@ class TwitterBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapCollection
             return self.browser.iter_threads()
         else:
             profils = self.config['profils_subscribe'].get()
+            hashtags = self.config['hashtags_subscribe'].get()
+            searchs = self.config['search_subscribe'].get()
+            tweets = []
             if profils:
-                tweets = []
                 for profil in profils.split(','):
-                    for tweet in self.browser.get_tweets_from_collection(profil):
+                    for tweet in self.browser.get_tweets_from_profil(profil):
                         tweets.append(tweet)
-                tweets.sort(key=lambda o: o.date, reverse=True)
-                return tweets
+
+            if hashtags:
+                for hashtag in hashtags.split(','):
+                    for tweet in self.browser.get_tweets_from_hashtag(hashtag):
+                        tweets.append(tweet)
+
+            if searchs:
+                for search in searchs.split(','):
+                    for tweet in self.browser.get_tweets_from_search(search):
+                        tweets.append(tweet)
+
+            tweets.sort(key=lambda o: o.date, reverse=True)
+            return tweets
 
     def get_thread(self, _id, thread=None, getseen=True):
         seen = None
@@ -121,6 +136,8 @@ class TwitterBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapCollection
                 yield Collection([u'me'], u'me')
             yield Collection([u'profils'], u'profils')
             yield Collection([u'trendy'], u'trendy')
+            yield Collection([u'hashtags'], u'hashtags')
+            yield Collection([u'search'], u'search')
 
         if collection.path_level == 1:
             if collection.split_path[0] == u'me':
@@ -132,6 +149,18 @@ class TwitterBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapCollection
                 if profils:
                     for profil in profils.split(','):
                         yield Collection([profil], profil)
+
+            if collection.split_path[0] == u'hashtags':
+                hashtags = self.config['hashtags_subscribe'].get()
+                if hashtags:
+                    for hashtag in hashtags.split(','):
+                        yield Collection([hashtag], hashtag)
+
+            if collection.split_path[0] == u'search':
+                searchs = self.config['search_subscribe'].get()
+                if searchs:
+                    for search in searchs.split(','):
+                        yield Collection([search], search)
 
             if collection.split_path[0] == u'trendy':
                 for obj in self.browser.get_trendy_subjects():
@@ -150,10 +179,18 @@ class TwitterBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapCollection
                     for el in self.browser.get_tweets_from_search(collection.split_path[1]):
                         yield el
 
+            if collection.split_path[0] == u'hashtags':
+                for el in self.browser.get_tweets_from_hashtag(collection.split_path[1]):
+                    yield el
+
+            if collection.split_path[0] == u'search':
+                for el in self.browser.get_tweets_from_search(collection.split_path[1]):
+                    yield el
+
     def validate_collection(self, objs, collection):
         if collection.path_level == 0:
             return
-        if collection.path_level == 1 and collection.split_path[0] in [u'profils', u'trendy', u'me']:
+        if collection.path_level == 1 and collection.split_path[0] in [u'profils', u'trendy', u'me', u'hashtags', u'search']:
             return
         if collection.path_level == 2:
             return
