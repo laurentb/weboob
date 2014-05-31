@@ -114,7 +114,7 @@ class TwitterBrowser(LoginBrowser):
         return self.profil.go(path=path).iter_threads()
 
     def get_tweets_from_hashtag(self, path):
-        return self.hashtag.go(path=path[1:]).iter_threads()
+        return self.hashtag.go(path=path.lstrip('#')).iter_threads()
 
     def get_tweets_from_search(self, path):
         return self.search.go(path=path).iter_threads()
