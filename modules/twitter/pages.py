@@ -26,7 +26,7 @@ from weboob.tools.browser2.page import HTMLPage, JsonPage, method, ListElement, 
 from weboob.tools.browser2.filters import CleanText, Format, Link, Regexp, Env, DateTime, Attr, Filter
 from weboob.capabilities.messages import Thread, Message
 from weboob.capabilities.base import CapBaseObject
-__all__ = ['LoginPage', 'LoginErrorPage', 'ThreadPage', 'TwitterBasePage', 'Tweet', 'TrendsPage', 'TimelinePage']
+__all__ = ['LoginPage', 'LoginErrorPage', 'ThreadPage', 'TwitterBasePage', 'Tweet', 'TrendsPage', 'TimelinePage', 'HomeTimelinePage']
 
 
 class DatetimeFromTimestamp(Filter):
@@ -139,7 +139,7 @@ class TimelinePage(TwitterJsonHTMLPage):
 
         def next_page(self):
             if self.page.has_next:
-                return u'https://twitter.com/i/timeline?max_position=%s' % self.get_last_id()
+                return u'%s?max_position=%s' % (self.page.url.split('?')[0], self.get_last_id())
 
         def get_last_id(self):
             _el = self.page.doc.xpath('//*[@data-item-type="tweet"]/div')[-1]
@@ -155,6 +155,12 @@ class TimelinePage(TwitterJsonHTMLPage):
                                CleanText('./div/p',
                                          replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')]))
             obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span|./div/div/span/a[@class="ProfileTweet-timestamp js-permalink js-nav js-tooltip"]/span', 'data-time'))
+
+
+class HomeTimelinePage(TimelinePage):
+        def next_page(self):
+            if self.page.has_next:
+                return u'%s?max_id=%s' % (self.page.url.split('?')[0], self.get_last_id())
 
 
 class LoginErrorPage(HTMLPage):
