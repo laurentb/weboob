@@ -139,7 +139,11 @@ class TimelinePage(TwitterJsonHTMLPage):
 
         def next_page(self):
             if self.page.has_next:
-                return u'https://twitter.com/i/timeline?max_position=%s' % self.objects.keys()[-1].split('#')[-1]
+                return u'https://twitter.com/i/timeline?max_position=%s' % self.get_last_id()
+
+        def get_last_id(self):
+            _el = self.page.doc.xpath('//*[@data-item-type="tweet"]/div')[-1]
+            return Regexp(Link('./div/div/a[@class="details with-icn js-details"]|./div/div/span/a[@class="ProfileTweet-timestamp js-permalink js-nav js-tooltip"]'), '/.+/status/(.+)')(_el)
 
         class item(ItemElement):
             klass = Thread
