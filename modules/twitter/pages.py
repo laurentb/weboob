@@ -147,9 +147,9 @@ class TimelinePage(TwitterJsonHTMLPage):
             obj_id = Regexp(Link('./div/div/a[@class="details with-icn js-details"]|./div/div/span/a[@class="ProfileTweet-timestamp js-permalink js-nav js-tooltip"]'), '/(.+)/status/(.+)', '\\1#\\2')
             obj_title = Format('%s \n\t %s',
                                CleanText('./div/div[@class="stream-item-header"]/a|./div/div[@class="ProfileTweet-authorDetails"]/a',
-                                         replace=[('@ ', '@'), ('# ', '#')]),
+                                         replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')]),
                                CleanText('./div/p',
-                                         replace=[('@ ', '@'), ('# ', '#')]))
+                                         replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')]))
             obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span|./div/div/span/a[@class="ProfileTweet-timestamp js-permalink js-nav js-tooltip"]/span', 'data-time'))
 
 
