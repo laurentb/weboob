@@ -20,7 +20,8 @@
 from weboob.tools.browser2 import LoginBrowser, URL, need_login
 from weboob.tools.browser import BrowserIncorrectPassword
 from weboob.capabilities.messages import Message
-from .pages import LoginPage, LoginErrorPage, ThreadPage, TwitterBasePage, Tweet, TrendsPage, TimelinePage, HomeTimelinePage
+from .pages import LoginPage, LoginErrorPage, ThreadPage, TwitterBasePage, Tweet, TrendsPage,\
+                   TimelinePage, HomeTimelinePage, SearchTimelinePage
 
 
 __all__ = ['TwitterBrowser']
@@ -34,8 +35,8 @@ class TwitterBrowser(LoginBrowser):
     tweet = URL(u'i/tweet/create', Tweet)
     trends = URL(u'trends', TrendsPage)
     hashtag = URL(u'hashtag/(?P<path>.+)\?f=realtime', TwitterBasePage)
-    search = URL(u'search\?q="(?P<path>.+)&f=realtime&src=typd"', TwitterBasePage)
-    profil = URL(u'i/profiles/show/(?P<path>.+)/timeline', HomeTimelinePage)
+    search = URL(u'i/search/timeline', SearchTimelinePage)
+    profil = URL(u'i/profiles/show/(?P<path>.+)/timeline/with_replies', HomeTimelinePage)
     timeline = URL(u'i/timeline', TimelinePage)
     login = URL(u'', LoginPage)
 
@@ -117,4 +118,7 @@ class TwitterBrowser(LoginBrowser):
         return self.hashtag.go(path=path.lstrip('#')).iter_threads()
 
     def get_tweets_from_search(self, path):
-        return self.search.go(path=path).iter_threads()
+        params = {'q': "%s" % path,
+                  'src': 'typd',
+                  'f': 'realtime'}
+        return self.search.go(params=params).iter_threads(params=params)
