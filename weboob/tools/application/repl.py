@@ -1007,10 +1007,10 @@ class ReplApplication(Cmd, ConsoleApplication):
             path = None
             only = line.strip().partition(' ')[-1]
 
-
         if path:
-            # We have an argument, let's ch to the directory before the ls
-            self.working_path.cd1(path)
+            for _path in path.split('/'):
+                # We have an argument, let's ch to the directory before the ls
+                self.working_path.cd1(_path)
 
         objects = []
         collections = []
