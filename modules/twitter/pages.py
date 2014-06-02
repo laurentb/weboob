@@ -27,7 +27,7 @@ from weboob.tools.browser2.page import HTMLPage, JsonPage, method, ListElement, 
 from weboob.tools.browser2.filters import CleanText, Format, Link, Regexp, Env, DateTime, Attr, Filter
 from weboob.capabilities.messages import Thread, Message
 from weboob.capabilities.base import CapBaseObject
-__all__ = ['LoginPage', 'LoginErrorPage', 'ThreadPage', 'TwitterBasePage', 'Tweet', 'TrendsPage', 'TimelinePage', 'HomeTimelinePage', 'SearchTimeLinePage']
+__all__ = ['LoginPage', 'LoginErrorPage', 'ThreadPage', 'TwitterBasePage', 'Tweet', 'TrendsPage', 'TimelinePage', 'HomeTimelinePage', 'SearchTimelinePage']
 
 
 class DatetimeFromTimestamp(Filter):
