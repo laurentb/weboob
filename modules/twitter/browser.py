@@ -20,8 +20,8 @@
 from weboob.tools.browser2 import LoginBrowser, URL, need_login
 from weboob.tools.browser import BrowserIncorrectPassword
 from weboob.capabilities.messages import Message
-from .pages import LoginPage, LoginErrorPage, ThreadPage, TwitterBasePage, Tweet, TrendsPage,\
-                   TimelinePage, HomeTimelinePage, SearchTimelinePage
+from .pages import LoginPage, LoginErrorPage, ThreadPage, Tweet, TrendsPage,\
+    TimelinePage, HomeTimelinePage, SearchTimelinePage
 
 
 __all__ = ['TwitterBrowser']
@@ -34,7 +34,6 @@ class TwitterBrowser(LoginBrowser):
     login_error = URL(u'login/error.+', LoginErrorPage)
     tweet = URL(u'i/tweet/create', Tweet)
     trends = URL(u'trends', TrendsPage)
-    hashtag = URL(u'hashtag/(?P<path>.+)\?f=realtime', TwitterBasePage)
     search = URL(u'i/search/timeline', SearchTimelinePage)
     profil = URL(u'i/profiles/show/(?P<path>.+)/timeline/with_replies', HomeTimelinePage)
     timeline = URL(u'i/timeline', TimelinePage)
@@ -115,7 +114,7 @@ class TwitterBrowser(LoginBrowser):
         return self.profil.go(path=path).iter_threads()
 
     def get_tweets_from_hashtag(self, path):
-        return self.hashtag.go(path=path.lstrip('#')).iter_threads()
+        return self.get_tweets_from_search(u'#%s' % path if not path.startswith('#') else path)
 
     def get_tweets_from_search(self, path):
         params = {'q': "%s" % path,

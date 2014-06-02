@@ -27,7 +27,7 @@ from weboob.tools.browser2.page import HTMLPage, JsonPage, method, ListElement, 
 from weboob.tools.browser2.filters import CleanText, Format, Link, Regexp, Env, DateTime, Attr, Filter
 from weboob.capabilities.messages import Thread, Message
 from weboob.capabilities.base import CapBaseObject
-__all__ = ['LoginPage', 'LoginErrorPage', 'ThreadPage', 'TwitterBasePage', 'Tweet', 'TrendsPage', 'TimelinePage', 'HomeTimelinePage', 'SearchTimelinePage']
+__all__ = ['LoginPage', 'LoginErrorPage', 'ThreadPage', 'Tweet', 'TrendsPage', 'TimelinePage', 'HomeTimelinePage', 'SearchTimelinePage']
 
 
 class DatetimeFromTimestamp(Filter):
@@ -55,24 +55,7 @@ class TwitterJsonHTMLPage(JsonPage):
             self.doc = html.parse(StringIO(self.doc['items_html']), parser)
 
 
-class TwitterBasePage(HTMLPage):
-    @method
-    class iter_threads(ListElement):
-        item_xpath = '//*[@data-item-type="tweet"]/div'
-
-        class item(ItemElement):
-            klass = Thread
-
-            obj_id = Regexp(Link('./div/div/a[@class="details with-icn js-details"]|./div/div/span/a[@class="ProfileTweet-timestamp js-permalink js-nav js-tooltip"]'), '/(.+)/status/(.+)', '\\1#\\2')
-            obj_title = Format('%s \n\t %s',
-                               CleanText('./div/div[@class="stream-item-header"]/a|./div/div[@class="ProfileTweet-authorDetails"]/a',
-                                         replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')]),
-                               CleanText('./div/p',
-                                         replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')]))
-            obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span|./div/div/span/a[@class="ProfileTweet-timestamp js-permalink js-nav js-tooltip"]/span', 'data-time'))
-
-
-class LoginPage(TwitterBasePage):
+class LoginPage(HTMLPage):
     def login(self, login, passwd):
         form = self.get_form(xpath='//form[@action="https://twitter.com/sessions"]')
         form['session[username_or_email]'] = login
