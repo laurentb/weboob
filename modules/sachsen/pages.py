@@ -87,7 +87,7 @@ class ListPage(HTMLPage):
             def obj_sensors(self):
                 sensors = []
 
-                lastdate = DateTime(Regexp(Env('datetime'), r'(\d+)\.(\d+)\.(\d+) (\d+):(\d+)', r'\3-\2-\1 \4:\5', default=NotAvailable))(self)
+                lastdate = DateTime(Regexp(Env('datetime'), r'(\d+)\.(\d+)\.(\d+) (\d+):(\d+)', r'\3-\2-\1 \4:\5', default=NotAvailable), default=NotAvailable)(self)
                 forecast = Map(Env('forecast'), self.forecasts, default=NotAvailable)(self)
                 alarm = Map(Env('alarm'), self.alarmlevel, default=u'')(self)
 
