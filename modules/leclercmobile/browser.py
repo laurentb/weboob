@@ -22,6 +22,9 @@ import StringIO
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from .pages import HomePage, LoginPage, HistoryPage, PdfPage
+from weboob.capabilities.bill import Detail
+from weboob.capabilities.base import NotAvailable
+
 
 __all__ = ['Leclercmobile']
 
@@ -109,8 +112,7 @@ class Leclercmobile(BaseBrowser):
                 pdf = PdfPage(StringIO.StringIO(response.read()))
                 for call in pdf.get_calls():
                     call.label = call.label.strip()
-                    if call.label != "Votre solde":
-                        yield call
+                    yield call
 
     def get_details(self):
         if not self.is_on_page(HistoryPage):
@@ -140,6 +142,11 @@ class Leclercmobile(BaseBrowser):
     def get_balance(self):
         if not self.is_on_page(HistoryPage):
             self.location(self.conso)
-        response = self.openurl(self.bills + "0")
-        pdf = PdfPage(StringIO.StringIO(response.read()))
-        return pdf.get_balance()
+        detail = Detail()
+        detail.label = u"Balance"
+        for calls in self.get_history():
+            if "Votre solde" in calls.label:
+                detail.price = calls.price
+                return detail
+        detail.price = NotAvailable
+        return detail
