@@ -25,7 +25,7 @@ from weboob.tools.json import json as simplejson
 from weboob.capabilities.weather import City
 
 from .pages.meteo import WeatherPage
-
+import re
 
 __all__ = ['MeteofranceBrowser']
 
@@ -52,9 +52,11 @@ class MeteofranceBrowser(BaseBrowser):
 
     def parse_cities_result(self, datas):
         cities = simplejson.loads(datas.read(), self.ENCODING)
+        re_id = re.compile('\d{5}', re.DOTALL)
         for city in cities:
-            mcity = City(int(city['codePostal']), u'%s' % city['slug'])
-            yield mcity
+            if re_id.match(city['codePostal']):
+                mcity = City(int(city['codePostal']), u'%s' % city['slug'])
+                yield mcity
 
     def iter_forecast(self, city_id):
         mcity = self.iter_city_search(city_id).next()
