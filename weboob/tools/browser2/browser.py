@@ -39,6 +39,7 @@ except ImportError:
 from weboob.tools.log import getLogger
 
 from .cookies import WeboobCookieJar
+from .exceptions import HTTPNotFound, ClientError, ServerError
 
 
 class Profile(object):
@@ -318,9 +319,29 @@ class BaseBrowser(object):
         if allow_redirects:
             response = self.handle_refresh(response)
 
+        self.raise_for_status(response)
+        return response
+
+    def raise_for_status(self, response):
+        """
+        Like Response.raise_for_status but will use other classes if needed.
+        """
+        http_error_msg = None
+        if 400 <= response.status_code < 500:
+            http_error_msg = '%s Client Error: %s' % (response.status_code, response.reason)
+            cls = ClientError
+            if response.status_code == 404:
+                cls = HTTPNotFound
+        elif 500 <= response.status_code < 600:
+            http_error_msg = '%s Server Error: %s' % (response.status_code, response.reason)
+            cls = ServerError
+
+        if http_error_msg:
+            raise cls(http_error_msg, response=response)
+
+        # in case we did not catch something that should be
         response.raise_for_status()
 
-        return response
 
     def build_request(self, url, referrer=None, data_encoding=None, **kwargs):
         """
