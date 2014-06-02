@@ -93,14 +93,6 @@ class PdfPage():
         details.append(detail)
         return details
 
-    def get_balance(self):
-        for calls in self.get_calls():
-            if "Votre solde" in calls.label:
-                detail = Detail()
-                detail.price = calls.price
-                detail.label = u"Balance"
-                return detail
-
     # Standard pdf text extractor take text line by line
     # But the position in the file is not always the "real" position to display...
     # It produce some unsorted and unparsable data

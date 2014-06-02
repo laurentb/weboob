@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
 from weboob.capabilities.bill import ICapBill, SubscriptionNotFound,\
     BillNotFound, Subscription, Bill
 from weboob.tools.backend import BaseBackend, BackendConfig
@@ -67,7 +66,8 @@ class LeclercMobileBackend(BaseBackend, ICapBill):
     def iter_bills_history(self, subscription):
         with self.browser:
             for history in self.browser.get_history():
-                yield history
+                if history.label != "Votre solde":
+                    yield history
 
     def get_bill(self, id):
         with self.browser:
