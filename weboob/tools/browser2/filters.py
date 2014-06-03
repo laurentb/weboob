@@ -191,6 +191,18 @@ class CleanHTML(Filter):
     def clean(cls, txt):
         return html2text(html.tostring(txt, encoding=unicode))
 
+
+class RawText(Filter):
+    def filter(self, el):
+        if isinstance(el, (tuple,list)):
+            return u' '.join([self.filter(e) for e in el])
+
+        if el.text is None:
+            return self.default
+        else:
+            return unicode(el.text)
+
+
 class CleanText(Filter):
     """
     Get a cleaned text from an element.
