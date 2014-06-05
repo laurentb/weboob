@@ -19,10 +19,10 @@
 
 import re
 
-import requests
 from weboob.capabilities.paste import BasePaste, PasteNotFound
 from weboob.tools.browser2.filters import CleanText, DateTime, Env, RawText, Regexp
 from weboob.tools.browser2.page import HTMLPage, ItemElement, method, PagesBrowser, URL
+from weboob.tools.exceptions import BrowserHTTPNotFound
 
 
 class Spam(Exception):
@@ -101,12 +101,8 @@ class PastealaconBrowser(PagesBrowser):
         """
         try:
             return self.raw.open(id=_id).text
-        # TODO maybe have Browser2 raise a specialized exception
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == requests.codes.not_found:
-                raise PasteNotFound()
-            else:
-                raise e
+        except BrowserHTTPNotFound:
+            raise PasteNotFound()
 
     def post_paste(self, paste, expiration=None):
         self.post.stay_or_go().post(paste, expiration=expiration)
