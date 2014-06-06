@@ -30,13 +30,42 @@ __all__ = ['AjaxPage', 'EventPage', 'JsonResumePage']
 
 
 class Channel(Filter):
+
+    CHANNELS_PARAM = {
+        'einst-3 elgr-data-logo': u'Action',
+        'einst-8 elgr-data-logo': u'Canal+ Décalé',
+        'einst-9 elgr-data-logo': u'Canal+ Family',
+        'einst-12 elgr-data-logo': u'Ciné FX',
+        'einst-13 elgr-data-logo': u'Polar',
+        'einst-14 elgr-data-logo': u'Ciné+ Classic',
+        'einst-15 elgr-data-logo': u'Ciné+ Club',
+        'einst-16 elgr-data-logo': u'Ciné+ Emotion',
+        'einst-17 elgr-data-logo': u'Ciné+ Famiz',
+        'einst-18 elgr-data-logo': u'Ciné+ Frisson',
+        'einst-19 elgr-data-logo': u'Ciné+ Premier',
+        'einst-21 elgr-data-logo': u'Comédie+',
+        'einst-24 elgr-data-logo': u'Disney Channel',
+        'einst-25 elgr-data-logo': u'Disney Cinemagic',
+        'einst-34 elgr-data-logo': u'Jimmy',
+        'einst-37 elgr-data-logo': u'MCM',
+        'einst-41 elgr-data-logo': u'OCS Géants',
+        'einst-42 elgr-data-logo': u'OCS Choc',
+        'einst-44 elgr-data-logo': u'OCS Max',
+        'einst-45 elgr-data-logo': u'OCS City',
+        'einst-49 elgr-data-logo': u'RTL 9',
+        'einst-52 elgr-data-logo': u'TCM Cinéma',
+        'einst-54 elgr-data-logo': u'Teva',
+        'einst-59 elgr-data-logo': u'TV Breizh',
+        'einst-4055 elgr-data-logo': u'Paramount Channel',
+    }
+
     def filter(self, el):
         channel_info = el[0].xpath('div/div[@class="elgr-data-channel"]')
         if channel_info:
             channel = CleanText('.')(channel_info[0])
         else:
             channel_info = Attr('div[@class="elgr-product-data"]/span', 'class')(el[0])
-            channel = self.page.CHANNELS_PARAM.get(channel_info)
+            channel = self.CHANNELS_PARAM.get(channel_info)
         return channel
 
 
@@ -70,33 +99,6 @@ class FormatDate(Filter):
 
 
 class AjaxPage(HTMLPage):
-    CHANNELS_PARAM = {
-        'einst-3 elgr-data-logo': u'Action',
-        'einst-8 elgr-data-logo': u'Canal+ Décalé',
-        'einst-9 elgr-data-logo': u'Canal+ Family',
-        'einst-12 elgr-data-logo': u'Ciné FX',
-        'einst-13 elgr-data-logo': u'Polar',
-        'einst-14 elgr-data-logo': u'Ciné+ Classic',
-        'einst-15 elgr-data-logo': u'Ciné+ Club',
-        'einst-16 elgr-data-logo': u'Ciné+ Emotion',
-        'einst-17 elgr-data-logo': u'Ciné+ Famiz',
-        'einst-18 elgr-data-logo': u'Ciné+ Frisson',
-        'einst-19 elgr-data-logo': u'Ciné+ Premier',
-        'einst-21 elgr-data-logo': u'Comédie+',
-        'einst-24 elgr-data-logo': u'Disney Channel',
-        'einst-25 elgr-data-logo': u'Disney Cinemagic',
-        'einst-34 elgr-data-logo': u'Jimmy',
-        'einst-37 elgr-data-logo': u'MCM',
-        'einst-41 elgr-data-logo': u'OCS Géants',
-        'einst-42 elgr-data-logo': u'OCS Choc',
-        'einst-44 elgr-data-logo': u'OCS Max',
-        'einst-45 elgr-data-logo': u'OCS City',
-        'einst-49 elgr-data-logo': u'RTL 9',
-        'einst-52 elgr-data-logo': u'TCM Cinéma',
-        'einst-54 elgr-data-logo': u'Teva',
-        'einst-59 elgr-data-logo': u'TV Breizh',
-        'einst-4055 elgr-data-logo': u'Paramount Channel',
-    }
 
     def count_events(self):
         return len(self.doc.xpath("//a"))
