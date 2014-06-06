@@ -17,8 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser2 import PagesBrowser, URL, Profile, Firefox
-
+from weboob.tools.browser2 import PagesBrowser, URL, Firefox
 from .calendar import SensCritiquenCalendarEvent
 from .pages import AjaxPage, EventPage, JsonResumePage
 
@@ -28,9 +27,10 @@ from lxml.etree import XMLSyntaxError
 __all__ = ['SenscritiqueBrowser']
 
 
-class SensCritiqueAjaxProfile(Profile):
-    def setup_session(self, session):
-        session.headers.update({"User-Agent": "Mozilla/5.0 (Windows; U; Windows "
+class SenscritiqueBrowser(PagesBrowser):
+
+    def set_ajax_header(self):
+        self.session.headers.update({"User-Agent": "Mozilla/5.0 (Windows; U; Windows "
                                 "NT 5.1; en-US; rv:1.9.2.8) Gecko/20100722 Firefox/3.6.8"
                                 " GTB7.1 (.NET CLR 3.5.30729)",
                                 "Accept": "text/html, */*; q=0.01",
@@ -41,18 +41,14 @@ class SensCritiqueAjaxProfile(Profile):
                                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
                                 })
 
-
-class SensCritiqueJsonProfile(Profile):
-    def setup_session(self, session):
-        session.headers.update({"User-Agent": "Mozilla/5.0 (Windows; U; Windows "
+    def set_json_header(self):
+        self.session.headers.update({"User-Agent": "Mozilla/5.0 (Windows; U; Windows "
                                 "NT 5.1; en-US; rv:1.9.2.8) Gecko/20100722 Firefox/3.6.8"
                                 " GTB7.1 (.NET CLR 3.5.30729)",
                                 "Accept": "application/json, text/javascript, */*; q=0.01",
                                 "X-Requested-With": "XMLHttpRequest",
                                 })
 
-
-class SenscritiqueBrowser(PagesBrowser):
     ENCODING = 'utf-8'
 
     BASEURL = 'http://www.senscritique.com'
@@ -74,9 +70,9 @@ class SenscritiqueBrowser(PagesBrowser):
 
     def set_package_settings(self, package, channels):
         url = 'http://www.senscritique.com/sc/tv_guides/saveSettings.json'
-        params = {'network':    package}
-        for channel in channels:
-            params['channels[]'] = channel
+        #do not use a dict because there are several same keys
+        params = "network=%s" % package
+        params += ''.join(["&channels%%5B%%5D=%d" % (channel) for channel in channels])
         self.open(url, data=params)
 
     def list_events(self, date_from, date_to=None, package=None, channels=None):
@@ -84,10 +80,10 @@ class SenscritiqueBrowser(PagesBrowser):
         self.program_page.go()
         page_nb = 1
 
+        self.set_ajax_header()
         if package and channels:
             self.set_package_settings(package, channels)
 
-        self._setup_session(SensCritiqueAjaxProfile())
         while True:
             try:
                 self.DATA['page'] = '%d' % page_nb
@@ -111,7 +107,7 @@ class SenscritiqueBrowser(PagesBrowser):
             self.program_page.go()
             page_nb = 1
 
-            self._setup_session(SensCritiqueAjaxProfile())
+            self.set_ajax_header()
             while True:
                 self.DATA['page'] = '%d' % page_nb
                 page = self.ajax_page.open(data=self.DATA)
@@ -134,7 +130,7 @@ class SenscritiqueBrowser(PagesBrowser):
             return event
 
     def get_resume(self, _id):
-        self._setup_session(SensCritiqueJsonProfile())
+        self.set_json_header()
         re_id = re.compile('^/?.*/(.*)', re.DOTALL)
         a_id = re_id.search(_id.split('#')[0]).group(1)
         return self.json_page.go(_id=a_id).get_resume()
