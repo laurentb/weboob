@@ -39,7 +39,7 @@ class ReaderV2(BasePage):
             'http://www.izneo.com/playerv2/ajax.php?ean=%s&action=get_list_jpg'
             % ean))
 
-        for page in pages:
+        for page in pages['list']:
             width = 1200  # maximum width
             yield BaseImage(page['page'],
                     gallery=gallery,
