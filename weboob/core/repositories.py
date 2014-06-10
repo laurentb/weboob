@@ -40,9 +40,9 @@ from weboob.tools.misc import to_unicode
 from weboob.tools.browser2.browser import BaseBrowser, Weboob as WeboobProfile
 from requests.exceptions import HTTPError
 try:
-    from configparser import RawConfigParser, DEFAULTSECT
-except ImportError:
     from ConfigParser import RawConfigParser, DEFAULTSECT
+except ImportError:
+    from configparser import RawConfigParser, DEFAULTSECT
 
 
 __all__ = ['IProgress', 'ModuleInstallError', 'ModuleInfo', 'RepositoryUnavailable',
