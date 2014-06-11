@@ -52,7 +52,8 @@ class TwitterJsonHTMLPage(JsonPage):
                 self.scroll_cursor = self.doc['scroll_cursor']
 
             self.has_next = self.doc['has_more_items']
-            self.doc = html.parse(StringIO(self.doc['items_html']), parser)
+            el = html.parse(StringIO(self.doc['items_html']), parser)
+            self.doc = el if el.getroot() is not None else html.Element('brinbrin')
 
 
 class LoginPage(HTMLPage):
