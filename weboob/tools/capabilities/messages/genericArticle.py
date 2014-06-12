@@ -103,7 +103,7 @@ class GenericNewsPage(BasePage):
 
     def get_author(self):
         try:
-            return self.get_element_author().text_content().strip()
+            return u'%s' % self.get_element_author().text_content().strip()
         except (NoAuthorElement, NoneMainDiv):
             #TODO: Mettre un warning
             return self.__article.author
