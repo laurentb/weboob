@@ -343,6 +343,12 @@ class ReplApplication(Cmd, ConsoleApplication):
             fields = []
         elif '$full' in fields:
             fields = None
+
+        if self.formatter.MANDATORY_FIELDS is not None:
+            missing_fields = set(fields) - set(self.formatter.MANDATORY_FIELDS)
+            if missing_fields:
+                self.formatter = self.formatters_loader.build_formatter(ReplApplication.DEFAULT_FORMATTER)
+
         return self.weboob.do(self._do_complete, self.options.count, fields, function, *args, **kwargs)
 
     # -- command tools ------------
