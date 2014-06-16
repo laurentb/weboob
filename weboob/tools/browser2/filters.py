@@ -110,6 +110,20 @@ class Filter(_Filter):
         raise NotImplementedError()
 
 
+class Base(Filter):
+    """
+    Change the base element used in filters.
+    >>> Base(Env('header'), CleanText('./h1'))
+    """
+    def __call__(self, item):
+        base = self.select(self.base, item)
+        return self.selector(base)
+
+    def __init__(self, base, selector, default=_NO_DEFAULT):
+        super(Base, self).__init__(selector, default)
+        self.base = base
+
+
 class Env(_Filter):
     """
     Filter to get environment value of the item.
