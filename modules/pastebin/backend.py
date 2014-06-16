@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2011-2012 Laurent Bachelier
+# Copyright(C) 2011-2014 Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -18,18 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-
-from weboob.tools.capabilities.paste import BasePasteBackend
-from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.capabilities.base import NotLoaded
+from weboob.tools.backend import BackendConfig, BaseBackend
+from weboob.tools.capabilities.paste import BasePasteBackend
 from weboob.tools.value import Value, ValueBackendPassword
 
-from .browser import PastebinBrowser
-from .paste import PastebinPaste
-
-
-__all__ = ['PastebinBackend']
+from .browser import PastebinBrowser, PastebinPaste
 
 
 class PastebinBackend(BaseBackend, BasePasteBackend):
@@ -60,8 +54,8 @@ class PastebinBackend(BaseBackend, BasePasteBackend):
             password = self.config['password'].get()
         else:
             password = None
-        return self.create_browser(self.config['api_key'].get() if self.config['api_key'].get() else None,
-                                   username, password, get_home=False)
+        return self.create_browser(self.config['api_key'].get() or None,
+                                   username, password)
 
     def new_paste(self, *args, **kwargs):
         return PastebinPaste(*args, **kwargs)
@@ -75,20 +69,16 @@ class PastebinBackend(BaseBackend, BasePasteBackend):
         return 1
 
     def get_paste(self, _id):
-        with self.browser:
-            return self.browser.get_paste(_id)
+        return self.browser.get_paste(_id)
 
     def fill_paste(self, paste, fields):
         # if we only want the contents
         if fields == ['contents']:
             if paste.contents is NotLoaded:
-                with self.browser:
-                    contents = self.browser.get_contents(paste.id)
-                paste.contents = contents
+                paste.contents = self.browser.get_contents(paste.id)
         # get all fields
         elif fields is None or len(fields):
-            with self.browser:
-                self.browser.fill_paste(paste)
+            self.browser.fill_paste(paste)
         return paste
 
     def post_paste(self, paste, max_age=None, use_api=True):
@@ -96,10 +86,9 @@ class PastebinBackend(BaseBackend, BasePasteBackend):
             expiration = self.get_closest_expiration(max_age)
         else:
             expiration = None
-        with self.browser:
-            if use_api and self.config.get('api_key').get():
-                self.browser.api_post_paste(paste, expiration=self.EXPIRATIONS.get(expiration))
-            else:
-                self.browser.post_paste(paste, expiration=self.EXPIRATIONS.get(expiration))
+        if use_api and self.config.get('api_key').get():
+            self.browser.api_post_paste(paste, expiration=self.EXPIRATIONS.get(expiration))
+        else:
+            self.browser.post_paste(paste, expiration=self.EXPIRATIONS.get(expiration))
 
     OBJECTS = {PastebinPaste: fill_paste}
