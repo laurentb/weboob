@@ -172,6 +172,7 @@ class TransactionsFormatter(IFormatter):
 
 class TransferFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'date', 'origin', 'recipient', 'amount')
+    DISPLAYED_FIELDS = ('reason', )
 
     def format_obj(self, obj, alias):
         result = u'------- Transfer %s -------\n' % obj.fullid
@@ -186,6 +187,7 @@ class TransferFormatter(IFormatter):
 
 class InvestmentFormatter(IFormatter):
     MANDATORY_FIELDS = ('label', 'quantity', 'unitvalue')
+    DISPLAYED_FIELDS = ('code', 'diff')
 
     tot_valuation = Decimal(0)
     tot_diff = Decimal(0)
@@ -209,7 +211,7 @@ class InvestmentFormatter(IFormatter):
                  self.colored('%6d' % obj.quantity, 'yellow'),
                  self.colored('%11.2f' % obj.unitvalue, 'yellow'),
                  self.colored('%11.2f' % obj.valuation, 'yellow'),
-                 self.colored('%8.2f' % diff, 'green' if diff >=0 else 'red')
+                 self.colored('%8.2f' % diff, 'green' if diff >= 0 else 'red')
                  )
 
     def flush(self):

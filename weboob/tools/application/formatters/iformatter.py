@@ -74,7 +74,11 @@ class MandatoryFieldsNotFound(Exception):
 
 
 class IFormatter(object):
+    # Tuple of fields mandatory to not crash
     MANDATORY_FIELDS = None
+    # Tuple of displayed field. Set to None if all available fields are
+    # displayed
+    DISPLAYED_FIELDS = None
 
     BOLD = ConsoleApplication.BOLD
     NC = ConsoleApplication.NC
