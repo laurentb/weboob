@@ -339,13 +339,24 @@ class ReplApplication(Cmd, ConsoleApplication):
         fields = kwargs.pop('fields', self.selected_fields)
         if not fields and fields != []:
             fields = self.selected_fields
+
         if '$direct' in fields:
             fields = []
         elif '$full' in fields:
             fields = None
 
-        if self.formatter.MANDATORY_FIELDS is not None:
-            missing_fields = set(fields) - set(self.formatter.MANDATORY_FIELDS)
+        if fields and self.formatter.MANDATORY_FIELDS is not None:
+            missing_fields = set(self.formatter.MANDATORY_FIELDS) - set(fields)
+            # If a mandatory field is not selected, do not use the customized formatter
+            if missing_fields:
+                self.formatter = self.formatters_loader.build_formatter(ReplApplication.DEFAULT_FORMATTER)
+
+        if self.formatter.DISPLAYED_FIELDS is not None:
+            if fields is None:
+                missing_fields = True
+            else:
+                missing_fields = set(fields) - set(self.formatter.DISPLAYED_FIELDS + self.formatter.MANDATORY_FIELDS)
+            # If a selected field is not displayed, do not use the customized formatter
             if missing_fields:
                 self.formatter = self.formatters_loader.build_formatter(ReplApplication.DEFAULT_FORMATTER)
 
