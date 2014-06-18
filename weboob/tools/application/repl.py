@@ -346,6 +346,7 @@ class ReplApplication(Cmd, ConsoleApplication):
             missing_fields = set(self.formatter.MANDATORY_FIELDS) - set(fields)
             # If a mandatory field is not selected, do not use the customized formatter
             if missing_fields:
+                print('Warning: you do not select enough mandatory fields for the formatter. Fallback to another. Hint: use option -f', file=sys.stderr)
                 self.formatter = self.formatters_loader.build_formatter(ReplApplication.DEFAULT_FORMATTER)
 
         if self.formatter.DISPLAYED_FIELDS is not None:
@@ -355,6 +356,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                 missing_fields = set(fields) - set(self.formatter.DISPLAYED_FIELDS + self.formatter.MANDATORY_FIELDS)
             # If a selected field is not displayed, do not use the customized formatter
             if missing_fields:
+                print('Warning: some selected fields will not be displayed by the formatter. Fallback to another. Hint: use option -f', file=sys.stderr)
                 self.formatter = self.formatters_loader.build_formatter(ReplApplication.DEFAULT_FORMATTER)
 
         return self.weboob.do(self._do_complete, self.options.count, fields, function, *args, **kwargs)
