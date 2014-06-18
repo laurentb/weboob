@@ -250,18 +250,20 @@ class HistoryPage(BasePage):
             time_format = "%H:%M:%S"
         return date_format, time_format, months
 
-    def filter(self, days=90):
+    def filter(self):
         date_format = self.guess_format()[0]
         today = datetime.date.today()
-        start = today - datetime.timedelta(days)
+        start = datetime.date(1998,6,1) # The day PayPal was founded
         self.browser.select_form(name='history')
         self.browser['dateoption'] = ['dateselect']
         self.browser['from_date'] = start.strftime(date_format)
         self.browser['to_date'] = today.strftime(date_format)
         self.browser.submit(name='show')
+        self.browser.select_form(name='history')
+        self.browser.submit(name='filter_2')
 
     def next(self):
-        if self.document.xpath('//span[@class="pageNext"]'):
+        if self.document.xpath('//input[@name="next"]'):
             self.browser.select_form(name='history')
             self.browser.submit(name='next')
             return True
