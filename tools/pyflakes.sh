@@ -19,13 +19,20 @@ fi
 if [ -n "${FLAKE8}" ]; then
     exec ${FLAKE8} --select=E9,F *.py $PYFILES
 else
+    PYFLAKES=""
+    if which pyflakes >/dev/null 2>&1; then
+        PYFLAKES=pyflakes
+    fi
+    if which pyflakes-python2 >/dev/null 2>&1; then
+        PYFLAKES=pyflakes-python2
+    fi
     # check for modern pyflakes
-    if pyflakes --version >/dev/null 2>&1; then
-        exec pyflakes $PYFILES
+    if ${PYFLAKES} --version >/dev/null 2>&1; then
+        exec ${PYFLAKES} $PYFILES
     else
         # hide error reported by mistake.
         # grep will return 0 only if it founds something, but our script
         # wants to return 0 when it founds nothing!
-        pyflakes $PYFILES | grep -v redefinition && exit 1 || exit 0
+        ${PYFLAKES} $PYFILES | grep -v redefinition && exit 1 || exit 0
     fi
  fi
