@@ -73,7 +73,7 @@ ${PYTHON} "${WEBOOB_DIR}/scripts/weboob-config" update
 # allow failing commands past this point
 set +e
 if [ -n "${BACKEND}" ]; then
-    ${PYTHON} ${NOSE} -c /dev/null -sv "${WEBOOB_DIR}/modules/${BACKEND}" ${XUNIT_ARGS}
+    ${PYTHON} ${NOSE} -c /dev/null -sv "${WEBOOB_DIR}/modules/${BACKEND}/test.py" ${XUNIT_ARGS}
     STATUS_CORE=0
 else
     echo "=== Weboob ==="
