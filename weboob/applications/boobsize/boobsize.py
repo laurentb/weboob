@@ -30,7 +30,7 @@ __all__ = ['Boobsize']
 
 class GaugeFormatter(IFormatter):
     MANDATORY_FIELDS = ('name', 'object', 'sensors')
-    DISPLAYED_FIELDS = self.MANDATORY_FIELDS + ('city', )
+    DISPLAYED_FIELDS = ('city', )
 
     def start_format(self, **kwargs):
         # Name = 27   Object = 10   City = 10  Sensors = 33
