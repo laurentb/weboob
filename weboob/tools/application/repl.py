@@ -1248,7 +1248,9 @@ class ReplApplication(Cmd, ConsoleApplication):
 
     def format(self, result, alias=None):
         fields = self.selected_fields
-        if '$direct' in fields or '$full' in fields:
+        if '$direct' in fields:
+            fields = []
+        elif '$full' in fields:
             fields = None
         try:
             self.formatter.format(obj=result, selected_fields=fields, alias=alias)
