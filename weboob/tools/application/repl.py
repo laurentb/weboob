@@ -193,7 +193,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                 pass
             else:
                 if isinstance(obj, CapBaseObject):
-                    id = '%s@%s' % (obj.id, obj.backend)
+                    id = obj.fullid
         try:
             return ConsoleApplication.parse_id(self, id, unique_backend)
         except BackendNotGiven as e:
