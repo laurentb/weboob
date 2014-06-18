@@ -23,11 +23,12 @@ try:
     from urllib.parse import unquote
 except ImportError:
     from urllib import unquote
-import requests
 import re
 import sys
 from copy import deepcopy
 from io import BytesIO
+
+import requests
 import lxml.html as html
 import lxml.etree as etree
 
@@ -374,7 +375,7 @@ def pagination(func):
     ['One', 'Two', 'Three', 'Four']
     """
     def inner(page, *args, **kwargs):
-        while 1:
+        while True:
             try:
                 for r in func(page, *args, **kwargs):
                     yield r
@@ -479,7 +480,7 @@ class Form(OrderedDict):
                 continue
 
             try:
-                if inp.attrib['type'] in ('checkbox', 'radio') and not 'checked' in inp.attrib:
+                if inp.attrib['type'] in ('checkbox', 'radio') and 'checked' not in inp.attrib:
                     continue
             except KeyError:
                 pass
