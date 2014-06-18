@@ -146,7 +146,7 @@ class IFormatter(object):
         :type alias: unicode
         """
         if isinstance(obj, CapBaseObject):
-            if selected_fields is not None and not '*' in selected_fields:
+            if selected_fields:  # can be an empty list (nothing to do), or None (return all fields)
                 obj = obj.copy()
                 for name, value in obj.iter_fields():
                     if not name in selected_fields:
@@ -164,7 +164,7 @@ class IFormatter(object):
             except ValueError:
                 raise TypeError('Please give a CapBaseObject or a dict')
 
-            if selected_fields is not None and not '*' in selected_fields:
+            if selected_fields:
                 obj = obj.copy()
                 for name, value in obj.iteritems():
                     if not name in selected_fields:
