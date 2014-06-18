@@ -340,10 +340,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         if not fields and fields != []:
             fields = self.selected_fields
 
-        if '$direct' in fields:
-            fields = []
-        elif '$full' in fields:
-            fields = None
+        fields = self.parse_fields(fields)
 
         if fields and self.formatter.MANDATORY_FIELDS is not None:
             missing_fields = set(self.formatter.MANDATORY_FIELDS) - set(fields)
@@ -1246,12 +1243,15 @@ class ReplApplication(Cmd, ConsoleApplication):
             alias = '%s' % len(self.objects)
         self.format(obj, alias=alias)
 
-    def format(self, result, alias=None):
-        fields = self.selected_fields
+    def parse_fields(self, fields):
         if '$direct' in fields:
-            fields = []
-        elif '$full' in fields:
-            fields = None
+            return []
+        if '$full' in fields:
+            return None
+        return fields
+
+    def format(self, result, alias=None):
+        fields = self.parse_fields(self.selected_fields)
         try:
             self.formatter.format(obj=result, selected_fields=fields, alias=alias)
         except FieldNotFound as e:
