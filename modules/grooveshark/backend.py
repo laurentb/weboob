@@ -118,11 +118,12 @@ class GroovesharkBackend(BaseBackend, ICapAudio, ICapCollection):
 
     def iter_resources(self, objs, split_path):
         with self.browser:
-            if Playlist in objs:
-                self._restrict_level(split_path)
-            if self.browser.is_logged():
-                for item in self.browser.get_all_user_playlists():
-                    yield item
+            if len(split_path)  == 0:
+                if Playlist in objs:
+                    self._restrict_level(split_path)
+                if self.browser.is_logged():
+                    for item in self.browser.get_all_user_playlists():
+                        yield item
 
     def validate_collection(self, objs, collection):
         if collection.path_level == 0:
