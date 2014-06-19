@@ -140,7 +140,7 @@ class SGProfessionalBrowser(SGPEBrowser):
     DOMAIN = 'professionnels.secure.societegenerale.fr'
     LOGIN_FORM = 'auth_reco'
     MENUID = 'SBOREL'
-    CERTHASH = 'd369315d357ba0018c2bd4d3394645669d99106c797d7390fded516b098a933e'
+    CERTHASH = '695f30016dedb1dab81d0fe6b6e232f88c13d2d2c487ef99df323a009d30a29c'
 
 
 class SGEnterpriseBrowser(SGPEBrowser):
