@@ -116,22 +116,27 @@ class GroovesharkBrowser(BaseBrowser):
     def get_audio_from_song_id(self, _id):
         audio = GroovesharkAudio(_id)
         audio.url = self.get_stream_url_from_song_id(_id)
-        return audio
+        if audio.url is not None:
+            return audio
+        else:
+            return None
 
     def get_stream_url_from_song_id(self, _id):
         method = 'getStreamKeyFromSongIDEx'
+        try:
+            parameters = {}
+            parameters['prefetch'] = False
+            parameters['mobile'] = True
+            parameters['songID'] = int(_id)
+            parameters['country'] = self.HEADER['country']
 
-        parameters = {}
-        parameters['prefetch'] = False
-        parameters['mobile'] = True
-        parameters['songID'] = int(_id)
-        parameters['country'] = self.HEADER['country']
+            response = self.API_post(method, parameters, self.create_token(method))
 
-        response = self.API_post(method, parameters, self.create_token(method))
+            self.mark_song_downloaded_ex(response['result'])
 
-        self.mark_song_downloaded_ex(response['result'])
-
-        return u'http://%s/stream.php?streamKey=%s' % (response['result']['ip'], response['result']['streamKey'])
+            return u'http://%s/stream.php?streamKey=%s' % (response['result']['ip'], response['result']['streamKey'])
+        except ValueError:
+            return
 
     def search_albums(self, pattern):
         method = 'getResultsFromSearch'
