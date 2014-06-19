@@ -293,7 +293,7 @@ class Radioob(ReplApplication):
             print '%s\nRadio URL: %s' % (e, stream.url)
 
     def retrieve_obj(self, _id):
-
+        obj = None
         if self.interactive:
             try:
                 obj = self.objects[int(_id) - 1]
@@ -303,9 +303,9 @@ class Radioob(ReplApplication):
 
         m = ICapAudio.get_object_method(_id)
         if m:
-            return self.get_object(_id, m)
+            obj = self.get_object(_id, m)
 
-        return self.get_object(_id, 'get_radio')
+        return obj if obj is not None else self.get_object(_id, 'get_radio')
 
     def do_playlist(self, line):
         """
