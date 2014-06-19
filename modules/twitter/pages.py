@@ -125,6 +125,7 @@ class TrendsPage(TwitterJsonHTMLPage):
 
 class TimelineListElement(ListElement):
     item_xpath = '//*[@data-item-type="tweet"]/div'
+    ignore_duplicate = True
 
     def get_last_id(self):
         _el = self.page.doc.xpath('//*[@data-item-type="tweet"]/div')[-1]
