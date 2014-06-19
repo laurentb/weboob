@@ -48,7 +48,8 @@ class SearchPage(BasePage):
             video.thumbnail = BaseImage(u'http://boutique.ina.fr%s' % url)
             video.thumbnail.url = video.thumbnail.id
 
-            video.title = unicode(self.parser.select(li, 'p.titre', 1).text)
+            # The title is poorly encoded is the source, we have to encode/decode it again
+            video.title = unicode(self.parser.select(li, 'p.titre', 1).text).encode('raw_unicode_escape').decode('utf8')
 
             date = self.parser.select(li, 'p.date', 1).text
             day, month, year = [int(s) for s in date.split('/')]
