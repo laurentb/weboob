@@ -26,7 +26,7 @@ from weboob.capabilities.collection import ICapCollection, CollectionNotFound, C
 from weboob.capabilities.base import find_object
 from weboob.tools.exceptions import BrowserForbidden
 from .browser import TwitterBrowser
-
+import itertools
 
 __all__ = ['TwitterBackend']
 
@@ -66,17 +66,17 @@ class TwitterBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapCollection
             tweets = []
             if profils:
                 for profil in profils.split(','):
-                    for tweet in self.browser.get_tweets_from_profil(profil):
+                    for tweet in itertools.islice(self.browser.get_tweets_from_profil(profil), 0, 20):
                         tweets.append(tweet)
 
             if hashtags:
                 for hashtag in hashtags.split(','):
-                    for tweet in self.browser.get_tweets_from_hashtag(hashtag):
+                    for tweet in itertools.islice(self.browser.get_tweets_from_hashtag(hashtag), 0, 20):
                         tweets.append(tweet)
 
             if searchs:
                 for search in searchs.split(','):
-                    for tweet in self.browser.get_tweets_from_search(search):
+                    for tweet in itertools.islice(self.browser.get_tweets_from_search(search), 0 ,20):
                         tweets.append(tweet)
 
             tweets.sort(key=lambda o: o.date, reverse=True)
