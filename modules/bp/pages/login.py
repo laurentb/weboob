@@ -20,8 +20,11 @@
 
 import hashlib
 
+import re
+import lxml.etree as etree
+
 from weboob.tools.browser import BasePage, BrowserUnavailable
-from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
+from weboob.tools.captcha.virtkeyboard import VirtKeyboard
 
 __all__ = ['LoginPage', 'BadLoginPage', 'AccountDesactivate', 'Initident', 'CheckPassword', 'repositionnerCheminCourant', 'UnavailablePage']
 
@@ -36,7 +39,7 @@ class UnavailablePage(BasePage):
     def on_loaded(self):
         raise BrowserUnavailable()
 
-class VirtKeyboard(MappedVirtKeyboard):
+class Keyboard(VirtKeyboard):
     symbols={'0':'daa52d75287bea58f505823ef6c8b96c',
              '1':'f5da96c2592803a8cdc5a928a2e4a3b0',
              '2':'9ff78367d5cb89cacae475368a11e3af',
@@ -52,14 +55,26 @@ class VirtKeyboard(MappedVirtKeyboard):
     color=(0xff, 0xff, 0xff)
 
     def __init__(self, page):
-        img = page.document.find("//img[@usemap='#map']")
-        img_file = page.browser.openurl(img.attrib['src'])
-        MappedVirtKeyboard.__init__(self, img_file, page.document, img, self.color, map_attr='id')
+        img_url = re.search('background:url\((.*?)\)',etree.tostring(page.document)).group(1)
+        coords = {}
+
+        size = 252
+        x, y, width, height = (0, 0, size/4, size/4)
+        for i,a in enumerate(page.document.xpath('//div[@id="imageclavier"]//button')):
+            code = '%02d' % i
+            coords[code] = (x+8, y+8, x+height-8, y+height-8)
+            if (x + width + 1) >= size:
+                y += height
+                x = 0
+            else:
+                x += width
+
+        VirtKeyboard.__init__(self, page.browser.openurl(img_url), coords, self.color)
 
         self.check_symbols(self.symbols, page.browser.responses_dirname)
 
     def get_symbol_code(self,md5sum):
-        code = MappedVirtKeyboard.get_symbol_code(self,md5sum)
+        code = VirtKeyboard.get_symbol_code(self,md5sum)
         return '%02d' % int(code.split('_')[-1])
 
     def get_string_code(self,string):
@@ -70,11 +85,11 @@ class VirtKeyboard(MappedVirtKeyboard):
 
     def get_symbol_coords(self, (x1, y1, x2, y2)):
         # strip borders
-        return MappedVirtKeyboard.get_symbol_coords(self, (x1+3, y1+3, x2-3, y2-3))
+        return VirtKeyboard.get_symbol_coords(self, (x1+3, y1+3, x2-3, y2-3))
 
 class LoginPage(BasePage):
     def login(self, login, pwd):
-        vk = VirtKeyboard(self)
+        vk = Keyboard(self)
 
         self.browser.select_form(name='formAccesCompte')
         self.browser.set_all_readonly(False)
