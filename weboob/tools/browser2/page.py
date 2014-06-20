@@ -140,10 +140,13 @@ class URL(object):
         """
         Build an url with the given arguments from URL's regexps.
 
+        :param param: Query string parameters
+
         :rtype: :class:`str`
         :raises: :class:`UrlNotResolvable` if unable to resolve a correct url with the given arguments.
         """
         browser = kwargs.pop('browser', self.browser)
+        params = kwargs.pop('params', None)
         patterns = []
         for url in self.urls:
             patterns += normalize(url)
@@ -162,7 +165,12 @@ class URL(object):
             if len(kwargs):
                 continue
 
-            return browser.absurl(url, base=True)
+            url = browser.absurl(url, base=True)
+            if params:
+                p = requests.models.PreparedRequest()
+                p.prepare_url(url, params)
+                url = p.url
+            return url
 
         raise UrlNotResolvable('Unable to resolve URL with %r. Available are %s' % (kwargs, ', '.join([pattern for pattern, _ in patterns])))
 
