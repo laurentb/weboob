@@ -18,8 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import print_function
-
 from prettytable import PrettyTable
 
 from weboob.capabilities.base import empty
@@ -42,7 +40,7 @@ class TableFormatter(IFormatter):
     def flush(self):
         s = self.get_formatted_table()
         if s is not None:
-            print(s.encode('utf-8'))
+            self.output(s.encode('utf-8'))
 
     def get_formatted_table(self):
         if len(self.queue) == 0:
@@ -101,3 +99,12 @@ class TableFormatter(IFormatter):
 
 class HTMLTableFormatter(TableFormatter):
     HTML = True
+
+def test():
+    from .iformatter import formatter_test_output as fmt
+    assert fmt(TableFormatter, {'foo': 'bar'}) == \
+        '+-----+\n' \
+        '| Foo |\n' \
+        '+-----+\n' \
+        '| bar |\n' \
+        '+-----+\n'

@@ -229,3 +229,20 @@ class PrettyFormatter(IFormatter):
 
     def get_description(self, obj):
         return None
+
+def formatter_test_output(Formatter, obj):
+    """
+    Formats an object and returns output as a string.
+    For test purposes only.
+    """
+    from tempfile import mkstemp
+    from os import remove
+    _, name = mkstemp()
+    fmt = Formatter()
+    fmt.outfile = name
+    fmt.format(obj)
+    fmt.flush()
+    with open(name) as f:
+        res = f.read()
+    remove(name)
+    return res
