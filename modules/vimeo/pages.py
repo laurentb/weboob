@@ -21,9 +21,6 @@
 from weboob.tools.mech import ClientForm
 ControlNotFoundError = ClientForm.ControlNotFoundError
 
-#HACK
-from urllib2 import HTTPError
-
 from weboob.tools.browser import BasePage
 from weboob.tools.json import json
 
@@ -80,7 +77,7 @@ class VideoPage(BasePage):
         # Else fall back to the API
         if data is None:
             # for the rest, use the JSON config descriptor
-            json_data = self.browser.openurl('http://%s/config/%s?type=%s&referrer=%s' % ("player.vimeo.com", int(v.id), "html5_desktop_local", ""))
+            json_data = self.browser.openurl('http://%s/video/%s/config?type=%s&referrer=%s' % ("player.vimeo.com", int(v.id), "html5_desktop_local", ""))
             data = json.load(json_data)
 
         if data is None:
@@ -98,30 +95,17 @@ class VideoPage(BasePage):
         # use highest quality possible
         quality = 'sd'
         codec = None
-        if 'vp6' in data['video']['files']:
+        if 'vp6' in data['request']['files']:
             codec = 'vp6'
-        if 'vp8' in data['video']['files']:
+        if 'vp8' in data['request']['files']:
             codec = 'vp8'
-        if 'h264' in data['video']['files']:
+        if 'h264' in data['request']['files']:
             codec = 'h264'
         if not codec:
             raise BrokenPageError('Unable to detect available codec for id: %r' % int(v.id))
 
-        if 'hd' in data['video']['files'][codec]:
+        if 'hd' in data['request']['files'][codec]:
             quality = 'hd'
 
-        v.url = unicode("http://player.vimeo.com/play_redirect?quality=%s&codecs=%s&clip_id=%d&time=%s&sig=%s&type=html5_desktop_local" % (quality, codec, int(v.id), data['request']['timestamp'], data['request']['signature']))
-
-        # attempt to determine the redirected URL to pass it instead
-        # since the target server doesn't check for User-Agent, unlike
-        # for the source one.
-        # HACK: we use mechanize directly here for now... FIXME
-        #print "asking for redirect on '%s'" % (v.url)
-        self.browser.set_handle_redirect(False)
-        try:
-            self.browser.open_novisit(v.url)
-        except HTTPError as e:
-            if e.getcode() == 302 and hasattr(e, 'hdrs'):
-                #print e.hdrs['Location']
-                v.url = unicode(e.hdrs['Location'])
-        self.browser.set_handle_redirect(True)
+        v.url = data['request']['files'][codec][quality]['url']
+        return v
