@@ -1004,9 +1004,9 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         List objects in current path.
         If an argument is given, list the specified path.
-        Use -U option to not sort results. It allows to use a "fast path" to
+        Use -U option to not sort results. It allows you to use a "fast path" to
         return results as soon as possible.
-        Use -d option to display informations about a collection (and to not
+        Use -d option to display information about a collection (and to not
         display the content of it). It has the same behavior than the well
         know UNIX "ls" command.
         """
