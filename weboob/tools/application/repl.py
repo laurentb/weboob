@@ -1038,7 +1038,7 @@ class ReplApplication(Cmd, ConsoleApplication):
             if isinstance(res, Collection):
                 collections.append(res)
                 if sort is False:
-                    self._format_collection(res, only)
+                    self.formatter.format_collection(res, only)
             else:
                 if sort:
                     objects.append(res)
@@ -1050,7 +1050,7 @@ class ReplApplication(Cmd, ConsoleApplication):
             collections = self._merge_collections_with_same_path(collections)
             collections.sort(cmp=self.comp_object)
             for collection in collections:
-                self._format_collection(collection, only)
+                self.formatter.format_collection(collection, only)
             for obj in objects:
                 self._format_obj(obj, only)
 
@@ -1076,17 +1076,6 @@ class ReplApplication(Cmd, ConsoleApplication):
             else:
                 to_return.append(collection)
         return to_return
-
-
-    def _format_collection(self, collection, only):
-        if only is False or collection.basename in only:
-            if collection.basename and collection.title:
-                print(u'%s~ (%s) %s (%s)%s' % \
-                (self.BOLD, collection.basename, collection.title, collection.backend, self.NC))
-            else:
-                print(u'%s~ (%s) (%s)%s' % \
-                (self.BOLD, collection.basename, collection.backend, self.NC))
-
 
     def _format_obj(self, obj, only):
         if only is False or not hasattr(obj, 'id') or obj.id in only:
