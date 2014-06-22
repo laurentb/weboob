@@ -57,6 +57,9 @@ class JsonFormatter(IFormatter):
     def format_dict(self, item):
         self.queue.append(item)
 
+    def format_collection(self, collection, only):
+        self.queue.append(collection.to_dict())
+
 
 class JsonLineFormatter(IFormatter):
     """

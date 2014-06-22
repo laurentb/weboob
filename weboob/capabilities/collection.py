@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from weboob.tools.ordereddict import OrderedDict
 
 from .base import IBaseCap, CapBaseObject, UserError, StringField, Field
 
@@ -53,6 +54,19 @@ class BaseCollection(CapBaseObject):
     @property
     def path_level(self):
         return len(self.split_path)
+
+    def to_dict(self):
+        def iter_decorate(d):
+            for key, value in d:
+                if key == 'id' and self.backend is not None:
+                    value = u'%s@%s' % (self.basename, self.backend)
+                yield key, value
+
+                if key == 'split_path':
+                    yield key, '/'.join(value)
+
+        fields_iterator = self.iter_fields()
+        return OrderedDict(iter_decorate(fields_iterator))
 
 
 class Collection(BaseCollection):
