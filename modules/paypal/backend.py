@@ -56,5 +56,5 @@ class PaypalBackend(BaseBackend, ICapBank):
 
     def iter_history(self, account):
         with self.browser:
-            for history in self.browser.get_history(account):
+            for history in self.browser.get_download_history(account):
                 yield history

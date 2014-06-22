@@ -125,18 +125,16 @@ class AccountPage(BasePage):
 
 
 class DownloadHistoryPage(BasePage):
-    def download(self, days=90):
-        today = datetime.date.today()
-        start = today - datetime.timedelta(days)
+    def download(self, start, end):
         self.browser.select_form(name='form1')
-        self.browser['to_c'] = str(today.year)
-        self.browser['to_a'] = str(today.month)
-        self.browser['to_b'] = str(today.day)
+        self.browser['to_c'] = str(end.year)
+        self.browser['to_a'] = str(end.month)
+        self.browser['to_b'] = str(end.day)
         self.browser['from_c'] = str(start.year)
         self.browser['from_a'] = str(start.month)
         self.browser['from_b'] = str(start.day)
 
-        self.browser['custom_file_type'] = ['comma_balaffecting']
+        self.browser['custom_file_type'] = ['comma_allactivity']
         self.browser['latest_completed_file_type'] = ['']
 
         self.browser.submit()
@@ -147,42 +145,70 @@ class SubmitPage(BasePage):
     Any result of form submission
     """
     def iter_transactions(self, account):
-        DATE = 0
-        TIME = 1
-        NAME = 3
-        TYPE = 4
-        CURRENCY = 6
-        GROSS = 7
-        FEE = 8
-        NET = 9
-        FROM = 10
-        TO = 11
-        TRANS_ID = 12
-        ITEM = 15
-        SITE = 24
         csv = self.document
+
+        if len(csv.header) == 43:
+            # Merchant multi-currency account
+            DATE = 0
+            TIME = 1
+            NAME = 3
+            TYPE = 4
+            CURRENCY = 6
+            GROSS = 7
+            FEE = 8
+            NET = 9
+            FROM = 10
+            TO = 11
+            TRANS_ID = 12
+            ITEM = 15
+            SITE = 24
+        elif len(csv.header) == 11:
+            # Regular multi-currency account
+            DATE = 0
+            TIME = 1
+            NAME = 3
+            TYPE = 4
+            CURRENCY = 6
+            GROSS = -1
+            FEE = -1
+            NET = 7
+            FROM = -1
+            TO = -1
+            TRANS_ID = -1
+            ITEM = -1
+            SITE = -1
+        else:
+            raise ValueError('CSV fields count of %i is not supported' % len(csv.header))
+
         for row in csv.rows:
             # we filter accounts by currency
             if account.get_currency(row[CURRENCY]) != account.currency:
                 continue
 
-            trans = Transaction(row[TRANS_ID])
+            # analog to dict.get()
+            get = lambda i, v=None: row[i] if 0 <= i < len(row) else v
+
+            trans = Transaction(get(TRANS_ID, u''))
 
             # silly American locale
             if re.search(r'\d\.\d\d$', row[NET]):
-                date = datetime.datetime.strptime(row[DATE] + ' ' + row[TIME], "%m/%d/%Y %I:%M:%S %p")
+                date = datetime.datetime.strptime(row[DATE] + ' ' + row[TIME], "%m/%d/%Y %H:%M:%S")
             else:
                 date = datetime.datetime.strptime(row[DATE] + ' ' + row[TIME], "%d/%m/%Y %H:%M:%S")
             trans.date = date
             trans.rdate = date
 
             line = row[NAME]
-            if row[ITEM]:
+            if get(ITEM):
                 line += u' ' + row[ITEM]
-            if row[SITE]:
+            if get(SITE):
                 line += u"(" + row[SITE] + u")"
             trans.raw = line
             trans.label = row[NAME]
+
+            if row[TYPE].startswith(u'Update to eCheck') or \
+               row[TYPE].startswith(u'Order'):
+                continue
 
             if row[TYPE].endswith(u'Credit Card') or row[TYPE].endswith(u'carte bancaire'):
                 trans.type = Transaction.TYPE_CARD
@@ -195,11 +221,11 @@ class SubmitPage(BasePage):
 
             # Net is what happens after the fee (0 for most users), so what is the most "real"
             trans.amount = clean_amount(row[NET])
-            trans._gross = clean_amount(row[GROSS])
-            trans._fees = clean_amount(row[FEE])
+            trans._gross = clean_amount(get(GROSS, row[NET]))
+            trans._fees = clean_amount(get(FEE, u'0.00'))
 
-            trans._to = row[TO] or None
-            trans._from = row[FROM] or None
+            trans._to = get(TO)
+            trans._from = get(FROM)
 
             yield trans
 
@@ -250,14 +276,12 @@ class HistoryPage(BasePage):
             time_format = "%H:%M:%S"
         return date_format, time_format, months
 
-    def filter(self):
+    def filter(self, start, end):
         date_format = self.guess_format()[0]
-        today = datetime.date.today()
-        start = datetime.date(1998,6,1) # The day PayPal was founded
         self.browser.select_form(name='history')
         self.browser['dateoption'] = ['dateselect']
         self.browser['from_date'] = start.strftime(date_format)
-        self.browser['to_date'] = today.strftime(date_format)
+        self.browser['to_date'] = end.strftime(date_format)
         self.browser.submit(name='show')
         self.browser.select_form(name='history')
         self.browser.submit(name='filter_2')
@@ -301,7 +325,8 @@ class HistoryPage(BasePage):
             info = to_unicode(row.xpath('.//td[@class="paymentTypeInfo"]')[0].text_content().strip())
             trans.raw = info + u' ' + trans.label
 
-            if u'Authorization' in info or u'Autorisation' in info:
+            if u'Authorization' in info or u'Autorisation' in info or \
+               u'Order' in info:
                 continue
 
             if u'Credit Card' in trans.label or u'Carte bancaire' in trans.label:

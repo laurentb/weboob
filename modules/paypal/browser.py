@@ -20,6 +20,7 @@
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from .pages import LoginPage, AccountPage, DownloadHistoryPage, SubmitPage, HistoryParser, UselessPage, HistoryPage
+import datetime
 
 
 __all__ = ['Paypal']
@@ -42,6 +43,8 @@ class Paypal(BaseBrowser):
     }
 
     DEFAULT_TIMEOUT = 30  # CSV export is slow
+
+    BEGINNING = datetime.date(1998,6,1) # The day PayPal was founded
 
     def home(self):
         self.location('https://' + self.DOMAIN + '/en/cgi-bin/webscr?cmd=_login-run')
@@ -75,28 +78,65 @@ class Paypal(BaseBrowser):
         return self.page.get_account(_id)
 
     def get_history(self, account):
-        self.history()
+        self.history(start=self.BEGINNING, end=datetime.date.today())
         parse = True
         while parse:
             for trans in self.page.iter_transactions(account):
                 yield trans
             parse = self.page.next()
 
-    def history(self):
+    def history(self, start, end):
         self.location('/en/cgi-bin/webscr?cmd=_history&nav=0.3.0')
-        self.page.filter()
+        self.page.filter(start, end)
         assert self.is_on_page(HistoryPage)
 
-    def download_history(self):
+    def get_download_history(self, account):
+        for csv in self.download_history():
+            for trans in self.page.iter_transactions(account):
+                yield trans
+
+    def period_has_trans(self, start, end):
+        """
+        Checks if there're any transactions in a given period.
+        """
+        self.history(start, end)
+        return next(self.page.parse(), False) or self.page.next()
+
+    def bisect_oldest_date(self, start, end, steps=5):
+        """
+        Finds an approximate beginning of transactions history in a
+        given number of iterations.
+        """
+        if not steps:
+            return start
+        middle = start + (end-start)/2
+        if self.period_has_trans(start, middle):
+            return self.bisect_oldest_date(start, middle, steps-1)
+        else:
+            return self.bisect_oldest_date(middle, end, steps-1)
+
+    def download_history(self, step=90):
         """
         Download CSV history.
         However, it is not normalized, and sometimes the download is refused
         and sent later by mail.
         """
-        self.location('/en/cgi-bin/webscr?cmd=_history-download&nav=0.3.1')
-        assert self.is_on_page(DownloadHistoryPage)
-        self.page.download()
-        return self.page.document
+        # PayPal limitations as of 2014-06-16
+        assert step <= 365*2
+
+        # To minimize the number of CSV requests, let's first find an
+        # approximate starting point of transaction history.
+        end = datetime.date.today()
+        beginning = self.bisect_oldest_date(self.BEGINNING, end)
+
+        while end > beginning:
+            start = end - datetime.timedelta(step)
+            self.location('/en/cgi-bin/webscr?cmd=_history-download&nav=0.3.1')
+            assert self.is_on_page(DownloadHistoryPage)
+            self.page.download(start, end)
+            assert self.is_on_page(SubmitPage)
+            yield self.page.document
+            end = start - datetime.timedelta(1)
 
     def transfer(self, from_id, to_id, amount, reason=None):
         raise NotImplementedError()
