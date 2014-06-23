@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from weboob.tools.ordereddict import OrderedDict
 from .base import NotLoaded, Field, BytesField
 from .file import ICapFile, BaseFile
 
@@ -46,6 +47,21 @@ class BaseImage(_BaseImage):
 
     def __iscomplete__(self):
         return self.data is not NotLoaded
+
+    def to_dict(self):
+        def iter_decorate(d):
+            for key, value in d:
+                if key == 'data':
+                    continue
+
+                if key == 'id' and self.backend is not None:
+                    value = self.fullid
+
+                yield key, value
+
+        fields_iterator = self.iter_fields()
+        return OrderedDict(iter_decorate(fields_iterator))
+
 
 class ICapImage(ICapFile):
     """
