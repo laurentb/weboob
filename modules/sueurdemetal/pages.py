@@ -134,7 +134,7 @@ class PageCityList(BasePage):
             if not v:
                 continue
             d = {}
-            d['code'], d['dept'] = re.search(r'ville-metal-(.*)-(\d+).htm$', v).groups()
+            d['code'], d['dept'] = re.search(r'ville-metal-(.*)-([0-9AB]+).htm$', v).groups() # french dept
             d['id'] = '%s-%s' % (d['code'], d['dept'])
             d['name'] = option.text.split('(')[0].strip()
 
