@@ -77,66 +77,72 @@ class Paypal(BaseBrowser):
 
         return self.page.get_account(_id)
 
-    def get_history(self, account):
-        self.history(start=self.BEGINNING, end=datetime.date.today())
-        parse = True
-        while parse:
-            for trans in self.page.iter_transactions(account):
-                yield trans
-            parse = self.page.next()
+    def get_history(self, account, step_min=90, step_max=365*10):
+        def fetch_fn(start, end):
+            def transactions():
+                parse = True
+                while parse:
+                    for trans in self.page.iter_transactions(account):
+                        yield trans
+                    parse = self.page.next()
+            self.history(start=start, end=end)
+            if next(self.page.parse(), False):
+                return transactions()
+        return self.smart_fetch(beginning=self.BEGINNING,
+                                end=datetime.date.today(),
+                                step_min=step_min,
+                                step_max=step_max,
+                                fetch_fn=fetch_fn)
 
     def history(self, start, end):
         self.location('/en/cgi-bin/webscr?cmd=_history&nav=0.3.0')
         self.page.filter(start, end)
         assert self.is_on_page(HistoryPage)
 
-    def get_download_history(self, account):
-        for csv in self.download_history():
-            for trans in self.page.iter_transactions(account):
-                yield trans
+    def get_download_history(self, account, step_min=90, step_max=365*2):
+        def fetch_fn(start, end):
+            if self.download_history(start, end).rows:
+                return self.page.iter_transactions(account)
+        assert step_max <= 365*2 # PayPal limitations as of 2014-06-16
+        return self.smart_fetch(beginning=self.BEGINNING,
+                                end=datetime.date.today(),
+                                step_min=step_min,
+                                step_max=step_max,
+                                fetch_fn=fetch_fn)
 
-    def period_has_trans(self, start, end):
+    def smart_fetch(self, beginning, end, step_min, step_max, fetch_fn):
         """
-        Checks if there're any transactions in a given period.
+        Fetches transactions in small chunks to avoid request timeouts.
+        Time period of each requested chunk is adjusted dynamically.
         """
-        self.history(start, end)
-        return next(self.page.parse(), False) or self.page.next()
+        FACTOR = 2
+        step = step_min
+        while end > beginning:
+            start = end - datetime.timedelta(step)
+            chunk = fetch_fn(start, end)
+            end = start - datetime.timedelta(1)
+            if chunk:
+                # If there're transactions in current period,
+                # decrease the period.
+                step = max(step_min, step/FACTOR)
+                for trans in chunk:
+                    yield trans
+            else:
+                # If there's no transactions in current period,
+                # increase the period.
+                step = min(step_max, step*FACTOR)
 
-    def bisect_oldest_date(self, start, end, steps=5):
-        """
-        Finds an approximate beginning of transactions history in a
-        given number of iterations.
-        """
-        if not steps:
-            return start
-        middle = start + (end-start)/2
-        if self.period_has_trans(start, middle):
-            return self.bisect_oldest_date(start, middle, steps-1)
-        else:
-            return self.bisect_oldest_date(middle, end, steps-1)
-
-    def download_history(self, step=90):
+    def download_history(self, start, end):
         """
         Download CSV history.
         However, it is not normalized, and sometimes the download is refused
         and sent later by mail.
         """
-        # PayPal limitations as of 2014-06-16
-        assert step <= 365*2
-
-        # To minimize the number of CSV requests, let's first find an
-        # approximate starting point of transaction history.
-        end = datetime.date.today()
-        beginning = self.bisect_oldest_date(self.BEGINNING, end)
-
-        while end > beginning:
-            start = end - datetime.timedelta(step)
-            self.location('/en/cgi-bin/webscr?cmd=_history-download&nav=0.3.1')
-            assert self.is_on_page(DownloadHistoryPage)
-            self.page.download(start, end)
-            assert self.is_on_page(SubmitPage)
-            yield self.page.document
-            end = start - datetime.timedelta(1)
+        self.location('/en/cgi-bin/webscr?cmd=_history-download&nav=0.3.1')
+        assert self.is_on_page(DownloadHistoryPage)
+        self.page.download(start, end)
+        assert self.is_on_page(SubmitPage)
+        return self.page.document
 
     def transfer(self, from_id, to_id, amount, reason=None):
         raise NotImplementedError()
