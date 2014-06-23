@@ -7,7 +7,7 @@ Romain Bignon <romain@weboob.org>
 
 Laurent Bachelier <laurent@bachelier.name>
         * Core team;
-        * Citelis, Pastealacon, PasteBin, PayPal, RadioFrance and youtube
+        * Citelis, Pastealacon, Pastebin, PayPal, RadioFrance and YouTube
           modules maintainer.
 
 Florent Fourcot <weboob@flo.fourcot.fr>
@@ -252,14 +252,18 @@ Alexandre Bonhomme <alexandre.bonhomme@etudiant.univ-lille1.fr>
         * Fix and tests on several modules
 
 Yann Rouillard <yann@pleiades.fr.eu.org>
-		* Add kids.dailymotion.com for dailymotion
+        * Add kids.dailymotion.com for dailymotion
 
 Raphaël Rigo <devel-weboob@syscall.eu>
-		* Patch for poleemploi
-		* support for credit card history in boursorama
+        * Patch for poleemploi
+        * support for credit card history in boursorama
 
 Vicnet <vo.publique@gmail.com>
-		* lacentrale module maintainer.
+        * lacentrale module maintainer.
+
+Oleg Plakhotniuk <olegus8@gmail.com>
+        * Improvements on the PayPal module;
+        * Various fixes
 
 Discover how to contribute to this great software:
 http://weboob.org/How_to_contribute
