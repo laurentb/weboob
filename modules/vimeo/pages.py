@@ -21,9 +21,6 @@
 from weboob.tools.mech import ClientForm
 ControlNotFoundError = ClientForm.ControlNotFoundError
 
-#HACK
-from urllib2 import HTTPError
-
 from weboob.tools.browser import BasePage
 from weboob.tools.json import json
 
