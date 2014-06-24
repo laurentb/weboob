@@ -211,7 +211,13 @@ class IFormatter(object):
         :type collection: BaseCollection
         :rtype: str
         """
-        return NotImplementedError()
+        if only is False or collection.basename in only:
+            if collection.basename and collection.title:
+                self.output(u'%s~ (%s) %s (%s)%s' %
+                     (self.BOLD, collection.basename, collection.title, collection.backend, self.NC))
+            else:
+                self.output(u'%s~ (%s) (%s)%s' %
+                     (self.BOLD, collection.basename, collection.backend, self.NC))
 
 
 class PrettyFormatter(IFormatter):
@@ -239,15 +245,6 @@ class PrettyFormatter(IFormatter):
 
     def get_description(self, obj):
         return None
-
-    def format_collection(self, collection, only):
-        if only is False or collection.basename in only:
-            if collection.basename and collection.title:
-                self.output(u'%s~ (%s) %s (%s)%s' %
-                     (self.BOLD, collection.basename, collection.title, collection.backend, self.NC))
-            else:
-                self.output(u'%s~ (%s) (%s)%s' %
-                     (self.BOLD, collection.basename, collection.backend, self.NC))
 
 
 def formatter_test_output(Formatter, obj):
