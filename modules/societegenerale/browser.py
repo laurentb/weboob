@@ -29,9 +29,9 @@ __all__ = ['SocieteGenerale']
 
 class SocieteGenerale(BaseBrowser):
     DOMAIN_LOGIN = 'particuliers.societegenerale.fr'
-    CERTHASH_LOGIN = ['72b78ce0b8ffc63a6dcbf8fc375a1ab5502d5dfefcac1d00901a73f5a94e9ed5', '629873f98004aef6c42d15714ff9689fdfce04746483122417f432cd693f5007']
+    CERTHASH_LOGIN = ['629873f98004aef6c42d15714ff9689fdfce04746483122417f432cd693f5007']
     DOMAIN = 'particuliers.secure.societegenerale.fr'
-    CERTHASH = '4499ca391d0d690050d80e625fd0b16e83476fd565d8e43315c7a9c025f02b88'
+    CERTHASH = '09f9d25b742774c0fc71ec3dfd18a8d8b11b05f1db625159afb91eb6ea281754'
     PROTOCOL = 'https'
     ENCODING = None # refer to the HTML encoding
     PAGES = {
