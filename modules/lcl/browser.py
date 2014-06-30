@@ -33,7 +33,7 @@ __all__ = ['LCLBrowser']
 class LCLBrowser(BaseBrowser):
     PROTOCOL = 'https'
     DOMAIN = 'particuliers.secure.lcl.fr'
-    CERTHASH = ['ddfafa91c3e4dba2e6730df723ab5559ae55db351307ea1190d09bd025f74cce', '430814d3713cf2556e74749335e9d7ad8bb2a9350a1969ee539d1e9e9492a59a', 'ee395a71a777286091345a9ae55df699cf830bbc218faf71f08ce198d30543a3']
+    CERTHASH = ['825a1cda9f3c7176af327013a20145ad587d1f7e2a7e226a1cb5c522e6e00b84']
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {
