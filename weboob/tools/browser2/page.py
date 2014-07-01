@@ -654,7 +654,7 @@ class ListElement(AbstractElement):
     def __init__(self, *args, **kwargs):
         super(ListElement, self).__init__(*args, **kwargs)
         self.logger = getLogger(self.__class__.__name__.lower())
-        self.objects = {}
+        self.objects = OrderedDict()
 
     def __call__(self, *args, **kwargs):
         for key, value in kwargs.iteritems():
@@ -676,10 +676,14 @@ class ListElement(AbstractElement):
                     yield obj
 
         if self.flush_at_end:
-            for obj in self.objects.itervalues():
+            for obj in self.flush():
                 yield obj
 
         self.check_next_page()
+
+    def flush(self):
+        for obj in self.objects.itervalues():
+            yield obj
 
     def check_next_page(self):
         if not hasattr(self, 'next_page'):
