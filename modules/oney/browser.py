@@ -62,5 +62,4 @@ class OneyBrowser(LoginBrowser):
         post = {'task': 'Synthese', 'process': 'SyntheseCompte', 'taskid':'Releve'}
         self.operations.go(data=post)
 
-        return sorted(self.page.iter_transactions(), key=lambda tr: tr.rdate, reverse=True)
-
+        return self.page.iter_transactions(seen=set())

@@ -120,7 +120,19 @@ class OperationsPage(LoggedPage, HTMLPage):
     @pagination
     @method
     class iter_transactions(ListElement):
-        item_xpath = '//div[@id = "releve-reserve-credit"]//table/tbody/tr'
+        item_xpath = '//table[@class="tableau-releve"]/tbody/tr[not(node()//span[@class="solde-initial"])]'
+        flush_at_end = True
+
+        def flush(self):
+            # As transactions are unordered on the page, we flush only at end
+            # the sorted list of them.
+            return sorted(self.objects.itervalues(), key=lambda tr: tr.rdate, reverse=True)
+
+        def store(self, obj):
+            # It stores only objects with an ID. To be sure it works, use the
+            # uid of transaction as object ID.
+            obj.id = obj.unique_id(seen=self.env['seen'])
+            return ListElement.store(self, obj)
 
         class credit(ItemElement):
             klass = Transaction
@@ -150,5 +162,3 @@ class OperationsPage(LoggedPage, HTMLPage):
             if options:
                 data = {'numReleve':options[0].values(),'task':'Releve','process':'Releve','eventid':'select','taskid':'','hrefid':'','hrefext':''}
                 return requests.Request("POST", self.page.url, data=data)
-
-
