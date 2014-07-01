@@ -662,16 +662,23 @@ class ListElement(AbstractElement):
 
         return self.__iter__()
 
+    def find_elements(self):
+        """
+        Get the nodes that will have to be processed.
+        This method can be overridden if xpath filters are not
+        sufficient.
+        """
+        if self.item_xpath is not None:
+            for el in self.el.xpath(self.item_xpath):
+                yield el
+        else:
+            yield self.el
+
     def __iter__(self):
         self.parse(self.el)
 
-        if self.item_xpath is not None:
-            for el in self.el.xpath(self.item_xpath):
-                for obj in self.handle_element(el):
-                    if not self.flush_at_end:
-                        yield obj
-        else:
-            for obj in self.handle_element(self.el):
+        for el in self.find_elements():
+            for obj in self.handle_element(el):
                 if not self.flush_at_end:
                     yield obj
 
