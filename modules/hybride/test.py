@@ -17,15 +17,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from nose.plugins.skip import SkipTest
 from weboob.tools.test import BackendTest
-from datetime import datetime
+from datetime import datetime, date
 
 
 class HybrideTest(BackendTest):
     BACKEND = 'hybride'
 
     def test_hybride_list(self):
+        if datetime.now() > datetime(datetime.now().year, 6, 30) and datetime.now() < datetime(datetime.now().year, 9, 15):
+            raise SkipTest("Fermeture estivale")
         l = list(self.backend.list_events(datetime.now()))
         assert len(l)
         event = self.backend.get_event(l[0].id)
