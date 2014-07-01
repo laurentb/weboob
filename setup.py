@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from __future__ import print_function
 from setuptools import find_packages, setup
 
 import glob
@@ -131,11 +131,9 @@ def install_weboob():
         else:
             requirements.append('PIL')
 
-    if sys.version_info[0] > 2:
-        print >>sys.stderr, 'Python 3 is not supported.'
-        sys.exit(1)
-    if sys.version_info[1] < 6:  # older than 2.6
-        print >>sys.stderr, 'Python older than 2.6 is not supported.'
+    if sys.version_info.major == "2" and sys.version_info[1] < 6:  # older than 2.6
+        print(sys.version_info)
+        print('Python older than 2.6 is not supported. %s'%sys.version_info, file=sys.stderr)
         sys.exit(1)
 
     if not options.deps:
