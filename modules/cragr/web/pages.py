@@ -245,6 +245,13 @@ class TransactionsPage(BasePage):
 
         return None
 
+    def get_order_by_date_url(self):
+        try:
+            link = self.document.xpath('//table[@class="ca-table"]/thead//a[text()="Date"]')[0].attrib['href']
+        except IndexError:
+            link = self.url
+        return link
+
     COL_DATE  = 0
     COL_TEXT  = 1
     COL_DEBIT = None

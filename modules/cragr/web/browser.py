@@ -175,7 +175,7 @@ class Cragr(BaseBrowser):
             for tr in self.page.get_history(date_guesser):
                 yield tr
         else:
-            url = account._link
+            url = self.page.get_order_by_date_url()
 
             while url:
                 self.location(url)
