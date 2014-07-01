@@ -198,7 +198,17 @@ class URL(object):
 
         m = self.match(response.url)
         if m:
-            return self.klass(self.browser, response, m.groupdict())
+            page = self.klass(self.browser, response, m.groupdict())
+            if hasattr(page, 'is_here'):
+                if callable(page.is_here):
+                    if page.is_here():
+                        return page
+                else:
+                    assert isinstance(page.is_here, basestring)
+                    if page.doc.xpath(page.is_here):
+                        return page
+            else:
+                return page
 
     def id2url(self, func):
         r"""
