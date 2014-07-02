@@ -1,3 +1,20 @@
+Weboob 0.i.1 (2014-07-02)
+
+	Core: browser
+	* Fix bug with python 2.7.7
+
+	Core: repositories
+	* Fix HTTP error handling for browser2
+	* Try to import RawConfigParser from ConfigParser before configparser
+
+	Packaging
+	* Remove some files of windows installer
+
+	Tools
+	* Fix call of test.py (#1403)
+	* Fix call of pyflakes on Archlinux (#1404)
+
+
 Weboob 0.i (2014-05-19)
 
 	General
