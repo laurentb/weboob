@@ -209,7 +209,9 @@ class CleanHTML(Filter):
 
     @classmethod
     def clean(cls, txt):
-        return html2text(html.tostring(txt, encoding=unicode))
+        if not isinstance(txt, basestring):
+            txt = html.tostring(txt, encoding=unicode)
+        return html2text(txt)
 
 
 class RawText(Filter):
