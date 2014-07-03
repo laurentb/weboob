@@ -271,6 +271,8 @@ class CardPage(OperationsPage, LoggedPage):
 
                 obj_raw = Transaction.Raw('./td[last()-2] | ./td[last()-1]')
                 obj_type = Transaction.TYPE_CARD
+                obj_date = Env('debit_date')
+                obj_rdate = Transaction.Date(TableCell('date'))
 
 
 class NoOperationsPage(OperationsPage, LoggedPage):
