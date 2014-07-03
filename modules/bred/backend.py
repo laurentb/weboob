@@ -38,9 +38,9 @@ class BredBackend(BaseBackend, CapBank):
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Mot de passe'),
-                           Value('website', label="Site d'accès", default='bred',
+                           Value('website', label=u"Site d'accès", default='bred',
                                  choices={'bred': 'BRED', 'dispobank': 'DispoBank'}),
-                           Value('accnum', label='Account number to force (optional)', default='', masked=False)
+                           Value('accnum', label=u'Account number to force (optional)', default='', masked=False)
                           )
     BROWSER = BredBrowser
 
