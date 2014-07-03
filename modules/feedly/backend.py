@@ -1,0 +1,116 @@
+# -*- coding: utf-8 -*-
+
+# Copyright(C) 2014      Bezleputh
+#
+# This file is part of weboob.
+#
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
+
+
+from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.capabilities.collection import ICapCollection
+from weboob.capabilities.messages import ICapMessages, Message, Thread
+from weboob.tools.value import Value, ValueBackendPassword
+
+from .browser import FeedlyBrowser
+from .google import GoogleBrowser
+
+__all__ = ['FeedlyBackend']
+
+
+class FeedlyBackend(BaseBackend, ICapMessages, ICapCollection):
+    NAME = 'feedly'
+    DESCRIPTION = u'handle the popular RSS reading service Feedly'
+    MAINTAINER = u'Bezleputh'
+    EMAIL = 'carton_ben@yahoo.fr'
+    LICENSE = 'AGPLv3+'
+    VERSION = '0.j'
+    STORAGE = {'seen': []}
+    CONFIG = BackendConfig(Value('username', label='Username', default=''),
+                           ValueBackendPassword('password', label='Password', default=''))
+
+    BROWSER = FeedlyBrowser
+
+    def iter_resources(self, objs, split_path):
+        collection = self.get_collection(objs, split_path)
+        if collection.path_level == 0:
+            return self.browser.get_categories()
+
+        if collection.path_level == 1:
+            return self.browser.get_feeds(split_path[0])
+
+        if collection.path_level == 2:
+            url = self.browser.get_feed_url(split_path[0], split_path[1])
+            threads = []
+            for article in self.browser.get_unread_feed(url):
+                thread = self.get_thread(article.id, article)
+                threads.append(thread)
+            return threads
+
+    def validate_collection(self, objs, collection):
+        if collection.path_level in [0, 1, 2]:
+            return
+
+    def get_thread(self, id, entry=None):
+        if isinstance(id, Thread):
+            thread = id
+            id = thread.id
+        else:
+            thread = Thread(id)
+        if entry is None:
+            url = id.split('#')[0]
+            for article in self.browser.get_unread_feed(url):
+                if article.id == id:
+                    entry = article
+        if entry is None:
+            return None
+
+        if not thread.id in self.storage.get('seen', default=[]):
+            entry.flags = Message.IS_UNREAD
+
+        entry.thread = thread
+        thread.title = entry.title
+        thread.root = entry
+        return thread
+
+    def iter_unread_messages(self):
+        for thread in self.iter_threads():
+            for m in thread.iter_all_messages():
+                if m.flags & m.IS_UNREAD:
+                    yield m
+
+    def iter_threads(self):
+        for article in self.browser.iter_threads():
+            yield self.get_thread(article.id, article)
+
+    def set_message_read(self, message):
+        self.browser.set_message_read(message.thread.id.split('#')[-1])
+        self.storage.get('seen', default=[]).append(message.thread.id)
+        self.storage.save()
+
+    def fill_thread(self, thread, fields):
+        return self.get_thread(thread)
+
+    def create_default_browser(self):
+        username = self.config['username'].get()
+        if username:
+            password = self.config['password'].get()
+            login_browser = GoogleBrowser(username, password,
+                                          'https://feedly.com/v3/auth/callback&scope=profile+email&state=Ak7fo397ImkiOiJmZWVkbHkiLCJyIjoiaHR0cDovL2ZlZWRseS5jb20vZmVlZGx5Lmh0bWwiLCJwIjoiR29vZ)2xlUGx1cyIsImMiOiJmZWVkbHkuZGVza3RvcCAyMC40Ljc3NSJ9')
+        else:
+            password = None
+            login_browser = None
+        return self.create_browser(username, password, login_browser)
+
+    OBJECTS = {Thread: fill_thread}
