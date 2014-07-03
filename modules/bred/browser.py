@@ -51,7 +51,7 @@ class BredBrowser(BaseBrowser):
            }
 
     def __init__(self, website, accnum, *args, **kwargs):
-        self.accnum = accnum.zfill(11)
+        self.accnum = accnum.replace(' ','').zfill(11)
         self.DOMAIN = 'www.%s.fr' % website
         self.website = website
         BaseBrowser.__init__(self, *args, **kwargs)
