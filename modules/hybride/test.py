@@ -19,7 +19,7 @@
 
 from nose.plugins.skip import SkipTest
 from weboob.tools.test import BackendTest
-from datetime import datetime, date
+from datetime import datetime
 
 
 class HybrideTest(BackendTest):
