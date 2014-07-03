@@ -451,8 +451,9 @@ class Duration(Time):
 
 
 class MultiFilter(Filter):
-    def __init__(self, *args):
-        super(MultiFilter, self).__init__(args)
+    def __init__(self, *args, **kwargs):
+        default = kwargs.pop('default', _NO_DEFAULT)
+        super(MultiFilter, self).__init__(args, default)
 
     def __call__(self, item):
         values = [self.select(selector, item) for selector in self.selector]
