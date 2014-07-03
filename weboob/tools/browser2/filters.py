@@ -184,7 +184,7 @@ class Dict(Filter):
 
             for el in selector.split('/'):
                 if el not in content:
-                    raise ParseError()
+                    return None
 
                 content = content.get(el)
 
@@ -195,7 +195,10 @@ class Dict(Filter):
             return selector
 
     def filter(self, txt):
-        return txt
+        if txt is not None:
+            return txt
+        else:
+            return self.default_or_raise(ParseError())
 
 
 class CleanHTML(Filter):
