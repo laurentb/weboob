@@ -1055,8 +1055,9 @@ class ReplApplication(Cmd, ConsoleApplication):
                 self._format_obj(obj, only)
 
         if path:
-            # Let's go back to the parent directory
-            self.working_path.restore()
+            for _path in path.split('/'):
+                # Let's go back to the parent directory
+                self.working_path.up()
         else:
             # Save collections only if we listed the current path.
             self.collections = collections
