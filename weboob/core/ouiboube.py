@@ -199,6 +199,11 @@ class WebNip(object):
                 with backend:
                     yield backend
 
+    def __getattr__(self, name):
+        def caller(*args, **kwargs):
+            return self.do(name, *args, **kwargs)
+        return caller
+
     def do(self, function, *args, **kwargs):
         r"""
         Do calls on loaded backends with specified arguments, in separated
@@ -242,7 +247,7 @@ class WebNip(object):
                     else:
                         backends.append(backend)
             else:
-                self.logger.warning(u'The "backends" value isn\'t supported: %r' % _backends)
+                self.logger.warning(u'The "backends" value isn\'t supported: %r', _backends)
 
         if 'caps' in kwargs:
             caps = kwargs.pop('caps')
@@ -346,7 +351,7 @@ class Weboob(WebNip):
         if not os.path.exists(name):
             os.makedirs(name)
         elif not os.path.isdir(name):
-            self.logger.error(u'"%s" is not a directory' % name)
+            self.logger.error(u'"%s" is not a directory', name)
 
     def update(self, progress=IProgress()):
         """
@@ -419,7 +424,7 @@ class Weboob(WebNip):
             minfo = self.repositories.get_module_info(module_name)
             if minfo is None:
                 self.logger.warning(u'Backend "%s" is referenced in %s but was not found. '
-                                     'Perhaps a missing repository?' % (module_name, self.backends_config.confpath))
+                                    u'Perhaps a missing repository?', module_name, self.backends_config.confpath)
                 continue
 
             if caps is not None and not minfo.has_caps(caps):
@@ -432,11 +437,11 @@ class Weboob(WebNip):
             try:
                 module = self.modules_loader.get_or_load_module(module_name)
             except ModuleLoadError as e:
-                self.logger.error(u'Unable to load module "%s": %s' % (module_name, e))
+                self.logger.error(u'Unable to load module "%s": %s', module_name, e)
                 continue
 
             if instance_name in self.backend_instances:
-                self.logger.warning(u'Oops, the backend "%s" is already loaded. Unload it before reloading...' % instance_name)
+                self.logger.warning(u'Oops, the backend "%s" is already loaded. Unload it before reloading...', instance_name)
                 self.unload_backends(instance_name)
 
             try:
