@@ -131,9 +131,8 @@ def install_weboob():
         else:
             requirements.append('PIL')
 
-    if sys.version_info.major == "2" and sys.version_info[1] < 6:  # older than 2.6
-        print(sys.version_info)
-        print('Python older than 2.6 is not supported. %s'%sys.version_info, file=sys.stderr)
+    if sys.version_info < (2,6):
+        print('Python older than 2.6 is not supported.', file=sys.stderr)
         sys.exit(1)
 
     if not options.deps:
