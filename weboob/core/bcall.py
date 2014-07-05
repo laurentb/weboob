@@ -25,7 +25,7 @@ try:
 except ImportError:
     import queue as Queue
 
-from weboob.capabilities.base import CapBaseObject
+from weboob.capabilities.base import BaseObject
 from weboob.tools.misc import get_backtrace
 from weboob.tools.log import getLogger
 
@@ -65,7 +65,7 @@ class BackendsCall(object):
             self.tasks.put(backend)
 
     def store_result(self, backend, result):
-        if isinstance(result, CapBaseObject):
+        if isinstance(result, BaseObject):
             result.backend = backend.name
         self.responses.put((backend, result))
 

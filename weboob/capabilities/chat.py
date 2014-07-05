@@ -20,7 +20,7 @@
 
 import datetime
 
-from .base import IBaseCap, CapBaseObject, StringField, DateField, UserError
+from .base import IBaseCap, BaseObject, StringField, DateField, UserError
 
 
 __all__ = ['ChatException', 'ChatMessage', 'ICapChat']
@@ -32,7 +32,7 @@ class ChatException(UserError):
     """
 
 
-class ChatMessage(CapBaseObject):
+class ChatMessage(BaseObject):
     """
     Message on the chat.
     """
@@ -42,7 +42,7 @@ class ChatMessage(CapBaseObject):
     date =          DateField('Date when the message has been sent')
 
     def __init__(self, id_from, id_to, message, date=None):
-        CapBaseObject.__init__(self, '%s.%s' % (id_from, id_to))
+        BaseObject.__init__(self, '%s.%s' % (id_from, id_to))
         self.id_from = id_from
         self.id_to = id_to
         self.message = message

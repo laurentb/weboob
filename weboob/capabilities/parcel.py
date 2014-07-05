@@ -18,10 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, Field, StringField, DateField
+from .base import IBaseCap, BaseObject, Field, StringField, DateField
 
 
-class Event(CapBaseObject):
+class Event(BaseObject):
     date = DateField('Date')
     activity = StringField('Activity')
     location = StringField('Location')
@@ -29,7 +29,7 @@ class Event(CapBaseObject):
     def __repr__(self):
         return u'<Event date=%r activity=%r location=%r>' % (self.date, self.activity, self.location)
 
-class Parcel(CapBaseObject):
+class Parcel(BaseObject):
     STATUS_UNKNOWN = 0
     STATUS_PLANNED = 1
     STATUS_IN_TRANSIT = 2

@@ -20,7 +20,7 @@
 import itertools
 from nose.plugins.skip import SkipTest
 from weboob.tools.test import BackendTest
-from weboob.capabilities.base import CapBaseObject
+from weboob.capabilities.base import BaseObject
 
 
 class TwitterTest(BackendTest):
@@ -43,7 +43,7 @@ class TwitterTest(BackendTest):
 
     def test_ls_me(self):
         if self.backend.browser.username:
-            l = list(itertools.islice(self.backend.iter_resources([CapBaseObject], ['me']), 0 ,20))
+            l = list(itertools.islice(self.backend.iter_resources([BaseObject], ['me']), 0 ,20))
             assert len(l)
             thread = self.backend.get_thread(l[0].id)
             assert len(thread.root.content)
@@ -51,27 +51,27 @@ class TwitterTest(BackendTest):
             raise SkipTest("User credentials not defined")
 
     def test_ls_search(self):
-        l = list(itertools.islice(self.backend.iter_resources([CapBaseObject], ['search', 'weboob']), 0 ,20))
+        l = list(itertools.islice(self.backend.iter_resources([BaseObject], ['search', 'weboob']), 0 ,20))
         assert len(l)
         thread = self.backend.get_thread(l[0].id)
         assert len(thread.root.content)
 
     def test_ls_hashtag(self):
-        l = list(itertools.islice(self.backend.iter_resources([CapBaseObject], ['hashtags', 'weboob']), 0 ,20))
+        l = list(itertools.islice(self.backend.iter_resources([BaseObject], ['hashtags', 'weboob']), 0 ,20))
         assert len(l)
         thread = self.backend.get_thread(l[0].id)
         assert len(thread.root.content)
 
     def test_ls_profils(self):
-        l = list(itertools.islice(self.backend.iter_resources([CapBaseObject], ['profils', 'jf_cope']), 0 ,20))
+        l = list(itertools.islice(self.backend.iter_resources([BaseObject], ['profils', 'jf_cope']), 0 ,20))
         assert len(l)
         thread = self.backend.get_thread(l[0].id)
         assert len(thread.root.content)
 
     def test_ls_trend(self):
-        l = list(self.backend.iter_resources([CapBaseObject], ['trendy']))
+        l = list(self.backend.iter_resources([BaseObject], ['trendy']))
         assert len(l)
-        l1 = list(itertools.islice(self.backend.iter_resources([CapBaseObject], ['trendy', u'%s' % l[0].split_path[0]]), 0 ,20))
+        l1 = list(itertools.islice(self.backend.iter_resources([BaseObject], ['trendy', u'%s' % l[0].split_path[0]]), 0 ,20))
         assert len(l1)
         thread = self.backend.get_thread(l1[0].id)
         assert len(thread.root.content)

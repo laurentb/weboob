@@ -21,7 +21,7 @@
 import datetime
 import time
 
-from .base import IBaseCap, CapBaseObject, NotLoaded, Field, StringField, \
+from .base import IBaseCap, BaseObject, NotLoaded, Field, StringField, \
                   DateField, IntField, UserError
 
 
@@ -30,12 +30,12 @@ __all__ = ['Thread', 'Message', 'ICapMessages', 'CantSendMessage', 'ICapMessages
 
 # Message and Thread's attributes refer to themselves, and it isn't possible
 # in python, so these base classes are used instead.
-class _Message(CapBaseObject):
+class _Message(BaseObject):
     """ Base message. """
     pass
 
 
-class _Thread(CapBaseObject):
+class _Thread(BaseObject):
     """ Base Thread. """
     pass
 
@@ -71,7 +71,7 @@ class Message(_Message):
                        signature=NotLoaded,
                        children=NotLoaded,
                        flags=0):
-        CapBaseObject.__init__(self, id)
+        BaseObject.__init__(self, id)
         self.thread = thread
         self.title = title
         self.sender = sender

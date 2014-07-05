@@ -19,14 +19,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, Field, StringField
+from .base import IBaseCap, BaseObject, Field, StringField
 from weboob.tools.capabilities.streaminfo import StreamInfo
 
 
 __all__ = ['Radio', 'ICapRadio']
 
 
-class Radio(CapBaseObject):
+class Radio(BaseObject):
     """
     Radio object.
     """

@@ -18,13 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from .collection import ICapCollection
-from .base import CapBaseObject, Field, StringField, DateField
+from .base import BaseObject, Field, StringField, DateField
 
 
 __all__ = ['Book', 'Renew', 'ICapBook']
 
 
-class Book(CapBaseObject):
+class Book(BaseObject):
     """
     Describes a book.
     """
@@ -35,7 +35,7 @@ class Book(CapBaseObject):
     late =      Field('Are you late?', bool)
 
 
-class Renew(CapBaseObject):
+class Renew(BaseObject):
     """
     A renew message.
     """

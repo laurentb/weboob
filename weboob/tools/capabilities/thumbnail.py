@@ -17,13 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.base import CapBaseObject, NotLoaded, StringField, BytesField
+from weboob.capabilities.base import BaseObject, NotLoaded, StringField, BytesField
 
 
 __all__ = ['Thumbnail']
 
 
-class Thumbnail(CapBaseObject):
+class Thumbnail(BaseObject):
     """
     Thumbnail of an image.
     """
@@ -32,7 +32,7 @@ class Thumbnail(CapBaseObject):
     data =  BytesField('Data')
 
     def __init__(self, url):
-        CapBaseObject.__init__(self, url)
+        BaseObject.__init__(self, url)
         self.url = url.replace(u' ', u'%20')
 
     def __str__(self):

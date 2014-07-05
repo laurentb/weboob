@@ -18,13 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, StringField
+from .base import IBaseCap, BaseObject, StringField
 
 
 __all__ = ['SongLyrics', 'ICapLyrics']
 
 
-class SongLyrics(CapBaseObject):
+class SongLyrics(BaseObject):
     """
     Song lyrics object.
     """
@@ -33,7 +33,7 @@ class SongLyrics(CapBaseObject):
     content =    StringField('Lyrics of the song')
 
     def __init__(self, id, title):
-        CapBaseObject.__init__(self, id)
+        BaseObject.__init__(self, id)
         self.title = title
 
 

@@ -20,20 +20,20 @@
 
 from datetime import datetime, date
 
-from .base import IBaseCap, CapBaseObject, Field, DateField, FloatField, \
+from .base import IBaseCap, BaseObject, Field, DateField, FloatField, \
                   StringField, UserError
 
 
 __all__ = ['Forecast', 'Current', 'City', 'CityNotFound', 'Temperature', 'ICapWeather']
 
 
-class Temperature(CapBaseObject):
+class Temperature(BaseObject):
 
     value =      FloatField('Temperature value')
     unit =       StringField('Input unit')
 
     def __init__(self, value, unit = u''):
-        CapBaseObject.__init__(self, value)
+        BaseObject.__init__(self, value)
         self.value = value
         if unit not in [u'C', u'F']:
             unit = u''
@@ -60,7 +60,7 @@ class Temperature(CapBaseObject):
             return u'%s %s' % (self.value, self.unit)
 
 
-class Forecast(CapBaseObject):
+class Forecast(BaseObject):
     """
     Weather forecast.
     """
@@ -70,14 +70,14 @@ class Forecast(CapBaseObject):
     text =      StringField('Comment on forecast')
 
     def __init__(self, date, low, high, text, unit):
-        CapBaseObject.__init__(self, unicode(date))
+        BaseObject.__init__(self, unicode(date))
         self.date = date
         self.low = Temperature(low, unit)
         self.high = Temperature(high, unit)
         self.text = text
 
 
-class Current(CapBaseObject):
+class Current(BaseObject):
     """
     Current weather.
     """
@@ -86,20 +86,20 @@ class Current(CapBaseObject):
     temp =      Field('Current temperature', Temperature)
 
     def __init__(self, date, temp, text, unit):
-        CapBaseObject.__init__(self, unicode(date))
+        BaseObject.__init__(self, unicode(date))
         self.date = date
         self.text = text
         self.temp = Temperature(temp, unit)
 
 
-class City(CapBaseObject):
+class City(BaseObject):
     """
     City where to find weather.
     """
     name =      StringField('Name of city')
 
     def __init__(self, id, name):
-        CapBaseObject.__init__(self, id)
+        BaseObject.__init__(self, id)
         self.name = name
 
 

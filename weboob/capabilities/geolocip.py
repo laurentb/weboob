@@ -18,13 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, StringField, FloatField
+from .base import IBaseCap, BaseObject, StringField, FloatField
 
 
 __all__ = ['IpLocation', 'ICapGeolocIp']
 
 
-class IpLocation(CapBaseObject):
+class IpLocation(BaseObject):
     """
     Represents the location of an IP address.
     """
@@ -39,7 +39,7 @@ class IpLocation(CapBaseObject):
     isp =       StringField('Internet Service Provider')
 
     def __init__(self, ipaddr):
-        CapBaseObject.__init__(self, ipaddr)
+        BaseObject.__init__(self, ipaddr)
 
 
 class ICapGeolocIp(IBaseCap):

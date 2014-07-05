@@ -28,7 +28,7 @@ from optparse import OptionGroup, OptionParser, IndentedHelpFormatter
 import os
 import sys
 
-from weboob.capabilities.base import FieldNotFound, CapBaseObject, UserError
+from weboob.capabilities.base import FieldNotFound, BaseObject, UserError
 from weboob.core import CallErrors
 from weboob.tools.application.formatters.iformatter import MandatoryFieldsNotFound
 from weboob.tools.misc import to_unicode
@@ -192,7 +192,7 @@ class ReplApplication(Cmd, ConsoleApplication):
             except (IndexError, ValueError):
                 pass
             else:
-                if isinstance(obj, CapBaseObject):
+                if isinstance(obj, BaseObject):
                     id = obj.fullid
         try:
             return ConsoleApplication.parse_id(self, id, unique_backend)
@@ -1147,7 +1147,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         the object.
 
         :param obj: object
-        :type obj: CapBaseObject
+        :type obj: BaseObject
         :param dest: dest given by user (default None)
         :type dest: str
         :param default: default file mask (if not given, this is '{id}-{title}.{ext}')

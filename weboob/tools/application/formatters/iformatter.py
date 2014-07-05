@@ -60,7 +60,7 @@ else:
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
-from weboob.capabilities.base import CapBaseObject
+from weboob.capabilities.base import BaseObject
 from weboob.tools.application.console import ConsoleApplication
 from weboob.tools.ordereddict import OrderedDict
 
@@ -139,13 +139,13 @@ class IFormatter(object):
         An object has fields which can be selected.
 
         :param obj: object to format
-        :type obj: CapBaseObject or dict
+        :type obj: BaseObject or dict
         :param selected_fields: fields to display. If None, all fields are selected
         :type selected_fields: tuple
         :param alias: an alias to use instead of the object's ID
         :type alias: unicode
         """
-        if isinstance(obj, CapBaseObject):
+        if isinstance(obj, BaseObject):
             if selected_fields:  # can be an empty list (nothing to do), or None (return all fields)
                 obj = obj.copy()
                 for name, value in obj.iter_fields():
@@ -162,7 +162,7 @@ class IFormatter(object):
             try:
                 obj = OrderedDict(obj)
             except ValueError:
-                raise TypeError('Please give a CapBaseObject or a dict')
+                raise TypeError('Please give a BaseObject or a dict')
 
             if selected_fields:
                 obj = obj.copy()
@@ -188,7 +188,7 @@ class IFormatter(object):
         This method has to be overridden in child classes.
 
         :param obj: object to format
-        :type obj: CapBaseObject
+        :type obj: BaseObject
         :rtype: str
         """
         return self.format_dict(obj.to_dict())

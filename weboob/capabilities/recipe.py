@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, StringField, IntField, Field, empty
+from .base import IBaseCap, BaseObject, StringField, IntField, Field, empty
 
 import lxml.etree as ET
 
@@ -47,7 +47,7 @@ class Comment():
         return result
 
 
-class Recipe(CapBaseObject):
+class Recipe(BaseObject):
     """
     Recipe object.
     """
@@ -64,7 +64,7 @@ class Recipe(CapBaseObject):
     comments =          Field('User comments about the recipe', list)
 
     def __init__(self, id, title):
-        CapBaseObject.__init__(self, id)
+        BaseObject.__init__(self, id)
         self.title = title
 
     def toKrecipesXml(self, author=None):

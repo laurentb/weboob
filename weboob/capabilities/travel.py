@@ -20,28 +20,28 @@
 
 import datetime
 
-from .base import IBaseCap, CapBaseObject, StringField, TimeField, DeltaField, \
+from .base import IBaseCap, BaseObject, StringField, TimeField, DeltaField, \
                   DateField, DecimalField, UserError
 
 
 __all__ = ['Station', 'Departure', 'RoadStep', 'RoadmapError', 'RoadmapFilters', 'ICapTravel']
 
 
-class Station(CapBaseObject):
+class Station(BaseObject):
     """
     Describes a station.
     """
     name =  StringField('Name of station')
 
     def __init__(self, id, name):
-        CapBaseObject.__init__(self, id)
+        BaseObject.__init__(self, id)
         self.name = name
 
     def __repr__(self):
         return "<Station id=%r name=%r>" % (self.id, self.name)
 
 
-class Departure(CapBaseObject):
+class Departure(BaseObject):
     """
     Describes a departure.
     """
@@ -57,7 +57,7 @@ class Departure(CapBaseObject):
     currency =          StringField('Currency', default=None)
 
     def __init__(self, id, _type, _time):
-        CapBaseObject.__init__(self, id)
+        BaseObject.__init__(self, id)
 
         self.type = _type
         self.time = _time
@@ -67,7 +67,7 @@ class Departure(CapBaseObject):
             self.id, self.type, self.time.strftime('%H:%M'), self.departure_station, self.arrival_station)
 
 
-class RoadStep(CapBaseObject):
+class RoadStep(BaseObject):
     """
     A step on a roadmap.
     """
@@ -85,7 +85,7 @@ class RoadmapError(UserError):
     """
 
 
-class RoadmapFilters(CapBaseObject):
+class RoadmapFilters(BaseObject):
     """
     Filters to get a roadmap.
     """
@@ -93,7 +93,7 @@ class RoadmapFilters(CapBaseObject):
     arrival_time =      DateField('Wanted arrival time')
 
     def __init__(self):
-        CapBaseObject.__init__(self, '')
+        BaseObject.__init__(self, '')
 
 
 class ICapTravel(IBaseCap):

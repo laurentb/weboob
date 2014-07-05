@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, Field, StringField, BytesField, IntField, \
+from .base import IBaseCap, BaseObject, Field, StringField, BytesField, IntField, \
                   UserError
 from weboob.tools.ordereddict import OrderedDict
 
@@ -44,7 +44,7 @@ class ProfileNode(object):
         return self.value[key]
 
 
-class ContactPhoto(CapBaseObject):
+class ContactPhoto(BaseObject):
     """
     Photo of a contact.
     """
@@ -56,7 +56,7 @@ class ContactPhoto(CapBaseObject):
     hidden =            Field('True if the photo is hidden on website', bool)
 
     def __init__(self, name):
-        CapBaseObject.__init__(self, name)
+        BaseObject.__init__(self, name)
         self.name = name
 
     def __iscomplete__(self):
@@ -71,7 +71,7 @@ class ContactPhoto(CapBaseObject):
                                                              len(self.thumbnail_data) if self.thumbnail_data else 0)
 
 
-class Contact(CapBaseObject):
+class Contact(BaseObject):
     """
     A contact.
     """
@@ -89,7 +89,7 @@ class Contact(CapBaseObject):
     profile =       Field('Contact profile', dict)
 
     def __init__(self, id, name, status):
-        CapBaseObject.__init__(self, id)
+        BaseObject.__init__(self, id)
         self.name = name
         self.status = status
 
@@ -154,14 +154,14 @@ class QueryError(UserError):
     """
 
 
-class Query(CapBaseObject):
+class Query(BaseObject):
     """
     Query to send to a contact.
     """
     message =   StringField('Message received')
 
     def __init__(self, id, message):
-        CapBaseObject.__init__(self, id)
+        BaseObject.__init__(self, id)
         self.message = message
 
 

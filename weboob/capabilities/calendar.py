@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .base import CapBaseObject, StringField, DateField, IntField, FloatField, Field
+from .base import BaseObject, StringField, DateField, IntField, FloatField, Field
 from .collection import ICapCollection, CollectionNotFound, Collection
 
 from datetime import time, datetime
@@ -45,7 +45,7 @@ TRANSP = enum(OPAQUE=u'OPAQUE', TRANSPARENT=u'TRANSPARENT')
 STATUS = enum(TENTATIVE=u'TENTATIVE', CONFIRMED=u'CONFIRMED', CANCELLED=u'CANCELLED')
 
 
-class BaseCalendarEvent(CapBaseObject):
+class BaseCalendarEvent(BaseObject):
     """
     Represents a calendar event
     """
@@ -85,7 +85,7 @@ class BaseCalendarEvent(CapBaseObject):
         return self.id2url(self.id)
 
 
-class Query(CapBaseObject):
+class Query(BaseObject):
     """
     Query to find events
     """
@@ -96,7 +96,7 @@ class Query(CapBaseObject):
     categories = Field('List of categories of the event', list, tuple)
 
     def __init__(self):
-        CapBaseObject.__init__(self, '')
+        BaseObject.__init__(self, '')
         self.categories = []
         for value in CATEGORIES.values:
             self.categories.append(value)

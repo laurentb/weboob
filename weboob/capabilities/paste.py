@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, NotLoaded, Field, StringField, UserError
+from .base import IBaseCap, BaseObject, NotLoaded, Field, StringField, UserError
 
 
 __all__ = ['PasteNotFound', 'BasePaste', 'ICapPaste']
@@ -32,7 +32,7 @@ class PasteNotFound(UserError):
         return super(PasteNotFound, self).__init__("Paste not found")
 
 
-class BasePaste(CapBaseObject):
+class BasePaste(BaseObject):
     """
     Represents a pasted text.
     """
@@ -43,7 +43,7 @@ class BasePaste(CapBaseObject):
 
     def __init__(self, _id, title=NotLoaded, language=NotLoaded, contents=NotLoaded,
             public=NotLoaded):
-        CapBaseObject.__init__(self, unicode(_id))
+        BaseObject.__init__(self, unicode(_id))
 
         self.title = title
         self.language = language

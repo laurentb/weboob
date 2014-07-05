@@ -28,7 +28,7 @@ import os
 import re
 import unicodedata
 
-from weboob.capabilities.base import empty, CapBaseObject
+from weboob.capabilities.base import empty, BaseObject
 from weboob.capabilities.bugtracker import ICapBugTracker, Query, Update, Project, Issue, IssueError
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
@@ -47,7 +47,7 @@ class IssueFormatter(IFormatter):
             return u''
 
         value = getattr(obj, attr)
-        if isinstance(value, CapBaseObject):
+        if isinstance(value, BaseObject):
             value = value.name
 
         return self.format_key(attr.capitalize(), value)

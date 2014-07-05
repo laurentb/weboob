@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, Field, StringField, FloatField, \
+from .base import IBaseCap, BaseObject, Field, StringField, FloatField, \
                   DateField, IntField, UserError
 
 
@@ -34,7 +34,7 @@ class MagnetOnly(UserError):
         UserError.__init__(self, 'Only magnet URL is available')
 
 
-class Torrent(CapBaseObject):
+class Torrent(BaseObject):
     """
     Torrent object.
     """
@@ -50,7 +50,7 @@ class Torrent(CapBaseObject):
     filename =      StringField('Name of .torrent file')
 
     def __init__(self, id, name):
-        CapBaseObject.__init__(self, id)
+        BaseObject.__init__(self, id)
         self.name = name
 
 

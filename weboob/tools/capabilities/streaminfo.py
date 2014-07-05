@@ -18,12 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.base import CapBaseObject, StringField
+from weboob.capabilities.base import BaseObject, StringField
 
 __all__ = ['StreamInfo']
 
 
-class StreamInfo(CapBaseObject):
+class StreamInfo(BaseObject):
     """
     Stream related information.
     """

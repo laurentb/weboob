@@ -18,13 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, NotAvailable, Field, StringField, DateField
+from .base import IBaseCap, BaseObject, NotAvailable, Field, StringField, DateField
 
 
 __all__ = ['BaseFile', 'ICapFile']
 
 
-class BaseFile(CapBaseObject):
+class BaseFile(BaseObject):
     """
     Represent a file.
     """

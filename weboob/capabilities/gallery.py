@@ -19,13 +19,13 @@
 
 
 from weboob.tools.capabilities.thumbnail import Thumbnail
-from .base import IBaseCap, CapBaseObject, NotLoaded, Field, StringField, \
+from .base import IBaseCap, BaseObject, NotLoaded, Field, StringField, \
                   BytesField, IntField, FloatField, DateField
 
 __all__ = ['BaseGallery', 'BaseImage', 'ICapGallery']
 
 
-class BaseGallery(CapBaseObject):
+class BaseGallery(BaseObject):
     """
     Represents a gallery.
 
@@ -42,7 +42,7 @@ class BaseGallery(CapBaseObject):
 
     def __init__(self, _id, title=NotLoaded, url=NotLoaded, cardinality=NotLoaded, date=NotLoaded,
                  rating=NotLoaded, rating_max=NotLoaded, thumbnail=NotLoaded, thumbnail_url=None, nsfw=False):
-        CapBaseObject.__init__(self, unicode(_id))
+        BaseObject.__init__(self, unicode(_id))
 
         self.title = title
         self.url = url
@@ -70,7 +70,7 @@ class BaseGallery(CapBaseObject):
         raise NotImplementedError()
 
 
-class BaseImage(CapBaseObject):
+class BaseImage(BaseObject):
     """
     Base class for images.
     """
@@ -84,7 +84,7 @@ class BaseImage(CapBaseObject):
     def __init__(self, _id, index=None, thumbnail=NotLoaded, url=NotLoaded,
             ext=NotLoaded, gallery=None):
 
-        CapBaseObject.__init__(self, unicode(_id))
+        BaseObject.__init__(self, unicode(_id))
 
         self.index = index
         self.thumbnail = thumbnail

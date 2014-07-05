@@ -18,13 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, StringField, DateField, Field
+from .base import IBaseCap, BaseObject, StringField, DateField, Field
 
 
 __all__ = ['Content', 'Revision', 'ICapContent']
 
 
-class Content(CapBaseObject):
+class Content(BaseObject):
     """
     Content object.
     """
@@ -34,7 +34,7 @@ class Content(CapBaseObject):
     revision =      StringField('ID of revision')
 
 
-class Revision(CapBaseObject):
+class Revision(BaseObject):
     """
     Revision of a change on a content.
     """

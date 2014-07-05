@@ -24,7 +24,7 @@ import re
 
 from weboob.tools.compat import basestring, long
 
-from .base import CapBaseObject, Field, StringField, DateField, DecimalField, IntField, UserError, Currency
+from .base import BaseObject, Field, StringField, DateField, DecimalField, IntField, UserError, Currency
 from .collection import ICapCollection
 
 
@@ -46,7 +46,7 @@ class TransferError(UserError):
     """
 
 
-class Recipient(CapBaseObject, Currency):
+class Recipient(BaseObject, Currency):
     """
     Recipient of a transfer.
     """
@@ -55,7 +55,7 @@ class Recipient(CapBaseObject, Currency):
     currency =  StringField('Currency', default=None)
 
     def __init__(self):
-        CapBaseObject.__init__(self, 0)
+        BaseObject.__init__(self, 0)
 
     @property
     def currency_text(self):
@@ -86,7 +86,7 @@ class Account(Recipient):
         return u"<Account id=%r label=%r>" % (self.id, self.label)
 
 
-class Transaction(CapBaseObject):
+class Transaction(BaseObject):
     """
     Bank transaction.
     """
@@ -131,7 +131,7 @@ class Transaction(CapBaseObject):
         return "%08x" % (crc & 0xffffffff)
 
 
-class Investment(CapBaseObject):
+class Investment(BaseObject):
     """
     Investment in a financial market.
     """
@@ -145,7 +145,7 @@ class Investment(CapBaseObject):
     diff =      DecimalField('Difference between the buy cost and the current valuation')
 
 
-class Transfer(CapBaseObject):
+class Transfer(BaseObject):
     """
     Transfer from an account to a recipient.
     """
@@ -169,7 +169,7 @@ class ICapBank(ICapCollection):
         all accounts (by calling :func:`iter_accounts`).
 
         :param objs: type of objects to get
-        :type objs: tuple[:class:`CapBaseObject`]
+        :type objs: tuple[:class:`BaseObject`]
         :param split_path: path to discover
         :type split_path: :class:`list`
         :rtype: iter[:class:`BaseCapObject`]

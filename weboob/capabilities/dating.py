@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, Field, StringField, DateField, UserError
+from .base import IBaseCap, BaseObject, Field, StringField, DateField, UserError
 from .contact import Contact
 
 
@@ -79,7 +79,7 @@ class Optimization(object):
         raise NotImplementedError()
 
 
-class Event(CapBaseObject):
+class Event(BaseObject):
     """
     A dating event (for example a visite, a query received, etc.)
     """

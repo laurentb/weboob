@@ -26,7 +26,7 @@ import urllib
 from weboob.tools.browser2.page import HTMLPage, JsonPage, method, ListElement, ItemElement, FormNotFound, pagination
 from weboob.tools.browser2.filters import CleanText, Format, Link, Regexp, Env, DateTime, Attr, Filter
 from weboob.capabilities.messages import Thread, Message
-from weboob.capabilities.base import CapBaseObject
+from weboob.capabilities.base import BaseObject
 __all__ = ['LoginPage', 'LoginErrorPage', 'ThreadPage', 'Tweet', 'TrendsPage', 'TimelinePage', 'HomeTimelinePage', 'SearchTimelinePage']
 
 
@@ -118,7 +118,7 @@ class TrendsPage(TwitterJsonHTMLPage):
         item_xpath = '//li[@class="trend-item js-trend-item  "]'
 
         class item(ItemElement):
-            klass = CapBaseObject
+            klass = BaseObject
 
             obj_id = Attr('.', 'data-trend-name')
 

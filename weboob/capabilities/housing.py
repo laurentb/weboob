@@ -18,14 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, Field, IntField, DecimalField, \
+from .base import IBaseCap, BaseObject, Field, IntField, DecimalField, \
                   StringField, BytesField, DateField
 
 
 __all__ = ['HousingPhoto', 'Housing', 'Query', 'City', 'ICapHousing']
 
 
-class HousingPhoto(CapBaseObject):
+class HousingPhoto(BaseObject):
     """
     Photo of a housing.
     """
@@ -33,7 +33,7 @@ class HousingPhoto(CapBaseObject):
     data =      BytesField('Data of photo')
 
     def __init__(self, url):
-        CapBaseObject.__init__(self, url.split('/')[-1])
+        BaseObject.__init__(self, url.split('/')[-1])
         self.url = url
 
     def __iscomplete__(self):
@@ -46,7 +46,7 @@ class HousingPhoto(CapBaseObject):
         return u'<HousingPhoto "%s" data=%do>' % (self.id, len(self.data) if self.data else 0)
 
 
-class Housing(CapBaseObject):
+class Housing(BaseObject):
     """
     Content of a housing.
     """
@@ -63,7 +63,7 @@ class Housing(CapBaseObject):
     details =       Field('Key/values of details', dict)
 
 
-class Query(CapBaseObject):
+class Query(BaseObject):
     """
     Query to find housings.
     """
@@ -79,10 +79,10 @@ class Query(CapBaseObject):
     nb_rooms =  IntField('Number of rooms')
 
     def __init__(self):
-        CapBaseObject.__init__(self, '')
+        BaseObject.__init__(self, '')
 
 
-class City(CapBaseObject):
+class City(BaseObject):
     """
     City.
     """

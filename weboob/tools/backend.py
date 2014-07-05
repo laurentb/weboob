@@ -22,7 +22,7 @@ import os
 from threading import RLock
 from copy import copy
 
-from weboob.capabilities.base import CapBaseObject, FieldNotFound, \
+from weboob.capabilities.base import BaseObject, FieldNotFound, \
     IBaseCap, NotLoaded, NotAvailable
 from weboob.tools.misc import iter_fields
 from weboob.tools.log import getLogger
@@ -381,7 +381,7 @@ class BaseBackend(object):
             return obj
 
         def not_loaded(v):
-            return (v is NotLoaded or isinstance(v, CapBaseObject) and not v.__iscomplete__())
+            return (v is NotLoaded or isinstance(v, BaseObject) and not v.__iscomplete__())
 
         if isinstance(fields, basestring):
             fields = (fields,)
@@ -389,7 +389,7 @@ class BaseBackend(object):
         missing_fields = []
         if fields is None:
             # Select all fields
-            if isinstance(obj, CapBaseObject):
+            if isinstance(obj, BaseObject):
                 fields = [item[0] for item in obj.iter_fields()]
             else:
                 fields = [item[0] for item in iter_fields(obj)]

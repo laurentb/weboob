@@ -22,7 +22,7 @@ import re
 from datetime import timedelta
 
 from .image import BaseImage
-from .base import Field, StringField, IntField, CapBaseObject
+from .base import Field, StringField, IntField, BaseObject
 from .file import ICapFile, BaseFile
 
 
@@ -44,7 +44,7 @@ def decode_id(decode_id):
     return wrapper
 
 
-class Album(CapBaseObject):
+class Album(BaseObject):
     """
     Represent an album
     """
@@ -55,7 +55,7 @@ class Album(CapBaseObject):
     tracks_list = Field('list of tracks', list)
 
     def __init__(self, _id):
-        CapBaseObject.__init__(self, unicode("album.%s" % _id))
+        BaseObject.__init__(self, unicode("album.%s" % _id))
 
     @classmethod
     def decode_id(cls, _id):
@@ -66,7 +66,7 @@ class Album(CapBaseObject):
             return _id
 
 
-class Playlist(CapBaseObject):
+class Playlist(BaseObject):
     """
     Represent a playlist
     """
@@ -74,7 +74,7 @@ class Playlist(CapBaseObject):
     tracks_list = Field('list of tracks', list)
 
     def __init__(self, _id):
-        CapBaseObject.__init__(self, unicode("playlist.%s" % _id))
+        BaseObject.__init__(self, unicode("playlist.%s" % _id))
 
     @classmethod
     def decode_id(cls, _id):

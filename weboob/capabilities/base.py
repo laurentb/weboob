@@ -33,7 +33,7 @@ from weboob.tools.ordereddict import OrderedDict
 __all__ = ['UserError', 'FieldNotFound', 'NotAvailable',
            'NotLoaded', 'IBaseCap', 'Field', 'IntField', 'DecimalField',
            'FloatField', 'StringField', 'BytesField', 'DateField',
-           'DeltaField', 'empty', 'CapBaseObject']
+           'DeltaField', 'empty', 'BaseObject']
 
 
 def empty(value):
@@ -76,7 +76,7 @@ class FieldNotFound(Exception):
     A field isn't found.
 
     :param obj: object
-    :type obj: :class:`CapBaseObject`
+    :type obj: :class:`BaseObject`
     :param field: field not found
     :type field: :class:`Field`
     """
@@ -126,7 +126,7 @@ class NotLoadedType(object):
     """
     NotLoaded is a constant to use on not loaded fields.
 
-    When you use :func:`weboob.tools.backend.BaseBackend.fillobj` on a object based on :class:`CapBaseObject`,
+    When you use :func:`weboob.tools.backend.BaseBackend.fillobj` on a object based on :class:`BaseObject`,
     it will request all fields with this value.
     """
 
@@ -155,13 +155,13 @@ class IBaseCap(object):
     A capability may define abstract methods (which raise :class:`NotImplementedError`)
     with an explicit docstring to tell backends how to implement them.
 
-    Also, it may define some *objects*, using :class:`CapBaseObject`.
+    Also, it may define some *objects*, using :class:`BaseObject`.
     """
 
 
 class Field(object):
     """
-    Field of a :class:`CapBaseObject` class.
+    Field of a :class:`BaseObject` class.
 
     :param doc: docstring of the field
     :type doc: :class:`str`
@@ -284,12 +284,12 @@ class DeltaField(Field):
         Field.__init__(self, doc, datetime.timedelta, **kwargs)
 
 
-class _CapBaseObjectMeta(type):
+class _BaseObjectMeta(type):
     def __new__(cls, name, bases, attrs):
         fields = [(field_name, attrs.pop(field_name)) for field_name, obj in attrs.items() if isinstance(obj, Field)]
         fields.sort(key=lambda x: x[1]._creation_counter)
 
-        new_class = super(_CapBaseObjectMeta, cls).__new__(cls, name, bases, attrs)
+        new_class = super(_BaseObjectMeta, cls).__new__(cls, name, bases, attrs)
         if new_class._fields is None:
             new_class._fields = OrderedDict()
         else:
@@ -306,7 +306,7 @@ class _CapBaseObjectMeta(type):
         return new_class
 
 
-class CapBaseObject(object):
+class BaseObject(object):
     """
     This is the base class for a capability object.
 
@@ -319,7 +319,7 @@ class CapBaseObject(object):
 
     For example::
 
-        class Transfer(CapBaseObject):
+        class Transfer(BaseObject):
             " Transfer from an account to a recipient.  "
 
             amount =    DecimalField('Amount to transfer')
@@ -330,7 +330,7 @@ class CapBaseObject(object):
     The docstring is mandatory.
     """
 
-    __metaclass__ = _CapBaseObjectMeta
+    __metaclass__ = _BaseObjectMeta
 
     id = None
     backend = None
@@ -394,7 +394,7 @@ class CapBaseObject(object):
             yield name, field.value
 
     def __eq__(self, obj):
-        if isinstance(obj, CapBaseObject):
+        if isinstance(obj, BaseObject):
             return self.backend == obj.backend and self.id == obj.id
         else:
             return False
