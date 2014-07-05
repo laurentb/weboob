@@ -20,7 +20,7 @@
 
 from weboob.tools.browser2 import HTMLPage
 from weboob.tools.browser2.page import ListElement, method, ItemElement, pagination
-from weboob.tools.browser2.filters import Link, CleanText, Duration, Regexp
+from weboob.tools.browser2.filters import Link, CleanText, Duration, Regexp, CSS
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.image import BaseImage
 from weboob.capabilities.video import BaseVideo
@@ -40,9 +40,9 @@ class IndexPage(HTMLPage):
         class item(ItemElement):
             klass = BaseVideo
 
-            obj_id = Regexp(Link('.//a'), r'/videos/(.+)\.html')
-            obj_title = CleanText('.//span[@id="title1"]')
-            obj_duration = Duration(CleanText('.//span[@class="thumbtime"]//span'), default=NotAvailable)
+            obj_id = CSS('a') & Link() & Regexp(pattern=r'/videos/(.+)\.html')
+            obj_title = CSS('span#title1') & CleanText()
+            obj_duration = CSS('span.thumbtime span') & CleanText() & Duration() | NotAvailable
             obj_nsfw = True
 
             def obj_thumbnail(self):

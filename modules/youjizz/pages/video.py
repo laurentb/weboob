@@ -39,7 +39,7 @@ class VideoPage(HTMLPage):
         obj_title = CleanText('//title')
         obj_nsfw = True
         obj_ext = u'flv'
-        obj_duration = Duration(CleanText('//div[@id="video_text"]'))
+        obj_duration = CleanText('//div[@id="video_text"]') & Duration()
 
         def obj_url(self):
             real_id = int(self.env['id'].split('-')[-1])

@@ -642,6 +642,9 @@ class AbstractElement(object):
     def parse(self, obj):
         pass
 
+    def cssselect(self, *args, **kwargs):
+        return self.el.cssselect(*args, **kwargs)
+
     def xpath(self, *args, **kwargs):
         return self.el.xpath(*args, **kwargs)
 
