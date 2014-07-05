@@ -20,11 +20,11 @@
 
 
 
-from weboob.capabilities.paste import ICapPaste
+from weboob.capabilities.paste import CapPaste
 import binascii
 
 
-class BasePasteBackend(ICapPaste):
+class BasePasteBackend(CapPaste):
     EXPIRATIONS = {}
     """
     List of expirations and their corresponding remote codes (any type can be used).

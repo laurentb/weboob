@@ -21,10 +21,10 @@
 from datetime import timedelta
 
 from .base import Field
-from .image import ICapImage, BaseImage
+from .image import CapImage, BaseImage
 
 
-__all__ = ['BaseVideo', 'ICapVideo']
+__all__ = ['BaseVideo', 'CapVideo']
 
 
 class BaseVideo(BaseImage):
@@ -36,12 +36,12 @@ class BaseVideo(BaseImage):
     duration =  Field('file duration', int, long, timedelta)
 
 
-class ICapVideo(ICapImage):
+class CapVideo(CapImage):
     """
     Video file provider.
     """
 
-    def search_videos(self, pattern, sortby=ICapImage.SEARCH_RELEVANCE, nsfw=False):
+    def search_videos(self, pattern, sortby=CapImage.SEARCH_RELEVANCE, nsfw=False):
         """
         search for a video file
 

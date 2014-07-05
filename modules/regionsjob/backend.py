@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.capabilities.job import ICapJob, BaseJobAdvert
+from weboob.capabilities.job import CapJob, BaseJobAdvert
 from .browser import RegionsjobBrowser
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
@@ -28,7 +28,7 @@ from weboob.tools.value import Value
 __all__ = ['RegionsjobBackend']
 
 
-class RegionsjobBackend(BaseBackend, ICapJob):
+class RegionsjobBackend(BaseBackend, CapJob):
     NAME = 'regionsjob'
     DESCRIPTION = u'regionsjob website'
     MAINTAINER = u'Bezleputh'

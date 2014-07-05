@@ -21,7 +21,7 @@
 
 
 from weboob.tools.backend import BaseBackend
-from weboob.capabilities.messages import ICapMessages, Message, Thread
+from weboob.capabilities.messages import CapMessages, Message, Thread
 
 from .browser import HDSBrowser
 
@@ -29,7 +29,7 @@ from .browser import HDSBrowser
 __all__ = ['HDSBackend']
 
 
-class HDSBackend(BaseBackend, ICapMessages):
+class HDSBackend(BaseBackend, CapMessages):
     NAME = 'hds'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -39,7 +39,7 @@ class HDSBackend(BaseBackend, ICapMessages):
     STORAGE = {'seen': []}
     BROWSER = HDSBrowser
 
-    #### ICapMessages ##############################################
+    #### CapMessages ##############################################
 
     def iter_threads(self):
         with self.browser:

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import ICapBank, AccountNotFound
+from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 
@@ -28,7 +28,7 @@ from .browser import CaisseEpargne
 __all__ = ['CaisseEpargneBackend']
 
 
-class CaisseEpargneBackend(BaseBackend, ICapBank):
+class CaisseEpargneBackend(BaseBackend, CapBank):
     NAME = 'caissedepargne'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

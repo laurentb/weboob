@@ -21,7 +21,7 @@ from PyQt4.QtCore import SIGNAL
 
 from weboob.tools.application.qt import QtMainWindow
 from weboob.tools.application.qt.backendcfg import BackendCfg
-from weboob.capabilities.messages import ICapMessages
+from weboob.capabilities.messages import CapMessages
 
 from .ui.main_window_ui import Ui_MainWindow
 from .messages_manager import MessagesManager
@@ -48,7 +48,7 @@ class MainWindow(QtMainWindow):
             self.centralWidget().load()
 
     def backendsConfig(self):
-        bckndcfg = BackendCfg(self.weboob, (ICapMessages,), self)
+        bckndcfg = BackendCfg(self.weboob, (CapMessages,), self)
         if bckndcfg.run():
             self.centralWidget().load()
 

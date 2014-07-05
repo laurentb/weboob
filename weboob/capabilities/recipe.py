@@ -27,7 +27,7 @@ import re
 import urllib
 
 
-__all__ = ['Recipe', 'ICapRecipe']
+__all__ = ['Recipe', 'CapRecipe']
 
 
 class Comment():
@@ -161,7 +161,7 @@ class Recipe(BaseObject):
         return header + ET.tostring(doc, encoding='UTF-8', pretty_print=True).decode('utf-8')
 
 
-class ICapRecipe(IBaseCap):
+class CapRecipe(IBaseCap):
     """
     Recipe providers.
     """

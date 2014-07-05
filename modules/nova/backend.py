@@ -20,10 +20,10 @@
 
 from cStringIO import StringIO
 
-from weboob.capabilities.radio import ICapRadio, Radio
+from weboob.capabilities.radio import CapRadio, Radio
 from weboob.capabilities.audiostream import BaseAudioStream
 from weboob.tools.capabilities.streaminfo import StreamInfo
-from weboob.capabilities.collection import ICapCollection
+from weboob.capabilities.collection import CapCollection
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import StandardBrowser
 from weboob.tools.parsers import get_parser
@@ -32,7 +32,7 @@ from weboob.tools.parsers import get_parser
 __all__ = ['NovaBackend']
 
 
-class NovaBackend(BaseBackend, ICapRadio, ICapCollection):
+class NovaBackend(BaseBackend, CapRadio, CapCollection):
     NAME = 'nova'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

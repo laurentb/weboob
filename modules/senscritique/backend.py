@@ -20,7 +20,7 @@
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value, ValueBool
-from weboob.capabilities.calendar import ICapCalendarEvent, CATEGORIES
+from weboob.capabilities.calendar import CapCalendarEvent, CATEGORIES
 
 from .browser import SenscritiqueBrowser
 from .calendar import SensCritiquenCalendarEvent
@@ -28,7 +28,7 @@ from .calendar import SensCritiquenCalendarEvent
 __all__ = ['SenscritiqueBackend']
 
 
-class SenscritiqueBackend(BaseBackend, ICapCalendarEvent):
+class SenscritiqueBackend(BaseBackend, CapCalendarEvent):
     NAME = 'senscritique'
     DESCRIPTION = u'senscritique website'
     MAINTAINER = u'Bezleputh'

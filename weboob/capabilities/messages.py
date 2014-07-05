@@ -25,7 +25,7 @@ from .base import IBaseCap, BaseObject, NotLoaded, Field, StringField, \
                   DateField, IntField, UserError
 
 
-__all__ = ['Thread', 'Message', 'ICapMessages', 'CantSendMessage', 'ICapMessagesPost']
+__all__ = ['Thread', 'Message', 'CapMessages', 'CantSendMessage', 'CapMessagesPost']
 
 
 # Message and Thread's attributes refer to themselves, and it isn't possible
@@ -165,7 +165,7 @@ class Thread(_Thread):
                     yield m
 
 
-class ICapMessages(IBaseCap):
+class CapMessages(IBaseCap):
     """
     Capability to read messages.
     """
@@ -209,7 +209,7 @@ class CantSendMessage(UserError):
     """
 
 
-class ICapMessagesPost(IBaseCap):
+class CapMessagesPost(IBaseCap):
     """
     This capability allow user to send a message.
     """

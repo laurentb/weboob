@@ -19,7 +19,7 @@
 
 import sys
 
-from weboob.capabilities.job import ICapJob
+from weboob.capabilities.job import CapJob
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
@@ -79,7 +79,7 @@ class Handjoob(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2012 Bezleputh'
     DESCRIPTION = "Console application to search for a job."
     SHORT_DESCRIPTION = "search for a job"
-    CAPS = ICapJob
+    CAPS = CapJob
     EXTRA_FORMATTERS = {'job_advert_list': JobAdvertListFormatter,
                         'job_advert': JobAdvertFormatter,
                         }

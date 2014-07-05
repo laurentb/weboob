@@ -21,7 +21,7 @@
 from .base import IBaseCap, BaseObject, NotAvailable, Field, StringField, DateField
 
 
-__all__ = ['BaseFile', 'ICapFile']
+__all__ = ['BaseFile', 'CapFile']
 
 
 class BaseFile(BaseObject):
@@ -59,7 +59,7 @@ class BaseFile(BaseObject):
         return self.id2url(self.id)
 
 
-class ICapFile(IBaseCap):
+class CapFile(IBaseCap):
     """
     Provide file download
     """

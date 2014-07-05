@@ -41,7 +41,7 @@ class Parcel(BaseObject):
     history = Field('History', list)
 
 
-class ICapParcel(IBaseCap):
+class CapParcel(IBaseCap):
     def get_parcel_tracking(self, id):
         """
         Get information abouut a parcel.

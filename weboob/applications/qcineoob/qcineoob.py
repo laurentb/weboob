@@ -18,9 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.cinema import ICapCinema
-from weboob.capabilities.torrent import ICapTorrent
-from weboob.capabilities.subtitle import ICapSubtitle
+from weboob.capabilities.cinema import CapCinema
+from weboob.capabilities.torrent import CapTorrent
+from weboob.capabilities.subtitle import CapSubtitle
 from weboob.tools.application.qt import QtApplication
 
 from .main_window import MainWindow
@@ -32,7 +32,7 @@ class QCineoob(QtApplication):
     COPYRIGHT = 'Copyright(C) 2013 Julien Veyssier'
     DESCRIPTION = "Qt application allowing to search movies, people, torrent and subtitles."
     SHORT_DESCRIPTION = "search movies, people, torrent and subtitles"
-    CAPS = ICapCinema, ICapTorrent, ICapSubtitle
+    CAPS = CapCinema, CapTorrent, CapSubtitle
     CONFIG = {'settings': {'backend': '',
                            'maxresultsnumber': '10',
                            'showthumbnails': '0'
@@ -40,7 +40,7 @@ class QCineoob(QtApplication):
               }
 
     def main(self, argv):
-        self.load_backends([ICapCinema, ICapTorrent, ICapSubtitle])
+        self.load_backends([CapCinema, CapTorrent, CapSubtitle])
         self.load_config()
 
         self.main_window = MainWindow(self.config, self.weboob, self)

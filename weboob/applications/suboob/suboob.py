@@ -21,7 +21,7 @@
 
 import sys
 
-from weboob.capabilities.subtitle import ICapSubtitle
+from weboob.capabilities.subtitle import CapSubtitle
 from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
@@ -92,7 +92,7 @@ class Suboob(ReplApplication):
     DESCRIPTION = "Console application allowing to search for subtitles on various services " \
                   "and download them."
     SHORT_DESCRIPTION = "search and download subtitles"
-    CAPS = ICapSubtitle
+    CAPS = CapSubtitle
     EXTRA_FORMATTERS = {'subtitle_list': SubtitleListFormatter,
                         'subtitle_info': SubtitleInfoFormatter
                         }

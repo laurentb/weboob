@@ -19,20 +19,20 @@
 
 import re
 
-from weboob.capabilities.video import ICapVideo, BaseVideo
+from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value
 
 from .browser import CanalplusBrowser
 from .video import CanalplusVideo
 
-from weboob.capabilities.collection import ICapCollection
+from weboob.capabilities.collection import CapCollection
 
 
 __all__ = ['CanalplusBackend']
 
 
-class CanalplusBackend(BaseBackend, ICapVideo, ICapCollection):
+class CanalplusBackend(BaseBackend, CapVideo, CapCollection):
     NAME = 'canalplus'
     MAINTAINER = u'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'
@@ -45,7 +45,7 @@ class CanalplusBackend(BaseBackend, ICapVideo, ICapCollection):
     def create_default_browser(self):
         return self.create_browser(quality=self.config['quality'].get())
 
-    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
+    def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         with self.browser:
             return self.browser.search_videos(pattern)
 

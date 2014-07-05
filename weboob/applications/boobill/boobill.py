@@ -21,7 +21,7 @@
 import sys
 from decimal import Decimal
 
-from weboob.capabilities.bill import ICapBill, Detail, Subscription
+from weboob.capabilities.bill import CapBill, Detail, Subscription
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import PrettyFormatter
 from weboob.tools.application.base import MoreResultsAvailable
@@ -45,7 +45,7 @@ class Boobill(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2012 Florent Fourcot'
     DESCRIPTION = 'Console application allowing to get and download bills.'
     SHORT_DESCRIPTION = "get and download bills"
-    CAPS = ICapBill
+    CAPS = CapBill
     COLLECTION_OBJECTS = (Subscription, )
     EXTRA_FORMATTERS = {'subscriptions':   SubscriptionsFormatter,
                         }

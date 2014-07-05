@@ -22,7 +22,7 @@ from .base import IBaseCap, BaseObject, Field, DecimalField, \
                   StringField, DateField
 
 
-__all__ = ['Shop', 'Price', 'Product', 'ICapPriceComparison']
+__all__ = ['Shop', 'Price', 'Product', 'CapPriceComparison']
 
 
 class Product(BaseObject):
@@ -53,7 +53,7 @@ class Price(BaseObject):
     product =   Field('Product', Product)
 
 
-class ICapPriceComparison(IBaseCap):
+class CapPriceComparison(IBaseCap):
     """
     Capability for price comparison websites.
     """

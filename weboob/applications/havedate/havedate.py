@@ -24,7 +24,7 @@ from copy import copy
 from weboob.core import CallErrors
 from weboob.tools.application.repl import ReplApplication
 from weboob.applications.boobmsg import Boobmsg
-from weboob.capabilities.dating import ICapDating, OptimizationNotFound
+from weboob.capabilities.dating import CapDating, OptimizationNotFound
 from weboob.tools.application.formatters.iformatter import PrettyFormatter
 
 
@@ -55,7 +55,7 @@ class HaveDate(Boobmsg):
     SHORT_DESCRIPTION = "interact with dating websites"
     STORAGE_FILENAME = 'dating.storage'
     STORAGE = {'optims': {}}
-    CAPS = ICapDating
+    CAPS = CapDating
     EXTRA_FORMATTERS = copy(Boobmsg.EXTRA_FORMATTERS)
     EXTRA_FORMATTERS['events'] = EventListFormatter
     COMMANDS_FORMATTERS = copy(Boobmsg.COMMANDS_FORMATTERS)
@@ -63,7 +63,7 @@ class HaveDate(Boobmsg):
     COMMANDS_FORMATTERS['events'] = 'events'
 
     def load_default_backends(self):
-        self.load_backends(ICapDating, storage=self.create_storage(self.STORAGE_FILENAME))
+        self.load_backends(CapDating, storage=self.create_storage(self.STORAGE_FILENAME))
 
     def main(self, argv):
         self.load_config()

@@ -21,7 +21,7 @@
 
 import sys
 
-from weboob.capabilities.lyrics import ICapLyrics
+from weboob.capabilities.lyrics import CapLyrics
 from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
@@ -62,7 +62,7 @@ class Booblyrics(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2013 Julien Veyssier'
     DESCRIPTION = "Console application allowing to search for song lyrics on various websites."
     SHORT_DESCRIPTION = "search and display song lyrics"
-    CAPS = ICapLyrics
+    CAPS = CapLyrics
     EXTRA_FORMATTERS = {'lyrics_list': LyricsListFormatter,
                         'lyrics_get': LyricsGetFormatter,
                         }

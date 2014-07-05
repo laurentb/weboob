@@ -20,7 +20,7 @@
 
 import sys
 
-from weboob.capabilities.geolocip import ICapGeolocIp
+from weboob.capabilities.geolocip import CapGeolocIp
 from weboob.tools.application.repl import ReplApplication
 
 
@@ -33,7 +33,7 @@ class Geolooc(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = "Console application allowing to geolocalize IP addresses."
     SHORT_DESCRIPTION = "geolocalize IP addresses"
-    CAPS = ICapGeolocIp
+    CAPS = CapGeolocIp
 
     def main(self, argv):
         if len(argv) < 2:

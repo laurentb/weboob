@@ -24,7 +24,7 @@ from .base import IBaseCap, BaseObject, StringField, TimeField, DeltaField, \
                   DateField, DecimalField, UserError
 
 
-__all__ = ['Station', 'Departure', 'RoadStep', 'RoadmapError', 'RoadmapFilters', 'ICapTravel']
+__all__ = ['Station', 'Departure', 'RoadStep', 'RoadmapError', 'RoadmapFilters', 'CapTravel']
 
 
 class Station(BaseObject):
@@ -96,7 +96,7 @@ class RoadmapFilters(BaseObject):
         BaseObject.__init__(self, '')
 
 
-class ICapTravel(IBaseCap):
+class CapTravel(IBaseCap):
     """
     Travel websites.
     """

@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.video import ICapVideo, BaseVideo
-from weboob.capabilities.collection import ICapCollection, CollectionNotFound, Collection
+from weboob.capabilities.video import CapVideo, BaseVideo
+from weboob.capabilities.collection import CapCollection, CollectionNotFound, Collection
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.backend import BaseBackend, BackendConfig
 
@@ -31,7 +31,7 @@ from hashlib import md5
 
 __all__ = ['NolifeTVBackend']
 
-class NolifeTVBackend(BaseBackend, ICapVideo, ICapCollection):
+class NolifeTVBackend(BaseBackend, CapVideo, CapCollection):
     NAME = 'nolifetv'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -102,7 +102,7 @@ class NolifeTVBackend(BaseBackend, ICapVideo, ICapCollection):
                 video.url = self.get_url(video.id, self.config['quality'].get())
         return video
 
-    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
+    def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         with self.browser:
             return self.browser.search_videos(pattern)
 

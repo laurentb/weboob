@@ -32,7 +32,7 @@ from logging import warning
 from weboob.core.modules import ModuleLoadError
 from weboob.core.repositories import IProgress, ModuleInstallError
 from weboob.core.backendscfg import BackendAlreadyExists
-from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
+from weboob.capabilities.account import CapAccount, Account, AccountRegisterError
 from weboob.tools.application.qt.backendcfg_ui import Ui_BackendCfg
 from weboob.tools.application.qt.reposdlg_ui import Ui_RepositoriesDlg
 from weboob.tools.ordereddict import OrderedDict
@@ -378,9 +378,9 @@ class BackendCfg(QDialog):
               module.license,
               (unicode(self.tr('<b>Website</b>: %s<br />')) % module.website) if module.website else '',
               module.description,
-              ', '.join(sorted(cap.__name__.replace('ICap', '') for cap in module.iter_caps()))))
+              ', '.join(sorted(cap.__name__.replace('Cap', '') for cap in module.iter_caps()))))
 
-        if module.has_caps(ICapAccount) and self.ui.nameEdit.isEnabled() and \
+        if module.has_caps(CapAccount) and self.ui.nameEdit.isEnabled() and \
                 module.klass.ACCOUNT_REGISTER_PROPERTIES is not None:
             self.ui.registerButton.show()
         else:

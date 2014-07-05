@@ -26,7 +26,7 @@
 
 import datetime
 from weboob.capabilities.base import UserError, StringField
-from weboob.capabilities.video import ICapVideo, BaseVideo
+from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.image import BaseImage
 from weboob.tools.backend import BaseBackend
 from weboob.tools.misc import to_unicode
@@ -37,7 +37,7 @@ from quvi import LibQuvi, QuviError
 __all__ = ['QuviBackend', 'QuviVideo']
 
 
-class QuviBackend(BaseBackend, ICapVideo):
+class QuviBackend(BaseBackend, CapVideo):
     NAME = 'quvi'
     DESCRIPTION = u'Multi-website video helper with quvi. Handles Youtube, BBC, and a lot more'
     MAINTAINER = u'Vincent A'

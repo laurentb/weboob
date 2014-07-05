@@ -18,13 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 "backend for http://www.taz.de"
 
-from weboob.capabilities.messages import ICapMessages
+from weboob.capabilities.messages import CapMessages
 from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBackend
 from .browser import NewspaperTazBrowser
 from .tools import rssid, url2id
 
 
-class NewspaperTazBackend(GenericNewspaperBackend, ICapMessages):
+class NewspaperTazBackend(GenericNewspaperBackend, CapMessages):
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '0.j'

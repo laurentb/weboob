@@ -24,9 +24,9 @@ from datetime import datetime
 
 from weboob.applications.weboorrents.weboorrents import TorrentInfoFormatter, TorrentListFormatter
 from weboob.applications.suboob.suboob import SubtitleInfoFormatter, SubtitleListFormatter
-from weboob.capabilities.torrent import ICapTorrent, MagnetOnly
-from weboob.capabilities.cinema import ICapCinema
-from weboob.capabilities.subtitle import ICapSubtitle
+from weboob.capabilities.torrent import CapTorrent, MagnetOnly
+from weboob.capabilities.cinema import CapCinema
+from weboob.capabilities.subtitle import CapSubtitle
 from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
@@ -183,7 +183,7 @@ class Cineoob(ReplApplication):
                   ", list persons related to a movie, list movies related to a person and list common movies " \
                   "of two persons."
     SHORT_DESCRIPTION = "search movies and persons around cinema"
-    CAPS = (ICapCinema, ICapTorrent, ICapSubtitle)
+    CAPS = (CapCinema, CapTorrent, CapSubtitle)
     EXTRA_FORMATTERS = {'movie_list': MovieListFormatter,
                         'movie_info': MovieInfoFormatter,
                         'movie_releases': MovieReleasesFormatter,
@@ -229,11 +229,11 @@ class Cineoob(ReplApplication):
         """
         id1, id2 = self.parse_command_args(line, 2, 1)
 
-        person1 = self.get_object(id1, 'get_person', caps=ICapCinema)
+        person1 = self.get_object(id1, 'get_person', caps=CapCinema)
         if not person1:
             print >>sys.stderr, 'Person not found: %s' % id1
             return 3
-        person2 = self.get_object(id2, 'get_person', caps=ICapCinema)
+        person2 = self.get_object(id2, 'get_person', caps=CapCinema)
         if not person2:
             print >>sys.stderr, 'Person not found: %s' % id2
             return 3
@@ -242,15 +242,15 @@ class Cineoob(ReplApplication):
         self.options.count = None
 
         lid1 = []
-        for backend, id in self.do('iter_person_movies_ids', person1.id, caps=ICapCinema):
+        for backend, id in self.do('iter_person_movies_ids', person1.id, caps=CapCinema):
             lid1.append(id)
         lid2 = []
-        for backend, id in self.do('iter_person_movies_ids', person2.id, caps=ICapCinema):
+        for backend, id in self.do('iter_person_movies_ids', person2.id, caps=CapCinema):
             lid2.append(id)
         self.options.count = initial_count
         inter = list(set(lid1) & set(lid2))
         for common in inter:
-            movie = self.get_object(common, 'get_movie', caps=ICapCinema)
+            movie = self.get_object(common, 'get_movie', caps=CapCinema)
             if movie:
                 self.cached_format(movie)
 
@@ -262,11 +262,11 @@ class Cineoob(ReplApplication):
         """
         id1, id2 = self.parse_command_args(line, 2, 1)
 
-        movie1 = self.get_object(id1, 'get_movie', caps=ICapCinema)
+        movie1 = self.get_object(id1, 'get_movie', caps=CapCinema)
         if not movie1:
             print >>sys.stderr, 'Movie not found: %s' % id1
             return 3
-        movie2 = self.get_object(id2, 'get_movie', caps=ICapCinema)
+        movie2 = self.get_object(id2, 'get_movie', caps=CapCinema)
         if not movie2:
             print >>sys.stderr, 'Movie not found: %s' % id2
             return 3
@@ -275,15 +275,15 @@ class Cineoob(ReplApplication):
         self.options.count = None
 
         lid1 = []
-        for backend, id in self.do('iter_movie_persons_ids', movie1.id, caps=ICapCinema):
+        for backend, id in self.do('iter_movie_persons_ids', movie1.id, caps=CapCinema):
             lid1.append(id)
         lid2 = []
-        for backend, id in self.do('iter_movie_persons_ids', movie2.id, caps=ICapCinema):
+        for backend, id in self.do('iter_movie_persons_ids', movie2.id, caps=CapCinema):
             lid2.append(id)
         self.options.count = initial_count
         inter = list(set(lid1) & set(lid2))
         for common in inter:
-            person = self.get_object(common, 'get_person', caps=ICapCinema)
+            person = self.get_object(common, 'get_person', caps=CapCinema)
             self.cached_format(person)
 
     def do_info_movie(self, id):
@@ -292,7 +292,7 @@ class Cineoob(ReplApplication):
 
         Get information about a movie.
         """
-        movie = self.get_object(id, 'get_movie', caps=ICapCinema)
+        movie = self.get_object(id, 'get_movie', caps=CapCinema)
 
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
@@ -307,7 +307,7 @@ class Cineoob(ReplApplication):
 
         Get information about a person.
         """
-        person = self.get_object(id, 'get_person', caps=ICapCinema)
+        person = self.get_object(id, 'get_person', caps=CapCinema)
 
         if not person:
             print >>sys.stderr, 'Person not found: %s' % id
@@ -328,7 +328,7 @@ class Cineoob(ReplApplication):
             pattern = None
 
         self.start_format(pattern=pattern)
-        for backend, movie in self.do('iter_movies', pattern=pattern, caps=ICapCinema):
+        for backend, movie in self.do('iter_movies', pattern=pattern, caps=CapCinema):
             self.cached_format(movie)
 
     @defaultcount(10)
@@ -343,7 +343,7 @@ class Cineoob(ReplApplication):
             pattern = None
 
         self.start_format(pattern=pattern)
-        for backend, person in self.do('iter_persons', pattern=pattern, caps=ICapCinema):
+        for backend, person in self.do('iter_persons', pattern=pattern, caps=CapCinema):
             self.cached_format(person)
 
     def do_casting(self, line):
@@ -355,12 +355,12 @@ class Cineoob(ReplApplication):
         """
         movie_id, role = self.parse_command_args(line, 2, 1)
 
-        movie = self.get_object(movie_id, 'get_movie', caps=ICapCinema)
+        movie = self.get_object(movie_id, 'get_movie', caps=CapCinema)
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
 
-        for backend, person in self.do('iter_movie_persons', movie.id, role, backends=movie.backend, caps=ICapCinema):
+        for backend, person in self.do('iter_movie_persons', movie.id, role, backends=movie.backend, caps=CapCinema):
             self.cached_format(person)
 
     def do_filmography(self, line):
@@ -372,12 +372,12 @@ class Cineoob(ReplApplication):
         """
         person_id, role = self.parse_command_args(line, 2, 1)
 
-        person = self.get_object(person_id, 'get_person', caps=ICapCinema)
+        person = self.get_object(person_id, 'get_person', caps=CapCinema)
         if not person:
             print >>sys.stderr, 'Person not found: %s' % id
             return 3
 
-        for backend, movie in self.do('iter_person_movies', person.id, role, backends=person.backend, caps=ICapCinema):
+        for backend, movie in self.do('iter_person_movies', person.id, role, backends=person.backend, caps=CapCinema):
             self.cached_format(movie)
 
     def do_biography(self, person_id):
@@ -386,7 +386,7 @@ class Cineoob(ReplApplication):
 
         Show the complete biography of a person.
         """
-        person = self.get_object(person_id, 'get_person', ('name', 'biography'), caps=ICapCinema)
+        person = self.get_object(person_id, 'get_person', ('name', 'biography'), caps=CapCinema)
         if not person:
             print >>sys.stderr, 'Person not found: %s' % person_id
             return 3
@@ -410,13 +410,13 @@ class Cineoob(ReplApplication):
         """
         id, country = self.parse_command_args(line, 2, 1)
 
-        movie = self.get_object(id, 'get_movie', ('original_title'), caps=ICapCinema)
+        movie = self.get_object(id, 'get_movie', ('original_title'), caps=CapCinema)
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
 
         # i would like to clarify with fillobj but how could i fill the movie AND choose the country ?
-        for backend, release in self.do('get_movie_releases', movie.id, country, caps=ICapCinema, backends=movie.backend):
+        for backend, release in self.do('get_movie_releases', movie.id, country, caps=CapCinema, backends=movie.backend):
             if not empty(release):
                 movie.all_release_dates = u'%s' % (release)
             else:
@@ -439,7 +439,7 @@ class Cineoob(ReplApplication):
         Get information about a torrent.
         """
 
-        torrent = self.get_object(id, 'get_torrent', caps=ICapTorrent)
+        torrent = self.get_object(id, 'get_torrent', caps=CapTorrent)
         if not torrent:
             print >>sys.stderr, 'Torrent not found: %s' % id
             return 3
@@ -470,7 +470,7 @@ class Cineoob(ReplApplication):
             dest = '%s.torrent' % _id
 
         try:
-            for backend, buf in self.do('get_torrent_file', _id, backends=backend_name, caps=ICapTorrent):
+            for backend, buf in self.do('get_torrent_file', _id, backends=backend_name, caps=CapTorrent):
                 if buf:
                     if dest == '-':
                         print buf
@@ -507,7 +507,7 @@ class Cineoob(ReplApplication):
             pattern = None
 
         self.start_format(pattern=pattern)
-        for backend, torrent in self.do('iter_torrents', pattern=pattern, caps=ICapTorrent):
+        for backend, torrent in self.do('iter_torrents', pattern=pattern, caps=CapTorrent):
             self.cached_format(torrent)
 
     @defaultcount(10)
@@ -517,7 +517,7 @@ class Cineoob(ReplApplication):
 
         Search torrents of movie_ID.
         """
-        movie = self.get_object(id, 'get_movie', ('original_title'), caps=ICapCinema)
+        movie = self.get_object(id, 'get_movie', ('original_title'), caps=CapCinema)
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
@@ -529,7 +529,7 @@ class Cineoob(ReplApplication):
             pattern = None
 
         self.start_format(pattern=pattern)
-        for backend, torrent in self.do('iter_torrents', pattern=pattern, caps=ICapTorrent):
+        for backend, torrent in self.do('iter_torrents', pattern=pattern, caps=CapTorrent):
             self.cached_format(torrent)
 
     #================== SUBTITLE ==================
@@ -546,7 +546,7 @@ class Cineoob(ReplApplication):
         Get information about a subtitle.
         """
 
-        subtitle = self.get_object(id, 'get_subtitle', caps=ICapCinema)
+        subtitle = self.get_object(id, 'get_subtitle', caps=CapCinema)
         if not subtitle:
             print >>sys.stderr, 'Subtitle not found: %s' % id
             return 3
@@ -576,7 +576,7 @@ class Cineoob(ReplApplication):
         if dest is None:
             dest = '%s' % _id
 
-        for backend, buf in self.do('get_subtitle_file', _id, backends=backend_name, caps=ICapSubtitle):
+        for backend, buf in self.do('get_subtitle_file', _id, backends=backend_name, caps=CapSubtitle):
             if buf:
                 if dest == '-':
                     print buf
@@ -625,7 +625,7 @@ class Cineoob(ReplApplication):
             pattern = None
 
         self.start_format(pattern=pattern)
-        for backend, subtitle in self.do('iter_subtitles', language=language, pattern=pattern, caps=ICapSubtitle):
+        for backend, subtitle in self.do('iter_subtitles', language=language, pattern=pattern, caps=CapSubtitle):
             self.cached_format(subtitle)
 
     @defaultcount(10)
@@ -656,7 +656,7 @@ class Cineoob(ReplApplication):
         ----------------------
         """
         language, id = self.parse_command_args(line, 2, 2)
-        movie = self.get_object(id, 'get_movie', ('original_title'), caps=ICapCinema)
+        movie = self.get_object(id, 'get_movie', ('original_title'), caps=CapCinema)
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
@@ -667,5 +667,5 @@ class Cineoob(ReplApplication):
             pattern = None
 
         self.start_format(pattern=pattern)
-        for backend, subtitle in self.do('iter_subtitles', language=language, pattern=pattern, caps=ICapSubtitle):
+        for backend, subtitle in self.do('iter_subtitles', language=language, pattern=pattern, caps=CapSubtitle):
             self.cached_format(subtitle)

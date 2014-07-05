@@ -20,9 +20,9 @@
 
 
 
-from weboob.capabilities.video import ICapVideo, BaseVideo
+from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.tools.backend import BaseBackend
-from weboob.capabilities.collection import ICapCollection, CollectionNotFound
+from weboob.capabilities.collection import CapCollection, CollectionNotFound
 
 from .browser import YoupornBrowser
 from .video import YoupornVideo
@@ -31,7 +31,7 @@ from .video import YoupornVideo
 __all__ = ['YoupornBackend']
 
 
-class YoupornBackend(BaseBackend, ICapVideo, ICapCollection):
+class YoupornBackend(BaseBackend, CapVideo, CapCollection):
     NAME = 'youporn'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -46,7 +46,7 @@ class YoupornBackend(BaseBackend, ICapVideo, ICapCollection):
 
     SORTBY = ['relevance', 'rating', 'views', 'time']
 
-    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
+    def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         if not nsfw:
             return set()
         with self.browser:

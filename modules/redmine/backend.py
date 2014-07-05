@@ -20,11 +20,11 @@
 
 
 
-from weboob.capabilities.content import ICapContent, Content
-from weboob.capabilities.bugtracker import ICapBugTracker, Issue, Project, User, \
+from weboob.capabilities.content import CapContent, Content
+from weboob.capabilities.bugtracker import CapBugTracker, Issue, Project, User, \
                                            Version, Status, Update, Attachment, \
                                            Query, Change
-from weboob.capabilities.collection import ICapCollection, Collection, CollectionNotFound
+from weboob.capabilities.collection import CapCollection, Collection, CollectionNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.exceptions import BrowserHTTPNotFound
 from weboob.tools.value import ValueBackendPassword, Value
@@ -35,7 +35,7 @@ from .browser import RedmineBrowser
 __all__ = ['RedmineBackend']
 
 
-class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
+class RedmineBackend(BaseBackend, CapContent, CapBugTracker, CapCollection):
     NAME = 'redmine'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

@@ -20,7 +20,7 @@
 
 import urllib
 
-from weboob.capabilities.translate import ICapTranslate, Translation, TranslationFail, LanguageNotSupported
+from weboob.capabilities.translate import CapTranslate, Translation, TranslationFail, LanguageNotSupported
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import StandardBrowser
 
@@ -28,7 +28,7 @@ from weboob.tools.browser import StandardBrowser
 __all__ = ['EbonicsBackend']
 
 
-class EbonicsBackend(BaseBackend, ICapTranslate):
+class EbonicsBackend(BaseBackend, CapTranslate):
     NAME = 'ebonics'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
-from weboob.capabilities.pricecomparison import ICapPriceComparison, Price
+from weboob.capabilities.pricecomparison import CapPriceComparison, Price
 from weboob.tools.backend import BaseBackend
 #from weboob.tools.value import Value
 
@@ -29,7 +29,7 @@ __all__ = ['LaCentraleBackend']
 
 
 # I implement capability
-class LaCentraleBackend(BaseBackend, ICapPriceComparison):
+class LaCentraleBackend(BaseBackend, CapPriceComparison):
     NAME = 'lacentrale'
     MAINTAINER = u'Vicnet'
     EMAIL = 'vo.publique@gmail.com'
@@ -38,7 +38,7 @@ class LaCentraleBackend(BaseBackend, ICapPriceComparison):
     LICENSE = 'AGPLv3+'
     BROWSER = LaCentraleBrowser
 
-    # inherited from ICapPriceComparison
+    # inherited from CapPriceComparison
     def search_products(self, patternString=None):
         # convert pattern to criteria
         criteria = {}
@@ -67,13 +67,13 @@ class LaCentraleBackend(BaseBackend, ICapPriceComparison):
             for product in self.browser.iter_products(criteria):
                 yield product
 
-    # inherited from ICapPriceComparison
+    # inherited from CapPriceComparison
     def iter_prices(self, product):
-        # inherited from ICapPriceComparison
+        # inherited from CapPriceComparison
         with self.browser:
             return self.browser.iter_prices(product)
 
-    # inherited from ICapPriceComparison
+    # inherited from CapPriceComparison
     def get_price(self, id):
         # id is a url code part for one car page
         with self.browser:

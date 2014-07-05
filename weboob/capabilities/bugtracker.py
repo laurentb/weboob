@@ -23,7 +23,7 @@ from .base import IBaseCap, BaseObject, Field, StringField, DateField, \
 
 
 __all__ = ['IssueError', 'Project', 'User', 'Version', 'Status', 'Attachment',
-           'Change', 'Update', 'Issue', 'Query', 'ICapBugTracker']
+           'Change', 'Update', 'Issue', 'Query', 'CapBugTracker']
 
 
 class IssueError(UserError):
@@ -231,7 +231,7 @@ class Query(BaseObject):
         BaseObject.__init__(self, '')
 
 
-class ICapBugTracker(IBaseCap):
+class CapBugTracker(IBaseCap):
     """
     Bug trackers websites.
     """

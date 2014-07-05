@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.torrent import ICapTorrent, Torrent
+from weboob.capabilities.torrent import CapTorrent, Torrent
 from weboob.tools.backend import BaseBackend
 
 from .browser import KickassBrowser
@@ -29,7 +29,7 @@ from gzip import GzipFile
 __all__ = ['KickassBackend']
 
 
-class KickassBackend(BaseBackend, ICapTorrent):
+class KickassBackend(BaseBackend, CapTorrent):
     NAME = 'kickass'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

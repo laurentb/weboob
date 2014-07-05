@@ -20,14 +20,14 @@
 
 
 
-from weboob.capabilities.travel import ICapTravel, Station, Departure, RoadStep
+from weboob.capabilities.travel import CapTravel, Station, Departure, RoadStep
 from weboob.tools.backend import BaseBackend
 
 from .browser import Transilien
 from .stations import STATIONS
 
 
-class TransilienBackend(BaseBackend, ICapTravel):
+class TransilienBackend(BaseBackend, CapTravel):
     NAME = 'transilien'
     MAINTAINER = u'Julien Hébert'
     EMAIL = 'juke@free.fr'

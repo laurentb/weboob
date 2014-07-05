@@ -21,7 +21,7 @@
 from .base import IBaseCap, BaseObject, StringField, IntField, UserError
 
 
-__all__ = ['Subtitle', 'ICapSubtitle']
+__all__ = ['Subtitle', 'CapSubtitle']
 
 
 class LanguageNotSupported(UserError):
@@ -48,7 +48,7 @@ class Subtitle(BaseObject):
         BaseObject.__init__(self, id)
         self.name = name
 
-class ICapSubtitle(IBaseCap):
+class CapSubtitle(IBaseCap):
     """
     Subtitle providers.
     """

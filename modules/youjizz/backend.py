@@ -20,8 +20,8 @@
 
 
 
-from weboob.capabilities.video import ICapVideo, BaseVideo
-from weboob.capabilities.collection import ICapCollection, CollectionNotFound
+from weboob.capabilities.video import CapVideo, BaseVideo
+from weboob.capabilities.collection import CapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
 
 from .browser import YoujizzBrowser
@@ -30,7 +30,7 @@ from .browser import YoujizzBrowser
 __all__ = ['YoujizzBackend']
 
 
-class YoujizzBackend(BaseBackend, ICapVideo, ICapCollection):
+class YoujizzBackend(BaseBackend, CapVideo, CapCollection):
     NAME = 'youjizz'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
@@ -43,7 +43,7 @@ class YoujizzBackend(BaseBackend, ICapVideo, ICapCollection):
         video = self.browser.get_video(_id)
         return video
 
-    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
+    def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         if not nsfw:
             return set()
         return self.browser.search_videos(pattern)

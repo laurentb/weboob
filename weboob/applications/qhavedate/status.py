@@ -20,7 +20,7 @@
 
 from PyQt4.QtGui import QScrollArea, QWidget, QHBoxLayout, QVBoxLayout, QFrame, QLabel, QImage, QPixmap
 
-from weboob.capabilities.account import ICapAccount, StatusField
+from weboob.capabilities.account import CapAccount, StatusField
 from weboob.tools.application.qt import QtDo
 from weboob.tools.misc import to_unicode
 
@@ -55,7 +55,7 @@ class Account(QFrame):
 
         self.layout().addWidget(headw)
 
-        if backend.has_caps(ICapAccount):
+        if backend.has_caps(CapAccount):
             self.body.setText(u'<i>Waiting...</i>')
             self.layout().addWidget(self.body)
 

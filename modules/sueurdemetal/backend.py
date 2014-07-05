@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import BaseBackend
-from weboob.capabilities.calendar import ICapCalendarEvent, BaseCalendarEvent, CATEGORIES, TRANSP, STATUS
+from weboob.capabilities.calendar import CapCalendarEvent, BaseCalendarEvent, CATEGORIES, TRANSP, STATUS
 import datetime
 
 from .browser import SueurDeMetalBrowser
@@ -34,7 +34,7 @@ class Concert(BaseCalendarEvent):
         return 'http://www.sueurdemetal.com/detail-concert-metal.php?c=%s' % _id
 
 
-class SueurDeMetalBackend(BaseBackend, ICapCalendarEvent):
+class SueurDeMetalBackend(BaseBackend, CapCalendarEvent):
     NAME = 'sueurdemetal'
     DESCRIPTION = u'SueurDeMetal French concerts list website'
     MAINTAINER = u'Vincent A'

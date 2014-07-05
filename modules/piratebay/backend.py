@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.torrent import ICapTorrent, MagnetOnly, Torrent
+from weboob.capabilities.torrent import CapTorrent, MagnetOnly, Torrent
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value
 from weboob.capabilities.base import NotAvailable
@@ -28,7 +28,7 @@ from .browser import PiratebayBrowser
 __all__ = ['PiratebayBackend']
 
 
-class PiratebayBackend(BaseBackend, ICapTorrent):
+class PiratebayBackend(BaseBackend, CapTorrent):
     NAME = 'piratebay'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

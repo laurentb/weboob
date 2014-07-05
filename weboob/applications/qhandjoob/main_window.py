@@ -22,7 +22,7 @@ from PyQt4.QtCore import SIGNAL, Qt, QStringList
 
 from weboob.tools.application.qt import QtMainWindow, QtDo
 from weboob.tools.application.qt.backendcfg import BackendCfg
-from weboob.capabilities.job import ICapJob
+from weboob.capabilities.job import CapJob
 
 from .ui.main_window_ui import Ui_MainWindow
 
@@ -167,7 +167,7 @@ class MainWindow(QtMainWindow):
         QtMainWindow.closeEvent(self, event)
 
     def backendsConfig(self):
-        bckndcfg = BackendCfg(self.weboob, (ICapJob,), self)
+        bckndcfg = BackendCfg(self.weboob, (CapJob,), self)
         if bckndcfg.run():
             pass
 

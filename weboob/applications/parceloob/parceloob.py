@@ -21,7 +21,7 @@
 import sys
 
 from weboob.capabilities.base import empty
-from weboob.capabilities.parcel import ICapParcel, Parcel
+from weboob.capabilities.parcel import CapParcel, Parcel
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
 
@@ -86,7 +86,7 @@ class Parceloob(ReplApplication):
     APPNAME = 'parceloob'
     VERSION = '0.j'
     COPYRIGHT = 'Copyright(C) 2013 Romain Bignon'
-    CAPS = ICapParcel
+    CAPS = CapParcel
     DESCRIPTION = "Console application to track your parcels."
     SHORT_DESCRIPTION = "manage your parcels"
     EXTRA_FORMATTERS = {'status':   StatusFormatter,

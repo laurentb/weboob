@@ -19,8 +19,8 @@
 
 
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.capabilities.collection import ICapCollection
-from weboob.capabilities.messages import ICapMessages, Message, Thread
+from weboob.capabilities.collection import CapCollection
+from weboob.capabilities.messages import CapMessages, Message, Thread
 from weboob.tools.value import Value, ValueBackendPassword
 
 from .browser import FeedlyBrowser
@@ -29,7 +29,7 @@ from .google import GoogleBrowser
 __all__ = ['FeedlyBackend']
 
 
-class FeedlyBackend(BaseBackend, ICapMessages, ICapCollection):
+class FeedlyBackend(BaseBackend, CapMessages, CapCollection):
     NAME = 'feedly'
     DESCRIPTION = u'handle the popular RSS reading service Feedly'
     MAINTAINER = u'Bezleputh'

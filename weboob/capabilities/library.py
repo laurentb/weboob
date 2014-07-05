@@ -17,11 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .collection import ICapCollection
+from .collection import CapCollection
 from .base import BaseObject, Field, StringField, DateField
 
 
-__all__ = ['Book', 'Renew', 'ICapBook']
+__all__ = ['Book', 'Renew', 'CapBook']
 
 
 class Book(BaseObject):
@@ -42,7 +42,7 @@ class Renew(BaseObject):
     message = StringField('Message')
 
 
-class ICapBook(ICapCollection):
+class CapBook(CapCollection):
     """
     Library websites.
     """

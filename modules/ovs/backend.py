@@ -20,8 +20,8 @@
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.browser import BrowserForbidden
 from weboob.tools.value import Value, ValueBackendPassword
-from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message
-from weboob.capabilities.contact import ICapContact
+from weboob.capabilities.messages import CapMessages, CapMessagesPost, Message
+from weboob.capabilities.contact import CapContact
 
 from .browser import OvsBrowser
 
@@ -60,7 +60,7 @@ CITIES = {u'agen': u'Agen', u'ajaccio': u'Ajaccio', u'albi': u'Albi', u'amiens':
           u'zurich': u'Zurich'}
 
 
-class OvsBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContact):
+class OvsBackend(BaseBackend, CapMessages, CapMessagesPost, CapContact):
     NAME = 'ovs'
     DESCRIPTION = u'OnVaSortir website. Handles private messages only'
     MAINTAINER = u'Vincent A'
@@ -81,7 +81,7 @@ class OvsBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContact):
                                    self.config['password'].get(),
                                    parser='raw')
 
-    # ICapMessages
+    # CapMessages
     def iter_threads(self):
         with self.browser:
             for thread in self.browser.iter_threads_list():
@@ -115,7 +115,7 @@ class OvsBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContact):
         self.storage.set('seen', message.full_id, True)
         self.storage.save()
 
-    # ICapMessagesPost
+    # CapMessagesPost
     def post_message(self, message):
         if not self.browser.username:
             raise BrowserForbidden()
@@ -130,11 +130,11 @@ class OvsBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContact):
                 # ovs.<recipient>@*
                 self.browser.create_thread(thread.id, message.title, message.content)
 
-    # ICapContact
+    # CapContact
     def get_contact(self, id):
         return self.browser.get_contact(id)
 
 # FIXME known bug: parsing is done in "boosted mode" which is automatically disable after some time, the "boosted mode" should be re-toggled often
 
 # TODO support outing comments, forum messages
-# TODO make an ICapOuting?
+# TODO make an CapOuting?

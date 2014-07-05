@@ -22,7 +22,7 @@ from PyQt4.QtCore import SIGNAL
 
 from weboob.tools.application.qt import QtMainWindow
 from weboob.tools.application.qt.backendcfg import BackendCfg
-from weboob.capabilities.dating import ICapDating
+from weboob.capabilities.dating import CapDating
 
 try:
     from weboob.applications.qboobmsg.messages_manager import MessagesManager
@@ -61,7 +61,7 @@ class MainWindow(QtMainWindow):
             self.backendsConfig()
 
     def backendsConfig(self):
-        bckndcfg = BackendCfg(self.weboob, (ICapDating,), self)
+        bckndcfg = BackendCfg(self.weboob, (CapDating,), self)
         if bckndcfg.run():
             self.loaded_tabs.clear()
             widget = self.ui.tabWidget.widget(self.ui.tabWidget.currentIndex())

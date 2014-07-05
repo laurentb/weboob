@@ -25,7 +25,7 @@ import locale
 import re
 from random import choice
 
-from weboob.capabilities.paste import ICapPaste, PasteNotFound
+from weboob.capabilities.paste import CapPaste, PasteNotFound
 from weboob.tools.application.repl import ReplApplication
 
 
@@ -38,7 +38,7 @@ class Pastoob(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2011-2013 Laurent Bachelier'
     DESCRIPTION = "Console application allowing to post and get pastes from pastebins."
     SHORT_DESCRIPTION = "post and get pastes from pastebins"
-    CAPS = ICapPaste
+    CAPS = CapPaste
 
     def main(self, argv):
         self.load_config()

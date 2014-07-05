@@ -10,8 +10,8 @@
 
 
 
-from weboob.capabilities.video import ICapVideo, BaseVideo
-from weboob.capabilities.collection import ICapCollection, CollectionNotFound
+from weboob.capabilities.video import CapVideo, BaseVideo
+from weboob.capabilities.collection import CapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
 from .browser import CappedBrowser, CappedVideo
 
@@ -19,7 +19,7 @@ from .browser import CappedBrowser, CappedVideo
 __all__ = ['CappedBackend']
 
 
-class CappedBackend(BaseBackend, ICapVideo, ICapCollection):
+class CappedBackend(BaseBackend, CapVideo, CapCollection):
     NAME = 'cappedtv'
     MAINTAINER = u'Lord'
     EMAIL = 'lord@lordtoniok.com'
@@ -32,7 +32,7 @@ class CappedBackend(BaseBackend, ICapVideo, ICapCollection):
         with self.browser:
             return self.browser.get_video(_id)
 
-    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=None):
+    def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=None):
         with self.browser:
             return self.browser.search_videos(pattern)
 

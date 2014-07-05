@@ -34,7 +34,7 @@ from weboob.tools.application.formatters.iformatter import MandatoryFieldsNotFou
 from weboob.tools.misc import to_unicode
 from weboob.tools.path import WorkingPath
 from weboob.tools.ordereddict import OrderedDict
-from weboob.capabilities.collection import Collection, BaseCollection, ICapCollection, CollectionNotFound
+from weboob.capabilities.collection import Collection, BaseCollection, CapCollection, CollectionNotFound
 
 from .console import BackendNotGiven, ConsoleApplication
 from .formatters.load import FormattersLoader, FormatterLoadError
@@ -1102,7 +1102,7 @@ class ReplApplication(Cmd, ConsoleApplication):
             try:
                 for backend, res in self.do('get_collection', objs=self.COLLECTION_OBJECTS,
                                             split_path=self.working_path.get(),
-                                            caps=ICapCollection):
+                                            caps=CapCollection):
                     if res:
                         collections.append(res)
             except CallErrors as errors:
@@ -1125,7 +1125,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         try:
             for backend, res in self.do('iter_resources', objs=objs,
                                                           split_path=split_path,
-                                                          caps=ICapCollection):
+                                                          caps=CapCollection):
                 yield res
         except CallErrors as errors:
             self.bcall_errors_handler(errors, CollectionNotFound)

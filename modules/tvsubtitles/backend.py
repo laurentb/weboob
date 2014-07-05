@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.subtitle import ICapSubtitle, LanguageNotSupported
+from weboob.capabilities.subtitle import CapSubtitle, LanguageNotSupported
 from weboob.tools.backend import BaseBackend
 
 from .browser import TvsubtitlesBrowser, LANGUAGE_LIST
@@ -27,7 +27,7 @@ from urllib import quote_plus
 __all__ = ['TvsubtitlesBackend']
 
 
-class TvsubtitlesBackend(BaseBackend, ICapSubtitle):
+class TvsubtitlesBackend(BaseBackend, CapSubtitle):
     NAME = 'tvsubtitles'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

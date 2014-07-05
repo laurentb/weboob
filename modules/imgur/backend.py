@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import BaseBackend
-from weboob.capabilities.paste import ICapPaste, BasePaste
+from weboob.capabilities.paste import CapPaste, BasePaste
 from weboob.tools.capabilities.paste import image_mime
 from weboob.capabilities.base import StringField
 from weboob.tools.browser import StandardBrowser
@@ -43,7 +43,7 @@ class ImgPaste(BasePaste):
         return 'http://i.imgur.com/%s.png' % self.id
 
 
-class ImgurBackend(BaseBackend, ICapPaste):
+class ImgurBackend(BaseBackend, CapPaste):
     NAME = 'imgur'
     DESCRIPTION = u'imgur image upload service'
     MAINTAINER = u'Vincent A'

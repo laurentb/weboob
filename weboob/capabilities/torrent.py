@@ -22,7 +22,7 @@ from .base import IBaseCap, BaseObject, Field, StringField, FloatField, \
                   DateField, IntField, UserError
 
 
-__all__ = ['MagnetOnly', 'Torrent', 'ICapTorrent']
+__all__ = ['MagnetOnly', 'Torrent', 'CapTorrent']
 
 
 class MagnetOnly(UserError):
@@ -54,7 +54,7 @@ class Torrent(BaseObject):
         self.name = name
 
 
-class ICapTorrent(IBaseCap):
+class CapTorrent(IBaseCap):
     """
     Torrent trackers.
     """

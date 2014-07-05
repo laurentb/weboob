@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.bank import ICapBank
+from weboob.capabilities.bank import CapBank
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -27,7 +27,7 @@ from .browser import DelubacBrowser
 __all__ = ['DelubacBackend']
 
 
-class DelubacBackend(BaseBackend, ICapBank):
+class DelubacBackend(BaseBackend, CapBank):
     NAME = 'delubac'
     DESCRIPTION = u'Banque Delubac & Cie'
     MAINTAINER = u'Noe Rubinstein'

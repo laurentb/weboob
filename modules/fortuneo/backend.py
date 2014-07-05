@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import ICapBank, AccountNotFound
+from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -28,7 +28,7 @@ from .browser import Fortuneo
 __all__ = ['FortuneoBackend']
 
 
-class FortuneoBackend(BaseBackend, ICapBank):
+class FortuneoBackend(BaseBackend, CapBank):
     NAME = 'fortuneo'
     MAINTAINER = u'Gilles-Alexandre Quenot'
     EMAIL = 'gilles.quenot@gmail.com'

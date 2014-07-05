@@ -20,7 +20,7 @@
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
-from weboob.capabilities.job import ICapJob
+from weboob.capabilities.job import CapJob
 
 from .browser import LolixBrowser
 from .job import LolixJobAdvert
@@ -28,7 +28,7 @@ from .job import LolixJobAdvert
 __all__ = ['LolixBackend']
 
 
-class LolixBackend(BaseBackend, ICapJob):
+class LolixBackend(BaseBackend, CapJob):
     NAME = 'lolix'
     DESCRIPTION = u'Lolix French free software employment website'
     MAINTAINER = u'Bezleputh'

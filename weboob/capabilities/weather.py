@@ -24,7 +24,7 @@ from .base import IBaseCap, BaseObject, Field, DateField, FloatField, \
                   StringField, UserError
 
 
-__all__ = ['Forecast', 'Current', 'City', 'CityNotFound', 'Temperature', 'ICapWeather']
+__all__ = ['Forecast', 'Current', 'City', 'CityNotFound', 'Temperature', 'CapWeather']
 
 
 class Temperature(BaseObject):
@@ -109,7 +109,7 @@ class CityNotFound(UserError):
     """
 
 
-class ICapWeather(IBaseCap):
+class CapWeather(IBaseCap):
     """
     Capability for weather websites.
     """

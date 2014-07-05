@@ -29,7 +29,7 @@ import re
 import unicodedata
 
 from weboob.capabilities.base import empty, BaseObject
-from weboob.capabilities.bugtracker import ICapBugTracker, Query, Update, Project, Issue, IssueError
+from weboob.capabilities.bugtracker import CapBugTracker, Query, Update, Project, Issue, IssueError
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.tools.misc import html2text
@@ -109,7 +109,7 @@ class BoobTracker(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2011 Romain Bignon'
     DESCRIPTION = "Console application allowing to create, edit, view bug tracking issues."
     SHORT_DESCRIPTION = "manage bug tracking issues"
-    CAPS = ICapBugTracker
+    CAPS = CapBugTracker
     EXTRA_FORMATTERS = {'issue_info': IssueFormatter,
                         'issues_list': IssuesListFormatter,
                        }

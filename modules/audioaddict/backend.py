@@ -18,10 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.radio import ICapRadio, Radio
+from weboob.capabilities.radio import CapRadio, Radio
 from weboob.capabilities.audiostream import BaseAudioStream
 from weboob.tools.capabilities.streaminfo import StreamInfo
-from weboob.capabilities.collection import ICapCollection, Collection
+from weboob.capabilities.collection import CapCollection, Collection
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value
 from weboob.tools.browser import StandardBrowser
@@ -38,7 +38,7 @@ __all__ = ['AudioAddictBackend']
 # option to another player in the ~/.config/weboob/radioob config file:
 # [ROOT]
 # media_player = your_non_mplayer_player
-class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
+class AudioAddictBackend(BaseBackend, CapRadio, CapCollection):
     NAME = 'audioaddict'
     MAINTAINER = u'Pierre Mazière'
     EMAIL = 'pierre.maziere@gmx.com'

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.torrent import ICapTorrent
+from weboob.capabilities.torrent import CapTorrent
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -27,7 +27,7 @@ from .browser import GazelleBrowser
 __all__ = ['GazelleBackend']
 
 
-class GazelleBackend(BaseBackend, ICapTorrent):
+class GazelleBackend(BaseBackend, CapTorrent):
     NAME = 'gazelle'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

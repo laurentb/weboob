@@ -18,13 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 "backend for http://www.lefigaro.fr"
 
-from weboob.capabilities.messages import ICapMessages
+from weboob.capabilities.messages import CapMessages
 from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBackend
 from .browser import NewspaperFigaroBrowser
 from .tools import rssid
 
 
-class NewspaperFigaroBackend(GenericNewspaperBackend, ICapMessages):
+class NewspaperFigaroBackend(GenericNewspaperBackend, CapMessages):
     MAINTAINER = u'Julien Hebert'
     EMAIL = 'juke@free.fr'
     VERSION = '0.j'

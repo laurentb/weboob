@@ -20,7 +20,7 @@
 
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-from weboob.capabilities.bank import ICapBank, AccountNotFound
+from weboob.capabilities.bank import CapBank, AccountNotFound
 
 from .browser import CitelisBrowser
 
@@ -28,7 +28,7 @@ from .browser import CitelisBrowser
 __all__ = ['CitelisBackend']
 
 
-class CitelisBackend(BaseBackend, ICapBank):
+class CitelisBackend(BaseBackend, CapBank):
     NAME = 'citelis'
     DESCRIPTION = u'Citélis'
     MAINTAINER = u'Laurent Bachelier'

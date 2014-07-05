@@ -21,7 +21,7 @@
 from .base import IBaseCap, BaseObject, StringField, Field, UserError
 
 
-__all__ = ['AccountRegisterError', 'Account', 'StatusField', 'ICapAccount']
+__all__ = ['AccountRegisterError', 'Account', 'StatusField', 'CapAccount']
 
 
 class AccountRegisterError(UserError):
@@ -56,7 +56,7 @@ class StatusField(object):
         self.flags = flags
 
 
-class ICapAccount(IBaseCap):
+class CapAccount(IBaseCap):
     """
     Capability for websites when you can create and manage accounts.
 

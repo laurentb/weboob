@@ -17,8 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.video import ICapVideo, BaseVideo
-from weboob.capabilities.collection import ICapCollection, CollectionNotFound
+from weboob.capabilities.video import CapVideo, BaseVideo
+from weboob.capabilities.collection import CapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
 
 from .browser import JacquieEtMichelBrowser
@@ -28,7 +28,7 @@ from .video import JacquieEtMichelVideo
 __all__ = ['JacquieEtMichelBackend']
 
 
-class JacquieEtMichelBackend(BaseBackend, ICapVideo, ICapCollection):
+class JacquieEtMichelBackend(BaseBackend, CapVideo, CapCollection):
     NAME = 'jacquieetmichel'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
@@ -42,7 +42,7 @@ class JacquieEtMichelBackend(BaseBackend, ICapVideo, ICapCollection):
             video = self.browser.get_video(_id)
         return video
 
-    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
+    def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         if not nsfw:
             return iter([])
 

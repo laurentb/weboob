@@ -19,8 +19,8 @@
 
 
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.capabilities.audio import ICapAudio, BaseAudio, Album, Playlist, decode_id
-from weboob.capabilities.collection import ICapCollection, CollectionNotFound
+from weboob.capabilities.audio import CapAudio, BaseAudio, Album, Playlist, decode_id
+from weboob.capabilities.collection import CapCollection, CollectionNotFound
 from .browser import GroovesharkBrowser
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -35,7 +35,7 @@ def cmp_id(p1, p2):
     return -1
 
 
-class GroovesharkBackend(BaseBackend, ICapAudio, ICapCollection):
+class GroovesharkBackend(BaseBackend, CapAudio, CapCollection):
     NAME = 'grooveshark'
     DESCRIPTION = u'Grooveshark music streaming website'
     MAINTAINER = u'Bezleputh'
@@ -63,7 +63,7 @@ class GroovesharkBackend(BaseBackend, ICapAudio, ICapCollection):
             with self.browser:
                 audio.thumbnail.data = self.browser.readurl(audio.thumbnail.url)
 
-    def search_audio(self, pattern, sortby=ICapAudio.SEARCH_RELEVANCE):
+    def search_audio(self, pattern, sortby=CapAudio.SEARCH_RELEVANCE):
         with self.browser:
             return self.browser.search_audio(pattern)
 
@@ -78,7 +78,7 @@ class GroovesharkBackend(BaseBackend, ICapAudio, ICapCollection):
         for song in self.browser.get_all_songs_from_album(_id):
             album.tracks_list.append(song)
 
-    def search_album(self, pattern, sortby=ICapAudio.SEARCH_RELEVANCE):
+    def search_album(self, pattern, sortby=CapAudio.SEARCH_RELEVANCE):
         with self.browser:
             return self.browser.search_albums(pattern)
 
@@ -99,7 +99,7 @@ class GroovesharkBackend(BaseBackend, ICapAudio, ICapCollection):
         for song in self.browser.get_all_songs_from_playlist(_id):
             playlist.tracks_list.append(song)
 
-    def search_playlist(self, pattern, sortby=ICapAudio.SEARCH_RELEVANCE):
+    def search_playlist(self, pattern, sortby=CapAudio.SEARCH_RELEVANCE):
         with self.browser:
             lower_pattern = pattern.lower()
             for playlist in self.browser.get_all_user_playlists():

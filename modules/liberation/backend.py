@@ -19,7 +19,7 @@
 "backend for http://liberation.fr"
 
 from weboob.tools.newsfeed import Newsfeed
-from weboob.capabilities.messages import ICapMessages, Thread
+from weboob.capabilities.messages import CapMessages, Thread
 from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBackend
 from weboob.tools.backend import BackendConfig
 from weboob.tools.value import Value
@@ -27,7 +27,7 @@ from .browser import NewspaperLibeBrowser
 from .tools import rssid, url2id
 
 
-class NewspaperLibeBackend(GenericNewspaperBackend, ICapMessages):
+class NewspaperLibeBackend(GenericNewspaperBackend, CapMessages):
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '0.j'

@@ -392,7 +392,7 @@ class Weboob(WebNip):
         Load backends listed in config file.
 
         :param caps: load backends which implement all of specified caps
-        :type caps: tuple[:class:`weboob.capabilities.base.ICapBase`]
+        :type caps: tuple[:class:`weboob.capabilities.base.CapBase`]
         :param names: load backends with instance name in list
         :type names: tuple[:class:`str`]
         :param modules: load backends which module is in list

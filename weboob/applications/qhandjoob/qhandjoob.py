@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.job import ICapJob
+from weboob.capabilities.job import CapJob
 from weboob.tools.application.qt import QtApplication
 from weboob.tools.config.yamlconfig import YamlConfig
 
@@ -31,12 +31,12 @@ class QHandJoob(QtApplication):
     COPYRIGHT = u'Copyright(C) 2013 Sébastien Monel'
     DESCRIPTION = "Qt application to search for job."
     SHORT_DESCRIPTION = "search for job"
-    CAPS = ICapJob
+    CAPS = CapJob
     CONFIG = {'queries': {}}
     STORAGE = {'bookmarks': [], 'read': [], 'notes': {}}
 
     def main(self, argv):
-        self.load_backends(ICapJob)
+        self.load_backends(CapJob)
         self.create_storage()
         self.load_config(klass=YamlConfig)
 

@@ -22,7 +22,7 @@ import os
 import sys
 import re
 
-from weboob.capabilities.account import ICapAccount
+from weboob.capabilities.account import CapAccount
 from weboob.core.modules import ModuleLoadError
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.ordereddict import OrderedDict
@@ -100,7 +100,7 @@ class WeboobCfg(ReplApplication):
             print >>sys.stderr, 'Error: backend "%s" not found.' % backend_name
             return 1
 
-        if not backend.has_caps(ICapAccount):
+        if not backend.has_caps(CapAccount):
             print >>sys.stderr, 'Error: backend "%s" does not support accounts management' % backend_name
             return 1
 

@@ -22,7 +22,7 @@ from .base import IBaseCap, BaseObject, Field, StringField, DateField, UserError
 from .contact import Contact
 
 
-__all__ = ['OptimizationNotFound', 'Optimization', 'Event', 'ICapDating']
+__all__ = ['OptimizationNotFound', 'Optimization', 'Event', 'CapDating']
 
 
 class OptimizationNotFound(UserError):
@@ -89,7 +89,7 @@ class Event(BaseObject):
     message =   StringField('Message of the event')
 
 
-class ICapDating(IBaseCap):
+class CapDating(IBaseCap):
     """
     Capability for dating websites.
     """

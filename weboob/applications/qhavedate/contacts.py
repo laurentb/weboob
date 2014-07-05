@@ -26,9 +26,9 @@ from PyQt4.QtCore import SIGNAL, Qt
 
 from weboob.tools.application.qt import QtDo, HTMLDelegate
 from weboob.tools.misc import to_unicode
-from weboob.capabilities.contact import ICapContact, Contact
-from weboob.capabilities.chat import ICapChat
-from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message
+from weboob.capabilities.contact import CapContact, Contact
+from weboob.capabilities.chat import CapChat
+from weboob.capabilities.messages import CapMessages, CapMessagesPost, Message
 from weboob.capabilities.base import NotLoaded
 
 from .ui.contacts_ui import Ui_Contacts
@@ -426,7 +426,7 @@ class MetaGroup(IGroup):
             status = Contact.STATUS_ALL
 
         self.process = QtDo(self.weboob, lambda b, d: self.cb(cb, b, d))
-        self.process.do('iter_contacts', status, caps=ICapContact)
+        self.process.do('iter_contacts', status, caps=CapContact)
 
     def cb(self, cb, backend, contact):
         if contact:
@@ -559,9 +559,9 @@ class ContactsWidget(QWidget):
         backend = self.weboob.get_backend(self.contact.backend)
 
         self.ui.tabWidget.addTab(ContactProfile(self.weboob, self.contact), self.tr('Profile'))
-        if backend.has_caps(ICapMessages):
-            self.ui.tabWidget.addTab(ContactThread(self.weboob, self.contact, backend.has_caps(ICapMessagesPost)), self.tr('Messages'))
-        if backend.has_caps(ICapChat):
+        if backend.has_caps(CapMessages):
+            self.ui.tabWidget.addTab(ContactThread(self.weboob, self.contact, backend.has_caps(CapMessagesPost)), self.tr('Messages'))
+        if backend.has_caps(CapChat):
             self.ui.tabWidget.setTabEnabled(self.ui.tabWidget.addTab(QWidget(), self.tr('Chat')),
                                             False)
         self.ui.tabWidget.setTabEnabled(self.ui.tabWidget.addTab(QWidget(), self.tr('Calendar')),

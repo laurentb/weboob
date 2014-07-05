@@ -20,11 +20,11 @@
 
 
 from weboob.capabilities.base import NotLoaded
-from weboob.capabilities.video import ICapVideo
-from weboob.capabilities.radio import ICapRadio, Radio
+from weboob.capabilities.video import CapVideo
+from weboob.capabilities.radio import CapRadio, Radio
 from weboob.capabilities.audiostream import BaseAudioStream
 from weboob.tools.capabilities.streaminfo import StreamInfo
-from weboob.capabilities.collection import ICapCollection, CollectionNotFound, Collection
+from weboob.capabilities.collection import CapCollection, CollectionNotFound, Collection
 from weboob.tools.backend import BaseBackend
 
 from .browser import RadioFranceBrowser, RadioFranceVideo
@@ -33,7 +33,7 @@ from .browser import RadioFranceBrowser, RadioFranceVideo
 __all__ = ['RadioFranceBackend']
 
 
-class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
+class RadioFranceBackend(BaseBackend, CapRadio, CapCollection, CapVideo):
     NAME = 'radiofrance'
     MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'

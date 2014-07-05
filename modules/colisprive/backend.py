@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.parcel import ICapParcel
+from weboob.capabilities.parcel import CapParcel
 from weboob.tools.backend import BaseBackend
 
 from .browser import ColispriveBrowser
@@ -25,7 +25,7 @@ from .browser import ColispriveBrowser
 __all__ = ['ColispriveBackend']
 
 
-class ColispriveBackend(BaseBackend, ICapParcel):
+class ColispriveBackend(BaseBackend, CapParcel):
     NAME = 'colisprive'
     DESCRIPTION = u'Colisprive parcel tracking website'
     MAINTAINER = u'Florent Fourcot'

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.lyrics import ICapLyrics, SongLyrics
+from weboob.capabilities.lyrics import CapLyrics, SongLyrics
 from weboob.tools.backend import BaseBackend
 
 from .browser import ParolesnetBrowser
@@ -25,7 +25,7 @@ from .browser import ParolesnetBrowser
 __all__ = ['ParolesnetBackend']
 
 
-class ParolesnetBackend(BaseBackend, ICapLyrics):
+class ParolesnetBackend(BaseBackend, CapLyrics):
     NAME = 'parolesnet'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.lyrics import ICapLyrics, SongLyrics
+from weboob.capabilities.lyrics import CapLyrics, SongLyrics
 from weboob.tools.backend import BaseBackend
 
 from .browser import SeeklyricsBrowser
@@ -27,7 +27,7 @@ from urllib import quote_plus
 __all__ = ['SeeklyricsBackend']
 
 
-class SeeklyricsBackend(BaseBackend, ICapLyrics):
+class SeeklyricsBackend(BaseBackend, CapLyrics):
     NAME = 'seeklyrics'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

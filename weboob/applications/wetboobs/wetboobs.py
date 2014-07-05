@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.weather import ICapWeather
+from weboob.capabilities.weather import CapWeather
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
@@ -63,7 +63,7 @@ class WetBoobs(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2010-2014 Romain Bignon'
     DESCRIPTION = "Console application allowing to display weather and forecasts in your city."
     SHORT_DESCRIPTION = "display weather and forecasts"
-    CAPS = ICapWeather
+    CAPS = CapWeather
     DEFAULT_FORMATTER = 'table'
     EXTRA_FORMATTERS = {'cities':    CitiesFormatter,
                         'current':   CurrentFormatter,
@@ -87,7 +87,7 @@ class WetBoobs(ReplApplication):
         """
         self.change_path(['cities'])
         self.start_format()
-        for backend, city in self.do('iter_city_search', pattern, caps=ICapWeather):
+        for backend, city in self.do('iter_city_search', pattern, caps=CapWeather):
             self.cached_format(city)
 
     def complete_current(self, text, line, *ignored):
@@ -111,7 +111,7 @@ class WetBoobs(ReplApplication):
             self.formatter.temperature_display = lambda t: t.asfahrenheit()
 
         self.start_format()
-        for backend, current in self.do('get_current', _id, backends=backend_name, caps=ICapWeather):
+        for backend, current in self.do('get_current', _id, backends=backend_name, caps=CapWeather):
             if current:
                 self.format(current)
 
@@ -136,5 +136,5 @@ class WetBoobs(ReplApplication):
             self.formatter.temperature_display = lambda t: t.asfahrenheit()
         self.start_format()
 
-        for backend, forecast in self.do('iter_forecast', _id, backends=backend_name, caps=ICapWeather):
+        for backend, forecast in self.do('iter_forecast', _id, backends=backend_name, caps=CapWeather):
             self.format(forecast)

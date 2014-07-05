@@ -20,8 +20,8 @@
 
 import re
 
-from weboob.capabilities.video import ICapVideo, BaseVideo
-from weboob.capabilities.collection import ICapCollection, CollectionNotFound, Collection
+from weboob.capabilities.video import CapVideo, BaseVideo
+from weboob.capabilities.collection import CapCollection, CollectionNotFound, Collection
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value
 
@@ -32,7 +32,7 @@ from .video import ArteVideo, ArteLiveVideo
 __all__ = ['ArteBackend']
 
 
-class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
+class ArteBackend(BaseBackend, CapVideo, CapCollection):
     NAME = 'arte'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
@@ -95,7 +95,7 @@ class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
             else:
                 return self.browser.get_video(_id)
 
-    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
+    def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         with self.browser:
             return self.browser.search_videos(pattern)
 

@@ -19,7 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import ICapBank, AccountNotFound
+from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 
@@ -30,7 +30,7 @@ from .sgpe.browser import SGEnterpriseBrowser, SGProfessionalBrowser
 __all__ = ['SocieteGeneraleBackend']
 
 
-class SocieteGeneraleBackend(BaseBackend, ICapBank):
+class SocieteGeneraleBackend(BaseBackend, CapBank):
     NAME = 'societegenerale'
     MAINTAINER = u'Jocelyn Jaubert'
     EMAIL = 'jocelyn.jaubert@gmail.com'

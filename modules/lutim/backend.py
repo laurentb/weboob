@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.capabilities.paste import ICapPaste, BasePaste
+from weboob.capabilities.paste import CapPaste, BasePaste
 from weboob.tools.capabilities.paste import image_mime
 from weboob.tools.value import Value
 import re
@@ -31,7 +31,7 @@ from .browser import LutimBrowser
 __all__ = ['LutimBackend']
 
 
-class LutimBackend(BaseBackend, ICapPaste):
+class LutimBackend(BaseBackend, CapPaste):
     NAME = 'lutim'
     DESCRIPTION = u'LUTIm website'
     MAINTAINER = u'Vincent A'

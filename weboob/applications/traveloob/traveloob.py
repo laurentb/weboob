@@ -22,7 +22,7 @@ import sys
 import datetime
 
 from weboob.capabilities.base import Currency, empty
-from weboob.capabilities.travel import ICapTravel, RoadmapFilters
+from weboob.capabilities.travel import CapTravel, RoadmapFilters
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import PrettyFormatter
 
@@ -68,7 +68,7 @@ class Traveloob(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2010-2013 Romain Bignon'
     DESCRIPTION = "Console application allowing to search for train stations and get departure times."
     SHORT_DESCRIPTION = "search for train stations and departures"
-    CAPS = ICapTravel
+    CAPS = CapTravel
     DEFAULT_FORMATTER = 'table'
     EXTRA_FORMATTERS = {'stations': StationsFormatter,
                         'departures': DeparturesFormatter,

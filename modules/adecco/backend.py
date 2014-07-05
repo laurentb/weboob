@@ -21,14 +21,14 @@
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
-from weboob.capabilities.job import ICapJob
+from weboob.capabilities.job import CapJob
 from .browser import AdeccoBrowser
 from .job import AdeccoJobAdvert
 
 __all__ = ['AdeccoBackend']
 
 
-class AdeccoBackend(BaseBackend, ICapJob):
+class AdeccoBackend(BaseBackend, CapJob):
     NAME = 'adecco'
     DESCRIPTION = u'adecco website'
     MAINTAINER = u'Bezleputh'

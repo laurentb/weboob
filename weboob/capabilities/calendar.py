@@ -18,12 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from .base import BaseObject, StringField, DateField, IntField, FloatField, Field
-from .collection import ICapCollection, CollectionNotFound, Collection
+from .collection import CapCollection, CollectionNotFound, Collection
 
 from datetime import time, datetime
 from weboob.tools.date import parse_date
 
-__all__ = ['BaseCalendarEvent', 'ICapCalendarEvent']
+__all__ = ['BaseCalendarEvent', 'CapCalendarEvent']
 
 
 def enum(**enums):
@@ -102,7 +102,7 @@ class Query(BaseObject):
             self.categories.append(value)
 
 
-class ICapCalendarEvent(ICapCollection):
+class CapCalendarEvent(CapCollection):
     """
     Capability of calendar event type sites
     """

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.recipe import ICapRecipe, Recipe
+from weboob.capabilities.recipe import CapRecipe, Recipe
 from weboob.tools.backend import BaseBackend
 
 from .browser import SupertoinetteBrowser
@@ -25,7 +25,7 @@ from .browser import SupertoinetteBrowser
 __all__ = ['SupertoinetteBackend']
 
 
-class SupertoinetteBackend(BaseBackend, ICapRecipe):
+class SupertoinetteBackend(BaseBackend, CapRecipe):
     NAME = 'supertoinette'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

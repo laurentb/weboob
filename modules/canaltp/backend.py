@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.travel import ICapTravel, Station, Departure
+from weboob.capabilities.travel import CapTravel, Station, Departure
 from weboob.tools.backend import BaseBackend
 
 from .browser import CanalTP
@@ -26,7 +26,7 @@ from .browser import CanalTP
 __all__ = ['CanalTPBackend']
 
 
-class CanalTPBackend(BaseBackend, ICapTravel):
+class CanalTPBackend(BaseBackend, CapTravel):
     NAME = 'canaltp'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

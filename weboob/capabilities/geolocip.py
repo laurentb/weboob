@@ -21,7 +21,7 @@
 from .base import IBaseCap, BaseObject, StringField, FloatField
 
 
-__all__ = ['IpLocation', 'ICapGeolocIp']
+__all__ = ['IpLocation', 'CapGeolocIp']
 
 
 class IpLocation(BaseObject):
@@ -42,7 +42,7 @@ class IpLocation(BaseObject):
         BaseObject.__init__(self, ipaddr)
 
 
-class ICapGeolocIp(IBaseCap):
+class CapGeolocIp(IBaseCap):
     """
     Access information about IP addresses database.
     """

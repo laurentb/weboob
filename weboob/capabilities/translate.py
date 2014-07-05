@@ -21,7 +21,7 @@
 from .base import IBaseCap, BaseObject, StringField, UserError
 
 
-__all__ = ['TranslationFail', 'LanguageNotSupported', 'ICapTranslate']
+__all__ = ['TranslationFail', 'LanguageNotSupported', 'CapTranslate']
 
 
 class LanguageNotSupported(UserError):
@@ -51,7 +51,7 @@ class Translation(BaseObject):
     text =          StringField('Translation')
 
 
-class ICapTranslate(IBaseCap):
+class CapTranslate(IBaseCap):
     """
     Capability of online translation website to translate word or sentence
     """

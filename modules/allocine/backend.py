@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.cinema import ICapCinema, Person, Movie
+from weboob.capabilities.cinema import CapCinema, Person, Movie
 from weboob.tools.backend import BaseBackend
 
 from .browser import AllocineBrowser
@@ -27,7 +27,7 @@ from urllib import quote_plus
 __all__ = ['AllocineBackend']
 
 
-class AllocineBackend(BaseBackend, ICapCinema):
+class AllocineBackend(BaseBackend, CapCinema):
     NAME = 'allocine'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

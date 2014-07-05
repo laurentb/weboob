@@ -23,7 +23,7 @@ import codecs
 from PyQt4.QtCore import SIGNAL, Qt, QStringList
 from PyQt4.QtGui import QApplication, QCompleter
 
-from weboob.capabilities.recipe import ICapRecipe
+from weboob.capabilities.recipe import CapRecipe
 from weboob.tools.application.qt import QtMainWindow, QtDo
 from weboob.tools.application.qt.backendcfg import BackendCfg
 
@@ -72,7 +72,7 @@ class MainWindow(QtMainWindow):
             self.backendsConfig()
 
     def backendsConfig(self):
-        bckndcfg = BackendCfg(self.weboob, (ICapRecipe, ), self)
+        bckndcfg = BackendCfg(self.weboob, (CapRecipe, ), self)
         if bckndcfg.run():
             self.loadBackendsList()
 
@@ -184,7 +184,7 @@ class MainWindow(QtMainWindow):
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
         self.process = QtDo(self.weboob, self.addRecipe)
-        self.process.do(self.app._do_complete, self.getCount(), ('title'), 'iter_recipes', pattern, backends=backend_name, caps=ICapRecipe)
+        self.process.do(self.app._do_complete, self.getCount(), ('title'), 'iter_recipes', pattern, backends=backend_name, caps=CapRecipe)
         self.ui.stopButton.show()
 
     def addRecipe(self, backend, recipe):

@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.capabilities.job import ICapJob
+from weboob.capabilities.job import CapJob
 from weboob.tools.value import Value
 from weboob.tools.ordereddict import OrderedDict
 
@@ -29,7 +29,7 @@ from .job import MonsterJobAdvert
 __all__ = ['MonsterBackend']
 
 
-class MonsterBackend(BaseBackend, ICapJob):
+class MonsterBackend(BaseBackend, CapJob):
     NAME = 'monster'
     DESCRIPTION = u'monster website'
     MAINTAINER = u'Bezleputh'

@@ -20,11 +20,11 @@
 
 from weboob.tools.capabilities.streaminfo import StreamInfo
 from .base import Field
-from .file import ICapFile
-from .audio import ICapAudio, BaseAudio
+from .file import CapFile
+from .audio import CapAudio, BaseAudio
 
 
-__all__ = ['BaseAudioStream', 'ICapAudioStream']
+__all__ = ['BaseAudioStream', 'CapAudioStream']
 
 
 class BaseAudioStream(BaseAudio):
@@ -40,11 +40,11 @@ class BaseAudioStream(BaseAudio):
         return self.__unicode__()
 
 
-class ICapAudioStream(ICapAudio):
+class CapAudioStream(CapAudio):
     """
     Audio streams provider
     """
-    def search_audiostreams(self, pattern, sortby=ICapFile.SEARCH_RELEVANCE):
+    def search_audiostreams(self, pattern, sortby=CapFile.SEARCH_RELEVANCE):
         """
         Search an audio stream
 

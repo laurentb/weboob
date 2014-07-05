@@ -21,8 +21,8 @@ from datetime import time, datetime, timedelta
 
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.capabilities.messages import ICapMessages, Thread, ICapMessagesPost
-from weboob.capabilities.collection import ICapCollection, CollectionNotFound, Collection
+from weboob.capabilities.messages import CapMessages, Thread, CapMessagesPost
+from weboob.capabilities.collection import CapCollection, CollectionNotFound, Collection
 from weboob.capabilities.base import find_object
 from weboob.tools.exceptions import BrowserForbidden
 from .browser import TwitterBrowser
@@ -31,7 +31,7 @@ import itertools
 __all__ = ['TwitterBackend']
 
 
-class TwitterBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapCollection):
+class TwitterBackend(BaseBackend, CapMessages, CapMessagesPost, CapCollection):
     NAME = 'twitter'
     DESCRIPTION = u'twitter website'
     MAINTAINER = u'Bezleputh'

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.application.qt import QtApplication
-from weboob.capabilities.content import ICapContent
+from weboob.capabilities.content import CapContent
 
 from .main_window import MainWindow
 
@@ -29,10 +29,10 @@ class QWebContentEdit(QtApplication):
     COPYRIGHT = u'Copyright(C) 2011 Clément Schreiner'
     DESCRIPTION = "Qt application allowing to manage content of various websites."
     SHORT_DESCRIPTION = "manage websites content"
-    CAPS = ICapContent
+    CAPS = CapContent
 
     def main(self, argv):
-        self.load_backends(ICapContent, storage=self.create_storage())
+        self.load_backends(CapContent, storage=self.create_storage())
         self.main_window = MainWindow(self.config, self.weboob, self)
         self.main_window.show()
         return self.weboob.loop()

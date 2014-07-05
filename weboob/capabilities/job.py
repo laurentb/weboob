@@ -19,7 +19,7 @@
 
 from .base import BaseObject, IBaseCap, StringField, DateField
 
-__all__ = ['BaseJobAdvert', 'ICapJob']
+__all__ = ['BaseJobAdvert', 'CapJob']
 
 
 class BaseJobAdvert(BaseObject):
@@ -67,7 +67,7 @@ class BaseJobAdvert(BaseObject):
         return self.id2url(self.id)
 
 
-class ICapJob(IBaseCap):
+class CapJob(IBaseCap):
     """
     Capability of job annouce websites.
     """

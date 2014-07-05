@@ -19,7 +19,7 @@
 
 
 import sys
-from weboob.capabilities.translate import ICapTranslate, TranslationFail, LanguageNotSupported
+from weboob.capabilities.translate import CapTranslate, TranslationFail, LanguageNotSupported
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
 
@@ -51,7 +51,7 @@ class Translaboob(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2012 Lucien Loiseau'
     DESCRIPTION = "Console application to translate text from one language to another"
     SHORT_DESCRIPTION = "translate text from one language to another"
-    CAPS = ICapTranslate
+    CAPS = CapTranslate
     EXTRA_FORMATTERS = {'translation': TranslationFormatter,
         'xmltrans':    XmlTranslationFormatter,
         }

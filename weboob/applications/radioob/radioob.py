@@ -23,8 +23,8 @@ import os
 import re
 import requests
 
-from weboob.capabilities.radio import ICapRadio, Radio
-from weboob.capabilities.audio import ICapAudio, BaseAudio, Playlist, Album
+from weboob.capabilities.radio import CapRadio, Radio
+from weboob.capabilities.audio import CapAudio, BaseAudio, Playlist, Album
 from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
@@ -129,7 +129,7 @@ class Radioob(ReplApplication):
     DESCRIPTION = "Console application allowing to search for web radio stations, listen to them and get information " \
                   "like the current song."
     SHORT_DESCRIPTION = "search, show or listen to radio stations"
-    CAPS = (ICapRadio, ICapAudio)
+    CAPS = (CapRadio, CapAudio)
     EXTRA_FORMATTERS = {'radio_list': RadioListFormatter,
                         'song_list': SongListFormatter,
                         'album_tracks_list_info': AlbumTrackListInfoFormatter,
@@ -301,7 +301,7 @@ class Radioob(ReplApplication):
             except (IndexError, ValueError):
                 pass
 
-        m = ICapAudio.get_object_method(_id)
+        m = CapAudio.get_object_method(_id)
         if m:
             obj = self.get_object(_id, m)
 

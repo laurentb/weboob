@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from weboob.capabilities.torrent import ICapTorrent
+from weboob.capabilities.torrent import CapTorrent
 from weboob.tools.backend import BaseBackend
 
 from .browser import BTDiggBrowser
@@ -8,7 +8,7 @@ from .browser import BTDiggBrowser
 
 __all__ = ['BTDiggBackend']
 
-class BTDiggBackend(BaseBackend, ICapTorrent):
+class BTDiggBackend(BaseBackend, CapTorrent):
     NAME = 'btdigg'
     MAINTAINER = u'Matthieu Rakotojaona'
     EMAIL = 'matthieu.rakotojaona@gmail.com'

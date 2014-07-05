@@ -23,7 +23,7 @@ import logging
 from PyQt4.QtGui import QWidget, QTreeWidgetItem, QListWidgetItem, QMessageBox, QBrush
 from PyQt4.QtCore import SIGNAL, Qt
 
-from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message
+from weboob.capabilities.messages import CapMessages, CapMessagesPost, Message
 from weboob.tools.application.qt import QtDo
 from weboob.tools.misc import to_unicode
 
@@ -58,7 +58,7 @@ class MessagesManager(QWidget):
         self.ui.backendsList.clear()
         self.ui.backendsList.addItem('(All)')
         for backend in self.weboob.iter_backends():
-            if not backend.has_caps(ICapMessages):
+            if not backend.has_caps(CapMessages):
                 continue
 
             item = QListWidgetItem(backend.name.capitalize())
@@ -87,7 +87,7 @@ class MessagesManager(QWidget):
         self.ui.threadsList.setEnabled(False)
 
         self.process_threads = QtDo(self.weboob, self._gotThread)
-        self.process_threads.do('iter_threads', backends=self.backend, caps=ICapMessages)
+        self.process_threads.do('iter_threads', backends=self.backend, caps=CapMessages)
 
     def _gotThread(self, backend, thread):
         if not backend:
@@ -166,7 +166,7 @@ class MessagesManager(QWidget):
 
     def showMessage(self, message, item=None):
         backend = self.weboob.get_backend(message.thread.backend)
-        if backend.has_caps(ICapMessagesPost):
+        if backend.has_caps(CapMessagesPost):
             self.ui.replyButton.setEnabled(True)
         self.message = message
 

@@ -20,9 +20,9 @@
 
 from weboob.tools.ordereddict import OrderedDict
 from .base import NotLoaded, Field, BytesField
-from .file import ICapFile, BaseFile
+from .file import CapFile, BaseFile
 
-__all__ = ['BaseImage', 'ICapImage']
+__all__ = ['BaseImage', 'CapImage']
 
 class _BaseImage(BaseFile):
     """
@@ -57,11 +57,11 @@ class BaseImage(_BaseImage):
         return OrderedDict(iter_decorate(fields_iterator))
 
 
-class ICapImage(ICapFile):
+class CapImage(CapFile):
     """
     Image file provider
     """
-    def search_image(self, pattern, sortby=ICapFile.SEARCH_RELEVANCE, nsfw=False):
+    def search_image(self, pattern, sortby=CapFile.SEARCH_RELEVANCE, nsfw=False):
         """
         search for an image file
 

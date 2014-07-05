@@ -20,7 +20,7 @@
 
 from .base import IBaseCap, BaseObject, StringField, FloatField, DateField, Field, UserError, empty
 
-__all__ = ['Gauge', 'GaugeSensor', 'GaugeMeasure', 'ICapGauge', 'SensorNotFound']
+__all__ = ['Gauge', 'GaugeSensor', 'GaugeMeasure', 'CapGauge', 'SensorNotFound']
 
 
 class SensorNotFound(UserError):
@@ -73,7 +73,7 @@ class GaugeSensor(BaseObject):
         return "<GaugeSensor id=%s name=%s>" % (self.id, self.name)
 
 
-class ICapGauge(IBaseCap):
+class CapGauge(IBaseCap):
     def iter_gauges(self, pattern=None):
         """
         Iter gauges.

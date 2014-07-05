@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.bill import ICapBill, SubscriptionNotFound,\
+from weboob.capabilities.bill import CapBill, SubscriptionNotFound,\
     BillNotFound, Subscription, Bill
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -26,7 +26,7 @@ from .browser import GdfSuez
 __all__ = ['GdfSuezBackend']
 
 
-class GdfSuezBackend(BaseBackend, ICapBill):
+class GdfSuezBackend(BaseBackend, CapBill):
     NAME = 'gdfsuez'
     MAINTAINER = u'Mathieu Jourdan'
     EMAIL = 'mathieu.jourdan@gresille.org'

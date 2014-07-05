@@ -23,7 +23,7 @@ from .base import IBaseCap, BaseObject, Field, StringField, BytesField, IntField
 from weboob.tools.ordereddict import OrderedDict
 
 
-__all__ = ['ProfileNode', 'ContactPhoto', 'Contact', 'QueryError', 'Query', 'ICapContact']
+__all__ = ['ProfileNode', 'ContactPhoto', 'Contact', 'QueryError', 'Query', 'CapContact']
 
 
 class ProfileNode(object):
@@ -165,7 +165,7 @@ class Query(BaseObject):
         self.message = message
 
 
-class ICapContact(IBaseCap):
+class CapContact(IBaseCap):
     def iter_contacts(self, status=Contact.STATUS_ALL, ids=None):
         """
         Iter contacts

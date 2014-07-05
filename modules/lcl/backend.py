@@ -20,7 +20,7 @@
 
 
 
-from weboob.capabilities.bank import ICapBank, AccountNotFound
+from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -31,7 +31,7 @@ from .enterprise.browser import LCLEnterpriseBrowser
 __all__ = ['LCLBackend']
 
 
-class LCLBackend(BaseBackend, ICapBank):
+class LCLBackend(BaseBackend, CapBank):
     NAME = 'lcl'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

@@ -22,7 +22,7 @@ from .base import IBaseCap, BaseObject, Field, IntField, DecimalField, \
                   StringField, BytesField, DateField
 
 
-__all__ = ['HousingPhoto', 'Housing', 'Query', 'City', 'ICapHousing']
+__all__ = ['HousingPhoto', 'Housing', 'Query', 'City', 'CapHousing']
 
 
 class HousingPhoto(BaseObject):
@@ -89,7 +89,7 @@ class City(BaseObject):
     name =      StringField('Name of city')
 
 
-class ICapHousing(IBaseCap):
+class CapHousing(IBaseCap):
     """
     Capability of websites to search housings.
     """

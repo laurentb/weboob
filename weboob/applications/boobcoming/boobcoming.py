@@ -23,7 +23,7 @@ from datetime import time, datetime
 from weboob.tools.date import parse_date
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.capabilities.base import empty
-from weboob.capabilities.calendar import ICapCalendarEvent, Query, CATEGORIES, BaseCalendarEvent
+from weboob.capabilities.calendar import CapCalendarEvent, Query, CATEGORIES, BaseCalendarEvent
 from weboob.tools.application.repl import ReplApplication, defaultcount
 
 
@@ -143,7 +143,7 @@ class Boobcoming(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2012 Bezleputh'
     DESCRIPTION = "Console application to see upcoming events."
     SHORT_DESCRIPTION = "see upcoming events"
-    CAPS = ICapCalendarEvent
+    CAPS = CapCalendarEvent
     EXTRA_FORMATTERS = {'upcoming_list': UpcomingListFormatter,
                         'upcoming': UpcomingFormatter,
                         'simple_upcoming': UpcomingSimpleFormatter,

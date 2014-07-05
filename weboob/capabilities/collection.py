@@ -22,7 +22,7 @@ from weboob.tools.ordereddict import OrderedDict
 from .base import IBaseCap, BaseObject, UserError, StringField, Field
 
 
-__all__ = ['ICapCollection', 'BaseCollection', 'Collection', 'CollectionNotFound']
+__all__ = ['CapCollection', 'BaseCollection', 'Collection', 'CollectionNotFound']
 
 
 class CollectionNotFound(UserError):
@@ -95,7 +95,7 @@ class Collection(BaseCollection):
             return u'Unknown collection'
 
 
-class ICapCollection(IBaseCap):
+class CapCollection(IBaseCap):
     def iter_resources_flat(self, objs, split_path, clean_only=False):
         """
         Call iter_resources() to fetch all resources in the tree.

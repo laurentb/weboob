@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.capabilities.messages import ICapMessages, Message, Thread
+from weboob.capabilities.messages import CapMessages, Message, Thread
 from weboob.tools.newsfeed import Newsfeed
 from weboob.tools.value import Value
 
@@ -27,7 +27,7 @@ from weboob.tools.value import Value
 __all__ = ['NewsfeedBackend']
 
 
-class NewsfeedBackend(BaseBackend, ICapMessages):
+class NewsfeedBackend(BaseBackend, CapMessages):
     NAME = 'newsfeed'
     MAINTAINER = u'Clément Schreiner'
     EMAIL = "clemux@clemux.info"

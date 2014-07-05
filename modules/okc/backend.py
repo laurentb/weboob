@@ -24,9 +24,9 @@ import datetime
 from dateutil import tz
 from dateutil.parser import parse as _parse_dt
 
-from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
-from weboob.capabilities.dating import ICapDating, OptimizationNotFound, Event
-from weboob.capabilities.contact import ICapContact, ContactPhoto, Contact, Query, QueryError
+from weboob.capabilities.messages import CapMessages, CapMessagesPost, Message, Thread
+from weboob.capabilities.dating import CapDating, OptimizationNotFound, Event
+from weboob.capabilities.contact import CapContact, ContactPhoto, Contact, Query, QueryError
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.misc import local2utc
@@ -63,7 +63,7 @@ def parse_dt(s):
     return local2utc(d)
 
 
-class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapDating):
+class OkCBackend(BaseBackend, CapMessages, CapContact, CapMessagesPost, CapDating):
     NAME = 'okc'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
@@ -82,7 +82,7 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
     def create_default_browser(self):
         return self.create_browser(self.config['username'].get(), self.config['password'].get())
 
-    # ---- ICapDating methods ---------------------
+    # ---- CapDating methods ---------------------
     def init_optimizations(self):
         self.add_optimization('PROFILE_WALKER', ProfilesWalker(self.weboob.scheduler, self.storage, self.browser))
 
@@ -107,7 +107,7 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
                 # e.message = message % e.contact.name
                 yield e
 
-    # ---- ICapMessages methods ---------------------
+    # ---- CapMessages methods ---------------------
 
     def fill_thread(self, thread, fields):
         return self.get_thread(thread)
@@ -227,7 +227,7 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
         slut['lastmsg'] = slut.get('lastmsg', datetime.datetime(1970,1,1)).replace(tzinfo=tz.tzutc())
         return slut
 
-    # ---- ICapMessagesPost methods ---------------------
+    # ---- CapMessagesPost methods ---------------------
 
     def post_message(self, message):
         content = message.content.replace('\n', '\r\n').encode('utf-8', 'replace')
@@ -241,7 +241,7 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost, ICapD
             else:
                 self.browser.post_mail(message.thread.id, content)
 
-    # ---- ICapContact methods ---------------------
+    # ---- CapContact methods ---------------------
 
     def fill_contact(self, contact, fields):
         if 'profile' in fields:

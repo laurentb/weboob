@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.travel import ICapTravel, RoadStep
+from weboob.capabilities.travel import CapTravel, RoadStep
 from weboob.tools.backend import BaseBackend
 
 from .browser import JVMalin
@@ -26,7 +26,7 @@ from .browser import JVMalin
 __all__ = ['JVMalinBackend']
 
 
-class JVMalinBackend(BaseBackend, ICapTravel):
+class JVMalinBackend(BaseBackend, CapTravel):
     NAME = 'jvmalin'
     MAINTAINER = u'Alexandre Lissy'
     EMAIL = 'github@lissy.me'

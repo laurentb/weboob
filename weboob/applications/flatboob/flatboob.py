@@ -20,7 +20,7 @@
 
 import sys
 
-from weboob.capabilities.housing import ICapHousing, Query
+from weboob.capabilities.housing import CapHousing, Query
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
@@ -79,7 +79,7 @@ class Flatboob(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2012 Romain Bignon'
     DESCRIPTION = "Console application to search for housing."
     SHORT_DESCRIPTION = "search for housing"
-    CAPS = ICapHousing
+    CAPS = CapHousing
     EXTRA_FORMATTERS = {'housing_list': HousingListFormatter,
                         'housing':      HousingFormatter,
                        }

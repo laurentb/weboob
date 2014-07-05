@@ -16,14 +16,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.radio import ICapRadio, Radio
-from weboob.capabilities.collection import ICapCollection
+from weboob.capabilities.radio import CapRadio, Radio
+from weboob.capabilities.collection import CapCollection
 from weboob.tools.backend import BaseBackend
 from .browser import NectarineBrowser
 
 __all__ = ['NectarineBackend']
 
-class NectarineBackend(BaseBackend, ICapRadio, ICapCollection):
+class NectarineBackend(BaseBackend, CapRadio, CapCollection):
     NAME = 'nectarine'
     MAINTAINER = u'Thomas Lecavelier'
     EMAIL = 'thomas-weboob@lecavelier.name'

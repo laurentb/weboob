@@ -19,7 +19,7 @@
 
 
 
-from weboob.capabilities.bill import ICapBill, Subscription, SubscriptionNotFound, Detail
+from weboob.capabilities.bill import CapBill, Subscription, SubscriptionNotFound, Detail
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -29,7 +29,7 @@ from .browser import Nettokom
 __all__ = ['NettoKomBackend']
 
 
-class NettoKomBackend(BaseBackend, ICapBill):
+class NettoKomBackend(BaseBackend, CapBill):
     NAME = 'nettokom'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

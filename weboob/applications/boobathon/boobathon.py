@@ -24,7 +24,7 @@ import sys
 from urlparse import urlsplit
 from random import choice
 
-from weboob.capabilities.content import ICapContent
+from weboob.capabilities.content import CapContent
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.ordereddict import OrderedDict
 
@@ -281,7 +281,7 @@ class Boobathon(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2011 Romain Bignon'
     DESCRIPTION = 'Console application to participate to a Boobathon.'
     SHORT_DESCRIPTION = "participate in a Boobathon"
-    CAPS = ICapContent
+    CAPS = CapContent
     SYNOPSIS =  'Usage: %prog [-dqv] [-b backends] [-cnfs] boobathon\n'
     SYNOPSIS += '       %prog [--help] [--version]'
 

@@ -25,7 +25,7 @@ import locale
 import codecs
 
 from weboob.core.bcall import CallErrors
-from weboob.capabilities.content import ICapContent, Revision
+from weboob.capabilities.content import CapContent, Revision
 from weboob.tools.application.repl import ReplApplication, defaultcount
 
 
@@ -38,7 +38,7 @@ class WebContentEdit(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = "Console application allowing to display and edit contents on various websites."
     SHORT_DESCRIPTION = "manage websites content"
-    CAPS = ICapContent
+    CAPS = CapContent
 
     def do_edit(self, line):
         """

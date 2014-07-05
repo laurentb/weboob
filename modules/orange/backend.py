@@ -20,8 +20,8 @@
 
 
 
-from weboob.capabilities.messages import CantSendMessage, ICapMessages, ICapMessagesPost
-from weboob.capabilities.account import ICapAccount, StatusField
+from weboob.capabilities.messages import CantSendMessage, CapMessages, CapMessagesPost
+from weboob.capabilities.account import CapAccount, StatusField
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -31,7 +31,7 @@ from .browser import OrangeBrowser
 __all__ = ['OrangeBackend']
 
 
-class OrangeBackend(BaseBackend, ICapAccount, ICapMessages, ICapMessagesPost):
+class OrangeBackend(BaseBackend, CapAccount, CapMessages, CapMessagesPost):
     NAME = 'orange'
     MAINTAINER = u'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'

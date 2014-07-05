@@ -22,7 +22,7 @@ from weboob.tools.capabilities.thumbnail import Thumbnail
 from .base import IBaseCap, BaseObject, NotLoaded, Field, StringField, \
                   BytesField, IntField, FloatField, DateField
 
-__all__ = ['BaseGallery', 'BaseImage', 'ICapGallery']
+__all__ = ['BaseGallery', 'BaseImage', 'CapGallery']
 
 
 class BaseGallery(BaseObject):
@@ -102,7 +102,7 @@ class BaseImage(BaseObject):
         return self.data is not NotLoaded
 
 
-class ICapGallery(IBaseCap):
+class CapGallery(IBaseCap):
     """
     This capability represents the ability for a website backend to provide videos.
     """

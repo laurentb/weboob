@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.parcel import ICapParcel
+from weboob.capabilities.parcel import CapParcel
 from weboob.tools.backend import BaseBackend
 
 from .browser import ChronopostBrowser
@@ -27,7 +27,7 @@ from .browser import ChronopostBrowser
 __all__ = ['ChronopostBackend']
 
 
-class ChronopostBackend(BaseBackend, ICapParcel):
+class ChronopostBackend(BaseBackend, CapParcel):
     NAME = 'chronopost'
     DESCRIPTION = u'Chronopost website'
     MAINTAINER = u'Romain Bignon'

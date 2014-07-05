@@ -24,7 +24,7 @@ from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.newsfeed import Newsfeed
 from weboob.tools.value import Value, ValueInt, ValueBackendPassword
 from weboob.tools.misc import limit
-from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread, CantSendMessage
+from weboob.capabilities.messages import CapMessages, CapMessagesPost, Message, Thread, CantSendMessage
 
 from .browser import PhpBB
 from .tools import rssid, url2id, id2url, id2topic
@@ -33,7 +33,7 @@ from .tools import rssid, url2id, id2url, id2topic
 __all__ = ['PhpBBBackend']
 
 
-class PhpBBBackend(BaseBackend, ICapMessages, ICapMessagesPost):
+class PhpBBBackend(BaseBackend, CapMessages, CapMessagesPost):
     NAME = 'phpbb'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -57,7 +57,7 @@ class PhpBBBackend(BaseBackend, ICapMessages, ICapMessagesPost):
         return self.create_browser(self.config['url'].get(),
                                    username, password)
 
-    #### ICapMessages ##############################################
+    #### CapMessages ##############################################
 
     def _iter_threads(self, root_link=None):
         with self.browser:
@@ -174,7 +174,7 @@ class PhpBBBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     def fill_thread(self, thread, fields):
         return self.get_thread(thread)
 
-    #### ICapMessagesReply #########################################
+    #### CapMessagesReply #########################################
     def post_message(self, message):
         assert message.thread
 

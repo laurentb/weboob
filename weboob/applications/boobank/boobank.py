@@ -26,7 +26,7 @@ from decimal import Decimal, InvalidOperation
 import sys
 
 from weboob.capabilities.base import empty
-from weboob.capabilities.bank import ICapBank, Account, Transaction
+from weboob.capabilities.bank import CapBank, Account, Transaction
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
@@ -280,7 +280,7 @@ class Boobank(ReplApplication):
     APPNAME = 'boobank'
     VERSION = '0.j'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon, Christophe Benz'
-    CAPS = ICapBank
+    CAPS = CapBank
     DESCRIPTION = "Console application allowing to list your bank accounts and get their balance, " \
                   "display accounts history and coming bank operations, and transfer money from an account to " \
                   "another (if available)."

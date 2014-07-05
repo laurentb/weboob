@@ -26,7 +26,7 @@ from PyQt4.QtCore import Qt
 from weboob.tools.application.base import MoreResultsAvailable
 from weboob.tools.application.qt import QtMainWindow, QtDo
 from weboob.tools.application.qt.backendcfg import BackendCfg
-from weboob.capabilities.content import ICapContent
+from weboob.capabilities.content import CapContent
 from weboob.tools.misc import to_unicode
 
 from .ui.main_window_ui import Ui_MainWindow
@@ -75,7 +75,7 @@ class MainWindow(QtMainWindow):
 
     def backendsConfig(self):
         """ Opens backends configuration dialog when 'Backends' is clicked """
-        bckndcfg = BackendCfg(self.weboob, (ICapContent,), self)
+        bckndcfg = BackendCfg(self.weboob, (CapContent,), self)
         if bckndcfg.run():
             self.loadBackends()
 

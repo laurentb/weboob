@@ -20,7 +20,7 @@
 
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.capabilities.base import StringField
-from weboob.capabilities.gauge import ICapGauge, GaugeSensor, Gauge, GaugeMeasure, SensorNotFound
+from weboob.capabilities.gauge import CapGauge, GaugeSensor, Gauge, GaugeMeasure, SensorNotFound
 from weboob.tools.value import Value
 from weboob.tools.ordereddict import OrderedDict
 
@@ -51,7 +51,7 @@ class BikeSensor(GaugeSensor):
     latitude = StringField('Latitude of the sensor')
 
 
-class jcvelauxBackend(BaseBackend, ICapGauge):
+class jcvelauxBackend(BaseBackend, CapGauge):
     NAME = 'jcvelaux'
     DESCRIPTION = (u'City bike renting availability information.\nCities: %s' %
                    u', '.join(CITIES))

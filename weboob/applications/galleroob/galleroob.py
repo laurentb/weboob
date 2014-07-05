@@ -25,7 +25,7 @@ from re import search, sub
 
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.capabilities.base import empty
-from weboob.capabilities.gallery import ICapGallery, BaseGallery, BaseImage
+from weboob.capabilities.gallery import CapGallery, BaseGallery, BaseImage
 from weboob.tools.application.formatters.iformatter import PrettyFormatter
 
 
@@ -52,7 +52,7 @@ class Galleroob(ReplApplication):
     COPYRIGHT = u'Copyright(C) 2011 Noé Rubinstein'
     DESCRIPTION = 'galleroob browses and downloads web image galleries'
     SHORT_DESCRIPTION = 'browse and download web image galleries'
-    CAPS = ICapGallery
+    CAPS = CapGallery
     EXTRA_FORMATTERS = {'gallery_list': GalleryListFormatter}
     COMMANDS_FORMATTERS = {'search': 'gallery_list', 'ls': 'gallery_list'}
     COLLECTION_OBJECTS = (BaseGallery, BaseImage, )

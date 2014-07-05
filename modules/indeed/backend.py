@@ -20,14 +20,14 @@
 
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.ordereddict import OrderedDict
-from weboob.capabilities.job import ICapJob, BaseJobAdvert
+from weboob.capabilities.job import CapJob, BaseJobAdvert
 from weboob.tools.value import Value
 from .browser import IndeedBrowser
 
 __all__ = ['IndeedBackend']
 
 
-class IndeedBackend(BaseBackend, ICapJob):
+class IndeedBackend(BaseBackend, CapJob):
     NAME = 'indeed'
     DESCRIPTION = u'indeed website'
     MAINTAINER = u'Bezleputh'

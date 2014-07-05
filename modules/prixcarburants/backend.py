@@ -19,7 +19,7 @@
 
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value
-from weboob.capabilities.pricecomparison import ICapPriceComparison, Price, Product
+from weboob.capabilities.pricecomparison import CapPriceComparison, Price, Product
 
 from .browser import PrixCarburantsBrowser
 
@@ -27,7 +27,7 @@ from .browser import PrixCarburantsBrowser
 __all__ = ['PrixCarburantsBackend']
 
 
-class PrixCarburantsBackend(BaseBackend, ICapPriceComparison):
+class PrixCarburantsBackend(BaseBackend, CapPriceComparison):
     NAME = 'prixcarburants'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

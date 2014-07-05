@@ -20,7 +20,7 @@
 
 from PyQt4.QtCore import SIGNAL
 
-from weboob.capabilities.video import ICapVideo
+from weboob.capabilities.video import CapVideo
 from weboob.tools.application.qt import QtMainWindow, QtDo
 from weboob.tools.application.qt.backendcfg import BackendCfg
 
@@ -58,7 +58,7 @@ class MainWindow(QtMainWindow):
             self.backendsConfig()
 
     def backendsConfig(self):
-        bckndcfg = BackendCfg(self.weboob, (ICapVideo,), self)
+        bckndcfg = BackendCfg(self.weboob, (CapVideo,), self)
         if bckndcfg.run():
             self.loadBackendsList()
 

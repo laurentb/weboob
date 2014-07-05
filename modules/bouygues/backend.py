@@ -20,7 +20,7 @@
 
 
 
-from weboob.capabilities.messages import CantSendMessage, ICapMessages, ICapMessagesPost
+from weboob.capabilities.messages import CantSendMessage, CapMessages, CapMessagesPost
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -30,7 +30,7 @@ from .browser import BouyguesBrowser
 __all__ = ['BouyguesBackend']
 
 
-class BouyguesBackend(BaseBackend, ICapMessages, ICapMessagesPost):
+class BouyguesBackend(BaseBackend, CapMessages, CapMessagesPost):
     NAME = 'bouygues'
     MAINTAINER = u'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'

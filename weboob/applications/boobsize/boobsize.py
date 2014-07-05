@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.base import empty
-from weboob.capabilities.gauge import ICapGauge, SensorNotFound
+from weboob.capabilities.gauge import CapGauge, SensorNotFound
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
 
@@ -98,7 +98,7 @@ class Boobsize(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2013 Florent Fourcot'
     DESCRIPTION = "Console application allowing to display various sensors and gauges values."
     SHORT_DESCRIPTION = "display sensors and gauges values"
-    CAPS = (ICapGauge)
+    CAPS = (CapGauge)
     DEFAULT_FORMATTER = 'table'
     EXTRA_FORMATTERS = {'gauge_list':   GaugeFormatter, }
     COMMANDS_FORMATTERS = {'search':    'gauge_list',
@@ -123,7 +123,7 @@ class Boobsize(ReplApplication):
         """
         self.change_path([u'gauges'])
         self.start_format()
-        for backend, gauge in self.do('iter_gauges', pattern or None, caps=ICapGauge):
+        for backend, gauge in self.do('iter_gauges', pattern or None, caps=CapGauge):
             self.cached_format(gauge)
 
     def complete_search(self, text, line, *ignored):
@@ -141,7 +141,7 @@ class Boobsize(ReplApplication):
         _id, backend_name = self.parse_id(gauge)
 
         self.start_format()
-        for backend, sensor in self.do('iter_sensors', _id, pattern=pattern, backends=backend_name, caps=ICapGauge):
+        for backend, sensor in self.do('iter_sensors', _id, pattern=pattern, backends=backend_name, caps=CapGauge):
             self.format(sensor)
 
     def do_history(self, line):
@@ -154,7 +154,7 @@ class Boobsize(ReplApplication):
         _id, backend_name = self.parse_id(gauge)
 
         self.start_format()
-        for backend, measure in self.do('iter_gauge_history', _id, backends=backend_name, caps=ICapGauge):
+        for backend, measure in self.do('iter_gauge_history', _id, backends=backend_name, caps=CapGauge):
             self.format(measure)
 
     def complete_last_sensor_measure(self, text, line, *ignored):
@@ -172,5 +172,5 @@ class Boobsize(ReplApplication):
         _id, backend_name = self.parse_id(gauge)
 
         self.start_format()
-        for backend, measure in self.do('get_last_measure', _id, backends=backend_name, caps=ICapGauge):
+        for backend, measure in self.do('get_last_measure', _id, backends=backend_name, caps=CapGauge):
             self.format(measure)

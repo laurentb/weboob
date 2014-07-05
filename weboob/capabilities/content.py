@@ -21,7 +21,7 @@
 from .base import IBaseCap, BaseObject, StringField, DateField, Field
 
 
-__all__ = ['Content', 'Revision', 'ICapContent']
+__all__ = ['Content', 'Revision', 'CapContent']
 
 
 class Content(BaseObject):
@@ -44,7 +44,7 @@ class Revision(BaseObject):
     minor =         Field('Is this change minor?', bool)
 
 
-class ICapContent(IBaseCap):
+class CapContent(IBaseCap):
     def get_content(self, id, revision=None):
         """
         Get a content from an ID.

@@ -25,10 +25,10 @@ import re
 from weboob.tools.compat import basestring, long
 
 from .base import BaseObject, Field, StringField, DateField, DecimalField, IntField, UserError, Currency
-from .collection import ICapCollection
+from .collection import CapCollection
 
 
-__all__ = ['AccountNotFound', 'TransferError', 'Recipient', 'Account', 'Transaction', 'Investment', 'Transfer', 'ICapBank']
+__all__ = ['AccountNotFound', 'TransferError', 'Recipient', 'Account', 'Transaction', 'Investment', 'Transfer', 'CapBank']
 
 
 class AccountNotFound(UserError):
@@ -157,7 +157,7 @@ class Transfer(BaseObject):
     reason =    StringField('Reason')
 
 
-class ICapBank(ICapCollection):
+class CapBank(CapCollection):
     """
     Capability of bank websites to see accounts and transactions.
     """

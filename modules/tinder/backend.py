@@ -21,8 +21,8 @@
 import datetime
 from dateutil.parser import parse as parse_date
 
-from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Thread, Message
-from weboob.capabilities.dating import ICapDating, Optimization
+from weboob.capabilities.messages import CapMessages, CapMessagesPost, Thread, Message
+from weboob.capabilities.dating import CapDating, Optimization
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.log import getLogger
@@ -65,7 +65,7 @@ class ProfilesWalker(Optimization):
                 self.view_cron = self.sched.schedule(1, self.view_profile)
 
 
-class TinderBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating):
+class TinderBackend(BaseBackend, CapMessages, CapMessagesPost, CapDating):
     NAME = 'tinder'
     DESCRIPTION = u'Tinder dating mobile application'
     MAINTAINER = u'Roger Philibert'
@@ -85,12 +85,12 @@ class TinderBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating):
                        self.config['password'].get())
         return TinderBrowser(facebook)
 
-    # ---- ICapDating methods -----------------------
+    # ---- CapDating methods -----------------------
 
     def init_optimizations(self):
         self.add_optimization('PROFILE_WALKER', ProfilesWalker(self.weboob.scheduler, self.storage, self.browser))
 
-    # ---- ICapMessages methods ---------------------
+    # ---- CapMessages methods ---------------------
 
     def fill_thread(self, thread, fields):
         return self.get_thread(thread)
@@ -157,7 +157,7 @@ class TinderBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating):
             self.storage.set('contacts', message.thread.id, contact)
             self.storage.save()
 
-    # ---- ICapMessagesPost methods ---------------------
+    # ---- CapMessagesPost methods ---------------------
 
     def post_message(self, message):
         self.browser.post_message(message.thread.id, message.content)

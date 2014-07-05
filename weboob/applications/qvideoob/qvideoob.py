@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.video import ICapVideo
+from weboob.capabilities.video import CapVideo
 from weboob.tools.application.qt import QtApplication
 
 from .main_window import MainWindow
@@ -30,7 +30,7 @@ class QVideoob(QtApplication):
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = "Qt application allowing to search videos on various websites and play them."
     SHORT_DESCRIPTION = "search and play videos"
-    CAPS = ICapVideo
+    CAPS = CapVideo
     CONFIG = {'settings': {'nsfw': 1,
                            'sfw': 1,
                            'sortby': 0,
@@ -39,7 +39,7 @@ class QVideoob(QtApplication):
              }
 
     def main(self, argv):
-        self.load_backends(ICapVideo)
+        self.load_backends(CapVideo)
         self.load_config()
 
         self.main_window = MainWindow(self.config, self.weboob, self)

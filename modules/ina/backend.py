@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.video import ICapVideo
+from weboob.capabilities.video import CapVideo
 from weboob.tools.backend import BaseBackend
 
 from .browser import InaBrowser
@@ -28,7 +28,7 @@ from .video import InaVideo
 __all__ = ['InaBackend']
 
 
-class InaBackend(BaseBackend, ICapVideo):
+class InaBackend(BaseBackend, CapVideo):
     NAME = 'ina'
     MAINTAINER = u'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
@@ -40,7 +40,7 @@ class InaBackend(BaseBackend, ICapVideo):
     def get_video(self, _id):
         return self.browser.get_video(_id)
 
-    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
+    def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         with self.browser:
             return self.browser.search_videos(pattern)
 

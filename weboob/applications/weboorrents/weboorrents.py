@@ -20,7 +20,7 @@
 
 import sys
 
-from weboob.capabilities.torrent import ICapTorrent, MagnetOnly
+from weboob.capabilities.torrent import CapTorrent, MagnetOnly
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.core import CallErrors
@@ -96,7 +96,7 @@ class Weboorrents(ReplApplication):
     DESCRIPTION = "Console application allowing to search for torrents on various trackers " \
                   "and download .torrent files."
     SHORT_DESCRIPTION = "search and download torrents"
-    CAPS = ICapTorrent
+    CAPS = CapTorrent
     EXTRA_FORMATTERS = {'torrent_list': TorrentListFormatter,
                         'torrent_info': TorrentInfoFormatter,
                        }

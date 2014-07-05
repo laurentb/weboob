@@ -22,7 +22,7 @@
 import sys
 import codecs
 
-from weboob.capabilities.recipe import ICapRecipe
+from weboob.capabilities.recipe import CapRecipe
 from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
@@ -79,7 +79,7 @@ class Cookboob(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2013 Julien Veyssier'
     DESCRIPTION = "Console application allowing to search for recipes on various websites."
     SHORT_DESCRIPTION = "search and consult recipes"
-    CAPS = ICapRecipe
+    CAPS = CapRecipe
     EXTRA_FORMATTERS = {'recipe_list': RecipeListFormatter,
                         'recipe_info': RecipeInfoFormatter
                         }

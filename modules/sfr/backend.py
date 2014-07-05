@@ -20,8 +20,8 @@
 
 
 
-from weboob.capabilities.messages import CantSendMessage, ICapMessages, ICapMessagesPost
-from weboob.capabilities.account import ICapAccount, StatusField
+from weboob.capabilities.messages import CantSendMessage, CapMessages, CapMessagesPost
+from weboob.capabilities.account import CapAccount, StatusField
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 
@@ -31,7 +31,7 @@ from .browser import SfrBrowser
 __all__ = ['SfrBackend']
 
 
-class SfrBackend(BaseBackend, ICapAccount, ICapMessages, ICapMessagesPost):
+class SfrBackend(BaseBackend, CapAccount, CapMessages, CapMessagesPost):
     NAME = 'sfr'
     MAINTAINER = u'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
@@ -46,7 +46,7 @@ class SfrBackend(BaseBackend, ICapAccount, ICapMessages, ICapMessagesPost):
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
-    # ICapMessagesPost methods
+    # CapMessagesPost methods
 
     def get_account_status(self):
         with self.browser:

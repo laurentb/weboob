@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.bill import ICapBill, SubscriptionNotFound, BillNotFound, Subscription, Bill
+from weboob.capabilities.bill import CapBill, SubscriptionNotFound, BillNotFound, Subscription, Bill
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from .browser import EdfBrowser
@@ -25,7 +25,7 @@ from .browser import EdfBrowser
 __all__ = ['EdfBackend']
 
 
-class EdfBackend(BaseBackend, ICapBill):
+class EdfBackend(BaseBackend, CapBill):
     NAME = 'edf'
     DESCRIPTION = u'Edf website: French power provider'
     MAINTAINER = u'Christophe Gouiran'

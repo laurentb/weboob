@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.video import ICapVideo, BaseVideo
-from weboob.capabilities.collection import ICapCollection, CollectionNotFound
+from weboob.capabilities.video import CapVideo, BaseVideo
+from weboob.capabilities.collection import CapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
 
 from .browser import PluzzBrowser
@@ -28,7 +28,7 @@ from .browser import PluzzBrowser
 __all__ = ['PluzzBackend']
 
 
-class PluzzBackend(BaseBackend, ICapVideo, ICapCollection):
+class PluzzBackend(BaseBackend, CapVideo, CapCollection):
     NAME = 'francetelevisions'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -40,7 +40,7 @@ class PluzzBackend(BaseBackend, ICapVideo, ICapCollection):
     def get_video(self, _id):
         return self.browser.get_video(_id)
 
-    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
+    def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         return self.browser.search_videos(pattern)
 
     def fill_video(self, video, fields):

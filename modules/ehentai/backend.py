@@ -20,8 +20,8 @@
 
 
 import re
-from weboob.capabilities.gallery import ICapGallery, BaseGallery
-from weboob.capabilities.collection import ICapCollection, CollectionNotFound
+from weboob.capabilities.gallery import CapGallery, BaseGallery
+from weboob.capabilities.collection import CapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.misc import ratelimit
 from weboob.tools.value import Value, ValueBackendPassword
@@ -33,7 +33,7 @@ from .gallery import EHentaiGallery, EHentaiImage
 __all__ = ['EHentaiBackend']
 
 
-class EHentaiBackend(BaseBackend, ICapGallery, ICapCollection):
+class EHentaiBackend(BaseBackend, CapGallery, CapCollection):
     NAME = 'ehentai'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'

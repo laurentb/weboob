@@ -19,7 +19,7 @@
 
 
 
-from weboob.capabilities.bank import ICapBank, AccountNotFound
+from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import ValueBackendPassword, Value
@@ -30,7 +30,7 @@ from .browser import CreditDuNordBrowser
 __all__ = ['CreditDuNordBackend']
 
 
-class CreditDuNordBackend(BaseBackend, ICapBank):
+class CreditDuNordBackend(BaseBackend, CapBank):
     NAME = 'creditdunord'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

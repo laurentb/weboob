@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.capabilities.job import ICapJob
+from weboob.capabilities.job import CapJob
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
 from .browser import ApecBrowser
@@ -28,7 +28,7 @@ from .job import ApecJobAdvert
 __all__ = ['ApecBackend']
 
 
-class ApecBackend(BaseBackend, ICapJob):
+class ApecBackend(BaseBackend, CapJob):
     NAME = 'apec'
     DESCRIPTION = u'apec website'
     MAINTAINER = u'Bezleputh'

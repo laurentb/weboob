@@ -28,11 +28,11 @@ from dateutil import tz
 from dateutil.parser import parse as _parse_dt
 
 from weboob.capabilities.base import NotLoaded
-from weboob.capabilities.chat import ICapChat
-from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
-from weboob.capabilities.dating import ICapDating, OptimizationNotFound, Event
-from weboob.capabilities.contact import ICapContact, ContactPhoto, Query, QueryError
-from weboob.capabilities.account import ICapAccount, StatusField
+from weboob.capabilities.chat import CapChat
+from weboob.capabilities.messages import CapMessages, CapMessagesPost, Message, Thread
+from weboob.capabilities.dating import CapDating, OptimizationNotFound, Event
+from weboob.capabilities.contact import CapContact, ContactPhoto, Query, QueryError
+from weboob.capabilities.account import CapAccount, StatusField
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.browser import BrowserUnavailable, BrowserHTTPNotFound
 from weboob.tools.value import Value, ValuesDict, ValueBool, ValueBackendPassword
@@ -56,7 +56,7 @@ def parse_dt(s):
     return local2utc(d)
 
 
-class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapChat, ICapContact, ICapAccount):
+class AuMBackend(BaseBackend, CapMessages, CapMessagesPost, CapDating, CapChat, CapContact, CapAccount):
     NAME = 'aum'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -96,7 +96,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             # Do not report fakes to website, to let them to other guys :)
             #self.browser.report_fake(id)
 
-    # ---- ICapDating methods ---------------------
+    # ---- CapDating methods ---------------------
 
     def init_optimizations(self):
         self.add_optimization('PROFILE_WALKER', ProfilesWalker(self.weboob.scheduler, self.storage, self.browser))
@@ -126,7 +126,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 e.message = message % e.contact.name
                 yield e
 
-    # ---- ICapMessages methods ---------------------
+    # ---- CapMessages methods ---------------------
 
     def fill_thread(self, thread, fields):
         return self.get_thread(thread)
@@ -334,13 +334,13 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         slut['status'] = slut.get('status', None)
         return slut
 
-    # ---- ICapMessagesPost methods ---------------------
+    # ---- CapMessagesPost methods ---------------------
 
     def post_message(self, message):
         with self.browser:
             self.browser.post_mail(message.thread.id, message.content)
 
-    # ---- ICapContact methods ---------------------
+    # ---- CapContact methods ---------------------
 
     def fill_contact(self, contact, fields):
         if 'profile' in fields:
@@ -451,7 +451,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         self.storage.set('notes', id, notes)
         self.storage.save()
 
-    # ---- ICapChat methods ---------------------
+    # ---- CapChat methods ---------------------
 
     def iter_chat_messages(self, _id=None):
         with self.browser:
@@ -464,7 +464,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     #def start_chat_polling(self):
         #self._profile_walker = ProfilesWalker(self.weboob.scheduler, self.storage, self.browser)
 
-    # ---- ICapAccount methods ---------------------
+    # ---- CapAccount methods ---------------------
 
     ACCOUNT_REGISTER_PROPERTIES = ValuesDict(
                 Value('username', label='Email address', regexp='^[^ ]+@[^ ]+\.[^ ]+$'),

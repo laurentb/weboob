@@ -18,10 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.radio import ICapRadio, Radio
+from weboob.capabilities.radio import CapRadio, Radio
 from weboob.capabilities.audiostream import BaseAudioStream
 from weboob.tools.capabilities.streaminfo import StreamInfo
-from weboob.capabilities.collection import ICapCollection
+from weboob.capabilities.collection import CapCollection
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import StandardBrowser
 from weboob.tools.misc import to_unicode
@@ -30,7 +30,7 @@ from weboob.tools.misc import to_unicode
 __all__ = ['OuiFMBackend']
 
 
-class OuiFMBackend(BaseBackend, ICapRadio, ICapCollection):
+class OuiFMBackend(BaseBackend, CapRadio, CapCollection):
     NAME = 'ouifm'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

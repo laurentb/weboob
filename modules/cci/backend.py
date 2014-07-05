@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.capabilities.job import ICapJob, BaseJobAdvert
+from weboob.capabilities.job import CapJob, BaseJobAdvert
 from weboob.tools.value import Value
 
 from .browser import CciBrowser
@@ -28,7 +28,7 @@ from .browser import CciBrowser
 __all__ = ['CciBackend']
 
 
-class CciBackend(BaseBackend, ICapJob):
+class CciBackend(BaseBackend, CapJob):
     NAME = 'cci'
     DESCRIPTION = u'cci website'
     MAINTAINER = u'Bezleputh'

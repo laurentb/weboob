@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import BaseBackend
-from weboob.capabilities.calendar import ICapCalendarEvent, CATEGORIES
+from weboob.capabilities.calendar import CapCalendarEvent, CATEGORIES
 import itertools
 
 from .browser import BiplanBrowser
@@ -28,7 +28,7 @@ from.calendar import BiplanCalendarEvent
 __all__ = ['BiplanBackend']
 
 
-class BiplanBackend(BaseBackend, ICapCalendarEvent):
+class BiplanBackend(BaseBackend, CapCalendarEvent):
     NAME = 'biplan'
     DESCRIPTION = u'lebiplan.org website'
     MAINTAINER = u'Bezleputh'

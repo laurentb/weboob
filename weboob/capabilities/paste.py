@@ -21,7 +21,7 @@
 from .base import IBaseCap, BaseObject, NotLoaded, Field, StringField, UserError
 
 
-__all__ = ['PasteNotFound', 'BasePaste', 'ICapPaste']
+__all__ = ['PasteNotFound', 'BasePaste', 'CapPaste']
 
 
 class PasteNotFound(UserError):
@@ -63,7 +63,7 @@ class BasePaste(BaseObject):
         return self.id2url(self.id)
 
 
-class ICapPaste(IBaseCap):
+class CapPaste(IBaseCap):
     """
     This capability represents the ability for a website backend to store plain text.
     """

@@ -27,8 +27,8 @@ from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.browser import BrowserForbidden
 from weboob.tools.newsfeed import Newsfeed
 from weboob.tools.value import Value, ValueBool, ValueBackendPassword
-from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread, CantSendMessage
-from weboob.capabilities.content import ICapContent, Content
+from weboob.capabilities.messages import CapMessages, CapMessagesPost, Message, Thread, CantSendMessage
+from weboob.capabilities.content import CapContent, Content
 
 from .browser import DLFP
 from .tools import rssid, id2url
@@ -37,7 +37,7 @@ from .tools import rssid, id2url
 __all__ = ['DLFPBackend']
 
 
-class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
+class DLFPBackend(BaseBackend, CapMessages, CapMessagesPost, CapContent):
     NAME = 'dlfp'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -79,7 +79,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
         with self.browser:
             self.browser.close_session()
 
-    #### ICapMessages ##############################################
+    #### CapMessages ##############################################
 
     def iter_threads(self):
         whats = set()
@@ -221,7 +221,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
     def fill_thread(self, thread, fields, getseen=True):
         return self.get_thread(thread, getseen)
 
-    #### ICapMessagesReply #########################################
+    #### CapMessagesReply #########################################
     def post_message(self, message):
         if not self.browser.username:
             raise BrowserForbidden()
@@ -236,7 +236,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
                                              message.title,
                                              message.content)
 
-    #### ICapContent ###############################################
+    #### CapContent ###############################################
     def get_content(self, _id, revision=None):
         if isinstance(_id, basestring):
             content = Content(_id)

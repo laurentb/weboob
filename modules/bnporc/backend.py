@@ -21,8 +21,8 @@
 from decimal import Decimal
 from datetime import datetime, timedelta
 
-from weboob.capabilities.bank import ICapBank, AccountNotFound, Account, Recipient
-from weboob.capabilities.messages import ICapMessages, Thread
+from weboob.capabilities.bank import CapBank, AccountNotFound, Account, Recipient
+from weboob.capabilities.messages import CapMessages, Thread
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -33,7 +33,7 @@ from .enterprise.browser import BNPEnterprise
 __all__ = ['BNPorcBackend']
 
 
-class BNPorcBackend(BaseBackend, ICapBank, ICapMessages):
+class BNPorcBackend(BaseBackend, CapBank, CapMessages):
     NAME = 'bnporc'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

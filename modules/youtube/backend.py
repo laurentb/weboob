@@ -31,8 +31,8 @@ import urllib
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.image import BaseImage
-from weboob.capabilities.video import ICapVideo, BaseVideo
-from weboob.capabilities.collection import ICapCollection, CollectionNotFound
+from weboob.capabilities.video import CapVideo, BaseVideo
+from weboob.capabilities.collection import CapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.misc import to_unicode
 from weboob.tools.value import ValueBackendPassword, Value
@@ -44,7 +44,7 @@ from .video import YoutubeVideo
 __all__ = ['YoutubeBackend']
 
 
-class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
+class YoutubeBackend(BaseBackend, CapVideo, CapCollection):
     NAME = 'youtube'
     MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
@@ -122,7 +122,7 @@ class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
 
         return video
 
-    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
+    def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         YOUTUBE_MAX_RESULTS = 50
         YOUTUBE_MAX_START_INDEX = 500
         yt_service = gdata.youtube.service.YouTubeService()
@@ -154,7 +154,7 @@ class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
                 return
 
     def latest_videos(self):
-        return self.search_videos(None, ICapVideo.SEARCH_DATE)
+        return self.search_videos(None, CapVideo.SEARCH_DATE)
 
     def fill_video(self, video, fields):
         if 'thumbnail' in fields:

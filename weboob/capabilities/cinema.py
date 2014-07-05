@@ -21,7 +21,7 @@
 from .base import IBaseCap, BaseObject, DateField, StringField, IntField, Field
 
 
-__all__ = ['Movie', 'Person', 'ICapCinema']
+__all__ = ['Movie', 'Person', 'CapCinema']
 
 
 class Movie(BaseObject):
@@ -68,7 +68,7 @@ class Person(BaseObject):
         self.name = name
 
 
-class ICapCinema(IBaseCap):
+class CapCinema(IBaseCap):
     """
     Cinema databases.
     """

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.messages import ICapMessages
+from weboob.capabilities.messages import CapMessages
 from weboob.tools.application.qt import QtApplication
 
 from .main_window import MainWindow
@@ -30,10 +30,10 @@ class QBoobMsg(QtApplication):
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = "Qt application allowing to read messages on various websites and reply to them."
     SHORT_DESCRIPTION = "send and receive message threads"
-    CAPS = ICapMessages
+    CAPS = CapMessages
 
     def main(self, argv):
-        self.load_backends(ICapMessages, storage=self.create_storage())
+        self.load_backends(CapMessages, storage=self.create_storage())
 
         self.main_window = MainWindow(self.config, self.weboob)
         self.main_window.show()

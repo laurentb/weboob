@@ -23,9 +23,9 @@ import codecs
 from PyQt4.QtCore import SIGNAL, Qt, QStringList
 from PyQt4.QtGui import QApplication, QCompleter, QFrame, QShortcut, QKeySequence
 
-from weboob.capabilities.cinema import ICapCinema
-from weboob.capabilities.torrent import ICapTorrent
-from weboob.capabilities.subtitle import ICapSubtitle
+from weboob.capabilities.cinema import CapCinema
+from weboob.capabilities.torrent import CapTorrent
+from weboob.capabilities.subtitle import CapSubtitle
 from weboob.tools.application.qt import QtMainWindow, QtDo
 from weboob.tools.application.qt.backendcfg import BackendCfg
 
@@ -99,7 +99,7 @@ class Result(QFrame):
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
         self.process = QtDo(self.weboob, self.addPerson)
-        self.process.do('iter_movie_persons', id, role, backends=backend_name, caps=ICapCinema)
+        self.process.do('iter_movie_persons', id, role, backends=backend_name, caps=CapCinema)
         self.parent.ui.stopButton.show()
 
     def filmographyAction(self, backend_name, id, role):
@@ -114,7 +114,7 @@ class Result(QFrame):
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
         self.process = QtDo(self.weboob, self.addMovie)
-        self.process.do('iter_person_movies', id, role, backends=backend_name, caps=ICapCinema)
+        self.process.do('iter_person_movies', id, role, backends=backend_name, caps=CapCinema)
         self.parent.ui.stopButton.show()
 
     def search(self, tosearch, pattern, lang):
@@ -146,8 +146,8 @@ class Result(QFrame):
         backend_name = str(self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex()).toString())
 
         self.process = QtDo(self.weboob, self.addMovie)
-        #self.process.do('iter_movies', pattern, backends=backend_name, caps=ICapCinema)
-        self.process.do(self.app._do_complete, self.parent.getCount(), ('original_title'), 'iter_movies', pattern, backends=backend_name, caps=ICapCinema)
+        #self.process.do('iter_movies', pattern, backends=backend_name, caps=CapCinema)
+        self.process.do(self.app._do_complete, self.parent.getCount(), ('original_title'), 'iter_movies', pattern, backends=backend_name, caps=CapCinema)
         self.parent.ui.stopButton.show()
 
     def stopProcess(self):
@@ -194,8 +194,8 @@ class Result(QFrame):
         backend_name = str(self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex()).toString())
 
         self.process = QtDo(self.weboob, self.addPerson)
-        #self.process.do('iter_persons', pattern, backends=backend_name, caps=ICapCinema)
-        self.process.do(self.app._do_complete, self.parent.getCount(), ('name'), 'iter_persons', pattern, backends=backend_name, caps=ICapCinema)
+        #self.process.do('iter_persons', pattern, backends=backend_name, caps=CapCinema)
+        self.process.do(self.app._do_complete, self.parent.getCount(), ('name'), 'iter_persons', pattern, backends=backend_name, caps=CapCinema)
         self.parent.ui.stopButton.show()
 
     def addPerson(self, backend, person):
@@ -239,8 +239,8 @@ class Result(QFrame):
         backend_name = str(self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex()).toString())
 
         self.process = QtDo(self.weboob, self.addTorrent)
-        #self.process.do('iter_torrents', pattern, backends=backend_name, caps=ICapTorrent)
-        self.process.do(self.app._do_complete, self.parent.getCount(), ('name'), 'iter_torrents', pattern, backends=backend_name, caps=ICapTorrent)
+        #self.process.do('iter_torrents', pattern, backends=backend_name, caps=CapTorrent)
+        self.process.do(self.app._do_complete, self.parent.getCount(), ('name'), 'iter_torrents', pattern, backends=backend_name, caps=CapTorrent)
         self.parent.ui.stopButton.show()
 
     def addTorrent(self, backend, torrent):
@@ -283,8 +283,8 @@ class Result(QFrame):
         backend_name = str(self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex()).toString())
 
         self.process = QtDo(self.weboob, self.addSubtitle)
-        #self.process.do('iter_subtitles', lang, pattern, backends=backend_name, caps=ICapSubtitle)
-        self.process.do(self.app._do_complete, self.parent.getCount(), ('name'), 'iter_subtitles', lang, pattern, backends=backend_name, caps=ICapSubtitle)
+        #self.process.do('iter_subtitles', lang, pattern, backends=backend_name, caps=CapSubtitle)
+        self.process.do(self.app._do_complete, self.parent.getCount(), ('name'), 'iter_subtitles', lang, pattern, backends=backend_name, caps=CapSubtitle)
         self.parent.ui.stopButton.show()
 
     def addSubtitle(self, backend, subtitle):
@@ -312,14 +312,14 @@ class Result(QFrame):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         title_field = 'name'
         if stype == 'movie':
-            cap = ICapCinema
+            cap = CapCinema
             title_field = 'original_title'
         elif stype == 'person':
-            cap = ICapCinema
+            cap = CapCinema
         elif stype == 'torrent':
-            cap = ICapTorrent
+            cap = CapTorrent
         elif stype == 'subtitle':
-            cap = ICapSubtitle
+            cap = CapSubtitle
         if '@' in id:
             backend_name = id.split('@')[1]
             id = id.split('@')[0]
@@ -455,7 +455,7 @@ class MainWindow(QtMainWindow):
         new_res.searchId(id, stype)
 
     def backendsConfig(self):
-        bckndcfg = BackendCfg(self.weboob, (ICapCinema, ICapTorrent, ICapSubtitle,), self)
+        bckndcfg = BackendCfg(self.weboob, (CapCinema, CapTorrent, CapSubtitle,), self)
         if bckndcfg.run():
             self.loadBackendsList()
 

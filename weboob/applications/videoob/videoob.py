@@ -23,7 +23,7 @@ import subprocess
 import sys
 import os
 
-from weboob.capabilities.video import ICapVideo, BaseVideo
+from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
@@ -58,7 +58,7 @@ class Videoob(ReplApplication):
     DESCRIPTION = "Console application allowing to search for videos on various websites, " \
                   "play and download them and get information."
     SHORT_DESCRIPTION = "search and play videos"
-    CAPS = ICapVideo
+    CAPS = CapVideo
     EXTRA_FORMATTERS = {'video_list': VideoListFormatter}
     COMMANDS_FORMATTERS = {'search': 'video_list',
                            'ls': 'video_list',

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 "backend for http://www.presseurop.eu"
 
-from weboob.capabilities.messages import ICapMessages, Thread
+from weboob.capabilities.messages import CapMessages, Thread
 from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBackend
 from weboob.tools.backend import BackendConfig
 from weboob.tools.value import Value
@@ -27,7 +27,7 @@ from .tools import rssid, url2id
 from weboob.tools.newsfeed import Newsfeed
 
 
-class NewspaperPresseuropBackend(GenericNewspaperBackend, ICapMessages):
+class NewspaperPresseuropBackend(GenericNewspaperBackend, CapMessages):
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '0.j'

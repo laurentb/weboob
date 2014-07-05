@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.travel import ICapTravel
+from weboob.capabilities.travel import CapTravel
 from weboob.tools.application.base import BaseApplication
 from logging import warning
 
@@ -284,6 +284,6 @@ class Masstransit(BaseApplication):
     SHORT_DESCRIPTION = "search for train stations and departures"
 
     def main(self, argv):
-        self.load_backends(ICapTravel)
+        self.load_backends(CapTravel)
         MasstransitHildon(self.weboob)
         gtk.main()

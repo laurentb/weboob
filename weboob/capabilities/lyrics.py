@@ -21,7 +21,7 @@
 from .base import IBaseCap, BaseObject, StringField
 
 
-__all__ = ['SongLyrics', 'ICapLyrics']
+__all__ = ['SongLyrics', 'CapLyrics']
 
 
 class SongLyrics(BaseObject):
@@ -37,7 +37,7 @@ class SongLyrics(BaseObject):
         self.title = title
 
 
-class ICapLyrics(IBaseCap):
+class CapLyrics(IBaseCap):
     """
     Lyrics websites.
     """

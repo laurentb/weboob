@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.video import ICapVideo, BaseVideo
-from weboob.capabilities.collection import ICapCollection, CollectionNotFound
+from weboob.capabilities.video import CapVideo, BaseVideo
+from weboob.capabilities.collection import CapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -29,7 +29,7 @@ from .video import ArretSurImagesVideo
 __all__ = ['ArretSurImagesBackend']
 
 
-class ArretSurImagesBackend(BaseBackend, ICapVideo, ICapCollection):
+class ArretSurImagesBackend(BaseBackend, CapVideo, CapCollection):
     NAME = 'arretsurimages'
     DESCRIPTION = u'arretsurimages website'
     MAINTAINER = u'franek'
@@ -43,7 +43,7 @@ class ArretSurImagesBackend(BaseBackend, ICapVideo, ICapCollection):
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
-    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
+    def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         with self.browser:
             return self.browser.search_videos(pattern)
 #        raise UserError('Search does not work on ASI website, use ls latest command')

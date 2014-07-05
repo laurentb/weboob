@@ -19,10 +19,10 @@
 
 
 from .base import BaseObject, StringField, DateField, DecimalField, UserError
-from .collection import ICapCollection
+from .collection import CapCollection
 
 
-__all__ = ['SubscriptionNotFound', 'BillNotFound', 'Detail', 'Bill', 'Subscription', 'ICapBill']
+__all__ = ['SubscriptionNotFound', 'BillNotFound', 'Detail', 'Bill', 'Subscription', 'CapBill']
 
 
 class SubscriptionNotFound(UserError):
@@ -86,7 +86,7 @@ class Subscription(BaseObject):
     renewdate =     DateField('Reset date of consumption')
 
 
-class ICapBill(ICapCollection):
+class CapBill(CapCollection):
     def iter_resources(self, objs, split_path):
         """
         Iter resources. Will return :func:`iter_subscriptions`.

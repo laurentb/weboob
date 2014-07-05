@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Thread, Message
+from weboob.capabilities.messages import CapMessages, CapMessagesPost, Thread, Message
 from weboob.tools.value import Value
 
 from .browser import GuerrillamailBrowser
@@ -28,7 +28,7 @@ from .browser import GuerrillamailBrowser
 __all__ = ['GuerrillamailBackend']
 
 
-class GuerrillamailBackend(BaseBackend, ICapMessages, ICapMessagesPost):
+class GuerrillamailBackend(BaseBackend, CapMessages, CapMessagesPost):
     NAME = 'guerrillamail'
     DESCRIPTION = u'GuerrillaMail temp mailbox'
     MAINTAINER = u'Vincent A'

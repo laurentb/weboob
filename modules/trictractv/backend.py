@@ -21,7 +21,7 @@
 
 
 
-from weboob.capabilities.video import ICapVideo
+from weboob.capabilities.video import CapVideo
 from weboob.tools.backend import BaseBackend
 
 from .browser import TricTracTVBrowser
@@ -31,7 +31,7 @@ from .video import TricTracTVVideo
 __all__ = ['TricTracTVBackend']
 
 
-class TricTracTVBackend(BaseBackend, ICapVideo):
+class TricTracTVBackend(BaseBackend, CapVideo):
     NAME = 'trictractv'
     MAINTAINER = u'Benjamin Drieu'
     EMAIL = 'benjamin@drieu.org'
@@ -44,7 +44,7 @@ class TricTracTVBackend(BaseBackend, ICapVideo):
         with self.browser:
             return self.browser.get_video(_id)
 
-    def search_videos(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
+    def search_videos(self, pattern=None, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         with self.browser:
             return self.browser.search_videos(pattern)
 

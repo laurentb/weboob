@@ -22,7 +22,7 @@
 
 import sys
 
-from weboob.capabilities.pricecomparison import ICapPriceComparison
+from weboob.capabilities.pricecomparison import CapPriceComparison
 from weboob.tools.misc import html2text
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
@@ -88,7 +88,7 @@ class Comparoob(ReplApplication):
     COMMANDS_FORMATTERS = {'prices':    'prices',
                            'info':      'price',
                           }
-    CAPS = ICapPriceComparison
+    CAPS = CapPriceComparison
 
     def do_prices(self, pattern):
         """

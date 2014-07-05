@@ -20,7 +20,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import ICapBank, AccountNotFound
+from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword, ValueBool, Value
 
@@ -30,7 +30,7 @@ from .browser import Boursorama
 __all__ = ['BoursoramaBackend']
 
 
-class BoursoramaBackend(BaseBackend, ICapBank):
+class BoursoramaBackend(BaseBackend, CapBank):
     NAME = 'boursorama'
     MAINTAINER = u'Gabriel Kerneis'
     EMAIL = 'gabriel@kerneis.info'

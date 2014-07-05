@@ -20,7 +20,7 @@
 
 
 
-from weboob.capabilities.messages import ICapMessages, Message, Thread
+from weboob.capabilities.messages import CapMessages, Message, Thread
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value
 
@@ -30,7 +30,7 @@ from .browser import FourChan
 __all__ = ['FourChanBackend']
 
 
-class FourChanBackend(BaseBackend, ICapMessages):
+class FourChanBackend(BaseBackend, CapMessages):
     NAME = 'fourchan'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

@@ -21,9 +21,9 @@
 
 
 
-from weboob.capabilities.video import ICapVideo, BaseVideo
+from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.tools.backend import BaseBackend
-from weboob.capabilities.collection import ICapCollection, CollectionNotFound
+from weboob.capabilities.collection import CapCollection, CollectionNotFound
 
 from .browser import EuroparlBrowser
 from .video import EuroparlVideo
@@ -32,7 +32,7 @@ from .video import EuroparlVideo
 __all__ = ['EuroparlBackend']
 
 
-class EuroparlBackend(BaseBackend, ICapVideo, ICapCollection):
+class EuroparlBackend(BaseBackend, CapVideo, CapCollection):
     NAME = 'europarl'
     MAINTAINER = u'François Revol'
     EMAIL = 'revol@free.fr'
@@ -47,7 +47,7 @@ class EuroparlBackend(BaseBackend, ICapVideo, ICapCollection):
 
     SORTBY = ['relevance', 'rating', 'views', 'time']
 
-    # def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
+    # def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
     #     with self.browser:
     #         return self.browser.search_videos(pattern, self.SORTBY[sortby])
 

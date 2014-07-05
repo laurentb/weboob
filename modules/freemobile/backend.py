@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.bill import ICapBill, Subscription, Bill, SubscriptionNotFound, BillNotFound
+from weboob.capabilities.bill import CapBill, Subscription, Bill, SubscriptionNotFound, BillNotFound
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -28,7 +28,7 @@ from .browser import Freemobile
 __all__ = ['FreeMobileBackend']
 
 
-class FreeMobileBackend(BaseBackend, ICapBill):
+class FreeMobileBackend(BaseBackend, CapBill):
     NAME = 'freemobile'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

@@ -31,7 +31,7 @@ from tempfile import NamedTemporaryFile
 from ssl import SSLError
 
 from weboob.capabilities import UserError
-from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
+from weboob.capabilities.account import CapAccount, Account, AccountRegisterError
 from weboob.core.backendscfg import BackendAlreadyExists
 from weboob.core.modules import ModuleLoadError
 from weboob.core.repositories import ModuleInstallError
@@ -238,7 +238,7 @@ class ConsoleApplication(BaseApplication):
             print('Backend "%s" does not exist.' % name, file=sys.stderr)
             return 1
 
-        if not backend.has_caps(ICapAccount) or backend.klass.ACCOUNT_REGISTER_PROPERTIES is None:
+        if not backend.has_caps(CapAccount) or backend.klass.ACCOUNT_REGISTER_PROPERTIES is None:
             print('You can\'t register a new account with %s' % name, file=sys.stderr)
             return 1
 

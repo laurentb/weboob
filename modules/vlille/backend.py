@@ -20,14 +20,14 @@ import re
 
 from weboob.tools.backend import BaseBackend
 from weboob.capabilities.base import find_object
-from weboob.capabilities.gauge import ICapGauge, GaugeSensor, Gauge, SensorNotFound
+from weboob.capabilities.gauge import CapGauge, GaugeSensor, Gauge, SensorNotFound
 
 from .browser import VlilleBrowser
 
 __all__ = ['VlilleBackend']
 
 
-class VlilleBackend(BaseBackend, ICapGauge):
+class VlilleBackend(BaseBackend, CapGauge):
     NAME = 'vlille'
     DESCRIPTION = u'access to vlille datas'
     MAINTAINER = u'Bezleputh'

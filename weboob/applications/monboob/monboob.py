@@ -34,7 +34,7 @@ import socket
 
 from weboob.core import Weboob, CallErrors
 from weboob.core.scheduler import Scheduler
-from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Thread, Message
+from weboob.capabilities.messages import CapMessages, CapMessagesPost, Thread, Message
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.misc import html2text, get_backtrace, utc2local, to_unicode
 
@@ -98,7 +98,7 @@ class Monboob(ReplApplication):
               'smtp':      'localhost',
               'pipe':      '',
               'html':      0}
-    CAPS = ICapMessages
+    CAPS = CapMessages
     DISABLE_REPL = True
 
     def add_application_options(self, group):
@@ -108,7 +108,7 @@ class Monboob(ReplApplication):
         return Weboob(scheduler=MonboobScheduler(self))
 
     def load_default_backends(self):
-        self.load_backends(ICapMessages, storage=self.create_storage())
+        self.load_backends(CapMessages, storage=self.create_storage())
 
     def main(self, argv):
         self.load_config()
@@ -221,8 +221,8 @@ class Monboob(ReplApplication):
             print >>sys.stderr, 'Backend %s not found' % bname
             return 1
 
-        if not backend.has_caps(ICapMessagesPost):
-            print >>sys.stderr, 'The backend %s does not implement ICapMessagesPost' % bname
+        if not backend.has_caps(CapMessagesPost):
+            print >>sys.stderr, 'The backend %s does not implement CapMessagesPost' % bname
             return 1
 
         thread = Thread(thread_id)

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import ICapBank, Account
+from weboob.capabilities.bank import CapBank, Account
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -28,7 +28,7 @@ from .browser import BPBrowser
 __all__ = ['BPBackend']
 
 
-class BPBackend(BaseBackend, ICapBank):
+class BPBackend(BaseBackend, CapBank):
     NAME = 'bp'
     MAINTAINER = u'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'

@@ -19,7 +19,7 @@
 
 
 
-from weboob.capabilities.geolocip import ICapGeolocIp, IpLocation
+from weboob.capabilities.geolocip import CapGeolocIp, IpLocation
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import StandardBrowser
 
@@ -27,7 +27,7 @@ from weboob.tools.browser import StandardBrowser
 __all__ = ['IpinfodbBackend']
 
 
-class IpinfodbBackend(BaseBackend, ICapGeolocIp):
+class IpinfodbBackend(BaseBackend, CapGeolocIp):
     NAME = 'ipinfodb'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
