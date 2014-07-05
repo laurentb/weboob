@@ -39,15 +39,15 @@ def find_executable(name, names):
                 fpath = os.path.join(path, name) + ext
                 if os.path.exists(fpath) and os.access(fpath, os.X_OK):
                     return fpath
-    print >>sys.stderr, 'Could not find executable: %s' % name
+    print('Could not find executable: %s' % name, file=sys.stderr)
 
 
 def build_qt():
-    print >>sys.stderr, 'Building Qt applications...'
+    print('Building Qt applications...', file=sys.stderr)
     make = find_executable('make', ('gmake', 'make'))
     pyuic4 = find_executable('pyuic4', ('python2-pyuic4', 'pyuic4-python2.7', 'pyuic4-python2.6', 'pyuic4'))
     if not pyuic4 or not make:
-        print >>sys.stderr, 'Install missing component(s) (see above) or disable Qt applications (with --no-qt).'
+        print('Install missing component(s) (see above) or disable Qt applications (with --no-qt).', file=sys.stderr)
         sys.exit(1)
 
     subprocess.check_call(
@@ -178,13 +178,13 @@ options = Options()
 
 args = list(sys.argv)
 if '--hildon' in args and '--no-hildon' in args:
-    print >>sys.stderr, '--hildon and --no-hildon options are incompatible'
+    print('--hildon and --no-hildon options are incompatible', file=sys.stderr)
     sys.exit(1)
 if '--qt' in args and '--no-qt' in args:
-    print >>sys.stderr, '--qt and --no-qt options are incompatible'
+    print('--qt and --no-qt options are incompatible', file=sys.stderr)
     sys.exit(1)
 if '--xdg' in args and '--no-xdg' in args:
-    print >>sys.stderr, '--xdg and --no-xdg options are incompatible'
+    print('--xdg and --no-xdg options are incompatible', file=sys.stderr)
     sys.exit(1)
 
 if '--hildon' in args or os.environ.get('HILDON') == 'true':
