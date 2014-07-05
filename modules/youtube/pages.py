@@ -171,6 +171,8 @@ class VideoPage(BaseYoutubePage):
         '246': {'ext': 'webm', 'height': 480, 'resolution': '480p', 'format_note': 'DASH webm', 'preference': -40},
         '247': {'ext': 'webm', 'height': 720, 'resolution': '720p', 'format_note': 'DASH webm', 'preference': -40},
         '248': {'ext': 'webm', 'height': 1080, 'resolution': '1080p', 'format_note': 'DASH webm', 'preference': -40},
+        '271': {'ext': 'webm', 'height': 1440, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
+        '272': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
 
         # Dash webm audio
         '171': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH webm audio', 'abr': 48, 'preference': -50},
@@ -208,7 +210,7 @@ class VideoPage(BaseYoutubePage):
 
     def _parse_sig_js(self, jscode):
         funcname = self._search_regex(
-            r'signature=([a-zA-Z]+)', jscode,
+            r'signature=([$a-zA-Z]+)', jscode,
             u'Initial JS player signature function name')
 
         functions = {}
