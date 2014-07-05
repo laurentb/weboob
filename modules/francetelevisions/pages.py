@@ -23,7 +23,7 @@ from weboob.capabilities.video import BaseVideo
 from datetime import timedelta
 
 from weboob.tools.browser2.page import HTMLPage, method, ItemElement, ListElement, JsonPage
-from weboob.tools.browser2.filters import Filter, Link, CleanText, Regexp, Attr, Format, DateTime, Env, Dict, Duration
+from weboob.tools.browser2.filters import Filter, Link, CleanText, Regexp, Attr, Format, DateTime, Env, Dict, Duration, XPath
 
 
 __all__ = ['IndexPage', 'VideoPage']
@@ -31,7 +31,7 @@ __all__ = ['IndexPage', 'VideoPage']
 
 class DurationPluzz(Filter):
     def filter(self, el):
-        duration = Regexp(CleanText('.'), '.+\|(.+)')(el[0])
+        duration = Regexp(CleanText('.'), r'.+\|(.+)')(el[0])
         if duration[-1:] == "'":
             t = [0, int(duration[:-1])]
         else:
@@ -49,10 +49,11 @@ class IndexPage(HTMLPage):
             klass = BaseVideo
 
             obj_title = Format('%s - %s', CleanText('h3/a'), CleanText('div[@class="rs-cell-details"]/a'))
-            obj_id = Regexp(Link('h3/a'), '^http://pluzz.francetv.fr/videos/.+,(.+).html$')
-            obj_date = DateTime(Regexp(CleanText('div/p[@class="diffusion"]',
-                                       replace=[(u'à', u''), (u'  ', u' ')]),
-                                       '.+(\d{2}-\d{2}-\d{2}.+\d{1,2}:\d{1,2}).+'))
+            obj_id = Link('h3/a') & Regexp(pattern=r'^http://pluzz.francetv.fr/videos/.+,(.+).html$')
+            obj_date = XPath('div/p[@class="diffusion"]') \
+                       & CleanText(replace=[(u'à', u''), (u'  ', u' ')]) \
+                       & Regexp(pattern=r'.+(\d{2}-\d{2}-\d{2}.+\d{1,2}:\d{1,2}).+') \
+                       & DateTime
             obj_duration = DurationPluzz('div/span[@class="type-duree"]')
 
             def obj_thumbnail(self):
@@ -75,15 +76,15 @@ class VideoPage(JsonPage):
                 self.env['url'] = video['url']
 
         obj_id = Env('id')
-        obj_title = Format(u'%s - %s', Dict('titre'), Dict('sous_titre'))
+        obj_title = Format(u'%s - %s', Dict['titre'], Dict['sous_titre'])
         obj_url = Env('url')
-        obj_date = DateTime(Dict('diffusion/date_debut'))
-        obj_duration = Duration(Dict('duree'))
-        obj_description = Dict('synopsis')
+        obj_date = Dict['diffusion']['date_debut'] & DateTime
+        obj_duration = Dict['duree'] & Duration
+        obj_description = Dict['synopsis']
         obj_ext = u'm3u8'
 
         def obj_thumbnail(self):
-            url = Format('http://pluzz.francetv.fr%s', Dict('image'))(self)
+            url = Format('http://pluzz.francetv.fr%s', Dict['image'])(self)
             thumbnail = BaseImage(url)
             thumbnail.url = thumbnail.id
             return thumbnail

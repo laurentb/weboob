@@ -71,6 +71,8 @@ class _Filter(object):
         return self
 
     def __and__(self, o):
+        if isinstance(o, type) and issubclass(o, _Filter):
+            o = o()
         o.selector = self
         return o
 

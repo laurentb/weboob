@@ -40,9 +40,9 @@ class IndexPage(HTMLPage):
         class item(ItemElement):
             klass = BaseVideo
 
-            obj_id = CSS('a') & Link() & Regexp(pattern=r'/videos/(.+)\.html')
-            obj_title = CSS('span#title1') & CleanText()
-            obj_duration = CSS('span.thumbtime span') & CleanText() & Duration() | NotAvailable
+            obj_id = CSS('a') & Link & Regexp(pattern=r'/videos/(.+)\.html')
+            obj_title = CSS('span#title1') & CleanText
+            obj_duration = CSS('span.thumbtime span') & CleanText & Duration | NotAvailable
             obj_nsfw = True
 
             def obj_thumbnail(self):
