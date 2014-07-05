@@ -39,12 +39,6 @@ class BaseImage(_BaseImage):
     thumbnail = Field('Thumbnail of the image', _BaseImage)
     data =      BytesField('Data of image')
 
-    def __str__(self):
-        return self.url
-
-    def __repr__(self):
-        return '<Image url="%s">' % self.url
-
     def __iscomplete__(self):
         return self.data is not NotLoaded
 

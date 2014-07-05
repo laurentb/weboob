@@ -35,6 +35,7 @@ class BaseVideo(BaseImage):
     """
     duration =  Field('file duration', int, long, timedelta)
 
+
 class ICapVideo(ICapImage):
     """
     Video file provider.
