@@ -126,7 +126,23 @@ class _Selector(Filter):
             return self.default_or_raise(ParseError('Element %r not found' % self.selector))
 
 
+class _DictMeta(type):
+    def __getitem__(cls, name):
+        return cls(name)
+
+
 class Dict(_Selector):
+    __metaclass__ = _DictMeta
+
+    def __init__(self, selector=None, default=_NO_DEFAULT):
+        super(Dict, self).__init__(self, default=default)
+        self.selector = selector.split('/') if selector is not None else []
+
+    def __getitem__(self, name):
+        self.selector.append(name)
+        return self
+
+
     @classmethod
     def select(cls, selector, item):
         if isinstance(item, dict):
@@ -134,7 +150,7 @@ class Dict(_Selector):
         else:
             content = item.el
 
-        for el in selector.split('/'):
+        for el in selector:
             if el not in content:
                 return None
 
