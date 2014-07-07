@@ -8,7 +8,7 @@ the "nameyouwant" is used to create cache directory is ~/.config/weboob/munin an
 Configure the plugin in /etc/munin/plugin-conf.d/ (you can go at the end of this files for some examples).
 === Mandatory options are: ===
 ==== env.capa ====
-Example: env.capa ICapBank
+Example: env.capa CapBank
 
 The Weboob capability to load.
 
@@ -19,7 +19,7 @@ The Weboob command to call the capability. It can take more than one argument. W
 If you use get_object_list option, you can use only one argument in env.do.
 
 ==== env.import ====
-Example: from weboob.capabilities.bank import ICapBank
+Example: from weboob.capabilities.bank import CapBank
 
 The import line to import the capability
 
@@ -93,9 +93,9 @@ user florent
 group florent
 env.cache_expire 7200
 env.HOME /home/flo
-env.capa ICapBank
+env.capa CapBank
 env.do iter_accounts
-env.import from weboob.capabilities.bank import ICapBank
+env.import from weboob.capabilities.bank import CapBank
 env.attribvalue balance
 env.title Solde des comptes
 
@@ -106,9 +106,9 @@ user florent
 group florent
 env.cache_expire 16800
 env.HOME /home/flo
-env.capa ICapBill
+env.capa CapBill
 env.do get_balance,06XXXXXXXX,leclercmobile
-env.import from weboob.capabilities.bill import ICapBill
+env.import from weboob.capabilities.bill import CapBill
 env.attribvalue price
 env.title Forfait leclercmobile
 env.vlabel Solde
@@ -121,9 +121,9 @@ user florent
 group florent
 env.cache_expire 7200
 env.HOME /home/flo
-env.capa ICapGauge
+env.capa CapGauge
 env.do get_last_measure,501060-level
-env.import from weboob.capabilities.gauge import ICapGauge
+env.import from weboob.capabilities.gauge import CapGauge
 env.attribvalue level
 env.title Niveau de l'elbe
 env.label id
@@ -135,9 +135,9 @@ user florent
 env.cache_expire 800
 env.HOME /home/flo
 env.cumulate 0
-env.capa ICapGauge
+env.capa CapGauge
 env.do iter_gauges,Elbe,sachsen
-env.import from weboob.capabilities.gauge import ICapGauge
+env.import from weboob.capabilities.gauge import CapGauge
 env.attribvalue sensors/lastvalue/level
 env.title Niveau de l'elbe en Saxe
 env.label name
@@ -151,9 +151,9 @@ Result: http://fourcot.fr/weboob/elbesachsen-day.png
 user florent
 env.HOME /home/flo
 env.cumulate 0
-env.capa ICapWeather
+env.capa CapWeather
 env.do get_current,619163,yahoo
-env.import from weboob.capabilities.weather import ICapWeather
+env.import from weboob.capabilities.weather import CapWeather
 env.attribvalue temp/value
 env.attribid temp/id
 env.title Température à Rennes
