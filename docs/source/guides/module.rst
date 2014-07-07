@@ -25,8 +25,8 @@ methods (which raise ``NotImplementedError``).
 A capability needs to be as generic as possible to allow a maximum number of modules to implements it.
 Anyway, if you really need to handle website specificities, you can create more specific sub-capabilities.
 
-For example, there is the :class:`ICapMessages <weboob.capabilities.messages.ICapMessages>` capability, with the associated
-:class:`ICapMessagesPost <weboob.capabilities.messages.ICapMessagesPost>` capability to allow answers to messages.
+For example, there is the :class:`CapMessages <weboob.capabilities.messages.CapMessages>` capability, with the associated
+:class:`CapMessagesPost <weboob.capabilities.messages.CapMessagesPost>` capability to allow answers to messages.
 
 Pick an existing capability
 ---------------------------
@@ -48,7 +48,7 @@ The module tree
 
 Create a new directory in ``modules/`` with the name of your module. In this example, we assume that we want to create a
 module for a forum website which URL is http://www.example.com. So we will call our module **example**, and the selected
-capability is :class:`ICapMessages <weboob.capabilities.messages.ICapMessages>`.
+capability is :class:`CapMessages <weboob.capabilities.messages.CapMessages>`.
 
 So, use this command::
 
@@ -76,12 +76,12 @@ Then, you can edit ``backend.py`` and create your :class:`BaseBackend <weboob.to
 
     # -*- coding: utf-8 -*-
 
-    from weboob.capabilities.messages import ICapMessages
+    from weboob.capabilities.messages import CapMessages
     from weboob.tools.backend import BaseBackend
 
     __all__ = ['ExampleBackend']
 
-    class ExampleBackend(BaseBackend, ICapMessages):
+    class ExampleBackend(BaseBackend, CapMessages):
         # The name of module
         NAME = 'example'
         # Name of maintainer of this backend
@@ -95,7 +95,7 @@ Then, you can edit ``backend.py`` and create your :class:`BaseBackend <weboob.to
         # License of your module
         LICENSE = 'AGPLv3+'
 
-In the code above, you can see that your ``ExampleBackend`` inherits :class:`ICapMessages <weboob.capabilities.messages.ICapMessages>`, as
+In the code above, you can see that your ``ExampleBackend`` inherits :class:`CapMessages <weboob.capabilities.messages.CapMessages>`, as
 we have selected it for the supported website.
 
 Update modules list
@@ -115,7 +115,7 @@ To be sure your module is correctly added, use this command::
     | Maintainer      | John Smith <john.smith@example.com>
     | License         | AGPLv3+
     | Description     | Example forum website
-    | Capabilities    | ICapMessages
+    | Capabilities    | CapMessages
     | Installed       | yes
     | Location        | /home/me/src/weboob/modules/example
     '-----------------'
@@ -146,7 +146,7 @@ For example::
     from weboob.tools.backend import BackendConfig
 
     # ...
-    class ExampleBackend(BaseBackend, ICapMessages):
+    class ExampleBackend(BaseBackend, CapMessages):
         # ...
         CONFIG = BackendConfig(Value('username',                label='Username', regexp='.+'),
                                ValueBackendPassword('password', label='Password'),
@@ -174,7 +174,7 @@ Implement capabilities
 You need to implement each method of all of the capabilities your module implements. For example, in our case::
 
     # ...
-    class ExampleBackend(BaseBackend, ICapMessages):
+    class ExampleBackend(BaseBackend, CapMessages):
         # ...
 
         def iter_threads(self):
@@ -189,7 +189,7 @@ You need to implement each method of all of the capabilities your module impleme
         def set_message_read(self, message):
             raise NotImplementedError()
 
-Read :class:`documentation of the capability <weboob.capabilities.messages.ICapMessages>` to know what are types of arguments,
+Read :class:`documentation of the capability <weboob.capabilities.messages.CapMessages>` to know what are types of arguments,
 what are expected returned objects, and what exceptions it may raises.
 
 
@@ -287,14 +287,14 @@ Once you have a functional browser, you can use it in your class ``ExampleBacken
     from .browser import ExampleBrowser
 
     # ...
-    class ExampleBackend(BaseBackend, ICapMessages):
+    class ExampleBackend(BaseBackend, CapMessages):
         # ...
         BROWSER = ExampleBrowser
 
 You can now access it with member ``browser``. The class is instanced at the first call to this attribute. It is often better to use
 your browser only in a ``with`` block, to prevent problems when your backend is called in a multi-threading environment.
 
-For example, we can now implement :func:`ICapMessages.iter_threads <weboob.capabilities.messages.ICapMessages.iter_threads>`::
+For example, we can now implement :func:`CapMessages.iter_threads <weboob.capabilities.messages.CapMessages.iter_threads>`::
 
     def iter_threads(self):
         with self.browser:
@@ -309,7 +309,7 @@ Login management
 When the website requires to be authenticated, you have to give credentials to the constructor of the browser. You can redefine
 the method :func:`create_default_browser <weboob.tools.backend.BaseBackend.create_default_browser>`::
 
-    class ExampleBackend(BaseBackend, ICapMessages):
+    class ExampleBackend(BaseBackend, CapMessages):
         # ...
         def create_default_browser(self):
             return self.create_browser(self.config['username'].get(), self.config['password'].get())
@@ -490,11 +490,11 @@ Then, the function might, for each requested fields, fetch the right data and fi
         return thread
 
 Here, when the application has got a :class:`Thread <weboob.capabilities.messages.Thread>` object with
-:func:`iter_threads <weboob.capabilities.messages.ICapMessages.iter_threads>`, only two fields
+:func:`iter_threads <weboob.capabilities.messages.CapMessages.iter_threads>`, only two fields
 are empty (set to ``NotLoaded``):
 
 * **root** - tree of messages in the thread
 * **date** - date of thread
 
-As our method :func:`get_thread <weboob.capabilities.messages.ICapMessages.get_thread>` will get all
+As our method :func:`get_thread <weboob.capabilities.messages.CapMessages.get_thread>` will get all
 of the missing informations, we just call it with the object as parameter to complete it.
