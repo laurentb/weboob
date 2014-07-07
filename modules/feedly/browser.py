@@ -17,8 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import simplejson
-
+from weboob.tools.json import json
 from weboob.capabilities.collection import Collection
 from weboob.tools.browser2 import LoginBrowser, URL, need_login
 from .pages import EssentialsPage, TokenPage, ContentsPage, PreferencesPage
@@ -101,4 +100,4 @@ class FeedlyBrowser(LoginBrowser):
         datas = {'action': 'markAsRead',
                  'type': 'entries',
                  'entryIds': [_id]}
-        self.marker.open(data=simplejson.dumps(datas))
+        self.marker.open(data=json.dumps(datas))
