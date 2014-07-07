@@ -25,7 +25,7 @@ import re
 import ConfigParser
 
 from weboob.core import Weboob
-from weboob.capabilities.video import ICapVideo
+from weboob.capabilities.video import CapVideo
 
 # hack to workaround bash redirection and encoding problem
 import sys, codecs, locale
@@ -84,7 +84,7 @@ class Downloadboob(object):
         else:
             return True
 
-    def download(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None, title_exclude=[], id_regexp=None):
+    def download(self, pattern=None, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None, title_exclude=[], id_regexp=None):
         print "For backend %s, search for '%s'" % (backend_name, pattern)
 
         # create directory for links
@@ -248,4 +248,4 @@ for section in config.sections():
         downloadboob = Downloadboob(backend_name, download_directory, section_links_directory)
         downloadboob.purge()
         # FIXME sortBy, title.match
-        downloadboob.download(pattern, ICapVideo.SEARCH_DATE, False, max_result, title_exclude, id_regexp)
+        downloadboob.download(pattern, CapVideo.SEARCH_DATE, False, max_result, title_exclude, id_regexp)

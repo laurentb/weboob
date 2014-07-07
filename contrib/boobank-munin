@@ -25,7 +25,7 @@ import locale
 import time
 import logging
 from weboob.core import Weboob, CallErrors
-from weboob.capabilities.bank import ICapBank
+from weboob.capabilities.bank import CapBank
 from weboob.tools.browser import BrowserIncorrectPassword
 
 class BoobankMuninPlugin(object):
@@ -135,7 +135,7 @@ class BoobankMuninPlugin(object):
             return
 
         self.new_cache('boobank-munin-config')
-        self.weboob.load_backends(ICapBank)
+        self.weboob.load_backends(CapBank)
         self.write_output('graph_title Bank accounts')
         self.write_output('graph_vlabel balance')
         self.write_output('graph_category weboob')
@@ -189,7 +189,7 @@ class BoobankMuninPlugin(object):
             return
 
         self.new_cache('boobank-munin')
-        self.weboob.load_backends(ICapBank)
+        self.weboob.load_backends(CapBank)
         try:
             for backend, account in self.weboob.do('iter_accounts'):
                 if self.monitored(account):
