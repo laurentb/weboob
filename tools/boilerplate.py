@@ -130,7 +130,7 @@ class CapRecipe(Recipe):
         try:
             self.capmodulename, self.capname = self.capname.rsplit('.', 1)
         except ValueError:
-            self.error('Cap name must be in format module.ICapSomething or ICapSomething')
+            self.error('Cap name must be in format module.CapSomething or CapSomething')
 
         try:
             module = importlib.import_module(self.capmodulename)
