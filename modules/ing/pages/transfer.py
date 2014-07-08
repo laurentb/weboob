@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.bank import Recipient, AccountNotFound, Transfer
-from weboob.tools.browser2.page import HTMLPage, LoggedPage, ListElement, ItemElement, method
+from weboob.tools.browser2.page import HTMLPage, LoggedPage, method
+from weboob.tools.browser2.elements import ListElement, ItemElement
 from weboob.tools.browser2.filters import CleanText, CleanDecimal, Attr, Format
 from .login import INGVirtKeyboard
 

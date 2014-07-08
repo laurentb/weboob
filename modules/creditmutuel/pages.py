@@ -27,7 +27,8 @@ from decimal import Decimal
 import re
 from dateutil.relativedelta import relativedelta
 
-from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement, SkipItem, FormNotFound, LoggedPage
+from weboob.tools.browser2.page import HTMLPage, method, FormNotFound, LoggedPage
+from weboob.tools.browser2.elements import ListElement, ItemElement, SkipItem
 from weboob.tools.browser2.filters import Filter, Env, CleanText, CleanDecimal, Link, Field, TableCell
 from weboob.tools.exceptions import  BrowserIncorrectPassword
 from weboob.capabilities import NotAvailable

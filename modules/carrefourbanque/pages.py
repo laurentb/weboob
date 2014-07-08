@@ -20,7 +20,8 @@
 
 import re
 
-from weboob.tools.browser2.page import HTMLPage, ListElement, ItemElement, method, LoggedPage
+from weboob.tools.browser2.page import HTMLPage, method, LoggedPage
+from weboob.tools.browser2.elements import ListElement, ItemElement
 from weboob.tools.browser2.filters import Regexp, CleanText, CleanDecimal, Format, Link
 
 from weboob.capabilities.bank import Account

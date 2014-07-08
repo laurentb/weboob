@@ -19,7 +19,8 @@
 
 from datetime import timedelta, datetime
 import re
-from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement, pagination
+from weboob.tools.browser2.page import HTMLPage, method, pagination
+from weboob.tools.browser2.elements import ListElement, ItemElement
 from weboob.tools.browser2.filters import Filter, CleanText, Regexp, Format, Env, CleanHTML, Attr
 from weboob.capabilities.job import BaseJobAdvert
 

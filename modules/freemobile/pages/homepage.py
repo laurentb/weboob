@@ -19,7 +19,8 @@
 
 from .history import BadUTF8Page
 from weboob.capabilities.bill import Subscription
-from weboob.tools.browser2.page import method, ListElement, ItemElement
+from weboob.tools.browser2.page import method
+from weboob.tools.browser2.elements import ListElement, ItemElement
 from weboob.tools.browser2.filters import CleanText, Attr, Field, Format, Filter
 
 __all__ = ['HomePage']

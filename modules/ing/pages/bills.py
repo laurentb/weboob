@@ -20,7 +20,8 @@
 from weboob.capabilities.bill import Bill, Subscription
 from weboob.tools.browser2 import HTMLPage, LoggedPage
 from weboob.tools.browser2.filters import Filter, Attr, CleanText, Format, Field, Env
-from weboob.tools.browser2.page import ListElement, ItemElement, method, pagination
+from weboob.tools.browser2.page import method, pagination
+from weboob.tools.browser2.elements import ListElement, ItemElement
 
 
 __all__ = ['BillsPage']

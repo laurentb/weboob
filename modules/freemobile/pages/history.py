@@ -24,7 +24,8 @@ import lxml.html as html
 from datetime import datetime
 from decimal import Decimal
 
-from weboob.tools.browser2.page import HTMLPage, method, ItemElement, ListElement, LoggedPage
+from weboob.tools.browser2.page import HTMLPage, method, LoggedPage
+from weboob.tools.browser2.elements import ItemElement, ListElement
 from weboob.tools.browser2.filters import Date, CleanText, Attr, Filter,\
     CleanDecimal, Regexp, Field, DateTime, Format, Env
 from weboob.capabilities.bill import Detail, Bill

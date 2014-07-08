@@ -19,7 +19,8 @@
 
 
 from weboob.tools.browser2 import HTMLPage
-from weboob.tools.browser2.page import ListElement, method, ItemElement, pagination
+from weboob.tools.browser2.page import method, pagination
+from weboob.tools.browser2.elements import ListElement, ItemElement
 from weboob.tools.browser2.filters import Link, CleanText, Duration, Regexp, CSS
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.image import BaseImage

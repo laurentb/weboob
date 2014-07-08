@@ -25,7 +25,8 @@ from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 from weboob.tools.exceptions import  BrowserIncorrectPassword
-from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement, SkipItem, LoggedPage, pagination
+from weboob.tools.browser2.elements import ListElement, ItemElement, SkipItem
+from weboob.tools.browser2.page import HTMLPage, method, LoggedPage, pagination
 from weboob.tools.browser2.filters import Filter, Env, CleanText, CleanDecimal, Link, Field, DateGuesser, TableCell
 
 

@@ -25,7 +25,8 @@ import requests
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 
-from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement, LoggedPage, pagination
+from weboob.tools.browser2.page import HTMLPage, method, LoggedPage, pagination
+from weboob.tools.browser2.elements import ListElement, ItemElement
 from weboob.tools.browser2.filters import Env, CleanDecimal, ParseError
 
 __all__ = ['LoginPage', 'IndexPage', 'OperationsPage']

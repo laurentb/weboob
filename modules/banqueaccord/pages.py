@@ -24,7 +24,8 @@ import re
 from cStringIO import StringIO
 
 from weboob.capabilities.bank import Account
-from weboob.tools.browser2.page import HTMLPage, method, ListElement, ItemElement, LoggedPage
+from weboob.tools.browser2.page import HTMLPage, method, LoggedPage
+from weboob.tools.browser2.elements import ListElement, ItemElement
 from weboob.tools.browser2.filters import ParseError, CleanText, Regexp, Attr, CleanDecimal, Env
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction

@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser2.page import HTMLPage, XMLPage, method, ListElement, ItemElement, TableElement
+from weboob.tools.browser2.page import HTMLPage, XMLPage, method
+from weboob.tools.browser2.elements import ListElement, ItemElement, TableElement
 from weboob.tools.browser2.filters import CleanText, TableCell, Filter
 
 from weboob.capabilities.gauge import Gauge, GaugeMeasure, GaugeSensor

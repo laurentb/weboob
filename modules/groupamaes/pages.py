@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser2.page import HTMLPage, method, TableElement, ItemElement, LoggedPage
+from weboob.tools.browser2.page import HTMLPage, method, LoggedPage
+from weboob.tools.browser2.elements import TableElement, ItemElement
 from weboob.tools.browser2.filters import CleanText, CleanDecimal, TableCell, Date
 from weboob.capabilities.bank import Account, Transaction
 from weboob.tools.date import LinearDateGuesser
