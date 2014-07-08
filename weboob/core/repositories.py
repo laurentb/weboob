@@ -20,25 +20,21 @@
 
 from __future__ import print_function
 import imp
-import tarfile
 import posixpath
 import shutil
 import re
 import sys
 import os
 import subprocess
-import hashlib
-from tempfile import NamedTemporaryFile
 from datetime import datetime
 from contextlib import closing
 from compileall import compile_dir
 from io import BytesIO
 
+from weboob.tools.exceptions import BrowserHTTPError
 from .modules import Module
 from weboob.tools.log import getLogger
 from weboob.tools.misc import to_unicode
-from weboob.tools.browser2.browser import BaseBrowser, Weboob as WeboobProfile
-from requests.exceptions import HTTPError
 try:
     from ConfigParser import RawConfigParser, DEFAULTSECT
 except ImportError:
@@ -175,7 +171,7 @@ class Repository(object):
             # This is a remote repository, download file
             try:
                 fp = BytesIO(browser.open(posixpath.join(self.url, self.INDEX)).content)
-            except HTTPError as e:
+            except BrowserHTTPError as e:
                 raise RepositoryUnavailable(unicode(e))
 
         self.parse_index(fp)
@@ -204,7 +200,7 @@ class Repository(object):
             try:
                 keyring_data = browser.open(posixpath.join(self.url, self.KEYRING)).content
                 sig_data = browser.open(posixpath.join(self.url, self.KEYRING + '.sig')).content
-            except HTTPError as e:
+            except BrowserHTTPError as e:
                 raise RepositoryUnavailable(unicode(e))
             if keyring.exists():
                 if not keyring.is_valid(keyring_data, sig_data):
@@ -418,10 +414,7 @@ class Repositories(object):
         self.logger = getLogger('repositories')
         self.version = version
 
-        class WeboobBrowser(BaseBrowser):
-            PROFILE = WeboobProfile(version)
-
-        self.browser = WeboobBrowser()
+        self.browser = None
 
         self.workdir = workdir
         self.datadir = datadir
@@ -447,6 +440,13 @@ class Repositories(object):
             self.update()
         else:
             self.load()
+
+    def load_browser(self):
+        from weboob.tools.browser2.browser import BaseBrowser, Weboob as WeboobProfile
+        class WeboobBrowser(BaseBrowser):
+            PROFILE = WeboobProfile(self.version)
+        if self.browser is None:
+            self.browser = WeboobBrowser()
 
     def create_dir(self, name):
         if not os.path.exists(name):
@@ -511,6 +511,7 @@ class Repositories(object):
         """
         Retrieve the icon of a module and save it in ~/.local/share/weboob/icons/.
         """
+        self.load_browser()
         if not isinstance(module, ModuleInfo):
             module = self.get_module_info(module)
 
@@ -528,7 +529,7 @@ class Repositories(object):
 
         try:
             icon = self.browser.open(icon_url)
-        except HTTPError:
+        except BrowserHTTPError:
             pass  # no icon, no problem
         else:
             with open(dest_path, 'wb') as fp:
@@ -545,6 +546,7 @@ class Repositories(object):
         return l
 
     def update_repositories(self, progress=IProgress()):
+        self.load_browser()
         """
         Update list of repositories by downloading them
         and put them in ~/.local/share/weboob/repositories/.
@@ -628,6 +630,9 @@ class Repositories(object):
         :param progress: observer object
         :type progress: :class:`IProgress`
         """
+        import tarfile
+        self.load_browser()
+
         if isinstance(module, ModuleInfo):
             info = module
         elif isinstance(module, basestring):
@@ -655,7 +660,7 @@ class Repositories(object):
         progress.progress(0.2, 'Downloading module...')
         try:
             tardata = self.browser.open(module.url).content
-        except HTTPError as e:
+        except BrowserHTTPError as e:
             raise ModuleInstallError('Unable to fetch module: %s' % e)
 
         # Check signature
@@ -755,6 +760,7 @@ class Keyring(object):
         data and sigdata should be strings.
         """
         gpgv = self.find_gpgv()
+        from tempfile import NamedTemporaryFile
         with NamedTemporaryFile(suffix='.sig') as sigfile:
             sigfile.write(sigdata)
             sigfile.flush()  # very important
@@ -777,6 +783,7 @@ class Keyring(object):
     def __str__(self):
         if self.exists():
             with open(self.vpath, 'r') as f:
+                import hashlib
                 h = hashlib.sha1(f.read()).hexdigest()
             return 'Keyring version %s, checksum %s' % (self.version, h)
         return 'NO KEYRING'
