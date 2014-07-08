@@ -120,6 +120,11 @@ class LoginPage(BasePage):
         self.browser['identifiant'] = login.encode('utf-8')
         self.browser['postClavierXor'] = base64.b64encode(self.myXOR(password,seed))
         try:
+            self.browser['identifiantRouting'] = self.browser.IDENTIFIANT_ROUTING
+        except AttributeError:
+            pass
+
+        try:
             self.browser.submit(nologin=True)
         except BrowserUnavailable:
             # Login is not valid

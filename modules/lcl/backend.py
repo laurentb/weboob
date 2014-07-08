@@ -26,6 +26,7 @@ from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import LCLBrowser
 from .enterprise.browser import LCLEnterpriseBrowser
+from .browser import LCLProBrowser
 
 
 __all__ = ['LCLBackend']
@@ -42,6 +43,7 @@ class LCLBackend(BaseBackend, CapBank):
                            ValueBackendPassword('password', label='Code personnel'),
                            Value('website', label='Type de compte', default='par',
                                  choices={'par': 'Particuliers',
+                                          'pro': 'Professionnels',
                                           'ent': 'Entreprises'}))
     BROWSER = LCLBrowser
 
@@ -49,6 +51,10 @@ class LCLBackend(BaseBackend, CapBank):
         website = self.config['website'].get()
         if website == 'ent':
             self.BROWSER = LCLEnterpriseBrowser
+            return self.create_browser(self.config['login'].get(),
+                                       self.config['password'].get())
+        elif website == 'pro':
+            self.BROWSER = LCLProBrowser
             return self.create_browser(self.config['login'].get(),
                                        self.config['password'].get())
         else:
