@@ -48,3 +48,9 @@ class BrowserHTTPError(BrowserUnavailable):
 
 class ParseError(Exception):
     pass
+
+
+class FormFieldConversionWarning(UserWarning):
+    """
+    A value has been set to a form's field and has been implicitly converted.
+    """

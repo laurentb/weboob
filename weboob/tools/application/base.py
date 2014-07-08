@@ -352,7 +352,7 @@ class BaseApplication(object):
         if not self.options.debug and not self.options.save_responses:
             warnings.simplefilter('ignore', category=ConversionWarning)
             try:
-                from weboob.tools.browser.browser import FormFieldConversionWarning
+                from weboob.tools.exceptions import FormFieldConversionWarning
             except ImportError:
                 pass
             else:

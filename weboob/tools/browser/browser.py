@@ -50,7 +50,7 @@ from contextlib import closing
 from gzip import GzipFile
 import warnings
 
-from weboob.tools.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserPasswordExpired, BrowserForbidden, BrowserBanned, BrowserHTTPNotFound, BrowserHTTPError
+from weboob.tools.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserPasswordExpired, BrowserForbidden, BrowserBanned, BrowserHTTPNotFound, BrowserHTTPError, FormFieldConversionWarning
 from weboob.tools.decorators import retry
 from weboob.tools.log import getLogger
 from weboob.tools.mech import ClientForm
@@ -98,12 +98,6 @@ class NoHistory(object):
 
 class BrokenPageError(Exception):
     pass
-
-
-class FormFieldConversionWarning(UserWarning):
-    """
-    A value has been set to a form's field and has been implicitly converted.
-    """
 
 
 class BasePage(object):
