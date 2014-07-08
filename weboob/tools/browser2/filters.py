@@ -23,7 +23,6 @@ import datetime
 import re
 from decimal import Decimal, InvalidOperation
 
-import lxml.html as html
 from dateutil.parser import parse as parse_date
 
 from weboob.capabilities.base import empty
@@ -243,6 +242,7 @@ class CleanHTML(Filter):
     @classmethod
     def clean(cls, txt):
         if not isinstance(txt, basestring):
+            import lxml.html as html
             txt = html.tostring(txt, encoding=unicode)
         return html2text(txt)
 
