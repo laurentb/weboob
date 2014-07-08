@@ -20,7 +20,6 @@
 
 import warnings
 from time import time, sleep
-from tempfile import gettempdir
 import os
 import sys
 import traceback
@@ -136,6 +135,7 @@ def ratelimit(group, delay):
     @param delay [int]  delay in seconds between each call
     """
 
+    from tempfile import gettempdir
     path = os.path.join(gettempdir(), 'weboob_ratelimit.%s' % group)
     while True:
         try:

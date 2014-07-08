@@ -19,7 +19,6 @@
 
 
 from datetime import date as real_date, datetime as real_datetime, timedelta
-import dateutil.parser
 import time
 import re
 try:
@@ -264,6 +263,7 @@ def parse_french_date(date):
     for fr, en in DATE_TRANSLATE_FR:
         date = fr.sub(en, date)
 
+    import dateutil.parser
     return dateutil.parser.parse(date)
 
 

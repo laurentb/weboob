@@ -27,7 +27,6 @@ import subprocess
 import sys
 import os
 import locale
-from tempfile import NamedTemporaryFile
 from ssl import SSLError
 
 from weboob.capabilities import UserError
@@ -494,6 +493,7 @@ class ConsoleApplication(BaseApplication):
     def acquire_input(self, content=None, editor_params=None):
         editor = os.getenv('EDITOR', 'vi')
         if sys.stdin.isatty() and editor:
+            from tempfile import NamedTemporaryFile
             with NamedTemporaryFile() as f:
                 filename = f.name
                 if content is not None:

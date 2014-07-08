@@ -25,7 +25,6 @@ import optparse
 from optparse import OptionGroup, OptionParser
 import os
 import sys
-import tempfile
 import warnings
 
 from weboob.capabilities.base import ConversionWarning, BaseObject
@@ -361,6 +360,7 @@ class BaseApplication(object):
         handlers = []
 
         if self.options.save_responses:
+            import tempfile
             responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
             print('Debug data will be saved in this directory: %s' % responses_dirname, file=sys.stderr)
             log_settings['save_responses'] = True

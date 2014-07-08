@@ -35,7 +35,6 @@ except ImportError:
 
 import os
 import re
-import tempfile
 from threading import RLock
 import ssl
 import httplib
@@ -286,6 +285,7 @@ class StandardBrowser(mechanize.Browser):
         The stream is rewinded after saving.
         """
         if self.responses_dirname is None:
+            import tempfile
             self.responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
             print('Debug data will be saved in this directory: %s' % self.responses_dirname, file=sys.stderr)
         elif not os.path.isdir(self.responses_dirname):
