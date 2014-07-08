@@ -12,9 +12,9 @@ Prefer returning objects
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 Python is an object-oriented language, so when your capability supports entities (for example
-:class:`weboob.capabilities.video.BaseVideo` with the :class:`weboob.capabilities.video.ICapVideo` capability),
+:class:`weboob.capabilities.video.BaseVideo` with the :class:`weboob.capabilities.video.CapVideo` capability),
 you have to create a class derived from :class:`weboob.capabilities.base.BaseObject`, and create an unique method
-to get it (for example :func:`get_video() <weboob.capabilities.video.ICapVideo.get_video>`), instead of several methods like
+to get it (for example :func:`get_video() <weboob.capabilities.video.CapVideo.get_video>`), instead of several methods like
 ``get_video_url()``, ``get_video_preview()``, etc.
 
 An object has an unique ID.

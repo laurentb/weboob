@@ -23,7 +23,7 @@ Capabilities
 
 The core library defines capabilities. They represent features common to various websites.
 For example, http://www.youtube.com and http://www.dailymotion.com are both videos
-providers: Weboob defines the ``ICapVideo`` capability.
+providers: Weboob defines the ``CapVideo`` capability.
 
 Each backend interfaces a website and implements one or many of these
 capabilities. Backends can be configured, which means that the end-user can

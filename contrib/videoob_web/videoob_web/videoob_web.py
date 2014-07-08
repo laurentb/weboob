@@ -28,7 +28,7 @@ from webob.dec import wsgify
 from webob import exc
 from wsgiref.simple_server import make_server
 
-from weboob.capabilities.video import ICapVideo
+from weboob.capabilities.video import CapVideo
 from weboob.tools.application.base import BaseApplication
 
 
@@ -44,7 +44,7 @@ class VideoobWeb(BaseApplication):
     VERSION = '0.j'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz'
     DESCRIPTION = 'WSGI web server application allowing to search for videos on various websites.'
-    CAPS = ICapVideo
+    CAPS = CapVideo
     CONFIG = dict(host='localhost', port=8080)
 
     @wsgify
@@ -78,7 +78,7 @@ class VideoobWeb(BaseApplication):
 
     def main(self, argv):
         self.load_config()
-        self.weboob.load_backends(ICapVideo)
+        self.weboob.load_backends(CapVideo)
         print 'Web server created. Listening on http://%s:%s' % (
             self.config.get('host'), int(self.config.get('port')))
         srv = make_server(self.config.get('host'), int(self.config.get('port')), self.make_app)
