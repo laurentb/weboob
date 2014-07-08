@@ -69,7 +69,7 @@ class DetailsPage(LoggedPage, BadUTF8Page):
 
     def _parse_div(self, divglobal, string, num, inter=False):
         divs = divglobal.xpath('div[@class="detail"]')
-        # Two informations in one div...
+        # Two pieces of information in one div...
         div = divs.pop(0)
         voice = self._parse_voice(div, string, num, inter)
         self.details[num].append(voice)

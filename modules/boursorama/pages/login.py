@@ -102,4 +102,4 @@ class LoginPage(BasePage):
 
 class UpdateInfoPage(BasePage):
     def on_loaded(self):
-        raise BrowserIncorrectPassword('Please update your user informations')
+        raise BrowserIncorrectPassword('Please update your login credentials')

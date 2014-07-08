@@ -105,7 +105,7 @@ class IngBrowser(LoginBrowser):
             self.logger.info('There is no history for this account')
             return
 
-        index = 0  # index, we get always the same page, but with more informations
+        index = 0  # index, we get always the same page, but with more data
         hashlist = []
         while True:
             i = index

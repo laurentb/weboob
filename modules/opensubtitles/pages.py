@@ -56,7 +56,7 @@ class SubtitlesPage(BasePage):
         tabresults = self.parser.select(self.document.getroot(), 'table#search_results')
         if len(tabresults) > 0:
             table = tabresults[0]
-            # for each result line, get informations
+            # for each result line, get the data
             # why following line doesn't work all the time (for example 'search fr sopranos guy walks' ?
             # for line in self.parser.select(table,'tr'):
             for line in table.getiterator('tr'):

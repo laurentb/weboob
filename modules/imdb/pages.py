@@ -128,7 +128,7 @@ class MovieCrewPage(BasePage):
 
 
 class PersonPage(BasePage):
-    ''' Page giving informations about a person
+    ''' Page informing about a person
     It is used to build a Person instance and to get the movie list related to a person
     '''
     def get_person(self, id):

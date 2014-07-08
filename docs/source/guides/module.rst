@@ -497,4 +497,4 @@ are empty (set to ``NotLoaded``):
 * **date** - date of thread
 
 As our method :func:`get_thread <weboob.capabilities.messages.CapMessages.get_thread>` will get all
-of the missing informations, we just call it with the object as parameter to complete it.
+of the missing data, we just call it with the object as parameter to complete it.
