@@ -23,8 +23,8 @@ from datetime import datetime
 from weboob.tools.browser import BasePage
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.contact import ProfileNode
-from weboob.tools.misc import local2utc, html2text
-
+from weboob.tools.misc import html2text
+from weboob.tools.date import local2utc
 
 class LoginPage(BasePage):
     def login(self, username, password):

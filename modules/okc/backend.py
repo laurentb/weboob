@@ -29,7 +29,7 @@ from weboob.capabilities.dating import CapDating, OptimizationNotFound, Event
 from weboob.capabilities.contact import CapContact, ContactPhoto, Contact, Query, QueryError
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
-from weboob.tools.misc import local2utc
+from weboob.tools.date import local2utc
 
 from .browser import OkCBrowser
 from .optim.profiles_walker import ProfilesWalker

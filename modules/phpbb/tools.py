@@ -21,7 +21,7 @@
 from dateutil.parser import parse as _parse_dt
 from urlparse import urlsplit, parse_qs
 
-from weboob.tools.misc import local2utc
+from weboob.tools.date import local2utc
 
 
 def url2id(url, nopost=False):

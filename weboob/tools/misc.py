@@ -25,12 +25,11 @@ import sys
 import traceback
 import types
 # keep compatibility
-from .date import local2utc, utc2local
 from .compat import unicode
 
 
 __all__ = ['get_backtrace', 'get_bytes_size', 'html2text', 'iter_fields',
-            'local2utc', 'to_unicode', 'utc2local', 'limit']
+            'to_unicode', 'limit']
 
 
 def get_backtrace(empty="Empty backtrace."):

@@ -37,7 +37,8 @@ from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.browser import BrowserUnavailable, BrowserHTTPNotFound
 from weboob.tools.value import Value, ValuesDict, ValueBool, ValueBackendPassword
 from weboob.tools.log import getLogger
-from weboob.tools.misc import local2utc, to_unicode
+from weboob.tools.date import local2utc
+from weboob.tools.misc import to_unicode
 
 from .contact import Contact
 from .captcha import CaptchaError
