@@ -314,6 +314,15 @@ class Lower(CleanText):
 class CleanDecimal(CleanText):
     """
     Get a cleaned Decimal value from an element.
+
+    If replace_dots is a tuple, the first element will be used as the thousands separator,
+    and the second as the decimal separator.
+
+    See http://en.wikipedia.org/wiki/Thousands_separator#Examples_of_use
+
+    For example, for the UK style (as in 1,234,567.89):
+
+    >>> CleanDecimal('./td[1]', replace_dots=(',', '.'))
     """
 
     def __init__(self, selector=None, replace_dots=True, default=_NO_DEFAULT):
@@ -323,7 +332,11 @@ class CleanDecimal(CleanText):
     def filter(self, text):
         text = super(CleanDecimal, self).filter(text)
         if self.replace_dots:
-            text = text.replace('.', '').replace(',', '.')
+            if type(self.replace_dots) is tuple:
+                thousands_sep, decimal_sep = self.replace_dots
+            else:
+                thousands_sep, decimal_sep = '.', ','
+            text = text.replace(thousands_sep, '').replace(decimal_sep, '.')
         try:
             return Decimal(re.sub(r'[^\d\-\.]', '', text))
         except InvalidOperation as e:
