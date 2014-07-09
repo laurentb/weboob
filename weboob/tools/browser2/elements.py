@@ -22,6 +22,7 @@ import sys
 from copy import deepcopy
 from .filters import _Filter, CleanText, AttributeNotFound, XPathNotFound
 from weboob.tools.log import getLogger
+from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.browser2.page import NextPage
 
 class DataError(Exception):
