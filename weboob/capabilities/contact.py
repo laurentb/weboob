@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, BaseObject, Field, StringField, BytesField, IntField, \
+from .base import CapBase, BaseObject, Field, StringField, BytesField, IntField, \
                   UserError
 from weboob.tools.ordereddict import OrderedDict
 
@@ -165,7 +165,7 @@ class Query(BaseObject):
         self.message = message
 
 
-class CapContact(IBaseCap):
+class CapContact(CapBase):
     def iter_contacts(self, status=Contact.STATUS_ALL, ids=None):
         """
         Iter contacts

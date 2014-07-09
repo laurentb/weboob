@@ -19,7 +19,7 @@ Select capabilities
 *******************
 
 Each module implements one or many :doc:`capabilities </api/capabilities/index>` to tell what kind of features the
-website provides. A capability is a class derived from :class:`weboob.capabilities.base.IBaseCap` and with some abstract
+website provides. A capability is a class derived from :class:`weboob.capabilities.base.CapBase` and with some abstract
 methods (which raise ``NotImplementedError``).
 
 A capability needs to be as generic as possible to allow a maximum number of modules to implements it.

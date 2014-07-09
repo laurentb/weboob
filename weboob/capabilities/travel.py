@@ -20,7 +20,7 @@
 
 import datetime
 
-from .base import IBaseCap, BaseObject, StringField, DecimalField, UserError
+from .base import CapBase, BaseObject, StringField, DecimalField, UserError
 from .date import TimeField, DeltaField, DateField
 
 __all__ = ['Station', 'Departure', 'RoadStep', 'RoadmapError', 'RoadmapFilters', 'CapTravel']
@@ -95,7 +95,7 @@ class RoadmapFilters(BaseObject):
         BaseObject.__init__(self, '')
 
 
-class CapTravel(IBaseCap):
+class CapTravel(CapBase):
     """
     Travel websites.
     """

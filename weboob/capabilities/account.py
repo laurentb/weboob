@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, BaseObject, StringField, Field, UserError
+from .base import CapBase, BaseObject, StringField, Field, UserError
 
 
 __all__ = ['AccountRegisterError', 'Account', 'StatusField', 'CapAccount']
@@ -56,7 +56,7 @@ class StatusField(object):
         self.flags = flags
 
 
-class CapAccount(IBaseCap):
+class CapAccount(CapBase):
     """
     Capability for websites when you can create and manage accounts.
 

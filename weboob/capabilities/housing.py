@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, BaseObject, Field, IntField, DecimalField, \
+from .base import CapBase, BaseObject, Field, IntField, DecimalField, \
                   StringField, BytesField
 from .date import DateField
 
@@ -89,7 +89,7 @@ class City(BaseObject):
     name =      StringField('Name of city')
 
 
-class CapHousing(IBaseCap):
+class CapHousing(CapBase):
     """
     Capability of websites to search housings.
     """

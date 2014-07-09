@@ -23,7 +23,7 @@ from threading import RLock
 from copy import copy
 
 from weboob.capabilities.base import BaseObject, FieldNotFound, \
-    IBaseCap, NotLoaded, NotAvailable
+    CapBase, NotLoaded, NotAvailable
 from weboob.tools.misc import iter_fields
 from weboob.tools.log import getLogger
 from weboob.tools.value import ValuesDict
@@ -350,11 +350,11 @@ class BaseBackend(object):
         """
         Iter capabilities implemented by this backend.
 
-        :rtype: iter[:class:`weboob.capabilities.base.IBaseCap`]
+        :rtype: iter[:class:`weboob.capabilities.base.CapBase`]
         """
         def iter_caps(cls):
             for base in cls.__bases__:
-                if issubclass(base, IBaseCap) and base != IBaseCap:
+                if issubclass(base, CapBase) and base != CapBase:
                     yield base
                     for cap in iter_caps(base):
                         yield cap

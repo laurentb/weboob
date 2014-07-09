@@ -20,7 +20,7 @@
 
 from datetime import datetime, date
 
-from .base import IBaseCap, BaseObject, Field, FloatField, \
+from .base import CapBase, BaseObject, Field, FloatField, \
                   StringField, UserError
 from .date import DateField
 
@@ -109,7 +109,7 @@ class CityNotFound(UserError):
     """
 
 
-class CapWeather(IBaseCap):
+class CapWeather(CapBase):
     """
     Capability for weather websites.
     """

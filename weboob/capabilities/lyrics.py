@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, BaseObject, StringField
+from .base import CapBase, BaseObject, StringField
 
 
 __all__ = ['SongLyrics', 'CapLyrics']
@@ -37,7 +37,7 @@ class SongLyrics(BaseObject):
         self.title = title
 
 
-class CapLyrics(IBaseCap):
+class CapLyrics(CapBase):
     """
     Lyrics websites.
     """

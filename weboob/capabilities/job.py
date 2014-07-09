@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .base import BaseObject, IBaseCap, StringField
+from .base import BaseObject, CapBase, StringField
 from .date import DateField
 
 __all__ = ['BaseJobAdvert', 'CapJob']
@@ -68,7 +68,7 @@ class BaseJobAdvert(BaseObject):
         return self.id2url(self.id)
 
 
-class CapJob(IBaseCap):
+class CapJob(CapBase):
     """
     Capability of job annouce websites.
     """

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, BaseObject, Field, StringField,\
+from .base import CapBase, BaseObject, Field, StringField,\
                   IntField, UserError
 from .date import DateField, DeltaField
 
@@ -232,7 +232,7 @@ class Query(BaseObject):
         BaseObject.__init__(self, '')
 
 
-class CapBugTracker(IBaseCap):
+class CapBugTracker(CapBase):
     """
     Bug trackers websites.
     """

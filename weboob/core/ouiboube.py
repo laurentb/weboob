@@ -191,7 +191,7 @@ class WebNip(object):
         Note: each backend is locked when it is returned.
 
         :param caps: optional list of capabilities to select backends
-        :type caps: tuple[:class:`weboob.capabilities.base.IBaseCap`]
+        :type caps: tuple[:class:`weboob.capabilities.base.CapBase`]
         :rtype: iter[:class:`weboob.tools.backend.BaseBackend`]
         """
         for _, backend in sorted(self.backend_instances.iteritems()):
@@ -222,7 +222,7 @@ class WebNip(object):
         :param backends: list of backends to iterate on
         :type backends: list[:class:`str`]
         :param caps: iterate on backends which implement this caps
-        :type caps: list[:class:`weboob.capabilities.base.IBaseCap`]
+        :type caps: list[:class:`weboob.capabilities.base.CapBase`]
         :rtype: A :class:`weboob.core.bcall.BackendsCall` object (iterable)
         """
         backends = self.backend_instances.values()

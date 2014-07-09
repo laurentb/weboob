@@ -21,7 +21,7 @@
 import datetime
 import time
 
-from .base import IBaseCap, BaseObject, NotLoaded, Field, StringField, \
+from .base import CapBase, BaseObject, NotLoaded, Field, StringField, \
                   IntField, UserError
 from .date import DateField
 
@@ -165,7 +165,7 @@ class Thread(_Thread):
                     yield m
 
 
-class CapMessages(IBaseCap):
+class CapMessages(CapBase):
     """
     Capability to read messages.
     """
@@ -209,7 +209,7 @@ class CantSendMessage(UserError):
     """
 
 
-class CapMessagesPost(IBaseCap):
+class CapMessagesPost(CapBase):
     """
     This capability allow user to send a message.
     """

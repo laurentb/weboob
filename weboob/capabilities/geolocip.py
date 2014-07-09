@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, BaseObject, StringField, FloatField
+from .base import CapBase, BaseObject, StringField, FloatField
 
 
 __all__ = ['IpLocation', 'CapGeolocIp']
@@ -42,7 +42,7 @@ class IpLocation(BaseObject):
         BaseObject.__init__(self, ipaddr)
 
 
-class CapGeolocIp(IBaseCap):
+class CapGeolocIp(CapBase):
     """
     Access information about IP addresses database.
     """
