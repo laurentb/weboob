@@ -66,6 +66,89 @@ class AbstractElement(object):
         return self.el.xpath(*args, **kwargs)
 
 
+class ListElement(AbstractElement):
+    item_xpath = None
+    flush_at_end = False
+    ignore_duplicate = False
+
+    def __init__(self, *args, **kwargs):
+        super(ListElement, self).__init__(*args, **kwargs)
+        self.logger = getLogger(self.__class__.__name__.lower())
+        self.objects = OrderedDict()
+
+    def __call__(self, *args, **kwargs):
+        for key, value in kwargs.iteritems():
+            self.env[key] = value
+
+        return self.__iter__()
+
+    def find_elements(self):
+        """
+        Get the nodes that will have to be processed.
+        This method can be overridden if xpath filters are not
+        sufficient.
+        """
+        if self.item_xpath is not None:
+            for el in self.el.xpath(self.item_xpath):
+                yield el
+        else:
+            yield self.el
+
+    def __iter__(self):
+        self.parse(self.el)
+
+        for el in self.find_elements():
+            for obj in self.handle_element(el):
+                if not self.flush_at_end:
+                    yield obj
+
+        if self.flush_at_end:
+            for obj in self.flush():
+                yield obj
+
+        self.check_next_page()
+
+    def flush(self):
+        for obj in self.objects.itervalues():
+            yield obj
+
+    def check_next_page(self):
+        if not hasattr(self, 'next_page'):
+            return
+
+        next_page = getattr(self, 'next_page')
+        try:
+            value = self.use_selector(next_page)
+        except (AttributeNotFound, XPathNotFound):
+            return
+
+        if value is None:
+            return
+
+        raise NextPage(value)
+
+
+    def store(self, obj):
+        if obj.id:
+            if obj.id in self.objects:
+                if self.ignore_duplicate:
+                    self.logger.warning('There are two objects with the same ID! %s' % obj.id)
+                    return
+                else:
+                    raise DataError('There are two objects with the same ID! %s' % obj.id)
+            self.objects[obj.id] = obj
+        return obj
+
+    def handle_element(self, el):
+        for attrname in dir(self):
+            attr = getattr(self, attrname)
+            if isinstance(attr, type) and issubclass(attr, AbstractElement) and attr != type(self):
+                for obj in attr(self.page, self, el):
+                    obj = self.store(obj)
+                    if obj:
+                        yield obj
+
+
 class SkipItem(Exception):
     """
     Raise this exception in an :class:`ItemElement` subclass to skip an item.
@@ -139,78 +222,6 @@ class ItemElement(AbstractElement):
     def handle_attr(self, key, func):
         value = self.use_selector(func)
         setattr(self.obj, key, value)
-
-
-class ListElement(AbstractElement):
-    item_xpath = None
-    flush_at_end = False
-    ignore_duplicate = False
-
-    def __init__(self, *args, **kwargs):
-        super(ListElement, self).__init__(*args, **kwargs)
-        self.logger = getLogger(self.__class__.__name__.lower())
-        self.objects = {}
-
-    def __call__(self, *args, **kwargs):
-        for key, value in kwargs.iteritems():
-            self.env[key] = value
-
-        return self.__iter__()
-
-    def __iter__(self):
-        self.parse(self.el)
-
-        if self.item_xpath is not None:
-            for el in self.el.xpath(self.item_xpath):
-                for obj in self.handle_element(el):
-                    if not self.flush_at_end:
-                        yield obj
-        else:
-            for obj in self.handle_element(self.el):
-                if not self.flush_at_end:
-                    yield obj
-
-        if self.flush_at_end:
-            for obj in self.objects.itervalues():
-                yield obj
-
-        self.check_next_page()
-
-    def check_next_page(self):
-        if not hasattr(self, 'next_page'):
-            return
-
-        next_page = getattr(self, 'next_page')
-        try:
-            value = self.use_selector(next_page)
-        except (AttributeNotFound, XPathNotFound):
-            return
-
-        if value is None:
-            return
-
-        raise NextPage(value)
-
-
-    def store(self, obj):
-        if obj.id:
-            if obj.id in self.objects:
-                if self.ignore_duplicate:
-                    self.logger.warning('There are two objects with the same ID! %s' % obj.id)
-                    return
-                else:
-                    raise DataError('There are two objects with the same ID! %s' % obj.id)
-            self.objects[obj.id] = obj
-        return obj
-
-    def handle_element(self, el):
-        for attrname in dir(self):
-            attr = getattr(self, attrname)
-            if isinstance(attr, type) and issubclass(attr, AbstractElement) and attr != type(self):
-                for obj in attr(self.page, self, el):
-                    obj = self.store(obj)
-                    if obj:
-                        yield obj
 
 
 class TableElement(ListElement):
