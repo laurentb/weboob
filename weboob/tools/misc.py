@@ -44,7 +44,6 @@ def get_backtrace(empty="Empty backtrace."):
         if trace[0] != "None\n":
             return "".join(trace)
     except:
-        # No i18n here (imagine if i18n function calls error...)
         return "Error while trying to get backtrace"
     return empty
 
