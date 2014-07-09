@@ -17,9 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import weboob.tools.date as date_utils
 from weboob.capabilities import UserError
-from datetime import date
 
 
 __all__ = ['ResultsCondition', 'ResultsConditionError']
@@ -92,6 +90,8 @@ class ResultsCondition(IResultsCondition):
         self.condition_str = condition_str
 
     def is_valid(self, obj):
+        import weboob.tools.date as date_utils
+        from datetime import date
         d = obj.to_dict()
         # We evaluate all member of a list at each iteration.
         for _or in self.condition:
