@@ -19,7 +19,7 @@
 
 
 from weboob.tools.browser import BasePage
-from weboob.tools.misc import html2text
+from weboob.tools.html import html2text
 import dateutil.parser
 import re
 

@@ -25,7 +25,7 @@ from dateutil.parser import parse as parse_dt
 
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.contact import Contact as _Contact, ProfileNode
-from weboob.tools.misc import html2text
+from weboob.tools.html import html2text
 
 
 class FieldBase(object):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011  Romain Bignon
+# Copyright(C) 2010-2014 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -17,20 +17,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import warnings
 
-from weboob.tools.test import BackendTest
-from weboob.tools.html import html2text
-
-
-__all__ = ['LeFigaroTest']
+__all__ = ['html2text']
 
 
-class LeFigaroTest(BackendTest):
-    BACKEND = 'lefigaro'
-
-    def test_lefigaro(self):
-        l = list(self.backend.iter_threads())
-        assert len(l)
-        thread = self.backend.get_thread(l[0].id)
-        assert len(thread.root.content)
-        assert len(html2text(thread.root.content))
+try:
+    import html2text as h2t
+    h2t.UNICODE_SNOB = 1
+    h2t.SKIP_INTERNAL_LINKS = True
+    h2t.INLINE_LINKS = False
+    h2t.LINKS_EACH_PARAGRAPH = True
+    html2text = h2t.html2text
+except ImportError:
+    def html2text(html):
+        warnings.warn('python-html2text is not present. HTML pages are not converted into text.', stacklevel=2)
+        return html

@@ -23,7 +23,7 @@
 import sys
 
 from weboob.capabilities.pricecomparison import CapPriceComparison
-from weboob.tools.misc import html2text
+from weboob.tools.html import html2text
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 

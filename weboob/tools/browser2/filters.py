@@ -28,7 +28,7 @@ from dateutil.parser import parse as parse_date
 from weboob.capabilities.base import empty
 from weboob.tools.compat import basestring
 from weboob.tools.exceptions import ParseError
-from weboob.tools.misc import html2text
+from weboob.tools.html import html2text
 
 _NO_DEFAULT = object()
 

@@ -23,7 +23,8 @@ import urlparse
 from logging import warning, debug
 from urlparse import parse_qs
 
-from weboob.tools.misc import html2text, get_bytes_size
+from weboob.tools.misc import get_bytes_size
+from weboob.tools.html import html2text
 from weboob.capabilities.torrent import Torrent
 from weboob.capabilities.base import NotLoaded
 

@@ -26,7 +26,7 @@ import mechanize
 
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.image import BaseImage
-from weboob.tools.misc import html2text
+from weboob.tools.html import html2text
 from weboob.tools.browser import BasePage, BrokenPageError
 
 

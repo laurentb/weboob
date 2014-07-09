@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import warnings
 from time import time, sleep
 import os
 import sys
@@ -28,7 +27,7 @@ import types
 from .compat import unicode
 
 
-__all__ = ['get_backtrace', 'get_bytes_size', 'html2text', 'iter_fields',
+__all__ = ['get_backtrace', 'get_bytes_size', 'iter_fields',
             'to_unicode', 'limit']
 
 
@@ -57,18 +56,6 @@ def get_bytes_size(size, unit_name):
         'TB': 1024 * 1024 * 1024 * 1024,
         }
     return float(size * unit_data.get(unit_name, 1))
-
-try:
-    import html2text as h2t
-    h2t.UNICODE_SNOB = 1
-    h2t.SKIP_INTERNAL_LINKS = True
-    h2t.INLINE_LINKS = False
-    h2t.LINKS_EACH_PARAGRAPH = True
-    html2text = h2t.html2text
-except ImportError:
-    def html2text(html):
-        warnings.warn('python-html2text is not present. HTML pages are not converted into text.', stacklevel=2)
-        return html
 
 
 def iter_fields(obj):

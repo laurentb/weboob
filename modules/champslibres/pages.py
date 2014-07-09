@@ -21,7 +21,7 @@ from datetime import date
 from weboob.capabilities.library import Book, Renew
 from weboob.tools.browser import BasePage
 from weboob.tools.mech import ClientForm
-from weboob.tools.misc import html2text
+from weboob.tools.html import html2text
 
 
 class SkipPage(BasePage):

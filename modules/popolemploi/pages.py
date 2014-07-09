@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.misc import html2text
+from weboob.tools.html import html2text
 from weboob.tools.browser import BasePage
 import dateutil.parser
 import re

@@ -32,7 +32,7 @@ from weboob.capabilities.account import CapAccount
 from weboob.capabilities.contact import CapContact
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter
-from weboob.tools.misc import html2text
+from weboob.tools.html import html2text
 
 
 __all__ = ['Boobmsg']

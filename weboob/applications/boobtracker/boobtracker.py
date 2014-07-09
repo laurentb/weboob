@@ -32,7 +32,7 @@ from weboob.capabilities.base import empty, BaseObject
 from weboob.capabilities.bugtracker import CapBugTracker, Query, Update, Project, Issue, IssueError
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
-from weboob.tools.misc import html2text
+from weboob.tools.html import html2text
 from weboob.tools.date import parse_french_date
 
 
