@@ -173,7 +173,7 @@ class CapBank(CapCollection):
         :type objs: tuple[:class:`BaseObject`]
         :param split_path: path to discover
         :type split_path: :class:`list`
-        :rtype: iter[:class:`BaseCapObject`]
+        :rtype: iter[:class:`BaseObject`]
         """
         if Account in objs:
             self._restrict_level(split_path)
