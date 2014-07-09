@@ -31,6 +31,7 @@ from weboob.capabilities.base import ConversionWarning, BaseObject
 from weboob.core import Weboob, CallErrors
 from weboob.core.backendscfg import BackendsConfig
 from weboob.tools.config.iconfig import ConfigError
+from weboob.tools.exceptions import FormFieldConversionWarning
 from weboob.tools.log import createColoredFormatter, getLogger, settings as log_settings
 from weboob.tools.misc import to_unicode
 from .results import ResultsConditionError
@@ -350,12 +351,7 @@ class BaseApplication(object):
         # this only matters to developers
         if not self.options.debug and not self.options.save_responses:
             warnings.simplefilter('ignore', category=ConversionWarning)
-            try:
-                from weboob.tools.exceptions import FormFieldConversionWarning
-            except ImportError:
-                pass
-            else:
-                warnings.simplefilter('ignore', category=FormFieldConversionWarning)
+            warnings.simplefilter('ignore', category=FormFieldConversionWarning)
 
         handlers = []
 
