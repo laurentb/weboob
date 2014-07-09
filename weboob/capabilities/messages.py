@@ -22,8 +22,8 @@ import datetime
 import time
 
 from .base import IBaseCap, BaseObject, NotLoaded, Field, StringField, \
-                  DateField, IntField, UserError
-
+                  IntField, UserError
+from .date import DateField
 
 __all__ = ['Thread', 'Message', 'CapMessages', 'CantSendMessage', 'CapMessagesPost']
 

@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, BaseObject, StringField, FloatField, DateField, Field, UserError, empty
+from .base import IBaseCap, BaseObject, StringField, FloatField, Field, UserError, empty
+from .date import DateField
 
 __all__ = ['Gauge', 'GaugeSensor', 'GaugeMeasure', 'CapGauge', 'SensorNotFound']
 

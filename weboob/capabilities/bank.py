@@ -24,7 +24,8 @@ import re
 
 from weboob.tools.compat import basestring, long
 
-from .base import BaseObject, Field, StringField, DateField, DecimalField, IntField, UserError, Currency
+from .base import BaseObject, Field, StringField, DecimalField, IntField, UserError, Currency
+from .date import DateField
 from .collection import CapCollection
 
 

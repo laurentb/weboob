@@ -19,8 +19,8 @@
 
 
 from .base import IBaseCap, BaseObject, Field, StringField, FloatField, \
-                  DateField, IntField, UserError
-
+                  IntField, UserError
+from .date import DateField
 
 __all__ = ['MagnetOnly', 'Torrent', 'CapTorrent']
 

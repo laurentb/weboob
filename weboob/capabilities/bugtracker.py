@@ -18,8 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, BaseObject, Field, StringField, DateField, \
-                  IntField, DeltaField, UserError
+from .base import IBaseCap, BaseObject, Field, StringField,\
+                  IntField, UserError
+from .date import DateField, DeltaField
 
 
 __all__ = ['IssueError', 'Project', 'User', 'Version', 'Status', 'Attachment',

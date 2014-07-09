@@ -19,21 +19,19 @@
 
 
 import warnings
-import datetime
 import re
 from decimal import Decimal
 from copy import deepcopy, copy
 
 from weboob.tools.compat import unicode, long
 from weboob.tools.misc import to_unicode
-from weboob.tools.date import new_date, new_datetime
 from weboob.tools.ordereddict import OrderedDict
 
 
 __all__ = ['UserError', 'FieldNotFound', 'NotAvailable',
            'NotLoaded', 'IBaseCap', 'Field', 'IntField', 'DecimalField',
-           'FloatField', 'StringField', 'BytesField', 'DateField',
-           'DeltaField', 'empty', 'BaseObject']
+           'FloatField', 'StringField', 'BytesField',
+           'empty', 'BaseObject']
 
 
 def empty(value):
@@ -248,40 +246,6 @@ class BytesField(Field):
         if isinstance(value, unicode):
             value = value.encode('utf-8')
         return str(value)
-
-
-class DateField(Field):
-    """
-    A field which accepts only :class:`datetime.date` and :class:`datetime.datetime` types.
-    """
-    def __init__(self, doc, **kwargs):
-        Field.__init__(self, doc, datetime.date, datetime.datetime, **kwargs)
-
-    def __setattr__(self, name, value):
-        if name == 'value':
-            # Force use of our date and datetime types, to fix bugs in python2
-            # with strftime on year<1900.
-            if type(value) is datetime.datetime:
-                value = new_datetime(value)
-            if type(value) is datetime.date:
-                value = new_date(value)
-        return object.__setattr__(self, name, value)
-
-
-class TimeField(Field):
-    """
-    A field which accepts only :class:`datetime.time` and :class:`datetime.time` types.
-    """
-    def __init__(self, doc, **kwargs):
-        Field.__init__(self, doc, datetime.time, datetime.datetime, **kwargs)
-
-
-class DeltaField(Field):
-    """
-    A field which accepts only :class:`datetime.timedelta` type.
-    """
-    def __init__(self, doc, **kwargs):
-        Field.__init__(self, doc, datetime.timedelta, **kwargs)
 
 
 class _BaseObjectMeta(type):

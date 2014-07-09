@@ -17,8 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .base import BaseObject, StringField, DateField, IntField, FloatField, Field
+from .base import BaseObject, StringField, IntField, FloatField, Field
 from .collection import CapCollection, CollectionNotFound, Collection
+from .date import DateField
 
 from datetime import time, datetime
 from weboob.tools.date import parse_date

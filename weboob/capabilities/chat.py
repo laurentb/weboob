@@ -20,7 +20,8 @@
 
 import datetime
 
-from .base import IBaseCap, BaseObject, StringField, DateField, UserError
+from .base import IBaseCap, BaseObject, StringField, UserError
+from .date import DateField
 
 
 __all__ = ['ChatException', 'ChatMessage', 'CapChat']

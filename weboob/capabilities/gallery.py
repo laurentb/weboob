@@ -20,7 +20,9 @@
 
 from weboob.tools.capabilities.thumbnail import Thumbnail
 from .base import IBaseCap, BaseObject, NotLoaded, Field, StringField, \
-                  BytesField, IntField, FloatField, DateField
+                  BytesField, IntField, FloatField
+from .date import DateField
+
 
 __all__ = ['BaseGallery', 'BaseImage', 'CapGallery']
 

@@ -19,8 +19,8 @@
 
 
 from .base import IBaseCap, BaseObject, Field, IntField, DecimalField, \
-                  StringField, BytesField, DateField
-
+                  StringField, BytesField
+from .date import DateField
 
 __all__ = ['HousingPhoto', 'Housing', 'Query', 'City', 'CapHousing']
 

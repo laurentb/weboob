@@ -20,9 +20,9 @@
 
 from datetime import datetime, date
 
-from .base import IBaseCap, BaseObject, Field, DateField, FloatField, \
+from .base import IBaseCap, BaseObject, Field, FloatField, \
                   StringField, UserError
-
+from .date import DateField
 
 __all__ = ['Forecast', 'Current', 'City', 'CityNotFound', 'Temperature', 'CapWeather']
 

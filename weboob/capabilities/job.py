@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .base import BaseObject, IBaseCap, StringField, DateField
+from .base import BaseObject, IBaseCap, StringField
+from .date import DateField
 
 __all__ = ['BaseJobAdvert', 'CapJob']
 

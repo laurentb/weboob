@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, BaseObject, Field, StringField, DateField
+from .base import IBaseCap, BaseObject, Field, StringField
+from .date import DateField
 
 
 class Event(BaseObject):

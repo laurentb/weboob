@@ -19,8 +19,8 @@
 
 
 from .base import IBaseCap, BaseObject, Field, DecimalField, \
-                  StringField, DateField
-
+                  StringField
+from .date import DateField
 
 __all__ = ['Shop', 'Price', 'Product', 'CapPriceComparison']
 

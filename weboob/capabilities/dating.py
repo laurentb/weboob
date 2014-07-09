@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, BaseObject, Field, StringField, DateField, UserError
+from .base import IBaseCap, BaseObject, Field, StringField, UserError
+from .date import DateField
 from .contact import Contact
 
 

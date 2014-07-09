@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, BaseObject, DateField, StringField, IntField, Field
+from .base import IBaseCap, BaseObject, StringField, IntField, Field
+from .date import DateField
 
 
 __all__ = ['Movie', 'Person', 'CapCinema']

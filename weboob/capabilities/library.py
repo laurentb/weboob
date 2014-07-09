@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from .collection import CapCollection
-from .base import BaseObject, Field, StringField, DateField
+from .base import BaseObject, Field, StringField
+from .date import DateField
 
 
 __all__ = ['Book', 'Renew', 'CapBook']
