@@ -49,7 +49,7 @@ from contextlib import closing
 from gzip import GzipFile
 import warnings
 
-from weboob.tools.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserPasswordExpired, BrowserForbidden, BrowserBanned, BrowserHTTPNotFound, BrowserHTTPError, FormFieldConversionWarning
+from weboob.tools.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserPasswordExpired, BrowserForbidden, BrowserBanned, BrowserHTTPNotFound, BrowserHTTPError, FormFieldConversionWarning, BrowserSSLError
 from weboob.tools.decorators import retry
 from weboob.tools.log import getLogger
 from weboob.tools.mech import ClientForm
@@ -409,7 +409,7 @@ class StandardBrowser(mechanize.Browser):
         if isinstance(hsh, basestring):
             hsh = [hsh]
         if certhash not in hsh:
-            raise ssl.SSLError()
+            raise BrowserSSLError()
 
     def _certhash(self, domain, port=443):
         certs = ssl.get_server_certificate((domain, port))
