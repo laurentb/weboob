@@ -33,19 +33,18 @@ from weboob.tools.html import html2text
 _NO_DEFAULT = object()
 
 
+__all__ = ['FilterError', 'ColumnNotFound', 'RegexpError', 'ItemNotFound',
+           'Filter', 'Base', 'Env', 'TableCell', 'CleanHTML', 'RawText',
+           'CleanText', 'Lower', 'CleanDecimal', 'Field', 'Regexp', 'Map',
+           'DateTime', 'Date', 'Time', 'DateGuesser', 'Duration',
+           'MultiFilter', 'CombineDate', 'Format', 'Join']
+
+
 class FilterError(ParseError):
     pass
 
 
-class XPathNotFound(FilterError):
-    pass
-
-
 class ColumnNotFound(FilterError):
-    pass
-
-
-class AttributeNotFound(FilterError):
     pass
 
 
@@ -125,49 +124,6 @@ class _Selector(Filter):
             return txt
         else:
             return self.default_or_raise(ParseError('Element %r not found' % self.selector))
-
-
-class _DictMeta(type):
-    def __getitem__(cls, name):
-        return cls(name)
-
-
-class Dict(_Selector):
-    __metaclass__ = _DictMeta
-
-    def __init__(self, selector=None, default=_NO_DEFAULT):
-        super(Dict, self).__init__(self, default=default)
-        self.selector = selector.split('/') if selector is not None else []
-
-    def __getitem__(self, name):
-        self.selector.append(name)
-        return self
-
-
-    @classmethod
-    def select(cls, selector, item):
-        if isinstance(item, dict):
-            content = item
-        else:
-            content = item.el
-
-        for el in selector:
-            if el not in content:
-                return None
-
-            content = content.get(el)
-
-        return content
-
-
-class CSS(_Selector):
-    @classmethod
-    def select(cls, selector, item):
-        return item.cssselect(selector)
-
-
-class XPath(_Selector):
-    pass
 
 
 class Base(Filter):
@@ -341,31 +297,6 @@ class CleanDecimal(CleanText):
             return Decimal(re.sub(r'[^\d\-\.]', '', text))
         except InvalidOperation as e:
             return self.default_or_raise(e)
-
-
-class Attr(Filter):
-    def __init__(self, selector, attr, default=_NO_DEFAULT):
-        super(Attr, self).__init__(selector, default=default)
-        self.attr = attr
-
-    def filter(self, el):
-        try:
-            return u'%s' % el[0].attrib[self.attr]
-        except IndexError:
-            return self.default_or_raise(XPathNotFound('Unable to find link %s' % self.selector))
-        except KeyError:
-            return self.default_or_raise(AttributeNotFound('Link %s does not has attribute %s' % (el[0], self.attr)))
-
-
-class Link(Attr):
-    """
-    Get the link uri of an element.
-
-    If the <a> tag is not found, an exception IndexError is raised.
-    """
-
-    def __init__(self, selector=None, default=_NO_DEFAULT):
-        super(Link, self).__init__(selector, 'href', default=default)
 
 
 class Field(_Filter):
