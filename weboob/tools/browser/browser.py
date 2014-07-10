@@ -56,16 +56,6 @@ from weboob.tools.mech import ClientForm
 ControlNotFoundError = ClientForm.ControlNotFoundError
 from weboob.tools.parsers import get_parser
 
-# Try to load cookies
-try:
-    from .firefox_cookies import FirefoxCookieJar
-except ImportError as e:
-    logging.warning("Unable to store cookies: %s", e)
-    HAVE_COOKIES = False
-else:
-    HAVE_COOKIES = True
-
-
 __all__ = ['BrowserIncorrectPassword', 'BrowserForbidden', 'BrowserBanned', 'BrowserUnavailable', 'BrowserRetry',
            'BrowserPasswordExpired', 'BrowserHTTPNotFound', 'BrowserHTTPError', 'BrokenPageError', 'BasePage',
            'StandardBrowser', 'BaseBrowser']
@@ -192,10 +182,16 @@ class StandardBrowser(mechanize.Browser):
             self.set_proxies(proxy)
 
         # Share cookies with firefox
-        if firefox_cookies and HAVE_COOKIES:
-            self._cookie = FirefoxCookieJar(self.DOMAIN, firefox_cookies)
-            self._cookie.load()
-            self.set_cookiejar(self._cookie)
+        if firefox_cookies:
+            # Try to load cookies
+            try:
+                from .firefox_cookies import FirefoxCookieJar
+                self._cookie = FirefoxCookieJar(self.DOMAIN, firefox_cookies)
+                self._cookie.load()
+                self.set_cookiejar(self._cookie)
+            except ImportError as e:
+                logging.warning("Unable to store Firefox cookies: %s", e)
+                self._cookie = None
         else:
             self._cookie = None
 
