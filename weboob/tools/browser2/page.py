@@ -524,6 +524,58 @@ class Form(OrderedDict):
         return self.page.browser.location(self.request, **kwargs)
 
 
+class CsvPage(BasePage):
+    DIALECT = 'excel'
+    FMTPARAMS = {}
+    ENCODING = 'utf-8'
+    NEWLINES_HACK = True
+
+    """
+    If True, will consider the first line as a header.
+    This means the rows will be also available as dictionnaries.
+    """
+    HEADER = None
+
+    def __init__(self, browser, response, *args, **kwargs):
+        super(CsvPage, self).__init__(browser, response, *args, **kwargs)
+        content = response.content
+        encoding = self.ENCODING
+        if encoding == 'utf-16le':
+            content = content.decode('utf-16le')[1:].encode('utf-8')
+            encoding = 'utf-8'
+        if self.NEWLINES_HACK:
+            content = content.replace('\r\n', '\n').replace('\r', '\n')
+        fp = BytesIO(content)
+        self.doc = self.parse(fp, encoding)
+
+    def parse(self, data, encoding=None):
+        import csv
+        reader = csv.reader(data, dialect=self.DIALECT, **self.FMTPARAMS)
+        header = None
+        drows = []
+        rows = []
+        for i, row in enumerate(reader):
+            if self.HEADER and i+1 < self.HEADER:
+                continue
+            row = self.decode_row(row, encoding)
+            if header is None and self.HEADER:
+                header = row
+            else:
+                rows.append(row)
+                if header:
+                    drow = {}
+                    for i, cell in enumerate(row):
+                        drow[header[i]] = cell
+                    drows.append(drow)
+        return drows if header is not None else row
+
+    def decode_row(self, row, encoding):
+        if encoding:
+            return [unicode(cell, encoding) for cell in row]
+        else:
+            return row
+
+
 class JsonPage(BasePage):
     def __init__(self, browser, response, *args, **kwargs):
         super(JsonPage, self).__init__(browser, response, *args, **kwargs)
