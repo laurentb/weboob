@@ -101,13 +101,16 @@ class SenscritiqueBrowser(PagesBrowser):
 
             page_nb += 1
 
-    def get_event(self, _id, event=None):
+    def get_event(self, _id, event=None, package=None, channels=None):
         if not event:
             self._setup_session(Firefox())
             self.program_page.go()
             page_nb = 1
 
             self.set_ajax_header()
+            if package and channels:
+                self.set_package_settings(package, channels)
+
             while True:
                 self.DATA['page'] = '%d' % page_nb
                 page = self.ajax_page.open(data=self.DATA)

@@ -114,10 +114,11 @@ class SenscritiqueBackend(BaseBackend, CapCalendarEvent):
         items.sort(key=lambda o:o.start_date)
         return items
 
-    def get_event(self, _id):
-        return self.browser.get_event(_id)
+    def get_event(self, _id, event=None):
+        package, channels = self.get_package_and_channels()
+        return self.browser.get_event(_id, event, package=package, channels=channels)
 
     def fill_obj(self, event, fields):
-        return self.browser.get_event(event.id, event)
+        return self.get_event(event.id, event)
 
     OBJECTS = {SensCritiquenCalendarEvent: fill_obj}
