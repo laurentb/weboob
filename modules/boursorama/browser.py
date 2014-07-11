@@ -35,7 +35,7 @@ class BrowserIncorrectAuthenticationCode(BrowserIncorrectPassword):
 class Boursorama(BaseBrowser):
     DOMAIN = 'www.boursorama.com'
     PROTOCOL = 'https'
-    CERTHASH = '6bdf8b6dd177bd417ddcb1cfb818ede153288e44115eb269f2ddd458c8461039'
+    CERTHASH = ['6bdf8b6dd177bd417ddcb1cfb818ede153288e44115eb269f2ddd458c8461039', 'b290ef629c88f0508e9cc6305421c173bd4291175e3ddedbee05ee666b34c20e']
     ENCODING = None  # refer to the HTML encoding
     PAGES = {
              '.*/connexion/securisation/index.phtml': AuthenticationPage,
