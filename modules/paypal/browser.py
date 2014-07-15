@@ -19,7 +19,7 @@
 
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from .pages import LoginPage, AccountPage, DownloadHistoryPage, SubmitPage, HistoryParser, UselessPage, HistoryPage
+from .pages import LoginPage, AccountPage, DownloadHistoryPage, LastDownloadHistoryPage, SubmitPage, HistoryParser, UselessPage, HistoryPage, CSVAlreadyAsked
 import datetime
 
 
@@ -39,7 +39,9 @@ class Paypal(BaseBrowser):
         '/cgi-bin/webscr\?cmd=_history-download&nav=0.3.1$':  DownloadHistoryPage,
         '/cgi-bin/webscr\?cmd=_history&nav=0.3.0$':  HistoryPage,
         '/cgi-bin/webscr\?cmd=_history&dispatch=[a-z0-9]+$':  HistoryPage,
+        '/cgi-bin/webscr\?cmd=_history-download-recent$': LastDownloadHistoryPage,
         '/cgi-bin/webscr\?dispatch=[a-z0-9]+$': (SubmitPage, HistoryParser()),
+        '/cgi-bin/webscr\?cmd=_history-download-recent-submit&dispatch=[a-z0-9]+$': (SubmitPage, HistoryParser()),
     }
 
     DEFAULT_TIMEOUT = 30  # CSV export is slow
@@ -104,11 +106,16 @@ class Paypal(BaseBrowser):
             if self.download_history(start, end).rows:
                 return self.page.iter_transactions(account)
         assert step_max <= 365*2 # PayPal limitations as of 2014-06-16
-        return self.smart_fetch(beginning=self.BEGINNING,
+        try:
+            for i in self.smart_fetch(beginning=self.BEGINNING,
                                 end=datetime.date.today(),
                                 step_min=step_min,
                                 step_max=step_max,
-                                fetch_fn=fetch_fn)
+                                fetch_fn=fetch_fn):
+               yield i
+        except CSVAlreadyAsked:
+            for i in self.download_last_history(account):
+                yield i
 
     def smart_fetch(self, beginning, end, step_min, step_max, fetch_fn):
         """
@@ -143,6 +150,12 @@ class Paypal(BaseBrowser):
         self.page.download(start, end)
         assert self.is_on_page(SubmitPage)
         return self.page.document
+
+    def download_last_history(self, account):
+        self.location('/en/cgi-bin/webscr?cmd=_history-download-recent')
+        self.page.download()
+        if self.page.document.rows:
+            return self.page.iter_transactions(account)
 
     def transfer(self, from_id, to_id, amount, reason=None):
         raise NotImplementedError()

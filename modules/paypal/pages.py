@@ -29,8 +29,10 @@ from weboob.tools.misc import to_unicode
 from weboob.capabilities.bank import Account, Transaction
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
-__all__ = ['LoginPage', 'AccountPage']
+__all__ = ['LoginPage', 'AccountPage', 'LastDownloadHistoryPage']
 
+class CSVAlreadyAsked(Exception):
+    pass
 
 def clean_amount(text):
     """
@@ -126,6 +128,9 @@ class AccountPage(BasePage):
 
 class DownloadHistoryPage(BasePage):
     def download(self, start, end):
+        last_file_request = self.document.xpath('//table//table//table//tr[2]//td')[1].text[:-1]
+        if dateutil.parser.parse(last_file_request).date() == datetime.date.today():
+            raise CSVAlreadyAsked('')
         self.browser.select_form(name='form1')
         self.browser['to_c'] = str(end.year)
         self.browser['to_a'] = str(end.month)
@@ -139,6 +144,12 @@ class DownloadHistoryPage(BasePage):
 
         self.browser.submit()
 
+class LastDownloadHistoryPage(BasePage):
+    def download(self):
+        self.browser.select_form(nr=1)
+        log_select =  self.document.xpath('//table//form//input[@type="radio"]')[0].attrib['value']
+        self.browser['log_select'] = [log_select]
+        self.browser.submit()
 
 class SubmitPage(BasePage):
     """
