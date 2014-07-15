@@ -34,8 +34,8 @@ class PopolemploiBrowser(BaseBrowser):
     ENCODING = None
 
     PAGES = {
-        'http://candidat.pole-emploi.fr/candidat/rechercheoffres/resultats(.*?)': SearchPage,
-        'http://candidat.pole-emploi.fr/candidat/rechercheoffres/detail/(?P<id>.+)': AdvertPage,
+        'https?://candidat.pole-emploi.fr/candidat/rechercheoffres/resultats(.*?)': SearchPage,
+        'https?://candidat.pole-emploi.fr/candidat/rechercheoffres/detail/(?P<id>.+)': AdvertPage,
     }
 
     def search_job(self, pattern=None):
