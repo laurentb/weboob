@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 
 from HTMLParser import HTMLParser
 from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
@@ -91,8 +92,7 @@ class ImdbBrowser(BaseBrowser):
                     yield person
 
     def get_movie(self, id):
-        res = self.readurl(
-            'http://imdbapi.org/?id=%s&type=json&plot=simple&episode=1&lang=en-US&aka=full&release=simple&business=0&tech=0' % id)
+        res = self.readurl('http://www.omdbapi.com/?i=%s&plot=full' % id)
         if res is not None:
             jres = json.loads(res)
         else:
@@ -111,50 +111,34 @@ class ImdbBrowser(BaseBrowser):
         genres = []
         roles = {}
 
-        if 'title' not in jres:
+        if 'Title' not in jres:
             return
-        title = htmlparser.unescape(unicode(jres['title'].strip()))
-        if 'poster' in jres:
-            thumbnail_url = unicode(jres['poster'])
-        if 'directors' in jres:
-            short_description = unicode(', '.join(jres['directors']))
-        if 'genres' in jres:
-            for g in jres['genres']:
+        title = htmlparser.unescape(unicode(jres['Title'].strip()))
+        if 'Poster' in jres:
+            thumbnail_url = unicode(jres['Poster'])
+        if 'Director' in jres:
+            short_description = unicode(jres['Director'])
+        if 'Genre' in jres:
+            for g in jres['Genre'].split(', '):
                 genres.append(g)
-        if 'runtime' in jres:
-            dur_str = jres['runtime'][0].split(':')
-            if len(dur_str) == 1:
-                duration = int(dur_str[0].split()[0])
-            else:
-                duration = int(dur_str[1].split()[0])
-        if 'also_known_as' in jres:
-            for other_t in jres['also_known_as']:
-                if 'country' in other_t and 'title' in other_t:
-                    other_titles.append('%s : %s' % (other_t['country'], htmlparser.unescape(other_t['title'])))
-        if 'release_date' in jres:
-            dstr = str(jres['release_date'])
-            year = int(dstr[:4])
-            if year == 0:
-                year = 1
-            month = int(dstr[4:5])
-            if month == 0:
-                month = 1
-            day = int(dstr[-2:])
-            if day == 0:
-                day = 1
-            release_date = datetime(year, month, day)
-        if 'country' in jres:
+        if 'Runtime' in jres:
+            m = re.search('(\d+?) min', jres['Runtime'])
+            if m:
+                duration = int(m.group(1))
+        if 'Released' in jres:
+            release_date = datetime.strptime(str(jres['Released']), '%d %b %Y')
+        if 'Country' in jres:
             country = u''
-            for c in jres['country']:
+            for c in jres['Country'].split(', '):
                 country += '%s, ' % c
             country = country[:-2]
-        if 'plot_simple' in jres:
-            pitch = unicode(jres['plot_simple'])
-        if 'rating' in jres and 'rating_count' in jres:
-            note = u'%s/10 (%s votes)' % (jres['rating'], jres['rating_count'])
-        for r in ['actor', 'director', 'writer']:
-            if '%ss' % r in jres:
-                roles['%s' % r] = list(jres['%ss' % r])
+        if 'Plot' in jres:
+            pitch = unicode(jres['Plot'])
+        if 'imdbRating' in jres and 'imdbVotes' in jres:
+            note = u'%s/10 (%s votes)' % (jres['imdbRating'], jres['imdbVotes'])
+        for r in ['Actors', 'Director', 'Writer']:
+            if '%s' % r in jres.keys():
+                roles['%s' % r] = jres['%s' % r].split(', ')
 
         movie = Movie(id, title)
         movie.other_titles = other_titles
