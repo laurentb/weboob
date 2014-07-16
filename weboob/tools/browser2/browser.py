@@ -192,7 +192,8 @@ class BaseBrowser(object):
             if request.body is not None:  # separate '' from None
                 f.write('\n\n\n%s' % request.body)
         with open(response_filepath + '-response.txt', 'w') as f:
-            f.write('Time: %3.3fs\n' % response.elapsed.total_seconds())
+            if hasattr(response.elapsed, 'total_seconds'):
+                f.write('Time: %3.3fs\n' % response.elapsed.total_seconds())
             f.write('%s %s\n\n\n' % (response.status_code, response.reason))
             for key, value in response.headers.iteritems():
                 f.write('%s: %s\n' % (key, value))
