@@ -21,12 +21,12 @@
 from weboob.capabilities.cinema import Person, Movie
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.browser import BasePage
-
+from weboob.tools.html import html2text
 from datetime import datetime
 import re
 
 
-__all__ = ['PersonPage', 'MovieCrewPage', 'BiographyPage', 'FilmographyPage', 'ReleasePage']
+__all__ = ['PersonPage', 'MovieCrewPage', 'BiographyPage', 'ReleasePage']
 
 
 class ReleasePage(BasePage):
@@ -62,13 +62,15 @@ class BiographyPage(BasePage):
     '''
     def get_biography(self):
         bio = unicode()
-        tn = self.parser.select(self.document.getroot(), 'div#tn15content', 1)
-        # we only read paragraphs, titles and links
-        for ch in tn.getchildren():
-            if ch.tag in ['p', 'h5', 'a']:
-                bio += '%s\n\n' % ch.text_content().strip()
-        if bio == u'':
-            bio = NotAvailable
+        start = False
+        tn = self.parser.select(self.document.getroot(), 'div#bio_content', 1)
+        for el in tn.getchildren():
+            if el.attrib.get('name') == 'mini_bio':
+                start = True
+
+            if start:
+                bio += html2text(self.parser.tostring(el))
+
         return bio
 
 
@@ -173,10 +175,7 @@ class PersonPage(BasePage):
         if len(img_thumbnail) > 0:
             thumbnail_url = unicode(img_thumbnail[0].attrib.get('src', ''))
 
-        # go to the filmography page
-        self.browser.location('http://www.imdb.com/name/%s/filmotype' % id)
-        assert self.browser.is_on_page(FilmographyPage)
-        roles = self.browser.page.get_roles()
+        roles = self.get_roles()
 
         person = Person(id, name)
         person.real_name = real_name
@@ -191,45 +190,27 @@ class PersonPage(BasePage):
         person.thumbnail_url = thumbnail_url
         return person
 
-
-class FilmographyPage(BasePage):
-    ''' Page of detailed filmography of a person, sorted by type of role
-    This page is easier to parse than the main person page filmography
-    '''
     def iter_movies_ids(self):
-        for role_div in self.parser.select(self.document.getroot(), 'div.filmo'):
-            for a in self.parser.select(role_div, 'ol > li > a'):
-                id = a.attrib.get('href', '').strip('/').split('/')[-1]
-                if id.startswith('tt'):
-                    yield id
+        for role_div in self.parser.select(self.document.getroot(), 'div#filmography div.filmo-category-section > div'):
+            for a in self.parser.select(role_div, 'a'):
+                m = re.search('/title/(tt.*)/\?.*', a.attrib.get('href'))
+                if m:
+                    yield m.group(1)
 
     def get_roles(self):
         roles = {}
-        for role_div in self.parser.select(self.document.getroot(), 'div.filmo'):
-            role = self.parser.select(role_div, 'h5 a', 1).text.replace(':', '')
+        for role_div in self.parser.select(self.document.getroot(), 'div#filmography > div.head'):
+            role = self.parser.select(role_div, 'a')[-1].text
             roles[role] = []
-            for a in self.parser.select(role_div, 'ol > li > a'):
-                id = a.attrib.get('href', '').strip('/').split('/')[-1]
-                if id.startswith('tt'):
-                    if '(' in a.tail and ')' in a.tail:
-                        between_p = a.tail.split(')')[0].split('(')[1]
-                    else:
-                        between_p = '????'
-                    roles[role].append('(%s) %s' % (between_p, a.text))
+            category = role_div.attrib.get('data-category')
+            for infos in self.parser.select(self.document.getroot(), 'div#filmography > div.filmo-category-section > div'):
+                if category in infos.attrib.get('id'):
+                    roles[role].append(infos.text_content().replace('\n', ' ').strip())
         return roles
 
     def iter_movies(self, role_filter=None):
-        for role_div in self.parser.select(self.document.getroot(), 'div.filmo'):
-            role = self.parser.select(role_div, 'h5 a', 1).text.replace(':', '')
-            if (role_filter is None or (role_filter is not None and role.lower().strip() == role_filter))\
-                    and role != 'In Development':
-                for a in self.parser.select(role_div, 'ol > li > a'):
-                    id = a.attrib.get('href', '').strip('/').split('/')[-1]
-                    if id.startswith('tt'):
-                        title = unicode(a.text)
-                        role_detail = NotAvailable
-                        if len(a.tail) > 0:
-                            role_detail = unicode(' '.join(a.tail.replace('..', '').split()))
-                        movie = Movie(id, title)
-                        movie.short_description = role_detail
-                        yield movie
+        for role_div in self.parser.select(self.document.getroot(), 'div#filmography > div.filmo-category-section > div'):
+            for a in self.parser.select(role_div, 'a'):
+                m = re.search('/title/(tt.*)/\?.*', a.attrib.get('href'))
+                if m:
+                    yield Movie(m.group(1), a.text)

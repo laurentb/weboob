@@ -19,6 +19,7 @@
 
 from weboob.tools.test import BackendTest
 
+
 class ImdbTest(BackendTest):
     BACKEND = 'imdb'
 

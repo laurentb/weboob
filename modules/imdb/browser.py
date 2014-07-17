@@ -25,7 +25,7 @@ from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.cinema import Movie, Person
 from weboob.tools.json import json
 
-from .pages import PersonPage, MovieCrewPage, BiographyPage, FilmographyPage, ReleasePage
+from .pages import PersonPage, MovieCrewPage, BiographyPage,  ReleasePage
 
 from datetime import datetime
 
@@ -42,7 +42,6 @@ class ImdbBrowser(BaseBrowser):
         'http://www.imdb.com/title/tt[0-9]*/releaseinfo.*': ReleasePage,
         'http://www.imdb.com/name/nm[0-9]*/*': PersonPage,
         'http://www.imdb.com/name/nm[0-9]*/bio.*': BiographyPage,
-        'http://www.imdb.com/name/nm[0-9]*/filmo.*': FilmographyPage,
     }
 
     def iter_movies(self, pattern):
@@ -174,13 +173,13 @@ class ImdbBrowser(BaseBrowser):
             yield p
 
     def iter_person_movies(self, person_id, role):
-        self.location('http://www.imdb.com/name/%s/filmotype' % person_id)
-        assert self.is_on_page(FilmographyPage)
+        self.location('http://www.imdb.com/name/%s' % person_id)
+        assert self.is_on_page(PersonPage)
         return self.page.iter_movies(role)
 
     def iter_person_movies_ids(self, person_id):
-        self.location('http://www.imdb.com/name/%s/filmotype' % person_id)
-        assert self.is_on_page(FilmographyPage)
+        self.location('http://www.imdb.com/name/%s' % person_id)
+        assert self.is_on_page(PersonPage)
         for movie in self.page.iter_movies_ids():
             yield movie
 
