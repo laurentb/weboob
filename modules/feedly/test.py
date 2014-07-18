@@ -24,11 +24,15 @@ from weboob.tools.test import BackendTest
 class FeedlyTest(BackendTest):
     BACKEND = 'feedly'
 
-    def test_feedly(self):
+    def test_login(self):
         if self.backend.browser.username:
-            l1 = list(self.backend.iter_threads())
-            assert len(l1)
-            thread = self.backend.get_thread(l1[0].id)
-            assert len(thread.root.content)
+            list(self.backend.iter_threads())
         else:
             raise SkipTest("User credentials not defined")
+
+    def test_feedly(self):
+        self.backend.browser.username = None
+        l1 = list(self.backend.iter_resources(None, ['Technologie', 'Korben']))
+        assert len(l1)
+        thread = self.backend.get_thread(l1[0].id)
+        assert len(thread.root.content)
