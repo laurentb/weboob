@@ -22,6 +22,7 @@ import urllib
 
 from weboob.tools.browser import BaseBrowser
 from .pages.meteo import WeatherPage, SearchCitiesPage
+from weboob.capabilities.weather import CityNotFound
 
 __all__ = ['MeteofranceBrowser']
 
@@ -49,14 +50,20 @@ class MeteofranceBrowser(BaseBrowser):
         return self.page.iter_cities()
 
     def iter_forecast(self, city_id):
-        mcity = self.iter_city_search(city_id).next()
+        mcity = self.get_city(city_id)
         self.location(self.WEATHER_URL.format(city_id=mcity.id, city_name=mcity.name))
         assert self.is_on_page(WeatherPage)
-
         return self.page.iter_forecast()
 
     def get_current(self, city_id):
-        mcity = self.iter_city_search(city_id).next()
+        mcity = self.get_city(city_id)
         self.location(self.WEATHER_URL.format(city_id=mcity.id, city_name=mcity.name))
         assert self.is_on_page(WeatherPage)
         return self.page.get_current()
+
+    def get_city(self, city_id):
+        cities = self.iter_city_search(city_id)
+        for city in cities:
+            if city_id == city.id:
+                return city
+        raise CityNotFound('Unable to find a city whose id is %s' % city_id)
