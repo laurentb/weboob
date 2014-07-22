@@ -20,12 +20,22 @@
 
 
 from weboob.tools.browser import BasePage
-from weboob.capabilities.weather import Forecast, Current
+from weboob.capabilities.weather import Forecast, Current, City
 
 import datetime
-
+import re
 
 __all__ = ['WeatherPage']
+
+
+class SearchCitiesPage(BasePage):
+    def iter_cities(self):
+        list = self.document.getroot().xpath('//ul[@class="list-style-1"]/li/a')
+        for a in list:
+            m = re.search('/.*/(.*)/(\d{5})', a.attrib.get('href'))
+            if m:
+                mcity = City(int(m.group(2)), u'%s' % m.group(1))
+                yield mcity
 
 
 class WeatherPage(BasePage):
