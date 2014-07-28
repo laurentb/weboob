@@ -52,7 +52,8 @@ class BackendsConfig(object):
                 fptr.close()
             else:
                 try:
-                    os.mknod(confpath, 0o600)
+                    fd = os.open(confpath, os.O_WRONLY | os.O_CREAT, 0o600)
+                    os.close(fd)
                 except OSError:
                     fptr = open(confpath, 'w')
                     fptr.close()
