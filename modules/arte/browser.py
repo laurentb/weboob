@@ -74,6 +74,7 @@ class ArteBrowser(BaseBrowser):
         for line in r.readlines():
             if not line.startswith('#'):
                 return u'%s/%s' % (baseurl, line.replace('\n', ''))
+        return NotAvailable
 
     def get_default_url(self, url):
         result = self.get_video_by_quality(url, 'ALL')
