@@ -28,7 +28,7 @@ class ArteVideo(BaseVideo):
     @classmethod
     def id2url(cls, _id):
         lang = _id[-1:]
-        return 'http://arte.tv/papi/tvguide/videos/stream/%s/%s/HBBTV' % (lang, _id)
+        return 'http://arte.tv/papi/tvguide/videos/stream/%s/%s/M3U8' % (lang, _id)
 
 
 class ArteLiveVideo(BaseVideo):

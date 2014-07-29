@@ -61,18 +61,24 @@ class ArteBrowser(BaseBrowser):
         if video is None:
             video = self.create_video(result['video'])
         try:
-            video.url = u'%s' % result['video']['VSR'][0]['VUR']
-            video.ext = u'%s' % result['video']['VSR'][0]['VMT']
+            video.url = self.get_first_link_m3u8(result['video']['VSR'][0]['VUR'])
+            video.ext = u'm3u8'
         except:
             video.url, video.ext = self.get_default_url(url)
 
         return video
 
+    def get_first_link_m3u8(self, url):
+        r = self.openurl(url)
+        baseurl = url.rpartition('/')[0]
+        for line in r.readlines():
+            if not line.startswith('#'):
+                return u'%s/%s' % (baseurl, line.replace('\n', ''))
+
     def get_default_url(self, url):
         result = self.get_video_by_quality(url, 'ALL')
         try:
-            return u'%s' % result['video']['VSR'][0]['VUR'], \
-                   u'%s' % result['video']['VSR'][0]['VMT']
+            return self.get_first_link_m3u8(result['video']['VSR'][0]['VUR']), u'm3u8'
         except:
             return NotAvailable, NotAvailable
 
