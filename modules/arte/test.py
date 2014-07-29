@@ -26,11 +26,11 @@ class ArteTest(BackendTest):
     BACKEND = 'arte'
 
     def test_search(self):
-        l = list(self.backend.search_videos('arte'))
-        if len(l) > 0:
-            v = l[0]
-            self.backend.fillobj(v, ('url',))
-            self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
+        l = list(self.backend.search_videos('a'))
+        assert len(l)
+        v = l[0]
+        self.backend.fillobj(v, ('url',))
+        self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
 
     def test_live(self):
         l1 = list(self.backend.iter_resources([BaseVideo], [u'arte-live']))
