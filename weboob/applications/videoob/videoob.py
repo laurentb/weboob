@@ -101,7 +101,15 @@ class Videoob(ReplApplication):
         elif u'm3u8' == video.ext:
             _dest, _ = os.path.splitext(dest)
             dest = u'%s.%s' % (_dest, 'mp4')
-            args = ('wget',) + tuple(line for line in self.read_url(video.url) if not line.startswith('#')) + ('-O', dest)
+            content = tuple()
+            baseurl = video.url.rpartition('/')[0]
+            for line in self.read_url(video.url):
+                if not line.startswith('#'):
+                    if not line.startswith('http'):
+                        line = u'%s/%s' % (baseurl, line)
+                    content += (line,)
+
+            args = ('wget',) + content + ('-O', dest)
         else:
             if check_exec('wget'):
                 args = ('wget', '-c', video.url, '-O', dest)
