@@ -182,12 +182,13 @@ class ArteBrowser(BaseBrowser):
         video.set_empty_fields(NotAvailable, ('url',))
         if 'VDE' in item:
             video.description = u'%s' % item['VDE']
-        m = re.match('(\d{2})\s(\d{2})\s(\d{4})(.*?)', item['VDA'])
-        if m:
-            dd = int(m.group(1))
-            mm = int(m.group(2))
-            yyyy = int(m.group(3))
-            video.date = datetime.date(yyyy, mm, dd)
+        if 'VDA' in item:
+            m = re.match('(\d{2})\s(\d{2})\s(\d{4})(.*?)', item['VDA'])
+            if m:
+                dd = int(m.group(1))
+                mm = int(m.group(2))
+                yyyy = int(m.group(3))
+                video.date = datetime.date(yyyy, mm, dd)
         return video
 
     def create_url_plus7(self, class_name, method_name, level, cluster, channel, limit, offset, pattern=None):
