@@ -55,41 +55,34 @@ class ArteBrowser(BaseBrowser):
 
     @id2url(ArteVideo.id2url)
     def get_video(self, url, video=None):
-
-        result = self.get_video_by_quality(url, self.quality)
+        response = self.openurl('%s/ALL.json' % url)
+        result = simplejson.loads(response.read(), self.ENCODING)
 
         if video is None:
             video = self.create_video(result['video'])
         try:
-            video.url = self.get_first_link_m3u8(result['video']['VSR'][0]['VUR'])
+            video.url = self.get_m3u8_link(result['video']['VSR'][0]['VUR'])
             video.ext = u'm3u8'
         except:
-            video.url, video.ext = self.get_default_url(url)
+            video.url, video.ext = NotAvailable, NotAvailable
 
         return video
 
-    def get_first_link_m3u8(self, url):
+    def get_m3u8_link(self, url):
         r = self.openurl(url)
         baseurl = url.rpartition('/')[0]
+
+        links_by_quality = []
         for line in r.readlines():
             if not line.startswith('#'):
-                return u'%s/%s' % (baseurl, line.replace('\n', ''))
+                links_by_quality.append(u'%s/%s' % (baseurl, line.replace('\n', '')))
+
+        if len(links_by_quality):
+            try:
+                return links_by_quality[self.quality[1]]
+            except:
+                return links_by_quality[0]
         return NotAvailable
-
-    def get_default_url(self, url):
-        result = self.get_video_by_quality(url, 'ALL')
-        try:
-            return self.get_first_link_m3u8(result['video']['VSR'][0]['VUR']), u'm3u8'
-        except:
-            return NotAvailable, NotAvailable
-
-    def get_video_by_quality(self, url, quality):
-        _url = url \
-            + '/' + quality \
-            + '.json'
-
-        response = self.openurl(_url)
-        return simplejson.loads(response.read(), self.ENCODING)
 
     @id2url(ArteLiveVideo.id2url)
     def get_live_video(self, url, video=None):
@@ -105,7 +98,7 @@ class ArteBrowser(BaseBrowser):
         quality = None
         if 'VSR' in result['videoJsonPlayer']:
             for item in result['videoJsonPlayer']['VSR']:
-                if self.quality in item:
+                if self.quality[0] in item:
                     quality = item
                     break
 

@@ -54,10 +54,10 @@ class ArteBackend(BaseBackend, CapVideo, CapCollection):
     TRANSLATION  = {'fr': 'F',
                     'en': 'F',
                     'de': 'D',
-                    'hd': 'HQ',
-                    'md': 'MQ',
-                    'sd': 'SQ',
-                    'eq': 'EQ'
+                    'hd': ['HQ', -1],
+                    'md': ['MQ', 2],
+                    'sd': ['SQ', 0],
+                    'ed': ['EQ', 1]
                     }
 
     BROWSER = ArteBrowser
