@@ -218,41 +218,51 @@ class CleanText(Filter):
     """
     Get a cleaned text from an element.
 
-    It first replaces all tabs and multiple spaces to one space and strip the result
-    string.
-    Second, it replaces all symbols given in second argument.
+    It first replaces all tabs and multiple spaces
+    (including newlines if ``newlines`` is True)
+    to one space and strips the result string.
+    Then it replaces all symbols given in the ``symbols`` argument.
 
     >>> CleanText().filter('coucou ')
     u'coucou'
-    >>> CleanText().filter(u'coucou\xc2\xa0\t\\ncoucou')
+    >>> CleanText().filter(u'coucou\xa0coucou')
     u'coucou coucou'
+    >>> CleanText(newlines=True).filter(u'coucou\\r\\n coucou ')
+    u'coucou coucou'
+    >>> CleanText(newlines=False).filter(u'coucou\\r\\n coucou ')
+    u'coucou\\ncoucou'
     """
 
-    def __init__(self, selector=None, symbols='', replace=[], childs=True, **kwargs):
+    def __init__(self, selector=None, symbols='', replace=[], childs=True, newlines=True, **kwargs):
         super(CleanText, self).__init__(selector, **kwargs)
         self.symbols = symbols
         self.toreplace = replace
         self.childs = childs
+        self.newlines = newlines
 
     def filter(self, txt):
         if isinstance(txt, (tuple, list)):
             txt = u' '.join([self.clean(item, childs=self.childs) for item in txt])
 
-        txt = self.clean(txt, childs=self.childs)
+        txt = self.clean(txt, childs=self.childs, newlines=self.newlines)
         txt = self.remove(txt, self.symbols)
         txt = self.replace(txt, self.toreplace)
         # lxml under Python 2 returns str instead of unicode if it is pure ASCII
         return unicode(txt)
 
     @classmethod
-    def clean(cls, txt, childs=True):
+    def clean(cls, txt, childs=True, newlines=True):
         if not isinstance(txt, basestring):
             if childs:
                 txt = [t.strip() for t in txt.itertext()]
             else:
                 txt = [txt.text.strip()]
             txt = u' '.join(txt)                 # 'foo   bar'
-        txt = re.sub(u'[\\s\xa0\t]+', u' ', txt)   # 'foo bar'
+        if newlines:
+            txt = re.sub(u'\s+', u' ', txt, flags=re.UNICODE)   # 'foo bar'
+        else:
+            # normalize newlines and clean what is inside
+            txt = '\n'.join([cls.clean(l) for l in txt.splitlines()])
         return txt.strip()
 
     @classmethod
@@ -482,3 +492,9 @@ class Join(Filter):
             res += self.pattern % self.textCleaner.clean(li)
 
         return res
+
+
+def test():
+    # This test works poorly under a doctest, or would be hard to read
+    assert CleanText().filter(u' coucou  \n\théhé') == u'coucou héhé'
+    assert CleanText().filter('coucou\xa0coucou') == CleanText().filter(u'coucou\xa0coucou') == u'coucou coucou'
