@@ -235,7 +235,9 @@ class CleanText(Filter):
 
         txt = self.clean(txt, childs=self.childs)
         txt = self.remove(txt, self.symbols)
-        return self.replace(txt, self.toreplace)
+        txt = self.replace(txt, self.toreplace)
+        # lxml under Python 2 returns str instead of unicode if it is pure ASCII
+        return unicode(txt)
 
     @classmethod
     def clean(cls, txt, childs=True):
