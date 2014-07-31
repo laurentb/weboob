@@ -129,7 +129,7 @@ class _Selector(Filter):
 class Base(Filter):
     """
     Change the base element used in filters.
-    >>> Base(Env('header'), CleanText('./h1'))
+    >>> Base(Env('header'), CleanText('./h1'))  # doctest: +SKIP
     """
     def __call__(self, item):
         base = self.select(self.base, item)
@@ -163,7 +163,7 @@ class TableCell(_Filter):
     For example:
 
     >>> from weboob.capabilities.bank import Transaction
-    >>> from .page import TableElement, ItemElement
+    >>> from weboob.tools.browser2.elements import TableElement, ItemElement
     >>> class table(TableElement):
     ...     head_xpath = '//table/thead/th'
     ...     item_xpath = '//table/tbody/tr'
@@ -221,6 +221,11 @@ class CleanText(Filter):
     It first replaces all tabs and multiple spaces to one space and strip the result
     string.
     Second, it replaces all symbols given in second argument.
+
+    >>> CleanText().filter('coucou ')
+    u'coucou'
+    >>> CleanText().filter(u'coucou\xc2\xa0\t\\ncoucou')
+    u'coucou coucou'
     """
 
     def __init__(self, selector=None, symbols='', replace=[], childs=True, **kwargs):
@@ -280,7 +285,7 @@ class CleanDecimal(CleanText):
 
     For example, for the UK style (as in 1,234,567.89):
 
-    >>> CleanDecimal('./td[1]', replace_dots=(',', '.'))
+    >>> CleanDecimal('./td[1]', replace_dots=(',', '.'))  # doctest: +SKIP
     """
 
     def __init__(self, selector=None, replace_dots=True, default=_NO_DEFAULT):
