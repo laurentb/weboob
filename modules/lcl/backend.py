@@ -24,9 +24,8 @@ from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
-from .browser import LCLBrowser
+from .browser import LCLBrowser, LCLProBrowser
 from .enterprise.browser import LCLEnterpriseBrowser
-from .browser import LCLProBrowser
 
 
 __all__ = ['LCLBackend']
@@ -48,19 +47,17 @@ class LCLBackend(BaseBackend, CapBank):
     BROWSER = LCLBrowser
 
     def create_default_browser(self):
-        website = self.config['website'].get()
-        if website == 'ent':
-            self.BROWSER = LCLEnterpriseBrowser
-            return self.create_browser(self.config['login'].get(),
-                                       self.config['password'].get())
-        elif website == 'pro':
-            self.BROWSER = LCLProBrowser
-            return self.create_browser(self.config['login'].get(),
-                                       self.config['password'].get())
-        else:
-            self.BROWSER = LCLBrowser
-            return self.create_browser(self.config['login'].get(),
-                                       self.config['password'].get())
+        # assume all `website` option choices are defined here
+        browsers = {'par': LCLBrowser,
+                    'pro': LCLProBrowser,
+                    'ent': LCLEnterpriseBrowser}
+
+        website_value = self.config['website']
+        self.BROWSER = browsers.get(website_value.get(),
+                                    browsers[website_value.default])
+
+        return self.create_browser(self.config['login'].get(),
+                                   self.config['password'].get())
 
     def deinit(self):
         # don't need to logout if the browser hasn't been used.
