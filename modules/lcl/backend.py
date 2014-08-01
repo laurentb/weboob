@@ -25,7 +25,7 @@ from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import LCLBrowser, LCLProBrowser
-from .enterprise.browser import LCLEnterpriseBrowser
+from .enterprise.browser import LCLEnterpriseBrowser, LCLEspaceProBrowser
 
 
 __all__ = ['LCLBackend']
@@ -43,14 +43,16 @@ class LCLBackend(BaseBackend, CapBank):
                            Value('website', label='Type de compte', default='par',
                                  choices={'par': 'Particuliers',
                                           'pro': 'Professionnels',
-                                          'ent': 'Entreprises'}))
+                                          'ent': 'Entreprises',
+                                          'esp': 'Espace Pro'}))
     BROWSER = LCLBrowser
 
     def create_default_browser(self):
         # assume all `website` option choices are defined here
         browsers = {'par': LCLBrowser,
                     'pro': LCLProBrowser,
-                    'ent': LCLEnterpriseBrowser}
+                    'ent': LCLEnterpriseBrowser,
+                    'esp': LCLEspaceProBrowser}
 
         website_value = self.config['website']
         self.BROWSER = browsers.get(website_value.get(),

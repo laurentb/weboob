@@ -29,32 +29,37 @@ __all__ = ['LCLEnterpriseBrowser']
 
 
 class LCLEnterpriseBrowser(BaseBrowser):
-    PROTOCOL = 'https'
-    DOMAIN = 'entreprises.secure.lcl.fr'
-    CERTHASH = ['04e3509c20ac8bdbdb3d0ed37bc34db2dde5ed4bc4c30a3605f63403413099a9', '5fcf4a9ceeec25e406a04dffe0c6eacbdf72d11d394cd049701bfbaba3d853d9']
+    BASEURL = 'https://entreprises.secure.lcl.fr'
+    CERTHASH = ['04e3509c20ac8bdbdb3d0ed37bc34db2dde5ed4bc4c30a3605f63403413099a9',
+                '5fcf4a9ceeec25e406a04dffe0c6eacbdf72d11d394cd049701bfbaba3d853d9',
+                '774ac6f1c419083541a27d95672a87a5edf5c82d948368008eab2764e65866f9',
+                '3db256edfeb7ba255625724b7e62d4dab229557226336ba87b9753006721f16f']
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
 
-    PAGES_REV = {
-        LogoutPage: 'https://entreprises.secure.lcl.fr/outil/IQEN/Authentication/logout',
-        LogoutOkPage: 'https://entreprises.secure.lcl.fr/outil/IQEN/Authentication/logoutOk',
-        HomePage: 'https://entreprises.secure.lcl.fr/indexcle.html',
-        MessagesPage: 'https://entreprises.secure.lcl.fr/outil/IQEN/Bureau/mesMessages',
-        MovementsPage: 'https://entreprises.secure.lcl.fr/outil/IQMT/mvt.Synthese/syntheseMouvementPerso',
-    }
-    PAGES = {
-        PAGES_REV[HomePage]: HomePage,
-        PAGES_REV[LogoutPage]: LogoutPage,
-        PAGES_REV[LogoutOkPage]: LogoutOkPage,
-        PAGES_REV[MessagesPage]: MessagesPage,
-        PAGES_REV[MovementsPage]: MovementsPage,
-        'https://entreprises.secure.lcl.fr/outil/IQMT/mvt.Synthese/paginerReleve': MovementsPage,
-        'https://entreprises.secure.lcl.fr/': RootPage,
-        'https://entreprises.secure.lcl.fr/outil/IQEN/Authentication/dejaConnecte': AlreadyConnectedPage,
-        'https://entreprises.secure.lcl.fr/outil/IQEN/Authentication/sessionExpiree': ExpiredPage,
-    }
-
     def __init__(self, *args, **kwargs):
+        BASEURL = self.BASEURL.rstrip('/')
+
+        self.PROTOCOL, self.DOMAIN = BASEURL.split('://', 2)
+        self.PAGES_REV = {
+            LogoutPage: BASEURL + '/outil/IQEN/Authentication/logout',
+            LogoutOkPage: BASEURL + '/outil/IQEN/Authentication/logoutOk',
+            HomePage: BASEURL + '/indexcle.html',
+            MessagesPage: BASEURL + '/outil/IQEN/Bureau/mesMessages',
+            MovementsPage: BASEURL + '/outil/IQMT/mvt.Synthese/syntheseMouvementPerso',
+        }
+        self.PAGES = {
+            self.PAGES_REV[HomePage]: HomePage,
+            self.PAGES_REV[LogoutPage]: LogoutPage,
+            self.PAGES_REV[LogoutOkPage]: LogoutOkPage,
+            self.PAGES_REV[MessagesPage]: MessagesPage,
+            self.PAGES_REV[MovementsPage]: MovementsPage,
+            BASEURL + '/outil/IQMT/mvt.Synthese/paginerReleve': MovementsPage,
+            BASEURL + '/': RootPage,
+            BASEURL + '/outil/IQEN/Authentication/dejaConnecte': AlreadyConnectedPage,
+            BASEURL + '/outil/IQEN/Authentication/sessionExpiree': ExpiredPage,
+        }
+
         BaseBrowser.__init__(self, *args, **kwargs)
         self._logged = False
 
@@ -112,3 +117,7 @@ class LCLEnterpriseBrowser(BaseBrowser):
 
             for tr in self.page.get_operations():
                 yield tr
+
+
+class LCLEspaceProBrowser(LCLEnterpriseBrowser):
+    BASEURL = 'https://espacepro.secure.lcl.fr'
