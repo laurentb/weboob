@@ -148,12 +148,15 @@ class Env(_Filter):
     method on ItemElement.
     """
 
-    def __init__(self, name):
-        super(Env, self).__init__()
+    def __init__(self, name, default=_NO_DEFAULT):
+        super(Env, self).__init__(default)
         self.name = name
 
     def __call__(self, item):
-        return item.env[self.name]
+        try:
+            return item.env[self.name]
+        except KeyError:
+            return self.default_or_raise(ParseError('Environment variable %s not found' % self.name))
 
 
 class TableCell(_Filter):
