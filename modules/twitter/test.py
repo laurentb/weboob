@@ -34,7 +34,7 @@ class TwitterTest(BackendTest):
 
     def test_twitter_list(self):
         if self.backend.browser.username:
-            l = list(self.backend.iter_threads())
+            l = list(itertools.islice(self.backend.iter_threads(), 0, 20))
             assert len(l)
             thread = self.backend.get_thread(l[0].id)
             assert len(thread.root.content)
