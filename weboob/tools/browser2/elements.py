@@ -195,6 +195,7 @@ class ItemElement(AbstractElement):
 
     def __init__(self, *args, **kwargs):
         super(ItemElement, self).__init__(*args, **kwargs)
+        self.logger = getLogger(self.__class__.__name__.lower())
         self.obj = None
 
     def build_object(self):
@@ -228,7 +229,12 @@ class ItemElement(AbstractElement):
         yield self.obj
 
     def handle_attr(self, key, func):
-        value = self.use_selector(func)
+        try:
+            value = self.use_selector(func)
+        except Exception as e:
+            # Help debugging as tracebacks do not give us the key
+            self.logger.warning('Attribute %s raises %s' % (key, repr(e)))
+            raise
         setattr(self.obj, key, value)
 
 
