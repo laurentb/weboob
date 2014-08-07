@@ -309,14 +309,14 @@ class Boobot(SingleServerIRCBot):
 
     def cmd_searchquote(self, nick, channel, text):
         try:
-            pattern = re.compile(text, re.IGNORECASE)
+            pattern = re.compile(to_unicode(text), re.IGNORECASE|re.UNICODE)
         except Exception as e:
             self.send_message(str(e), channel)
             return
 
         quotes = []
         for quote in self.storage.get(channel, 'quotes', default=[]):
-            if pattern.search(quote['text']):
+            if pattern.search(to_unicode(quote['text'])):
                 quotes.append(quote)
 
         try:
