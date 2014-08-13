@@ -260,9 +260,9 @@ class CleanText(Filter):
                 txt = [t.strip() for t in txt.itertext()]
             else:
                 txt = [txt.text.strip()]
-            txt = u' '.join(txt)                 # 'foo   bar'
+            txt = u' '.join(txt)  # 'foo   bar'
         if newlines:
-            txt = re.sub(u'\s+', u' ', txt, flags=re.UNICODE)   # 'foo bar'
+            txt = re.compile(u'\s+', flags=re.UNICODE).sub(u' ', txt)  # 'foo bar'
         else:
             # normalize newlines and clean what is inside
             txt = '\n'.join([cls.clean(l) for l in txt.splitlines()])
