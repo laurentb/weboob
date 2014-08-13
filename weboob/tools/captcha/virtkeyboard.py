@@ -32,6 +32,17 @@ class VirtKeyboardError(Exception):
 
 
 class VirtKeyboard(object):
+    """
+    Handle a virtual keyboard.
+
+    :attribute margin: Margin used by :meth:`get_symbol_coords̀` to reduce size
+        of each "key" of the virtual keyboard. This attribute is always
+        converted to a 4-tuple, and has the same semantic as the CSS
+        margin property (top, right, bottom, right).
+    :type margin: int or float or (2|3|4)-tuple
+    """
+    margin = None
+
     def __init__(self, file=None, coords=None, color=None, convert=None):
         # file: virtual keyboard image
         # coords: dictionary <value to return>:<tuple(x1,y1,x2,y2)>
@@ -42,6 +53,15 @@ class VirtKeyboard(object):
         if file is not None:
             assert color, 'No color provided !'
             self.load_image(file, color, convert)
+
+        if type(self.margin) in (int, float):
+            self.margin = (self.margin,) * 4
+        elif self.margin is not None:
+            if len(self.margin) == 2:
+                self.margin = self.margin + self.margin
+            elif len(self.margin) == 3:
+                self.margin = self.margin + (self.margin[1],)
+            assert len(self.margin) == 4
 
         if coords is not None:
             self.load_symbols(coords)
@@ -78,6 +98,10 @@ class VirtKeyboard(object):
         return pixel == self.color
 
     def get_symbol_coords(self, (x1, y1, x2, y2)):
+        if self.margin:
+            top, right, bottom, left = self.margin
+            x1, y1, x2, y2 = x1 + left, y1 + top, x2 - right, y2 - bottom
+
         newY1 = -1
         newY2 = -1
         for y in range(y1, min(y2 + 1, self.height)):
