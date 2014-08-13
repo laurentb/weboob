@@ -28,8 +28,7 @@ except ImportError:
 
 
 class VirtKeyboardError(Exception):
-    def __init__(self, msg):
-        Exception.__init__(self, msg)
+    pass
 
 
 class VirtKeyboard(object):
@@ -57,7 +56,7 @@ class VirtKeyboard(object):
         self.pixar = img.load()
         self.coords = {}
         self.md5 = {}
-        for i in coords.keys():
+        for i in coords:
             coord = self.get_symbol_coords(coords[i])
             if coord == (-1, -1, -1, -1):
                 continue
@@ -109,14 +108,14 @@ class VirtKeyboard(object):
         return hashlib.md5(s).hexdigest()
 
     def get_symbol_code(self, md5sum):
-        for i in self.md5.keys():
+        for i in self.md5:
             if md5sum == self.md5[i]:
                 return i
         raise VirtKeyboardError('Symbol not found')
 
     def check_symbols(self, symbols, dirname):
         # symbols: dictionary <symbol>:<md5 value>
-        for s in symbols.keys():
+        for s in symbols:
             try:
                 self.get_symbol_code(symbols[s])
             except VirtKeyboardError:
@@ -127,7 +126,7 @@ class VirtKeyboard(object):
                                         % (s, dirname))
 
     def generate_MD5(self, dir):
-        for i in self.coords.keys():
+        for i in self.coords:
             width = self.coords[i][2] - self.coords[i][0] + 1
             height = self.coords[i][3] - self.coords[i][1] + 1
             img = Image.new(''.join(self.bands), (width, height))
@@ -153,4 +152,4 @@ class MappedVirtKeyboard(VirtKeyboard):
                 area_coords.append(int(coord))
             coords[code] = tuple(area_coords)
 
-        VirtKeyboard.__init__(self, file, coords, color, convert)
+        super(MappedVirtKeyboard, self).__init__(file, coords, color, convert)
