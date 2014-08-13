@@ -20,6 +20,7 @@
 
 import hashlib
 import tempfile
+from string import maketrans
 
 try:
     from PIL import Image
@@ -38,7 +39,7 @@ class VirtKeyboard(object):
     :attribute margin: Margin used by :meth:`get_symbol_coords̀` to reduce size
         of each "key" of the virtual keyboard. This attribute is always
         converted to a 4-tuple, and has the same semantic as the CSS
-        margin property (top, right, bottom, right).
+        ``margin`` property (top, right, bottom, right), in pixels.
     :type margin: int or float or (2|3|4)-tuple
     """
     margin = None
@@ -188,3 +189,52 @@ class MappedVirtKeyboard(VirtKeyboard):
             coords[code] = tuple(area_coords)
 
         super(MappedVirtKeyboard, self).__init__(file, coords, color, convert)
+
+
+class GridVirtKeyboard(VirtKeyboard):
+    """
+    Make a virtual keyboard where "keys" are distributed on a grid.
+    For example: https://www.esgbl.com/part/fr/idehom.html
+
+    Parameters:
+        :param symbols: Sequence of symbols, ordered in the grid from left to
+            right and up to down
+        :type symbols: iterable
+        :param rows: Row count of the grid
+        :type rows: int
+        :param cols: Column count of the grid
+        :type cols: int
+        :param image: File-like object to be used as data source
+        :type image: file
+        :param color: Color of the meaningful pixels
+        :type color: 3-tuple
+        :param convert: Mode to which convert color of pixels, see
+            :meth:`Image.Image.convert` for more information
+
+    Attributes:
+        :attribute symbols: Association table between symbols and md5s
+        :type symbols: dict
+    """
+    symbols = {}
+
+    def __init__(self, symbols, rows, cols, image, color, convert=None):
+        self.load_image(image, color, convert)
+
+        tileW = float(self.width) / cols
+        tileH = float(self.height) / rows
+        positions = ((s, i * tileW % self.width, i / cols * tileH) \
+                     for i, s in enumerate(symbols))
+        coords = dict((s, tuple(map(int, (x, y, x + tileW, y + tileH)))) \
+                      for (s, x, y) in positions)
+
+        super(GridVirtKeyboard, self).__init__()
+
+        self.load_symbols(coords)
+
+    def load_symbols(self, coords):
+        super(GridVirtKeyboard, self).load_symbols(coords)
+        symbol_codes = map(self.get_symbol_code, self.symbols.itervalues())
+        self._trans = maketrans(''.join(self.symbols), ''.join(symbol_codes))
+
+    def get_string_code(self, string):
+        return str(string).translate(self._trans)
