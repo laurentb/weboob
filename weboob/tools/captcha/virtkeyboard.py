@@ -32,18 +32,27 @@ class VirtKeyboardError(Exception):
 
 
 class VirtKeyboard(object):
-    def __init__(self, file, coords, color, convert=None):
+    def __init__(self, file=None, coords=None, color=None, convert=None):
         # file: virtual keyboard image
         # coords: dictionary <value to return>:<tuple(x1,y1,x2,y2)>
         # color: color of the symbols in the image
         #        depending on the image, it can be a single value or a tuple
         # convert: if not None, convert image to this target type (for example 'RGB')
-        img = Image.open(file)
+
+        if file is not None:
+            assert color, 'No color provided !'
+            self.load_image(file, color, convert)
+
+        if coords is not None:
+            self.load_symbols(coords)
+
+    def load_image(self, file, color, convert=None):
+        self.image = Image.open(file)
 
         if convert is not None:
-            img = img.convert(convert)
+            self.image = self.image.convert(convert)
 
-        self.bands = img.getbands()
+        self.bands = self.image.getbands()
         if isinstance(color, int) and not isinstance(self.bands, str) and len(self.bands) != 1:
             raise VirtKeyboardError("Color requires %i component but only 1 is provided"
                                     % len(self.bands))
@@ -52,8 +61,10 @@ class VirtKeyboard(object):
                                     % (len(self.bands), len(color)))
         self.color = color
 
-        (self.width, self.height) = img.size
-        self.pixar = img.load()
+        self.width, self.height = self.image.size
+        self.pixar = self.image.load()
+
+    def load_symbols(self, coords):
         self.coords = {}
         self.md5 = {}
         for i in coords:
