@@ -50,7 +50,7 @@ class AccountsList(BasePage):
             id_famille = famille['idFamilleCompte']
             for compte in famille['compte']:
                 account = Account()
-                account.label = u''+compte['libellePersoProduit']
+                account.label = unicode(compte['libellePersoProduit'] or compte['libelleProduit'])
                 account.currency = account.get_currency(compte['devise'])
                 account.balance = Decimal(str(compte['soldeDispo']))
                 account.coming = Decimal(str(compte['soldeAVenir']))
