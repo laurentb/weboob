@@ -53,5 +53,10 @@ class OneyBackend(BaseBackend, CapBank):
         return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
 
     def iter_history(self, account):
+        # To prevent issues in calcul of actual balance and coming one, all
+        # operations are marked as debited.
+        for tr in self.browser.iter_coming(account):
+            yield tr
+
         for tr in self.browser.iter_history(account):
             yield tr

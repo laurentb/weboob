@@ -117,7 +117,7 @@ class IndexPage(LoggedPage, HTMLPage):
         return  -CleanDecimal('.')(self.doc.xpath('//div[@id = "total-sommes-dues"]/p[contains(text(), "sommes dues")]/span[@class = "montant"]')[0])
 
 class OperationsPage(LoggedPage, HTMLPage):
-    is_here = "//div[@id='releve-reserve-credit']"
+    is_here = "//div[@id='releve-reserve-credit'] | //div[@id='operations-recentes']"
 
     @pagination
     @method

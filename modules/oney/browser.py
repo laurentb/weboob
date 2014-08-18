@@ -56,10 +56,16 @@ class OneyBrowser(LoginBrowser):
         account.currency = u'EUR'
         return [account]
 
-
     @need_login
     def iter_history(self, account):
         post = {'task': 'Synthese', 'process': 'SyntheseCompte', 'taskid':'Releve'}
+        self.operations.go(data=post)
+
+        return self.page.iter_transactions(seen=set())
+
+    @need_login
+    def iter_coming(self, account):
+        post = {'task': 'OperationRecente', 'process': 'OperationRecente', 'taskid':'OperationRecente'}
         self.operations.go(data=post)
 
         return self.page.iter_transactions(seen=set())
