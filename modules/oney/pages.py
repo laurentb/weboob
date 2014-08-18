@@ -33,7 +33,9 @@ from weboob.tools.exceptions import ParseError
 __all__ = ['LoginPage', 'IndexPage', 'OperationsPage']
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile(ur'^(?P<text>.*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_CARD)]
+    PATTERNS = [(re.compile(ur'^(?P<text>Retrait .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile(ur'^(?P<text>Prélèvement .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_ORDER),
+                (re.compile(ur'^(?P<text>.*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_CARD)]
 
 
 class VirtKeyboard(MappedVirtKeyboard):
