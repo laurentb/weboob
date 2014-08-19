@@ -120,6 +120,8 @@ To be sure your module is correctly added, use this command::
     | Location        | /home/me/src/weboob/modules/example
     '-----------------'
 
+If the last command does not work, check your :doc:`repositories setup </guides/setup>`.
+
 Configuration
 -------------
 
