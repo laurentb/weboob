@@ -128,9 +128,11 @@ class AccountPage(BasePage):
 
 class DownloadHistoryPage(BasePage):
     def download(self, start, end):
-        last_file_request = self.document.xpath('//table//table//table//tr[2]//td')[1].text[:-1]
-        if dateutil.parser.parse(last_file_request).date() == datetime.date.today():
-            raise CSVAlreadyAsked('')
+        tr_last_file_request = self.document.xpath('//table//table//table//tr[2]//td')[1]
+        if tr_last_file_request.text is not None:
+            last_file_request = tr_last_file_request.text[:-1]
+            if dateutil.parser.parse(last_file_request).date() == datetime.date.today():
+                raise CSVAlreadyAsked('')
         self.browser.select_form(name='form1')
         self.browser['to_c'] = str(end.year)
         self.browser['to_a'] = str(end.month)
