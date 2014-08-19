@@ -8,10 +8,10 @@ Before read it, you should :doc:`setup your development environment </guides/set
 What is a module
 ****************
 
-A module is an interface between a website and Weboob. It represents the python code which are stored
+A module is an interface between a website and Weboob. It represents the python code which is stored
 in repositories.
 
-Weboob applications need *backends* to interact with websites. A *backend* is a configured *module*, usually
+Weboob applications need *backends* to interact with websites. A *backend* is an instance of a *module*, usually
 with several parameters like your username, password, or other options. You can create multiple *backends*
 for a single *module*.
 
@@ -22,7 +22,7 @@ Each module implements one or many :doc:`capabilities </api/capabilities/index>`
 website provides. A capability is a class derived from :class:`weboob.capabilities.base.CapBase` and with some abstract
 methods (which raise ``NotImplementedError``).
 
-A capability needs to be as generic as possible to allow a maximum number of modules to implements it.
+A capability needs to be as generic as possible to allow a maximum number of modules to implement it.
 Anyway, if you really need to handle website specificities, you can create more specific sub-capabilities.
 
 For example, there is the :class:`CapMessages <weboob.capabilities.messages.CapMessages>` capability, with the associated
@@ -47,56 +47,28 @@ The module tree
 ***************
 
 Create a new directory in ``modules/`` with the name of your module. In this example, we assume that we want to create a
-module for a forum website which URL is http://www.example.com. So we will call our module **example**, and the selected
-capability is :class:`CapMessages <weboob.capabilities.messages.CapMessages>`.
+module for a bank website which URL is http://www.example.com. So we will call our module **example**, and the selected
+capability is :class:`CapBank <weboob.capabilities.bank.CapBank>`.
 
-So, use this command::
+It is recommended to use the helper tool ``tools/boilerplate.py`` to build your
+module tree. There are several templates available:
 
-    $ mkdir modules/example/
+* **base** - create only base files
+* **comic** - create a comic module
+* **cap** - create a module for a given capability
+
+For example, use this command::
+
+    $ tools/boilerplate.py cap example CapBank
 
 In a module directory, there are commonly these files:
 
 * **__init__.py** - needed in every python modules, it exports your :class:`BaseBackend <weboob.tools.backend.BaseBackend>` class.
 * **backend.py** - defines the main class of your module, which derives :class:`BaseBackend <weboob.tools.backend.BaseBackend>`.
-* **browser.py** - your browser, derived from :class:`BaseBrowser <weboob.tools.browser.browser.BaseBrowser>`, is called by your module to interact with the supported website.
+* **browser.py** - your browser, derived from :class:`BaseBrowser <weboob.tools.browser2.browser.BaseBrowser>`, is called by your module to interact with the supported website.
 * **pages.py** - all website's pages handled by the browser are defined here
 * **test.py** - functional tests
-* **favicon.png** - a 64x64 PNG icon
-
-Backend class
-*************
-
-Firstly, create the file ``__init__.py`` and write in::
-
-    from .backend import ExampleBackend
-
-    __all__ = ['ExampleBackend']
-
-Then, you can edit ``backend.py`` and create your :class:`BaseBackend <weboob.tools.backend.BaseBackend>` class::
-
-    # -*- coding: utf-8 -*-
-
-    from weboob.capabilities.messages import CapMessages
-    from weboob.tools.backend import BaseBackend
-
-    __all__ = ['ExampleBackend']
-
-    class ExampleBackend(BaseBackend, CapMessages):
-        # The name of module
-        NAME = 'example'
-        # Name of maintainer of this backend
-        MAINTAINER = u'John Smith'
-        # Email address of the maintainer
-        EMAIL = 'john.smith@example.com'
-        # Version of weboob
-        VERSION = '0.c'
-        # Description of your module
-        DESCRIPTION = 'Example forum website'
-        # License of your module
-        LICENSE = 'AGPLv3+'
-
-In the code above, you can see that your ``ExampleBackend`` inherits :class:`CapMessages <weboob.capabilities.messages.CapMessages>`, as
-we have selected it for the supported website.
+* **favicon.png** - a 64x64 transparent PNG icon
 
 Update modules list
 -------------------
@@ -111,25 +83,41 @@ To be sure your module is correctly added, use this command::
     .------------------------------------------------------------------------------.
     | Module example                                                               |
     +-----------------.------------------------------------------------------------'
-    | Version         | 201203261420
+    | Version         | 201405191420
     | Maintainer      | John Smith <john.smith@example.com>
     | License         | AGPLv3+
-    | Description     | Example forum website
-    | Capabilities    | CapMessages
+    | Description     | Example bank website
+    | Capabilities    | CapBank, CapCollection
     | Installed       | yes
     | Location        | /home/me/src/weboob/modules/example
     '-----------------'
 
 If the last command does not work, check your :doc:`repositories setup </guides/setup>`.
 
+Backend class
+*************
+
+Edit ``backend.py``. It contains the main class of the module derived from :class:`BaseBackend <weboob.tools.backend.BaseBackend>` class::
+
+    class ExampleBackend(BaseBackend, CapBank):
+        NAME = 'example'                         # The name of module
+        DESCRIPTION = u'Example bank website'    # Description of your module
+        MAINTAINER = u'John Smith'               # Name of maintainer of this module
+        EMAIL = 'john.smith@example.com'         # Email address of the maintainer
+        LICENSE = 'AGPLv3+'                      # License of your module
+        VERSION = '0.i'                          # Version of weboob
+
+In the code above, you can see that your ``ExampleBackend`` inherits :class:`CapBank <weboob.capabilities.bank.CapBank>`, as
+we have selected it for the supported website.
+
 Configuration
 -------------
 
-When a module is instanced as a backend, you probably want to ask parameters to user. It is manager by the ``CONFIG`` class
+When a module is instanced as a backend, you probably want to ask parameters to user. It is managed by the ``CONFIG`` class
 attribute. It supports key/values with default values and some other parameters. The :class:`Value <weboob.tools.value.Value>`
 class is used to define a value.
 
-Parameters of :class:`Value <weboob.tools.value.Value>` are:
+Available parameters of :class:`Value <weboob.tools.value.Value>` are:
 
 * **label** - human readable description of a value
 * **required** - if ``True``, the backend can't loaded if the key isn't found in its configuration
@@ -139,8 +127,10 @@ Parameters of :class:`Value <weboob.tools.value.Value>` are:
 * **regexp** - if specified, on load the specified value is checked against this regexp, and an error is raised if it doesn't match
 * **choices** - if this parameter is set, the value must be in the list
 
-There is a special class, :class:`ValueBackendPassword <weboob.tools.value.ValueBackendPassword>`, which is used to manage
-private parameters of the config (like passwords or sensible information).
+.. note::
+
+    There is a special class, :class:`ValueBackendPassword <weboob.tools.value.ValueBackendPassword>`, which is used to manage
+    private parameters of the config (like passwords or sensible information).
 
 For example::
 
@@ -148,7 +138,7 @@ For example::
     from weboob.tools.backend import BackendConfig
 
     # ...
-    class ExampleBackend(BaseBackend, CapMessages):
+    class ExampleBackend(BaseBackend, CapBank):
         # ...
         CONFIG = BackendConfig(Value('username',                label='Username', regexp='.+'),
                                ValueBackendPassword('password', label='Password'),
@@ -176,134 +166,134 @@ Implement capabilities
 You need to implement each method of all of the capabilities your module implements. For example, in our case::
 
     # ...
-    class ExampleBackend(BaseBackend, CapMessages):
+    class ExampleBackend(BaseBackend, CapBank):
         # ...
 
-        def iter_threads(self):
+        def iter_accounts(self):
             raise NotImplementedError()
 
-        def get_thread(self, id):
+        def get_account(self, id):
             raise NotImplementedError()
 
-        def iter_unread_messages(self):
+        def iter_history(self, account):
             raise NotImplementedError()
 
-        def set_message_read(self, message):
+        def iter_coming(self, account):
             raise NotImplementedError()
 
-Read :class:`documentation of the capability <weboob.capabilities.messages.CapMessages>` to know what are types of arguments,
+If you ran the ``boilerplate`` script command ``cap``, every methods are already in ``backend.py`` and documented.
+
+Read :class:`documentation of the capability <weboob.capabilities.bank.CapBank>` to know what are types of arguments,
 what are expected returned objects, and what exceptions it may raises.
 
 
 Browser
 *******
 
-Most of modules use a class derived from :class:`BaseBrowser <weboob.tools.browser.browser.BaseBrowser>` to interact with a website.
+Most of modules use a class derived from :class:`PagesBrowser <weboob.tools.browser2.page.PagesBrowser>` or
+:class:`LoginBrowser <weboob.tools.browser2.page.LoginBrowser>` (for authenticated websites) to interact with a website.
 
-Edit ``browser.py`` and write in::
+Edit ``browser.py``::
 
     # -*- coding: utf-8 -*-
 
-    from weboob.tools.browser import BaseBrowser
+    from weboob.tools.browser2 import PagesBrowser
 
     __all__ = ['ExampleBrowser']
 
-    class ExampleBrowser(BaseBrowser):
-        DOMAIN = 'example.com'
-        PROTOCOL = 'https'
-        ENCODING = 'utf-8'
-        USER_AGENT = BaseBrowser.USER_AGENTS['desktop_firefox']
-        PAGES = {}
+    class ExampleBrowser(PagesBrowser):
+        BASEURL = 'https://www.example.com'
 
-There are several attributes:
+There are several possible class attributes:
 
-* **DOMAIN** - hostname of the website.
-* **PROTOCOL** - what protocol to use to access to website (http or https).
-* **ENCODING** - what is the encoding of HTML pages. If you set it to ``None``, it will use the web server one.
-* **USER_AGENT** - what *UserAgent* to use to access to website. Sometimes, websites provide different behaviors when you use different user agents.
-                   You can use one of the :class:`predefined user-agents <weboob.tools.browser.browser.StandardBrowser.USER_AGENTS>`, or write your
-                   own string.
-* **PAGES** - list of handled pages, and the associated :class:`BasePage <weboob.tools.browser.browser.BasePage>` class.
+* **BASEURL** - base url of website used for absolute paths given to :class:`open() <weboob.tools.browser2.page.PagesBrowser.open>` or :class:`location() <weboob.tools.browser2.page.PagesBrowser.location>`
+* **PROFILE** - defines the behavior of your browser against the website. By default this is Firefox, but you can import other profiles
+* **TIMEOUT** - defines the timeout for requests (defaults to 10 seconds)
+* **VERIFY** - SSL verification (if the protocol used is **https**)
 
 Pages
 -----
 
-For each page you want to handle, you have to create an associated class derived from :class:`BasePage <weboob.tools.browser.browser.BasePage>`.
+For each page you want to handle, you have to create an associated class derived from one of these classes:
 
-Create ``pages.py`` and write in::
+* :class:`HTMLPage <weboob.tools.browser2.page.HTMLPage>` - a HTML page
+* :class:`XMLPage <weboob.tools.browser2.page.XMLPage>` - a XML document
+* :class:`JsonPage <weboob.tools.browser2.page.JsonPage>` - a Json object
+
+In the file ``pages.py``, you can write, for example::
 
     # -*- coding: utf-8 -*-
 
-    from weboob.tools.browser import BasePage
+    from weboob.tools.browser2.page import HTMLPage
 
     __all__ = ['IndexPage', 'ListPage']
 
-    class IndexPage(BasePage):
+    class IndexPage(HTMLPage):
         pass
 
-    class ListPage(BasePage):
-        def iter_threads_list(self):
+    class ListPage(HTMLPage):
+        def iter_accounts():
             return iter([])
 
 ``IndexPage`` is the class we will use to get information from the home page of the website, and ``ListPage`` will handle pages
-which list forum threads. To associate them to URLs, change the ``ExampleBrowser.PAGES`` dictionary::
+which list accounts.
 
+Then, you have to declare them in your browser, with the :class:`URL <weboob.tools.browser2.page.URL>` object::
+
+    from weboob.tools.browser2.page import PagesBrowser, URL
     from .pages import IndexPage, ListPage
 
     # ...
-    class ExampleBrowser(BaseBrowser):
+    class ExampleBrowser(PagesBrowser):
         # ...
-        PAGES = {'https://example\.com/':      IndexPage,
-                 'https://example\.com/posts': ListPage,
-                }
 
-Easy, isn't it? The key is a regexp, and the value is your class. Each time you will go on the home page, ``IndexPage`` will be
-instanced and set as the ``page`` attribute.
+        home = URL('/$', IndexPage)
+        accounts = URL('/accounts$', ListPage)
 
-To check on what page the browser is currently, you can use :func:`is_on_page <weboob.tools.browser.browser.BaseBrowser.is_on_page>`.
+Easy, isn't it? The first parameters are regexps of the urls (if you give only a path, it uses the ``BASEURL`` class attribute), and the last one is the class used to handle the response.
 
-For example, we can now implement the ``home`` method in ``ExampleBrowser``::
+Each time you will go on the home page, ``IndexPage`` will be instanced and set as the ``page`` attribute.
 
-    class ExampleBrowser(BaseBrowser):
+For example, we can now implement some methods in ``ExampleBrowser``::
+
+    class ExampleBrowser(PagesBrowserr):
         # ...
-        def home(self):
-            self.location('/')
+        def go_home(self):
+            self.home.go()
 
-            assert self.is_on_page(IndexPage)
+            assert self.home.is_here()
 
-        def iter_threads_list(self):
-            self.location('/posts')
+        def iter_accounts_list(self):
+            self.accounts.stay_or_go()
 
-            assert self.is_on_page(ListPage)
-            return self.page.iter_threads_list()
+            return self.page.iter_accounts_list()
 
-``home`` is automatically called when an instance of ``ExampleBrowser`` is created. We also have defined ``iter_threads_list``
-to go on the corresponding page and get list of threads. For now, ``ListPage.iter_threads_list`` returns an empty iterator, but
-we will implement it later.
+When calling the :func:`go() <weboob.tools.browser2.page.URL.go>` method, it reads the first regexp url of our :class:`URL <weboob.tools.browser2.page.URL>` object, and go on the page.
+
+:func:`stay_or_go() <weboob.tools.browser2.page.URL.stay_or_go>` is used when you want to relocate on the page only if we aren't already on it.
+
+Once we are on the ``ListPage``, we can call every methods of the ``page`` object.
 
 Use it in backend
 -----------------
 
-Once you have a functional browser, you can use it in your class ``ExampleBackend`` by defining it with the ``BROWSER`` attribute::
+Now you have a functional browser, you can use it in your class ``ExampleBackend`` by defining it with the ``BROWSER`` attribute::
 
     from .browser import ExampleBrowser
 
     # ...
-    class ExampleBackend(BaseBackend, CapMessages):
+    class ExampleBackend(BaseBackend, CapBank):
         # ...
         BROWSER = ExampleBrowser
 
-You can now access it with member ``browser``. The class is instanced at the first call to this attribute. It is often better to use
-your browser only in a ``with`` block, to prevent problems when your backend is called in a multi-threading environment.
+You can now access it with member ``browser``. The class is instanced at the first call to this attribute.
 
-For example, we can now implement :func:`CapMessages.iter_threads <weboob.capabilities.messages.CapMessages.iter_threads>`::
+For example, we can now implement :func:`CapBank.iter_accounts <weboob.capabilities.bank.CapBank.iter_accounts`::
 
-    def iter_threads(self):
-        with self.browser:
-            for thread in self.browser.iter_threads_list():
-                yield thread
+    def iter_accounts(self):
+        return self.browser.iter_accounts_list()
 
-For this method, we only call immediately ``ExampleBrowser.iter_threads_list``, as there isn't anything else to do around.
+For this method, we only call immediately ``ExampleBrowser.iter_accounts_list``, as there isn't anything else to do around.
 
 Login management
 ----------------
@@ -311,115 +301,101 @@ Login management
 When the website requires to be authenticated, you have to give credentials to the constructor of the browser. You can redefine
 the method :func:`create_default_browser <weboob.tools.backend.BaseBackend.create_default_browser>`::
 
-    class ExampleBackend(BaseBackend, CapMessages):
+    class ExampleBackend(BaseBackend, CapBank):
         # ...
         def create_default_browser(self):
             return self.create_browser(self.config['username'].get(), self.config['password'].get())
 
-On the browser side, the important thing to know is that every times you call
-:func:`location <weboob.tools.browser.browser.BaseBrowser.location>`, the method
-:func:`is_logged <weboob.tools.browser.browser.BaseBrowser.is_logged>` is called to know if we are logged or not.
-It is useful when the browser is launched to automatically login, or when your session has expired on website and you
-need to re-login.
+On the browser side, you need to inherit from :func:`LoginBrowser <weboob.tools.browser2.page.LoginBrowser>` and to implement the function
+:func:`do_login <weboob.tools.browser2.page.LoginBrowser.do_login>`::
 
-When you are not logged, the method :func:`login <weboob.tools.browser.browser.BaseBrowser.login>` is called.
-
-For example::
-
-    from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-
-    # ...
-    class ExampleBrowser(BaseBrowser):
+    class ExampleBrowser(LoginBrowser):
+        login = URL('/login', LoginPage)
         # ...
-        PAGES = {'https://example\.com/':      IndexPage,
-                 'https://example\.com/login': LoginPage,
-                 'https://example\.com/posts': ListPage,
-                }
 
-        def is_logged(self):
-            return self.is_on_page(LoginPage) == False
-
-        def login(self):
-            if not self.is_on_page(LoginPage):
-                self.location('/login', no_login=True)
+        def do_login(self):
+            self.login.stay_or_go()
 
             self.page.login(self.username, self.password)
 
-            if not self.is_logged():
-                raise BrowserIncorrectPassword()
+            if self.login_error.is_here():
+                raise BrowserIncorrectPassword(self.page.get_error())
 
-The way to know if we are logged or not is different between websites. In this hypothetical case, we assume the website
-isn't accessible if you aren't logged, and you are always redirected to ``login/`` until you are authenticated.
+Also, your ``LoginPage`` may look like::
 
-.. note::
-
-   The parameter ``no_login`` have to be used in this case to prevent an infinite loop.
-
-Code of ``LoginPage`` in ``pages.py`` may be something like that::
-
-    class LoginPage(BasePage):
+    class LoginPage(HTMLPage):
         def login(self, username, password):
-            self.browser.select_form(name='login')
-            self.browser['login'] = username
-            self.browser['password'] = password
-            self.browser.submit()
+            form = self.get_form(name='auth')
+            form['username'] = username
+            form['password'] = password
+            form.submit()
 
-It selects the form named **login**, fill fields and submit it. You can also simulate the request by hand with::
+Then, each method on your browser which need your user to be authenticated may be decorated by :func:`need_login <weboob.tools.browser2.page.need_login>`::
 
-    import urllib
-    class ExampleBrowser(BaseBrowser):
-        # ...
-        def login(self):
-            if not self.is_on_page(LoginPage):
-                self.loaction('/login', no_login=True)
+    class ExampleBrowser(LoginBrowser):
+        accounts = URL('/accounts$', ListPage)
 
-            d = {'login':    self.username,
-                 'password': self.password,
-                }
-            self.location('/', urllib.urlencode(d), no_login=True)
+        @need_login
+        def iter_accounts(self):
+            self.accounts.stay_or_go()
+            return self.page.get_accounts()
 
-            if not self.is_logged():
-                raise BrowserIncorrectPassword()
+The last thing to know is that :func:`need_login <weboob.tools.browser2.page.need_login>` checks if the current page is a logged one by
+reading the attribute :func:`logged <weboob.tools.browser2.page.BasePage.logged>` of the instance. You can either define it yourself, as a
+class boolean attribute or as a property, or to inherit your class from :class:`LoggedPage <weboob.tools.browser2.page.LoggedPage>`.
+
 
 Parsing of pages
-----------------
+****************
 
-To parse pages in your classes derived from :class:`BasePage <weboob.tools.browser.browser.BasePage>`, there are several tools and things to know.
+.. note::
+    Depending of the base class you use for your page, it will parse html, json, csv, etc. In our case, it will be only html documents.
 
-Firstly, your object has these attributes:
 
-* **browser** - your ``ExampleBrowser`` class
-* **parser** - parser used to parse the HTML page (by default this is *lxml*)
-* **document** - parsed document
-* **url** - URL
-* **logger** - context logger
+When your browser locates on a page, an instance of the class related to the
+:class:`URL <weboob.tools.browser2.page.URL>` attribute which matches the url
+is created. You can declare methods on your class to allow your browser to
+interact with it.
 
-To find an element, there are two methods:
+The first thing to know is that your instance owns these attributes:
 
-* **xpath** - xpath expressions
-* **cssselect** - CSS selectors
+* ``browser`` - your ``ExampleBrowser`` class
+* ``logger`` - context logger
+* ``encoding`` - the encoding of the page
+* ``response`` - the ``Response`` object from ``requests``
+* ``url`` - current url
+* ``doc`` - parsed document with ``lxml``
+
+The most important attribute is ``doc`` you will use to get information from the page. You can call two methods:
+
+* ``xpath`` - xpath expressions
+* ``cssselect`` - CSS selectors
 
 For example::
 
-    from weboob.capabilities.messages import Thread
-    class ListPage(BasePage):
-        def iter_threads_list(self):
-            for el in self.document.xpath('//ul[@id="list"]/li'):
+    from weboob.capabilities.bank import Account
+
+    class ListPage(LoggedPage, HTMLPage):
+        def get_accounts(self):
+            for el in self.doc.xpath('//ul[@id="list"]/li'):
                 id = el.attrib['id']
-                thread = Thread(id)
-                thread.title = el.xpath('./h3').text
-                yield thread
+                account = Account(id)
+                account.label = el.xpath('./td[@class="name"]').text
+                account.balance = Decimal(el.xpath('./td[@class="balance"]').text)
+                yield account
 
 An alternative with ``cssselect``::
 
-    from weboob.capabilities.messages import Thread
-    class ListPage(BasePage):
-        def iter_threads_list(self):
+    from weboob.capabilities.bank import Account
+
+    class ListPage(LoggedPage, HTMLPage):
+        def get_accounts(self):
             for el in self.document.getroot().cssselect('ul#list li'):
                 id = el.attrib['id']
-                thread = Thread(id)
-                thread.title = el.find('h3').text
-                yield thread
+                account = Account(id)
+                account.label = el.cssselect('td.name').text
+                account.balance = Decimal(el.cssselect('td.balance').text)
+                yield account
 
 .. note::
 
@@ -428,7 +404,7 @@ An alternative with ``cssselect``::
 
 Your module is now functional and you can use this command::
 
-    $ boobmsg -b example list
+    $ boobank -b example list
 
 Tests
 *****
@@ -436,20 +412,20 @@ Tests
 Every modules must have a tests suite to detect when there are changes on websites, or when a commit
 breaks the behavior of the module.
 
-Create ``test.py`` and write it, for example::
+Edit ``test.py`` and write, for example::
 
     # -*- coding: utf-8 -*-
     from weboob.tools.test import BackendTest
 
-    __all__ = ['DLFPTest']
+    __all__ = ['ExampleTest']
 
     class ExampleTest(BackendTest):
         BACKEND = 'example'
 
-        def test_iter_threads(self):
-            threads = list(self.backend.iter_threads())
+        def test_iter_accounts(self):
+            accounts = list(self.backend.iter_accounts())
 
-            self.assertTrue(len(threads) > 0)
+            self.assertTrue(len(accounts) > 0)
 
 To try running test of your module, launch::
 
@@ -476,27 +452,28 @@ uncompleted fields, and call the method associated to the type of the object.
 To define what objects are supported to be filled, and what method to call, define the ``OBJECTS``
 class attribute in your ``ExampleBackend``::
 
-    OBJECTS = {Thread: fill_thread}
+    class ExampleBackend(BaseBackend, CapVideo):
+        # ...
+
+        OBJECTS = {Video: fill_video}
 
 The prototype of the function might be::
 
-    def func(self, obj, fields)
+    func(self, obj, fields)
 
 Then, the function might, for each requested fields, fetch the right data and fill the object. For example::
 
-    def fill_thread(self, thread, fields):
-        if 'root' in fields or \
-           'date' in fields:
-            return self.get_thread(thread)
+    class ExampleBackend(BaseBackend, CapVideo):
+        # ...
 
-        return thread
+        def fill_video(self, video, fields):
+            if 'url' in fields:
+                return self.backend.get_video(video.id)
 
-Here, when the application has got a :class:`Thread <weboob.capabilities.messages.Thread>` object with
-:func:`iter_threads <weboob.capabilities.messages.CapMessages.iter_threads>`, only two fields
-are empty (set to ``NotLoaded``):
+            return video
 
-* **root** - tree of messages in the thread
-* **date** - date of thread
+Here, when the application has got a :class:`Video <weboob.capabilities.video.BaseVideo>` object with
+:func:`search_videos <weboob.capabilities.video.CapVideo.search_videos>`, in most cases, there are only some meta-data, but not the direct link to the video media.
 
-As our method :func:`get_thread <weboob.capabilities.messages.CapMessages.get_thread>` will get all
-of the missing data, we just call it with the object as parameter to complete it.
+As our method :func:`get_video <weboob.capabilities.video.CapVideo.get_video>` will get all
+of the missing informations, we just call it with the object as parameter to complete it.
