@@ -630,7 +630,7 @@ class HTMLPage(BasePage):
         :type xpath: :class:`str`
         :param name: if supplied, select a form with the given name
         :type name: :class:`str`
-        :param nr: if supplied, take the n-th selected form
+        :param nr: if supplied, take the n+1 th selected form
         :type nr: :class:`int`
         :rtype: :class:`Form`
         :raises: :class:`FormNotFound` if no form is found
