@@ -47,7 +47,7 @@ class ProAccountsList(BasePage):
                 continue
 
             account = Account()
-            account.id = self.parser.tocleanstring(cols[self.COL_ID])
+            account.id = self.parser.tocleanstring(cols[self.COL_ID]).replace(" ", "")
             account.label = self.parser.tocleanstring(cols[self.COL_LABEL])
             account.balance = Decimal(self.parser.tocleanstring(cols[self.COL_BALANCE]))
             try:
