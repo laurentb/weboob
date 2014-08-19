@@ -119,6 +119,7 @@ def install_weboob():
         'gdata',
         'python-dateutil',
         'PyYAML',
+        'prettytable'
     ]
     try:
         import Image
