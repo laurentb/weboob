@@ -37,6 +37,19 @@ Then, run this command::
 
     $ weboob-config update
 
+Run Weboob without installation
+------------------------------
+
+This does not actually install anything, but lets you run Weboob from the source code,
+while also using the modules from that source::
+
+    $ ./tools/local_run.sh APPLICATION COMMANDS
+
+For example, instead of running `videoob -b youtube search plop`, you would run::
+
+    $ ./tools/local_run.sh videoob -b youtube search plop
+
+
 Conclusion
 ----------
 
