@@ -48,3 +48,5 @@ Reporting a bug
 
 When you report a bug on the tracker, it's important to correctly set the category as specific as possible.
 Also, don't forget to give information about your version of Weboob, OS, implicated libraries.
+
+It is often relevant to use the -d parameter on application to get verbose logs.
