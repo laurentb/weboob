@@ -17,38 +17,31 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from collections import OrderedDict
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword, Value
+from weboob.tools.value import ValueBackendPassword
 
 from .browser import GanAssurances
 
 
-__all__ = ['GanAssurancesModule']
+__all__ = ['GroupamaModule']
 
 
-class GanAssurancesModule(Module, CapBank):
-    NAME = 'ganassurances'
+class GroupamaModule(Module, CapBank):
+    NAME = 'groupama'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '1.4'
-    DESCRIPTION = u'Gan Assurances'
+    DESCRIPTION = u'Groupama'
     LICENSE = 'AGPLv3+'
-    website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
-        'espaceclient.groupama.fr':             u'Groupama Banque',
-        'espaceclient.ganassurances.fr':        u'Gan Assurances',
-        'espaceclient.ganpatrimoine.fr':        U'Gan Patrimoine',
-        }.iteritems(), key=lambda k_v: (k_v[1], k_v[0]))])
-    CONFIG = BackendConfig(Value('website',  label='Banque', choices=website_choices, default='espaceclient.ganassurances.fr'),
-                           ValueBackendPassword('login',    label=u'Numéro client', masked=False),
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label=u'Numéro client', masked=False),
                            ValueBackendPassword('password', label=u"Code d'accès"))
     BROWSER = GanAssurances
 
     def create_default_browser(self):
-        return self.create_browser(self.config['website'].get(),
+        return self.create_browser('espaceclient.groupama.fr',
                                    self.config['login'].get(),
                                    self.config['password'].get())
 
@@ -63,6 +56,3 @@ class GanAssurancesModule(Module, CapBank):
 
     def iter_coming(self, account):
         return self.browser.get_coming(account)
-
-    def iter_investment(self, account):
-        return self.browser.get_investment(account)
