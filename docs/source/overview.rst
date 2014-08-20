@@ -4,7 +4,7 @@ Overview
 Weboob (Web Outside Of Browsers) provides:
 
 * :doc:`applications <api/tools/application/index>` to interact with websites
-* :doc:`modules <api/tools/backend>`, each one handles a specific website
+* :doc:`modules </guides/module>`, each one handles a specific website
 * a :doc:`core library <api/core/index>` providing all the features needed by backends
 * :doc:`tools <api/tools/index>` to help develop backends and applications
 
