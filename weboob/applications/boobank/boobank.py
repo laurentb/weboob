@@ -36,7 +36,7 @@ __all__ = ['Boobank']
 
 class OfxFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'date', 'raw', 'amount', 'category')
-    TYPES_ACCTS = ['', 'CHECKING', 'SAVINGS', 'DEPOSIT', 'LOAN', 'MARKET', 'JOINT']
+    TYPES_ACCTS = ['', 'CHECKING', 'SAVINGS', 'DEPOSIT', 'LOAN', 'MARKET', 'JOINT', 'CARD']
     TYPES_TRANS = ['', 'DIRECTDEP', 'PAYMENT', 'CHECK', 'DEP', 'OTHER', 'ATM', 'POS', 'INT', 'FEE']
     TYPES_CURRS = ['', 'EUR', 'CHF', 'USD']
 
@@ -65,7 +65,11 @@ class OfxFormatter(IFormatter):
         self.output(u'<BANKID>null')
         self.output(u'<BRANCHID>null')
         self.output(u'<ACCTID>%s' % account.id)
-        self.output(u'<ACCTTYPE>%s' % (self.TYPES_ACCTS[account.type] or 'CHECKING'))
+        try:
+            account_type = self.TYPES_ACCTS[account.type]
+        except IndexError:
+            account_type = ''
+        self.output(u'<ACCTTYPE>%s' % (account_type or 'CHECKING'))
         self.output(u'<ACCTKEY>null</BANKACCTFROM>')
         self.output(u'<BANKTRANLIST>')
         self.output(u'<DTSTART>%s' % datetime.date.today().strftime('%Y%m%d'))
