@@ -291,6 +291,11 @@ class CleanDecimal(CleanText):
     """
     Get a cleaned Decimal value from an element.
 
+    replace_dots is False by default. A dot is interpreted as a decimal separator.
+
+    If replace_dots is set to True, we remove all the dots. The ',' is used as decimal
+    separator (often useful for French values)
+
     If replace_dots is a tuple, the first element will be used as the thousands separator,
     and the second as the decimal separator.
 
@@ -301,7 +306,7 @@ class CleanDecimal(CleanText):
     >>> CleanDecimal('./td[1]', replace_dots=(',', '.'))  # doctest: +SKIP
     """
 
-    def __init__(self, selector=None, replace_dots=True, default=_NO_DEFAULT):
+    def __init__(self, selector=None, replace_dots=False, default=_NO_DEFAULT):
         super(CleanDecimal, self).__init__(selector, default=default)
         self.replace_dots = replace_dots
 
