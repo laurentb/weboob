@@ -61,7 +61,7 @@ class OfxFormatter(IFormatter):
         self.output(u'<DTSERVER>%s113942<LANGUAGE>ENG</SONRS></SIGNONMSGSRSV1>' % datetime.date.today().strftime('%Y%m%d'))
         self.output(u'<BANKMSGSRSV1><STMTTRNRS><TRNUID>%s' % uuid.uuid1())
         self.output(u'<STATUS><CODE>0<SEVERITY>INFO</STATUS><CLTCOOKIE>null<STMTRS>')
-        self.output(u'<CURDEF>%s<BANKACCTFROM>' % 'EUR') #account.currency_text)
+        self.output(u'<CURDEF>%s<BANKACCTFROM>' % (account.currency or 'EUR'))
         self.output(u'<BANKID>null')
         self.output(u'<BRANCHID>null')
         self.output(u'<ACCTID>%s' % account.id)
