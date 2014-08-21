@@ -44,7 +44,7 @@ class TwitterBackend(BaseBackend, CapMessages, CapMessagesPost, CapCollection):
     CONFIG = BackendConfig(Value('username',                label='Username', default=''),
                            ValueBackendPassword('password', label='Password', default=''),
                            Value('hashtags_subscribe',      label='Hashtags subscribe', default=''),
-                           Value('search_subscribe',        label='Searh subscribe', default=''),
+                           Value('search_subscribe',        label='Search subscribe', default=''),
                            Value('profils_subscribe',       label='Profils subscribe', default=''))
 
     def create_default_browser(self):
