@@ -84,7 +84,7 @@ class DetailsPage(LoggedPage, BadUTF8Page):
                 detail.label = detail.label + u" (international)"
                 detail.id = detail.id + "-inter"
             detail.infos = CleanText('div[@class="conso"]/p')(div)
-            detail.price = CleanDecimal('div[@class="horsForfait"]/p/span', default=Decimal(0))(div)
+            detail.price = CleanDecimal('div[@class="horsForfait"]/p/span', default=Decimal(0), replace_dots=True)(div)
 
             self.details[num].append(detail)
 
@@ -96,7 +96,7 @@ class DetailsPage(LoggedPage, BadUTF8Page):
         if inter:
             voice.label = voice.label + " (international)"
             voice.id = voice.id + "-inter"
-        voice.price = CleanDecimal('div[@class="horsForfait"]/p/span', default=0)(div)
+        voice.price = CleanDecimal('div[@class="horsForfait"]/p/span', default=Decimal(0), replace_dots=True)(div)
         voice1 = CleanText('.//span[@class="actif"][1]')(voicediv)
         voice2 = CleanText('.//span[@class="actif"][2]')(voicediv)
         voice.infos = unicode(string) % (voice1, voice2)
@@ -155,4 +155,4 @@ class HistoryPage(LoggedPage, BadUTF8Page):
             obj_datetime = DateTime(CleanText('td[1]', symbols=u'à'), dayfirst=True)
             obj_label = Format(u'%s %s %s', CleanText('td[2]'), CleanText('td[3]'),
                                CleanText('td[4]'))
-            obj_price = CleanDecimal('td[5]', default=Decimal(0))
+            obj_price = CleanDecimal('td[5]', default=Decimal(0), replace_dots=True)

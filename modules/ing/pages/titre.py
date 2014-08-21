@@ -70,4 +70,4 @@ class TitreHistory(HTMLPage):
 
             obj_raw = Transaction.Raw('td[4] | td[3]/a')
             obj_date = Date(CleanText('td[2]'), dayfirst=True)
-            obj_amount = CleanDecimal('td[7]')
+            obj_amount = CleanDecimal('td[7]', replace_dots=True)

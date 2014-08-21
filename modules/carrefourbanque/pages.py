@@ -53,7 +53,7 @@ class HomePage(LoggedPage, HTMLPage):
 
             obj_id = Regexp(CleanText('./div[@class="carte_col_leftcol"]/p'), r'(\d+)')
             obj_label = CleanText('./div[@class="carte_col_leftcol"]/h2')
-            obj_balance = CleanDecimal(Format('-%s', CleanText('.//div[@class="catre_col_one"]/h2')))
+            obj_balance = CleanDecimal(Format('-%s', CleanText('.//div[@class="catre_col_one"]/h2')), replace_dots=True)
             obj_currency = FrenchTransaction.Currency('.//div[@class="catre_col_one"]/h2')
             obj__link = Link('.//a[contains(@href, "solde-dernieres-operations")]')
 

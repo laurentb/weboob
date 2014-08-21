@@ -144,7 +144,7 @@ class TransferConfirmPage(HTMLPage):
         class item(ItemElement):
             klass = Transfer
 
-            obj_amount = CleanDecimal('.//label[@id="confirmtransferAmount"]')
+            obj_amount = CleanDecimal('.//label[@id="confirmtransferAmount"]', replace_dots=True)
             obj_origin = CleanText('.//span[@id="confirmfromAccount"]')
             obj_recipient = CleanText('.//span[@id="confirmtoAccount"]')
             obj_reason = CleanText('.//span[@id="confirmtransferMotive"]')

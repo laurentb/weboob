@@ -116,7 +116,7 @@ class IndexPage(LoggedPage, HTMLPage):
     is_here = "//div[@id='situation']"
 
     def get_balance(self):
-        return  -CleanDecimal('.')(self.doc.xpath('//div[@id = "total-sommes-dues"]/p[contains(text(), "sommes dues")]/span[@class = "montant"]')[0])
+        return  -CleanDecimal('.', replace_dots=True)(self.doc.xpath('//div[@id = "total-sommes-dues"]/p[contains(text(), "sommes dues")]/span[@class = "montant"]')[0])
 
 class OperationsPage(LoggedPage, HTMLPage):
     is_here = "//div[@id='releve-reserve-credit'] | //div[@id='operations-recentes']"

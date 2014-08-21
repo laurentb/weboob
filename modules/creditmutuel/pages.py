@@ -123,7 +123,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 if not 'rib' in p:
                     raise SkipItem()
 
-                balance = CleanDecimal('./td[2] | ./td[3]')(self)
+                balance = CleanDecimal('./td[2] | ./td[3]', replace_dots=True)(self)
                 id = p['rib'][0]
 
                 # Handle cards

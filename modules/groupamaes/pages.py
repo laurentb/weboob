@@ -53,8 +53,7 @@ class AvoirPage(LoggedPage, HTMLPage):
 
             obj_id = CleanText(TableCell('name'))
             obj_label = CleanText(TableCell('name'))
-            #obj_coming = CleanDecimal(TableCell('value'))
-            obj_balance = CleanDecimal(TableCell('value'))
+            obj_balance = CleanDecimal(TableCell('value'), replace_dots=True)
             obj_currency = CleanText(u'//table[@summary="Liste des échéances"]/thead/tr/th/small/text()')
             obj_type = Account.TYPE_UNKNOWN
 
@@ -80,7 +79,7 @@ class OperationsFuturesPage(LoggedPage, HTMLPage):
             obj_date = Date(CleanText(TableCell('date')), LinearDateGuesser())
             obj_type = Transaction.TYPE_UNKNOWN
             obj_label = CleanText(TableCell('operation'))
-            obj_amount = CleanDecimal(TableCell('montant'))
+            obj_amount = CleanDecimal(TableCell('montant'), replace_dots=True)
 
 
 class OperationsTraiteesPage(LoggedPage, HTMLPage):
@@ -102,4 +101,4 @@ class OperationsTraiteesPage(LoggedPage, HTMLPage):
             obj_date = Date(CleanText(TableCell('date')), LinearDateGuesser())
             obj_type = Transaction.TYPE_UNKNOWN
             obj_label = CleanText(TableCell('operation'))
-            obj_amount = CleanDecimal(TableCell('montant'))
+            obj_amount = CleanDecimal(TableCell('montant'), replace_dots=True)

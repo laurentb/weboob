@@ -127,7 +127,7 @@ class AccountsList(LoggedPage, HTMLPage):
             obj_label = CleanText('span[@class="title"]')
             obj_id = AddPref(Field('_id'), Field('label'))
             obj_type = AddType(Field('label'))
-            obj_balance = CleanDecimal('span[@class="solde"]/label')
+            obj_balance = CleanDecimal('span[@class="solde"]/label', replace_dots=True)
             obj_coming = NotAvailable
             obj__jid = Attr('//input[@name="javax.faces.ViewState"]', 'value')
 
@@ -141,7 +141,7 @@ class AccountsList(LoggedPage, HTMLPage):
             obj_id = None  # will be overwrited by the browser
             # we use lower for compatibility with the old website
             obj_raw = Transaction.Raw(Lower('.//td[@class="lbl"]'))
-            obj_amount = CleanDecimal('.//td[starts-with(@class, "amount")]')
+            obj_amount = CleanDecimal('.//td[starts-with(@class, "amount")]', replace_dots=True)
             obj_date = INGDate(CleanText('.//td[@class="date"]'), dayfirst=True)
             obj_rdate = Field('date')
             obj__hash = PreHashmd5(Field('date'), Field('raw'), Field('amount'))

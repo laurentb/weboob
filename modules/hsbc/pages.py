@@ -92,7 +92,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 else:
                     raise SkipItem()
 
-                balance = CleanDecimal('./td[3]')(self)
+                balance = CleanDecimal('./td[3]', replace_dots=True)(self)
 
                 self.env['id'] = id
                 self.env['balance'] = balance
