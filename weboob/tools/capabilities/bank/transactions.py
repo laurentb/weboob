@@ -296,20 +296,21 @@ class FrenchTransaction(Transaction):
             return Account.get_currency(text)
 
     class Amount(Filter):
-        def __init__(self, credit, debit=None):
+        def __init__(self, credit, debit=None, replace_dots=True):
             self.credit_selector = credit
             self.debit_selector = debit
+            self.replace_dots = replace_dots
 
         def __call__(self, item):
             if self.debit_selector:
                 try:
-                    return - abs(CleanDecimal(self.debit_selector)(item))
+                    return - abs(CleanDecimal(self.debit_selector, replace_dots=self.replace_dots)(item))
                 except InvalidOperation:
                     pass
 
             if self.credit_selector:
                 try:
-                    return CleanDecimal(self.credit_selector)(item)
+                    return CleanDecimal(self.credit_selector, replace_dots=self.replace_dots)(item)
                 except InvalidOperation:
                     pass
 
