@@ -35,7 +35,6 @@ except ImportError:
     from yaml import Dumper
 
 
-
 __all__ = ['YamlConfig']
 
 
@@ -73,7 +72,7 @@ class YamlConfig(IConfig):
     def save(self):
         # write in a temporary file to avoid corruption problems
         with tempfile.NamedTemporaryFile(dir=os.path.dirname(self.path), delete=False) as f:
-            yaml.dump(self.values, f, Dumper=WeboobDumper)
+            yaml.dump(self.values, f, Dumper=WeboobDumper, default_flow_style=False)
         os.rename(f.name, self.path)
 
     def get(self, *args, **kwargs):
