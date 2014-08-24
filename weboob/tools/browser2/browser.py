@@ -77,7 +77,7 @@ class Firefox(Profile):
     Try to mimic a specific version of Firefox.
     Ideally, it should follow the current ESR Firefox:
     https://www.mozilla.org/en-US/firefox/organizations/all.html
-    Do not change the Firefox version without changing the Gecko one!
+    Do not change the Firefox version without checking the Gecko one!
     """
 
     def setup_session(self, session):
@@ -94,7 +94,7 @@ class Firefox(Profile):
             'Accept-Language': 'en-us,en;q=0.5',
             'Accept-Encoding': 'gzip, deflate',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:24.0) Gecko/20100101 Firefox/24.0',
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0',
             'DNT': '1'}
 
 
