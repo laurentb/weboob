@@ -24,6 +24,7 @@ try:
 except ImportError:
     from urllib import unquote
 import re
+import warnings
 from copy import deepcopy
 from io import BytesIO
 
@@ -464,6 +465,12 @@ class FormNotFound(Exception):
     Raised when :meth:`HTMLPage.get_form` can't find a form.
     """
 
+class FormSubmitWarning(UserWarning):
+    """
+    A form has more than one submit element selected, and will likely
+    generate an invalid request.
+    """
+
 class Form(OrderedDict):
     """
     Represents a form of an HTML page.
@@ -472,13 +479,15 @@ class Form(OrderedDict):
     values as strings by setting an item value.
     """
 
-    def __init__(self, page, el):
+    def __init__(self, page, el, submit_el=None):
         super(Form, self).__init__()
         self.page = page
         self.el = el
+        self.submit_el = submit_el
         self.method = el.attrib.get('method', 'GET')
         self.url = el.attrib.get('action', page.url)
         self.name = el.attrib.get('name', '')
+        submits = 0
 
         for inp in el.xpath('.//input | .//select | .//textarea'):
             try:
@@ -492,6 +501,15 @@ class Form(OrderedDict):
             except KeyError:
                 pass
 
+            try:
+                if inp.attrib['type'] == 'submit':
+                    if self.submit_el is not None and inp is not self.submit_el:
+                        continue
+                    else:
+                        submits += 1
+            except KeyError:
+                pass
+
             if inp.tag == 'select':
                 options = inp.xpath('.//option[@selected]')
                 if len(options) == 0:
@@ -502,7 +520,14 @@ class Form(OrderedDict):
                     value = options[0].attrib.get('value', options[0].text or u'')
             else:
                 value = inp.attrib.get('value', inp.text or u'')
+
             self[name] = value
+
+        if submits > 1:
+            warnings.warn('Form has more than one submit input, you should chose the correct one', FormSubmitWarning, stacklevel=3)
+        if self.submit_el is not None and submits == 0:
+            warnings.warn('Form had a submit element provided, but it was not found', FormSubmitWarning, stacklevel=3)
+
 
     @property
     def request(self):
@@ -622,9 +647,12 @@ class HTMLPage(BasePage):
         parser = html.HTMLParser(encoding=self.encoding)
         self.doc = html.parse(BytesIO(response.content), parser)
 
-    def get_form(self, xpath='//form', name=None, nr=None):
+    def get_form(self, xpath='//form', name=None, nr=None, submit=None):
         """
         Get a :class:`Form` object from a selector.
+        The form will be analyzed and its parameters extracted.
+        In the case there is more than one "submit" input, only one of
+        them should be chosen to generate the request.
 
         :param xpath: xpath string to select forms
         :type xpath: :class:`str`
@@ -632,6 +660,9 @@ class HTMLPage(BasePage):
         :type name: :class:`str`
         :param nr: if supplied, take the n+1 th selected form
         :type nr: :class:`int`
+        :param submit: if supplied, xpath string to select the submit \
+            element from the form
+        :type submit: :class:`str`
         :rtype: :class:`Form`
         :raises: :class:`FormNotFound` if no form is found
         """
@@ -643,7 +674,12 @@ class HTMLPage(BasePage):
                 i += 1
                 continue
 
-            return self.FORM_CLASS(self, el)
+            if submit:
+                submit_el = el.xpath(submit)[0]
+            else:
+                submit_el = None
+
+            return self.FORM_CLASS(self, el, submit_el)
 
         raise FormNotFound()
 
