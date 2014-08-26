@@ -477,6 +477,10 @@ class Form(OrderedDict):
 
     It is used as a dict with pre-filled values from HTML. You can set new
     values as strings by setting an item value.
+
+    submit_el allows you to only consider one submit button (which is what
+    browsers do). If set to None, it takes all of them, and if set to False,
+    it takes none.
     """
 
     def __init__(self, page, el, submit_el=None):
@@ -525,7 +529,7 @@ class Form(OrderedDict):
 
         if submits > 1:
             warnings.warn('Form has more than one submit input, you should chose the correct one', FormSubmitWarning, stacklevel=3)
-        if self.submit_el is not None and submits == 0:
+        if self.submit_el is not None and self.submit_el is not False and submits == 0:
             warnings.warn('Form had a submit element provided, but it was not found', FormSubmitWarning, stacklevel=3)
 
 
@@ -674,10 +678,10 @@ class HTMLPage(BasePage):
                 i += 1
                 continue
 
-            if submit:
+            if isinstance(submit, basestring):
                 submit_el = el.xpath(submit)[0]
             else:
-                submit_el = None
+                submit_el = submit
 
             return self.FORM_CLASS(self, el, submit_el)
 
