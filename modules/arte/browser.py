@@ -144,8 +144,9 @@ class ArteBrowser(BaseBrowser):
 
         response = self.openurl(url)
         result = simplejson.loads(response.read(), self.ENCODING)
-        video = self.create_video(result['abstractProgram']['VDO'])
-        return self.get_video(video.id, video)
+        if 'VDO' in result['abstractProgram'].keys():
+            video = self.create_video(result['abstractProgram']['VDO'])
+            return self.get_video(video.id, video)
 
     def search_videos(self, pattern):
         class_name = 'videos/plus7'
@@ -210,6 +211,38 @@ class ArteBrowser(BaseBrowser):
             + '.json'
 
         return url
+
+    def get_arte_programs(self):
+        class_name = 'epg'
+        method_name = 'clusters'
+        url = self.API_URL \
+            + '/' + class_name \
+            + '/' + method_name \
+            + '/' + self.lang \
+            + '/0/ALL.json'
+
+        response = self.openurl(url)
+        result = simplejson.loads(response.read(), self.ENCODING)
+        return result['configClusterList']
+
+    def program_videos(self, program):
+        class_name = 'epg'
+        method_name = 'cluster'
+
+        url = self.API_URL \
+            + '/' + class_name \
+            + '/' + method_name \
+            + '/' + self.lang \
+            + '/' + program \
+            + '.json'
+
+        response = self.openurl(url)
+        result = simplejson.loads(response.read(), self.ENCODING)
+        for item in result['clusterWrapper']['broadcasts']:
+            if 'VDS' in item.keys() and len(item['VDS']) > 0:
+                video = self.get_video_from_program_id(item['programId'])
+                if video:
+                    yield video
 
     def latest_videos(self):
         class_name = 'videos'
