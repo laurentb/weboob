@@ -105,21 +105,17 @@ class IngBrowser(LoginBrowser):
             self.logger.info('There is no history for this account')
             return
 
-        index = 0  # index, we get always the same page, but with more data
         hashlist = []
         while True:
-            i = index
-            for transaction in self.page.get_transactions(index=index):
+            for transaction in self.page.get_transactions():
                 transaction.id = hashlib.md5(transaction._hash).hexdigest()
                 while transaction.id in hashlist:
                     transaction.id = hashlib.md5(transaction.id + "1").hexdigest()
                 hashlist.append(transaction.id)
-                i += 1
                 yield transaction
             # if there is no more transactions, it is useless to continue
-            if i == index or self.page.islast():
+            if self.page.islast():
                 return
-            index = i
             data = {"AJAX:EVENTS_COUNT": 1,
                     "AJAXREQUEST": "_viewRoot",
                     "autoScroll": "",

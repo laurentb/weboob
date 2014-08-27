@@ -133,7 +133,7 @@ class AccountsList(LoggedPage, HTMLPage):
 
     @method
     class get_transactions(ListElement):
-        item_xpath = '//table'
+        item_xpath = '//div[@class="temporaryTransactionList"]//table'
 
         class item(ItemElement):
             klass = Transaction
@@ -149,9 +149,6 @@ class AccountsList(LoggedPage, HTMLPage):
 
             def condition(self):
                 if self.el.find('.//td[@class="date"]') is None:
-                    return False
-                if self.page.i < self.env['index']:
-                    self.page.i += 1
                     return False
                 return True
 
