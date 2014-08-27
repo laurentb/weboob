@@ -22,7 +22,6 @@ from weboob.tools.json import json
 from weboob.capabilities.video import BaseVideo
 from weboob.tools.browser.decorators import id2url
 
-from StringIO import StringIO
 from time import time
 import re
 from urlparse import parse_qs
@@ -92,7 +91,7 @@ class ReplayPage(BasePage):
 class DataPage(BasePage):
     def get_current(self):
         document = self.document
-        title = None
+        title = ''
         for metas in self.parser.select(document.getroot(), 'div.metas'):
             ftitle = unicode(metas.text_content()).strip()
             if ftitle:
@@ -104,7 +103,7 @@ class DataPage(BasePage):
             ftitle = document.findtext('//div[@class="subtitle"]')
             title = unicode(ftitle).strip() if ftitle else title
         else:
-            artist = None
+            artist = ''
 
         return (artist, title)
 
@@ -125,7 +124,7 @@ class RssPage(BasePage):
 class RadioFranceBrowser(BaseBrowser):
     DOMAIN = None
     ENCODING = 'UTF-8'
-    PAGES = {r'/playerjs/direct/donneesassociees/html\?guid=$': DataPage,
+    PAGES = {r'http://.*/player/direct': DataPage,
              r'http://players.tv-radio.com/radiofrance/metadatas/([a-z]+)RSS.html': RssPage,
              PlayerPage.URL: PlayerPage,
              ReplayPage.URL: ReplayPage,
@@ -141,7 +140,7 @@ class RadioFranceBrowser(BaseBrowser):
         return 'www.%s.fr' % _id
 
     def get_current_playerjs(self, _id):
-        self.location('http://%s/playerjs/direct/donneesassociees/html?guid=' % self.id2domain(_id))
+        self.location('http://%s/player/direct' % self.id2domain(_id))
         assert self.is_on_page(DataPage)
 
         return self.page.get_current()
@@ -155,28 +154,16 @@ class RadioFranceBrowser(BaseBrowser):
     def get_current_direct(self, _id):
         json_data = self.openurl('http://%s/sites/default/files/direct.json?_=%s' % (self.id2domain(_id), int(time())))
         data = json.load(json_data)
-
-        document = self.parser.parse(StringIO(data.get('html')))
-        artist = document.findtext('//span[@class="artiste"]')
-        title = document.findtext('//span[@class="titre"]')
-        artist = unicode(artist) if artist else None
-        title = unicode(title) if title else None
+        title = unicode(data['rf_titre_antenne']['titre'])
+        artist = unicode(data['rf_titre_antenne']['interprete'])
         return (artist, title)
 
     def get_current_direct_large(self, _id):
-        json_data = self.openurl('http://%s/sites/default/files/direct-large.json?_=%s' % (self.id2domain(_id), int(time())))
+        json_data = self.openurl('http://%s/sites/default/files/import_si/si_titre_antenne/FIP_player_current.json'
+                                 % self.id2domain(_id))
         data = json.load(json_data)
-
-        document = self.parser.parse(StringIO(data.get('html')))
-        current = document.find('//div[@class="direct-current"]')
-        if current is not None:
-            artist = current.findtext('.//div[@class="artiste"]')
-            title = current.findtext('.//div[@class="titre"]')
-            artist = unicode(artist) if artist else None
-            title = unicode(title) if title else None
-        else:
-            artist = None
-            title = None
+        artist = unicode(data['current']['song']['interpreteMorceau'])
+        title = unicode(data['current']['song']['titre'])
         return (artist, title)
 
     @id2url(RadioFranceVideo.id2url)

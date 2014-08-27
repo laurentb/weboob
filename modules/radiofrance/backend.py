@@ -98,10 +98,9 @@ class RadioFranceBackend(BaseBackend, CapRadio, CapCollection, CapVideo):
                         'franceculture',
                         'franceinfo',
                         'lemouv',
-                        'fip',
                         )
 
-    _DIRECTJSON_RADIOS = ('lemouv', 'franceinter', )
+    _DIRECTJSON_RADIOS = ('lemouv', )
     _LARGEDIRECTJSON_RADIOS = ('fip', )
     _RSS_RADIOS = ('francemusique', )
 
@@ -128,7 +127,7 @@ class RadioFranceBackend(BaseBackend, CapRadio, CapCollection, CapVideo):
         if not isinstance(radio, Radio):
             radio = Radio(radio)
 
-        if not radio.id in self._RADIOS:
+        if radio.id not in self._RADIOS:
             return None
 
         title, hd = self._RADIOS[radio.id]
@@ -146,10 +145,10 @@ class RadioFranceBackend(BaseBackend, CapRadio, CapCollection, CapVideo):
 
         stream = BaseAudioStream(0)
         if hd:
-            stream.bitrate=128
+            stream.bitrate = 128
         else:
-            stream.bitrate=32
-        stream.format=u'mp3'
+            stream.bitrate = 32
+        stream.format = u'mp3'
         stream.title = u'%s kbits/s' % (stream.bitrate)
         stream.url = url
         radio.streams = [stream]
@@ -205,4 +204,4 @@ class RadioFranceBackend(BaseBackend, CapRadio, CapCollection, CapVideo):
         return video
 
     OBJECTS = {Radio: fill_radio,
-            RadioFranceVideo: fill_video}
+               RadioFranceVideo: fill_video}
