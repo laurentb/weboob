@@ -30,7 +30,7 @@ class ColissimoBrowser(BaseBrowser):
     ENCODING = None
     USER_AGENT = BaseBrowser.USER_AGENTS['android']
 
-    api_key = 'd112dc5c716d443af02b13bf708f73985e7ee943'
+    api_key = '6b252eb30d3afb15c47cf3fccee3dc17352dc2d6'
 
     def get_tracking_info(self, _id):
         json_data = self.readurl('/outilsuivi/web/suiviInterMetiers.php?key=%s&method=json&code=%s' % (self.api_key, _id))
