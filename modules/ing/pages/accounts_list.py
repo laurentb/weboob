@@ -131,10 +131,7 @@ class AccountsList(LoggedPage, HTMLPage):
             obj_coming = NotAvailable
             obj__jid = Attr('//input[@name="javax.faces.ViewState"]', 'value')
 
-    @method
-    class get_transactions(ListElement):
-        item_xpath = '//div[@class="temporaryTransactionList"]//table'
-
+    class generic_transactions(ListElement):
         class item(ItemElement):
             klass = Transaction
 
@@ -151,6 +148,14 @@ class AccountsList(LoggedPage, HTMLPage):
                 if self.el.find('.//td[@class="date"]') is None:
                     return False
                 return True
+
+    @method
+    class get_coming(generic_transactions):
+        item_xpath = '//div[@class="transactions cc future"]//table'
+
+    @method
+    class get_transactions(generic_transactions):
+        item_xpath = '//div[@class="temporaryTransactionList"]//table'
 
     def get_history_jid(self):
         span = self.doc.xpath('//span[@id="index:panelASV"]')

@@ -96,6 +96,11 @@ class INGBackend(BaseBackend, CapBank, CapBill):
             account = self.get_account(account)
         return self.browser.get_investments(account)
 
+    def iter_coming(self, account):
+        if not isinstance(account, Account):
+            account = self.get_account(account)
+        return self.browser.get_coming(account)
+
     def iter_subscription(self):
         return self.browser.get_subscriptions()
 

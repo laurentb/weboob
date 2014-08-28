@@ -49,7 +49,6 @@ class IngBrowser(LoginBrowser):
     # CapBill
     billpage = URL('/protected/pages/common/estatement/eStatement.jsf', BillsPage)
 
-
     def __init__(self, *args, **kwargs):
         self.birthday = kwargs.pop('birthday', None)
         self.where = None
@@ -76,6 +75,31 @@ class IngBrowser(LoginBrowser):
         self.accountspage.go()
         self.where = "start"
         return self.page.get_list()
+
+    @need_login
+    def get_coming(self, account):
+        if account.type != Account.TYPE_CHECKING and\
+                account.type != Account.TYPE_SAVINGS:
+            raise NotImplementedError()
+        if self.where != "start":
+            self.accountspage.go()
+        data = {"AJAX:EVENTS_COUNT": 1,
+                "AJAXREQUEST": "_viewRoot",
+                "ajaxSingle": "index:setAccount",
+                "autoScroll": "",
+                "index": "index",
+                "index:setAccount": "index:setAccount",
+                "javax.faces.ViewState": account._jid,
+                "cptnbr": account._id
+                }
+        self.accountspage.go(data=data)
+        self.where = "history"
+        jid = self.page.get_history_jid()
+        if jid is None:
+            self.logger.info('There is no history for this account')
+            return
+
+        return self.page.get_coming()
 
     @need_login
     def get_history(self, account):
