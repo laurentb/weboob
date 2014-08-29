@@ -311,7 +311,10 @@ class CleanDecimal(CleanText):
         self.replace_dots = replace_dots
 
     def filter(self, text):
-        text = super(CleanDecimal, self).filter(text)
+        if empty(text) or text == '':
+            return self.default_or_raise(ParseError('Unable to parse %r' % text))
+        else:
+            text = super(CleanDecimal, self).filter(text)
         if self.replace_dots:
             if type(self.replace_dots) is tuple:
                 thousands_sep, decimal_sep = self.replace_dots
