@@ -27,7 +27,7 @@ from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.tools.parsers.csvparser import CsvParser
 from weboob.tools.misc import to_unicode
 from weboob.capabilities.bank import Account, Transaction
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.transactions import AmericanTransaction
 
 __all__ = ['LoginPage', 'AccountPage', 'LastDownloadHistoryPage']
 
@@ -35,24 +35,7 @@ class CSVAlreadyAsked(Exception):
     pass
 
 def clean_amount(text):
-    """
-    >>> clean_amount('42')
-    Decimal('42')
-    >>> clean_amount('42,12')
-    Decimal('42.12')
-    >>> clean_amount('42.12')
-    Decimal('42.12')
-    >>> clean_amount('$42.12 USD')
-    Decimal('42.12')
-    >>> clean_amount('$12.442,12 USD')
-    Decimal('12442.12')
-    >>> clean_amount('$12,442.12 USD')
-    Decimal('12442.12')
-    """
-    # Convert "American" UUU.CC format to "French" UUU,CC format
-    if re.search(r'\d\.\d\d(?: [A-Z]+)?$', text):
-        text = text.replace(',', ' ').replace('.', ',')
-    return Decimal(FrenchTransaction.clean_amount(text))
+    return Decimal(AmericanTransaction.clean_amount(text))
 
 
 class LoginPage(BasePage):
