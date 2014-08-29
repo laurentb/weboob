@@ -90,7 +90,7 @@ class Filter(_Filter):
     either a xpath selector string, or an other filter called before.
 
     >>> from lxml.html import etree
-    >>> f = CleanDecimal(CleanText('//p'))
+    >>> f = CleanDecimal(CleanText('//p'), replace_dots=True)
     >>> f(etree.fromstring('<html><body><p>blah: <span>229,90</span></p></body></html>'))
     Decimal('229.90')
     """
