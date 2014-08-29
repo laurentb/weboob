@@ -16,56 +16,52 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+from datetime import datetime
+
+from weboob.tools.browser2 import PagesBrowser, URL
+from .pages import StationsPage, DeparturesPage, DeparturesPage2, HorairesPage, RoadMapPage
 
 
-from weboob.tools.browser import BaseBrowser, BasePage, BrowserUnavailable
+class Transilien(PagesBrowser):
 
-from .pages.departures import DeparturesPage
-from .pages.roadmap import RoadmapSearchPage, RoadmapConfirmPage, RoadmapPage
+    BASEURL = 'http://www.transilien.com'
+    stations_page = URL('aidesaisie/autocompletion\?saisie=(?P<pattern>.*)', StationsPage)
+    departures_page = URL('gare/pagegare/chargerGare\?nomGare=(?P<station>.*)',
+                          'gare/.*', DeparturesPage)
+    departures_page2 = URL('fichehoraire/fichehoraire/(?P<url>.*)',
+                           'fichehoraire/fichehoraire/.*', DeparturesPage2)
 
+    horaires_page = URL('fiche-horaire/(?P<station>.*)--(?P<arrival>.*)-(?P<station2>.*)-(?P<arrival2>)-(?P<date>)',
+                        'fiche-horaire/.*', HorairesPage)
 
-class UnavailablePage(BasePage):
-    def on_loaded(self):
-        raise BrowserUnavailable('Website is currently unavailable')
-
-
-class Transilien(BaseBrowser):
-    DOMAIN = 'www.transilien.com'
-    PROTOCOL = 'https'
-    USER_AGENT = BaseBrowser.USER_AGENTS['microb']
-    PAGES = {'https://www\.transilien\.com/web/ITProchainsTrainsAvecDest\.do\?.*': DeparturesPage,
-             'https://www\.transilien\.com/web/ITProchainsTrains\.do\?.*':         DeparturesPage,
-             'https://www\.transilien\.com/web/site.*':                            RoadmapSearchPage,
-             'https://www\.transilien\.com/web/RedirectHI.do.*':                   RoadmapConfirmPage,
-             'https://www\.transilien\.com/web/RedirectHIIntermediaire.do.*':      RoadmapPage,
-             'https://www\.transilien\.com/transilien_sncf_maintenance_en_cours.htm': UnavailablePage,
-            }
-
-    def is_logged(self):
-        """ Do not need to be logged """
-        return True
-
-    def iter_station_search(self, pattern):
-        pass
-
-    def iter_station_departures(self, station_id, arrival_id=None):
-        if arrival_id:
-            self.location('https://www.transilien.com/web/ITProchainsTrainsAvecDest.do?codeTr3aDepart=%s&codeTr3aDest=%s&urlModule=/site/pid/184&gareAcc=true' % (station_id, arrival_id))
-        else:
-            self.location('https://www.transilien.com/web/ITProchainsTrains.do?tr3a=%s&urlModule=/site/pid/184' % station_id)
-
-        return self.page.iter_routes()
+    roadmap_page = URL('itineraire/rechercheitineraire/(?P<url>.*)',
+                       'itineraire/rechercheitineraire/.*', RoadMapPage)
 
     def get_roadmap(self, departure, arrival, filters):
-        self.location('/web/site/accueil/etat-trafic/chercher-itineraire/lang/en')
+        dep = self.get_stations(departure, False).next().name
+        arr = self.get_stations(arrival, False).next().name
+        self.roadmap_page.go(url='init').request_roadmap(dep, arr, filters.arrival_time)
+        return self.page.get_roadmap()
 
-        assert self.is_on_page(RoadmapSearchPage)
-        self.page.search(departure, arrival, filters.departure_time, filters.arrival_time)
+    def get_stations(self, pattern, only_station=True):
+        return self.stations_page.go(pattern=pattern).get_stations(only_station=only_station)
 
-        assert self.is_on_page(RoadmapConfirmPage)
-        self.page.confirm()
+    def get_station_departues(self, station, arrival_id, date):
+        if arrival_id is not None:
+            arrival_name = arrival_id.replace('-', ' ')
+            self.departures_page2.go(url='init').init_departure(station)
 
-        assert self.is_on_page(RoadmapPage)
-        roadmap = {}
-        roadmap['steps'] = list(self.page.get_steps())
-        return roadmap
+            arrival = self.page.get_potential_arrivals().get(arrival_name)
+            if arrival:
+                station_id = self.page.get_station_id()
+
+                if date is None:
+                    date = datetime.now()
+
+                _date = datetime.strftime(date, "%d/%m/%Y-%H:%M")
+
+                self.horaires_page.go(station=station.replace(' ', '-'), arrival=arrival_id, station2=station_id, arrival2=arrival, date=_date)
+                return self.page.get_departures(station, arrival_name, date)
+            return []
+        else:
+            return self.departures_page.go(station=station).get_departures(station=station)

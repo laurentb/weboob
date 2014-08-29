@@ -26,17 +26,20 @@ from weboob.tools.test import BackendTest
 class TransilienTest(BackendTest):
     BACKEND = 'transilien'
 
-    def test_departures(self):
-        stations = list(self.backend.iter_station_search('defense'))
+    def test_stations(self):
+        stations = list(self.backend.iter_station_search('aul'))
         self.assertTrue(len(stations) > 0)
 
+    def test_departures(self):
+        stations = list(self.backend.iter_station_search('aul'))
+        self.assertTrue(len(stations) > 0)
         list(self.backend.iter_station_departures(stations[0].id))
 
     def test_roadmap(self):
         filters = RoadmapFilters()
-        roadmap = list(self.backend.iter_roadmap('Puteaux', u'École Militaire', filters))
+        roadmap = list(self.backend.iter_roadmap('aul', u'aub', filters))
         self.assertTrue(len(roadmap) > 0)
 
         filters.arrival_time = datetime.datetime.now() + datetime.timedelta(days=1)
-        roadmap = list(self.backend.iter_roadmap('Puteaux', u'Aulnay-sous-Bois', filters))
+        roadmap = list(self.backend.iter_roadmap('aul', u'bag', filters))
         self.assertTrue(len(roadmap) > 0)
