@@ -37,7 +37,7 @@ __all__ = ['FilterError', 'ColumnNotFound', 'RegexpError', 'ItemNotFound',
            'Filter', 'Base', 'Env', 'TableCell', 'CleanHTML', 'RawText',
            'CleanText', 'Lower', 'CleanDecimal', 'Field', 'Regexp', 'Map',
            'DateTime', 'Date', 'Time', 'DateGuesser', 'Duration',
-           'MultiFilter', 'CombineDate', 'Format', 'Join']
+           'MultiFilter', 'CombineDate', 'Format', 'Join', 'Type']
 
 
 class FilterError(ParseError):
@@ -325,6 +325,40 @@ class CleanDecimal(CleanText):
             return Decimal(re.sub(r'[^\d\-\.]', '', text))
         except InvalidOperation as e:
             return self.default_or_raise(e)
+
+
+class Type(Filter):
+    """
+    Get a cleaned value of any type from an element text.
+    The type_func can be any callable (class, function, etc.).
+    By default an empty string will not be parsed but it can be changed
+    by specifying minlen=False. Otherwise, a minimal length can be specified.
+
+    >>> Type(CleanText('./td[1]'), type=int)  # doctest: +SKIP
+
+    >>> Type(type=int).filter('42')
+    42
+    >>> Type(type=int, default='NaN').filter('')
+    'NaN'
+    >>> Type(type=str, minlen=False, default='a').filter('')
+    ''
+    >>> Type(type=str, minlen=0, default='a').filter('')
+    'a'
+    """
+    def __init__(self, selector=None, type=None, minlen=0, default=_NO_DEFAULT):
+        super(Type, self).__init__(selector, default=default)
+        self.type_func = type
+        self.minlen = minlen
+
+    def filter(self, txt):
+        if empty(txt):
+            return self.default_or_raise(ParseError('Unable to parse %r' % txt))
+        if self.minlen is not False and len(txt) <= self.minlen:
+            return self.default_or_raise(ParseError('Unable to parse %r' % txt))
+        try:
+            return self.type_func(txt)
+        except ValueError as e:
+            return self.default_or_raise(ParseError('Unable to parse %r: %s' % (txt, e)))
 
 
 class Field(_Filter):
