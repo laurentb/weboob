@@ -315,3 +315,27 @@ class FrenchTransaction(Transaction):
                     pass
 
             return Decimal('0')
+
+
+class AmericanTransaction(Transaction):
+    """
+    Transaction with some helpers for american bank websites.
+    """
+    @classmethod
+    def clean_amount(klass, text):
+        """
+        Clean a string containing an amount.
+        """
+        # Convert "American" UUU.CC format to "French" UUU,CC format
+        if re.search(r'\d\.\d\d(?: [A-Z]+)?$', text):
+            text = text.replace(',', ' ').replace('.', ',')
+        return FrenchTransaction.clean_amount(text)
+
+def test():
+    clean_amount = AmericanTransaction.clean_amount
+    assert clean_amount('42') == '42'
+    assert clean_amount('42,12') == '42.12'
+    assert clean_amount('42.12') == '42.12'
+    assert clean_amount('$42.12 USD') == '42.12'
+    assert clean_amount('$12.442,12 USD') == '12442.12'
+    assert clean_amount('$12,442.12 USD') == '12442.12'
