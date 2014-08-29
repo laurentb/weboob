@@ -32,7 +32,7 @@ class Station(BaseObject):
     """
     name =  StringField('Name of station')
 
-    def __init__(self, id, name):
+    def __init__(self, id=None, name=None):
         BaseObject.__init__(self, id)
         self.name = name
 
@@ -55,7 +55,7 @@ class Departure(BaseObject):
     price =             DecimalField('Price of ticket')
     currency =          StringField('Currency', default=None)
 
-    def __init__(self, id, _type, _time):
+    def __init__(self, id=None, _type=None, _time=None):
         BaseObject.__init__(self, id)
 
         self.type = _type
