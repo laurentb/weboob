@@ -1,0 +1,38 @@
+{% extends "defindex.html" %}
+{% block tables %}
+  <div class="admonition note">
+  <p class="first admonition-title">Note</p>
+  <p class="last">This is the developer documentation. If you are not a developer and you are looking for information about the project, check the <a href="http://weboob.org" class="reference external">official website</a>.</p>
+  </div>
+
+  <p><strong>Guides:</strong></p>
+  <table class="contentstable" align="center"><tr>
+    <td width="50%">
+      <p class="biglink"><a class="biglink" href="{{ pathto("guides/setup") }}">Setup your development environment</a><br/>
+         <span class="linkdescr">configure your environment to develop on Weboob</span></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("guides/module") }}">Write a new module</a><br/>
+         <span class="linkdescr">add a website support in Weboob</span></p>
+    </td><td width="50%">
+      <p class="biglink"><a class="biglink" href="{{ pathto("guides/contribute") }}">How to contribute</a><br/>
+         <span class="linkdescr">guidelines to contribute</span></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("guides/capability") }}">Create a capability</a><br/>
+         <span class="linkdescr">create a new capability</span></p>
+    </td></tr>
+  </table>
+
+  <p><strong>Indices and tables:</strong></p>
+  <table class="contentstable" align="center"><tr>
+    <td width="50%">
+      <p class="biglink"><a class="biglink" href="{{ pathto("py-modindex") }}">Global Module Index</a><br/>
+         <span class="linkdescr">quick access to all modules</span></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("genindex") }}">General Index</a><br/>
+         <span class="linkdescr">all functions, classes, terms</span></p>
+    </td><td width="50%">
+      <p class="biglink"><a class="biglink" href="{{ pathto("search") }}">Search page</a><br/>
+         <span class="linkdescr">search this documentation</span></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("contents") }}">Complete Table of Contents</a><br/>
+         <span class="linkdescr">lists all sections and subsections</span></p>
+    </td></tr>
+  </table>
+
+{% endblock %}

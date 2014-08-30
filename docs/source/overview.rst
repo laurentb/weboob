@@ -1,7 +1,7 @@
 Overview
 ========
 
-Weboob (Web Outside Of Browsers) provides:
+Weboob (`Web Outside Of Browsers`) provides:
 
 * :doc:`applications <api/tools/application/index>` to interact with websites
 * :doc:`modules </guides/module>`, each one handles a specific website
