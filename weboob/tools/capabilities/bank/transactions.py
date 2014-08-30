@@ -32,7 +32,7 @@ from weboob.tools.browser2.elements import TableElement, ItemElement
 from weboob.tools.browser2.filters import Filter, CleanText, CleanDecimal, TableCell
 
 
-__all__ = ['FrenchTransaction']
+__all__ = ['FrenchTransaction', 'AmericanTransaction']
 
 
 class classproperty(object):
@@ -103,11 +103,12 @@ class FrenchTransaction(Transaction):
         PATTERN class attribute) with a list containing tuples of regexp
         and the associated type, for example::
 
-        >>> PATTERNS = [(re.compile('^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
-        ...             (re.compile('^PRLV (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
-        ...             (re.compile('^(?P<text>.*) CARTE \d+ PAIEMENT CB (?P<dd>\d{2})(?P<mm>\d{2}) ?(.*)$'),
-        ...                                                       FrenchTransaction.TYPE_CARD)
-        ...            ]
+            PATTERNS = [(re.compile(r'^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+                        (re.compile(r'^PRLV (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
+                        (re.compile(r'^(?P<text>.*) CARTE \d+ PAIEMENT CB (?P<dd>\d{2})(?P<mm>\d{2}) ?(.*)$'),
+                                                                   FrenchTransaction.TYPE_CARD)
+                       ]
+
 
         In regexps, you can define this patterns:
 
@@ -122,7 +123,7 @@ class FrenchTransaction(Transaction):
         self.category = NotAvailable
 
         if '  ' in self.raw:
-            self.category, useless, self.label = [part.strip() for part in self.raw.partition('  ')]
+            self.category, _, self.label = [part.strip() for part in self.raw.partition('  ')]
         else:
             self.label = self.raw
 

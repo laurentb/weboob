@@ -95,8 +95,8 @@ class CapJob(CapBase):
 
         :param _id: id of the advert
         :type _id: str
-        :param advert : the advert
-        :type advert : BaseJobAdvert
-        :rtype: :class:`BaseJobAdvert` or None is fot found.
+        :param advert: the advert
+        :type advert: BaseJobAdvert
+        :rtype: :class:`BaseJobAdvert` or None if not found.
         """
         raise NotImplementedError()

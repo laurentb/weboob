@@ -170,6 +170,6 @@ class CapBill(CapCollection):
 
         :param subscription: subscription to get balance
         :type subscription: :class:`Subscription`
-        :rtype :class:`Detail`
+        :rtype: class:`Detail`
         """
         raise NotImplementedError()
