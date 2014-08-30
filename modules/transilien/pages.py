@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2010-2011 Julien Hébert, Romain Bignon
+# Copyright(C) 2014 Benjamin Carton
 #
 # This file is part of weboob.
 #
@@ -149,7 +150,7 @@ class DeparturesPage(HTMLPage):
 
     @method
     class get_departures(TableElement):
-        head_xpath = u'//table[@class="etat_trafic"]/thead/tr/th[@scope="col"]/text()'
+        head_xpath = u'//table[@class="etat_trafic"][1]/thead/tr/th[@scope="col"]/text()'
         item_xpath = u'//table[@class="etat_trafic"]/tr'
 
         col_type = u'Ligne'
@@ -162,7 +163,10 @@ class DeparturesPage(HTMLPage):
         class item(ItemElement):
             klass = Departure
 
-            obj_time = DateTime(CleanText(TableCell('time')), LinearDateGuesser())
+            def condition(self):
+                return len(self.el.xpath('./td')) >= 6
+
+            obj_time = DateTime(CleanText(TableCell('time')))
             obj_type = DepartureTypeFilter(TableCell('type'))
             obj_departure_station = CleanText(Env('station'))
             obj_arrival_station = CleanText(TableCell('arrival'))

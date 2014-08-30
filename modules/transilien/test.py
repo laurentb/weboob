@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2014 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -31,7 +31,7 @@ class TransilienTest(BackendTest):
         self.assertTrue(len(stations) > 0)
 
     def test_departures(self):
-        stations = list(self.backend.iter_station_search('aul'))
+        stations = list(self.backend.iter_station_search('paris'))
         self.assertTrue(len(stations) > 0)
         list(self.backend.iter_station_departures(stations[0].id))
 
