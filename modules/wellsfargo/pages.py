@@ -21,7 +21,7 @@ from weboob.capabilities.bank import Account, Transaction
 from weboob.tools.browser import BasePage
 from weboob.tools.parsers import get_parser
 from weboob.tools.parsers.iparser import IParser
-from mechanize import ControlNotFoundError
+from weboob.tools.mech import ClientForm
 from urllib import unquote
 from StringIO import StringIO
 from .parsers import StatementParser, clean_amount, clean_label
@@ -40,7 +40,7 @@ def form_with_control(control_name):
     def predicate(form):
         try:
             form.find_control(name=control_name)
-        except ControlNotFoundError:
+        except ClientForm.ControlNotFoundError:
             return False
         else:
             return True
