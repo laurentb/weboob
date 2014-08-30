@@ -63,6 +63,14 @@ Xavier Guerrin <xavier@tuxfamily.org>
 Gabriel Kerneis <kerneis@pps.jussieu.fr>
         * Boursorama module maintainer.
 
+Oleg Plakhotniuk <olegus8@gmail.com>
+        * Maintainer of Walls Fargo;
+        * Improvements on the PayPal module;
+        * Various fixes
+
+Vicnet <vo.publique@gmail.com>
+        * lacentrale module maintainer.
+
 Kevin Pouget <weboob@kevin.pouget.me>
         * CreditCooperatif module maintainer.
 
@@ -148,6 +156,13 @@ Mathieu Lordon <mathieu.lordon@gmail.com>
 
 Erwan Jahier <Erwan.Jahier@imag.fr>
         * Patches on BP.
+
+Yann Rouillard <yann@pleiades.fr.eu.org>
+        * Add kids.dailymotion.com for dailymotion
+
+Raphaël Rigo <devel-weboob@syscall.eu>
+        * Patch for poleemploi
+        * support for credit card history in boursorama
 
 theo <theocrite@theocrite.org>
         * Ergonomics enhancements.
@@ -250,20 +265,6 @@ Simon Murail <simurail@yahoo.fr>
 
 Alexandre Bonhomme <alexandre.bonhomme@etudiant.univ-lille1.fr>
         * Fix and tests on several modules
-
-Yann Rouillard <yann@pleiades.fr.eu.org>
-        * Add kids.dailymotion.com for dailymotion
-
-Raphaël Rigo <devel-weboob@syscall.eu>
-        * Patch for poleemploi
-        * support for credit card history in boursorama
-
-Vicnet <vo.publique@gmail.com>
-        * lacentrale module maintainer.
-
-Oleg Plakhotniuk <olegus8@gmail.com>
-        * Improvements on the PayPal module;
-        * Various fixes
 
 Discover how to contribute to this great software:
 http://weboob.org/How_to_contribute
