@@ -5,6 +5,44 @@
   <p class="last">This is the developer documentation. If you are not a developer and you are looking for information about the project, check the <a href="http://weboob.org" class="reference external">official website</a>.</p>
   </div>
 
+  <p><strong>Hello world:</strong></p>
+  <table class="contentstable" align="center"><tr>
+    <td width="50%">
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">weboob.core</span> <span class="kn">import</span> <span class="n">Weboob</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">weboob.capabilities.bank</span> <span class="kn">import</span> <span class="n">CapBank</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">w</span> <span class="o">=</span> <span class="n">Weboob</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">w</span><span class="o">.</span><span class="n">load_backends</span><span class="p">(</span><span class="n">CapBank</span><span class="p">)</span>
+<span class="go">{'societegenerale': &lt;Backend 'societegenerale'&gt;, 'creditmutuel': &lt;Backend 'creditmutuel'&gt;}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">iter_accounts</span><span class="p">()))</span>
+<span class="go">[&lt;Account id='7418529638527412' label=u'Compte de ch\xe8ques'&gt;,</span>
+<span class="go"> &lt;Account id='9876543216549871' label=u'Livret A'&gt;,</span>
+<span class="go"> &lt;Account id='123456789123456789123EUR' label=u'C/C Eurocompte Confort M Roger Philibert'&gt;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">acc</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">iter_accounts</span><span class="p">()))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">acc</span><span class="o">.</span><span class="n">balance</span>
+<span class="go">Decimal('87.32')</span>
+</pre></div>
+</div>
+    </td><td width="50%">
+    </td></tr>
+  </table>
+
+  <p><strong>Concepts:</strong></p>
+  <table class="contentstable" align="center"><tr>
+    <td width="50%">
+      <p class="biglink"><a class="biglink" href="{{ pathto("api/capabilities/index") }}">Capabilities</a><br/>
+         <span class="linkdescr">represent features common to various websites</span></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("guides/module") }}">Modules</a><br/>
+         <span class="linkdescr">each one handles a specific website and implement capabilities</span></p>
+    </td><td width="50%">
+      <p class="biglink"><a class="biglink" href="{{ pathto("api/core/index") }}">Core Library</a><br/>
+         <span class="linkdescr">provides all the features needed by modules</span></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("api/tools/application/index") }}">Applications</a><br/>
+         <span class="linkdescr">to call modules of a specific capability</span></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("api/tools/index") }}">Tools</a><br/>
+         <span class="linkdescr">help developing modules and applications</span></p>
+    </td></tr>
+  </table>
+
   <p><strong>Guides:</strong></p>
   <table class="contentstable" align="center"><tr>
     <td width="50%">

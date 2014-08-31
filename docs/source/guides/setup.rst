@@ -38,7 +38,7 @@ Then, run this command::
     $ weboob-config update
 
 Run Weboob without installation
-------------------------------
+-------------------------------
 
 This does not actually install anything, but lets you run Weboob from the source code,
 while also using the modules from that source::
