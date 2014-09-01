@@ -19,6 +19,69 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+### Installation ###
+# 1) Create a symlink from /etc/munin/plugins/yourchoice to the script
+# 2) Configure the plugin in /etc/munin/plugin-conf.d/ See below for the options
+# 3) Restart/reload munin-node
+# 4) Note that cached values are stored in folder ~/.config/weboob/munin/
+
+### Configuration ###
+## Mandatory options ##
+# env.capa: The Weboob capability to load
+# Example: env.capa CapBank
+#
+# env.do: The Weboob command to call. It can take more than one argument.
+#         With two argument, the second is used as parameter for the command.
+#         The third is used to restrict backends.
+# Example: env.do get_balance
+#
+# env.import: The import line to import the capabilities
+# Example: from weboob.capabilities.bank import CapBank
+#
+# env.attribvalue: The attribut name of objects returned by the do command.
+#                  For example, the "balance" member of Account objects
+#                  If the attribut is itself one object, a hierarchical call can be done
+#                  with the "/" operators.
+# Example: env.attribvalue balance
+# Example: env.attribvalue temp/value
+
+## Optionals -- more configuration ##
+# env.id_monitored: Restrict the results to a list of ids (space is used as separator)
+# Example: env.id_monitored account1@backend1 account2@backend2
+#
+# env.exclude: Exclude some results (space is used as separator)
+# Example: env.exclude 550810@sachsen
+#
+# env.cache_expire: To avoid site flooding, results are cached in folder
+#                   /.config/weboob/munin/. The default lifetime of a cache value is 3600s
+# Example: env.cache_expire 7200
+#
+# env.cumulate: Display data in Area mode (default) or in line mode.
+# Example:  env.cumulate 0
+#
+# env.get_object_list: optional pre-call to get a list of objects, to applied
+#                      the do function on it.
+# Exemple: env.get_object_list="iter_subscriptions"
+#
+# env.attribid: Munin needs an id for each value. The default is to use the id of results,
+#               but another attribute can be used. "/" can be used as separator for
+#               hierarchical calls
+# Example: env.attribid id
+#
+# env.title: A title for the graph (default: nothing)
+# Example: env.title a wonderful graph
+#
+# env.vlabel: A vertical label for the graph
+# Example: env.vlabel Balance
+#
+# env.label: Each data in munin as a label. Per default, the script takes the
+#            "label" attribute of objects. However, it does not always exist,
+#            and a better choice can be possible
+# Example: env.label id
+
+# For some running examples, see at the end of the script
+
+
 import os
 import sys
 import locale
@@ -292,3 +355,80 @@ class GenericMuninPlugin(object):
 if __name__ == '__main__':
     logging.basicConfig()
     GenericMuninPlugin().run()
+
+### Examples ###
+## Like boobank-munin does
+## Only for the example, you should use boobank-munin instead
+#[bank]
+#user florent
+#group florent
+#env.cache_expire 7200
+#env.HOME /home/flo
+#env.capa CapBank
+#env.do iter_accounts
+#env.import from weboob.capabilities.bank import CapBank
+#env.attribvalue balance
+#env.title Solde des comptes
+#
+#
+## Balance of your leclercmobile subscription
+#[leclercmobile]
+#user florent
+#group florent
+#env.cache_expire 16800
+#env.HOME /home/flo
+#env.capa CapBill
+#env.do get_balance,06XXXXXXXX,leclercmobile
+#env.import from weboob.capabilities.bill import CapBill
+#env.attribvalue price
+#env.title Forfait leclercmobile
+#env.vlabel Solde
+#
+#Result: http://fourcot.fr/weboob/leclercmobile-day.png
+#
+## Monitor water level in Dresden
+#[leveldresden]
+#user florent
+#group florent
+#env.cache_expire 7200
+#env.HOME /home/flo
+#env.capa CapGauge
+#env.do get_last_measure,501060-level
+#env.import from weboob.capabilities.gauge import CapGauge
+#env.attribvalue level
+#env.title Niveau de l'elbe
+#env.label id
+#
+#
+## The level of the elbe in all Sachsen's cities
+#[levelelbesachsen]
+#user florent
+#env.cache_expire 800
+#env.HOME /home/flo
+#env.cumulate 0
+#env.capa CapGauge
+#env.do iter_gauges,Elbe,sachsen
+#env.import from weboob.capabilities.gauge import CapGauge
+#env.attribvalue sensors/lastvalue/level
+#env.title Niveau de l'elbe en Saxe
+#env.label name
+#env.vlabel Hauteur du fleuve (cm)
+#env.exclude 550810@sachsen
+#
+#Result: http://fourcot.fr/weboob/elbesachsen-day.png
+#
+## Temperature in Rennes
+#[temprennes]
+#user florent
+#env.HOME /home/flo
+#env.cumulate 0
+#env.capa CapWeather
+#env.do get_current,619163,yahoo
+#env.import from weboob.capabilities.weather import CapWeather
+#env.attribvalue temp/value
+#env.attribid temp/id
+#env.title Température à Rennes
+#env.vlabel Température
+#env.label id
+#
+#Result: http://fourcot.fr/weboob/temprennes-day.png
