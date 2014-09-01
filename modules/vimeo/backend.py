@@ -19,15 +19,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-
 from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.tools.backend import BaseBackend
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
 
 from .browser import VimeoBrowser
-from .video import VimeoVideo
 
+import re
 
 __all__ = ['VimeoBackend']
 
@@ -41,26 +39,28 @@ class VimeoBackend(BaseBackend, CapVideo, CapCollection):
     LICENSE = 'AGPLv3+'
     BROWSER = VimeoBrowser
 
-    def get_video(self, _id):
-        with self.browser:
-            return self.browser.get_video(_id)
-
     SORTBY = ['relevance', 'rating', 'views', 'time']
 
-    # def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
-    #     with self.browser:
-    #         return self.browser.search_videos(pattern, self.SORTBY[sortby])
+    def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
+        return self.browser.search_videos(pattern, self.SORTBY[sortby])
+
+    def get_video(self, _id):
+        return self.browser.get_video(self.parse_id(_id))
 
     def fill_video(self, video, fields):
         if fields != ['thumbnail']:
             # if we don't want only the thumbnail, we probably want also every fields
-            with self.browser:
-                video = self.browser.get_video(VimeoVideo.id2url(video.id), video)
+            video = self.browser.get_video(video.id, video)
         if 'thumbnail' in fields and video.thumbnail:
-            with self.browser:
-                video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
+            video.thumbnail.data = self.browser.open(video.thumbnail.url).content
 
         return video
+
+    def parse_id(self, _id):
+        m = re.match('https?://vimeo.com/(.*)', _id)
+        if m:
+            return m.group(1)
+        return _id
 
     def iter_resources(self, objs, split_path):
         if BaseVideo in objs:
@@ -79,4 +79,4 @@ class VimeoBackend(BaseBackend, CapVideo, CapCollection):
             return
         raise CollectionNotFound(collection.split_path)
 
-    OBJECTS = {VimeoVideo: fill_video}
+    OBJECTS = {BaseVideo: fill_video}

@@ -18,34 +18,33 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from weboob.tools.browser2 import PagesBrowser, URL
+from .pages import SearchPage, VideoPage, VideoJsonPage
 
-from weboob.tools.browser import BaseBrowser
-from weboob.tools.browser.decorators import id2url
-
-#from .pages.index import IndexPage
-from .pages import VideoPage
-from .video import VimeoVideo
-
+import urllib
 
 __all__ = ['VimeoBrowser']
 
 
-class VimeoBrowser(BaseBrowser):
-    DOMAIN = 'vimeo.com'
-    ENCODING = None
-    PAGES = {r'http://[w\.]*vimeo\.com/(?P<id>\d+).*': VideoPage,
-            }
+class VimeoBrowser(PagesBrowser):
 
-    @id2url(VimeoVideo.id2url)
-    def get_video(self, url, video=None):
-        self.location(url)
-        return self.page.get_video(video)
+    BASEURL = 'http://vimeo.com'
 
-    # def search_videos(self, pattern, sortby):
-    #     return None
-    #     self.location(self.buildurl('http://vimeo.com/search%s' % q=pattern.encode('utf-8')))
-    #     assert self.is_on_page(IndexPage)
-    #     return self.page.iter_videos()
+    search_page = URL(r'search/page:(?P<page>.*)/sort:(?P<sortby>.*)/format:thumbnail\?type=videos&q=(?P<pattern>.*)',
+                      SearchPage)
+
+    video_url = URL(r'http://player.vimeo.com/video/(?P<_id>.*)/config', VideoJsonPage)
+
+    video_page = URL('http://vimeo.com/(?P<_id>.*)', VideoPage)
+
+    def get_video(self, _id, video=None):
+        video = self.video_page.go(_id=_id).get_video(video)
+        return self.video_url.open(_id=_id).fill_url(obj=video)
+
+    def search_videos(self, pattern, sortby):
+        return self.search_page.go(pattern=urllib.quote_plus(pattern.encode('utf-8')),
+                                   sortby=sortby,
+                                   page=1).iter_videos()
 
     # def latest_videos(self):
     #     self.home()

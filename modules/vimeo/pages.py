@@ -17,95 +17,82 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+from weboob.capabilities.video import BaseVideo
+from weboob.capabilities.image import BaseImage
 
-from weboob.tools.mech import ClientForm
-ControlNotFoundError = ClientForm.ControlNotFoundError
-
-from weboob.tools.browser import BasePage
-from weboob.tools.json import json
+from weboob.tools.exceptions import ParseError
+from weboob.tools.browser2.elements import ItemElement, ListElement
+from weboob.tools.browser2.page import HTMLPage, method, pagination, JsonPage
+from weboob.tools.browser2.filters import Attr, Regexp, Link, Env, CleanText, DateTime, Duration, Field
 
 import re
-import datetime
-from dateutil.parser import parse as parse_dt
 
-from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.image import BaseImage
-from weboob.tools.browser import BrokenPageError
-
-from .video import VimeoVideo
+__all__ = ['VideoPage', 'SearchPage', 'VideoJsonPage']
 
 
-__all__ = ['VideoPage']
+class VimeoDuration(Duration):
+    regexp = re.compile(r'(?P<hh>\d+)H(?P<mm>\d+)M(?P<ss>\d+)S')
 
 
-class VideoPage(BasePage):
-    def get_video(self, video=None):
-        if video is None:
-            video = VimeoVideo(self.group_dict['id'])
-        self.set_details(video)
+class SearchPage(HTMLPage):
+    @pagination
+    @method
+    class iter_videos(ListElement):
+        item_xpath = '//div[@id="browse_content"]/ol/li'
 
-        video.set_empty_fields(NotAvailable)
-        return video
+        next_page = Link(u'//a[text()="Next"]')
 
-    def set_details(self, v):
-        # try to get as much from the page itself
-        obj = self.parser.select(self.document.getroot(), 'h1[itemprop=name]')
-        if len(obj) > 0:
-            v.title = unicode(obj[0].text)
+        class item(ItemElement):
+            klass = BaseVideo
 
-        obj = self.parser.select(self.document.getroot(), 'meta[itemprop=dateCreated]')
-        if len(obj) > 0:
-            v.date = parse_dt(obj[0].attrib['content'])
+            obj_id = Regexp(Attr('.', 'id'), 'clip_(.*)')
+            obj_title = Attr('./a', 'title')
 
-        #obj = self.parser.select(self.document.getroot(), 'meta[itemprop=duration]')
+            def obj_thumbnail(self):
+                thumbnail = BaseImage(self.xpath('./a/img')[0].attrib['src'])
+                thumbnail.url = thumbnail.id
+                return thumbnail
 
-        obj = self.parser.select(self.document.getroot(), 'meta[itemprop=thumbnailUrl]')
-        if len(obj) > 0:
-            v.thumbnail = BaseImage(obj[0].attrib['content'])
-            v.thumbnail.url = v.thumbnail.id
 
-        data = None
+class VideoPage(HTMLPage):
+    @method
+    class get_video(ItemElement):
+        klass = BaseVideo
 
-        # First try to find the JSON data in the page itself.
-        # it's the only location in case the video is not allowed to be embeded
-        for script in self.parser.select(self.document.getroot(), 'script'):
-            m = re.match('.* = {config:({.*}),assets:.*', unicode(script.text), re.DOTALL)
-            if m:
-                data = json.loads(m.group(1))
-                break
+        _balise = lambda x: '//div[@itemprop="video"]/meta[@itemprop="%s"]/@content' % x
 
-        # Else fall back to the API
-        if data is None:
-            # for the rest, use the JSON config descriptor
-            json_data = self.browser.openurl('http://%s/video/%s/config?type=%s&referrer=%s' % ("player.vimeo.com", int(v.id), "html5_desktop_local", ""))
-            data = json.load(json_data)
+        obj_id = Env('_id')
+        obj_title = CleanText(_balise('name'))
+        obj_date = DateTime(CleanText(_balise('dateCreated')))
+        obj_duration = VimeoDuration(CleanText(_balise('duration')))
+        obj_description = CleanText(_balise('description'))
+        obj_author = CleanText('//div[@itemprop="author"]/meta[@itemprop="name"]/@content')
 
-        if data is None:
-            raise BrokenPageError('Unable to get JSON config for id: %r' % int(v.id))
+        def obj_thumbnail(self):
+            thumbnail = BaseImage(CleanText('//div[@itemprop="video"]/span[@itemprop="thumbnail"]/link/@href')(self.el))
+            thumbnail.url = thumbnail.id
+            return thumbnail
 
-        if v.title is None:
-            v.title = unicode(data['video']['title'])
-        if v.thumbnail is None:
-            v.thumbnail = BaseImage(data['video']['thumbnail'])
-            v.thumbnail.url = v.thumbnail.id
-        v.author = data['video']['owner']['name']
-        v.duration = datetime.timedelta(seconds=int(data['video']['duration']))
 
-        # determine available codec and quality
-        # use highest quality possible
-        quality = 'sd'
-        codec = None
-        if 'vp6' in data['request']['files']:
-            codec = 'vp6'
-        if 'vp8' in data['request']['files']:
-            codec = 'vp8'
-        if 'h264' in data['request']['files']:
-            codec = 'h264'
-        if not codec:
-            raise BrokenPageError('Unable to detect available codec for id: %r' % int(v.id))
+class VideoJsonPage(JsonPage):
+    @method
+    class fill_url(ItemElement):
+        klass = BaseVideo
 
-        if 'hd' in data['request']['files'][codec]:
-            quality = 'hd'
+        def obj_url(self):
+            quality = 'sd'
+            codec = None
+            data = self.el
+            if 'vp6' in data['request']['files']:
+                codec = 'vp6'
+            if 'vp8' in data['request']['files']:
+                codec = 'vp8'
+            if 'h264' in data['request']['files']:
+                codec = 'h264'
+            if not codec:
+                raise ParseError('Unable to detect available codec for id: %r' % int(Field('id')(self)))
+            if 'hd' in data['request']['files'][codec]:
+                quality = 'hd'
+            return data['request']['files'][codec][quality]['url']
 
-        v.url = data['request']['files'][codec][quality]['url']
-        return v
+        obj_ext = Regexp(Field('url'), '.*\.(.*?)\?.*')

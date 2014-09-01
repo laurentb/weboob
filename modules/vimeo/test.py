@@ -18,21 +18,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 from weboob.tools.test import BackendTest
-#from weboob.capabilities.video import BaseVideo
+import itertools
 
 
 class VimeoTest(BackendTest):
     BACKEND = 'vimeo'
 
-    # def test_search(self):
-    #     l = list(self.backend.search_videos('haiku os'))
-    #     self.assertTrue(len(l) > 0)
-    #     v = l[0]
-    #     self.backend.fillobj(v, ('url',))
-    #     self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
-    #     self.backend.browser.openurl(v.url)
+    def test_search(self):
+        l = list(itertools.islice(self.backend.search_videos('boobs'), 0, 20))
+        self.assertTrue(len(l) > 0)
+        v = l[0]
+        self.backend.fillobj(v, ('url',))
+        self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
 
     # def test_latest(self):
     #     l = list(self.backend.iter_resources([BaseVideo], [u'latest']))
