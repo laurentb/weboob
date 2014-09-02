@@ -441,6 +441,9 @@ class ConsoleApplication(BaseApplication):
             if v.tiny:
                 question = u'%s (%s)' % (question, '/'.join((s.upper() if s == v.default else s)
                                                             for s in v.choices.iterkeys()))
+                for s in v.choices.iterkeys():
+                    if s == v.default:
+                        aliases[s.upper()] = s
                 for key, value in v.choices.iteritems():
                     print('     %s%s%s: %s' % (self.BOLD, key, self.NC, value))
             else:
