@@ -156,8 +156,12 @@ class AccountsList(LoggedPage, HTMLPage):
         item_xpath = '//div[@class="transactions cc future"]//table'
 
     @method
-    class get_transactions(generic_transactions):
+    class get_transactions_cc(generic_transactions):
         item_xpath = '//div[@class="temporaryTransactionList"]//table'
+
+    @method
+    class get_transactions_others(generic_transactions):
+         item_xpath = '//table'
 
     def get_history_jid(self):
         span = self.doc.xpath('//span[@id="index:panelASV"]')

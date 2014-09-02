@@ -129,9 +129,13 @@ class IngBrowser(LoginBrowser):
             self.logger.info('There is no history for this account')
             return
 
+        if account.type == Account.TYPE_CHECKING:
+            history_function = self.page.get_transactions_cc
+        else:
+            history_function = self.page.get_transactions_others
         hashlist = []
         while True:
-            for transaction in self.page.get_transactions():
+            for transaction in history_function():
                 transaction.id = hashlib.md5(transaction._hash).hexdigest()
                 while transaction.id in hashlist:
                     transaction.id = hashlib.md5(transaction.id + "1").hexdigest()
