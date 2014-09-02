@@ -382,7 +382,7 @@ class Transaction(FrenchTransaction):
                 (re.compile('^VIR(EMENT)? (?P<text>.*)'),   FrenchTransaction.TYPE_TRANSFER),
                 (re.compile('^(PRLV|PRELEVEMENT) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_ORDER),
-                (re.compile('^CHEQUE.*'),                   FrenchTransaction.TYPE_CHECK),
+                (re.compile('^(?P<text>CHEQUE .*)'),   FrenchTransaction.TYPE_CHECK),
                 (re.compile('^(AGIOS /|FRAIS) (?P<text>.*)', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_BANK),
                 (re.compile('^(CONVENTION \d+ )?COTIS(ATION)? (?P<text>.*)', re.IGNORECASE),
@@ -451,6 +451,10 @@ class TransactionsPage(BasePage):
 
             # Strip the balance displayed in transaction labels
             t.label = re.sub('solde en valeur : .*', '', t.label)
+
+            # XXX Fucking hack to include the check number not displayed in the full label.
+            if re.match("^CHEQUE ", t.label):
+               t.label = 'CHEQUE No: %s' % self.parser.tocleanstring(tds[self.COL_REF])
 
             yield t
 
