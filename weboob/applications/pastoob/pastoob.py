@@ -143,7 +143,7 @@ class Pastoob(ReplApplication):
                 if binary:
                     m = open(filename)
                 else:
-                    m = codecs.open(filename, encoding=self.encoding)
+                    m = codecs.open(filename, encoding=self.options.encoding or self.encoding)
                 with m as fp:
                     contents = fp.read()
             except IOError as e:
@@ -212,3 +212,6 @@ class Pastoob(ReplApplication):
         group.add_option('-m', '--max-age', action='store',
                          help='Maximum age (duration), default "1 month", "never" for infinite',
                          type='string', default='1 month')
+        group.add_option('-E', '--encoding', action='store',
+                         help='Input encoding',
+                         type='string')
