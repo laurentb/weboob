@@ -230,9 +230,9 @@ class Transaction(FrenchTransaction):
                 (re.compile('^(?P<category>REMBOURST)(?P<text>.*)'),     FrenchTransaction.TYPE_PAYBACK),
                 (re.compile('^(?P<category>COM(MISSIONS?)?)(?P<text>.*)'),   FrenchTransaction.TYPE_BANK),
                 (re.compile('^(?P<text>(?P<category>REMUNERATION).*)'),   FrenchTransaction.TYPE_BANK),
-                (re.compile('^(?P<text>(?P<category>ABON.?*)\w*.*)'),   FrenchTransaction.TYPE_BANK),
-                (re.compile('^(?P<text>(?P<category>RESULTAT .?*)\w*.*)'),   FrenchTransaction.TYPE_BANK),
-                (re.compile('^(?P<text>(?P<category>TRAIT\..?*)\w*.*)'),   FrenchTransaction.TYPE_BANK),
+                (re.compile('^(?P<text>(?P<category>ABON.*?)\w*.*)'),   FrenchTransaction.TYPE_BANK),
+                (re.compile('^(?P<text>(?P<category>RESULTAT .*?)\w*.*)'),   FrenchTransaction.TYPE_BANK),
+                (re.compile('^(?P<text>(?P<category>TRAIT\..*?)\w*.*)'),   FrenchTransaction.TYPE_BANK),
                 (re.compile('^(?P<category>REM CHQ) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
                ]
 
