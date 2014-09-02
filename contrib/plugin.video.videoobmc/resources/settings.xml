@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+    <!-- GENERAL -->
+  	<category label="$LOCALIZE[128]">
+	    <setting label="30510" type="folder" id="downloadPath"   default="" />
+	    <setting label="30520" type="enum"   id="nbVideoPerBackend" default="1"  values="10|25|50|100" />
+            <setting label="30530" type="bool"   id="nsfw"           default="False" />
+            <setting label="30550" type="action" action="RunScript(plugin.video.videoobmc, plugin.video.videoobmc, action=update)"/>
+	</category>
+</settings>
+

@@ -1,0 +1,93 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+import time
+
+from datetime import timedelta, datetime
+from .base.weboobmc import Weboobmc
+from weboob.capabilities.video import BaseVideo
+from weboob.capabilities.image import BaseImage
+from weboob.capabilities.collection import Collection
+
+class Videoobmc(Weboobmc):
+    def __init__(self, count=10, nsfw=False):
+        Weboobmc.__init__(self, count=count)
+        self.backends =list(self.get_loaded_backends('CapVideo'))
+        _nsfw = 'on' if nsfw else 'off'
+        self._call_weboob('videoob', 'nsfw', argument=_nsfw)
+
+    def search(self, pattern, backend=''):
+        #videoob search pattern -f json
+        options = {'--select': 'id,title,date,description,author,duration,thumbnail,url'}
+        if backend:
+            options['-b'] = backend
+        _videos = self._json_call_weboob('videoob', 'search', argument=pattern, options=options)
+        if _videos:
+            for _video in _videos:
+                yield self.create_video_from_json(_video)
+
+    def create_video_from_json(self, _video):
+        video = BaseVideo()
+        video.id = u'%s' % _video['id']
+        print video.id
+        print _video['id']
+        video.backend = u'%s' % _video['id'].split('@')[-1]
+
+        if 'url' in _video.keys():
+            video.url = u'%s' % _video['url']
+
+        if 'thumbnail' in _video.keys() and _video['thumbnail'] and 'url' in _video['thumbnail'].keys():
+            video.thumbnail = BaseImage()
+            video.thumbnail.url = u'%s' % _video['thumbnail']['url']
+        else:
+            video.thumbnail.url = u''
+        video.title = u'%s' % _video['title']
+
+        if _video['date']:
+
+            try:
+                video.date = datetime.strptime(_video['date'].split('.')[0], '%Y-%m-%d %H:%M:%S')
+            except TypeError:
+                video.date = datetime(*(time.strptime(_video['date'].split('.')[0], '%Y-%m-%d %H:%M:%S')[0:6]))
+
+        video.description = u'%s' % _video['description']
+        video.author = u'%s' % _video['author']
+
+        if _video['duration']:
+            _duration = _video['duration'].split(':')
+            video.duration = timedelta(hours=int(_duration[0]), minutes=int(_duration[1]), seconds=int(_duration[2]))
+
+        return video
+
+    def get_video(self, _id, backend):
+        #videoob info _id -f json
+        _video = self._json_call_weboob('videoob', 'info', argument=_id)
+        if _video and len(_video) > 0:
+            return self.create_video_from_json(_video[0])
+
+    def ls(self, backend, path=''):
+        options = {'-b': backend}
+        result = self._json_call_weboob('videoob', 'ls', options=options, argument=path)
+        return self.separate_collections_and_videos(result)
+
+    def separate_collections_and_videos(self, objs):
+        videos = []
+        categories = []
+        for obj in objs:
+            if self.is_category(obj):
+                categories.append(self.create_category_from_json(obj))
+            else:
+                #videos.append(self.get_video(obj['id']))
+                videos.append(self.create_video_from_json(obj))
+        return categories, videos
+
+    def create_category_from_json(self, obj):
+        collection = Collection(obj['split_path'].split('/'))
+        collection.title = obj['title']
+        collection.id = obj['id'].split('@')[0]
+        collection.backend = obj['id'].split('@')[1]
+        return collection
+
+    def download(self, _id, path):
+        #videoob download _id path
+        self._call_weboob('videoob', 'download', argument=u'%s %s' % (_id, path))

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.videoobmc"
+       name="Videoobmc"
+       version="0.1.0"
+       provider-name="Bezleputh">
+  <requires>
+    <import addon="xbmc.python" version="2.0"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux</platform>
+
+    <summary>Plugin for Videoob</summary>
+    <summary lang="fr"></summary>
+    <description>[B]Videoob[/B] is an application able to handle videos on supported websites. More information available on http://videoob.org/.
+    </description>
+    <description lang="fr">[B]Videoob[/B] est une application qui permet de récupérer des vidéos depuis divers sites. Pour plus d'informations à ce sujet, n'hésitez pas à visiter le site : http://videoob.org/
+    </description>
+  </extension>
+</addon>

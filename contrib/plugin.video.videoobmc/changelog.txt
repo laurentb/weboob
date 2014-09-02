@@ -1,0 +1,8 @@
+[B]Dependance :[B]
+- weboob (http://weboob.org/install)
+
+[B]Version 0.1.0[/B]
+-Call weboob directly
+
+[B]Version 0.0.1[/B]
+-First try

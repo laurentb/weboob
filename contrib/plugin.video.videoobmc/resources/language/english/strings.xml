@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<strings>
+    <!-- Les strings de 30000 à 30999 sont réservées aux paramètres plug-in -->
+    <string id="30000">Search</string>
+    <string id="30001">Search: </string>
+
+    <string id="30100">Download</string>
+    <string id="30110">Information</string>
+
+    <string id="30200">Error!</string>
+
+    <string id="30300">Information</string>
+    <string id="30301">Download started</string>
+    <string id="30302">Download succeed</string>
+
+    <string id="30510">Download folder: </string>
+    <string id="30520">Number of videos per backends: </string> 
+    <string id="30530">Display Non Safe For Work videos: </string>
+    <string id="30540">Enable debug mode: </string>
+    <string id="30550">Update weboob backends</string>
+    <string id="30551">Start updating weboob backends</string>
+    <string id="30552">Weboob backends successfully updated</string>
+</strings>
