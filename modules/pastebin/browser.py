@@ -73,12 +73,14 @@ class PastePage(BasePastebinPage):
             self.env['header'] = el.find('//div[@id="content_left"]//div[@class="paste_box_info"]')
 
         obj_id = Env('id')
-        obj_title = Base(Env('header')) & CleanText('.//div[@class="paste_box_line1"]//h1')
+        obj_title = Base(Env('header'), CleanText('.//div[@class="paste_box_line1"]//h1'))
         obj_contents = RawText('//textarea[@id="paste_code"]')
-        obj_public = Base(Env('header')) \
-            & Attr('.//div[@class="paste_box_line1"]//img', 'title') \
-            & CleanVisibility()
-        obj__date = Base(Env('header')) & Attr('.//div[@class="paste_box_line2"]/span[1]', 'title') & DateTime()
+        obj_public = Base(
+            Env('header'),
+            CleanVisibility(Attr('.//div[@class="paste_box_line1"]//img', 'title')))
+        obj__date = Base(
+            Env('header'),
+            DateTime(Attr('.//div[@class="paste_box_line2"]/span[1]', 'title')))
 
 
 class PostPage(BasePastebinPage):
