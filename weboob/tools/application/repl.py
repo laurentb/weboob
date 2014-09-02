@@ -190,7 +190,11 @@ class ReplApplication(Cmd, ConsoleApplication):
             try:
                 obj = self.objects[int(id) - 1]
             except (IndexError, ValueError):
-                pass
+                # Try to find a shortcut in the cache
+                for obj in self.objects:
+                    if id in obj.id:
+                        id = obj.fullid
+                        break
             else:
                 if isinstance(obj, BaseObject):
                     id = obj.fullid
