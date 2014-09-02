@@ -5,7 +5,7 @@ import constants
 from base.actions import BaseAction
 from menu import MenuItem, MenuItemVideo, MenuItemPath
 from threading import Thread
-from videoobmc2 import Videoobmc
+from videoobmc import Videoobmc
 
 if hasattr(sys.modules["__main__"], "common_xbmc"):
     common_xbmc = sys.modules["__main__"].common_xbmc
