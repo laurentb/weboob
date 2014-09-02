@@ -280,7 +280,7 @@ class AccountsPage(BasePage):
                     continue
 
                 account = Account()
-                account.id = args['identifiant']
+                account.id = args['identifiant'].replace(' ', '')
                 account.label = u' '.join([u''.join([txt.strip() for txt in tds[1].itertext()]),
                                            u''.join([txt.strip() for txt in tds[2].itertext()])]).strip()
                 account.type = account_type
@@ -328,7 +328,7 @@ class CardsPage(BasePage):
                 if account is not None:
                     yield account
                 account = Account()
-                account.id = id
+                account.id = id.replace(' ', '')
                 account.balance = account.coming = Decimal('0')
                 account._next_debit = datetime.date.today()
                 account._prev_debit = datetime.date(2000,1,1)
