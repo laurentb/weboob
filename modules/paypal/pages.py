@@ -184,8 +184,8 @@ class SubmitPage(BasePage):
             raise ValueError('CSV fields count of %i is not supported' % len(csv.header))
 
         for row in csv.rows:
-            # we filter accounts by currency
-            if account.get_currency(row[CURRENCY]) != account.currency:
+            # we filter accounts by currency and ignore canceled transactions
+            if account.get_currency(row[CURRENCY]) != account.currency or row[NET] == '...':
                 continue
 
             # analog to dict.get()
