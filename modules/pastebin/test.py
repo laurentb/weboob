@@ -17,9 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from nose.plugins.skip import SkipTest
+
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.paste import PasteNotFound
 from weboob.tools.test import BackendTest
+
+from .browser import LimitExceeded
 
 
 class PastebinTest(BackendTest):
@@ -48,7 +52,10 @@ class PastebinTest(BackendTest):
         # we cannot test public pastes, as the website sometimes forces them as private
         # there seems to be a very low post per day limit, even when logged in
         p = self.backend.new_paste(None, title=u'ouiboube', contents=u'Weboob Test', public=False)
-        self.backend.post_paste(p, max_age=600)
+        try:
+            self.backend.post_paste(p, max_age=600)
+        except LimitExceeded:
+            raise SkipTest("Limit exceeded")
         assert p.id
         assert not p.id.startswith('http://')
         self.backend.fill_paste(p, ['title'])
@@ -59,7 +66,10 @@ class PastebinTest(BackendTest):
     def test_specialchars(self):
         # post a paste and get the contents through the HTML response
         p1 = self.backend.new_paste(None, title=u'ouiboube', contents=u'Weboob <test>¿¡', public=False)
-        self.backend.post_paste(p1, max_age=600)
+        try:
+            self.backend.post_paste(p1, max_age=600)
+        except LimitExceeded:
+            raise SkipTest("Limit exceeded")
         assert p1.id
         # not related to testing special chars, but check if the paste is
         # really private since test_post() tests the contrary
