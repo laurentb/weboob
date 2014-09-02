@@ -88,6 +88,8 @@ class INGDate(Date):
             return (date.today() - timedelta(days=1))
         elif txt == "aujourd'hui":
             return date.today()
+        elif txt == 'demain':
+            return (date.today() + timedelta(days=1))
         else:
             frenchmonth = txt.split(' ')[1]
             month = self.monthvalue[frenchmonth]
