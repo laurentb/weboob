@@ -21,7 +21,6 @@
 import os
 import sys
 import tempfile
-import locale
 import codecs
 
 from weboob.core.bcall import CallErrors
@@ -105,15 +104,15 @@ class WebContentEdit(ReplApplication):
             errors = CallErrors([])
             for content in contents:
                 path = [path for path, c in paths.iteritems() if c == content][0]
-                sys.stdout.write('Pushing %s...' % content.id.encode('utf-8'))
-                sys.stdout.flush()
+                self.stdout.write('Pushing %s...' % content.id.encode('utf-8'))
+                self.stdout.flush()
                 try:
                     self.do('push_content', content, message, minor=minor, backends=[content.backend]).wait()
                 except CallErrors as e:
                     errors.errors += e.errors
-                    sys.stdout.write(' error (content saved in %s)\n' % path)
+                    self.stdout.write(' error (content saved in %s)\n' % path)
                 else:
-                    sys.stdout.write(' done\n')
+                    self.stdout.write(' done\n')
                     os.unlink(path)
         else:
             # stdin is not a tty
@@ -123,20 +122,20 @@ class WebContentEdit(ReplApplication):
                 return 2
 
             message, minor = '', False
-            data = sys.stdin.read()
-            contents[0].content = data.decode(sys.stdin.encoding or locale.getpreferredencoding())
+            data = self.stdin.read()
+            contents[0].content = data.decode(self.guess_encoding(self.stdin))
 
             errors = CallErrors([])
             for content in contents:
-                sys.stdout.write('Pushing %s...' % content.id.encode('utf-8'))
-                sys.stdout.flush()
+                self.stdout.write('Pushing %s...' % content.id.encode(self.encoding))
+                self.stdout.flush()
                 try:
                     self.do('push_content', content, message, minor=minor, backends=[content.backend]).wait()
                 except CallErrors as e:
                     errors.errors += e.errors
-                    sys.stdout.write(' error\n')
+                    self.stdout.write(' error\n')
                 else:
-                    sys.stdout.write(' done\n')
+                    self.stdout.write(' done\n')
 
         if len(errors.errors) > 0:
             raise errors
@@ -190,7 +189,7 @@ class WebContentEdit(ReplApplication):
 
         _id = _id.encode('utf-8')
 
-        output = codecs.getwriter(sys.stdout.encoding or locale.getpreferredencoding())(sys.stdout)
+        output = codecs.getwriter(self.encoding)(self.stdout)
         for contents in [content for backend, content in self.do('get_content', _id, revision, backends=backend_names) if content]:
             output.write(contents.content)
 

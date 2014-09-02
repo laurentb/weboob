@@ -19,9 +19,7 @@
 
 
 import os
-import sys
 import codecs
-import locale
 import re
 from random import choice
 
@@ -51,14 +49,14 @@ class Pastoob(ReplApplication):
         Get information about pastes.
         """
         if not line:
-            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
+            print >>self.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
             return 2
 
         self.start_format()
         for _id in line.split(' '):
             paste = self.get_object(_id, 'get_paste', ['id', 'title', 'language', 'public', 'contents'])
             if not paste:
-                print >>sys.stderr, 'Paste not found: %s' % _id
+                print >>self.stderr, 'Paste not found: %s' % _id
 
             self.format(paste)
 
@@ -82,27 +80,27 @@ class Pastoob(ReplApplication):
 
     def _get_op(self, _id, binary, command='get'):
         if not _id:
-            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help(command, short=True)
+            print >>self.stderr, 'This command takes an argument: %s' % self.get_command_help(command, short=True)
             return 2
 
         try:
             paste = self.get_object(_id, 'get_paste', ['contents'])
         except PasteNotFound:
-            print >>sys.stderr, 'Paste not found: %s' % _id
+            print >>self.stderr, 'Paste not found: %s' % _id
             return 3
         if not paste:
-            print >>sys.stderr, 'Unable to handle paste: %s' % _id
+            print >>self.stderr, 'Unable to handle paste: %s' % _id
             return 1
 
         if binary:
             if self.interactive:
                 if not self.ask('The console may become messed up. Are you sure you want to show a binary file on your terminal?', default=False):
-                    print >>sys.stderr, 'Aborting.'
+                    print >>self.stderr, 'Aborting.'
                     return 1
-            output = sys.stdout
+            output = self.stdout
             output.write(paste.contents.decode('base64'))
         else:
-            output = codecs.getwriter(sys.stdout.encoding or locale.getpreferredencoding())(sys.stdout)
+            output = codecs.getwriter(self.encoding)(self.stdout)
             output.write(paste.contents)
             # add a newline unless we are writing
             # in a file or in a pipe
@@ -133,11 +131,11 @@ class Pastoob(ReplApplication):
         use_stdin = (not filename or filename == '-')
         if use_stdin:
             if binary:
-                contents = sys.stdin.read()
+                contents = self.stdin.read()
             else:
                 contents = self.acquire_input()
             if not len(contents):
-                print >>sys.stderr, 'Empty paste, aborting.'
+                print >>self.stderr, 'Empty paste, aborting.'
                 return 1
 
         else:
@@ -145,11 +143,11 @@ class Pastoob(ReplApplication):
                 if binary:
                     m = open(filename)
                 else:
-                    m = codecs.open(filename, encoding=locale.getpreferredencoding())
+                    m = codecs.open(filename, encoding=self.encoding)
                 with m as fp:
                     contents = fp.read()
             except IOError as e:
-                print >>sys.stderr, 'Unable to open file "%s": %s' % (filename, e.strerror)
+                print >>self.stderr, 'Unable to open file "%s": %s' % (filename, e.strerror)
                 return 1
 
         if binary:
@@ -166,7 +164,7 @@ class Pastoob(ReplApplication):
         if len(backends):
             backend = choice(backends[max(backends.keys())])
         else:
-            print >>sys.stderr, 'No suitable backend found.'
+            print >>self.stderr, 'No suitable backend found.'
             return 1
 
         p = backend.new_paste(_id=None)
