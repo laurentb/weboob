@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import time
+import re
 
 from datetime import timedelta, datetime
 from .base.weboobmc import Weboobmc
@@ -9,10 +10,11 @@ from weboob.capabilities.video import BaseVideo
 from weboob.capabilities.image import BaseImage
 from weboob.capabilities.collection import Collection
 
+
 class Videoobmc(Weboobmc):
     def __init__(self, count=10, nsfw=False):
         Weboobmc.__init__(self, count=count)
-        self.backends =list(self.get_loaded_backends('CapVideo'))
+        self.backends = list(self.get_loaded_backends('CapVideo'))
         _nsfw = 'on' if nsfw else 'off'
         self._call_weboob('videoob', 'nsfw', argument=_nsfw)
 
@@ -42,11 +44,12 @@ class Videoobmc(Weboobmc):
         video.title = u'%s' % _video['title']
 
         if _video['date']:
+            _date = re.search('(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}).*', _video['date'])
 
             try:
-                datetime.strptime(_video['date'].split('.')[0], '%Y-%m-%d %H:%M:%S')
+                datetime.strptime(_date.group(1), '%Y-%m-%d %H:%M:%S')
             except TypeError:
-                datetime(*(time.strptime(_video['date'].split('.')[0], '%Y-%m-%d %H:%M:%S')[0:6]))
+                datetime(*(time.strptime(_date.group(1), '%Y-%m-%d %H:%M:%S')[0:6]))
 
         video.description = u'%s' % _video['description']
         video.author = u'%s' % _video['author']
