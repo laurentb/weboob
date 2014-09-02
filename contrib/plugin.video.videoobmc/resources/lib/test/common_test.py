@@ -86,7 +86,7 @@ def create_param_url(paramsDic, quote_plus=False):
                 url = "%s%s%s=%s" % (url, sep, param, paramsDic[param])
 
             sep = '&'
-    except Exception, msg:
+    except Exception as msg:
         display_error("create_param_url %s" % msg)
         url = None
     return url

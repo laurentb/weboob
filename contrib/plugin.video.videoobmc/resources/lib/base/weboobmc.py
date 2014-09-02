@@ -55,7 +55,7 @@ class Weboobmc():
                                                   os.path.join(os.path.expanduser('~'), '.local', 'share')
                                                   ), 'weboob')
         icons_dir = os.path.join(datadir, 'icons')
-        
+
         return os.path.join(icons_dir, '%s.png' % module)
 
     def is_category(self, obj):

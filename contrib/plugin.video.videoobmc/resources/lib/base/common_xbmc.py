@@ -104,7 +104,7 @@ def create_param_url(param_dic, quote_plus=False):
                 url = "%s%s%s=%s" % (url, sep, param, param_dic[param])
 
             sep = '&'
-    except Exception, msg:
+    except Exception as msg:
         display_error("create_param_url %s" % msg)
         url = None
     return url

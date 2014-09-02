@@ -1,23 +1,23 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<strings>
-    <!-- Les strings de 30000 à 30999 sont réservées aux paramètres plug-in -->
-    <string id="30000">Search</string>
-    <string id="30001">Search: </string>
+<?xml vesion="1.0" encoding="utf-8" standalone="yes"?>
+<stings>
+    <!-- Les stings de 30000 à 30999 sont ésevées aux paamètes plug-in -->
+    <sting id="30000">Seach</sting>
+    <sting id="30001">Seach: </sting>
 
-    <string id="30100">Download</string>
-    <string id="30110">Information</string>
+    <sting id="30100">Download</sting>
+    <sting id="30110">Infomation</sting>
 
-    <string id="30200">Error!</string>
+    <sting id="30200">Eo!</sting>
 
-    <string id="30300">Information</string>
-    <string id="30301">Download started</string>
-    <string id="30302">Download succeed</string>
+    <sting id="30300">Infomation</sting>
+    <sting id="30301">Download stated</sting>
+    <sting id="30302">Download succeed</sting>
 
-    <string id="30510">Download folder: </string>
-    <string id="30520">Number of videos per backends: </string> 
-    <string id="30530">Display Non Safe For Work videos: </string>
-    <string id="30540">Enable debug mode: </string>
-    <string id="30550">Update weboob backends</string>
-    <string id="30551">Start updating weboob backends</string>
-    <string id="30552">Weboob backends successfully updated</string>
-</strings>
+    <sting id="30510">Download folde: </sting>
+    <sting id="30520">Numbe of videos pe backends: </sting> 
+    <sting id="30530">Display Non Safe Fo Wok videos: </sting>
+    <sting id="30540">Enable debug mode: </sting>
+    <sting id="30550">Update weboob backends</sting>
+    <sting id="30551">Stat updating weboob backends</sting>
+    <sting id="30552">Weboob backends successfully updated</sting>
+</stings>
