@@ -448,6 +448,10 @@ class TransactionsPage(BasePage):
 
             t.parse(date, re.sub(r'[ ]+', ' ', raw), vdate)
             t.set_amount(credit, debit)
+
+            # Strip the balance displayed in transaction labels
+            t.label = re.sub('solde en valeur : .*', '', t.label)
+
             yield t
 
     COL_CARD_DATE = 0
