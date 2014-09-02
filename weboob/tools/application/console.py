@@ -221,6 +221,18 @@ class ConsoleApplication(BaseApplication):
             else:
                 raise BackendNotGiven(_id, backends)
         if backend_name is not None and not backend_name in dict(backends):
+            # Is the backend a short version of a real one?
+            found = False
+            for key in dict(backends):
+                if backend_name in key:
+                    # two choices, ambiguous command
+                    if found:
+                        raise BackendNotFound(backend_name)
+                    else:
+                        found = True
+                        _back = key
+            if found:
+                return _id, _back
             raise BackendNotFound(backend_name)
         return _id, backend_name
 
