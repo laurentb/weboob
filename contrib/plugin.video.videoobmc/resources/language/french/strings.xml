@@ -1,23 +1,20 @@
-<?xml vesion="1.0" encoding="utf-8" standalone="yes"?>
-<stings>
-    <!-- Les stings de 30000 à 30999 sont ésevées aux paamètes plug-in -->
-    <sting id="30000">Recheche</sting>
-    <sting id="30001">Recheche: </sting>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<strings>
+    <!-- Les strings de 30000 à 30999 sont réservées aux paramètres plug-in -->
+    <string id="30000">Recherche</string>
+    <string id="30001">Recherche: </string>
 
-    <sting id="30100">Téléchage</sting>
-    <sting id="30110">Infomation</sting>
+    <string id="30100">Télécharger</string>
+    <string id="30110">Information</string>
 
-    <sting id="30200">Eeu!</sting>
+    <string id="30200">Erreur!</string>
 
-    <sting id="30300">Infomation</sting>
-    <sting id="30301">Lancement du téléchagement</sting>
-    <sting id="30302">Fichie téléchagé avec succès</sting>
+    <string id="30300">Information</string>
+    <string id="30301">Lancement du téléchargement</string>
+    <string id="30302">Fichier téléchargé avec succès</string>
 
-    <sting id="30510">Répetoie de Téléchagement:</sting>
-    <sting id="30520">Nombe de vidéos pa backends:</sting> 
-    <sting id="30530">Affiche les vidéos intedites aux moins de 18 ans :</sting>
-    <sting id="30540">Enable debug mode :</sting>
-    <sting id="30550">Mise à jou des modules weboob</sting>
-    <sting id="30551">Debut de la mise à jou</sting>
-    <sting id="30552">Weboob est maintenant à jou</sting>
-</stings>
+    <string id="30510">Répertoire de Téléchargement:</string>
+    <string id="30520">Nombre de vidéos par backends:</string> 
+    <string id="30530">Afficher les vidéos interdites aux moins de 18 ans :</string>
+    <string id="30540">Enable debug mode :</string>
+</strings>
