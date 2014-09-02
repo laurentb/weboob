@@ -64,7 +64,7 @@ class Videoobmc(Weboobmc):
             return self.create_video_from_json(_video[0])
 
     def ls(self, backend, path=''):
-        options = {'-b': backend}
+        options = {'-b': backend, '-n': 50}
         result = self._json_call_weboob('videoob', 'ls', options=options, argument=path)
         return self.separate_collections_and_videos(result)
 

@@ -22,7 +22,8 @@ class Weboobmc():
         self._call_weboob('weboob-config', 'update')
 
     def _call_weboob(self, application, command, options={}, argument=""):
-        options['-n'] = self.count
+        if '-n' not in options.keys():
+            options['-n'] = self.count
         _opt = " ".join(["%s %s " % (k, v) for k, v in options.items()])
         _cmd = "%s %s %s %s" % (application, _opt, command, argument)
         #print _cmd.encode('utf-8')
