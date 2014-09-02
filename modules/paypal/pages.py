@@ -35,7 +35,8 @@ class CSVAlreadyAsked(Exception):
     pass
 
 def clean_amount(text):
-    return Decimal(AmericanTransaction.clean_amount(text))
+    amnt = AmericanTransaction.clean_amount(text)
+    return Decimal(amnt) if amnt else Decimal("0")
 
 
 class LoginPage(BasePage):
