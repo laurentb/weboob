@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import sys
 
 from weboob.capabilities.geolocip import CapGeolocIp
 from weboob.tools.application.repl import ReplApplication
@@ -37,7 +36,7 @@ class Geolooc(ReplApplication):
 
     def main(self, argv):
         if len(argv) < 2:
-            print >>sys.stderr, 'Syntax: %s ipaddr' % argv[0]
+            print >>self.stderr, 'Syntax: %s ipaddr' % argv[0]
             return 2
 
         for backend, location in self.do('get_location', argv[1]):

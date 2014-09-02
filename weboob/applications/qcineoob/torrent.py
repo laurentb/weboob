@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import sys
 
 from PyQt4.QtCore import Qt, SIGNAL
 from PyQt4.QtGui import QFrame, QFileDialog
@@ -87,6 +86,6 @@ class Torrent(QFrame):
                 with open(unicode(dest), 'w') as f:
                     f.write(data)
             except IOError as e:
-                print >>sys.stderr, 'Unable to write .torrent in "%s": %s' % (dest, e)
+                print >>self.stderr, 'Unable to write .torrent in "%s": %s' % (dest, e)
                 return 1
             return

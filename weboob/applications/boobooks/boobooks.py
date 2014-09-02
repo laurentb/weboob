@@ -20,7 +20,6 @@
 from weboob.capabilities.library import CapBook, Book
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import PrettyFormatter
-import sys
 
 __all__ = ['Boobooks']
 
@@ -63,7 +62,7 @@ class Boobooks(ReplApplication):
 
         id, backend_name = self.parse_id(id)
         if not id:
-            print >>sys.stderr, 'Error: please give a book ID (hint: use ls command)'
+            print >>self.stderr, 'Error: please give a book ID (hint: use ls command)'
             return 2
         names = (backend_name,) if backend_name is not None else None
 

@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import sys
 
 from weboob.capabilities.job import CapJob
 from weboob.tools.application.repl import ReplApplication, defaultcount
@@ -123,13 +122,13 @@ class Handjoob(ReplApplication):
         Get information about an advert.
         """
         if not _id:
-            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
+            print >>self.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
             return 2
 
         job_advert = self.get_object(_id, 'get_job_advert')
 
         if not job_advert:
-            print >>sys.stderr, 'Job advert not found: %s' % _id
+            print >>self.stderr, 'Job advert not found: %s' % _id
             return 3
 
         self.start_format()

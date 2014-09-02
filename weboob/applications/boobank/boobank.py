@@ -23,7 +23,6 @@ import datetime, uuid
 from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse as parse_date
 from decimal import Decimal, InvalidOperation
-import sys
 
 from weboob.capabilities.base import empty
 from weboob.capabilities.bank import CapBank, Account, Transaction
@@ -328,7 +327,7 @@ class Boobank(ReplApplication):
 
         account = self.get_object(id, 'get_account', [])
         if not account:
-            print('Error: account "%s" not found (Hint: try the command "list")' % id, file=sys.stderr)
+            print('Error: account "%s" not found (Hint: try the command "list")' % id, file=self.stderr)
             return 2
 
         if end_date is not None:
@@ -336,7 +335,7 @@ class Boobank(ReplApplication):
                 end_date = parse_date(end_date)
             except ValueError:
                 print('"%s" is an incorrect date format (for example "%s")' % \
-                            (end_date, (datetime.date.today() - relativedelta(months=1)).strftime('%Y-%m-%d')), file=sys.stderr)
+                            (end_date, (datetime.date.today() - relativedelta(months=1)).strftime('%Y-%m-%d')), file=self.stderr)
                 return 3
             old_count = self.options.count
             self.options.count = None
@@ -406,7 +405,7 @@ class Boobank(ReplApplication):
 
         account = self.get_object(id_from, 'get_account', [])
         if not account:
-            print('Error: account %s not found' % id_from, file=sys.stderr)
+            print('Error: account %s not found' % id_from, file=self.stderr)
             return 1
 
         if not id_to:
@@ -422,13 +421,13 @@ class Boobank(ReplApplication):
         id_to, backend_name_to = self.parse_id(id_to)
 
         if account.backend != backend_name_to:
-            print("Transfer between different backends is not implemented", file=sys.stderr)
+            print("Transfer between different backends is not implemented", file=self.stderr)
             return 4
 
         try:
             amount = Decimal(amount)
         except (TypeError, ValueError, InvalidOperation):
-            print('Error: please give a decimal amount to transfer', file=sys.stderr)
+            print('Error: please give a decimal amount to transfer', file=self.stderr)
             return 2
 
         if self.interactive:
@@ -460,7 +459,7 @@ class Boobank(ReplApplication):
         """
         account = self.get_object(id, 'get_account', [])
         if not account:
-            print('Error: account "%s" not found (Hint: try the command "list")' % id, file=sys.stderr)
+            print('Error: account "%s" not found (Hint: try the command "list")' % id, file=self.stderr)
             return 2
 
         self.start_format()

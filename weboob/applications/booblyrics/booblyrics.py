@@ -19,7 +19,6 @@
 
 
 
-import sys
 
 from weboob.capabilities.lyrics import CapLyrics
 from weboob.capabilities.base import empty
@@ -85,7 +84,7 @@ class Booblyrics(ReplApplication):
 
         songlyrics = self.get_object(id, 'get_lyrics')
         if not songlyrics:
-            print >>sys.stderr, 'Song lyrics not found: %s' % id
+            print >>self.stderr, 'Song lyrics not found: %s' % id
             return 3
 
         self.start_format()

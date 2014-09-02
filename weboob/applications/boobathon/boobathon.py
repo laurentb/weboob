@@ -119,7 +119,7 @@ class Event(object):
             elif line.startswith('h3=. '):
                 m = re.match('h3=. Event finished. Winner is "(.*)":/users/(\d+)\!', line)
                 if not m:
-                    print >>sys.stderr, 'Unable to parse h3=: %s' % line
+                    print >>self.stderr, 'Unable to parse h3=: %s' % line
                     continue
                 self.winner = Member(int(m.group(2)), m.group(1))
             elif line.startswith('h2. '):
@@ -127,7 +127,7 @@ class Event(object):
             elif line.startswith('h3. '):
                 m = re.match('h3. "(.*)":/users/(\d+)', line)
                 if not m:
-                    print >>sys.stderr, 'Unable to parse user "%s"' % line
+                    print >>self.stderr, 'Unable to parse user "%s"' % line
                     continue
                 member = Member(int(m.group(2)), m.group(1))
                 if member.id == self.my_id:
@@ -166,7 +166,7 @@ class Event(object):
             elif line.startswith('[['):
                 m = re.match('\[\[(\w+)\]\]\|\[\[(\w+)\]\]\|(.*)\|', line)
                 if not m:
-                    print >>sys.stderr, 'Unable to parse task: "%s"' % line
+                    print >>self.stderr, 'Unable to parse task: "%s"' % line
                     continue
                 task = Task(m.group(1), m.group(2))
                 member.tasks.append(task)
@@ -292,7 +292,7 @@ class Boobathon(ReplApplication):
 
     def main(self, argv):
         if len(argv) < 2:
-            print >>sys.stderr, 'Please give the name of the boobathon'
+            print >>self.stderr, 'Please give the name of the boobathon'
             return 1
 
         self.event = Event(argv[1], choice(self.weboob.backend_instances.values()))
@@ -414,9 +414,9 @@ class Boobathon(ReplApplication):
         i = -2
         while not stop:
             if i >= 0 and not i%2:
-                sys.stdout.write(' #%-2d' % (i/2))
+                self.stdout.write(' #%-2d' % (i/2))
             else:
-                sys.stdout.write('    ')
+                self.stdout.write('    ')
             if i >= 0 and i%2:
                 # second line of task, see if we'll stop
                 stop = True
@@ -425,11 +425,11 @@ class Boobathon(ReplApplication):
                     # there are more tasks, don't stop now
                     stop = False
                 if i == -2:
-                    sys.stdout.write(' %s%-20s%s' % (self.BOLD, mem.shortname().encode('utf-8'), self.NC))
+                    self.stdout.write(' %s%-20s%s' % (self.BOLD, mem.shortname().encode('utf-8'), self.NC))
                 elif i == -1:
-                    sys.stdout.write(' %s%-20s%s' % (self.BOLD, '-' * len(mem.shortname()), self.NC))
+                    self.stdout.write(' %s%-20s%s' % (self.BOLD, '-' * len(mem.shortname()), self.NC))
                 elif len(mem.tasks) <= (i/2):
-                    sys.stdout.write(' ' * (20+1))
+                    self.stdout.write(' ' * (20+1))
                 else:
                     task = mem.tasks[i/2]
                     if task.status == task.STATUS_DONE:
@@ -446,8 +446,8 @@ class Boobathon(ReplApplication):
                         line = u'%s %s' % (status, task.backend)
                     else: #2nd line
                         line = u'%s `-%s' % (status, task.capability[3:])
-                    sys.stdout.write((u' %-20s' % line).encode('utf-8'))
-            sys.stdout.write('\n')
+                    self.stdout.write((u' %-20s' % line).encode('utf-8'))
+            self.stdout.write('\n')
             i += 1
 
     def complete_close(self, text, line, *ignored):
@@ -471,7 +471,7 @@ class Boobathon(ReplApplication):
                     print 'Event is now closed. Winner is %s!' % self.event.winner.name
                 return
 
-        print >>sys.stderr, '"%s" not found' % name
+        print >>self.stderr, '"%s" not found' % name
         return 3
 
     def complete_edit(self, text, line, *ignored):
@@ -486,7 +486,7 @@ class Boobathon(ReplApplication):
         Edit information about you or about event.
         """
         if not line:
-            print >>sys.stderr, 'Syntax: edit [event | me]'
+            print >>self.stderr, 'Syntax: edit [event | me]'
             return 2
 
         self.event.load()
@@ -496,12 +496,12 @@ class Boobathon(ReplApplication):
         elif line == 'me':
             mem = self.event.get_me()
             if not mem:
-                print >>sys.stderr, 'You haven\'t joined the event.'
+                print >>self.stderr, 'You haven\'t joined the event.'
                 return 1
             self.edit_member(mem)
             self.save_event('Member edited')
         else:
-            print >>sys.stderr, 'Unable to edit "%s"' % line
+            print >>self.stderr, 'Unable to edit "%s"' % line
             return 1
 
     def do_info(self, line):
@@ -558,11 +558,11 @@ class Boobathon(ReplApplication):
         """
         self.event.load()
         if self.event.backend.browser.get_userid() in self.event.members:
-            print >>sys.stderr, 'You have already joined this event.'
+            print >>self.stderr, 'You have already joined this event.'
             return 1
 
         if self.event.is_closed():
-            print >>sys.stderr, "Boobathon is closed."
+            print >>self.stderr, "Boobathon is closed."
             return 1
 
         m = Member(self.event.backend.browser.get_userid(), None)
@@ -579,17 +579,17 @@ class Boobathon(ReplApplication):
         self.event.load()
 
         if self.event.currently_in_event():
-            print >>sys.stderr, 'Unable to leave during the event, loser!'
+            print >>self.stderr, 'Unable to leave during the event, loser!'
             return 1
 
         if self.event.is_closed():
-            print >>sys.stderr, "Boobathon is closed."
+            print >>self.stderr, "Boobathon is closed."
             return 1
 
         try:
             self.event.members.pop(self.event.backend.browser.get_userid())
         except KeyError:
-            print >>sys.stderr, "You have not joined this event."
+            print >>self.stderr, "You have not joined this event."
             return 1
         else:
             self.save_event('Left the event')
@@ -603,23 +603,23 @@ class Boobathon(ReplApplication):
         self.event.load()
         mem = self.event.get_me()
         if not mem:
-            print >>sys.stderr, "You have not joined this event."
+            print >>self.stderr, "You have not joined this event."
             return 1
 
         if self.event.is_closed():
-            print >>sys.stderr, "Boobathon is closed."
+            print >>self.stderr, "Boobathon is closed."
             return 1
 
         try:
             task_id = int(line)
         except ValueError:
-            print >>sys.stderr, 'The task ID should be a number'
+            print >>self.stderr, 'The task ID should be a number'
             return 2
 
         try:
             task = mem.tasks.pop(task_id)
         except IndexError:
-            print >>sys.stderr, 'Unable to find task #%d' % task_id
+            print >>self.stderr, 'Unable to find task #%d' % task_id
             return 1
         else:
             print 'Removing task #%d (%s,%s).' % (task_id, task.backend, task.capability)
@@ -634,24 +634,24 @@ class Boobathon(ReplApplication):
         self.event.load()
         mem = self.event.get_me()
         if not mem:
-            print >>sys.stderr, "You have not joined this event."
+            print >>self.stderr, "You have not joined this event."
             return 1
 
         if self.event.is_closed():
-            print >>sys.stderr, "Boobathon is closed."
+            print >>self.stderr, "Boobathon is closed."
             return 1
 
         backend, capability = self.parse_command_args(line, 2, 2)
         if not backend[0].isupper():
-            print >>sys.stderr, 'The backend name "%s" needs to start with a capital.' % backend
+            print >>self.stderr, 'The backend name "%s" needs to start with a capital.' % backend
             return 2
         if not capability.startswith('Cap') or not capability[3].isupper():
-            print >>sys.stderr, '"%s" is not a proper capability name (must start with Cap).' % capability
+            print >>self.stderr, '"%s" is not a proper capability name (must start with Cap).' % capability
             return 2
 
         for task in mem.tasks:
             if (task.backend,task.capability) == (backend,capability):
-                print >>sys.stderr, "A task already exists for that."
+                print >>self.stderr, "A task already exists for that."
                 return 1
 
         task = Task(backend, capability)
@@ -668,15 +668,15 @@ class Boobathon(ReplApplication):
         self.event.load()
         mem = self.event.get_me()
         if not mem:
-            print >>sys.stderr, "You have not joined this event."
+            print >>self.stderr, "You have not joined this event."
             return 1
 
         if len(mem.tasks) == 0:
-            print >>sys.stderr, "You don't have any task to do."
+            print >>self.stderr, "You don't have any task to do."
             return 1
 
         if not self.event.currently_in_event():
-            print >>sys.stderr, "You can't start a task, we are not in event."
+            print >>self.stderr, "You can't start a task, we are not in event."
             return 1
 
         if line.isdigit():
@@ -695,11 +695,11 @@ class Boobathon(ReplApplication):
             if (i == task_id or task_id < 0) and task.status == task.STATUS_NONE:
                 break
         else:
-            print >>sys.stderr, 'Task not found.'
+            print >>self.stderr, 'Task not found.'
             return 3
 
         if task.status == task.STATUS_DONE:
-            print >>sys.stderr, 'Task is already done.'
+            print >>self.stderr, 'Task is already done.'
             return 1
 
         task.status = task.STATUS_PROGRESS
@@ -716,11 +716,11 @@ class Boobathon(ReplApplication):
         self.event.load()
         mem = self.event.get_me()
         if not mem:
-            print >>sys.stderr, "You have not joined this event."
+            print >>self.stderr, "You have not joined this event."
             return 1
 
         if self.event.is_closed():
-            print >>sys.stderr, "Boobathon is closed."
+            print >>self.stderr, "Boobathon is closed."
             return 1
 
         for i, task in enumerate(mem.tasks):
@@ -733,12 +733,12 @@ class Boobathon(ReplApplication):
                     self.save_event('Task accomplished')
                 else:
                     task.status = task.STATUS_NONE
-                    print >>sys.stderr, 'Oops, you are out of event. Canceling the task...'
+                    print >>self.stderr, 'Oops, you are out of event. Canceling the task...'
                     self.save_event('Cancel task')
                     return 1
                 return
 
-        print >>sys.stderr, "There isn't any task in progress."
+        print >>self.stderr, "There isn't any task in progress."
         return 1
 
     def do_cancel(self, line):
@@ -750,11 +750,11 @@ class Boobathon(ReplApplication):
         self.event.load()
         mem = self.event.get_me()
         if not mem:
-            print >>sys.stderr, "You have not joined this event."
+            print >>self.stderr, "You have not joined this event."
             return 1
 
         if self.event.is_closed():
-            print >>sys.stderr, "Boobathon is closed."
+            print >>self.stderr, "Boobathon is closed."
             return 1
 
         for task in mem.tasks:
@@ -764,7 +764,7 @@ class Boobathon(ReplApplication):
                 self.save_event('Cancel task')
                 return
 
-        print >>sys.stderr, "There isn't any task in progress."
+        print >>self.stderr, "There isn't any task in progress."
         return 1
 
     def load_default_backends(self):

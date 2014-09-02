@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import sys
 from decimal import Decimal
 
 from weboob.capabilities.bill import CapBill, Detail, Subscription
@@ -87,9 +86,9 @@ class Boobill(ReplApplication):
                         self.bcall_error_handler(backend, error, backtrace)
 
         if len(more_results) > 0:
-            print >>sys.stderr, 'Hint: There are more results available for %s (use option -n or count command)' % (', '.join(more_results))
+            print >>self.stderr, 'Hint: There are more results available for %s (use option -n or count command)' % (', '.join(more_results))
         for backend in not_implemented:
-            print >>sys.stderr, u'Error(%s): This feature is not supported yet by this backend.' % backend.name
+            print >>self.stderr, u'Error(%s): This feature is not supported yet by this backend.' % backend.name
 
     def do_subscriptions(self, line):
         """
@@ -184,7 +183,7 @@ class Boobill(ReplApplication):
         id, dest = self.parse_command_args(line, 2, 1)
         id, backend_name = self.parse_id(id)
         if not id:
-            print >>sys.stderr, 'Error: please give a bill ID (hint: use bills command)'
+            print >>self.stderr, 'Error: please give a bill ID (hint: use bills command)'
             return 2
 
         names = (backend_name,) if backend_name is not None else None
@@ -211,7 +210,7 @@ class Boobill(ReplApplication):
                         with open(dest, 'w') as f:
                             f.write(buf)
                     except IOError as e:
-                        print >>sys.stderr, 'Unable to write bill in "%s": %s' % (dest, e)
+                        print >>self.stderr, 'Unable to write bill in "%s": %s' % (dest, e)
                         return 1
                 return
 
@@ -228,7 +227,7 @@ class Boobill(ReplApplication):
                             with open(dest, 'w') as f:
                                 f.write(buf)
                         except IOError as e:
-                            print >>sys.stderr, 'Unable to write bill in "%s": %s' % (dest, e)
+                            print >>self.stderr, 'Unable to write bill in "%s": %s' % (dest, e)
                             return 1
 
         return

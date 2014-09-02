@@ -23,6 +23,7 @@ from __future__ import print_function
 import logging
 import optparse
 from optparse import OptionGroup, OptionParser
+import locale
 import os
 import sys
 import warnings
@@ -134,6 +135,7 @@ class BaseApplication(object):
     # ------ BaseApplication methods -------------------------------
 
     def __init__(self, option_parser=None):
+        self.encoding = self.guess_encoding()
         self.logger = getLogger(self.APPNAME)
         self.weboob = self.create_weboob()
         if self.CONFDIR is None:
@@ -164,6 +166,15 @@ class BaseApplication(object):
         self._parser.add_option_group(logging_options)
         self._parser.add_option('--shell-completion', action='store_true', help=optparse.SUPPRESS_HELP)
         self._is_default_count = True
+
+    def guess_encoding(self, stdio=None):
+        if stdio is None:
+            stdio = self.stdout
+        encoding = stdio.encoding or locale.getpreferredencoding()
+        # ASCII or ANSII is most likely a user mistake
+        if not encoding or encoding.lower() == 'ascii' or encoding.lower().startswith('ansi'):
+            encoding = 'UTF-8'
+        return encoding
 
     def deinit(self):
         self.weboob.want_stop()
@@ -296,9 +307,9 @@ class BaseApplication(object):
         if isinstance(error, MoreResultsAvailable):
             return False
 
-        print(u'Error(%s): %s' % (backend.name, error), file=sys.stderr)
+        print(u'Error(%s): %s' % (backend.name, error), file=self.stderr)
         if logging.root.level == logging.DEBUG:
-            print(backtrace, file=sys.stderr)
+            print(backtrace, file=self.stderr)
         else:
             return True
 
@@ -323,7 +334,7 @@ class BaseApplication(object):
                 ask_debug_mode = True
 
         if ask_debug_mode:
-            print(debugmsg, file=sys.stderr)
+            print(debugmsg, file=self.stderr)
 
     def parse_args(self, args):
         self.options, args = self._parser.parse_args(args)
@@ -358,7 +369,7 @@ class BaseApplication(object):
         if self.options.save_responses:
             import tempfile
             responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
-            print('Debug data will be saved in this directory: %s' % responses_dirname, file=sys.stderr)
+            print('Debug data will be saved in this directory: %s' % responses_dirname, file=self.stderr)
             log_settings['save_responses'] = True
             log_settings['responses_dirname'] = responses_dirname
             handlers.append(self.create_logging_file_handler(os.path.join(responses_dirname, 'debug.log')))
@@ -381,8 +392,8 @@ class BaseApplication(object):
         # stdout logger
         format = '%(asctime)s:%(levelname)s:%(name)s:' + cls.VERSION +\
                  ':%(filename)s:%(lineno)d:%(funcName)s %(message)s'
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(createColoredFormatter(sys.stdout, format))
+        handler = logging.StreamHandler(cls.stdout)
+        handler.setFormatter(createColoredFormatter(cls.stdout, format))
         return handler
 
     @classmethod
@@ -426,12 +437,12 @@ class BaseApplication(object):
         cls.setup_logging(logging.INFO, [cls.create_default_logger()])
 
         if args is None:
-            args = [(sys.stdin.encoding and isinstance(arg, bytes) and arg.decode(sys.stdin.encoding) or to_unicode(arg)) for arg in sys.argv]
+            args = [(cls.stdin.encoding and isinstance(arg, bytes) and arg.decode(cls.stdin.encoding) or to_unicode(arg)) for arg in sys.argv]
 
         try:
             app = cls()
         except BackendsConfig.WrongPermissions as e:
-            print(e, file=sys.stderr)
+            print(e, file=cls.stderr)
             sys.exit(1)
 
         try:
@@ -439,12 +450,12 @@ class BaseApplication(object):
                 args = app.parse_args(args)
                 sys.exit(app.main(args))
             except KeyboardInterrupt:
-                print('Program killed by SIGINT', file=sys.stderr)
+                print('Program killed by SIGINT', file=cls.stderr)
                 sys.exit(0)
             except EOFError:
                 sys.exit(0)
             except ConfigError as e:
-                print('Configuration error: %s' % e, file=sys.stderr)
+                print('Configuration error: %s' % e, file=cls.stderr)
                 sys.exit(1)
             except CallErrors as e:
                 try:
@@ -453,7 +464,7 @@ class BaseApplication(object):
                     pass
                 sys.exit(1)
             except ResultsConditionError as e:
-                print('%s' % e, file=sys.stderr)
+                print('%s' % e, file=cls.stderr)
                 sys.exit(1)
         finally:
             app.deinit()

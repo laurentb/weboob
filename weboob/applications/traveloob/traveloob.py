@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import sys
 import datetime
 
 from weboob.capabilities.base import Currency, empty
@@ -105,7 +104,7 @@ class Traveloob(ReplApplication):
         if arrival:
             arrival_id, backend_name2 = self.parse_id(arrival)
             if backend_name and backend_name2 and backend_name != backend_name2:
-                print >>sys.stderr, 'Departure and arrival aren\'t on the same backend'
+                print >>self.stderr, 'Departure and arrival aren\'t on the same backend'
                 return 1
         else:
             arrival_id = backend_name2 = None
@@ -121,8 +120,8 @@ class Traveloob(ReplApplication):
             try:
                 date = self.parse_datetime(date)
             except ValueError as e:
-                print >>sys.stderr, 'Invalid datetime value: %s' % e
-                print >>sys.stderr, 'Please enter a datetime in form "yyyy-mm-dd HH:MM" or "HH:MM".'
+                print >>self.stderr, 'Invalid datetime value: %s' % e
+                print >>self.stderr, 'Please enter a datetime in form "yyyy-mm-dd HH:MM" or "HH:MM".'
                 return 1
 
         for backend, departure in self.do('iter_station_departures', station_id, arrival_id, date, backends=backends):
@@ -150,8 +149,8 @@ class Traveloob(ReplApplication):
             filters.departure_time = self.parse_datetime(self.options.departure_time)
             filters.arrival_time = self.parse_datetime(self.options.arrival_time)
         except ValueError as e:
-            print >>sys.stderr, 'Invalid datetime value: %s' % e
-            print >>sys.stderr, 'Please enter a datetime in form "yyyy-mm-dd HH:MM" or "HH:MM".'
+            print >>self.stderr, 'Invalid datetime value: %s' % e
+            print >>self.stderr, 'Please enter a datetime in form "yyyy-mm-dd HH:MM" or "HH:MM".'
             return 1
 
         for backend, route in self.do('iter_roadmap', departure, arrival, filters):

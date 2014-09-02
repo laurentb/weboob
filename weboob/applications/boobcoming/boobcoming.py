@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import sys
 from datetime import time, datetime
 
 from weboob.tools.date import parse_date
@@ -231,7 +230,7 @@ class Boobcoming(ReplApplication):
         if line:
             _date = parse_date(line)
             if not _date:
-                print >>sys.stderr, 'Invalid argument: %s' % self.get_command_help('list')
+                print >>self.stderr, 'Invalid argument: %s' % self.get_command_help('list')
                 return 2
 
             date_from = datetime.combine(_date, time.min)
@@ -256,13 +255,13 @@ class Boobcoming(ReplApplication):
         """
 
         if not _id:
-            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
+            print >>self.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
             return 2
 
         event = self.get_object(_id, 'get_event')
 
         if not event:
-            print >>sys.stderr, 'Upcoming event not found: %s' % _id
+            print >>self.stderr, 'Upcoming event not found: %s' % _id
             return 3
 
         self.start_format()
@@ -279,7 +278,7 @@ class Boobcoming(ReplApplication):
         Export event in ICALENDAR format
         """
         if not line:
-            print >>sys.stderr, 'This command takes at leat one argument: %s' % self.get_command_help('export')
+            print >>self.stderr, 'This command takes at leat one argument: %s' % self.get_command_help('export')
             return 2
 
         _file, args = self.parse_command_args(line, 2, req_n=1)
@@ -307,7 +306,7 @@ class Boobcoming(ReplApplication):
             event = self.get_object(_id, 'get_event')
 
             if not event:
-                print >>sys.stderr, 'Upcoming event not found: %s' % _id
+                print >>self.stderr, 'Upcoming event not found: %s' % _id
                 return 3
 
             l.append(event)
@@ -329,7 +328,7 @@ class Boobcoming(ReplApplication):
         ID is the identifier of the event.
         """
         if not line:
-            print >>sys.stderr, 'This command takes at leat one argument: %s' % self.get_command_help('attends')
+            print >>self.stderr, 'This command takes at leat one argument: %s' % self.get_command_help('attends')
             return 2
 
         args = self.parse_command_args(line, 1, req_n=1)
@@ -347,7 +346,7 @@ class Boobcoming(ReplApplication):
         """
 
         if not line:
-            print >>sys.stderr, 'This command takes at leat one argument: %s' % self.get_command_help('unattends')
+            print >>self.stderr, 'This command takes at leat one argument: %s' % self.get_command_help('unattends')
             return 2
 
         args = self.parse_command_args(line, 1, req_n=1)

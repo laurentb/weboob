@@ -26,7 +26,6 @@ from email import message_from_file, message_from_string
 from smtpd import SMTPServer
 import time
 import re
-import sys
 import logging
 import asyncore
 import subprocess
@@ -119,7 +118,7 @@ class Monboob(ReplApplication):
             if self.config.get('interval') < 1:
                 raise ValueError()
         except ValueError:
-            print >>sys.stderr, 'Configuration error: interval must be an integer >0.'
+            print >>self.stderr, 'Configuration error: interval must be an integer >0.'
             return 1
 
         try:
@@ -127,7 +126,7 @@ class Monboob(ReplApplication):
             if self.config.get('html') not in (0, 1):
                 raise ValueError()
         except ValueError:
-            print >>sys.stderr, 'Configuration error: html must be 0 or 1.'
+            print >>self.stderr, 'Configuration error: html must be 0 or 1.'
             return 2
 
         return ReplApplication.main(self, argv)
@@ -151,7 +150,7 @@ class Monboob(ReplApplication):
 
         Pipe with a mail to post message.
         """
-        msg = message_from_file(sys.stdin)
+        msg = message_from_file(self.stdin)
         return self.process_incoming_mail(msg)
 
     def process_incoming_mail(self, msg):
@@ -190,7 +189,7 @@ class Monboob(ReplApplication):
                         break
 
         if len(content) == 0:
-            print >>sys.stderr, 'Unable to send an empty message'
+            print >>self.stderr, 'Unable to send an empty message'
             return 1
 
         # remove signature
@@ -210,7 +209,7 @@ class Monboob(ReplApplication):
                 bname, id = reply_to.split('.', 1)
                 thread_id, parent_id = id.rsplit('.', 1)
             except ValueError:
-                print >>sys.stderr, 'In-Reply-To header might be in form <backend.thread_id.message_id>'
+                print >>self.stderr, 'In-Reply-To header might be in form <backend.thread_id.message_id>'
                 return 1
 
             # Default use the To header field to know the backend to use.
@@ -220,11 +219,11 @@ class Monboob(ReplApplication):
         try:
             backend = self.weboob.backend_instances[bname]
         except KeyError:
-            print >>sys.stderr, 'Backend %s not found' % bname
+            print >>self.stderr, 'Backend %s not found' % bname
             return 1
 
         if not backend.has_caps(CapMessagesPost):
-            print >>sys.stderr, 'The backend %s does not implement CapMessagesPost' % bname
+            print >>self.stderr, 'The backend %s does not implement CapMessagesPost' % bname
             return 1
 
         thread = Thread(thread_id)

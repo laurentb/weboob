@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import sys
 
 from weboob.capabilities.base import empty
 from weboob.capabilities.parcel import CapParcel, Parcel
@@ -106,7 +105,7 @@ class Parceloob(ReplApplication):
         """
         parcel = self.get_object(line, 'get_parcel_tracking')
         if not parcel:
-            print >>sys.stderr, 'Error: the parcel "%s" is not found' % line
+            print >>self.stderr, 'Error: the parcel "%s" is not found' % line
             return 2
 
         parcels = set(self.storage.get('tracking', default=[]))
@@ -134,13 +133,13 @@ class Parceloob(ReplApplication):
         if not removed:
             parcel = self.get_object(line, 'get_parcel_tracking')
             if not parcel:
-                print >>sys.stderr, 'Error: the parcel "%s" is not found' % line
+                print >>self.stderr, 'Error: the parcel "%s" is not found' % line
                 return 2
 
             try:
                 parcels.remove(parcel.fullid)
             except KeyError:
-                print >>sys.stderr, "Error: parcel \"%s\" wasn't tracked" % parcel.fullid
+                print >>self.stderr, "Error: parcel \"%s\" wasn't tracked" % parcel.fullid
                 return 2
 
         self.storage.set('tracking', list(parcels))
@@ -181,7 +180,7 @@ class Parceloob(ReplApplication):
         """
         parcel = self.get_object(id, 'get_parcel_tracking', [])
         if not parcel:
-            print >>sys.stderr, 'Error: parcel not found'
+            print >>self.stderr, 'Error: parcel not found'
             return 2
 
         self.start_format()

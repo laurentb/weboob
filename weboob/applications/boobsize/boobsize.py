@@ -23,7 +23,6 @@ from weboob.capabilities.gauge import CapGauge, SensorNotFound
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
 
-import sys
 
 __all__ = ['Boobsize']
 
@@ -111,7 +110,7 @@ class Boobsize(ReplApplication):
     def bcall_error_handler(self, backend, error, backtrace):
         if isinstance(error, SensorNotFound):
             msg = unicode(error) or 'Sensor not found (hint: try details command)'
-            print >>sys.stderr, 'Error(%s): %s' % (backend.name, msg)
+            print >>self.stderr, 'Error(%s): %s' % (backend.name, msg)
         else:
             return ReplApplication.bcall_error_handler(self, backend, error, backtrace)
 

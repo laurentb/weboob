@@ -26,7 +26,6 @@ import logging
 import subprocess
 import sys
 import os
-import locale
 
 from weboob.capabilities import UserError
 from weboob.capabilities.account import CapAccount, Account, AccountRegisterError
@@ -82,16 +81,6 @@ class ConsoleApplication(BaseApplication):
         BaseApplication.__init__(self, option_parser)
         self.weboob.callbacks['login'] = self.login_cb
         self.enabled_backends = set()
-        self.encoding = self.guess_encoding()
-
-    def guess_encoding(self, stdio=None):
-        if stdio is None:
-            stdio = self.stdout
-        encoding = stdio.encoding or locale.getpreferredencoding()
-        # ASCII or ANSII is most likely a user mistake
-        if not encoding or encoding.lower() == 'ascii' or encoding.lower().startswith('ansi'):
-            encoding = 'UTF-8'
-        return encoding
 
     def login_cb(self, backend_name, value):
         return self.ask('[%s] %s' % (backend_name,
@@ -517,7 +506,7 @@ class ConsoleApplication(BaseApplication):
 
     def acquire_input(self, content=None, editor_params=None):
         editor = os.getenv('EDITOR', 'vi')
-        if sys.stdin.isatty() and editor:
+        if self.stdin.isatty() and editor:
             from tempfile import NamedTemporaryFile
             with NamedTemporaryFile() as f:
                 filename = f.name
@@ -534,10 +523,10 @@ class ConsoleApplication(BaseApplication):
                 f.seek(0)
                 text = f.read()
         else:
-            if sys.stdin.isatty():
+            if self.stdin.isatty():
                 print('Reading content from stdin... Type ctrl-D ' \
                           'from an empty line to stop.')
-            text = sys.stdin.read()
+            text = self.stdin.read()
         return text.decode(self.encoding)
 
     def bcall_error_handler(self, backend, error, backtrace):

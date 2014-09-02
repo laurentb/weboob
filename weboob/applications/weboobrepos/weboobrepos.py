@@ -24,7 +24,6 @@ from time import mktime, strptime
 import tarfile
 import os
 import shutil
-import sys
 import subprocess
 from copy import copy
 from contextlib import closing
@@ -96,8 +95,8 @@ class WeboobRepos(ReplApplication):
             with open(index_file, 'r') as fp:
                 r.parse_index(fp)
         except IOError as e:
-            print >>sys.stderr, 'Unable to open repository: %s' % e
-            print >>sys.stderr, 'Use the "create" command before.'
+            print >>self.stderr, 'Unable to open repository: %s' % e
+            print >>self.stderr, 'Use the "create" command before.'
             return 1
 
         r.build_index(source_path, index_file)

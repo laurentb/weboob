@@ -19,7 +19,6 @@
 
 
 import os
-import sys
 import re
 
 from weboob.capabilities.account import CapAccount
@@ -53,7 +52,7 @@ class WeboobCfg(ReplApplication):
         Add a backend.
         """
         if not line:
-            print >>sys.stderr, 'You must specify a module name. Hint: use the "modules" command.'
+            print >>self.stderr, 'You must specify a module name. Hint: use the "modules" command.'
             return 2
         name, options = self.parse_command_args(line, 2, 1)
         if options:
@@ -67,7 +66,7 @@ class WeboobCfg(ReplApplication):
             try:
                 key, value = option.split('=', 1)
             except ValueError:
-                print >>sys.stderr, 'Parameters have to be formatted "key=value"'
+                print >>self.stderr, 'Parameters have to be formatted "key=value"'
                 return 2
             params[key] = value
 
@@ -97,16 +96,16 @@ class WeboobCfg(ReplApplication):
         try:
             backend = self.weboob.get_backend(backend_name)
         except KeyError:
-            print >>sys.stderr, 'Error: backend "%s" not found.' % backend_name
+            print >>self.stderr, 'Error: backend "%s" not found.' % backend_name
             return 1
 
         if not backend.has_caps(CapAccount):
-            print >>sys.stderr, 'Error: backend "%s" does not support accounts management' % backend_name
+            print >>self.stderr, 'Error: backend "%s" does not support accounts management' % backend_name
             return 1
 
         mail = self.acquire_input()
         if not backend.confirm_account(mail):
-            print >>sys.stderr, 'Error: Unable to confirm account creation'
+            print >>self.stderr, 'Error: Unable to confirm account creation'
             return 1
         return 0
 
@@ -142,14 +141,14 @@ class WeboobCfg(ReplApplication):
         Remove a backend.
         """
         if not self.weboob.backends_config.remove_backend(instance_name):
-            print >>sys.stderr, 'Backend instance "%s" does not exist' % instance_name
+            print >>self.stderr, 'Backend instance "%s" does not exist' % instance_name
             return 1
 
     def _do_toggle(self, name, state):
         try:
             bname, items = self.weboob.backends_config.get_backend(name)
         except KeyError:
-            print >>sys.stderr, 'Backend instance "%s" does not exist' % name
+            print >>self.stderr, 'Backend instance "%s" does not exist' % name
             return 1
         self.weboob.backends_config.edit_backend(name, bname, {'_enabled': state})
 
@@ -178,7 +177,7 @@ class WeboobCfg(ReplApplication):
         try:
             self.edit_backend(line)
         except KeyError:
-            print >>sys.stderr, 'Error: backend "%s" not found' % line
+            print >>self.stderr, 'Error: backend "%s" not found' % line
             return 1
 
     def do_modules(self, line):
@@ -202,12 +201,12 @@ class WeboobCfg(ReplApplication):
         Display information about a module.
         """
         if not line:
-            print >>sys.stderr, 'You must specify a module name. Hint: use the "modules" command.'
+            print >>self.stderr, 'You must specify a module name. Hint: use the "modules" command.'
             return 2
 
         minfo = self.weboob.repositories.get_module_info(line)
         if not minfo:
-            print >>sys.stderr, 'Module "%s" does not exist.' % line
+            print >>self.stderr, 'Module "%s" does not exist.' % line
             return 1
 
         try:

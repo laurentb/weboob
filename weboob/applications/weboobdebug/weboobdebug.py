@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import sys
 from optparse import OptionGroup
 
 from weboob.tools.application.base import BaseApplication
@@ -49,12 +48,12 @@ class WeboobDebug(BaseApplication):
         try:
             backend_name = argv[1]
         except IndexError:
-            print >>sys.stderr, 'Usage: %s BACKEND' % argv[0]
+            print >>self.stderr, 'Usage: %s BACKEND' % argv[0]
             return 1
         try:
             backend = self.weboob.load_backends(names=[backend_name])[backend_name]
         except KeyError:
-            print >>sys.stderr, u'Unable to load backend "%s"' % backend_name
+            print >>self.stderr, u'Unable to load backend "%s"' % backend_name
             return 1
 
         locs = dict(backend=backend, browser=backend.browser, application=self, weboob=self.weboob)

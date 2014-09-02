@@ -19,7 +19,6 @@
 
 
 
-import sys
 import codecs
 
 from weboob.capabilities.recipe import CapRecipe
@@ -100,7 +99,7 @@ class Cookboob(ReplApplication):
         """
         recipe = self.get_object(id, 'get_recipe')
         if not recipe:
-            print >>sys.stderr, 'Recipe not found: %s' % id
+            print >>self.stderr, 'Recipe not found: %s' % id
             return 3
 
         self.start_format()
@@ -141,10 +140,10 @@ class Cookboob(ReplApplication):
                     with codecs.open(dest, 'w', 'utf-8') as f:
                         f.write(xmlstring)
                 except IOError as e:
-                    print >>sys.stderr, 'Unable to write .kreml in "%s": %s' % (dest, e)
+                    print >>self.stderr, 'Unable to write .kreml in "%s": %s' % (dest, e)
                     return 1
             return
-        print >>sys.stderr, 'Recipe "%s" not found' % id
+        print >>self.stderr, 'Recipe "%s" not found' % id
         return 3
 
     @defaultcount(10)

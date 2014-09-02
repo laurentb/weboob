@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import sys
 
 from weboob.capabilities.torrent import CapTorrent, MagnetOnly
 from weboob.tools.application.repl import ReplApplication, defaultcount
@@ -117,7 +116,7 @@ class Weboorrents(ReplApplication):
         """
         torrent = self.get_object(id, 'get_torrent', ('description', 'files'))
         if not torrent:
-            print >>sys.stderr, 'Torrent not found: %s' % id
+            print >>self.stderr, 'Torrent not found: %s' % id
             return 3
 
         self.start_format()
@@ -142,7 +141,7 @@ class Weboorrents(ReplApplication):
 
         torrent = self.get_object(id, 'get_torrent', ('description', 'files'))
         if not torrent:
-            print >>sys.stderr, 'Torrent not found: %s' % id
+            print >>self.stderr, 'Torrent not found: %s' % id
             return 3
 
         dest = self.obj_to_filename(torrent, dest, '{id}-{name}.torrent')
@@ -157,20 +156,20 @@ class Weboorrents(ReplApplication):
                             with open(dest, 'w') as f:
                                 f.write(buf)
                         except IOError as e:
-                            print >>sys.stderr, 'Unable to write .torrent in "%s": %s' % (dest, e)
+                            print >>self.stderr, 'Unable to write .torrent in "%s": %s' % (dest, e)
                             return 1
                     return
         except CallErrors as errors:
             for backend, error, backtrace in errors:
                 if isinstance(error, MagnetOnly):
-                    print >>sys.stderr, u'Error(%s): No direct URL available, ' \
+                    print >>self.stderr, u'Error(%s): No direct URL available, ' \
                         u'please provide this magnet URL ' \
                         u'to your client:\n%s' % (backend, error.magnet)
                     return 4
                 else:
                     self.bcall_error_handler(backend, error, backtrace)
 
-        print >>sys.stderr, 'Torrent "%s" not found' % id
+        print >>self.stderr, 'Torrent "%s" not found' % id
         return 3
 
     @defaultcount(10)

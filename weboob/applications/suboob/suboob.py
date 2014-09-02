@@ -19,7 +19,6 @@
 
 
 
-import sys
 
 from weboob.capabilities.subtitle import CapSubtitle
 from weboob.capabilities.base import empty
@@ -114,7 +113,7 @@ class Suboob(ReplApplication):
 
         subtitle = self.get_object(id, 'get_subtitle')
         if not subtitle:
-            print >>sys.stderr, 'Subtitle not found: %s' % id
+            print >>self.stderr, 'Subtitle not found: %s' % id
             return 3
 
         self.start_format()
@@ -139,7 +138,7 @@ class Suboob(ReplApplication):
 
         subtitle = self.get_object(id, 'get_subtitle')
         if not subtitle:
-            print >>sys.stderr, 'Subtitle not found: %s' % id
+            print >>self.stderr, 'Subtitle not found: %s' % id
             return 3
 
         if dest is None:
@@ -151,13 +150,13 @@ class Suboob(ReplApplication):
         for backend, buf in self.do('get_subtitle_file', subtitle.id, backends=subtitle.backend):
             if buf:
                 if dest == '-':
-                    sys.stdout.write(buf)
+                    self.stdout.write(buf)
                 else:
                     try:
                         with open(dest, 'w') as f:
                             f.write(buf)
                     except IOError as e:
-                        print >>sys.stderr, 'Unable to write file in "%s": %s' % (dest, e)
+                        print >>self.stderr, 'Unable to write file in "%s": %s' % (dest, e)
                         return 1
                     else:
                         print 'Saved to %s' % dest

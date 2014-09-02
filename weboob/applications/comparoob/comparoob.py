@@ -20,7 +20,6 @@
 
 
 
-import sys
 
 from weboob.capabilities.pricecomparison import CapPriceComparison
 from weboob.tools.html import html2text
@@ -109,7 +108,7 @@ class Comparoob(ReplApplication):
 
         product = None
         if len(products) == 0:
-            print >>sys.stderr, 'Error: no product found with this pattern'
+            print >>self.stderr, 'Error: no product found with this pattern'
             return 1
         elif len(products) == 1:
             product = products[0]
@@ -147,12 +146,12 @@ class Comparoob(ReplApplication):
         Get information about a product.
         """
         if not _id:
-            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
+            print >>self.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
             return 2
 
         price = self.get_object(_id, 'get_price')
         if not price:
-            print >>sys.stderr, 'Price not found: %s' % _id
+            print >>self.stderr, 'Price not found: %s' % _id
             return 3
 
         self.start_format()

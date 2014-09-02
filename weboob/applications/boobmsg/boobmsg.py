@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import sys
 import os
 import datetime
 import hashlib
@@ -431,7 +430,7 @@ class Boobmsg(ReplApplication):
         """
         message = None
         if len(arg) == 0:
-            print >>sys.stderr, 'Please give a message ID.'
+            print >>self.stderr, 'Please give a message ID.'
             return 2
 
         try:
@@ -448,7 +447,7 @@ class Boobmsg(ReplApplication):
             self.weboob.do('set_message_read', message, backends=message.backend)
             return
         else:
-            print >>sys.stderr,  'Message not found'
+            print >>self.stderr,  'Message not found'
             return 3
 
     def do_profile(self, id):
@@ -476,7 +475,7 @@ class Boobmsg(ReplApplication):
         """
         photo_cmd = self.config.get('photo_viewer')
         if photo_cmd is None:
-            print >>sys.stderr, "Configuration error: photo_viewer is undefined"
+            print >>self.stderr, "Configuration error: photo_viewer is undefined"
             return
 
         _id, backend_name = self.parse_id(id, unique_backend=True)

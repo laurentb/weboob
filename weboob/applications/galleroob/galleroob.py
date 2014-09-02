@@ -19,7 +19,6 @@
 
 
 
-import sys
 import os
 from re import search, sub
 
@@ -68,7 +67,7 @@ class Galleroob(ReplApplication):
         List galleries matching a PATTERN.
         """
         if not pattern:
-            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('search', short=True)
+            print >>self.stderr, 'This command takes an argument: %s' % self.get_command_help('search', short=True)
             return 2
 
         self.start_format(pattern=pattern)
@@ -98,7 +97,7 @@ class Galleroob(ReplApplication):
                 gallery = result
 
         if not gallery:
-            print >>sys.stderr, 'Gallery not found: %s' % _id
+            print >>self.stderr, 'Gallery not found: %s' % _id
             return 3
 
         backend.fillobj(gallery, ('title',))
@@ -123,7 +122,7 @@ class Galleroob(ReplApplication):
             if img.data is None:
                 backend.fillobj(img, ('url', 'data'))
                 if img.data is None:
-                    print >>sys.stderr, "Couldn't get page %d, exiting" % i
+                    print >>self.stderr, "Couldn't get page %d, exiting" % i
                     break
 
             ext = search(r"\.([^\.]{1,5})$", img.url)
@@ -150,7 +149,7 @@ class Galleroob(ReplApplication):
 
         gallery = self.get_object(_id, 'get_gallery')
         if not gallery:
-            print >>sys.stderr, 'Gallery not found: %s' % _id
+            print >>self.stderr, 'Gallery not found: %s' % _id
             return 3
 
         self.start_format()
