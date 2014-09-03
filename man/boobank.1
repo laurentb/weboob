@@ -1,5 +1,6 @@
 .\" -*- coding: utf-8 -*-
-.TH BOOBANK 1 "19 May 2014" "boobank 0\&.i"
+.\" This file was generated automatically by tools/make_man.sh.
+.TH BOOBANK 1 "03 September 2014" "boobank 0\&.j"
 .SH NAME
 boobank \- manage bank accounts
 .SH SYNOPSIS
@@ -73,9 +74,13 @@ Console application allowing to list your bank accounts and get their balance, d
 .br
 * lcl (LCL)
 .br
+* oney (Oney)
+.br
 * paypal (PayPal)
 .br
 * societegenerale (Société Générale)
+.br
+* wellsfargo (Wells Fargo)
 .SH BOOBANK COMMANDS
 .TP
 \fBcoming\fR \fIID\fR [\fIEND_DATE\fR]
@@ -213,14 +218,6 @@ If not, print the current value for the option.
 .br
 If no argument is given, print the current formatter.
 .TP
-\fBinspect\fR \fIBACKEND_NAME\fR
-.br
-Display the HTML string of the current page of the specified backend's browser.
-.br
-
-.br
-If webkit_mechanize_browser Python module is installed, HTML is displayed in a WebKit GUI.
-.TP
 \fBlogging\fR [\fILEVEL\fR]
 .br
 Set logging level.
@@ -239,11 +236,11 @@ List objects in current path.
 .br
 If an argument is given, list the specified path.
 .br
-Use \-U option to not sort results. It allows to use a "fast path" to
+Use \-U option to not sort results. It allows you to use a "fast path" to
 .br
 return results as soon as possible.
 .br
-Use \-d option to display informations about a collection (and to not
+Use \-d option to display information about a collection (and to not
 .br
 display the content of it). It has the same behavior than the well
 .br
