@@ -953,8 +953,6 @@ class ReplApplication(Cmd, ConsoleApplication):
         inspect BACKEND_NAME
 
         Display the HTML string of the current page of the specified backend's browser.
-
-        If webkit_mechanize_browser Python module is installed, HTML is displayed in a WebKit GUI.
         """
         if len(self.enabled_backends) == 1:
             backend = list(self.enabled_backends)[0]
@@ -976,14 +974,7 @@ class ReplApplication(Cmd, ConsoleApplication):
             return 1
         browser = backend.browser
         data = browser.parser.tostring(browser.page.document)
-        try:
-            from webkit_mechanize_browser.browser import Browser
-            from weboob.tools.inspect import Page
-        except ImportError:
-            print(data)
-        else:
-            page = Page(core=browser, data=data, uri=browser._response.geturl())
-            browser = Browser(view=page.view)
+        print(data)
 
     # First sort in alphabetical of backend
     # Second, sort with ID
