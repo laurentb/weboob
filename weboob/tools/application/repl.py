@@ -108,7 +108,7 @@ class ReplApplication(Cmd, ConsoleApplication):
     # Objects to allow in do_ls / do_cd
     COLLECTION_OBJECTS = tuple()
 
-    weboob_commands = set(['backends', 'condition', 'count', 'formatter', 'inspect', 'logging', 'select', 'quit', 'ls', 'cd'])
+    weboob_commands = set(['backends', 'condition', 'count', 'formatter', 'logging', 'select', 'quit', 'ls', 'cd'])
     hidden_commands = set(['EOF'])
 
     def __init__(self):
@@ -944,37 +944,6 @@ class ReplApplication(Cmd, ConsoleApplication):
             self.selected_fields = split
         else:
             print(' '.join(self.selected_fields))
-
-    def complete_inspect(self, text, line, begidx, endidx):
-        return sorted(set(backend.name for backend in self.enabled_backends))
-
-    def do_inspect(self, line):
-        """
-        inspect BACKEND_NAME
-
-        Display the HTML string of the current page of the specified backend's browser.
-        """
-        if len(self.enabled_backends) == 1:
-            backend = list(self.enabled_backends)[0]
-        else:
-            backend_name = line.strip()
-            if not backend_name:
-                print('Please specify a backend name.', file=sys.stderr)
-                return 2
-            backends = set(backend for backend in self.enabled_backends if backend.name == backend_name)
-            if not backends:
-                print('No backend found for "%s"' % backend_name, file=sys.stderr)
-                return 1
-            backend = backends.pop()
-        if not backend.browser:
-            print('No browser created for backend "%s".' % backend.name, file=sys.stderr)
-            return 1
-        if not backend.browser.page:
-            print('The browser of %s is not on any page.' % backend.name, file=sys.stderr)
-            return 1
-        browser = backend.browser
-        data = browser.parser.tostring(browser.page.document)
-        print(data)
 
     # First sort in alphabetical of backend
     # Second, sort with ID
