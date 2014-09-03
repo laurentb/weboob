@@ -148,17 +148,6 @@ For example::
                                Value('regexp',                  label='Birthday', regexp='^\d+/\d+/\d+$'),
                                ValueInt('integer',              label='A number', required=True))
 
-Storage
--------
-
-The application can provide a storage to let your backend store data. So, you can define the structure of your storage space::
-
-    STORAGE = {'seen': {}}
-
-To store and read data in your storage space, use the ``storage`` attribute of your :class:`BaseBackend <weboob.tools.backend.BaseBackend>`
-object.
-
-It implements the methods of :class:`BackendStorage <weboob.tools.backend.BackendStorage>`.
 
 Implement capabilities
 ----------------------
@@ -477,3 +466,16 @@ Here, when the application has got a :class:`Video <weboob.capabilities.video.Ba
 
 As our method :func:`get_video <weboob.capabilities.video.CapVideo.get_video>` will get all
 of the missing informations, we just call it with the object as parameter to complete it.
+
+
+Storage
+-------
+
+The application can provide a storage to let your backend store data. So, you can define the structure of your storage space::
+
+    STORAGE = {'seen': {}}
+
+To store and read data in your storage space, use the ``storage`` attribute of your :class:`BaseBackend <weboob.tools.backend.BaseBackend>`
+object.
+
+It implements the methods of :class:`BackendStorage <weboob.tools.backend.BackendStorage>`.
