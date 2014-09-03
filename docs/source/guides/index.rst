@@ -11,3 +11,4 @@ Contents:
    module
    capability
    application
+   tests

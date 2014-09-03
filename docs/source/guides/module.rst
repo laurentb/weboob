@@ -420,6 +420,8 @@ To try running test of your module, launch::
 
     $ tools/run_tests.sh example
 
+For more informations, look at the :doc:`tests` guides.
+
 Advanced topics
 ***************
 
