@@ -111,6 +111,9 @@ class NotAvailableType(object):
     def __deepcopy__(self, memo):
         return self
 
+    def __repr__(self):
+        return 'NotAvailable'
+
     def __unicode__(self):
         return u'Not available'
 
@@ -136,6 +139,9 @@ class NotLoadedType(object):
 
     def __deepcopy__(self, memo):
         return self
+
+    def __repr__(self):
+        return u'NotLoaded'
 
     def __unicode__(self):
         return u'Not loaded'

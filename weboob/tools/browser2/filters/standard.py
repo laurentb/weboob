@@ -30,7 +30,11 @@ from weboob.tools.compat import basestring
 from weboob.tools.exceptions import ParseError
 from weboob.tools.html import html2text
 
-_NO_DEFAULT = object()
+class NoDefault(object):
+    def __repr__(self):
+        return 'NO_DEFAULT'
+
+_NO_DEFAULT = NoDefault()
 
 
 __all__ = ['FilterError', 'ColumnNotFound', 'RegexpError', 'ItemNotFound',
