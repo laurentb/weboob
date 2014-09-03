@@ -18,12 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from time import sleep
+
 from weboob.capabilities.bank import AccountNotFound
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.mech import ClientForm
+
 from .pages import LoginPage, LoginRedirectPage, LoggedInPage, SummaryPage, \
                    DynamicPage, DynamicParser
-from time import sleep
-from mechanize import ItemNotFoundError
 
 
 __all__ = ['WellsFargo']
@@ -151,7 +153,7 @@ class WellsFargo(BaseBrowser):
         self.to_activity(account.id)
         try:
             self.page.sub_page().since_last_statement()
-        except ItemNotFoundError:
+        except ClientForm.ItemNotFoundError:
             # Skip transactions on web page if we cannot apply
             # "since last statement" filter.
             # This might be the case, for example, if Wells Fargo
