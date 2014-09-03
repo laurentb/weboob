@@ -388,6 +388,7 @@ class Transaction(FrenchTransaction):
                 (re.compile('^(CONVENTION \d+ )?COTIS(ATION)? (?P<text>.*)', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_BANK),
                 (re.compile('^REMISE (?P<text>.*)'),        FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile('^(?P<text>ECHEANCE PRET .*)'), FrenchTransaction.TYPE_LOAN_PAYMENT),
                 (re.compile('^(?P<text>.*)( \d+)? QUITTANCE .*'),
                                                             FrenchTransaction.TYPE_ORDER),
                 (re.compile('^.* LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})$'),
