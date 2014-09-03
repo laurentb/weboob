@@ -79,9 +79,9 @@ def normalize(pattern):
     (3) Select the first (essentially an arbitrary) element from any character
         class. Select an arbitrary character for any unordered class (e.g. '.'
         or '\w') in the pattern.
-    (5) Ignore comments and any of the reg-exp flags that won't change
+    (4) Ignore comments and any of the reg-exp flags that won't change
         what we construct ("iLmsu"). "(?x)" is an error, however.
-    (6) Raise an error on all other non-capturing (?...) forms (e.g.
+    (5) Raise an error on all other non-capturing (?...) forms (e.g.
         look-ahead and look-behind matches) and any disjunctive ('|')
         constructs.
 
