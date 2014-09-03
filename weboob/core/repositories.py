@@ -31,7 +31,7 @@ from contextlib import closing
 from compileall import compile_dir
 from io import BytesIO
 
-from weboob.tools.exceptions import BrowserHTTPError
+from weboob.tools.exceptions import BrowserHTTPError, BrowserHTTPNotFound
 from .modules import Module
 from weboob.tools.log import getLogger
 from weboob.tools.misc import to_unicode
@@ -529,7 +529,7 @@ class Repositories(object):
 
         try:
             icon = self.browser.open(icon_url)
-        except BrowserHTTPError:
+        except BrowserHTTPNotFound:
             pass  # no icon, no problem
         else:
             with open(dest_path, 'wb') as fp:
