@@ -19,6 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser2 import PagesBrowser, URL
+from weboob.tools.browser2.exceptions import HTTPNotFound
 from .pages import SearchPage, VideoPage, VideoJsonPage
 
 import urllib
@@ -38,8 +39,11 @@ class VimeoBrowser(PagesBrowser):
     video_page = URL('http://vimeo.com/(?P<_id>.*)', VideoPage)
 
     def get_video(self, _id, video=None):
-        video = self.video_page.go(_id=_id).get_video(video)
-        return self.video_url.open(_id=_id).fill_url(obj=video)
+        try:
+            video = self.video_page.go(_id=_id).get_video(video)
+            return self.video_url.open(_id=_id).fill_url(obj=video)
+        except HTTPNotFound:
+            return None
 
     def search_videos(self, pattern, sortby):
         return self.search_page.go(pattern=urllib.quote_plus(pattern.encode('utf-8')),
