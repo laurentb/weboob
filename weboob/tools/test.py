@@ -24,7 +24,7 @@ from nose.plugins.skip import SkipTest
 from weboob.core import Weboob
 
 
-__all__ = ['TestCase', 'BackendTest']
+__all__ = ['BackendTest']
 
 
 class BackendTest(TestCase):
