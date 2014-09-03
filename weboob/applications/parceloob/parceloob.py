@@ -84,7 +84,7 @@ class StatusFormatter(IFormatter):
 
 class Parceloob(ReplApplication):
     APPNAME = 'parceloob'
-    VERSION = '0.j'
+    VERSION = '1.0'
     COPYRIGHT = 'Copyright(C) 2013 Romain Bignon'
     CAPS = CapParcel
     DESCRIPTION = "Console application to track your parcels."

@@ -51,7 +51,7 @@ class WebNip(object):
     :param scheduler: what scheduler to use; default is :class:`weboob.core.scheduler.Scheduler`
     :type scheduler: :class:`weboob.core.scheduler.IScheduler`
     """
-    VERSION = '0.j'
+    VERSION = '1.0'
 
     def __init__(self, modules_path=None, storage=None, scheduler=None):
         self.logger = getLogger('weboob')

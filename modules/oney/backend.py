@@ -34,7 +34,7 @@ class OneyBackend(BaseBackend, CapBank):
     NAME = 'oney'
     MAINTAINER = u'Vincet Paredes'
     EMAIL = 'vparedes@budget-insight.com'
-    VERSION = '0.j'
+    VERSION = '1.0'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'Oney'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Identifiant', masked=False),

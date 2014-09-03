@@ -34,7 +34,7 @@ class AloesBackend(BaseBackend, CapBook):
     NAME = 'opacwebaloes'
     MAINTAINER = u'Jeremy Monnet'
     EMAIL = 'jmonnet@gmail.com'
-    VERSION = '0.j'
+    VERSION = '1.0'
     DESCRIPTION = 'Aloes Library software'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(Value('login',    label='Account ID', regexp='^\d{1,8}\w$'),

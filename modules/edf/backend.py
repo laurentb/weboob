@@ -30,7 +30,7 @@ class EdfBackend(BaseBackend, CapBill):
     DESCRIPTION = u'Edf website: French power provider'
     MAINTAINER = u'Christophe Gouiran'
     EMAIL = 'bechris13250@gmail.com'
-    VERSION = '0.j'
+    VERSION = '1.0'
     LICENSE = 'AGPLv3+'
     BROWSER = EdfBrowser
     CONFIG = BackendConfig(ValueBackendPassword('login',

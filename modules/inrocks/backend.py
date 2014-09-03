@@ -27,7 +27,7 @@ from .tools import rssid
 class NewspaperInrocksBackend(GenericNewspaperBackend, CapMessages):
     MAINTAINER = u'Julien Hebert'
     EMAIL = 'juke@free.fr'
-    VERSION = '0.j'
+    VERSION = '1.0'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     NAME = 'inrocks'

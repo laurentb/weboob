@@ -39,7 +39,7 @@ __all__ = ['WeboobRepos']
 
 class WeboobRepos(ReplApplication):
     APPNAME = 'weboob-repos'
-    VERSION = '0.j'
+    VERSION = '1.0'
     COPYRIGHT = 'Copyright(C) 2012 Romain Bignon'
     DESCRIPTION = "Weboob-repos is a console application to manage a Weboob Repository."
     SHORT_DESCRIPTION = "manage a weboob repository"

@@ -32,7 +32,7 @@ class ChronopostBackend(BaseBackend, CapParcel):
     DESCRIPTION = u'Chronopost website'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.j'
+    VERSION = '1.0'
 
     BROWSER = ChronopostBrowser
 

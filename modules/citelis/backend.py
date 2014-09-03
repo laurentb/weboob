@@ -34,7 +34,7 @@ class CitelisBackend(BaseBackend, CapBank):
     MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
     LICENSE = 'AGPLv3+'
-    VERSION = '0.j'
+    VERSION = '1.0'
 
     BROWSER = CitelisBrowser
 

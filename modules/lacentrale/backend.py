@@ -33,7 +33,7 @@ class LaCentraleBackend(BaseBackend, CapPriceComparison):
     NAME = 'lacentrale'
     MAINTAINER = u'Vicnet'
     EMAIL = 'vo.publique@gmail.com'
-    VERSION = '0.j'
+    VERSION = '1.0'
     DESCRIPTION = 'Vehicule prices at LaCentrale.fr'
     LICENSE = 'AGPLv3+'
     BROWSER = LaCentraleBrowser

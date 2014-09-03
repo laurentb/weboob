@@ -33,7 +33,7 @@ class CreditCooperatifBackend(BaseBackend, CapBank):
     NAME = 'creditcooperatif'
     MAINTAINER = u'Kevin Pouget'
     EMAIL = 'weboob@kevin.pouget.me'
-    VERSION = '0.j'
+    VERSION = '1.0'
     DESCRIPTION = u'Crédit Coopératif'
     LICENSE = 'AGPLv3+'
     auth_type = {'particular': "Interface Particuliers",

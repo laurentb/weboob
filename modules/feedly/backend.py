@@ -35,7 +35,7 @@ class FeedlyBackend(BaseBackend, CapMessages, CapCollection):
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
     LICENSE = 'AGPLv3+'
-    VERSION = '0.j'
+    VERSION = '1.0'
     STORAGE = {'seen': []}
     CONFIG = BackendConfig(Value('username', label='Username', default=''),
                            ValueBackendPassword('password', label='Password', default=''))

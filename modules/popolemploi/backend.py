@@ -34,7 +34,7 @@ class PopolemploiBackend(BaseBackend, CapJob):
     DESCRIPTION = u'Pole Emploi website'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
-    VERSION = '0.j'
+    VERSION = '1.0'
 
     BROWSER = PopolemploiBrowser
 

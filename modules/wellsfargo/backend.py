@@ -32,7 +32,7 @@ class WellsFargoBackend(BaseBackend, CapBank):
     NAME = 'wellsfargo'
     MAINTAINER = u'Oleg Plakhotniuk'
     EMAIL = 'olegus8@gmail.com'
-    VERSION = '0.j'
+    VERSION = '1.0'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Wells Fargo'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Username', masked=False),

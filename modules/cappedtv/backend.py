@@ -23,7 +23,7 @@ class CappedBackend(BaseBackend, CapVideo, CapCollection):
     NAME = 'cappedtv'
     MAINTAINER = u'Lord'
     EMAIL = 'lord@lordtoniok.com'
-    VERSION = '0.j'
+    VERSION = '1.0'
     DESCRIPTION = 'Capped.tv demoscene website'
     LICENSE = 'WTFPLv2'
     BROWSER = CappedBrowser

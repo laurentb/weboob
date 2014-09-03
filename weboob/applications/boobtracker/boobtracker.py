@@ -105,7 +105,7 @@ class IssuesListFormatter(PrettyFormatter):
 
 class BoobTracker(ReplApplication):
     APPNAME = 'boobtracker'
-    VERSION = '0.j'
+    VERSION = '1.0'
     COPYRIGHT = 'Copyright(C) 2011 Romain Bignon'
     DESCRIPTION = "Console application allowing to create, edit, view bug tracking issues."
     SHORT_DESCRIPTION = "manage bug tracking issues"

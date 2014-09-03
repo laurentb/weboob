@@ -37,7 +37,7 @@ class HelloBankBackend(BaseBackend, CapBank, CapMessages):
     NAME = 'hellobank'
     MAINTAINER = u'Christophe Lampin'
     EMAIL = 'weboob@lampin.net'
-    VERSION = '0.j'
+    VERSION = '1.0'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Hello Bank!'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Identifiant', masked=False),

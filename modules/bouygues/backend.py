@@ -34,7 +34,7 @@ class BouyguesBackend(BaseBackend, CapMessages, CapMessagesPost):
     NAME = 'bouygues'
     MAINTAINER = u'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
-    VERSION = '0.j'
+    VERSION = '1.0'
     DESCRIPTION = u'Bouygues Télécom French mobile phone provider'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(Value('login', label='Login'),

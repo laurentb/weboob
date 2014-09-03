@@ -32,7 +32,7 @@ class VlilleBackend(BaseBackend, CapGauge):
     DESCRIPTION = u'access to vlille datas'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
-    VERSION = '0.j'
+    VERSION = '1.0'
 
     BROWSER = VlilleBrowser
 

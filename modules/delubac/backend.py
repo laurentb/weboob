@@ -32,7 +32,7 @@ class DelubacBackend(BaseBackend, CapBank):
     DESCRIPTION = u'Banque Delubac & Cie'
     MAINTAINER = u'Noe Rubinstein'
     EMAIL = 'nru@budget-insight.com'
-    VERSION = '0.j'
+    VERSION = '1.0'
 
     BROWSER = DelubacBrowser
 

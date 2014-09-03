@@ -31,7 +31,7 @@ class SeeklyricsBackend(BaseBackend, CapLyrics):
     NAME = 'seeklyrics'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.j'
+    VERSION = '1.0'
     DESCRIPTION = 'SeekLyrics lyrics website'
     LICENSE = 'AGPLv3+'
     BROWSER = SeeklyricsBrowser

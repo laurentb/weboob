@@ -32,7 +32,7 @@ class ApivieBackend(BaseBackend, CapBank):
     DESCRIPTION = u'Apivie'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.j'
+    VERSION = '1.0'
 
     BROWSER = ApivieBrowser
 

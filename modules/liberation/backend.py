@@ -30,7 +30,7 @@ from .tools import rssid, url2id
 class NewspaperLibeBackend(GenericNewspaperBackend, CapMessages):
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '0.j'
+    VERSION = '1.0'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     NAME = 'liberation'

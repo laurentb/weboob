@@ -27,7 +27,7 @@ class NectarineBackend(BaseBackend, CapRadio, CapCollection):
     NAME = 'nectarine'
     MAINTAINER = u'Thomas Lecavelier'
     EMAIL = 'thomas-weboob@lecavelier.name'
-    VERSION = '0.j'
+    VERSION = '1.0'
     DESCRIPTION = u'Nectarine Demoscene Radio'
     # License of your module
     LICENSE = 'AGPLv3+'

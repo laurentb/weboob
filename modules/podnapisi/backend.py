@@ -32,7 +32,7 @@ class PodnapisiBackend(BaseBackend, CapSubtitle):
     NAME = 'podnapisi'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.j'
+    VERSION = '1.0'
     DESCRIPTION = 'Podnapisi movies and tv series subtitle website'
     LICENSE = 'AGPLv3+'
     BROWSER = PodnapisiBrowser

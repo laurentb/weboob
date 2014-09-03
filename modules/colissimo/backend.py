@@ -32,7 +32,7 @@ class ColissimoBackend(BaseBackend, CapParcel):
     DESCRIPTION = u'Colissimo parcel tracking website'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '0.j'
+    VERSION = '1.0'
     LICENSE = 'AGPLv3+'
 
     BROWSER = ColissimoBrowser

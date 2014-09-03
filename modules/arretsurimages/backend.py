@@ -34,7 +34,7 @@ class ArretSurImagesBackend(BaseBackend, CapVideo, CapCollection):
     DESCRIPTION = u'arretsurimages website'
     MAINTAINER = u'franek'
     EMAIL = 'franek@chicour.net'
-    VERSION = '0.j'
+    VERSION = '1.0'
 
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='email', masked=False),
                            ValueBackendPassword('password', label='Password'))

@@ -33,7 +33,7 @@ class IndeedBackend(BaseBackend, CapJob):
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
     LICENSE = 'AGPLv3+'
-    VERSION = '0.j'
+    VERSION = '1.0'
 
     BROWSER = IndeedBrowser
 
