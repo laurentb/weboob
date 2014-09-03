@@ -183,7 +183,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         self.objects.append(obj)
 
     def _complete_object(self):
-        return ['%s@%s' % (obj.id, obj.backend) for obj in self.objects]
+        return [obj.fullid for obj in self.objects]
 
     def parse_id(self, id, unique_backend=False):
         if self.interactive:
