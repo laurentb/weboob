@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2012 Romain Bignon
+# Copyright(C) 2010-2014 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -71,13 +71,20 @@ class Account(Recipient):
     a recipient of a transfer.
     """
     TYPE_UNKNOWN          = 0
-    TYPE_CHECKING         = 1  # Transaction, everyday transactions
-    TYPE_SAVINGS          = 2  # Savings/Deposit, can be used for everyday banking
-    TYPE_DEPOSIT          = 3  # Term or Fixed Deposit, has time/amount constraints
+    TYPE_CHECKING         = 1
+    "Transaction, everyday transactions"
+    TYPE_SAVINGS          = 2
+    "Savings/Deposit, can be used for every banking"
+    TYPE_DEPOSIT          = 3
+    "Term of Fixed Deposit, has time/amount constraints"
     TYPE_LOAN             = 4
-    TYPE_MARKET           = 5  # Stock market or other variable investments
-    TYPE_JOINT            = 6  # Joint account
-    TYPE_CARD             = 7  # Card account
+    "Loan account"
+    TYPE_MARKET           = 5
+    "Stock market or other variable investments"
+    TYPE_JOINT            = 6
+    "Joint account"
+    TYPE_CARD             = 7
+    "Card account"
 
     type =      IntField('Type of account', default=TYPE_UNKNOWN)
     balance =   DecimalField('Balance on this bank account')
@@ -116,6 +123,20 @@ class Transaction(BaseObject):
         return "<Transaction date=%r label=%r amount=%r>" % (self.date, self.label, self.amount)
 
     def unique_id(self, seen=None, account_id=None):
+        """
+        Get an unique ID for the transaction based on date, amount and raw.
+
+        :param seen: if given, the method uses this dictionary as a cache to
+                     prevent several transactions with the same values to have the same
+                     unique ID.
+        :type seen: :class:`dict`
+        :param account_id: if given, add the account ID in data used to create
+                           the unique ID. Can be useful if you want your ID to be unique across
+                           several accounts.
+        :type account_id: :class:`str`
+        :returns: an unique ID encoded in 8 length hexadecimal string (for example ``'a64e1bc9'``)
+        :rtype: :class:`str`
+        """
         crc = crc32(str(self.date))
         crc = crc32(str(self.amount), crc)
         crc = crc32(re.sub('[ ]+', ' ', self.raw.encode("utf-8")), crc)
