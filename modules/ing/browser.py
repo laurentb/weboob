@@ -130,12 +130,12 @@ class IngBrowser(LoginBrowser):
             return
 
         if account.type == Account.TYPE_CHECKING:
-            history_function = self.page.get_transactions_cc
+            history_function = AccountsList.get_transactions_cc
         else:
-            history_function = self.page.get_transactions_others
+            history_function = AccountsList.get_transactions_others
         hashlist = []
         while True:
-            for transaction in history_function():
+            for transaction in history_function(self.page):
                 transaction.id = hashlib.md5(transaction._hash).hexdigest()
                 while transaction.id in hashlist:
                     transaction.id = hashlib.md5(transaction.id + "1").hexdigest()
