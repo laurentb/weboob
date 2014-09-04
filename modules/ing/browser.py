@@ -131,19 +131,25 @@ class IngBrowser(LoginBrowser):
 
         if account.type == Account.TYPE_CHECKING:
             history_function = AccountsList.get_transactions_cc
+            index = -1  # disable the index. It works without it on CC
         else:
             history_function = AccountsList.get_transactions_others
+            index = 0
         hashlist = []
         while True:
-            for transaction in history_function(self.page):
+            i = index
+            for transaction in history_function(self.page, index=index):
                 transaction.id = hashlib.md5(transaction._hash).hexdigest()
                 while transaction.id in hashlist:
                     transaction.id = hashlib.md5(transaction.id + "1").hexdigest()
                 hashlist.append(transaction.id)
+                i += 1
                 yield transaction
             # if there is no more transactions, it is useless to continue
-            if self.page.islast():
+            if self.page.islast() or i == index:
                 return
+            if index >= 0:
+                index = i
             data = {"AJAX:EVENTS_COUNT": 1,
                     "AJAXREQUEST": "_viewRoot",
                     "autoScroll": "",
