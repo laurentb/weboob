@@ -201,5 +201,5 @@ class OperationsPage(LoggedPage, HTMLPage):
             obj_amount = Env('amount')
 
             def condition(self):
-                self.env['amount'] = Transaction.Amount('', './td[3]')(self.el)
-                return self.env['amount'] < 0
+                self.env['amount'] = - Transaction.Amount('./td[3]')(self.el)
+                return self.env['amount'] != 0
