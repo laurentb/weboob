@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2014 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -35,15 +35,15 @@ class OuiFMBackend(BaseBackend, CapRadio, CapCollection):
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '1.0'
-    DESCRIPTION = u'Ouï FM French radio'
+    DESCRIPTION = u'OÜI FM French radio'
     LICENSE = 'AGPLv3+'
     BROWSER = StandardBrowser
 
-    _RADIOS = {'general':     (u'OUÏ FM',            u'OUI FM',                       u'http://ouifm.ice.infomaniak.ch/ouifm-high.mp3', 128),
-               'alternatif':  (u'OUÏ FM Alternatif', u'OUI FM - L\'Alternative Rock', u'http://ouifm.ice.infomaniak.ch/ouifm2.mp3', 128),
-               'collector':   (u'OUÏ FM Collector',  u'OUI FM - Classic Rock',        u'http://ouifm.ice.infomaniak.ch/ouifm3.mp3', 160),
-               'blues':       (u'OUÏ FM Blues',      u'OUI FM - Blues',               u'http://ouifm.ice.infomaniak.ch/ouifm4.mp3', 128),
-               'inde':        (u'OUÏ FM Indé',       u'OUI FM - Rock Indé',           u'http://ouifm.ice.infomaniak.ch/ouifm5.mp3', 128),
+    _RADIOS = {'general':     (u"OÜI FM",               u'OÜI FM',                       u'http://ouifm.ice.infomaniak.ch/ouifm-high.mp3', 128),
+               'alternatif':  (u"OÜI FM Alternatif",    u'OÜI FM - L\'Alternative Rock', u'http://ouifm.ice.infomaniak.ch/ouifm2.mp3', 128),
+               'classicrock': (u"OÜI FM Classic Rock",  u'OÜI FM - Classic Rock',        u'http://ouifm.ice.infomaniak.ch/ouifm3.mp3', 160),
+               'bluesnrock':  (u"OÜI FM Blues'n'Rock",  u'OÜI FM - Blues\'n\'Rock',      u'http://ouifm.ice.infomaniak.ch/ouifm4.mp3', 128),
+               'rockinde':    (u"OÜI FM Rock Indé",     u'OÜI FM - Rock Indé',           u'http://ouifm.ice.infomaniak.ch/ouifm5.mp3', 128),
               }
 
     def create_default_browser(self):
