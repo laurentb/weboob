@@ -162,7 +162,9 @@ class GroovesharkBrowser(BaseBrowser):
             album.title = u'%s' % _album['Name']
 
         album.author = u'%s' % _album['ArtistName']
-        album.year = int(_album['Year'])
+        if _album['Year']:
+            album.year = int(_album['Year'])
+
         if _album['CoverArtFilename']:
             album.thumbnail = BaseImage(u'http://images.gs-cdn.net/static/albums/80_' + _album['CoverArtFilename'])
             album.thumbnail.url = album.thumbnail.id
