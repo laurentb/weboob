@@ -24,7 +24,7 @@ from weboob.tools.test import BackendTest
 __all__ = ['NettokomTest']
 
 
-class NettokomMobileTest(BackendTest):
+class NettokomTest(BackendTest):
     BACKEND = 'nettokom'
 
     def test_details(self):
