@@ -455,7 +455,7 @@ class Currency(object):
         curtexts = klass.EXTRACTOR.sub(' ', text.upper()).split()
         for curtext in curtexts:
             for currency, symbol in klass.CURRENCIES.iteritems():
-                if curtext in (currency, symbol):
+                if curtext in (currency, symbol) or symbol in curtext:
                     return currency
         return None
 
