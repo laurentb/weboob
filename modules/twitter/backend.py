@@ -17,8 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import time, datetime, timedelta
-
+from datetime import datetime, timedelta
+import time
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.capabilities.messages import CapMessages, Thread, CapMessagesPost
@@ -76,7 +76,7 @@ class TwitterBackend(BaseBackend, CapMessages, CapMessagesPost, CapCollection):
 
             if searchs:
                 for search in searchs.split(','):
-                    for tweet in itertools.islice(self.browser.get_tweets_from_search(search), 0 ,20):
+                    for tweet in itertools.islice(self.browser.get_tweets_from_search(search), 0, 20):
                         tweets.append(tweet)
 
             tweets.sort(key=lambda o: o.date, reverse=True)
@@ -92,14 +92,12 @@ class TwitterBackend(BaseBackend, CapMessages, CapMessagesPost, CapCollection):
         return self.get_thread(thread.id, thread, getseen)
 
     def set_message_read(self, message):
-        self.storage.set('seen', message.thread.id, 'comments',
-                         self.storage.get('seen',
-                                          message.thread.id,
-                                          'comments', default=[]) + [message.id])
+        self.storage.set('seen', message.thread.id, message.thread.date)
         self.storage.save()
         self._purge_message_read()
 
     def _purge_message_read(self):
+
         lastpurge = self.storage.get('lastpurge', default=0)
 
         if time.time() - lastpurge > 86400:
@@ -109,17 +107,14 @@ class TwitterBackend(BaseBackend, CapMessages, CapMessagesPost, CapCollection):
             # we can't directly delete without a "RuntimeError: dictionary changed size during iteration"
             todelete = []
 
-            for id in self.storage.get('seen', default={}):
-                date = self.storage.get('date', id, default=0)
+            for id, date in self.storage.get('seen', default={}).iteritems():
                 # if no date available, create a new one (compatibility with "old" storage)
-                if date == 0:
-                    self.storage.set('date', id, datetime.now())
+                if not date:
+                    self.storage.set('seen', id, datetime.now())
                 elif datetime.now() - date > timedelta(days=60):
                     todelete.append(id)
 
             for id in todelete:
-                self.storage.delete('hash', id)
-                self.storage.delete('date', id)
                 self.storage.delete('seen', id)
             self.storage.save()
 

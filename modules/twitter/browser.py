@@ -97,16 +97,17 @@ class TwitterBrowser(LoginBrowser):
                               children=[]
                               )
 
-        if seen and splitted_id[1] not in seen:
+        if seen and (_id not in seen):
             thread.root.flags = Message.IS_UNREAD
 
         comments = self.thread_page.stay_or_go(_id=splitted_id[1].split('.')[-1], user=splitted_id[0]).iter_comments()
         for comment in comments:
-            if seen and comment.id in seen:
-                comment.thread = thread
-                comment.parent = thread.root
+            comment.thread = thread
+            comment.parent = thread.root
+            if seen and comment.id not in seen.keys():
                 comment.flags = Message.IS_UNREAD
-                thread.root.children.append(comment)
+
+            thread.root.children.append(comment)
 
         return thread
 
