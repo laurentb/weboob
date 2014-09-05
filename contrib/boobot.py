@@ -188,6 +188,7 @@ class MyThread(Thread):
 
         self.weboob.repeat(300, self.check_board)
         self.weboob.repeat(600, self.check_dlfp)
+        self.weboob.repeat(600, self.check_twitter)
 
         self.weboob.loop()
 
@@ -201,6 +202,14 @@ class MyThread(Thread):
             if word in text.lower():
                 return word
         return None
+
+    def check_twitter(self):
+        for backend, thread in self.weboob.do('iter_resources', objs=None,
+                                              split_path=['search', 'weboob'], backends=['twitter']):
+            _item = thread.id.split('#')
+            self.bot.send_message('%s: https://twitter.com/%s/status/%s' % (_item[0],
+                                                                            _item[0], _item[1]))
+            backend.set_message_read(backend.fill_thread(thread, ['root']).root)
 
     def check_dlfp(self):
         for backend, msg in self.weboob.do('iter_unread_messages', backends=['dlfp']):
