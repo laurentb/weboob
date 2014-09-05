@@ -206,10 +206,14 @@ class MyThread(Thread):
     def check_twitter(self):
         for backend, thread in self.weboob.do('iter_resources', objs=None,
                                               split_path=['search', 'weboob'], backends=['twitter']):
-            _item = thread.id.split('#')
-            self.bot.send_message('%s: https://twitter.com/%s/status/%s' % (_item[0],
-                                                                            _item[0], _item[1]))
-            backend.set_message_read(backend.fill_thread(thread, ['root']).root)
+            if not thread.id in backend.storage.get('seen', default={}):
+                _item = thread.id.split('#')
+                url = 'https://twitter.com/%s/status/%s' % (_item[0], _item[1])
+                for msg in self.bot.on_url(url):
+                    self.bot.send_message('%s: %s' % (_item[0], url))
+                    self.bot.send_message(msg)
+
+                backend.set_message_read(backend.fill_thread(thread, ['root']).root)
 
     def check_dlfp(self):
         for backend, msg in self.weboob.do('iter_unread_messages', backends=['dlfp']):
