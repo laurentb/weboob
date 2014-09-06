@@ -476,7 +476,7 @@ class ConsoleApplication(BaseApplication):
                 if sys.platform == 'win32':
                     line = getpass.getpass(str(question))
                 else:
-                    line = getpass.getpass(self.encoding)
+                    line = getpass.getpass(question.encode(self.encoding))
             else:
                 self.stdout.write(question.encode(self.encoding))
                 self.stdout.flush()
