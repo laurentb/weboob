@@ -19,7 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 import re
 import os
@@ -30,7 +30,7 @@ from math import log
 import urlparse
 import urllib
 from random import randint, choice
-
+import itertools
 from irc.bot import SingleServerIRCBot
 import mechanize
 from mechanize import _headersutil as headersutil
@@ -204,16 +204,26 @@ class MyThread(Thread):
         return None
 
     def check_twitter(self):
-        for backend, thread in self.weboob.do('iter_resources', objs=None,
-                                              split_path=['search', 'weboob'], backends=['twitter']):
-            if not thread.id in backend.storage.get('seen', default={}):
-                _item = thread.id.split('#')
-                url = 'https://twitter.com/%s/status/%s' % (_item[0], _item[1])
-                for msg in self.bot.on_url(url):
-                    self.bot.send_message('%s: %s' % (_item[0], url))
-                    self.bot.send_message(msg)
+        nb_tweets = 10
 
-                backend.set_message_read(backend.fill_thread(thread, ['root']).root)
+        for _, backend in self.weboob.load_backends(modules=['twitter']).iteritems():
+            for thread in list(itertools.islice(backend.iter_resources(None, ['search', 'weboob']),
+                                                0,
+                                                nb_tweets)):
+
+                if not backend.storage.get('lastpurge'):
+                    backend.storage.set('lastpurge', datetime.now() - timedelta(days=60))
+                    backend.storage.save()
+
+                if thread.id not in backend.storage.get('seen', default={}) and\
+                   thread.date > backend.storage.get('lastpurge'):
+                    _item = thread.id.split('#')
+                    url = 'https://twitter.com/%s/status/%s' % (_item[0], _item[1])
+                    for msg in self.bot.on_url(url):
+                        self.bot.send_message('%s: %s' % (_item[0], url))
+                        self.bot.send_message(msg)
+
+                    backend.set_message_read(backend.fill_thread(thread, ['root']).root)
 
     def check_dlfp(self):
         for backend, msg in self.weboob.do('iter_unread_messages', backends=['dlfp']):

@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime, timedelta
-import time
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.capabilities.messages import CapMessages, Thread, CapMessagesPost
@@ -97,11 +96,10 @@ class TwitterBackend(BaseBackend, CapMessages, CapMessagesPost, CapCollection):
         self._purge_message_read()
 
     def _purge_message_read(self):
+        lastpurge = self.storage.get('lastpurge', default=datetime.now() - timedelta(days=60))
 
-        lastpurge = self.storage.get('lastpurge', default=0)
-
-        if time.time() - lastpurge > 86400:
-            self.storage.set('lastpurge', time.time())
+        if datetime.now() - lastpurge > timedelta(days=60):
+            self.storage.set('lastpurge', datetime.now() - timedelta(days=60))
             self.storage.save()
 
             # we can't directly delete without a "RuntimeError: dictionary changed size during iteration"
@@ -111,7 +109,7 @@ class TwitterBackend(BaseBackend, CapMessages, CapMessagesPost, CapCollection):
                 # if no date available, create a new one (compatibility with "old" storage)
                 if not date:
                     self.storage.set('seen', id, datetime.now())
-                elif datetime.now() - date > timedelta(days=60):
+                elif lastpurge > date:
                     todelete.append(id)
 
             for id in todelete:
