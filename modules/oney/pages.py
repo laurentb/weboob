@@ -41,14 +41,15 @@ class Transaction(FrenchTransaction):
 class VirtKeyboard(MappedVirtKeyboard):
     # XXX it will be necessary to do something to fix that shit.
     symbols={'0':('069f9dd5e75d8419476b18f1551e59ce','4d3d5662b2a85ab7f0dc33b234eeaa12','9dbc8f4af61329c68cb53f62570ab213',
-                  'c375d0349a6b097ac2708cc12736651a','15997d39cbdceecf8fc3050f86811ded','65cf69050c47fd044dc6866b0771665a'),
+                  'c375d0349a6b097ac2708cc12736651a','15997d39cbdceecf8fc3050f86811ded','65cf69050c47fd044dc6866b0771665a',
+                  '53998518eef3c5be42290bca46288094'),
              '1':('ddc9036ea2ae1bdfbb15616a0e3a0d90',),
              '2':('27638b6ebedf6a23149990495ef4c1c5','f602ee70136eb2331275a8ac8cd636de','ff1f44c05a5eab4569bef7bde84e5b66',
                   '3b0795e3fc0af85c4838279847cb87f7','ac27be9df781cc8756f999d61f7a46f3',),
              '3':('45101362592c07bc94f8449a1f4479f1','b24990f89de3454038b7c7940bc1053f','bf0d6bd4f13ea9b57a72f76c6dad0b41',
                   '743762655b13c97908b17ce7b36a1f5a','53f9b643c228e99723c384fe12390a0e','f206adf0be6f3c6613452c19a7b0babe',
                   'f206adf0be6f3c6613452c19a7b0babe','f80d52e8776e0825954cc3477e3c4d95','4ed9ae4d6ed821da16156ed9c31c6609',
-                  '9b9a760b46320848ca48593f43dc22d7'),
+                  '9b9a760b46320848ca48593f43dc22d7','e0896e80bea559f8d1ec02ba38489715'),
              '4':('9d5d871b405465218cc892dc015ea6d8','fed023bedd046b9f4d169c6ab12f6d4c','5069a391893fb107fbc39923a9d108ef',),
              '5':('5ef102b78f5dc642ee98e9bdcf42a02e','496418730424d7f40d2b137d56bcbfe8','139186da206acf5344362ed86da42a7f',
                   'e080cd4fbda1493034f1444eae484887',),
@@ -122,7 +123,7 @@ class IndexPage(LoggedPage, HTMLPage):
         return  -CleanDecimal('.', replace_dots=True)(self.doc.xpath('//div[@id = "total-sommes-dues"]/p[contains(text(), "sommes dues")]/span[@class = "montant"]')[0])
 
 class OperationsPage(LoggedPage, HTMLPage):
-    is_here = "//div[@id='releve-reserve-credit'] | //div[@id='operations-recentes']"
+    is_here = "//div[@id='releve-reserve-credit'] | //div[@id='operations-recentes'] | //select[@id='periode']"
 
     @pagination
     @method
