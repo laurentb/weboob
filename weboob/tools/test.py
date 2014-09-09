@@ -17,14 +17,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from unittest import TestCase
 from random import choice
+from unittest import TestCase
 
-from nose.plugins.skip import SkipTest
 from weboob.core import Weboob
 
+# This is what nose does for Python 2.6 and lower compatibility
+# We do the same so nose becomes optional
+try:
+    from unittest.case import SkipTest
+except:
+    from nose.plugins.skip import SkipTest
 
-__all__ = ['BackendTest']
+
+__all__ = ['BackendTest', 'SkipTest']
 
 
 class BackendTest(TestCase):

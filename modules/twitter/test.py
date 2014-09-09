@@ -18,9 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import itertools
-from nose.plugins.skip import SkipTest
-from weboob.tools.test import BackendTest
+
 from weboob.capabilities.base import BaseObject
+from weboob.tools.test import BackendTest, SkipTest
 
 
 class TwitterTest(BackendTest):

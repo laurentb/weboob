@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from nose.plugins.skip import SkipTest
-from weboob.tools.test import BackendTest
 from datetime import datetime
+
+from weboob.tools.test import BackendTest, SkipTest
 
 
 class HybrideTest(BackendTest):
