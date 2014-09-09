@@ -22,9 +22,6 @@ from weboob.tools.test import BackendTest
 from weboob.tools.html import html2text
 
 
-__all__ = ['LeFigaroTest']
-
-
 class LeFigaroTest(BackendTest):
     BACKEND = 'lefigaro'
 

@@ -25,8 +25,6 @@ import re
 
 from .job import ApecJobAdvert
 
-__all__ = ['SearchPage', 'AdvertPage']
-
 
 class SearchPage(BasePage):
     def iter_job_adverts(self):

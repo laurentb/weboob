@@ -33,9 +33,6 @@ from weboob.tools.browser import BasePage, BrokenPageError
 from .video import DailymotionVideo
 
 
-__all__ = ['IndexPage', 'VideoPage', 'KidsVideoPage']
-
-
 class IndexPage(BasePage):
     def iter_videos(self):
         for div in self.parser.select(self.document.getroot(), 'div.sd_video_listitem'):

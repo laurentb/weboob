@@ -22,9 +22,6 @@ from weboob.tools.browser import BrowserIncorrectPassword, BrowserBanned
 from .base import BasePage
 
 
-__all__ = ['IndexPage', 'LoginPage']
-
-
 class IndexPage(BasePage):
     def is_logged(self):
         return 'id' in self.document.find('body').attrib

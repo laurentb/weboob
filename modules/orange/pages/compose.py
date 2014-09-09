@@ -22,8 +22,6 @@ import re
 from weboob.capabilities.messages import CantSendMessage
 from weboob.tools.browser import BasePage
 
-__all__ = ['ComposePage', 'ConfirmPage']
-
 
 class ConfirmPage(BasePage):
     def on_loaded(self):

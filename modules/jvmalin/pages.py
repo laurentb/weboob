@@ -8,7 +8,6 @@ from weboob.tools.misc import to_unicode
 from weboob.tools.mech import ClientForm
 from weboob.tools.browser import BasePage
 
-__all__ = ['RoadmapSearchPage', 'RoadmapResultsPage', 'RoadmapPage', 'RoadmapAmbiguity']
 
 class RoadmapAmbiguity(RoadmapError):
     def __init__(self, error):

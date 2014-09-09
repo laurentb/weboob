@@ -21,9 +21,6 @@
 from weboob.capabilities.video import BaseVideo
 
 
-__all__ = ['ArretSurImagesVideo']
-
-
 class ArretSurImagesVideo(BaseVideo):
     @classmethod
     def id2url(cls, _id):

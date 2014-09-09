@@ -28,9 +28,6 @@ from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['LoginPage', 'HomePage', 'TransactionsPage']
-
-
 class LoginPage(HTMLPage):
     def enter_login(self, username):
         form = self.get_form(nr=0)

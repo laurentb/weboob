@@ -28,9 +28,6 @@ from weboob.tools.misc import to_unicode
 from .video import JacquieEtMichelVideo
 
 
-__all__ = ['ResultsPage', 'VideoPage']
-
-
 class ResultsPage(BasePage):
     def iter_videos(self):
         for span in self.document.xpath('//ul[@id="list"]/li'):

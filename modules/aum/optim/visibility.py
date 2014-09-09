@@ -22,9 +22,6 @@ from weboob.tools.browser import BrowserUnavailable
 from weboob.capabilities.dating import Optimization
 
 
-__all__ = ['Visibility']
-
-
 class Visibility(Optimization):
     def __init__(self, sched, browser):
         self.sched = sched

@@ -27,9 +27,6 @@ from .base import PornPage
 from ..video import YoupornVideo
 
 
-__all__ = ['IndexPage']
-
-
 class IndexPage(PornPage):
     def iter_videos(self):
         for li in self.document.getroot().xpath('//ul/li[@class="videoBox"]'):

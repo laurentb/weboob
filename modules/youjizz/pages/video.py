@@ -27,9 +27,6 @@ from weboob.capabilities.video import BaseVideo
 from weboob.tools.misc import to_unicode
 
 
-__all__ = ['VideoPage']
-
-
 class VideoPage(HTMLPage):
     @method
     class get_video(ItemElement):

@@ -24,7 +24,6 @@ from .job import AdeccoJobAdvert
 import datetime
 import re
 
-__all__ = ['SearchPage', 'AdvertPage']
 MONTHS = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
 
 

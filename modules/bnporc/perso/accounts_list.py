@@ -26,8 +26,6 @@ from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage, BrokenPageError, BrowserPasswordExpired
 
-__all__ = ['AccountsList', 'AccountPrelevement']
-
 
 class AccountsList(BasePage):
     ACCOUNT_TYPES = {

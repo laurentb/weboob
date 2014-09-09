@@ -23,8 +23,6 @@ from weboob.tools.browser2.filters import Filter, Link, CleanText, Format, Env, 
 
 from weboob.capabilities.job import BaseJobAdvert
 
-__all__ = ['SearchPage']
-
 
 class Child(Filter):
     def filter(self, el):

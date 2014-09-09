@@ -28,10 +28,6 @@ from weboob.tools.mech import ClientForm
 from weboob.capabilities.base import UserError, Currency
 
 
-__all__ = ['CitiesPage', 'SearchPage', 'SearchErrorPage', 'SearchInProgressPage',
-           'ResultsPage', 'ForeignPage']
-
-
 class ForeignPage(BasePage):
     def on_loaded(self):
         raise UserError('Your IP address is localized in a country not supported by this module (%s). Currently only the French website is supported.' % self.group_dict['country'])

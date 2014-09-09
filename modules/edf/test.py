@@ -21,9 +21,6 @@
 from weboob.tools.test import BackendTest
 
 
-__all__ = ['EdfTest']
-
-
 class EdfTest(BackendTest):
     BACKEND = 'edf'
 

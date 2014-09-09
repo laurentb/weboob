@@ -26,9 +26,6 @@ from weboob.capabilities import NotAvailable
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['IndexPage', 'TrackPage']
-
-
 class IndexPage(BasePage):
     def track_package(self, _id):
         self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'suivreEnvoi')

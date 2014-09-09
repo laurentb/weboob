@@ -27,9 +27,6 @@ from weboob.tools.browser import BasePage, BrokenPageError
 from .video import TricTracTVVideo
 
 
-__all__ = ['IndexPage', 'VideoPage']
-
-
 class IndexPage(BasePage):
     def iter_videos(self):
         for div in self.parser.select(self.document.getroot(), 'li#contentsearch'):

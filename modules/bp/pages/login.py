@@ -26,8 +26,6 @@ import lxml.etree as etree
 from weboob.tools.browser import BasePage, BrowserUnavailable
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard
 
-__all__ = ['LoginPage', 'BadLoginPage', 'AccountDesactivate', 'Initident', 'CheckPassword', 'repositionnerCheminCourant', 'UnavailablePage']
-
 
 def md5(f):
     md5 = hashlib.md5()

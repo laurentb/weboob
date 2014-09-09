@@ -25,8 +25,6 @@ from weboob.capabilities.base import NotAvailable
 import re
 from dateutil.parser import parse as parse_dt
 
-__all__ = ['GDCVaultVideo']
-
 
 class GDCVaultVideo(BaseVideo):
     def __init__(self, *args, **kwargs):

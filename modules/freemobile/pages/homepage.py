@@ -23,8 +23,6 @@ from weboob.tools.browser2.page import method
 from weboob.tools.browser2.elements import ListElement, ItemElement
 from weboob.tools.browser2.filters import CleanText, Attr, Field, Format, Filter
 
-__all__ = ['HomePage']
-
 
 class GetID(Filter):
     def filter(self, txt):

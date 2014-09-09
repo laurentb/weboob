@@ -25,9 +25,6 @@ from weboob.tools.browser import BasePage
 from weboob.capabilities.bill import Detail
 
 
-__all__ = ['HistoryPage', 'DetailsPage', 'BillsPage']
-
-
 class DetailsPage(BasePage):
 
     def on_loaded(self):

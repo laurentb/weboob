@@ -20,8 +20,6 @@
 
 from weboob.tools.test import BackendTest
 
-__all__ = ['LaCentraleTest']
-
 
 class LaCentraleTest(BackendTest):
     BACKEND = 'lacentrale'

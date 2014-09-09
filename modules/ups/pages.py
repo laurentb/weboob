@@ -25,9 +25,6 @@ from weboob.capabilities.parcel import Parcel, Event
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['TrackPage']
-
-
 class TrackPage(BasePage):
     def get_info(self, id):
         if len(self.parser.tocleanstring(self.document.xpath('//p[@class="error"]')[0])) > 0:

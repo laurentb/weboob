@@ -32,9 +32,6 @@ from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['LoginPage', 'ErrorPage', 'IndexPage', 'UnavailablePage']
-
-
 class _LogoutPage(BasePage):
     def on_loaded(self):
         try:
@@ -243,8 +240,6 @@ class IndexPage(BasePage):
         except ControlNotFoundError:
             pass
         self.browser.submit()
-
-
 
     def go_history(self, info):
         self.browser.select_form(name='main')

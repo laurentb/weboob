@@ -25,8 +25,6 @@ from weboob.capabilities.weather import Forecast, Current, City
 import datetime
 import re
 
-__all__ = ['WeatherPage']
-
 
 class SearchCitiesPage(BasePage):
     def iter_cities(self):

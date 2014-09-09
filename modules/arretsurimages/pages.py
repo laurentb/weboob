@@ -25,8 +25,6 @@ from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.capabilities import NotAvailable
 
 
-__all__ = ['IndexPage', 'VideoPage', 'ForbiddenVideo', 'LoginPage', 'LoginRedirectPage']
-
 from .video import ArretSurImagesVideo
 
 

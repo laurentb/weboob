@@ -25,9 +25,6 @@ from weboob.tools.browser import BasePage
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['CardHistory']
-
-
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^(ACHAT |PAIEMENT )?CARTE (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (\d{2} )?(?P<text>.*)'),
                                                             FrenchTransaction.TYPE_CARD),

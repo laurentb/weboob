@@ -21,9 +21,6 @@
 from weboob.tools.test import BackendTest
 
 
-__all__ = ['PhpBBTest']
-
-
 class PhpBBTest(BackendTest):
     BACKEND = 'phpbb'
 

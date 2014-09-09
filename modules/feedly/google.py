@@ -22,8 +22,6 @@ from urlparse import urlparse, parse_qs
 from weboob.tools.browser2 import LoginBrowser, URL, HTMLPage
 from weboob.tools.exceptions import BrowserIncorrectPassword
 
-__all__ = ['GoogleBrowser', 'GoogleLoginPage']
-
 
 class GoogleLoginPage(HTMLPage):
     def login(self, login, passwd):

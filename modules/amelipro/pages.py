@@ -26,8 +26,6 @@ from weboob.tools.browser import BasePage
 from weboob.capabilities.bill import Subscription, Detail, Bill
 
 
-__all__ = ['LoginPage', 'HomePage', 'AccountPage', 'HistoryPage', 'BillsPage']
-
 # Ugly array to avoid the use of french locale
 FRENCH_MONTHS = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
 

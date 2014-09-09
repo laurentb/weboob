@@ -21,9 +21,6 @@
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['TranslatePage']
-
-
 class TranslatePage(BasePage):
     def get_translation(self):
         boxes = self.parser.select(self.document.getroot(), 'span#result_box', 1).findall('span')

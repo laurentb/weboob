@@ -22,7 +22,6 @@ from weboob.tools.browser import BasePage
 import re
 
 
-__all__ = ['TranslatePage']
 LAST_THING_IN_PARENTHESIS = re.compile("\([^)]\)$")
 
 

@@ -20,7 +20,6 @@
 
 from weboob.capabilities.video import BaseVideo
 
-__all__ = ['NolifeTVVideo']
 
 class NolifeTVVideo(BaseVideo):
     def __init__(self, *args, **kwargs):

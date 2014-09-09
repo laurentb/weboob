@@ -26,9 +26,6 @@ from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 
 
-__all__ = ['HomePage', 'LoginPage', 'LoginErrorPage', 'AccountsPage', 'TransactionsPage', 'UselessPage']
-
-
 class HomePage(BasePage):
     def get_post_url(self):
         for script in self.document.xpath('//script'):
@@ -178,7 +175,6 @@ class CardsPage(BasePage):
                 account._link = self.url
 
             yield account
-
 
     def get_history(self, date_guesser):
         seen = set()

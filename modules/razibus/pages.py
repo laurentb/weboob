@@ -25,8 +25,6 @@ from weboob.tools.browser2.page import HTMLPage, method
 from weboob.tools.browser2.elements import ItemElement, ListElement
 from weboob.tools.browser2.filters import Regexp, Link, CleanText, DateTime, CombineDate, Filter, Env, CleanHTML
 
-__all__ = ['EventListPage', 'EventPage']
-
 
 class EndTime(Filter):
     def filter(self, el):

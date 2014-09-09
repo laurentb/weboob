@@ -24,8 +24,6 @@ from weboob.tools.browser2.elements import ListElement, ItemElement
 from weboob.tools.browser2.filters import Filter, CleanText, Regexp, Format, Env, CleanHTML, Attr
 from weboob.capabilities.job import BaseJobAdvert
 
-__all__ = ['SearchPage', 'AdvertPage']
-
 
 class IndeedDate(Filter):
     def filter(self, date):

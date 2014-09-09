@@ -22,9 +22,6 @@ from weboob.tools.test import BackendTest
 from weboob.tools.browser import BrowserUnavailable
 
 
-__all__ = ['AuMTest']
-
-
 class AuMTest(BackendTest):
     BACKEND = 'aum'
 

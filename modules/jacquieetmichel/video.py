@@ -21,9 +21,6 @@
 from weboob.capabilities.video import BaseVideo
 
 
-__all__ = ['JacquieEtMichelVideo']
-
-
 class JacquieEtMichelVideo(BaseVideo):
     def __init__(self, *args, **kwargs):
         BaseVideo.__init__(self, *args, **kwargs)

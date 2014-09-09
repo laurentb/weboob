@@ -30,9 +30,6 @@ from weboob.tools.browser import BasePage
 from weboob.capabilities.bill import Detail, Bill
 
 
-__all__ = ['HistoryPage', 'PdfPage']
-
-
 def _get_date(detail):
     return detail.datetime
 

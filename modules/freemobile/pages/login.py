@@ -24,8 +24,6 @@ from PIL import Image
 
 from weboob.tools.browser2.page import HTMLPage
 
-__all__ = ['LoginPage']
-
 
 class FreeKeyboard(object):
     symbols = {'0': '001111111111110011111111111111111111111111111110000000000011110000000000011111111111111111011111111111111001111111111110',

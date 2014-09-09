@@ -27,9 +27,6 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.ordereddict import OrderedDict
 
 
-__all__ = ['AccountList']
-
-
 class AccountList(BasePage):
     def on_loaded(self):
         self.accounts = OrderedDict()

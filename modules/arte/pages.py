@@ -25,8 +25,6 @@ from weboob.capabilities.image import BaseImage
 from weboob.capabilities.collection import Collection
 from .video import ArteLiveVideo
 
-__all__ = ['ArteLivePage', 'ArteLiveVideoPage']
-
 
 class ArteLiveVideoPage(BasePage):
     def get_video(self, video=None):

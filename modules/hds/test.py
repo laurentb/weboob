@@ -22,9 +22,6 @@ from weboob.tools.test import BackendTest
 from weboob.tools.misc import limit
 
 
-__all__ = ['HDSTest']
-
-
 class HDSTest(BackendTest):
     BACKEND = 'hds'
 

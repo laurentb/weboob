@@ -28,9 +28,6 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
 
 
-__all__ = ['LoginPage', 'AccountsPage', 'TransactionsPage', 'CBTransactionsPage', 'UnavailablePage']
-
-
 class BasePage(_BasePage):
     def get_view_state(self):
         return self.document.xpath('//input[@name="javax.faces.ViewState"]')[0].attrib['value']

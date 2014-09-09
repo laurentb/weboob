@@ -23,8 +23,6 @@ from weboob.tools.exceptions import BrowserIncorrectPassword
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard
 from weboob.tools.browser2.page import HTMLPage
 
-__all__ = ['LoginPage', 'INGVirtKeyboard', 'StopPage']
-
 
 class INGVirtKeyboard(VirtKeyboard):
     symbols = {'0': '327208d491507341908cf6920f26b586',

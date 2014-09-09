@@ -27,9 +27,6 @@ from weboob.tools.browser2.elements import ItemElement, ListElement
 from weboob.tools.browser2.filters import Filter, Link, CleanText, Regexp, Attr, Format, DateTime, Env, Dict, Duration, XPath
 
 
-__all__ = ['IndexPage', 'VideoPage']
-
-
 class DurationPluzz(Filter):
     def filter(self, el):
         duration = Regexp(CleanText('.'), r'.+\|(.+)')(el[0])

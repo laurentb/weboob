@@ -22,9 +22,6 @@
 from weboob.tools.test import BackendTest
 
 
-__all__ = ['GdfSuezTest']
-
-
 class GdfSuezTest(BackendTest):
     BACKEND = 'gdfsuez'
 

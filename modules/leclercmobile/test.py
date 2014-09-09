@@ -21,9 +21,6 @@
 from weboob.tools.test import BackendTest
 
 
-__all__ = ['LeclercMobileTest']
-
-
 class LeclercMobileTest(BackendTest):
     BACKEND = 'leclercmobile'
 

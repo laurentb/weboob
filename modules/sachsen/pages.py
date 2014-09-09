@@ -25,8 +25,6 @@ from weboob.capabilities.base import NotAvailable, NotLoaded
 
 import re
 
-__all__ = ['ListPage', 'HistoryPage']
-
 
 class ListPage(HTMLPage):
 

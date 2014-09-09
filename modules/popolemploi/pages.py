@@ -25,9 +25,6 @@ import re
 from .job import PopolemploiJobAdvert
 
 
-__all__ = ['SearchPage', 'AdvertPage']
-
-
 class SearchPage(BasePage):
     def iter_job_adverts(self):
         rows = self.document.getroot().xpath('//table[@class="definition-table ordered"]/tbody/tr')

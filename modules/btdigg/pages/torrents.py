@@ -9,9 +9,6 @@ from weboob.capabilities.torrent import Torrent, MagnetOnly
 from weboob.capabilities.base import NotAvailable
 
 
-__all__ = ['TorrentsPage', 'TorrentPage']
-
-
 class TorrentsPage(BasePage):
 
     def iter_torrents(self):
@@ -73,7 +70,6 @@ class TorrentPage(BasePage):
         valueago, valueunit, _ = trs[6].cssselect('td')[1].text.split()
         delta = timedelta(**{valueunit: float(valueago)})
         date = datetime.now() - delta
-
 
         files = []
         for tr in trs[15:]:

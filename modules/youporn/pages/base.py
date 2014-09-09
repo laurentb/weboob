@@ -24,9 +24,6 @@ from mechanize import FormNotFoundError
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['PornPage']
-
-
 class PornPage(BasePage):
     def on_loaded(self):
         try:

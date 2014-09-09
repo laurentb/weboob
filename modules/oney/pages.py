@@ -30,7 +30,6 @@ from weboob.tools.browser2.elements import ListElement, ItemElement
 from weboob.tools.browser2.filters import Env, CleanDecimal
 from weboob.tools.exceptions import ParseError
 
-__all__ = ['LoginPage', 'IndexPage', 'OperationsPage']
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(ur'^(?P<text>Retrait .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_WITHDRAWAL),
@@ -152,7 +151,6 @@ class OperationsPage(LoggedPage, HTMLPage):
             def condition(self):
                 self.env['amount'] = Transaction.Amount('./td[3]')(self.el)
                 return self.env['amount'] > 0
-
 
         class debit(ItemElement):
             klass = Transaction

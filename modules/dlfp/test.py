@@ -24,9 +24,6 @@ from weboob.tools.test import BackendTest
 from .browser import DLFP
 
 
-__all__ = ['DLFPTest']
-
-
 class DLFPTest(BackendTest):
     BACKEND = 'dlfp'
 

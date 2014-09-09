@@ -22,9 +22,6 @@ from weboob.capabilities.housing import Query
 from weboob.tools.test import BackendTest
 
 
-__all__ = ['PapTest']
-
-
 class PapTest(BackendTest):
     BACKEND = 'pap'
 

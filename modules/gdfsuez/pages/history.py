@@ -30,8 +30,6 @@ from weboob.tools.browser import BasePage
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bill import Detail, Bill
 
-__all__ = ['HistoryPage', 'PdfPage']
-
 
 class HistoryPage(BasePage):
 

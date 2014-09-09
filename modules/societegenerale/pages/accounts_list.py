@@ -33,9 +33,6 @@ from weboob.tools.browser import BrokenPageError
 from .base import BasePage
 
 
-__all__ = ['AccountsList', 'CardsList', 'AccountHistory']
-
-
 class AccountsList(BasePage):
     LINKID_REGEXP = re.compile(".*ch4=(\w+).*")
 
@@ -52,7 +49,6 @@ class AccountsList(BasePage):
              u'Plan Epargne':        Account.TYPE_SAVINGS,
              u'Prêt':                Account.TYPE_LOAN,
             }
-
 
     def get_list(self):
         for tr in self.document.getiterator('tr'):

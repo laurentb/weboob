@@ -27,8 +27,6 @@ from weboob.capabilities.image import BaseImage
 
 from .video import CanalplusVideo
 
-__all__ = ['ChannelsPage', 'VideoPage']
-
 
 class ChannelsPage(BasePage):
     def get_channels(self):

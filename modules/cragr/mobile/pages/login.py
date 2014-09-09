@@ -24,9 +24,6 @@ ControlNotFoundError = ClientForm.ControlNotFoundError
 from .base import CragrBasePage
 
 
-__all__ = ['LoginPage']
-
-
 class LoginPage(CragrBasePage):
     def login(self, login, password):
         self.browser.select_form(nr=0)

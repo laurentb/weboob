@@ -21,9 +21,6 @@
 from weboob.tools.test import BackendTest
 
 
-__all__ = ['WordReferenceTest']
-
-
 class WordReferenceTest(BackendTest):
     BACKEND = 'wordreference'
 

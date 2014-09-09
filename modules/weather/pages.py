@@ -24,9 +24,6 @@ from weboob.capabilities.weather import Forecast, Current, City
 import datetime
 
 
-__all__ = ['CityPage', 'WeatherPage', 'ForecastPage']
-
-
 class CityPage(BasePage):
     def iter_city_search(self):
         for item in self.document.findall('//div[@class="searchResultsList"]/ul/li'):

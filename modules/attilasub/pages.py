@@ -23,9 +23,6 @@ from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['SubtitlesPage', 'SearchPage']
-
-
 class SearchPage(BasePage):
     def iter_subtitles(self, language, pattern):
         fontresult = self.parser.select(self.document.getroot(), 'div.search-results font.search-results')

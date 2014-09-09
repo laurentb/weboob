@@ -23,8 +23,6 @@ from weboob.tools.browser import BasePage
 from datetime import date
 from decimal import Decimal
 
-__all__ = ['HomePage']
-
 
 class HomePage(BasePage):
     def on_loaded(self):

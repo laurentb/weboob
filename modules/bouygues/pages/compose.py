@@ -24,9 +24,6 @@ from weboob.capabilities.messages import CantSendMessage
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['ComposeFrame', 'ComposePage', 'ConfirmPage', 'SentPage']
-
-
 class ComposeFrame(BasePage):
     phone_regex = re.compile('^(\+33|0033|0)(6|7)(\d{8})$')
 

@@ -32,9 +32,6 @@ from weboob.tools.browser import BrokenPageError
 from .video import EuroparlVideo
 
 
-__all__ = ['VideoPage']
-
-
 class VideoPage(BasePage):
     def get_video(self, video=None):
         if video is None:

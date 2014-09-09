@@ -26,8 +26,6 @@ from weboob.tools.browser2.elements import ListElement, ItemElement
 from weboob.tools.browser2.filters import CleanDecimal, CleanText, Date
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
-__all__ = ['TitrePage']
-
 
 class Transaction(FrenchTransaction):
     pass

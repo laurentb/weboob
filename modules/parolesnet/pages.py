@@ -23,9 +23,6 @@ from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['ResultsPage', 'SonglyricsPage', 'ArtistSongsPage', 'HomePage']
-
-
 class HomePage(BasePage):
     def iter_lyrics(self, criteria, pattern):
         self.browser.select_form(nr=0)

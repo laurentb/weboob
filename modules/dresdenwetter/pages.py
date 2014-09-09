@@ -24,9 +24,6 @@ from weboob.capabilities.gauge import GaugeMeasure, GaugeSensor
 from weboob.capabilities.base import NotAvailable
 
 
-__all__ = ['StartPage']
-
-
 class Split(Filter):
     def __init__(self, selector, mode):
         super(Split, self).__init__(selector)

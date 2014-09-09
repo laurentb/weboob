@@ -27,9 +27,6 @@ from weboob.tools.browser2.elements import ItemElement, ListElement
 from weboob.tools.browser2.filters import Filter, Link, CleanText, Regexp, Attr, Join, Format
 
 
-__all__ = ['AjaxPage', 'EventPage', 'JsonResumePage']
-
-
 class Channel(Filter):
 
     CHANNELS_PARAM = {

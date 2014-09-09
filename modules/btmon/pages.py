@@ -26,9 +26,6 @@ from weboob.tools.browser import BasePage
 from weboob.tools.misc import get_bytes_size
 
 
-__all__ = ['TorrentsPage','TorrentPage']
-
-
 class TorrentsPage(BasePage):
     def iter_torrents(self):
         for div in self.parser.select(self.document.getroot(),'div.list_tor'):

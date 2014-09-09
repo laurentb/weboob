@@ -21,9 +21,6 @@
 from weboob.tools.test import BackendTest
 
 
-__all__ = ['Minutes20Test']
-
-
 class Minutes20Test(BackendTest):
     BACKEND = 'minutes20'
 

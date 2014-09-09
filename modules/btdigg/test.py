@@ -5,7 +5,6 @@ from weboob.capabilities.torrent import MagnetOnly
 
 from random import choice
 
-__all__ = ['BTDiggTest']
 
 class BTDiggTest(BackendTest):
     BACKEND = 'btdigg'

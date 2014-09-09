@@ -27,8 +27,6 @@ from weboob.capabilities.base import NotLoaded
 import datetime
 import re
 
-__all__ = ['InfoStationPage', 'ListStationsPage']
-
 
 class LastDateFilter(Filter):
     def filter(self, last_update):

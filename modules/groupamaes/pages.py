@@ -24,8 +24,6 @@ from weboob.tools.browser2.filters import CleanText, CleanDecimal, TableCell, Da
 from weboob.capabilities.bank import Account, Transaction
 from weboob.tools.date import LinearDateGuesser
 
-__all__ = ['LoginPage', 'LoginErrorPage', 'AvoirPage', 'OperationsFuturesPage', 'OperationsTraiteesPage']
-
 
 class LoginPage(HTMLPage):
     def login(self, login, passwd):

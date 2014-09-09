@@ -32,9 +32,6 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.exceptions import ParseError
 
 
-__all__ = ['LoginPage', 'IndexPage', 'AccountsPage', 'OperationsPage']
-
-
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(ur'^(?P<text>.*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_CARD)]
 
@@ -191,7 +188,6 @@ class OperationsPage(LoggedPage, HTMLPage):
             def condition(self):
                 self.env['amount'] = Transaction.Amount('./td[4]')(self.el)
                 return self.env['amount'] > 0
-
 
         class debit(ItemElement):
             klass = Transaction

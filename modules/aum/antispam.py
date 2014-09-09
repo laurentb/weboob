@@ -20,9 +20,6 @@
 import re
 
 
-__all__ = ['AntiSpam']
-
-
 class AntiSpam(object):
     def check_thread(self, thread):
         resume = thread['title']

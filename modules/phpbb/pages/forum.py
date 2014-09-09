@@ -27,9 +27,6 @@ from .index import PhpBBPage
 from ..tools import parse_date
 
 
-__all__ = ['Link', 'ForumPage', 'TopicPage', 'PostingPage']
-
-
 class Link(object):
     (FORUM,
      TOPIC) = xrange(2)

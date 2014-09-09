@@ -18,8 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-
 import random
 
 from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword
@@ -31,9 +29,6 @@ from weboob.tools.value import Value, ValuesDict, ValueInt
 from aum.captcha import CaptchaError
 from aum.exceptions import AdopteWait, AdopteBanned
 from aum.browser import AuMBrowser
-
-
-__all__ = ['PriorityConnection']
 
 
 class PriorityConnection(Optimization):

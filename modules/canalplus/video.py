@@ -21,9 +21,6 @@
 from weboob.capabilities.video import BaseVideo
 
 
-__all__ = ['CanalplusVideo']
-
-
 class CanalplusVideo(BaseVideo):
     swf_player = False
 

@@ -21,8 +21,6 @@ import StringIO
 from weboob.tools.browser import BasePage
 from weboob.tools.mech import ClientForm
 
-__all__ = ['LoginPage']
-
 
 class LoginPage(BasePage):
     def on_loaded(self):

@@ -22,8 +22,6 @@ from datetime import date
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bill import Subscription
 
-__all__ = ['LoginPage', 'HomePage', 'AccountPage', 'TimeoutPage']
-
 
 class LoginPage(BasePage):
 

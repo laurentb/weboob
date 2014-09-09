@@ -24,9 +24,6 @@ from weboob.tools.browser2.filters import CleanText, CleanDecimal, Field, Attr, 
 from weboob.capabilities.bill import Subscription, Detail
 
 
-__all__ = ['LoginPage', 'HomePage', 'HistoryPage', 'BillsPage', 'ErrorPage']
-
-
 class ErrorPage(HTMLPage):
     pass
 

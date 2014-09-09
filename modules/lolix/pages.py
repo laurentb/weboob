@@ -24,8 +24,6 @@ import re
 
 from .job import LolixJobAdvert
 
-__all__ = ['SearchPage', 'AdvertPage']
-
 
 class AdvertPage(BasePage):
     def get_job_advert(self, url, advert):

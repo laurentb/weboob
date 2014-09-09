@@ -31,9 +31,6 @@ from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardEr
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['SkipPage', 'LoginPage', 'AccountsPage', 'AccountHistoryPage', 'ContractsPage']
-
-
 class LCLVirtKeyboard(MappedVirtKeyboard):
     symbols={'0': '9da2724133f2221482013151735f033c',
              '1': '873ab0087447610841ae1332221be37b',

@@ -25,9 +25,6 @@ from datetime import datetime
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['BoardPage']
-
-
 class Message(object):
     def __init__(self, browser, board, id, filename=u'', url=u''):
         self.id = id

@@ -23,8 +23,6 @@ from weboob.tools.browser2.elements import ListElement, ItemElement
 from weboob.tools.browser2.filters import CleanText, CleanDecimal, Attr, Format
 from .login import INGVirtKeyboard
 
-__all__ = ['TransferPage']
-
 
 class TransferPage(LoggedPage, HTMLPage):
 

@@ -21,9 +21,6 @@ from weboob.capabilities.bill import Subscription
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['HomePage']
-
-
 class HomePage(BasePage):
     def on_loaded(self):
         pass

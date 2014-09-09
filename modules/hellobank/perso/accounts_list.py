@@ -26,9 +26,6 @@ from weboob.tools.browser import BasePage, BrowserPasswordExpired
 from weboob.tools.json import json
 
 
-__all__ = ['AccountsList', 'AccountPrelevement']
-
-
 class AccountsList(BasePage):
     ACCOUNT_TYPES = {
         1: Account.TYPE_CHECKING,
@@ -85,7 +82,6 @@ class AccountsList(BasePage):
         Get the link to the messages page, which seems to have an identifier in it.
         """
         return self.document.xpath('//a[@title="Messagerie"]')[0].attrib['href']
-
 
 
 class AccountPrelevement(AccountsList):

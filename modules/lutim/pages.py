@@ -21,8 +21,6 @@
 from weboob.tools.browser import BasePage
 import re
 
-__all__ = ['PageAll']
-
 
 class PageAll(BasePage):
     def post(self, name, content, max_days):

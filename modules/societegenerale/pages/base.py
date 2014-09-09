@@ -21,9 +21,6 @@
 from weboob.tools.browser import BasePage as _BasePage
 
 
-__all__ = ['BasePage']
-
-
 class BasePage(_BasePage):
     def get_error(self):
         try:

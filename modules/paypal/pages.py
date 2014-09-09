@@ -30,7 +30,6 @@ from weboob.tools.date import parse_french_date
 from weboob.capabilities.bank import Account, Transaction
 from weboob.tools.capabilities.bank.transactions import AmericanTransaction
 
-__all__ = ['LoginPage', 'AccountPage', 'LastDownloadHistoryPage']
 
 class CSVAlreadyAsked(Exception):
     pass

@@ -25,8 +25,6 @@ import urllib
 from weboob.tools.browser import BasePage, BrowserUnavailable
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
 
-__all__ = ['LoginPage', 'ConfirmPage', 'ChangePasswordPage']
-
 
 class BNPVirtKeyboard(VirtKeyboard):
     symbols={'0': '9cc4789a2cb223e8f2d5e676e90264b5',

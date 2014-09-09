@@ -24,8 +24,6 @@ from weboob.tools.browser import BasePage
 
 import string
 
-__all__ = ['RecipePage', 'ResultsPage']
-
 
 class ResultsPage(BasePage):
     """ Page which contains results as a list of recipies

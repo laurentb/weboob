@@ -23,9 +23,6 @@ from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['SubtitlePage', 'SearchPage']
-
-
 LANGUAGE_NUMBERS = {
     'sq': '29',
     'de': '5',

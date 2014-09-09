@@ -39,8 +39,6 @@ from .video import GDCVaultVideo
 
 # TODO: check title on 1439
 
-__all__ = ['IndexPage', 'SearchPage', 'VideoPage']
-
 
 class IndexPage(BasePage):
     def iter_videos(self):
@@ -72,7 +70,6 @@ class IndexPage(BasePage):
                 video.thumbnail.url = video.thumbnail.id
             else:
                 video.thumbnail = NotAvailable
-
 
             #m = re.match('id-(\d+)', a.attrib.get('class', ''))
             #if not m:
@@ -115,7 +112,6 @@ class VideoPage(BasePage):
             except UnicodeDecodeError as e:
                 title = None
 
-
         if title is None:
             obj = self.parser.select(self.document.getroot(), 'meta[name=title]')
             if len(obj) > 0:
@@ -127,7 +123,6 @@ class VideoPage(BasePage):
                     except UnicodeDecodeError as e:
                         # XXX: this doesn't even works!?
                         title = obj[0].attrib['content'].decode('iso-5589-15')
-
 
         if title is not None:
             title = title.strip()
@@ -168,7 +163,6 @@ class VideoPage(BasePage):
                         # headers = req.info()
                         # if headers.get('Content-Type', '') == 'text/html' and headers.get('Content-Length', '') == '2':
                         # print 'BUG'
-
 
                         #print req.code
                     except HTTPError as e:

@@ -26,9 +26,6 @@ from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import Housing, HousingPhoto
 
 
-__all__ = ['SearchResultsPage', 'HousingPage']
-
-
 class SearchResultsPage(BasePage):
     def next_page_url(self):
         urls = self.document.getroot().xpath('//pagesuivante')

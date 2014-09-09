@@ -26,9 +26,6 @@ from weboob.tools.browser import BasePage, BrowserUnavailable
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
 
 
-__all__ = ['LoginPage', 'ConfirmPage', 'InfoMessagePage']
-
-
 class HelloBankVirtKeyboard(VirtKeyboard):
     symbols = {'0': '4d1e060efb694ee60e4bd062d800401c',
                '1': '509134b5c09980e282cdd5867815e9e3',

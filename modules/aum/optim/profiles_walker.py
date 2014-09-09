@@ -18,16 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-
 from random import randint
 
 from weboob.tools.browser import BrowserUnavailable
 from weboob.capabilities.dating import Optimization
 from weboob.tools.log import getLogger
-
-
-__all__ = ['ProfilesWalker']
 
 
 class ProfilesWalker(Optimization):

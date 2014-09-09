@@ -22,8 +22,6 @@ from weboob.capabilities.radio import Radio
 from weboob.capabilities.audiostream import BaseAudioStream
 from weboob.tools.capabilities.streaminfo import StreamInfo
 
-__all__ = ['LivePage', 'ProgramPage']
-
 
 class LivePage(BasePage):
     def iter_radios_list(self):

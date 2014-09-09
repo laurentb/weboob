@@ -27,9 +27,6 @@ from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import Housing
 
 
-__all__ = ['SearchResultsPage', 'HousingPage']
-
-
 class SearchResultsPage(BasePage):
     DATE_RE = re.compile('Annonce \w+ du (.*)')
     MONTHS = {u'janvier':   'january',

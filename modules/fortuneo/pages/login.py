@@ -23,9 +23,6 @@
 from weboob.tools.browser import BasePage, BrowserUnavailable
 
 
-__all__ = ['LoginPage']
-
-
 class LoginPage(BasePage):
     def login(self, login, passwd):
         msgb = self.document.xpath(".//*[@id='message_client']/text()")

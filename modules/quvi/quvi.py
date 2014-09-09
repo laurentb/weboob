@@ -22,9 +22,6 @@ from ctypes import cdll, c_char_p, c_double, c_void_p, byref
 from ctypes.util import find_library
 
 
-__all__ = ['LibQuvi', 'QuviError']
-
-
 class QuviError(Exception):
     pass
 

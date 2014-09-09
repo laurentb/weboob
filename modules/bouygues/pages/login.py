@@ -21,9 +21,6 @@
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['LoginPage', 'LoginSASPage']
-
-
 class LoginPage(BasePage):
     def login(self, login, password):
         self.browser.select_form(name='code')

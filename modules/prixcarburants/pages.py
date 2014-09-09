@@ -25,9 +25,6 @@ from weboob.capabilities import NotAvailable
 from weboob.capabilities.pricecomparison import Product, Shop, Price
 
 
-__all__ = ['IndexPage', 'ComparisonResultsPage', 'ShopInfoPage']
-
-
 class IndexPage(BasePage):
 
     def get_token(self):

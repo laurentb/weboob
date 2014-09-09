@@ -27,9 +27,6 @@ from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['LoginPage', 'AccountsPage', 'TransactionsPage', 'ComingTransactionsPage', 'CardTransactionsPage', 'ITransactionsPage']
-
-
 class LoginPage(BasePage):
     def login(self, login, pin, strong_auth):
         form_nb = 1 if strong_auth else 0

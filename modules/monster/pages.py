@@ -24,8 +24,6 @@ import re
 from datetime import datetime, time, timedelta
 from .job import MonsterJobAdvert
 
-__all__ = ['SearchPage', 'AdvertPage']
-
 
 class SearchPage(BasePage):
     def iter_job_adverts(self):

@@ -24,9 +24,6 @@ from weboob.tools.browser2.page import method, pagination
 from weboob.tools.browser2.elements import ListElement, ItemElement
 
 
-__all__ = ['BillsPage']
-
-
 class FormId(Filter):
     def filter(self, txt):
         formid = txt.split("parameters")[1]

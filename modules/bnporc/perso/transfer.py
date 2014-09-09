@@ -25,9 +25,6 @@ from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.bank import TransferError
 
 
-__all__ = ['TransferPage', 'TransferConfirmPage', 'TransferCompletePage']
-
-
 class Account(object):
     def __init__(self, id, label, send_checkbox, receive_checkbox):
         self.id = id

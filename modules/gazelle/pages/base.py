@@ -21,9 +21,6 @@
 from weboob.tools.browser import BrowserUnavailable, BasePage as _BasePage
 
 
-__all__ = ['BasePage']
-
-
 class BasePage(_BasePage):
     def on_loaded(self):
         errors = []

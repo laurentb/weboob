@@ -23,9 +23,6 @@ from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['RecipePage', 'ResultsPage', 'FourOFourPage']
-
-
 class FourOFourPage(BasePage):
     pass
 

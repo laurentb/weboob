@@ -25,8 +25,6 @@ from weboob.tools.browser2.page import JsonPage, method
 from weboob.tools.browser2.elements import ListElement, ItemElement
 from weboob.tools.browser2.filters import CleanText, Dict, Format, CleanHTML
 
-__all__ = ['TokenPage', 'ContentsPage', 'PreferencesPage']
-
 
 class DictElement(ListElement):
     def find_elements(self):

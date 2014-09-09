@@ -32,9 +32,6 @@ from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['LoginPage', 'LoginResultPage', 'AccountsPage', 'TransactionsPage', 'EmptyPage']
-
-
 class LoginPage(BasePage):
     def login(self, login, passwd):
         self.browser.select_form(name='authen')
@@ -92,7 +89,6 @@ class LoginResultPage(BasePage):
             if tagName is not None:
                 self.browser[tagName] = [value]
             self.browser.submit()
-
 
     def confirm(self):
         self.browser.location('MainAuth?typeDemande=AC', no_login=True)

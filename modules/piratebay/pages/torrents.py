@@ -25,9 +25,6 @@ from weboob.capabilities.base import NotAvailable, NotLoaded
 from html2text import unescape
 
 
-__all__ = ['TorrentsPage']
-
-
 class TorrentsPage(BasePage):
     def unit(self, n, u):
         m = {'B': 1,

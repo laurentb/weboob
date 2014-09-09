@@ -26,8 +26,6 @@ from weboob.capabilities.travel import Station, Departure, RoadStep
 from weboob.tools.browser2.filters import Dict, CleanText, TableCell, Filter, DateTime, Env, Link, Regexp, Duration
 from weboob.tools.date import LinearDateGuesser
 
-__all__ = ['StationsPage', 'DeparturesPage', 'DeparturesPage2', 'HorairesPage', 'RoadMapPage']
-
 
 class DictElement(ListElement):
     def find_elements(self):

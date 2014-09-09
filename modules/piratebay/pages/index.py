@@ -21,9 +21,6 @@
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['IndexPage']
-
-
 class IndexPage(BasePage):
     def is_logged(self):
         return 'id' in self.document.find('body').attrib

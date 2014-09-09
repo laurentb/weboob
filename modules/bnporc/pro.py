@@ -29,9 +29,6 @@ from weboob.tools.browser import BasePage
 from .perso.transactions import Transaction
 
 
-__all__ = ['ProAccountsList', 'ProAccountHistory']
-
-
 class ProAccountsList(BasePage):
     COL_LABEL   = 1
     COL_ID      = 2

@@ -26,9 +26,6 @@ from weboob.tools.browser import BasePage, BrowserIncorrectPassword
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
 
 
-__all__ = ['LoginPage']
-
-
 class VirtKeyboard(MappedVirtKeyboard):
     symbols={'0':'40fdd263e99d7268b49e22e06b73ebf1',
              '1':'0d53ac10dba67d3ec601a086d0881b6f',

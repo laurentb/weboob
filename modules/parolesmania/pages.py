@@ -23,9 +23,6 @@ from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['SongResultsPage', 'SonglyricsPage', 'ArtistResultsPage', 'ArtistSongsPage']
-
-
 class ArtistResultsPage(BasePage):
     def iter_lyrics(self):
         for link in self.parser.select(self.document.getroot(), 'div#albums > h1 a'):

@@ -18,17 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-
 from random import randint
 
 from weboob.tools.browser import BrowserUnavailable
 from weboob.capabilities.dating import Optimization
 from weboob.tools.log import getLogger
 from weboob.tools.value import Value, ValuesDict
-
-
-__all__ = ['ProfilesWalker']
 
 
 class ProfilesWalker(Optimization):
@@ -75,7 +70,6 @@ class ProfilesWalker(Optimization):
 
     def get_config(self):
         return self.config
-
 
     def view_profile(self):
         try:

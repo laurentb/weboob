@@ -24,9 +24,6 @@ import re
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['ValidationPage', 'HomePage', 'HistoryPage', 'StoryPage']
-
-
 class ValidationPage(BasePage):
     pass
 

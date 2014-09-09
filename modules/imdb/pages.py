@@ -26,9 +26,6 @@ from datetime import datetime
 import re
 
 
-__all__ = ['PersonPage', 'MovieCrewPage', 'BiographyPage', 'ReleasePage']
-
-
 class ReleasePage(BasePage):
     ''' Page containing releases of a movie
     '''

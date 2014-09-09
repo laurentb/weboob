@@ -23,9 +23,6 @@ from weboob.capabilities.subtitle import Subtitle
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['HomePage', 'SearchPage', 'SeriePage', 'SeasonPage']
-
-
 class HomePage(BasePage):
     def iter_subtitles(self, language, pattern):
         self.browser.select_form(nr=0)

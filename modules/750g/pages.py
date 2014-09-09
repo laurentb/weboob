@@ -23,9 +23,6 @@ from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['RecipePage', 'ResultsPage']
-
-
 class ResultsPage(BasePage):
     """ Page which contains results as a list of recipies
     """

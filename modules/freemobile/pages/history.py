@@ -31,9 +31,6 @@ from weboob.tools.browser2.filters import Date, CleanText, Attr, Filter,\
 from weboob.capabilities.bill import Detail, Bill
 
 
-__all__ = ['HistoryPage', 'DetailsPage', 'BadUTF8Page']
-
-
 class FormatDate(Filter):
     def filter(self, txt):
         return datetime.strptime(txt, "%Y%m%d").date()

@@ -22,9 +22,6 @@ from weboob.tools.browser import BasePage
 import re
 
 
-__all__ = ['PageHome', 'PageImage', 'PageError']
-
-
 class PageHome(BasePage):
     pass
 

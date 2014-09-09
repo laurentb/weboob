@@ -29,8 +29,6 @@ import itertools
 import re
 import datetime
 
-__all__ = ['LoginPage', 'LoggedInPage', 'SummaryPage']
-
 
 def form_with_control(control_name):
     """

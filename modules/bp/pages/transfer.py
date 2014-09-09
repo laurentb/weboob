@@ -25,9 +25,6 @@ from weboob.tools.browser import BasePage
 from weboob.tools.misc import to_unicode
 
 
-__all__ = ['TransferChooseAccounts', 'CompleteTransfer', 'TransferConfirm', 'TransferSummary']
-
-
 class TransferChooseAccounts(BasePage):
     def set_accouts(self, from_account, to_account):
         self.browser.select_form(name="AiguillageForm")

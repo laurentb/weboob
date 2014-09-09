@@ -24,9 +24,6 @@ import re
 from urlparse import urljoin
 
 
-__all__ = ['PageCity', 'PageConcert', 'PageCityList', 'PageDate', 'PageDates']
-
-
 class PageWithConcerts(BasePage):
     def extract_concert(self, concert_table):
         d = {}

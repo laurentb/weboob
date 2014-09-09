@@ -27,8 +27,6 @@ from weboob.tools.browser2.filters import Attr, Regexp, Link, Env, CleanText, Da
 
 import re
 
-__all__ = ['VideoPage', 'SearchPage', 'VideoJsonPage']
-
 
 class VimeoDuration(Duration):
     regexp = re.compile(r'(?P<hh>\d+)H(?P<mm>\d+)M(?P<ss>\d+)S')

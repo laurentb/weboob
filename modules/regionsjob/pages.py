@@ -23,8 +23,6 @@ from weboob.tools.browser2.filters import Link, CleanText, Regexp, Format, Env, 
 from weboob.tools.date import LinearDateGuesser
 from weboob.capabilities.job import BaseJobAdvert
 
-__all__ = ['SearchPage']
-
 
 class SearchPage(HTMLPage):
     @method

@@ -30,9 +30,6 @@ from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['LoginPage', 'AccountsPage', 'TransactionsPage']
-
-
 class LoginPage(BasePage):
     pass
 

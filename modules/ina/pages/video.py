@@ -27,8 +27,6 @@ from weboob.tools.browser import BasePage
 
 from ..video import InaVideo
 
-__all__ = ['VideoPage']
-
 
 class VideoPage(BasePage):
     URL_REGEXP = re.compile('http://player.ina.fr/notices/(.+)\.mrss')
@@ -68,7 +66,6 @@ class VideoPage(BasePage):
                                    1,
                                    method='xpath').text
         video.date = datetime.strptime(_date[:-6], '%a, %d %b %Y %H:%M:%S')
-
 
         video.description = u'%s' % self.parser.select(self.document.getroot(),
                                                        '//rss/channel/item/description',

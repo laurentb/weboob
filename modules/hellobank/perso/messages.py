@@ -28,8 +28,6 @@ from datetime import datetime
 
 from lxml.html import make_links_absolute
 
-__all__ = ['MessagesPage', 'MessagePage']
-
 
 class MessagesPage(BasePage):
     def iter_threads(self):

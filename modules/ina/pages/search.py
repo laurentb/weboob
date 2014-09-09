@@ -27,9 +27,6 @@ from weboob.capabilities.image import BaseImage
 from ..video import InaVideo
 
 
-__all__ = ['SearchPage']
-
-
 class SearchPage(BasePage):
     URL_REGEXP = re.compile(r'/(.+)/(.+)\.jpeg')
 

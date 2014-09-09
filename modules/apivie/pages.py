@@ -25,9 +25,6 @@ from weboob.tools.browser import BasePage
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['LoginPage', 'AccountsPage', 'OperationsPage']
-
-
 class LoginPage(BasePage):
     def login(self, username, password):
         self.browser.select_form(nr=0)
@@ -76,7 +73,6 @@ class OperationsPage(BasePage):
             date = self.parser.tocleanstring(tds[self.COL_DATE])
             label = self.parser.tocleanstring(tds[self.COL_LABEL])
             amount = self.parser.tocleanstring(tds[self.COL_AMOUNT])
-
 
             if len(amount) == 0:
                 continue

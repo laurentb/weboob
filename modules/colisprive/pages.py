@@ -22,8 +22,6 @@ from weboob.tools.browser import BasePage
 from weboob.capabilities.parcel import Parcel, Event
 
 
-__all__ = ['TrackPage', 'ErrorPage']
-
 def update_status(p, status):
     if p.status < status:
         p.status = status

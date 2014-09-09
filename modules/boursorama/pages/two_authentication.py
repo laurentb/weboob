@@ -23,9 +23,6 @@ import urllib2
 import re
 
 
-__all__ = ['AuthenticationPage']
-
-
 class BrowserAuthenticationCodeMaxLimit(BrowserIncorrectPassword):
     pass
 

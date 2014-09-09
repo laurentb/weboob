@@ -25,9 +25,6 @@ from weboob.tools.browser import BasePage
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 
 
-__all__ = ['SubtitlesPage', 'SubtitlePage', 'SearchPage']
-
-
 class SearchPage(BasePage):
     """ Page which contains results as a list of movies
     """

@@ -28,9 +28,6 @@ from weboob.tools.browser2.page import HTMLPage, method
 from weboob.tools.browser2.filters import Filter, Link, CleanText, Env, Regexp, CombineDate, CleanHTML
 
 
-__all__ = ['ProgramPage', 'EventPage']
-
-
 class BiplanPrice(Filter):
     def filter(self, el):
         index = 1 if len(el) > 1 else 0

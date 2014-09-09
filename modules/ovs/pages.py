@@ -29,8 +29,6 @@ from weboob.tools.date import parse_french_date
 
 import ovsparse
 
-__all__ = ['PagePrivateThreadsList', 'PagePrivateThread', 'PageLogin', 'PageIndex', 'DummyPage', 'PagePostMessage', 'PageUserProfile', 'PageCityList']
-
 
 class OvsPage(BasePage):
     def is_logged(self):

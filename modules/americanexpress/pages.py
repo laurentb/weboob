@@ -29,9 +29,6 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Tra
 from weboob.tools.date import ChaoticDateGuesser
 
 
-__all__ = ['LoginPage', 'AccountsPage', 'TransactionsPage']
-
-
 class LoginPage(BasePage):
     def login(self, username, password):
         self.browser.select_form(name='ssoform')
@@ -41,7 +38,6 @@ class LoginPage(BasePage):
         self.browser['Password'] = password.encode(self.browser.ENCODING)
         self.browser['PWD'] = password.encode(self.browser.ENCODING)
         self.browser.submit(nologin=True)
-
 
 
 class AccountsPage(BasePage):
@@ -66,7 +62,6 @@ class TransactionsPage(BasePage):
     COL_DEBIT_DATE = 2
     COL_LABEL = 3
     COL_VALUE = -1
-
 
     def is_last(self):
         current = False

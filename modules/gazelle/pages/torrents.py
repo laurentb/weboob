@@ -31,9 +31,6 @@ from weboob.capabilities.base import NotLoaded
 from .base import BasePage
 
 
-__all__ = ['TorrentsPage']
-
-
 class TorrentsPage(BasePage):
     TORRENTID_REGEXP = re.compile('torrents\.php\?action=download&id=(\d+)')
 

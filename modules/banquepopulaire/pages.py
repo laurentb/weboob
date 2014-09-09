@@ -29,9 +29,6 @@ from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['LoginPage', 'IndexPage', 'AccountsPage', 'CardsPage', 'TransactionsPage', 'UnavailablePage', 'RedirectPage']
-
-
 class WikipediaARC4(object):
     def __init__(self, key=None):
         self.state = range(256)

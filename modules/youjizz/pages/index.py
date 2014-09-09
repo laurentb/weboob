@@ -27,9 +27,6 @@ from weboob.capabilities.image import BaseImage
 from weboob.capabilities.video import BaseVideo
 
 
-__all__ = ['IndexPage']
-
-
 class IndexPage(HTMLPage):
     @pagination
     @method

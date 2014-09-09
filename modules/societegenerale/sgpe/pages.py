@@ -34,9 +34,6 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from ..captcha import Captcha, TileError
 
 
-__all__ = ['LoginPage', 'AccountsPage', 'CardsPage', 'HistoryPage', 'CardHistoryPage']
-
-
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(r'^CARTE \w+ RETRAIT DAB.* (?P<dd>\d{2})/(?P<mm>\d{2})( (?P<HH>\d+)H(?P<MM>\d+))? (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),

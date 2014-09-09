@@ -28,7 +28,6 @@ from datetime import datetime, timedelta
 
 from .video import NolifeTVVideo
 
-__all__ = ['VideoPage', 'VideoListPage', 'FamilyPage', 'AboPage', 'LoginPage', 'HomePage']
 
 class VideoPage(BasePage):
     def get_video(self, video):

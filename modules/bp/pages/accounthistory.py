@@ -25,9 +25,6 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['AccountHistory', 'CardsList']
-
-
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(u'^(?P<category>CHEQUE)( N)? (?P<text>.*)'),        FrenchTransaction.TYPE_CHECK),
                 (re.compile(r'^(?P<category>ACHAT CB) (?P<text>.*) (?P<dd>\d{2})\.(?P<mm>\d{2}).(?P<yy>\d{2}).*'),

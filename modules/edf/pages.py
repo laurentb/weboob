@@ -25,7 +25,6 @@ from decimal import Decimal
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bill import Subscription, Detail, Bill
 
-__all__ = ['AccountPage', 'BillsPage', 'EdfBasePage', 'FirstRedirectionPage', 'HomePage', 'LastPaymentsPage', 'LastPaymentsPage2', 'LoginPage', 'OtherPage', 'SecondRedirectionPage']
 base_url = "http://particuliers.edf.com/"
 
 class EdfBasePage(BasePage):

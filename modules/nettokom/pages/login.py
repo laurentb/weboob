@@ -20,8 +20,6 @@
 
 from weboob.tools.browser import BasePage
 
-__all__ = ['LoginPage']
-
 
 class LoginPage(BasePage):
     def on_loaded(self):

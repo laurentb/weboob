@@ -28,9 +28,6 @@ from weboob.tools.browser2.elements import ItemElement, SkipItem, ListElement
 from weboob.tools.browser2.filters import Filter, Link, CleanText, Env
 
 
-__all__ = ['ProgramPage', 'EventPage']
-
-
 def format_date(date):
     splitted_date = date.split(',')[1]
     if splitted_date:

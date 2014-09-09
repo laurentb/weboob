@@ -21,9 +21,6 @@
 from weboob.tools.test import BackendTest
 
 
-__all__ = ['AmeliTest']
-
-
 class AmeliTest(BackendTest):
     BACKEND = 'ameli'
 

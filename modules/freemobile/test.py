@@ -21,9 +21,6 @@
 from weboob.tools.test import BackendTest
 
 
-__all__ = ['FreeMobileTest']
-
-
 class FreeMobileTest(BackendTest):
     BACKEND = 'freemobile'
 
