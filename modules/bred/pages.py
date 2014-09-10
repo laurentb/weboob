@@ -34,6 +34,13 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 class LoginPage(BasePage):
     def login(self, login, passwd):
+        try:
+            length = int(self.document.xpath('//input[@id="pass"]')[0].attrib['maxlength'])
+        except (IndexError,KeyError):
+            pass
+        else:
+            passwd = passwd[:length]
+
         self.browser.select_form(name='authen')
         try:
             self.browser['id'] = login.encode(self.browser.ENCODING)
@@ -41,6 +48,7 @@ class LoginPage(BasePage):
         except ControlNotFoundError:
             self.browser.controls.append(ClientForm.TextControl('text', 'id', {'value': login.encode(self.browser.ENCODING)}))
             self.browser.controls.append(ClientForm.TextControl('text', 'pass', {'value': passwd.encode(self.browser.ENCODING)}))
+
         self.browser.submit(nologin=True)
 
 
