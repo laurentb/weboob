@@ -310,15 +310,16 @@ class CleanDecimal(CleanText):
     >>> CleanDecimal('./td[1]', replace_dots=(',', '.'))  # doctest: +SKIP
     """
 
-    def __init__(self, selector=None, replace_dots=False, default=_NO_DEFAULT):
+    def __init__(self, selector=None, replace_dots=False, sign=None, default=_NO_DEFAULT):
         super(CleanDecimal, self).__init__(selector, default=default)
         self.replace_dots = replace_dots
+        self.sign = sign
 
     def filter(self, text):
         if empty(text):
             return self.default_or_raise(ParseError('Unable to parse %r' % text))
 
-        text = super(CleanDecimal, self).filter(text)
+        original_text = text = super(CleanDecimal, self).filter(text)
         if self.replace_dots:
             if type(self.replace_dots) is tuple:
                 thousands_sep, decimal_sep = self.replace_dots
@@ -326,7 +327,10 @@ class CleanDecimal(CleanText):
                 thousands_sep, decimal_sep = '.', ','
             text = text.replace(thousands_sep, '').replace(decimal_sep, '.')
         try:
-            return Decimal(re.sub(r'[^\d\-\.]', '', text))
+            v = Decimal(re.sub(r'[^\d\-\.]', '', text))
+            if self.sign:
+                v *= self.sign(original_text)
+            return v
         except InvalidOperation as e:
             return self.default_or_raise(e)
 
