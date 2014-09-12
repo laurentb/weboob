@@ -38,6 +38,7 @@ from weboob.tools.log import getLogger
 
 from .cookies import WeboobCookieJar
 from .exceptions import HTTPNotFound, ClientError, ServerError
+from .sessions import FuturesSession
 
 
 class Profile(object):
@@ -146,6 +147,11 @@ class BaseBrowser(object):
 
     MAX_RETRIES = 2
 
+    MAX_WORKERS = 10
+    """
+    Maximum of threads for asynchronous requests.
+    """
+
     def __init__(self, logger=None, proxy=None, responses_dirname=None):
         self.logger = getLogger('browser', logger)
         self.PROXIES = proxy
@@ -214,7 +220,7 @@ class BaseBrowser(object):
         """
         Set up a python-requests session for our usage.
         """
-        session = requests.Session()
+        session = FuturesSession(max_workers=self.MAX_WORKERS)
 
         session.proxies = self.PROXIES
 
@@ -247,6 +253,7 @@ class BaseBrowser(object):
 
         Other than that, has the exact same behavior of open().
         """
+        assert not kwargs.get('async'), "Please use open() instead of location() to make asynchronous requests."
         response = self.open(url, **kwargs)
         self.response = response
         self.url = self.response.url
@@ -260,6 +267,8 @@ class BaseBrowser(object):
                    cert=None,
                    proxies=None,
                    data_encoding=None,
+                   async=False,
+                   callback=lambda response: response,
                    **kwargs):
         """
         Make an HTTP request like a browser does:
@@ -279,6 +288,15 @@ class BaseBrowser(object):
         Call this instead of location() if you do not want to "visit" the URL
         (for instance, you are downloading a file).
 
+        When `async` is True, open() returns a Future objet (see
+        concurrent.futures for more details), which can be evaluated with its
+        result() method. If any exception is raised while processing request,
+        it is catched and re-raised when calling result().
+
+        For example:
+
+        >>> BaseBrowser().open('http://google.com', async=True).result().text # doctest: +SKIP
+
         :param url: URL
         :type url: str
 
@@ -287,6 +305,13 @@ class BaseBrowser(object):
 
         :param referrer: Force referrer. False to disable sending it, None for guessing
         :type referrer: str or False or None
+
+        :param async: Process request in a non-blocking way
+        :type async: bool
+
+        :param callback: Callback to be called when request has finished,
+                         with response as its first and only argument
+        :type callback: function
 
         :rtype: :class:`requests.Response`
         """
@@ -308,6 +333,15 @@ class BaseBrowser(object):
         if timeout is None:
             timeout = self.TIMEOUT
 
+        # We define an inner_callback here in order to execute the same code
+        # regardless of async param.
+        def inner_callback(future, response):
+            if allow_redirects:
+                response = self.handle_refresh(response)
+
+            self.raise_for_status(response)
+            return callback(response)
+
         # call python-requests
         response = self.session.send(preq,
                                      allow_redirects=allow_redirects,
@@ -315,13 +349,20 @@ class BaseBrowser(object):
                                      timeout=timeout,
                                      verify=verify,
                                      cert=cert,
-                                     proxies=proxies)
+                                     proxies=proxies,
+                                     background_callback=async and inner_callback)
+        if not async:
+            inner_callback(self, response)
 
-        if allow_redirects:
-            response = self.handle_refresh(response)
-
-        self.raise_for_status(response)
         return response
+
+    def async_open(self, url, **kwargs):
+        """
+        Shortcut to open(url, async=True).
+        """
+        if 'async' in kwargs:
+            del kwargs['async']
+        return self.open(url, async=True, **kwargs)
 
     def raise_for_status(self, response):
         """

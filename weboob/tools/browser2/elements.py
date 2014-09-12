@@ -105,9 +105,19 @@ class ListElement(AbstractElement):
     def __iter__(self):
         self.parse(self.el)
 
+        items = []
         for el in self.find_elements():
-            for obj in self.handle_element(el):
-                if not self.flush_at_end:
+            for attrname in dir(self):
+                attr = getattr(self, attrname)
+                if isinstance(attr, type) and issubclass(attr, AbstractElement) and attr != type(self):
+                    item = attr(self.page, self, el)
+                    item.handle_loaders()
+                    items.append(item)
+
+        for item in items:
+            for obj in item:
+                obj = self.store(obj)
+                if obj and not self.flush_at_end:
                     yield obj
 
         if self.flush_at_end:
@@ -147,15 +157,6 @@ class ListElement(AbstractElement):
             self.objects[obj.id] = obj
         return obj
 
-    def handle_element(self, el):
-        for attrname in dir(self):
-            attr = getattr(self, attrname)
-            if isinstance(attr, type) and issubclass(attr, AbstractElement) and attr != type(self):
-                for obj in attr(self.page, self, el):
-                    obj = self.store(obj)
-                    if obj:
-                        yield obj
-
 
 class SkipItem(Exception):
     """
@@ -186,6 +187,7 @@ class ItemElement(AbstractElement):
     __metaclass__ = _ItemElementMeta
 
     _attrs = None
+    _loaders = None
     klass = None
     condition = None
     validate = None
@@ -197,6 +199,7 @@ class ItemElement(AbstractElement):
         super(ItemElement, self).__init__(*args, **kwargs)
         self.logger = getLogger(self.__class__.__name__.lower())
         self.obj = None
+        self.loaders = {}
 
     def build_object(self):
         if self.klass is None:
@@ -218,6 +221,7 @@ class ItemElement(AbstractElement):
             if self.obj is None:
                 self.obj = self.build_object()
             self.parse(self.el)
+            self.handle_loaders()
             for attr in self._attrs:
                 self.handle_attr(attr, getattr(self, 'obj_%s' % attr))
         except SkipItem:
@@ -227,6 +231,17 @@ class ItemElement(AbstractElement):
             return
 
         yield self.obj
+
+    def handle_loaders(self):
+        for attrname in dir(self):
+            m = re.match('load_(.*)', attrname)
+            if not m:
+                continue
+            name = m.group(1)
+            if name in self.loaders:
+                continue
+            loader = getattr(self, attrname)
+            self.loaders[name] = self.use_selector(loader)
 
     def handle_attr(self, key, func):
         try:

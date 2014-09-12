@@ -283,20 +283,28 @@ class PagesBrowser(DomainBrowser):
         response contains an attribute `page` if the url matches any
         :class:`URL` object.
         """
-        response = super(PagesBrowser, self).open(*args, **kwargs)
-        response.page = None
 
-        # Try to handle the response page with an URL instance.
-        for url in self._urls.itervalues():
-            page = url.handle(response)
-            if page is not None:
-                self.logger.debug('Handle %s with %s' % (response.url, page.__class__.__name__))
-                response.page = page
-                break
+        callback = kwargs.pop('callback', lambda response: response)
 
-        if response.page is None:
-            self.logger.debug('Unable to handle %s' % response.url)
-        return response
+        # Have to define a callback to seamlessly process synchronous and
+        # asynchronous requests, see :meth:`BaseBrowser.open` and its `async`
+        # and `callback` params.
+        def internal_callback(response):
+            # Try to handle the response page with an URL instance.
+            response.page = None
+            for url in self._urls.itervalues():
+                page = url.handle(response)
+                if page is not None:
+                    self.logger.debug('Handle %s with %s' % (response.url, page.__class__.__name__))
+                    response.page = page
+                    break
+
+            if response.page is None:
+                self.logger.debug('Unable to handle %s' % response.url)
+
+            return callback(response)
+
+        return super(PagesBrowser, self).open(callback=internal_callback, *args, **kwargs)
 
     def location(self, *args, **kwargs):
         """

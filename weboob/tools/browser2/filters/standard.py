@@ -29,6 +29,7 @@ from weboob.capabilities.base import empty
 from weboob.tools.compat import basestring
 from weboob.tools.exceptions import ParseError
 from weboob.tools.html import html2text
+from weboob.tools.browser2 import URL
 
 class NoDefault(object):
     def __repr__(self):
@@ -41,7 +42,8 @@ __all__ = ['FilterError', 'ColumnNotFound', 'RegexpError', 'ItemNotFound',
            'Filter', 'Base', 'Env', 'TableCell', 'CleanHTML', 'RawText',
            'CleanText', 'Lower', 'CleanDecimal', 'Field', 'Regexp', 'Map',
            'DateTime', 'Date', 'Time', 'DateGuesser', 'Duration',
-           'MultiFilter', 'CombineDate', 'Format', 'Join', 'Type']
+           'MultiFilter', 'CombineDate', 'Format', 'Join', 'Type',
+           'BrowserURL', 'Async', 'AsyncLoad']
 
 
 class FilterError(ParseError):
@@ -123,11 +125,35 @@ class Filter(_Filter):
 
 
 class _Selector(Filter):
-    def filter(self, txt):
-        if txt is not None:
-            return txt
+    def filter(self, elements):
+        if elements is not None:
+            return elements
         else:
             return self.default_or_raise(ParseError('Element %r not found' % self.selector))
+
+
+class AsyncLoad(Filter):
+    def __call__(self, item):
+        link = self.select(self.selector, item)
+        return item.page.browser.async_open(link)
+
+
+class Async(_Filter):
+    def __init__(self, name, selector=None):
+        super(Async, self).__init__()
+        self.selector = selector
+        self.name = name
+
+    def __and__(self, o):
+        if isinstance(o, type) and issubclass(o, _Filter):
+            o = o()
+        self.selector = o
+        return self
+
+    def __call__(self, item):
+        result = item.loaders[self.name].result()
+        assert result.page is not None, 'The loaded url %s hasn\'t been matched by an URL object' % result.url
+        return self.selector(result.page.doc)
 
 
 class Base(Filter):
@@ -531,6 +557,22 @@ class Format(MultiFilter):
 
     def filter(self, values):
         return self.fmt % values
+
+
+class BrowserURL(MultiFilter):
+    def __init__(self, url_name, **kwargs):
+        super(BrowserURL, self).__init__(*kwargs.values())
+        self.url_name = url_name
+        self.keys = kwargs.keys()
+
+    def __call__(self, item):
+        values = super(BrowserURL, self).__call__(item)
+        url = getattr(item.page.browser, self.url_name)
+        assert isinstance(url, URL), "%s.%s must be an URL object" % (type(item.page.browser).__name__, self.url_name)
+        return url.build(**dict(zip(self.keys, values)))
+
+    def filter(self, values):
+        return values
 
 
 class Join(Filter):
