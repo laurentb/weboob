@@ -88,7 +88,7 @@ class IndexPage(HTMLPage):
             value = self._get_high_tide_value(AM=AM)
 
             if value:
-                tide = GaugeSensor(u'%s-%s-%s' % (gauge_id, name, _name))
+                tide = GaugeSensor(u'%s-%s-PM-%s' % (gauge_id, name, _name))
                 tide.name = u'Pleine Mer %s' % (_name)
                 tide.unit = u'm'
                 tide.lastvalue = value
@@ -126,7 +126,7 @@ class IndexPage(HTMLPage):
             value = self._get_low_tide_value(AM=AM)
 
             if value:
-                tide = GaugeSensor(u'%s-%s-%s' % (gauge_id, name, _name))
+                tide = GaugeSensor(u'%s-%s-BM-%s' % (gauge_id, name, _name))
                 tide.name = u'Basse Mer %s' % (_name)
                 tide.unit = u'm'
                 tide.lastvalue = value
