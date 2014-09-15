@@ -85,13 +85,13 @@ class Value(object):
         """
         if self.default is not None and v == self.default:
             return
-        if v == '' and self.default != '':
+        if v == '' and self.default != '' and (self.choices is None or v not in self.choices):
             raise ValueError('Value can\'t be empty')
         if self.regexp is not None and not re.match(self.regexp, unicode(v)):
             raise ValueError('Value "%s" does not match regexp "%s"' % (v, self.regexp))
-        if self.choices is not None and not v in self.choices.iterkeys():
+        if self.choices is not None and not v in self.choices:
             raise ValueError('Value "%s" is not in list: %s' % (
-                v, ', '.join(unicode(s) for s in self.choices.iterkeys())))
+                v, ', '.join(unicode(s) for s in self.choices)))
 
     def load(self, domain, v, callbacks):
         """
