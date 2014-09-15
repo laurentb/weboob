@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2013 Christophe Benz, Laurent Bachelier
+# Copyright(C) 2010-2014 Christophe Benz, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -19,12 +19,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
-from setuptools import find_packages, setup
 
 import glob
 import os
 import subprocess
 import sys
+
+from setuptools import find_packages, setup
 
 
 def find_executable(name, names):
@@ -63,7 +64,15 @@ def install_weboob():
     packages = set(find_packages(exclude=['modules']))
 
     hildon_scripts = set(('masstransit',))
-    qt_scripts = set(('qboobmsg', 'qhavedate', 'qvideoob', 'weboob-config-qt', 'qwebcontentedit', 'qflatboob', 'qcineoob', 'qcookboob', 'qhandjoob'))
+    qt_scripts = set(('qboobmsg',
+                      'qhavedate',
+                      'qvideoob',
+                      'weboob-config-qt',
+                      'qwebcontentedit',
+                      'qflatboob',
+                      'qcineoob',
+                      'qcookboob',
+                      'qhandjoob'))
 
     if not options.hildon:
         scripts = scripts - hildon_scripts
@@ -114,12 +123,10 @@ def install_weboob():
     requirements = [
         'lxml',
         'feedparser',
-        'mechanize',
         'requests',
-        'gdata',
         'python-dateutil',
         'PyYAML',
-        'prettytable'
+        'prettytable',
     ]
     try:
         import Image
@@ -132,7 +139,14 @@ def install_weboob():
         else:
             requirements.append('PIL')
 
-    if sys.version_info < (2,6):
+    if sys.version_info < (3, 0):
+        requirements.append('gdata')
+        requirements.append('mechanize')
+
+    if sys.version_info < (3, 2):
+        requirements.append('futures')
+
+    if sys.version_info < (2, 6):
         print('Python older than 2.6 is not supported.', file=sys.stderr)
         sys.exit(1)
 
