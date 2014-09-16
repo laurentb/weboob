@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright(C) 2014      smurail
+# Copyright(C) 2014 Simon Murail
 #
 # This file is part of weboob.
 #
@@ -20,7 +20,11 @@
 # Inspired by: https://github.com/ross/requests-futures/blob/master/requests_futures/sessions.py
 # XXX Licence issues ?
 
-from concurrent.futures import ThreadPoolExecutor
+try:
+    from concurrent.futures import ThreadPoolExecutor
+except ImportError:
+    ThreadPoolExecutor = None
+
 from requests import Session
 from requests.adapters import DEFAULT_POOLSIZE, HTTPAdapter
 
@@ -39,7 +43,7 @@ class FuturesSession(Session):
           ignored and provided executor is used as is.
         """
         super(FuturesSession, self).__init__(*args, **kwargs)
-        if executor is None:
+        if executor is None and ThreadPoolExecutor is not None:
             executor = ThreadPoolExecutor(max_workers=max_workers)
             # set connection pool size equal to max_workers if needed
             if max_workers > DEFAULT_POOLSIZE:
@@ -64,6 +68,9 @@ class FuturesSession(Session):
 
         background_callback = kwargs.pop('background_callback', None)
         if background_callback:
+            if not self.executor:
+                raise ImportError('Please install python-concurrent.futures')
+
             def func(*args, **kwargs):
                 resp = sup(*args, **kwargs)
                 return background_callback(self, resp)
