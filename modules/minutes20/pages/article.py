@@ -28,7 +28,7 @@ class ArticlePage(SimplePage):
         self.main_div = self.document.getroot()
         self.element_title_selector = "h1"
         self.element_author_selector = "div.mna-signature"
-        self.element_body_selector = "div.mna-body"
+        self.element_body_selector = "div[role=main], div.mna-body"
 
     def get_body(self):
         try:
@@ -38,6 +38,9 @@ class ArticlePage(SimplePage):
         else:
             try_remove(self.parser, element_body, "div.mna-tools")
             try_remove(self.parser, element_body, "div.mna-comment-call")
+            try_remove(self.parser, element_body, "ul[class^=content-related]")
+            try_remove(self.parser, element_body, "ul[class^=content-related]")
+            try_remove(self.parser, element_body, "p.author-sign")
             try:
                 element_body.remove(self.get_element_author())
             except NoAuthorElement:
