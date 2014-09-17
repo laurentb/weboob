@@ -34,11 +34,8 @@ class TorrentsPage(BasePage):
                 url = NotAvailable
                 if not 'id' in tr.attrib:
                     continue
-                title = tr.find('.//a[@class="cellMainLink"]')
-                if title is None:
-                    title = u''
-                else:
-                    title = unicode(title.text)
+                title = self.parser.tocleanstring(tr.find('.//a[@class="cellMainLink"]'))
+                # WTF is that?
                 for red in tr.getchildren()[0].getchildren()[1].getchildren()[1].getchildren():
                     title += red.text_content()
                 idt = tr.getchildren()[0].getchildren()[1].getchildren()[1].attrib.get('href', '').replace('/', '') \
