@@ -436,7 +436,7 @@ class Regexp(Filter):
         if self.template is None:
             return next(g for g in mobj.groups() if g is not None)
         else:
-            return mobj.expand(self.template)
+            return self.template(mobj) if callable(self.template) else mobj.expand(self.template)
 
 
 class Map(Filter):
