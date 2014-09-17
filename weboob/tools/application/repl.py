@@ -260,11 +260,18 @@ class ReplApplication(Cmd, ConsoleApplication):
             if getattr(actual_backend, method, None) is not None:
                 new_backend_names.append(backend)
         backend_names = tuple(new_backend_names)
-        for backend, objiter in self.do(method, _id, backends=backend_names, fields=fields, **kargs):
-            if objiter:
-                obj = objiter
-                if objiter.id == _id:
-                    return obj
+        try:
+            for backend, objiter in self.do(method, _id, backends=backend_names, fields=fields, **kargs):
+                if objiter:
+                    obj = objiter
+                    if objiter.id == _id:
+                        return obj
+        except CallErrors as e:
+            if obj is not None:
+                self.bcall_errors_handler(e)
+            else:
+                raise
+
         return obj
 
     def get_object_list(self, method=None, *args, **kwargs):
