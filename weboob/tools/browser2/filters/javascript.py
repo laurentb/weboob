@@ -97,8 +97,8 @@ class JSVar(Regexp):
         for t, v in values.iteritems():
             if v is not None:
                 break
-        if self.of_type and t != self.of_type.__name__:
-            raise ParseError('Variable %r of type %s not found' % (self.var, self.of_type))
+        if self.of_type and t != self.of_type:
+            raise ParseError('Variable %r with type %s not found' % (self.var, self.of_type))
         if t in ('int', 'float'):
             v = self._re_spaces.sub('', v).lower()
             if t == 'int':
@@ -118,7 +118,7 @@ class JSVar(Regexp):
     def __init__(self, selector=None, var=None, of_type=None, default=_NO_DEFAULT):
         assert var is not None, 'Please specify a var parameter'
         self.var = var
-        self.of_type = of_type
+        self.of_type = of_type.__name__ if type(of_type) == type else of_type
         pattern = self.pattern_template % var
         super(JSVar, self).__init__(selector, pattern=pattern, template=self.to_python, default=default)
 
