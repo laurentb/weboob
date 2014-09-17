@@ -20,3 +20,4 @@
 from .standard import * # NOQA
 from .html import * # NOQA
 from .json import * # NOQA
+from .javascript import * # NOQA
