@@ -28,7 +28,7 @@ __all__ = ['JSPayload', 'JSVar']
 
 
 def _quoted(q):
-    return r'{0}(?:[^{0}]|\{0})*{0}'.format(q)
+    return r'(?<!\\){0}(?:\\{0}|[^{0}])*{0}'.format(q)
 
 
 class JSPayload(Filter):
@@ -68,13 +68,15 @@ class JSVar(Regexp):
     It only understands literal values, but should parse them well. Values
     are converted in python values, quotes and slashes in strings are stripped.
 
-    >>> JSVar(var='test').filter("var test = .1")
+    >>> JSVar(var='test').filter("var test = .1;\nsomecode()")
     0.1
-    >>> JSVar(var='test').filter("test = 42")
+    >>> JSVar(var='test').filter("test = 42;\nsomecode()")
     42
-    >>> JSVar(var='test').filter('test = "Some \\"string\\" value"')
+    >>> JSVar(var='test').filter("test = 'Some \\'string\\' value, isn\\'t it ?';\nsomecode()")
+    "Some 'string' value, isn't it ?"
+    >>> JSVar(var='test').filter('test = "Some \\"string\\" value";\nsomecode()')
     'Some "string" value'
-    >>> JSVar(var='test').filter("var test = false")
+    >>> JSVar(var='test').filter("var test = false;\nsomecode()")
     False
     """
     pattern_template = r"""(?x)
