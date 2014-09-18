@@ -100,6 +100,10 @@ class BaseApplication(object):
     # Copyright
     COPYRIGHT = None
 
+    stdin = sys.stdin
+    stdout = sys.stdout
+    stderr = sys.stderr
+
     # ------ Abstract methods --------------------------------------
     def create_weboob(self):
         return Weboob()

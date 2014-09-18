@@ -73,10 +73,6 @@ class ConsoleApplication(BaseApplication):
         BOLD   = '[1m'
         NC     = '[0m'    # no color
 
-    stdin = sys.stdin
-    stdout = sys.stdout
-    stderr = sys.stderr
-
     def __init__(self, option_parser=None):
         BaseApplication.__init__(self, option_parser)
         self.weboob.callbacks['login'] = self.login_cb
