@@ -95,7 +95,7 @@ class Module(object):
 
     def create_instance(self, weboob, instance_name, config, storage):
         backend_instance = self.klass(weboob, instance_name, config, storage, self.logger)
-        self.logger.debug(u'Created backend instance "%s" for backend "%s"' % (instance_name, self.name))
+        self.logger.debug(u'Created backend "%s" for module "%s"' % (instance_name, self.name))
         return backend_instance
 
 
