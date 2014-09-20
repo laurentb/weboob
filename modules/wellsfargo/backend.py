@@ -44,13 +44,10 @@ class WellsFargoBackend(BaseBackend, CapBank):
                                    self.config['password'].get())
 
     def iter_accounts(self):
-        with self.browser:
-            return self.browser.get_accounts()
+        return self.browser.get_accounts()
 
     def get_account(self, id_):
-        with self.browser:
-            return self.browser.get_account(id_)
+        return self.browser.get_account(id_)
 
     def iter_history(self, account):
-        with self.browser:
-            return self.browser.iter_history(account)
+        return self.browser.iter_history(account)

@@ -21,60 +21,36 @@
 from time import sleep
 
 from weboob.capabilities.bank import AccountNotFound
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from weboob.tools.mech import ClientForm
+from weboob.tools.browser2 import LoginBrowser, URL, need_login
+from weboob.tools.exceptions import BrowserIncorrectPassword
 
 from .pages import LoginPage, LoginRedirectPage, LoggedInPage, SummaryPage, \
-                   DynamicPage, DynamicParser
+                   DynamicPage
 
 
 __all__ = ['WellsFargo']
 
 
-class WellsFargo(BaseBrowser):
-    DOMAIN = 'online.wellsfargo.com'
-    PROTOCOL = 'https'
-    CERTHASH = ['04ee8bb37799ee3d15174c767bb453f5'
-                '7b17735fdfafd38cbea0b78979bdacd9']
-    ENCODING = 'UTF-8'
-    PAGES = {
-        '/$': LoginPage,
-        '/das/cgi-bin/session.cgi\?screenid=SIGNON$': LoginRedirectPage,
-        '/das/cgi-bin/session.cgi\?screenid=SIGNON_PORTAL_PAUSE$':
-            LoggedInPage,
-        '/das/cgi-bin/session.cgi\?screenid=SIGNON&LOB=CONS$':
-            LoggedInPage,
-        '/login\?ERROR_CODE=.*LOB=CONS&$': LoggedInPage,
-        '/das/channel/accountSummary$': SummaryPage,
-        '/das/cgi-bin/session.cgi\?sessargs=.+$':
-            (DynamicPage, DynamicParser()),
-        '/das/channel/accountActivityDDA\?action=doSetPage&page=.*$':
-            DynamicPage
-    }
+class WellsFargo(LoginBrowser):
+    BASEURL = 'https://online.wellsfargo.com'
+    login = URL('/$', LoginPage)
+    loginRedirect = URL('/das/cgi-bin/session.cgi\?screenid=SIGNON$',
+                        LoginRedirectPage)
+    loggedIn = URL('/das/cgi-bin/session.cgi\?screenid=SIGNON_PORTAL_PAUSE$',
+                   '/das/cgi-bin/session.cgi\?screenid=SIGNON&LOB=CONS$',
+                   '/login\?ERROR_CODE=.*LOB=CONS&$',
+                   LoggedInPage)
+    summary = URL('/das/channel/accountSummary$', SummaryPage)
+    dynamic = URL('/das/cgi-bin/session.cgi\?sessargs=.+$',
+                  '/das/channel/accountActivityDDA\?action=doSetPage&page=.*$',
+                  DynamicPage)
 
-    def __init__(self, *args, **kwargs):
-        self._pause = 1
-        BaseBrowser.__init__(self, *args, **kwargs)
+    _pause = 1
 
-    def home(self):
-        self.location('/das/channel/accountSummary')
-
-    def is_logged(self):
-        try:
-            return self.page.is_logged()
-        except AttributeError:
-            return False
-
-    def login(self):
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
-
-        if not self.is_on_page(LoginPage):
-            self.location('/', no_login=True)
-        assert self.is_on_page(LoginPage)
-
+    def do_login(self):
+        self.login.go()
         self.page.login(self.username, self.password)
-        if not self.is_on_page(LoginRedirectPage):
+        if not self.loginRedirect.is_here():
             raise BrowserIncorrectPassword()
 
         # Sometimes Wells Fargo server returns "Session time out" error
@@ -86,96 +62,95 @@ class WellsFargo(BaseBrowser):
 
     def get_account(self, id_):
         self.to_activity()
-        if id_ not in self.page.sub_page().accounts_ids():
+        if id_ not in self.page.subpage.accounts_ids():
             raise AccountNotFound()
         else:
             self.to_activity(id_)
-            return self.page.sub_page().get_account()
+            return self.page.subpage.get_account()
 
     def get_accounts(self):
         self.to_activity()
-        for id_ in self.page.sub_page().accounts_ids():
+        for id_ in self.page.subpage.accounts_ids():
             self.to_activity(id_)
-            yield self.page.sub_page().get_account()
+            yield self.page.subpage.get_account()
 
+    @need_login
     def to_summary(self):
-        if not self.is_on_page(SummaryPage):
-            self.location('/das/channel/accountSummary')
-        assert self.is_on_page(SummaryPage)
+        self.summary.stay_or_go()
+        assert self.summary.is_here()
 
     def is_activity(self):
         try:
-            return self.page.sub_page().is_activity()
+            return self.page.subpage.is_activity()
         except AttributeError:
             return False
 
+    @need_login
     def to_activity(self, id_=None):
         if not self.is_activity():
             self.to_summary()
             self.page.to_activity()
             assert self.is_activity()
-        if id_ and self.page.sub_page().account_id() != id_:
-            self.page.sub_page().to_account(id_)
+        if id_ and self.page.subpage.account_id() != id_:
+            self.page.subpage.to_account(id_)
             assert self.is_activity()
-            assert self.page.sub_page().account_id() == id_
+            assert self.page.subpage.account_id() == id_
 
     def is_statements(self):
         try:
-            return self.page.sub_page().is_statements()
+            return self.page.subpage.is_statements()
         except AttributeError:
             return False
 
+    @need_login
     def to_statements(self, id_=None, year=None):
         if not self.is_statements():
             self.to_summary()
             self.page.to_statements()
             assert self.is_statements()
-        if id_ and self.page.sub_page().account_id() != id_:
-            self.page.sub_page().to_account(id_)
+        if id_ and self.page.subpage.account_id() != id_:
+            self.page.subpage.to_account(id_)
             assert self.is_statements()
-            assert self.page.sub_page().account_id() == id_
-        if year and self.page.sub_page().year() != year:
-            self.page.sub_page().to_year(year)
+            assert self.page.subpage.account_id() == id_
+        if year and self.page.subpage.year() != year:
+            self.page.subpage.to_year(year)
             assert self.is_statements()
-            assert self.page.sub_page().year() == year
+            assert self.page.subpage.year() == year
 
     def is_statement(self):
         try:
-            return self.page.sub_page().is_statement()
+            return self.page.subpage.is_statement()
         except AttributeError:
             return False
 
+    @need_login
     def to_statement(self, uri):
         self.location(uri)
         assert self.is_statement()
 
     def iter_history(self, account):
         self.to_activity(account.id)
-        try:
-            self.page.sub_page().since_last_statement()
-        except ClientForm.ItemNotFoundError:
-            # Skip transactions on web page if we cannot apply
-            # "since last statement" filter.
-            # This might be the case, for example, if Wells Fargo
-            # is processing the current statement:
-            # "Since your credit card account statement is being processed,
-            #  transactions grouped by statement period will not be available
-            #  for up to seven days."
-            # (www.wellsfargo.com, 2014-07-20)
-            pass
-        else:
-            assert self.page.sub_page().account_id() == account.id
+        # Skip transactions on web page if we cannot apply
+        # "since last statement" filter.
+        # This might be the case, for example, if Wells Fargo
+        # is processing the current statement:
+        # "Since your credit card account statement is being processed,
+        #  transactions grouped by statement period will not be available
+        #  for up to seven days."
+        # (www.wellsfargo.com, 2014-07-20)
+        if self.page.subpage.since_last_statement():
+            assert self.page.subpage.account_id() == account.id
             while True:
-                for trans in self.page.sub_page().iter_transactions():
+                for trans in self.page.subpage.iter_transactions():
                     yield trans
-                if not self.page.sub_page().next_():
+                if not self.page.subpage.next_():
                     break
 
         self.to_statements(account.id)
-        for year in self.page.sub_page().years():
+        for year in self.page.subpage.years():
             self.to_statements(account.id, year)
-            for stmt in self.page.sub_page().statements():
+            for stmt in self.page.subpage.statements():
                 self.to_statement(stmt)
-                for trans in self.page.sub_page().iter_transactions():
+                for trans in self.page.subpage.iter_transactions():
                     yield trans
 
