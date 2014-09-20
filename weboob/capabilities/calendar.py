@@ -38,7 +38,7 @@ def enum(**enums):
     enums['types'] = _types
     return type('Enum', (), enums)
 
-CATEGORIES = enum(CONCERT=u'Concert', CINE=u'Cinema', THEATRE=u'Theatre', TELE=u'Television')
+CATEGORIES = enum(CONCERT=u'Concert', CINE=u'Cinema', THEATRE=u'Theatre', TELE=u'Television', CONF=u'Conference')
 
 #the following elements deal with ICalendar stantdards
 #see http://fr.wikipedia.org/wiki/ICalendar#Ev.C3.A9nements_.28VEVENT.29
