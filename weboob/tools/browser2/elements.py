@@ -54,6 +54,8 @@ class AbstractElement(object):
         else:
             self.env = deepcopy(page.params)
 
+        self.loaders = {}
+
     def use_selector(self, func):
         if isinstance(func, _Filter):
             value = func(self)
@@ -72,6 +74,17 @@ class AbstractElement(object):
 
     def xpath(self, *args, **kwargs):
         return self.el.xpath(*args, **kwargs)
+
+    def handle_loaders(self):
+        for attrname in dir(self):
+            m = re.match('load_(.*)', attrname)
+            if not m:
+                continue
+            name = m.group(1)
+            if name in self.loaders:
+                continue
+            loader = getattr(self, attrname)
+            self.loaders[name] = self.use_selector(loader)
 
 
 class ListElement(AbstractElement):
@@ -199,7 +212,6 @@ class ItemElement(AbstractElement):
         super(ItemElement, self).__init__(*args, **kwargs)
         self.logger = getLogger(self.__class__.__name__.lower())
         self.obj = None
-        self.loaders = {}
 
     def build_object(self):
         if self.klass is None:
@@ -231,17 +243,6 @@ class ItemElement(AbstractElement):
             return
 
         yield self.obj
-
-    def handle_loaders(self):
-        for attrname in dir(self):
-            m = re.match('load_(.*)', attrname)
-            if not m:
-                continue
-            name = m.group(1)
-            if name in self.loaders:
-                continue
-            loader = getattr(self, attrname)
-            self.loaders[name] = self.use_selector(loader)
 
     def handle_attr(self, key, func):
         try:
