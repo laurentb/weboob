@@ -21,6 +21,7 @@
 from lxml.html import etree
 from decimal import Decimal
 import re
+from time import sleep
 
 from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage, BrowserIncorrectPassword
@@ -88,29 +89,31 @@ class AccountsList(BasePage):
         if len(warn) > 0:
             raise BrowserIncorrectPassword(warn[0].text)
 
+        self.load_async(0)
+
+    def load_async(self, time):
         # load content of loading divs.
-        divs = []
-        for div in self.document.xpath('//div[starts-with(@id, "as_")]'):
-            loading = div.xpath('.//span[@class="loading"]')
-            if len(loading) == 0:
-                continue
+        lst = self.document.xpath('//input[@type="hidden" and starts-with(@id, "asynch")]')
+        if len(lst) > 0:
+            params = {}
+            for i, input in enumerate(lst):
+                params['key%s' % i] = input.attrib['name']
+                params['div%s' % i] = input.attrib['value']
+            params['time'] = time
 
-            input = div.xpath('.//input')[0]
-            divs.append([div, input.attrib['name']])
-
-        if len(divs) > 0:
-            args = {}
-            for i, (div, name) in enumerate(divs):
-                args['key%s' % i] = name
-                args['div%s' % i] = div.attrib['id']
-            args['time'] = 0
-            r = self.browser.openurl(self.browser.buildurl('/AsynchAjax', **args))
+            r = self.browser.openurl(self.browser.buildurl('/AsynchAjax', **params))
             data = json.load(r)
 
-            for i, (div, name) in enumerate(divs):
-                html = data['data'][i]['flux']
+            for i, d in enumerate(data['data']):
+                div = self.document.xpath('//div[@id="%s"]' % d['key'])[0]
+                html = d['flux']
                 div.clear()
+                div.attrib['id'] = d['key'] # needed because clear removes also all attributes
                 div.insert(0, etree.fromstring(html, parser=etree.HTMLParser()))
+
+            if 'time' in data:
+                sleep(float(data['time'])/1000.0)
+                return self.load_async(time)
 
     def need_reload(self):
         form = self.document.xpath('//form[@name="InformationsPersonnellesForm"]')
