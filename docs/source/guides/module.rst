@@ -94,12 +94,12 @@ To be sure your module is correctly added, use this command::
 
 If the last command does not work, check your :doc:`repositories setup </guides/setup>`.
 
-Backend class
+Module class
 *************
 
 Edit ``backend.py``. It contains the main class of the module derived from :class:`BaseModule <weboob.tools.backend.BaseModule>` class::
 
-    class ExampleBackend(BaseModule, CapBank):
+    class ExampleModule(BaseModule, CapBank):
         NAME = 'example'                         # The name of module
         DESCRIPTION = u'Example bank website'    # Description of your module
         MAINTAINER = u'John Smith'               # Name of maintainer of this module
@@ -107,7 +107,7 @@ Edit ``backend.py``. It contains the main class of the module derived from :clas
         LICENSE = 'AGPLv3+'                      # License of your module
         VERSION = '0.i'                          # Version of weboob
 
-In the code above, you can see that your ``ExampleBackend`` inherits :class:`CapBank <weboob.capabilities.bank.CapBank>`, as
+In the code above, you can see that your ``ExampleModule`` inherits :class:`CapBank <weboob.capabilities.bank.CapBank>`, as
 we have selected it for the supported website.
 
 Configuration
@@ -138,7 +138,7 @@ For example::
     from weboob.tools.backend import BackendConfig
 
     # ...
-    class ExampleBackend(BaseModule, CapBank):
+    class ExampleModule(BaseModule, CapBank):
         # ...
         CONFIG = BackendConfig(Value('username',                label='Username', regexp='.+'),
                                ValueBackendPassword('password', label='Password'),
@@ -155,7 +155,7 @@ Implement capabilities
 You need to implement each method of all of the capabilities your module implements. For example, in our case::
 
     # ...
-    class ExampleBackend(BaseModule, CapBank):
+    class ExampleModule(BaseModule, CapBank):
         # ...
 
         def iter_accounts(self):
@@ -266,12 +266,12 @@ Once we are on the ``ListPage``, we can call every methods of the ``page`` objec
 Use it in backend
 -----------------
 
-Now you have a functional browser, you can use it in your class ``ExampleBackend`` by defining it with the ``BROWSER`` attribute::
+Now you have a functional browser, you can use it in your class ``ExampleModule`` by defining it with the ``BROWSER`` attribute::
 
     from .browser import ExampleBrowser
 
     # ...
-    class ExampleBackend(BaseModule, CapBank):
+    class ExampleModule(BaseModule, CapBank):
         # ...
         BROWSER = ExampleBrowser
 
@@ -290,7 +290,7 @@ Login management
 When the website requires to be authenticated, you have to give credentials to the constructor of the browser. You can redefine
 the method :func:`create_default_browser <weboob.tools.backend.BaseModule.create_default_browser>`::
 
-    class ExampleBackend(BaseModule, CapBank):
+    class ExampleModule(BaseModule, CapBank):
         # ...
         def create_default_browser(self):
             return self.create_browser(self.config['username'].get(), self.config['password'].get())
@@ -441,9 +441,9 @@ not loaded (equal to ``NotLoaded``, which is the default value), to reduce the l
 uncompleted fields, and call the method associated to the type of the object.
 
 To define what objects are supported to be filled, and what method to call, define the ``OBJECTS``
-class attribute in your ``ExampleBackend``::
+class attribute in your ``ExampleModule``::
 
-    class ExampleBackend(BaseModule, CapVideo):
+    class ExampleModule(BaseModule, CapVideo):
         # ...
 
         OBJECTS = {Video: fill_video}
@@ -454,7 +454,7 @@ The prototype of the function might be::
 
 Then, the function might, for each requested fields, fetch the right data and fill the object. For example::
 
-    class ExampleBackend(BaseModule, CapVideo):
+    class ExampleModule(BaseModule, CapVideo):
         # ...
 
         def fill_video(self, video, fields):
