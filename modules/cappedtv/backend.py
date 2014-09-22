@@ -16,10 +16,10 @@ from weboob.tools.backend import BaseModule
 from .browser import CappedBrowser, CappedVideo
 
 
-__all__ = ['CappedBackend']
+__all__ = ['CappedModule']
 
 
-class CappedBackend(BaseModule, CapVideo, CapCollection):
+class CappedModule(BaseModule, CapVideo, CapCollection):
     NAME = 'cappedtv'
     MAINTAINER = u'Lord'
     EMAIL = 'lord@lordtoniok.com'

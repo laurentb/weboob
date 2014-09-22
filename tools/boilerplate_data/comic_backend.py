@@ -1,11 +1,11 @@
 <%inherit file="layout.py"/>
-from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicReaderBackend, DisplayPage
+from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicReaderModule, DisplayPage
 
 
-__all__ = ['${r.classname}Backend']
+__all__ = ['${r.classname}Module']
 
 
-class ${r.classname}Backend(GenericComicReaderBackend):
+class ${r.classname}Module(GenericComicReaderModule):
     NAME = '${r.name}'
     DESCRIPTION = u'${r.name} manga reading site'
     MAINTAINER = u'${r.author}'

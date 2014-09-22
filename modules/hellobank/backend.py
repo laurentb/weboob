@@ -30,10 +30,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import HelloBank
 
 
-__all__ = ['HelloBankBackend']
+__all__ = ['HelloBankModule']
 
 
-class HelloBankBackend(BaseModule, CapBank, CapMessages):
+class HelloBankModule(BaseModule, CapBank, CapMessages):
     NAME = 'hellobank'
     MAINTAINER = u'Christophe Lampin'
     EMAIL = 'weboob@lampin.net'

@@ -25,9 +25,9 @@ from weboob.tools.backend import BaseModule
 from weboob.tools.newsfeed import Newsfeed
 
 
-class GenericNewspaperBackend(BaseModule, CapMessages):
+class GenericNewspaperModule(BaseModule, CapMessages):
     """
-    GenericNewspaperBackend class
+    GenericNewspaperModule class
     """
     MAINTAINER = u'Julien Hebert'
     EMAIL = 'juke@free.fr'
@@ -78,7 +78,7 @@ class GenericNewspaperBackend(BaseModule, CapMessages):
         return thread
 
     def iter_threads(self):
-        for article in Newsfeed(self.RSS_FEED, GenericNewspaperBackend.RSSID).iter_entries():
+        for article in Newsfeed(self.RSS_FEED, GenericNewspaperModule.RSSID).iter_entries():
             thread = Thread(article.id)
             thread.title = article.title
             thread.date = article.datetime

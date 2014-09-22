@@ -27,10 +27,10 @@ from weboob.tools.exceptions import BrowserForbidden
 from .browser import TwitterBrowser
 import itertools
 
-__all__ = ['TwitterBackend']
+__all__ = ['TwitterModule']
 
 
-class TwitterBackend(BaseModule, CapMessages, CapMessagesPost, CapCollection):
+class TwitterModule(BaseModule, CapMessages, CapMessagesPost, CapCollection):
     NAME = 'twitter'
     DESCRIPTION = u'twitter website'
     MAINTAINER = u'Bezleputh'

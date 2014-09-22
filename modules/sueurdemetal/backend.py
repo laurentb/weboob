@@ -25,7 +25,7 @@ import datetime
 from .browser import SueurDeMetalBrowser
 
 
-__all__ = ['SueurDeMetalBackend']
+__all__ = ['SueurDeMetalModule']
 
 
 class Concert(BaseCalendarEvent):
@@ -34,7 +34,7 @@ class Concert(BaseCalendarEvent):
         return 'http://www.sueurdemetal.com/detail-concert-metal.php?c=%s' % _id
 
 
-class SueurDeMetalBackend(BaseModule, CapCalendarEvent):
+class SueurDeMetalModule(BaseModule, CapCalendarEvent):
     NAME = 'sueurdemetal'
     DESCRIPTION = u'SueurDeMetal French concerts list website'
     MAINTAINER = u'Vincent A'
@@ -47,7 +47,7 @@ class SueurDeMetalBackend(BaseModule, CapCalendarEvent):
     ASSOCIATED_CATEGORIES = [CATEGORIES.CONCERT]
 
     def __init__(self, *a, **kw):
-        super(SueurDeMetalBackend, self).__init__(*a, **kw)
+        super(SueurDeMetalModule, self).__init__(*a, **kw)
         self.cities = {}
 
     def list_events(self, from_date, to_date=None):

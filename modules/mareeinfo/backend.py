@@ -24,10 +24,10 @@ from weboob.capabilities.gauge import CapGauge, Gauge, SensorNotFound
 from .browser import MareeinfoBrowser
 
 
-__all__ = ['MareeinfoBackend']
+__all__ = ['MareeinfoModule']
 
 
-class MareeinfoBackend(BaseModule, CapGauge):
+class MareeinfoModule(BaseModule, CapGauge):
     NAME = 'mareeinfo'
     DESCRIPTION = u'Un module qui permet d\' aller a la pêche aux moules totalement informé'
     MAINTAINER = u'Bezleputh'

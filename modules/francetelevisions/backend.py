@@ -25,10 +25,10 @@ from weboob.tools.backend import BaseModule
 from .browser import PluzzBrowser
 
 
-__all__ = ['PluzzBackend']
+__all__ = ['PluzzModule']
 
 
-class PluzzBackend(BaseModule, CapVideo, CapCollection):
+class PluzzModule(BaseModule, CapVideo, CapCollection):
     NAME = 'francetelevisions'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

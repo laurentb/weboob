@@ -23,10 +23,10 @@ from weboob.tools.backend import BaseModule
 from .browser import CanalTP
 
 
-__all__ = ['CanalTPBackend']
+__all__ = ['CanalTPModule']
 
 
-class CanalTPBackend(BaseModule, CapTravel):
+class CanalTPModule(BaseModule, CapTravel):
     NAME = 'canaltp'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

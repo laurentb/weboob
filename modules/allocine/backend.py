@@ -24,10 +24,10 @@ from .browser import AllocineBrowser
 
 from urllib import quote_plus
 
-__all__ = ['AllocineBackend']
+__all__ = ['AllocineModule']
 
 
-class AllocineBackend(BaseModule, CapCinema):
+class AllocineModule(BaseModule, CapCinema):
     NAME = 'allocine'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

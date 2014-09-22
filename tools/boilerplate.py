@@ -61,7 +61,7 @@ class Recipe(object):
     @classmethod
     def configure_subparser(cls, subparsers):
         subparser = subparsers.add_parser(cls.NAME)
-        subparser.add_argument('name', help='Backend name')
+        subparser.add_argument('name', help='Module name')
         subparser.set_defaults(recipe=cls)
         return subparser
 

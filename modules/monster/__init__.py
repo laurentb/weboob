@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import MonsterBackend
+from .backend import MonsterModule
 
 
-__all__ = ['MonsterBackend']
+__all__ = ['MonsterModule']

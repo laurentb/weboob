@@ -28,10 +28,10 @@ from weboob.tools.value import ValueBackendPassword
 
 from .browser import IngBrowser
 
-__all__ = ['INGBackend']
+__all__ = ['INGModule']
 
 
-class INGBackend(BaseModule, CapBank, CapBill):
+class INGModule(BaseModule, CapBank, CapBill):
     NAME = 'ing'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

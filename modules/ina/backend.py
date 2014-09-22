@@ -25,10 +25,10 @@ from .browser import InaBrowser
 from .video import InaVideo
 
 
-__all__ = ['InaBackend']
+__all__ = ['InaModule']
 
 
-class InaBackend(BaseModule, CapVideo):
+class InaModule(BaseModule, CapVideo):
     NAME = 'ina'
     MAINTAINER = u'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'

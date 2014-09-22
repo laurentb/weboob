@@ -28,10 +28,10 @@ from .browser import YoupornBrowser
 from .video import YoupornVideo
 
 
-__all__ = ['YoupornBackend']
+__all__ = ['YoupornModule']
 
 
-class YoupornBackend(BaseModule, CapVideo, CapCollection):
+class YoupornModule(BaseModule, CapVideo, CapCollection):
     NAME = 'youporn'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

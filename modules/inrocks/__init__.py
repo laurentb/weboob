@@ -1,4 +1,4 @@
-"init of NewspaperInrocksBackend"
+"init of NewspaperInrocksModule"
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2011  Julien Hebert
@@ -18,6 +18,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .backend import NewspaperInrocksBackend
+from .backend import NewspaperInrocksModule
 
-__all__ = ['NewspaperInrocksBackend']
+__all__ = ['NewspaperInrocksModule']

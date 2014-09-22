@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import ColispriveBackend
+from .backend import ColispriveModule
 
 
-__all__ = ['ColispriveBackend']
+__all__ = ['ColispriveModule']

@@ -27,10 +27,10 @@ from weboob.tools.value import ValueBackendPassword, Value
 from .browser import BouyguesBrowser
 
 
-__all__ = ['BouyguesBackend']
+__all__ = ['BouyguesModule']
 
 
-class BouyguesBackend(BaseModule, CapMessages, CapMessagesPost):
+class BouyguesModule(BaseModule, CapMessages, CapMessagesPost):
     NAME = 'bouygues'
     MAINTAINER = u'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'

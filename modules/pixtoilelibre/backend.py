@@ -26,7 +26,7 @@ import re
 from .browser import PixtoilelibreBrowser
 
 
-__all__ = ['PixtoilelibreBackend']
+__all__ = ['PixtoilelibreModule']
 
 
 class PixPaste(BasePaste):
@@ -35,7 +35,7 @@ class PixPaste(BasePaste):
         return 'http://pix.toile-libre.org/?img=%s' % id
 
 
-class PixtoilelibreBackend(BaseModule, CapPaste):
+class PixtoilelibreModule(BaseModule, CapPaste):
     NAME = 'pixtoilelibre'
     DESCRIPTION = u'toile-libre image hosting website'
     MAINTAINER = u'Vincent A'

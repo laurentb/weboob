@@ -21,9 +21,9 @@ from weboob.capabilities.collection import CapCollection
 from weboob.tools.backend import BaseModule
 from .browser import NihonNoOtoBrowser
 
-__all__ = ['NihonNoOtoBackend']
+__all__ = ['NihonNoOtoModule']
 
-class NihonNoOtoBackend(BaseModule, CapRadio, CapCollection):
+class NihonNoOtoModule(BaseModule, CapRadio, CapCollection):
     NAME = 'nihonnooto'
     MAINTAINER = u'Thomas Lecavelier'
     EMAIL = 'thomas-weboob@lecavelier.name'

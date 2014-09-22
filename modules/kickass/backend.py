@@ -26,10 +26,10 @@ from urllib import quote_plus
 from contextlib import closing
 from gzip import GzipFile
 
-__all__ = ['KickassBackend']
+__all__ = ['KickassModule']
 
 
-class KickassBackend(BaseModule, CapTorrent):
+class KickassModule(BaseModule, CapTorrent):
     NAME = 'kickass'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

@@ -41,10 +41,10 @@ from .browser import YoutubeBrowser
 from .video import YoutubeVideo
 
 
-__all__ = ['YoutubeBackend']
+__all__ = ['YoutubeModule']
 
 
-class YoutubeBackend(BaseModule, CapVideo, CapCollection):
+class YoutubeModule(BaseModule, CapVideo, CapCollection):
     NAME = 'youtube'
     MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'

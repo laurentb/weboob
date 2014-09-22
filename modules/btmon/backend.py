@@ -24,10 +24,10 @@ from .browser import BtmonBrowser
 
 from urllib import quote_plus
 
-__all__ = ['BtmonBackend']
+__all__ = ['BtmonModule']
 
 
-class BtmonBackend(BaseModule, CapTorrent):
+class BtmonModule(BaseModule, CapTorrent):
     NAME = 'btmon'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

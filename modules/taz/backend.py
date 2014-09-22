@@ -19,12 +19,12 @@
 "backend for http://www.taz.de"
 
 from weboob.capabilities.messages import CapMessages
-from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBackend
+from weboob.tools.capabilities.messages.GenericModule import GenericNewspaperModule
 from .browser import NewspaperTazBrowser
 from .tools import rssid, url2id
 
 
-class NewspaperTazBackend(GenericNewspaperBackend, CapMessages):
+class NewspaperTazModule(GenericNewspaperModule, CapMessages):
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '1.0'

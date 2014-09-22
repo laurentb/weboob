@@ -17,6 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .backend import MangafoxBackend
+from .backend import MangafoxModule
 
-__all__ = ['MangafoxBackend']
+__all__ = ['MangafoxModule']

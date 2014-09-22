@@ -24,10 +24,10 @@ from weboob.capabilities.base import find_object
 from weboob.tools.backend import BaseModule
 
 
-__all__ = ['SachsenLevelBackend']
+__all__ = ['SachsenLevelModule']
 
 
-class SachsenLevelBackend(BaseModule, CapGauge):
+class SachsenLevelModule(BaseModule, CapGauge):
     NAME = 'sachsen'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

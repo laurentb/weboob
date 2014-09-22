@@ -1,4 +1,4 @@
-"GoogleTranslateBackend init"
+"GoogleTranslateModule init"
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2012  Lucien Loiseau
@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .backend import GoogleTranslateBackend
+from .backend import GoogleTranslateModule
 
 
-__all__ = ['GoogleTranslateBackend']
+__all__ = ['GoogleTranslateModule']

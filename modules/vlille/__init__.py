@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import VlilleBackend
+from .backend import VlilleModule
 
 
-__all__ = ['VlilleBackend']
+__all__ = ['VlilleModule']

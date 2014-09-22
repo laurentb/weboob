@@ -24,10 +24,10 @@ from weboob.capabilities.pricecomparison import CapPriceComparison, Price, Produ
 from .browser import PrixCarburantsBrowser
 
 
-__all__ = ['PrixCarburantsBackend']
+__all__ = ['PrixCarburantsModule']
 
 
-class PrixCarburantsBackend(BaseModule, CapPriceComparison):
+class PrixCarburantsModule(BaseModule, CapPriceComparison):
     NAME = 'prixcarburants'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

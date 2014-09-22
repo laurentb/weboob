@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import MailinatorBackend
+from .backend import MailinatorModule
 
 
-__all__ = ['MailinatorBackend']
+__all__ = ['MailinatorModule']

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import CciBackend
+from .backend import CciModule
 
 
-__all__ = ['CciBackend']
+__all__ = ['CciModule']

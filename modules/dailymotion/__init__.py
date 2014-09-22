@@ -1,3 +1,3 @@
-from .backend import DailymotionBackend
+from .backend import DailymotionModule
 
-__all__ = ['DailymotionBackend']
+__all__ = ['DailymotionModule']

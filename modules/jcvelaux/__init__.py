@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import jcvelauxBackend
+from .backend import jcvelauxModule
 
 
-__all__ = ['jcvelauxBackend']
+__all__ = ['jcvelauxModule']

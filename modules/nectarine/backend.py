@@ -21,9 +21,9 @@ from weboob.capabilities.collection import CapCollection
 from weboob.tools.backend import BaseModule
 from .browser import NectarineBrowser
 
-__all__ = ['NectarineBackend']
+__all__ = ['NectarineModule']
 
-class NectarineBackend(BaseModule, CapRadio, CapCollection):
+class NectarineModule(BaseModule, CapRadio, CapCollection):
     NAME = 'nectarine'
     MAINTAINER = u'Thomas Lecavelier'
     EMAIL = 'thomas-weboob@lecavelier.name'

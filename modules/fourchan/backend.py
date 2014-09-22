@@ -27,10 +27,10 @@ from weboob.tools.value import Value
 from .browser import FourChan
 
 
-__all__ = ['FourChanBackend']
+__all__ = ['FourChanModule']
 
 
-class FourChanBackend(BaseModule, CapMessages):
+class FourChanModule(BaseModule, CapMessages):
     NAME = 'fourchan'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

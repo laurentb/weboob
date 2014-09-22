@@ -24,7 +24,7 @@ from weboob.capabilities.paste import CapPaste
 import binascii
 
 
-class BasePasteBackend(CapPaste):
+class BasePasteModule(CapPaste):
     EXPIRATIONS = {}
     """
     List of expirations and their corresponding remote codes (any type can be used).
@@ -71,18 +71,18 @@ def image_mime(data_base64, supported_formats=('gif', 'jpeg', 'png')):
         return 'image/tiff'
 
 def test():
-    class MockPasteBackend(BasePasteBackend):
+    class MockPasteModule(BasePasteModule):
         def __init__(self, expirations):
             self.EXPIRATIONS = expirations
 
     # all expirations are too high
-    assert MockPasteBackend({1337: '', 42: '', False: ''}).get_closest_expiration(1) is None
+    assert MockPasteModule({1337: '', 42: '', False: ''}).get_closest_expiration(1) is None
     # we found a suitable lower or equal expiration
-    assert MockPasteBackend({1337: '', 42: '', False: ''}).get_closest_expiration(84) is 42
-    assert MockPasteBackend({1337: '', 42: '', False: ''}).get_closest_expiration(False) is False
-    assert MockPasteBackend({1337: '', 42: ''}).get_closest_expiration(False) is 1337
-    assert MockPasteBackend({1337: '', 42: '', False: ''}).get_closest_expiration(1336) is 42
-    assert MockPasteBackend({1337: '', 42: '', False: ''}).get_closest_expiration(1337) is 1337
-    assert MockPasteBackend({1337: '', 42: '', False: ''}).get_closest_expiration(1338) is 1337
+    assert MockPasteModule({1337: '', 42: '', False: ''}).get_closest_expiration(84) is 42
+    assert MockPasteModule({1337: '', 42: '', False: ''}).get_closest_expiration(False) is False
+    assert MockPasteModule({1337: '', 42: ''}).get_closest_expiration(False) is 1337
+    assert MockPasteModule({1337: '', 42: '', False: ''}).get_closest_expiration(1336) is 42
+    assert MockPasteModule({1337: '', 42: '', False: ''}).get_closest_expiration(1337) is 1337
+    assert MockPasteModule({1337: '', 42: '', False: ''}).get_closest_expiration(1338) is 1337
     # this format should work, though of doubtful usage
-    assert MockPasteBackend([1337, 42, False]).get_closest_expiration(84) is 42
+    assert MockPasteModule([1337, 42, False]).get_closest_expiration(84) is 42

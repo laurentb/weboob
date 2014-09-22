@@ -28,10 +28,10 @@ from urlparse import urljoin
 from .browser import LutimBrowser
 
 
-__all__ = ['LutimBackend']
+__all__ = ['LutimModule']
 
 
-class LutimBackend(BaseModule, CapPaste):
+class LutimModule(BaseModule, CapPaste):
     NAME = 'lutim'
     DESCRIPTION = u'LUTIm website'
     MAINTAINER = u'Vincent A'

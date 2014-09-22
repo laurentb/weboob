@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import UnseeBackend
+from .backend import UnseeModule
 
 
-__all__ = ['UnseeBackend']
+__all__ = ['UnseeModule']

@@ -29,10 +29,10 @@ from .browser import ArteBrowser
 from .video import ArteVideo, ArteLiveVideo
 
 
-__all__ = ['ArteBackend']
+__all__ = ['ArteModule']
 
 
-class ArteBackend(BaseModule, CapVideo, CapCollection):
+class ArteModule(BaseModule, CapVideo, CapCollection):
     NAME = 'arte'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'

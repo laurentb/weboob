@@ -27,10 +27,10 @@ from weboob.tools.value import ValueBackendPassword, Value
 from .browser import CreditDuNordBrowser
 
 
-__all__ = ['CreditDuNordBackend']
+__all__ = ['CreditDuNordModule']
 
 
-class CreditDuNordBackend(BaseModule, CapBank):
+class CreditDuNordModule(BaseModule, CapBank):
     NAME = 'creditdunord'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

@@ -25,10 +25,10 @@ from weboob.tools.backend import BaseModule
 from .browser import SeLogerBrowser
 
 
-__all__ = ['SeLogerBackend']
+__all__ = ['SeLogerModule']
 
 
-class SeLogerBackend(BaseModule, CapHousing):
+class SeLogerModule(BaseModule, CapHousing):
     NAME = 'seloger'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

@@ -27,7 +27,7 @@ from weboob.tools.value import Value
 from weboob.tools.browser import StandardBrowser
 import time
 
-__all__ = ['AudioAddictBackend']
+__all__ = ['AudioAddictModule']
 
 
 #
@@ -38,7 +38,7 @@ __all__ = ['AudioAddictBackend']
 # option to another player in the ~/.config/weboob/radioob config file:
 # [ROOT]
 # media_player = your_non_mplayer_player
-class AudioAddictBackend(BaseModule, CapRadio, CapCollection):
+class AudioAddictModule(BaseModule, CapRadio, CapCollection):
     NAME = 'audioaddict'
     MAINTAINER = u'Pierre Mazière'
     EMAIL = 'pierre.maziere@gmx.com'
@@ -124,7 +124,7 @@ class AudioAddictBackend(BaseModule, CapRadio, CapCollection):
                            )
 
     def __init__(self, *a, **kw):
-        super(AudioAddictBackend, self).__init__(*a, **kw)
+        super(AudioAddictModule, self).__init__(*a, **kw)
         self.RADIOS = {}
         self.HISTORY = {}
 

@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import AlloRestoBackend
+from .backend import AlloRestoModule
 
-__all__ = ['AlloRestoBackend']
+__all__ = ['AlloRestoModule']

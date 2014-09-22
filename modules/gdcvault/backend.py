@@ -30,10 +30,10 @@ from .browser import GDCVaultBrowser
 from .video import GDCVaultVideo
 
 
-__all__ = ['GDCVaultBackend']
+__all__ = ['GDCVaultModule']
 
 
-class GDCVaultBackend(BaseModule, CapVideo, CapCollection):
+class GDCVaultModule(BaseModule, CapVideo, CapCollection):
     NAME = 'gdcvault'
     MAINTAINER = u'François Revol'
     EMAIL = 'revol@free.fr'

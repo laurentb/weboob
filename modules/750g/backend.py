@@ -27,10 +27,10 @@ import unicodedata
 def strip_accents(s):
     return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
 
-__all__ = ['SevenFiftyGramsBackend']
+__all__ = ['SevenFiftyGramsModule']
 
 
-class SevenFiftyGramsBackend(BaseModule, CapRecipe):
+class SevenFiftyGramsModule(BaseModule, CapRecipe):
     NAME = '750g'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

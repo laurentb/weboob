@@ -25,10 +25,10 @@ from weboob.capabilities.base import find_object
 from .browser import GroupamaesBrowser
 
 
-__all__ = ['GroupamaesBackend']
+__all__ = ['GroupamaesModule']
 
 
-class GroupamaesBackend(BaseModule, CapBank):
+class GroupamaesModule(BaseModule, CapBank):
     NAME = 'groupamaes'
     DESCRIPTION = u"Groupama Épargne Salariale"
     MAINTAINER = u'Bezleputh'

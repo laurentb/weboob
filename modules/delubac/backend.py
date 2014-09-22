@@ -24,10 +24,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import DelubacBrowser
 
 
-__all__ = ['DelubacBackend']
+__all__ = ['DelubacModule']
 
 
-class DelubacBackend(BaseModule, CapBank):
+class DelubacModule(BaseModule, CapBank):
     NAME = 'delubac'
     DESCRIPTION = u'Banque Delubac & Cie'
     MAINTAINER = u'Noe Rubinstein'

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import OvsBackend
+from .backend import OvsModule
 
 
-__all__ = ['OvsBackend']
+__all__ = ['OvsModule']

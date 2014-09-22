@@ -26,10 +26,10 @@ from weboob.tools.value import ValueBackendPassword, Value
 from .browser import BredBrowser
 
 
-__all__ = ['BredBackend']
+__all__ = ['BredModule']
 
 
-class BredBackend(BaseModule, CapBank):
+class BredModule(BaseModule, CapBank):
     NAME = 'bred'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

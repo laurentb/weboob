@@ -25,10 +25,10 @@ from weboob.capabilities.base import NotAvailable
 from .browser import PiratebayBrowser
 
 
-__all__ = ['PiratebayBackend']
+__all__ = ['PiratebayModule']
 
 
-class PiratebayBackend(BaseModule, CapTorrent):
+class PiratebayModule(BaseModule, CapTorrent):
     NAME = 'piratebay'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import FeedlyBackend
+from .backend import FeedlyModule
 
 
-__all__ = ['FeedlyBackend']
+__all__ = ['FeedlyModule']

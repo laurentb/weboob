@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import ColissimoBackend
+from .backend import ColissimoModule
 
 
-__all__ = ['ColissimoBackend']
+__all__ = ['ColissimoModule']

@@ -34,10 +34,10 @@ from .browser import DLFP
 from .tools import rssid, id2url
 
 
-__all__ = ['DLFPBackend']
+__all__ = ['DLFPModule']
 
 
-class DLFPBackend(BaseModule, CapMessages, CapMessagesPost, CapContent):
+class DLFPModule(BaseModule, CapMessages, CapMessagesPost, CapContent):
     NAME = 'dlfp'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

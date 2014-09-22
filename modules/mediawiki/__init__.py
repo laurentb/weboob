@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import MediawikiBackend
+from .backend import MediawikiModule
 
-__all__ = ['MediawikiBackend']
+__all__ = ['MediawikiModule']

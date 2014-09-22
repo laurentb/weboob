@@ -30,7 +30,7 @@ from weboob.tools.log import getLogger
 from .browser import TinderBrowser, FacebookBrowser
 
 
-__all__ = ['TinderBackend']
+__all__ = ['TinderModule']
 
 
 class ProfilesWalker(Optimization):
@@ -65,7 +65,7 @@ class ProfilesWalker(Optimization):
                 self.view_cron = self.sched.schedule(1, self.view_profile)
 
 
-class TinderBackend(BaseModule, CapMessages, CapMessagesPost, CapDating):
+class TinderModule(BaseModule, CapMessages, CapMessagesPost, CapDating):
     NAME = 'tinder'
     DESCRIPTION = u'Tinder dating mobile application'
     MAINTAINER = u'Roger Philibert'

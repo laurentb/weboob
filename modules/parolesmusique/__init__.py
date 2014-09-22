@@ -1,3 +1,3 @@
-from .backend import ParolesmusiqueBackend
+from .backend import ParolesmusiqueModule
 
-__all__ = ['ParolesmusiqueBackend']
+__all__ = ['ParolesmusiqueModule']

@@ -26,10 +26,10 @@ from weboob.tools.ordereddict import OrderedDict
 from .browser import PopolemploiBrowser
 from .job import PopolemploiJobAdvert
 
-__all__ = ['PopolemploiBackend']
+__all__ = ['PopolemploiModule']
 
 
-class PopolemploiBackend(BaseModule, CapJob):
+class PopolemploiModule(BaseModule, CapJob):
     NAME = 'popolemploi'
     DESCRIPTION = u'Pole Emploi website'
     MAINTAINER = u'Bezleputh'

@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import CreditCooperatifBackend
+from .backend import CreditCooperatifModule
 
-__all__ = ['CreditCooperatifBackend']
+__all__ = ['CreditCooperatifModule']

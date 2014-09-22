@@ -24,10 +24,10 @@ from weboob.capabilities.gauge import CapGauge, GaugeSensor, Gauge, SensorNotFou
 
 from .browser import VlilleBrowser
 
-__all__ = ['VlilleBackend']
+__all__ = ['VlilleModule']
 
 
-class VlilleBackend(BaseModule, CapGauge):
+class VlilleModule(BaseModule, CapGauge):
     NAME = 'vlille'
     DESCRIPTION = u'access to vlille datas'
     MAINTAINER = u'Bezleputh'

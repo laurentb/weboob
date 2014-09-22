@@ -25,10 +25,10 @@ from weboob.tools.backend import BaseModule
 from weboob.tools.browser import StandardBrowser
 
 
-__all__ = ['EbonicsBackend']
+__all__ = ['EbonicsModule']
 
 
-class EbonicsBackend(BaseModule, CapTranslate):
+class EbonicsModule(BaseModule, CapTranslate):
     NAME = 'ebonics'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

@@ -24,10 +24,10 @@ from .browser import AttilasubBrowser
 
 from urllib import quote_plus
 
-__all__ = ['AttilasubBackend']
+__all__ = ['AttilasubModule']
 
 
-class AttilasubBackend(BaseModule, CapSubtitle):
+class AttilasubModule(BaseModule, CapSubtitle):
     NAME = 'attilasub'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

@@ -26,10 +26,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import AmericanExpressBrowser
 
 
-__all__ = ['AmericanExpressBackend']
+__all__ = ['AmericanExpressModule']
 
 
-class AmericanExpressBackend(BaseModule, CapBank):
+class AmericanExpressModule(BaseModule, CapBank):
     NAME = 'americanexpress'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

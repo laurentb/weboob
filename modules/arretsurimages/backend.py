@@ -26,10 +26,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import ArretSurImagesBrowser
 from .video import ArretSurImagesVideo
 
-__all__ = ['ArretSurImagesBackend']
+__all__ = ['ArretSurImagesModule']
 
 
-class ArretSurImagesBackend(BaseModule, CapVideo, CapCollection):
+class ArretSurImagesModule(BaseModule, CapVideo, CapCollection):
     NAME = 'arretsurimages'
     DESCRIPTION = u'arretsurimages website'
     MAINTAINER = u'franek'

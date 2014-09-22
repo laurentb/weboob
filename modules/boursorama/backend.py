@@ -27,10 +27,10 @@ from weboob.tools.value import ValueBackendPassword, ValueBool, Value
 from .browser import Boursorama
 
 
-__all__ = ['BoursoramaBackend']
+__all__ = ['BoursoramaModule']
 
 
-class BoursoramaBackend(BaseModule, CapBank):
+class BoursoramaModule(BaseModule, CapBank):
     NAME = 'boursorama'
     MAINTAINER = u'Gabriel Kerneis'
     EMAIL = 'gabriel@kerneis.info'

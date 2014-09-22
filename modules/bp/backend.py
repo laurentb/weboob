@@ -25,10 +25,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import BPBrowser
 
 
-__all__ = ['BPBackend']
+__all__ = ['BPModule']
 
 
-class BPBackend(BaseModule, CapBank):
+class BPModule(BaseModule, CapBank):
     NAME = 'bp'
     MAINTAINER = u'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'

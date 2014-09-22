@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import UpsBackend
+from .backend import UpsModule
 
 
-__all__ = ['UpsBackend']
+__all__ = ['UpsModule']

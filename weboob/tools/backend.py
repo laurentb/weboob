@@ -219,19 +219,19 @@ class BaseModule(object):
     :param logger: logger
     :type logger: :class:`logging.Logger`
     """
-    # Backend name.
+    # Module name.
     NAME = None
-    # Name of the maintainer of this backend.
+    # Name of the maintainer of this module.
     MAINTAINER = u'<unspecified>'
     # Email address of the maintainer.
     EMAIL = '<unspecified>'
-    # Version of backend (for information only).
+    # Version of module (for information only).
     VERSION = '<unspecified>'
     # Description
     DESCRIPTION = '<unspecified>'
-    # License of this backend.
+    # License of this module.
     LICENSE = '<unspecified>'
-    # Configuration required for this backend.
+    # Configuration required for backends.
     # Values must be weboob.tools.value.Value objects.
     CONFIG = BackendConfig()
     # Storage

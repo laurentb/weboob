@@ -49,7 +49,7 @@ from .optim.visibility import Visibility
 from .optim.queries_queue import QueriesQueue
 
 
-__all__ = ['AuMBackend']
+__all__ = ['AuMModule']
 
 
 def parse_dt(s):
@@ -57,7 +57,7 @@ def parse_dt(s):
     return local2utc(d)
 
 
-class AuMBackend(BaseModule, CapMessages, CapMessagesPost, CapDating, CapChat, CapContact, CapAccount):
+class AuMModule(BaseModule, CapMessages, CapMessagesPost, CapDating, CapChat, CapContact, CapAccount):
     NAME = 'aum'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

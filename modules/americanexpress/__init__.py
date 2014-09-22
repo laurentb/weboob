@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import AmericanExpressBackend
+from .backend import AmericanExpressModule
 
-__all__ = ['AmericanExpressBackend']
+__all__ = ['AmericanExpressModule']

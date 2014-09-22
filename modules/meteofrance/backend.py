@@ -24,10 +24,10 @@ from weboob.tools.backend import BaseModule
 from .browser import MeteofranceBrowser
 
 
-__all__ = ['MeteofranceBackend']
+__all__ = ['MeteofranceModule']
 
 
-class MeteofranceBackend(BaseModule, CapWeather):
+class MeteofranceModule(BaseModule, CapWeather):
     NAME = 'meteofrance'
     MAINTAINER = u'Cedric Defortis'
     EMAIL = 'cedric@aiur.fr'

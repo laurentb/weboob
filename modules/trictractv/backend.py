@@ -28,10 +28,10 @@ from .browser import TricTracTVBrowser
 from .video import TricTracTVVideo
 
 
-__all__ = ['TricTracTVBackend']
+__all__ = ['TricTracTVModule']
 
 
-class TricTracTVBackend(BaseModule, CapVideo):
+class TricTracTVModule(BaseModule, CapVideo):
     NAME = 'trictractv'
     MAINTAINER = u'Benjamin Drieu'
     EMAIL = 'benjamin@drieu.org'

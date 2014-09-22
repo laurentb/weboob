@@ -20,14 +20,14 @@
 
 from weboob.tools.newsfeed import Newsfeed
 from weboob.capabilities.messages import CapMessages, Thread
-from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBackend
+from weboob.tools.capabilities.messages.GenericModule import GenericNewspaperModule
 from weboob.tools.backend import BackendConfig
 from weboob.tools.value import Value
 from .browser import NewspaperLibeBrowser
 from .tools import rssid, url2id
 
 
-class NewspaperLibeBackend(GenericNewspaperBackend, CapMessages):
+class NewspaperLibeModule(GenericNewspaperModule, CapMessages):
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '1.0'
@@ -56,7 +56,7 @@ class NewspaperLibeBackend(GenericNewspaperBackend, CapMessages):
                            ))
 
     def __init__(self, *args, **kwargs):
-        GenericNewspaperBackend.__init__(self, *args, **kwargs)
+        GenericNewspaperModule.__init__(self, *args, **kwargs)
         self.RSS_FEED = "http://www.liberation.fr/rss/%s" % self.config['feed'].get()
 
     def iter_threads(self):

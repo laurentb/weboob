@@ -24,10 +24,10 @@ from .browser import SeeklyricsBrowser
 
 from urllib import quote_plus
 
-__all__ = ['SeeklyricsBackend']
+__all__ = ['SeeklyricsModule']
 
 
-class SeeklyricsBackend(BaseModule, CapLyrics):
+class SeeklyricsModule(BaseModule, CapLyrics):
     NAME = 'seeklyrics'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

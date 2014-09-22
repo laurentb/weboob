@@ -24,10 +24,10 @@ from weboob.tools.newsfeed import Newsfeed
 from weboob.tools.value import Value
 
 
-__all__ = ['NewsfeedBackend']
+__all__ = ['NewsfeedModule']
 
 
-class NewsfeedBackend(BaseModule, CapMessages):
+class NewsfeedModule(BaseModule, CapMessages):
     NAME = 'newsfeed'
     MAINTAINER = u'Clément Schreiner'
     EMAIL = "clemux@clemux.info"

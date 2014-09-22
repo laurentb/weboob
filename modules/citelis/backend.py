@@ -25,10 +25,10 @@ from weboob.capabilities.bank import CapBank, AccountNotFound
 from .browser import CitelisBrowser
 
 
-__all__ = ['CitelisBackend']
+__all__ = ['CitelisModule']
 
 
-class CitelisBackend(BaseModule, CapBank):
+class CitelisModule(BaseModule, CapBank):
     NAME = 'citelis'
     DESCRIPTION = u'Citélis'
     MAINTAINER = u'Laurent Bachelier'

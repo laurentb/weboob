@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import HybrideBackend
+from .backend import HybrideModule
 
 
-__all__ = ['HybrideBackend']
+__all__ = ['HybrideModule']

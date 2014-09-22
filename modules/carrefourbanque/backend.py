@@ -26,10 +26,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import CarrefourBanque
 
 
-__all__ = ['CarrefourBanqueBackend']
+__all__ = ['CarrefourBanqueModule']
 
 
-class CarrefourBanqueBackend(BaseModule, CapBank):
+class CarrefourBanqueModule(BaseModule, CapBank):
     NAME = 'carrefourbanque'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

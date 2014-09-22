@@ -24,10 +24,10 @@ from weboob.tools.backend import BaseModule
 from .browser import UpsBrowser
 
 
-__all__ = ['UpsBackend']
+__all__ = ['UpsModule']
 
 
-class UpsBackend(BaseModule, CapParcel):
+class UpsModule(BaseModule, CapParcel):
     NAME = 'ups'
     DESCRIPTION = u'UPS website'
     MAINTAINER = u'Romain Bignon'

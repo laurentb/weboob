@@ -25,10 +25,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import Cmso
 
 
-__all__ = ['CmsoBackend']
+__all__ = ['CmsoModule']
 
 
-class CmsoBackend(BaseModule, CapBank):
+class CmsoModule(BaseModule, CapBank):
     NAME = 'cmso'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

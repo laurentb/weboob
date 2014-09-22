@@ -25,10 +25,10 @@ from .browser import JacquieEtMichelBrowser
 from .video import JacquieEtMichelVideo
 
 
-__all__ = ['JacquieEtMichelBackend']
+__all__ = ['JacquieEtMichelModule']
 
 
-class JacquieEtMichelBackend(BaseModule, CapVideo, CapCollection):
+class JacquieEtMichelModule(BaseModule, CapVideo, CapCollection):
     NAME = 'jacquieetmichel'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'

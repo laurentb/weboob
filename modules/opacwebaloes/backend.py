@@ -27,10 +27,10 @@ from weboob.tools.value import ValueBackendPassword, Value
 from .browser import AloesBrowser
 
 
-__all__ = ['AloesBackend']
+__all__ = ['AloesModule']
 
 
-class AloesBackend(BaseModule, CapBook):
+class AloesModule(BaseModule, CapBook):
     NAME = 'opacwebaloes'
     MAINTAINER = u'Jeremy Monnet'
     EMAIL = 'jmonnet@gmail.com'

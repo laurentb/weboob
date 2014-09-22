@@ -26,10 +26,10 @@ from .perso.browser import CreditCooperatif as CreditCooperatifPerso
 from .pro.browser import CreditCooperatif as CreditCooperatifPro
 
 
-__all__ = ['CreditCooperatifBackend']
+__all__ = ['CreditCooperatifModule']
 
 
-class CreditCooperatifBackend(BaseModule, CapBank):
+class CreditCooperatifModule(BaseModule, CapBank):
     NAME = 'creditcooperatif'
     MAINTAINER = u'Kevin Pouget'
     EMAIL = 'weboob@kevin.pouget.me'

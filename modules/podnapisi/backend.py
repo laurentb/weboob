@@ -25,10 +25,10 @@ from .browser import PodnapisiBrowser
 
 from urllib import quote_plus
 
-__all__ = ['PodnapisiBackend']
+__all__ = ['PodnapisiModule']
 
 
-class PodnapisiBackend(BaseModule, CapSubtitle):
+class PodnapisiModule(BaseModule, CapSubtitle):
     NAME = 'podnapisi'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

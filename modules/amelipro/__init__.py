@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import AmeliProBackend
+from .backend import AmeliProModule
 
 
-__all__ = ['AmeliProBackend']
+__all__ = ['AmeliProModule']

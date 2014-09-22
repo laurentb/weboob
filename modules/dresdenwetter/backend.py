@@ -25,10 +25,10 @@ from weboob.capabilities.base import find_object
 from weboob.tools.backend import BaseModule
 
 
-__all__ = ['DresdenWetterBackend']
+__all__ = ['DresdenWetterModule']
 
 
-class DresdenWetterBackend(BaseModule, CapGauge):
+class DresdenWetterModule(BaseModule, CapGauge):
     NAME = 'dresdenwetter'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

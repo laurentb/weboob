@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import AXABanqueBackend
+from .backend import AXABanqueModule
 
-__all__ = ['AXABanqueBackend']
+__all__ = ['AXABanqueModule']

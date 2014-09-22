@@ -6,9 +6,9 @@ from weboob.tools.backend import BaseModule
 from .browser import BTDiggBrowser
 
 
-__all__ = ['BTDiggBackend']
+__all__ = ['BTDiggModule']
 
-class BTDiggBackend(BaseModule, CapTorrent):
+class BTDiggModule(BaseModule, CapTorrent):
     NAME = 'btdigg'
     MAINTAINER = u'Matthieu Rakotojaona'
     EMAIL = 'matthieu.rakotojaona@gmail.com'

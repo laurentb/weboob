@@ -25,10 +25,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import WellsFargo
 
 
-__all__ = ['WellsFargoBackend']
+__all__ = ['WellsFargoModule']
 
 
-class WellsFargoBackend(BaseModule, CapBank):
+class WellsFargoModule(BaseModule, CapBank):
     NAME = 'wellsfargo'
     MAINTAINER = u'Oleg Plakhotniuk'
     EMAIL = 'olegus8@gmail.com'

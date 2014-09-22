@@ -1,3 +1,3 @@
-from .backend import LaCentraleBackend
+from .backend import LaCentraleModule
 
-__all__ = ['LaCentraleBackend']
+__all__ = ['LaCentraleModule']

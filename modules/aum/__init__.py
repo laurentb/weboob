@@ -19,6 +19,6 @@
 
 
 from .browser import AuMBrowser
-from .backend import AuMBackend
+from .backend import AuMModule
 
-__all__ = ['AuMBrowser', 'AuMBackend']
+__all__ = ['AuMBrowser', 'AuMModule']

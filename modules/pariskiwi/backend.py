@@ -25,10 +25,10 @@ from datetime import datetime, time
 from .browser import ParisKiwiBrowser
 
 
-__all__ = ['ParisKiwiBackend']
+__all__ = ['ParisKiwiModule']
 
 
-class ParisKiwiBackend(BaseModule, CapCalendarEvent):
+class ParisKiwiModule(BaseModule, CapCalendarEvent):
     NAME = 'pariskiwi'
     DESCRIPTION = u'ParisKiwi website'
     MAINTAINER = u'Vincent A'

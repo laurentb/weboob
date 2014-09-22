@@ -26,10 +26,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import Nettokom
 
 
-__all__ = ['NettoKomBackend']
+__all__ = ['NettoKomModule']
 
 
-class NettoKomBackend(BaseModule, CapBill):
+class NettoKomModule(BaseModule, CapBill):
     NAME = 'nettokom'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

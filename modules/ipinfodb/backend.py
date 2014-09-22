@@ -24,10 +24,10 @@ from weboob.tools.backend import BaseModule
 from weboob.tools.browser import StandardBrowser
 
 
-__all__ = ['IpinfodbBackend']
+__all__ = ['IpinfodbModule']
 
 
-class IpinfodbBackend(BaseModule, CapGeolocIp):
+class IpinfodbModule(BaseModule, CapGeolocIp):
     NAME = 'ipinfodb'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

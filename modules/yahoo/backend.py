@@ -27,10 +27,10 @@ from weboob.tools.backend import BaseModule
 from weboob.tools.browser import StandardBrowser
 
 
-__all__ = ['YahooBackend']
+__all__ = ['YahooModule']
 
 
-class YahooBackend(BaseModule, CapWeather):
+class YahooModule(BaseModule, CapWeather):
     NAME = 'yahoo'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

@@ -1,3 +1,3 @@
-from .backend import PiratebayBackend
+from .backend import PiratebayModule
 
-__all__ = ['PiratebayBackend']
+__all__ = ['PiratebayModule']

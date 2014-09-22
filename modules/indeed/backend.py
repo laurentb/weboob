@@ -24,10 +24,10 @@ from weboob.capabilities.job import CapJob, BaseJobAdvert
 from weboob.tools.value import Value
 from .browser import IndeedBrowser
 
-__all__ = ['IndeedBackend']
+__all__ = ['IndeedModule']
 
 
-class IndeedBackend(BaseModule, CapJob):
+class IndeedModule(BaseModule, CapJob):
     NAME = 'indeed'
     DESCRIPTION = u'indeed website'
     MAINTAINER = u'Bezleputh'

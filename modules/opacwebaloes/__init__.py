@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import AloesBackend
+from .backend import AloesModule
 
-__all__ = ['AloesBackend']
+__all__ = ['AloesModule']

@@ -26,10 +26,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import Leclercmobile
 
 
-__all__ = ['LeclercMobileBackend']
+__all__ = ['LeclercMobileModule']
 
 
-class LeclercMobileBackend(BaseModule, CapBill):
+class LeclercMobileModule(BaseModule, CapBill):
     NAME = 'leclercmobile'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

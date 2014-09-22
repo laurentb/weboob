@@ -25,7 +25,7 @@ from weboob.capabilities.gallery import CapGallery, BaseGallery, BaseImage
 from weboob.tools.backend import BaseModule
 from weboob.tools.browser import BaseBrowser, BasePage
 
-__all__ = ['GenericComicReaderBackend']
+__all__ = ['GenericComicReaderModule']
 
 
 class DisplayPage(BasePage):
@@ -63,7 +63,7 @@ class GenericComicReaderBrowser(BaseBrowser):
             image.data = self.readurl(image.url)
 
 
-class GenericComicReaderBackend(BaseModule, CapGallery):
+class GenericComicReaderModule(BaseModule, CapGallery):
     NAME = 'genericcomicreader'
     MAINTAINER = u'Noé Rubinstein'
     EMAIL = 'noe.rubinstein@gmail.com'

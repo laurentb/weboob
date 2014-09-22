@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import MeteofranceBackend
+from .backend import MeteofranceModule
 
-__all__ = ['MeteofranceBackend']
+__all__ = ['MeteofranceModule']

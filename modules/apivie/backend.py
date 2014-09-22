@@ -24,10 +24,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import ApivieBrowser
 
 
-__all__ = ['ApivieBackend']
+__all__ = ['ApivieModule']
 
 
-class ApivieBackend(BaseModule, CapBank):
+class ApivieModule(BaseModule, CapBank):
     NAME = 'apivie'
     DESCRIPTION = u'Apivie'
     MAINTAINER = u'Romain Bignon'

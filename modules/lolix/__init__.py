@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import LolixBackend
+from .backend import LolixModule
 
 
-__all__ = ['LolixBackend']
+__all__ = ['LolixModule']

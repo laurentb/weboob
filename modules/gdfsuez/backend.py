@@ -23,10 +23,10 @@ from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from .browser import GdfSuez
 
-__all__ = ['GdfSuezBackend']
+__all__ = ['GdfSuezModule']
 
 
-class GdfSuezBackend(BaseModule, CapBill):
+class GdfSuezModule(BaseModule, CapBill):
     NAME = 'gdfsuez'
     MAINTAINER = u'Mathieu Jourdan'
     EMAIL = 'mathieu.jourdan@gresille.org'

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import RegionsjobBackend
+from .backend import RegionsjobModule
 
 
-__all__ = ['RegionsjobBackend']
+__all__ = ['RegionsjobModule']

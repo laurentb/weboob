@@ -1,3 +1,3 @@
-from .backend import EuroparlBackend
+from .backend import EuroparlModule
 
-__all__ = ['EuroparlBackend']
+__all__ = ['EuroparlModule']

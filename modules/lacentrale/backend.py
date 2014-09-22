@@ -25,11 +25,11 @@ from weboob.tools.backend import BaseModule
 from .browser import LaCentraleBrowser
 
 
-__all__ = ['LaCentraleBackend']
+__all__ = ['LaCentraleModule']
 
 
 # I implement capability
-class LaCentraleBackend(BaseModule, CapPriceComparison):
+class LaCentraleModule(BaseModule, CapPriceComparison):
     NAME = 'lacentrale'
     MAINTAINER = u'Vicnet'
     EMAIL = 'vo.publique@gmail.com'

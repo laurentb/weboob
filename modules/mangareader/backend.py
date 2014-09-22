@@ -17,13 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicReaderBackend, DisplayPage
+from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicReaderModule, DisplayPage
 
 
-__all__ = ['MangareaderBackend']
+__all__ = ['MangareaderModule']
 
 
-class MangareaderBackend(GenericComicReaderBackend):
+class MangareaderModule(GenericComicReaderModule):
     NAME = 'mangareader'
     DESCRIPTION = 'MangaReader manga reading website'
     DOMAIN = 'www.mangareader.net'

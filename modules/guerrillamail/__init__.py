@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import GuerrillamailBackend
+from .backend import GuerrillamailModule
 
 
-__all__ = ['GuerrillamailBackend']
+__all__ = ['GuerrillamailModule']

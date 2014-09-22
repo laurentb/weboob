@@ -5,10 +5,10 @@ from ${r.capmodulename} import ${r.capname}
 from .browser import ${r.classname}Browser
 
 
-__all__ = ['${r.classname}Backend']
+__all__ = ['${r.classname}Module']
 
 
-class ${r.classname}Backend(BaseModule, ${r.capname}):
+class ${r.classname}Module(BaseModule, ${r.capname}):
     NAME = '${r.name}'
     DESCRIPTION = u'${r.name} website'
     MAINTAINER = u'${r.author}'

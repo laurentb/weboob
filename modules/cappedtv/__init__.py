@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from .backend import CappedBackend
+from .backend import CappedModule
 
-__all__ = ['CappedBackend']
+__all__ = ['CappedModule']

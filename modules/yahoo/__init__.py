@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import YahooBackend
+from .backend import YahooModule
 
-__all__ = ['YahooBackend']
+__all__ = ['YahooModule']

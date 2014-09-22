@@ -27,10 +27,10 @@ from .browser import VimeoBrowser
 
 import re
 
-__all__ = ['VimeoBackend']
+__all__ = ['VimeoModule']
 
 
-class VimeoBackend(BaseModule, CapVideo, CapCollection):
+class VimeoModule(BaseModule, CapVideo, CapCollection):
     NAME = 'vimeo'
     MAINTAINER = u'François Revol'
     EMAIL = 'revol@free.fr'

@@ -28,10 +28,10 @@ from weboob.tools.value import Value, ValueBackendPassword
 from .browser import SfrBrowser
 
 
-__all__ = ['SfrBackend']
+__all__ = ['SfrModule']
 
 
-class SfrBackend(BaseModule, CapAccount, CapMessages, CapMessagesPost):
+class SfrModule(BaseModule, CapAccount, CapMessages, CapMessagesPost):
     NAME = 'sfr'
     MAINTAINER = u'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'

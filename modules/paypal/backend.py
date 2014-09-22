@@ -25,10 +25,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import Paypal
 
 
-__all__ = ['PaypalBackend']
+__all__ = ['PaypalModule']
 
 
-class PaypalBackend(BaseModule, CapBank):
+class PaypalModule(BaseModule, CapBank):
     NAME = 'paypal'
     MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'

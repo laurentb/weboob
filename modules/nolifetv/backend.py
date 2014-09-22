@@ -29,9 +29,9 @@ from .video import NolifeTVVideo
 import urllib, time
 from hashlib import md5
 
-__all__ = ['NolifeTVBackend']
+__all__ = ['NolifeTVModule']
 
-class NolifeTVBackend(BaseModule, CapVideo, CapCollection):
+class NolifeTVModule(BaseModule, CapVideo, CapCollection):
     NAME = 'nolifetv'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

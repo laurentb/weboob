@@ -26,10 +26,10 @@ from weboob.tools.ordereddict import OrderedDict
 from .browser import MonsterBrowser
 from .job import MonsterJobAdvert
 
-__all__ = ['MonsterBackend']
+__all__ = ['MonsterModule']
 
 
-class MonsterBackend(BaseModule, CapJob):
+class MonsterModule(BaseModule, CapJob):
     NAME = 'monster'
     DESCRIPTION = u'monster website'
     MAINTAINER = u'Bezleputh'

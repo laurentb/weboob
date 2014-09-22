@@ -1,4 +1,4 @@
-"NewspaperPresseuropBackend init"
+"NewspaperPresseuropModule init"
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2012  Florent Fourcot
@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .backend import NewspaperPresseuropBackend
+from .backend import NewspaperPresseuropModule
 
 
-__all__ = ['NewspaperPresseuropBackend']
+__all__ = ['NewspaperPresseuropModule']

@@ -32,10 +32,10 @@ from weboob.tools.value import ValueBackendPassword, Value
 from .browser import RedmineBrowser
 
 
-__all__ = ['RedmineBackend']
+__all__ = ['RedmineModule']
 
 
-class RedmineBackend(BaseModule, CapContent, CapBugTracker, CapCollection):
+class RedmineModule(BaseModule, CapContent, CapBugTracker, CapCollection):
     NAME = 'redmine'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

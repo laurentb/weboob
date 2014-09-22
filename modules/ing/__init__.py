@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import INGBackend
+from .backend import INGModule
 
 
-__all__ = ['INGBackend']
+__all__ = ['INGModule']

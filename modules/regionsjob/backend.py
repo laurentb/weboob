@@ -25,10 +25,10 @@ from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
 
 
-__all__ = ['RegionsjobBackend']
+__all__ = ['RegionsjobModule']
 
 
-class RegionsjobBackend(BaseModule, CapJob):
+class RegionsjobModule(BaseModule, CapJob):
     NAME = 'regionsjob'
     DESCRIPTION = u'regionsjob website'
     MAINTAINER = u'Bezleputh'

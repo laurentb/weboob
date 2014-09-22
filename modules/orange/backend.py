@@ -28,10 +28,10 @@ from weboob.tools.value import ValueBackendPassword, Value
 from .browser import OrangeBrowser
 
 
-__all__ = ['OrangeBackend']
+__all__ = ['OrangeModule']
 
 
-class OrangeBackend(BaseModule, CapAccount, CapMessages, CapMessagesPost):
+class OrangeModule(BaseModule, CapAccount, CapMessages, CapMessagesPost):
     NAME = 'orange'
     MAINTAINER = u'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'

@@ -24,13 +24,13 @@ from .browser import CuisineazBrowser
 
 import unicodedata
 
-__all__ = ['CuisineazBackend']
+__all__ = ['CuisineazModule']
 
 def strip_accents(s):
     return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
 
 
-class CuisineazBackend(BaseModule, CapRecipe):
+class CuisineazModule(BaseModule, CapRecipe):
     NAME = 'cuisineaz'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

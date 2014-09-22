@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import BanqueAccordBackend
+from .backend import BanqueAccordModule
 
 
-__all__ = ['BanqueAccordBackend']
+__all__ = ['BanqueAccordModule']

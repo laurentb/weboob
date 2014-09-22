@@ -29,10 +29,10 @@ from .video import CanalplusVideo
 from weboob.capabilities.collection import CapCollection
 
 
-__all__ = ['CanalplusBackend']
+__all__ = ['CanalplusModule']
 
 
-class CanalplusBackend(BaseModule, CapVideo, CapCollection):
+class CanalplusModule(BaseModule, CapVideo, CapCollection):
     NAME = 'canalplus'
     MAINTAINER = u'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'

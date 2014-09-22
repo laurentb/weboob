@@ -25,10 +25,10 @@ from weboob.capabilities.job import CapJob
 from .browser import LolixBrowser
 from .job import LolixJobAdvert
 
-__all__ = ['LolixBackend']
+__all__ = ['LolixModule']
 
 
-class LolixBackend(BaseModule, CapJob):
+class LolixModule(BaseModule, CapJob):
     NAME = 'lolix'
     DESCRIPTION = u'Lolix French free software employment website'
     MAINTAINER = u'Bezleputh'

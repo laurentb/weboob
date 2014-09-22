@@ -26,10 +26,10 @@ from weboob.tools.value import ValueBackendPassword, Value
 from .browser import GanAssurances
 
 
-__all__ = ['GanAssurancesBackend']
+__all__ = ['GanAssurancesModule']
 
 
-class GanAssurancesBackend(BaseModule, CapBank):
+class GanAssurancesModule(BaseModule, CapBank):
     NAME = 'ganassurances'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import BredBackend
+from .backend import BredModule
 
-__all__ = ['BredBackend']
+__all__ = ['BredModule']

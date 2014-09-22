@@ -24,10 +24,10 @@ from .browser import MarmitonBrowser
 
 from urllib import quote_plus
 
-__all__ = ['MarmitonBackend']
+__all__ = ['MarmitonModule']
 
 
-class MarmitonBackend(BaseModule, CapRecipe):
+class MarmitonModule(BaseModule, CapRecipe):
     NAME = 'marmiton'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

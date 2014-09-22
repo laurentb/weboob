@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import PaypalBackend
+from .backend import PaypalModule
 
-__all__ = ['PaypalBackend']
+__all__ = ['PaypalModule']

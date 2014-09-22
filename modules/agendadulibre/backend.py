@@ -26,10 +26,10 @@ from weboob.tools.value import Value
 from .browser import AgendadulibreBrowser
 
 
-__all__ = ['AgendadulibreBackend']
+__all__ = ['AgendadulibreModule']
 
 
-class AgendadulibreBackend(BaseModule, CapCalendarEvent):
+class AgendadulibreModule(BaseModule, CapCalendarEvent):
     NAME = 'agendadulibre'
     DESCRIPTION = u'agendadulibre website'
     MAINTAINER = u'Bezleputh'

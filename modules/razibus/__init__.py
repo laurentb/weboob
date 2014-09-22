@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import RazibusBackend
+from .backend import RazibusModule
 
 
-__all__ = ['RazibusBackend']
+__all__ = ['RazibusModule']

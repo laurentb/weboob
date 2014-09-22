@@ -25,12 +25,12 @@ from weboob.tools.value import Value
 from .browser import MailinatorBrowser
 
 
-__all__ = ['MailinatorBackend']
+__all__ = ['MailinatorModule']
 
 
 # There is only one thread per inbox, and the thread id is the inbox name
 # TODO but this can lead to bans if there are too many messages...
-class MailinatorBackend(BaseModule, CapMessages):
+class MailinatorModule(BaseModule, CapMessages):
     NAME = 'mailinator'
     DESCRIPTION = u'mailinator temp mailbox'
     MAINTAINER = u'Vincent A'

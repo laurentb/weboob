@@ -1,4 +1,4 @@
-from .backend import FourChanBackend
+from .backend import FourChanModule
 from .browser import FourChan
 
-__all__ = ['FourChanBackend', 'FourChan']
+__all__ = ['FourChanModule', 'FourChan']

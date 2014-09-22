@@ -34,10 +34,10 @@ from weboob.tools.misc import to_unicode
 from quvi import LibQuvi, QuviError
 
 
-__all__ = ['QuviBackend', 'QuviVideo']
+__all__ = ['QuviModule', 'QuviVideo']
 
 
-class QuviBackend(BaseModule, CapVideo):
+class QuviModule(BaseModule, CapVideo):
     NAME = 'quvi'
     DESCRIPTION = u'Multi-website video helper with quvi. Handles Youtube, BBC, and a lot more'
     MAINTAINER = u'Vincent A'

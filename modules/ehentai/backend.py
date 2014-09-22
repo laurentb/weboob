@@ -30,10 +30,10 @@ from .browser import EHentaiBrowser
 from .gallery import EHentaiGallery, EHentaiImage
 
 
-__all__ = ['EHentaiBackend']
+__all__ = ['EHentaiModule']
 
 
-class EHentaiBackend(BaseModule, CapGallery, CapCollection):
+class EHentaiModule(BaseModule, CapGallery, CapCollection):
     NAME = 'ehentai'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'

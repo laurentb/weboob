@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import ApivieBackend
+from .backend import ApivieModule
 
 
-__all__ = ['ApivieBackend']
+__all__ = ['ApivieModule']

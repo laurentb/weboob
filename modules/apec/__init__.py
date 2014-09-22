@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import ApecBackend
+from .backend import ApecModule
 
 
-__all__ = ['ApecBackend']
+__all__ = ['ApecModule']

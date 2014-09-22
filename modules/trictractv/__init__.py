@@ -1,3 +1,3 @@
-from .backend import TricTracTVBackend
+from .backend import TricTracTVModule
 
-__all__ = ['TricTracTVBackend']
+__all__ = ['TricTracTVModule']

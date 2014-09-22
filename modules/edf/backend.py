@@ -22,10 +22,10 @@ from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from .browser import EdfBrowser
 
-__all__ = ['EdfBackend']
+__all__ = ['EdfModule']
 
 
-class EdfBackend(BaseModule, CapBill):
+class EdfModule(BaseModule, CapBill):
     NAME = 'edf'
     DESCRIPTION = u'Edf website: French power provider'
     MAINTAINER = u'Christophe Gouiran'

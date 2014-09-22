@@ -1,3 +1,3 @@
-from .backend import ParolesnetBackend
+from .backend import ParolesnetModule
 
-__all__ = ['ParolesnetBackend']
+__all__ = ['ParolesnetModule']

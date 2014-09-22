@@ -27,10 +27,10 @@ from weboob.tools.browser import StandardBrowser
 from weboob.tools.misc import to_unicode
 
 
-__all__ = ['OuiFMBackend']
+__all__ = ['OuiFMModule']
 
 
-class OuiFMBackend(BaseModule, CapRadio, CapCollection):
+class OuiFMModule(BaseModule, CapRadio, CapCollection):
     NAME = 'ouifm'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

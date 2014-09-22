@@ -22,10 +22,10 @@ from weboob.tools.backend import BaseModule
 
 from .browser import ParolesmusiqueBrowser
 
-__all__ = ['ParolesmusiqueBackend']
+__all__ = ['ParolesmusiqueModule']
 
 
-class ParolesmusiqueBackend(BaseModule, CapLyrics):
+class ParolesmusiqueModule(BaseModule, CapLyrics):
     NAME = 'parolesmusique'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

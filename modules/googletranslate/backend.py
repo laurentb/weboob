@@ -25,10 +25,10 @@ from weboob.tools.backend import BaseModule
 from .browser import GoogleTranslateBrowser
 
 
-__all__ = ['GoogleTranslateBackend']
+__all__ = ['GoogleTranslateModule']
 
 
-class GoogleTranslateBackend(BaseModule, CapTranslate):
+class GoogleTranslateModule(BaseModule, CapTranslate):
     MAINTAINER = u'Lucien Loiseau'
     EMAIL = 'loiseau.lucien@gmail.com'
     VERSION = '1.0'

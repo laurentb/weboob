@@ -26,7 +26,7 @@ from weboob.capabilities.contact import CapContact
 from .browser import OvsBrowser
 
 
-__all__ = ['OvsBackend']
+__all__ = ['OvsModule']
 
 
 CITIES = {u'agen': u'Agen', u'ajaccio': u'Ajaccio', u'albi': u'Albi', u'amiens': u'Amiens',
@@ -60,7 +60,7 @@ CITIES = {u'agen': u'Agen', u'ajaccio': u'Ajaccio', u'albi': u'Albi', u'amiens':
           u'zurich': u'Zurich'}
 
 
-class OvsBackend(BaseModule, CapMessages, CapMessagesPost, CapContact):
+class OvsModule(BaseModule, CapMessages, CapMessagesPost, CapContact):
     NAME = 'ovs'
     DESCRIPTION = u'OnVaSortir website. Handles private messages only'
     MAINTAINER = u'Vincent A'

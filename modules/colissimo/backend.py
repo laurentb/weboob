@@ -23,10 +23,10 @@ from weboob.tools.backend import BaseModule
 from .browser import ColissimoBrowser
 from datetime import date
 
-__all__ = ['ColissimoBackend']
+__all__ = ['ColissimoModule']
 
 
-class ColissimoBackend(BaseModule, CapParcel):
+class ColissimoModule(BaseModule, CapParcel):
     NAME = 'colissimo'
     DESCRIPTION = u'Colissimo parcel tracking website'
     MAINTAINER = u'Florent Fourcot'

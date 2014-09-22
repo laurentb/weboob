@@ -1,4 +1,4 @@
-"NewspaperLibeBackend init"
+"NewspaperLibeModule init"
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2013  Florent Fourcot
@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .backend import NewspaperLibeBackend
+from .backend import NewspaperLibeModule
 
 
-__all__ = ['NewspaperLibeBackend']
+__all__ = ['NewspaperLibeModule']

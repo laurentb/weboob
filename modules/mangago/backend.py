@@ -18,12 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicReaderBackend, DisplayPage
+from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicReaderModule, DisplayPage
 
-__all__ = ['MangagoBackend']
+__all__ = ['MangagoModule']
 
 
-class MangagoBackend(GenericComicReaderBackend):
+class MangagoModule(GenericComicReaderModule):
     NAME = 'mangago'
     DESCRIPTION = 'Mangago manga reading site'
     DOMAIN = 'www.mangago.com'

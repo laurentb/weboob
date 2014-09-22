@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import SeeklyricsBackend
+from .backend import SeeklyricsModule
 
-__all__ = ['SeeklyricsBackend']
+__all__ = ['SeeklyricsModule']

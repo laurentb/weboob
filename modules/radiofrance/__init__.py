@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import RadioFranceBackend
+from .backend import RadioFranceModule
 
 
-__all__ = ['RadioFranceBackend']
+__all__ = ['RadioFranceModule']

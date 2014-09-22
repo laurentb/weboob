@@ -25,10 +25,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import Fortuneo
 
 
-__all__ = ['FortuneoBackend']
+__all__ = ['FortuneoModule']
 
 
-class FortuneoBackend(BaseModule, CapBank):
+class FortuneoModule(BaseModule, CapBank):
     NAME = 'fortuneo'
     MAINTAINER = u'Gilles-Alexandre Quenot'
     EMAIL = 'gilles.quenot@gmail.com'

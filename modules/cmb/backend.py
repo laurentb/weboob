@@ -33,10 +33,10 @@ from StringIO import StringIO
 
 
 
-__all__ = ['CmbBackend']
+__all__ = ['CmbModule']
 
 
-class CmbBackend(BaseModule, CapBank):
+class CmbModule(BaseModule, CapBank):
     NAME = 'cmb'
     MAINTAINER = u'Johann Broudin'
     EMAIL = 'Johann.Broudin@6-8.fr'

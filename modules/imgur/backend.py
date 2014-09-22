@@ -27,7 +27,7 @@ from urllib import urlencode
 import re
 
 
-__all__ = ['ImgurBackend']
+__all__ = ['ImgurModule']
 
 
 class ImgPaste(BasePaste):
@@ -43,7 +43,7 @@ class ImgPaste(BasePaste):
         return 'http://i.imgur.com/%s.png' % self.id
 
 
-class ImgurBackend(BaseModule, CapPaste):
+class ImgurModule(BaseModule, CapPaste):
     NAME = 'imgur'
     DESCRIPTION = u'imgur image upload service'
     MAINTAINER = u'Vincent A'

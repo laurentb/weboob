@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import PixtoilelibreBackend
+from .backend import PixtoilelibreModule
 
 
-__all__ = ['PixtoilelibreBackend']
+__all__ = ['PixtoilelibreModule']

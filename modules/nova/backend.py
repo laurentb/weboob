@@ -29,10 +29,10 @@ from weboob.tools.browser import StandardBrowser
 from weboob.tools.parsers import get_parser
 
 
-__all__ = ['NovaBackend']
+__all__ = ['NovaModule']
 
 
-class NovaBackend(BaseModule, CapRadio, CapCollection):
+class NovaModule(BaseModule, CapRadio, CapCollection):
     NAME = 'nova'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

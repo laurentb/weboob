@@ -23,10 +23,10 @@ from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from .browser import AmeliProBrowser
 
-__all__ = ['AmeliProBackend']
+__all__ = ['AmeliProModule']
 
 
-class AmeliProBackend(BaseModule, CapBill):
+class AmeliProModule(BaseModule, CapBill):
     NAME = 'amelipro'
     DESCRIPTION = u'Ameli website: French Health Insurance for Professionals'
     MAINTAINER = u'Christophe Lampin'

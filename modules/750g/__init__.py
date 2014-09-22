@@ -17,6 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .backend import SevenFiftyGramsBackend
+from .backend import SevenFiftyGramsModule
 
-__all__ = ['SevenFiftyGramsBackend']
+__all__ = ['SevenFiftyGramsModule']

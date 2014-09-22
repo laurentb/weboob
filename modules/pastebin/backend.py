@@ -20,13 +20,13 @@
 
 from weboob.capabilities.base import NotLoaded
 from weboob.tools.backend import BackendConfig, BaseModule
-from weboob.tools.capabilities.paste import BasePasteBackend
+from weboob.tools.capabilities.paste import BasePasteModule
 from weboob.tools.value import Value, ValueBackendPassword
 
 from .browser import PastebinBrowser, PastebinPaste
 
 
-class PastebinBackend(BaseModule, BasePasteBackend):
+class PastebinModule(BaseModule, BasePasteModule):
     NAME = 'pastebin'
     MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'

@@ -26,10 +26,10 @@ from weboob.tools.value import ValueBackendPassword, Value
 from .browser import BanquePopulaire
 
 
-__all__ = ['BanquePopulaireBackend']
+__all__ = ['BanquePopulaireModule']
 
 
-class BanquePopulaireBackend(BaseModule, CapBank):
+class BanquePopulaireModule(BaseModule, CapBank):
     NAME = 'banquepopulaire'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

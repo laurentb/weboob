@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import HelloBankBackend
+from .backend import HelloBankModule
 
-__all__ = ['HelloBankBackend']
+__all__ = ['HelloBankModule']

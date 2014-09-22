@@ -24,10 +24,10 @@ from .browser import ImdbBrowser
 
 from urllib import quote_plus
 
-__all__ = ['ImdbBackend']
+__all__ = ['ImdbModule']
 
 
-class ImdbBackend(BaseModule, CapCinema):
+class ImdbModule(BaseModule, CapCinema):
     NAME = 'imdb'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

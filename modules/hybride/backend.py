@@ -24,10 +24,10 @@ from weboob.capabilities.calendar import CapCalendarEvent, CATEGORIES
 from .browser import HybrideBrowser
 from .calendar import HybrideCalendarEvent
 
-__all__ = ['HybrideBackend']
+__all__ = ['HybrideModule']
 
 
-class HybrideBackend(BaseModule, CapCalendarEvent):
+class HybrideModule(BaseModule, CapCalendarEvent):
     NAME = 'hybride'
     DESCRIPTION = u'hybride website'
     MAINTAINER = u'Bezleputh'

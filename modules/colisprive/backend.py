@@ -22,10 +22,10 @@ from weboob.tools.backend import BaseModule
 
 from .browser import ColispriveBrowser
 
-__all__ = ['ColispriveBackend']
+__all__ = ['ColispriveModule']
 
 
-class ColispriveBackend(BaseModule, CapParcel):
+class ColispriveModule(BaseModule, CapParcel):
     NAME = 'colisprive'
     DESCRIPTION = u'Colisprive parcel tracking website'
     MAINTAINER = u'Florent Fourcot'

@@ -30,10 +30,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import CreditMutuelBrowser
 
 
-__all__ = ['CreditMutuelBackend']
+__all__ = ['CreditMutuelModule']
 
 
-class CreditMutuelBackend(BaseModule, CapBank):
+class CreditMutuelModule(BaseModule, CapBank):
     NAME = 'creditmutuel'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

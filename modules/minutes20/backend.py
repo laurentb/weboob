@@ -19,12 +19,12 @@
 "backend for http://20minutes.fr"
 
 from weboob.capabilities.messages import CapMessages
-from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBackend
+from weboob.tools.capabilities.messages.GenericModule import GenericNewspaperModule
 from .browser import Newspaper20minutesBrowser
 from .tools import rssid
 
 
-class Newspaper20minutesBackend(GenericNewspaperBackend, CapMessages):
+class Newspaper20minutesModule(GenericNewspaperModule, CapMessages):
     MAINTAINER = u'Julien Hebert'
     EMAIL = 'juke@free.fr'
     VERSION = '1.0'

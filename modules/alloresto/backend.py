@@ -26,10 +26,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import AlloRestoBrowser
 
 
-__all__ = ['AlloRestoBackend']
+__all__ = ['AlloRestoModule']
 
 
-class AlloRestoBackend(BaseModule, CapBank):
+class AlloRestoModule(BaseModule, CapBank):
     NAME = 'alloresto'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

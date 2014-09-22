@@ -26,10 +26,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import PoivyBrowser
 
 
-__all__ = ['PoivyBackend']
+__all__ = ['PoivyModule']
 
 
-class PoivyBackend(BaseModule, CapBill):
+class PoivyModule(BaseModule, CapBill):
     NAME = 'poivy'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

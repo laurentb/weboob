@@ -1,3 +1,3 @@
-from .backend import GDCVaultBackend
+from .backend import GDCVaultModule
 
-__all__ = ['GDCVaultBackend']
+__all__ = ['GDCVaultModule']

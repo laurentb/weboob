@@ -24,10 +24,10 @@ from .browser import TvsubtitlesBrowser, LANGUAGE_LIST
 
 from urllib import quote_plus
 
-__all__ = ['TvsubtitlesBackend']
+__all__ = ['TvsubtitlesModule']
 
 
-class TvsubtitlesBackend(BaseModule, CapSubtitle):
+class TvsubtitlesModule(BaseModule, CapSubtitle):
     NAME = 'tvsubtitles'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

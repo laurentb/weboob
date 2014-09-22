@@ -25,10 +25,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import AXABanque
 
 
-__all__ = ['AXABanqueBackend']
+__all__ = ['AXABanqueModule']
 
 
-class AXABanqueBackend(BaseModule, CapBank):
+class AXABanqueModule(BaseModule, CapBank):
     NAME = 'axabanque'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

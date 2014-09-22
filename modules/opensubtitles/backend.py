@@ -25,10 +25,10 @@ from .browser import OpensubtitlesBrowser
 
 from urllib import quote_plus
 
-__all__ = ['OpensubtitlesBackend']
+__all__ = ['OpensubtitlesModule']
 
 
-class OpensubtitlesBackend(BaseModule, CapSubtitle):
+class OpensubtitlesModule(BaseModule, CapSubtitle):
     NAME = 'opensubtitles'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

@@ -25,10 +25,10 @@ from weboob.tools.backend import BaseModule
 from .browser import PapBrowser
 
 
-__all__ = ['PapBackend']
+__all__ = ['PapModule']
 
 
-class PapBackend(BaseModule, CapHousing):
+class PapModule(BaseModule, CapHousing):
     NAME = 'pap'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

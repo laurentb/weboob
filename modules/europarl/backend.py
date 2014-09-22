@@ -29,10 +29,10 @@ from .browser import EuroparlBrowser
 from .video import EuroparlVideo
 
 
-__all__ = ['EuroparlBackend']
+__all__ = ['EuroparlModule']
 
 
-class EuroparlBackend(BaseModule, CapVideo, CapCollection):
+class EuroparlModule(BaseModule, CapVideo, CapCollection):
     NAME = 'europarl'
     MAINTAINER = u'François Revol'
     EMAIL = 'revol@free.fr'

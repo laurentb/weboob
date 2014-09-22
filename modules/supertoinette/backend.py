@@ -22,10 +22,10 @@ from weboob.tools.backend import BaseModule
 
 from .browser import SupertoinetteBrowser
 
-__all__ = ['SupertoinetteBackend']
+__all__ = ['SupertoinetteModule']
 
 
-class SupertoinetteBackend(BaseModule, CapRecipe):
+class SupertoinetteModule(BaseModule, CapRecipe):
     NAME = 'supertoinette'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

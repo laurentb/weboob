@@ -25,10 +25,10 @@ from weboob.tools.value import Value
 from .browser import CciBrowser
 
 
-__all__ = ['CciBackend']
+__all__ = ['CciModule']
 
 
-class CciBackend(BaseModule, CapJob):
+class CciModule(BaseModule, CapJob):
     NAME = 'cci'
     DESCRIPTION = u'cci website'
     MAINTAINER = u'Bezleputh'

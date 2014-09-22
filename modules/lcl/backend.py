@@ -28,10 +28,10 @@ from .browser import LCLBrowser, LCLProBrowser
 from .enterprise.browser import LCLEnterpriseBrowser, LCLEspaceProBrowser
 
 
-__all__ = ['LCLBackend']
+__all__ = ['LCLModule']
 
 
-class LCLBackend(BaseModule, CapBank):
+class LCLModule(BaseModule, CapBank):
     NAME = 'lcl'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

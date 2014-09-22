@@ -30,10 +30,10 @@ from .browser import PhpBB
 from .tools import rssid, url2id, id2url, id2topic
 
 
-__all__ = ['PhpBBBackend']
+__all__ = ['PhpBBModule']
 
 
-class PhpBBBackend(BaseModule, CapMessages, CapMessagesPost):
+class PhpBBModule(BaseModule, CapMessages, CapMessagesPost):
     NAME = 'phpbb'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

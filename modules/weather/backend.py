@@ -23,10 +23,10 @@ from weboob.tools.backend import BaseModule
 
 from .browser import WeatherBrowser
 
-__all__ = ['WeatherBackend']
+__all__ = ['WeatherModule']
 
 
-class WeatherBackend(BaseModule, CapWeather):
+class WeatherModule(BaseModule, CapWeather):
     NAME = 'weather'
     MAINTAINER = u'Arno Renevier'
     EMAIL = 'arno@renevier.net'

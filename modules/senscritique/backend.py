@@ -25,10 +25,10 @@ from weboob.capabilities.calendar import CapCalendarEvent, CATEGORIES
 from .browser import SenscritiqueBrowser
 from .calendar import SensCritiquenCalendarEvent
 
-__all__ = ['SenscritiqueBackend']
+__all__ = ['SenscritiqueModule']
 
 
-class SenscritiqueBackend(BaseModule, CapCalendarEvent):
+class SenscritiqueModule(BaseModule, CapCalendarEvent):
     NAME = 'senscritique'
     DESCRIPTION = u'senscritique website'
     MAINTAINER = u'Bezleputh'

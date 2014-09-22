@@ -27,10 +27,10 @@ from weboob.capabilities import UserError
 from .browser import VoyagesSNCFBrowser
 
 
-__all__ = ['VoyagesSNCFBackend']
+__all__ = ['VoyagesSNCFModule']
 
 
-class VoyagesSNCFBackend(BaseModule, CapTravel):
+class VoyagesSNCFModule(BaseModule, CapTravel):
     NAME = 'voyagessncf'
     DESCRIPTION = u'Voyages SNCF'
     MAINTAINER = u'Romain Bignon'

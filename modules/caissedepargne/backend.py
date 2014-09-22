@@ -25,10 +25,10 @@ from weboob.tools.value import Value, ValueBackendPassword
 from .browser import CaisseEpargne
 
 
-__all__ = ['CaisseEpargneBackend']
+__all__ = ['CaisseEpargneModule']
 
 
-class CaisseEpargneBackend(BaseModule, CapBank):
+class CaisseEpargneModule(BaseModule, CapBank):
     NAME = 'caissedepargne'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

@@ -27,10 +27,10 @@ from .browser import SocieteGenerale
 from .sgpe.browser import SGEnterpriseBrowser, SGProfessionalBrowser
 
 
-__all__ = ['SocieteGeneraleBackend']
+__all__ = ['SocieteGeneraleModule']
 
 
-class SocieteGeneraleBackend(BaseModule, CapBank):
+class SocieteGeneraleModule(BaseModule, CapBank):
     NAME = 'societegenerale'
     MAINTAINER = u'Jocelyn Jaubert'
     EMAIL = 'jocelyn.jaubert@gmail.com'

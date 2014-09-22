@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import CICBackend
+from .backend import CICModule
 
-__all__ = ['CICBackend']
+__all__ = ['CICModule']

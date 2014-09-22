@@ -25,10 +25,10 @@ from weboob.tools.backend import BaseModule
 from .browser import WordReferenceBrowser
 
 
-__all__ = ['WordReferenceBackend']
+__all__ = ['WordReferenceModule']
 
 
-class WordReferenceBackend(BaseModule, CapTranslate):
+class WordReferenceModule(BaseModule, CapTranslate):
     MAINTAINER = u'Lucien Loiseau'
     EMAIL = 'loiseau.lucien@gmail.com'
     VERSION = '1.0'

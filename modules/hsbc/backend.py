@@ -27,10 +27,10 @@ from weboob.tools.value import ValueBackendPassword, Value
 from .browser import HSBC
 
 
-__all__ = ['HSBCBackend']
+__all__ = ['HSBCModule']
 
 
-class HSBCBackend(BaseModule, CapBank):
+class HSBCModule(BaseModule, CapBank):
     NAME = 'hsbc'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

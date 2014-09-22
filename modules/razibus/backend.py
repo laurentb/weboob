@@ -26,10 +26,10 @@ from weboob.tools.value import Value
 from .browser import RazibusBrowser
 from .calendar import RazibusCalendarEvent
 
-__all__ = ['RazibusBackend']
+__all__ = ['RazibusModule']
 
 
-class RazibusBackend(BaseModule, CapCalendarEvent):
+class RazibusModule(BaseModule, CapCalendarEvent):
     NAME = 'razibus'
     DESCRIPTION = u'site annonçant les évènements attendus par les punks a chiens'
     MAINTAINER = u'Bezleputh'

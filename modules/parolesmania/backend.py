@@ -24,10 +24,10 @@ from .browser import ParolesmaniaBrowser
 
 from urllib import quote_plus
 
-__all__ = ['ParolesmaniaBackend']
+__all__ = ['ParolesmaniaModule']
 
 
-class ParolesmaniaBackend(BaseModule, CapLyrics):
+class ParolesmaniaModule(BaseModule, CapLyrics):
     NAME = 'parolesmania'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

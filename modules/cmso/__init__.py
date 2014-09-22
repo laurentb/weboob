@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import CmsoBackend
+from .backend import CmsoModule
 
-__all__ = ['CmsoBackend']
+__all__ = ['CmsoModule']

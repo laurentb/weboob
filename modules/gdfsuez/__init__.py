@@ -1,3 +1,3 @@
-from .backend import GdfSuezBackend
+from .backend import GdfSuezModule
 
-__all__ = ['GdfSuezBackend']
+__all__ = ['GdfSuezModule']

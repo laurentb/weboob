@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import FortuneoBackend
+from .backend import FortuneoModule
 
-__all__ = ['FortuneoBackend']
+__all__ = ['FortuneoModule']
 
 # vim:ts=4:sw=4

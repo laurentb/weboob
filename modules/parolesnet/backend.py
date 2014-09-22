@@ -22,10 +22,10 @@ from weboob.tools.backend import BaseModule
 
 from .browser import ParolesnetBrowser
 
-__all__ = ['ParolesnetBackend']
+__all__ = ['ParolesnetModule']
 
 
-class ParolesnetBackend(BaseModule, CapLyrics):
+class ParolesnetModule(BaseModule, CapLyrics):
     NAME = 'parolesnet'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

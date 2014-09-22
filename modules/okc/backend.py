@@ -35,7 +35,7 @@ from .browser import OkCBrowser
 from .optim.profiles_walker import ProfilesWalker
 
 
-__all__ = ['OkCBackend']
+__all__ = ['OkCModule']
 
 
 def parse_dt(s):
@@ -63,7 +63,7 @@ def parse_dt(s):
     return local2utc(d)
 
 
-class OkCBackend(BaseModule, CapMessages, CapContact, CapMessagesPost, CapDating):
+class OkCModule(BaseModule, CapMessages, CapContact, CapMessagesPost, CapDating):
     NAME = 'okc'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'

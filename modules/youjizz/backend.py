@@ -27,10 +27,10 @@ from weboob.tools.backend import BaseModule
 from .browser import YoujizzBrowser
 
 
-__all__ = ['YoujizzBackend']
+__all__ = ['YoujizzModule']
 
 
-class YoujizzBackend(BaseModule, CapVideo, CapCollection):
+class YoujizzModule(BaseModule, CapVideo, CapCollection):
     NAME = 'youjizz'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'

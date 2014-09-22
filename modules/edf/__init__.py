@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import EdfBackend
+from .backend import EdfModule
 
 
-__all__ = ['EdfBackend']
+__all__ = ['EdfModule']

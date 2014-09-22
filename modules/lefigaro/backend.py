@@ -19,12 +19,12 @@
 "backend for http://www.lefigaro.fr"
 
 from weboob.capabilities.messages import CapMessages
-from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBackend
+from weboob.tools.capabilities.messages.GenericModule import GenericNewspaperModule
 from .browser import NewspaperFigaroBrowser
 from .tools import rssid
 
 
-class NewspaperFigaroBackend(GenericNewspaperBackend, CapMessages):
+class NewspaperFigaroModule(GenericNewspaperModule, CapMessages):
     MAINTAINER = u'Julien Hebert'
     EMAIL = 'juke@free.fr'
     VERSION = '1.0'

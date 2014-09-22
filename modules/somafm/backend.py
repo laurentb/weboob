@@ -28,7 +28,7 @@ from weboob.tools.browser import StandardBrowser
 from weboob.tools.parsers.iparser import IParser
 
 
-__all__ = ['SomaFMBackend']
+__all__ = ['SomaFMModule']
 
 
 class LxmlParser(IParser):
@@ -36,7 +36,7 @@ class LxmlParser(IParser):
         return lxml.etree.fromstring(data.read())
 
 
-class SomaFMBackend(BaseModule, CapRadio, CapCollection):
+class SomaFMModule(BaseModule, CapRadio, CapCollection):
     NAME = 'somafm'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'

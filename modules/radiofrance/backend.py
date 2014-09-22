@@ -30,10 +30,10 @@ from weboob.tools.backend import BaseModule
 from .browser import RadioFranceBrowser, RadioFranceVideo
 
 
-__all__ = ['RadioFranceBackend']
+__all__ = ['RadioFranceModule']
 
 
-class RadioFranceBackend(BaseModule, CapRadio, CapCollection, CapVideo):
+class RadioFranceModule(BaseModule, CapRadio, CapCollection, CapVideo):
     NAME = 'radiofrance'
     MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'

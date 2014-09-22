@@ -23,10 +23,10 @@ from weboob.tools.backend import BaseModule
 from .browser import JVMalin
 
 
-__all__ = ['JVMalinBackend']
+__all__ = ['JVMalinModule']
 
 
-class JVMalinBackend(BaseModule, CapTravel):
+class JVMalinModule(BaseModule, CapTravel):
     NAME = 'jvmalin'
     MAINTAINER = u'Alexandre Lissy'
     EMAIL = 'github@lissy.me'

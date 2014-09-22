@@ -19,6 +19,6 @@
 
 
 from .browser import OkCBrowser
-from .backend import OkCBackend
+from .backend import OkCModule
 
-__all__ = ['OkCBrowser', 'OkCBackend']
+__all__ = ['OkCBrowser', 'OkCModule']

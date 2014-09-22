@@ -25,10 +25,10 @@ from weboob.tools.value import Value
 from .browser import GuerrillamailBrowser
 
 
-__all__ = ['GuerrillamailBackend']
+__all__ = ['GuerrillamailModule']
 
 
-class GuerrillamailBackend(BaseModule, CapMessages, CapMessagesPost):
+class GuerrillamailModule(BaseModule, CapMessages, CapMessagesPost):
     NAME = 'guerrillamail'
     DESCRIPTION = u'GuerrillaMail temp mailbox'
     MAINTAINER = u'Vincent A'

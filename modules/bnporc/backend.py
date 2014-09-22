@@ -30,10 +30,10 @@ from .browser import BNPorc
 from .enterprise.browser import BNPEnterprise
 
 
-__all__ = ['BNPorcBackend']
+__all__ = ['BNPorcModule']
 
 
-class BNPorcBackend(BaseModule, CapBank, CapMessages):
+class BNPorcModule(BaseModule, CapBank, CapMessages):
     NAME = 'bnporc'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

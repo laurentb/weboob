@@ -24,10 +24,10 @@ from .browser import AllrecipesBrowser
 
 from urllib import quote_plus
 
-__all__ = ['AllrecipesBackend']
+__all__ = ['AllrecipesModule']
 
 
-class AllrecipesBackend(BaseModule, CapRecipe):
+class AllrecipesModule(BaseModule, CapRecipe):
     NAME = 'allrecipes'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

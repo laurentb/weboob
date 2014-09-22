@@ -29,10 +29,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import CICBrowser
 
 
-__all__ = ['CICBackend']
+__all__ = ['CICModule']
 
 
-class CICBackend(BaseModule, CapBank):
+class CICModule(BaseModule, CapBank):
     NAME = 'cic'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

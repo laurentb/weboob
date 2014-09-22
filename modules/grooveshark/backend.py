@@ -24,7 +24,7 @@ from weboob.capabilities.collection import CapCollection, CollectionNotFound
 from .browser import GroovesharkBrowser
 from weboob.tools.value import ValueBackendPassword, Value
 
-__all__ = ['GroovesharkBackend']
+__all__ = ['GroovesharkModule']
 
 
 def cmp_id(p1, p2):
@@ -35,7 +35,7 @@ def cmp_id(p1, p2):
     return -1
 
 
-class GroovesharkBackend(BaseModule, CapAudio, CapCollection):
+class GroovesharkModule(BaseModule, CapAudio, CapCollection):
     NAME = 'grooveshark'
     DESCRIPTION = u'Grooveshark music streaming website'
     MAINTAINER = u'Bezleputh'

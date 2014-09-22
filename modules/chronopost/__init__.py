@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import ChronopostBackend
+from .backend import ChronopostModule
 
 
-__all__ = ['ChronopostBackend']
+__all__ = ['ChronopostModule']

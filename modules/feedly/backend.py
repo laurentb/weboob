@@ -26,10 +26,10 @@ from weboob.tools.value import Value, ValueBackendPassword
 from .browser import FeedlyBrowser
 from .google import GoogleBrowser
 
-__all__ = ['FeedlyBackend']
+__all__ = ['FeedlyModule']
 
 
-class FeedlyBackend(BaseModule, CapMessages, CapCollection):
+class FeedlyModule(BaseModule, CapMessages, CapCollection):
     NAME = 'feedly'
     DESCRIPTION = u'handle the popular RSS reading service Feedly'
     MAINTAINER = u'Bezleputh'

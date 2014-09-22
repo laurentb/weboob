@@ -25,10 +25,10 @@ from weboob.tools.value import ValueBackendPassword, Value
 from .browser import ChampslibresBrowser
 
 
-__all__ = ['ChampslibresBackend']
+__all__ = ['ChampslibresModule']
 
 
-class ChampslibresBackend(BaseModule, CapBook):
+class ChampslibresModule(BaseModule, CapBook):
     NAME = 'champslibres'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

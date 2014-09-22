@@ -25,10 +25,10 @@ from weboob.capabilities.job import CapJob
 from .browser import AdeccoBrowser
 from .job import AdeccoJobAdvert
 
-__all__ = ['AdeccoBackend']
+__all__ = ['AdeccoModule']
 
 
-class AdeccoBackend(BaseModule, CapJob):
+class AdeccoModule(BaseModule, CapJob):
     NAME = 'adecco'
     DESCRIPTION = u'adecco website'
     MAINTAINER = u'Bezleputh'

@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import WeatherBackend
+from .backend import WeatherModule
 
-__all__ = ['WeatherBackend']
+__all__ = ['WeatherModule']

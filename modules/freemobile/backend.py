@@ -25,10 +25,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import Freemobile
 
 
-__all__ = ['FreeMobileBackend']
+__all__ = ['FreeMobileModule']
 
 
-class FreeMobileBackend(BaseModule, CapBill):
+class FreeMobileModule(BaseModule, CapBill):
     NAME = 'freemobile'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

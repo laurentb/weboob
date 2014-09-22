@@ -26,10 +26,10 @@ from weboob.capabilities.messages import CapMessages, Message, Thread
 from .browser import HDSBrowser
 
 
-__all__ = ['HDSBackend']
+__all__ = ['HDSModule']
 
 
-class HDSBackend(BaseModule, CapMessages):
+class HDSModule(BaseModule, CapMessages):
     NAME = 'hds'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

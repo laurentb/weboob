@@ -20,14 +20,14 @@
 
 from weboob.tools.backend import BaseModule
 from weboob.capabilities.paste import BasePaste
-from weboob.tools.capabilities.paste import BasePasteBackend
+from weboob.tools.capabilities.paste import BasePasteModule
 from weboob.tools.capabilities.paste import image_mime
 import re
 
 from .browser import UnseeBrowser
 
 
-__all__ = ['UnseeBackend']
+__all__ = ['UnseeModule']
 
 
 class UnPaste(BasePaste):
@@ -36,7 +36,7 @@ class UnPaste(BasePaste):
         return 'https://unsee.cc/%s' % id
 
 
-class UnseeBackend(BaseModule, BasePasteBackend):
+class UnseeModule(BaseModule, BasePasteModule):
     NAME = 'unsee'
     DESCRIPTION = u'unsee.cc expiring image hosting'
     MAINTAINER = u'Vincent A'

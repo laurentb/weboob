@@ -27,7 +27,7 @@ from weboob.tools.ordereddict import OrderedDict
 from .browser import VelibBrowser
 
 
-__all__ = ['jcvelauxBackend']
+__all__ = ['jcvelauxModule']
 
 
 SENSOR_TYPES = OrderedDict(((u'available_bikes', u'Available bikes'),
@@ -51,7 +51,7 @@ class BikeSensor(GaugeSensor):
     latitude = StringField('Latitude of the sensor')
 
 
-class jcvelauxBackend(BaseModule, CapGauge):
+class jcvelauxModule(BaseModule, CapGauge):
     NAME = 'jcvelaux'
     DESCRIPTION = (u'City bike renting availability information.\nCities: %s' %
                    u', '.join(CITIES))
@@ -67,7 +67,7 @@ class jcvelauxBackend(BaseModule, CapGauge):
                                  choices=CITIES + ("ALL",)))
 
     def __init__(self, *a, **kw):
-        super(jcvelauxBackend, self).__init__(*a, **kw)
+        super(jcvelauxModule, self).__init__(*a, **kw)
         self.cities = None
 
     def _make_gauge(self, info):

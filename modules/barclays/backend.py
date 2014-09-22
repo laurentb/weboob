@@ -25,10 +25,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import Barclays
 
 
-__all__ = ['BarclaysBackend']
+__all__ = ['BarclaysModule']
 
 
-class BarclaysBackend(BaseModule, CapBank):
+class BarclaysModule(BaseModule, CapBank):
     NAME = 'barclays'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

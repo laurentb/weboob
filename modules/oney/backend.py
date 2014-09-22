@@ -27,10 +27,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import OneyBrowser
 
 
-__all__ = ['OneyBackend']
+__all__ = ['OneyModule']
 
 
-class OneyBackend(BaseModule, CapBank):
+class OneyModule(BaseModule, CapBank):
     NAME = 'oney'
     MAINTAINER = u'Vincet Paredes'
     EMAIL = 'vparedes@budget-insight.com'

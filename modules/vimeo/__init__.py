@@ -1,3 +1,3 @@
-from .backend import VimeoBackend
+from .backend import VimeoModule
 
-__all__ = ['VimeoBackend']
+__all__ = ['VimeoModule']

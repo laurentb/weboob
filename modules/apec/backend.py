@@ -25,10 +25,10 @@ from weboob.tools.value import Value
 from .browser import ApecBrowser
 from .job import ApecJobAdvert
 
-__all__ = ['ApecBackend']
+__all__ = ['ApecModule']
 
 
-class ApecBackend(BaseModule, CapJob):
+class ApecModule(BaseModule, CapJob):
     NAME = 'apec'
     DESCRIPTION = u'apec website'
     MAINTAINER = u'Bezleputh'

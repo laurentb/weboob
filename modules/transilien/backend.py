@@ -24,7 +24,7 @@ from weboob.tools.backend import BaseModule
 from .browser import Transilien
 
 
-class TransilienBackend(BaseModule, CapTravel):
+class TransilienModule(BaseModule, CapTravel):
     NAME = 'transilien'
     MAINTAINER = u'Julien Hébert'
     EMAIL = 'juke@free.fr'

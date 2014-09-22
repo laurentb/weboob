@@ -24,10 +24,10 @@ from weboob.tools.value import ValueBackendPassword, Value
 from .browser import GazelleBrowser
 
 
-__all__ = ['GazelleBackend']
+__all__ = ['GazelleModule']
 
 
-class GazelleBackend(BaseModule, CapTorrent):
+class GazelleModule(BaseModule, CapTorrent):
     NAME = 'gazelle'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

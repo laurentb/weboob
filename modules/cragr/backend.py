@@ -27,10 +27,10 @@ from .web.browser import Cragr
 from .mobile.browser import CragrMobile
 
 
-__all__ = ['CragrBackend']
+__all__ = ['CragrModule']
 
 
-class CragrBackend(BaseModule, CapBank):
+class CragrModule(BaseModule, CapBank):
     NAME = 'cragr'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

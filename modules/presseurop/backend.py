@@ -19,7 +19,7 @@
 "backend for http://www.presseurop.eu"
 
 from weboob.capabilities.messages import CapMessages, Thread
-from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBackend
+from weboob.tools.capabilities.messages.GenericModule import GenericNewspaperModule
 from weboob.tools.backend import BackendConfig
 from weboob.tools.value import Value
 from .browser import NewspaperPresseuropBrowser
@@ -27,7 +27,7 @@ from .tools import rssid, url2id
 from weboob.tools.newsfeed import Newsfeed
 
 
-class NewspaperPresseuropBackend(GenericNewspaperBackend, CapMessages):
+class NewspaperPresseuropModule(GenericNewspaperModule, CapMessages):
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '1.0'
@@ -46,7 +46,7 @@ class NewspaperPresseuropBackend(GenericNewspaperBackend, CapMessages):
                            default='fr'))
 
     def __init__(self, *args, **kwargs):
-        GenericNewspaperBackend.__init__(self, *args, **kwargs)
+        GenericNewspaperModule.__init__(self, *args, **kwargs)
         self.RSS_FEED = 'http://www.voxeurop.eu/%s/rss.xml' % self.config['lang'].get()
 
     def iter_threads(self):

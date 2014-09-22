@@ -25,10 +25,10 @@ from .browser import DailymotionBrowser
 from .video import DailymotionVideo
 
 
-__all__ = ['DailymotionBackend']
+__all__ = ['DailymotionModule']
 
 
-class DailymotionBackend(BaseModule, CapVideo, CapCollection):
+class DailymotionModule(BaseModule, CapVideo, CapCollection):
     NAME = 'dailymotion'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

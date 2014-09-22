@@ -17,6 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .backend import AllrecipesBackend
+from .backend import AllrecipesModule
 
-__all__ = ['AllrecipesBackend']
+__all__ = ['AllrecipesModule']

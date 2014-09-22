@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import CmbBackend
+from .backend import CmbModule
 
-__all__ = ['CmbBackend']
+__all__ = ['CmbModule']

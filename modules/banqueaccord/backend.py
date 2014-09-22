@@ -26,10 +26,10 @@ from weboob.tools.value import ValueBackendPassword
 from .browser import BanqueAccordBrowser
 
 
-__all__ = ['BanqueAccordBackend']
+__all__ = ['BanqueAccordModule']
 
 
-class BanqueAccordBackend(BaseModule, CapBank):
+class BanqueAccordModule(BaseModule, CapBank):
     NAME = 'banqueaccord'
     DESCRIPTION = u'Banque Accord'
     MAINTAINER = u'Romain Bignon'

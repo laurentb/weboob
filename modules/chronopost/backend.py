@@ -24,10 +24,10 @@ from weboob.tools.backend import BaseModule
 from .browser import ChronopostBrowser
 
 
-__all__ = ['ChronopostBackend']
+__all__ = ['ChronopostModule']
 
 
-class ChronopostBackend(BaseModule, CapParcel):
+class ChronopostModule(BaseModule, CapParcel):
     NAME = 'chronopost'
     DESCRIPTION = u'Chronopost website'
     MAINTAINER = u'Romain Bignon'

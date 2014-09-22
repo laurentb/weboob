@@ -25,10 +25,10 @@ import itertools
 from .browser import BiplanBrowser
 from.calendar import BiplanCalendarEvent
 
-__all__ = ['BiplanBackend']
+__all__ = ['BiplanModule']
 
 
-class BiplanBackend(BaseModule, CapCalendarEvent):
+class BiplanModule(BaseModule, CapCalendarEvent):
     NAME = 'biplan'
     DESCRIPTION = u'lebiplan.org website'
     MAINTAINER = u'Bezleputh'
