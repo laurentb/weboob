@@ -1,5 +1,5 @@
 <%inherit file="layout.py"/>
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 
 from .browser import ${r.classname}Browser
 
@@ -7,7 +7,7 @@ from .browser import ${r.classname}Browser
 __all__ = ['${r.classname}Backend']
 
 
-class ${r.classname}Backend(BaseBackend):
+class ${r.classname}Backend(BaseModule):
     NAME = '${r.name}'
     DESCRIPTION = u'${r.name} website'
     MAINTAINER = u'${r.author}'

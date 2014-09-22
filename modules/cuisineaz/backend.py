@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.recipe import CapRecipe, Recipe
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 
 from .browser import CuisineazBrowser
 
@@ -30,7 +30,7 @@ def strip_accents(s):
     return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
 
 
-class CuisineazBackend(BaseBackend, CapRecipe):
+class CuisineazBackend(BaseModule, CapRecipe):
     NAME = 'cuisineaz'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

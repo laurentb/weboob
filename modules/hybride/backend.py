@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 from weboob.capabilities.calendar import CapCalendarEvent, CATEGORIES
 
 from .browser import HybrideBrowser
@@ -27,7 +27,7 @@ from .calendar import HybrideCalendarEvent
 __all__ = ['HybrideBackend']
 
 
-class HybrideBackend(BaseBackend, CapCalendarEvent):
+class HybrideBackend(BaseModule, CapCalendarEvent):
     NAME = 'hybride'
     DESCRIPTION = u'hybride website'
     MAINTAINER = u'Bezleputh'

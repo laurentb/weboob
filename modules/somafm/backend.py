@@ -23,7 +23,7 @@ from weboob.capabilities.radio import CapRadio, Radio
 from weboob.capabilities.audiostream import BaseAudioStream
 from weboob.tools.capabilities.streaminfo import StreamInfo
 from weboob.capabilities.collection import CapCollection
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 from weboob.tools.browser import StandardBrowser
 from weboob.tools.parsers.iparser import IParser
 
@@ -36,7 +36,7 @@ class LxmlParser(IParser):
         return lxml.etree.fromstring(data.read())
 
 
-class SomaFMBackend(BaseBackend, CapRadio, CapCollection):
+class SomaFMBackend(BaseModule, CapRadio, CapCollection):
     NAME = 'somafm'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'

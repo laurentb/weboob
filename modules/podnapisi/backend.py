@@ -19,7 +19,7 @@
 
 from weboob.capabilities.subtitle import CapSubtitle, LanguageNotSupported, Subtitle
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 
 from .browser import PodnapisiBrowser
 
@@ -28,7 +28,7 @@ from urllib import quote_plus
 __all__ = ['PodnapisiBackend']
 
 
-class PodnapisiBackend(BaseBackend, CapSubtitle):
+class PodnapisiBackend(BaseModule, CapSubtitle):
     NAME = 'podnapisi'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

@@ -33,7 +33,7 @@ from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.image import BaseImage
 from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.misc import to_unicode
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -44,7 +44,7 @@ from .video import YoutubeVideo
 __all__ = ['YoutubeBackend']
 
 
-class YoutubeBackend(BaseBackend, CapVideo, CapCollection):
+class YoutubeBackend(BaseModule, CapVideo, CapCollection):
     NAME = 'youtube'
     MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'

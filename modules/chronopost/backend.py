@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.parcel import CapParcel
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 
 from .browser import ChronopostBrowser
 
@@ -27,7 +27,7 @@ from .browser import ChronopostBrowser
 __all__ = ['ChronopostBackend']
 
 
-class ChronopostBackend(BaseBackend, CapParcel):
+class ChronopostBackend(BaseModule, CapParcel):
     NAME = 'chronopost'
     DESCRIPTION = u'Chronopost website'
     MAINTAINER = u'Romain Bignon'

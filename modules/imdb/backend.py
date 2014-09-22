@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.cinema import CapCinema, Person, Movie
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 
 from .browser import ImdbBrowser
 
@@ -27,7 +27,7 @@ from urllib import quote_plus
 __all__ = ['ImdbBackend']
 
 
-class ImdbBackend(BaseBackend, CapCinema):
+class ImdbBackend(BaseModule, CapCinema):
     NAME = 'imdb'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

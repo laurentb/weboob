@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
 from weboob.capabilities.job import CapJob
@@ -28,7 +28,7 @@ from .job import LolixJobAdvert
 __all__ = ['LolixBackend']
 
 
-class LolixBackend(BaseBackend, CapJob):
+class LolixBackend(BaseModule, CapJob):
     NAME = 'lolix'
     DESCRIPTION = u'Lolix French free software employment website'
     MAINTAINER = u'Bezleputh'

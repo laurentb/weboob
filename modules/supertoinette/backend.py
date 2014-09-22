@@ -18,14 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.recipe import CapRecipe, Recipe
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 
 from .browser import SupertoinetteBrowser
 
 __all__ = ['SupertoinetteBackend']
 
 
-class SupertoinetteBackend(BaseBackend, CapRecipe):
+class SupertoinetteBackend(BaseModule, CapRecipe):
     NAME = 'supertoinette'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

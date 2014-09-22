@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.capabilities.calendar import CapCalendarEvent, CATEGORIES
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
@@ -29,7 +29,7 @@ from .calendar import RazibusCalendarEvent
 __all__ = ['RazibusBackend']
 
 
-class RazibusBackend(BaseBackend, CapCalendarEvent):
+class RazibusBackend(BaseModule, CapCalendarEvent):
     NAME = 'razibus'
     DESCRIPTION = u'site annonçant les évènements attendus par les punks a chiens'
     MAINTAINER = u'Bezleputh'

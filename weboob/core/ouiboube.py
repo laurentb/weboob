@@ -25,7 +25,7 @@ from weboob.core.modules import ModulesLoader, RepositoryModulesLoader, ModuleLo
 from weboob.core.backendscfg import BackendsConfig
 from weboob.core.repositories import Repositories, IProgress
 from weboob.core.scheduler import Scheduler
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 from weboob.tools.config.iconfig import ConfigError
 from weboob.tools.log import getLogger
 
@@ -97,7 +97,7 @@ class WebNip(object):
         :type storage: :class:`weboob.tools.storage.IStorage`
         :param name: name of backend
         :type name: :class:`basestring`
-        :rtype: :class:`weboob.tools.backend.BaseBackend`
+        :rtype: :class:`weboob.tools.backend.BaseModule`
         """
         module = self.modules_loader.get_or_load_module(module_name)
 
@@ -127,7 +127,7 @@ class WebNip(object):
         :type params: :class:`dict`
         :param storage: storage to use
         :type storage: :class:`weboob.tools.storage.IStorage`
-        :rtype: :class:`weboob.tools.backend.BaseBackend`
+        :rtype: :class:`weboob.tools.backend.BaseModule`
         """
         if name is None:
             name = module_name
@@ -192,7 +192,7 @@ class WebNip(object):
 
         :param caps: optional list of capabilities to select backends
         :type caps: tuple[:class:`weboob.capabilities.base.CapBase`]
-        :rtype: iter[:class:`weboob.tools.backend.BaseBackend`]
+        :rtype: iter[:class:`weboob.tools.backend.BaseModule`]
         """
         for _, backend in sorted(self.backend_instances.iteritems()):
             if caps is None or backend.has_caps(caps):
@@ -228,7 +228,7 @@ class WebNip(object):
         backends = self.backend_instances.values()
         _backends = kwargs.pop('backends', None)
         if _backends is not None:
-            if isinstance(_backends, BaseBackend):
+            if isinstance(_backends, BaseModule):
                 backends = [_backends]
             elif isinstance(_backends, basestring):
                 if len(_backends) > 0:
@@ -376,7 +376,7 @@ class Weboob(WebNip):
         :type storage: :class:`weboob.tools.storage.IStorage`
         :param name: name of backend
         :type name: :class:`basestring`
-        :rtype: :class:`weboob.tools.backend.BaseBackend`
+        :rtype: :class:`weboob.tools.backend.BaseModule`
         """
         minfo = self.repositories.get_module_info(module_name)
         if minfo is None:
@@ -404,7 +404,7 @@ class Weboob(WebNip):
         :param errors: if specified, store every errors in this list
         :type errors: list[:class:`LoadError`]
         :returns: loaded backends
-        :rtype: dict[:class:`str`, :class:`weboob.tools.backend.BaseBackend`]
+        :rtype: dict[:class:`str`, :class:`weboob.tools.backend.BaseModule`]
         """
         loaded = {}
         if storage is None:
@@ -446,7 +446,7 @@ class Weboob(WebNip):
 
             try:
                 backend_instance = module.create_instance(self, instance_name, params, storage)
-            except BaseBackend.ConfigError as e:
+            except BaseModule.ConfigError as e:
                 if errors is not None:
                     errors.append(self.LoadError(instance_name, e))
             else:

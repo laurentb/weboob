@@ -20,7 +20,7 @@
 
 from weboob.capabilities.bill import CapBill, SubscriptionNotFound,\
     BillNotFound, Subscription, Bill
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import Leclercmobile
@@ -29,7 +29,7 @@ from .browser import Leclercmobile
 __all__ = ['LeclercMobileBackend']
 
 
-class LeclercMobileBackend(BaseBackend, CapBill):
+class LeclercMobileBackend(BaseModule, CapBill):
     NAME = 'leclercmobile'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

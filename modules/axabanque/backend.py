@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import AXABanque
@@ -28,7 +28,7 @@ from .browser import AXABanque
 __all__ = ['AXABanqueBackend']
 
 
-class AXABanqueBackend(BaseBackend, CapBank):
+class AXABanqueBackend(BaseModule, CapBank):
     NAME = 'axabanque'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

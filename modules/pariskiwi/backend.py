@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 from weboob.capabilities.calendar import CapCalendarEvent, BaseCalendarEvent, CATEGORIES, TRANSP, STATUS
 from datetime import datetime, time
 
@@ -28,7 +28,7 @@ from .browser import ParisKiwiBrowser
 __all__ = ['ParisKiwiBackend']
 
 
-class ParisKiwiBackend(BaseBackend, CapCalendarEvent):
+class ParisKiwiBackend(BaseModule, CapCalendarEvent):
     NAME = 'pariskiwi'
     DESCRIPTION = u'ParisKiwi website'
     MAINTAINER = u'Vincent A'

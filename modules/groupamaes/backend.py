@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from weboob.capabilities.base import find_object
 
@@ -28,7 +28,7 @@ from .browser import GroupamaesBrowser
 __all__ = ['GroupamaesBackend']
 
 
-class GroupamaesBackend(BaseBackend, CapBank):
+class GroupamaesBackend(BaseModule, CapBank):
     NAME = 'groupamaes'
     DESCRIPTION = u"Groupama Épargne Salariale"
     MAINTAINER = u'Bezleputh'

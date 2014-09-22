@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 from weboob.capabilities.paste import BasePaste
 from weboob.tools.capabilities.paste import BasePasteBackend
 from weboob.tools.capabilities.paste import image_mime
@@ -36,7 +36,7 @@ class UnPaste(BasePaste):
         return 'https://unsee.cc/%s' % id
 
 
-class UnseeBackend(BaseBackend, BasePasteBackend):
+class UnseeBackend(BaseModule, BasePasteBackend):
     NAME = 'unsee'
     DESCRIPTION = u'unsee.cc expiring image hosting'
     MAINTAINER = u'Vincent A'

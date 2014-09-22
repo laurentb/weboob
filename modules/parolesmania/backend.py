@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.lyrics import CapLyrics, SongLyrics
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 
 from .browser import ParolesmaniaBrowser
 
@@ -27,7 +27,7 @@ from urllib import quote_plus
 __all__ = ['ParolesmaniaBackend']
 
 
-class ParolesmaniaBackend(BaseBackend, CapLyrics):
+class ParolesmaniaBackend(BaseModule, CapLyrics):
     NAME = 'parolesmania'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

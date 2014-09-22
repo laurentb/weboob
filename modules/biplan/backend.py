@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 from weboob.capabilities.calendar import CapCalendarEvent, CATEGORIES
 import itertools
 
@@ -28,7 +28,7 @@ from.calendar import BiplanCalendarEvent
 __all__ = ['BiplanBackend']
 
 
-class BiplanBackend(BaseBackend, CapCalendarEvent):
+class BiplanBackend(BaseModule, CapCalendarEvent):
     NAME = 'biplan'
     DESCRIPTION = u'lebiplan.org website'
     MAINTAINER = u'Bezleputh'

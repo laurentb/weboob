@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.torrent import CapTorrent
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import GazelleBrowser
@@ -27,7 +27,7 @@ from .browser import GazelleBrowser
 __all__ = ['GazelleBackend']
 
 
-class GazelleBackend(BaseBackend, CapTorrent):
+class GazelleBackend(BaseModule, CapTorrent):
     NAME = 'gazelle'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

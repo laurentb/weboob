@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Thread, Message
 from weboob.tools.value import Value
 
@@ -28,7 +28,7 @@ from .browser import GuerrillamailBrowser
 __all__ = ['GuerrillamailBackend']
 
 
-class GuerrillamailBackend(BaseBackend, CapMessages, CapMessagesPost):
+class GuerrillamailBackend(BaseModule, CapMessages, CapMessagesPost):
     NAME = 'guerrillamail'
     DESCRIPTION = u'GuerrillaMail temp mailbox'
     MAINTAINER = u'Vincent A'

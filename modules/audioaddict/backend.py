@@ -22,7 +22,7 @@ from weboob.capabilities.radio import CapRadio, Radio
 from weboob.capabilities.audiostream import BaseAudioStream
 from weboob.tools.capabilities.streaminfo import StreamInfo
 from weboob.capabilities.collection import CapCollection, Collection
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import Value
 from weboob.tools.browser import StandardBrowser
 import time
@@ -38,7 +38,7 @@ __all__ = ['AudioAddictBackend']
 # option to another player in the ~/.config/weboob/radioob config file:
 # [ROOT]
 # media_player = your_non_mplayer_player
-class AudioAddictBackend(BaseBackend, CapRadio, CapCollection):
+class AudioAddictBackend(BaseModule, CapRadio, CapCollection):
     NAME = 'audioaddict'
     MAINTAINER = u'Pierre Mazière'
     EMAIL = 'pierre.maziere@gmx.com'

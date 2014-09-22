@@ -20,7 +20,7 @@
 
 
 
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 from weboob.capabilities.messages import CapMessages, Message, Thread
 
 from .browser import HDSBrowser
@@ -29,7 +29,7 @@ from .browser import HDSBrowser
 __all__ = ['HDSBackend']
 
 
-class HDSBackend(BaseBackend, CapMessages):
+class HDSBackend(BaseModule, CapMessages):
     NAME = 'hds'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

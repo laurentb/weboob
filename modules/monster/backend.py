@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.capabilities.job import CapJob
 from weboob.tools.value import Value
 from weboob.tools.ordereddict import OrderedDict
@@ -29,7 +29,7 @@ from .job import MonsterJobAdvert
 __all__ = ['MonsterBackend']
 
 
-class MonsterBackend(BaseBackend, CapJob):
+class MonsterBackend(BaseModule, CapJob):
     NAME = 'monster'
     DESCRIPTION = u'monster website'
     MAINTAINER = u'Bezleputh'

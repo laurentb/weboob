@@ -21,7 +21,7 @@
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.capabilities.base import find_object
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import OneyBrowser
@@ -30,7 +30,7 @@ from .browser import OneyBrowser
 __all__ = ['OneyBackend']
 
 
-class OneyBackend(BaseBackend, CapBank):
+class OneyBackend(BaseModule, CapBank):
     NAME = 'oney'
     MAINTAINER = u'Vincet Paredes'
     EMAIL = 'vparedes@budget-insight.com'

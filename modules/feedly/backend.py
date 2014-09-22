@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.capabilities.collection import CapCollection
 from weboob.capabilities.messages import CapMessages, Message, Thread
 from weboob.tools.value import Value, ValueBackendPassword
@@ -29,7 +29,7 @@ from .google import GoogleBrowser
 __all__ = ['FeedlyBackend']
 
 
-class FeedlyBackend(BaseBackend, CapMessages, CapCollection):
+class FeedlyBackend(BaseModule, CapMessages, CapCollection):
     NAME = 'feedly'
     DESCRIPTION = u'handle the popular RSS reading service Feedly'
     MAINTAINER = u'Bezleputh'

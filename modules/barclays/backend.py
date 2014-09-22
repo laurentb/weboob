@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import Barclays
@@ -28,7 +28,7 @@ from .browser import Barclays
 __all__ = ['BarclaysBackend']
 
 
-class BarclaysBackend(BaseBackend, CapBank):
+class BarclaysBackend(BaseModule, CapBank):
     NAME = 'barclays'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

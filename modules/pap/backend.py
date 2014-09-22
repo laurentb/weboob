@@ -20,7 +20,7 @@
 
 
 from weboob.capabilities.housing import CapHousing, City, Housing, HousingPhoto
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 
 from .browser import PapBrowser
 
@@ -28,7 +28,7 @@ from .browser import PapBrowser
 __all__ = ['PapBackend']
 
 
-class PapBackend(BaseBackend, CapHousing):
+class PapBackend(BaseModule, CapHousing):
     NAME = 'pap'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

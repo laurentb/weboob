@@ -22,7 +22,7 @@
 
 
 from weboob.capabilities.video import CapVideo
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 
 from .browser import TricTracTVBrowser
 from .video import TricTracTVVideo
@@ -31,7 +31,7 @@ from .video import TricTracTVVideo
 __all__ = ['TricTracTVBackend']
 
 
-class TricTracTVBackend(BaseBackend, CapVideo):
+class TricTracTVBackend(BaseModule, CapVideo):
     NAME = 'trictractv'
     MAINTAINER = u'Benjamin Drieu'
     EMAIL = 'benjamin@drieu.org'

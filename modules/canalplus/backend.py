@@ -20,7 +20,7 @@
 import re
 
 from weboob.capabilities.video import CapVideo, BaseVideo
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import Value
 
 from .browser import CanalplusBrowser
@@ -32,7 +32,7 @@ from weboob.capabilities.collection import CapCollection
 __all__ = ['CanalplusBackend']
 
 
-class CanalplusBackend(BaseBackend, CapVideo, CapCollection):
+class CanalplusBackend(BaseModule, CapVideo, CapCollection):
     NAME = 'canalplus'
     MAINTAINER = u'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'

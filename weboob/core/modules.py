@@ -21,7 +21,7 @@ import os
 import imp
 import logging
 
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 from weboob.tools.log import getLogger
 
 
@@ -41,10 +41,10 @@ class Module(object):
         self.klass = None
         for attrname in dir(self.package):
             attr = getattr(self.package, attrname)
-            if isinstance(attr, type) and issubclass(attr, BaseBackend) and attr != BaseBackend:
+            if isinstance(attr, type) and issubclass(attr, BaseModule) and attr != BaseModule:
                 self.klass = attr
         if not self.klass:
-            raise ImportError('%s is not a backend (no BaseBackend class found)' % package)
+            raise ImportError('%s is not a backend (no BaseModule class found)' % package)
 
     @property
     def name(self):

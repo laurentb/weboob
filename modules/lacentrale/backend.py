@@ -19,7 +19,7 @@
 
 import re
 from weboob.capabilities.pricecomparison import CapPriceComparison, Price
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 #from weboob.tools.value import Value
 
 from .browser import LaCentraleBrowser
@@ -29,7 +29,7 @@ __all__ = ['LaCentraleBackend']
 
 
 # I implement capability
-class LaCentraleBackend(BaseBackend, CapPriceComparison):
+class LaCentraleBackend(BaseModule, CapPriceComparison):
     NAME = 'lacentrale'
     MAINTAINER = u'Vicnet'
     EMAIL = 'vo.publique@gmail.com'

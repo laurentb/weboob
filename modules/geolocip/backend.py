@@ -20,14 +20,14 @@
 
 
 from weboob.capabilities.geolocip import CapGeolocIp, IpLocation
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 from weboob.tools.browser import BaseBrowser, BrowserUnavailable
 
 
 __all__ = ['GeolocIpBackend']
 
 
-class GeolocIpBackend(BaseBackend, CapGeolocIp):
+class GeolocIpBackend(BaseModule, CapGeolocIp):
     NAME = 'geolocip'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

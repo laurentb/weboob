@@ -20,7 +20,7 @@
 
 
 
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.newsfeed import Newsfeed
 from weboob.tools.value import Value, ValueInt, ValueBackendPassword
 from weboob.tools.misc import limit
@@ -33,7 +33,7 @@ from .tools import rssid, url2id, id2url, id2topic
 __all__ = ['PhpBBBackend']
 
 
-class PhpBBBackend(BaseBackend, CapMessages, CapMessagesPost):
+class PhpBBBackend(BaseModule, CapMessages, CapMessagesPost):
     NAME = 'phpbb'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

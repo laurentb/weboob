@@ -22,13 +22,13 @@ from .browser import DresdenWetterBrowser
 from weboob.capabilities.gauge import CapGauge, GaugeSensor, Gauge,\
         SensorNotFound
 from weboob.capabilities.base import find_object
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 
 
 __all__ = ['DresdenWetterBackend']
 
 
-class DresdenWetterBackend(BaseBackend, CapGauge):
+class DresdenWetterBackend(BaseModule, CapGauge):
     NAME = 'dresdenwetter'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

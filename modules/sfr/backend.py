@@ -22,7 +22,7 @@
 
 from weboob.capabilities.messages import CantSendMessage, CapMessages, CapMessagesPost
 from weboob.capabilities.account import CapAccount, StatusField
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 
 from .browser import SfrBrowser
@@ -31,7 +31,7 @@ from .browser import SfrBrowser
 __all__ = ['SfrBackend']
 
 
-class SfrBackend(BaseBackend, CapAccount, CapMessages, CapMessagesPost):
+class SfrBackend(BaseModule, CapAccount, CapMessages, CapMessagesPost):
     NAME = 'sfr'
     MAINTAINER = u'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'

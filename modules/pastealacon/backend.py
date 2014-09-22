@@ -21,13 +21,13 @@
 import re
 
 from weboob.tools.capabilities.paste import BasePasteBackend
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 from weboob.capabilities.base import NotLoaded
 
 from .browser import PastealaconBrowser, PastealaconPaste
 
 
-class PastealaconBackend(BaseBackend, BasePasteBackend):
+class PastealaconBackend(BaseModule, BasePasteBackend):
     NAME = 'pastealacon'
     MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'

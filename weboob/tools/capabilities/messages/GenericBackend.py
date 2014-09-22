@@ -21,11 +21,11 @@
 import time
 from weboob.capabilities.messages import CapMessages, Message, Thread
 from weboob.capabilities.base import find_object
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 from weboob.tools.newsfeed import Newsfeed
 
 
-class GenericNewspaperBackend(BaseBackend, CapMessages):
+class GenericNewspaperBackend(BaseModule, CapMessages):
     """
     GenericNewspaperBackend class
     """

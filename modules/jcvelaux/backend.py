@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.capabilities.base import StringField
 from weboob.capabilities.gauge import CapGauge, GaugeSensor, Gauge, GaugeMeasure, SensorNotFound
 from weboob.tools.value import Value
@@ -51,7 +51,7 @@ class BikeSensor(GaugeSensor):
     latitude = StringField('Latitude of the sensor')
 
 
-class jcvelauxBackend(BaseBackend, CapGauge):
+class jcvelauxBackend(BaseModule, CapGauge):
     NAME = 'jcvelaux'
     DESCRIPTION = (u'City bike renting availability information.\nCities: %s' %
                    u', '.join(CITIES))

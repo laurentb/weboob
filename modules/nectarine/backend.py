@@ -18,12 +18,12 @@
 
 from weboob.capabilities.radio import CapRadio, Radio
 from weboob.capabilities.collection import CapCollection
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 from .browser import NectarineBrowser
 
 __all__ = ['NectarineBackend']
 
-class NectarineBackend(BaseBackend, CapRadio, CapCollection):
+class NectarineBackend(BaseModule, CapRadio, CapCollection):
     NAME = 'nectarine'
     MAINTAINER = u'Thomas Lecavelier'
     EMAIL = 'thomas-weboob@lecavelier.name'

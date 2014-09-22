@@ -23,7 +23,7 @@ from dateutil.parser import parse as parse_date
 
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Thread, Message
 from weboob.capabilities.dating import CapDating, Optimization
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.log import getLogger
 
@@ -65,7 +65,7 @@ class ProfilesWalker(Optimization):
                 self.view_cron = self.sched.schedule(1, self.view_profile)
 
 
-class TinderBackend(BaseBackend, CapMessages, CapMessagesPost, CapDating):
+class TinderBackend(BaseModule, CapMessages, CapMessagesPost, CapDating):
     NAME = 'tinder'
     DESCRIPTION = u'Tinder dating mobile application'
     MAINTAINER = u'Roger Philibert'

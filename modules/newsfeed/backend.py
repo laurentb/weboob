@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.capabilities.messages import CapMessages, Message, Thread
 from weboob.tools.newsfeed import Newsfeed
 from weboob.tools.value import Value
@@ -27,7 +27,7 @@ from weboob.tools.value import Value
 __all__ = ['NewsfeedBackend']
 
 
-class NewsfeedBackend(BaseBackend, CapMessages):
+class NewsfeedBackend(BaseModule, CapMessages):
     NAME = 'newsfeed'
     MAINTAINER = u'Clément Schreiner'
     EMAIL = "clemux@clemux.info"

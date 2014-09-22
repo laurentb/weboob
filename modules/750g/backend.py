@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.recipe import CapRecipe, Recipe
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 
 from .browser import SevenFiftyGramsBrowser
 
@@ -30,7 +30,7 @@ def strip_accents(s):
 __all__ = ['SevenFiftyGramsBackend']
 
 
-class SevenFiftyGramsBackend(BaseBackend, CapRecipe):
+class SevenFiftyGramsBackend(BaseModule, CapRecipe):
     NAME = '750g'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.capabilities.job import CapJob
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
@@ -28,7 +28,7 @@ from .job import ApecJobAdvert
 __all__ = ['ApecBackend']
 
 
-class ApecBackend(BaseBackend, CapJob):
+class ApecBackend(BaseModule, CapJob):
     NAME = 'apec'
     DESCRIPTION = u'apec website'
     MAINTAINER = u'Bezleputh'

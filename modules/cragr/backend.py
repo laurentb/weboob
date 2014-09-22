@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -30,7 +30,7 @@ from .mobile.browser import CragrMobile
 __all__ = ['CragrBackend']
 
 
-class CragrBackend(BaseBackend, CapBank):
+class CragrBackend(BaseModule, CapBank):
     NAME = 'cragr'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

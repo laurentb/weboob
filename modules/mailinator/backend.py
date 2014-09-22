@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.capabilities.messages import CapMessages, Thread, Message
 from weboob.tools.value import Value
 
@@ -30,7 +30,7 @@ __all__ = ['MailinatorBackend']
 
 # There is only one thread per inbox, and the thread id is the inbox name
 # TODO but this can lead to bans if there are too many messages...
-class MailinatorBackend(BaseBackend, CapMessages):
+class MailinatorBackend(BaseModule, CapMessages):
     NAME = 'mailinator'
     DESCRIPTION = u'mailinator temp mailbox'
     MAINTAINER = u'Vincent A'

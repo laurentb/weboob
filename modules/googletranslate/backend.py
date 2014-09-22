@@ -20,7 +20,7 @@
 
 
 from weboob.capabilities.translate import CapTranslate, Translation, TranslationFail, LanguageNotSupported
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 
 from .browser import GoogleTranslateBrowser
 
@@ -28,7 +28,7 @@ from .browser import GoogleTranslateBrowser
 __all__ = ['GoogleTranslateBackend']
 
 
-class GoogleTranslateBackend(BaseBackend, CapTranslate):
+class GoogleTranslateBackend(BaseModule, CapTranslate):
     MAINTAINER = u'Lucien Loiseau'
     EMAIL = 'loiseau.lucien@gmail.com'
     VERSION = '1.0'

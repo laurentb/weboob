@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.capabilities.paste import CapPaste, BasePaste
 from weboob.tools.capabilities.paste import image_mime
 from weboob.tools.value import Value
@@ -31,7 +31,7 @@ from .browser import LutimBrowser
 __all__ = ['LutimBackend']
 
 
-class LutimBackend(BaseBackend, CapPaste):
+class LutimBackend(BaseModule, CapPaste):
     NAME = 'lutim'
     DESCRIPTION = u'LUTIm website'
     MAINTAINER = u'Vincent A'

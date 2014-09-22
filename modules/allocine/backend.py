@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.cinema import CapCinema, Person, Movie
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 
 from .browser import AllocineBrowser
 
@@ -27,7 +27,7 @@ from urllib import quote_plus
 __all__ = ['AllocineBackend']
 
 
-class AllocineBackend(BaseBackend, CapCinema):
+class AllocineBackend(BaseModule, CapCinema):
     NAME = 'allocine'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

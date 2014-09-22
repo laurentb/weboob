@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.torrent import CapTorrent, Torrent
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 
 from .browser import BtmonBrowser
 
@@ -27,7 +27,7 @@ from urllib import quote_plus
 __all__ = ['BtmonBackend']
 
 
-class BtmonBackend(BaseBackend, CapTorrent):
+class BtmonBackend(BaseModule, CapTorrent):
     NAME = 'btmon'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

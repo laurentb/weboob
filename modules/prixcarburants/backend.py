@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import Value
 from weboob.capabilities.pricecomparison import CapPriceComparison, Price, Product
 
@@ -27,7 +27,7 @@ from .browser import PrixCarburantsBrowser
 __all__ = ['PrixCarburantsBackend']
 
 
-class PrixCarburantsBackend(BaseBackend, CapPriceComparison):
+class PrixCarburantsBackend(BaseModule, CapPriceComparison):
     NAME = 'prixcarburants'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

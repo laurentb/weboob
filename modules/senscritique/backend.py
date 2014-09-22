@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value, ValueBool
 from weboob.capabilities.calendar import CapCalendarEvent, CATEGORIES
@@ -28,7 +28,7 @@ from .calendar import SensCritiquenCalendarEvent
 __all__ = ['SenscritiqueBackend']
 
 
-class SenscritiqueBackend(BaseBackend, CapCalendarEvent):
+class SenscritiqueBackend(BaseModule, CapCalendarEvent):
     NAME = 'senscritique'
     DESCRIPTION = u'senscritique website'
     MAINTAINER = u'Bezleputh'

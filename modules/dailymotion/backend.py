@@ -19,7 +19,7 @@
 
 from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 
 from .browser import DailymotionBrowser
 from .video import DailymotionVideo
@@ -28,7 +28,7 @@ from .video import DailymotionVideo
 __all__ = ['DailymotionBackend']
 
 
-class DailymotionBackend(BaseBackend, CapVideo, CapCollection):
+class DailymotionBackend(BaseModule, CapVideo, CapCollection):
     NAME = 'dailymotion'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

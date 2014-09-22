@@ -19,7 +19,7 @@
 
 from weboob.capabilities.subtitle import CapSubtitle, LanguageNotSupported, Subtitle
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 
 from .browser import OpensubtitlesBrowser
 
@@ -28,7 +28,7 @@ from urllib import quote_plus
 __all__ = ['OpensubtitlesBackend']
 
 
-class OpensubtitlesBackend(BaseBackend, CapSubtitle):
+class OpensubtitlesBackend(BaseModule, CapSubtitle):
     NAME = 'opensubtitles'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

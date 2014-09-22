@@ -20,7 +20,7 @@
 
 from weboob.capabilities.bill import CapBill, Subscription, SubscriptionNotFound, Detail
 from weboob.capabilities.base import find_object
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import PoivyBrowser
@@ -29,7 +29,7 @@ from .browser import PoivyBrowser
 __all__ = ['PoivyBackend']
 
 
-class PoivyBackend(BaseBackend, CapBill):
+class PoivyBackend(BaseModule, CapBill):
     NAME = 'poivy'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

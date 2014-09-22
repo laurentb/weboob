@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .perso.browser import CreditCooperatif as CreditCooperatifPerso
@@ -29,7 +29,7 @@ from .pro.browser import CreditCooperatif as CreditCooperatifPro
 __all__ = ['CreditCooperatifBackend']
 
 
-class CreditCooperatifBackend(BaseBackend, CapBank):
+class CreditCooperatifBackend(BaseModule, CapBank):
     NAME = 'creditcooperatif'
     MAINTAINER = u'Kevin Pouget'
     EMAIL = 'weboob@kevin.pouget.me'

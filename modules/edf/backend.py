@@ -18,14 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.bill import CapBill, SubscriptionNotFound, BillNotFound, Subscription, Bill
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from .browser import EdfBrowser
 
 __all__ = ['EdfBackend']
 
 
-class EdfBackend(BaseBackend, CapBill):
+class EdfBackend(BaseModule, CapBill):
     NAME = 'edf'
     DESCRIPTION = u'Edf website: French power provider'
     MAINTAINER = u'Christophe Gouiran'

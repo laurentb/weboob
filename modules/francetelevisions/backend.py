@@ -20,7 +20,7 @@
 
 from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 
 from .browser import PluzzBrowser
 
@@ -28,7 +28,7 @@ from .browser import PluzzBrowser
 __all__ = ['PluzzBackend']
 
 
-class PluzzBackend(BaseBackend, CapVideo, CapCollection):
+class PluzzBackend(BaseModule, CapVideo, CapCollection):
     NAME = 'francetelevisions'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

@@ -20,7 +20,7 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import AlloRestoBrowser
@@ -29,7 +29,7 @@ from .browser import AlloRestoBrowser
 __all__ = ['AlloRestoBackend']
 
 
-class AlloRestoBackend(BaseBackend, CapBank):
+class AlloRestoBackend(BaseModule, CapBank):
     NAME = 'alloresto'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

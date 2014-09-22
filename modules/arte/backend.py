@@ -22,7 +22,7 @@ import re
 
 from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound, Collection
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import Value
 
 from .browser import ArteBrowser
@@ -32,7 +32,7 @@ from .video import ArteVideo, ArteLiveVideo
 __all__ = ['ArteBackend']
 
 
-class ArteBackend(BaseBackend, CapVideo, CapCollection):
+class ArteBackend(BaseModule, CapVideo, CapCollection):
     NAME = 'arte'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'

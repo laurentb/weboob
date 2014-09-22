@@ -19,7 +19,7 @@
 
 from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseModule
 
 from .browser import JacquieEtMichelBrowser
 from .video import JacquieEtMichelVideo
@@ -28,7 +28,7 @@ from .video import JacquieEtMichelVideo
 __all__ = ['JacquieEtMichelBackend']
 
 
-class JacquieEtMichelBackend(BaseBackend, CapVideo, CapCollection):
+class JacquieEtMichelBackend(BaseModule, CapVideo, CapCollection):
     NAME = 'jacquieetmichel'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'

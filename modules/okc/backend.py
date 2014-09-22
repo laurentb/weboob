@@ -27,7 +27,7 @@ from dateutil.parser import parse as _parse_dt
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Message, Thread
 from weboob.capabilities.dating import CapDating, OptimizationNotFound, Event
 from weboob.capabilities.contact import CapContact, ContactPhoto, Contact, Query, QueryError
-from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.backend import BaseModule, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.date import local2utc
 
@@ -63,7 +63,7 @@ def parse_dt(s):
     return local2utc(d)
 
 
-class OkCBackend(BaseBackend, CapMessages, CapContact, CapMessagesPost, CapDating):
+class OkCBackend(BaseModule, CapMessages, CapContact, CapMessagesPost, CapDating):
     NAME = 'okc'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
