@@ -94,7 +94,7 @@ class BaseRecipe(Recipe):
 
     def generate(self):
         self.write('__init__.py', self.template('init'))
-        self.write('backend.py', self.template('base_backend'))
+        self.write('backend.py', self.template('base_module'))
         self.write('browser.py', self.template('base_browser'))
         self.write('pages.py', self.template('base_pages'))
         self.write('test.py', self.template('base_test'))
