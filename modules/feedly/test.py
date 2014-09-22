@@ -21,7 +21,7 @@ from weboob.tools.test import BackendTest, SkipTest
 
 
 class FeedlyTest(BackendTest):
-    BACKEND = 'feedly'
+    MODULE = 'feedly'
 
     def test_login(self):
         if self.backend.browser.username:

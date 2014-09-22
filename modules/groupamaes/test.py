@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class GroupamaesTest(BackendTest):
-    BACKEND = 'groupamaes'
+    MODULE = 'groupamaes'
 
     def test_groupamaes(self):
         l = list(self.backend.iter_accounts())

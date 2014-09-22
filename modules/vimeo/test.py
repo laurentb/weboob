@@ -23,7 +23,7 @@ import itertools
 
 
 class VimeoTest(BackendTest):
-    BACKEND = 'vimeo'
+    MODULE = 'vimeo'
 
     def test_search(self):
         l = list(itertools.islice(self.backend.search_videos('boobs'), 0, 20))

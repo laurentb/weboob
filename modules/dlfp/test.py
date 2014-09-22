@@ -25,7 +25,7 @@ from .browser import DLFP
 
 
 class DLFPTest(BackendTest):
-    BACKEND = 'dlfp'
+    MODULE = 'dlfp'
 
     def __init__(self, *args, **kwargs):
         DLFP.DOMAIN = 'alpha.linuxfr.org'

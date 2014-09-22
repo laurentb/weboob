@@ -21,7 +21,7 @@ from weboob.tools.test import BackendTest
 
 
 class VlilleTest(BackendTest):
-    BACKEND = 'vlille'
+    MODULE = 'vlille'
 
     def test_vlille(self):
         l = list(self.backend.iter_gauges())

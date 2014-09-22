@@ -23,7 +23,7 @@ from weboob.capabilities.video import BaseVideo
 
 
 class PluzzTest(BackendTest):
-    BACKEND = 'francetelevisions'
+    MODULE = 'francetelevisions'
 
     def test_search(self):
         # If the test fails, it might be good news!

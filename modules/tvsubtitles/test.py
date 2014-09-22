@@ -23,7 +23,7 @@ from random import choice
 
 
 class TvsubtitlesTest(BackendTest):
-    BACKEND = 'tvsubtitles'
+    MODULE = 'tvsubtitles'
 
     def test_subtitle(self):
         subtitles = list(self.backend.iter_subtitles('fr', 'sopranos'))

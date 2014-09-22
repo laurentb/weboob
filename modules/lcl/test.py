@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class LCLtTest(BackendTest):
-    BACKEND = 'lcl'
+    MODULE = 'lcl'
 
     def test_lcl(self):
         list(self.backend.iter_accounts())

@@ -21,7 +21,7 @@ from weboob.tools.test import BackendTest
 
 
 class AllrecipesTest(BackendTest):
-    BACKEND = 'allrecipes'
+    MODULE = 'allrecipes'
 
     def test_recipe(self):
         recipes = self.backend.iter_recipes('french fries')

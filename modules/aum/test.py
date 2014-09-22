@@ -23,7 +23,7 @@ from weboob.tools.browser import BrowserUnavailable
 
 
 class AuMTest(BackendTest):
-    BACKEND = 'aum'
+    MODULE = 'aum'
 
     def test_new_messages(self):
         try:

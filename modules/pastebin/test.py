@@ -25,7 +25,7 @@ from .browser import LimitExceeded
 
 
 class PastebinTest(BackendTest):
-    BACKEND = 'pastebin'
+    MODULE = 'pastebin'
 
     def test_get_paste(self):
         for _id in ('7HmXwzyt', 'http://pastebin.com/7HmXwzyt'):

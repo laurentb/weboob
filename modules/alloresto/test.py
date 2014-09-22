@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class AlloRestoTest(BackendTest):
-    BACKEND = 'alloresto'
+    MODULE = 'alloresto'
 
     def test_alloresto(self):
         l = list(self.backend.iter_accounts())

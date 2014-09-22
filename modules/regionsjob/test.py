@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class RegionsjobTest(BackendTest):
-    BACKEND = 'regionsjob'
+    MODULE = 'regionsjob'
 
     def test_regionjob_search(self):
         l = list(self.backend.search_job(u'informaticien'))

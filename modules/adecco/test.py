@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class AdeccoTest(BackendTest):
-    BACKEND = 'adecco'
+    MODULE = 'adecco'
 
     def test_adecco_search(self):
         l = list(self.backend.search_job(u'valet de chambre'))

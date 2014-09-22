@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class FortuneoTest(BackendTest):
-    BACKEND = 'fortuneo'
+    MODULE = 'fortuneo'
 
     def test_fortuneo(self):
         l = list(self.backend.iter_accounts())

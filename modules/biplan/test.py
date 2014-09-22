@@ -23,7 +23,7 @@ from weboob.tools.test import BackendTest, SkipTest
 
 
 class BiplanTest(BackendTest):
-    BACKEND = 'biplan'
+    MODULE = 'biplan'
 
     def test_biplan_list(self):
         if datetime.now() > datetime(datetime.now().year, 7, 14) and datetime.now() < datetime(datetime.now().year, 9, 15):

@@ -22,7 +22,7 @@ from itertools import chain
 
 
 class WellsFargoTest(BackendTest):
-    BACKEND = 'wellsfargo'
+    MODULE = 'wellsfargo'
 
     def test_history(self):
         """

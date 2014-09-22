@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class WeatherTest(BackendTest):
-    BACKEND = 'weather'
+    MODULE = 'weather'
 
     def test_cities(self):
         paris = self.backend.iter_city_search('crappything&param=;drop database')

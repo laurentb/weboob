@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class CmsoTest(BackendTest):
-    BACKEND = 'cmso'
+    MODULE = 'cmso'
 
     def test_cmso(self):
         l = list(self.backend.iter_accounts())

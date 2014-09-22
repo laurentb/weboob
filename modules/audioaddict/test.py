@@ -23,7 +23,7 @@ from weboob.capabilities.radio import Radio
 
 
 class AudioAddictTest(BackendTest):
-    BACKEND = 'audioaddict'
+    MODULE = 'audioaddict'
 
     def test_audioaddict(self):
         ls = list(self.backend.iter_resources((Radio, ), []))

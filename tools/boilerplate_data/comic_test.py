@@ -3,7 +3,7 @@ from weboob.tools.capabilities.gallery.genericcomicreadertest import GenericComi
 
 
 class ${r.classname}BackendTest(GenericComicReaderTest):
-    BACKEND = '${r.name}'
+    MODULE = '${r.name}'
 
     def test_download(self):
         return self._test_download('${r.download_id}')

@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class UpsTest(BackendTest):
-    BACKEND = 'ups'
+    MODULE = 'ups'
 
     def test_ups(self):
         raise NotImplementedError()

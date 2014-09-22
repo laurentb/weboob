@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class PresseuropTest(BackendTest):
-    BACKEND = 'presseurop'
+    MODULE = 'presseurop'
 
     def test_new_messages(self):
         for message in self.backend.iter_unread_messages():

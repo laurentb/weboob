@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class LolixTest(BackendTest):
-    BACKEND = 'lolix'
+    MODULE = 'lolix'
 
     def test_lolix_advanced_search(self):
         l = list(self.backend.advanced_search_job())

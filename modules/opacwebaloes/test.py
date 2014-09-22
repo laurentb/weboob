@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class AloestTest(BackendTest):
-    BACKEND = 'aloes'
+    MODULE = 'aloes'
 
     def test_aloes(self):
         pass

@@ -22,7 +22,7 @@ from weboob.capabilities.base import NotLoaded
 
 
 class SeeklyricsTest(BackendTest):
-    BACKEND = 'seeklyrics'
+    MODULE = 'seeklyrics'
 
     def test_search_song_n_get(self):
         l_lyrics = list(self.backend.iter_lyrics('song', 'Complainte'))

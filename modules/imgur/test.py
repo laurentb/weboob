@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class ImgurTest(BackendTest):
-    BACKEND = 'imgur'
+    MODULE = 'imgur'
 
     # small gif file
     DATA = 'R0lGODlhAQABAIAAAP///wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==\n'

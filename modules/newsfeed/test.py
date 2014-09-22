@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class NewsfeedTest(BackendTest):
-    BACKEND = 'newsfeed'
+    MODULE = 'newsfeed'
 
     def test_newsfeed(self):
         for message in self.backend.iter_unread_messages():

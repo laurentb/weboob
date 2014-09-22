@@ -23,7 +23,7 @@ from datetime import datetime
 
 
 class ParisKiwiTest(BackendTest):
-    BACKEND = 'pariskiwi'
+    MODULE = 'pariskiwi'
 
     def test_pariskiwi_event(self):
         event = self.backend.get_event('11-9-2013_-Event_2')

@@ -23,7 +23,7 @@ from weboob.capabilities.radio import Radio
 
 
 class OuiFMTest(BackendTest):
-    BACKEND = 'ouifm'
+    MODULE = 'ouifm'
 
     def test_ouifm(self):
         l = list(self.backend.iter_resources((Radio, ), []))

@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class CreditMutuelTest(BackendTest):
-    BACKEND = 'creditmutuel'
+    MODULE = 'creditmutuel'
 
     def test_crmut(self):
         l = list(self.backend.iter_accounts())

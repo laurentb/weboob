@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class OvsTest(BackendTest):
-    BACKEND = 'ovs'
+    MODULE = 'ovs'
 
     def test_ovs(self):
         raise NotImplementedError()

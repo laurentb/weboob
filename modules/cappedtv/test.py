@@ -14,7 +14,7 @@ from weboob.capabilities.video import BaseVideo
 
 
 class CappedTest(BackendTest):
-    BACKEND = 'cappedtv'
+    MODULE = 'cappedtv'
 
     def test_search(self):
         l = list(self.backend.search_videos('kewlers'))

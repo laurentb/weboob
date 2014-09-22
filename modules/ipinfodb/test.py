@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class IpinfodbTest(BackendTest):
-    BACKEND = 'ipinfodb'
+    MODULE = 'ipinfodb'
 
     def test_ipinfobd(self):
         self.backend.get_location('88.198.11.130')

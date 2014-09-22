@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class PopolemploiTest(BackendTest):
-    BACKEND = 'popolemploi'
+    MODULE = 'popolemploi'
 
     def test_popolemploi_search(self):
         l = list(self.backend.search_job('infographiste'))

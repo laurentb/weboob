@@ -409,7 +409,7 @@ Edit ``test.py`` and write, for example::
     __all__ = ['ExampleTest']
 
     class ExampleTest(BackendTest):
-        BACKEND = 'example'
+        MODULE = 'example'
 
         def test_iter_accounts(self):
             accounts = list(self.backend.iter_accounts())

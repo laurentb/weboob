@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class YahooTest(BackendTest):
-    BACKEND = 'yahoo'
+    MODULE = 'yahoo'
 
     def test_meteo(self):
         l = list(self.backend.iter_city_search('paris'))

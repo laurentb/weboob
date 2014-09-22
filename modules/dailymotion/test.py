@@ -25,7 +25,7 @@ from random import choice
 
 
 class DailymotionTest(BackendTest):
-    BACKEND = 'dailymotion'
+    MODULE = 'dailymotion'
 
     # Not easy to find a kids video which will always be there
     # This might break in the future

@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class PoivyTest(BackendTest):
-    BACKEND = 'poivy'
+    MODULE = 'poivy'
 
     def test_list(self):
         """

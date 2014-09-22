@@ -21,7 +21,7 @@ from weboob.tools.test import BackendTest
 
 
 class ImdbTest(BackendTest):
-    BACKEND = 'imdb'
+    MODULE = 'imdb'
 
     def test_search_movie(self):
         movies = list(self.backend.iter_movies('spiderman'))

@@ -23,7 +23,7 @@ from weboob.capabilities.video import BaseVideo
 
 
 class YoupornTest(BackendTest):
-    BACKEND = 'youporn'
+    MODULE = 'youporn'
 
     def test_search(self):
         self.assertTrue(len(self.backend.search_videos('ass to mouth', nsfw=False)) == 0)

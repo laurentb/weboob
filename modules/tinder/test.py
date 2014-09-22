@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class TinderTest(BackendTest):
-    BACKEND = 'tinder'
+    MODULE = 'tinder'
 
     def test_tinder(self):
         self.backend.browser.like_profile()

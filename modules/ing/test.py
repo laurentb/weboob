@@ -25,7 +25,7 @@ import random
 
 
 class INGTest(BackendTest):
-    BACKEND = 'ing'
+    MODULE = 'ing'
 
     def test_accounts(self):
         l = list(self.backend.iter_accounts())

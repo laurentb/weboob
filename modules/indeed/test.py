@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class IndeedTest(BackendTest):
-    BACKEND = 'indeed'
+    MODULE = 'indeed'
 
     def test_indeed_search(self):
         l = list(self.backend.search_job('informaticien'))

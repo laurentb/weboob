@@ -23,7 +23,7 @@ from weboob.capabilities.video import BaseVideo
 
 
 class ArteTest(BackendTest):
-    BACKEND = 'arte'
+    MODULE = 'arte'
 
     def test_search(self):
         l = list(self.backend.search_videos('a'))

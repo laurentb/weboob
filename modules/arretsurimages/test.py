@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class ArretSurImagesTest(BackendTest):
-    BACKEND = 'arretsurimages'
+    MODULE = 'arretsurimages'
 
     def test_arretsurimages(self):
         raise NotImplementedError()

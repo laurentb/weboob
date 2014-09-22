@@ -22,7 +22,7 @@ from weboob.tools.capabilities.gallery.genericcomicreadertest import GenericComi
 
 
 class MangafoxTest(GenericComicReaderTest):
-    BACKEND = 'mangafox'
+    MODULE = 'mangafox'
 
     def test_download(self):
         return self._test_download('glass_no_kamen/v02/c000')

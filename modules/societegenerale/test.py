@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class SocieteGeneraleTest(BackendTest):
-    BACKEND = 'societegenerale'
+    MODULE = 'societegenerale'
 
     def test_societegenerale(self):
         l = list(self.backend.iter_accounts())

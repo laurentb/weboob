@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest, SkipTest
 
 
 class GroovesharkTest(BackendTest):
-    BACKEND = 'grooveshark'
+    MODULE = 'grooveshark'
 
     def test_grooveshark_audio_search(self):
         result = list(self.backend.search_audio("Gronibard"))

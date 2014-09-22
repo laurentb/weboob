@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class BanquePopulaireTest(BackendTest):
-    BACKEND = 'banquepopulaire'
+    MODULE = 'banquepopulaire'
 
     def test_banquepop(self):
         l = list(self.backend.iter_accounts())

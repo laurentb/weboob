@@ -24,7 +24,7 @@ from weboob.tools.test import BackendTest, SkipTest
 
 
 class TwitterTest(BackendTest):
-    BACKEND = 'twitter'
+    MODULE = 'twitter'
 
     def test_twitter_logged(self):
         if self.backend.browser.username:

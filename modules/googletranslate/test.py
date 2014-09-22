@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class GoogleTranslateTest(BackendTest):
-    BACKEND = 'googletranslate'
+    MODULE = 'googletranslate'
 
     def test_translate(self):
         tr = self.backend.translate('French', 'English', 'je mange du chocolat')

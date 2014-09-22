@@ -23,7 +23,7 @@ from datetime import datetime
 
 
 class RazibusTest(BackendTest):
-    BACKEND = 'razibus'
+    MODULE = 'razibus'
 
     def test_razibus(self):
         l = list(self.backend.list_events(datetime.now()))

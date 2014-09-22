@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class LeclercMobileTest(BackendTest):
-    BACKEND = 'leclercmobile'
+    MODULE = 'leclercmobile'
 
     def test_list(self):
         """

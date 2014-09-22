@@ -23,7 +23,7 @@ from random import choice
 
 
 class OpensubtitlesTest(BackendTest):
-    BACKEND = 'opensubtitles'
+    MODULE = 'opensubtitles'
 
     def test_subtitle(self):
         lsub = []

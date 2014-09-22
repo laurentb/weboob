@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class FreeMobileTest(BackendTest):
-    BACKEND = 'freemobile'
+    MODULE = 'freemobile'
 
     def test_details(self):
         for subscription in self.backend.iter_subscription():

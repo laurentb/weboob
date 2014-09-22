@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class INATest(BackendTest):
-    BACKEND = 'ina'
+    MODULE = 'ina'
 
     def test_ina(self):
         l = list(self.backend.search_videos('chirac'))

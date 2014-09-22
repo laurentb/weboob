@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class CitelisTest(BackendTest):
-    BACKEND = 'citelis'
+    MODULE = 'citelis'
 
     def test_citelis(self):
         l = list(self.backend.iter_accounts())

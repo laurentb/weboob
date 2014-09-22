@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class PixtoilelibreTest(BackendTest):
-    BACKEND = 'pixtoilelibre'
+    MODULE = 'pixtoilelibre'
 
     # small gif file
     DATA = 'R0lGODlhAQABAIAAAP///wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==\n'

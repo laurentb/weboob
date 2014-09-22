@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class TricTracTVTest(BackendTest):
-    BACKEND = 'trictractv'
+    MODULE = 'trictractv'
 
     def test_trictractv(self):
         l = list(self.backend.search_videos('TricTrac'))

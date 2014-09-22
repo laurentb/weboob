@@ -23,7 +23,7 @@ from datetime import datetime
 
 
 class MediawikiTest(BackendTest):
-    BACKEND = 'mediawiki'
+    MODULE = 'mediawiki'
 
     def test_get_content(self):
         self.backend.get_content(u"Utilisateur:Clemux/Test")

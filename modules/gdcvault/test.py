@@ -24,7 +24,7 @@ from weboob.tools.test import BackendTest
 
 
 class GDCVaultTest(BackendTest):
-    BACKEND = 'gdcvault'
+    MODULE = 'gdcvault'
 
     # def test_search(self):
     #     l = list(self.backend.search_videos('linux'))

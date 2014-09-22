@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class CciTest(BackendTest):
-    BACKEND = 'cci'
+    MODULE = 'cci'
 
     def test_cci_search(self):
         l = list(self.backend.search_job())

@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class LutimTest(BackendTest):
-    BACKEND = 'lutim'
+    MODULE = 'lutim'
 
     # small gif file
     DATA = 'R0lGODlhAQABAIAAAP///wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==\n'

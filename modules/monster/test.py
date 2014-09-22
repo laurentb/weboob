@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class MonsterTest(BackendTest):
-    BACKEND = 'monster'
+    MODULE = 'monster'
 
     def test_monster_search(self):
         l = list(self.backend.search_job(u'marketing'))

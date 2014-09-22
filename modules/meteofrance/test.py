@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class MeteoFranceTest(BackendTest):
-    BACKEND = 'meteofrance'
+    MODULE = 'meteofrance'
 
     def test_meteofrance(self):
         l = list(self.backend.iter_city_search('paris'))

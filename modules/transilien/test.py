@@ -24,7 +24,7 @@ from weboob.tools.test import BackendTest
 
 
 class TransilienTest(BackendTest):
-    BACKEND = 'transilien'
+    MODULE = 'transilien'
 
     def test_stations(self):
         stations = list(self.backend.iter_station_search('aul'))

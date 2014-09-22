@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class BouyguesTest(BackendTest):
-    BACKEND = 'bouygues'
+    MODULE = 'bouygues'
 
     def test_bouygues(self):
         pass

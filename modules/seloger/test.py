@@ -23,7 +23,7 @@ from weboob.tools.test import BackendTest
 
 
 class SeLogerTest(BackendTest):
-    BACKEND = 'seloger'
+    MODULE = 'seloger'
 
     def test_seloger(self):
         query = Query()

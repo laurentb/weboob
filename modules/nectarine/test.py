@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class NectarineTest(BackendTest):
-    BACKEND = 'nectarine'
+    MODULE = 'nectarine'
 
     def test_nectarine(self):
         l = list(self.backend.iter_radios_search(''))

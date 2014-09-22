@@ -23,7 +23,7 @@ from weboob.tools.test import BackendTest
 
 
 class BoursoramaTest(BackendTest):
-    BACKEND = 'boursorama'
+    MODULE = 'boursorama'
 
     def test_boursorama(self):
         l = list(self.backend.iter_accounts())

@@ -23,7 +23,7 @@ from weboob.tools.html import html2text
 
 
 class LeFigaroTest(BackendTest):
-    BACKEND = 'lefigaro'
+    MODULE = 'lefigaro'
 
     def test_lefigaro(self):
         l = list(self.backend.iter_threads())

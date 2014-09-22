@@ -20,7 +20,7 @@
 from weboob.tools.test import BackendTest
 
 class SFRTest(BackendTest):
-    BACKEND = 'sfr'
+    MODULE = 'sfr'
 
     def test_sfr(self):
         pass

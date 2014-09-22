@@ -23,7 +23,7 @@ from random import choice
 
 
 class PodnapisiTest(BackendTest):
-    BACKEND = 'podnapisi'
+    MODULE = 'podnapisi'
 
     def test_subtitle(self):
         lsub = []

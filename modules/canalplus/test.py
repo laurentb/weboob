@@ -23,7 +23,7 @@ from weboob.capabilities.video import BaseVideo
 
 
 class CanalPlusTest(BackendTest):
-    BACKEND = 'canalplus'
+    MODULE = 'canalplus'
 
     def test_canalplus(self):
         l = list(self.backend.search_videos(u'guignol'))

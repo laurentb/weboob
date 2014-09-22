@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class AmericanExpressTest(BackendTest):
-    BACKEND = 'americanexpress'
+    MODULE = 'americanexpress'
 
     def test_americanexpress(self):
         l = list(self.backend.iter_accounts())

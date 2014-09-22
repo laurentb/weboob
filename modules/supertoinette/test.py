@@ -21,7 +21,7 @@ from weboob.tools.test import BackendTest
 
 
 class SupertoinetteTest(BackendTest):
-    BACKEND = 'supertoinette'
+    MODULE = 'supertoinette'
 
     def test_recipe(self):
         recipes = self.backend.iter_recipes('fondue')

@@ -21,7 +21,7 @@ from weboob.tools.test import BackendTest
 
 
 class GazelleTest(BackendTest):
-    BACKEND = 'gazelle'
+    MODULE = 'gazelle'
 
     def test_torrent(self):
         l = list(self.backend.iter_torrents('sex'))

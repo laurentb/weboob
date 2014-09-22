@@ -25,7 +25,7 @@ from random import choice
 
 
 class KickassTest(BackendTest):
-    BACKEND = 'kickass'
+    MODULE = 'kickass'
 
     def test_torrent(self):
         torrents = list(self.backend.iter_torrents('debian'))

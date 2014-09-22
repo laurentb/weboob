@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class ApivieTest(BackendTest):
-    BACKEND = 'apivie'
+    MODULE = 'apivie'
 
     def test_apivie(self):
         l = list(self.backend.iter_accounts())

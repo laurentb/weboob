@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class SachsenTest(BackendTest):
-    BACKEND = 'sachsen'
+    MODULE = 'sachsen'
 
     def test_sachsen(self):
         l = list(self.backend.iter_gauges())

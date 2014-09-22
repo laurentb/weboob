@@ -24,7 +24,7 @@ from weboob.capabilities.video import BaseVideo
 
 
 class YoujizzTest(BackendTest):
-    BACKEND = 'youjizz'
+    MODULE = 'youjizz'
 
     def test_search(self):
         self.assertTrue(len(self.backend.search_videos('anus', nsfw=False)) == 0)

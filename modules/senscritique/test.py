@@ -23,7 +23,7 @@ from datetime import datetime
 
 
 class SenscritiqueTest(BackendTest):
-    BACKEND = 'senscritique'
+    MODULE = 'senscritique'
 
     def test_senscritique(self):
         l = list(self.backend.list_events(datetime.now()))

@@ -23,7 +23,7 @@ from uuid import uuid4
 
 
 class GuerrillamailTest(BackendTest):
-    BACKEND = 'guerrillamail'
+    MODULE = 'guerrillamail'
 
     def test_guerrillamail(self):
         box = uuid4()

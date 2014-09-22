@@ -23,7 +23,7 @@ from datetime import datetime
 
 
 class AgendadulibreTest(BackendTest):
-    BACKEND = 'agendadulibre'
+    MODULE = 'agendadulibre'
 
     def test_agendadulibre(self):
         l = list(self.backend.list_events(datetime.now()))

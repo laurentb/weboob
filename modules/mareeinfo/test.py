@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class MareeinfoTest(BackendTest):
-    BACKEND = 'mareeinfo'
+    MODULE = 'mareeinfo'
 
     def test_mareeinfo(self):
         l = list(self.backend.iter_gauges())

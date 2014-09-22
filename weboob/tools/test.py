@@ -34,7 +34,7 @@ __all__ = ['BackendTest', 'SkipTest']
 
 
 class BackendTest(TestCase):
-    BACKEND = None
+    MODULE = None
 
     def __init__(self, *args, **kwargs):
         TestCase.__init__(self, *args, **kwargs)
@@ -44,7 +44,7 @@ class BackendTest(TestCase):
         self.backend = None
         self.weboob = Weboob()
 
-        if self.weboob.load_backends(modules=[self.BACKEND]):
+        if self.weboob.load_backends(modules=[self.MODULE]):
             # provide the tests with all available backends
             self.backends = self.weboob.backend_instances
             # chose one backend (enough for most tests)

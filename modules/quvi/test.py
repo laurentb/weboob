@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class QuviTest(BackendTest):
-    BACKEND = 'quvi'
+    MODULE = 'quvi'
 
     def test_get_id(self):
         v = self.backend.get_video('youtube.BaW_jenozKc')

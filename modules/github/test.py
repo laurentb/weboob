@@ -23,7 +23,7 @@ from weboob.capabilities.bugtracker import Query
 
 
 class GithubTest(BackendTest):
-    BACKEND = 'github'
+    MODULE = 'github'
 
     def test_project(self):
         project = self.backend.get_project('github/hubot')

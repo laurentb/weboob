@@ -21,7 +21,7 @@ from weboob.tools.capabilities.gallery.genericcomicreadertest import GenericComi
 
 
 class BatotoTest(GenericComicReaderTest):
-    BACKEND = 'batoto'
+    MODULE = 'batoto'
 
     def test_download(self):
         return self._test_download('26287/yurumates_ch4_by_primitive-scans')

@@ -24,7 +24,7 @@ from weboob.tools.test import BackendTest
 
 
 class EuroparlTest(BackendTest):
-    BACKEND = 'europarl'
+    MODULE = 'europarl'
 
     # def test_search(self):
     #     l = list(self.backend.search_videos('neelie kroes'))

@@ -23,7 +23,7 @@ from weboob.tools.misc import limit
 
 
 class HDSTest(BackendTest):
-    BACKEND = 'hds'
+    MODULE = 'hds'
 
     def test_new_messages(self):
         for message in limit(self.backend.iter_unread_messages(), 10):

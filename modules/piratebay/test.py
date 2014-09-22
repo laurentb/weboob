@@ -24,7 +24,7 @@ from random import choice
 
 
 class PiratebayTest(BackendTest):
-    BACKEND = 'piratebay'
+    MODULE = 'piratebay'
 
     def test_torrent(self):
         # try something popular so we sometimes get a magnet-only torrent

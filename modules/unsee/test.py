@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class UnseeTest(BackendTest):
-    BACKEND = 'unsee'
+    MODULE = 'unsee'
 
     # small gif file
     DATA = 'R0lGODlhAQABAIAAAP///wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==\n'

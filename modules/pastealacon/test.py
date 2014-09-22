@@ -27,7 +27,7 @@ from .browser import Spam
 
 
 class PastealaconTest(BackendTest):
-    BACKEND = 'pastealacon'
+    MODULE = 'pastealacon'
 
     def _get_paste(self, _id):
         # html method

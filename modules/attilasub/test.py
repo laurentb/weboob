@@ -24,7 +24,7 @@ from random import choice
 
 
 class AttilasubTest(BackendTest):
-    BACKEND = 'attilasub'
+    MODULE = 'attilasub'
 
     def test_subtitle(self):
         subtitles = list(self.backend.iter_subtitles('fr', 'spiderman'))

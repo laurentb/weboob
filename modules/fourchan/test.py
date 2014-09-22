@@ -23,7 +23,7 @@ from weboob.tools.test import BackendTest
 
 
 class FourChanTest(BackendTest):
-    BACKEND = 'fourchan'
+    MODULE = 'fourchan'
 
     def test_new_messages(self):
         tot = 0

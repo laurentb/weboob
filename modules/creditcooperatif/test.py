@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class CreditCooperatifTest(BackendTest):
-    BACKEND = 'creditcooperatif'
+    MODULE = 'creditcooperatif'
 
     def test_creditcoop(self):
         l = list(self.backend.iter_accounts())

@@ -24,7 +24,7 @@ from weboob.capabilities.radio import Radio
 
 
 class RadioFranceTest(BackendTest):
-    BACKEND = 'radiofrance'
+    MODULE = 'radiofrance'
 
     def test_get_radios(self):
         l = list(self.backend.iter_resources(objs=[Radio], split_path=[]))

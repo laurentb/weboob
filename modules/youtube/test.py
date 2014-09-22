@@ -23,7 +23,7 @@ from weboob.capabilities.video import BaseVideo
 
 
 class YoutubeTest(BackendTest):
-    BACKEND = 'youtube'
+    MODULE = 'youtube'
 
     def test_search(self):
         l = list(self.backend.search_videos('lol'))

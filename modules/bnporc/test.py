@@ -23,7 +23,7 @@ from random import choice
 
 
 class BNPorcTest(BackendTest):
-    BACKEND = 'bnporc'
+    MODULE = 'bnporc'
 
     def test_bank(self):
         l = list(self.backend.iter_accounts())

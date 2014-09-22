@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 from weboob.capabilities.video import BaseVideo
 
 class NolifeTVTest(BackendTest):
-    BACKEND = 'nolifetv'
+    MODULE = 'nolifetv'
 
     def test_search(self):
         l = list(self.backend.search_videos('nolife'))

@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class PrixCarburantsTest(BackendTest):
-    BACKEND = 'prixcarburants'
+    MODULE = 'prixcarburants'
 
     def test_prixcarburants(self):
         products = list(self.backend.search_products('gpl'))

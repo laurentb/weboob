@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class DelubacTest(BackendTest):
-    BACKEND = 'delubac'
+    MODULE = 'delubac'
 
     def test_delubac(self):
         l = list(self.backend.iter_accounts())

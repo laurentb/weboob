@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class WordReferenceTest(BackendTest):
-    BACKEND = 'wordreference'
+    MODULE = 'wordreference'
 
     def test_translate(self):
         tr = self.backend.translate('French', 'English', 'chat')

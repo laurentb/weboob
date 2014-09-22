@@ -24,7 +24,7 @@ from random import choice
 
 
 class BtmonTest(BackendTest):
-    BACKEND = 'btmon'
+    MODULE = 'btmon'
 
     def test_torrent(self):
         torrents = list(self.backend.iter_torrents('spiderman'))

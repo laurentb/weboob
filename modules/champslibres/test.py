@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class ChampslibresTest(BackendTest):
-    BACKEND = 'champslibres'
+    MODULE = 'champslibres'
 
     def test_champslibres(self):
         pass

@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class ApecTest(BackendTest):
-    BACKEND = 'apec'
+    MODULE = 'apec'
 
     def test_apec_search(self):
         l = list(self.backend.search_job(u'informaticien'))

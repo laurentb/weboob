@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class EdfTest(BackendTest):
-    BACKEND = 'edf'
+    MODULE = 'edf'
 
     def test_edf(self):
         for subscription in self.backend.iter_subscription():

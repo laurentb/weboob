@@ -21,7 +21,7 @@ from weboob.tools.test import BackendTest
 
 
 class MarmitonTest(BackendTest):
-    BACKEND = 'marmiton'
+    MODULE = 'marmiton'
 
     def test_recipe(self):
         recipes = self.backend.iter_recipes('fondue')

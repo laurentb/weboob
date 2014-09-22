@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class BarclaysTest(BackendTest):
-    BACKEND = 'barclays'
+    MODULE = 'barclays'
 
     def test_banquepop(self):
         l = list(self.backend.iter_accounts())

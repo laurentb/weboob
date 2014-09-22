@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class CrAgrTest(BackendTest):
-    BACKEND = 'cragr'
+    MODULE = 'cragr'
 
     def test_cragr(self):
         l = list(self.backend.iter_accounts())

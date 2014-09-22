@@ -23,7 +23,7 @@ from weboob.capabilities.radio import Radio
 
 
 class SomaFMTest(BackendTest):
-    BACKEND = 'somafm'
+    MODULE = 'somafm'
 
     def test_difm(self):
         ls = list(self.backend.iter_resources((Radio, ), []))

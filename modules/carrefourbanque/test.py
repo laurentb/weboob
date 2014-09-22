@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class CarrefourBanqueTest(BackendTest):
-    BACKEND = 'carrefourbanque'
+    MODULE = 'carrefourbanque'
 
     def test_carrefourbanque(self):
         l = list(self.backend.iter_accounts())

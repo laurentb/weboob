@@ -23,7 +23,7 @@ from weboob.capabilities.radio import Radio
 
 
 class NovaTest(BackendTest):
-    BACKEND = 'nova'
+    MODULE = 'nova'
 
     def test_nova(self):
         l = list(self.backend.iter_resources((Radio, ), []))

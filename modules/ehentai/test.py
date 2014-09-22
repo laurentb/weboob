@@ -23,7 +23,7 @@ from weboob.capabilities.gallery import BaseGallery
 
 
 class EHentaiTest(BackendTest):
-    BACKEND = 'ehentai'
+    MODULE = 'ehentai'
 
     def test_search(self):
         l = list(self.backend.search_gallery('lol'))

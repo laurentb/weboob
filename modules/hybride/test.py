@@ -23,7 +23,7 @@ from weboob.tools.test import BackendTest, SkipTest
 
 
 class HybrideTest(BackendTest):
-    BACKEND = 'hybride'
+    MODULE = 'hybride'
 
     def test_hybride_list(self):
         if datetime.now() > datetime(datetime.now().year, 6, 30) and datetime.now() < datetime(datetime.now().year, 9, 15):

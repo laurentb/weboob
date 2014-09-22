@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class CanalTPTest(BackendTest):
-    BACKEND = 'canaltp'
+    MODULE = 'canaltp'
 
     def test_canaltp(self):
         stations = list(self.backend.iter_station_search('defense'))

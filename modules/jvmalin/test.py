@@ -24,7 +24,7 @@ from weboob.tools.test import BackendTest
 
 
 class JVMalinTest(BackendTest):
-    BACKEND = 'jvmalin'
+    MODULE = 'jvmalin'
 
     def test_roadmap_cities(self):
         filters = RoadmapFilters()

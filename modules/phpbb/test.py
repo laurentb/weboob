@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class PhpBBTest(BackendTest):
-    BACKEND = 'phpbb'
+    MODULE = 'phpbb'
 
     def testthreads(self):
         for thread in self.backend.iter_threads():

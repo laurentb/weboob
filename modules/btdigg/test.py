@@ -7,7 +7,7 @@ from random import choice
 
 
 class BTDiggTest(BackendTest):
-    BACKEND = 'btdigg'
+    MODULE = 'btdigg'
 
     def test_iter_torrents(self):
         # try something popular so we sometimes get a magnet-only torrent

@@ -23,7 +23,7 @@ from weboob.tools.test import BackendTest
 
 
 class PapTest(BackendTest):
-    BACKEND = 'pap'
+    MODULE = 'pap'
 
     def test_pap(self):
         query = Query()

@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class GeolocIPTest(BackendTest):
-    BACKEND = 'geolocip'
+    MODULE = 'geolocip'
 
     def test_geolocip(self):
         self.backend.get_location('88.198.11.130')

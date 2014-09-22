@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class NihonNoOtoTest(BackendTest):
-    BACKEND = 'nihonnooto'
+    MODULE = 'nihonnooto'
 
     def test_nihonnooto(self):
         l = list(self.backend.iter_radios_search(''))

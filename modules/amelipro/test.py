@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class AmeliProTest(BackendTest):
-    BACKEND = 'AmeliPro'
+    MODULE = 'AmeliPro'
 
     def test_AmeliPro(self):
         for subscription in self.backend.iter_subscription():

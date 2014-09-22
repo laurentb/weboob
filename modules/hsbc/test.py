@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class HSBCTest(BackendTest):
-    BACKEND = 'hsbc'
+    MODULE = 'hsbc'
 
     def test_hsbc(self):
         l = list(self.backend.iter_accounts())

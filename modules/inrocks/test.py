@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class InrocksTest(BackendTest):
-    BACKEND = 'inrocks'
+    MODULE = 'inrocks'
 
     def test_new_messages(self):
         for message in self.backend.iter_unread_messages():

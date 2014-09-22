@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class VoyagesSNCFTest(BackendTest):
-    BACKEND = 'voyagessncf'
+    MODULE = 'voyagessncf'
 
     def test_stations(self):
         stations = list(self.backend.iter_station_search('paris'))

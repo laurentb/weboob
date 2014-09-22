@@ -44,7 +44,7 @@ Example::
     from weboob.tools.test import BackendTest
 
     class YoutubeTest(BackendTest):
-        BACKEND = 'youtube'
+        MODULE = 'youtube'
 
         def test_youtube(self):
             l = [v for v in self.backend.iter_search_results('lol')]
