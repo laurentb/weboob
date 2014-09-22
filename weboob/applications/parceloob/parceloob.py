@@ -20,7 +20,7 @@
 
 
 from weboob.capabilities.base import empty
-from weboob.capabilities.parcel import CapParcel, Parcel
+from weboob.capabilities.parcel import CapParcel, Parcel, ParcelNotFound
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
 
