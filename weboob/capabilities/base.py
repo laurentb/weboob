@@ -338,6 +338,9 @@ class BaseObject(object):
         obj._fields = copy(self._fields)
         return obj
 
+    def __deepcopy__(self, memo):
+        return self.copy()
+
     def set_empty_fields(self, value, excepts=()):
         """
         Set the same value on all empty fields.
