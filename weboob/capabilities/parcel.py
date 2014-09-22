@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import CapBase, BaseObject, Field, StringField
+from .base import CapBase, BaseObject, Field, StringField, UserError
 from .date import DateField
 
 
@@ -29,6 +29,7 @@ class Event(BaseObject):
 
     def __repr__(self):
         return u'<Event date=%r activity=%r location=%r>' % (self.date, self.activity, self.location)
+
 
 class Parcel(BaseObject):
     STATUS_UNKNOWN = 0
@@ -50,6 +51,16 @@ class CapParcel(CapBase):
         :param id: ID of the parcel
         :type id: :class:`str`
         :rtype: :class:`Parcel`
+        :raises: :class:`ParcelNotFound`
         """
 
         raise NotImplementedError()
+
+
+class ParcelNotFound(UserError):
+    """
+    Raised when a parcell is not found.
+    It can be an user error, or an expired parcel
+    """
+    def __init__(self, msg='Account not found'):
+        UserError.__init__(self, msg)
