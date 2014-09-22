@@ -44,7 +44,7 @@ class ColissimoBackend(BaseBackend, CapParcel):
         p = Parcel(_id)
         label = data['message']
         if data['error']:
-            raise ParcelNotFound(label)
+            raise ParcelNotFound(label + u" (id = %s@%s)" % (_id, self.name))
         p.info = label
         # TODO, need to know the delivery message
         if u"remis au gardien ou" in label or u"Votre colis est livré" in label:
