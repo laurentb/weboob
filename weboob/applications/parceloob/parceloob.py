@@ -131,9 +131,13 @@ class Parceloob(ReplApplication):
             pass
 
         if not removed:
-            parcel = self.get_object(line, 'get_parcel_tracking')
+            try:
+                parcel = self.get_object(line, 'get_parcel_tracking')
+            except ParcelNotFound:
+                parcel = False
+
             if not parcel:
-                print >>self.stderr, 'Error: the parcel "%s" is not found' % line
+                print >>self.stderr, 'Error: the parcel "%s" is not found. Did you provide the full id@backend parameter?' % line
                 return 2
 
             try:
