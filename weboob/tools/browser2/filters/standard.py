@@ -22,6 +22,7 @@ from __future__ import absolute_import
 import datetime
 import re
 from decimal import Decimal, InvalidOperation
+from itertools import islice
 
 from dateutil.parser import parse as parse_date
 
@@ -408,30 +409,54 @@ class Field(_Filter):
         return item.use_selector(getattr(item, 'obj_%s' % self.name))
 
 
+# Based on nth from https://docs.python.org/2/library/itertools.html
+def nth(iterable, n, default=None):
+    "Returns the nth item or a default value, n can be negative"
+    if n < 0:
+        iterable = reversed(list(iterable))
+        n = abs(n) - 1
+    return next(islice(iterable, n, None), default)
+
+
+def ordinal(n):
+    "To have some readable debug information: 0 => 1st, 1 => 2nd..."
+    i = abs(n)
+    n = n - 1 if n < 0 else n + 1
+    return str(n) + ('th' if i > 2 else ['st', 'nd', 'rd'][i])
+
+
 class Regexp(Filter):
     r"""
     Apply a regex.
 
     >>> from lxml.html import etree
-    >>> f = Regexp(CleanText('//p'), r'Date: (\d+)/(\d+)/(\d+)', '\\3-\\2-\\1')
-    >>> f(etree.fromstring('<html><body><p>Date: <span>13/08/1988</span></p></body></html>'))
+    >>> doc = etree.fromstring('<html><body><p>Date: <span>13/08/1988</span></p></body></html>')
+    >>> Regexp(CleanText('//p'), r'Date: (\d+)/(\d+)/(\d+)', '\\3-\\2-\\1')(doc)
     u'1988-08-13'
+
+    >>> (Regexp(CleanText('//body'), r'(\d+)', nth=1))(doc)
+    u'08'
+    >>> (Regexp(CleanText('//body'), r'(\d+)', nth=-1))(doc)
+    u'1988'
     """
 
-    def __init__(self, selector=None, pattern=None, template=None, flags=0, default=_NO_DEFAULT):
+    def __init__(self, selector=None, pattern=None, template=None, nth=0, flags=0, default=_NO_DEFAULT):
         super(Regexp, self).__init__(selector, default=default)
         assert pattern is not None
         self.pattern = pattern
         self.regex = re.compile(pattern, flags)
         self.template = template
+        self.nth = nth
 
     def filter(self, txt):
         if isinstance(txt, (tuple, list)):
             txt = u' '.join([t.strip() for t in txt.itertext()])
 
-        mobj = self.regex.search(txt)
+        mobj = self.regex.search(txt) if self.nth == 0 else \
+               nth(self.regex.finditer(txt), self.nth)
         if not mobj:
-            return self.default_or_raise(RegexpError('Unable to match %s in %r' % (self.pattern, txt)))
+            msg = 'Unable to match %s %s in %r' % (ordinal(self.nth), self.pattern, txt)
+            return self.default_or_raise(RegexpError(msg))
 
         if self.template is None:
             return next(g for g in mobj.groups() if g is not None)
