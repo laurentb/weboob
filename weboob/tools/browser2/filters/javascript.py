@@ -20,7 +20,7 @@
 
 import re
 
-from weboob.tools.browser2.filters.standard import _NO_DEFAULT, Filter, Regexp, RegexpError
+from weboob.tools.browser2.filters.standard import Filter, Regexp, RegexpError
 from weboob.tools.exceptions import ParseError
 
 
@@ -78,10 +78,12 @@ class JSVar(Regexp):
     'Some "string" value'
     >>> JSVar(var='test').filter("var test = false;\nsomecode()")
     False
+    >>> JSVar(var='test', nth=1).filter("var test = false; test = true;\nsomecode()")
+    True
     """
     pattern_template = r"""(?x)
         (?:var\s+)?                                   # optional var keyword
-        \b%%s                                          # var name
+        \b%%s                                         # var name
         \s*=\s*                                       # equal sign
         (?:(?P<float>[-+]?\s*                         # float ?
                (?:(?:\d+\.\d*|\d*\.\d+)(?:[eE]\d+)?
@@ -99,8 +101,8 @@ class JSVar(Regexp):
         for t, v in values.iteritems():
             if v is not None:
                 break
-        if self.of_type and t != self.of_type:
-            raise ParseError('Variable %r with type %s not found' % (self.var, self.of_type))
+        if self.need_type and t != self.need_type:
+            raise ParseError('Variable %r with type %s not found' % (self.var, self.need_type))
         if t in ('int', 'float'):
             v = self._re_spaces.sub('', v).lower()
             if t == 'int':
@@ -117,12 +119,14 @@ class JSVar(Regexp):
             return self.default
         raise ParseError('Unable to parse variable %r value' % self.var)
 
-    def __init__(self, selector=None, var=None, of_type=None, default=_NO_DEFAULT):
+    def __init__(self, selector=None, var=None, need_type=None, **kwargs):
         assert var is not None, 'Please specify a var parameter'
+        assert 'pattern' not in kwargs, "It would be meaningless to define a pattern, use Regexp"
+        assert 'template' not in kwargs, "Can't use a template, use Regexp if you have to"
         self.var = var
-        self.of_type = of_type.__name__ if type(of_type) == type else of_type
-        pattern = self.pattern_template % var
-        super(JSVar, self).__init__(selector, pattern=pattern, template=self.to_python, default=default)
+        self.need_type = need_type.__name__ if type(need_type) == type else need_type
+        pattern = self.pattern_template % re.escape(var)
+        super(JSVar, self).__init__(selector, pattern=pattern, template=self.to_python, **kwargs)
 
     def filter(self, txt):
         try:
