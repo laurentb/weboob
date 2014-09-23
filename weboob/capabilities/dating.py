@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import CapBase, BaseObject, Field, StringField, UserError
+from .base import Capability, BaseObject, Field, StringField, UserError
 from .date import DateField
 from .contact import Contact
 
@@ -90,7 +90,7 @@ class Event(BaseObject):
     message =   StringField('Message of the event')
 
 
-class CapDating(CapBase):
+class CapDating(Capability):
     """
     Capability for dating websites.
     """

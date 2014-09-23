@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import CapBase, BaseObject, StringField, IntField, Field
+from .base import Capability, BaseObject, StringField, IntField, Field
 from .date import DateField
 
 
@@ -69,7 +69,7 @@ class Person(BaseObject):
         self.name = name
 
 
-class CapCinema(CapBase):
+class CapCinema(Capability):
     """
     Cinema databases.
     """

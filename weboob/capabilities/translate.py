@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import CapBase, BaseObject, StringField, UserError
+from .base import Capability, BaseObject, StringField, UserError
 
 
 __all__ = ['TranslationFail', 'LanguageNotSupported', 'CapTranslate']
@@ -51,7 +51,7 @@ class Translation(BaseObject):
     text =          StringField('Translation')
 
 
-class CapTranslate(CapBase):
+class CapTranslate(Capability):
     """
     Capability of online translation website to translate word or sentence
     """

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import CapBase, BaseObject, StringField, FloatField, Field, UserError, empty
+from .base import Capability, BaseObject, StringField, FloatField, Field, UserError, empty
 from .date import DateField
 
 __all__ = ['Gauge', 'GaugeSensor', 'GaugeMeasure', 'CapGauge', 'SensorNotFound']
@@ -74,7 +74,7 @@ class GaugeSensor(BaseObject):
         return "<GaugeSensor id=%s name=%s>" % (self.id, self.name)
 
 
-class CapGauge(CapBase):
+class CapGauge(Capability):
     def iter_gauges(self, pattern=None):
         """
         Iter gauges.

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import CapBase, BaseObject, StringField, IntField, Field, empty
+from .base import Capability, BaseObject, StringField, IntField, Field, empty
 
 import lxml.etree as ET
 
@@ -161,7 +161,7 @@ class Recipe(BaseObject):
         return header + ET.tostring(doc, encoding='UTF-8', pretty_print=True).decode('utf-8')
 
 
-class CapRecipe(CapBase):
+class CapRecipe(Capability):
     """
     Recipe providers.
     """

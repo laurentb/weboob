@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import CapBase, BaseObject, StringField, Field
+from .base import Capability, BaseObject, StringField, Field
 from .date import DateField
 
 
@@ -45,7 +45,7 @@ class Revision(BaseObject):
     minor =         Field('Is this change minor?', bool)
 
 
-class CapContent(CapBase):
+class CapContent(Capability):
     def get_content(self, id, revision=None):
         """
         Get a content from an ID.

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import CapBase, BaseObject, StringField, IntField, UserError
+from .base import Capability, BaseObject, StringField, IntField, UserError
 
 
 __all__ = ['Subtitle', 'CapSubtitle']
@@ -48,7 +48,7 @@ class Subtitle(BaseObject):
         BaseObject.__init__(self, id)
         self.name = name
 
-class CapSubtitle(CapBase):
+class CapSubtitle(Capability):
     """
     Subtitle providers.
     """

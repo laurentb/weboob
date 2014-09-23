@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import CapBase, BaseObject, NotAvailable, Field, StringField
+from .base import Capability, BaseObject, NotAvailable, Field, StringField
 from .date import DateField
 
 
@@ -60,7 +60,7 @@ class BaseFile(BaseObject):
         return self.id2url(self.id)
 
 
-class CapFile(CapBase):
+class CapFile(Capability):
     """
     Provide file download
     """

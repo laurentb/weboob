@@ -19,7 +19,7 @@
 
 
 from weboob.tools.capabilities.thumbnail import Thumbnail
-from .base import CapBase, BaseObject, NotLoaded, Field, StringField, \
+from .base import Capability, BaseObject, NotLoaded, Field, StringField, \
                   BytesField, IntField, FloatField
 from .date import DateField
 
@@ -104,7 +104,7 @@ class BaseImage(BaseObject):
         return self.data is not NotLoaded
 
 
-class CapGallery(CapBase):
+class CapGallery(Capability):
     """
     This capability represents the ability for a website backend to provide videos.
     """

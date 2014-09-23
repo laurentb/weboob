@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import CapBase, BaseObject, Field, StringField, FloatField, \
+from .base import Capability, BaseObject, Field, StringField, FloatField, \
                   IntField, UserError
 from .date import DateField
 
@@ -54,7 +54,7 @@ class Torrent(BaseObject):
         self.name = name
 
 
-class CapTorrent(CapBase):
+class CapTorrent(Capability):
     """
     Torrent trackers.
     """

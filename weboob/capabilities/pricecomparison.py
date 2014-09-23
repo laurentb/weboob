@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import CapBase, BaseObject, Field, DecimalField, \
+from .base import Capability, BaseObject, Field, DecimalField, \
                   StringField
 from .date import DateField
 
@@ -53,7 +53,7 @@ class Price(BaseObject):
     product =   Field('Product', Product)
 
 
-class CapPriceComparison(CapBase):
+class CapPriceComparison(Capability):
     """
     Capability for price comparison websites.
     """

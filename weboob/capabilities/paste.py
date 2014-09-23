@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import CapBase, BaseObject, NotLoaded, Field, StringField, UserError
+from .base import Capability, BaseObject, NotLoaded, Field, StringField, UserError
 
 
 __all__ = ['PasteNotFound', 'BasePaste', 'CapPaste']
@@ -63,7 +63,7 @@ class BasePaste(BaseObject):
         return self.id2url(self.id)
 
 
-class CapPaste(CapBase):
+class CapPaste(Capability):
     """
     This capability represents the ability for a website backend to store plain text.
     """

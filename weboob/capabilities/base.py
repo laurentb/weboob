@@ -29,7 +29,7 @@ from weboob.tools.ordereddict import OrderedDict
 
 
 __all__ = ['UserError', 'FieldNotFound', 'NotAvailable',
-           'NotLoaded', 'CapBase', 'Field', 'IntField', 'DecimalField',
+           'NotLoaded', 'Capability', 'Field', 'IntField', 'DecimalField',
            'FloatField', 'StringField', 'BytesField',
            'empty', 'BaseObject']
 
@@ -152,7 +152,7 @@ class NotLoadedType(object):
 NotLoaded = NotLoadedType()
 
 
-class CapBase(object):
+class Capability(object):
     """
     This is the base class for all capabilities.
 

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import CapBase, BaseObject, Field, StringField, UserError
+from .base import Capability, BaseObject, Field, StringField, UserError
 from .date import DateField
 
 
@@ -43,7 +43,7 @@ class Parcel(BaseObject):
     history = Field('History', list)
 
 
-class CapParcel(CapBase):
+class CapParcel(Capability):
     def get_parcel_tracking(self, id):
         """
         Get information abouut a parcel.
