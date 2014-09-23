@@ -204,7 +204,7 @@ class BackendConfig(ValuesDict):
 
 class Module(object):
     """
-    Base class for backends.
+    Base class for modules.
 
     You may derivate it, and also all capabilities you want to implement.
 
