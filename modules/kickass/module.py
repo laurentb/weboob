@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.torrent import CapTorrent, Torrent
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import KickassBrowser
 
@@ -29,7 +29,7 @@ from gzip import GzipFile
 __all__ = ['KickassModule']
 
 
-class KickassModule(BaseModule, CapTorrent):
+class KickassModule(Module, CapTorrent):
     NAME = 'kickass'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

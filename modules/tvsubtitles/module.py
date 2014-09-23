@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.subtitle import CapSubtitle, LanguageNotSupported
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import TvsubtitlesBrowser, LANGUAGE_LIST
 
@@ -27,7 +27,7 @@ from urllib import quote_plus
 __all__ = ['TvsubtitlesModule']
 
 
-class TvsubtitlesModule(BaseModule, CapSubtitle):
+class TvsubtitlesModule(Module, CapSubtitle):
     NAME = 'tvsubtitles'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

@@ -18,14 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.parcel import CapParcel
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import ColispriveBrowser
 
 __all__ = ['ColispriveModule']
 
 
-class ColispriveModule(BaseModule, CapParcel):
+class ColispriveModule(Module, CapParcel):
     NAME = 'colisprive'
     DESCRIPTION = u'Colisprive parcel tracking website'
     MAINTAINER = u'Florent Fourcot'

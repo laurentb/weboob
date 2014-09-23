@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.parcel import CapParcel, Parcel, Event, ParcelNotFound
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import ColissimoBrowser
 from datetime import date
@@ -26,7 +26,7 @@ from datetime import date
 __all__ = ['ColissimoModule']
 
 
-class ColissimoModule(BaseModule, CapParcel):
+class ColissimoModule(Module, CapParcel):
     NAME = 'colissimo'
     DESCRIPTION = u'Colissimo parcel tracking website'
     MAINTAINER = u'Florent Fourcot'

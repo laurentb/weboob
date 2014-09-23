@@ -20,7 +20,7 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import BredBrowser
@@ -29,7 +29,7 @@ from .browser import BredBrowser
 __all__ = ['BredModule']
 
 
-class BredModule(BaseModule, CapBank):
+class BredModule(Module, CapBank):
     NAME = 'bred'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

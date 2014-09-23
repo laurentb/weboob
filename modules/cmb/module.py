@@ -19,7 +19,7 @@
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.capabilities.bank import Account, Transaction
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.exceptions import BrowserIncorrectPassword, ParseError
@@ -36,7 +36,7 @@ from StringIO import StringIO
 __all__ = ['CmbModule']
 
 
-class CmbModule(BaseModule, CapBank):
+class CmbModule(Module, CapBank):
     NAME = 'cmb'
     MAINTAINER = u'Johann Broudin'
     EMAIL = 'Johann.Broudin@6-8.fr'

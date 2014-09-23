@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 from weboob.capabilities.paste import CapPaste, BasePaste
 from weboob.tools.capabilities.paste import image_mime
 import re
@@ -35,7 +35,7 @@ class PixPaste(BasePaste):
         return 'http://pix.toile-libre.org/?img=%s' % id
 
 
-class PixtoilelibreModule(BaseModule, CapPaste):
+class PixtoilelibreModule(Module, CapPaste):
     NAME = 'pixtoilelibre'
     DESCRIPTION = u'toile-libre image hosting website'
     MAINTAINER = u'Vincent A'

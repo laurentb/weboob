@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.subtitle import CapSubtitle, LanguageNotSupported
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import AttilasubBrowser
 
@@ -27,7 +27,7 @@ from urllib import quote_plus
 __all__ = ['AttilasubModule']
 
 
-class AttilasubModule(BaseModule, CapSubtitle):
+class AttilasubModule(Module, CapSubtitle):
     NAME = 'attilasub'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.recipe import CapRecipe, Recipe
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import AllrecipesBrowser
 
@@ -27,7 +27,7 @@ from urllib import quote_plus
 __all__ = ['AllrecipesModule']
 
 
-class AllrecipesModule(BaseModule, CapRecipe):
+class AllrecipesModule(Module, CapRecipe):
     NAME = 'allrecipes'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

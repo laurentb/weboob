@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.bank import CapBank
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import ApivieBrowser
@@ -27,7 +27,7 @@ from .browser import ApivieBrowser
 __all__ = ['ApivieModule']
 
 
-class ApivieModule(BaseModule, CapBank):
+class ApivieModule(Module, CapBank):
     NAME = 'apivie'
     DESCRIPTION = u'Apivie'
     MAINTAINER = u'Romain Bignon'

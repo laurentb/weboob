@@ -19,12 +19,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.travel import CapTravel
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import Transilien
 
 
-class TransilienModule(BaseModule, CapTravel):
+class TransilienModule(Module, CapTravel):
     NAME = 'transilien'
     MAINTAINER = u'Julien Hébert'
     EMAIL = 'juke@free.fr'

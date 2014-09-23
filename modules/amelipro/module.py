@@ -19,14 +19,14 @@
 
 import urllib
 from weboob.capabilities.bill import CapBill, SubscriptionNotFound, BillNotFound, Subscription, Bill
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from .browser import AmeliProBrowser
 
 __all__ = ['AmeliProModule']
 
 
-class AmeliProModule(BaseModule, CapBill):
+class AmeliProModule(Module, CapBill):
     NAME = 'amelipro'
     DESCRIPTION = u'Ameli website: French Health Insurance for Professionals'
     MAINTAINER = u'Christophe Lampin'

@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import Paypal
@@ -28,7 +28,7 @@ from .browser import Paypal
 __all__ = ['PaypalModule']
 
 
-class PaypalModule(BaseModule, CapBank):
+class PaypalModule(Module, CapBank):
     NAME = 'paypal'
     MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'

@@ -20,7 +20,7 @@
 
 
 from weboob.capabilities.translate import CapTranslate, Translation, TranslationFail, LanguageNotSupported
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import WordReferenceBrowser
 
@@ -28,7 +28,7 @@ from .browser import WordReferenceBrowser
 __all__ = ['WordReferenceModule']
 
 
-class WordReferenceModule(BaseModule, CapTranslate):
+class WordReferenceModule(Module, CapTranslate):
     MAINTAINER = u'Lucien Loiseau'
     EMAIL = 'loiseau.lucien@gmail.com'
     VERSION = '1.0'

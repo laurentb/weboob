@@ -21,11 +21,11 @@ import os
 import imp
 import logging
 
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 from weboob.tools.log import getLogger
 
 
-__all__ = ['Module', 'ModulesLoader', 'RepositoryModulesLoader', 'ModuleLoadError']
+__all__ = ['LoadedModule', 'ModulesLoader', 'RepositoryModulesLoader', 'ModuleLoadError']
 
 
 class ModuleLoadError(Exception):
@@ -34,17 +34,17 @@ class ModuleLoadError(Exception):
         self.module = module_name
 
 
-class Module(object):
+class LoadedModule(object):
     def __init__(self, package):
         self.logger = getLogger('backend')
         self.package = package
         self.klass = None
         for attrname in dir(self.package):
             attr = getattr(self.package, attrname)
-            if isinstance(attr, type) and issubclass(attr, BaseModule) and attr != BaseModule:
+            if isinstance(attr, type) and issubclass(attr, Module) and attr != Module:
                 self.klass = attr
         if not self.klass:
-            raise ImportError('%s is not a backend (no BaseModule class found)' % package)
+            raise ImportError('%s is not a backend (no Module class found)' % package)
 
     @property
     def name(self):
@@ -143,7 +143,7 @@ class ModulesLoader(object):
         try:
             fp, pathname, description = imp.find_module(module_name, [path])
             try:
-                module = Module(imp.load_module(module_name, fp, pathname, description))
+                module = LoadedModule(imp.load_module(module_name, fp, pathname, description))
             finally:
                 if fp:
                     fp.close()

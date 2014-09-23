@@ -23,7 +23,7 @@ from datetime import datetime, timedelta
 
 from weboob.capabilities.bank import CapBank, AccountNotFound, Account, Recipient
 from weboob.capabilities.messages import CapMessages, Thread
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import BNPorc
@@ -33,7 +33,7 @@ from .enterprise.browser import BNPEnterprise
 __all__ = ['BNPorcModule']
 
 
-class BNPorcModule(BaseModule, CapBank, CapMessages):
+class BNPorcModule(Module, CapBank, CapMessages):
     NAME = 'bnporc'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -54,7 +54,7 @@ class BNPorcModule(BaseModule, CapBank, CapMessages):
     CACHE_THREADS = timedelta(seconds=3 * 60 * 60)
 
     def __init__(self, *args, **kwargs):
-        BaseModule.__init__(self, *args, **kwargs)
+        Module.__init__(self, *args, **kwargs)
         self._threads = None
         self._threads_age = datetime.utcnow()
 

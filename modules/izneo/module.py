@@ -23,7 +23,7 @@ import re
 
 from weboob.capabilities.gallery import CapGallery, BaseGallery, BaseImage
 from weboob.tools.json import json
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 from weboob.tools.browser import BaseBrowser, BasePage
 
 __all__ = ['IzneoModule']
@@ -61,7 +61,7 @@ class IzneoBrowser(BaseBrowser):
                 image.url, None, {'Referer': image.gallery.url}))
 
 
-class IzneoModule(BaseModule, CapGallery):
+class IzneoModule(Module, CapGallery):
     NAME = 'izneo'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'

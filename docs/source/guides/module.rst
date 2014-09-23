@@ -63,8 +63,8 @@ For example, use this command::
 
 In a module directory, there are commonly these files:
 
-* **__init__.py** - needed in every python modules, it exports your :class:`BaseModule <weboob.tools.backend.BaseModule>` class.
-* **module.py** - defines the main class of your module, which derives :class:`BaseModule <weboob.tools.backend.BaseModule>`.
+* **__init__.py** - needed in every python modules, it exports your :class:`Module <weboob.tools.backend.Module>` class.
+* **module.py** - defines the main class of your module, which derives :class:`Module <weboob.tools.backend.Module>`.
 * **browser.py** - your browser, derived from :class:`BaseBrowser <weboob.tools.browser2.browser.BaseBrowser>`, is called by your module to interact with the supported website.
 * **pages.py** - all website's pages handled by the browser are defined here
 * **test.py** - functional tests
@@ -97,9 +97,9 @@ If the last command does not work, check your :doc:`repositories setup </guides/
 Module class
 *************
 
-Edit ``module.py``. It contains the main class of the module derived from :class:`BaseModule <weboob.tools.backend.BaseModule>` class::
+Edit ``module.py``. It contains the main class of the module derived from :class:`Module <weboob.tools.backend.Module>` class::
 
-    class ExampleModule(BaseModule, CapBank):
+    class ExampleModule(Module, CapBank):
         NAME = 'example'                         # The name of module
         DESCRIPTION = u'Example bank website'    # Description of your module
         MAINTAINER = u'John Smith'               # Name of maintainer of this module
@@ -138,7 +138,7 @@ For example::
     from weboob.tools.backend import BackendConfig
 
     # ...
-    class ExampleModule(BaseModule, CapBank):
+    class ExampleModule(Module, CapBank):
         # ...
         CONFIG = BackendConfig(Value('username',                label='Username', regexp='.+'),
                                ValueBackendPassword('password', label='Password'),
@@ -155,7 +155,7 @@ Implement capabilities
 You need to implement each method of all of the capabilities your module implements. For example, in our case::
 
     # ...
-    class ExampleModule(BaseModule, CapBank):
+    class ExampleModule(Module, CapBank):
         # ...
 
         def iter_accounts(self):
@@ -271,7 +271,7 @@ Now you have a functional browser, you can use it in your class ``ExampleModule`
     from .browser import ExampleBrowser
 
     # ...
-    class ExampleModule(BaseModule, CapBank):
+    class ExampleModule(Module, CapBank):
         # ...
         BROWSER = ExampleBrowser
 
@@ -288,9 +288,9 @@ Login management
 ----------------
 
 When the website requires to be authenticated, you have to give credentials to the constructor of the browser. You can redefine
-the method :func:`create_default_browser <weboob.tools.backend.BaseModule.create_default_browser>`::
+the method :func:`create_default_browser <weboob.tools.backend.Module.create_default_browser>`::
 
-    class ExampleModule(BaseModule, CapBank):
+    class ExampleModule(Module, CapBank):
         # ...
         def create_default_browser(self):
             return self.create_browser(self.config['username'].get(), self.config['password'].get())
@@ -430,8 +430,8 @@ Filling objects
 
 An object returned by a method of a capability can be not fully completed.
 
-The class :class:`BaseModule <weboob.tools.backend.BaseModule>` provides a method named
-:func:`fillobj <weboob.tools.backend.BaseModule.fillobj>`, which can be called by an application to
+The class :class:`Module <weboob.tools.backend.Module>` provides a method named
+:func:`fillobj <weboob.tools.backend.Module.fillobj>`, which can be called by an application to
 fill some unloaded fields of a specific object, for example with::
 
     backend.fillobj(video, ['url', 'author'])
@@ -443,7 +443,7 @@ uncompleted fields, and call the method associated to the type of the object.
 To define what objects are supported to be filled, and what method to call, define the ``OBJECTS``
 class attribute in your ``ExampleModule``::
 
-    class ExampleModule(BaseModule, CapVideo):
+    class ExampleModule(Module, CapVideo):
         # ...
 
         OBJECTS = {Video: fill_video}
@@ -454,7 +454,7 @@ The prototype of the function might be::
 
 Then, the function might, for each requested fields, fetch the right data and fill the object. For example::
 
-    class ExampleModule(BaseModule, CapVideo):
+    class ExampleModule(Module, CapVideo):
         # ...
 
         def fill_video(self, video, fields):
@@ -477,7 +477,7 @@ The application can provide a storage to let your backend store data. So, you ca
 
     STORAGE = {'seen': {}}
 
-To store and read data in your storage space, use the ``storage`` attribute of your :class:`BaseModule <weboob.tools.backend.BaseModule>`
+To store and read data in your storage space, use the ``storage`` attribute of your :class:`Module <weboob.tools.backend.Module>`
 object.
 
 It implements the methods of :class:`BackendStorage <weboob.tools.backend.BackendStorage>`.

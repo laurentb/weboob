@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.library import CapBook
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import ChampslibresBrowser
@@ -28,7 +28,7 @@ from .browser import ChampslibresBrowser
 __all__ = ['ChampslibresModule']
 
 
-class ChampslibresModule(BaseModule, CapBook):
+class ChampslibresModule(Module, CapBook):
     NAME = 'champslibres'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

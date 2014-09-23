@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.travel import CapTravel, Station, Departure
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import CanalTP
 
@@ -26,7 +26,7 @@ from .browser import CanalTP
 __all__ = ['CanalTPModule']
 
 
-class CanalTPModule(BaseModule, CapTravel):
+class CanalTPModule(Module, CapTravel):
     NAME = 'canaltp'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

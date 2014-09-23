@@ -21,7 +21,7 @@
 
 
 from weboob.capabilities.library import CapBook
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import AloesBrowser
@@ -30,7 +30,7 @@ from .browser import AloesBrowser
 __all__ = ['AloesModule']
 
 
-class AloesModule(BaseModule, CapBook):
+class AloesModule(Module, CapBook):
     NAME = 'opacwebaloes'
     MAINTAINER = u'Jeremy Monnet'
     EMAIL = 'jmonnet@gmail.com'

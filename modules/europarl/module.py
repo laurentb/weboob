@@ -22,7 +22,7 @@
 
 
 from weboob.capabilities.video import CapVideo, BaseVideo
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
 
 from .browser import EuroparlBrowser
@@ -32,7 +32,7 @@ from .video import EuroparlVideo
 __all__ = ['EuroparlModule']
 
 
-class EuroparlModule(BaseModule, CapVideo, CapCollection):
+class EuroparlModule(Module, CapVideo, CapCollection):
     NAME = 'europarl'
     MAINTAINER = u'François Revol'
     EMAIL = 'revol@free.fr'

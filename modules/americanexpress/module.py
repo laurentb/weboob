@@ -20,7 +20,7 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import AmericanExpressBrowser
@@ -29,7 +29,7 @@ from .browser import AmericanExpressBrowser
 __all__ = ['AmericanExpressModule']
 
 
-class AmericanExpressModule(BaseModule, CapBank):
+class AmericanExpressModule(Module, CapBank):
     NAME = 'americanexpress'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

@@ -20,7 +20,7 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 
 from .browser import SocieteGenerale
@@ -30,7 +30,7 @@ from .sgpe.browser import SGEnterpriseBrowser, SGProfessionalBrowser
 __all__ = ['SocieteGeneraleModule']
 
 
-class SocieteGeneraleModule(BaseModule, CapBank):
+class SocieteGeneraleModule(Module, CapBank):
     NAME = 'societegenerale'
     MAINTAINER = u'Jocelyn Jaubert'
     EMAIL = 'jocelyn.jaubert@gmail.com'

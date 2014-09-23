@@ -23,7 +23,7 @@ from decimal import Decimal
 import string
 
 from weboob.capabilities.bank import CapBank, AccountNotFound, Recipient, Account
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import CICBrowser
@@ -32,7 +32,7 @@ from .browser import CICBrowser
 __all__ = ['CICModule']
 
 
-class CICModule(BaseModule, CapBank):
+class CICModule(Module, CapBank):
     NAME = 'cic'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

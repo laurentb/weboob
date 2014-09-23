@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.bank import CapBank
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import DelubacBrowser
@@ -27,7 +27,7 @@ from .browser import DelubacBrowser
 __all__ = ['DelubacModule']
 
 
-class DelubacModule(BaseModule, CapBank):
+class DelubacModule(Module, CapBank):
     NAME = 'delubac'
     DESCRIPTION = u'Banque Delubac & Cie'
     MAINTAINER = u'Noe Rubinstein'

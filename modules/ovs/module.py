@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.browser import BrowserForbidden
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Message
@@ -60,7 +60,7 @@ CITIES = {u'agen': u'Agen', u'ajaccio': u'Ajaccio', u'albi': u'Albi', u'amiens':
           u'zurich': u'Zurich'}
 
 
-class OvsModule(BaseModule, CapMessages, CapMessagesPost, CapContact):
+class OvsModule(Module, CapMessages, CapMessagesPost, CapContact):
     NAME = 'ovs'
     DESCRIPTION = u'OnVaSortir website. Handles private messages only'
     MAINTAINER = u'Vincent A'

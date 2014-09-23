@@ -19,7 +19,7 @@
 
 from weboob.capabilities.bill import CapBill, Subscription, Bill, SubscriptionNotFound, BillNotFound
 from weboob.capabilities.base import find_object
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import Freemobile
@@ -28,7 +28,7 @@ from .browser import Freemobile
 __all__ = ['FreeMobileModule']
 
 
-class FreeMobileModule(BaseModule, CapBill):
+class FreeMobileModule(Module, CapBill):
     NAME = 'freemobile'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

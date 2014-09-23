@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.job import CapJob, BaseJobAdvert
 from .browser import RegionsjobBrowser
 from weboob.tools.ordereddict import OrderedDict
@@ -28,7 +28,7 @@ from weboob.tools.value import Value
 __all__ = ['RegionsjobModule']
 
 
-class RegionsjobModule(BaseModule, CapJob):
+class RegionsjobModule(Module, CapJob):
     NAME = 'regionsjob'
     DESCRIPTION = u'regionsjob website'
     MAINTAINER = u'Bezleputh'

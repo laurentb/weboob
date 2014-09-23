@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 from weboob.capabilities.base import find_object
 from weboob.capabilities.gauge import CapGauge, Gauge, SensorNotFound
 from .browser import MareeinfoBrowser
@@ -27,7 +27,7 @@ from .browser import MareeinfoBrowser
 __all__ = ['MareeinfoModule']
 
 
-class MareeinfoModule(BaseModule, CapGauge):
+class MareeinfoModule(Module, CapGauge):
     NAME = 'mareeinfo'
     DESCRIPTION = u'Un module qui permet d\' aller a la pêche aux moules totalement informé'
     MAINTAINER = u'Bezleputh'

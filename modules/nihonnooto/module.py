@@ -18,12 +18,12 @@
 
 from weboob.capabilities.radio import CapRadio, Radio
 from weboob.capabilities.collection import CapCollection
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 from .browser import NihonNoOtoBrowser
 
 __all__ = ['NihonNoOtoModule']
 
-class NihonNoOtoModule(BaseModule, CapRadio, CapCollection):
+class NihonNoOtoModule(Module, CapRadio, CapCollection):
     NAME = 'nihonnooto'
     MAINTAINER = u'Thomas Lecavelier'
     EMAIL = 'thomas-weboob@lecavelier.name'

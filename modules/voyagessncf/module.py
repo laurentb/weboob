@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
 from weboob.capabilities.travel import CapTravel, Station, Departure
@@ -30,7 +30,7 @@ from .browser import VoyagesSNCFBrowser
 __all__ = ['VoyagesSNCFModule']
 
 
-class VoyagesSNCFModule(BaseModule, CapTravel):
+class VoyagesSNCFModule(Module, CapTravel):
     NAME = 'voyagessncf'
     DESCRIPTION = u'Voyages SNCF'
     MAINTAINER = u'Romain Bignon'

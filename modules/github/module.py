@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.capabilities.bugtracker import CapBugTracker, Issue, Project, User, Version, Status, Update, Attachment
 
@@ -32,7 +32,7 @@ STATUSES = {'open': Status('open', u'Open', Status.VALUE_NEW),
             'closed': Status('closed', u'closed', Status.VALUE_RESOLVED)}
 # TODO tentatively parse github "labels"?
 
-class GithubModule(BaseModule, CapBugTracker):
+class GithubModule(Module, CapBugTracker):
     NAME = 'github'
     DESCRIPTION = u'GitHub issues tracking'
     MAINTAINER = u'Vincent A'

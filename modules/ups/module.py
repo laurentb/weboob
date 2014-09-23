@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.parcel import CapParcel
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import UpsBrowser
 
@@ -27,7 +27,7 @@ from .browser import UpsBrowser
 __all__ = ['UpsModule']
 
 
-class UpsModule(BaseModule, CapParcel):
+class UpsModule(Module, CapParcel):
     NAME = 'ups'
     DESCRIPTION = u'UPS website'
     MAINTAINER = u'Romain Bignon'

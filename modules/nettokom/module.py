@@ -20,7 +20,7 @@
 
 
 from weboob.capabilities.bill import CapBill, Subscription, SubscriptionNotFound, Detail
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import Nettokom
@@ -29,7 +29,7 @@ from .browser import Nettokom
 __all__ = ['NettoKomModule']
 
 
-class NettoKomModule(BaseModule, CapBill):
+class NettoKomModule(Module, CapBill):
     NAME = 'nettokom'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

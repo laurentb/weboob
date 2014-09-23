@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.video import CapVideo
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import InaBrowser
 from .video import InaVideo
@@ -28,7 +28,7 @@ from .video import InaVideo
 __all__ = ['InaModule']
 
 
-class InaModule(BaseModule, CapVideo):
+class InaModule(Module, CapVideo):
     NAME = 'ina'
     MAINTAINER = u'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'

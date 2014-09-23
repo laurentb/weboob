@@ -20,7 +20,7 @@
 
 from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import ArretSurImagesBrowser
@@ -29,7 +29,7 @@ from .video import ArretSurImagesVideo
 __all__ = ['ArretSurImagesModule']
 
 
-class ArretSurImagesModule(BaseModule, CapVideo, CapCollection):
+class ArretSurImagesModule(Module, CapVideo, CapCollection):
     NAME = 'arretsurimages'
     DESCRIPTION = u'arretsurimages website'
     MAINTAINER = u'franek'

@@ -33,7 +33,7 @@ from weboob.capabilities.messages import CapMessages, CapMessagesPost, Message, 
 from weboob.capabilities.dating import CapDating, OptimizationNotFound, Event
 from weboob.capabilities.contact import CapContact, ContactPhoto, Query, QueryError
 from weboob.capabilities.account import CapAccount, StatusField
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.browser import BrowserUnavailable, BrowserHTTPNotFound
 from weboob.tools.value import Value, ValuesDict, ValueBool, ValueBackendPassword
 from weboob.tools.log import getLogger
@@ -57,7 +57,7 @@ def parse_dt(s):
     return local2utc(d)
 
 
-class AuMModule(BaseModule, CapMessages, CapMessagesPost, CapDating, CapChat, CapContact, CapAccount):
+class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapContact, CapAccount):
     NAME = 'aum'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -79,7 +79,7 @@ class AuMModule(BaseModule, CapMessages, CapMessagesPost, CapDating, CapChat, Ca
     MAGIC_ID_BASKET = 1
 
     def __init__(self, *args, **kwargs):
-        BaseModule.__init__(self, *args, **kwargs)
+        Module.__init__(self, *args, **kwargs)
         if self.config['antispam'].get():
             self.antispam = AntiSpam()
         else:

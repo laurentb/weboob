@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.calendar import CapCalendarEvent, CATEGORIES
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
@@ -29,7 +29,7 @@ from .browser import AgendadulibreBrowser
 __all__ = ['AgendadulibreModule']
 
 
-class AgendadulibreModule(BaseModule, CapCalendarEvent):
+class AgendadulibreModule(Module, CapCalendarEvent):
     NAME = 'agendadulibre'
     DESCRIPTION = u'agendadulibre website'
     MAINTAINER = u'Bezleputh'

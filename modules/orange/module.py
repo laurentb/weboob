@@ -22,7 +22,7 @@
 
 from weboob.capabilities.messages import CantSendMessage, CapMessages, CapMessagesPost
 from weboob.capabilities.account import CapAccount, StatusField
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import OrangeBrowser
@@ -31,7 +31,7 @@ from .browser import OrangeBrowser
 __all__ = ['OrangeModule']
 
 
-class OrangeModule(BaseModule, CapAccount, CapMessages, CapMessagesPost):
+class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost):
     NAME = 'orange'
     MAINTAINER = u'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'

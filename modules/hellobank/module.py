@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 
 from weboob.capabilities.bank import CapBank, AccountNotFound, Account, Recipient
 from weboob.capabilities.messages import CapMessages, Thread
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import HelloBank
@@ -33,7 +33,7 @@ from .browser import HelloBank
 __all__ = ['HelloBankModule']
 
 
-class HelloBankModule(BaseModule, CapBank, CapMessages):
+class HelloBankModule(Module, CapBank, CapMessages):
     NAME = 'hellobank'
     MAINTAINER = u'Christophe Lampin'
     EMAIL = 'weboob@lampin.net'
@@ -49,7 +49,7 @@ class HelloBankModule(BaseModule, CapBank, CapMessages):
     CACHE_THREADS = timedelta(seconds=3 * 60 * 60)
 
     def __init__(self, *args, **kwargs):
-        BaseModule.__init__(self, *args, **kwargs)
+        Module.__init__(self, *args, **kwargs)
         self._threads = None
         self._threads_age = datetime.utcnow()
 

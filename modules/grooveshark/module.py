@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.audio import CapAudio, BaseAudio, Album, Playlist, decode_id
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
 from .browser import GroovesharkBrowser
@@ -35,7 +35,7 @@ def cmp_id(p1, p2):
     return -1
 
 
-class GroovesharkModule(BaseModule, CapAudio, CapCollection):
+class GroovesharkModule(Module, CapAudio, CapCollection):
     NAME = 'grooveshark'
     DESCRIPTION = u'Grooveshark music streaming website'
     MAINTAINER = u'Bezleputh'

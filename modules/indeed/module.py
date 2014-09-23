@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.job import CapJob, BaseJobAdvert
 from weboob.tools.value import Value
@@ -27,7 +27,7 @@ from .browser import IndeedBrowser
 __all__ = ['IndeedModule']
 
 
-class IndeedModule(BaseModule, CapJob):
+class IndeedModule(Module, CapJob):
     NAME = 'indeed'
     DESCRIPTION = u'indeed website'
     MAINTAINER = u'Bezleputh'

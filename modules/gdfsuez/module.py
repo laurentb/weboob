@@ -19,14 +19,14 @@
 
 from weboob.capabilities.bill import CapBill, SubscriptionNotFound,\
     BillNotFound, Subscription, Bill
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from .browser import GdfSuez
 
 __all__ = ['GdfSuezModule']
 
 
-class GdfSuezModule(BaseModule, CapBill):
+class GdfSuezModule(Module, CapBill):
     NAME = 'gdfsuez'
     MAINTAINER = u'Mathieu Jourdan'
     EMAIL = 'mathieu.jourdan@gresille.org'

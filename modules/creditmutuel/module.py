@@ -24,7 +24,7 @@ from decimal import Decimal
 import string
 
 from weboob.capabilities.bank import CapBank, AccountNotFound, Recipient, Account
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import CreditMutuelBrowser
@@ -33,7 +33,7 @@ from .browser import CreditMutuelBrowser
 __all__ = ['CreditMutuelModule']
 
 
-class CreditMutuelModule(BaseModule, CapBank):
+class CreditMutuelModule(Module, CapBank):
     NAME = 'creditmutuel'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

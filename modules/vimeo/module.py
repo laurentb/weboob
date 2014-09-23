@@ -20,7 +20,7 @@
 
 
 from weboob.capabilities.video import CapVideo, BaseVideo
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
 
 from .browser import VimeoBrowser
@@ -30,7 +30,7 @@ import re
 __all__ = ['VimeoModule']
 
 
-class VimeoModule(BaseModule, CapVideo, CapCollection):
+class VimeoModule(Module, CapVideo, CapCollection):
     NAME = 'vimeo'
     MAINTAINER = u'François Revol'
     EMAIL = 'revol@free.fr'

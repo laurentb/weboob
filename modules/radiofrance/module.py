@@ -25,7 +25,7 @@ from weboob.capabilities.radio import CapRadio, Radio
 from weboob.capabilities.audiostream import BaseAudioStream
 from weboob.tools.capabilities.streaminfo import StreamInfo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound, Collection
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import RadioFranceBrowser, RadioFranceVideo
 
@@ -33,7 +33,7 @@ from .browser import RadioFranceBrowser, RadioFranceVideo
 __all__ = ['RadioFranceModule']
 
 
-class RadioFranceModule(BaseModule, CapRadio, CapCollection, CapVideo):
+class RadioFranceModule(Module, CapRadio, CapCollection, CapVideo):
     NAME = 'radiofrance'
     MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'

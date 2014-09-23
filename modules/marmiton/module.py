@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.recipe import CapRecipe, Recipe
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import MarmitonBrowser
 
@@ -27,7 +27,7 @@ from urllib import quote_plus
 __all__ = ['MarmitonModule']
 
 
-class MarmitonModule(BaseModule, CapRecipe):
+class MarmitonModule(Module, CapRecipe):
     NAME = 'marmiton'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

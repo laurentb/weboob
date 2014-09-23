@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.travel import CapTravel, RoadStep
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import JVMalin
 
@@ -26,7 +26,7 @@ from .browser import JVMalin
 __all__ = ['JVMalinModule']
 
 
-class JVMalinModule(BaseModule, CapTravel):
+class JVMalinModule(Module, CapTravel):
     NAME = 'jvmalin'
     MAINTAINER = u'Alexandre Lissy'
     EMAIL = 'github@lissy.me'

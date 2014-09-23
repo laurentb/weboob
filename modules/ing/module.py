@@ -23,7 +23,7 @@ from weboob.capabilities.bank import CapBank, AccountNotFound,\
 from weboob.capabilities.bill import CapBill, Bill, Subscription,\
     SubscriptionNotFound, BillNotFound
 from weboob.capabilities.base import UserError, find_object
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import IngBrowser
@@ -31,7 +31,7 @@ from .browser import IngBrowser
 __all__ = ['INGModule']
 
 
-class INGModule(BaseModule, CapBank, CapBill):
+class INGModule(Module, CapBank, CapBill):
     NAME = 'ing'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

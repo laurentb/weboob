@@ -21,13 +21,13 @@ from .browser import SachsenBrowser
 from weboob.capabilities.gauge import CapGauge, GaugeSensor, Gauge,\
         SensorNotFound
 from weboob.capabilities.base import find_object
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 
 __all__ = ['SachsenLevelModule']
 
 
-class SachsenLevelModule(BaseModule, CapGauge):
+class SachsenLevelModule(Module, CapGauge):
     NAME = 'sachsen'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

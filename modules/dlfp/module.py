@@ -23,7 +23,7 @@
 from datetime import datetime, timedelta
 import time
 
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.browser import BrowserForbidden
 from weboob.tools.newsfeed import Newsfeed
 from weboob.tools.value import Value, ValueBool, ValueBackendPassword
@@ -37,7 +37,7 @@ from .tools import rssid, id2url
 __all__ = ['DLFPModule']
 
 
-class DLFPModule(BaseModule, CapMessages, CapMessagesPost, CapContent):
+class DLFPModule(Module, CapMessages, CapMessagesPost, CapContent):
     NAME = 'dlfp'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

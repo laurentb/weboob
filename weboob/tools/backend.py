@@ -29,7 +29,7 @@ from weboob.tools.log import getLogger
 from weboob.tools.value import ValuesDict
 
 
-__all__ = ['BackendStorage', 'BackendConfig', 'BaseModule']
+__all__ = ['BackendStorage', 'BackendConfig', 'Module']
 
 
 class BackendStorage(object):
@@ -37,8 +37,8 @@ class BackendStorage(object):
     This is an abstract layer to store data in storages (:mod:`weboob.tools.storage`)
     easily.
 
-    It is instancied automatically in constructor of :class:`BaseModule`, in the
-    :attr:`BaseModule.storage` attribute.
+    It is instancied automatically in constructor of :class:`Module`, in the
+    :attr:`Module.storage` attribute.
 
     :param name: name of backend
     :param storage: storage object
@@ -156,7 +156,7 @@ class BackendConfig(ValuesDict):
 
             if value is None:
                 if not nofail and field.required:
-                    raise BaseModule.ConfigError('Backend(%s): Configuration error: Missing parameter "%s" (%s)'
+                    raise Module.ConfigError('Backend(%s): Configuration error: Missing parameter "%s" (%s)'
                                                   % (cfg.instname, name, field.description))
                 value = field.default
 
@@ -165,7 +165,7 @@ class BackendConfig(ValuesDict):
                 field.load(cfg.instname, value, cfg.weboob.callbacks)
             except ValueError as v:
                 if not nofail:
-                    raise BaseModule.ConfigError(
+                    raise Module.ConfigError(
                         'Backend(%s): Configuration error for field "%s": %s' % (cfg.instname, name, v))
 
             cfg[name] = field
@@ -202,7 +202,7 @@ class BackendConfig(ValuesDict):
         self.weboob.backends_config.add_backend(self.instname, self.modname, dump, edit)
 
 
-class BaseModule(object):
+class Module(object):
     """
     Base class for backends.
 

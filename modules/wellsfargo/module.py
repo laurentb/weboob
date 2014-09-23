@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.bank import CapBank
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import WellsFargo
@@ -28,7 +28,7 @@ from .browser import WellsFargo
 __all__ = ['WellsFargoModule']
 
 
-class WellsFargoModule(BaseModule, CapBank):
+class WellsFargoModule(Module, CapBank):
     NAME = 'wellsfargo'
     MAINTAINER = u'Oleg Plakhotniuk'
     EMAIL = 'olegus8@gmail.com'

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.torrent import CapTorrent, MagnetOnly, Torrent
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value
 from weboob.capabilities.base import NotAvailable
 
@@ -28,7 +28,7 @@ from .browser import PiratebayBrowser
 __all__ = ['PiratebayModule']
 
 
-class PiratebayModule(BaseModule, CapTorrent):
+class PiratebayModule(Module, CapTorrent):
     NAME = 'piratebay'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

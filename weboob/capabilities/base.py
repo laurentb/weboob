@@ -127,7 +127,7 @@ class NotLoadedType(object):
     """
     NotLoaded is a constant to use on not loaded fields.
 
-    When you use :func:`weboob.tools.backend.BaseModule.fillobj` on a object based on :class:`BaseObject`,
+    When you use :func:`weboob.tools.backend.Module.fillobj` on a object based on :class:`BaseObject`,
     it will request all fields with this value.
     """
 

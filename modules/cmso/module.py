@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import Cmso
@@ -28,7 +28,7 @@ from .browser import Cmso
 __all__ = ['CmsoModule']
 
 
-class CmsoModule(BaseModule, CapBank):
+class CmsoModule(Module, CapBank):
     NAME = 'cmso'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

@@ -21,7 +21,7 @@
 from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound, Collection
 from weboob.tools.value import Value, ValueBackendPassword
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 
 from .browser import NolifeTVBrowser
 from .video import NolifeTVVideo
@@ -31,7 +31,7 @@ from hashlib import md5
 
 __all__ = ['NolifeTVModule']
 
-class NolifeTVModule(BaseModule, CapVideo, CapCollection):
+class NolifeTVModule(Module, CapVideo, CapCollection):
     NAME = 'nolifetv'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

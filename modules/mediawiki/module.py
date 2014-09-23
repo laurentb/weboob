@@ -19,7 +19,7 @@
 
 
 
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.content import CapContent, Content
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -30,7 +30,7 @@ from .browser import MediawikiBrowser
 __all__ = ['MediawikiModule']
 
 
-class MediawikiModule(BaseModule, CapContent):
+class MediawikiModule(Module, CapContent):
     NAME = 'mediawiki'
     MAINTAINER = u'Clément Schreiner'
     EMAIL = 'clemux@clemux.info'

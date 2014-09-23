@@ -21,7 +21,7 @@
 
 
 from weboob.capabilities.video import CapVideo, BaseVideo
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
 
 from .browser import YoupornBrowser
@@ -31,7 +31,7 @@ from .video import YoupornVideo
 __all__ = ['YoupornModule']
 
 
-class YoupornModule(BaseModule, CapVideo, CapCollection):
+class YoupornModule(Module, CapVideo, CapCollection):
     NAME = 'youporn'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

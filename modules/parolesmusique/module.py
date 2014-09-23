@@ -18,14 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.lyrics import CapLyrics, SongLyrics
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import ParolesmusiqueBrowser
 
 __all__ = ['ParolesmusiqueModule']
 
 
-class ParolesmusiqueModule(BaseModule, CapLyrics):
+class ParolesmusiqueModule(Module, CapLyrics):
     NAME = 'parolesmusique'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

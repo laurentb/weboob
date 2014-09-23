@@ -22,7 +22,7 @@
 
 from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import YoujizzBrowser
 
@@ -30,7 +30,7 @@ from .browser import YoujizzBrowser
 __all__ = ['YoujizzModule']
 
 
-class YoujizzModule(BaseModule, CapVideo, CapCollection):
+class YoujizzModule(Module, CapVideo, CapCollection):
     NAME = 'youjizz'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'

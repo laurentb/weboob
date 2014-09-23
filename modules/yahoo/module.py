@@ -23,14 +23,14 @@ from dateutil.parser import parse as parse_dt
 
 
 from weboob.capabilities.weather import CapWeather, CityNotFound, Current, Forecast, City
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 from weboob.tools.browser import StandardBrowser
 
 
 __all__ = ['YahooModule']
 
 
-class YahooModule(BaseModule, CapWeather):
+class YahooModule(Module, CapWeather):
     NAME = 'yahoo'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

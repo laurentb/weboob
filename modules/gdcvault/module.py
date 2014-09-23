@@ -22,7 +22,7 @@
 
 
 from weboob.capabilities.video import CapVideo, BaseVideo
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
 from weboob.tools.value import Value, ValueBackendPassword
 
@@ -33,7 +33,7 @@ from .video import GDCVaultVideo
 __all__ = ['GDCVaultModule']
 
 
-class GDCVaultModule(BaseModule, CapVideo, CapCollection):
+class GDCVaultModule(Module, CapVideo, CapCollection):
     NAME = 'gdcvault'
     MAINTAINER = u'François Revol'
     EMAIL = 'revol@free.fr'

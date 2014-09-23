@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 import re
 
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 from weboob.capabilities.base import find_object
 from weboob.capabilities.gauge import CapGauge, GaugeSensor, Gauge, SensorNotFound
 
@@ -27,7 +27,7 @@ from .browser import VlilleBrowser
 __all__ = ['VlilleModule']
 
 
-class VlilleModule(BaseModule, CapGauge):
+class VlilleModule(Module, CapGauge):
     NAME = 'vlille'
     DESCRIPTION = u'access to vlille datas'
     MAINTAINER = u'Bezleputh'

@@ -20,7 +20,7 @@
 
 
 from weboob.capabilities.housing import CapHousing, City, Housing, HousingPhoto
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import SeLogerBrowser
 
@@ -28,7 +28,7 @@ from .browser import SeLogerBrowser
 __all__ = ['SeLogerModule']
 
 
-class SeLogerModule(BaseModule, CapHousing):
+class SeLogerModule(Module, CapHousing):
     NAME = 'seloger'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.bank import CapBank, Account
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import BPBrowser
@@ -28,7 +28,7 @@ from .browser import BPBrowser
 __all__ = ['BPModule']
 
 
-class BPModule(BaseModule, CapBank):
+class BPModule(Module, CapBank):
     NAME = 'bp'
     MAINTAINER = u'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 from weboob.capabilities.paste import CapPaste, BasePaste
 from weboob.tools.capabilities.paste import image_mime
 from weboob.capabilities.base import StringField
@@ -43,7 +43,7 @@ class ImgPaste(BasePaste):
         return 'http://i.imgur.com/%s.png' % self.id
 
 
-class ImgurModule(BaseModule, CapPaste):
+class ImgurModule(Module, CapPaste):
     NAME = 'imgur'
     DESCRIPTION = u'imgur image upload service'
     MAINTAINER = u'Vincent A'

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.job import CapJob, BaseJobAdvert
 from weboob.tools.value import Value
 
@@ -28,7 +28,7 @@ from .browser import CciBrowser
 __all__ = ['CciModule']
 
 
-class CciModule(BaseModule, CapJob):
+class CciModule(Module, CapJob):
     NAME = 'cci'
     DESCRIPTION = u'cci website'
     MAINTAINER = u'Bezleputh'

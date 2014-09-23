@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.lyrics import CapLyrics, SongLyrics
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import SeeklyricsBrowser
 
@@ -27,7 +27,7 @@ from urllib import quote_plus
 __all__ = ['SeeklyricsModule']
 
 
-class SeeklyricsModule(BaseModule, CapLyrics):
+class SeeklyricsModule(Module, CapLyrics):
     NAME = 'seeklyrics'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

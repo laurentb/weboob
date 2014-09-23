@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 from weboob.capabilities.calendar import CapCalendarEvent, BaseCalendarEvent, CATEGORIES, TRANSP, STATUS
 import datetime
 
@@ -34,7 +34,7 @@ class Concert(BaseCalendarEvent):
         return 'http://www.sueurdemetal.com/detail-concert-metal.php?c=%s' % _id
 
 
-class SueurDeMetalModule(BaseModule, CapCalendarEvent):
+class SueurDeMetalModule(Module, CapCalendarEvent):
     NAME = 'sueurdemetal'
     DESCRIPTION = u'SueurDeMetal French concerts list website'
     MAINTAINER = u'Vincent A'

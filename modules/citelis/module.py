@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from weboob.capabilities.bank import CapBank, AccountNotFound
 
@@ -28,7 +28,7 @@ from .browser import CitelisBrowser
 __all__ = ['CitelisModule']
 
 
-class CitelisModule(BaseModule, CapBank):
+class CitelisModule(Module, CapBank):
     NAME = 'citelis'
     DESCRIPTION = u'Citélis'
     MAINTAINER = u'Laurent Bachelier'

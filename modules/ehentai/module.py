@@ -22,7 +22,7 @@
 import re
 from weboob.capabilities.gallery import CapGallery, BaseGallery
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.misc import ratelimit
 from weboob.tools.value import Value, ValueBackendPassword
 
@@ -33,7 +33,7 @@ from .gallery import EHentaiGallery, EHentaiImage
 __all__ = ['EHentaiModule']
 
 
-class EHentaiModule(BaseModule, CapGallery, CapCollection):
+class EHentaiModule(Module, CapGallery, CapCollection):
     NAME = 'ehentai'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'

@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 
 from .browser import CaisseEpargne
@@ -28,7 +28,7 @@ from .browser import CaisseEpargne
 __all__ = ['CaisseEpargneModule']
 
 
-class CaisseEpargneModule(BaseModule, CapBank):
+class CaisseEpargneModule(Module, CapBank):
     NAME = 'caissedepargne'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -29,7 +29,7 @@ from .browser import BanquePopulaire
 __all__ = ['BanquePopulaireModule']
 
 
-class BanquePopulaireModule(BaseModule, CapBank):
+class BanquePopulaireModule(Module, CapBank):
     NAME = 'banquepopulaire'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

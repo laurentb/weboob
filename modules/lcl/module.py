@@ -21,7 +21,7 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import LCLBrowser, LCLProBrowser
@@ -31,7 +31,7 @@ from .enterprise.browser import LCLEnterpriseBrowser, LCLEspaceProBrowser
 __all__ = ['LCLModule']
 
 
-class LCLModule(BaseModule, CapBank):
+class LCLModule(Module, CapBank):
     NAME = 'lcl'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

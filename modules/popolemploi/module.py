@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.job import CapJob
 from weboob.tools.value import Value
 from weboob.tools.ordereddict import OrderedDict
@@ -29,7 +29,7 @@ from .job import PopolemploiJobAdvert
 __all__ = ['PopolemploiModule']
 
 
-class PopolemploiModule(BaseModule, CapJob):
+class PopolemploiModule(Module, CapJob):
     NAME = 'popolemploi'
     DESCRIPTION = u'Pole Emploi website'
     MAINTAINER = u'Bezleputh'

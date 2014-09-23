@@ -21,7 +21,7 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, ValueBool, Value
 
 from .browser import Boursorama
@@ -30,7 +30,7 @@ from .browser import Boursorama
 __all__ = ['BoursoramaModule']
 
 
-class BoursoramaModule(BaseModule, CapBank):
+class BoursoramaModule(Module, CapBank):
     NAME = 'boursorama'
     MAINTAINER = u'Gabriel Kerneis'
     EMAIL = 'gabriel@kerneis.info'

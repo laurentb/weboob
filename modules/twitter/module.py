@@ -19,7 +19,7 @@
 
 from datetime import datetime, timedelta
 from weboob.tools.value import Value, ValueBackendPassword
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.messages import CapMessages, Thread, CapMessagesPost
 from weboob.capabilities.collection import CapCollection, CollectionNotFound, Collection
 from weboob.capabilities.base import find_object
@@ -30,7 +30,7 @@ import itertools
 __all__ = ['TwitterModule']
 
 
-class TwitterModule(BaseModule, CapMessages, CapMessagesPost, CapCollection):
+class TwitterModule(Module, CapMessages, CapMessagesPost, CapCollection):
     NAME = 'twitter'
     DESCRIPTION = u'twitter website'
     MAINTAINER = u'Bezleputh'

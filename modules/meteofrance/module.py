@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.weather import CapWeather
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 
 from .browser import MeteofranceBrowser
 
@@ -27,7 +27,7 @@ from .browser import MeteofranceBrowser
 __all__ = ['MeteofranceModule']
 
 
-class MeteofranceModule(BaseModule, CapWeather):
+class MeteofranceModule(Module, CapWeather):
     NAME = 'meteofrance'
     MAINTAINER = u'Cedric Defortis'
     EMAIL = 'cedric@aiur.fr'

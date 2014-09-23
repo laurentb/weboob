@@ -21,7 +21,7 @@
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.capabilities.base import find_object
-from weboob.tools.backend import BaseModule, BackendConfig
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import HSBC
@@ -30,7 +30,7 @@ from .browser import HSBC
 __all__ = ['HSBCModule']
 
 
-class HSBCModule(BaseModule, CapBank):
+class HSBCModule(Module, CapBank):
     NAME = 'hsbc'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

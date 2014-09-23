@@ -50,7 +50,7 @@ class BackendsCall(object):
     def __init__(self, backends, function, *args, **kwargs):
         """
         :param backends: List of backends to call
-        :type backends: list[:class:`BaseModule`]
+        :type backends: list[:class:`Module`]
         :param function: backends' method name, or callable object.
         :type function: :class:`str` or :class:`callable`
         """

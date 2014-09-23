@@ -12,14 +12,14 @@
 
 from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
-from weboob.tools.backend import BaseModule
+from weboob.tools.backend import Module
 from .browser import CappedBrowser, CappedVideo
 
 
 __all__ = ['CappedModule']
 
 
-class CappedModule(BaseModule, CapVideo, CapCollection):
+class CappedModule(Module, CapVideo, CapCollection):
     NAME = 'cappedtv'
     MAINTAINER = u'Lord'
     EMAIL = 'lord@lordtoniok.com'
