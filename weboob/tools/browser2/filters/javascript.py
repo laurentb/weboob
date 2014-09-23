@@ -89,7 +89,7 @@ class JSVar(Regexp):
                (?:(?:\d+\.\d*|\d*\.\d+)(?:[eE]\d+)?
                  |\d+[eE]\d+))
           |(?P<int>[-+]?\s*(?:0[bBxXoO])?\d+)         # int ?
-          |(?P<str>(?:%s|%s))                         # str ?
+          |(?:(?:new\s+String\()?(?P<str>(?:%s|%s)))  # str ?
           |(?P<bool>true|false)                       # bool ?
           |(?P<None>null))                            # None ?
     """ % (_quoted('"'), _quoted("'"))
