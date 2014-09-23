@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
+from weboob.tools.browser import Browser, BrowserHTTPNotFound
 
 from .pages import RecipePage, ResultsPage
 
@@ -26,11 +26,11 @@ from .pages import RecipePage, ResultsPage
 __all__ = ['MarmitonBrowser']
 
 
-class MarmitonBrowser(BaseBrowser):
+class MarmitonBrowser(Browser):
     DOMAIN = 'www.marmiton.org'
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
+    USER_AGENT = Browser.USER_AGENTS['wget']
     PAGES = {
         'http://www.marmiton.org/recettes/recherche.aspx.*': ResultsPage,
         'http://www.marmiton.org/recettes/recette_.*': RecipePage,

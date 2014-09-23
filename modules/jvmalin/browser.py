@@ -18,14 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from .pages import RoadmapSearchPage, RoadmapResultsPage, RoadmapPage, RoadmapAmbiguity
 
 
 __all__ = ['JVMalin']
 
 
-class JVMalin(BaseBrowser):
+class JVMalin(Browser):
     DOMAIN = 'www.jvmalin.fr'
     PAGES = {
         'http://www\.jvmalin\.fr/Itineraires/Recherche.*': RoadmapSearchPage,
@@ -34,7 +34,7 @@ class JVMalin(BaseBrowser):
     }
 
     def __init__(self, **kwargs):
-        BaseBrowser.__init__(self, '', **kwargs)
+        Browser.__init__(self, '', **kwargs)
 
     def get_roadmap(self, departure, arrival, filters):
         self.location('/Itineraires/Recherche')

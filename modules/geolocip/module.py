@@ -21,7 +21,7 @@
 
 from weboob.capabilities.geolocip import CapGeolocIp, IpLocation
 from weboob.tools.backend import Module
-from weboob.tools.browser import BaseBrowser, BrowserUnavailable
+from weboob.tools.browser import Browser, BrowserUnavailable
 
 
 __all__ = ['GeolocIpModule']
@@ -34,7 +34,7 @@ class GeolocIpModule(Module, CapGeolocIp):
     VERSION = '1.0'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u"GeolocIP IP addresses geolocation service"
-    BROWSER = BaseBrowser
+    BROWSER = Browser
 
     def get_location(self, ipaddr):
         with self.browser:

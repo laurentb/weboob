@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, HomePage, HistoryPage, RentedPage
 
@@ -27,7 +27,7 @@ __all__ = ['ChampslibresBrowser']
 
 
 # Browser
-class ChampslibresBrowser(BaseBrowser):
+class ChampslibresBrowser(Browser):
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
     PAGES = {

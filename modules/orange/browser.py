@@ -23,13 +23,13 @@
 
 from .pages import LoginPage, ComposePage, ConfirmPage
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 
 __all__ = ['OrangeBrowser']
 
 
-class OrangeBrowser(BaseBrowser):
+class OrangeBrowser(Browser):
     DOMAIN = 'orange.fr'
     PAGES = {
         'http://id.orange.fr/auth_user/bin/auth_user.cgi.*': LoginPage,

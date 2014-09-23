@@ -20,7 +20,7 @@
 
 import urllib
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, AccountsPage, TransactionsPage, CBTransactionsPage, UnavailablePage
 
@@ -28,7 +28,7 @@ from .pages import LoginPage, AccountsPage, TransactionsPage, CBTransactionsPage
 __all__ = ['AXABanque']
 
 
-class AXABanque(BaseBrowser):
+class AXABanque(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'www.axabanque.fr'
     PAGES = {'https?://www.axabanque.fr/connexion/index.html.*':                            LoginPage,

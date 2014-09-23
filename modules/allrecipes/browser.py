@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
+from weboob.tools.browser import Browser, BrowserHTTPNotFound
 
 from .pages import RecipePage, ResultsPage, FourOFourPage
 
@@ -26,11 +26,11 @@ from .pages import RecipePage, ResultsPage, FourOFourPage
 __all__ = ['AllrecipesBrowser']
 
 
-class AllrecipesBrowser(BaseBrowser):
+class AllrecipesBrowser(Browser):
     DOMAIN = 'allrecipes.com'
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
+    USER_AGENT = Browser.USER_AGENTS['wget']
     PAGES = {
         'http://allrecipes.com/search/default.aspx\?qt=k&wt=.*&rt=r&origin=.*': ResultsPage,
         'http://allrecipes.com/Recipe/.*/Detail.aspx': RecipePage,

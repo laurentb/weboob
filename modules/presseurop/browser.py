@@ -21,11 +21,11 @@
 from datetime import date, datetime, time
 from .pages.article import PresseuropPage, CartoonPage, DailySinglePage,\
                            DailyTitlesPage
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from weboob.tools.ordereddict import OrderedDict
 
 
-class NewspaperPresseuropBrowser(BaseBrowser):
+class NewspaperPresseuropBrowser(Browser):
     "NewspaperPresseuropBrowser class"
     PAGES = OrderedDict((
              ("http://www.voxeurop.eu/.*/news-brief/.*", DailySinglePage),

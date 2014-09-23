@@ -20,10 +20,10 @@
 
 from .pages.article import ArticlePage
 from .pages.inrockstv import InrocksTvPage
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 
 
-class NewspaperInrocksBrowser(BaseBrowser):
+class NewspaperInrocksBrowser(Browser):
     "NewspaperInrocksBrowser class"
     PAGES = {
              'http://www.lesinrocks.com/(?!inrockstv).+/.*': ArticlePage,

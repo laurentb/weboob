@@ -22,7 +22,7 @@ import re
 import urllib
 from urlparse import urlsplit
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 from weboob.capabilities.messages import CantSendMessage
 
 from .pages.index import LoginPage
@@ -34,7 +34,7 @@ __all__ = ['PhpBB']
 
 
 # Browser
-class PhpBB(BaseBrowser):
+class PhpBB(Browser):
     PAGES = {'https?://.*/index.php':                 ForumPage,
              'https?://.*/':                          ForumPage,
              'https?://.*/viewforum.php\?f=(\d+)':    ForumPage,
@@ -52,10 +52,10 @@ class PhpBB(BaseBrowser):
         self.PROTOCOL = v.scheme
         self.DOMAIN = v.netloc
         self.BASEPATH = v.path[:v.path.rfind('/')]
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def absurl(self, rel):
-        return BaseBrowser.absurl(self, '%s/%s' % (self.BASEPATH, rel))
+        return Browser.absurl(self, '%s/%s' % (self.BASEPATH, rel))
 
     def home(self):
         self.location(self.url)

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 from weboob.tools.browser.decorators import id2url
 
 from .pages import VideoPage, IndexPage, LoginPage, LoginRedirectPage
@@ -28,7 +28,7 @@ from .video import ArretSurImagesVideo
 __all__ = ['ArretSurImagesBrowser']
 
 
-class ArretSurImagesBrowser(BaseBrowser):
+class ArretSurImagesBrowser(Browser):
     PROTOCOL = 'http'
     DOMAIN = 'www.arretsurimages.net'
     ENCODING = None

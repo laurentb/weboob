@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, DashboardPage, OperationsPage, LCRPage
 
@@ -26,7 +26,7 @@ from .pages import LoginPage, DashboardPage, OperationsPage, LCRPage
 __all__ = ['DelubacBrowser']
 
 
-class DelubacBrowser(BaseBrowser):
+class DelubacBrowser(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'vbankonline.delubac.com'
     ENCODING = None

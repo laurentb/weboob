@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, AccountsPage, TransactionsPage
 
@@ -26,7 +26,7 @@ from .pages import LoginPage, AccountsPage, TransactionsPage
 __all__ = ['GanAssurances']
 
 
-class GanAssurances(BaseBrowser):
+class GanAssurances(Browser):
     PROTOCOL = 'https'
     PAGES = {'https://[^/]+/wps/portal/login.*':         LoginPage,
              'https://[^/]+/wps/myportal/TableauDeBord': AccountsPage,
@@ -35,7 +35,7 @@ class GanAssurances(BaseBrowser):
 
     def __init__(self, website, *args, **kwargs):
         self.DOMAIN = website
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def is_logged(self):
         return self.page is not None and not self.is_on_page(LoginPage)

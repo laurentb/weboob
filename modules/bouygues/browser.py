@@ -21,13 +21,13 @@
 from .pages.compose import ComposeFrame, ComposePage, ConfirmPage, SentPage
 from .pages.login import LoginPage, LoginSASPage
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 
 __all__ = ['BouyguesBrowser']
 
 
-class BouyguesBrowser(BaseBrowser):
+class BouyguesBrowser(Browser):
     DOMAIN = 'www.bouyguestelecom.fr'
     PAGES = {
         'http://www.espaceclient.bouyguestelecom.fr/ECF/jsf/client/envoiSMS/viewEnvoiSMS.jsf': ComposePage,

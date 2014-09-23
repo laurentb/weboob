@@ -21,7 +21,7 @@
 from urlparse import urlsplit, parse_qsl
 from mechanize import Cookie
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages import SkipPage, LoginPage, AccountsPage, AccountHistoryPage, \
                    CBListPage, CBHistoryPage, ContractsPage
@@ -31,12 +31,12 @@ __all__ = ['LCLBrowser','LCLProBrowser']
 
 
 # Browser
-class LCLBrowser(BaseBrowser):
+class LCLBrowser(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'particuliers.secure.lcl.fr'
     CERTHASH = ['825a1cda9f3c7176af327013a20145ad587d1f7e2a7e226a1cb5c522e6e00b84']
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
+    USER_AGENT = Browser.USER_AGENTS['wget']
     PAGES = {
         'https://particuliers.secure.lcl.fr/outil/UAUT/Authentication/authenticate': LoginPage,
         'https://particuliers.secure.lcl.fr/outil/UAUT\?from=.*': LoginPage,
@@ -127,7 +127,7 @@ class LCLProBrowser(LCLBrowser):
     DOMAIN = 'professionnels.secure.lcl.fr'
     CERTHASH = ['6ae7053ef30f7c7810673115b021a42713f518f3a87b2e73ef565c16ead79f81']
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
+    USER_AGENT = Browser.USER_AGENTS['wget']
     PAGES = {
         'https://professionnels.secure.lcl.fr/outil/UAUT?from=/outil/UWHO/Accueil/': LoginPage,
         'https://professionnels.secure.lcl.fr/outil/UAUT\?from=.*': LoginPage,
@@ -163,6 +163,6 @@ class LCLProBrowser(LCLBrowser):
         cookiejar.set_cookie(c)
 
     def __init__(self, *args, **kwargs):
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
         self.add_cookie("lclgen","professionnels")
 

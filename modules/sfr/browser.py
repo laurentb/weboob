@@ -23,13 +23,13 @@ import urllib
 from .pages.compose import ClosePage, ComposePage, ConfirmPage, SentPage
 from .pages.login import LoginPage
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 
 __all__ = ['SfrBrowser']
 
 
-class SfrBrowser(BaseBrowser):
+class SfrBrowser(Browser):
     DOMAIN = 'www.sfr.fr'
     PAGES = {
         'http://messagerie-.+.sfr.fr/webmail/close_xms_tab.html': ClosePage,

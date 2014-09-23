@@ -20,7 +20,7 @@
 
 from datetime import datetime, date, time
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from weboob.tools.misc import to_unicode
 from weboob.tools.browser import BrokenPageError
 
@@ -28,11 +28,11 @@ from weboob.tools.browser import BrokenPageError
 __all__ = ['CanalTP']
 
 
-class CanalTP(BaseBrowser):
+class CanalTP(Browser):
     DOMAIN = 'widget.canaltp.fr'
 
     def __init__(self, **kwargs):
-        BaseBrowser.__init__(self, '', **kwargs)
+        Browser.__init__(self, '', **kwargs)
 
     def iter_station_search(self, pattern):
         url = u'http://widget.canaltp.fr/Prochains_departs_15122009/dev/gare.php?txtrech=%s' % unicode(pattern)

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
+from weboob.tools.browser import Browser, BrowserHTTPNotFound
 
 from .pages import TorrentsPage, TorrentPage
 
@@ -26,11 +26,11 @@ from .pages import TorrentsPage, TorrentPage
 __all__ = ['BtmonBrowser']
 
 
-class BtmonBrowser(BaseBrowser):
+class BtmonBrowser(Browser):
     DOMAIN = 'www.btmon.com'
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
+    USER_AGENT = Browser.USER_AGENTS['wget']
     PAGES = {
         'http://www.btmon.com/torrent/\?f=.*': TorrentsPage,
         'http://www.btmon.com/.*torrent.html': TorrentPage,

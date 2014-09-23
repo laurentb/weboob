@@ -23,7 +23,7 @@ import re
 import hashlib
 import lxml
 
-from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound, BrowserHTTPError, BrowserIncorrectPassword, BrokenPageError
+from weboob.tools.browser import Browser, BrowserHTTPNotFound, BrowserHTTPError, BrowserIncorrectPassword, BrokenPageError
 from weboob.capabilities.messages import CantSendMessage
 
 from .pages.index import IndexPage, LoginPage
@@ -35,7 +35,7 @@ from .tools import id2url, url2id
 # Browser
 
 
-class DLFP(BaseBrowser):
+class DLFP(Browser):
     DOMAIN = 'linuxfr.org'
     PROTOCOL = 'https'
     PAGES = {'https?://[^/]*linuxfr\.org/?': IndexPage,

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
+from weboob.tools.browser import Browser, BrowserHTTPNotFound
 
 from .pages import RecipePage, ResultsPage
 
@@ -26,11 +26,11 @@ from .pages import RecipePage, ResultsPage
 __all__ = ['SupertoinetteBrowser']
 
 
-class SupertoinetteBrowser(BaseBrowser):
+class SupertoinetteBrowser(Browser):
     DOMAIN = 'www.supertoinette.com'
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['desktop_firefox']
+    USER_AGENT = Browser.USER_AGENTS['desktop_firefox']
     PAGES = {
         'http://www.supertoinette.com/liste-recettes/.*': ResultsPage,
         'http://www.supertoinette.com/recette/[0-9]*.*': RecipePage,

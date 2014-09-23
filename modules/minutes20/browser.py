@@ -20,11 +20,11 @@
 
 from .pages.article import ArticlePage
 from .pages.simple import SimplePage
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from .tools import id2url
 
 
-class Newspaper20minutesBrowser(BaseBrowser):
+class Newspaper20minutesBrowser(Browser):
     "Newspaper20minutesBrowser class"
     ENCODING = None
     PAGES = {

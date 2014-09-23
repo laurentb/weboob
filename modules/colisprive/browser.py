@@ -17,14 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from .pages import TrackPage, ErrorPage
 
 
 __all__ = ['ColispriveBrowser']
 
 
-class ColispriveBrowser(BaseBrowser):
+class ColispriveBrowser(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'www.colisprive.com'
     ENCODING = 'utf8'

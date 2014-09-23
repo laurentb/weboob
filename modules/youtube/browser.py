@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 
 from .pages import BaseYoutubePage, VideoPage, ForbiddenVideoPage, \
                    VerifyAgePage, VerifyControversyPage, \
@@ -28,7 +28,7 @@ from .pages import BaseYoutubePage, VideoPage, ForbiddenVideoPage, \
 __all__ = ['YoutubeBrowser']
 
 
-class YoutubeBrowser(BaseBrowser):
+class YoutubeBrowser(Browser):
     DOMAIN = u'youtube.com'
     ENCODING = 'utf-8'
     PAGES = {r'https?://.*youtube\.com/': BaseYoutubePage,

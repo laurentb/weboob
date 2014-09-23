@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, SummaryPage, UselessPage, TransactionSearchPage, TransactionsPage, TransactionsCsvPage
 
@@ -27,7 +27,7 @@ from .pages import LoginPage, SummaryPage, UselessPage, TransactionSearchPage, T
 __all__ = ['CitelisBrowser']
 
 
-class CitelisBrowser(BaseBrowser):
+class CitelisBrowser(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'adminpayment.citelis.fr'
     ENCODING = 'UTF-8'
@@ -45,7 +45,7 @@ class CitelisBrowser(BaseBrowser):
 
     def __init__(self, merchant_id, *args, **kwargs):
         self.merchant_id = merchant_id
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def login(self):
         if not self.is_on_page(LoginPage):

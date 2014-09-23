@@ -20,7 +20,7 @@
 
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.cinema import Movie, Person
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from weboob.tools.json import json
 import base64
 import hashlib
@@ -32,7 +32,7 @@ import urllib
 __all__ = ['AllocineBrowser']
 
 
-class AllocineBrowser(BaseBrowser):
+class AllocineBrowser(Browser):
     DOMAIN = 'api.allocine.fr'
     PROTOCOL = 'http'
     ENCODING = 'utf-8'

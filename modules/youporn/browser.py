@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from weboob.tools.browser.decorators import id2url
 
 from .pages.index import IndexPage
@@ -29,7 +29,7 @@ from .video import YoupornVideo
 __all__ = ['YoupornBrowser']
 
 
-class YoupornBrowser(BaseBrowser):
+class YoupornBrowser(Browser):
     DOMAIN = 'www.youporn.com'
     ENCODING = None
     PAGES = {r'http://[w\.]*youporn\.com/?': IndexPage,

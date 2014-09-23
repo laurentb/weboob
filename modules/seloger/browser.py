@@ -20,7 +20,7 @@
 
 from weboob.tools.json import json
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from weboob.capabilities.housing import Query
 
 from .pages import SearchResultsPage, HousingPage
@@ -29,11 +29,11 @@ from .pages import SearchResultsPage, HousingPage
 __all__ = ['SeLogerBrowser']
 
 
-class SeLogerBrowser(BaseBrowser):
+class SeLogerBrowser(Browser):
     PROTOCOL = 'http'
     DOMAIN = 'www.seloger.com'
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['android']
+    USER_AGENT = Browser.USER_AGENTS['android']
     PAGES = {
          'http://ws.seloger.com/search.xml.*': SearchResultsPage,
          'http://ws.seloger.com/annonceDetail.xml\?idAnnonce=(\d+)(&noAudiotel=\d)?': HousingPage,

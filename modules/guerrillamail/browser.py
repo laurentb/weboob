@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from weboob.tools.date import datetime
 from weboob.tools.parsers.jsonparser import json
 from urllib import urlencode
@@ -29,14 +29,14 @@ from urllib import urlencode
 __all__ = ['GuerrillamailBrowser']
 
 
-class GuerrillamailBrowser(BaseBrowser):
+class GuerrillamailBrowser(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'www.guerrillamail.com'
     ENCODING = 'utf-8'
 
     def __init__(self, *args, **kw):
         kw['parser'] = 'raw'
-        BaseBrowser.__init__(self, *args, **kw)
+        Browser.__init__(self, *args, **kw)
 
     def _get_unicode(self, url, *a):
         return self.get_document(self.openurl(url, *a)).decode(self.ENCODING, 'replace')

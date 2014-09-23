@@ -22,7 +22,7 @@ import urllib
 
 from weboob.tools.json import json
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from weboob.capabilities.housing import Query
 
 from .pages import SearchResultsPage, HousingPage
@@ -31,7 +31,7 @@ from .pages import SearchResultsPage, HousingPage
 __all__ = ['PapBrowser']
 
 
-class PapBrowser(BaseBrowser):
+class PapBrowser(Browser):
     PROTOCOL = 'http'
     DOMAIN = 'www.pap.fr'
     ENCODING = 'utf-8'

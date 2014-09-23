@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import urllib
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 from weboob.capabilities.bill import Detail
 from decimal import Decimal
 from .pages import LoginPage, HomePage, AccountPage, HistoryPage, BillsPage
@@ -26,7 +26,7 @@ from .pages import LoginPage, HomePage, AccountPage, HistoryPage, BillsPage
 __all__ = ['AmeliProBrowser']
 
 
-class AmeliProBrowser(BaseBrowser):
+class AmeliProBrowser(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'espacepro.ameli.fr'
     ENCODING = None

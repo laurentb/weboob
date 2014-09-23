@@ -22,7 +22,7 @@ import urllib
 import datetime
 import re
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 from weboob.tools.json import json as simplejson
 from weboob.capabilities.content import Revision
 
@@ -34,7 +34,7 @@ class APIError(Exception):
 
 
 # Browser
-class MediawikiBrowser(BaseBrowser):
+class MediawikiBrowser(Browser):
     ENCODING = 'utf-8'
 
     def __init__(self, url, apiurl, *args, **kwargs):
@@ -46,7 +46,7 @@ class MediawikiBrowser(BaseBrowser):
             self.BASEPATH = self.BASEPATH[:-1]
 
         self.apiurl = apiurl
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def url2page(self, page):
         baseurl = self.PROTOCOL + '://' + self.DOMAIN + self.BASEPATH

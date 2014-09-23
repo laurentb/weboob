@@ -442,8 +442,8 @@ class Repositories(object):
             self.load()
 
     def load_browser(self):
-        from weboob.tools.browser2.browser import BaseBrowser, Weboob as WeboobProfile
-        class WeboobBrowser(BaseBrowser):
+        from weboob.tools.browser2.browser import Browser, Weboob as WeboobProfile
+        class WeboobBrowser(Browser):
             PROFILE = WeboobProfile(self.version)
         if self.browser is None:
             self.browser = WeboobBrowser()

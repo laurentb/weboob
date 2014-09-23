@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser.decorators import id2url
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from .job import LolixJobAdvert
 from .pages import SearchPage, AdvertPage
 import urllib
@@ -26,7 +26,7 @@ import urllib
 __all__ = ['LolixBrowser']
 
 
-class LolixBrowser(BaseBrowser):
+class LolixBrowser(Browser):
     PROTOCOL = 'http'
     DOMAIN = 'fr.lolix.org/search/offre'
     ENCODING = 'iso-8859-1'

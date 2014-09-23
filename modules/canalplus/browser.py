@@ -22,7 +22,7 @@ import urllib
 
 import lxml.etree
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from weboob.tools.browser.decorators import id2url
 
 from .pages import ChannelsPage, VideoPage
@@ -42,7 +42,7 @@ class XMLParser(object):
         return lxml.etree.XML(data.get_data(), parser)
 
 
-class CanalplusBrowser(BaseBrowser):
+class CanalplusBrowser(Browser):
     DOMAIN = u'service.canal-plus.com'
     ENCODING = 'utf-8'
     PAGES = {
@@ -60,7 +60,7 @@ class CanalplusBrowser(BaseBrowser):
         }
 
     def __init__(self, quality, *args, **kwargs):
-        BaseBrowser.__init__(self, parser=self.PARSER, *args, **kwargs)
+        Browser.__init__(self, parser=self.PARSER, *args, **kwargs)
         self.quality = self.FORMATS.get(quality, self.FORMATS['hd'])
 
     def home(self):

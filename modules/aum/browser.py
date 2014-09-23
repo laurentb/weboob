@@ -26,7 +26,7 @@ import re
 import urllib
 import urllib2
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable
+from weboob.tools.browser import Browser, BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable
 from weboob.tools.json import json
 from weboob.tools.date import local2utc
 from weboob.tools.misc import to_unicode
@@ -66,7 +66,7 @@ class AuMException(UserError):
         self.code = code
 
 
-class WebsiteBrowser(BaseBrowser):
+class WebsiteBrowser(Browser):
     def login(self):
         data = {'username': self.username,
                 'password': self.password,
@@ -115,7 +115,7 @@ class WebsiteBrowser(BaseBrowser):
 
         return profile
 
-class AuMBrowser(BaseBrowser):
+class AuMBrowser(Browser):
     DOMAIN = 'www.adopteunmec.com'
     APIKEY = 'fb0123456789abcd'
     APITOKEN = 'DCh7Se53v8ejS8466dQe63'
@@ -131,7 +131,7 @@ class AuMBrowser(BaseBrowser):
 
     def __init__(self, username, password, search_query, *args, **kwargs):
         kwargs['get_home'] = False
-        BaseBrowser.__init__(self, username, password, *args, **kwargs)
+        Browser.__init__(self, username, password, *args, **kwargs)
 
         # now we do authentication ourselves
         #self.add_password('http://www.adopteunmec.com/api/', self.username, self.password)
@@ -239,7 +239,7 @@ class AuMBrowser(BaseBrowser):
             if e.getcode() in (410,):
                 return BrowserHTTPNotFound
 
-        return BaseBrowser.get_exception(self, e)
+        return Browser.get_exception(self, e)
 
     def home(self):
         r = self.api_request('home/')

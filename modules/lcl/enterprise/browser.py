@@ -19,7 +19,7 @@
 
 from urllib import urlencode
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages import HomePage, MessagesPage, LogoutPage, LogoutOkPage, \
     AlreadyConnectedPage, ExpiredPage, MovementsPage, RootPage
@@ -28,14 +28,14 @@ from .pages import HomePage, MessagesPage, LogoutPage, LogoutOkPage, \
 __all__ = ['LCLEnterpriseBrowser']
 
 
-class LCLEnterpriseBrowser(BaseBrowser):
+class LCLEnterpriseBrowser(Browser):
     BASEURL = 'https://entreprises.secure.lcl.fr'
     CERTHASH = ['04e3509c20ac8bdbdb3d0ed37bc34db2dde5ed4bc4c30a3605f63403413099a9',
                 '5fcf4a9ceeec25e406a04dffe0c6eacbdf72d11d394cd049701bfbaba3d853d9',
                 '774ac6f1c419083541a27d95672a87a5edf5c82d948368008eab2764e65866f9',
                 '3db256edfeb7ba255625724b7e62d4dab229557226336ba87b9753006721f16f']
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
+    USER_AGENT = Browser.USER_AGENTS['wget']
 
     def __init__(self, *args, **kwargs):
         BASEURL = self.BASEURL.rstrip('/')
@@ -60,7 +60,7 @@ class LCLEnterpriseBrowser(BaseBrowser):
             BASEURL + '/outil/IQEN/Authentication/sessionExpiree': ExpiredPage,
         }
 
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
         self._logged = False
 
     def deinit(self):

@@ -19,7 +19,7 @@
 
 from random import randint
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 
 from .pages import CitiesPage, SearchPage, SearchErrorPage, \
                    SearchInProgressPage, ResultsPage, ForeignPage
@@ -28,7 +28,7 @@ from .pages import CitiesPage, SearchPage, SearchErrorPage, \
 __all__ = ['VoyagesSNCFBrowser']
 
 
-class VoyagesSNCFBrowser(BaseBrowser):
+class VoyagesSNCFBrowser(Browser):
     PROTOCOL = 'http'
     DOMAIN = 'www.voyages-sncf.com'
     ENCODING = 'utf-8'
@@ -43,7 +43,7 @@ class VoyagesSNCFBrowser(BaseBrowser):
     }
 
     def __init__(self, *args, **kwargs):
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
         self.addheaders += (('X-Forwarded-For', '82.228.147.%s' % randint(1,254)),)
 
 

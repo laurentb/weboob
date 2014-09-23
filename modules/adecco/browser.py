@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser.decorators import id2url
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from .job import AdeccoJobAdvert
 from .pages import SearchPage, AdvertPage
 import urllib
@@ -26,7 +26,7 @@ import urllib
 __all__ = ['AdeccoBrowser']
 
 
-class AdeccoBrowser(BaseBrowser):
+class AdeccoBrowser(Browser):
     PROTOCOL = 'http'
     DOMAIN = 'www.adecco.fr'
     ENCODING = None

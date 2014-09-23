@@ -18,13 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import StringIO
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 from .pages import LoginPage, HomePage, AccountPage, TimeoutPage, HistoryPage, PdfPage
 
 __all__ = ['GdfSuez']
 
 
-class GdfSuez(BaseBrowser):
+class GdfSuez(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'www.gdfsuez-dolcevita.fr'
     PAGES = {'.*portail/clients.*?_nfpb=true&_pageLabel=page_identification':  LoginPage,
@@ -40,7 +40,7 @@ class GdfSuez(BaseBrowser):
     historyp = '/portailClients/client/p/page_historique_de_mes_factures'
 
     def __init__(self, *args, **kwargs):
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def home(self):
         self.location(self.homep)

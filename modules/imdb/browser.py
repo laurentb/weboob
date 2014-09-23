@@ -20,7 +20,7 @@
 import re
 
 from HTMLParser import HTMLParser
-from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
+from weboob.tools.browser import Browser, BrowserHTTPNotFound
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.cinema import Movie, Person
 from weboob.tools.json import json
@@ -32,11 +32,11 @@ from datetime import datetime
 __all__ = ['ImdbBrowser']
 
 
-class ImdbBrowser(BaseBrowser):
+class ImdbBrowser(Browser):
     DOMAIN = 'www.imdb.com'
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
+    USER_AGENT = Browser.USER_AGENTS['wget']
     PAGES = {
         'http://www.imdb.com/title/tt[0-9]*/fullcredits.*': MovieCrewPage,
         'http://www.imdb.com/title/tt[0-9]*/releaseinfo.*': ReleasePage,

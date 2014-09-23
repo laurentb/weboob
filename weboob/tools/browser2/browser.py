@@ -116,7 +116,7 @@ class Wget(Profile):
             'User-Agent': 'Wget/%s' % self.version})
 
 
-class BaseBrowser(object):
+class Browser(object):
     """
     Simple browser class.
     Act like a browser, and don't try to do too much.
@@ -295,7 +295,7 @@ class BaseBrowser(object):
 
         For example:
 
-        >>> BaseBrowser().open('http://google.com', async=True).result().text # doctest: +SKIP
+        >>> Browser().open('http://google.com', async=True).result().text # doctest: +SKIP
 
         :param url: URL
         :type url: str
@@ -496,7 +496,7 @@ class UrlNotAllowed(Exception):
     """
 
 
-class DomainBrowser(BaseBrowser):
+class DomainBrowser(Browser):
     """
     A browser that handles relative URLs and can have a base URL (usually a domain).
 
@@ -559,7 +559,7 @@ class DomainBrowser(BaseBrowser):
 
     def open(self, req, *args, **kwargs):
         """
-        Like :meth:`BaseBrowser.open` but hanldes urls without domains, using
+        Like :meth:`Browser.open` but hanldes urls without domains, using
         the :attr:`BASEURL` attribute.
         """
         uri = req.url if isinstance(req, requests.Request) else req

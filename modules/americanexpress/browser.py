@@ -20,7 +20,7 @@
 
 from urlparse import urlsplit, parse_qsl
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, AccountsPage, TransactionsPage
 
@@ -28,7 +28,7 @@ from .pages import LoginPage, AccountsPage, TransactionsPage
 __all__ = ['AmericanExpressBrowser']
 
 
-class AmericanExpressBrowser(BaseBrowser):
+class AmericanExpressBrowser(Browser):
     DOMAIN = 'global.americanexpress.com'
     PROTOCOL = 'https'
     ENCODING = 'ISO-8859-1'

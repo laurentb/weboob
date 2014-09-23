@@ -21,7 +21,7 @@
 from urlparse import urlsplit, parse_qsl, urlparse
 from datetime import datetime, timedelta
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Transfer, TransferError
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, EmptyPage, \
@@ -33,12 +33,12 @@ __all__ = ['CICBrowser']
 
 
 # Browser
-class CICBrowser(BaseBrowser):
+class CICBrowser(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'www.cic.fr'
     CERTHASH = 'b7f681798d4f414fb5cb4032a0b6e8e0d61eeea564a1fb2c1c5a6fc351c70c50'
     ENCODING = 'iso-8859-1'
-    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
+    USER_AGENT = Browser.USER_AGENTS['wget']
     PAGES = {'https://www.cic.fr/.*/fr/banques/particuliers/index.html':   LoginPage,
              'https://www.cic.fr/.*/fr/identification/default.cgi': LoginErrorPage,
              'https://www.cic.fr/.*/fr/banque/situation_financiere.cgi': AccountsPage,

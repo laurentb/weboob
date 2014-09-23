@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 from weboob.tools.ordereddict import OrderedDict
 
 from .pages import LoginPage, ErrorPage, AccountsPage, CardsPage, HistoryPage, CardHistoryPage
@@ -27,7 +27,7 @@ from .pages import LoginPage, ErrorPage, AccountsPage, CardsPage, HistoryPage, C
 __all__ = ['SGProfessionalBrowser', 'SGEnterpriseBrowser']
 
 
-class SGPEBrowser(BaseBrowser):
+class SGPEBrowser(Browser):
     PROTOCOL = 'https'
     ENCODING = 'ISO-8859-1'
 
@@ -40,7 +40,7 @@ class SGPEBrowser(BaseBrowser):
             ('%s://%s/authent\.html' % (self.PROTOCOL, self.DOMAIN), ErrorPage),
             ('%s://%s/' % (self.PROTOCOL, self.DOMAIN), LoginPage),
         ))
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def is_logged(self):
         if not self.page or self.is_on_page(LoginPage):

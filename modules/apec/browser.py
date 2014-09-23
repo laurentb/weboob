@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser.decorators import id2url
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 import urllib
 from .pages import SearchPage, AdvertPage
 from .job import ApecJobAdvert
@@ -27,7 +27,7 @@ from .job import ApecJobAdvert
 __all__ = ['ApecBrowser']
 
 
-class ApecBrowser(BaseBrowser):
+class ApecBrowser(Browser):
     PROTOCOL = 'http'
     DOMAIN = 'www.apec.fr'
     ENCODING = 'ISO-8859-1'

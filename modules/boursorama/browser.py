@@ -20,7 +20,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, AccountsList, AccountHistory, CardHistory, UpdateInfoPage, AuthenticationPage
 
@@ -32,7 +32,7 @@ class BrowserIncorrectAuthenticationCode(BrowserIncorrectPassword):
     pass
 
 
-class Boursorama(BaseBrowser):
+class Boursorama(Browser):
     DOMAIN = 'www.boursorama.com'
     PROTOCOL = 'https'
     CERTHASH = ['6bdf8b6dd177bd417ddcb1cfb818ede153288e44115eb269f2ddd458c8461039', 'b290ef629c88f0508e9cc6305421c173bd4291175e3ddedbee05ee666b34c20e']
@@ -51,7 +51,7 @@ class Boursorama(BaseBrowser):
                  *args, **kwargs):
         self.device = device
         self.enable_twofactors = enable_twofactors
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def home(self):
         if not self.is_logged():

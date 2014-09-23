@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 
 from .pages import PageList, PageList2, PageEvent
 
@@ -26,7 +26,7 @@ from .pages import PageList, PageList2, PageEvent
 __all__ = ['ParisKiwiBrowser']
 
 
-class ParisKiwiBrowser(BaseBrowser):
+class ParisKiwiBrowser(Browser):
     PROTOCOL = 'http'
     DOMAIN = 'pariskiwi.org'
     ENCODING = 'utf-8'
@@ -39,7 +39,7 @@ class ParisKiwiBrowser(BaseBrowser):
 
     def __init__(self, *a, **kw):
         kw['parser'] = 'raw'
-        BaseBrowser.__init__(self, *a, **kw)
+        Browser.__init__(self, *a, **kw)
 
     def list_events_all(self):
         self.location('http://pariskiwi.org/~parislagrise/mediawiki/api.php?action=query&list=allpages&apprefix=Agenda%2FDetruire_Ennui_Paris&aplimit=500&format=json')

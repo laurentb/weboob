@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
+from weboob.tools.browser import Browser, BrowserHTTPNotFound
 
 from .pages import TorrentsPage, TorrentPage
 
@@ -26,11 +26,11 @@ from .pages import TorrentsPage, TorrentPage
 __all__ = ['KickassBrowser']
 
 
-class KickassBrowser(BaseBrowser):
+class KickassBrowser(Browser):
     DOMAIN = 'kickass.to'
     PROTOCOL = 'https'
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
+    USER_AGENT = Browser.USER_AGENTS['wget']
     PAGES = {
         'https://kickass.to/usearch/.*field=seeders&sorder=desc': TorrentsPage,
         'https://kickass.to/.*.html': TorrentPage,

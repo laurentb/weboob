@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 from weboob.capabilities.bill import Detail
 from decimal import Decimal
 from .pages import LoginPage, HomePage, AccountPage, LastPaymentsPage, PaymentDetailsPage, BillsPage
@@ -25,7 +25,7 @@ from .pages import LoginPage, HomePage, AccountPage, LastPaymentsPage, PaymentDe
 __all__ = ['AmeliBrowser']
 
 
-class AmeliBrowser(BaseBrowser):
+class AmeliBrowser(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'assure.ameli.fr'
     ENCODING = None

@@ -65,7 +65,7 @@ In a module directory, there are commonly these files:
 
 * **__init__.py** - needed in every python modules, it exports your :class:`Module <weboob.tools.backend.Module>` class.
 * **module.py** - defines the main class of your module, which derives :class:`Module <weboob.tools.backend.Module>`.
-* **browser.py** - your browser, derived from :class:`BaseBrowser <weboob.tools.browser2.browser.BaseBrowser>`, is called by your module to interact with the supported website.
+* **browser.py** - your browser, derived from :class:`Browser <weboob.tools.browser2.browser.Browser>`, is called by your module to interact with the supported website.
 * **pages.py** - all website's pages handled by the browser are defined here
 * **test.py** - functional tests
 * **favicon.png** - a 64x64 transparent PNG icon

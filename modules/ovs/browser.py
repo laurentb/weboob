@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 from weboob.tools.parsers.iparser import IParser
 import BeautifulSoup
 
@@ -33,7 +33,7 @@ class SoupParser(IParser):
         return BeautifulSoup.BeautifulSoup(data.read().decode(encoding or 'utf-8'), convertEntities=BeautifulSoup.BeautifulStoneSoup.ALL_ENTITIES)
 
 
-class OvsBrowser(BaseBrowser):
+class OvsBrowser(Browser):
     PROTOCOL = 'http'
     DOMAIN = 'paris.onvasortir.com'
     ENCODING = 'cp1252'
@@ -62,7 +62,7 @@ class OvsBrowser(BaseBrowser):
         }
 
         kw['parser'] = SoupParser()
-        BaseBrowser.__init__(self, username, password, *a, **kw)
+        Browser.__init__(self, username, password, *a, **kw)
         self.city = city
 
     def iter_threads_list(self):

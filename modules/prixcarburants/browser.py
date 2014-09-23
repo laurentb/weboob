@@ -20,7 +20,7 @@
 
 import urllib
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 
 from .pages import IndexPage, ComparisonResultsPage, ShopInfoPage
 
@@ -28,7 +28,7 @@ from .pages import IndexPage, ComparisonResultsPage, ShopInfoPage
 __all__ = ['PrixCarburantsBrowser']
 
 
-class PrixCarburantsBrowser(BaseBrowser):
+class PrixCarburantsBrowser(Browser):
     TOKEN = None
     PROTOCOL = 'http'
     DOMAIN = 'www.prix-carburants.economie.gouv.fr'

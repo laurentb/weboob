@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserUnavailable
+from weboob.tools.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable
 
 from .pages.accounts_list import AccountsList, AccountHistory, CardsList
 from .pages.login import LoginPage, BadLoginPage
@@ -27,7 +27,7 @@ from .pages.login import LoginPage, BadLoginPage
 __all__ = ['SocieteGenerale']
 
 
-class SocieteGenerale(BaseBrowser):
+class SocieteGenerale(Browser):
     DOMAIN_LOGIN = 'particuliers.societegenerale.fr'
     CERTHASH_LOGIN = ['629873f98004aef6c42d15714ff9689fdfce04746483122417f432cd693f5007']
     DOMAIN = 'particuliers.secure.societegenerale.fr'
@@ -46,7 +46,7 @@ class SocieteGenerale(BaseBrowser):
 
     def __init__(self, *args, **kwargs):
         self.lowsslcheck(self.DOMAIN_LOGIN, self.CERTHASH_LOGIN)
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def home(self):
         self.location('https://' + self.DOMAIN_LOGIN + '/index.html')

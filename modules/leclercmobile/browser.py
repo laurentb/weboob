@@ -20,7 +20,7 @@
 import time
 import StringIO
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 from .pages import HomePage, LoginPage, HistoryPage, PdfPage
 from weboob.capabilities.bill import Detail
 from weboob.capabilities.base import NotAvailable
@@ -29,7 +29,7 @@ from weboob.capabilities.base import NotAvailable
 __all__ = ['Leclercmobile']
 
 
-class Leclercmobile(BaseBrowser):
+class Leclercmobile(Browser):
     DOMAIN = 'www.securelmobile.fr'
     PROTOCOL = 'https'
     ENCODING = 'utf-8'
@@ -44,7 +44,7 @@ class Leclercmobile(BaseBrowser):
     bills = '/EspaceClient/pgeWERL015_RecupReleveConso.aspx?m=-'
 
     def __init__(self, *args, **kwargs):
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def home(self):
         self.location(self.accueil)

@@ -19,7 +19,7 @@
 
 import urllib
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, LoggedPage, AccountsPage, TransactionsPage, TransactionsJSONPage, ComingTransactionsPage
 
@@ -27,7 +27,7 @@ from .pages import LoginPage, LoggedPage, AccountsPage, TransactionsPage, Transa
 __all__ = ['CreditCooperatif']
 
 
-class CreditCooperatif(BaseBrowser):
+class CreditCooperatif(Browser):
     PROTOCOL = 'https'
     ENCODING = 'iso-8859-15'
     DOMAIN = "www.credit-cooperatif.coop"

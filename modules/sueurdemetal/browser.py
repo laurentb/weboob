@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 
 from .pages import PageCity, PageConcert, PageCityList, PageDate, PageDates
 
@@ -26,7 +26,7 @@ from .pages import PageCity, PageConcert, PageCityList, PageDate, PageDates
 __all__ = ['SueurDeMetalBrowser']
 
 
-class SueurDeMetalBrowser(BaseBrowser):
+class SueurDeMetalBrowser(Browser):
     PROTOCOL = 'http'
     DOMAIN = 'www.sueurdemetal.com'
     ENCODING = 'iso-8859-15'

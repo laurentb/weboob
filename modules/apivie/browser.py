@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, AccountsPage, OperationsPage
 
@@ -26,7 +26,7 @@ from .pages import LoginPage, AccountsPage, OperationsPage
 __all__ = ['ApivieBrowser']
 
 
-class ApivieBrowser(BaseBrowser):
+class ApivieBrowser(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'www.apivie.fr'
     ENCODING = None

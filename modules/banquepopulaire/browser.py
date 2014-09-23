@@ -20,7 +20,7 @@
 
 import urllib
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrokenPageError
+from weboob.tools.browser import Browser, BrowserIncorrectPassword, BrokenPageError
 
 from .pages import LoginPage, IndexPage, AccountsPage, CardsPage, TransactionsPage, \
                    UnavailablePage, RedirectPage, HomePage
@@ -29,7 +29,7 @@ from .pages import LoginPage, IndexPage, AccountsPage, CardsPage, TransactionsPa
 __all__ = ['BanquePopulaire']
 
 
-class BanquePopulaire(BaseBrowser):
+class BanquePopulaire(Browser):
     PROTOCOL = 'https'
     ENCODING = 'iso-8859-15'
     PAGES = {'https://[^/]+/auth/UI/Login.*':                                                   LoginPage,
@@ -55,7 +55,7 @@ class BanquePopulaire(BaseBrowser):
         self.DOMAIN = website
         self.token = None
 
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def is_logged(self):
         return not self.is_on_page(LoginPage)

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 import urllib
 
@@ -28,8 +28,8 @@ from .pages import VideoPage, VideoListPage, FamilyPage, AboPage, LoginPage, Hom
 
 __all__ = ['NolifeTVBrowser']
 
-class NolifeTVBrowser(BaseBrowser):
-    USER_AGENT = BaseBrowser.USER_AGENTS['desktop_firefox']
+class NolifeTVBrowser(Browser):
+    USER_AGENT = Browser.USER_AGENTS['desktop_firefox']
     DOMAIN = 'mobile.nolife-tv.com'
     PROTOCOL = 'http'
     PAGES = { r'http://mobile.nolife-tv.com/online/familles-\w+/': FamilyPage,

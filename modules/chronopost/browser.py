@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 
 from .pages import IndexPage, TrackPage
 
@@ -25,7 +25,7 @@ from .pages import IndexPage, TrackPage
 __all__ = ['ChronopostBrowser']
 
 
-class ChronopostBrowser(BaseBrowser):
+class ChronopostBrowser(Browser):
     PROTOCOL = 'http'
     DOMAIN = 'www.chronopost.fr'
     ENCODING = None

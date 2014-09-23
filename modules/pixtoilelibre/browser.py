@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from weboob.tools.capabilities.paste import image_mime
 from StringIO import StringIO
 
@@ -28,7 +28,7 @@ from .pages import PageHome, PageImage, PageError
 __all__ = ['PixtoilelibreBrowser']
 
 
-class PixtoilelibreBrowser(BaseBrowser):
+class PixtoilelibreBrowser(Browser):
     PROTOCOL = 'http'
     DOMAIN = 'pix.toile-libre.org'
     ENCODING = None

@@ -21,7 +21,7 @@
 from urlparse import urlsplit, parse_qsl
 from datetime import datetime
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserBanned
+from weboob.tools.browser import Browser, BrowserIncorrectPassword, BrowserBanned
 
 from .pages import LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate, \
                    AccountList, AccountHistory, CardsList, UnavailablePage, \
@@ -33,7 +33,7 @@ from weboob.capabilities.bank import Transfer
 __all__ = ['BPBrowser']
 
 
-class BPBrowser(BaseBrowser):
+class BPBrowser(Browser):
     DOMAIN = 'voscomptesenligne.labanquepostale.fr'
     PROTOCOL = 'https'
     CERTHASH = ['d10d09246853237892d5fb44685826ea99bfdeaaf29fac6dd236dae8cb103c39', 'ccdf2885f1d6df19e15d098dd52fd486609d891ebd2724970a5cfcb9254b6fa5']
@@ -63,7 +63,7 @@ class BPBrowser(BaseBrowser):
 
     def __init__(self, *args, **kwargs):
         kwargs['parser'] = ('lxml',)
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def home(self):
         self.location('https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&'

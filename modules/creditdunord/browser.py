@@ -21,7 +21,7 @@
 import re
 import urllib
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, AccountsPage, ProAccountsPage, TransactionsPage, ProTransactionsPage
 
@@ -29,7 +29,7 @@ from .pages import LoginPage, AccountsPage, ProAccountsPage, TransactionsPage, P
 __all__ = ['CreditDuNordBrowser']
 
 
-class CreditDuNordBrowser(BaseBrowser):
+class CreditDuNordBrowser(Browser):
     PROTOCOL = 'https'
     ENCODING = 'UTF-8'
     PAGES = {'https://[^/]+/?':                                         LoginPage,
@@ -43,7 +43,7 @@ class CreditDuNordBrowser(BaseBrowser):
 
     def __init__(self, website, *args, **kwargs):
         self.DOMAIN = website
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def is_logged(self):
         return self.page is not None and not self.is_on_page(LoginPage)

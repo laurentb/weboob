@@ -19,7 +19,7 @@
 
 import urllib
 
-from weboob.tools.browser import BaseBrowser, Page
+from weboob.tools.browser import Browser, Page
 from weboob.tools.ordereddict import OrderedDict
 
 from .pages import LoginPage, ThreadPage, MessagesPage, PostMessagePage, ProfilePage, PhotosPage, VisitsPage, QuickMatchPage, SentPage
@@ -39,7 +39,7 @@ def check_login(func):
     return inner
 
 
-class OkCBrowser(BaseBrowser):
+class OkCBrowser(Browser):
     DOMAIN = 'm.okcupid.com'
     PROTOCOL = 'https'
     ENCODING = 'UTF-8'

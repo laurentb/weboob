@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, AccountsPage, TransactionsPage
 
@@ -26,7 +26,7 @@ from .pages import LoginPage, AccountsPage, TransactionsPage
 __all__ = ['Cmso']
 
 
-class Cmso(BaseBrowser):
+class Cmso(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'www.cmso.com'
     ENCODING = 'iso-8859-1'

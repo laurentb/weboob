@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, AccountsPage, ITransactionsPage, TransactionsPage, ComingTransactionsPage, CardTransactionsPage
 
@@ -25,7 +25,7 @@ from .pages import LoginPage, AccountsPage, ITransactionsPage, TransactionsPage,
 __all__ = ['CreditCooperatif']
 
 
-class CreditCooperatif(BaseBrowser):
+class CreditCooperatif(Browser):
     PROTOCOL = 'https'
     ENCODING = 'iso-8859-15'
     DOMAIN = "www.coopanet.com"
@@ -40,7 +40,7 @@ class CreditCooperatif(BaseBrowser):
 
     def __init__(self, *args, **kwargs):
         self.strong_auth = kwargs.pop('strong_auth', False)
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def home(self):
         self.location("/banque/sso/")

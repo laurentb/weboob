@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import BaseBrowser, Page
+from weboob.tools.browser import Browser, Page
 from weboob.tools.json import json
 from weboob.capabilities.video import BaseVideo
 from weboob.tools.browser.decorators import id2url
@@ -121,7 +121,7 @@ class RssPage(Page):
             return ' '.join(titles)
 
 
-class RadioFranceBrowser(BaseBrowser):
+class RadioFranceBrowser(Browser):
     DOMAIN = None
     ENCODING = 'UTF-8'
     PAGES = {r'http://.*/player/direct': DataPage,

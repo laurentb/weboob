@@ -21,7 +21,7 @@
 import urllib
 import re
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 from weboob.tools.date import LinearDateGuesser
 
 from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, \
@@ -31,7 +31,7 @@ from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, \
 __all__ = ['Cragr']
 
 
-class Cragr(BaseBrowser):
+class Cragr(Browser):
     PROTOCOL = 'https'
     ENCODING = 'ISO-8859-1'
 
@@ -54,7 +54,7 @@ class Cragr(BaseBrowser):
     def __init__(self, website, *args, **kwargs):
         self.DOMAIN = re.sub('^m\.', 'www.', website)
         self.accounts_url = None
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def home(self):
         self.login()

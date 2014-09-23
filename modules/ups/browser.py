@@ -19,7 +19,7 @@
 
 import urllib
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 
 from .pages import TrackPage
 
@@ -27,7 +27,7 @@ from .pages import TrackPage
 __all__ = ['UpsBrowser']
 
 
-class UpsBrowser(BaseBrowser):
+class UpsBrowser(Browser):
     PROTOCOL = 'http'
     DOMAIN = 'wwwapps.ups.com'
     ENCODING = None

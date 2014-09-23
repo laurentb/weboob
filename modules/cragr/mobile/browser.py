@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 from weboob.tools.date import LinearDateGuesser
 from weboob.capabilities.bank import Transfer, TransferError
 from .pages import LoginPage, AccountsList
@@ -30,10 +30,10 @@ import re
 __all__ = ['CragrMobile']
 
 
-class CragrMobile(BaseBrowser):
+class CragrMobile(Browser):
     PROTOCOL = 'https'
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
+    USER_AGENT = Browser.USER_AGENTS['wget']
     # a session id that is sometimes added, and should be ignored when matching pages
     SESSION_REGEXP = '(?:|%s[A-Z0-9]+)' % re.escape(r';jsessionid=')
 
@@ -49,7 +49,7 @@ class CragrMobile(BaseBrowser):
                       'https://[^/]+/accounting/showAccountDetail.+': AccountsList,
                       'https://[^/]+/accounting/showMoreAccountOperations.*': AccountsList,
                      }
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def viewing_html(self):
         """
@@ -82,7 +82,7 @@ class CragrMobile(BaseBrowser):
         # Are we on the good page?
         if not self.is_on_page(LoginPage):
             self.logger.debug('going to login page')
-            BaseBrowser.home(self)
+            Browser.home(self)
         self.logger.debug('attempting to log in')
         self.page.login(self.username, self.password)
         self.is_logging = False
@@ -109,7 +109,7 @@ class CragrMobile(BaseBrowser):
             return
 
         # simply go to http(s)://the.doma.in/
-        BaseBrowser.home(self)
+        Browser.home(self)
 
         if self.is_on_page(LoginPage):
             if not self.is_logged():

@@ -21,7 +21,7 @@
 from urlparse import urlsplit
 import urllib
 
-from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
+from weboob.tools.browser import Browser, BrowserHTTPNotFound
 
 from .pages.index import IndexPage
 from .pages.torrents import TorrentsPage, TorrentPage
@@ -30,7 +30,7 @@ from .pages.torrents import TorrentsPage, TorrentPage
 __all__ = ['PiratebayBrowser']
 
 
-class PiratebayBrowser(BaseBrowser):
+class PiratebayBrowser(Browser):
     ENCODING = 'utf-8'
 
     def __init__(self, url, *args, **kwargs):
@@ -43,7 +43,7 @@ class PiratebayBrowser(BaseBrowser):
             '%s://%s/search/.*/0/7/0' % (self.PROTOCOL, self.DOMAIN): TorrentsPage,
             '%s://%s/torrent/.*' % (self.PROTOCOL, self.DOMAIN): TorrentPage
         }
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def iter_torrents(self, pattern):
         self.location('%s://%s/search/%s/0/7/0' % (self.PROTOCOL,

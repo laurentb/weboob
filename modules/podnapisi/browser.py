@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
+from weboob.tools.browser import Browser, BrowserHTTPNotFound
 
 from .pages import SearchPage, SubtitlePage, LANGUAGE_NUMBERS
 
@@ -26,11 +26,11 @@ from .pages import SearchPage, SubtitlePage, LANGUAGE_NUMBERS
 __all__ = ['PodnapisiBrowser']
 
 
-class PodnapisiBrowser(BaseBrowser):
+class PodnapisiBrowser(Browser):
     DOMAIN = 'www.podnapisi.net'
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
+    USER_AGENT = Browser.USER_AGENTS['wget']
     PAGES = {
         'http://www.podnapisi.net/fr/ppodnapisi/search\?sJ=[0-9]*&sK=.*&sS=downloads&sO=desc': SearchPage,
         'http://www.podnapisi.net/fr/ppodnapisi/podnapis/i/[0-9]*': SubtitlePage

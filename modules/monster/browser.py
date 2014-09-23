@@ -19,7 +19,7 @@
 import urllib
 
 from weboob.tools.browser.decorators import id2url
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 
 from .pages import SearchPage, AdvertPage
 from .job import MonsterJobAdvert
@@ -27,7 +27,7 @@ from .job import MonsterJobAdvert
 __all__ = ['MonsterBrowser']
 
 
-class MonsterBrowser(BaseBrowser):
+class MonsterBrowser(Browser):
     PROTOCOL = 'http'
     DOMAIN = 'offres.monster.fr'
     ENCODING = 'utf-8'

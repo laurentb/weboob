@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 import os
 from uuid import uuid4
 from urllib2 import Request
@@ -46,7 +46,7 @@ class FileField(object):
             self.contents = open(filename).read()
 
 
-class UnseeBrowser(BaseBrowser):
+class UnseeBrowser(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'unsee.cc'
     ENCODING = 'utf-8'

@@ -20,14 +20,14 @@
 
 import urllib
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 
 from .pages import ForecastPage, WeatherPage, CityPage
 
 __all__ = ['WeatherBrowser']
 
 
-class WeatherBrowser(BaseBrowser):
+class WeatherBrowser(Browser):
     DOMAIN = 'www.weather.com'
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
@@ -37,7 +37,7 @@ class WeatherBrowser(BaseBrowser):
     WEATHER_URL = 'http://www.weather.com/weather/today/%s'
     FORECAST_URL = 'http://www.weather.com/weather/tenday/%s'
     RIGHTNOW_URL = 'http://www.weather.com/weather/right-now/%s'
-    USER_AGENT = BaseBrowser.USER_AGENTS['desktop_firefox']
+    USER_AGENT = Browser.USER_AGENTS['desktop_firefox']
 
     PAGES = {
         (SEARCH_URL.replace('.', '\\.').replace('?', '\\?') % '.*'): CityPage,

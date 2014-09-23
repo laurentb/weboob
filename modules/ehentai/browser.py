@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 from urllib import urlencode
 
 from .pages import IndexPage, GalleryPage, ImagePage, HomePage, LoginPage
@@ -27,7 +27,7 @@ from .gallery import EHentaiImage
 __all__ = ['EHentaiBrowser']
 
 
-class EHentaiBrowser(BaseBrowser):
+class EHentaiBrowser(Browser):
     ENCODING = None
     PAGES = {
             r'http://[^/]+/': IndexPage,
@@ -41,7 +41,7 @@ class EHentaiBrowser(BaseBrowser):
     def __init__(self, domain, username, password, *args, **kwargs):
         self.DOMAIN = domain
         self.logged = False
-        BaseBrowser.__init__(self, parser=('lxmlsoup',), *args, **kwargs)
+        Browser.__init__(self, parser=('lxmlsoup',), *args, **kwargs)
         if password:
             self.login(username, password)
 

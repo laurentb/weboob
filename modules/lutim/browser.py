@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from StringIO import StringIO
 import re
 
@@ -28,11 +28,11 @@ from .pages import PageAll
 __all__ = ['LutimBrowser']
 
 
-class LutimBrowser(BaseBrowser):
+class LutimBrowser(Browser):
     ENCODING = 'utf-8'
 
     def __init__(self, base_url, *args, **kw):
-        BaseBrowser.__init__(self, *args, **kw)
+        Browser.__init__(self, *args, **kw)
         self.base_url = base_url
         self.PAGES = {re.escape(self.base_url): PageAll}
 

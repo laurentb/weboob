@@ -20,14 +20,14 @@
 
 from .pages.article import ArticlePage, ActuPage
 from .pages.flashactu import FlashActuPage
-from weboob.tools.browser import BaseBrowser, Page
+from weboob.tools.browser import Browser, Page
 
 
 class IndexPage(Page):
     pass
 
 
-class NewspaperFigaroBrowser(BaseBrowser):
+class NewspaperFigaroBrowser(Browser):
     "NewspaperFigaroBrowser class"
     ENCODING = "UTF-8"
     PAGES = {"http://\w+.lefigaro.fr/flash-.*/(\d{4})/(\d{2})/(\d{2})/(.*$)": FlashActuPage,

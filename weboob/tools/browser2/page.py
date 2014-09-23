@@ -287,7 +287,7 @@ class PagesBrowser(DomainBrowser):
         callback = kwargs.pop('callback', lambda response: response)
 
         # Have to define a callback to seamlessly process synchronous and
-        # asynchronous requests, see :meth:`BaseBrowser.open` and its `async`
+        # asynchronous requests, see :meth:`Browser.open` and its `async`
         # and `callback` params.
         def internal_callback(response):
             # Try to handle the response page with an URL instance.
@@ -309,7 +309,7 @@ class PagesBrowser(DomainBrowser):
     def location(self, *args, **kwargs):
         """
         Same method than
-        :meth:`weboob.tools.browser2.browser.BaseBrowser.location`, but if the
+        :meth:`weboob.tools.browser2.browser.Browser.location`, but if the
         url matches any :class:`URL` object, an attribute `page` is added to
         response, and the attribute :attr:`PagesBrowser.page` is set.
         """

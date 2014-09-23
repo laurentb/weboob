@@ -20,7 +20,7 @@
 
 import urllib
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserUnavailable,\
+from weboob.tools.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable,\
         BrowserBanned
 from weboob.tools.browser.decorators import id2url
 
@@ -36,7 +36,7 @@ from weboob.capabilities.base import NotAvailable
 __all__ = ['GDCVaultBrowser']
 
 
-class GDCVaultBrowser(BaseBrowser):
+class GDCVaultBrowser(Browser):
     DOMAIN = 'gdcvault.com'
     ENCODING = 'utf-8'
     PAGES = {r'http://[w\.]*gdcvault.com/play/(?P<id>[\d]+)/?.*': VideoPage,

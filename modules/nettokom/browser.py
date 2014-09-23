@@ -18,13 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 from .pages import HomePage, LoginPage, HistoryPage, DetailsPage, BillsPage
 
 __all__ = ['Nettokom']
 
 
-class Nettokom(BaseBrowser):
+class Nettokom(Browser):
     DOMAIN = 'konto.nettokom.de'
     PROTOCOL = 'https'
     ENCODING = None  # refer to the HTML encoding
@@ -36,7 +36,7 @@ class Nettokom(BaseBrowser):
             }
 
     def __init__(self, *args, **kwargs):
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def home(self):
         self.location('/start.html')

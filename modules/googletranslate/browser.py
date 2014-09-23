@@ -20,7 +20,7 @@
 
 import urllib
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 
 from .pages import TranslatePage
 
@@ -28,16 +28,16 @@ from .pages import TranslatePage
 __all__ = ['GoogleTranslateBrowser']
 
 
-class GoogleTranslateBrowser(BaseBrowser):
+class GoogleTranslateBrowser(Browser):
     DOMAIN = 'translate.google.com'
     ENCODING = 'UTF-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['desktop_firefox']
+    USER_AGENT = Browser.USER_AGENTS['desktop_firefox']
     PAGES = {
         'https?://translate\.google\.com': TranslatePage
         }
 
     def __init__(self, *args, **kwargs):
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def translate(self, source, to, text):
         """

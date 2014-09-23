@@ -18,14 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 
 from .pages import ValidationPage, HomePage, HistoryPage, StoryPage, AuthorPage
 
 # Browser
 
 
-class HDSBrowser(BaseBrowser):
+class HDSBrowser(Browser):
     ENCODING = 'ISO-8859-1'
     DOMAIN = 'histoires-de-sexe.net'
     PAGES = {'http://histoires-de-sexe.net/': ValidationPage,

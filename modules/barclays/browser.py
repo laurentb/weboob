@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, Login2Page, IndexPage, AccountsPage, TransactionsPage, \
                    CardPage, ValuationPage, LoanPage, MarketPage
@@ -27,7 +27,7 @@ from .pages import LoginPage, Login2Page, IndexPage, AccountsPage, TransactionsP
 __all__ = ['Barclays']
 
 
-class Barclays(BaseBrowser):
+class Barclays(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'www.barclays.fr'
     PAGES = {'https?://.*.barclays.fr/\d-index.html':                       IndexPage,
@@ -44,7 +44,7 @@ class Barclays(BaseBrowser):
     def __init__(self, secret, *args, **kwargs):
         self.secret = secret
 
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def is_logged(self):
         return self.page is not None and not self.is_on_page((LoginPage, IndexPage, Login2Page))

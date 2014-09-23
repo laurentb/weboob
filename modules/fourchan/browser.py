@@ -18,12 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 
 from .pages.board import BoardPage
 
 
-class FourChan(BaseBrowser):
+class FourChan(Browser):
     DOMAIN = 'boards.4chan.org'
     PAGES = {
         'http://boards.4chan.org/\w+/': BoardPage,

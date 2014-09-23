@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
+from weboob.tools.browser import Browser, BrowserHTTPNotFound
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 
 from .pages import SubtitlesPage, SearchPage, SubtitlePage
@@ -27,11 +27,11 @@ from .pages import SubtitlesPage, SearchPage, SubtitlePage
 __all__ = ['OpensubtitlesBrowser']
 
 
-class OpensubtitlesBrowser(BaseBrowser):
+class OpensubtitlesBrowser(Browser):
     DOMAIN = 'www.opensubtitles.org'
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
+    USER_AGENT = Browser.USER_AGENTS['wget']
     PAGES = {
         'http://www.opensubtitles.org.*search2/sublanguageid.*moviename.*': SearchPage,
         'http://www.opensubtitles.org.*search/sublanguageid.*idmovie.*': SubtitlesPage,

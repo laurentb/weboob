@@ -19,7 +19,7 @@
 
 import urllib
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from weboob.tools.browser.decorators import id2url
 
 from .video import JacquieEtMichelVideo
@@ -29,7 +29,7 @@ from .pages import VideoPage, ResultsPage
 __all__ = ['JacquieEtMichelBrowser']
 
 
-class JacquieEtMichelBrowser(BaseBrowser):
+class JacquieEtMichelBrowser(Browser):
     DOMAIN = u'jacquieetmicheltv.net'
     ENCODING = None
     PAGES = {r'https?://.*jacquieetmicheltv.net/': ResultsPage,

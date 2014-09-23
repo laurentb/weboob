@@ -22,7 +22,7 @@
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages.login import LoginPage
 from .pages.accounts_list import GlobalAccountsList, AccountsList, AccountHistoryPage
@@ -30,7 +30,7 @@ from .pages.accounts_list import GlobalAccountsList, AccountsList, AccountHistor
 __all__ = ['Fortuneo']
 
 
-class Fortuneo(BaseBrowser):
+class Fortuneo(Browser):
     DOMAIN_LOGIN = 'www.fortuneo.fr'
     DOMAIN = 'www.fortuneo.fr'
     PROTOCOL = 'https'
@@ -49,7 +49,7 @@ class Fortuneo(BaseBrowser):
             }
 
     def __init__(self, *args, **kwargs):
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def home(self):
         """main page (login)"""

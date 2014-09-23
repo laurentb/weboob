@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 from weboob.capabilities.bill import Detail
 from decimal import Decimal
 from .pages import LoginPage, FirstRedirectionPage, SecondRedirectionPage, OtherPage, AccountPage, BillsPage, LastPaymentsPage, LastPaymentsPage2
@@ -25,7 +25,7 @@ from .pages import LoginPage, FirstRedirectionPage, SecondRedirectionPage, Other
 __all__ = ['EdfBrowser']
 
 
-class EdfBrowser(BaseBrowser):
+class EdfBrowser(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'monagencepart.edf.fr'
     ENCODING = None

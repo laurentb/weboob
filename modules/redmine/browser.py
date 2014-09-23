@@ -24,7 +24,7 @@ import re
 import lxml.html
 
 from weboob.capabilities.bugtracker import IssueError
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages.index import LoginPage, IndexPage, MyPage, ProjectsPage
 from .pages.wiki import WikiPage, WikiEditPage
@@ -36,7 +36,7 @@ __all__ = ['RedmineBrowser']
 
 
 # Browser
-class RedmineBrowser(BaseBrowser):
+class RedmineBrowser(Browser):
     ENCODING = 'utf-8'
     PAGES = {
         'https?://[^/]+/':                                        IndexPage,
@@ -63,7 +63,7 @@ class RedmineBrowser(BaseBrowser):
         self.BASEPATH = v.path
         if self.BASEPATH.endswith('/'):
             self.BASEPATH = self.BASEPATH[:-1]
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
         self.projects = {}
 
     def is_logged(self):

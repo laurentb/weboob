@@ -19,13 +19,13 @@
 
 
 import datetime
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 
 
 __all__ = ['VelibBrowser']
 
 
-class VelibBrowser(BaseBrowser):
+class VelibBrowser(Browser):
     ENCODING = 'utf-8'
 
     API_KEY = '2282a34b49cf45d8129cdf93d88762914cece88b'
@@ -33,7 +33,7 @@ class VelibBrowser(BaseBrowser):
 
     def __init__(self, *a, **kw):
         kw['parser'] = 'json'
-        BaseBrowser.__init__(self, *a, **kw)
+        Browser.__init__(self, *a, **kw)
 
     def do_get(self, path, **query):
         qs = '&'.join('%s=%s' % kv for kv in query.items())

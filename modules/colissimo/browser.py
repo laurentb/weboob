@@ -18,17 +18,17 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.json import json
-from weboob.tools.browser import BaseBrowser, BrowserBanned
+from weboob.tools.browser import Browser, BrowserBanned
 
 
 __all__ = ['ColissimoBrowser']
 
 
-class ColissimoBrowser(BaseBrowser):
+class ColissimoBrowser(Browser):
     PROTOCOL = 'http'
     DOMAIN = 'www.laposte.fr'
     ENCODING = None
-    USER_AGENT = BaseBrowser.USER_AGENTS['android']
+    USER_AGENT = Browser.USER_AGENTS['android']
 
     api_key = '6b252eb30d3afb15c47cf3fccee3dc17352dc2d6'
 

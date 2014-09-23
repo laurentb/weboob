@@ -2,7 +2,7 @@
 
 import urllib
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 
 from .pages.index import IndexPage
 from .pages.torrents import TorrentsPage, TorrentPage
@@ -11,11 +11,11 @@ from .pages.torrents import TorrentsPage, TorrentPage
 __all__ = ['BTDiggBrowser']
 
 
-class BTDiggBrowser(BaseBrowser):
+class BTDiggBrowser(Browser):
     DOMAIN = 'btdigg.org'
     PROTOCOL = 'https'
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
+    USER_AGENT = Browser.USER_AGENTS['wget']
     PAGES = {'https://btdigg.org/': IndexPage,
              'https://btdigg.org/search?.*q=[^?]*': TorrentsPage,
              'https://btdigg.org/search?.*info_hash=[^?]*': TorrentPage,

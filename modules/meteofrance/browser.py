@@ -20,14 +20,14 @@
 
 import urllib
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from .pages.meteo import WeatherPage, SearchCitiesPage
 from weboob.capabilities.weather import CityNotFound
 
 __all__ = ['MeteofranceBrowser']
 
 
-class MeteofranceBrowser(BaseBrowser):
+class MeteofranceBrowser(Browser):
     DOMAIN = 'www.meteofrance.com'
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
@@ -39,7 +39,7 @@ class MeteofranceBrowser(BaseBrowser):
         }
 
     def __init__(self, *args, **kwargs):
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def iter_city_search(self, pattern):
         datas = {'facet': 'previsions',

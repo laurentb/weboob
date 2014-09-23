@@ -17,16 +17,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from .pages import LivePage, StreamsPage
 
 __all__ = ['NectarineBrowser']
 
-class NectarineBrowser(BaseBrowser):
+class NectarineBrowser(Browser):
     DOMAIN = 'www.scenemusic.net'
     PROTOCOL = 'https'
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['desktop_firefox']
+    USER_AGENT = Browser.USER_AGENTS['desktop_firefox']
     PAGES = {
         'https://www\.scenemusic\.net/demovibes/xml/streams/': StreamsPage,
         'https://www\.scenemusic\.net/demovibes/xml/queue/': LivePage

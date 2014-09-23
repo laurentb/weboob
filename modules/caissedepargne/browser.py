@@ -22,7 +22,7 @@ import ssl
 import hashlib
 from urlparse import urlsplit
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, IndexPage, ErrorPage, UnavailablePage
 
@@ -30,7 +30,7 @@ from .pages import LoginPage, IndexPage, ErrorPage, UnavailablePage
 __all__ = ['CaisseEpargne']
 
 
-class CaisseEpargne(BaseBrowser):
+class CaisseEpargne(Browser):
     DOMAIN = 'www.caisse-epargne.fr'
     PROTOCOL = 'https'
     CERTHASH = ['dfff27d6db1fcdf1cea3ab8e3c1ca4f97c971262e95be49f3385b40c97fe640c', '9894ab2088630f341de821a09f1286c525f854f62ac186bd442368b4692c5969']
@@ -43,10 +43,10 @@ class CaisseEpargne(BaseBrowser):
 
     def __init__(self, nuser, *args, **kwargs):
         self.nuser = nuser
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def _certhash(self, domain, port=443):
-        # XXX overload the BaseBrowser method to force use of TLSv1.
+        # XXX overload the Browser method to force use of TLSv1.
         certs = ssl.get_server_certificate((domain, port), ssl_version=ssl.PROTOCOL_TLSv1)
         return hashlib.sha256(certs).hexdigest()
 

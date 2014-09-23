@@ -58,7 +58,7 @@ from weboob.tools.parsers import get_parser
 
 __all__ = ['BrowserIncorrectPassword', 'BrowserForbidden', 'BrowserBanned', 'BrowserUnavailable', 'BrowserRetry',
            'BrowserPasswordExpired', 'BrowserHTTPNotFound', 'BrowserHTTPError', 'BrokenPageError', 'Page',
-           'StandardBrowser', 'BaseBrowser']
+           'StandardBrowser', 'Browser']
 
 
 class BrowserRetry(Exception):
@@ -422,7 +422,7 @@ class StandardBrowser(mechanize.Browser):
 
 
 
-class BaseBrowser(StandardBrowser):
+class Browser(StandardBrowser):
     """
     Base browser class to navigate on a website.
 

@@ -19,7 +19,7 @@
 
 from urllib import quote_plus
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from weboob.tools.browser.decorators import id2url
 
 from .pages import IndexPage, VideoPage, KidsVideoPage
@@ -29,7 +29,7 @@ from .video import DailymotionVideo
 __all__ = ['DailymotionBrowser']
 
 
-class DailymotionBrowser(BaseBrowser):
+class DailymotionBrowser(Browser):
     DOMAIN = 'www.dailymotion.com'
     ENCODING = None
     PAGES = {r'http://[w\.]*dailymotion\.com/1': IndexPage,

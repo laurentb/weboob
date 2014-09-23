@@ -21,11 +21,11 @@
 from weboob.tools.browser.browser import BrowserIncorrectPassword, BrowserBanned, \
                                          BrowserUnavailable, BrowserRetry, \
                                          BrowserHTTPNotFound, BrowserHTTPError, \
-                                         Page, BaseBrowser, BrokenPageError, \
+                                         Page, Browser, BrokenPageError, \
                                          StandardBrowser, BrowserPasswordExpired, \
                                          BrowserForbidden
 
 
 __all__ = ['BrowserIncorrectPassword', 'BrowserPasswordExpired', 'BrowserBanned',
            'BrowserUnavailable', 'BrowserRetry', 'BrowserHTTPNotFound', 'BrowserHTTPError',
-           'Page', 'BaseBrowser', 'BrokenPageError', 'StandardBrowser', 'BrowserForbidden']
+           'Page', 'Browser', 'BrokenPageError', 'StandardBrowser', 'BrowserForbidden']

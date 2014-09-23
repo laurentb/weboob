@@ -24,7 +24,7 @@ import re
 from weboob.capabilities.gallery import CapGallery, BaseGallery, BaseImage
 from weboob.tools.json import json
 from weboob.tools.backend import Module
-from weboob.tools.browser import BaseBrowser, Page
+from weboob.tools.browser import Browser, Page
 
 __all__ = ['IzneoModule']
 
@@ -47,7 +47,7 @@ class ReaderV2(Page):
                         (page['expires'], page['token'], ean, width, page['page'])))
 
 
-class IzneoBrowser(BaseBrowser):
+class IzneoBrowser(Browser):
     PAGES = {r'http://.+\.izneo.\w+/readv2-.+': ReaderV2}
 
     def iter_gallery_images(self, gallery):

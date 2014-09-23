@@ -19,10 +19,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from .pages.article import ArticlePage
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 
 
-class NewspaperTazBrowser(BaseBrowser):
+class NewspaperTazBrowser(Browser):
     "NewspaperTazBrowser class"
     PAGES = {
              "http://www.taz.de/.*": ArticlePage,

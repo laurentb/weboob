@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 from weboob.tools.json import json as json_module
 from base64 import b64encode
 import datetime
@@ -31,14 +31,14 @@ __all__ = ['GithubBrowser']
 
 
 
-class GithubBrowser(BaseBrowser):
+class GithubBrowser(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'api.github.com'
     ENCODING = 'utf-8'
 
     def __init__(self, *a, **kw):
         kw['parser'] = 'json'
-        BaseBrowser.__init__(self, *a, **kw)
+        Browser.__init__(self, *a, **kw)
         self.fewer_requests = not bool(self.username)
 
     def home(self):

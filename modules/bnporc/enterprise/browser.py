@@ -18,14 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, AccountsPage, HistoryPage, UnknownPage
 
 __all__ = ['BNPEnterprise']
 
 
-class BNPEnterprise(BaseBrowser):
+class BNPEnterprise(Browser):
     DOMAIN = 'entreprises.bnpparibas.net'
     PROTOCOL = 'https'
     CERTHASH = '6789f1e08e18d6578dca88ce2e0354a99dbe7824736c01c9c4fa3b456d03b9e9'

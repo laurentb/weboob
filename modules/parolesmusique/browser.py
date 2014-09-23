@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
+from weboob.tools.browser import Browser, BrowserHTTPNotFound
 
 from .pages import SongResultsPage, SonglyricsPage, ArtistResultsPage, ArtistSongsPage, HomePage
 
@@ -26,11 +26,11 @@ from .pages import SongResultsPage, SonglyricsPage, ArtistResultsPage, ArtistSon
 __all__ = ['ParolesmusiqueBrowser']
 
 
-class ParolesmusiqueBrowser(BaseBrowser):
+class ParolesmusiqueBrowser(Browser):
     DOMAIN = 'www.paroles-musique.com'
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
+    USER_AGENT = Browser.USER_AGENTS['wget']
     PAGES = {
         'http://www.paroles-musique.com': HomePage,
         'http://www.paroles-musique.com/lyrics-paroles-0-.*,0.php': SongResultsPage,

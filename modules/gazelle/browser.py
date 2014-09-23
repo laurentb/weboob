@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import Browser
 
 from .pages.index import IndexPage, LoginPage
 from .pages.torrents import TorrentsPage
@@ -27,7 +27,7 @@ from .pages.torrents import TorrentsPage
 __all__ = ['GazelleBrowser']
 
 
-class GazelleBrowser(BaseBrowser):
+class GazelleBrowser(Browser):
     PAGES = {'https?://[^/]+/?(index.php)?':  IndexPage,
              'https?://[^/]+/login.php':      LoginPage,
              'https?://[^/]+/torrents.php.*': TorrentsPage,
@@ -36,7 +36,7 @@ class GazelleBrowser(BaseBrowser):
     def __init__(self, protocol, domain, *args, **kwargs):
         self.DOMAIN = domain
         self.PROTOCOL = protocol
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def login(self):
         if not self.is_on_page(LoginPage):

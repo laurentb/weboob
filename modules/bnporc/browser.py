@@ -22,7 +22,7 @@ import urllib
 from datetime import datetime
 from logging import warning
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserPasswordExpired
+from weboob.tools.browser import Browser, BrowserIncorrectPassword, BrowserPasswordExpired
 from weboob.capabilities.bank import TransferError, Transfer
 
 from .perso.accounts_list import AccountsList, AccountPrelevement
@@ -36,7 +36,7 @@ from .pro import ProAccountsList, ProAccountHistory
 __all__ = ['BNPorc']
 
 
-class BNPorc(BaseBrowser):
+class BNPorc(Browser):
     DOMAIN = 'www.secure.bnpparibas.net'
     PROTOCOL = 'https'
     CERTHASH = ['5511f0ff19c982b6351c17b901bfa7419f075edb13f2df41e446248beb7866bb', 'fa8cb72ef2e46054469af916f7ec222b1904901fecde8511a0f769ba0385410d', '86cd4ba8cfbc53937dfc402e8c2d0a2d5ffb630a73bbeafd09c39f8b54a6a6c3']
@@ -66,7 +66,7 @@ class BNPorc(BaseBrowser):
     def __init__(self, *args, **kwargs):
         self.rotating_password = kwargs.pop('rotating_password', None)
         self.password_changed_cb = kwargs.pop('password_changed_cb', None)
-        BaseBrowser.__init__(self, *args, **kwargs)
+        Browser.__init__(self, *args, **kwargs)
 
     def home(self):
         self.location('https://www.secure.bnpparibas.net/banque/portail/particulier/HomeConnexion?type=homeconnex')
