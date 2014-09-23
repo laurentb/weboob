@@ -19,6 +19,7 @@
 
 
 import re
+from ast import literal_eval
 
 from weboob.tools.browser2.filters.standard import Filter, Regexp, RegexpError
 from weboob.tools.exceptions import ParseError
@@ -97,6 +98,7 @@ class JSVar(Regexp):
     _re_spaces = re.compile(r'\s+')
 
     def to_python(self, m):
+        "Convert MatchObject to python value"
         values = m.groupdict()
         for t, v in values.iteritems():
             if v is not None:
@@ -104,13 +106,9 @@ class JSVar(Regexp):
         if self.need_type and t != self.need_type:
             raise ParseError('Variable %r with type %s not found' % (self.var, self.need_type))
         if t in ('int', 'float'):
-            v = self._re_spaces.sub('', v).lower()
-            if t == 'int':
-                base = {'x': 16, 'o': 8, 'b': 2}.get(v[1], 10) if v[0] == '0' else 10
-                return int(v, base=base)
-            return float(v)
+            return literal_eval(v)
         if t == 'str':
-            return v[1:-1].decode('string_escape')
+            return literal_eval(v).decode('utf-8')
         if t == 'bool':
             return v == 'true'
         if t == 'None':
