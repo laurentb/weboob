@@ -769,7 +769,7 @@ class Boobathon(ReplApplication):
 
     def load_default_backends(self):
         """
-        Overload a BaseApplication method.
+        Overload a Application method.
         """
         for instance_name, backend_name, params in self.weboob.backends_config.iter_backends():
             if backend_name != 'redmine':

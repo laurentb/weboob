@@ -20,10 +20,10 @@
 
 from optparse import OptionGroup
 
-from weboob.tools.application.base import BaseApplication
+from weboob.tools.application.base import Application
 
 
-class WeboobDebug(BaseApplication):
+class WeboobDebug(Application):
     APPNAME = 'weboobdebug'
     VERSION = '1.0'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz'

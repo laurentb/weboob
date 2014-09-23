@@ -39,7 +39,7 @@ from weboob.tools.value import ValueInt, ValueBool, ValueBackendPassword
 from weboob.tools.misc import to_unicode
 from weboob.capabilities import UserError
 
-from ..base import BaseApplication, MoreResultsAvailable
+from ..base import Application, MoreResultsAvailable
 
 
 __all__ = ['QtApplication', 'QtMainWindow', 'QtDo', 'HTMLDelegate']
@@ -140,12 +140,12 @@ class QCallbacksManager(QObject):
         return request.answer
 
 
-class QtApplication(QApplication, BaseApplication):
+class QtApplication(QApplication, Application):
     def __init__(self):
         QApplication.__init__(self, sys.argv)
         self.setApplicationName(self.APPNAME)
 
-        BaseApplication.__init__(self)
+        Application.__init__(self)
         self.cbmanager = QCallbacksManager(self.weboob, self)
 
     def create_weboob(self):
@@ -154,7 +154,7 @@ class QtApplication(QApplication, BaseApplication):
     def load_backends(self, *args, **kwargs):
         while True:
             try:
-                return BaseApplication.load_backends(self, *args, **kwargs)
+                return Application.load_backends(self, *args, **kwargs)
             except VersionsMismatchError as e:
                 msg = 'Versions of modules mismatch with version of weboob.'
             except ConfigError as e:

@@ -37,7 +37,7 @@ from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt, ValueBack
 from weboob.tools.misc import to_unicode
 from weboob.tools.ordereddict import OrderedDict
 
-from .base import BaseApplication, MoreResultsAvailable
+from .base import Application, MoreResultsAvailable
 
 
 __all__ = ['ConsoleApplication', 'BackendNotGiven']
@@ -55,7 +55,7 @@ class BackendNotFound(Exception):
     pass
 
 
-class ConsoleApplication(BaseApplication):
+class ConsoleApplication(Application):
     """
     Base application class for CLI applications.
     """
@@ -74,7 +74,7 @@ class ConsoleApplication(BaseApplication):
         NC     = '[0m'    # no color
 
     def __init__(self, option_parser=None):
-        BaseApplication.__init__(self, option_parser)
+        Application.__init__(self, option_parser)
         self.weboob.callbacks['login'] = self.login_cb
         self.enabled_backends = set()
 

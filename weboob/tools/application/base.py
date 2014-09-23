@@ -37,7 +37,7 @@ from weboob.tools.log import createColoredFormatter, getLogger, settings as log_
 from weboob.tools.misc import to_unicode
 from .results import ResultsConditionError
 
-__all__ = ['BaseApplication']
+__all__ = ['Application']
 
 
 class MoreResultsAvailable(Exception):
@@ -72,7 +72,7 @@ class ApplicationStorage(object):
             return self.storage.save('applications', self.name)
 
 
-class BaseApplication(object):
+class Application(object):
     """
     Base application.
 
@@ -136,7 +136,7 @@ class BaseApplication(object):
         """
         pass
 
-    # ------ BaseApplication methods -------------------------------
+    # ------ Application methods -------------------------------
 
     def __init__(self, option_parser=None):
         self.encoding = self.guess_encoding()

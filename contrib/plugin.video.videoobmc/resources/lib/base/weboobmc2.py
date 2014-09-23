@@ -1,15 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from weboob.tools.application.base import BaseApplication
+from weboob.tools.application.base import Application
 import os
 import re
 import subprocess
 
 
-class Weboobmc(BaseApplication):
+class Weboobmc(Application):
     def __init__(self, count=10):
-        BaseApplication.__init__(self)
+        Application.__init__(self)
         self.count = int(count)
         self._is_default_count = False
 

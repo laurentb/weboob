@@ -29,7 +29,7 @@ from webob import exc
 from wsgiref.simple_server import make_server
 
 from weboob.capabilities.video import CapVideo
-from weboob.tools.application.base import BaseApplication
+from weboob.tools.application.base import Application
 
 
 __all__ = ['VideoobWeb']
@@ -39,7 +39,7 @@ template_lookup = TemplateLookup(directories=[os.path.join(os.path.dirname(__fil
                                  output_encoding='utf-8', encoding_errors='replace')
 
 
-class VideoobWeb(BaseApplication):
+class VideoobWeb(Application):
     APPNAME = 'videoob-webserver'
     VERSION = '0.j'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz'

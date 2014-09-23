@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.travel import CapTravel
-from weboob.tools.application.base import BaseApplication
+from weboob.tools.application.base import Application
 from logging import warning
 
 import gtk
@@ -275,7 +275,7 @@ class MasstransitHildon():
         hildon.hildon_gtk_window_set_progress_indicator(self.main_window, 0)
 
 
-class Masstransit(BaseApplication):
+class Masstransit(Application):
     "Application Class"
     APPNAME = 'masstransit'
     VERSION = '1.0'

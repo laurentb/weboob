@@ -27,7 +27,7 @@ import optparse
 import re
 import time
 
-from weboob.tools.application.base import BaseApplication
+from weboob.tools.application.base import Application
 
 BASE_PATH = os.path.join(os.path.dirname(__file__), os.pardir)
 DEST_DIR = 'man'
@@ -126,7 +126,7 @@ def main():
                     print "Loaded %s" % fname
                     # Find the applications we can handle
                     for klass in script.__dict__.itervalues():
-                        if inspect.isclass(klass) and issubclass(klass, BaseApplication):
+                        if inspect.isclass(klass) and issubclass(klass, Application):
                             analyze_application(klass, fname)
                 finally:
                     # Cleanup compiled files if needed
