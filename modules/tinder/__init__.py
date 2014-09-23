@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import TinderModule
+from .module import TinderModule
 
 
 __all__ = ['TinderModule']

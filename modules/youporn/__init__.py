@@ -1,3 +1,3 @@
-from .backend import YoupornModule
+from .module import YoupornModule
 
 __all__ = ['YoupornModule']

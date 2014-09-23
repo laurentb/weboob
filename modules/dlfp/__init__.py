@@ -19,6 +19,6 @@
 
 
 from .browser import DLFP
-from .backend import DLFPModule
+from .module import DLFPModule
 
 __all__ = ['DLFP', 'DLFPModule']

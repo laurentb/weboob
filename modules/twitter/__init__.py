@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import TwitterModule
+from .module import TwitterModule
 
 
 __all__ = ['TwitterModule']

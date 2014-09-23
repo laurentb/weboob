@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import AgendadulibreModule
+from .module import AgendadulibreModule
 
 
 __all__ = ['AgendadulibreModule']

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import DelubacModule
+from .module import DelubacModule
 
 
 __all__ = ['DelubacModule']

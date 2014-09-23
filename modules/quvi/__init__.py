@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import QuviModule, QuviVideo
+from .module import QuviModule, QuviVideo
 
 
 __all__ = ['QuviModule', 'QuviVideo']

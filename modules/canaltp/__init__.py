@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import CanalTPModule
+from .module import CanalTPModule
 
 __all__ = ['CanalTPModule']

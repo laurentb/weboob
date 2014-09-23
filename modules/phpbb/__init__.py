@@ -19,6 +19,6 @@
 
 
 from .browser import PhpBB
-from .backend import PhpBBModule
+from .module import PhpBBModule
 
 __all__ = ['PhpBB', 'PhpBBModule']

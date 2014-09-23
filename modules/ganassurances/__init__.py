@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import GanAssurancesModule
+from .module import GanAssurancesModule
 
 __all__ = ['GanAssurancesModule']

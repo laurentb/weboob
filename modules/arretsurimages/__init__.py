@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import ArretSurImagesModule
+from .module import ArretSurImagesModule
 
 
 __all__ = ['ArretSurImagesModule']

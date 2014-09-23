@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import VoyagesSNCFModule
+from .module import VoyagesSNCFModule
 
 
 __all__ = ['VoyagesSNCFModule']

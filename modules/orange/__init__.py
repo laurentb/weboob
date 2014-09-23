@@ -1,3 +1,3 @@
-from .backend import OrangeModule
+from .module import OrangeModule
 
 __all__ = ['OrangeModule']

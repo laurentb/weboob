@@ -18,5 +18,5 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .backend import Newspaper20minutesModule
+from .module import Newspaper20minutesModule
 __all__ = ['Newspaper20minutesModule']

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import SomaFMModule
+from .module import SomaFMModule
 
 
 __all__ = ['SomaFMModule']

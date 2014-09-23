@@ -1,3 +1,3 @@
-from .backend import IpinfodbModule
+from .module import IpinfodbModule
 
 __all__ = ['IpinfodbModule']

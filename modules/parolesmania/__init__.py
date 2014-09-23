@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import ParolesmaniaModule
+from .module import ParolesmaniaModule
 
 __all__ = ['ParolesmaniaModule']

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import SenscritiqueModule
+from .module import SenscritiqueModule
 
 
 __all__ = ['SenscritiqueModule']

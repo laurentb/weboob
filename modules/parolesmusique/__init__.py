@@ -1,3 +1,3 @@
-from .backend import ParolesmusiqueModule
+from .module import ParolesmusiqueModule
 
 __all__ = ['ParolesmusiqueModule']

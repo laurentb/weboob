@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import BarclaysModule
+from .module import BarclaysModule
 
 __all__ = ['BarclaysModule']

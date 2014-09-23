@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import AudioAddictModule
+from .module import AudioAddictModule
 
 
 __all__ = ['AudioAddictModule']

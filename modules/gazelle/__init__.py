@@ -1,3 +1,3 @@
-from .backend import GazelleModule
+from .module import GazelleModule
 
 __all__ = ['GazelleModule']

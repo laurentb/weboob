@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import AdeccoModule
+from .module import AdeccoModule
 
 
 __all__ = ['AdeccoModule']

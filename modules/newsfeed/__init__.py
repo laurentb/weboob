@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import NewsfeedModule
+from .module import NewsfeedModule
 
 __all__ = ['NewsfeedModule']

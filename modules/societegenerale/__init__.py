@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import SocieteGeneraleModule
+from .module import SocieteGeneraleModule
 
 __all__ = ['SocieteGeneraleModule']

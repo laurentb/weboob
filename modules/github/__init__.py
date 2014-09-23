@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import GithubModule
+from .module import GithubModule
 
 
 __all__ = ['GithubModule']

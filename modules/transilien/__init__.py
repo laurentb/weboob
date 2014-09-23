@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import TransilienModule
+from .module import TransilienModule
 
 __all__ = ['TransilienModule']

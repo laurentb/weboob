@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import LCLModule
+from .module import LCLModule
 
 __all__ = ['LCLModule']

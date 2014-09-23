@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import PoivyModule
+from .module import PoivyModule
 
 __all__ = ['PoivyModule']

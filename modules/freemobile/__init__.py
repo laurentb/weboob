@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import FreeMobileModule
+from .module import FreeMobileModule
 
 __all__ = ['FreeMobileModule']

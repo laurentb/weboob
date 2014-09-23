@@ -1,3 +1,3 @@
-from .backend import InaModule
+from .module import InaModule
 
 __all__ = ['InaModule']

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import FortuneoModule
+from .module import FortuneoModule
 
 __all__ = ['FortuneoModule']
 

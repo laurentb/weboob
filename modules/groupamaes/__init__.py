@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import GroupamaesModule
+from .module import GroupamaesModule
 
 
 __all__ = ['GroupamaesModule']

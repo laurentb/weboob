@@ -64,7 +64,7 @@ For example, use this command::
 In a module directory, there are commonly these files:
 
 * **__init__.py** - needed in every python modules, it exports your :class:`BaseModule <weboob.tools.backend.BaseModule>` class.
-* **backend.py** - defines the main class of your module, which derives :class:`BaseModule <weboob.tools.backend.BaseModule>`.
+* **module.py** - defines the main class of your module, which derives :class:`BaseModule <weboob.tools.backend.BaseModule>`.
 * **browser.py** - your browser, derived from :class:`BaseBrowser <weboob.tools.browser2.browser.BaseBrowser>`, is called by your module to interact with the supported website.
 * **pages.py** - all website's pages handled by the browser are defined here
 * **test.py** - functional tests
@@ -97,7 +97,7 @@ If the last command does not work, check your :doc:`repositories setup </guides/
 Module class
 *************
 
-Edit ``backend.py``. It contains the main class of the module derived from :class:`BaseModule <weboob.tools.backend.BaseModule>` class::
+Edit ``module.py``. It contains the main class of the module derived from :class:`BaseModule <weboob.tools.backend.BaseModule>` class::
 
     class ExampleModule(BaseModule, CapBank):
         NAME = 'example'                         # The name of module
@@ -170,7 +170,7 @@ You need to implement each method of all of the capabilities your module impleme
         def iter_coming(self, account):
             raise NotImplementedError()
 
-If you ran the ``boilerplate`` script command ``cap``, every methods are already in ``backend.py`` and documented.
+If you ran the ``boilerplate`` script command ``cap``, every methods are already in ``module.py`` and documented.
 
 Read :class:`documentation of the capability <weboob.capabilities.bank.CapBank>` to know what are types of arguments,
 what are expected returned objects, and what exceptions it may raises.

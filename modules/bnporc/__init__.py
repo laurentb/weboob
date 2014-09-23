@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import BNPorcModule
+from .module import BNPorcModule
 
 __all__ = ['BNPorcModule']

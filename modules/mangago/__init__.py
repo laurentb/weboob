@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import MangagoModule
+from .module import MangagoModule
 
 __all__ = ['MangagoModule']

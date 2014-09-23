@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import JVMalinModule
+from .module import JVMalinModule
 
 __all__ = ['JVMalinModule']

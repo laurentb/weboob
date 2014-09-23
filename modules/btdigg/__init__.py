@@ -1,3 +1,3 @@
-from .backend import BTDiggModule
+from .module import BTDiggModule
 
 __all__ = ['BTDiggModule']

@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .backend import NewspaperTazModule
+from .module import NewspaperTazModule
 
 
 __all__ = ['NewspaperTazModule']

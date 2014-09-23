@@ -1,3 +1,3 @@
-from .backend import HDSModule
+from .module import HDSModule
 
 __all__ = ['HDSModule']

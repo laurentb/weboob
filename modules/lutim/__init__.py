@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import LutimModule
+from .module import LutimModule
 
 
 __all__ = ['LutimModule']

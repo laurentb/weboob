@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import ChampslibresModule
+from .module import ChampslibresModule
 
 __all__ = ['ChampslibresModule']

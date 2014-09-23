@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import CragrModule
+from .module import CragrModule
 
 __all__ = ['CragrModule']

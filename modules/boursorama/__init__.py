@@ -19,6 +19,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import BoursoramaModule
+from .module import BoursoramaModule
 
 __all__ = ['BoursoramaModule']

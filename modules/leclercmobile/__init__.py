@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import LeclercMobileModule
+from .module import LeclercMobileModule
 
 __all__ = ['LeclercMobileModule']
