@@ -21,14 +21,14 @@
 import datetime
 import re
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
-class ValidationPage(BasePage):
+class ValidationPage(Page):
     pass
 
 
-class HomePage(BasePage):
+class HomePage(Page):
     pass
 
 
@@ -55,7 +55,7 @@ class Story(object):
         self.body = None
 
 
-class HistoryPage(BasePage):
+class HistoryPage(Page):
     def get_numerous(self):
         td = self.parser.select(self.document.getroot(), 'td.t0', 1)
         n = td.xpath('//u/strong|//u/b')[0].text
@@ -91,7 +91,7 @@ class HistoryPage(BasePage):
                 story = None
 
 
-class StoryPage(BasePage):
+class StoryPage(Page):
     def get_story(self):
         p_tags = self.document.getroot().xpath('//body/p')
         if len(p_tags) > 0 and p_tags[0].text.strip() == \
@@ -146,7 +146,7 @@ class StoryPage(BasePage):
         return story
 
 
-class AuthorPage(BasePage):
+class AuthorPage(Page):
     def get_author(self):
         p_tags = self.document.getroot().xpath('//body/div/font/b')
         if len(p_tags) > 0 and p_tags[0].text.strip() == \

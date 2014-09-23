@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import date
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities.parcel import Parcel, Event
 
 
@@ -26,7 +26,7 @@ def update_status(p, status):
     if p.status < status:
         p.status = status
 
-class TrackPage(BasePage):
+class TrackPage(Page):
     def get_info(self, _id):
         p = Parcel(_id)
 
@@ -70,5 +70,5 @@ class TrackPage(BasePage):
             pass
         return p
 
-class ErrorPage(BasePage):
+class ErrorPage(Page):
     pass

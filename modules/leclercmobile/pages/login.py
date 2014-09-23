@@ -18,11 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import StringIO
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.mech import ClientForm
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def on_loaded(self):
         pass
 

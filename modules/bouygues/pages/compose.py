@@ -21,10 +21,10 @@
 import re
 
 from weboob.capabilities.messages import CantSendMessage
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
-class ComposeFrame(BasePage):
+class ComposeFrame(Page):
     phone_regex = re.compile('^(\+33|0033|0)(6|7)(\d{8})$')
 
     def post_message(self, message):
@@ -37,14 +37,14 @@ class ComposeFrame(BasePage):
         self.browser.submit()
 
 
-class ComposePage(BasePage):
+class ComposePage(Page):
     pass
 
 
-class ConfirmPage(BasePage):
+class ConfirmPage(Page):
     def confirm(self):
         self.browser.location('http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/resultSendSMS.phtml')
 
 
-class SentPage(BasePage):
+class SentPage(Page):
     pass

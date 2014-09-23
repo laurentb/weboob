@@ -20,10 +20,10 @@
 
 from weboob.capabilities.lyrics import SongLyrics
 from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
-class ArtistResultsPage(BasePage):
+class ArtistResultsPage(Page):
     def iter_lyrics(self):
         for link in self.parser.select(self.document.getroot(), 'div#albums > h1 a'):
             artist = unicode(link.text_content())
@@ -35,7 +35,7 @@ class ArtistResultsPage(BasePage):
                     yield lyr
 
 
-class ArtistSongsPage(BasePage):
+class ArtistSongsPage(Page):
     def iter_lyrics(self, artist=None):
         if artist is None:
             artist = self.parser.select(self.document.getroot(), 'head > title', 1).text.replace('Paroles ', '')
@@ -52,7 +52,7 @@ class ArtistSongsPage(BasePage):
                 yield songlyrics
 
 
-class SongResultsPage(BasePage):
+class SongResultsPage(Page):
     def iter_lyrics(self):
         for link in self.parser.select(self.document.getroot(), 'div#albums a'):
             artist = NotAvailable
@@ -68,7 +68,7 @@ class SongResultsPage(BasePage):
                 yield songlyrics
 
 
-class SonglyricsPage(BasePage):
+class SonglyricsPage(Page):
     def get_lyrics(self, id):
         content = NotAvailable
         artist = NotAvailable

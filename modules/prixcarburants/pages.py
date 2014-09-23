@@ -20,12 +20,12 @@
 
 from decimal import Decimal
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.pricecomparison import Product, Shop, Price
 
 
-class IndexPage(BasePage):
+class IndexPage(Page):
 
     def get_token(self):
         input = self.parser.select(self.document.getroot(), 'div#localisation input#recherche_recherchertype__token', 1)
@@ -46,7 +46,7 @@ class IndexPage(BasePage):
             yield product
 
 
-class ComparisonResultsPage(BasePage):
+class ComparisonResultsPage(Page):
     def get_product_name(self):
         th = self.document.getroot().cssselect('table#tab_resultat tr th')
         if th and len(th) == 9:
@@ -74,6 +74,6 @@ class ComparisonResultsPage(BasePage):
                 yield price
 
 
-class ShopInfoPage(BasePage):
+class ShopInfoPage(Page):
     def get_info(self):
         return self.parser.tostring(self.parser.select(self.document.getroot(), 'div.infos', 1))

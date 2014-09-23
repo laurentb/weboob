@@ -22,22 +22,22 @@ import re
 from decimal import Decimal
 from datetime import time, datetime, timedelta
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.json import json
 from weboob.tools.mech import ClientForm
 from weboob.capabilities.base import UserError, Currency
 
 
-class ForeignPage(BasePage):
+class ForeignPage(Page):
     def on_loaded(self):
         raise UserError('Your IP address is localized in a country not supported by this module (%s). Currently only the French website is supported.' % self.group_dict['country'])
 
-class CitiesPage(BasePage):
+class CitiesPage(Page):
     def get_stations(self):
        result = json.loads(self.document[self.document.find('{'):-2])
        return result['CITIES']
 
-class SearchPage(BasePage):
+class SearchPage(Page):
     def search(self, departure, arrival, date, age, card, comfort_class):
         self.browser.select_form(name='saisie')
         self.browser['ORIGIN_CITY'] = departure.encode(self.browser.ENCODING)
@@ -57,19 +57,19 @@ class SearchPage(BasePage):
         self.browser['nbAnimalsForTravel'] = '0'
         self.browser.submit()
 
-class SearchErrorPage(BasePage):
+class SearchErrorPage(Page):
     def on_loaded(self):
         p = self.document.getroot().cssselect('div.messagesError p')
         if len(p) > 0:
             message = p[0].text.strip()
             raise UserError(message)
 
-class SearchInProgressPage(BasePage):
+class SearchInProgressPage(Page):
     def on_loaded(self):
         link = self.document.xpath('//a[@id="url_redirect_proposals"]')[0]
         self.browser.location(link.attrib['href'])
 
-class ResultsPage(BasePage):
+class ResultsPage(Page):
     def get_value(self, div, name, last=False):
         i = -1 if last else 0
         p = div.cssselect(name)[i]

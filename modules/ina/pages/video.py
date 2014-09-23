@@ -23,12 +23,12 @@ import re
 
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.image import BaseImage
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 from ..video import InaVideo
 
 
-class VideoPage(BasePage):
+class VideoPage(Page):
     URL_REGEXP = re.compile('http://player.ina.fr/notices/(.+)\.mrss')
 
     def get_id(self):

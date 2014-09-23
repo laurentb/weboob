@@ -22,7 +22,7 @@ from datetime import datetime
 from decimal import Decimal
 import re
 import urllib
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities.bill import Subscription, Detail, Bill
 
 
@@ -30,7 +30,7 @@ from weboob.capabilities.bill import Subscription, Detail, Bill
 FRENCH_MONTHS = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, login, password):
         self.browser.select_form('connexionCompteForm')
         self.browser["vp_connexion_portlet_1numPS"] = login.encode('utf8')
@@ -38,13 +38,13 @@ class LoginPage(BasePage):
         self.browser.submit()
 
 
-class HomePage(BasePage):
+class HomePage(Page):
 
     def on_loaded(self):
         pass
 
 
-class AccountPage(BasePage):
+class AccountPage(Page):
 
     def get_subscription_list(self):
         ident = self.document.xpath('//div[@id="identification"]')[0]
@@ -59,7 +59,7 @@ class AccountPage(BasePage):
         return sub
 
 
-class HistoryPage(BasePage):
+class HistoryPage(Page):
 
     def iter_history(self):
         table = self.document.xpath('//table[contains(concat(" ", @class, " "), " cTableauTriable ")]')[0].xpath('.//tr')
@@ -83,7 +83,7 @@ class HistoryPage(BasePage):
             yield det
 
 
-class BillsPage(BasePage):
+class BillsPage(Page):
 
     def iter_bills(self):
         table = self.document.xpath('//table[@id="releveCompteMensuel"]')[0].xpath('.//tr')

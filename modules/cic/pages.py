@@ -24,14 +24,14 @@ from decimal import Decimal
 import re
 from dateutil.relativedelta import relativedelta
 
-from weboob.tools.browser import BasePage, BrowserIncorrectPassword, BrokenPageError
+from weboob.tools.browser import Page, BrowserIncorrectPassword, BrokenPageError
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_french_date
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, login, passwd):
         self.browser.select_form(name='ident')
         self.browser['_cm_user'] = login.encode(self.browser.ENCODING)
@@ -39,35 +39,35 @@ class LoginPage(BasePage):
         self.browser.submit(nologin=True)
 
 
-class LoginErrorPage(BasePage):
+class LoginErrorPage(Page):
     pass
 
 
-class ChangePasswordPage(BasePage):
+class ChangePasswordPage(Page):
     def on_loaded(self):
         raise BrowserIncorrectPassword('Please change your password')
 
-class VerifCodePage(BasePage):
+class VerifCodePage(Page):
     def on_loaded(self):
         raise BrowserIncorrectPassword('Unable to login: website asks a code from a card')
 
-class InfoPage(BasePage):
+class InfoPage(Page):
     pass
 
 
-class EmptyPage(BasePage):
+class EmptyPage(Page):
     pass
 
 
-class TransfertPage(BasePage):
+class TransfertPage(Page):
     pass
 
 
-class UserSpacePage(BasePage):
+class UserSpacePage(Page):
     pass
 
 
-class AccountsPage(BasePage):
+class AccountsPage(Page):
     TYPES = {'C/C':             Account.TYPE_CHECKING,
              'Livret':          Account.TYPE_SAVINGS,
              'Pret':            Account.TYPE_LOAN,
@@ -165,7 +165,7 @@ class Transaction(FrenchTransaction):
     _is_coming = False
 
 
-class OperationsPage(BasePage):
+class OperationsPage(Page):
     def get_history(self):
         index = 0
         for tr in self.document.getiterator('tr'):

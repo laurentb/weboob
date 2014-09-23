@@ -17,13 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities.radio import Radio
 from weboob.capabilities.audiostream import BaseAudioStream
 from weboob.tools.capabilities.streaminfo import StreamInfo
 
 
-class LivePage(BasePage):
+class LivePage(Page):
     def iter_radios_list(self):
         radio = Radio('nihon')
         radio.title = u'Nihon no Oto'
@@ -49,7 +49,7 @@ class LivePage(BasePage):
         yield radio
 
 
-class ProgramPage(BasePage):
+class ProgramPage(Page):
     def get_current_emission(self):
         current = StreamInfo(0)
         two_or_more = unicode(self.document.xpath('//p')[0].text).split('/////')[0].split(' - ')

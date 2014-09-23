@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import BaseBrowser, BasePage
+from weboob.tools.browser import BaseBrowser, Page
 from weboob.tools.json import json
 from weboob.capabilities.video import BaseVideo
 from weboob.tools.browser.decorators import id2url
@@ -45,7 +45,7 @@ class RadioFranceVideo(BaseVideo):
             (radio_domain, replay_id)
 
 
-class PlayerPage(BasePage):
+class PlayerPage(Page):
     URL = r'^http://www\.(?P<rdomain>%s)\.fr/player/reecouter\?play=(?P<replay_id>\d+)$' \
         % '|'.join(RadioFranceVideo.RADIO_DOMAINS)
     MP3_REGEXP = re.compile(r'sites%2Fdefault.+.(?:MP3|mp3)')
@@ -57,7 +57,7 @@ class PlayerPage(BasePage):
         return 'http://www.%s.fr/%s' % (radio_domain, urlparams['urlAOD'][0])
 
 
-class ReplayPage(BasePage):
+class ReplayPage(Page):
     URL = r'^http://www\.(?P<rdomain>%s)\.fr/(?:emission|diffusion)-.+$' \
         % '|'.join(RadioFranceVideo.RADIO_DOMAINS)
     # the url does not always end with id-yyy-mm-dd, sometimes no mm or dd
@@ -88,7 +88,7 @@ class ReplayPage(BasePage):
                 return (radio_domain, player_id)
 
 
-class DataPage(BasePage):
+class DataPage(Page):
     def get_current(self):
         document = self.document
         title = ''
@@ -108,7 +108,7 @@ class DataPage(BasePage):
         return (artist, title)
 
 
-class RssPage(BasePage):
+class RssPage(Page):
     def get_title(self):
         titles = []
         for heading in self.parser.select(self.document.getroot(), 'h1, h2, h3, h4'):

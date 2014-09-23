@@ -19,15 +19,15 @@
 
 from datetime import date
 from weboob.capabilities.library import Book
-from weboob.tools.browser import BasePage, BrowserUnavailable
+from weboob.tools.browser import Page, BrowserUnavailable
 from weboob.tools.mech import ClientForm
 
 
-class SkipPage(BasePage):
+class SkipPage(Page):
     pass
 
 
-class HomePage(BasePage):
+class HomePage(Page):
     pass
 
 
@@ -35,7 +35,7 @@ def txt2date(s):
     return date(*reversed([int(x) for x in s.split(' ')[-1].split('/')]))
 
 
-class RentedPage(BasePage):
+class RentedPage(Page):
     # TODO, table limited to 20 items, need to use pagination
     def get_list(self):
         for book in self.iter_books('//tr[contains(@id, "ctl00_ContentPlaceHolder1_ctl00_ctl07_COMPTE_PRET_1_1_GrillePrets_ctl00__")]', 1):
@@ -55,11 +55,11 @@ class RentedPage(BasePage):
             yield book
 
 
-class HistoryPage(BasePage):
+class HistoryPage(Page):
     pass
 
 
-class BookedPage(BasePage):
+class BookedPage(Page):
     # TODO, table limited to 20 items, need to use pagination
     def get_list(self):
         for tr in self.document.getroot().xpath('//tr[contains(@id, "ctl00_ContentPlaceHolder1_ctl00_ctl09_COMPTE_INFOS_0_GrilleInfos_ctl00__0")]'):
@@ -80,7 +80,7 @@ class BookedPage(BasePage):
             yield book
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, login, passwd):
         self.browser.select_form(predicate=lambda x: x.attrs.get('id','')=='aspnetForm')
         self.browser.form.set_all_readonly(False)

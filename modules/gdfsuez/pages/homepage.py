@@ -19,11 +19,11 @@
 
 from datetime import date
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities.bill import Subscription
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
 
     def login(self, login, password):
         self.browser.select_form('symConnexionForm')
@@ -32,13 +32,13 @@ class LoginPage(BasePage):
         self.browser.submit()
 
 
-class HomePage(BasePage):
+class HomePage(Page):
 
     def on_loaded(self):
         pass
 
 
-class AccountPage(BasePage):
+class AccountPage(Page):
 
     def get_subscription_list(self):
         table = self.document.xpath('//table[@id="ensemble_contrat_N0"]')[0]
@@ -63,7 +63,7 @@ class AccountPage(BasePage):
                 yield sub
 
 
-class TimeoutPage(BasePage):
+class TimeoutPage(Page):
 
     def on_loaded(self):
         pass

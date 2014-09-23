@@ -26,12 +26,12 @@ import shutil
 from datetime import date
 from decimal import Decimal
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bill import Detail, Bill
 
 
-class HistoryPage(BasePage):
+class HistoryPage(Page):
 
     def on_loaded(self):
         self.details = []

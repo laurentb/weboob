@@ -19,16 +19,16 @@
 
 from datetime import date
 from weboob.capabilities.library import Book, Renew
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.mech import ClientForm
 from weboob.tools.html import html2text
 
 
-class SkipPage(BasePage):
+class SkipPage(Page):
     pass
 
 
-class HomePage(BasePage):
+class HomePage(Page):
     def on_loaded(self):
         link = self.document.find('//a[@id="patronRSSFeedLinkComponent"]')
         self.id = link.attrib['href'].split('/')[4]
@@ -42,7 +42,7 @@ def txt2date(s):
     return date(int(split[2]) + 2000, int(split[1]), int(split[0]))
 
 
-class RentedPage(BasePage):
+class RentedPage(Page):
     def get_list(self):
         for tr in self.document.getroot().xpath('//tr[@class="patFuncEntry"]'):
             id = tr.xpath('td/input')[0].attrib["value"]
@@ -77,16 +77,16 @@ class RentedPage(BasePage):
                 return renew
 
 
-class HistoryPage(BasePage):
+class HistoryPage(Page):
     pass
 
 
-class BookedPage(BasePage):
+class BookedPage(Page):
     # TODO: book some books...
     pass
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, login, passwd):
         self.browser.select_form(nr=0)
         self.browser.form.set_all_readonly(False)

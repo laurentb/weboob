@@ -22,14 +22,14 @@ from datetime import datetime
 import re
 import urllib
 from decimal import Decimal
-from weboob.tools.browser import BasePage,BrokenPageError
+from weboob.tools.browser import Page, BrokenPageError
 from weboob.capabilities.bill import Subscription, Detail, Bill
 
 
 # Ugly array to avoid the use of french locale
 FRENCH_MONTHS = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
 
-class AmeliBasePage(BasePage):
+class AmeliBasePage(Page):
     def is_logged(self):
         try:
             self.parser.select(self.document.getroot(), 'a.logout', 1)

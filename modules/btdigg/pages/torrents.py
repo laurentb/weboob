@@ -4,12 +4,12 @@ from datetime import datetime, timedelta
 from urlparse import urlparse, parse_qs
 
 from weboob.tools.misc import get_bytes_size
-from weboob.tools.browser import BasePage,BrokenPageError
+from weboob.tools.browser import Page,BrokenPageError
 from weboob.capabilities.torrent import Torrent, MagnetOnly
 from weboob.capabilities.base import NotAvailable
 
 
-class TorrentsPage(BasePage):
+class TorrentsPage(Page):
 
     def iter_torrents(self):
         try:
@@ -50,7 +50,7 @@ class TorrentsPage(BasePage):
             torrent.date = date
             yield torrent
 
-class TorrentPage(BasePage):
+class TorrentPage(Page):
     def get_torrent(self, id):
         trs = self.document.getroot().cssselect('table.torrent_info_tbl tr')
 

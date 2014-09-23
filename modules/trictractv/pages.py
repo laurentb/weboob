@@ -21,13 +21,13 @@ import datetime
 import re
 
 from weboob.capabilities.image import BaseImage
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import Page, BrokenPageError
 
 
 from .video import TricTracTVVideo
 
 
-class IndexPage(BasePage):
+class IndexPage(Page):
     def iter_videos(self):
         for div in self.parser.select(self.document.getroot(), 'li#contentsearch'):
             title = self.parser.select(div, '#titlesearch span', 1)
@@ -53,7 +53,7 @@ class IndexPage(BasePage):
             yield video
 
 
-class VideoPage(BasePage):
+class VideoPage(Page):
     def on_loaded(self):
         p = self.parser.select(self.document.getroot(), 'p.alert')
         if len(p) > 0:

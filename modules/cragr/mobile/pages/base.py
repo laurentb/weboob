@@ -18,11 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.browser import BrowserUnavailable
 
 
-class CragrBasePage(BasePage):
+class CragrBasePage(Page):
     def on_loaded(self):
         # Check for an error
         for div in self.document.getiterator('div'):

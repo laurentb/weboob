@@ -23,7 +23,7 @@ import hashlib
 import re
 import lxml.etree as etree
 
-from weboob.tools.browser import BasePage, BrowserUnavailable
+from weboob.tools.browser import Page, BrowserUnavailable
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard
 
 
@@ -33,7 +33,7 @@ def md5(f):
     return md5.hexdigest()
 
 
-class UnavailablePage(BasePage):
+class UnavailablePage(Page):
     def on_loaded(self):
         raise BrowserUnavailable()
 
@@ -85,7 +85,7 @@ class Keyboard(VirtKeyboard):
         # strip borders
         return VirtKeyboard.get_symbol_coords(self, (x1+3, y1+3, x2-3, y2-3))
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, login, pwd):
         vk = Keyboard(self)
 
@@ -96,24 +96,24 @@ class LoginPage(BasePage):
         self.browser.submit()
 
 
-class repositionnerCheminCourant(BasePage):
+class repositionnerCheminCourant(Page):
     def on_loaded(self):
         self.browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/initialiser-identif.ea")
 
 
-class Initident(BasePage):
+class Initident(Page):
     def on_loaded(self):
         self.browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/verifierMotDePasse-identif.ea")
 
 
-class CheckPassword(BasePage):
+class CheckPassword(Page):
     def on_loaded(self):
         self.browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/init-synthese.ea")
 
 
-class BadLoginPage(BasePage):
+class BadLoginPage(Page):
     pass
 
 
-class AccountDesactivate(BasePage):
+class AccountDesactivate(Page):
     pass

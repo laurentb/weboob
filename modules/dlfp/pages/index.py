@@ -18,10 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
-class DLFPPage(BasePage):
+class DLFPPage(Page):
     def is_logged(self):
         for form in self.document.getiterator('form'):
             if form.attrib.get('id', None) == 'new_account_sidebar':

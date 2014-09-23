@@ -57,7 +57,7 @@ ControlNotFoundError = ClientForm.ControlNotFoundError
 from weboob.tools.parsers import get_parser
 
 __all__ = ['BrowserIncorrectPassword', 'BrowserForbidden', 'BrowserBanned', 'BrowserUnavailable', 'BrowserRetry',
-           'BrowserPasswordExpired', 'BrowserHTTPNotFound', 'BrowserHTTPError', 'BrokenPageError', 'BasePage',
+           'BrowserPasswordExpired', 'BrowserHTTPNotFound', 'BrowserHTTPError', 'BrokenPageError', 'Page',
            'StandardBrowser', 'BaseBrowser']
 
 
@@ -89,7 +89,7 @@ class BrokenPageError(Exception):
     pass
 
 
-class BasePage(object):
+class Page(object):
     """
     Base page
     """
@@ -526,7 +526,7 @@ class BaseBrowser(StandardBrowser):
         Check the current page.
 
         :param pageCls: class of the page to check
-        :type pageCls: :class:`BasePage`
+        :type pageCls: :class:`Page`
         :rtype: bool
         """
         return isinstance(self.page, pageCls)

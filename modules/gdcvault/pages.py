@@ -19,7 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 import urllib
 import re
@@ -40,7 +40,7 @@ from .video import GDCVaultVideo
 # TODO: check title on 1439
 
 
-class IndexPage(BasePage):
+class IndexPage(Page):
     def iter_videos(self):
         for a in self.parser.select(self.document.getroot(), 'section.conference ul.media_items li.featured a.session_item'):
             href = a.attrib.get('href', '')
@@ -79,7 +79,7 @@ class IndexPage(BasePage):
 
 # the search page class uses a JSON parser,
 # since it's what search.php returns when POSTed (from Ajax)
-class SearchPage(BasePage):
+class SearchPage(Page):
     def iter_videos(self):
         if self.document is None or self.document['data'] is None:
             raise BrokenPageError('Unable to find JSON data')
@@ -90,7 +90,7 @@ class SearchPage(BasePage):
                 continue
             yield video
 
-class VideoPage(BasePage):
+class VideoPage(Page):
     def get_video(self, video=None):
         # check for slides id variant
         want_slides = False

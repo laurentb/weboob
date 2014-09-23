@@ -22,11 +22,11 @@ from decimal import Decimal
 
 from weboob.tools.date import parse_french_date
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import Page, BrokenPageError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 
 
-class HomePage(BasePage):
+class HomePage(Page):
     def get_post_url(self):
         for script in self.document.xpath('//script'):
             text = script.text
@@ -39,7 +39,7 @@ class HomePage(BasePage):
 
         return None
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, password):
         assert password.isdigit()
         assert len(password) == 6
@@ -60,13 +60,13 @@ class LoginPage(BasePage):
     def get_result_url(self):
         return self.parser.tocleanstring(self.document.getroot())
 
-class UselessPage(BasePage):
+class UselessPage(Page):
     pass
 
-class LoginErrorPage(BasePage):
+class LoginErrorPage(Page):
     pass
 
-class _AccountsPage(BasePage):
+class _AccountsPage(Page):
     COL_LABEL    = 0
     COL_ID       = 2
     COL_VALUE    = 4
@@ -121,7 +121,7 @@ class _AccountsPage(BasePage):
         return links
 
 
-class CardsPage(BasePage):
+class CardsPage(Page):
     def get_list(self):
         TABLE_XPATH = '//table[caption[@class="caption tdb-cartes-caption" or @class="ca-table caption"]]'
 
@@ -229,7 +229,7 @@ class AccountsPage(_AccountsPage):
 class SavingsPage(_AccountsPage):
     COL_ID       = 1
 
-class TransactionsPage(BasePage):
+class TransactionsPage(Page):
     def get_next_url(self):
         links = self.document.xpath('//span[@class="pager"]/a[@class="liennavigationcorpspage"]')
         if len(links) < 1:

@@ -22,12 +22,12 @@ from datetime import datetime
 import re
 import urllib
 from decimal import Decimal
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities.bill import Subscription, Detail, Bill
 
 base_url = "http://particuliers.edf.com/"
 
-class EdfBasePage(BasePage):
+class EdfBasePage(Page):
     def is_logged(self):
         return (u'Me déconnecter' in self.document.xpath('//a/text()')) \
             or (self.document.xpath('//table[contains(@summary, "Informations sur mon")]'))

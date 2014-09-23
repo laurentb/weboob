@@ -18,9 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
-class IndexPage(BasePage):
+class IndexPage(Page):
     def is_logged(self):
         return 'id' in self.document.find('body').attrib

@@ -18,10 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def on_loaded(self):
         pass
 

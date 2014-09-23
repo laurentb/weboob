@@ -20,7 +20,7 @@
 
 import re
 
-from weboob.tools.browser import BasePage, BrowserPasswordExpired
+from weboob.tools.browser import Page, BrowserPasswordExpired
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.bank import TransferError
 
@@ -33,7 +33,7 @@ class Account(object):
         self.receive_checkbox = receive_checkbox
 
 
-class TransferPage(BasePage):
+class TransferPage(Page):
     def on_loaded(self):
         for td in self.document.xpath('//td[@class="hdvon1"]'):
             if td.text and 'Vous avez atteint le seuil de' in td.text:
@@ -88,7 +88,7 @@ class TransferPage(BasePage):
         self.browser.submit()
 
 
-class TransferConfirmPage(BasePage):
+class TransferConfirmPage(Page):
     def on_loaded(self):
         for td in self.document.getroot().cssselect('td#size2'):
             raise TransferError(td.text.strip())
@@ -100,6 +100,6 @@ class TransferConfirmPage(BasePage):
                 return
 
 
-class TransferCompletePage(BasePage):
+class TransferCompletePage(Page):
     def get_id(self):
         return self.group_dict['id']

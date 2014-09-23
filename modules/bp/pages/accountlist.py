@@ -21,13 +21,13 @@
 from decimal import Decimal
 
 from weboob.capabilities.bank import Account, AccountNotFound
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.misc import to_unicode
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.ordereddict import OrderedDict
 
 
-class AccountList(BasePage):
+class AccountList(Page):
     def on_loaded(self):
         self.accounts = OrderedDict()
         self.parse_table('comptes',         Account.TYPE_CHECKING)

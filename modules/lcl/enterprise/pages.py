@@ -20,37 +20,37 @@
 from decimal import Decimal
 
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 from ..pages import Transaction
 
 
-class RootPage(BasePage):
+class RootPage(Page):
     pass
 
 
-class LogoutPage(BasePage):
+class LogoutPage(Page):
     pass
 
 
-class LogoutOkPage(BasePage):
+class LogoutOkPage(Page):
     pass
 
 
-class MessagesPage(BasePage):
+class MessagesPage(Page):
     pass
 
 
-class AlreadyConnectedPage(BasePage):
+class AlreadyConnectedPage(Page):
     pass
 
 
-class ExpiredPage(BasePage):
+class ExpiredPage(Page):
     pass
 
 
-class MovementsPage(BasePage):
+class MovementsPage(Page):
     def get_account(self):
         LABEL_XPATH = '//*[@id="perimetreMandatEnfantLib"]'
         BALANCE_XPATH = '//div[contains(text(),"Solde comptable :")]/strong'
@@ -86,7 +86,7 @@ class MovementsPage(BasePage):
             yield operation
 
 
-class HomePage(BasePage):
+class HomePage(Page):
     def login(self, login, passwd):
         p = lambda f: f.attrs.get('id') == "form_autoComplete"
         self.browser.select_form(predicate=p)

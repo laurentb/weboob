@@ -20,13 +20,13 @@
 import re
 from datetime import datetime
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.contact import ProfileNode
 from weboob.tools.html import html2text
 from weboob.tools.date import local2utc
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, username, password):
         self.browser.select_form(name='loginf')
         self.browser['username'] = username.encode(self.browser.ENCODING)
@@ -34,7 +34,7 @@ class LoginPage(BasePage):
         self.browser.submit(id='login_btn', nologin=True)
 
 
-class ThreadPage(BasePage):
+class ThreadPage(Page):
     def get_threads(self):
         li_elems = self.parser.select(self.document.getroot(), "//div[@id='page_content']//li", method= 'xpath')
 
@@ -51,7 +51,7 @@ class ThreadPage(BasePage):
         return threads
 
 
-class MessagesPage(BasePage):
+class MessagesPage(Page):
     def get_thread_mails(self):
         mails = {
             'member' : {},
@@ -109,7 +109,7 @@ class MessagesPage(BasePage):
         raise Exception('Unexpected reply page')
 
 
-class ProfilePage(BasePage):
+class ProfilePage(Page):
     def get_visit_button_params(self):
         links = self.parser.select(self.document.getroot(), "//a", method='xpath')
         for a in links:
@@ -178,20 +178,20 @@ class ProfilePage(BasePage):
         return profile
 
 
-class PhotosPage(BasePage):
+class PhotosPage(Page):
     def get_photos(self):
         imgs = self.parser.select(self.document.getroot(), "//div[@class='pic clearfix']//img", method='xpath')
         return [unicode(img.get('src')) for img in imgs]
 
 
-class PostMessagePage(BasePage):
+class PostMessagePage(Page):
     def post_mail(self, id, content):
         self.browser.select_form(name='f2')
         self.browser['r1'] = id.encode('utf-8')
         self.browser['body'] = content.encode('utf-8')
         self.browser.submit()
 
-class VisitsPage(BasePage):
+class VisitsPage(Page):
     def get_visits(self):
         ul_item = self.parser.select(self.document.getroot(), '//*[@id="page_content"]/ul[3]', method='xpath')[0]
         visitors = []
@@ -206,7 +206,7 @@ class VisitsPage(BasePage):
             })
         return visitors
 
-class QuickMatchPage(BasePage):
+class QuickMatchPage(Page):
     def get_id(self):
         element = self.parser.select(self.document.getroot(), '//*[@id="sn"]', method='xpath')[0]
         visitor_id = unicode(element.get('value'))
@@ -259,5 +259,5 @@ class QuickMatchPage(BasePage):
         # var params = {voterid: CURRENTUSERID,target_userid: tuid,target_objectid: 0,type: vote_or_note,vote_type: vote_type,score: rating}
 
 
-class SentPage(BasePage):
+class SentPage(Page):
     pass

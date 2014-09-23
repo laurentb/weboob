@@ -330,7 +330,7 @@ Then, each method on your browser which need your user to be authenticated may b
             return self.page.get_accounts()
 
 The last thing to know is that :func:`need_login <weboob.tools.browser2.page.need_login>` checks if the current page is a logged one by
-reading the attribute :func:`logged <weboob.tools.browser2.page.BasePage.logged>` of the instance. You can either define it yourself, as a
+reading the attribute :func:`logged <weboob.tools.browser2.page.Page.logged>` of the instance. You can either define it yourself, as a
 class boolean attribute or as a property, or to inherit your class from :class:`LoggedPage <weboob.tools.browser2.page.LoggedPage>`.
 
 

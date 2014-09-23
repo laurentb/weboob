@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.html import html2text
 from .job import AdeccoJobAdvert
 import datetime
@@ -27,7 +27,7 @@ import re
 MONTHS = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
 
 
-class SearchPage(BasePage):
+class SearchPage(Page):
     def iter_job_adverts(self):
         re_id = re.compile('http://www.adecco.fr/trouver-un-emploi/Pages/Details-de-l-Offre/(.*?)/(.*?).aspx\?IOF=(.*?)$', re.DOTALL)
 
@@ -55,7 +55,7 @@ class SearchPage(BasePage):
                 yield advert
 
 
-class AdvertPage(BasePage):
+class AdvertPage(Page):
     def get_job_advert(self, url, advert):
         re_id = re.compile('http://www.adecco.fr/trouver-un-emploi/Pages/Details-de-l-Offre/(.*?)/(.*?).aspx\?IOF=(.*?)$', re.DOTALL)
         if advert is None:

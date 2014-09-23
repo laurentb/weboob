@@ -18,10 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
-class PhpBBPage(BasePage):
+class PhpBBPage(Page):
     def is_logged(self):
         return len(self.document.getroot().cssselect('li.icon-register')) == 0
 

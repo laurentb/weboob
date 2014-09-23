@@ -20,7 +20,7 @@
 
 import re
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -48,7 +48,7 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class AccountHistory(BasePage):
+class AccountHistory(Page):
     def iter_operations(self):
         for tr in self.document.xpath('//table[@id="tableCompte"]//tr'):
             if len(tr.xpath('td[@class="debit"]')) == 0:

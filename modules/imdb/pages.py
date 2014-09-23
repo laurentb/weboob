@@ -20,13 +20,13 @@
 
 from weboob.capabilities.cinema import Person, Movie
 from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.html import html2text
 from datetime import datetime
 import re
 
 
-class ReleasePage(BasePage):
+class ReleasePage(Page):
     ''' Page containing releases of a movie
     '''
     def get_movie_releases(self, country_filter):
@@ -54,7 +54,7 @@ class ReleasePage(BasePage):
         return result
 
 
-class BiographyPage(BasePage):
+class BiographyPage(Page):
     ''' Page containing biography of a person
     '''
     def get_biography(self):
@@ -71,7 +71,7 @@ class BiographyPage(BasePage):
         return bio
 
 
-class MovieCrewPage(BasePage):
+class MovieCrewPage(Page):
     ''' Page listing all the persons related to a movie
     '''
     def iter_persons(self, role_filter=None):
@@ -126,7 +126,7 @@ class MovieCrewPage(BasePage):
                 yield id
 
 
-class PersonPage(BasePage):
+class PersonPage(Page):
     ''' Page informing about a person
     It is used to build a Person instance and to get the movie list related to a person
     '''

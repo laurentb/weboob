@@ -18,10 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
-class WikiEditPage(BasePage):
+class WikiEditPage(Page):
     def get_source(self):
         return self.parser.select(self.document.getroot(), 'textarea#content_text', 1).text
 
@@ -37,5 +37,5 @@ class WikiEditPage(BasePage):
         return wiki_form.xpath('div/input')[0].get('value')
 
 
-class WikiPage(BasePage):
+class WikiPage(Page):
     pass

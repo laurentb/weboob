@@ -18,19 +18,19 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 import re
 
 
-class PageHome(BasePage):
+class PageHome(Page):
     pass
 
 
-class PageImage(BasePage):
+class PageImage(Page):
     def get_info(self):
         id = re.search(r'img=([^&]+)', self.url).group(1)
         return {'url': self.url, 'id': id}
 
 
-class PageError(BasePage):
+class PageError(Page):
     pass

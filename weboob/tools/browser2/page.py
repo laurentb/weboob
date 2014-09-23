@@ -49,7 +49,7 @@ class URL(object):
     """
     A description of an URL on the PagesBrowser website.
 
-    It takes one or several regexps to match urls, and an optional BasePage
+    It takes one or several regexps to match urls, and an optional Page
     class which is instancied by PagesBrowser.open if the page matches a regex.
     """
     _creation_counter = 0
@@ -73,7 +73,7 @@ class URL(object):
         If arguments are provided, and only then, they are checked against the arguments
         that were used to build the current page URL.
         """
-        assert self.klass is not None, "You can use this method only if the is a BasePage class handler."
+        assert self.klass is not None, "You can use this method only if the is a Page class handler."
 
         if len(kwargs):
             params = self.match(self.build(**kwargs)).groupdict()
@@ -237,15 +237,15 @@ class PagesBrowser(DomainBrowser):
 
     To use it, you have to derive it and to create URL objects as class
     attributes. When open() or location() are called, if the url matches
-    one of URL objects, it returns a BasePage object. In case of location(), it
+    one of URL objects, it returns a Page object. In case of location(), it
     stores it in self.page.
 
     Example:
 
-    >>> class HomePage(BasePage):
+    >>> class HomePage(Page):
     ...     pass
     ...
-    >>> class ListPage(BasePage):
+    >>> class ListPage(Page):
     ...     pass
     ...
     >>> class MyBrowser(PagesBrowser):
@@ -405,7 +405,7 @@ def pagination(func):
 
 class NextPage(Exception):
     """
-    Exception used for example in a BasePage to tell PagesBrowser.pagination to
+    Exception used for example in a Page to tell PagesBrowser.pagination to
     go on the next page.
 
     See :meth:`PagesBrowser.pagination` or decorator :func:`pagination`.
@@ -445,7 +445,7 @@ class LoginBrowser(PagesBrowser):
         raise NotImplementedError()
 
 
-class BasePage(object):
+class Page(object):
     """
     Base page.
     """
@@ -561,7 +561,7 @@ class Form(OrderedDict):
         return self.page.browser.location(self.request, **kwargs)
 
 
-class CsvPage(BasePage):
+class CsvPage(Page):
     DIALECT = 'excel'
     FMTPARAMS = {}
     ENCODING = 'utf-8'
@@ -613,14 +613,14 @@ class CsvPage(BasePage):
             return row
 
 
-class JsonPage(BasePage):
+class JsonPage(Page):
     def __init__(self, browser, response, *args, **kwargs):
         super(JsonPage, self).__init__(browser, response, *args, **kwargs)
         from weboob.tools.json import json
         self.doc = json.loads(response.text)
 
 
-class XMLPage(BasePage):
+class XMLPage(Page):
     ENCODING = None
     """
     Force a page encoding.
@@ -634,13 +634,13 @@ class XMLPage(BasePage):
         self.doc = etree.parse(BytesIO(response.content), parser)
 
 
-class RawPage(BasePage):
+class RawPage(Page):
     def __init__(self, browser, response, *args, **kwargs):
         super(RawPage, self).__init__(browser, response, *args, **kwargs)
         self.doc = response.content
 
 
-class HTMLPage(BasePage):
+class HTMLPage(Page):
     """
     HTML page.
     """

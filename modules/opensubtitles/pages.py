@@ -21,11 +21,11 @@ import re
 
 from weboob.capabilities.subtitle import Subtitle
 from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 
 
-class SearchPage(BasePage):
+class SearchPage(Page):
     """ Page which contains results as a list of movies
     """
     def iter_subtitles(self):
@@ -46,7 +46,7 @@ class SearchPage(BasePage):
                             yield subtitle
 
 
-class SubtitlesPage(BasePage):
+class SubtitlesPage(Page):
     """ Page which contains several subtitles for a single movie
     """
     def iter_subtitles(self):
@@ -99,7 +99,7 @@ class SubtitlesPage(BasePage):
             return subtitle
 
 
-class SubtitlePage(BasePage):
+class SubtitlePage(Page):
     """ Page which contains a single subtitle for a movie
     """
     def get_subtitle(self):

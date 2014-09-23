@@ -18,14 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 import dateutil.parser
 import re
 
 from .job import LolixJobAdvert
 
 
-class AdvertPage(BasePage):
+class AdvertPage(Page):
     def get_job_advert(self, url, advert):
         tables = self.document.getroot().xpath('//td[@class="Contenu"]/table')
         rows = self.parser.select(tables[2], 'tr')
@@ -66,7 +66,7 @@ class AdvertPage(BasePage):
         return advert
 
 
-class SearchPage(BasePage):
+class SearchPage(Page):
     def iter_job_adverts(self, pattern):
         rows = self.document.getroot().xpath('//td[@class="Contenu"]/table/tr')
         for row in rows:

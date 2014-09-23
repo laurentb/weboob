@@ -21,7 +21,7 @@
 from weboob.capabilities.collection import Collection
 from weboob.capabilities.image import BaseImage
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 import re
 from datetime import datetime, timedelta
@@ -29,7 +29,7 @@ from datetime import datetime, timedelta
 from .video import NolifeTVVideo
 
 
-class VideoPage(BasePage):
+class VideoPage(Page):
     def get_video(self, video):
         if not video:
             video = NolifeTVVideo(self.group_dict['id'])
@@ -67,7 +67,7 @@ class VideoPage(BasePage):
                                                    seconds=int(m.group(3)))
             return video
 
-class VideoListPage(BasePage):
+class VideoListPage(Page):
     def is_list_empty(self):
         return self.document.getroot() == None
 
@@ -85,7 +85,7 @@ class VideoListPage(BasePage):
                         video.title = video.title + ' - ' + strongs[3].text
                     yield video
 
-class FamilyPage(BasePage):
+class FamilyPage(Page):
     def iter_category(self):
         subs = list()
 
@@ -109,7 +109,7 @@ class FamilyPage(BasePage):
                 if m and m.group(1):
                     yield Collection([m.group(1)], unicode(h1.text))
 
-class AboPage(BasePage):
+class AboPage(Page):
     def get_available_videos(self):
         available = ['[Gratuit]']
 
@@ -123,13 +123,13 @@ class AboPage(BasePage):
         return available
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, username, password):
         self.browser.select_form(name='login')
         self.browser['username'] = str(username)
         self.browser['password'] = str(password)
         self.browser.submit()
 
-class HomePage(BasePage):
+class HomePage(Page):
     def is_logged(self):
         return len(self.document.xpath('//a[@href="deconnexion/"]')) == 1

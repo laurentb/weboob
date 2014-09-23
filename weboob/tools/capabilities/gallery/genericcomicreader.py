@@ -23,12 +23,12 @@ import re
 
 from weboob.capabilities.gallery import CapGallery, BaseGallery, BaseImage
 from weboob.tools.backend import Module
-from weboob.tools.browser import BaseBrowser, BasePage
+from weboob.tools.browser import BaseBrowser, Page
 
 __all__ = ['GenericComicReaderModule']
 
 
-class DisplayPage(BasePage):
+class DisplayPage(Page):
     def get_page(self, gallery):
         src = self.document.xpath(self.browser.params['img_src_xpath'])[0]
 

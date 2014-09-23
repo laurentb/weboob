@@ -23,16 +23,16 @@ from dateutil.parser import parse as parse_date
 
 from weboob.capabilities.parcel import Parcel, Event
 from weboob.capabilities import NotAvailable
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
-class IndexPage(BasePage):
+class IndexPage(Page):
     def track_package(self, _id):
         self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'suivreEnvoi')
         self.browser['chronoNumbers'] = _id.encode('utf-8')
         self.browser.submit()
 
-class TrackPage(BasePage):
+class TrackPage(Page):
     def get_info(self, id):
         if len(self.document.xpath('//libelle[@nom="MSG_AUCUN_EVT"]')) > 0:
             return None

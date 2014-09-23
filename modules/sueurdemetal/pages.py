@@ -18,13 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.date import parse_french_date
 import re
 from urlparse import urljoin
 
 
-class PageWithConcerts(BasePage):
+class PageWithConcerts(Page):
     def extract_concert(self, concert_table):
         d = {}
         date_h3 = concert_table.iter('h3').next()
@@ -123,7 +123,7 @@ class PageConcert(PageWithConcerts):
         return float(parts[-1])
 
 
-class PageCityList(BasePage):
+class PageCityList(Page):
     def get_cities(self):
         cities = {}
         for option in self.document.xpath('//select[@name="ville"]/option'):
@@ -139,7 +139,7 @@ class PageCityList(BasePage):
         return cities
 
 
-class PageDates(BasePage):
+class PageDates(Page):
     def get_dates(self):
         for a in self.document.xpath('//div[@id="dateconcerts"]//a'):
             d = {}

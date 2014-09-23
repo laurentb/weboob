@@ -27,13 +27,13 @@ import mechanize
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.image import BaseImage
 from weboob.tools.html import html2text
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import Page, BrokenPageError
 
 
 from .video import DailymotionVideo
 
 
-class IndexPage(BasePage):
+class IndexPage(Page):
     def iter_videos(self):
         for div in self.parser.select(self.document.getroot(), 'div.sd_video_listitem'):
             smalldiv = self.parser.select(div, 'div.sd_video_previewtwig', 1)
@@ -82,7 +82,7 @@ class IndexPage(BasePage):
             return 0
 
 
-class VideoPage(BasePage):
+class VideoPage(Page):
     def get_video(self, video=None):
         if video is None:
             video = DailymotionVideo(self.group_dict['id'])

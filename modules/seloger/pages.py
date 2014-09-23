@@ -21,12 +21,12 @@
 from decimal import Decimal
 from dateutil.parser import parse as parse_date
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import Housing, HousingPhoto
 
 
-class SearchResultsPage(BasePage):
+class SearchResultsPage(Page):
     def next_page_url(self):
         urls = self.document.getroot().xpath('//pagesuivante')
         if len(urls) == 0:
@@ -57,7 +57,7 @@ class SearchResultsPage(BasePage):
             yield housing
 
 
-class HousingPage(BasePage):
+class HousingPage(Page):
     def get_housing(self, housing=None):
         if housing is None:
             housing = Housing(self.groups[0])

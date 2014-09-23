@@ -22,7 +22,7 @@ from decimal import Decimal
 import datetime
 import re
 
-from weboob.tools.browser import BasePage, BrowserIncorrectPassword
+from weboob.tools.browser import Page, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -36,7 +36,7 @@ class Transaction(FrenchTransaction):
         return FrenchTransaction.clean_amount(text)
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, merchant_id, login, password):
         self.browser.select_form(name='loginForm')
         self.browser['merchant'] = merchant_id.encode(self.browser.ENCODING)
@@ -45,7 +45,7 @@ class LoginPage(BasePage):
         self.browser.submit()
 
 
-class SummaryPage(BasePage):
+class SummaryPage(Page):
     def clean_amount(self, el, debit):
         amount = Decimal(Transaction.clean_amount(el.text_content()))
         if amount == Decimal('0.00'):
@@ -66,13 +66,13 @@ class SummaryPage(BasePage):
                 return amount
 
 
-class UselessPage(BasePage):
+class UselessPage(Page):
     def on_loaded(self):
         for error in self.document.xpath('//li[@class="error"]'):
             raise BrowserIncorrectPassword(self.parser.tocleanstring(error))
 
 
-class TransactionSearchPage(BasePage):
+class TransactionSearchPage(Page):
     def search(self, accepted=True, refused=False):
         self.browser.select_form(name='transactionSearchForm')
         self.browser['selectedDateCriteria'] = ['thisweek']  # TODO ask for more
@@ -86,14 +86,14 @@ class TransactionSearchPage(BasePage):
         self.browser.submit()
 
 
-class TransactionsPage(BasePage):
+class TransactionsPage(Page):
     def get_csv_url(self):
         for a in self.parser.select(self.document.getroot(), '.exportlinks a'):
             if len(self.parser.select(a, 'span.csv')):
                 return a.attrib['href']
 
 
-class TransactionsCsvPage(BasePage):
+class TransactionsCsvPage(Page):
     def guess_format(self, amount):
         if re.search(r'\d\.\d\d$', amount):
             date_format = "%m/%d/%Y"

@@ -21,14 +21,14 @@
 import re
 
 from weboob.capabilities.messages import CantSendMessage
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
-class ClosePage(BasePage):
+class ClosePage(Page):
     pass
 
 
-class ComposePage(BasePage):
+class ComposePage(Page):
     phone_regex = re.compile('^(\+33|0033|0)(6|7)(\d{8})$')
 
     def get_nb_remaining_free_sms(self):
@@ -45,11 +45,11 @@ class ComposePage(BasePage):
         self.browser.submit()
 
 
-class ConfirmPage(BasePage):
+class ConfirmPage(Page):
     def confirm(self):
         self.browser.select_form(nr=0)
         self.browser.submit()
 
 
-class SentPage(BasePage):
+class SentPage(Page):
     pass

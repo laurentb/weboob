@@ -13,7 +13,7 @@ import urllib
 import datetime
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.misc import to_unicode
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.browser import BrokenPageError
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.browser.decorators import id2url
@@ -37,7 +37,7 @@ class CappedVideo(BaseVideo):
 
 
 # parser for search pages
-class IndexPage(BasePage):
+class IndexPage(Page):
     def iter_videos(self):
         # When no results are found, the website returns random results
         sb = self.parser.select(self.document.getroot(), 'div.search form input.searchbox', 1)
@@ -85,7 +85,7 @@ class IndexPage(BasePage):
 
 
 # parser for the video page
-class VideoPage(BasePage):
+class VideoPage(Page):
     def get_video(self, video=None):
         _id = to_unicode(self.group_dict['id'])
         if video is None:

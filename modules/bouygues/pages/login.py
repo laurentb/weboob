@@ -18,10 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, login, password):
         self.browser.select_form(name='code')
         self.browser['j_username'] = login
@@ -29,7 +29,7 @@ class LoginPage(BasePage):
         self.browser.submit()
 
 
-class LoginSASPage(BasePage):
+class LoginSASPage(Page):
     def login(self):
         self.browser.select_form(name='redirect')
         self.browser.submit()

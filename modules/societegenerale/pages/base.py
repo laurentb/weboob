@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage as _BasePage
+from weboob.tools.browser import Page as _BasePage
 
 
 class BasePage(_BasePage):

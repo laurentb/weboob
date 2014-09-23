@@ -20,10 +20,10 @@
 
 from .pages.article import ArticlePage, ActuPage
 from .pages.flashactu import FlashActuPage
-from weboob.tools.browser import BaseBrowser, BasePage
+from weboob.tools.browser import BaseBrowser, Page
 
 
-class IndexPage(BasePage):
+class IndexPage(Page):
     pass
 
 

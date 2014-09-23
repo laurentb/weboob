@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from datetime import datetime, time
 import json
 import lxml.html
@@ -35,12 +35,12 @@ def id_from_path(title):
 def combine(dt, t):
     return datetime(dt.year, dt.month, dt.day, t.hour, t.minute)
 
-class PageList(BasePage):
+class PageList(Page):
     def get_events(self):
         raise NotImplementedError()
 
 
-class PageList2(BasePage):
+class PageList2(Page):
     def list_events(self):
         events = list(self.unsorted_list())
         events.sort(key=lambda d: (d['date'], d['id']))
@@ -55,7 +55,7 @@ class PageList2(BasePage):
             yield d
 
 
-class PageEvent(BasePage):
+class PageEvent(Page):
     def get_event(self):
         d = {}
         d['id'] = id_from_path(self.url)

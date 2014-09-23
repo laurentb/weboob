@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import Page, BrokenPageError
 from weboob.capabilities.messages import Message, Thread
 from weboob.capabilities.base import NotLoaded
 from weboob.tools.capabilities.messages.genericArticle import try_drop_tree
@@ -29,7 +29,7 @@ from datetime import datetime
 from lxml.html import make_links_absolute
 
 
-class MessagesPage(BasePage):
+class MessagesPage(Page):
     def iter_threads(self):
         table = self.parser.select(self.document.getroot(), 'table#listeMessages', 1)
         for tr in table.xpath('./tr'):
@@ -61,7 +61,7 @@ class MessagesPage(BasePage):
             yield thread
 
 
-class MessagePage(BasePage):
+class MessagePage(Page):
     def get_content(self):
         """
         Get the message content.

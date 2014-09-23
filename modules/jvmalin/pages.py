@@ -6,14 +6,14 @@ import datetime
 from weboob.capabilities.travel import RoadmapError
 from weboob.tools.misc import to_unicode
 from weboob.tools.mech import ClientForm
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
 class RoadmapAmbiguity(RoadmapError):
     def __init__(self, error):
         RoadmapError.__init__(self, error)
 
-class RoadmapSearchPage(BasePage):
+class RoadmapSearchPage(Page):
     def search(self, departure, arrival, departure_time, arrival_time):
         match = -1
         i = 0
@@ -46,7 +46,7 @@ class RoadmapSearchPage(BasePage):
                 raise RoadmapError('Unable to establish a roadmap with %s time at "%s"' % ('departure' if departure_time else 'arrival', time))
         self.browser.submit()
 
-class RoadmapResultsPage(BasePage):
+class RoadmapResultsPage(Page):
     def html_br_strip(self, text):
         return "".join([l.strip() for l in text.split("\n")]).strip().replace(' ', '%20')
 
@@ -96,7 +96,7 @@ class RoadmapResultsPage(BasePage):
         self.browser[propname] = [ propvalue ]
         self.browser.submit()
 
-class RoadmapPage(BasePage):
+class RoadmapPage(Page):
     def get_steps(self):
         errors = []
         # for p in self.parser.select(self.document.getroot(), 'p.errors'):

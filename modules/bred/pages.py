@@ -25,14 +25,14 @@ ControlNotFoundError = ClientForm.ControlNotFoundError
 from decimal import Decimal, InvalidOperation
 import re
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.misc import to_unicode
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, login, passwd):
         try:
             length = int(self.document.xpath('//input[@id="pass"]')[0].attrib['maxlength'])
@@ -52,7 +52,7 @@ class LoginPage(BasePage):
         self.browser.submit(nologin=True)
 
 
-class LoginResultPage(BasePage):
+class LoginResultPage(Page):
     def on_loaded(self):
         for script in self.document.xpath('//script'):
             text = script.text
@@ -113,11 +113,11 @@ class LoginResultPage(BasePage):
         return error.text.strip()
 
 
-class EmptyPage(BasePage):
+class EmptyPage(Page):
     pass
 
 
-class BredBasePage(BasePage):
+class BredBasePage(Page):
     def js2args(self, s):
         cur_arg = None
         args = {}
@@ -207,7 +207,7 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class TransactionsPage(BasePage):
+class TransactionsPage(Page):
     def get_history(self, is_coming=None):
         last_debit = None
         transactions = []

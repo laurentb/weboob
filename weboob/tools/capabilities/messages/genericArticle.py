@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.browser import BrokenPageError
 from lxml.etree import Comment
 
@@ -90,7 +90,7 @@ class Article(object):
         self.date = None
 
 
-class GenericNewsPage(BasePage):
+class GenericNewsPage(Page):
     __element_body = NotImplementedError
     __article = Article
     element_title_selector = NotImplementedError

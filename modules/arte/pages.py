@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.html import html2text
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.image import BaseImage
@@ -26,7 +26,7 @@ from weboob.capabilities.collection import Collection
 from .video import ArteLiveVideo
 
 
-class ArteLiveVideoPage(BasePage):
+class ArteLiveVideoPage(Page):
     def get_video(self, video=None):
         if not video:
             video = ArteLiveVideo(self.group_dict['id'])
@@ -43,7 +43,7 @@ class ArteLiveVideoPage(BasePage):
         return json_url, video
 
 
-class ArteLivePage(BasePage):
+class ArteLivePage(Page):
     def iter_resources(self):
         items = list()
         for el in self.document.xpath('//ul[@class="filter-liste"]/li'):

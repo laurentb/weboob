@@ -22,12 +22,12 @@ import datetime
 from decimal import Decimal
 import re
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, login, passwd):
         self.browser.select_form(name='formIdentification')
         self.browser['noPersonne'] = login.encode(self.browser.ENCODING)
@@ -35,7 +35,7 @@ class LoginPage(BasePage):
         self.browser.submit(nologin=True)
 
 
-class AccountsPage(BasePage):
+class AccountsPage(Page):
     def get_list(self):
         names = set()
         for li in self.document.xpath('//div[@class="affichMontant"]/ul/li/a'):
@@ -70,7 +70,7 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class TransactionsPage(BasePage):
+class TransactionsPage(Page):
     months = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
 
     def get_next_link(self):

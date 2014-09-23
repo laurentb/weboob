@@ -22,12 +22,12 @@ import re
 from decimal import Decimal
 from dateutil.parser import parse as parse_date
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import Housing
 
 
-class SearchResultsPage(BasePage):
+class SearchResultsPage(Page):
     DATE_RE = re.compile('Annonce \w+ du (.*)')
     MONTHS = {u'janvier':   'january',
               u'février':   'february',
@@ -86,7 +86,7 @@ class SearchResultsPage(BasePage):
             yield housing
 
 
-class HousingPage(BasePage):
+class HousingPage(Page):
     def get_housing(self):
         div = self.parser.select(self.document.getroot(), 'div#annonce_detail', 1)
         housing = Housing(self.url.split('-')[-1])

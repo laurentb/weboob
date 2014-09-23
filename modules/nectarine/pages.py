@@ -17,13 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities.radio import Radio
 from weboob.capabilities.audiostream import BaseAudioStream
 from weboob.tools.capabilities.streaminfo import StreamInfo
 
 
-class StreamsPage(BasePage):
+class StreamsPage(Page):
     def iter_radios_list(self):
         radio = Radio('necta')
         radio.title = u'Nectarine'
@@ -48,7 +48,7 @@ class StreamsPage(BasePage):
         yield radio
 
 
-class LivePage(BasePage):
+class LivePage(Page):
     def get_current_emission(self):
         current = StreamInfo(0)
         current.who = unicode(self.document.xpath('//playlist/now/entry/artist')[0].text)

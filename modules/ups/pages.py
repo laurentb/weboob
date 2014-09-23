@@ -22,10 +22,10 @@ import re
 from dateutil.parser import parse as parse_date
 
 from weboob.capabilities.parcel import Parcel, Event
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
-class TrackPage(BasePage):
+class TrackPage(Page):
     def get_info(self, id):
         if len(self.parser.tocleanstring(self.document.xpath('//p[@class="error"]')[0])) > 0:
             return None

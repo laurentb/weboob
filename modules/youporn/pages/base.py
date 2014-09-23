@@ -21,10 +21,10 @@ from weboob.tools.mech import ClientForm
 ControlNotFoundError = ClientForm.ControlNotFoundError
 
 from mechanize import FormNotFoundError
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
-class PornPage(BasePage):
+class PornPage(Page):
     def on_loaded(self):
         try:
             self.browser.select_form(nr=0)

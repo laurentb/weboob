@@ -22,7 +22,7 @@ import urllib
 from decimal import Decimal, InvalidOperation
 import re
 
-from weboob.tools.browser import BasePage as _BasePage, BrowserUnavailable, BrokenPageError
+from weboob.tools.browser import Page as _BasePage, BrowserUnavailable, BrokenPageError
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard

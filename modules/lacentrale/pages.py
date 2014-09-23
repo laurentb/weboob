@@ -21,13 +21,13 @@
 from decimal import Decimal
 import re
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities import NotAvailable, NotLoaded
 from weboob.capabilities.pricecomparison import Product, Price, Shop
 
 
 # I manage main page, ie do nothing yet
-class MainPage(BasePage):
+class MainPage(Page):
     def iter_products(self, criteria):
         product = Product(1)
         # TODO check if criteria exists in main page
@@ -59,7 +59,7 @@ def new_price(id, product, cost, title):
 
 
 # I manage listing page and extract information
-class ListingAutoPage(BasePage):
+class ListingAutoPage(Page):
 
     def _extract(self, tr, name):
         'Extract content from td element with class name'
@@ -107,7 +107,7 @@ class ListingAutoPage(BasePage):
 
 
 # I manage one car page (annonce) )and extract information
-class AnnoncePage(BasePage):
+class AnnoncePage(Page):
 
     def _extract(self, e, name):
         'Extract content from li element with class name'

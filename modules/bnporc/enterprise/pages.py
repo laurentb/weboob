@@ -24,7 +24,7 @@ from datetime import datetime
 import re
 
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import Page, BrokenPageError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.misc import to_unicode
@@ -50,7 +50,7 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class BEPage(BasePage):
+class BEPage(Page):
     def get_error(self):
         for title in self.document.xpath('/html/head/title'):
             if 'erreur' in title.text or 'error' in title.text:

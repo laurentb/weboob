@@ -21,7 +21,7 @@
 from weboob.tools.mech import ClientForm
 ControlNotFoundError = ClientForm.ControlNotFoundError
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 import re
 import datetime
@@ -32,7 +32,7 @@ from weboob.tools.browser import BrokenPageError
 from .video import EuroparlVideo
 
 
-class VideoPage(BasePage):
+class VideoPage(Page):
     def get_video(self, video=None):
         if video is None:
             video = EuroparlVideo(self.group_dict['id'])

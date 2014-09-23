@@ -22,14 +22,14 @@ import datetime
 from decimal import Decimal
 import re
 
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import Page, BrokenPageError
 from weboob.capabilities.bank import Account
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.date import ChaoticDateGuesser
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, username, password):
         self.browser.select_form(name='ssoform')
         self.browser.set_all_readonly(False)
@@ -40,7 +40,7 @@ class LoginPage(BasePage):
         self.browser.submit(nologin=True)
 
 
-class AccountsPage(BasePage):
+class AccountsPage(Page):
     def get_list(self):
         for box in self.document.getroot().cssselect('div.roundedBox div.contentBox'):
             a = Account()
@@ -56,7 +56,7 @@ class AccountsPage(BasePage):
 
             yield a
 
-class TransactionsPage(BasePage):
+class TransactionsPage(Page):
     COL_ID = 0
     COL_DATE = 1
     COL_DEBIT_DATE = 2

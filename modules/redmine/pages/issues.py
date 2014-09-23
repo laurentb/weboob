@@ -22,14 +22,14 @@ import re
 import datetime
 
 from weboob.capabilities.bugtracker import IssueError
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import Page, BrokenPageError
 from weboob.tools.date import parse_french_date
 from weboob.tools.misc import to_unicode
 from weboob.tools.mech import ClientForm
 from weboob.tools.json import json
 
 
-class BaseIssuePage(BasePage):
+class BaseIssuePage(Page):
     def parse_datetime(self, text):
         m = re.match('(\d+)/(\d+)/(\d+) (\d+):(\d+) (\w+)', text)
         if m:
@@ -502,7 +502,7 @@ class IssuePage(NewIssuePage):
         return params
 
 
-class IssueLogTimePage(BasePage):
+class IssueLogTimePage(Page):
     def logtime(self, hours, message):
         self.browser.select_form(predicate=lambda form: form.attrs.get('action', '').endswith('/edit'))
         self.browser['time_entry[hours]'] = '%.2f' % hours
@@ -511,5 +511,5 @@ class IssueLogTimePage(BasePage):
         self.browser.submit()
 
 
-class IssueTimeEntriesPage(BasePage):
+class IssueTimeEntriesPage(Page):
     pass

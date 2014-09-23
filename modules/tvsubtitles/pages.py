@@ -20,10 +20,10 @@
 import re
 
 from weboob.capabilities.subtitle import Subtitle
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
-class HomePage(BasePage):
+class HomePage(Page):
     def iter_subtitles(self, language, pattern):
         self.browser.select_form(nr=0)
         self.browser['q'] = pattern.encode('utf-8')
@@ -33,7 +33,7 @@ class HomePage(BasePage):
             yield subtitle
 
 
-class SearchPage(BasePage):
+class SearchPage(Page):
     """ Page which contains results as a list of series
     """
     def iter_subtitles(self, language):
@@ -50,7 +50,7 @@ class SearchPage(BasePage):
                         yield subtitle
 
 
-class SeriePage(BasePage):
+class SeriePage(Page):
     """ Page of all seasons
     """
     def iter_subtitles(self, language, only_one_season=False):
@@ -77,7 +77,7 @@ class SeriePage(BasePage):
                     yield subtitle
 
 
-class SeasonPage(BasePage):
+class SeasonPage(Page):
     """ Page of a season with the right language
     """
     def get_subtitle(self):

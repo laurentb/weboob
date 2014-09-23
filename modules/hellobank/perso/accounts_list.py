@@ -22,11 +22,11 @@
 from decimal import Decimal
 
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import BasePage, BrowserPasswordExpired
+from weboob.tools.browser import Page, BrowserPasswordExpired
 from weboob.tools.json import json
 
 
-class AccountsList(BasePage):
+class AccountsList(Page):
     ACCOUNT_TYPES = {
         1: Account.TYPE_CHECKING,
         2: Account.TYPE_SAVINGS,

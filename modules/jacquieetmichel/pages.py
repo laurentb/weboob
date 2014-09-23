@@ -22,13 +22,13 @@ import re
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.image import BaseImage
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import Page, BrokenPageError
 from weboob.tools.misc import to_unicode
 
 from .video import JacquieEtMichelVideo
 
 
-class ResultsPage(BasePage):
+class ResultsPage(Page):
     def iter_videos(self):
         for span in self.document.xpath('//ul[@id="list"]/li'):
             a = self.parser.select(span, 'a', 1)
@@ -49,7 +49,7 @@ class ResultsPage(BasePage):
             yield video
 
 
-class VideoPage(BasePage):
+class VideoPage(Page):
     def get_video(self, video=None):
         _id = to_unicode(self.group_dict['id'])
         if video is None:

@@ -22,7 +22,7 @@ import re
 
 from datetime import datetime
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
 class Message(object):
@@ -47,7 +47,7 @@ class Message(object):
         return '<Message id=%s filename=%s url=%s comments=%d>' % (self.id, self.filename, self.url, len(self.comments))
 
 
-class BoardPage(BasePage):
+class BoardPage(Page):
     URL_REGEXP = re.compile('http://boards.4chan.org/(\w+)/')
 
     def on_loaded(self):

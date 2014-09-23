@@ -21,12 +21,12 @@
 from decimal import Decimal
 import re
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, login, passwd):
         self.browser.select_form(name='loginForm')
         self.browser.set_all_readonly(False)
@@ -35,7 +35,7 @@ class LoginPage(BasePage):
         self.browser.submit(nologin=True)
 
 
-class AccountsPage(BasePage):
+class AccountsPage(Page):
     ACCOUNT_TYPES = {u'Solde des comptes bancaires - Groupama Banque':  Account.TYPE_CHECKING,
                      u'Epargne bancaire constituée - Groupama Banque':  Account.TYPE_SAVINGS,
                     }
@@ -88,7 +88,7 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class TransactionsPage(BasePage):
+class TransactionsPage(Page):
     def get_history(self):
         count = 0
         for tr in self.document.xpath('//table[@id="releve_operation"]/tr'):

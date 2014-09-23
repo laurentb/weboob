@@ -22,12 +22,12 @@ from decimal import Decimal
 import re
 import time
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, login, pin, strong_auth):
         form_nb = 1 if strong_auth else 0
         indentType = "RENFORCE" if strong_auth else "MDP"
@@ -40,7 +40,7 @@ class LoginPage(BasePage):
         self.browser.submit(nologin=True)
 
 
-class AccountsPage(BasePage):
+class AccountsPage(Page):
     ACCOUNT_TYPES = {u'COMPTE NEF': Account.TYPE_CHECKING}
 
     CPT_ROW_ID = 0
@@ -95,7 +95,7 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_UNKNOWN),
                ]
 
-class ITransactionsPage(BasePage):
+class ITransactionsPage(Page):
     def get_next_url(self):
         # can be 'Suivant' or ' Suivant'
         next = self.document.xpath("//a[normalize-space(text()) = 'Suivant']")

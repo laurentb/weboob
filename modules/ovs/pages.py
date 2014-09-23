@@ -22,7 +22,7 @@ import datetime
 import re
 import urllib
 from urlparse import urlsplit
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities.messages import Message, Thread
 from weboob.capabilities.contact import Contact, ProfileNode
 from weboob.tools.date import parse_french_date
@@ -30,7 +30,7 @@ from weboob.tools.date import parse_french_date
 import ovsparse
 
 
-class OvsPage(BasePage):
+class OvsPage(Page):
     def is_logged(self):
         return ovsparse.is_logged(self.document)
 
@@ -143,7 +143,7 @@ class PagePrivateThread(OvsPage):
         #~ self.browser.submit()
 
 
-class PageLogin(BasePage):
+class PageLogin(Page):
     pass
 
 
@@ -151,7 +151,7 @@ class PageIndex(OvsPage):
     pass
 
 
-class DummyPage(BasePage):
+class DummyPage(Page):
     pass
 
 

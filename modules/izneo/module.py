@@ -24,12 +24,12 @@ import re
 from weboob.capabilities.gallery import CapGallery, BaseGallery, BaseImage
 from weboob.tools.json import json
 from weboob.tools.backend import Module
-from weboob.tools.browser import BaseBrowser, BasePage
+from weboob.tools.browser import BaseBrowser, Page
 
 __all__ = ['IzneoModule']
 
 
-class ReaderV2(BasePage):
+class ReaderV2(Page):
     def get_ean(self):
         return self.document.xpath("//div[@id='viewer']/attribute::rel")[0]
 

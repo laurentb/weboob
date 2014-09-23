@@ -22,11 +22,11 @@ from decimal import Decimal
 import re
 
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, username, password):
         self.browser.select_form(name="frmLogin")
         self.browser['username'] = username.encode('utf-8')
@@ -36,7 +36,7 @@ class LoginPage(BasePage):
         self.browser.submit(nologin=True)
 
 
-class DashboardPage(BasePage):
+class DashboardPage(Page):
     def iter_accounts(self):
         for line in self._accounts():
             yield self._get_account(line)
@@ -67,7 +67,7 @@ class DashboardPage(BasePage):
         return account
 
 
-class OperationsPage(BasePage):
+class OperationsPage(Page):
     _LINE_XPATH = '//tr[starts-with(@class,"PL_LIGLST_")]'
     _NEXT_XPATH = '//a[contains(@class,"pg_next")]/@href'
 

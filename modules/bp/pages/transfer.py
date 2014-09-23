@@ -21,11 +21,11 @@
 import re
 
 from weboob.capabilities.bank import TransferError
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.misc import to_unicode
 
 
-class TransferChooseAccounts(BasePage):
+class TransferChooseAccounts(Page):
     def set_accouts(self, from_account, to_account):
         self.browser.select_form(name="AiguillageForm")
         self.browser["idxCompteEmetteur"] = [from_account.id]
@@ -33,19 +33,19 @@ class TransferChooseAccounts(BasePage):
         self.browser.submit()
 
 
-class CompleteTransfer(BasePage):
+class CompleteTransfer(Page):
     def complete_transfer(self, amount):
         self.browser.select_form(name="virement_unitaire_saisie_saisie_virement_sepa")
         self.browser["montant"] = str(amount)
         self.browser.submit()
 
 
-class TransferConfirm(BasePage):
+class TransferConfirm(Page):
     def confirm(self):
         self.browser.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virement/virementSafran_national/confirmerVirementNational-virementNational.ea')
 
 
-class TransferSummary(BasePage):
+class TransferSummary(Page):
     def get_transfer_id(self):
         p = self.document.xpath("//div[@id='main']/div/p")[0]
 

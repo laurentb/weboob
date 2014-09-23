@@ -20,7 +20,7 @@
 from datetime import datetime
 import re
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities.collection import Collection
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.image import BaseImage
@@ -28,7 +28,7 @@ from weboob.capabilities.image import BaseImage
 from .video import CanalplusVideo
 
 
-class ChannelsPage(BasePage):
+class ChannelsPage(Page):
     def get_channels(self):
         """
         Extract all possible channels (paths) from the page
@@ -55,7 +55,7 @@ class ChannelsPage(BasePage):
         return friendly_id, name
 
 
-class VideoPage(BasePage):
+class VideoPage(Page):
     def parse_video(self, el, video=None):
         _id = el.find('ID').text
         if _id == '-1':

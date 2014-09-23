@@ -23,18 +23,18 @@ from decimal import Decimal
 import re
 from cStringIO import StringIO
 
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import Page, BrokenPageError
 from weboob.tools.json import json
 from weboob.capabilities.bank import Account
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     pass
 
 
-class CDNBasePage(BasePage):
+class CDNBasePage(Page):
     def get_from_js(self, pattern, end, is_list=False):
         """
         find a pattern in any javascript text

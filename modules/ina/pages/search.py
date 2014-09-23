@@ -21,13 +21,13 @@
 import datetime
 import re
 
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import Page, BrokenPageError
 from weboob.capabilities.image import BaseImage
 
 from ..video import InaVideo
 
 
-class SearchPage(BasePage):
+class SearchPage(Page):
     URL_REGEXP = re.compile(r'/(.+)/(.+)\.jpeg')
 
     def iter_videos(self):

@@ -26,13 +26,13 @@ import re
 
 from weboob.tools.mech import ClientForm
 from weboob.tools.ordereddict import OrderedDict
-from weboob.tools.browser import BasePage, BrokenPageError, BrowserUnavailable, BrowserIncorrectPassword
+from weboob.tools.browser import Page, BrokenPageError, BrowserUnavailable, BrowserIncorrectPassword
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-class _LogoutPage(BasePage):
+class _LogoutPage(Page):
     def on_loaded(self):
         try:
             raise BrowserIncorrectPassword(self.parser.tocleanstring(self.parser.select(self.document.getroot(), '.messErreur', 1)))
@@ -83,7 +83,7 @@ class LoginPage(_LogoutPage):
 class ErrorPage(_LogoutPage):
     pass
 
-class UnavailablePage(BasePage):
+class UnavailablePage(Page):
     def on_loaded(self):
         try:
             raise BrowserUnavailable(self.parser.select(self.document.getroot(), 'div#message_error_hs', 1).text.strip())
@@ -116,7 +116,7 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class IndexPage(BasePage):
+class IndexPage(Page):
     ACCOUNT_TYPES = {u'Epargne liquide':            Account.TYPE_SAVINGS,
                      u'Compte Courant':             Account.TYPE_CHECKING,
                      u'Mes comptes':                Account.TYPE_CHECKING,

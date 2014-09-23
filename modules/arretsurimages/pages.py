@@ -21,14 +21,14 @@ import re
 
 from weboob.capabilities.base import UserError
 from weboob.capabilities.image import BaseImage
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import Page, BrokenPageError
 from weboob.capabilities import NotAvailable
 
 
 from .video import ArretSurImagesVideo
 
 
-class IndexPage(BasePage):
+class IndexPage(Page):
     def iter_videos(self):
         videos = self.document.getroot().cssselect("div[class=bloc-contenu-8]")
         for div in videos:
@@ -55,7 +55,7 @@ class ForbiddenVideo(UserError):
     pass
 
 
-class VideoPage(BasePage):
+class VideoPage(Page):
     def is_logged(self):
         try:
             self.parser.select(self.document.getroot(), '#user-info', 1)
@@ -106,7 +106,7 @@ class VideoPage(BasePage):
         return url
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, username, password):
         response = self.browser.response()
         response.set_data(response.get_data().replace("<br/>", "<br />"))  # Python mechanize is broken, fixing it.
@@ -119,5 +119,5 @@ class LoginPage(BasePage):
         self.browser.submit()
 
 
-class LoginRedirectPage(BasePage):
+class LoginRedirectPage(Page):
     pass

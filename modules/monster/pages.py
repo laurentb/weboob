@@ -18,14 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.html import html2text
 import re
 from datetime import datetime, time, timedelta
 from .job import MonsterJobAdvert
 
 
-class SearchPage(BasePage):
+class SearchPage(Page):
     def iter_job_adverts(self):
         re_id = re.compile('http://offre-emploi.monster.fr/(.*?).aspx', re.DOTALL)
         trs = self.document.getroot().xpath("//table[@class='listingsTable']/tbody/tr")
@@ -58,7 +58,7 @@ class SearchPage(BasePage):
                 yield advert
 
 
-class AdvertPage(BasePage):
+class AdvertPage(Page):
     def get_job_advert(self, url, advert):
         re_id = re.compile('http://offre-emploi.monster.fr/(.*?).aspx', re.DOTALL)
         if advert is None:

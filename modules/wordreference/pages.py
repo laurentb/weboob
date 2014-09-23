@@ -18,14 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 import re
 
 
 LAST_THING_IN_PARENTHESIS = re.compile("\([^)]\)$")
 
 
-class TranslatePage(BasePage):
+class TranslatePage(Page):
     def get_translation(self):
         trs = self.document.getroot().xpath("//table[@class='WRD']/tr[@class='even']")
         if trs and len(trs) > 0:

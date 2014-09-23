@@ -18,10 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
-class TranslatePage(BasePage):
+class TranslatePage(Page):
     def get_translation(self):
         boxes = self.parser.select(self.document.getroot(), 'span#result_box', 1).findall('span')
         if len(boxes) == 0:

@@ -19,7 +19,7 @@
 
 import urllib
 
-from weboob.tools.browser import BaseBrowser, BasePage
+from weboob.tools.browser import BaseBrowser, Page
 from weboob.tools.ordereddict import OrderedDict
 
 from .pages import LoginPage, ThreadPage, MessagesPage, PostMessagePage, ProfilePage, PhotosPage, VisitsPage, QuickMatchPage, SentPage
@@ -45,7 +45,7 @@ class OkCBrowser(BaseBrowser):
     ENCODING = 'UTF-8'
     PAGES = OrderedDict((
             ('https://%s/login.*' % DOMAIN, LoginPage),
-            ('http://%s/home' % DOMAIN, BasePage),
+            ('http://%s/home' % DOMAIN, Page),
             ('http://%s/messages' % DOMAIN, ThreadPage),
             ('http://%s/messages\?compose=1' % DOMAIN, PostMessagePage),
             ('http://\w+.okcupid.com/messages\?.*', MessagesPage),

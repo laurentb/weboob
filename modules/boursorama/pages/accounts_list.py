@@ -22,11 +22,11 @@
 from decimal import Decimal
 
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-class AccountsList(BasePage):
+class AccountsList(Page):
     def on_loaded(self):
         pass
 

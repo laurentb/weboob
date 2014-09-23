@@ -21,11 +21,11 @@
 from decimal import Decimal
 
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, username, password):
         self.browser.select_form(nr=0)
         self.browser['_58_login'] = username.encode('utf-8')
@@ -33,7 +33,7 @@ class LoginPage(BasePage):
         self.browser.submit(nologin=True)
 
 
-class AccountsPage(BasePage):
+class AccountsPage(Page):
     COL_LABEL = 0
     COL_OWNER = 1
     COL_ID = 2
@@ -59,7 +59,7 @@ class Transaction(FrenchTransaction):
     pass
 
 
-class OperationsPage(BasePage):
+class OperationsPage(Page):
     COL_DATE = 0
     COL_LABEL = 1
     COL_AMOUNT = 2

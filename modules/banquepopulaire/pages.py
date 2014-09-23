@@ -24,7 +24,7 @@ from decimal import Decimal
 import re
 from mechanize import Cookie, FormNotFoundError
 
-from weboob.tools.browser import BasePage as _BasePage, BrowserUnavailable, BrokenPageError
+from weboob.tools.browser import Page as _BasePage, BrowserUnavailable, BrokenPageError
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 

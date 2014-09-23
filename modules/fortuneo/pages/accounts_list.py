@@ -24,7 +24,7 @@ import re
 from time import sleep
 
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import BasePage, BrowserIncorrectPassword
+from weboob.tools.browser import Page, BrowserIncorrectPassword
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.json import json
@@ -50,7 +50,7 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class AccountHistoryPage(BasePage):
+class AccountHistoryPage(Page):
     def get_operations(self, _id):
         """history, see http://docs.weboob.org/api/capabilities/bank.html?highlight=transaction#weboob.capabilities.bank.Transaction"""
 
@@ -83,7 +83,7 @@ class AccountHistoryPage(BasePage):
             yield operation
 
 
-class AccountsList(BasePage):
+class AccountsList(Page):
     def on_loaded(self):
         warn = self.document.xpath('//div[@id="message_renouvellement_mot_passe"]')
         if len(warn) > 0:
@@ -157,7 +157,7 @@ class AccountsList(BasePage):
             yield account
 
 
-class GlobalAccountsList(BasePage):
+class GlobalAccountsList(Page):
     pass
 
 # vim:ts=4:sw=4

@@ -18,13 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities.weather import Forecast, Current, City
 
 import datetime
 
 
-class CityPage(BasePage):
+class CityPage(Page):
     def iter_city_search(self):
         for item in self.document.findall('//div[@class="searchResultsList"]/ul/li'):
             if item.attrib.get('class', '') == 'searchResultsMoreLink':
@@ -34,7 +34,7 @@ class CityPage(BasePage):
             yield City(city_id, city_name)
 
 
-class WeatherPage(BasePage):
+class WeatherPage(Page):
     def get_city(self):
         parts = self.url.split('/')[-1].split('+')
         return City(parts[-1], u', '.join(parts[:-1]))
@@ -46,7 +46,7 @@ class WeatherPage(BasePage):
         return Current(date, temp, text, u'F')
 
 
-class ForecastPage(BasePage):
+class ForecastPage(Page):
     def iter_forecast(self):
         divs = self.document.findall('//div[@class="wx-daypart"]')
 

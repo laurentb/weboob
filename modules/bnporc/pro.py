@@ -24,12 +24,12 @@ from decimal import Decimal, InvalidOperation
 
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 from .perso.transactions import Transaction
 
 
-class ProAccountsList(BasePage):
+class ProAccountsList(Page):
     COL_LABEL   = 1
     COL_ID      = 2
     COL_BALANCE = 3
@@ -77,7 +77,7 @@ class ProAccountsList(BasePage):
         return accounts
 
 
-class ProAccountHistory(BasePage):
+class ProAccountHistory(Page):
     COL_DATE = 0
     COL_LABEL = 1
     COL_DEBIT = -2

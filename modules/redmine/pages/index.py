@@ -18,10 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, username, password):
         self.browser.select_form(predicate=lambda f: f.attrs.get('method', '') == 'post')
         self.browser['username'] = username.encode(self.browser.ENCODING)
@@ -29,15 +29,15 @@ class LoginPage(BasePage):
         self.browser.submit()
 
 
-class IndexPage(BasePage):
+class IndexPage(Page):
     pass
 
 
-class MyPage(BasePage):
+class MyPage(Page):
     pass
 
 
-class ProjectsPage(BasePage):
+class ProjectsPage(Page):
     def iter_projects(self):
         for ul in self.parser.select(self.document.getroot(), 'ul.projects'):
             for li in ul.findall('li'):

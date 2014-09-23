@@ -21,7 +21,7 @@
 import re
 from logging import warning
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
 class Message(object):
@@ -43,7 +43,7 @@ class Message(object):
             warning('Unable to parse timestamp "%s"' % timestamp)
 
 
-class BoardIndexPage(BasePage):
+class BoardIndexPage(Page):
     def is_logged(self):
         return True
 

@@ -22,7 +22,7 @@ import re
 import hashlib
 import urllib
 
-from weboob.tools.browser import BasePage, BrowserIncorrectPassword
+from weboob.tools.browser import Page, BrowserIncorrectPassword
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
 
 
@@ -73,7 +73,7 @@ class VirtKeyboard(MappedVirtKeyboard):
         return hashlib.md5(s).hexdigest()
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def on_loaded(self):
         pass
 #        for td in self.document.getroot().cssselect('td.LibelleErreur'):
@@ -97,6 +97,6 @@ class LoginPage(BasePage):
         self.browser.location(form.attrib['action'], urllib.urlencode(args), no_login=True)
 
 
-class UpdateInfoPage(BasePage):
+class UpdateInfoPage(Page):
     def on_loaded(self):
         raise BrowserIncorrectPassword('Please update your login credentials')

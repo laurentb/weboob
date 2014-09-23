@@ -20,15 +20,15 @@
 import re
 
 from weboob.capabilities.messages import CantSendMessage
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
-class ConfirmPage(BasePage):
+class ConfirmPage(Page):
     def on_loaded(self):
         pass
 
 
-class ComposePage(BasePage):
+class ComposePage(Page):
     phone_regex = re.compile('^(\+33|0033|0)(6|7)(\d{8})$')
 
     def on_loaded(self):

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.bank import Account, Transaction
-from weboob.tools.browser2.page import BasePage, HTMLPage, LoggedPage, RawPage
+from weboob.tools.browser2.page import Page, HTMLPage, LoggedPage, RawPage
 from urllib import unquote
 from .parsers import StatementParser, clean_amount, clean_label
 import itertools
@@ -60,7 +60,7 @@ class SummaryPage(LoggedInPage):
         self.browser.location(href)
 
 
-class DynamicPage(BasePage):
+class DynamicPage(Page):
     """
     Most of Wells Fargo pages have the same URI pattern.
     Some of these pages are HTML, some are PDF.

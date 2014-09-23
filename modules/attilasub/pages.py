@@ -20,10 +20,10 @@
 
 from weboob.capabilities.subtitle import Subtitle
 from weboob.capabilities.base import NotAvailable
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 
 
-class SearchPage(BasePage):
+class SearchPage(Page):
     def iter_subtitles(self, language, pattern):
         fontresult = self.parser.select(self.document.getroot(), 'div.search-results font.search-results')
         # for each result in freefind, explore the subtitle list page to iter subtitles
@@ -37,7 +37,7 @@ class SearchPage(BasePage):
                 yield subtitle
 
 
-class SubtitlesPage(BasePage):
+class SubtitlesPage(Page):
     def get_subtitle(self, id):
         href = id.split('|')[1]
         # we have to find the 'tr' which contains the link to this address

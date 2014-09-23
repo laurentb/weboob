@@ -23,7 +23,7 @@ import datetime
 
 import dateutil.parser
 
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import Page, BrokenPageError
 from weboob.tools.parsers.csvparser import CsvParser
 from weboob.tools.misc import to_unicode
 from weboob.tools.date import parse_french_date
@@ -39,7 +39,7 @@ def clean_amount(text):
     return Decimal(amnt) if amnt else Decimal("0")
 
 
-class LoginPage(BasePage):
+class LoginPage(Page):
     def login(self, login, password):
         self.browser.select_form(name='login_form')
         self.browser['login_email'] = login.encode(self.browser.ENCODING)
@@ -47,7 +47,7 @@ class LoginPage(BasePage):
         self.browser.submit(nologin=True)
 
 
-class AccountPage(BasePage):
+class AccountPage(Page):
     def get_account(self, _id):
         return self.get_accounts().get(_id)
 
@@ -110,7 +110,7 @@ class AccountPage(BasePage):
         return accounts
 
 
-class DownloadHistoryPage(BasePage):
+class DownloadHistoryPage(Page):
     def download(self, start, end):
         tr_last_file_request = self.document.xpath('//table//table//table//tr[2]//td')[1]
         if tr_last_file_request.text is not None:
@@ -135,14 +135,14 @@ class DownloadHistoryPage(BasePage):
 
         self.browser.submit()
 
-class LastDownloadHistoryPage(BasePage):
+class LastDownloadHistoryPage(Page):
     def download(self):
         self.browser.select_form(nr=1)
         log_select =  self.document.xpath('//table//form//input[@type="radio"]')[0].attrib['value']
         self.browser['log_select'] = [log_select]
         self.browser.submit()
 
-class SubmitPage(BasePage):
+class SubmitPage(Page):
     """
     Any result of form submission
     """
@@ -243,11 +243,11 @@ class HistoryParser(CsvParser):
         return [to_unicode(cell) for cell in row]
 
 
-class UselessPage(BasePage):
+class UselessPage(Page):
     pass
 
 
-class HistoryPage(BasePage):
+class HistoryPage(Page):
     def guess_format(self):
         rp = re.compile('PAYPAL\.widget\.CalendarLocales\.MDY_([A-Z]+)_POSITION\s*=\s*(\d)')
         rd = re.compile('PAYPAL\.widget\.CalendarLocales\.DATE_DELIMITER\s*=\s*"(.)"')

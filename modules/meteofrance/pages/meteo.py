@@ -19,14 +19,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities.weather import Forecast, Current, City
 
 import datetime
 import re
 
 
-class SearchCitiesPage(BasePage):
+class SearchCitiesPage(Page):
     def iter_cities(self):
         list = self.document.getroot().xpath('//ul[@class="list-style-1"]/li/a')
         for a in list:
@@ -36,7 +36,7 @@ class SearchCitiesPage(BasePage):
                 yield mcity
 
 
-class WeatherPage(BasePage):
+class WeatherPage(Page):
     def get_temp_without_unit(self, temp_str):
         # It seems that the mechanize module give us some old style
         # ISO character

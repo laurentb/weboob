@@ -26,7 +26,7 @@ import shutil
 from datetime import datetime, date, time
 from decimal import Decimal
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import Page
 from weboob.capabilities.bill import Detail, Bill
 
 
@@ -156,7 +156,7 @@ class PdfPage():
         return sorted(details, key=_get_date, reverse=True)
 
 
-class HistoryPage(BasePage):
+class HistoryPage(Page):
     def on_loaded(self):
         pass
 
