@@ -73,7 +73,7 @@ class URL(object):
         If arguments are provided, and only then, they are checked against the arguments
         that were used to build the current page URL.
         """
-        assert self.klass is not None, "You can use this method only if the is a Page class handler."
+        assert self.klass is not None, "You can use this method only if there is a Page class handler."
 
         if len(kwargs):
             params = self.match(self.build(**kwargs)).groupdict()
