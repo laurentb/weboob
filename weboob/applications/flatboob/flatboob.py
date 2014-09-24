@@ -155,6 +155,19 @@ class Flatboob(ReplApplication):
             else:
                 query.type_of_good.append(value)
 
+        _type = None
+        while _type not in [query.TYPE_RENT, query.TYPE_SALE]:
+            print '  %s%2d)%s %s' % (self.BOLD,
+                                     query.TYPE_RENT,
+                                     self.NC,
+                                     "Rent")
+            print '  %s%2d)%s %s' % (self.BOLD,
+                                     query.TYPE_SALE,
+                                     self.NC,
+                                     "Sale")
+            _type = self.ask_int('Type of query')
+
+        query.type = _type
         query.area_min = self.ask_int('Enter min area')
         query.area_max = self.ask_int('Enter max area')
         query.cost_min = self.ask_int('Enter min cost')
