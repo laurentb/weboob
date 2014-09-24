@@ -3,6 +3,9 @@
 # stop on failure
 set -e
 
+# path to sources
+WEBOOB_DIR=$(cd $(dirname $0)/.. && pwd -P)
+
 BACKEND="${1}"
 if [ -z "${WEBOOB_WORKDIR}" ]; then
     # use the old workdir by default
@@ -13,6 +16,8 @@ if [ -z "${WEBOOB_WORKDIR}" ]; then
 fi
 [ -z "${TMPDIR}" ] && TMPDIR="/tmp"
 [ -z "${WEBOOB_BACKENDS}" ] && WEBOOB_BACKENDS="${WEBOOB_WORKDIR}/backends"
+[ -z "${WEBOOB_MODULES}" ] && WEBOOB_MODULES="${WEBOOB_DIR}/modules"
+[ -z "${PYTHONPATH}" ] && PYTHONPATH=""
 
 # allow private environment setup
 [ -f "${WEBOOB_WORKDIR}/pre-test.sh" ] && source "${WEBOOB_WORKDIR}/pre-test.sh"
@@ -60,27 +65,26 @@ else
     XUNIT_ARGS=""
 fi
 
-# path to sources
-WEBOOB_DIR=$(cd $(dirname $0)/.. && pwd -P)
 ${PYTHON} "$(dirname $0)/stale_pyc.py"
-echo "file://$WEBOOB_DIR/modules" > "${WEBOOB_TMPDIR}/sources.list"
+
+echo "file://${WEBOOB_MODULES}" > "${WEBOOB_TMPDIR}/sources.list"
 
 export WEBOOB_WORKDIR="${WEBOOB_TMPDIR}"
-export PYTHONPATH="${WEBOOB_DIR}"
+export PYTHONPATH="${WEBOOB_DIR}:${PYTHONPATH}"
 export NOSE_NOPATH="1"
 ${PYTHON} "${WEBOOB_DIR}/scripts/weboob-config" update
 
 # allow failing commands past this point
 set +e
 if [ -n "${BACKEND}" ]; then
-    ${PYTHON} ${NOSE} -c /dev/null -sv "${WEBOOB_DIR}/modules/${BACKEND}/test.py" ${XUNIT_ARGS}
+    ${PYTHON} ${NOSE} -c /dev/null -sv "${WEBOOB_MODULES}/${BACKEND}/test.py" ${XUNIT_ARGS}
     STATUS_CORE=0
 else
     echo "=== Weboob ==="
     ${PYTHON} ${NOSE} -c ${WEBOOB_DIR}/setup.cfg -sv
     STATUS_CORE=$?
     echo "=== Modules ==="
-    find "${WEBOOB_DIR}/modules" -name "test.py" | sort | xargs ${PYTHON} ${NOSE} -c /dev/null -sv ${XUNIT_ARGS}
+    find "${WEBOOB_MODULES}" -name "test.py" | sort | xargs ${PYTHON} ${NOSE} -c /dev/null -sv ${XUNIT_ARGS}
 fi
 STATUS=$?
 
