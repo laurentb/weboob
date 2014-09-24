@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
 from weboob.capabilities.housing import CapHousing, Query
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
@@ -136,6 +135,25 @@ class Flatboob(ReplApplication):
                     query.cities.remove(city)
                 else:
                     query.cities.append(city)
+
+        r = 'notempty'
+        while r != '':
+            for good in Query.HOUSE_TYPES.values:
+                print '  %s%2d)%s [%s] %s' % (self.BOLD,
+                                              Query.HOUSE_TYPES.index[good] + 1,
+                                              self.NC,
+                                              'x' if good in query.house_types else ' ', good)
+            r = self.ask('  Select type of house (or empty to stop)', regexp='(\d+|)', default='')
+            if not r.isdigit():
+                continue
+            r = int(r)
+            if r <= 0 or r > len(Query.TYPE_OF_GOOD.values):
+                continue
+            value = Query.TYPE_OF_GOOD.values[r - 1]
+            if value in query.type_of_good:
+                query.type_of_good.remove(value)
+            else:
+                query.type_of_good.append(value)
 
         query.area_min = self.ask_int('Enter min area')
         query.area_max = self.ask_int('Enter max area')

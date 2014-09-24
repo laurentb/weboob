@@ -70,16 +70,37 @@ class Query(BaseObject):
     TYPE_RENT = 0
     TYPE_SALE = 1
 
-    type =      IntField('Type of housing to find (TYPE_* constants)')
-    cities =    Field('List of cities to search in', list, tuple)
-    area_min =  IntField('Minimal area (in m2)')
-    area_max =  IntField('Maximal area (in m2)')
-    cost_min =  IntField('Minimal cost')
-    cost_max =  IntField('Maximal cost')
-    nb_rooms =  IntField('Number of rooms')
+    def enum(**enums):
+        _values = enums.values()
+        _items = enums.items()
+        _index = dict((value, i) for i, value in enumerate(enums.values()))
+        _types = list((type(value) for value in enums.values()))
+        enums['values'] = _values
+        enums['items'] = _items
+        enums['index'] = _index
+        enums['types'] = _types
+        return type('Enum', (), enums)
+
+    HOUSE_TYPES = enum(APART=u'Apartment',
+                       HOUSE=u'House',
+                       PARKING=u'Parking',
+                       LAND=u'Land',
+                       OTHER=u'Other')
+
+    type = IntField('Type of housing to find (TYPE_* constants)')
+    cities = Field('List of cities to search in', list, tuple)
+    area_min = IntField('Minimal area (in m2)')
+    area_max = IntField('Maximal area (in m2)')
+    cost_min = IntField('Minimal cost')
+    cost_max = IntField('Maximal cost')
+    nb_rooms = IntField('Number of rooms')
+    house_types = Field('List of house types', list, tuple)
 
     def __init__(self):
         BaseObject.__init__(self, '')
+        self.house_types = []
+        for value in self.HOUSE_TYPES.values:
+            self.house_types.append(value)
 
 
 class City(BaseObject):
