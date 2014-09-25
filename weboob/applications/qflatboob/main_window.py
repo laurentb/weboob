@@ -59,7 +59,7 @@ class HousingListWidgetItem(QListWidgetItem):
 
 
 class MainWindow(QtMainWindow):
-    def __init__(self, config, storage, weboob, parent=None):
+    def __init__(self, config, storage, weboob, app, parent=None):
         QtMainWindow.__init__(self, parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -67,6 +67,7 @@ class MainWindow(QtMainWindow):
         self.config = config
         self.storage = storage
         self.weboob = weboob
+        self.app = app
         self.process = None
         self.housing = None
         self.displayed_photo_idx = 0
@@ -203,7 +204,7 @@ class MainWindow(QtMainWindow):
         query.nb_rooms = int(q['nb_rooms']) or None
 
         self.process = QtDo(self.weboob, self.addHousing)
-        self.process.do('search_housings', query)
+        self.process.do(self.app._do_complete, 20, (), 'search_housings', query)
 
     def displayBookmarks(self):
         self.ui.housingsList.clear()
