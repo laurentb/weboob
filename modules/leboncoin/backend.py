@@ -67,7 +67,8 @@ class LeboncoinBackend(BaseBackend, CapHousing):
 
         ret = []
         for g in query.house_types:
-            ret.append(self.RET.get(g))
+            if g in self.RET:
+                ret.append(self.RET.get(g))
 
         if len(ret) == 0:
             return list()

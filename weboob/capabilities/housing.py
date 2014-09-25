@@ -85,7 +85,8 @@ class Query(BaseObject):
                        HOUSE=u'House',
                        PARKING=u'Parking',
                        LAND=u'Land',
-                       OTHER=u'Other')
+                       OTHER=u'Other',
+                       UNKNOWN=u'Unknown')
 
     type = IntField('Type of housing to find (TYPE_* constants)')
     cities = Field('List of cities to search in', list, tuple)
@@ -94,13 +95,7 @@ class Query(BaseObject):
     cost_min = IntField('Minimal cost')
     cost_max = IntField('Maximal cost')
     nb_rooms = IntField('Number of rooms')
-    house_types = Field('List of house types', list, tuple)
-
-    def __init__(self):
-        BaseObject.__init__(self, '')
-        self.house_types = []
-        for value in self.HOUSE_TYPES.values:
-            self.house_types.append(value)
+    house_types = Field('List of house types', list, tuple, default=HOUSE_TYPES.values)
 
 
 class City(BaseObject):
