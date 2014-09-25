@@ -22,7 +22,7 @@ from weboob.tools.browser2.page import HTMLPage, method, pagination
 from weboob.tools.browser2.elements import ItemElement, ListElement
 from weboob.tools.browser2.filters import CleanText, Link, Regexp, CleanDecimal, Env, DateTime, Attr
 from weboob.capabilities.housing import City, Housing, HousingPhoto
-from datetime import date
+from datetime import date, timedelta
 from weboob.tools.date import DATE_TRANSLATE_FR, LinearDateGuesser
 
 
@@ -61,7 +61,8 @@ class HousingListPage(HTMLPage):
 
             def obj_date(self):
                 _date = CleanText('./div[@class="lbc"]/div[@class="date"]',
-                                  replace=[('Aujourd\'hui', str(date.today().day))])(self)
+                                  replace=[('Aujourd\'hui', str(date.today().day)),
+                                           ('Hier', str((date.today() - timedelta(1)).day))])(self)
                 for fr, en in DATE_TRANSLATE_FR:
                     _date = fr.sub(en, _date)
 

@@ -51,7 +51,7 @@ class LeboncoinBackend(BaseBackend, CapHousing):
 
     def fill_photo(self, photo, fields):
         if 'data' in fields and photo.url and not photo.data:
-            photo.data = self.browser.readurl(photo.url)
+            photo.data = self.browser.open(photo.url).content
         return photo
 
     def search_city(self, pattern):
