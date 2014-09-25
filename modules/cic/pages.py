@@ -167,7 +167,7 @@ class Transaction(FrenchTransaction):
 
 class OperationsPage(Page):
     def get_history(self):
-        index = 0
+        seen = set()
         for tr in self.document.getiterator('tr'):
             # columns can be:
             # - date | value | operation | debit | credit | contre-valeur
@@ -182,8 +182,7 @@ class OperationsPage(Page):
             if tds[0].attrib.get('class', '') == 'i g' or \
                tds[0].attrib.get('class', '') == 'p g' or \
                tds[0].attrib.get('class', '').endswith('_c1 c _c1'):
-                operation = Transaction(index)
-                index += 1
+                operation = Transaction(0)
 
                 parts = [txt.strip() for txt in tds[-3].itertext() if len(txt.strip()) > 0]
 
@@ -201,6 +200,7 @@ class OperationsPage(Page):
                 credit = self.parser.tocleanstring(tds[-1])
                 debit = self.parser.tocleanstring(tds[-2])
                 operation.set_amount(credit, debit)
+                operation.id = operation.unique_id(seen)
                 yield operation
 
     def go_next(self):
