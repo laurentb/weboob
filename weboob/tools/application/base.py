@@ -33,7 +33,7 @@ from weboob.core import Weboob, CallErrors
 from weboob.core.backendscfg import BackendsConfig
 from weboob.tools.config.iconfig import ConfigError
 from weboob.tools.exceptions import FormFieldConversionWarning
-from weboob.tools.log import createColoredFormatter, getLogger, settings as log_settings
+from weboob.tools.log import createColoredFormatter, getLogger, DebugFilter, settings as log_settings
 from weboob.tools.misc import to_unicode
 from .results import ResultsConditionError
 
@@ -165,6 +165,7 @@ class Application(object):
         logging_options.add_option('-d', '--debug', action='store_true', help='display debug messages')
         logging_options.add_option('-q', '--quiet', action='store_true', help='display only error messages')
         logging_options.add_option('-v', '--verbose', action='store_true', help='display info messages')
+        logging_options.add_option('-D', '--verbose-debug', action='store_true', help='display extra debug messages for html parsing')
         logging_options.add_option('--logging-file', action='store', type='string', dest='logging_file', help='file to save logs')
         logging_options.add_option('-a', '--save-responses', action='store_true', help='save every response')
         self._parser.add_option_group(logging_options)
@@ -388,6 +389,10 @@ class Application(object):
 
         self._handle_options()
         self.handle_application_options()
+
+        if not self.options.verbose_debug:
+            for handler in handlers:
+                handler.addFilter(DebugFilter())
 
         return args
 
