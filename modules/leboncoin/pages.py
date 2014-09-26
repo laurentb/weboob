@@ -50,7 +50,7 @@ class HousingListPage(HTMLPage):
         class item(ItemElement):
             klass = Housing
 
-            obj_id = Regexp(Link('.'), 'http://www.leboncoin.fr/ventes_immobilieres/(.*).htm')
+            obj_id = Regexp(Link('.'), 'http://www.leboncoin.fr/(ventes_immobilieres|locations)/(.*).htm', '\\2')
             obj_title = CleanText('./div[@class="lbc"]/div/div[@class="title"]')
             obj_cost = CleanDecimal('./div[@class="lbc"]/div/div[@class="price"]',
                                     replace_dots=(',', '.'),
@@ -115,12 +115,8 @@ class HousingPage(HTMLPage):
         obj_area = Env('area')
 
         def obj_date(self):
-            sender = CleanText('//div[@class="upload_by"]/a')(self)
-            _date = CleanText('//div[@class="upload_by"]',
-                              replace=[('- Mise en ligne le ', ''),
-                                       (sender, ''),
-                                       (u'à', ''),
-                                       (u'.', '')])(self)
+            _date =  Regexp(CleanText('//div[@class="upload_by"]', replace=[(u'à', '')]),
+                            '.*- Mise en ligne le (.*).')(self)
 
             for fr, en in DATE_TRANSLATE_FR:
                 _date = fr.sub(en, _date)

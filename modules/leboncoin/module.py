@@ -73,7 +73,10 @@ class LeboncoinModule(Module, CapHousing):
         if len(ret) == 0:
             return list()
 
-        _type = query.TYPE_RENT if query.type is None else query.type
+        _type = 'ventes_immobilieres'
+        if query.type == Query.TYPE_RENT:
+            _type = 'locations'
+
         nb_rooms = '' if not query.nb_rooms else query.nb_rooms
         area_min = '' if not query.area_min else query.area_min
         area_max = '' if not query.area_max else query.area_max

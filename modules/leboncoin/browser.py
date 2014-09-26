@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 from weboob.tools.browser2 import PagesBrowser, URL
 
 from .pages import CityListPage, HousingListPage, HousingPage
@@ -26,8 +25,8 @@ from .pages import CityListPage, HousingListPage, HousingPage
 class LeboncoinBrowser(PagesBrowser):
     BASEURL = 'http://www.leboncoin.fr'
     city = URL('ajax/location_list.html\?city=(?P<city>.*)&zipcode=(?P<zip>.*)', CityListPage)
-    search = URL('ventes_immobilieres/offres/ile_de_france/occasions/\?ps=(?P<ps>.*)&pe=(?P<pe>.*)&ros=(?P<ros>.*)&location=(?P<location>.*)&sqs=(?P<sqs>.*)&sqe=(?P<sqe>.*)&ret=(?P<ret>.*)',
-                 'ventes_immobilieres/offres/ile_de_france/occasions/\?.*',
+    search = URL('(?P<type>.*)/offres/ile_de_france/occasions/\?ps=(?P<ps>.*)&pe=(?P<pe>.*)&ros=(?P<ros>.*)&location=(?P<location>.*)&sqs=(?P<sqs>.*)&sqe=(?P<sqe>.*)&ret=(?P<ret>.*)',
+                 '(ventes_immobilieres|locations)/offres/ile_de_france/occasions/\?.*',
                  HousingListPage)
     housing = URL('ventes_immobilieres/(?P<_id>.*).htm', HousingPage)
 
@@ -42,13 +41,13 @@ class LeboncoinBrowser(PagesBrowser):
         return self.city.go(city=city, zip=zip_code).get_cities()
 
     def search_housings(self, type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, ret):
-        #  print type achat ou location
         return self.search.go(location=cities,
                               ros=nb_rooms,
                               sqs=area_min,
                               sqe=area_max,
                               ps=cost_min,
                               pe=cost_max,
+                              type=type,
                               ret=ret).get_housing_list()
 
     def get_housing(self, _id):
