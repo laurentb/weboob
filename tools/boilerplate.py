@@ -193,7 +193,7 @@ class CapRecipe(Recipe):
         self.methods_code = self.methods_code(cap)
 
         self.write('__init__.py', self.template('init'))
-        self.write('module.py', self.template('cap_backend'))
+        self.write('module.py', self.template('cap_module'))
         self.write('browser.py', self.template('base_browser'))
         self.write('pages.py', self.template('base_pages'))
         self.write('test.py', self.template('base_test'))
@@ -204,7 +204,7 @@ class ComicRecipe(Recipe):
 
     def generate(self):
         self.write('__init__.py', self.template('init'))
-        self.write('module.py', self.template('comic_backend'))
+        self.write('module.py', self.template('comic_module'))
 
 
 class ComicTestRecipe(Recipe):
