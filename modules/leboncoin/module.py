@@ -35,7 +35,7 @@ class LeboncoinModule(Module, CapHousing):
     LICENSE = 'AGPLv3+'
     VERSION = '1.0'
 
-    MODULE = LeboncoinBrowser
+    BROWSER = LeboncoinBrowser
 
     RET = {Query.HOUSE_TYPES.HOUSE: '1',
            Query.HOUSE_TYPES.APART: '2',
