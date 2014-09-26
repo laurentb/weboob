@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import LeboncoinBackend
+from .module import LeboncoinModule
 
 
-__all__ = ['LeboncoinBackend']
+__all__ = ['LeboncoinModule']

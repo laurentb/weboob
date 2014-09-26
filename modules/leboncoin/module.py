@@ -18,16 +18,16 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import Module
 from weboob.capabilities.housing import CapHousing, Query, Housing, HousingPhoto
 
 from .browser import LeboncoinBrowser
 
 
-__all__ = ['LeboncoinBackend']
+__all__ = ['LeboncoinModule']
 
 
-class LeboncoinBackend(BaseBackend, CapHousing):
+class LeboncoinModule(Module, CapHousing):
     NAME = 'leboncoin'
     DESCRIPTION = u'search house on leboncoin website'
     MAINTAINER = u'Bezleputh'
@@ -35,7 +35,7 @@ class LeboncoinBackend(BaseBackend, CapHousing):
     LICENSE = 'AGPLv3+'
     VERSION = '1.0'
 
-    BROWSER = LeboncoinBrowser
+    MODULE = LeboncoinBrowser
 
     RET = {Query.HOUSE_TYPES.HOUSE: '1',
            Query.HOUSE_TYPES.APART: '2',
