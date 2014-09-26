@@ -30,6 +30,7 @@ from weboob.capabilities.base import empty
 from weboob.tools.compat import basestring
 from weboob.tools.exceptions import ParseError
 from weboob.tools.browser2 import URL
+from weboob.tools.log import getLogger
 
 class NoDefault(object):
     def __repr__(self):
@@ -88,6 +89,30 @@ class _Filter(object):
 
     def __str__(self):
         return self.__class__.__name__
+
+
+def debug(*args):
+    """
+    A decorator function to provide some debugs informations
+    in Filters.
+    It prints by default the name of the Filter and the input value.
+    You can add environnement variable used by filters, by example
+    using @debug("symbols", "toreplace", "childs")
+    """
+    def wraper(function):
+        def print_debug(self, value):
+            logger = getLogger('b2filters')
+            logger.debug("Use the filter %s on %s" % (str(self), value))
+            env = ''
+            for arg in args:
+                env += "%s: %s;;; " % (arg, getattr(self, arg))
+            if env != '':
+                logger.debug(env)
+            res = function(self, value)
+            logger.debug("Result is: %s" % res)
+            return res
+        return print_debug
+    return wraper
 
 
 class Filter(_Filter):
