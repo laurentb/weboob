@@ -18,9 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import Module
+from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.housing import CapHousing, Query, Housing, HousingPhoto
-
+from weboob.tools.value import Value
 from .browser import LeboncoinBrowser
 
 
@@ -36,6 +36,9 @@ class LeboncoinModule(Module, CapHousing):
     VERSION = '1.0'
 
     BROWSER = LeboncoinBrowser
+
+    CONFIG = BackendConfig(Value('advert_type', label='Advert type',
+                                 choices={'c': 'Agency', 'p': 'Owner', 'a': 'All'}, default='a'))
 
     RET = {Query.HOUSE_TYPES.HOUSE: '1',
            Query.HOUSE_TYPES.APART: '2',
@@ -85,6 +88,7 @@ class LeboncoinModule(Module, CapHousing):
 
         return self.browser.search_housings(_type, ','.join(cities), nb_rooms,
                                             area_min, area_max,
-                                            cost_min, cost_max, '&ret='.join(ret))
+                                            cost_min, cost_max, '&ret='.join(ret),
+                                            self.config['advert_type'].get())
 
     OBJECTS = {Housing: fill_housing, HousingPhoto: fill_photo}
