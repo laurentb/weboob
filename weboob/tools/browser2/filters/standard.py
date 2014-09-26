@@ -96,8 +96,6 @@ def debug(*args):
     A decorator function to provide some debugs informations
     in Filters.
     It prints by default the name of the Filter and the input value.
-    You can add environnement variable used by filters, by example
-    using @debug("symbols", "toreplace", "childs")
     """
     def wraper(function):
         def print_debug(self, value):
@@ -145,6 +143,7 @@ class Filter(_Filter):
     def __call__(self, item):
         return self.filter(self.select(self.selector, item))
 
+    @debug()
     def filter(self, value):
         """
         This method have to be overrided by children classes.
@@ -251,6 +250,7 @@ class TableCell(_Filter):
 
 
 class RawText(Filter):
+    @debug()
     def filter(self, el):
         if isinstance(el, (tuple, list)):
             return u' '.join([self.filter(e) for e in el])
@@ -287,6 +287,7 @@ class CleanText(Filter):
         self.childs = childs
         self.newlines = newlines
 
+    @debug()
     def filter(self, txt):
         if isinstance(txt, (tuple, list)):
             txt = u' '.join([self.clean(item, childs=self.childs) for item in txt])
@@ -326,6 +327,7 @@ class CleanText(Filter):
 
 
 class Lower(CleanText):
+    @debug()
     def filter(self, txt):
         txt = super(Lower, self).filter(txt)
         return txt.lower()
@@ -355,6 +357,7 @@ class CleanDecimal(CleanText):
         self.replace_dots = replace_dots
         self.sign = sign
 
+    @debug()
     def filter(self, text):
         if empty(text):
             return self.default_or_raise(ParseError('Unable to parse %r' % text))
@@ -398,6 +401,7 @@ class Type(Filter):
         self.type_func = type
         self.minlen = minlen
 
+    @debug()
     def filter(self, txt):
         if empty(txt):
             return self.default_or_raise(ParseError('Unable to parse %r' % txt))
@@ -461,6 +465,7 @@ class Regexp(Filter):
         self.template = template
         self.nth = nth
 
+    @debug()
     def filter(self, txt):
         if isinstance(txt, (tuple, list)):
             txt = u' '.join([t.strip() for t in txt.itertext()])
@@ -483,6 +488,7 @@ class Map(Filter):
         super(Map, self).__init__(selector, default=default)
         self.map_dict = map_dict
 
+    @debug()
     def filter(self, txt):
         try:
             return self.map_dict[txt]
@@ -496,6 +502,7 @@ class DateTime(Filter):
         self.dayfirst = dayfirst
         self.translations = translations
 
+    @debug()
     def filter(self, txt):
         if empty(txt) or txt == '':
             return self.default_or_raise(ParseError('Unable to parse %r' % txt))
@@ -512,6 +519,7 @@ class Date(DateTime):
     def __init__(self, selector=None, default=_NO_DEFAULT, dayfirst=False, translations=None):
         super(Date, self).__init__(selector, default=default, dayfirst=dayfirst, translations=translations)
 
+    @debug()
     def filter(self, txt):
         datetime = super(Date, self).filter(txt)
         if hasattr(datetime, 'date'):
@@ -550,6 +558,7 @@ class Time(Filter):
     def __init__(self, selector=None, default=_NO_DEFAULT):
         super(Time, self).__init__(selector, default=default)
 
+    @debug()
     def filter(self, txt):
         m = self.regexp.search(txt)
         if m:
@@ -584,6 +593,7 @@ class CombineDate(MultiFilter):
     def __init__(self, date, time):
         super(CombineDate, self).__init__(date, time)
 
+    @debug()
     def filter(self, values):
         return datetime.datetime.combine(values[0], values[1])
 
@@ -593,6 +603,7 @@ class Format(MultiFilter):
         super(Format, self).__init__(*args)
         self.fmt = fmt
 
+    @debug()
     def filter(self, values):
         return self.fmt % values
 
@@ -609,6 +620,7 @@ class BrowserURL(MultiFilter):
         assert isinstance(url, URL), "%s.%s must be an URL object" % (type(item.page.browser).__name__, self.url_name)
         return url.build(**dict(zip(self.keys, values)))
 
+    @debug()
     def filter(self, values):
         return values
 
@@ -619,6 +631,7 @@ class Join(Filter):
         self.pattern = pattern
         self.textCleaner = textCleaner
 
+    @debug()
     def filter(self, el):
         res = u''
         for li in el:
