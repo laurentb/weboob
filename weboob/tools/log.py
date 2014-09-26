@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from collections import defaultdict
-from logging import Formatter, getLogger as _getLogger
+from logging import Filter, Formatter, getLogger as _getLogger
 import sys
 
 
@@ -47,6 +47,16 @@ def getLogger(name, parent=None):
     logger =  _getLogger(name)
     logger.settings = settings
     return logger
+
+
+class DebugFilter(Filter):
+    """
+    Allow a fine filtering of debug output
+    """
+    def filter(self, record):
+        if record.name == "b2filters":
+            return False
+        return True
 
 
 class ColoredFormatter(Formatter):
