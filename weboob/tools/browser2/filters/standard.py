@@ -86,6 +86,9 @@ class _Filter(object):
         else:
             raise exception
 
+    def __str__(self):
+        return self.__class__.__name__
+
 
 class Filter(_Filter):
     """
