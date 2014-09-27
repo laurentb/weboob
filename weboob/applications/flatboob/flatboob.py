@@ -21,6 +21,7 @@
 from weboob.capabilities.housing import CapHousing, Query
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
+from weboob.tools.config.yamlconfig import YamlConfig
 
 
 __all__ = ['Flatboob']
@@ -78,15 +79,17 @@ class Flatboob(ReplApplication):
     DESCRIPTION = "Console application to search for housing."
     SHORT_DESCRIPTION = "search for housing"
     CAPS = CapHousing
+    CONFIG = {'queries': {}}
     EXTRA_FORMATTERS = {'housing_list': HousingListFormatter,
                         'housing':      HousingFormatter,
                        }
     COMMANDS_FORMATTERS = {'search': 'housing_list',
                            'info': 'housing',
+                           'load': 'housing_list'
                           }
 
     def main(self, argv):
-        self.load_config()
+        self.load_config(klass=YamlConfig)
         return ReplApplication.main(self, argv)
 
     @defaultcount(10)
@@ -173,7 +176,17 @@ class Flatboob(ReplApplication):
         query.cost_min = self.ask_int('Enter min cost')
         query.cost_max = self.ask_int('Enter max cost')
         query.nb_rooms = self.ask_int('Enter number of rooms')
+        save_query = self.ask('Save query (y/n)', default='n')
+        if save_query.upper() == 'Y':
+            name = ''
+            while not name:
+                name = self.ask('Query name')
 
+            self.config.set('queries', name, query)
+            self.config.save()
+        self.complete_search(query)
+
+    def complete_search(self, query):
         self.change_path([u'housings'])
         self.start_format()
         for backend, housing in self.do('search_housings', query):
@@ -184,6 +197,31 @@ class Flatboob(ReplApplication):
         if r:
             return int(r)
         return None
+
+    @defaultcount(10)
+    def do_load(self, query_name):
+        """
+        load [query name]
+        without query name : list loadable queries
+        with query name laod query
+        """
+        queries = self.config.get('queries')
+        if not queries:
+            print >>self.stderr, 'There is no saved queries'
+            return 2
+
+        if not query_name:
+            for name in queries.keys():
+                print '  %s* %s %s' % (self.BOLD,
+                                       self.NC,
+                                       name)
+            query_name = self.ask('Which one')
+
+        if query_name in queries:
+            self.complete_search(queries.get(query_name))
+        else:
+            print >>self.stderr, 'Unknown query'
+            return 2
 
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
