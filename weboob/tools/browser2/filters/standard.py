@@ -100,14 +100,17 @@ def debug(*args):
     def wraper(function):
         def print_debug(self, value):
             logger = getLogger('b2filters')
+            name = str(self)
+            result = "%s(%s" % (name, value)
             logger.debug("Use the filter %s on %s" % (str(self), value))
-            env = ''
-            for arg in args:
-                env += "%s: %s;;; " % (arg, getattr(self, arg))
-            if env != '':
-                logger.debug(env)
+            for arg in self.__dict__:
+                if arg.startswith('_') or arg == u"selector":
+                    continue
+                result += ", %s=%s" % (arg, getattr(self, arg))
+            result += u')'
+            logger.debug(result)
             res = function(self, value)
-            logger.debug("Result is: %s" % res)
+            logger.debug("------> %s" % res)
             return res
         return print_debug
     return wraper
