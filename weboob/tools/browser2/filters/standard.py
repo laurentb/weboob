@@ -102,8 +102,13 @@ def debug(*args):
     def wraper(function):
         def print_debug(self, value):
             logger = getLogger('b2filters')
+            result = ''
+            if self._obj is not None:
+                result += "%s" % self._obj
+            if self._key is not None:
+                result += ".%s" % self._key
             name = str(self)
-            result = "%s(%r" % (name, value)
+            result += " %s(%r" % (name, value)
             for arg in self.__dict__:
                 if arg.startswith('_') or arg == u"selector":
                     continue
@@ -111,10 +116,6 @@ def debug(*args):
                     continue
                 result += ", %s=%r" % (arg, getattr(self, arg))
             result += u')'
-            if self._obj is not None:
-                result += " %s" % self._obj
-            if self._key is not None:
-                result += ".%s" % self._key
             logger.debug(result)
             res = function(self, value)
             return res
