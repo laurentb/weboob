@@ -102,15 +102,16 @@ def debug(*args):
             logger = getLogger('b2filters')
             name = str(self)
             result = "%s(%s" % (name, value)
-            logger.debug("Use the filter %s on %s" % (str(self), value))
             for arg in self.__dict__:
                 if arg.startswith('_') or arg == u"selector":
+                    continue
+                if arg == u'default' and getattr(self, arg) == _NO_DEFAULT:
                     continue
                 result += ", %s=%s" % (arg, getattr(self, arg))
             result += u')'
             logger.debug(result)
             res = function(self, value)
-            logger.debug("------> %s" % res)
+            logger.debug("%s %s" % (type(res), res))
             return res
         return print_debug
     return wraper
