@@ -39,6 +39,8 @@ class DataError(Exception):
 
 
 class AbstractElement(object):
+    _creation_counter = 0
+
     def __init__(self, page, parent=None, el=None):
         self.page = page
         self.parent = parent
@@ -53,6 +55,10 @@ class AbstractElement(object):
             self.env = deepcopy(parent.env)
         else:
             self.env = deepcopy(page.params)
+
+        # Used by debug
+        self._random_id = AbstractElement._creation_counter
+        AbstractElement._creation_counter += 1
 
         self.loaders = {}
 
@@ -254,7 +260,7 @@ class ItemElement(AbstractElement):
             self.logger.warning('Attribute %s raises %s' % (key, repr(e)))
             raise
         logger = getLogger('b2filters')
-        logger.debug("%s.%s = %r" % (self, key, value))
+        logger.debug("%s.%s = %r" % (self._random_id, key, value))
         setattr(self.obj, key, value)
 
 

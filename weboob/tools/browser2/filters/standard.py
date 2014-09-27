@@ -104,7 +104,7 @@ def debug(*args):
             logger = getLogger('b2filters')
             result = ''
             if self._obj is not None:
-                result += "%s" % self._obj
+                result += "%s" % self._obj._random_id
             if self._key is not None:
                 result += ".%s" % self._key
             name = str(self)
