@@ -253,6 +253,8 @@ class ItemElement(AbstractElement):
             # Help debugging as tracebacks do not give us the key
             self.logger.warning('Attribute %s raises %s' % (key, repr(e)))
             raise
+        logger = getLogger('b2filters')
+        logger.debug("%s.%s = %r" % (self, key, value))
         setattr(self.obj, key, value)
 
 

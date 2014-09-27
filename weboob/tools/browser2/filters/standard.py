@@ -117,7 +117,6 @@ def debug(*args):
                 result += ".%s" % self._key
             logger.debug(result)
             res = function(self, value)
-            logger.debug("%r" % res)
             return res
         return print_debug
     return wraper
