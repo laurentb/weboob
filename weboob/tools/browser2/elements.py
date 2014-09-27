@@ -56,8 +56,10 @@ class AbstractElement(object):
 
         self.loaders = {}
 
-    def use_selector(self, func):
+    def use_selector(self, func, key=None):
         if isinstance(func, _Filter):
+            func._obj = self
+            func._key = key
             value = func(self)
         elif callable(func):
             value = func()
@@ -84,7 +86,7 @@ class AbstractElement(object):
             if name in self.loaders:
                 continue
             loader = getattr(self, attrname)
-            self.loaders[name] = self.use_selector(loader)
+            self.loaders[name] = self.use_selector(loader, key=attrname)
 
 
 class ListElement(AbstractElement):
@@ -246,7 +248,7 @@ class ItemElement(AbstractElement):
 
     def handle_attr(self, key, func):
         try:
-            value = self.use_selector(func)
+            value = self.use_selector(func, key=key)
         except Exception as e:
             # Help debugging as tracebacks do not give us the key
             self.logger.warning('Attribute %s raises %s' % (key, repr(e)))

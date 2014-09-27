@@ -67,6 +67,8 @@ class _Filter(object):
     _creation_counter = 0
 
     def __init__(self, default=_NO_DEFAULT):
+        self._key = None
+        self._obj = None
         self.default = default
         self._creation_counter = _Filter._creation_counter
         _Filter._creation_counter += 1
@@ -109,6 +111,10 @@ def debug(*args):
                     continue
                 result += ", %s=%r" % (arg, getattr(self, arg))
             result += u')'
+            if self._obj is not None:
+                result += " %s" % self._obj
+            if self._key is not None:
+                result += ".%s" % self._key
             logger.debug(result)
             res = function(self, value)
             logger.debug("%r" % res)
@@ -136,16 +142,20 @@ class Filter(_Filter):
         self.selector = selector
 
     @classmethod
-    def select(cls, selector, item):
+    def select(cls, selector, item, obj=None, key=None):
         if isinstance(selector, basestring):
             return item.xpath(selector)
+        elif isinstance(selector, _Filter):
+            selector._key = key
+            selector._obj = obj
+            return selector(item)
         elif callable(selector):
             return selector(item)
         else:
             return selector
 
     def __call__(self, item):
-        return self.filter(self.select(self.selector, item))
+        return self.filter(self.select(self.selector, item, key=self._key, obj=self._obj))
 
     @debug()
     def filter(self, value):
@@ -165,7 +175,7 @@ class _Selector(Filter):
 
 class AsyncLoad(Filter):
     def __call__(self, item):
-        link = self.select(self.selector, item)
+        link = self.select(self.selector, item, key=self._key, obj=self._obj)
         return item.page.browser.async_open(link)
 
 
@@ -193,7 +203,7 @@ class Base(Filter):
     >>> Base(Env('header'), CleanText('./h1'))  # doctest: +SKIP
     """
     def __call__(self, item):
-        base = self.select(self.base, item)
+        base = self.select(self.base, item, obj=self._obj, key=self._key)
         return self.selector(base)
 
     def __init__(self, base, selector=None, default=_NO_DEFAULT):
@@ -427,7 +437,7 @@ class Field(_Filter):
         self.name = name
 
     def __call__(self, item):
-        return item.use_selector(getattr(item, 'obj_%s' % self.name))
+        return item.use_selector(getattr(item, 'obj_%s' % self.name), key=self._key)
 
 
 # Based on nth from https://docs.python.org/2/library/itertools.html
@@ -539,11 +549,11 @@ class DateGuesser(Filter):
         self.kwargs = kwargs
 
     def __call__(self, item):
-        values = self.select(self.selector, item)
+        values = self.select(self.selector, item, obj=self._obj, key=self._key)
         date_guesser = self.date_guesser
         # In case Env() is used to kive date_guesser.
         if isinstance(date_guesser, _Filter):
-            date_guesser = self.select(date_guesser, item)
+            date_guesser = self.select(date_guesser, item, obj=self._obj, key=self._key)
 
         if isinstance(values, basestring):
             values = re.split('[/-]', values)
@@ -586,7 +596,7 @@ class MultiFilter(Filter):
         super(MultiFilter, self).__init__(args, default)
 
     def __call__(self, item):
-        values = [self.select(selector, item) for selector in self.selector]
+        values = [self.select(selector, item, obj=self._obj, key=self._key) for selector in self.selector]
         return self.filter(tuple(values))
 
     def filter(self, values):
