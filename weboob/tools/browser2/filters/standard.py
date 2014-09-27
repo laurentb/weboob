@@ -464,7 +464,7 @@ class Regexp(Filter):
         super(Regexp, self).__init__(selector, default=default)
         assert pattern is not None
         self.pattern = pattern
-        self.regex = re.compile(pattern, flags)
+        self._regex = re.compile(pattern, flags)
         self.template = template
         self.nth = nth
 
@@ -473,8 +473,8 @@ class Regexp(Filter):
         if isinstance(txt, (tuple, list)):
             txt = u' '.join([t.strip() for t in txt.itertext()])
 
-        mobj = self.regex.search(txt) if self.nth == 0 else \
-               nth(self.regex.finditer(txt), self.nth)
+        mobj = self._regex.search(txt) if self.nth == 0 else \
+               nth(self._regex.finditer(txt), self.nth)
         if not mobj:
             msg = 'Unable to match %s %s in %r' % (ordinal(self.nth), self.pattern, txt)
             return self.default_or_raise(RegexpError(msg))
@@ -555,7 +555,7 @@ class DateGuesser(Filter):
 
 class Time(Filter):
     klass = datetime.time
-    regexp = re.compile(r'(?P<hh>\d+):?(?P<mm>\d+)(:(?P<ss>\d+))?')
+    _regexp = re.compile(r'(?P<hh>\d+):?(?P<mm>\d+)(:(?P<ss>\d+))?')
     kwargs = {'hour': 'hh', 'minute': 'mm', 'second': 'ss'}
 
     def __init__(self, selector=None, default=_NO_DEFAULT):
@@ -563,7 +563,7 @@ class Time(Filter):
 
     @debug()
     def filter(self, txt):
-        m = self.regexp.search(txt)
+        m = self._regexp.search(txt)
         if m:
             kwargs = {}
             for key, index in self.kwargs.iteritems():
