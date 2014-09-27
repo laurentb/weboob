@@ -19,7 +19,8 @@
 
 from weboob.tools.browser2.page import HTMLPage, method
 from weboob.tools.browser2.elements import ListElement, ItemElement
-from weboob.tools.browser2.filters import CleanText, Link, DateTime, CleanDecimal, Regexp, XPath
+from weboob.tools.browser2.filters.standard import CleanText, DateTime, CleanDecimal, Regexp
+from weboob.tools.browser2.filters.html import Link, XPath
 from weboob.capabilities.gauge import Gauge, GaugeMeasure, GaugeSensor
 from datetime import timedelta
 import re

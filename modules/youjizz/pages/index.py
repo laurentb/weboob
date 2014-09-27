@@ -21,7 +21,8 @@
 from weboob.tools.browser2 import HTMLPage
 from weboob.tools.browser2.page import method, pagination
 from weboob.tools.browser2.elements import ListElement, ItemElement
-from weboob.tools.browser2.filters import Link, CleanText, Duration, Regexp, CSS
+from weboob.tools.browser2.filters.standard import CleanText, Duration, Regexp
+from weboob.tools.browser2.filters.html import Link, CSS
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.image import BaseImage
 from weboob.capabilities.video import BaseVideo

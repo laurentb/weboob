@@ -19,7 +19,8 @@
 
 from weboob.capabilities.bill import Bill, Subscription
 from weboob.tools.browser2 import HTMLPage, LoggedPage
-from weboob.tools.browser2.filters import Filter, Attr, CleanText, Format, Field, Env
+from weboob.tools.browser2.filters.standard import Filter, CleanText, Format, Field, Env
+from weboob.tools.browser2.filters.html import Attr
 from weboob.tools.browser2.page import method, pagination
 from weboob.tools.browser2.elements import ListElement, ItemElement
 

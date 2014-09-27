@@ -27,7 +27,7 @@ from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardEr
 
 from weboob.tools.browser2.page import HTMLPage, method, LoggedPage, pagination
 from weboob.tools.browser2.elements import ListElement, ItemElement
-from weboob.tools.browser2.filters import Env, CleanDecimal
+from weboob.tools.browser2.filters.standard import Env, CleanDecimal
 from weboob.tools.exceptions import ParseError
 
 

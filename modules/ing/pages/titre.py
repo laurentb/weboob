@@ -23,7 +23,7 @@ from decimal import Decimal
 from weboob.capabilities.bank import Investment
 from weboob.tools.browser2.page import RawPage, HTMLPage, method, LoggedPage
 from weboob.tools.browser2.elements import ListElement, ItemElement
-from weboob.tools.browser2.filters import CleanDecimal, CleanText, Date
+from weboob.tools.browser2.filters.standard import CleanDecimal, CleanText, Date
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 

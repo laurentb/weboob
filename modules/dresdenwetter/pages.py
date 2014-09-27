@@ -19,7 +19,7 @@
 
 from weboob.tools.browser2.page import HTMLPage, method
 from weboob.tools.browser2.elements import ListElement, ItemElement
-from weboob.tools.browser2.filters import CleanText, Regexp, Field, Filter
+from weboob.tools.browser2.filters.standard import CleanText, Regexp, Field, Filter
 from weboob.capabilities.gauge import GaugeMeasure, GaugeSensor
 from weboob.capabilities.base import NotAvailable
 

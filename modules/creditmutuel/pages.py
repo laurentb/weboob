@@ -29,7 +29,8 @@ from dateutil.relativedelta import relativedelta
 
 from weboob.tools.browser2.page import HTMLPage, method, FormNotFound, LoggedPage
 from weboob.tools.browser2.elements import ListElement, ItemElement, SkipItem
-from weboob.tools.browser2.filters import Filter, Env, CleanText, CleanDecimal, Link, Field, TableCell
+from weboob.tools.browser2.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, TableCell
+from weboob.tools.browser2.filters.html import Link
 from weboob.tools.exceptions import  BrowserIncorrectPassword
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account

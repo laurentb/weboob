@@ -20,7 +20,8 @@
 from weboob.tools.exceptions import BrowserBanned
 from weboob.tools.browser2.page import HTMLPage, LoggedPage, method, pagination
 from weboob.tools.browser2.elements import ListElement, ItemElement
-from weboob.tools.browser2.filters import CleanText, CleanDecimal, Field, Attr, DateTime, Link, Format
+from weboob.tools.browser2.filters.standard import CleanText, CleanDecimal, Field, DateTime, Format
+from weboob.tools.browser2.filters.html import Attr, Link
 from weboob.capabilities.bill import Subscription, Detail
 
 

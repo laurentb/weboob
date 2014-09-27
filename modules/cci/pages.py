@@ -19,7 +19,8 @@
 
 from weboob.tools.browser2.page import HTMLPage, method
 from weboob.tools.browser2.elements import ItemElement, TableElement
-from weboob.tools.browser2.filters import Filter, Link, CleanText, Format, Env, DateTime, CleanHTML, TableCell, Join
+from weboob.tools.browser2.filters.standard import Filter, CleanText, Format, Env, DateTime, TableCell, Join
+from weboob.tools.browser2.filters.html import Link, CleanHTML
 
 from weboob.capabilities.job import BaseJobAdvert
 

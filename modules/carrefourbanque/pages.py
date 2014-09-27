@@ -22,7 +22,8 @@ import re
 
 from weboob.tools.browser2.page import HTMLPage, method, LoggedPage
 from weboob.tools.browser2.elements import ListElement, ItemElement
-from weboob.tools.browser2.filters import Regexp, CleanText, CleanDecimal, Format, Link
+from weboob.tools.browser2.filters.standard import Regexp, CleanText, CleanDecimal, Format
+from weboob.tools.browser2.filters.html import Link
 
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction

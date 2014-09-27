@@ -23,7 +23,9 @@ import re
 from weboob.tools.browser2.page import JsonPage, HTMLPage, method
 from weboob.tools.browser2.elements import TableElement, ItemElement, ListElement
 from weboob.capabilities.travel import Station, Departure, RoadStep
-from weboob.tools.browser2.filters import Dict, CleanText, TableCell, Filter, DateTime, Env, Link, Regexp, Duration
+from weboob.tools.browser2.filters.standard import CleanText, TableCell, Filter, DateTime, Env, Regexp, Duration
+from weboob.tools.browser2.filters.json import Dict
+from weboob.tools.browser2.filters.html import Link
 from weboob.tools.date import LinearDateGuesser
 
 

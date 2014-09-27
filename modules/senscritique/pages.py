@@ -24,7 +24,8 @@ from datetime import date, datetime, time, timedelta
 
 from weboob.tools.browser2.page import HTMLPage, method, JsonPage
 from weboob.tools.browser2.elements import ItemElement, ListElement
-from weboob.tools.browser2.filters import Filter, Link, CleanText, Regexp, Attr, Join, Format
+from weboob.tools.browser2.filters.standard import Filter, CleanText, Regexp, Join, Format
+from weboob.tools.browser2.filters.html import Link, Attr
 
 
 class Channel(Filter):

@@ -25,7 +25,8 @@ import urllib
 
 from weboob.tools.browser2.page import HTMLPage, JsonPage, method, FormNotFound, pagination
 from weboob.tools.browser2.elements import ListElement, ItemElement
-from weboob.tools.browser2.filters import CleanText, Format, Link, Regexp, Env, DateTime, Attr, Filter
+from weboob.tools.browser2.filters.standard import CleanText, Format, Regexp, Env, DateTime, Filter
+from weboob.tools.browser2.filters.html import Link, Attr
 from weboob.capabilities.messages import Thread, Message
 from weboob.capabilities.base import BaseObject
 

@@ -20,7 +20,7 @@
 import re
 
 from weboob.capabilities.paste import BasePaste, PasteNotFound
-from weboob.tools.browser2.filters import CleanText, DateTime, Env, RawText, Regexp
+from weboob.tools.browser2.filters.standard import CleanText, DateTime, Env, RawText, Regexp
 from weboob.tools.browser2.page import HTMLPage, method, PagesBrowser, URL
 from weboob.tools.browser2.elements import ItemElement
 from weboob.tools.exceptions import BrowserHTTPNotFound

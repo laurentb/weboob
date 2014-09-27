@@ -26,8 +26,9 @@ from decimal import Decimal
 
 from weboob.tools.browser2.page import HTMLPage, method, LoggedPage
 from weboob.tools.browser2.elements import ItemElement, ListElement
-from weboob.tools.browser2.filters import Date, CleanText, Attr, Filter,\
+from weboob.tools.browser2.filters.standard import Date, CleanText, Filter,\
     CleanDecimal, Regexp, Field, DateTime, Format, Env
+from weboob.tools.browser2.filters.html import Attr
 from weboob.capabilities.bill import Detail, Bill
 
 

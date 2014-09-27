@@ -26,7 +26,8 @@ from cStringIO import StringIO
 from weboob.capabilities.bank import Account
 from weboob.tools.browser2.page import HTMLPage, method, LoggedPage
 from weboob.tools.browser2.elements import ListElement, ItemElement
-from weboob.tools.browser2.filters import CleanText, Regexp, Attr, CleanDecimal, Env
+from weboob.tools.browser2.filters.standard import CleanText, Regexp, CleanDecimal, Env
+from weboob.tools.browser2.filters.html import Attr
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.exceptions import ParseError

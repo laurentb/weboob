@@ -19,7 +19,8 @@
 
 from weboob.tools.browser2.page import HTMLPage, method
 from weboob.tools.browser2.elements import ListElement, ItemElement
-from weboob.tools.browser2.filters import Env, CleanText, Regexp, Field, DateTime, Map, Attr
+from weboob.tools.browser2.filters.standard import Env, CleanText, Regexp, Field, DateTime, Map
+from weboob.tools.browser2.filters.html import Attr
 from weboob.capabilities.gauge import Gauge, GaugeMeasure, GaugeSensor
 from weboob.capabilities.base import NotAvailable, NotLoaded
 

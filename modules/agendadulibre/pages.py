@@ -19,7 +19,8 @@
 
 from weboob.tools.browser2.page import HTMLPage, method, pagination
 from weboob.tools.browser2.elements import ItemElement, ListElement
-from weboob.tools.browser2.filters import Regexp, Link, CleanText, DateTime, Filter, Type, Env, XPath, Format, CleanHTML, CombineDate
+from weboob.tools.browser2.filters.standard import Regexp, CleanText, DateTime, Filter, Type, Env, Format, CombineDate
+from weboob.tools.browser2.filters.html import Link, XPath, CleanHTML
 
 from .calendar import AgendaDuLibreCalendarEvent
 from datetime import time, datetime, date

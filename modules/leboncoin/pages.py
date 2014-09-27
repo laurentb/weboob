@@ -20,7 +20,8 @@
 from decimal import Decimal
 from weboob.tools.browser2.page import HTMLPage, method, pagination
 from weboob.tools.browser2.elements import ItemElement, ListElement
-from weboob.tools.browser2.filters import CleanText, Link, Regexp, CleanDecimal, Env, DateTime, Attr
+from weboob.tools.browser2.filters.standard import CleanText, Regexp, CleanDecimal, Env, DateTime
+from weboob.tools.browser2.filters.html import Attr, Link
 from weboob.capabilities.housing import City, Housing, HousingPhoto
 from datetime import date, timedelta
 from weboob.tools.date import DATE_TRANSLATE_FR, LinearDateGuesser
