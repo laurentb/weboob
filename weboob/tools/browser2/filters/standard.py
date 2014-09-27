@@ -103,12 +103,26 @@ def debug(*args):
         def print_debug(self, value):
             logger = getLogger('b2filters')
             result = ''
+            outputvalue = value
+            if isinstance(value, list):
+                from lxml import etree
+                outputvalue = ''
+                first = True
+                for element in value:
+                    if first:
+                        first = False
+                    else:
+                        outputvalue += ', '
+                    if isinstance(element, etree.ElementBase):
+                        outputvalue += "%s" % etree.tostring(element, encoding=unicode)
+                    else:
+                        outputvalue += "%r" % element
             if self._obj is not None:
                 result += "%s" % self._obj._random_id
             if self._key is not None:
                 result += ".%s" % self._key
             name = str(self)
-            result += " %s(%r" % (name, value)
+            result += " %s(%r" % (name, outputvalue)
             for arg in self.__dict__:
                 if arg.startswith('_') or arg == u"selector":
                     continue
