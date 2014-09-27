@@ -29,7 +29,6 @@ from dateutil.parser import parse as parse_date
 from weboob.capabilities.base import empty
 from weboob.tools.compat import basestring
 from weboob.tools.exceptions import ParseError
-from weboob.tools.html import html2text
 from weboob.tools.browser2 import URL
 
 class NoDefault(object):
@@ -40,7 +39,7 @@ _NO_DEFAULT = NoDefault()
 
 
 __all__ = ['FilterError', 'ColumnNotFound', 'RegexpError', 'ItemNotFound',
-           'Filter', 'Base', 'Env', 'TableCell', 'CleanHTML', 'RawText',
+           'Filter', 'Base', 'Env', 'TableCell', 'RawText',
            'CleanText', 'Lower', 'CleanDecimal', 'Field', 'Regexp', 'Map',
            'DateTime', 'Date', 'Time', 'DateGuesser', 'Duration',
            'MultiFilter', 'CombineDate', 'Format', 'Join', 'Type',
@@ -221,20 +220,6 @@ class TableCell(_Filter):
                 return item.xpath('./td[%s]' % (idx + 1))
 
         return self.default_or_raise(ColumnNotFound('Unable to find column %s' % ' or '.join(self.names)))
-
-
-class CleanHTML(Filter):
-    def filter(self, txt):
-        if isinstance(txt, (tuple, list)):
-            return u' '.join([self.clean(item) for item in txt])
-        return self.clean(txt)
-
-    @classmethod
-    def clean(cls, txt):
-        if not isinstance(txt, basestring):
-            import lxml.html as html
-            txt = html.tostring(txt, encoding=unicode)
-        return html2text(txt)
 
 
 class RawText(Filter):

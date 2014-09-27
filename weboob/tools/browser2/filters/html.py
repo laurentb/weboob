@@ -18,10 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import lxml.html as html
 from .standard import _Selector, _NO_DEFAULT, Filter, FilterError
+from weboob.tools.html import html2text
 
 
-__all__ = ['CSS', 'XPath', 'XPathNotFound', 'AttributeNotFound', 'Attr', 'Link']
+__all__ = ['CSS', 'XPath', 'XPathNotFound', 'AttributeNotFound',
+           'Attr', 'Link', 'CleanHTML']
 
 
 class XPathNotFound(FilterError):
@@ -65,3 +68,15 @@ class Link(Attr):
 
     def __init__(self, selector=None, default=_NO_DEFAULT):
         super(Link, self).__init__(selector, 'href', default=default)
+
+class CleanHTML(Filter):
+    def filter(self, txt):
+        if isinstance(txt, (tuple, list)):
+            return u' '.join([self.clean(item) for item in txt])
+        return self.clean(txt)
+
+    @classmethod
+    def clean(cls, txt):
+        if not isinstance(txt, basestring):
+            txt = html.tostring(txt, encoding=unicode)
+        return html2text(txt)
