@@ -146,7 +146,7 @@ class AccountsList(LoggedPage, HTMLPage):
             def condition(self):
                 if self.el.find('.//td[@class="date"]') is None:
                     return False
-                if self.env['index'] > 0 and self.page.i < self.env['index']:
+                if 'index' in self.env and self.env['index'] > 0 and self.page.i < self.env['index']:
                     self.page.i += 1
                     return False
                 return True
