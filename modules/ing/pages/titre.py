@@ -21,7 +21,7 @@
 from decimal import Decimal
 
 from weboob.capabilities.bank import Investment
-from weboob.tools.browser2.page import RawPage, HTMLPage, method
+from weboob.tools.browser2.page import RawPage, HTMLPage, method, LoggedPage
 from weboob.tools.browser2.elements import ListElement, ItemElement
 from weboob.tools.browser2.filters import CleanDecimal, CleanText, Date
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -31,7 +31,7 @@ class Transaction(FrenchTransaction):
     pass
 
 
-class TitrePage(RawPage):
+class TitrePage(LoggedPage, RawPage):
     def iter_investments(self):
         # We did not get some html, but something like that (XX is a quantity, YY a price):
         # message='[...]
@@ -56,7 +56,7 @@ class TitrePage(RawPage):
             yield invest
 
 
-class TitreHistory(HTMLPage):
+class TitreHistory(LoggedPage, HTMLPage):
     @method
     class iter_history(ListElement):
         item_xpath = '//table[@class="datas retour"]/tr'
