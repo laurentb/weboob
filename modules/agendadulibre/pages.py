@@ -59,7 +59,7 @@ class EventListPage(HTMLPage):
         def next_page(self):
             m = re.match('.*/events\?start_date=(\d{4})-(\d{2})-(\d{2})(&region=.*)?', self.page.url)
             if m:
-                start = date(year=int(m.group(1)), month=int(m.group(2)), day=int(m.group(3)))
+                start = date(year=int(m.group(1)), month=int(m.group(2)), day=1)
                 region = m.group(4) if m.group(4) else ''
                 try:
                     next_month = start.replace(month=start.month + 1)
