@@ -29,6 +29,16 @@ from .pages import AccountsList, LoginPage, TitrePage, TitreHistory,\
 __all__ = ['IngBrowser']
 
 
+def check_bourse(f):
+    def wrapper(*args):
+        browser = args[0]
+        if browser.where == u"titre":
+            browser.location("https://bourse.ingdirect.fr/priv/redirectIng.php?pageIng=COMPTE")
+            browser.where = u"start"
+        return f(*args)
+    return wrapper
+
+
 class IngBrowser(LoginBrowser):
     BASEURL = 'https://secure.ingdirect.fr'
 
@@ -71,12 +81,14 @@ class IngBrowser(LoginBrowser):
             raise BrowserIncorrectPassword('Please login on website to fill the form and retry')
 
     @need_login
+    @check_bourse
     def get_accounts_list(self):
         self.accountspage.go()
         self.where = "start"
         return self.page.get_list()
 
     @need_login
+    @check_bourse
     def get_coming(self, account):
         if account.type != Account.TYPE_CHECKING and\
                 account.type != Account.TYPE_SAVINGS:
@@ -102,6 +114,7 @@ class IngBrowser(LoginBrowser):
         return self.page.get_coming()
 
     @need_login
+    @check_bourse
     def get_history(self, account):
         if account.type == Account.TYPE_MARKET:
             for result in self.get_history_titre(account):
@@ -160,6 +173,7 @@ class IngBrowser(LoginBrowser):
             self.accountspage.go(data=data)
 
     @need_login
+    @check_bourse
     def get_recipients(self, account):
         self.transferpage.stay_or_go()
         if self.page.ischecked(account.id):
@@ -171,6 +185,7 @@ class IngBrowser(LoginBrowser):
             self.transferpage.stay_or_go()
             return self.page.get_recipients()
 
+    @check_bourse
     def transfer(self, account, recipient, amount, reason):
         found = False
         # Automatically get the good transfer page
@@ -197,6 +212,7 @@ class IngBrowser(LoginBrowser):
         else:
             raise TransferError('Recipient not found')
 
+
     def go_investments(self, account):
         if self.where != "start":
             self.accountspage.go()
@@ -212,7 +228,7 @@ class IngBrowser(LoginBrowser):
         self.accountspage.go(data=data)
 
         self.starttitre.go()
-        self.where = "titre"
+        self.where = u"titre"
         self.titrepage.go()
 
     def get_investments(self, account):
