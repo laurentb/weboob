@@ -88,5 +88,4 @@ class CreditMutuelModule(Module, CapBank):
         except (AssertionError, ValueError):
             raise AccountNotFound()
 
-        with self.browser:
-            return self.browser.transfer(account, to, amount, reason)
+        return self.browser.transfer(account, to, amount, reason)
