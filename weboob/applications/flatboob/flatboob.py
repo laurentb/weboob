@@ -150,13 +150,13 @@ class Flatboob(ReplApplication):
             if not r.isdigit():
                 continue
             r = int(r)
-            if r <= 0 or r > len(Query.TYPE_OF_GOOD.values):
+            if r <= 0 or r > len(Query.HOUSE_TYPES.values):
                 continue
-            value = Query.TYPE_OF_GOOD.values[r - 1]
-            if value in query.type_of_good:
-                query.type_of_good.remove(value)
+            value = Query.HOUSE_TYPES.values[r - 1]
+            if value in query.house_types:
+                query.house_types.remove(value)
             else:
-                query.type_of_good.append(value)
+                query.house_types.append(value)
 
         _type = None
         while _type not in [query.TYPE_RENT, query.TYPE_SALE]:
