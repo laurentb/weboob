@@ -266,5 +266,8 @@ Simon Murail <simurail@yahoo.fr>
 Alexandre Bonhomme <alexandre.bonhomme@etudiant.univ-lille1.fr>
         * Fix and tests on several modules
 
+Camille Dehecq <camille@dehecq.fr>
+        * Contributions on weboob-generic munin script
+
 Discover how to contribute to this great software:
 http://dev.weboob.org/guides/contribute
