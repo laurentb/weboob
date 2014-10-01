@@ -23,7 +23,7 @@ from weboob.capabilities.housing import Query
 
 
 class LeboncoinTest(BackendTest):
-    BACKEND = 'leboncoin'
+    MODULE = 'leboncoin'
 
     def test_leboncoin(self):
         query = Query()
