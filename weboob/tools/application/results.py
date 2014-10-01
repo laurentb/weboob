@@ -91,7 +91,7 @@ class ResultsCondition(IResultsCondition):
 
     def is_valid(self, obj):
         import weboob.tools.date as date_utils
-        from datetime import date
+        from datetime import date, datetime
         d = obj.to_dict()
         # We evaluate all member of a list at each iteration.
         for _or in self.condition:
@@ -110,6 +110,10 @@ class ResultsCondition(IResultsCondition):
                         try:
                             if isinstance(d[condition.left], date_utils.date):
                                 tocompare = date(*[int(x) for x in condition.right.split('-')])
+                            elif isinstance(d[condition.left], date_utils.datetime):
+                                splitted_datetime = condition.right.split(' ')
+                                tocompare = datetime(*([int(x) for x in splitted_datetime[0].split('-')] +
+                                                       [int(x) for x in splitted_datetime[1].split(':')]))
                             else:
                                 tocompare = typed(condition.right)
                             myeval = functions[condition.op](tocompare, d[condition.left])
