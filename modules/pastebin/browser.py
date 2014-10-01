@@ -165,7 +165,9 @@ class PastebinBrowser(LoginBrowser):
 
     def post_paste(self, paste, expiration=None):
         self.postpage.stay_or_go().post(paste, expiration=expiration)
-        self.page.fill_paste(paste)
+        # We cannot call fill_paste because we often have a captcha
+        # anti-spam page, and do not detect it.
+        paste.id = self.page.params['id']
 
     def api_post_paste(self, paste, expiration=None):
         data = {'api_dev_key': self.api_key,
