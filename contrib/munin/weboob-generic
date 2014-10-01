@@ -78,7 +78,9 @@
 #            "label" attribute of objects. However, it does not always exist,
 #            and a better choice can be possible
 # Example: env.label id
-
+#
+# env.category: set the graph category (default: weboob)
+# Example: env.category bank
 # For some running examples, see at the end of the script
 
 
@@ -136,6 +138,9 @@ class GenericMuninPlugin(object):
         self.vlabel = self.attribvalue
         if 'vlabel' in os.environ:
             self.vlabel = os.environ['vlabel'].decode('utf-8')
+        self.category = "weboob"
+        if 'category' in os.environ:
+            self.category = os.environ['category'].decode('utf-8')
 
 
     def display_help(self):
@@ -271,7 +276,7 @@ class GenericMuninPlugin(object):
         self.weboob.load_backends(self.capa)
         self.write_output('graph_title %s' % self.title.encode('iso-8859-15'))
         self.write_output('graph_vlabel %s' % self.vlabel.encode('iso-8859-15'))
-        self.write_output('graph_category weboob')
+        self.write_output('graph_category %s') % self.category
         self.write_output('graph_args --rigid')
         try:
             objects = []
