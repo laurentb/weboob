@@ -19,7 +19,7 @@
 
 from StringIO import StringIO
 
-from weboob.tools.exceptions import BrowserIncorrectPassword
+from weboob.core.exceptions import BrowserIncorrectPassword
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard
 from weboob.browser2.page import HTMLPage
 

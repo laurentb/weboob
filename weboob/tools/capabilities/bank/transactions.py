@@ -27,7 +27,7 @@ from weboob.capabilities import NotAvailable, NotLoaded
 from weboob.tools.misc import to_unicode
 from weboob.tools.log import getLogger
 
-from weboob.tools.exceptions import ParseError
+from weboob.core.exceptions import ParseError
 from weboob.browser2.elements import TableElement, ItemElement
 from weboob.browser2.filters.standard import Filter, CleanText, CleanDecimal, TableCell
 

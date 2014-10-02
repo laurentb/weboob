@@ -23,7 +23,7 @@ from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.messages import CapMessages, Thread, CapMessagesPost
 from weboob.capabilities.collection import CapCollection, CollectionNotFound, Collection
 from weboob.capabilities.base import find_object
-from weboob.tools.exceptions import BrowserForbidden
+from weboob.core.exceptions import BrowserForbidden
 from .browser import TwitterBrowser
 import itertools
 

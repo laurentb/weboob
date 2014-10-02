@@ -27,7 +27,7 @@ from datetime import datetime, timedelta
 
 from weboob.tools.compat import basestring
 from weboob.browser2 import LoginBrowser, URL, Wget, need_login
-from weboob.tools.exceptions import  BrowserIncorrectPassword
+from weboob.core.exceptions import  BrowserIncorrectPassword
 from weboob.capabilities.bank import Transfer, TransferError
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \

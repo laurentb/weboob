@@ -28,7 +28,7 @@ from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardEr
 from weboob.browser2.page import HTMLPage, method, LoggedPage, pagination
 from weboob.browser2.elements import ListElement, ItemElement
 from weboob.browser2.filters.standard import Env, CleanDecimal
-from weboob.tools.exceptions import ParseError
+from weboob.core.exceptions import ParseError
 
 
 class Transaction(FrenchTransaction):

@@ -20,7 +20,7 @@
 from weboob.capabilities.video import BaseVideo
 from weboob.capabilities.image import BaseImage
 
-from weboob.tools.exceptions import ParseError
+from weboob.core.exceptions import ParseError
 from weboob.browser2.elements import ItemElement, ListElement
 from weboob.browser2.page import HTMLPage, method, pagination, JsonPage
 from weboob.browser2.filters.standard import Regexp, Env, CleanText, DateTime, Duration, Field

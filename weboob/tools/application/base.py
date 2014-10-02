@@ -32,7 +32,7 @@ from weboob.capabilities.base import ConversionWarning, BaseObject
 from weboob.core import Weboob, CallErrors
 from weboob.core.backendscfg import BackendsConfig
 from weboob.tools.config.iconfig import ConfigError
-from weboob.tools.exceptions import FormFieldConversionWarning
+from weboob.core.exceptions import FormFieldConversionWarning
 from weboob.tools.log import createColoredFormatter, getLogger, DebugFilter, settings as log_settings
 from weboob.tools.misc import to_unicode
 from .results import ResultsConditionError

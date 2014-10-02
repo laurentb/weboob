@@ -30,7 +30,7 @@ from weboob.browser2.filters.standard import CleanText, Regexp, CleanDecimal, En
 from weboob.browser2.filters.html import Attr
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.exceptions import ParseError
+from weboob.core.exceptions import ParseError
 
 
 class Transaction(FrenchTransaction):

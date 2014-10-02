@@ -19,7 +19,7 @@
 import hashlib
 
 from weboob.browser2 import LoginBrowser, URL, need_login
-from weboob.tools.exceptions import BrowserIncorrectPassword, ParseError
+from weboob.core.exceptions import BrowserIncorrectPassword, ParseError
 from weboob.capabilities.bank import Account, TransferError
 
 from .pages import AccountsList, LoginPage, TitrePage, TitreHistory,\

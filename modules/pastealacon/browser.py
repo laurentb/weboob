@@ -23,7 +23,7 @@ from weboob.capabilities.paste import BasePaste, PasteNotFound
 from weboob.browser2.filters.standard import CleanText, DateTime, Env, RawText, Regexp
 from weboob.browser2.page import HTMLPage, method, PagesBrowser, URL
 from weboob.browser2.elements import ItemElement
-from weboob.tools.exceptions import BrowserHTTPNotFound
+from weboob.core.exceptions import BrowserHTTPNotFound
 
 
 class Spam(Exception):

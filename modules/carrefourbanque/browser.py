@@ -19,7 +19,7 @@
 
 
 from weboob.browser2 import LoginBrowser, URL, need_login
-from weboob.tools.exceptions import BrowserIncorrectPassword
+from weboob.core.exceptions import BrowserIncorrectPassword
 
 from .pages import LoginPage, HomePage, TransactionsPage
 

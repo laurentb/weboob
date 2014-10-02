@@ -20,7 +20,7 @@
 from urlparse import urlparse, parse_qs
 
 from weboob.browser2 import LoginBrowser, URL, HTMLPage
-from weboob.tools.exceptions import BrowserIncorrectPassword
+from weboob.core.exceptions import BrowserIncorrectPassword
 
 
 class GoogleLoginPage(HTMLPage):

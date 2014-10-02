@@ -26,7 +26,7 @@ from weboob.capabilities.bugtracker import CapBugTracker, Issue, Project, User, 
                                            Query, Change
 from weboob.capabilities.collection import CapCollection, Collection, CollectionNotFound
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.exceptions import BrowserHTTPNotFound
+from weboob.core.exceptions import BrowserHTTPNotFound
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import RedmineBrowser

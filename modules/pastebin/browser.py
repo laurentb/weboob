@@ -26,7 +26,7 @@ from weboob.browser2.elements import ItemElement
 from weboob.browser2.filters.standard import Base, CleanText, DateTime, Env, Filter, FilterError, RawText
 from weboob.browser2.filters.html import Attr
 from weboob.browser2.page import method, RawPage
-from weboob.tools.exceptions import BrowserHTTPNotFound, BrowserIncorrectPassword, BrowserUnavailable
+from weboob.core.exceptions import BrowserHTTPNotFound, BrowserIncorrectPassword, BrowserUnavailable
 
 
 class PastebinPaste(BasePaste):

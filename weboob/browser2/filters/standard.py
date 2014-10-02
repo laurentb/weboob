@@ -28,7 +28,7 @@ from dateutil.parser import parse as parse_date
 
 from weboob.capabilities.base import empty
 from weboob.tools.compat import basestring
-from weboob.tools.exceptions import ParseError
+from weboob.core.exceptions import ParseError
 from weboob.browser2 import URL
 from weboob.tools.log import getLogger
 
