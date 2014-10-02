@@ -66,12 +66,4 @@ class BredModule(Module, CapBank):
 
     def iter_history(self, account):
         with self.browser:
-            transactions = list(self.browser.get_history(account))
-            transactions.sort(key=lambda tr: tr.rdate, reverse=True)
-            return [tr for tr in transactions if not tr._is_coming]
-
-    def iter_coming(self, account):
-        with self.browser:
-            transactions = list(self.browser.get_card_operations(account))
-            transactions.sort(key=lambda tr: tr.rdate, reverse=True)
-            return [tr for tr in transactions if tr._is_coming]
+            return self.browser.get_history(account)

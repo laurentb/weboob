@@ -98,8 +98,8 @@ class BredBrowser(Browser):
 
         return None
 
-    def iter_transactions(self, id, is_coming=None):
-        numero_compte, numero_poste = id.split('.')
+    def get_history(self, account):
+        numero_compte, numero_poste = account.id.split('.')
         data = {'typeDemande':      'recherche',
                 'motRecherche':     '',
                 'numero_compte':    numero_compte,
@@ -113,16 +113,4 @@ class BredBrowser(Browser):
         self.location('https://www.%s.fr/Andromede/Ecriture' % self.website, urllib.urlencode(data))
 
         assert self.is_on_page(TransactionsPage)
-        return self.page.get_history(is_coming)
-
-    def get_history(self, account):
-        for tr in self.iter_transactions(account.id):
-            yield tr
-
-        for tr in self.get_card_operations(account):
-            yield tr
-
-    def get_card_operations(self, account):
-        for id in account._card_links:
-            for tr in self.iter_transactions(id, True):
-                yield tr
+        return self.page.get_history()
