@@ -21,11 +21,11 @@ from datetime import datetime
 
 from weboob.capabilities.messages import Message
 from weboob.capabilities.collection import Collection
-from weboob.tools.browser2.page import JsonPage, method
-from weboob.tools.browser2.elements import ListElement, ItemElement
-from weboob.tools.browser2.filters.standard import CleanText, Format
-from weboob.tools.browser2.filters.json import Dict
-from weboob.tools.browser2.filters.html import CleanHTML
+from weboob.browser2.page import JsonPage, method
+from weboob.browser2.elements import ListElement, ItemElement
+from weboob.browser2.filters.standard import CleanText, Format
+from weboob.browser2.filters.json import Dict
+from weboob.browser2.filters.html import CleanHTML
 
 
 class DictElement(ListElement):

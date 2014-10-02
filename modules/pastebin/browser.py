@@ -21,11 +21,11 @@
 import re
 
 from weboob.capabilities.paste import BasePaste, PasteNotFound
-from weboob.tools.browser2 import HTMLPage, LoginBrowser, need_login, URL
-from weboob.tools.browser2.elements import ItemElement
-from weboob.tools.browser2.filters.standard import Base, CleanText, DateTime, Env, Filter, FilterError, RawText
-from weboob.tools.browser2.filters.html import Attr
-from weboob.tools.browser2.page import method, RawPage
+from weboob.browser2 import HTMLPage, LoginBrowser, need_login, URL
+from weboob.browser2.elements import ItemElement
+from weboob.browser2.filters.standard import Base, CleanText, DateTime, Env, Filter, FilterError, RawText
+from weboob.browser2.filters.html import Attr
+from weboob.browser2.page import method, RawPage
 from weboob.tools.exceptions import BrowserHTTPNotFound, BrowserIncorrectPassword, BrowserUnavailable
 
 

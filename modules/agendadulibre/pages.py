@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser2.page import HTMLPage, method, pagination
-from weboob.tools.browser2.elements import ItemElement, ListElement
-from weboob.tools.browser2.filters.standard import Regexp, CleanText, DateTime, Filter, Type, Env, Format, CombineDate
-from weboob.tools.browser2.filters.html import Link, XPath, CleanHTML
+from weboob.browser2.page import HTMLPage, method, pagination
+from weboob.browser2.elements import ItemElement, ListElement
+from weboob.browser2.filters.standard import Regexp, CleanText, DateTime, Filter, Type, Env, Format, CombineDate
+from weboob.browser2.filters.html import Link, XPath, CleanHTML
 
 from .calendar import AgendaDuLibreCalendarEvent
 from datetime import time, datetime, date

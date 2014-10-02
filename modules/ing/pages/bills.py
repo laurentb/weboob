@@ -18,11 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.bill import Bill, Subscription
-from weboob.tools.browser2 import HTMLPage, LoggedPage
-from weboob.tools.browser2.filters.standard import Filter, CleanText, Format, Field, Env
-from weboob.tools.browser2.filters.html import Attr
-from weboob.tools.browser2.page import method, pagination
-from weboob.tools.browser2.elements import ListElement, ItemElement
+from weboob.browser2 import HTMLPage, LoggedPage
+from weboob.browser2.filters.standard import Filter, CleanText, Format, Field, Env
+from weboob.browser2.filters.html import Attr
+from weboob.browser2.page import method, pagination
+from weboob.browser2.elements import ListElement, ItemElement
 
 
 class FormId(Filter):

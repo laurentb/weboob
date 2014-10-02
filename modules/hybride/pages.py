@@ -23,10 +23,10 @@ from .calendar import HybrideCalendarEvent
 import weboob.tools.date as date_util
 import re
 
-from weboob.tools.browser2.page import HTMLPage, method
-from weboob.tools.browser2.elements import ItemElement, SkipItem, ListElement
-from weboob.tools.browser2.filters.standard import Filter, CleanText, Env
-from weboob.tools.browser2.filters.html import Link
+from weboob.browser2.page import HTMLPage, method
+from weboob.browser2.elements import ItemElement, SkipItem, ListElement
+from weboob.browser2.filters.standard import Filter, CleanText, Env
+from weboob.browser2.filters.html import Link
 
 
 def format_date(date):

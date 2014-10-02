@@ -23,7 +23,7 @@ from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.exceptions import BrowserIncorrectPassword, ParseError
-from weboob.tools.browser2 import Browser
+from weboob.browser2 import Browser
 
 from re import match, compile, sub
 from decimal import Decimal

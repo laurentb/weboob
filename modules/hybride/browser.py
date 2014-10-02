@@ -19,7 +19,7 @@
 
 from .pages import ProgramPage, EventPage
 
-from weboob.tools.browser2 import PagesBrowser, URL, Firefox
+from weboob.browser2 import PagesBrowser, URL, Firefox
 
 __all__ = ['HybrideBrowser']
 

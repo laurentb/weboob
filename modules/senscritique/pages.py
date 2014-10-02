@@ -22,10 +22,10 @@ from .calendar import SensCritiquenCalendarEvent
 
 from datetime import date, datetime, time, timedelta
 
-from weboob.tools.browser2.page import HTMLPage, method, JsonPage
-from weboob.tools.browser2.elements import ItemElement, ListElement
-from weboob.tools.browser2.filters.standard import Filter, CleanText, Regexp, Join, Format
-from weboob.tools.browser2.filters.html import Link, Attr
+from weboob.browser2.page import HTMLPage, method, JsonPage
+from weboob.browser2.elements import ItemElement, ListElement
+from weboob.browser2.filters.standard import Filter, CleanText, Regexp, Join, Format
+from weboob.browser2.filters.html import Link, Attr
 
 
 class Channel(Filter):

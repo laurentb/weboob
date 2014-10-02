@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser2.page import HTMLPage, method
-from weboob.tools.browser2.elements import ListElement, ItemElement
-from weboob.tools.browser2.filters.standard import CleanText, Regexp, Field, Filter, debug
+from weboob.browser2.page import HTMLPage, method
+from weboob.browser2.elements import ListElement, ItemElement
+from weboob.browser2.filters.standard import CleanText, Regexp, Field, Filter, debug
 from weboob.capabilities.gauge import GaugeMeasure, GaugeSensor
 from weboob.capabilities.base import NotAvailable
 

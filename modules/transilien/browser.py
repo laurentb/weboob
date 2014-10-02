@@ -19,7 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 from datetime import datetime
 
-from weboob.tools.browser2 import PagesBrowser, URL
+from weboob.browser2 import PagesBrowser, URL
 from .pages import StationsPage, DeparturesPage, DeparturesPage2, HorairesPage, RoadMapPage
 
 

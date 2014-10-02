@@ -279,7 +279,7 @@ class PagesBrowser(DomainBrowser):
     def open(self, *args, **kwargs):
         """
         Same method than
-        :meth:`weboob.tools.browser2.browser.DomainBrowser.open`, but the
+        :meth:`weboob.browser2.browser.DomainBrowser.open`, but the
         response contains an attribute `page` if the url matches any
         :class:`URL` object.
         """
@@ -309,7 +309,7 @@ class PagesBrowser(DomainBrowser):
     def location(self, *args, **kwargs):
         """
         Same method than
-        :meth:`weboob.tools.browser2.browser.Browser.location`, but if the
+        :meth:`weboob.browser2.browser.Browser.location`, but if the
         url matches any :class:`URL` object, an attribute `page` is added to
         response, and the attribute :attr:`PagesBrowser.page` is set.
         """

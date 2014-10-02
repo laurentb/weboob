@@ -19,7 +19,7 @@
 
 from weboob.tools.json import json
 from weboob.capabilities.collection import Collection
-from weboob.tools.browser2 import LoginBrowser, URL, need_login
+from weboob.browser2 import LoginBrowser, URL, need_login
 from .pages import EssentialsPage, TokenPage, ContentsPage, PreferencesPage
 
 

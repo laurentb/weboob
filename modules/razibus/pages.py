@@ -21,10 +21,10 @@ from .calendar import RazibusCalendarEvent
 
 from datetime import time
 
-from weboob.tools.browser2.page import HTMLPage, method
-from weboob.tools.browser2.elements import ItemElement, ListElement
-from weboob.tools.browser2.filters.html import CleanHTML, Link
-from weboob.tools.browser2.filters.standard import Regexp, CleanText, DateTime, CombineDate, Filter, Env
+from weboob.browser2.page import HTMLPage, method
+from weboob.browser2.elements import ItemElement, ListElement
+from weboob.browser2.filters.html import CleanHTML, Link
+from weboob.browser2.filters.standard import Regexp, CleanText, DateTime, CombineDate, Filter, Env
 
 
 class EndTime(Filter):

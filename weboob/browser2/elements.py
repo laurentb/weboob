@@ -23,7 +23,7 @@ from copy import deepcopy
 
 from weboob.tools.log import getLogger
 from weboob.tools.ordereddict import OrderedDict
-from weboob.tools.browser2.page import NextPage
+from weboob.browser2.page import NextPage
 
 from .filters.standard import _Filter, CleanText
 from .filters.html import AttributeNotFound, XPathNotFound

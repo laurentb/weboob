@@ -23,10 +23,10 @@ from datetime import datetime, time
 import weboob.tools.date as date_util
 from .calendar import BiplanCalendarEventConcert, BiplanCalendarEventTheatre
 
-from weboob.tools.browser2.elements import ItemElement, SkipItem, ListElement
-from weboob.tools.browser2.page import HTMLPage, method
-from weboob.tools.browser2.filters.standard import Filter, CleanText, Env, Regexp, CombineDate
-from weboob.tools.browser2.filters.html import Link, CleanHTML
+from weboob.browser2.elements import ItemElement, SkipItem, ListElement
+from weboob.browser2.page import HTMLPage, method
+from weboob.browser2.filters.standard import Filter, CleanText, Env, Regexp, CombineDate
+from weboob.browser2.filters.html import Link, CleanHTML
 
 
 class BiplanPrice(Filter):

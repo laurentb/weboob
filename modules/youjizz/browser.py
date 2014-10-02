@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser2 import PagesBrowser, URL
+from weboob.browser2 import PagesBrowser, URL
 
 from .pages.index import IndexPage
 from .pages.video import VideoPage

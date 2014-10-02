@@ -21,9 +21,9 @@
 import datetime
 from decimal import Decimal
 
-from weboob.tools.browser2.page import HTMLPage, LoggedPage, method
-from weboob.tools.browser2.elements import ItemElement
-from weboob.tools.browser2.filters.standard import CleanDecimal, CleanText, Filter, TableCell
+from weboob.browser2.page import HTMLPage, LoggedPage, method
+from weboob.browser2.elements import ItemElement
+from weboob.browser2.filters.standard import CleanDecimal, CleanText, Filter, TableCell
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 

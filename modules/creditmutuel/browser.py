@@ -26,7 +26,7 @@ except ImportError:
 from datetime import datetime, timedelta
 
 from weboob.tools.compat import basestring
-from weboob.tools.browser2 import LoginBrowser, URL, Wget, need_login
+from weboob.browser2 import LoginBrowser, URL, Wget, need_login
 from weboob.tools.exceptions import  BrowserIncorrectPassword
 from weboob.capabilities.bank import Transfer, TransferError
 
