@@ -99,6 +99,8 @@ class Application(object):
     VERSION = None
     # Copyright
     COPYRIGHT = None
+    # Verbosity of DEBUG
+    DEBUG_FILTER = 2
 
     stdin = sys.stdin
     stdout = sys.stdout
@@ -162,10 +164,9 @@ class Application(object):
         self._parser.add_option('-e', '--exclude-backends', help='what backend(s) to exclude (comma separated)')
         self._parser.add_option('-I', '--insecure', action='store_true', help='do not validate SSL')
         logging_options = OptionGroup(self._parser, 'Logging Options')
-        logging_options.add_option('-d', '--debug', action='store_true', help='display debug messages')
+        logging_options.add_option('-d', '--debug', action='count', help='display debug messages')
         logging_options.add_option('-q', '--quiet', action='store_true', help='display only error messages')
         logging_options.add_option('-v', '--verbose', action='store_true', help='display info messages')
-        logging_options.add_option('-D', '--verbose-debug', action='store_true', help='display extra debug messages for html parsing')
         logging_options.add_option('--logging-file', action='store', type='string', dest='logging_file', help='file to save logs')
         logging_options.add_option('-a', '--save-responses', action='store_true', help='save every response')
         self._parser.add_option_group(logging_options)
@@ -390,7 +391,7 @@ class Application(object):
         self._handle_options()
         self.handle_application_options()
 
-        if not self.options.verbose_debug:
+        if self.options.debug < self.DEBUG_FILTER:
             for handler in handlers:
                 handler.addFilter(DebugFilter())
 
