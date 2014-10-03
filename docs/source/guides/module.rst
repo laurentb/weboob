@@ -255,7 +255,7 @@ For example, we can now implement some methods in ``ExampleBrowser``::
         def iter_accounts_list(self):
             self.accounts.stay_or_go()
 
-            return self.page.iter_accounts_list()
+            return self.page.iter_accounts()
 
 When calling the :func:`go() <weboob.browser2.page.URL.go>` method, it reads the first regexp url of our :class:`URL <weboob.browser2.page.URL>` object, and go on the page.
 
