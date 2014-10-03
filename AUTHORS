@@ -269,5 +269,8 @@ Alexandre Bonhomme <alexandre.bonhomme@etudiant.univ-lille1.fr>
 Camille Dehecq <camille@dehecq.fr>
         * Contributions on weboob-generic munin script
 
+Samuel Loury <samuel.loury@cosmo-platform.org>
+		* Fix on the documentation
+
 Discover how to contribute to this great software:
 http://dev.weboob.org/guides/contribute
