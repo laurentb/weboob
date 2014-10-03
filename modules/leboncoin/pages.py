@@ -16,7 +16,6 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-
 from decimal import Decimal
 from weboob.browser2.page import HTMLPage, method, pagination
 from weboob.browser2.elements import ItemElement, ListElement
@@ -40,6 +39,38 @@ class CityListPage(HTMLPage):
 
 
 class HousingListPage(HTMLPage):
+    def get_area_min(self, asked_area):
+        return self.find_select_value(asked_area, '//select[@id="sqs"]/option')
+
+    def get_area_max(self, asked_area):
+        return self.find_select_value(asked_area, '//select[@id="sqe"]/option')
+
+    def get_rooms_min(self, asked_rooms):
+        return self.find_select_value(asked_rooms, '//select[@id="ros"]/option')
+
+    # def get_rooms_max(self, asked_rooms):
+    #     return self.find_select_value(asked_rooms, '//select[@id="roe"]/option')
+
+    def get_cost_min(self, asked_cost):
+        return self.find_select_value(asked_cost, '//select[@id="ps"]/option')
+
+    def get_cost_max(self, asked_cost):
+        return self.find_select_value(asked_cost, '//select[@id="pe"]/option')
+
+    def find_select_value(self, ref_value, selector):
+        select = {}
+        for item in self.doc.xpath(selector):
+            if item.attrib['value']:
+                select[CleanDecimal('.')(item)] = CleanDecimal('./@value')(item)
+
+        select_keys = select.keys()
+        select_keys.sort()
+        for select_value in select_keys:
+            if select_value >= ref_value:
+                return select[select_value]
+
+        return select[select_keys[-1]]
+
     @pagination
     @method
     class get_housing_list(ListElement):
@@ -116,8 +147,8 @@ class HousingPage(HTMLPage):
         obj_area = Env('area')
 
         def obj_date(self):
-            _date =  Regexp(CleanText('//div[@class="upload_by"]', replace=[(u'à', '')]),
-                            '.*- Mise en ligne le (.*).')(self)
+            _date = Regexp(CleanText('//div[@class="upload_by"]', replace=[(u'à', '')]),
+                           '.*- Mise en ligne le (.*).')(self)
 
             for fr, en in DATE_TRANSLATE_FR:
                 _date = fr.sub(en, _date)

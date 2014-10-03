@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import Module, BackendConfig
-from weboob.capabilities.housing import CapHousing, Query, Housing, HousingPhoto
+from weboob.capabilities.housing import CapHousing, Housing, HousingPhoto
 from weboob.tools.value import Value
 from .browser import LeboncoinBrowser
 
@@ -39,13 +39,13 @@ class LeboncoinModule(Module, CapHousing):
 
     CONFIG = BackendConfig(Value('advert_type', label='Advert type',
                                  choices={'c': 'Agency', 'p': 'Owner', 'a': 'All'}, default='a'))
-
+    """
     RET = {Query.HOUSE_TYPES.HOUSE: '1',
            Query.HOUSE_TYPES.APART: '2',
            Query.HOUSE_TYPES.LAND: '3',
            Query.HOUSE_TYPES.PARKING: '4',
            Query.HOUSE_TYPES.OTHER: '5'}
-
+    """
     def get_housing(self, _id):
         return self.browser.get_housing(_id)
 
@@ -61,6 +61,7 @@ class LeboncoinModule(Module, CapHousing):
         return self.browser.get_cities(pattern)
 
     def search_housings(self, query):
+        """
         cities = []
         for c in query.cities:
             cities.append('%s %s' % (c.id, c.name))
@@ -90,5 +91,7 @@ class LeboncoinModule(Module, CapHousing):
                                             area_min, area_max,
                                             cost_min, cost_max, '&ret='.join(ret),
                                             self.config['advert_type'].get())
+        """
+        return self.browser.search_housings(query, self.config['advert_type'].get())
 
     OBJECTS = {Housing: fill_housing, HousingPhoto: fill_photo}
