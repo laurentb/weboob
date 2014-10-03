@@ -40,7 +40,6 @@ class Dict(_Selector):
         self.selector.append(name)
         return self
 
-
     @classmethod
     def select(cls, selector, item, obj=None, key=None):
         if isinstance(item, dict):
@@ -55,6 +54,3 @@ class Dict(_Selector):
             content = content.get(el)
 
         return content
-
-
-

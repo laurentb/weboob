@@ -37,7 +37,7 @@ class AttributeNotFound(FilterError):
 
 class CSS(_Selector):
     @classmethod
-    def select(cls, selector, item):
+    def select(cls, selector, item, obj=None, key=None):
         return item.cssselect(selector)
 
 
@@ -68,6 +68,7 @@ class Link(Attr):
 
     def __init__(self, selector=None, default=_NO_DEFAULT):
         super(Link, self).__init__(selector, 'href', default=default)
+
 
 class CleanHTML(Filter):
     def filter(self, txt):
