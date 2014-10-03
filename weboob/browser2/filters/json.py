@@ -42,7 +42,7 @@ class Dict(_Selector):
 
 
     @classmethod
-    def select(cls, selector, item):
+    def select(cls, selector, item, obj=None, key=None):
         if isinstance(item, dict):
             content = item
         else:
