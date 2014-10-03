@@ -95,4 +95,4 @@ class PreferencesPage(JsonPage):
     def get_categories(self):
         for category, value in self.doc.items():
             if value in [u"shown", u"hidden"]:
-                yield Collection([category])
+                yield Collection([u'%s' % category], u'%s' % category.replace('global.', ''))

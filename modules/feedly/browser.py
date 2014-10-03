@@ -75,7 +75,7 @@ class FeedlyBrowser(LoginBrowser):
     @need_login
     def get_logged_categories(self):
         user_categories = list(self.preferences.go().get_categories())
-        user_categories.append(Collection(['global.saved'], 'Saved'))
+        user_categories.append(Collection([u'global.saved'], u'Saved'))
         return user_categories
 
     def get_feeds(self, category):
