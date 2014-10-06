@@ -17,9 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-
 import hashlib
+from weboob.tools.log import getLogger
 
 try:
     from PIL import Image
@@ -113,6 +112,7 @@ class Tile(object):
     def __init__(self, _id):
         self.id = _id
         self.valid = False
+        self.logger = getLogger('societegenerale.captcha')
         self.map = []
 
     def __repr__(self):
@@ -134,7 +134,7 @@ class Tile(object):
             raise TileError('Tile not found ' + sum, self)
 
     def display(self):
-        print(self.checksum())
+        self.logger.debug(self.checksum())
         #im = Image.new('RGB', (24, 23))
         #im.putdata(self.map)
         #im.save('/tmp/%s.png' % self.checksum())

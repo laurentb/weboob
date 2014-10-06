@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-
 import re
 from decimal import Decimal
 
@@ -219,8 +217,8 @@ class CardsPage(Page):
             try:
                 t.id = t.unique_id(seen)
             except UnicodeEncodeError:
-                print(t)
-                print(t.label)
+                self.logger.debug(t)
+                self.logger.debug(t.label)
                 raise
 
             yield t

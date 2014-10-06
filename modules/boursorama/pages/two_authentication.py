@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-
 from weboob.tools.browser import Page, BrowserIncorrectPassword
 import urllib2
 import re
@@ -86,7 +84,6 @@ class AuthenticationPage(Page):
         r = regex.search(info)
         token = r.group('value')
         #print "Extracted token", token
-        #self.print_cookies()
 
         #step2
         url = "https://" + DOMAIN + "/ajax/banque/otp.phtml"
@@ -97,7 +94,6 @@ class AuthenticationPage(Page):
         #print "after asking to send token authentification" \
         #   ,len(info), response.info()
 
-        #self.print_cookies()
 
         pin = raw_input('Enter the "Boursorama Banque" access code:')
         #print "Pin access code: ''%s''" % (pin)
@@ -108,8 +104,6 @@ class AuthenticationPage(Page):
         #info = response.read()
         #print "after pin authentification", len(info), response.info()
 
-        #self.print_cookies()
-
         url = "%s?" % (SECURE_PAGE)
         data = "org=/&device=%s" % (device)
         req = urllib2.Request(url, data, headers=headers)
@@ -117,9 +111,3 @@ class AuthenticationPage(Page):
 
         #result =        response.read()
         #print response, "\n", response.info()
-
-        #self.print_cookies()
-
-    def print_cookies(self):
-        for c in self.browser._ua_handlers["_cookies"].cookiejar:
-            print("%s : %s" % (c.name, c.value))

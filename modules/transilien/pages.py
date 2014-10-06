@@ -18,8 +18,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-
 import re
 
 from weboob.browser2.page import JsonPage, HTMLPage, method
@@ -144,7 +142,7 @@ class DeparturesPage2(HTMLPage):
             form['moiHoraire'] = '%s|%s' % (date.month, date.year)
             form['heureHoraire'] = date.hour
             form['minuteHoraire'] = date.minute
-        print(form)
+        self.logger.debug(form)
         form.submit()
 
 
