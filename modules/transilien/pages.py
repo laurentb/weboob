@@ -23,6 +23,7 @@ import re
 from weboob.browser2.page import JsonPage, HTMLPage, method
 from weboob.browser2.elements import TableElement, ItemElement, ListElement
 from weboob.capabilities.travel import Station, Departure, RoadStep
+from weboob.capabilities import NotAvailable
 from weboob.browser2.filters.standard import CleanText, TableCell, Filter, DateTime, Env, Regexp, Duration
 from weboob.browser2.filters.json import Dict
 from weboob.browser2.filters.html import Link
@@ -166,10 +167,10 @@ class DeparturesPage(HTMLPage):
             def condition(self):
                 return len(self.el.xpath('./td')) >= 6
 
-            obj_time = DateTime(CleanText(TableCell('time')))
+            obj_time = TableCell('time') & CleanText & DateTime | NotAvailable
             obj_type = DepartureTypeFilter(TableCell('type'))
             obj_departure_station = CleanText(Env('station'))
             obj_arrival_station = CleanText(TableCell('arrival'))
-            obj_information = CleanText(TableCell('info'))
+            obj_information = TableCell('time') & CleanText & Regexp(pattern='([^\d:]+)') | u''
             obj_plateform = CleanText(TableCell('plateform'))
             obj_id = Regexp(Link(Child(TableCell('id'))), '.*?numeroTrain=(.*?)&.*?')
