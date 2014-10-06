@@ -27,7 +27,7 @@ from weboob.capabilities.messages import Message, Thread
 from weboob.capabilities.contact import Contact, ProfileNode
 from weboob.tools.date import parse_french_date
 
-import ovsparse
+from . import ovsparse
 
 
 class OvsPage(Page):
