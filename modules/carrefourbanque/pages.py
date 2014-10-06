@@ -31,12 +31,12 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 class LoginPage(HTMLPage):
     def enter_login(self, username):
-        form = self.get_form(nr=0)
+        form = self.get_form(nr=1)
         form['name'] = username
         form.submit()
 
     def enter_password(self, password):
-        form = self.get_form(nr=0)
+        form = self.get_form(nr=1)
         form['pass'] = password
         form.submit()
 
