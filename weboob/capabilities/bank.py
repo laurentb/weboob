@@ -158,13 +158,14 @@ class Investment(BaseObject):
     Investment in a financial market.
     """
 
-    label =     StringField('Label of stocks')
-    code =      StringField('Short code identifier of the stock')
-    quantity =  IntField('Quantity of stocks')
-    unitprice = DecimalField('Buy price of one stock')
-    unitvalue = DecimalField('Current value of one stock')
-    valuation = DecimalField('Total current valuation of the Investment')
-    diff =      DecimalField('Difference between the buy cost and the current valuation')
+    label =       StringField('Label of stocks')
+    code =        StringField('Short code identifier of the stock')
+    description = StringField('Description of the stock')
+    quantity =    IntField('Quantity of stocks')
+    unitprice =   DecimalField('Buy price of one stock')
+    unitvalue =   DecimalField('Current value of one stock')
+    valuation =   DecimalField('Total current valuation of the Investment')
+    diff =        DecimalField('Difference between the buy cost and the current valuation')
 
 
 class Transfer(BaseObject):
