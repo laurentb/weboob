@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
 
 from weboob.tools.browser import BrowserUnavailable
 from weboob.capabilities.dating import Optimization
@@ -45,6 +44,5 @@ class Visibility(Optimization):
         try:
             with self.browser:
                 self.browser.login()
-        except BrowserUnavailable as e:
-            print(str(e))
+        except BrowserUnavailable:
             pass

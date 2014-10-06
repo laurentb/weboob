@@ -18,10 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-import email
 import time
-import re
 import datetime
 from html2text import unescape
 from dateutil import tz
@@ -35,13 +32,11 @@ from weboob.capabilities.contact import CapContact, ContactPhoto, Query, QueryEr
 from weboob.capabilities.account import CapAccount, StatusField
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.browser import BrowserUnavailable, BrowserHTTPNotFound
-from weboob.tools.value import Value, ValuesDict, ValueBool, ValueBackendPassword
-from weboob.tools.log import getLogger
+from weboob.tools.value import Value, ValueBool, ValueBackendPassword
 from weboob.tools.date import local2utc
 from weboob.tools.misc import to_unicode
 
 from .contact import Contact
-from .captcha import CaptchaError
 from .antispam import AntiSpam
 from .browser import AuMBrowser
 from .optim.profiles_walker import ProfilesWalker
@@ -470,81 +465,6 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
 
     #def start_chat_polling(self):
         #self._profile_walker = ProfilesWalker(self.weboob.scheduler, self.storage, self.browser)
-
-    # ---- CapAccount methods ---------------------
-
-    ACCOUNT_REGISTER_PROPERTIES = ValuesDict(
-                Value('username', label='Email address', regexp='^[^ ]+@[^ ]+\.[^ ]+$'),
-                Value('password', label='Password', regexp='^[^ ]+$', masked=True),
-                Value('sex',      label='Sex', choices={'m': 'Male', 'f': 'Female'}),
-                Value('birthday', label='Birthday (dd/mm/yyyy)', regexp='^\d+/\d+/\d+$'),
-                Value('zipcode',  label='Zipcode'),
-                Value('country',  label='Country', choices={'fr': 'France', 'be': 'Belgique', 'ch': 'Suisse', 'ca': 'Canada'}, default='fr'),
-                Value('godfather',label='Godfather', regexp='^\d*$', default=''),
-               )
-
-    @classmethod
-    def register_account(klass, account):
-        """
-        Register an account on website
-
-        This is a static method, it would be called even if the backend is
-        instancied.
-
-        @param account  an Account object which describe the account to create
-        """
-        browser = None
-        bday, bmonth, byear = account.properties['birthday'].get().split('/', 2)
-        while not browser:
-            try:
-                browser = klass.BROWSER(account.properties['username'].get())
-                browser.register(password=   account.properties['password'].get(),
-                                 sex=        (0 if account.properties['sex'].get() == 'm' else 1),
-                                 birthday_d= int(bday),
-                                 birthday_m= int(bmonth),
-                                 birthday_y= int(byear),
-                                 zipcode=    account.properties['zipcode'].get(),
-                                 country=    account.properties['country'].get(),
-                                 godfather=  account.properties['godfather'].get())
-            except CaptchaError:
-                getLogger('aum').info('Unable to resolve captcha. Retrying...')
-                browser = None
-
-    REGISTER_REGEXP = re.compile('.*http://www.adopteunmec.com/register4.php\?([^\' ]*)\'')
-
-    def confirm_account(self, mail):
-        msg = email.message_from_string(mail)
-
-        content = u''
-        for part in msg.walk():
-            s = part.get_payload(decode=True)
-            content += unicode(s, 'iso-8859-15')
-
-        url = None
-        for s in content.split():
-            m = self.REGISTER_REGEXP.match(s)
-            if m:
-                url = '/register4.php?' + m.group(1)
-                break
-
-        if url:
-            browser = self.create_browser('')
-            browser.openurl(url)
-            return True
-
-        return False
-
-    def get_account(self):
-        """
-        Get the current account.
-        """
-        raise NotImplementedError()
-
-    def update_account(self, account):
-        """
-        Update the current account.
-        """
-        raise NotImplementedError()
 
     def get_account_status(self):
         with self.browser:
