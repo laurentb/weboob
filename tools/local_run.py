@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import print_function
+
 import subprocess
 import sys
 import os
 
 if len(sys.argv) < 2:
-    print "Usage: %s SCRIPTNAME [args]" % sys.argv[0]
+    print("Usage: %s SCRIPTNAME [args]" % sys.argv[0])
     sys.exit(1)
 else:
     script = sys.argv[1]
@@ -37,7 +39,7 @@ p = subprocess.Popen(
     stdout=subprocess.PIPE)
 s = p.communicate()
 if p.returncode != 0:
-    print s[0]
+    print(s[0])
     sys.exit(p.returncode)
 
 if os.path.exists(script):

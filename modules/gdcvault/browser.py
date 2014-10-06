@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import urllib
 
 from weboob.tools.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable,\
@@ -149,7 +151,7 @@ class GDCVaultBrowser(Browser):
         return self.page.iter_videos()
 
     def latest_videos(self):
-        print "browser:latest_videos()"
+        print("browser:latest_videos()")
         #self.home()
         self.location('/free')
         assert self.is_on_page(IndexPage)

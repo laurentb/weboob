@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 import requests
 import subprocess
@@ -76,14 +77,14 @@ class Videoob(ReplApplication):
 
     def download(self, video, dest, default=None):
         if not video.url:
-            print >>self.stderr, 'Error: the direct URL is not available.'
+            print('Error: the direct URL is not available.', file=self.stderr)
             return 4
 
         def check_exec(executable):
             with open('/dev/null', 'w') as devnull:
                 process = subprocess.Popen(['which', executable], stdout=devnull)
                 if process.wait() != 0:
-                    print >>self.stderr, 'Please install "%s"' % executable
+                    print('Please install "%s"' % executable, file=self.stderr)
                     return False
             return True
 
@@ -146,7 +147,7 @@ class Videoob(ReplApplication):
         _id, dest = self.parse_command_args(line, 2, 1)
         video = self.get_object(_id, 'get_video', ['url'])
         if not video:
-            print >>self.stderr, 'Video not found: %s' % _id
+            print('Video not found: %s' % _id, file=self.stderr)
             return 3
 
         return self.download(video, dest)
@@ -163,7 +164,7 @@ class Videoob(ReplApplication):
         Play a video with a found player.
         """
         if not line:
-            print >>self.stderr, 'This command takes an argument: %s' % self.get_command_help('play', short=True)
+            print('This command takes an argument: %s' % self.get_command_help('play', short=True), file=self.stderr)
             return 2
 
         ret = 0
@@ -177,10 +178,10 @@ class Videoob(ReplApplication):
 
     def play(self, video, _id):
         if not video:
-            print >>self.stderr, 'Video not found: %s' % _id
+            print('Video not found: %s' % _id, file=self.stderr)
             return 3
         if not video.url:
-            print >>self.stderr, 'Error: the direct URL is not available.'
+            print('Error: the direct URL is not available.', file=self.stderr)
             return 4
         try:
             player_name = self.config.get('media_player')
@@ -190,7 +191,7 @@ class Videoob(ReplApplication):
                                  'configuration file.')
             self.player.play(video, player_name=player_name, player_args=media_player_args)
         except (InvalidMediaPlayer, MediaPlayerNotFound) as e:
-            print '%s\nVideo URL: %s' % (e, video.url)
+            print('%s\nVideo URL: %s' % (e, video.url))
 
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
@@ -204,14 +205,14 @@ class Videoob(ReplApplication):
         Get information about a video.
         """
         if not line:
-            print >>self.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
+            print('This command takes an argument: %s' % self.get_command_help('info', short=True), file=self.stderr)
             return 2
 
         self.start_format()
         for _id in line.split(' '):
             video = self.get_object(_id, 'get_video')
             if not video:
-                print >>self.stderr, 'Video not found: %s' % _id
+                print('Video not found: %s' % _id, file=self.stderr)
                 return 3
 
             self.format(video)
@@ -239,11 +240,11 @@ class Videoob(ReplApplication):
         """
 
         if not self.interactive:
-            print >>self.stderr, 'This command can be used only in interactive mode.'
+            print('This command can be used only in interactive mode.', file=self.stderr)
             return 1
 
         if not line:
-            print >>self.stderr, 'This command takes an argument: %s' % self.get_command_help('playlist')
+            print('This command takes an argument: %s' % self.get_command_help('playlist'), file=self.stderr)
             return 2
 
         cmd, args = self.parse_command_args(line, 2, req_n=1)
@@ -253,11 +254,11 @@ class Videoob(ReplApplication):
                 video = self.get_object(_id, 'get_video')
 
                 if not video:
-                    print >>self.stderr, 'Video not found: %s' % _id
+                    print('Video not found: %s' % _id, file=self.stderr)
                     return 3
 
                 if not video.url:
-                    print >>self.stderr, 'Error: the direct URL is not available.'
+                    print('Error: the direct URL is not available.', file=self.stderr)
                     return 4
 
                 self.PLAYLIST.append(video)
@@ -267,11 +268,11 @@ class Videoob(ReplApplication):
                 video_to_remove = self.get_object(_id, 'get_video')
 
                 if not video_to_remove:
-                    print >>self.stderr, 'Video not found: %s' % _id
+                    print('Video not found: %s' % _id, file=self.stderr)
                     return 3
 
                 if not video_to_remove.url:
-                    print >>self.stderr, 'Error: the direct URL is not available.'
+                    print('Error: the direct URL is not available.', file=self.stderr)
                     return 4
 
                 for video in self.PLAYLIST:
@@ -297,7 +298,7 @@ class Videoob(ReplApplication):
             for video in self.PLAYLIST:
                 self.play(video, video.id)
         else:
-            print >>self.stderr, 'Playlist command only support "add", "remove", "display", "download" and "export" arguments.'
+            print('Playlist command only support "add", "remove", "display", "download" and "export" arguments.', file=self.stderr)
             return 2
 
     def complete_nsfw(self, text, line, begidx, endidx):
@@ -318,10 +319,10 @@ class Videoob(ReplApplication):
             elif line == 'off':
                 self.nsfw = False
             else:
-                print 'Invalid argument "%s".' % line
+                print('Invalid argument "%s".' % line)
                 return 2
         else:
-            print "on" if self.nsfw else "off"
+            print("on" if self.nsfw else "off")
 
     @defaultcount()
     def do_search(self, pattern):
@@ -331,7 +332,7 @@ class Videoob(ReplApplication):
         Search for videos matching a PATTERN.
         """
         if not pattern:
-            print >>self.stderr, 'This command takes an argument: %s' % self.get_command_help('search', short=True)
+            print('This command takes an argument: %s' % self.get_command_help('search', short=True), file=self.stderr)
             return 2
 
         self.change_path([u'search'])

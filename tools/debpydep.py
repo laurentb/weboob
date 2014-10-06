@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 
 import os
 import subprocess
@@ -15,7 +16,7 @@ for root, dirs, files in os.walk(sys.argv[1]):
             try:
                 exec(s)
             except ImportError as e:
-                print >>sys.stderr, str(e)
+                print(str(e), file=sys.stderr)
             else:
                 m = eval(f[:-3])
                 for attrname in dir(m):
@@ -36,7 +37,7 @@ for f in selection:
         for line in p.stdout.readlines():
             dependencies.add(line.strip().split(':')[0])
     else:
-        print 'not found: %s' % f
+        print('not found: %s' % f)
 
 for d in dependencies:
-    print d
+    print(d)

@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 from weboob.capabilities.translate import CapTranslate, TranslationFail, LanguageNotSupported
 from weboob.tools.application.repl import ReplApplication
@@ -114,5 +115,5 @@ class Translaboob(ReplApplication):
             for backend, translation in self.do('translate', self.LANGUAGE[lan_from], self.LANGUAGE[lan_to], text):
                 self.format(translation)
         except (TranslationFail, LanguageNotSupported) as error:
-            print >>self.stderr, error
+            print(error, file=self.stderr)
             pass

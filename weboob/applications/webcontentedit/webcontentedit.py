@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 import os
 import tempfile
@@ -53,7 +54,7 @@ class WebContentEdit(ReplApplication):
             contents += [content for backend, content in self.do('get_content', _id, backends=backend_names) if content]
 
         if len(contents) == 0:
-            print >>self.stderr, 'No contents found'
+            print('No contents found', file=self.stderr)
             return 3
 
         if self.stdin.isatty():
@@ -92,10 +93,10 @@ class WebContentEdit(ReplApplication):
                     contents.remove(content)
 
             if len(contents) == 0:
-                print >>self.stderr, 'No changes. Abort.'
+                print('No changes. Abort.', file=self.stderr)
                 return 1
 
-            print 'Contents changed:\n%s' % ('\n'.join(' * %s' % content.id for content in contents))
+            print('Contents changed:\n%s' % ('\n'.join(' * %s' % content.id for content in contents)))
 
             message = self.ask('Enter a commit message', default='')
             minor = self.ask('Is this a minor edit?', default=False)
@@ -119,7 +120,7 @@ class WebContentEdit(ReplApplication):
             # stdin is not a tty
 
             if len(contents) != 1:
-                print >>self.stderr, "Multiple ids not supported with pipe"
+                print("Multiple ids not supported with pipe", file=self.stderr)
                 return 2
 
             message, minor = '', False
@@ -149,7 +150,7 @@ class WebContentEdit(ReplApplication):
         Display log of a page
         """
         if not line:
-            print >>self.stderr, 'Error: please give a page ID'
+            print('Error: please give a page ID', file=self.stderr)
             return 2
 
         _id, backend_name = self.parse_id(line)
@@ -168,7 +169,7 @@ class WebContentEdit(ReplApplication):
         Get page contents
         """
         if not line:
-            print >>self.stderr, 'Error: please give a page ID'
+            print('Error: please give a page ID', file=self.stderr)
             return 2
 
         _part_line = line.strip().split(' ')
@@ -181,7 +182,7 @@ class WebContentEdit(ReplApplication):
             _part_line.remove('-r')
 
             if not _part_line:
-                print >>self.stderr, 'Error: please give a page ID'
+                print('Error: please give a page ID', file=self.stderr)
                 return 2
 
         _id, backend_name = self.parse_id(" ".join(_part_line))

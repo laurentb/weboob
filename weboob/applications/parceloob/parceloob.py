@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from __future__ import print_function
 
 from weboob.capabilities.base import empty
 from weboob.capabilities.parcel import CapParcel, Parcel, ParcelNotFound
@@ -105,7 +105,7 @@ class Parceloob(ReplApplication):
         """
         parcel = self.get_object(line, 'get_parcel_tracking')
         if not parcel:
-            print >>self.stderr, 'Error: the parcel "%s" is not found' % line
+            print('Error: the parcel "%s" is not found' % line, file=self.stderr)
             return 2
 
         parcels = set(self.storage.get('tracking', default=[]))
@@ -113,7 +113,7 @@ class Parceloob(ReplApplication):
         self.storage.set('tracking', list(parcels))
         self.storage.save()
 
-        print 'Parcel "%s" has been tracked.' % parcel.fullid
+        print('Parcel "%s" has been tracked.' % parcel.fullid)
 
     def do_untrack(self, line):
         """
@@ -137,22 +137,22 @@ class Parceloob(ReplApplication):
                 parcel = False
 
             if not parcel:
-                print >>self.stderr, 'Error: the parcel "%s" is not found. Did you provide the full id@backend parameter?' % line
+                print('Error: the parcel "%s" is not found. Did you provide the full id@backend parameter?' % line, file=self.stderr)
                 return 2
 
             try:
                 parcels.remove(parcel.fullid)
             except KeyError:
-                print >>self.stderr, "Error: parcel \"%s\" wasn't tracked" % parcel.fullid
+                print("Error: parcel \"%s\" wasn't tracked" % parcel.fullid, file=self.stderr)
                 return 2
 
         self.storage.set('tracking', list(parcels))
         self.storage.save()
 
         if removed:
-            print "Parcel \"%s\" isn't tracked anymore." % line
+            print("Parcel \"%s\" isn't tracked anymore." % line)
         else:
-            print "Parcel \"%s\" isn't tracked anymore." % parcel.fullid
+            print("Parcel \"%s\" isn't tracked anymore." % parcel.fullid)
 
     def do_status(self, line):
         """
@@ -184,7 +184,7 @@ class Parceloob(ReplApplication):
         """
         parcel = self.get_object(id, 'get_parcel_tracking', [])
         if not parcel:
-            print >>self.stderr, 'Error: parcel not found'
+            print('Error: parcel not found', file=self.stderr)
             return 2
 
         self.start_format()

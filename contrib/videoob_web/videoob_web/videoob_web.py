@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 import os
 
@@ -79,8 +80,8 @@ class VideoobWeb(Application):
     def main(self, argv):
         self.load_config()
         self.weboob.load_backends(CapVideo)
-        print 'Web server created. Listening on http://%s:%s' % (
-            self.config.get('host'), int(self.config.get('port')))
+        print('Web server created. Listening on http://%s:%s' % (
+            self.config.get('host'), int(self.config.get('port'))))
         srv = make_server(self.config.get('host'), int(self.config.get('port')), self.make_app)
         srv.serve_forever()
 

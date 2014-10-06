@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 
 from .base.weboobmc2 import Weboobmc
 from weboob.capabilities.video import BaseVideo, CapVideo
@@ -22,7 +23,7 @@ class Videoobmc(Weboobmc):
             for _backend, video in self.weboob.do(self._do_complete, self.count, fields, 'search_videos', **kwargs):
                 yield video
         except Exception as e:
-            print e
+            print(e)
 
     def get_video(self, video, _backend):
         backend = self.weboob.get_backend(_backend)

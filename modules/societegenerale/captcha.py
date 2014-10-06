@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 import hashlib
 
@@ -133,7 +134,7 @@ class Tile(object):
             raise TileError('Tile not found ' + sum, self)
 
     def display(self):
-        print self.checksum()
+        print(self.checksum())
         #im = Image.new('RGB', (24, 23))
         #im.putdata(self.map)
         #im.save('/tmp/%s.png' % self.checksum())

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from __future__ import print_function
 
 from datetime import datetime
 from time import mktime, strptime
@@ -69,14 +69,14 @@ class WeboobRepos(ReplApplication):
         if not os.path.exists(path):
             os.mkdir(path)
         elif not os.path.isdir(path):
-            print u'"%s" is not a directory' % path
+            print(u'"%s" is not a directory' % path)
             return 1
 
         r = Repository('http://')
         r.name = name
         r.maintainer = self.ask('Enter maintainer of the repository')
         r.save(os.path.join(path, r.INDEX))
-        print u'Repository "%s" created.' % path
+        print(u'Repository "%s" created.' % path)
 
     def do_build(self, line):
         """
@@ -95,8 +95,8 @@ class WeboobRepos(ReplApplication):
             with open(index_file, 'r') as fp:
                 r.parse_index(fp)
         except IOError as e:
-            print >>self.stderr, 'Unable to open repository: %s' % e
-            print >>self.stderr, 'Use the "create" command before.'
+            print('Unable to open repository: %s' % e, file=self.stderr)
+            print('Use the "create" command before.', file=self.stderr)
             return 1
 
         r.build_index(source_path, index_file)
@@ -110,13 +110,13 @@ class WeboobRepos(ReplApplication):
             if os.path.exists(krname):
                 kr_mtime = int(datetime.fromtimestamp(os.path.getmtime(krname)).strftime('%Y%m%d%H%M'))
             if not os.path.exists(krname) or kr_mtime < r.key_update:
-                print 'Generate keyring'
+                print('Generate keyring')
                 # Remove all existing keys
                 if os.path.exists(krname):
                     os.remove(krname)
                 # Add all valid keys
                 for keyfile in os.listdir(os.path.join(source_path, r.KEYDIR)):
-                    print 'Adding key %s' % keyfile
+                    print('Adding key %s' % keyfile)
                     keypath = os.path.join(source_path, r.KEYDIR, keyfile)
                     subprocess.check_call([
                         gpg,
@@ -134,7 +134,7 @@ class WeboobRepos(ReplApplication):
                 os.chmod(krname, 0o644)
                 os.utime(krname, (kr_mtime, kr_mtime))
             else:
-                print 'Keyring is up to date'
+                print('Keyring is up to date')
 
         for name, module in r.modules.iteritems():
             tarname = os.path.join(repo_path, '%s.tar.gz' % name)
@@ -146,7 +146,7 @@ class WeboobRepos(ReplApplication):
                 if tar_mtime >= module.version:
                     continue
 
-            print 'Create archive for %s' % name
+            print('Create archive for %s' % name)
             with closing(tarfile.open(tarname, 'w:gz')) as tar:
                 tar.add(module_path, arcname=name, exclude=self._archive_excludes)
             tar_mtime = mktime(strptime(str(module.version), '%Y%m%d%H%M'))
@@ -195,7 +195,7 @@ class WeboobRepos(ReplApplication):
                 if os.path.exists(sigpath):
                     sig_mtime = int(os.path.getmtime(sigpath))
                 if not os.path.exists(sigpath) or sig_mtime < file_mtime:
-                    print 'Signing %s' % filename
+                    print('Signing %s' % filename)
                     if os.path.exists(sigpath):
                         os.remove(sigpath)
                     subprocess.check_call([
@@ -207,7 +207,7 @@ class WeboobRepos(ReplApplication):
                         '--output', sigpath,
                         '--sign', filepath])
                     os.utime(sigpath, (file_mtime, file_mtime))
-            print 'Signatures are up to date'
+            print('Signatures are up to date')
 
     @staticmethod
     def _find_gpg():

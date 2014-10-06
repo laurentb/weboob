@@ -17,8 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-
+from __future__ import print_function
 
 from weboob.capabilities.lyrics import CapLyrics
 from weboob.capabilities.base import empty
@@ -84,7 +83,7 @@ class Booblyrics(ReplApplication):
 
         songlyrics = self.get_object(id, 'get_lyrics')
         if not songlyrics:
-            print >>self.stderr, 'Song lyrics not found: %s' % id
+            print('Song lyrics not found: %s' % id, file=self.stderr)
             return 3
 
         self.start_format()

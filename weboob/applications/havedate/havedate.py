@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 from copy import copy
 
@@ -87,11 +88,11 @@ class HaveDate(Boobmsg):
         _id, backend_name = self.parse_id(id, unique_backend=True)
 
         for backend, query in self.do('send_query', _id, backends=backend_name):
-            print '%s' % query.message
+            print('%s' % query.message)
 
     def edit_optims(self, backend_names, optims_names, stop=False):
         if optims_names is None:
-            print >>self.stderr, 'Error: missing parameters.'
+            print('Error: missing parameters.', file=self.stderr)
             return 2
 
         for optim_name in optims_names.split():
@@ -101,29 +102,29 @@ class HaveDate(Boobmsg):
                     backends_optims[backend.name] = optim
             for backend_name, optim in backends_optims.iteritems():
                 if len(optim.CONFIG) == 0:
-                    print '%s.%s does not require configuration.' % (backend_name, optim_name)
+                    print('%s.%s does not require configuration.' % (backend_name, optim_name))
                     continue
 
                 was_running = optim.is_running()
                 if stop and was_running:
-                    print 'Stopping %s: %s' % (optim_name, backend_name)
+                    print('Stopping %s: %s' % (optim_name, backend_name))
                     optim.stop()
                 params = optim.get_config()
                 if params is None:
                     params = {}
-                print 'Configuration of %s.%s' % (backend_name, optim_name)
-                print '-----------------%s-%s' % ('-' * len(backend_name), '-' * len(optim_name))
+                print('Configuration of %s.%s' % (backend_name, optim_name))
+                print('-----------------%s-%s' % ('-' * len(backend_name), '-' * len(optim_name)))
                 for key, value in optim.CONFIG.iteritems():
                     params[key] = self.ask(value, default=params[key] if (key in params) else value.default)
 
                 optim.set_config(params)
                 if stop and was_running:
-                    print 'Starting %s: %s' % (optim_name, backend_name)
+                    print('Starting %s: %s' % (optim_name, backend_name))
                     optim.start()
 
     def optims(self, function, backend_names, optims, store=True):
         if optims is None:
-            print >>self.stderr, 'Error: missing parameters.'
+            print('Error: missing parameters.', file=self.stderr)
             return 2
 
         for optim_name in optims.split():
@@ -205,7 +206,7 @@ class HaveDate(Boobmsg):
         if backend_name == '*':
             backend_name = None
         elif backend_name is not None and not backend_name in [b.name for b in self.enabled_backends]:
-            print >>self.stderr, 'Error: No such backend "%s"' % backend_name
+            print('Error: No such backend "%s"' % backend_name, file=self.stderr)
             return 1
 
         if cmd == 'start':
@@ -245,7 +246,7 @@ class HaveDate(Boobmsg):
                     line.append((b, status))
                 self.format(tuple(line))
             return
-        print >>self.stderr, "No such command '%s'" % cmd
+        print("No such command '%s'" % cmd, file=self.stderr)
         return 1
 
     def do_events(self, line):

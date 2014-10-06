@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from __future__ import print_function
 
 from weboob.tools.application.repl import ReplApplication
 
@@ -41,7 +41,7 @@ class WeboobCli(ReplApplication):
 
     def main(self, argv):
         if len(argv) < 3:
-            print >>self.stderr, "Syntax: %s capability method [args ..]" % argv[0]
+            print("Syntax: %s capability method [args ..]" % argv[0], file=self.stderr)
             return 2
 
         cap_s = argv[1]

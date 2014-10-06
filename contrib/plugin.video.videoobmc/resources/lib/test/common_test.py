@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 
 import urllib
 
@@ -33,11 +34,11 @@ def get_settings(key):
 
 
 def display_error(error):
-    print "%s: %s" % ("ERROR", error)
+    print("%s: %s" % ("ERROR", error))
 
 
 def display_info(msg):
-    print "%s: %s" % ("INFO", msg)
+    print("%s: %s" % ("INFO", msg))
 
 
 def parse_params(paramStr):
@@ -93,18 +94,18 @@ def create_param_url(paramsDic, quote_plus=False):
 
 
 def add_menu_item(params={}):
-    print '%s => "%s"' % (params.get('name'), create_param_url(params))
+    print('%s => "%s"' % (params.get('name'), create_param_url(params)))
 
 
 def add_menu_link(params={}):
-    print '[%s] %s (%s)' % (params.get('id'), params.get('name'), params.get('url'))
+    print('[%s] %s (%s)' % (params.get('id'), params.get('name'), params.get('url')))
     #print params.get('itemInfoLabels')
     #print params.get('c_items')
 
 
 def end_of_directory(update=False):
-    print '******************************************************'
+    print('******************************************************')
 
 
 def download_video(url, name, dir='./'):
-    print 'Downlaod a video %s from %s' % (name, url)
+    print('Downlaod a video %s from %s' % (name, url))

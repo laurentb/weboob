@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 import hashlib
 import sys
@@ -92,13 +93,13 @@ class Tile(object):
         self.map.append(pxls)
 
     def display(self):
-        print '-' * (len(self.map) * 2 + 2)
+        print('-' * (len(self.map) * 2 + 2))
         for y in xrange(len(self.map[0])):
             sys.stdout.write('|')
             for x in xrange(len(self.map)):
                 sys.stdout.write('%s' % ('XX' if self.map[x][y] else '  '))
-            print '|'
-        print '-' * (len(self.map) * 2 + 2)
+            print('|')
+        print('-' * (len(self.map) * 2 + 2))
 
     def checksum(self):
         s = ''
@@ -113,9 +114,9 @@ class Tile(object):
         try:
             return self.hash[checksum]
         except KeyError:
-            print 'Unable te resolve:'
+            print('Unable te resolve:')
             self.display()
-            print 'hash: %s' % checksum
+            print('hash: %s' % checksum)
             raise CaptchaError()
 
 
@@ -175,11 +176,11 @@ class Decoder(object):
             checksum = tile.checksum()
 
             if checksum in self.hash:
-                print 'Skipping %s' % self.hash[checksum]
+                print('Skipping %s' % self.hash[checksum])
                 continue
 
             tile.display()
-            print 'Checksum: %s' % checksum
+            print('Checksum: %s' % checksum)
             ntry = 2
             while ntry:
                 sys.stdout.write('Enter the letter: ')
@@ -187,9 +188,9 @@ class Decoder(object):
 
                 ntry -= 1
                 if len(l) != 1:
-                    print 'Error: please enter only one letter'
+                    print('Error: please enter only one letter')
                 elif l in self.hash.itervalues():
-                    print 'Warning! This letter has already been catched!'
+                    print('Warning! This letter has already been catched!')
                 else:
                     ntry = 0
 
@@ -200,13 +201,13 @@ class Decoder(object):
             while True:
                 self.process()
         except KeyboardInterrupt:
-            print ''
-            print 'hash = {'
+            print('')
+            print('hash = {')
             l = sorted(self.hash.iteritems(), key=lambda (k,v): (v,k))
             for hash, value in l:
-                print '        \'%s\': %s' % (hash, value)
+                print('        \'%s\': %s' % (hash, value))
 
-            print '}'
+            print('}')
 
 if __name__ == '__main__':
     d = Decoder()

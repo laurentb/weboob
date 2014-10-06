@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 
 # Copyright(C) 2010-2011 Laurent Bachelier
 #
@@ -120,10 +121,10 @@ def main():
                 try:
                     script = imp.load_module("scripts.%s" % fname, f, tmpfile, desc)
                 except ImportError as e:
-                    print >>sys.stderr, "Unable to load the %s script (%s)" \
-                        % (fname, e)
+                    print("Unable to load the %s script (%s)" \
+                        % (fname, e), file=sys.stderr)
                 else:
-                    print "Loaded %s" % fname
+                    print("Loaded %s" % fname)
                     # Find the applications we can handle
                     for klass in script.__dict__.itervalues():
                         if inspect.isclass(klass) and issubclass(klass, Application):
@@ -227,7 +228,7 @@ For full COPYRIGHT see COPYING file with weboob package.
     with open(os.path.join(BASE_PATH, DEST_DIR, "%s.1" % script_name), 'w+') as manfile:
         for line in mantext.split('\n'):
             manfile.write('%s\n' % line.lstrip().encode('utf-8'))
-    print "wrote %s/%s.1" % (DEST_DIR, script_name)
+    print("wrote %s/%s.1" % (DEST_DIR, script_name))
 
 if __name__ == '__main__':
     sys.exit(main())

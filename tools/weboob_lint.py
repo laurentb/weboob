@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 
 # Hint: use this script with file:///path/to/local/modules/ in sources.list
 # if you want to correctly check all modules.
@@ -22,6 +23,6 @@ for name, backend in weboob.modules_loader.loaded.iteritems():
         backends_without_icons.append(name)
 
 if backends_without_tests:
-    print 'Modules without tests: %s' % backends_without_tests
+    print('Modules without tests: %s' % backends_without_tests)
 if backends_without_icons:
-    print 'Modules without icons: %s' % backends_without_icons
+    print('Modules without icons: %s' % backends_without_icons)

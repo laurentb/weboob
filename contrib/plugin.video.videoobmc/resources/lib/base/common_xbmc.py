@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 
 import xbmc
 import xbmcgui
@@ -41,7 +42,7 @@ def get_addon_dir():
 
 def display_error(msg):
     xbmc.executebuiltin("XBMC.Notification(%s, %s)" % (get_translation('30200').decode('utf-8'), msg))
-    print msg
+    print(msg)
     print_exc(msg)
 
 

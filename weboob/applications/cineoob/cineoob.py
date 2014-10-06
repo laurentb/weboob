@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from __future__ import print_function
 
 from datetime import datetime
 
@@ -230,11 +230,11 @@ class Cineoob(ReplApplication):
 
         person1 = self.get_object(id1, 'get_person', caps=CapCinema)
         if not person1:
-            print >>self.stderr, 'Person not found: %s' % id1
+            print('Person not found: %s' % id1, file=self.stderr)
             return 3
         person2 = self.get_object(id2, 'get_person', caps=CapCinema)
         if not person2:
-            print >>self.stderr, 'Person not found: %s' % id2
+            print('Person not found: %s' % id2, file=self.stderr)
             return 3
 
         initial_count = self.options.count
@@ -263,11 +263,11 @@ class Cineoob(ReplApplication):
 
         movie1 = self.get_object(id1, 'get_movie', caps=CapCinema)
         if not movie1:
-            print >>self.stderr, 'Movie not found: %s' % id1
+            print('Movie not found: %s' % id1, file=self.stderr)
             return 3
         movie2 = self.get_object(id2, 'get_movie', caps=CapCinema)
         if not movie2:
-            print >>self.stderr, 'Movie not found: %s' % id2
+            print('Movie not found: %s' % id2, file=self.stderr)
             return 3
 
         initial_count = self.options.count
@@ -294,7 +294,7 @@ class Cineoob(ReplApplication):
         movie = self.get_object(id, 'get_movie', caps=CapCinema)
 
         if not movie:
-            print >>self.stderr, 'Movie not found: %s' % id
+            print('Movie not found: %s' % id, file=self.stderr)
             return 3
 
         self.start_format()
@@ -309,7 +309,7 @@ class Cineoob(ReplApplication):
         person = self.get_object(id, 'get_person', caps=CapCinema)
 
         if not person:
-            print >>self.stderr, 'Person not found: %s' % id
+            print('Person not found: %s' % id, file=self.stderr)
             return 3
 
         self.start_format()
@@ -356,7 +356,7 @@ class Cineoob(ReplApplication):
 
         movie = self.get_object(movie_id, 'get_movie', caps=CapCinema)
         if not movie:
-            print >>self.stderr, 'Movie not found: %s' % id
+            print('Movie not found: %s' % id, file=self.stderr)
             return 3
 
         for backend, person in self.do('iter_movie_persons', movie.id, role, backends=movie.backend, caps=CapCinema):
@@ -373,7 +373,7 @@ class Cineoob(ReplApplication):
 
         person = self.get_object(person_id, 'get_person', caps=CapCinema)
         if not person:
-            print >>self.stderr, 'Person not found: %s' % id
+            print('Person not found: %s' % id, file=self.stderr)
             return 3
 
         for backend, movie in self.do('iter_person_movies', person.id, role, backends=person.backend, caps=CapCinema):
@@ -387,7 +387,7 @@ class Cineoob(ReplApplication):
         """
         person = self.get_object(person_id, 'get_person', ('name', 'biography'), caps=CapCinema)
         if not person:
-            print >>self.stderr, 'Person not found: %s' % person_id
+            print('Person not found: %s' % person_id, file=self.stderr)
             return 3
 
         self.start_format()
@@ -411,7 +411,7 @@ class Cineoob(ReplApplication):
 
         movie = self.get_object(id, 'get_movie', ('original_title'), caps=CapCinema)
         if not movie:
-            print >>self.stderr, 'Movie not found: %s' % id
+            print('Movie not found: %s' % id, file=self.stderr)
             return 3
 
         # i would like to clarify with fillobj but how could i fill the movie AND choose the country ?
@@ -419,7 +419,7 @@ class Cineoob(ReplApplication):
             if not empty(release):
                 movie.all_release_dates = u'%s' % (release)
             else:
-                print >>self.stderr, 'Movie releases not found for %s' % movie.original_title
+                print('Movie releases not found for %s' % movie.original_title, file=self.stderr)
                 return 3
         self.start_format()
         self.format(movie)
@@ -440,7 +440,7 @@ class Cineoob(ReplApplication):
 
         torrent = self.get_object(id, 'get_torrent', caps=CapTorrent)
         if not torrent:
-            print >>self.stderr, 'Torrent not found: %s' % id
+            print('Torrent not found: %s' % id, file=self.stderr)
             return 3
 
         self.start_format()
@@ -472,26 +472,26 @@ class Cineoob(ReplApplication):
             for backend, buf in self.do('get_torrent_file', _id, backends=backend_name, caps=CapTorrent):
                 if buf:
                     if dest == '-':
-                        print buf
+                        print(buf)
                     else:
                         try:
                             with open(dest, 'w') as f:
                                 f.write(buf)
                         except IOError as e:
-                            print >>self.stderr, 'Unable to write .torrent in "%s": %s' % (dest, e)
+                            print('Unable to write .torrent in "%s": %s' % (dest, e), file=self.stderr)
                             return 1
                     return
         except CallErrors as errors:
             for backend, error, backtrace in errors:
                 if isinstance(error, MagnetOnly):
-                    print >>self.stderr, u'Error(%s): No direct URL available, ' \
+                    print(u'Error(%s): No direct URL available, ' \
                         u'please provide this magnet URL ' \
-                        u'to your client:\n%s' % (backend, error.magnet)
+                        u'to your client:\n%s' % (backend, error.magnet), file=self.stderr)
                     return 4
                 else:
                     self.bcall_error_handler(backend, error, backtrace)
 
-        print >>self.stderr, 'Torrent "%s" not found' % id
+        print('Torrent "%s" not found' % id, file=self.stderr)
         return 3
 
     @defaultcount(10)
@@ -518,7 +518,7 @@ class Cineoob(ReplApplication):
         """
         movie = self.get_object(id, 'get_movie', ('original_title'), caps=CapCinema)
         if not movie:
-            print >>self.stderr, 'Movie not found: %s' % id
+            print('Movie not found: %s' % id, file=self.stderr)
             return 3
 
         pattern = movie.original_title
@@ -547,7 +547,7 @@ class Cineoob(ReplApplication):
 
         subtitle = self.get_object(id, 'get_subtitle', caps=CapCinema)
         if not subtitle:
-            print >>self.stderr, 'Subtitle not found: %s' % id
+            print('Subtitle not found: %s' % id, file=self.stderr)
             return 3
 
         self.start_format()
@@ -578,17 +578,17 @@ class Cineoob(ReplApplication):
         for backend, buf in self.do('get_subtitle_file', _id, backends=backend_name, caps=CapSubtitle):
             if buf:
                 if dest == '-':
-                    print buf
+                    print(buf)
                 else:
                     try:
                         with open(dest, 'w') as f:
                             f.write(buf)
                     except IOError as e:
-                        print >>self.stderr, 'Unable to write file in "%s": %s' % (dest, e)
+                        print('Unable to write file in "%s": %s' % (dest, e), file=self.stderr)
                         return 1
                 return
 
-        print >>self.stderr, 'Subtitle "%s" not found' % id
+        print('Subtitle "%s" not found' % id, file=self.stderr)
         return 3
 
     @defaultcount(10)
@@ -657,7 +657,7 @@ class Cineoob(ReplApplication):
         language, id = self.parse_command_args(line, 2, 2)
         movie = self.get_object(id, 'get_movie', ('original_title'), caps=CapCinema)
         if not movie:
-            print >>self.stderr, 'Movie not found: %s' % id
+            print('Movie not found: %s' % id, file=self.stderr)
             return 3
 
         pattern = movie.original_title

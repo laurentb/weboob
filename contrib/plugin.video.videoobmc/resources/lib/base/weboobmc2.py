@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 
 from weboob.tools.application.base import Application
 import os
@@ -53,7 +54,7 @@ class Weboobmc(Application):
             with open('/dev/null', 'w') as devnull:
                 process = subprocess.Popen(['which', executable], stdout=devnull)
                 if process.wait() != 0:
-                    print 'Please install "%s"' % executable
+                    print('Please install "%s"' % executable)
                     return False
             return True
 

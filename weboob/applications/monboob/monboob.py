@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 from email.mime.text import MIMEText
 from smtplib import SMTP
@@ -118,7 +119,7 @@ class Monboob(ReplApplication):
             if self.config.get('interval') < 1:
                 raise ValueError()
         except ValueError:
-            print >>self.stderr, 'Configuration error: interval must be an integer >0.'
+            print('Configuration error: interval must be an integer >0.', file=self.stderr)
             return 1
 
         try:
@@ -126,7 +127,7 @@ class Monboob(ReplApplication):
             if self.config.get('html') not in (0, 1):
                 raise ValueError()
         except ValueError:
-            print >>self.stderr, 'Configuration error: html must be 0 or 1.'
+            print('Configuration error: html must be 0 or 1.', file=self.stderr)
             return 2
 
         return ReplApplication.main(self, argv)
@@ -189,7 +190,7 @@ class Monboob(ReplApplication):
                         break
 
         if len(content) == 0:
-            print >>self.stderr, 'Unable to send an empty message'
+            print('Unable to send an empty message', file=self.stderr)
             return 1
 
         # remove signature
@@ -209,7 +210,7 @@ class Monboob(ReplApplication):
                 bname, id = reply_to.split('.', 1)
                 thread_id, parent_id = id.rsplit('.', 1)
             except ValueError:
-                print >>self.stderr, 'In-Reply-To header might be in form <backend.thread_id.message_id>'
+                print('In-Reply-To header might be in form <backend.thread_id.message_id>', file=self.stderr)
                 return 1
 
             # Default use the To header field to know the backend to use.
@@ -219,11 +220,11 @@ class Monboob(ReplApplication):
         try:
             backend = self.weboob.backend_instances[bname]
         except KeyError:
-            print >>self.stderr, 'Backend %s not found' % bname
+            print('Backend %s not found' % bname, file=self.stderr)
             return 1
 
         if not backend.has_caps(CapMessagesPost):
-            print >>self.stderr, 'The backend %s does not implement CapMessagesPost' % bname
+            print('The backend %s does not implement CapMessagesPost' % bname, file=self.stderr)
             return 1
 
         thread = Thread(thread_id)

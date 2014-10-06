@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 from datetime import datetime, timedelta
 import logging
@@ -138,7 +139,7 @@ class BoobotBrowser(StandardBrowser):
                     # meta charset=...
                     encoding = meta.attrib.get('charset', encoding).lower()
             except Exception as e:
-                print e
+                print(e)
             finally:
                 r.seek(0)
             if encoding == 'iso-8859-1' or not encoding:
@@ -159,7 +160,7 @@ class BoobotBrowser(StandardBrowser):
                         title = ' '.join(title.splitlines())
             except AssertionError as e:
                 # invalid HTML
-                print e
+                print(e)
 
         return content_type, hsize, title
 
@@ -377,7 +378,7 @@ class Boobot(SingleServerIRCBot):
                         for msg in getattr(self, func)(backend, _id):
                             yield msg
                     except Exception as e:
-                        print get_backtrace()
+                        print(get_backtrace())
                         yield u'Oops: [%s] %s' % (type(e).__name__, e)
                     break
 
@@ -394,7 +395,7 @@ class Boobot(SingleServerIRCBot):
         except BrowserUnavailable as e:
             yield u'URL (error): %s' % e
         except Exception as e:
-            print get_backtrace()
+            print(get_backtrace())
             yield u'Oops: [%s] %s' % (type(e).__name__, e)
 
     def obj_info_video(self, backend, id):
@@ -418,7 +419,7 @@ def main():
     try:
         bot.start()
     except KeyboardInterrupt:
-        print "Stopped."
+        print("Stopped.")
 
     thread.stop()
 

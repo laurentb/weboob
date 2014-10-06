@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 from weboob.capabilities.base import empty
 from weboob.capabilities.gauge import CapGauge, SensorNotFound
@@ -110,7 +111,7 @@ class Boobsize(ReplApplication):
     def bcall_error_handler(self, backend, error, backtrace):
         if isinstance(error, SensorNotFound):
             msg = unicode(error) or 'Sensor not found (hint: try details command)'
-            print >>self.stderr, 'Error(%s): %s' % (backend.name, msg)
+            print('Error(%s): %s' % (backend.name, msg), file=self.stderr)
         else:
             return ReplApplication.bcall_error_handler(self, backend, error, backtrace)
 

@@ -17,8 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-
+from __future__ import print_function
 
 from weboob.capabilities.subtitle import CapSubtitle
 from weboob.capabilities.base import empty
@@ -113,7 +112,7 @@ class Suboob(ReplApplication):
 
         subtitle = self.get_object(id, 'get_subtitle')
         if not subtitle:
-            print >>self.stderr, 'Subtitle not found: %s' % id
+            print('Subtitle not found: %s' % id, file=self.stderr)
             return 3
 
         self.start_format()
@@ -138,7 +137,7 @@ class Suboob(ReplApplication):
 
         subtitle = self.get_object(id, 'get_subtitle')
         if not subtitle:
-            print >>self.stderr, 'Subtitle not found: %s' % id
+            print('Subtitle not found: %s' % id, file=self.stderr)
             return 3
 
         if dest is None:
@@ -156,10 +155,10 @@ class Suboob(ReplApplication):
                         with open(dest, 'w') as f:
                             f.write(buf)
                     except IOError as e:
-                        print >>self.stderr, 'Unable to write file in "%s": %s' % (dest, e)
+                        print('Unable to write file in "%s": %s' % (dest, e), file=self.stderr)
                         return 1
                     else:
-                        print 'Saved to %s' % dest
+                        print('Saved to %s' % dest)
                 return
 
     @defaultcount(10)

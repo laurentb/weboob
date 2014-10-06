@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from __future__ import print_function
 
 import os
 from re import search, sub
@@ -67,7 +67,7 @@ class Galleroob(ReplApplication):
         List galleries matching a PATTERN.
         """
         if not pattern:
-            print >>self.stderr, 'This command takes an argument: %s' % self.get_command_help('search', short=True)
+            print('This command takes an argument: %s' % self.get_command_help('search', short=True), file=self.stderr)
             return 2
 
         self.start_format(pattern=pattern)
@@ -97,14 +97,14 @@ class Galleroob(ReplApplication):
                 gallery = result
 
         if not gallery:
-            print >>self.stderr, 'Gallery not found: %s' % _id
+            print('Gallery not found: %s' % _id, file=self.stderr)
             return 3
 
         backend.fillobj(gallery, ('title',))
         if dest is None:
             dest = sub('/', ' ', gallery.title)
 
-        print "Downloading to %s" % dest
+        print("Downloading to %s" % dest)
 
         try:
             os.mkdir(dest)
@@ -122,7 +122,7 @@ class Galleroob(ReplApplication):
             if img.data is None:
                 backend.fillobj(img, ('url', 'data'))
                 if img.data is None:
-                    print >>self.stderr, "Couldn't get page %d, exiting" % i
+                    print("Couldn't get page %d, exiting" % i, file=self.stderr)
                     break
 
             ext = search(r"\.([^\.]{1,5})$", img.url)
@@ -132,7 +132,7 @@ class Galleroob(ReplApplication):
                 ext = "jpg"
 
             name = '%03d.%s' % (i, ext)
-            print 'Writing file %s' % name
+            print('Writing file %s' % name)
 
             with open(name, 'w') as f:
                 f.write(img.data)
@@ -149,7 +149,7 @@ class Galleroob(ReplApplication):
 
         gallery = self.get_object(_id, 'get_gallery')
         if not gallery:
-            print >>self.stderr, 'Gallery not found: %s' % _id
+            print('Gallery not found: %s' % _id, file=self.stderr)
             return 3
 
         self.start_format()

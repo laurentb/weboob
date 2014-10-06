@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import subprocess
 import os
 import re
@@ -69,10 +71,10 @@ class Downloadboob(object):
         for local_link_name in dirList:
             link_name = self.links_directory + "/" + local_link_name
             if not self.check_link(link_name):
-                print u"Remove %s" % link_name
+                print(u"Remove %s" % link_name)
                 os.remove(link_name)
             else:
-                print u"Keep %s" % link_name
+                print(u"Keep %s" % link_name)
 
     def check_link(self, link_name):
         if os.path.islink(link_name):
@@ -85,10 +87,10 @@ class Downloadboob(object):
             return True
 
     def download(self, pattern=None, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None, title_exclude=[], id_regexp=None):
-        print "For backend %s, search for '%s'" % (backend_name, pattern)
+        print("For backend %s, search for '%s'" % (backend_name, pattern))
 
         # create directory for links
-        print "  create link to %s" % self.links_directory
+        print("  create link to %s" % self.links_directory)
         if not os.path.isdir(self.links_directory):
             os.makedirs(self.links_directory)
 
@@ -101,17 +103,17 @@ class Downloadboob(object):
             if not self.is_downloaded(video):
                 self.backend.fill_video(video, ('url','title', 'url', 'duration'))
                 if not(self.is_excluded(video.title, title_exclude)) and self.id_regexp_matched(video.id, id_regexp):
-                    print "  %s\n    Id:%s\n    Duration:%s" % (video.title, video.id, video.duration)
+                    print("  %s\n    Id:%s\n    Duration:%s" % (video.title, video.id, video.duration))
                     videos.append(video)
             else:
-                print "Already downloaded, check %s" % video.id
+                print("Already downloaded, check %s" % video.id)
                 self.backend.fill_video(video, ('url','title', 'url', 'duration'))
                 linkname = self.get_linkname(video)
                 if not os.path.exists(linkname):
                     self.remove_download(video)
 
         # download videos
-        print "Downloading..."
+        print("Downloading...")
         for video in videos:
             self.do_download(video)
 
@@ -164,7 +166,7 @@ class Downloadboob(object):
             # already empty
             return
 
-        print 'Remove video %s' % video.title
+        print('Remove video %s' % video.title)
 
         # Empty it to keep information we have already downloaded it.
         with open(path, 'w'):
@@ -175,23 +177,23 @@ class Downloadboob(object):
         idname = self.get_filename(video, relative=True)
         absolute_idname = self.get_filename(video, relative=False)
         if not os.path.islink(linkname) and os.path.isfile(absolute_idname):
-            print "%s -> %s" % (linkname, idname)
+            print("%s -> %s" % (linkname, idname))
             os.symlink(idname, linkname)
 
     def do_download(self, video):
         if not video:
-            print >>sys.stderr, 'Video not found: %s' %  video
+            print('Video not found: %s' %  video, file=sys.stderr)
             return 3
 
         if not video.url:
-            print >>sys.stderr, 'Error: the direct URL is not available.'
+            print('Error: the direct URL is not available.', file=sys.stderr)
             return 4
 
         def check_exec(executable):
             with open('/dev/null', 'w') as devnull:
                 process = subprocess.Popen(['which', executable], stdout=devnull)
                 if process.wait() != 0:
-                    print >>sys.stderr, 'Please install "%s"' % executable
+                    print('Please install "%s"' % executable, file=sys.stderr)
                     return False
             return True
 
@@ -220,14 +222,14 @@ config.read(['/etc/downloadboob.conf', os.path.expanduser('~/downloadboob.conf')
 try:
     links_directory=os.path.expanduser(config.get('main','directory', '.'))
 except ConfigParser.NoSectionError:
-    print "Please create a documentation file (see the README file and the downloadboob.conf example file)"
+    print("Please create a documentation file (see the README file and the downloadboob.conf example file)")
     sys.exit(2)
 
 links_directory=links_directory.decode('utf-8')
 
 download_directory=os.path.join(links_directory, DOWNLOAD_DIRECTORY)
 
-print "Downloading to %s" % (links_directory)
+print("Downloading to %s" % (links_directory))
 
 for section in config.sections():
     if section != "main":

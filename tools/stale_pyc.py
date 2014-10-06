@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 import os
 import sys
 
@@ -17,4 +19,4 @@ for dirpath, dirnames, filenames in os.walk(root):
             if not os.path.exists(os.path.join(dirpath, filename[:-1])):
                 os.unlink(os.path.join(dirpath, filename))
                 if verbose:
-                    print os.path.join(dirpath, filename)
+                    print(os.path.join(dirpath, filename))

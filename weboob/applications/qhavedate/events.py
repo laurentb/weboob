@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 from PyQt4.QtGui import QWidget, QTreeWidgetItem, QImage, QIcon, QPixmap
 from PyQt4.QtCore import SIGNAL, Qt
 
@@ -101,7 +103,7 @@ class EventsWidget(QWidget):
             if s == event.type:
                 found = True
         if not found:
-            print event.type
+            print(event.type)
             self.ui.typeBox.addItem(event.type.capitalize(), event.type)
             if event.type == self.event_filter:
                 self.ui.typeBox.setCurrentIndex(self.ui.typeBox.count()-1)

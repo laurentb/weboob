@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 from random import randint
 
@@ -93,7 +94,7 @@ class ProfilesWalker(Optimization):
                 self.profiles_queue.add(id)
                 return
             except Exception as e:
-                print e
+                print(e)
         finally:
             if self.view_cron is not None:
                 self.view_cron = self.sched.schedule(randint(5, 10), self.view_profile)

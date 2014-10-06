@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import sys
 from . import constants
 
@@ -52,7 +53,7 @@ class DisplayCollectionMenuAction(VideoobBaseAction):
         common_xbmc.end_of_directory(False)
 
     def add_videos(self, _video, backend):
-        print _video
+        print(_video)
         video = self.videoobmc.get_video(_video, backend)
         if video:
             MenuItemVideo(video).add_to_menu()

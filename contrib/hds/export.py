@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 try:
     import sqlite3 as sqlite
 except ImportError as e:
@@ -36,13 +38,13 @@ def main(filename):
     try:
         hds = weboob.build_backend('hds')
     except ModuleLoadError as e:
-        print >>sys.stderr, 'Unable to load "hds" module: %s' % e
+        print('Unable to load "hds" module: %s' % e, file=sys.stderr)
         return 1
 
     try:
         db = sqlite.connect(database=filename, timeout=10.0)
     except sqlite.OperationalError as err:
-        print >>sys.stderr, 'Unable to open %s database: %s' % (filename, err)
+        print('Unable to open %s database: %s' % (filename, err), file=sys.stderr)
         return 1
 
     sys.stdout.write('Reading database... ')
@@ -50,7 +52,7 @@ def main(filename):
     try:
         results = db.execute('SELECT id, author FROM stories')
     except sqlite.OperationalError as err:
-        print >>sys.stderr, 'fail!\nUnable to read database: %s' % err
+        print('fail!\nUnable to read database: %s' % err, file=sys.stderr)
         return 1
 
     stored = set()
@@ -104,33 +106,33 @@ def main(filename):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print >>sys.stderr, 'Syntax: %s [--help] SQLITE_FILENAME' % sys.argv[0]
+        print('Syntax: %s [--help] SQLITE_FILENAME' % sys.argv[0], file=sys.stderr)
         sys.exit(1)
 
     if sys.argv[1] in ('-h', '--help'):
-        print 'Syntax: %s SQLITE_FILENAME' % sys.argv[0]
-        print ''
-        print 'Before running this software, please create the database with'
-        print 'this command:'
-        print '  $ cat scheme.sql | sqlite3 hds.sql'
-        print ''
-        print 'You can then run export.py with:'
-        print '  $ %s hds.sql ' % sys.argv[0]
-        print ''
-        print 'It fill the database with stories and authors information'
-        print 'fetched from histoires-de-sexe.net'
-        print ''
-        print 'You can next use SQL queries to find interesting stories, for'
-        print 'example:'
-        print ''
-        print '- To get all stories written by women'
-        print '  sqlite> SELECT s.id, s.title, s.category, a.name'
-        print '                 FROM stories AS s LEFT JOIN authors AS a'
-        print '                 WHERE a.name = s.author AND a.sex = 2;'
-        print '- To get all stories where it talks about bukkake'
-        print '  sqlite> SELECT s.id, s.title, s.category, a.name'
-        print '                 FROM stories AS s LEFT JOIN authors AS a'
-        print '                 WHERE a.name = s.author AND s.body LIKE \'%bukkake%\';'
+        print('Syntax: %s SQLITE_FILENAME' % sys.argv[0])
+        print('')
+        print('Before running this software, please create the database with')
+        print('this command:')
+        print('  $ cat scheme.sql | sqlite3 hds.sql')
+        print('')
+        print('You can then run export.py with:')
+        print('  $ %s hds.sql ' % sys.argv[0])
+        print('')
+        print('It fill the database with stories and authors information')
+        print('fetched from histoires-de-sexe.net')
+        print('')
+        print('You can next use SQL queries to find interesting stories, for')
+        print('example:')
+        print('')
+        print('- To get all stories written by women')
+        print('  sqlite> SELECT s.id, s.title, s.category, a.name')
+        print('                 FROM stories AS s LEFT JOIN authors AS a')
+        print('                 WHERE a.name = s.author AND a.sex = 2;')
+        print('- To get all stories where it talks about bukkake')
+        print('  sqlite> SELECT s.id, s.title, s.category, a.name')
+        print('                 FROM stories AS s LEFT JOIN authors AS a')
+        print('                 WHERE a.name = s.author AND s.body LIKE \'%bukkake%\';')
         sys.exit(0)
 
     sys.exit(main(sys.argv[1]))

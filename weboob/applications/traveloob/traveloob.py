@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 import datetime
 
@@ -104,7 +105,7 @@ class Traveloob(ReplApplication):
         if arrival:
             arrival_id, backend_name2 = self.parse_id(arrival)
             if backend_name and backend_name2 and backend_name != backend_name2:
-                print >>self.stderr, 'Departure and arrival aren\'t on the same backend'
+                print('Departure and arrival aren\'t on the same backend', file=self.stderr)
                 return 1
         else:
             arrival_id = backend_name2 = None
@@ -120,8 +121,8 @@ class Traveloob(ReplApplication):
             try:
                 date = self.parse_datetime(date)
             except ValueError as e:
-                print >>self.stderr, 'Invalid datetime value: %s' % e
-                print >>self.stderr, 'Please enter a datetime in form "yyyy-mm-dd HH:MM" or "HH:MM".'
+                print('Invalid datetime value: %s' % e, file=self.stderr)
+                print('Please enter a datetime in form "yyyy-mm-dd HH:MM" or "HH:MM".', file=self.stderr)
                 return 1
 
         for backend, departure in self.do('iter_station_departures', station_id, arrival_id, date, backends=backends):
@@ -149,8 +150,8 @@ class Traveloob(ReplApplication):
             filters.departure_time = self.parse_datetime(self.options.departure_time)
             filters.arrival_time = self.parse_datetime(self.options.arrival_time)
         except ValueError as e:
-            print >>self.stderr, 'Invalid datetime value: %s' % e
-            print >>self.stderr, 'Please enter a datetime in form "yyyy-mm-dd HH:MM" or "HH:MM".'
+            print('Invalid datetime value: %s' % e, file=self.stderr)
+            print('Please enter a datetime in form "yyyy-mm-dd HH:MM" or "HH:MM".', file=self.stderr)
             return 1
 
         for backend, route in self.do('iter_roadmap', departure, arrival, filters):

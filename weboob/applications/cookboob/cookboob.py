@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from __future__ import print_function
 
 import codecs
 
@@ -99,7 +99,7 @@ class Cookboob(ReplApplication):
         """
         recipe = self.get_object(id, 'get_recipe')
         if not recipe:
-            print >>self.stderr, 'Recipe not found: %s' % id
+            print('Recipe not found: %s' % id, file=self.stderr)
             return 3
 
         self.start_format()
@@ -132,7 +132,7 @@ class Cookboob(ReplApplication):
         if recipe:
             xmlstring = recipe.toKrecipesXml(backend_name or None)
             if dest == '-':
-                print xmlstring
+                print(xmlstring)
             else:
                 if not dest.endswith('.kreml'):
                     dest += '.kreml'
@@ -140,10 +140,10 @@ class Cookboob(ReplApplication):
                     with codecs.open(dest, 'w', 'utf-8') as f:
                         f.write(xmlstring)
                 except IOError as e:
-                    print >>self.stderr, 'Unable to write .kreml in "%s": %s' % (dest, e)
+                    print('Unable to write .kreml in "%s": %s' % (dest, e), file=self.stderr)
                     return 1
             return
-        print >>self.stderr, 'Recipe "%s" not found' % id
+        print('Recipe "%s" not found' % id, file=self.stderr)
         return 3
 
     @defaultcount(10)

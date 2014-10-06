@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 import urllib
 import mechanize
@@ -85,7 +86,7 @@ class HelloBank(Browser):
 
         accounts = self.page.get_accounts()
         if len(accounts) == 0:
-            print 'no accounts'
+            print('no accounts')
             # oops, no accounts? check if we have not exhausted the allowed use
             # of this password
             for img in self.document.getroot().cssselect('img[align="middle"]'):

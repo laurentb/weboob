@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 from weboob.tools.browser import Page, BrowserIncorrectPassword
 import urllib2
@@ -121,4 +122,4 @@ class AuthenticationPage(Page):
 
     def print_cookies(self):
         for c in self.browser._ua_handlers["_cookies"].cookiejar:
-            print "%s : %s" % (c.name, c.value)
+            print("%s : %s" % (c.name, c.value))

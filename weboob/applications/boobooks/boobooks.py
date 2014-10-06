@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 from weboob.capabilities.library import CapBook, Book
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import PrettyFormatter
@@ -62,7 +64,7 @@ class Boobooks(ReplApplication):
 
         id, backend_name = self.parse_id(id)
         if not id:
-            print >>self.stderr, 'Error: please give a book ID (hint: use ls command)'
+            print('Error: please give a book ID (hint: use ls command)', file=self.stderr)
             return 2
         names = (backend_name,) if backend_name is not None else None
 

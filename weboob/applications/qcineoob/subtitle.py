@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 from PyQt4.QtCore import Qt, SIGNAL
 from PyQt4.QtGui import QFrame, QFileDialog
@@ -82,6 +83,6 @@ class Subtitle(QFrame):
                 with open(dest, 'w') as f:
                     f.write(data)
             except IOError as e:
-                print >>self.stderr, 'Unable to write subtitle file in "%s": %s' % (dest, e)
+                print('Unable to write subtitle file in "%s": %s' % (dest, e), file=self.stderr)
                 return 1
             return

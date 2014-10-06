@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import argparse
 import subprocess
 import datetime
@@ -50,11 +52,11 @@ def write(target, contents):
     if not os.path.isdir(os.path.dirname(target)):
         os.makedirs(os.path.dirname(target))
     if os.path.exists(target):
-        print >>sys.stderr, "%s already exists." % target
+        print("%s already exists." % target, file=sys.stderr)
         sys.exit(4)
     with codecs.open(target, mode='w', encoding='utf-8') as f:
         f.write(contents)
-    print 'Created %s' % target
+    print('Created %s' % target)
 
 
 class Recipe(object):
@@ -156,7 +158,7 @@ class CapRecipe(Recipe):
         self.error('Capability %r not found' % self.capname)
 
     def error(self, message):
-        print >>sys.stderr, message
+        print(message, file=sys.stderr)
         sys.exit(1)
 
     def methods_code(self, klass):

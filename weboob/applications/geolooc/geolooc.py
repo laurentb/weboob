@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from __future__ import print_function
 
 from weboob.capabilities.geolocip import CapGeolocIp
 from weboob.tools.application.repl import ReplApplication
@@ -36,7 +36,7 @@ class Geolooc(ReplApplication):
 
     def main(self, argv):
         if len(argv) < 2:
-            print >>self.stderr, 'Syntax: %s ipaddr' % argv[0]
+            print('Syntax: %s ipaddr' % argv[0], file=self.stderr)
             return 2
 
         for backend, location in self.do('get_location', argv[1]):

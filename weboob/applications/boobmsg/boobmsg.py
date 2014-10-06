@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 import os
 import datetime
@@ -288,14 +289,14 @@ class Boobmsg(ReplApplication):
                 results[backend.name] = [field]
 
         for name, fields in results.iteritems():
-            print ':: %s ::' % name
+            print(':: %s ::' % name)
             for f in fields:
                 if f.flags & f.FIELD_HTML:
                     value = html2text(f.value)
                 else:
                     value = f.value
-                print '%s: %s' % (f.label, value)
-            print ''
+                print('%s: %s' % (f.label, value))
+            print('')
 
     def do_post(self, line):
         """
@@ -347,7 +348,7 @@ class Boobmsg(ReplApplication):
                 self.bcall_errors_handler(errors)
             else:
                 if self.interactive:
-                    print 'Message sent sucessfully to %s' % receiver
+                    print('Message sent sucessfully to %s' % receiver)
 
     threads = []
     messages = []
@@ -430,7 +431,7 @@ class Boobmsg(ReplApplication):
         """
         message = None
         if len(arg) == 0:
-            print >>self.stderr, 'Please give a message ID.'
+            print('Please give a message ID.', file=self.stderr)
             return 2
 
         try:
@@ -447,7 +448,7 @@ class Boobmsg(ReplApplication):
             self.weboob.do('set_message_read', message, backends=message.backend)
             return
         else:
-            print >>self.stderr,  'Message not found'
+            print('Message not found', file=self.stderr)
             return 3
 
     def do_profile(self, id):
@@ -475,7 +476,7 @@ class Boobmsg(ReplApplication):
         """
         photo_cmd = self.config.get('photo_viewer')
         if photo_cmd is None:
-            print >>self.stderr, "Configuration error: photo_viewer is undefined"
+            print("Configuration error: photo_viewer is undefined", file=self.stderr)
             return
 
         _id, backend_name = self.parse_id(id, unique_backend=True)

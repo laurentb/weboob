@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 from decimal import Decimal
 
@@ -86,9 +87,9 @@ class Boobill(ReplApplication):
                         self.bcall_error_handler(backend, error, backtrace)
 
         if len(more_results) > 0:
-            print >>self.stderr, 'Hint: There are more results available for %s (use option -n or count command)' % (', '.join(more_results))
+            print('Hint: There are more results available for %s (use option -n or count command)' % (', '.join(more_results)), file=self.stderr)
         for backend in not_implemented:
-            print >>self.stderr, u'Error(%s): This feature is not supported yet by this backend.' % backend.name
+            print(u'Error(%s): This feature is not supported yet by this backend.' % backend.name, file=self.stderr)
 
     def do_subscriptions(self, line):
         """
@@ -183,7 +184,7 @@ class Boobill(ReplApplication):
         id, dest = self.parse_command_args(line, 2, 1)
         id, backend_name = self.parse_id(id)
         if not id:
-            print >>self.stderr, 'Error: please give a bill ID (hint: use bills command)'
+            print('Error: please give a bill ID (hint: use bills command)', file=self.stderr)
             return 2
 
         names = (backend_name,) if backend_name is not None else None
@@ -204,13 +205,13 @@ class Boobill(ReplApplication):
         for backend, buf in self.do('download_bill', id, backends=names):
             if buf:
                 if dest == "-":
-                    print buf
+                    print(buf)
                 else:
                     try:
                         with open(dest, 'w') as f:
                             f.write(buf)
                     except IOError as e:
-                        print >>self.stderr, 'Unable to write bill in "%s": %s' % (dest, e)
+                        print('Unable to write bill in "%s": %s' % (dest, e), file=self.stderr)
                         return 1
                 return
 
@@ -221,13 +222,13 @@ class Boobill(ReplApplication):
             for backend2, buf in self.do('download_bill', bill.id, backends=names):
                 if buf:
                     if dest == "-":
-                        print buf
+                        print(buf)
                     else:
                         try:
                             with open(dest, 'w') as f:
                                 f.write(buf)
                         except IOError as e:
-                            print >>self.stderr, 'Unable to write bill in "%s": %s' % (dest, e)
+                            print('Unable to write bill in "%s": %s' % (dest, e), file=self.stderr)
                             return 1
 
         return
