@@ -16,6 +16,9 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
+
+__all__ = ['OrderedDict']
 
 
 try:
@@ -27,7 +30,7 @@ except ImportError:
         try:
             from ordereddict import OrderedDict
         except ImportError:
-            ## {{{ http://code.activestate.com/recipes/576693/ (r6)
+            # {{{ http://code.activestate.com/recipes/576693/ (r6)
             from UserDict import DictMixin
 
             class OrderedDict(dict, DictMixin):
@@ -127,4 +130,4 @@ except ImportError:
 
                 def __ne__(self, other):
                     return not self == other
-            ## end of http://code.activestate.com/recipes/576693/ }}}
+            # end of http://code.activestate.com/recipes/576693/ }}}
