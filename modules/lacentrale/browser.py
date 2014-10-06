@@ -45,7 +45,7 @@ class LaCentraleBrowser(Browser):
         return self.page.iter_products(criteria)
 
     def _buildUrl(self, product, request, criteria):
-        if product._criteria.has_key(criteria):
+        if criteria in product._criteria:
             return '&' + request.format(product._criteria.get(criteria))
         return ''
 
