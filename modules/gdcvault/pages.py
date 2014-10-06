@@ -19,7 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 
 import urllib
 import re
@@ -28,7 +28,7 @@ from dateutil.parser import parse as parse_dt
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.image import BaseImage
-from weboob.tools.browser import BrokenPageError
+from weboob.deprecated.browser import BrokenPageError
 
 #HACK
 from urllib2 import HTTPError

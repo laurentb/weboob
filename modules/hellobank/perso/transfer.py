@@ -21,7 +21,7 @@
 
 import re
 
-from weboob.tools.browser import Page, BrowserPasswordExpired
+from weboob.deprecated.browser import Page, BrowserPasswordExpired
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.bank import TransferError
 

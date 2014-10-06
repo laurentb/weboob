@@ -20,7 +20,7 @@
 from datetime import datetime
 import re
 
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.capabilities.collection import Collection
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.image import BaseImage

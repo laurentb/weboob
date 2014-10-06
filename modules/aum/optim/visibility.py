@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BrowserUnavailable
+from weboob.deprecated.browser import BrowserUnavailable
 from weboob.capabilities.dating import Optimization
 
 

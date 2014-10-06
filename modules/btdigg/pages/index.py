@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 
 
 class IndexPage(Page):

@@ -26,6 +26,7 @@ except ImportError:
     from urlparse import urlparse, urljoin
 import os
 import sys
+from copy import deepcopy
 
 try:
     import requests
@@ -35,85 +36,14 @@ except ImportError:
     raise ImportError('Please install python-requests >= 2.0')
 
 from weboob.tools.log import getLogger
+from weboob.tools.ordereddict import OrderedDict
 
 from .cookies import WeboobCookieJar
 from .exceptions import HTTPNotFound, ClientError, ServerError
 from .sessions import FuturesSession
-
-
-class Profile(object):
-    """
-    A profile represents the way Browser should act.
-    Usually it is to mimic a real browser.
-    """
-
-    def setup_session(self, session):
-        """
-        Change default headers, set up hooks, etc.
-
-        Warning: Do not enable lzma, bzip or bzip2, sdch encodings
-        as python-requests does not support it yet.
-        Supported as of 2.2: gzip, deflate, compress.
-        In doubt, do not change the default Accept-Encoding header
-        of python-requests.
-        """
-        raise NotImplementedError()
-
-
-class Weboob(Profile):
-    """
-    It's us!
-    Recommended for Weboob-friendly websites only.
-    """
-
-    def __init__(self, version):
-        self.version = version
-
-    def setup_session(self, session):
-        session.headers['User-Agent'] = 'weboob/%s' % self.version
-
-
-class Firefox(Profile):
-    """
-    Try to mimic a specific version of Firefox.
-    Ideally, it should follow the current ESR Firefox:
-    https://www.mozilla.org/en-US/firefox/organizations/all.html
-    Do not change the Firefox version without checking the Gecko one!
-    """
-
-    def setup_session(self, session):
-        """
-        Set up headers for a standard Firefox request
-        (except for DNT which isn't on by default but is a good idea).
-
-        The goal is to be unidentifiable.
-        """
-        # Replace all base requests headers
-        # https://developer.mozilla.org/en/Gecko_user_agent_string_reference
-        # https://bugzilla.mozilla.org/show_bug.cgi?id=572650
-        session.headers = {
-            'Accept-Language': 'en-us,en;q=0.5',
-            'Accept-Encoding': 'gzip, deflate',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0',
-            'DNT': '1'}
-
-
-class Wget(Profile):
-    """
-    Common alternative user agent.
-    Some websites will give you a version with less JavaScript.
-    Some others could ban you (after all, wget is not a real browser).
-    """
-    def __init__(self, version='1.11.4'):
-        self.version = version
-
-    def setup_session(self, session):
-        # Don't remove base headers, if websites want to block fake browsers,
-        # they will probably block any wget user agent anyway.
-        session.headers.update({
-            'Accept': '*/*',
-            'User-Agent': 'Wget/%s' % self.version})
+from .profiles import Firefox
+from .pages import NextPage
+from .url import URL
 
 
 class Browser(object):
@@ -579,3 +509,183 @@ class DomainBrowser(Browser):
         Go to the "home" page, usually the BASEURL.
         """
         return self.location(self.BASEURL or self.absurl('/'))
+
+
+class _PagesBrowserMeta(type):
+    """
+    Private meta-class used to keep order of URLs instances of PagesBrowser.
+    """
+    def __new__(mcs, name, bases, attrs):
+        urls = [(url_name, attrs.pop(url_name)) for url_name, obj in attrs.items() if isinstance(obj, URL)]
+        urls.sort(key=lambda x: x[1]._creation_counter)
+
+        new_class = super(_PagesBrowserMeta, mcs).__new__(mcs, name, bases, attrs)
+        if new_class._urls is None:
+            new_class._urls = OrderedDict()
+        else:
+            new_class._urls = deepcopy(new_class._urls)
+        new_class._urls.update(urls)
+        return new_class
+
+class PagesBrowser(DomainBrowser):
+    r"""
+    A browser which works pages and keep state of navigation.
+
+    To use it, you have to derive it and to create URL objects as class
+    attributes. When open() or location() are called, if the url matches
+    one of URL objects, it returns a Page object. In case of location(), it
+    stores it in self.page.
+
+    Example:
+
+    >>> class HomePage(Page):
+    ...     pass
+    ...
+    >>> class ListPage(Page):
+    ...     pass
+    ...
+    >>> class MyBrowser(PagesBrowser):
+    ...     BASEURL = 'http://example.org'
+    ...     home = URL('/(index\.html)?', HomePage)
+    ...     list = URL('/list\.html', ListPage)
+    ...
+
+    You can then use URL instances to go on pages.
+    """
+
+
+    _urls = None
+    __metaclass__ = _PagesBrowserMeta
+
+    def __getattr__(self, name):
+        if self._urls is not None and name in self._urls:
+            return self._urls[name]
+        else:
+            raise AttributeError("'%s' object has no attribute '%s'" % (
+                self.__class__.__name__, name))
+
+    def __init__(self, *args, **kwargs):
+        super(PagesBrowser, self).__init__(*args, **kwargs)
+
+        self.page = None
+        self._urls = deepcopy(self._urls)
+        for url in self._urls.itervalues():
+            url.browser = self
+
+    def open(self, *args, **kwargs):
+        """
+        Same method than
+        :meth:`weboob.browser.browsers.DomainBrowser.open`, but the
+        response contains an attribute `page` if the url matches any
+        :class:`URL` object.
+        """
+
+        callback = kwargs.pop('callback', lambda response: response)
+
+        # Have to define a callback to seamlessly process synchronous and
+        # asynchronous requests, see :meth:`Browser.open` and its `async`
+        # and `callback` params.
+        def internal_callback(response):
+            # Try to handle the response page with an URL instance.
+            response.page = None
+            for url in self._urls.itervalues():
+                page = url.handle(response)
+                if page is not None:
+                    self.logger.debug('Handle %s with %s' % (response.url, page.__class__.__name__))
+                    response.page = page
+                    break
+
+            if response.page is None:
+                self.logger.debug('Unable to handle %s' % response.url)
+
+            return callback(response)
+
+        return super(PagesBrowser, self).open(callback=internal_callback, *args, **kwargs)
+
+    def location(self, *args, **kwargs):
+        """
+        Same method than
+        :meth:`weboob.browser.browsers.Browser.location`, but if the
+        url matches any :class:`URL` object, an attribute `page` is added to
+        response, and the attribute :attr:`PagesBrowser.page` is set.
+        """
+        if self.page is not None:
+            # Call leave hook.
+            self.page.on_leave()
+
+        response = self.open(*args, **kwargs)
+
+        self.response = response
+        self.page = response.page
+        self.url = response.url
+
+        if self.page is not None:
+            # Call load hook.
+            self.page.on_load()
+
+        # Returns self.response in case on_load recalls location()
+        return self.response
+
+    def pagination(self, func, *args, **kwargs):
+        r"""
+        This helper function can be used to handle pagination pages easily.
+
+        When the called function raises an exception :class:`NextPage`, it goes
+        on the wanted page and recall the function.
+
+        :class:`NextPage` constructor can take an url or a Request object.
+
+        >>> class Page(HTMLPage):
+        ...     def iter_values(self):
+        ...         for el in self.doc.xpath('//li'):
+        ...             yield el.text
+        ...         for next in self.doc.xpath('//a'):
+        ...             raise NextPage(next.attrib['href'])
+        ...
+        >>> class Browser(PagesBrowser):
+        ...     BASEURL = 'http://people.symlink.me'
+        ...     list = URL('/~rom1/projects/weboob/list-(?P<pagenum>\d+).html', Page)
+        ...
+        >>> b = Browser()
+        >>> b.list.go(pagenum=1)
+        >>> list(b.pagination(lambda: b.page.iter_values()))
+        ['One', 'Two', 'Three', 'Four']
+        """
+        while True:
+            try:
+                for r in func(*args, **kwargs):
+                    yield r
+            except NextPage as e:
+                self.location(e.request)
+            else:
+                return
+
+
+def need_login(func):
+    """
+    Decorator used to require to be logged to access to this function.
+    """
+    def inner(browser, *args, **kwargs):
+        if browser.page is None or not browser.page.logged:
+            browser.do_login()
+        return func(browser, *args, **kwargs)
+
+    return inner
+
+
+class LoginBrowser(PagesBrowser):
+    """
+    A browser which supports login.
+    """
+    def __init__(self, username, password, *args, **kwargs):
+        super(LoginBrowser, self).__init__(*args, **kwargs)
+        self.username = username
+        self.password = password
+
+    def do_login(self):
+        """
+        Abstract method to implement to login on website.
+
+        It is call when a login is needed.
+        """
+        raise NotImplementedError()

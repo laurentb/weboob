@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 # Inspired by: https://github.com/ross/requests-futures/blob/master/requests_futures/sessions.py
-# XXX Licence issues ?
+# XXX Licence issues?
 
 try:
     from concurrent.futures import ThreadPoolExecutor
@@ -58,7 +58,6 @@ def merge_hooks(request_hooks, session_hooks, dict_class=OrderedDict):
 
 
 class WeboobSession(Session):
-
     def prepare_request(self, request):
         """Constructs a :class:`PreparedRequest <PreparedRequest>` for
         transmission and returns it. The :class:`PreparedRequest` has settings
@@ -99,8 +98,8 @@ class WeboobSession(Session):
         )
         return p
 
-class FuturesSession(WeboobSession):
 
+class FuturesSession(WeboobSession):
     def __init__(self, executor=None, max_workers=2, *args, **kwargs):
         """Creates a FuturesSession
 

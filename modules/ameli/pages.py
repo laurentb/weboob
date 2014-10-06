@@ -22,7 +22,7 @@ from datetime import datetime
 import re
 import urllib
 from decimal import Decimal
-from weboob.tools.browser import Page, BrokenPageError
+from weboob.deprecated.browser import Page, BrokenPageError
 from weboob.capabilities.bill import Subscription, Detail, Bill
 
 

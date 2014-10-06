@@ -22,9 +22,9 @@ import re
 from decimal import Decimal
 from datetime import time, datetime, timedelta
 
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.tools.json import json
-from weboob.tools.mech import ClientForm
+from weboob.deprecated.mech import ClientForm
 from weboob.capabilities.base import UserError, Currency
 
 

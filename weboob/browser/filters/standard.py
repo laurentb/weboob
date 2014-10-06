@@ -28,8 +28,8 @@ from dateutil.parser import parse as parse_date
 
 from weboob.capabilities.base import empty
 from weboob.tools.compat import basestring
-from weboob.core.exceptions import ParseError
-from weboob.browser2 import URL
+from weboob.exceptions import ParseError
+from weboob.browser.url import URL
 from weboob.tools.log import getLogger
 
 class NoDefault(object):
@@ -251,7 +251,7 @@ class TableCell(_Filter):
     For example:
 
     >>> from weboob.capabilities.bank import Transaction
-    >>> from weboob.browser2.elements import TableElement, ItemElement
+    >>> from weboob.browser.elements import TableElement, ItemElement
     >>> class table(TableElement):
     ...     head_xpath = '//table/thead/th'
     ...     item_xpath = '//table/tbody/tr'

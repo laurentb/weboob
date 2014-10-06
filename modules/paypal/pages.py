@@ -23,8 +23,8 @@ import datetime
 
 import dateutil.parser
 
-from weboob.tools.browser import Page, BrokenPageError
-from weboob.tools.parsers.csvparser import CsvParser
+from weboob.deprecated.browser import Page, BrokenPageError
+from weboob.deprecated.browser.parsers.csvparser import CsvParser
 from weboob.tools.misc import to_unicode
 from weboob.tools.date import parse_french_date
 from weboob.capabilities.bank import Account, Transaction

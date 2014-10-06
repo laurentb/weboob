@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.browser2.page import HTMLPage, method
-from weboob.browser2.elements import ListElement, ItemElement
-from weboob.browser2.filters.standard import CleanText, DateTime, CleanDecimal, Regexp
-from weboob.browser2.filters.html import Link, XPath
+from weboob.browser.pages import HTMLPage
+from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.filters.standard import CleanText, DateTime, CleanDecimal, Regexp
+from weboob.browser.filters.html import Link, XPath
 from weboob.capabilities.gauge import Gauge, GaugeMeasure, GaugeSensor
 from datetime import timedelta
 import re

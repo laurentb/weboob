@@ -24,7 +24,7 @@ from datetime import datetime
 import re
 
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import Page, BrokenPageError
+from weboob.deprecated.browser import Page, BrokenPageError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.misc import to_unicode

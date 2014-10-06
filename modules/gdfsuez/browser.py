@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import StringIO
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from .pages import LoginPage, HomePage, AccountPage, TimeoutPage, HistoryPage, PdfPage
 
 __all__ = ['GdfSuez']

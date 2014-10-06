@@ -21,7 +21,7 @@
 from decimal import Decimal
 
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import Page, BrowserPasswordExpired
+from weboob.deprecated.browser import Page, BrowserPasswordExpired
 from weboob.tools.json import json
 
 

@@ -20,9 +20,9 @@
 
 import re
 
-from weboob.browser2.page import method, HTMLPage
-from weboob.browser2.elements import ItemElement
-from weboob.browser2.filters.standard import CleanText, Env, Duration
+from weboob.browser.pages import HTMLPage
+from weboob.browser.elements import ItemElement, method
+from weboob.browser.filters.standard import CleanText, Env, Duration
 from weboob.capabilities.video import BaseVideo
 from weboob.tools.misc import to_unicode
 

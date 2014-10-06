@@ -22,7 +22,7 @@ import re
 from dateutil.parser import parse as parse_date
 
 from weboob.capabilities.parcel import Parcel, Event
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 
 
 class TrackPage(Page):

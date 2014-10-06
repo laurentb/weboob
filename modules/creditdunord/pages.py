@@ -23,7 +23,7 @@ from decimal import Decimal
 import re
 from cStringIO import StringIO
 
-from weboob.tools.browser import Page, BrokenPageError
+from weboob.deprecated.browser import Page, BrokenPageError
 from weboob.tools.json import json
 from weboob.capabilities.bank import Account
 from weboob.capabilities import NotAvailable

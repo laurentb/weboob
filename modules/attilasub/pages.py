@@ -20,7 +20,7 @@
 
 from weboob.capabilities.subtitle import Subtitle
 from weboob.capabilities.base import NotAvailable
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 
 
 class SearchPage(Page):

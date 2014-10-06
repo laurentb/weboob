@@ -24,7 +24,7 @@ import re
 import lxml.html
 
 from weboob.capabilities.bugtracker import IssueError
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 from .pages.index import LoginPage, IndexPage, MyPage, ProjectsPage
 from .pages.wiki import WikiPage, WikiEditPage

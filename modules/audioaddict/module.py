@@ -24,7 +24,7 @@ from weboob.tools.capabilities.streaminfo import StreamInfo
 from weboob.capabilities.collection import CapCollection, Collection
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value
-from weboob.tools.browser import StandardBrowser
+from weboob.deprecated.browser import StandardBrowser
 import time
 
 __all__ = ['AudioAddictModule']

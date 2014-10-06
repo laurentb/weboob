@@ -24,7 +24,7 @@ import re
 from time import sleep
 
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import Page, BrowserIncorrectPassword
+from weboob.deprecated.browser import Page, BrowserIncorrectPassword
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.json import json

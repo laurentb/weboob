@@ -19,10 +19,10 @@
 
 from datetime import timedelta, datetime
 import re
-from weboob.browser2.page import HTMLPage, method, pagination
-from weboob.browser2.elements import ListElement, ItemElement
-from weboob.browser2.filters.standard import Filter, CleanText, Regexp, Format, Env
-from weboob.browser2.filters.html import CleanHTML, Attr
+from weboob.browser.pages import HTMLPage, pagination
+from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.filters.standard import Filter, CleanText, Regexp, Format, Env
+from weboob.browser.filters.html import CleanHTML, Attr
 from weboob.capabilities.job import BaseJobAdvert
 
 

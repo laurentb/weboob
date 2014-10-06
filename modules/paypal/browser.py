@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from .pages import LoginPage, AccountPage, DownloadHistoryPage, LastDownloadHistoryPage, SubmitPage, HistoryParser, UselessPage, HistoryPage, CSVAlreadyAsked
 import datetime
 

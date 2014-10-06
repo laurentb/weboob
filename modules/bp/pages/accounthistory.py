@@ -22,7 +22,7 @@ import datetime
 import re
 
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 
 
 class Transaction(FrenchTransaction):

@@ -27,7 +27,7 @@ import mechanize
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.image import BaseImage
 from weboob.tools.html import html2text
-from weboob.tools.browser import Page, BrokenPageError
+from weboob.deprecated.browser import Page, BrokenPageError
 
 
 from .video import DailymotionVideo

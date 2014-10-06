@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.browser2.page import HTMLPage, method
-from weboob.browser2.elements import ItemElement, TableElement
-from weboob.browser2.filters.standard import Filter, CleanText, Format, Env, DateTime, TableCell, Join
-from weboob.browser2.filters.html import Link, CleanHTML
+from weboob.browser.pages import HTMLPage
+from weboob.browser.elements import ItemElement, TableElement, method
+from weboob.browser.filters.standard import Filter, CleanText, Format, Env, DateTime, TableCell, Join
+from weboob.browser.filters.html import Link, CleanHTML
 
 from weboob.capabilities.job import BaseJobAdvert
 

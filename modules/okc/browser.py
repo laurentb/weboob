@@ -19,7 +19,7 @@
 
 import urllib
 
-from weboob.tools.browser import Browser, Page
+from weboob.deprecated.browser import Browser, Page
 from weboob.tools.ordereddict import OrderedDict
 
 from .pages import LoginPage, ThreadPage, MessagesPage, PostMessagePage, ProfilePage, PhotosPage, VisitsPage, QuickMatchPage, SentPage

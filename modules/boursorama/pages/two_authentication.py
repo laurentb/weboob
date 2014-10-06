@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import Page, BrowserIncorrectPassword
+from weboob.deprecated.browser import Page, BrowserIncorrectPassword
 import urllib2
 import re
 

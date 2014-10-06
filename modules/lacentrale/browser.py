@@ -20,7 +20,7 @@
 
 import re
 
-from weboob.tools.browser import Browser
+from weboob.deprecated.browser import Browser
 
 from .pages import MainPage, ListingAutoPage, AnnoncePage
 

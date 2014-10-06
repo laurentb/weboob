@@ -20,7 +20,7 @@
 
 from urlparse import urlsplit, parse_qsl
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, AccountsPage, TransactionsPage
 

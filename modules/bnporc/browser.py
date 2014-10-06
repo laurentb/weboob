@@ -22,7 +22,7 @@ import urllib
 from datetime import datetime
 from logging import warning
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword, BrowserPasswordExpired
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserPasswordExpired
 from weboob.capabilities.bank import TransferError, Transfer
 
 from .perso.accounts_list import AccountsList, AccountPrelevement

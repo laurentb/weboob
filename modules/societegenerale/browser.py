@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable
 
 from .pages.accounts_list import AccountsList, AccountHistory, CardsList
 from .pages.login import LoginPage, BadLoginPage

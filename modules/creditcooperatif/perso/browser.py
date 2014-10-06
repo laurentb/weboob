@@ -19,7 +19,7 @@
 
 import urllib
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, LoggedPage, AccountsPage, TransactionsPage, TransactionsJSONPage, ComingTransactionsPage
 

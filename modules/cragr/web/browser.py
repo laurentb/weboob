@@ -21,7 +21,7 @@
 import urllib
 import re
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.tools.date import LinearDateGuesser
 
 from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, \

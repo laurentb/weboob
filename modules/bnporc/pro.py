@@ -24,7 +24,7 @@ from decimal import Decimal, InvalidOperation
 
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 
 from .perso.transactions import Transaction
 

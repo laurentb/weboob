@@ -24,10 +24,10 @@ import re
 
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
-from weboob.browser2.page import HTMLPage, LoggedPage, method
-from weboob.browser2.elements import ListElement, ItemElement
-from weboob.browser2.filters.standard import CleanText, CleanDecimal, Filter, Field, MultiFilter, Date, Lower
-from weboob.browser2.filters.html import Attr
+from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Filter, Field, MultiFilter, Date, Lower
+from weboob.browser.filters.html import Attr
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 

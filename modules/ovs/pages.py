@@ -22,7 +22,7 @@ import datetime
 import re
 import urllib
 from urlparse import urlsplit
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.capabilities.messages import Message, Thread
 from weboob.capabilities.contact import Contact, ProfileNode
 from weboob.tools.date import parse_french_date

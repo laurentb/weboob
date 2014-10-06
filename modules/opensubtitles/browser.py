@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import Browser, BrowserHTTPNotFound
+from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 
 from .pages import SubtitlesPage, SearchPage, SubtitlePage

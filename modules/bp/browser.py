@@ -21,7 +21,7 @@
 from urlparse import urlsplit, parse_qsl
 from datetime import datetime
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword, BrowserBanned
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserBanned
 
 from .pages import LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate, \
                    AccountList, AccountHistory, CardsList, UnavailablePage, \

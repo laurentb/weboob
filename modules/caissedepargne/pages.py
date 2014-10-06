@@ -18,15 +18,15 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.mech import ClientForm
+from weboob.deprecated.mech import ClientForm
 ControlNotFoundError = ClientForm.ControlNotFoundError
 
 from decimal import Decimal
 import re
 
-from weboob.tools.mech import ClientForm
+from weboob.deprecated.mech import ClientForm
 from weboob.tools.ordereddict import OrderedDict
-from weboob.tools.browser import Page, BrokenPageError, BrowserUnavailable, BrowserIncorrectPassword
+from weboob.deprecated.browser import Page, BrokenPageError, BrowserUnavailable, BrowserIncorrectPassword
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction

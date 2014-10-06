@@ -20,7 +20,7 @@
 from decimal import Decimal
 
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 from ..pages import Transaction

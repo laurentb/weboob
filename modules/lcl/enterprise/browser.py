@@ -19,7 +19,7 @@
 
 from urllib import urlencode
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 from .pages import HomePage, MessagesPage, LogoutPage, LogoutOkPage, \
     AlreadyConnectedPage, ExpiredPage, MovementsPage, RootPage

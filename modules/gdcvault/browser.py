@@ -20,9 +20,9 @@
 
 import urllib
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable,\
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable,\
         BrowserBanned
-from weboob.tools.browser.decorators import id2url
+from weboob.deprecated.browser.decorators import id2url
 
 #from .pages.index import IndexPage
 from .pages import VideoPage, IndexPage, SearchPage

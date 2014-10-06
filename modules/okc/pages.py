@@ -20,7 +20,7 @@
 import re
 from datetime import datetime
 
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.contact import ProfileNode
 from weboob.tools.html import html2text

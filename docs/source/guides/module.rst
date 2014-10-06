@@ -65,7 +65,7 @@ In a module directory, there are commonly these files:
 
 * **__init__.py** - needed in every python modules, it exports your :class:`Module <weboob.tools.backend.Module>` class.
 * **module.py** - defines the main class of your module, which derives :class:`Module <weboob.tools.backend.Module>`.
-* **browser.py** - your browser, derived from :class:`Browser <weboob.browser2.browser.Browser>`, is called by your module to interact with the supported website.
+* **browser.py** - your browser, derived from :class:`Browser <weboob.browser.browsers.Browser>`, is called by your module to interact with the supported website.
 * **pages.py** - all website's pages handled by the browser are defined here
 * **test.py** - functional tests
 * **favicon.png** - a 64x64 transparent PNG icon
@@ -179,14 +179,14 @@ what are expected returned objects, and what exceptions it may raises.
 Browser
 *******
 
-Most of modules use a class derived from :class:`PagesBrowser <weboob.browser2.page.PagesBrowser>` or
-:class:`LoginBrowser <weboob.browser2.page.LoginBrowser>` (for authenticated websites) to interact with a website.
+Most of modules use a class derived from :class:`PagesBrowser <weboob.browser.browsers.PagesBrowser>` or
+:class:`LoginBrowser <weboob.browser.browsers.LoginBrowser>` (for authenticated websites) to interact with a website.
 
 Edit ``browser.py``::
 
     # -*- coding: utf-8 -*-
 
-    from weboob.browser2 import PagesBrowser
+    from weboob.browser import PagesBrowser
 
     __all__ = ['ExampleBrowser']
 
@@ -195,7 +195,7 @@ Edit ``browser.py``::
 
 There are several possible class attributes:
 
-* **BASEURL** - base url of website used for absolute paths given to :class:`open() <weboob.browser2.page.PagesBrowser.open>` or :class:`location() <weboob.browser2.page.PagesBrowser.location>`
+* **BASEURL** - base url of website used for absolute paths given to :class:`open() <weboob.browser.browsers.PagesBrowser.open>` or :class:`location() <weboob.browser.browsers.PagesBrowser.location>`
 * **PROFILE** - defines the behavior of your browser against the website. By default this is Firefox, but you can import other profiles
 * **TIMEOUT** - defines the timeout for requests (defaults to 10 seconds)
 * **VERIFY** - SSL verification (if the protocol used is **https**)
@@ -205,15 +205,16 @@ Pages
 
 For each page you want to handle, you have to create an associated class derived from one of these classes:
 
-* :class:`HTMLPage <weboob.browser2.page.HTMLPage>` - a HTML page
-* :class:`XMLPage <weboob.browser2.page.XMLPage>` - a XML document
-* :class:`JsonPage <weboob.browser2.page.JsonPage>` - a Json object
+* :class:`HTMLPage <weboob.browser.pages.HTMLPage>` - a HTML page
+* :class:`XMLPage <weboob.browser.pages.XMLPage>` - a XML document
+* :class:`JsonPage <weboob.browser.pages.JsonPage>` - a Json object
+* :class:`CsvPage <weboob.browser.pages.CsvPage>` - a CSV table
 
 In the file ``pages.py``, you can write, for example::
 
     # -*- coding: utf-8 -*-
 
-    from weboob.browser2.page import HTMLPage
+    from weboob.browser.pages import HTMLPage
 
     __all__ = ['IndexPage', 'ListPage']
 
@@ -227,9 +228,9 @@ In the file ``pages.py``, you can write, for example::
 ``IndexPage`` is the class we will use to get information from the home page of the website, and ``ListPage`` will handle pages
 which list accounts.
 
-Then, you have to declare them in your browser, with the :class:`URL <weboob.browser2.page.URL>` object::
+Then, you have to declare them in your browser, with the :class:`URL <weboob.browser.url.URL>` object::
 
-    from weboob.browser2.page import PagesBrowser, URL
+    from weboob.browser import PagesBrowser, URL
     from .pages import IndexPage, ListPage
 
     # ...
@@ -257,9 +258,9 @@ For example, we can now implement some methods in ``ExampleBrowser``::
 
             return self.page.iter_accounts()
 
-When calling the :func:`go() <weboob.browser2.page.URL.go>` method, it reads the first regexp url of our :class:`URL <weboob.browser2.page.URL>` object, and go on the page.
+When calling the :func:`go() <weboob.browser.url.URL.go>` method, it reads the first regexp url of our :class:`URL <weboob.browser.url.URL>` object, and go on the page.
 
-:func:`stay_or_go() <weboob.browser2.page.URL.stay_or_go>` is used when you want to relocate on the page only if we aren't already on it.
+:func:`stay_or_go() <weboob.browser.url.URL.stay_or_go>` is used when you want to relocate on the page only if we aren't already on it.
 
 Once we are on the ``ListPage``, we can call every methods of the ``page`` object.
 
@@ -295,8 +296,8 @@ the method :func:`create_default_browser <weboob.tools.backend.Module.create_def
         def create_default_browser(self):
             return self.create_browser(self.config['username'].get(), self.config['password'].get())
 
-On the browser side, you need to inherit from :func:`LoginBrowser <weboob.browser2.page.LoginBrowser>` and to implement the function
-:func:`do_login <weboob.browser2.page.LoginBrowser.do_login>`::
+On the browser side, you need to inherit from :func:`LoginBrowser <weboob.browser.browsers.LoginBrowser>` and to implement the function
+:func:`do_login <weboob.browser.browsers.LoginBrowser.do_login>`::
 
     class ExampleBrowser(LoginBrowser):
         login = URL('/login', LoginPage)
@@ -319,7 +320,7 @@ Also, your ``LoginPage`` may look like::
             form['password'] = password
             form.submit()
 
-Then, each method on your browser which need your user to be authenticated may be decorated by :func:`need_login <weboob.browser2.page.need_login>`::
+Then, each method on your browser which need your user to be authenticated may be decorated by :func:`need_login <weboob.browser.browsers.need_login>`::
 
     class ExampleBrowser(LoginBrowser):
         accounts = URL('/accounts$', ListPage)
@@ -329,9 +330,9 @@ Then, each method on your browser which need your user to be authenticated may b
             self.accounts.stay_or_go()
             return self.page.get_accounts()
 
-The last thing to know is that :func:`need_login <weboob.browser2.page.need_login>` checks if the current page is a logged one by
-reading the attribute :func:`logged <weboob.browser2.page.Page.logged>` of the instance. You can either define it yourself, as a
-class boolean attribute or as a property, or to inherit your class from :class:`LoggedPage <weboob.browser2.page.LoggedPage>`.
+The last thing to know is that :func:`need_login <weboob.browser.browsers.need_login>` checks if the current page is a logged one by
+reading the attribute :func:`logged <weboob.browser.pages.Page.logged>` of the instance. You can either define it yourself, as a
+class boolean attribute or as a property, or to inherit your class from :class:`LoggedPage <weboob.browser.pages.LoggedPage>`.
 
 
 Parsing of pages
@@ -342,7 +343,7 @@ Parsing of pages
 
 
 When your browser locates on a page, an instance of the class related to the
-:class:`URL <weboob.browser2.page.URL>` attribute which matches the url
+:class:`URL <weboob.browser.url.URL>` attribute which matches the url
 is created. You can declare methods on your class to allow your browser to
 interact with it.
 

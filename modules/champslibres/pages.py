@@ -19,8 +19,8 @@
 
 from datetime import date
 from weboob.capabilities.library import Book, Renew
-from weboob.tools.browser import Page
-from weboob.tools.mech import ClientForm
+from weboob.deprecated.browser import Page
+from weboob.deprecated.mech import ClientForm
 from weboob.tools.html import html2text
 
 

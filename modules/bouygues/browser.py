@@ -21,7 +21,7 @@
 from .pages.compose import ComposeFrame, ComposePage, ConfirmPage, SentPage
 from .pages.login import LoginPage, LoginSASPage
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 
 __all__ = ['BouyguesBrowser']

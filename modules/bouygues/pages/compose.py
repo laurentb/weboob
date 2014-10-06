@@ -21,7 +21,7 @@
 import re
 
 from weboob.capabilities.messages import CantSendMessage
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 
 
 class ComposeFrame(Page):

@@ -19,9 +19,9 @@
 
 from StringIO import StringIO
 
-from weboob.core.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard
-from weboob.browser2.page import HTMLPage
+from weboob.browser.pages import HTMLPage
 
 
 class INGVirtKeyboard(VirtKeyboard):

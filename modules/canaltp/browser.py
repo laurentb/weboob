@@ -20,9 +20,9 @@
 
 from datetime import datetime, date, time
 
-from weboob.tools.browser import Browser
+from weboob.deprecated.browser import Browser
 from weboob.tools.misc import to_unicode
-from weboob.tools.browser import BrokenPageError
+from weboob.deprecated.browser import BrokenPageError
 
 
 __all__ = ['CanalTP']

@@ -21,7 +21,7 @@
 import re
 import urllib
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, AccountsPage, ProAccountsPage, TransactionsPage, ProTransactionsPage
 

@@ -22,7 +22,7 @@
 from urlparse import urlparse
 import re
 
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 

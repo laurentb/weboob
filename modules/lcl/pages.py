@@ -26,7 +26,7 @@ import random
 
 
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import Page, BrowserUnavailable
+from weboob.deprecated.browser import Page, BrowserUnavailable
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 

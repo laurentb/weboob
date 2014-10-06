@@ -19,7 +19,7 @@
 
 from datetime import date
 
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.capabilities.bill import Subscription
 
 

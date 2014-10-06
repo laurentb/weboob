@@ -23,7 +23,7 @@ from copy import deepcopy
 
 from weboob.tools.log import getLogger
 from weboob.tools.ordereddict import OrderedDict
-from weboob.browser2.page import NextPage
+from weboob.browser.pages import NextPage
 
 from .filters.standard import _Filter, CleanText
 from .filters.html import AttributeNotFound, XPathNotFound
@@ -36,6 +36,16 @@ class DataError(Exception):
     """
     Returned data from pages are incoherent.
     """
+
+
+def method(klass):
+    """
+    Class-decorator to call it as a method.
+    """
+    def inner(self, *args, **kwargs):
+        return klass(self)(*args, **kwargs)
+    return inner
+
 
 
 class AbstractElement(object):
@@ -290,3 +300,5 @@ class TableElement(ListElement):
 
     def get_colnum(self, name):
         return self._cols.get(name, None)
+
+

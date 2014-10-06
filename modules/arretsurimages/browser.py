@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
-from weboob.tools.browser.decorators import id2url
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser.decorators import id2url
 
 from .pages import VideoPage, IndexPage, LoginPage, LoginRedirectPage
 from .video import ArretSurImagesVideo

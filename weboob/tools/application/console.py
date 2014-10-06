@@ -32,7 +32,7 @@ from weboob.capabilities.account import CapAccount, Account, AccountRegisterErro
 from weboob.core.backendscfg import BackendAlreadyExists
 from weboob.core.modules import ModuleLoadError
 from weboob.core.repositories import ModuleInstallError
-from weboob.core.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden, BrowserSSLError
+from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden, BrowserSSLError
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt, ValueBackendPassword
 from weboob.tools.misc import to_unicode
 from weboob.tools.ordereddict import OrderedDict

@@ -24,11 +24,11 @@ import lxml.html as html
 from datetime import datetime
 from decimal import Decimal
 
-from weboob.browser2.page import HTMLPage, method, LoggedPage
-from weboob.browser2.elements import ItemElement, ListElement
-from weboob.browser2.filters.standard import Date, CleanText, Filter,\
+from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.filters.standard import Date, CleanText, Filter,\
     CleanDecimal, Regexp, Field, DateTime, Format, Env
-from weboob.browser2.filters.html import Attr
+from weboob.browser.filters.html import Attr
 from weboob.capabilities.bill import Detail, Bill
 
 
@@ -39,6 +39,8 @@ class FormatDate(Filter):
 
 class BadUTF8Page(HTMLPage):
     def __init__(self, browser, response, *args, **kwargs):
+        # XXX it is volontary the parent class of HTMLPage's constructor which
+        # is called, but that's ugly.
         super(HTMLPage, self).__init__(browser, response, *args, **kwargs)
         parser = html.HTMLParser(encoding='UTF-8')
         self.doc = html.parse(StringIO(response.content), parser)

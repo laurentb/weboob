@@ -23,9 +23,9 @@ import re
 from decimal import Decimal
 from datetime import datetime
 
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.tools.json import json
-from weboob.tools.mech import ClientForm
+from weboob.deprecated.mech import ClientForm
 from weboob.tools.misc import to_unicode
 
 from weboob.capabilities.bank import Account

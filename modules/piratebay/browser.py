@@ -21,7 +21,7 @@
 from urlparse import urlsplit
 import urllib
 
-from weboob.tools.browser import Browser, BrowserHTTPNotFound
+from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
 
 from .pages.index import IndexPage
 from .pages.torrents import TorrentsPage, TorrentPage

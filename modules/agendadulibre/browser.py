@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser2 import PagesBrowser, URL
+from weboob.browser import PagesBrowser, URL
 
 from .pages import EventListPage, EventPage
 from datetime import timedelta, date

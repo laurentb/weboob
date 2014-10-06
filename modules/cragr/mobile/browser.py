@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.tools.date import LinearDateGuesser
 from weboob.capabilities.bank import Transfer, TransferError
 from .pages import LoginPage, AccountsList

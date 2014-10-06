@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import Page,BrokenPageError
+from weboob.deprecated.browser import Page,BrokenPageError
 from weboob.capabilities.torrent import Torrent
 from weboob.capabilities.base import NotAvailable, NotLoaded
 

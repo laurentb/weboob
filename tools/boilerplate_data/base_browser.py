@@ -1,5 +1,5 @@
 <%inherit file="layout.py"/>
-from weboob.browser2 import PagesBrowser, URL
+from weboob.browser import PagesBrowser, URL
 
 from .pages import Page1, Page2
 

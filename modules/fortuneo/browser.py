@@ -22,7 +22,7 @@
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 from .pages.login import LoginPage
 from .pages.accounts_list import GlobalAccountsList, AccountsList, AccountHistoryPage

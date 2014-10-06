@@ -23,7 +23,7 @@
 
 from .pages import LoginPage, ComposePage, ConfirmPage
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 
 __all__ = ['OrangeBrowser']

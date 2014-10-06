@@ -22,7 +22,7 @@ import urllib
 
 from weboob.capabilities.translate import CapTranslate, Translation, TranslationFail, LanguageNotSupported
 from weboob.tools.backend import Module
-from weboob.tools.browser import StandardBrowser
+from weboob.deprecated.browser import StandardBrowser
 
 
 __all__ = ['EbonicsModule']

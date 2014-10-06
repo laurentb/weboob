@@ -31,7 +31,7 @@ from weboob.capabilities.dating import CapDating, OptimizationNotFound, Event
 from weboob.capabilities.contact import CapContact, ContactPhoto, Query, QueryError
 from weboob.capabilities.account import CapAccount, StatusField
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.browser import BrowserUnavailable, BrowserHTTPNotFound
+from weboob.deprecated.browser import BrowserUnavailable, BrowserHTTPNotFound
 from weboob.tools.value import Value, ValueBool, ValueBackendPassword
 from weboob.tools.date import local2utc
 from weboob.tools.misc import to_unicode

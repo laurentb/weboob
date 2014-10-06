@@ -24,8 +24,8 @@ from weboob.capabilities.audiostream import BaseAudioStream
 from weboob.tools.capabilities.streaminfo import StreamInfo
 from weboob.capabilities.collection import CapCollection
 from weboob.tools.backend import Module
-from weboob.tools.browser import StandardBrowser
-from weboob.tools.parsers.iparser import IParser
+from weboob.deprecated.browser import StandardBrowser
+from weboob.deprecated.browser.parsers.iparser import IParser
 
 
 __all__ = ['SomaFMModule']

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import Browser
+from weboob.deprecated.browser import Browser
 from weboob.tools.json import json as json_module
 from base64 import b64encode
 import datetime

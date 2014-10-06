@@ -19,7 +19,7 @@
 
 from weboob.capabilities.bill import Subscription
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from datetime import date
 from decimal import Decimal
 

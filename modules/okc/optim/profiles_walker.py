@@ -19,7 +19,7 @@
 
 from random import randint
 
-from weboob.tools.browser import BrowserUnavailable
+from weboob.deprecated.browser import BrowserUnavailable
 from weboob.capabilities.dating import Optimization
 from weboob.tools.log import getLogger
 from weboob.tools.value import Value, ValuesDict

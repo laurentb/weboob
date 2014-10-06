@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, SummaryPage, UselessPage, TransactionSearchPage, TransactionsPage, TransactionsCsvPage
 

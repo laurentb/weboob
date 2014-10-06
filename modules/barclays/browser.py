@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, Login2Page, IndexPage, AccountsPage, TransactionsPage, \
                    CardPage, ValuationPage, LoanPage, MarketPage

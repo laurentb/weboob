@@ -27,11 +27,11 @@ from decimal import Decimal
 import re
 from dateutil.relativedelta import relativedelta
 
-from weboob.browser2.page import HTMLPage, method, FormNotFound, LoggedPage
-from weboob.browser2.elements import ListElement, ItemElement, SkipItem
-from weboob.browser2.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, TableCell
-from weboob.browser2.filters.html import Link
-from weboob.core.exceptions import  BrowserIncorrectPassword
+from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage
+from weboob.browser.elements import ListElement, ItemElement, SkipItem, method
+from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, TableCell
+from weboob.browser.filters.html import Link
+from weboob.exceptions import  BrowserIncorrectPassword
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction

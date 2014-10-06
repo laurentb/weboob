@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from requests.exceptions import HTTPError
-from weboob.core.exceptions import BrowserHTTPError, BrowserHTTPNotFound
+from weboob.exceptions import BrowserHTTPError, BrowserHTTPNotFound
 
 
 class HTTPNotFound(HTTPError, BrowserHTTPNotFound):

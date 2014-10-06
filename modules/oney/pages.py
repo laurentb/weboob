@@ -25,10 +25,10 @@ import requests
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 
-from weboob.browser2.page import HTMLPage, method, LoggedPage, pagination
-from weboob.browser2.elements import ListElement, ItemElement
-from weboob.browser2.filters.standard import Env, CleanDecimal
-from weboob.core.exceptions import ParseError
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination
+from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.filters.standard import Env, CleanDecimal
+from weboob.exceptions import ParseError
 
 
 class Transaction(FrenchTransaction):

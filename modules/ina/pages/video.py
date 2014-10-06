@@ -23,7 +23,7 @@ import re
 
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.image import BaseImage
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 
 from ..video import InaVideo
 

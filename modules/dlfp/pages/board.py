@@ -21,7 +21,7 @@
 import re
 from logging import warning
 
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 
 
 class Message(object):

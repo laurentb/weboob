@@ -20,7 +20,7 @@
 
 from .pages.article import ArticlePage
 from .pages.inrockstv import InrocksTvPage
-from weboob.tools.browser import Browser
+from weboob.deprecated.browser import Browser
 
 
 class NewspaperInrocksBrowser(Browser):

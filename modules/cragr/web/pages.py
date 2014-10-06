@@ -22,7 +22,7 @@ from decimal import Decimal
 
 from weboob.tools.date import parse_french_date
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import Page, BrokenPageError
+from weboob.deprecated.browser import Page, BrokenPageError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 
 

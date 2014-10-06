@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 import urllib
 
-from weboob.tools.browser.decorators import id2url
-from weboob.tools.browser import Browser
+from weboob.deprecated.browser.decorators import id2url
+from weboob.deprecated.browser import Browser
 
 from .pages import SearchPage, AdvertPage
 from .job import MonsterJobAdvert

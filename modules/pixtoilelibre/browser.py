@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import Browser
+from weboob.deprecated.browser import Browser
 from weboob.tools.capabilities.paste import image_mime
 from StringIO import StringIO
 

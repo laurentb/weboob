@@ -20,7 +20,7 @@
 
 #from logging import error
 
-from weboob.tools.browser import Page, BrowserUnavailable
+from weboob.deprecated.browser import Page, BrowserUnavailable
 
 
 class LoginPage(Page):

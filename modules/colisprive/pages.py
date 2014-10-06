@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import date
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.capabilities.parcel import Parcel, Event
 
 

@@ -19,10 +19,9 @@
 
 from .history import BadUTF8Page
 from weboob.capabilities.bill import Subscription
-from weboob.browser2.page import method
-from weboob.browser2.elements import ListElement, ItemElement
-from weboob.browser2.filters.standard import CleanText, Field, Format, Filter
-from weboob.browser2.filters.html import Attr
+from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.filters.standard import CleanText, Field, Format, Filter
+from weboob.browser.filters.html import Attr
 
 
 class GetID(Filter):

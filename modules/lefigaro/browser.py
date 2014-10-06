@@ -20,7 +20,7 @@
 
 from .pages.article import ArticlePage, ActuPage
 from .pages.flashactu import FlashActuPage
-from weboob.tools.browser import Browser, Page
+from weboob.deprecated.browser import Browser, Page
 
 
 class IndexPage(Page):

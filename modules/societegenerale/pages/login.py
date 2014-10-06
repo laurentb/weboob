@@ -23,8 +23,8 @@ from logging import error
 import re
 from weboob.tools.json import json
 
-from weboob.tools.browser import BrowserUnavailable
-from weboob.tools.mech import ClientForm
+from weboob.deprecated.browser import BrowserUnavailable
+from weboob.deprecated.mech import ClientForm
 
 from .base import BasePage
 from ..captcha import Captcha, TileError

@@ -24,13 +24,13 @@ import re
 from cStringIO import StringIO
 
 from weboob.capabilities.bank import Account
-from weboob.browser2.page import HTMLPage, method, LoggedPage
-from weboob.browser2.elements import ListElement, ItemElement
-from weboob.browser2.filters.standard import CleanText, Regexp, CleanDecimal, Env
-from weboob.browser2.filters.html import Attr
+from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env
+from weboob.browser.filters.html import Attr
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.core.exceptions import ParseError
+from weboob.exceptions import ParseError
 
 
 class Transaction(FrenchTransaction):

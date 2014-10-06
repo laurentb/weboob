@@ -21,7 +21,7 @@
 from datetime import date, datetime, time
 from .pages.article import PresseuropPage, CartoonPage, DailySinglePage,\
                            DailyTitlesPage
-from weboob.tools.browser import Browser
+from weboob.deprecated.browser import Browser
 from weboob.tools.ordereddict import OrderedDict
 
 

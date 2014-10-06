@@ -23,7 +23,7 @@ import re
 import hashlib
 import lxml
 
-from weboob.tools.browser import Browser, BrowserHTTPNotFound, BrowserHTTPError, BrowserIncorrectPassword, BrokenPageError
+from weboob.deprecated.browser import Browser, BrowserHTTPNotFound, BrowserHTTPError, BrowserIncorrectPassword, BrokenPageError
 from weboob.capabilities.messages import CantSendMessage
 
 from .pages.index import IndexPage, LoginPage

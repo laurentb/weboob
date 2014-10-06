@@ -19,8 +19,8 @@
 
 from datetime import date
 from weboob.capabilities.library import Book
-from weboob.tools.browser import Page, BrowserUnavailable
-from weboob.tools.mech import ClientForm
+from weboob.deprecated.browser import Page, BrowserUnavailable
+from weboob.deprecated.mech import ClientForm
 
 
 class SkipPage(Page):

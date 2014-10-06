@@ -22,10 +22,10 @@ import re
 import datetime
 
 from weboob.capabilities.bugtracker import IssueError
-from weboob.tools.browser import Page, BrokenPageError
+from weboob.deprecated.browser import Page, BrokenPageError
 from weboob.tools.date import parse_french_date
 from weboob.tools.misc import to_unicode
-from weboob.tools.mech import ClientForm
+from weboob.deprecated.mech import ClientForm
 from weboob.tools.json import json
 
 

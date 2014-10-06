@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.bank import Account, Transaction
-from weboob.browser2.page import Page, HTMLPage, LoggedPage, RawPage
+from weboob.browser.pages import Page, HTMLPage, LoggedPage, RawPage
 from urllib import unquote
 from .parsers import StatementParser, clean_amount, clean_label
 import itertools

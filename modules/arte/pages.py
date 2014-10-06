@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.tools.html import html2text
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.image import BaseImage

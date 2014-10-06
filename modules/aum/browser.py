@@ -26,9 +26,10 @@ import re
 import urllib
 import urllib2
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable
-from weboob.browser2.page import LoginBrowser, HTMLPage
-from weboob.browser2.filters.standard import CleanText
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable
+from weboob.browser.browsers import LoginBrowser
+from weboob.browser.pages import HTMLPage
+from weboob.browser.filters.standard import CleanText
 from weboob.tools.json import json
 from weboob.tools.date import local2utc
 from weboob.tools.misc import to_unicode

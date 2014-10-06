@@ -18,11 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser2 import HTMLPage
-from weboob.browser2.page import method, pagination
-from weboob.browser2.elements import ListElement, ItemElement
-from weboob.browser2.filters.standard import CleanText, Duration, Regexp
-from weboob.browser2.filters.html import Link, CSS
+from weboob.browser.pages import HTMLPage, pagination
+from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.filters.standard import CleanText, Duration, Regexp
+from weboob.browser.filters.html import Link, CSS
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.image import BaseImage
 from weboob.capabilities.video import BaseVideo

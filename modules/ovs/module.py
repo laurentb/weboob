@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.browser import BrowserForbidden
+from weboob.deprecated.browser import BrowserForbidden
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Message
 from weboob.capabilities.contact import CapContact

@@ -18,8 +18,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.browser2 import PagesBrowser, URL
-from weboob.browser2.exceptions import HTTPNotFound
+from weboob.browser import PagesBrowser, URL
+from weboob.browser.exceptions import HTTPNotFound
 from .pages import SearchPage, VideoPage, VideoJsonPage
 
 import urllib

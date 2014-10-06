@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from urlparse import urlparse, parse_qs
 
 from weboob.tools.misc import get_bytes_size
-from weboob.tools.browser import Page,BrokenPageError
+from weboob.deprecated.browser import Page,BrokenPageError
 from weboob.capabilities.torrent import Torrent, MagnetOnly
 from weboob.capabilities.base import NotAvailable
 

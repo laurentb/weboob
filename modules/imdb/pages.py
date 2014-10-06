@@ -20,7 +20,7 @@
 
 from weboob.capabilities.cinema import Person, Movie
 from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.tools.html import html2text
 from datetime import datetime
 import re

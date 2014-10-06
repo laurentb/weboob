@@ -20,7 +20,7 @@
 
 from datetime import datetime
 
-from weboob.tools.browser import BrokenPageError
+from weboob.deprecated.browser import BrokenPageError
 from weboob.tools.date import local2utc
 from ..tools import url2id
 

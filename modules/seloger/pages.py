@@ -21,7 +21,7 @@
 from decimal import Decimal
 from dateutil.parser import parse as parse_date
 
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import Housing, HousingPhoto
 

@@ -21,7 +21,7 @@ import re
 
 from weboob.capabilities.subtitle import Subtitle
 from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 
 

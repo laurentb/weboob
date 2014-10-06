@@ -21,7 +21,7 @@
 
 from weboob.capabilities.geolocip import CapGeolocIp, IpLocation
 from weboob.tools.backend import Module
-from weboob.tools.browser import Browser, BrowserUnavailable
+from weboob.deprecated.browser import Browser, BrowserUnavailable
 
 
 __all__ = ['GeolocIpModule']

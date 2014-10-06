@@ -49,12 +49,12 @@ from contextlib import closing
 from gzip import GzipFile
 import warnings
 
-from weboob.core.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserPasswordExpired, BrowserForbidden, BrowserBanned, BrowserHTTPNotFound, BrowserHTTPError, FormFieldConversionWarning, BrowserSSLError
+from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserPasswordExpired, BrowserForbidden, BrowserBanned, BrowserHTTPNotFound, BrowserHTTPError, FormFieldConversionWarning, BrowserSSLError
 from weboob.tools.decorators import retry
 from weboob.tools.log import getLogger
-from weboob.tools.mech import ClientForm
+from weboob.deprecated.mech import ClientForm
 ControlNotFoundError = ClientForm.ControlNotFoundError
-from weboob.tools.parsers import get_parser
+from weboob.deprecated.browser.parsers import get_parser
 
 __all__ = ['BrowserIncorrectPassword', 'BrowserForbidden', 'BrowserBanned', 'BrowserUnavailable', 'BrowserRetry',
            'BrowserPasswordExpired', 'BrowserHTTPNotFound', 'BrowserHTTPError', 'BrokenPageError', 'Page',
@@ -134,7 +134,7 @@ class StandardBrowser(mechanize.Browser):
     :param firefox_cookies: path to cookies sqlite file
     :type firefox_cookies: str
     :param parser: parser to use on HTML files
-    :type parser: :class:`weboob.tools.parsers.iparser.IParser`
+    :type parser: :class:`weboob.deprecated.browser.parsers.iparser.IParser`
     :param history: history manager; default value is an object which
                     does not keep history
     :type history: object
@@ -434,7 +434,7 @@ class Browser(StandardBrowser):
     :param firefox_cookies: path to cookies sqlite file
     :type firefox_cookies: str
     :param parser: parser to use on HTML files
-    :type parser: :class:`weboob.tools.parsers.iparser.IParser`
+    :type parser: :class:`weboob.deprecated.browser.parsers.iparser.IParser`
     :param history: history manager; default value is an object which
                     does not keep history
     :type history: object

@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.browser2 import PagesBrowser, URL, Firefox
+from weboob.browser import PagesBrowser, URL
+from weboob.browser.profiles import Firefox
 from .calendar import SensCritiquenCalendarEvent
 from .pages import AjaxPage, EventPage, JsonResumePage
 

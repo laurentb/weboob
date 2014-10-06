@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser2 import LoginBrowser, URL, need_login
-from weboob.core.exceptions import BrowserIncorrectPassword
+from weboob.browser import LoginBrowser, URL, need_login
+from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import LoginPage, HomePage, TransactionsPage
 

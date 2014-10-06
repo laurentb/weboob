@@ -19,7 +19,7 @@
 
 from random import randint
 
-from weboob.tools.browser import Browser
+from weboob.deprecated.browser import Browser
 
 from .pages import CitiesPage, SearchPage, SearchErrorPage, \
                    SearchInProgressPage, ResultsPage, ForeignPage

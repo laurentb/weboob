@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import urllib
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.capabilities.bill import Detail
 from decimal import Decimal
 from .pages import LoginPage, HomePage, AccountPage, HistoryPage, BillsPage

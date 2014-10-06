@@ -19,13 +19,13 @@
 
 
 from mechanize import FormNotFoundError
-from weboob.tools.mech import ClientForm
+from weboob.deprecated.mech import ClientForm
 ControlNotFoundError = ClientForm.ControlNotFoundError
 
 from decimal import Decimal, InvalidOperation
 import re
 
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.tools.misc import to_unicode
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.bank import Account

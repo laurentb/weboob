@@ -22,7 +22,7 @@ from datetime import datetime
 import re
 import urllib
 from decimal import Decimal
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.capabilities.bill import Subscription, Detail, Bill
 
 base_url = "http://particuliers.edf.com/"

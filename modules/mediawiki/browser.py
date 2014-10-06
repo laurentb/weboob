@@ -22,7 +22,7 @@ import urllib
 import datetime
 import re
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.tools.json import json as simplejson
 from weboob.capabilities.content import Revision
 

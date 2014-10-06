@@ -38,7 +38,7 @@ from mechanize import _headersutil as headersutil
 from mechanize._html import EncodingFinder
 
 from weboob.core import Weboob
-from weboob.tools.browser import StandardBrowser, BrowserUnavailable
+from weboob.deprecated.browser import StandardBrowser, BrowserUnavailable
 from weboob.tools.misc import get_backtrace
 from weboob.tools.misc import to_unicode
 from weboob.tools.storage import StandardStorage

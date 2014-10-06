@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser.browser import BrowserIncorrectPassword, BrowserBanned, \
+from weboob.deprecated.browser.browser import BrowserIncorrectPassword, BrowserBanned, \
                                          BrowserUnavailable, BrowserRetry, \
                                          BrowserHTTPNotFound, BrowserHTTPError, \
                                          Page, Browser, BrokenPageError, \

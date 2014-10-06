@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.tools.html import html2text
 import re
 from datetime import datetime, time, timedelta

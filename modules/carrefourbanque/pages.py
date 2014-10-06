@@ -20,10 +20,10 @@
 
 import re
 
-from weboob.browser2.page import HTMLPage, method, LoggedPage
-from weboob.browser2.elements import ListElement, ItemElement
-from weboob.browser2.filters.standard import Regexp, CleanText, CleanDecimal, Format
-from weboob.browser2.filters.html import Link
+from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.filters.standard import Regexp, CleanText, CleanDecimal, Format
+from weboob.browser.filters.html import Link
 
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction

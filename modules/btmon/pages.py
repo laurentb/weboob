@@ -22,7 +22,7 @@ import string
 
 from weboob.capabilities.torrent import Torrent
 from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.tools.misc import get_bytes_size
 
 

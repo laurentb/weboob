@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.tools.json import json as simplejson
 from weboob.capabilities.audio import BaseAudio, Album, Playlist
 from weboob.capabilities.image import BaseImage

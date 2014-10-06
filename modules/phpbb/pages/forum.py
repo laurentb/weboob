@@ -21,7 +21,7 @@
 from time import sleep
 from urlparse import urlsplit, parse_qs
 
-from weboob.tools.browser import BrokenPageError
+from weboob.deprecated.browser import BrokenPageError
 
 from .index import PhpBBPage
 from ..tools import parse_date

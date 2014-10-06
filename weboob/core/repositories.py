@@ -31,7 +31,7 @@ from contextlib import closing
 from compileall import compile_dir
 from io import BytesIO
 
-from weboob.core.exceptions import BrowserHTTPError, BrowserHTTPNotFound
+from weboob.exceptions import BrowserHTTPError, BrowserHTTPNotFound
 from .modules import LoadedModule
 from weboob.tools.log import getLogger
 from weboob.tools.misc import to_unicode
@@ -442,7 +442,8 @@ class Repositories(object):
             self.load()
 
     def load_browser(self):
-        from weboob.browser2.browser import Browser, Weboob as WeboobProfile
+        from weboob.browser.browsers import Browser
+        from weboob.browser.profiles import Weboob as WeboobProfile
         class WeboobBrowser(Browser):
             PROFILE = WeboobProfile(self.version)
         if self.browser is None:

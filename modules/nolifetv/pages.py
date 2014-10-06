@@ -21,7 +21,7 @@
 from weboob.capabilities.collection import Collection
 from weboob.capabilities.image import BaseImage
 
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 
 import re
 from datetime import datetime, timedelta

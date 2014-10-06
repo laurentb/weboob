@@ -23,10 +23,10 @@ from io import StringIO
 import lxml.html as html
 import urllib
 
-from weboob.browser2.page import HTMLPage, JsonPage, method, FormNotFound, pagination
-from weboob.browser2.elements import ListElement, ItemElement
-from weboob.browser2.filters.standard import CleanText, Format, Regexp, Env, DateTime, Filter
-from weboob.browser2.filters.html import Link, Attr
+from weboob.browser.pages import HTMLPage, JsonPage, FormNotFound, pagination
+from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.filters.standard import CleanText, Format, Regexp, Env, DateTime, Filter
+from weboob.browser.filters.html import Link, Attr
 from weboob.capabilities.messages import Thread, Message
 from weboob.capabilities.base import BaseObject
 

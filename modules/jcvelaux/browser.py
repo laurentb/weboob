@@ -19,7 +19,7 @@
 
 
 import datetime
-from weboob.tools.browser import Browser
+from weboob.deprecated.browser import Browser
 
 
 __all__ = ['VelibBrowser']

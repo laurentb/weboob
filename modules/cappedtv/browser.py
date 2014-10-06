@@ -13,10 +13,10 @@ import urllib
 import datetime
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.misc import to_unicode
-from weboob.tools.browser import Page
-from weboob.tools.browser import BrokenPageError
-from weboob.tools.browser import Browser
-from weboob.tools.browser.decorators import id2url
+from weboob.deprecated.browser import Page
+from weboob.deprecated.browser import BrokenPageError
+from weboob.deprecated.browser import Browser
+from weboob.deprecated.browser.decorators import id2url
 from weboob.capabilities.image import BaseImage
 from weboob.capabilities.video import BaseVideo
 from weboob.tools.ordereddict import OrderedDict

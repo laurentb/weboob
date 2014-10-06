@@ -28,7 +28,7 @@ import re
 from weboob.capabilities.base import empty, NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.browser import BrokenPageError
+from weboob.deprecated.browser import BrokenPageError
 
 from .base import BasePage
 

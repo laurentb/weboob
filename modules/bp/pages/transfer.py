@@ -21,7 +21,7 @@
 import re
 
 from weboob.capabilities.bank import TransferError
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.tools.misc import to_unicode
 
 

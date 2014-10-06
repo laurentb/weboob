@@ -22,7 +22,7 @@ import ssl
 import hashlib
 from urlparse import urlsplit
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, IndexPage, ErrorPage, UnavailablePage
 

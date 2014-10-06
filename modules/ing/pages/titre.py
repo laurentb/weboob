@@ -21,9 +21,9 @@
 from decimal import Decimal
 
 from weboob.capabilities.bank import Investment
-from weboob.browser2.page import RawPage, HTMLPage, method, LoggedPage
-from weboob.browser2.elements import ListElement, ItemElement
-from weboob.browser2.filters.standard import CleanDecimal, CleanText, Date
+from weboob.browser.pages import RawPage, HTMLPage, LoggedPage
+from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Date
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 

@@ -20,7 +20,7 @@
 
 from weboob.capabilities.lyrics import SongLyrics
 from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 
 
 class ArtistResultsPage(Page):

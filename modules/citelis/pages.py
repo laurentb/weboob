@@ -22,7 +22,7 @@ from decimal import Decimal
 import datetime
 import re
 
-from weboob.tools.browser import Page, BrowserIncorrectPassword
+from weboob.deprecated.browser import Page, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 

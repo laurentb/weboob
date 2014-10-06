@@ -32,7 +32,7 @@ import urllib
 import io
 
 from weboob.capabilities.base import UserError
-from weboob.tools.browser import Page, BrokenPageError, BrowserIncorrectPassword
+from weboob.deprecated.browser import Page, BrokenPageError, BrowserIncorrectPassword
 from weboob.tools.json import json
 
 

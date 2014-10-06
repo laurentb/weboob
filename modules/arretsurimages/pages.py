@@ -21,7 +21,7 @@ import re
 
 from weboob.capabilities.base import UserError
 from weboob.capabilities.image import BaseImage
-from weboob.tools.browser import Page, BrokenPageError
+from weboob.deprecated.browser import Page, BrokenPageError
 from weboob.capabilities import NotAvailable
 
 

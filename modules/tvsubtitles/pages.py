@@ -20,7 +20,7 @@
 import re
 
 from weboob.capabilities.subtitle import Subtitle
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 
 
 class HomePage(Page):

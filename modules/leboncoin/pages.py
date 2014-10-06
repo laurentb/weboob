@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 from decimal import Decimal
-from weboob.browser2.page import HTMLPage, method, pagination
-from weboob.browser2.elements import ItemElement, ListElement
-from weboob.browser2.filters.standard import CleanText, Regexp, CleanDecimal, Env, DateTime
-from weboob.browser2.filters.html import Attr, Link
+from weboob.browser.pages import HTMLPage, pagination
+from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env, DateTime
+from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.housing import City, Housing, HousingPhoto
 from datetime import date, timedelta
 from weboob.tools.date import DATE_TRANSLATE_FR, LinearDateGuesser

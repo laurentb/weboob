@@ -22,7 +22,7 @@ import re
 import hashlib
 import urllib
 
-from weboob.tools.browser import Page, BrowserIncorrectPassword
+from weboob.deprecated.browser import Page, BrowserIncorrectPassword
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
 
 

@@ -22,8 +22,8 @@ import urllib
 
 import lxml.etree
 
-from weboob.tools.browser import Browser
-from weboob.tools.browser.decorators import id2url
+from weboob.deprecated.browser import Browser
+from weboob.deprecated.browser.decorators import id2url
 
 from .pages import ChannelsPage, VideoPage
 from .video import CanalplusVideo

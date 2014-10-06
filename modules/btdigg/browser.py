@@ -2,7 +2,7 @@
 
 import urllib
 
-from weboob.tools.browser import Browser
+from weboob.deprecated.browser import Browser
 
 from .pages.index import IndexPage
 from .pages.torrents import TorrentsPage, TorrentPage

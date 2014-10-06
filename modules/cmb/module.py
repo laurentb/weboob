@@ -22,8 +22,8 @@ from weboob.capabilities.bank import Account, Transaction
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from weboob.capabilities.base import NotAvailable
-from weboob.core.exceptions import BrowserIncorrectPassword, ParseError
-from weboob.browser2 import Browser
+from weboob.exceptions import BrowserIncorrectPassword, ParseError
+from weboob.browser import Browser
 
 from re import match, compile, sub
 from decimal import Decimal

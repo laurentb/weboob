@@ -19,7 +19,7 @@
 
 
 from weboob.tools.test import BackendTest
-from weboob.tools.browser import BrowserUnavailable
+from weboob.deprecated.browser import BrowserUnavailable
 
 
 class AuMTest(BackendTest):

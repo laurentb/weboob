@@ -20,7 +20,7 @@
 import time
 import StringIO
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from .pages import HomePage, LoginPage, HistoryPage, PdfPage
 from weboob.capabilities.bill import Detail
 from weboob.capabilities.base import NotAvailable

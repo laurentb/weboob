@@ -22,7 +22,7 @@ import urllib
 
 from weboob.tools.json import json
 
-from weboob.tools.browser import Browser
+from weboob.deprecated.browser import Browser
 from weboob.capabilities.housing import Query
 
 from .pages import SearchResultsPage, HousingPage

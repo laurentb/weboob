@@ -24,7 +24,7 @@ from decimal import Decimal
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
-from weboob.tools.browser import Page, BrokenPageError, BrowserPasswordExpired
+from weboob.deprecated.browser import Page, BrokenPageError, BrowserPasswordExpired
 
 
 class AccountsList(Page):

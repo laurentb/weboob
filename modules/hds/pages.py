@@ -21,7 +21,7 @@
 import datetime
 import re
 
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 
 
 class ValidationPage(Page):

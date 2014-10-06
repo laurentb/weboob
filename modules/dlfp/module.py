@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 import time
 
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.browser import BrowserForbidden
+from weboob.deprecated.browser import BrowserForbidden
 from weboob.tools.newsfeed import Newsfeed
 from weboob.tools.value import Value, ValueBool, ValueBackendPassword
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Message, Thread, CantSendMessage

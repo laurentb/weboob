@@ -22,7 +22,7 @@ import time
 import re
 import urllib
 
-from weboob.tools.browser import Page, BrowserUnavailable
+from weboob.deprecated.browser import Page, BrowserUnavailable
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
 
 

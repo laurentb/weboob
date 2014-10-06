@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import StringIO
-from weboob.tools.browser import Page
-from weboob.tools.mech import ClientForm
+from weboob.deprecated.browser import Page
+from weboob.deprecated.mech import ClientForm
 
 
 class LoginPage(Page):

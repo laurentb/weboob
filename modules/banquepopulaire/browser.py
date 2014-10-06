@@ -20,7 +20,7 @@
 
 import urllib
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword, BrokenPageError
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrokenPageError
 
 from .pages import LoginPage, IndexPage, AccountsPage, CardsPage, TransactionsPage, \
                    UnavailablePage, RedirectPage, HomePage

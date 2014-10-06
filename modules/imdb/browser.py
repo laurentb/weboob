@@ -20,7 +20,7 @@
 import re
 
 from HTMLParser import HTMLParser
-from weboob.tools.browser import Browser, BrowserHTTPNotFound
+from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.cinema import Movie, Person
 from weboob.tools.json import json

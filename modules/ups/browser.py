@@ -19,7 +19,7 @@
 
 import urllib
 
-from weboob.tools.browser import Browser
+from weboob.deprecated.browser import Browser
 
 from .pages import TrackPage
 

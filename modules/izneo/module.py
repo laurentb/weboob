@@ -24,7 +24,7 @@ import re
 from weboob.capabilities.gallery import CapGallery, BaseGallery, BaseImage
 from weboob.tools.json import json
 from weboob.tools.backend import Module
-from weboob.tools.browser import Browser, Page
+from weboob.deprecated.browser import Browser, Page
 
 __all__ = ['IzneoModule']
 

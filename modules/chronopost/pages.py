@@ -23,7 +23,7 @@ from dateutil.parser import parse as parse_date
 
 from weboob.capabilities.parcel import Parcel, Event
 from weboob.capabilities import NotAvailable
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 
 
 class IndexPage(Page):

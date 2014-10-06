@@ -18,9 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import Browser, BrowserBanned
+from weboob.deprecated.browser import Browser, BrowserBanned
 from weboob.tools.date import datetime
-from weboob.tools.parsers.jsonparser import json
+from weboob.deprecated.browser.parsers.jsonparser import json
 import lxml.html
 import time
 

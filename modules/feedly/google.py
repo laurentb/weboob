@@ -19,8 +19,9 @@
 
 from urlparse import urlparse, parse_qs
 
-from weboob.browser2 import LoginBrowser, URL, HTMLPage
-from weboob.core.exceptions import BrowserIncorrectPassword
+from weboob.browser import LoginBrowser, URL
+from weboob.browser.pages import HTMLPage
+from weboob.exceptions import BrowserIncorrectPassword
 
 
 class GoogleLoginPage(HTMLPage):

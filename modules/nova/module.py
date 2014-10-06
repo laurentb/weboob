@@ -25,8 +25,8 @@ from weboob.capabilities.audiostream import BaseAudioStream
 from weboob.tools.capabilities.streaminfo import StreamInfo
 from weboob.capabilities.collection import CapCollection
 from weboob.tools.backend import Module
-from weboob.tools.browser import StandardBrowser
-from weboob.tools.parsers import get_parser
+from weboob.deprecated.browser import StandardBrowser
+from weboob.deprecated.browser.parsers import get_parser
 
 
 __all__ = ['NovaModule']

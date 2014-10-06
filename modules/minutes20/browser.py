@@ -20,7 +20,7 @@
 
 from .pages.article import ArticlePage
 from .pages.simple import SimplePage
-from weboob.tools.browser import Browser
+from weboob.deprecated.browser import Browser
 from .tools import id2url
 
 

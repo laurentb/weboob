@@ -17,8 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import Page
-from weboob.tools.browser import BrokenPageError
+from weboob.deprecated.browser import Page
+from weboob.deprecated.browser import BrokenPageError
 from lxml.etree import Comment
 
 

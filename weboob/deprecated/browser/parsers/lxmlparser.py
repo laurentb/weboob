@@ -64,7 +64,7 @@ class LxmlParser(IParser):
         """
         Select one or many elements from an element, using lxml cssselect by default.
 
-        Raises :class:`weboob.tools.browser.browser.BrokenPageError` if not found.
+        Raises :class:`weboob.deprecated.browser.browser.BrokenPageError` if not found.
 
         :param element: element on which to apply selector
         :type element: object

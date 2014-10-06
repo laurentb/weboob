@@ -20,7 +20,7 @@
 
 import urllib
 
-from weboob.tools.browser import Browser
+from weboob.deprecated.browser import Browser
 from .pages.meteo import WeatherPage, SearchCitiesPage
 from weboob.capabilities.weather import CityNotFound
 

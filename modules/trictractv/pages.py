@@ -21,7 +21,7 @@ import datetime
 import re
 
 from weboob.capabilities.image import BaseImage
-from weboob.tools.browser import Page, BrokenPageError
+from weboob.deprecated.browser import Page, BrokenPageError
 
 
 from .video import TricTracTVVideo

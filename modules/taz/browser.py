@@ -19,7 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from .pages.article import ArticlePage
-from weboob.tools.browser import Browser
+from weboob.deprecated.browser import Browser
 
 
 class NewspaperTazBrowser(Browser):

@@ -21,8 +21,8 @@
 import re
 from ast import literal_eval
 
-from weboob.browser2.filters.standard import Filter, Regexp, RegexpError
-from weboob.core.exceptions import ParseError
+from weboob.browser.filters.standard import Filter, Regexp, RegexpError
+from weboob.exceptions import ParseError
 
 
 __all__ = ['JSPayload', 'JSVar']

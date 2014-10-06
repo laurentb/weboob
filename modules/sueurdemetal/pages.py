@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import Page
+from weboob.deprecated.browser import Page
 from weboob.tools.date import parse_french_date
 import re
 from urlparse import urljoin

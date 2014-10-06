@@ -22,7 +22,7 @@ import re
 import urllib
 from urlparse import urlsplit
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.capabilities.messages import CantSendMessage
 
 from .pages.index import LoginPage

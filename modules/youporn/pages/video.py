@@ -23,7 +23,7 @@ import datetime
 from dateutil.parser import parse as parse_dt
 
 from weboob.capabilities.base import NotAvailable
-from weboob.tools.browser import BrokenPageError
+from weboob.deprecated.browser import BrokenPageError
 
 from .base import PornPage
 from ..video import YoupornVideo

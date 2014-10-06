@@ -23,10 +23,10 @@ from .calendar import HybrideCalendarEvent
 import weboob.tools.date as date_util
 import re
 
-from weboob.browser2.page import HTMLPage, method
-from weboob.browser2.elements import ItemElement, SkipItem, ListElement
-from weboob.browser2.filters.standard import Filter, CleanText, Env
-from weboob.browser2.filters.html import Link
+from weboob.browser.pages import HTMLPage
+from weboob.browser.elements import ItemElement, SkipItem, ListElement, method
+from weboob.browser.filters.standard import Filter, CleanText, Env
+from weboob.browser.filters.html import Link
 
 
 def format_date(date):
@@ -41,7 +41,7 @@ class Date(Filter):
 
 
 class CombineDate(Filter):
-    def filter(sel, text):
+    def filter(self, text):
         return datetime.combine(format_date(text), time.max)
 
 

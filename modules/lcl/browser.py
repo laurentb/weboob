@@ -21,7 +21,7 @@
 from urlparse import urlsplit, parse_qsl
 from mechanize import Cookie
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 from .pages import SkipPage, LoginPage, AccountsPage, AccountHistoryPage, \
                    CBListPage, CBHistoryPage, ContractsPage

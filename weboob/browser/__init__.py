@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012 Laurent Bachelier
+# Copyright(C) 2012-2014 Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .browser import Browser, DomainBrowser, Wget, Firefox, UrlNotAllowed, Profile
-from .page import PagesBrowser, Page, URL, HTMLPage, LoginBrowser, need_login, JsonPage, LoggedPage, XMLPage
+from .browsers import Browser, DomainBrowser, UrlNotAllowed, PagesBrowser, LoginBrowser, need_login
+from .url import URL
 
 
-__all__ = ['Browser', 'DomainBrowser', 'Wget', 'Firefox', 'UrlNotAllowed', 'Profile', 'XMLPage',
-           'PagesBrowser', 'Page', 'URL', 'HTMLPage', 'LoginBrowser', 'need_login', 'JsonPage', 'LoggedPage']
+__all__ = ['Browser', 'DomainBrowser', 'UrlNotAllowed', 'PagesBrowser', 'URL',
+           'LoginBrowser', 'need_login']

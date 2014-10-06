@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 import hashlib
 
-from weboob.browser2 import LoginBrowser, URL, need_login
-from weboob.core.exceptions import BrowserIncorrectPassword, ParseError
+from weboob.browser import LoginBrowser, URL, need_login
+from weboob.exceptions import BrowserIncorrectPassword, ParseError
 from weboob.capabilities.bank import Account, TransferError
 
 from .pages import AccountsList, LoginPage, TitrePage, TitreHistory,\

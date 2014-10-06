@@ -25,8 +25,8 @@ import urllib
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.image import BaseImage
 from weboob.tools.json import json as simplejson
-from weboob.tools.browser import Browser
-from weboob.tools.browser.decorators import id2url
+from weboob.deprecated.browser import Browser
+from weboob.deprecated.browser.decorators import id2url
 
 from .pages import ArteLivePage, ArteLiveVideoPage
 from .video import ArteVideo, ArteLiveVideo

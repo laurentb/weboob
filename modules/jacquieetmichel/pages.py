@@ -22,7 +22,7 @@ import re
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.image import BaseImage
-from weboob.tools.browser import Page, BrokenPageError
+from weboob.deprecated.browser import Page, BrokenPageError
 from weboob.tools.misc import to_unicode
 
 from .video import JacquieEtMichelVideo

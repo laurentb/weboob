@@ -23,7 +23,7 @@ import urllib
 from .pages.compose import ClosePage, ComposePage, ConfirmPage, SentPage
 from .pages.login import LoginPage
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 
 __all__ = ['SfrBrowser']

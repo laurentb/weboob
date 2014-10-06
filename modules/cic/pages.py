@@ -24,7 +24,7 @@ from decimal import Decimal
 import re
 from dateutil.relativedelta import relativedelta
 
-from weboob.tools.browser import Page, BrowserIncorrectPassword, BrokenPageError
+from weboob.deprecated.browser import Page, BrowserIncorrectPassword, BrokenPageError
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction

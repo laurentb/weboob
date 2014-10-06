@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.json import json
-from weboob.tools.browser import Browser, BrowserBanned
+from weboob.deprecated.browser import Browser, BrowserBanned
 
 
 __all__ = ['ColissimoBrowser']

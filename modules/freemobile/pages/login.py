@@ -22,7 +22,7 @@ import time
 from StringIO import StringIO
 from PIL import Image
 
-from weboob.browser2.page import HTMLPage
+from weboob.browser.pages import HTMLPage
 
 
 class FreeKeyboard(object):
