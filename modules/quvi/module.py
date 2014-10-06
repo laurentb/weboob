@@ -31,7 +31,7 @@ from weboob.capabilities.image import BaseImage
 from weboob.tools.backend import Module
 from weboob.tools.misc import to_unicode
 
-from quvi import LibQuvi, QuviError
+from .quvi import LibQuvi, QuviError
 
 
 __all__ = ['QuviModule', 'QuviVideo']
