@@ -45,13 +45,13 @@ class DeparturesFormatter(PrettyFormatter):
 
     def get_description(self, obj):
         if hasattr(obj, 'arrival_time') and not empty(obj.arrival_time):
-            s = '(%s)  %s%s\n\t(%s)  %s' % (self.colored(obj.time.strftime('%H:%M'), 'cyan'),
+            s = '(%s)  %s%s\n\t(%s)  %s' % (self.colored(obj.time.strftime('%H:%M') if obj.time else '??:??', 'cyan'),
                                             obj.departure_station,
                                             self.colored(' [Platform: %s]' % obj.platform, 'yellow') if (hasattr(obj, 'platform') and not empty(obj.platform)) else '',
                                             self.colored(obj.arrival_time.strftime('%H:%M'), 'cyan'),
                                             obj.arrival_station)
         else:
-            s = '(%s)  %20s -> %s' % (self.colored(obj.time.strftime('%H:%M'), 'cyan'),
+            s = '(%s)  %20s -> %s' % (self.colored(obj.time.strftime('%H:%M') if obj.time else '??:??', 'cyan'),
                                       obj.departure_station, obj.arrival_station)
 
         return s
