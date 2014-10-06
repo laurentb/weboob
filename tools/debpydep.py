@@ -13,7 +13,7 @@ for root, dirs, files in os.walk(sys.argv[1]):
         if f.endswith('.py') and f != '__init__.py':
             s = "from %s import %s" % (root.strip('/').replace('/', '.'), f[:-3])
             try:
-                exec s
+                exec(s)
             except ImportError as e:
                 print >>sys.stderr, str(e)
             else:
