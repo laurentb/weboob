@@ -263,7 +263,10 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
                     continue
                 slut = self._get_slut(thread['who']['id'])
                 if parse_dt(thread['date']) > slut['lastmsg'] or thread['status'] != slut['status']:
-                    t = self.get_thread(thread['who']['id'], contacts, get_profiles=True)
+                    try:
+                        t = self.get_thread(thread['who']['id'], contacts, get_profiles=True)
+                    except BrowserUnavailable:
+                        continue
                     for m in t.iter_all_messages():
                         if m.flags & m.IS_UNREAD:
                             yield m

@@ -27,6 +27,8 @@ import urllib
 import urllib2
 
 from weboob.tools.browser import Browser, BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable
+from weboob.browser2.page import LoginBrowser, HTMLPage
+from weboob.browser2.filters.standard import CleanText
 from weboob.tools.json import json
 from weboob.tools.date import local2utc
 from weboob.tools.misc import to_unicode
@@ -66,50 +68,59 @@ class AuMException(UserError):
         self.code = code
 
 
-class WebsiteBrowser(Browser):
+class WebsiteBrowser(LoginBrowser):
+    BASEURL = 'https://www.adopteunmec.com'
+    VERIFY = False
+    TIMEOUT = 3.0
+
     def login(self):
         data = {'username': self.username,
                 'password': self.password,
                 'remember': 'on',
                }
-        self.readurl('http://www.adopteunmec.com/auth/login', urllib.urlencode(data))
+        self.open('/auth/login', data=data)
+        #self.readurl('https://www.adopteunmec.com/auth/login', urllib.urlencode(data))
 
     def get_profile(self, id):
         profile = {}
+        if datetime.now().hour >= 18 or datetime.now().hour < 1:
+            return profile
+
         r = None
         try:
-            r = self.openurl('http://www.adopteunmec.com/profile/%s' % id)
+            r = self.open('https://www.adopteunmec.com/profile/%s' % id)
         except BrowserUnavailable:
             pass
 
-        if r is None or not re.match('http://www.adopteunmec.com/profile/\d+', r.geturl()):
+        if r is None or not re.match('https://www.adopteunmec.com/profile/\d+', r.url):
             self.login()
             try:
-                r = self.openurl('http://www.adopteunmec.com/profile/%s' % id)
+                r = self.open('https://www.adopteunmec.com/profile/%s' % id)
             except BrowserUnavailable:
                 r = None
 
         if r is None:
             return {}
 
-        doc = self.get_document(r)
+        page = HTMLPage(self, r)
+        doc = page.doc
         profile['popu'] = {}
         for tr in doc.xpath('//div[@id="popularity"]//tr'):
             cols = tr.findall('td')
-            if cols[0].text is None:
+            if not cols[0].text:
                 continue
-            key = self.parser.tocleanstring(tr.find('th')).strip().lower()
-            value = int(re.sub(u'[ \xa0x]+', u'', cols[0].text).strip())
+            key = CleanText('./th')(tr).strip().lower()
+            value = int(re.sub(u'[^0-9]+', u'', cols[0].text).strip())
             profile['popu'][key] = value
 
         for script in doc.xpath('//script'):
             text = script.text
             if text is None:
                 continue
-            m = re.search('memberLat: ([\-\d\.]+),', text, re.IGNORECASE)
+            m = re.search('"memberLat":\s*([\-\d\.]+),', text, re.IGNORECASE)
             if m:
                 profile['lat'] = float(m.group(1))
-            m = re.search('memberLng: ([\-\d\.]+),', text, re.IGNORECASE)
+            m = re.search('"memberLng":\s*([\-\d\.]+),', text, re.IGNORECASE)
             if m:
                 profile['lng'] = float(m.group(1))
 
@@ -134,9 +145,10 @@ class AuMBrowser(Browser):
         Browser.__init__(self, username, password, *args, **kwargs)
 
         # now we do authentication ourselves
-        #self.add_password('http://www.adopteunmec.com/api/', self.username, self.password)
+        #self.add_password('https://www.adopteunmec.com/api/', self.username, self.password)
         self.login()
 
+        kwargs.pop('get_home')
         self.website = WebsiteBrowser(self.username, self.password, *args, **kwargs)
         self.website.login()
 
@@ -145,15 +157,15 @@ class AuMBrowser(Browser):
         self.search_query = search_query
 
     def id2url(self, id):
-        return u'http://www.adopteunmec.com/profile/%s' % id
+        return u'https://www.adopteunmec.com/profile/%s' % id
 
     def url2id(func):
         def inner(self, id, *args, **kwargs):
-            m = re.match('^http://.*adopteunmec.com.*/(\d+)$', str(id))
+            m = re.match('^https?://.*adopteunmec.com.*/(\d+)$', str(id))
             if m:
                 id = int(m.group(1))
             else:
-                m = re.match('^http://.*adopteunmec.com/(index.php/)?profile/(\d+).*', str(id))
+                m = re.match('^https?://.*adopteunmec.com/(index.php/)?profile/(\d+).*', str(id))
                 if m:
                     id = int(m.group(2))
             return func(self, id, *args, **kwargs)
