@@ -47,6 +47,8 @@ def pagination(func):
     ...         for next in self.doc.xpath('//a'):
     ...             raise NextPage(next.attrib['href'])
     ...
+    >>> from .browsers import PagesBrowser
+    >>> from .url import URL
     >>> class Browser(PagesBrowser):
     ...     BASEURL = 'http://people.symlink.me'
     ...     list = URL('/~rom1/projects/weboob/list-(?P<pagenum>\d+).html', Page)

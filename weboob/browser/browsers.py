@@ -538,6 +538,7 @@ class PagesBrowser(DomainBrowser):
 
     Example:
 
+    >>> from .pages import Page
     >>> class HomePage(Page):
     ...     pass
     ...
@@ -635,6 +636,7 @@ class PagesBrowser(DomainBrowser):
 
         :class:`NextPage` constructor can take an url or a Request object.
 
+        >>> from .pages import HTMLPage
         >>> class Page(HTMLPage):
         ...     def iter_values(self):
         ...         for el in self.doc.xpath('//li'):
