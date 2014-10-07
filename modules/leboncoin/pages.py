@@ -77,7 +77,7 @@ class HousingListPage(HTMLPage):
         item_xpath = '//div[@class="list-lbc"]/a'
 
         def next_page(self):
-            return Link('//li[@class="page"]/a')(self)
+            return Link('//li[@class="page"]/a[contains(text(),"Page suivante")]')(self)
 
         class item(ItemElement):
             klass = Housing
