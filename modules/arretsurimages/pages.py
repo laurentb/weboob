@@ -32,7 +32,7 @@ class IndexPage(Page):
     def iter_videos(self):
         videos = self.document.getroot().cssselect("div[class=bloc-contenu-8]")
         for div in videos:
-            title = self.parser.select(div, 'a.typo-titre', 1).text_content().replace('  ', ' ')
+            title = self.parser.select(div, 'h1 a', 1).text_content().replace('"', '')
             m = re.match(r'/contenu.php\?id=(.*)', div.find('a').attrib['href'])
             _id = ''
             if m:
