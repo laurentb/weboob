@@ -399,11 +399,11 @@ class Application(object):
 
     @classmethod
     def create_default_logger(cls):
-        # stdout logger
+        # stderr logger
         format = '%(asctime)s:%(levelname)s:%(name)s:' + cls.VERSION +\
                  ':%(filename)s:%(lineno)d:%(funcName)s %(message)s'
-        handler = logging.StreamHandler(cls.stdout)
-        handler.setFormatter(createColoredFormatter(cls.stdout, format))
+        handler = logging.StreamHandler(cls.stderr)
+        handler.setFormatter(createColoredFormatter(cls.stderr, format))
         return handler
 
     @classmethod
