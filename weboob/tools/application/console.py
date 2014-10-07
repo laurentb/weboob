@@ -64,7 +64,7 @@ class ConsoleApplication(Application):
 
     # shell escape strings
     if sys.platform == 'win32' \
-            or not os.isatty(sys.stdout.fileno()) \
+            or not sys.stdout.isatty() \
             or os.getenv('ANSI_COLORS_DISABLED') is not None:
         #workaround to disable bold
         BOLD   = ''
@@ -120,7 +120,7 @@ class ConsoleApplication(Application):
     def check_loaded_backends(self, default_config=None):
         while len(self.enabled_backends) == 0:
             print('Warning: there is currently no configured backend for %s' % self.APPNAME)
-            if not os.isatty(self.stdout.fileno()) or not self.ask('Do you want to configure backends?', default=True):
+            if not self.stdout.isatty() or not self.ask('Do you want to configure backends?', default=True):
                 return False
 
             self.prompt_create_backends(default_config)

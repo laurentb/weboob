@@ -84,7 +84,7 @@ class IFormatter(object):
     NC = ConsoleApplication.NC
 
     def colored(self, string, color, attrs=None, on_color=None):
-        if self.outfile != sys.stdout or not (os.isatty(self.outfile.fileno())):
+        if self.outfile != sys.stdout or not self.outfile.isatty():
             return string
 
         if isinstance(attrs, basestring):
@@ -100,7 +100,7 @@ class IFormatter(object):
         self.outfile = outfile
         # XXX if stdin is not a tty, it seems that the command fails.
 
-        if os.isatty(sys.stdout.fileno()) and os.isatty(sys.stdin.fileno()):
+        if sys.stdout.isatty() and sys.stdin.isatty():
             if sys.platform == 'win32':
                 self.termrows = WConio.gettextinfo()[8]
             else:

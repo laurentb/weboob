@@ -105,7 +105,7 @@ class Pastoob(ReplApplication):
             output.write(paste.contents)
             # add a newline unless we are writing
             # in a file or in a pipe
-            if os.isatty(output.fileno()):
+            if output.isatty():
                 output.write('\n')
 
     def do_post(self, line):

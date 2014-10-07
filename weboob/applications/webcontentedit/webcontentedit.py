@@ -197,5 +197,5 @@ class WebContentEdit(ReplApplication):
 
         # add a newline unless we are writing
         # in a file or in a pipe
-        if os.isatty(output.fileno()):
+        if output.isatty():
             output.write('\n')

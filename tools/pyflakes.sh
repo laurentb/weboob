@@ -8,9 +8,10 @@ grep -Fn '.setlocale' ${PYFILES} && echo 'Error: do not use setlocale' && exit 5
 grep -Fn '__future__ import with_statement' ${PYFILES} && echo 'Error: with_statement useless as we do not support Python 2.5' &&  exit 6
 grep -nE '^[[:space:]]+except [[:alnum:] ]+,[[:alnum:] ]+' ${PYFILES} && echo 'Error: use new "as" way of naming exceptions' && exit 7
 grep -nE "^ *print " ${PYFILES} && echo 'Error: Use the print function' && exit 8
-grep -Fn ".has_key" ${PYFILES} && echo 'Error: Deprecated, use in' && exit 9
+grep -Fn ".has_key" ${PYFILES} && echo 'Error: Deprecated, use operator "in"' && exit 9
+grep -Fn "os.isatty" ${PYFILES} && echo 'Error: Use stream.isatty() instead of os.isatty(stream.fileno())' && exit 10
 MODULE_FILES=$(git ls-files|grep '^modules/.*\.py$'|tr '\n' ' ')
-grep -nE "^ *print(\(| )" ${MODULE_FILES} && echo 'Error: Use of print in modules is forbidden, use logger instead' && exit 10
+grep -nE "^ *print(\(| )" ${MODULE_FILES} && echo 'Error: Use of print in modules is forbidden, use logger instead' && exit 20
 
 FLAKE8=""
 if which flake8 >/dev/null 2>&1; then
