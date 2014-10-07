@@ -649,7 +649,8 @@ class PagesBrowser(DomainBrowser):
         ...     list = URL('/~rom1/projects/weboob/list-(?P<pagenum>\d+).html', Page)
         ...
         >>> b = Browser()
-        >>> b.list.go(pagenum=1)
+        >>> b.list.go(pagenum=1) # doctest: +ELLIPSIS
+        <weboob.browser.browsers.Page object at 0x...>
         >>> list(b.pagination(lambda: b.page.iter_values()))
         ['One', 'Two', 'Three', 'Four']
         """

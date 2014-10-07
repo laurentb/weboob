@@ -54,7 +54,8 @@ def pagination(func):
     ...     list = URL('/~rom1/projects/weboob/list-(?P<pagenum>\d+).html', Page)
     ...
     >>> b = Browser()
-    >>> b.list.go(pagenum=1)
+    >>> b.list.go(pagenum=1) # doctest: +ELLIPSIS
+    <weboob.browser.pages.Page object at 0x...>
     >>> list(b.page.iter_values())
     ['One', 'Two', 'Three', 'Four']
     """
