@@ -107,6 +107,6 @@ class TransactionsPage(Page):
                 continue
 
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
-            t.amount = Decimal(div.xpath('.//span')[-1].text.strip().replace(' ', '').replace(',', ''))
+            t.amount = Decimal(div.xpath('.//span')[-1].text.strip().replace(' ', '').replace(u'\xa0', '').replace(',', ''))
 
             yield t
