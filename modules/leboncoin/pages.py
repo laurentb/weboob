@@ -46,7 +46,7 @@ class HousingListPage(HTMLPage):
         return self.find_select_value(asked_area, '//select[@id="sqe"]/option')
 
     def get_rooms_min(self, asked_rooms):
-        return self.find_select_value(asked_rooms, '//select[@id="ros"]/option')
+        return self.find_select_value(asked_rooms, '//select[@id="rooms_ros"]/option')
 
     # def get_rooms_max(self, asked_rooms):
     #     return self.find_select_value(asked_rooms, '//select[@id="roe"]/option')
