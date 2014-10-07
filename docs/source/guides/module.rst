@@ -421,7 +421,7 @@ To try running test of your module, launch::
 
     $ tools/run_tests.sh example
 
-For more informations, look at the :doc:`tests` guides.
+For more information, look at the :doc:`tests` guides.
 
 Advanced topics
 ***************
@@ -468,7 +468,7 @@ Here, when the application has got a :class:`Video <weboob.capabilities.video.Ba
 :func:`search_videos <weboob.capabilities.video.CapVideo.search_videos>`, in most cases, there are only some meta-data, but not the direct link to the video media.
 
 As our method :func:`get_video <weboob.capabilities.video.CapVideo.get_video>` will get all
-of the missing informations, we just call it with the object as parameter to complete it.
+of the missing data, we just call it with the object as parameter to complete it.
 
 
 Storage

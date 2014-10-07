@@ -95,7 +95,7 @@ class _Filter(object):
 
 def debug(*args):
     """
-    A decorator function to provide some debugs informations
+    A decorator function to provide some debug information
     in Filters.
     It prints by default the name of the Filter and the input value.
     """
