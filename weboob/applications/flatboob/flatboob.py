@@ -34,6 +34,10 @@ class HousingFormatter(IFormatter):
     def format_obj(self, obj, alias):
         result = u'%s%s%s\n' % (self.BOLD, obj.title, self.NC)
         result += 'ID: %s\n' % obj.fullid
+
+        if hasattr(obj, 'url') and obj.url:
+            result += 'URL: %s\n' % obj.url
+
         result += 'Cost: %s%s\n' % (obj.cost, obj.currency)
         result += u'Area: %sm²\n' % (obj.area)
         if obj.date:
@@ -56,6 +60,7 @@ class HousingFormatter(IFormatter):
             result += '\n\n%sDetails%s\n' % (self.BOLD, self.NC)
             for key, value in obj.details.iteritems():
                 result += ' %s: %s\n' % (key, value)
+
         return result
 
 
