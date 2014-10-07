@@ -21,7 +21,7 @@ from __future__ import print_function
 
 import sys
 from collections import defaultdict
-from logging import Filter, Formatter, getLogger as _getLogger
+from logging import addLevelName, Formatter, getLogger as _getLogger
 
 __all__ = ['getLogger', 'createColoredFormatter', 'settings']
 
@@ -35,7 +35,11 @@ COLORS = {
     'WARNING': COLOR_SEQ % "\033[1;33m",
     'ERROR': COLOR_SEQ % "\033[1;31m",
     'CRITICAL': COLOR_SEQ % ("\033[1;33m\033[1;41m"),
+    'DEBUG_FILTERS': COLOR_SEQ % "\033[0;35m",
 }
+
+DEBUG_FILTERS = 8
+addLevelName(DEBUG_FILTERS, 'DEBUG_FILTERS')
 
 
 # Global settings f logger.
@@ -48,16 +52,6 @@ def getLogger(name, parent=None):
     logger = _getLogger(name)
     logger.settings = settings
     return logger
-
-
-class DebugFilter(Filter):
-    """
-    Allow a fine filtering of debug output
-    """
-    def filter(self, record):
-        if record.name == "b2filters":
-            return False
-        return True
 
 
 class ColoredFormatter(Formatter):

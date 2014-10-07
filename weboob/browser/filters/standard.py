@@ -30,7 +30,7 @@ from weboob.capabilities.base import empty
 from weboob.tools.compat import basestring
 from weboob.exceptions import ParseError
 from weboob.browser.url import URL
-from weboob.tools.log import getLogger
+from weboob.tools.log import getLogger, DEBUG_FILTERS
 
 class NoDefault(object):
     def __repr__(self):
@@ -130,7 +130,7 @@ def debug(*args):
                     continue
                 result += ", %s=%r" % (arg, getattr(self, arg))
             result += u')'
-            logger.debug(result)
+            logger.log(DEBUG_FILTERS, result)
             res = function(self, value)
             return res
         return print_debug

@@ -33,7 +33,7 @@ from weboob.core import Weboob, CallErrors
 from weboob.core.backendscfg import BackendsConfig
 from weboob.tools.config.iconfig import ConfigError
 from weboob.exceptions import FormFieldConversionWarning
-from weboob.tools.log import createColoredFormatter, getLogger, DebugFilter, settings as log_settings
+from weboob.tools.log import createColoredFormatter, getLogger, DEBUG_FILTERS, settings as log_settings
 from weboob.tools.misc import to_unicode
 from .results import ResultsConditionError
 
@@ -314,7 +314,7 @@ class Application(object):
             return False
 
         print(u'Error(%s): %s' % (backend.name, error), file=self.stderr)
-        if logging.root.level == logging.DEBUG:
+        if logging.root.level <= logging.DEBUG:
             print(backtrace, file=self.stderr)
         else:
             return True
@@ -354,7 +354,9 @@ class Application(object):
             print(' '.join(items))
             sys.exit(0)
 
-        if self.options.debug or self.options.save_responses:
+        if self.options.debug >= self.DEBUG_FILTER:
+            level = DEBUG_FILTERS
+        elif self.options.debug or self.options.save_responses:
             level = logging.DEBUG
         elif self.options.verbose:
             level = logging.INFO
@@ -390,10 +392,6 @@ class Application(object):
 
         self._handle_options()
         self.handle_application_options()
-
-        if self.options.debug < self.DEBUG_FILTER:
-            for handler in handlers:
-                handler.addFilter(DebugFilter())
 
         return args
 

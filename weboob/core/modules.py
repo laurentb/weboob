@@ -148,7 +148,7 @@ class ModulesLoader(object):
                 if fp:
                     fp.close()
         except Exception as e:
-            if logging.root.level == logging.DEBUG:
+            if logging.root.level <= logging.DEBUG:
                 self.logger.exception(e)
             raise ModuleLoadError(module_name, e)
 

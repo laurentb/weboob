@@ -145,7 +145,7 @@ class MainWindow(QtMainWindow):
     def _errorLoadPage(self, backend, error, backtrace):
         """ Error callback for loadPage """
         content = unicode(self.tr('Unable to load page:\n%s\n')) % to_unicode(error)
-        if logging.root.level == logging.DEBUG:
+        if logging.root.level <= logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while loading page'),
                              content, QMessageBox.Ok)
@@ -186,7 +186,7 @@ class MainWindow(QtMainWindow):
     def _errorSavePage(self, backend, error, backtrace):
         """ """
         content = unicode(self.tr('Unable to save page:\n%s\n')) % to_unicode(error)
-        if logging.root.level == logging.DEBUG:
+        if logging.root.level <= logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while saving page'),
                              content, QMessageBox.Ok)
@@ -264,7 +264,7 @@ class MainWindow(QtMainWindow):
             return
 
         content = unicode(self.tr('Unable to load history:\n%s\n')) % to_unicode(error)
-        if logging.root.level == logging.DEBUG:
+        if logging.root.level <= logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while loading history'),
                              content, QMessageBox.Ok)

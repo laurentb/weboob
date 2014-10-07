@@ -21,7 +21,7 @@ import re
 import sys
 from copy import deepcopy
 
-from weboob.tools.log import getLogger
+from weboob.tools.log import getLogger, DEBUG_FILTERS
 from weboob.tools.ordereddict import OrderedDict
 from weboob.browser.pages import NextPage
 
@@ -270,7 +270,7 @@ class ItemElement(AbstractElement):
             self.logger.warning('Attribute %s raises %s' % (key, repr(e)))
             raise
         logger = getLogger('b2filters')
-        logger.debug("%s.%s = %r" % (self._random_id, key, value))
+        logger.log(DEBUG_FILTERS, "%s.%s = %r" % (self._random_id, key, value))
         setattr(self.obj, key, value)
 
 

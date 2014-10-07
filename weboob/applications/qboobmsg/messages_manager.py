@@ -273,7 +273,7 @@ class MessagesManager(QWidget):
 
     def _postReply_eb(self, backend, error, backtrace):
         content = unicode(self.tr('Unable to send message:\n%s\n')) % to_unicode(error)
-        if logging.root.level == logging.DEBUG:
+        if logging.root.level <= logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while posting reply'),
                              content, QMessageBox.Ok)

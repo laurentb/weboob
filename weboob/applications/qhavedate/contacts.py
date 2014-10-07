@@ -193,7 +193,7 @@ class ContactThread(QWidget):
 
     def _postReply_eb(self, backend, error, backtrace):
         content = unicode(self.tr('Unable to send message:\n%s\n')) % to_unicode(error)
-        if logging.root.level == logging.DEBUG:
+        if logging.root.level <= logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while posting reply'),
                              content, QMessageBox.Ok)
@@ -378,7 +378,7 @@ class ContactNotes(QWidget):
         self.ui.textEdit.setEnabled(True)
         self.ui.saveButton.setEnabled(True)
         content = unicode(self.tr('Unable to load notes:\n%s\n')) % to_unicode(error)
-        if logging.root.level == logging.DEBUG:
+        if logging.root.level <= logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
             QMessageBox.critical(self, self.tr('Error while loading notes'),
             content, QMessageBox.Ok)
@@ -400,7 +400,7 @@ class ContactNotes(QWidget):
         self.ui.saveButton.setEnabled(True)
         self.ui.textEdit.setEnabled(True)
         content = unicode(self.tr('Unable to save notes:\n%s\n')) % to_unicode(error)
-        if logging.root.level == logging.DEBUG:
+        if logging.root.level <= logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
             QMessageBox.critical(self, self.tr('Error while saving notes'),
             content, QMessageBox.Ok)
@@ -592,7 +592,7 @@ class ContactsWidget(QWidget):
 
     def retrieveContact_eb(self, backend, error, backtrace):
         content = unicode(self.tr('Unable to get contact:\n%s\n')) % to_unicode(error)
-        if logging.root.level == logging.DEBUG:
+        if logging.root.level <= logging.DEBUG:
             content += u'\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while getting contact'),
                              content, QMessageBox.Ok)

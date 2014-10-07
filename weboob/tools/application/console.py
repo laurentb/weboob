@@ -572,7 +572,7 @@ class ConsoleApplication(Application):
                     print('New version of module %s has been installed. Retry to call the command.' % minfo.name)
                     return
 
-            if logging.root.level == logging.DEBUG:
+            if logging.root.level <= logging.DEBUG:
                 print(backtrace, file=self.stderr)
             else:
                 return True

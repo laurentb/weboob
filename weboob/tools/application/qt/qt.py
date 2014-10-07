@@ -223,7 +223,7 @@ class QtDo(QObject):
         elif isinstance(error, UserError):
             if not msg:
                 msg = type(error).__name__
-        elif logging.root.level == logging.DEBUG:
+        elif logging.root.level <= logging.DEBUG:
             msg += u'<br />'
             ul_opened = False
             for line in backtrace.split('\n'):

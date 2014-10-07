@@ -206,7 +206,7 @@ class StandardBrowser(mechanize.Browser):
             # display messages from httplib
             self.set_debug_http(True)
 
-        if logging.root.level == logging.DEBUG:
+        if logging.root.level <= logging.DEBUG:
             # Enable log messages from mechanize.Browser
             self.set_debug_redirects(True)
             mech_logger = logging.getLogger("mechanize")
