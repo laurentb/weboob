@@ -19,7 +19,7 @@
 from decimal import Decimal
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env, DateTime
+from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env, DateTime, BrowserURL
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.housing import City, Housing, HousingPhoto
 from datetime import date, timedelta
@@ -145,6 +145,7 @@ class HousingPage(HTMLPage):
         obj_location = Env('location')
         obj_details = Env('details')
         obj_area = Env('area')
+        obj_url = BrowserURL('housing', _id=Env('_id'))
 
         def obj_date(self):
             _date = Regexp(CleanText('//div[@class="upload_by"]', replace=[(u'à', '')]),
