@@ -184,7 +184,7 @@ class WebNip(object):
         """
         return len(self.backend_instances)
 
-    def iter_backends(self, caps=None):
+    def iter_backends(self, caps=None, module=None):
         """
         Iter on each backends.
 
@@ -192,10 +192,13 @@ class WebNip(object):
 
         :param caps: optional list of capabilities to select backends
         :type caps: tuple[:class:`weboob.capabilities.base.Capability`]
+        :param module: optional name of module
+        :type module: :class:`basestring`
         :rtype: iter[:class:`weboob.tools.backend.Module`]
         """
         for _, backend in sorted(self.backend_instances.iteritems()):
-            if caps is None or backend.has_caps(caps):
+            if caps is None or backend.has_caps(caps) and \
+               module is None or backend.NAME == module:
                 with backend:
                     yield backend
 

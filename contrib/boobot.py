@@ -173,7 +173,7 @@ class MyThread(Thread):
     def check_twitter(self):
         nb_tweets = 10
 
-        for _, backend in self.weboob.load_backends(modules=['twitter']).iteritems():
+        for backend in self.weboob.iter_backends(module='twitter'):
             for thread in list(itertools.islice(backend.iter_resources(None, ['search', 'weboob']),
                                                 0,
                                                 nb_tweets)):
