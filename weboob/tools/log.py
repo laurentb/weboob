@@ -30,7 +30,7 @@ RESET_SEQ = "\033[0m"
 COLOR_SEQ = "%s%%s" + RESET_SEQ
 
 COLORS = {
-    'DEBUG': COLOR_SEQ % "\033[1;36m",
+    'DEBUG': COLOR_SEQ % "\033[0;36m",
     'INFO': COLOR_SEQ % "\033[32m",
     'WARNING': COLOR_SEQ % "\033[1;33m",
     'ERROR': COLOR_SEQ % "\033[1;31m",
