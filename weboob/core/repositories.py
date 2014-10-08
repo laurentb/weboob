@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2012 Romain Bignon, Laurent Bachelier
+# Copyright(C) 2010-2014 Romain Bignon, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -39,10 +39,6 @@ try:
     from ConfigParser import RawConfigParser, DEFAULTSECT
 except ImportError:
     from configparser import RawConfigParser, DEFAULTSECT
-
-
-__all__ = ['IProgress', 'ModuleInstallError', 'ModuleInfo', 'RepositoryUnavailable',
-           'Repository', 'Versions', 'Repositories', 'InvalidSignature', 'Keyring']
 
 
 class ModuleInfo(object):
@@ -376,6 +372,16 @@ class Versions(object):
 
 class IProgress(object):
     def progress(self, percent, message):
+        raise NotImplementedError()
+
+    def error(self, message):
+        raise NotImplementedError()
+
+    def __repr__(self):
+        return '<%s>' % self.__class__.__name__
+
+class PrintProgress(IProgress):
+    def progress(self, percent, message):
         print('=== [%3.0f%%] %s' % (percent*100, message))
 
     def error(self, message):
@@ -546,7 +552,7 @@ class Repositories(object):
                     l.append(line)
         return l
 
-    def update_repositories(self, progress=IProgress()):
+    def update_repositories(self, progress=PrintProgress()):
         self.load_browser()
         """
         Update list of repositories by downloading them
@@ -594,7 +600,7 @@ class Repositories(object):
             l.append(repository)
         return True
 
-    def update(self, progress=IProgress()):
+    def update(self, progress=PrintProgress()):
         """
         Update repositories and install new packages versions.
 
@@ -608,7 +614,7 @@ class Repositories(object):
             if not info.is_local() and info.is_installed():
                 to_update.append(info)
 
-        class InstallProgress(IProgress):
+        class InstallProgress(PrintProgress):
             def __init__(self, n):
                 self.n = n
 
@@ -622,7 +628,7 @@ class Repositories(object):
             except ModuleInstallError as e:
                 inst_progress.progress(1.0, unicode(e))
 
-    def install(self, module, progress=IProgress()):
+    def install(self, module, progress=PrintProgress()):
         """
         Install a module.
 

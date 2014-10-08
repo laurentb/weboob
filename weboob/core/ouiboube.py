@@ -23,7 +23,7 @@ import os
 from weboob.core.bcall import BackendsCall
 from weboob.core.modules import ModulesLoader, RepositoryModulesLoader, ModuleLoadError
 from weboob.core.backendscfg import BackendsConfig
-from weboob.core.repositories import Repositories, IProgress
+from weboob.core.repositories import Repositories, PrintProgress
 from weboob.core.scheduler import Scheduler
 from weboob.tools.backend import Module
 from weboob.tools.config.iconfig import ConfigError
@@ -362,7 +362,7 @@ class Weboob(WebNip):
         elif not os.path.isdir(name):
             self.logger.error(u'"%s" is not a directory', name)
 
-    def update(self, progress=IProgress()):
+    def update(self, progress=PrintProgress()):
         """
         Update modules from repositories.
         """
