@@ -21,6 +21,8 @@ from __future__ import absolute_import
 
 import warnings
 from io import BytesIO
+import codecs
+from cgi import parse_header
 
 import requests
 
@@ -293,11 +295,46 @@ class HTMLPage(Page):
     """
 
     def __init__(self, browser, response, *args, **kwargs):
+        encoding = kwargs.pop('encoding', self.ENCODING or response.encoding)
+
         super(HTMLPage, self).__init__(browser, response, *args, **kwargs)
-        self.encoding = self.ENCODING or response.encoding
+
         import lxml.html as html
-        parser = html.HTMLParser(encoding=self.encoding)
-        self.doc = html.parse(BytesIO(response.content), parser)
+        ns = html.etree.FunctionNamespace(None)
+        self.define_xpath_functions(ns)
+        self.build_doc(encoding)
+        self.check_encoding()
+
+    def define_xpath_functions(self, ns):
+        ns['lower-case'] = lambda context, args: ' '.join([s.lower() for s in args])
+
+    def build_doc(self, encoding):
+        import lxml.html as html
+        parser = html.HTMLParser(encoding=encoding)
+        self.doc = html.parse(BytesIO(self.response.content), parser)
+        self.encoding = encoding
+
+    def check_encoding(self):
+        encoding = self.encoding
+        for content in self.doc.xpath('//head/meta[lower-case(@http-equiv)="content-type"]/@content'):
+            # meta http-equiv=content-type content=...
+            _, params = parse_header(content)
+            if 'charset' in params:
+                encoding = params['charset'].strip("'\"")
+
+        for charset in self.doc.xpath('//head/meta[@charset]/@charset'):
+            # meta charset=...
+            encoding = charset.lower()
+
+        if encoding == 'iso-8859-1' or not encoding:
+            encoding = 'windows-1252'
+        try:
+            codecs.lookup(encoding)
+        except LookupError:
+            encoding = 'windows-1252'
+
+        if encoding != self.encoding:
+            self.build_doc(encoding)
 
     def get_form(self, xpath='//form', name=None, nr=None, submit=None):
         """
