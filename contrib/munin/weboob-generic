@@ -276,7 +276,7 @@ class GenericMuninPlugin(object):
         self.weboob.load_backends(self.capa)
         self.write_output('graph_title %s' % self.title.encode('iso-8859-15'))
         self.write_output('graph_vlabel %s' % self.vlabel.encode('iso-8859-15'))
-        self.write_output('graph_category %s') % self.category
+        self.write_output('graph_category %s' % self.category)
         self.write_output('graph_args --rigid')
         if self.cumulate:
             self.write_output('graph_total Total')
