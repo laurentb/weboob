@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.deprecated.browser import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.messages import Message
 from .pages import LoginPage, LoginErrorPage, ThreadPage, Tweet, TrendsPage,\
     TimelinePage, HomeTimelinePage, SearchTimelinePage
