@@ -80,7 +80,7 @@ class CragrModule(Module, CapBank):
         }.iteritems())])
     CONFIG = BackendConfig(Value('website',  label=u'Région', choices=website_choices),
                            ValueBackendPassword('login',    label=u'N° de compte', masked=False),
-                           ValueBackendPassword('password', label=u'Code personnel'))
+                           ValueBackendPassword('password', label=u'Code personnel', regexp=r'\d{6}'))
     BROWSER = Cragr
 
     def create_default_browser(self):

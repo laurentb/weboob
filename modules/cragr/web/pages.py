@@ -42,9 +42,6 @@ class HomePage(Page):
 
 class LoginPage(Page):
     def login(self, password):
-        assert password.isdigit()
-        assert len(password) == 6
-
         imgmap = {}
         for td in self.document.xpath('//table[@id="pave-saisie-code"]/tr/td'):
             a = td.find('a')
