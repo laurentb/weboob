@@ -160,6 +160,12 @@ class WebNip(object):
 
         return unloaded
 
+    def __getitem__(self, name):
+        """
+        Alias for :func:`WebNip.get_backend`.
+        """
+        return self.get_backend(name)
+
     def get_backend(self, name, **kwargs):
         """
         Get a backend from its name.
