@@ -89,9 +89,21 @@ class NextPage(Exception):
 
 class Page(object):
     """
-    Base page.
+    Represents a page.
+
+    :param browser: browser used to go on the page
+    :type browser: :class:`weboob.browser.browsers.Browser`
+    :param response: response object
+    :type response: :class:`Response`
+    :param params: optional dictionary containing parameters given to the page (see :class:`weboob.browser.url.URL`)
+    :type params: :class:`dict`
     """
+
     logged = False
+    """
+    If True, the page is in a restrected area of the wesite. Useful with
+    :class:`LoginBrowser` and the :func:`need_login` decorator.
+    """
 
     def __init__(self, browser, response, params=None):
         self.browser = browser
@@ -128,9 +140,15 @@ class Form(OrderedDict):
     It is used as a dict with pre-filled values from HTML. You can set new
     values as strings by setting an item value.
 
-    submit_el allows you to only consider one submit button (which is what
-    browsers do). If set to None, it takes all of them, and if set to False,
-    it takes none.
+    It is recommended to not use this class by yourself, but call
+    :meth:`HTMLPage.get_form`.
+
+    :param page: the page where the form is located
+    :type page: :class:`Page`
+    :param el: the form element on the page
+    :param submit_el: allows you to only consider one submit button (which is
+                      what browsers do). If set to None, it takes all of them,
+                      and if set to False, it takes none.
     """
 
     def __init__(self, page, el, submit_el=None):
@@ -204,16 +222,35 @@ class Form(OrderedDict):
 
 
 class CsvPage(Page):
-    DIALECT = 'excel'
-    FMTPARAMS = {}
-    ENCODING = 'utf-8'
-    NEWLINES_HACK = True
+    """
+    Page which parses CSV files.
+    """
 
+    DIALECT = 'excel'
     """
-    If True, will consider the first line as a header.
-    This means the rows will be also available as dictionnaries.
+    Dialect given to the :mod:`csv` module.
     """
+
+    FMTPARAMS = {}
+    """
+    Parameters given to the :mod:`csv` module.
+    """
+
+    ENCODING = 'utf-8'
+    """
+    Encoding of the file.
+    """
+
+    NEWLINES_HACK = True
+    """
+    Convert all strange newlines to unix ones.
+    """
+
     HEADER = None
+    """
+    If not None, will consider the line represented by this index as a header.
+    This means the rows will be also available as dictionaries.
+    """
 
     def __init__(self, browser, response, *args, **kwargs):
         super(CsvPage, self).__init__(browser, response, *args, **kwargs)
@@ -228,6 +265,14 @@ class CsvPage(Page):
         self.doc = self.parse(fp, encoding)
 
     def parse(self, data, encoding=None):
+        """
+        Method called by the constructor of :class:`CsvPage` to parse the document.
+
+        :param data: file stream
+        :type data: :class:`BytesIO`
+        :param encoding: if given, use it to decode cell strings
+        :type encoding: :class:`str`
+        """
         import csv
         reader = csv.reader(data, dialect=self.DIALECT, **self.FMTPARAMS)
         header = None
@@ -246,9 +291,12 @@ class CsvPage(Page):
                     for i, cell in enumerate(row):
                         drow[header[i]] = cell
                     drows.append(drow)
-        return drows if header is not None else row
+        return drows if header is not None else rows
 
     def decode_row(self, row, encoding):
+        """
+        Method called by :meth:`CsvPage.parse` to decode a row using the given encoding.
+        """
         if encoding:
             return [unicode(cell, encoding) for cell in row]
         else:
@@ -256,6 +304,10 @@ class CsvPage(Page):
 
 
 class JsonPage(Page):
+    """
+    Json Page.
+    """
+
     def __init__(self, browser, response, *args, **kwargs):
         super(JsonPage, self).__init__(browser, response, *args, **kwargs)
         from weboob.tools.json import json
@@ -263,6 +315,10 @@ class JsonPage(Page):
 
 
 class XMLPage(Page):
+    """
+    XML Page.
+    """
+
     ENCODING = None
     """
     Force a page encoding.
@@ -277,6 +333,10 @@ class XMLPage(Page):
 
 
 class RawPage(Page):
+    """
+    Raw page where the "doc" attribute is the content string.
+    """
+
     def __init__(self, browser, response, *args, **kwargs):
         super(RawPage, self).__init__(browser, response, *args, **kwargs)
         self.doc = response.content
@@ -285,8 +345,22 @@ class RawPage(Page):
 class HTMLPage(Page):
     """
     HTML page.
+
+    :param browser: browser used to go on the page
+    :type browser: :class:`weboob.browser.browsers.Browser`
+    :param response: response object
+    :type response: :class:`Response`
+    :param params: optional dictionary containing parameters given to the page (see :class:`weboob.browser.url.URL`)
+    :type params: :class:`dict`
+    :param encoding: optional parameter to force the encoding of the page
+    :type encoding: :class:`basestring`
+
     """
+
     FORM_CLASS = Form
+    """
+    The class to instanciate when using :meth:`HTMLPage.get_form`. Default to :class:`Form`.
+    """
 
     ENCODING = None
     """
@@ -294,27 +368,48 @@ class HTMLPage(Page):
     It is recommended to use None for autodetection.
     """
 
-    def __init__(self, browser, response, *args, **kwargs):
-        encoding = kwargs.pop('encoding', self.ENCODING or response.encoding)
+    def __init__(self, *args, **kwargs):
+        encoding = kwargs.pop('encoding', self.ENCODING)
 
-        super(HTMLPage, self).__init__(browser, response, *args, **kwargs)
+        super(HTMLPage, self).__init__(*args, **kwargs)
+        self.doc = None
+        self.encoding = None
 
         import lxml.html as html
         ns = html.etree.FunctionNamespace(None)
         self.define_xpath_functions(ns)
         self.build_doc(encoding)
-        self.check_encoding()
+        if encoding is None:
+            self.check_encoding()
 
     def define_xpath_functions(self, ns):
+        """
+        Define XPath functions on the given lxml function namespace.
+
+        This method is called in constructor of :class:`HTMLPage` and can be
+        overloaded by children classes to add extra functions.
+        """
         ns['lower-case'] = lambda context, args: ' '.join([s.lower() for s in args])
 
-    def build_doc(self, encoding):
+    def build_doc(self, encoding=None):
+        """
+        Method to build the lxml document from response and given encoding.
+        """
+        if encoding is None:
+            encoding = self.response.encoding
+
         import lxml.html as html
         parser = html.HTMLParser(encoding=encoding)
         self.doc = html.parse(BytesIO(self.response.content), parser)
         self.encoding = encoding
+        return self.doc
 
     def check_encoding(self):
+        """
+        Check in the document the "http-equiv" and "charset" meta nodes. If the
+        specified charset isn't the one given by Content-Type HTTP header,
+        parse document again with the right encoding.
+        """
         encoding = self.encoding
         for content in self.doc.xpath('//head/meta[lower-case(@http-equiv)="content-type"]/@content'):
             # meta http-equiv=content-type content=...
