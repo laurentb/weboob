@@ -242,7 +242,7 @@ class Monboob(ReplApplication):
             content += u'\n\t%s\n' % to_unicode(e)
             if logging.root.level <= logging.DEBUG:
                 content += u'\n%s\n' % to_unicode(get_backtrace(e))
-            self.send_email(backend, Message(thread,
+            self.send_email(backend.name, Message(thread,
                                              0,
                                              title='Unable to send message',
                                              sender='Monboob',
@@ -269,25 +269,25 @@ class Monboob(ReplApplication):
     def process(self):
         try:
             for backend, message in self.weboob.do('iter_unread_messages'):
-                if self.send_email(backend, message):
+                if self.send_email(message.backend, message):
                     backend.set_message_read(message)
         except CallErrors as e:
             self.bcall_errors_handler(e)
 
-    def send_email(self, backend, mail):
+    def send_email(self, backend_name, mail):
         domain = self.config.get('domain')
         recipient = self.config.get('recipient')
 
         reply_id = ''
         if mail.parent:
-            reply_id = u'<%s.%s@%s>' % (backend.name, mail.parent.full_id, domain)
+            reply_id = u'<%s.%s@%s>' % (backend_name, mail.parent.full_id, domain)
         subject = mail.title
         sender = u'"%s" <%s@%s>' % (mail.sender.replace('"', '""') if mail.sender else '',
-                                    backend.name, domain)
+                                    backend_name, domain)
 
         # assume that .date is an UTC datetime
         date = formatdate(time.mktime(utc2local(mail.date).timetuple()), localtime=True)
-        msg_id = u'<%s.%s@%s>' % (backend.name, mail.full_id, domain)
+        msg_id = u'<%s.%s@%s>' % (backend_name, mail.full_id, domain)
 
         if self.config.get('html') and mail.flags & mail.IS_HTML:
             body = mail.content
