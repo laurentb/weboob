@@ -23,13 +23,27 @@ __all__ = ['html2text']
 
 
 try:
-    import html2text as h2t
-    h2t.UNICODE_SNOB = 1
-    h2t.SKIP_INTERNAL_LINKS = True
-    h2t.INLINE_LINKS = False
-    h2t.LINKS_EACH_PARAGRAPH = True
-    html2text = h2t.html2text
-except ImportError:
+    from html2text import HTML2Text
+
     def html2text(html):
-        warnings.warn('python-html2text is not present. HTML pages are not converted into text.', stacklevel=2)
-        return html
+        h = HTML2Text()
+        h.unicode_snob = True
+        h.skip_internal_links = True
+        h.inline_links = False
+        h.links_each_paragraph = True
+        return unicode(h.handle(html))
+
+except ImportError:
+    # Older versions of html2text do not have a class, so we have
+    # to configure the module globally.
+    try:
+        import html2text as h2t
+        h2t.UNICODE_SNOB = 1
+        h2t.SKIP_INTERNAL_LINKS = True
+        h2t.INLINE_LINKS = False
+        h2t.LINKS_EACH_PARAGRAPH = True
+        html2text = h2t.html2text
+    except ImportError:
+        def html2text(html):
+            warnings.warn('python-html2text is not present. HTML pages are not converted into text.', stacklevel=2)
+            return html
