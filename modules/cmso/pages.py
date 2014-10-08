@@ -45,7 +45,7 @@ class AccountsPage(Page):
             while account.id in names:
                 account.id = account.id + '1'
             names.add(account.id)
-            account.balance = Decimal(li.cssselect('p.row-right')[0].text.strip().replace(' ', '').replace(',', ''))
+            account.balance = Decimal(li.cssselect('p.row-right')[0].text.strip().replace(' ', '').replace(u'\xa0', '').replace(',', ''))
             account._link = li.attrib['href']
             yield account
 
