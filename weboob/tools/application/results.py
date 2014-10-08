@@ -69,7 +69,15 @@ class ResultsCondition(IResultsCondition):
     # =, != for strings
     # We build a list of list. Return true if each conditions of one list is TRUE
     def __init__(self, condition_str):
+        self.limit = None
         or_list = []
+        _condition_str = condition_str.split(' LIMIT ')
+        if len(_condition_str) == 2:
+            try:
+                self.limit = int(_condition_str[1])
+            except ValueError:
+                raise ResultsConditionError(u'Syntax error in the condition expression, please check documentation')
+        condition_str= _condition_str[0]
         for _or in condition_str.split(' OR '):
             and_list = []
             for _and in _or.split(' AND '):

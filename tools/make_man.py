@@ -166,7 +166,7 @@ def analyze_application(app, script_name):
                                         script_name, app.VERSION.replace('.', '\\&.'))
     name = ".SH NAME\n%s \- %s" % (script_name, application.SHORT_DESCRIPTION)
     condition = """.SH CONDITION
-The \-c and \-\-condition is a flexible way to sort and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY\-MM\-DD format.
+The \-c and \-\-condition is a flexible way to sort and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY\-MM\-DD or YYYY\-MM\-DD HH:MM format.
 The syntax of one expression is "\\fBfield operator value\\fR". The field to test is always the left member of the expression.
 .LP
 The field is a member of the objects returned by the command. For example, a bank account has "balance", "coming" or "label" fields.
@@ -187,8 +187,10 @@ Test if object.field is less than the value. If object.field is date, return tru
 |
 This operator is available only for string fields. It works like the Unix standard \\fBgrep\\fR command, and returns True if the pattern specified in the value is in object.field.
 .SS Expression combination
-You can make a expression combinations with the keywords \\fB" AND "\\fR and \\fB" OR "\\fR.
-
+.LP
+You can make a expression combinations with the keywords \\fB" AND "\\fR, \\fB" OR "\\fR an \\fB" LIMIT "\\fR.
+.LP
+The \\fBLIMIT\\fR keyword can be used to limit the number of items upon which running the expression. \\fBLIMIT\\fR can only be placed at the end of the expression followed by the number of elements you want.
 .SS Examples:
 .nf
 .B boobank ls \-\-condition 'label=Livret A'
@@ -209,6 +211,11 @@ Get transactions containing "rewe".
 .B boobank history account@backend \-\-condition 'date>2013\-12\-01 AND date<2013\-12\-09'
 .fi
 Get transactions betweens the 2th December and 8th December 2013.
+.PP
+.nf
+.B boobank history account@backend \-\-condition 'date>2013\-12\-01  LIMIT 10'
+.fi
+Get transactions after the 2th December in the last 10 transactions
 """
     footer = """.SH COPYRIGHT
 %s

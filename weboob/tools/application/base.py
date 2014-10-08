@@ -278,8 +278,13 @@ class Application(object):
 
     def _do_complete_iter(self, backend, count, fields, res):
         modif = 0
+
         for i, sub in enumerate(res):
             sub = self._do_complete_obj(backend, fields, sub)
+            if self.condition and self.condition.limit and \
+               self.condition.limit == i:
+                   return
+
             if self.condition and not self.condition.is_valid(sub):
                 modif += 1
             else:
