@@ -63,6 +63,7 @@ class Housing(BaseObject):
     details =       Field('Key/values of details', dict)
     url =           StringField('Url of the the advert')
 
+
 class Query(BaseObject):
     """
     Query to find housings.
