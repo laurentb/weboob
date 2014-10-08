@@ -280,13 +280,13 @@ class Boobmsg(ReplApplication):
             backend_name = None
 
         results = {}
-        for backend, field in self.do('get_account_status',
+        for useless, field in self.do('get_account_status',
                                       backends=backend_name,
                                       caps=CapAccount):
-            if backend.name in results:
-                results[backend.name].append(field)
+            if field.backend in results:
+                results[field.backend].append(field)
             else:
-                results[backend.name] = [field]
+                results[field.backend] = [field]
 
         for name, fields in results.iteritems():
             print(':: %s ::' % name)
