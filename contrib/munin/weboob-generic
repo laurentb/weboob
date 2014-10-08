@@ -91,7 +91,7 @@ import time
 import logging
 from weboob.capabilities.base import NotAvailable
 from weboob.core import Weboob, CallErrors
-from weboob.tools.browser import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword
 
 
 class GenericMuninPlugin(object):

@@ -26,7 +26,7 @@ import time
 import logging
 from weboob.core import Weboob, CallErrors
 from weboob.capabilities.bank import CapBank
-from weboob.tools.browser import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword
 
 class BoobankMuninPlugin(object):
     def __init__(self):
