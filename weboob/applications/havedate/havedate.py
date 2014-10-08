@@ -132,7 +132,7 @@ class HaveDate(Boobmsg):
                 if store:
                     storage_optim = set(self.storage.get('optims', optim_name, default=[]))
                 self.stdout.write('%sing %s:' % (function.capitalize(), optim_name))
-                for backend, optim in self.do('get_optimization', optim_name, backends=backend_names):
+                for useless, optim in self.do('get_optimization', optim_name, backends=backend_names):
                     if optim:
                         # It's useless to start a started optim, or to stop a stopped one.
                         if (function == 'start' and optim.is_running()) or \
@@ -141,19 +141,19 @@ class HaveDate(Boobmsg):
 
                         # Optim is not configured and would be, ask user to do it.
                         if function == 'start' and len(optim.CONFIG) > 0 and optim.get_config() is None:
-                            self.edit_optims(backend.name, optim_name)
+                            self.edit_optims(optim.backend, optim_name)
 
                         ret = getattr(optim, function)()
-                        self.stdout.write(' ' + backend.name)
+                        self.stdout.write(' ' + optim.backend)
                         if not ret:
                             self.stdout.write('(failed)')
                         self.stdout.flush()
                         if store:
                             if function == 'start' and ret:
-                                storage_optim.add(backend.name)
+                                storage_optim.add(optim.backend)
                             elif function == 'stop':
                                 try:
-                                    storage_optim.remove(backend.name)
+                                    storage_optim.remove(optim.backend)
                                 except KeyError:
                                     pass
                 self.stdout.write('.\n')
