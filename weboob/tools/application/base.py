@@ -164,7 +164,7 @@ class Application(object):
         self._parser.add_option('-e', '--exclude-backends', help='what backend(s) to exclude (comma separated)')
         self._parser.add_option('-I', '--insecure', action='store_true', help='do not validate SSL')
         logging_options = OptionGroup(self._parser, 'Logging Options')
-        logging_options.add_option('-d', '--debug', action='count', help='display debug messages')
+        logging_options.add_option('-d', '--debug', action='count', help='display debug messages. Set up it twice to more verbosity')
         logging_options.add_option('-q', '--quiet', action='store_true', help='display only error messages')
         logging_options.add_option('-v', '--verbose', action='store_true', help='display info messages')
         logging_options.add_option('--logging-file', action='store', type='string', dest='logging_file', help='file to save logs')
