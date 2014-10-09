@@ -18,8 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-from weboob.capabilities.housing import CapHousing, City, Housing, HousingPhoto
+from weboob.capabilities.housing import CapHousing, Housing, HousingPhoto
 from weboob.tools.backend import Module
 
 from .browser import PapBrowser
@@ -38,41 +37,35 @@ class PapModule(Module, CapHousing):
     BROWSER = PapBrowser
 
     def search_housings(self, query):
-        cities = [c.id for c in query.cities if c.backend == self.name]
+        cities = ['%s' % c.id for c in query.cities if c.backend == self.name]
         if len(cities) == 0:
             return list()
 
-        with self.browser:
-            return self.browser.search_housings(query.type, cities, query.nb_rooms,
-                                                query.area_min, query.area_max,
-                                                query.cost_min, query.cost_max)
+        return self.browser.search_housings(query.type, cities, query.nb_rooms,
+                                            query.area_min, query.area_max,
+                                            query.cost_min, query.cost_max,
+                                            query.house_types)
 
     def get_housing(self, housing):
         if isinstance(housing, Housing):
             id = housing.id
         else:
             id = housing
+            housing = None
 
-        with self.browser:
-            return self.browser.get_housing(id)
+        return self.browser.get_housing(id, housing)
 
     def search_city(self, pattern):
-        with self.browser:
-            for city in self.browser.search_geo(pattern):
-                c = City(city['id'])
-                c.name = unicode(city['name'])
-                yield c
+        return self.browser.search_geo(pattern)
 
     def fill_housing(self, housing, fields):
-        with self.browser:
-            return self.browser.get_housing(housing.id)
+        return self.browser.get_housing(housing.id, housing)
 
     def fill_photo(self, photo, fields):
-        with self.browser:
-            if 'data' in fields and photo.url and not photo.data:
-                photo.data = self.browser.readurl(photo.url)
+        if 'data' in fields and photo.url and not photo.data:
+            photo.data = self.browser.readurl(photo.url)
         return photo
 
     OBJECTS = {Housing: fill_housing,
                HousingPhoto: fill_photo,
-              }
+               }

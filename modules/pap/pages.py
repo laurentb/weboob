@@ -18,105 +18,111 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
 from decimal import Decimal
-from dateutil.parser import parse as parse_date
 
-from weboob.deprecated.browser import Page
+from weboob.tools.date import parse_french_date
+from weboob.browser.pages import HTMLPage, JsonPage, pagination
+from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, BrowserURL, Format
+from weboob.browser.filters.html import Link, XPath, CleanHTML
+from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.housing import Housing
+from weboob.capabilities.housing import Housing, City, HousingPhoto
 
 
-class SearchResultsPage(Page):
-    DATE_RE = re.compile('Annonce \w+ du (.*)')
-    MONTHS = {u'janvier':   'january',
-              u'février':   'february',
-              u'mars':      'march',
-              u'avril':     'april',
-              u'mai':       'may',
-              u'juin':      'june',
-              u'juillet':   'july',
-              u'août':      'august',
-              u'septembre': 'september',
-              u'octobre':   'october',
-              u'novembre':  'november',
-              u'décembre':  'december',
-             }
-
-    def iter_housings(self):
-        for div in self.document.getroot().cssselect('div.annonce-resume'):
-            a = div.cssselect('td.lien-annonce')[0].find('a')
-            if a is None:
-                # not a real announce.
-                continue
-
-            id = a.attrib['href'].split('-')[-1]
-            housing = Housing(id)
-            housing.title = a.text.strip()
-            m = re.match('(\w+) (.+) (\d+)\xa0m\xb2 (.*)', housing.title)
-            if m:
-                housing.area = Decimal(m.group(3))
-
-            housing.cost = Decimal(div.cssselect('td.prix')[0].text.strip(u' \t\u20ac\xa0€\n\r').replace('.', '').replace(',', '.'))
-            housing.currency = u'€'
-
-            m = self.DATE_RE.match(div.cssselect('p.date-publication')[0].text.strip())
-            if m:
-                date = m.group(1)
-                for fr, en in self.MONTHS.iteritems():
-                    date = date.replace(fr, en)
-                housing.date = parse_date(date)
-
-            metro = div.cssselect('p.metro')
-            if len(metro) > 0:
-                housing.station = unicode(metro[0].text.strip())
-            else:
-                housing.station = NotAvailable
-
-            p = div.cssselect('p.annonce-resume-texte')[0]
-            b = p.findall('b')
-            if len(b) > 0:
-                housing.text = b[0].tail.strip()
-                housing.location = unicode(b[0].text)
-            else:
-                housing.text = p.text.strip()
-
-            housing.photos = NotAvailable
-
-            yield housing
-
-
-class HousingPage(Page):
-    def get_housing(self):
-        div = self.parser.select(self.document.getroot(), 'div#annonce_detail', 1)
-        housing = Housing(self.url.split('-')[-1])
-
-        parts = div.find('h1').text.split(' - ')
-        housing.title = parts[0].strip()
-        housing.cost = Decimal(parts[1].strip(u' \t\u20ac\xa0€\n\r').replace('.', '').replace(',', '.'))
-        housing.currency = u'€'
-
-        m = re.match('(\w+) (.+) (\d+)\xa0m\xb2 (.*)', housing.title)
-        if m:
-            housing.area = Decimal(m.group(3))
-
-        housing.date = housing.station = housing.location = housing.phone = NotAvailable
-
-        metro = div.cssselect('p.metro')
-        if len(metro) > 0:
-            housing.station = metro[0].text.strip()
-
-        p = div.cssselect('p.annonce-detail-texte')[0]
-        b = p.findall('b')
-        if len(b) > 0:
-            housing.text = b[0].tail.strip()
-            housing.location = unicode(b[0].text)
-            if len(b) > 1:
-                housing.phone = b[1].text
+class DictElement(ListElement):
+    def find_elements(self):
+        if self.item_xpath is not None:
+            for el in self.el:
+                yield el
         else:
-            housing.text = p.text.strip()
+            yield self.el
 
-        housing.details = NotAvailable
-        housing.photos = NotAvailable
 
-        return housing
+class CitiesPage(JsonPage):
+    @method
+    class iter_cities(DictElement):
+        item_xpath = '.'
+
+        class item(ItemElement):
+            klass = City
+
+            obj_id = Dict('id')
+            obj_name = Dict('name')
+
+
+class SearchResultsPage(HTMLPage):
+    @pagination
+    @method
+    class iter_housings(ListElement):
+        item_xpath = '//li[@class="annonce"]'
+
+        def next_page(self):
+            return Link('//ul[@class="pagination"]/li[@class="next"]/a')(self)
+
+        class item(ItemElement):
+            klass = Housing
+
+            obj_id = Regexp(Link('./div[@class="header-annonce"]/a'), '/annonces/(.*)')
+            obj_title = CleanText('./div[@class="header-annonce"]/a')
+            obj_area = CleanDecimal(Regexp(CleanText('./div[@class="header-annonce"]/a/span[@class="desc"]'),
+                                           '(.*?)(\d*) m\xb2(.*?)', '\\2'), default=NotAvailable)
+            obj_cost = CleanDecimal(CleanText('./div[@class="header-annonce"]/a/span[@class="prix"]'),
+                                    replace_dots=(',', '.'), default=Decimal(0))
+            obj_currency = Regexp(CleanText('./div[@class="header-annonce"]/a/span[@class="prix"]'),
+                                  '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+
+            def obj_date(self):
+                _date = CleanText('./div[@class="header-annonce"]/span[@class="date"]')(self)
+                return parse_french_date(_date)
+
+            obj_station = CleanText('./div/div/div[@cladd=metro]', default=NotAvailable)
+            obj_location = CleanText('./div[@class="clearfix"]/div/a/span/img/@alt')
+            obj_text = CleanText('./div[@class="clearfix"]/div[@class="description clearfix"]/p')
+
+            def obj_photos(self):
+                photos = []
+                for img in XPath('//div[@class="vignette-annonce"]/a/span/img/@src')(self):
+                    photos.append(HousingPhoto(u'%s' % img))
+                return photos
+
+
+class HousingPage(HTMLPage):
+    @method
+    class get_housing(ItemElement):
+        klass = Housing
+
+        obj_id = Env('_id')
+        obj_title = CleanText('//h1[@class="desc clearfix"]/span[@class="title"]')
+        obj_cost = CleanDecimal('//h1[@class="desc clearfix"]/span[@class="prix"]')
+        obj_currency = Regexp(CleanText('//h1[@class="desc clearfix"]/span[@class="prix"]'),
+                              '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+        obj_area = CleanDecimal(Regexp(CleanText('//h1[@class="desc clearfix"]/span[@class="title"]'),
+                                '(.*?)(\d*) m\xb2(.*?)', '\\2'), default=NotAvailable)
+        obj_location = CleanText('//div[@class="text-annonce"]/h2')
+        obj_text = CleanHTML('//div[@class="text-annonce"]/p')
+        obj_station = CleanText('//div[@class="metro"]')
+        obj_phone = CleanText('//span[@class="telephone hide-tel"]')
+        obj_url = BrowserURL('housing', _id=Env('_id'))
+
+        def obj_details(self):
+            details = dict()
+            for item in XPath('//div[@class="footer-descriptif"]/ul/li')(self):
+                key = CleanText('./span[@class="label"]')(item)
+                value = CleanText('.', replace=[(key, '')])(item)
+                if value and key:
+                    details[key] = value
+
+            key = CleanText('//div[@class="classe-energie-content"]/div/div/span')(self)
+            value = Format('%s(%s)', CleanText('//div[@class="classe-energie-content"]/div/div/p'),
+                           CleanText('//div[@class="classe-energie-content"]/div/@class',
+                                     replace=[('-', ' ')]))(self)
+            if value and key:
+                details[key] = value
+            return details
+
+        def obj_photos(self):
+            photos = []
+            for img in XPath('//div[@class="showcase-thumbnail"]/img/@src')(self):
+                photos.append(HousingPhoto(u'%s' % img))
+            return photos

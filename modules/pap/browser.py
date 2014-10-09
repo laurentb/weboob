@@ -20,35 +20,37 @@
 
 import urllib
 
-from weboob.tools.json import json
-
-from weboob.deprecated.browser import Browser
+from weboob.browser import PagesBrowser, URL
 from weboob.capabilities.housing import Query
 
-from .pages import SearchResultsPage, HousingPage
+from .pages import SearchResultsPage, HousingPage, CitiesPage
 
 
 __all__ = ['PapBrowser']
 
 
-class PapBrowser(Browser):
-    PROTOCOL = 'http'
-    DOMAIN = 'www.pap.fr'
-    ENCODING = 'utf-8'
-    PAGES = {
-         'http://www.pap.fr/annonce/.*':  SearchResultsPage,
-         'http://www.pap.fr/annonces/.*': HousingPage,
-        }
+class PapBrowser(PagesBrowser):
+
+    BASEURL = 'http://www.pap.fr'
+    search_page = URL('annonce/.*', SearchResultsPage)
+    housing = URL('annonces/(?P<_id>.*)', HousingPage)
+    cities = URL('index/ac-geo2\?q=(?P<pattern>.*)', CitiesPage)
 
     def search_geo(self, pattern):
-        fp = self.openurl(self.buildurl('http://www.pap.fr/index/ac-geo', q=pattern.encode('utf-8')))
-        return json.load(fp)
+        return self.cities.open(pattern=pattern).iter_cities()
 
     TYPES = {Query.TYPE_RENT: 'location',
-             Query.TYPE_SALE: 'vente',
-            }
+             Query.TYPE_SALE: 'vente'}
 
-    def search_housings(self, type, cities, nb_rooms, area_min, area_max, cost_min, cost_max):
+    RET = {Query.HOUSE_TYPES.HOUSE: 'maison',
+           Query.HOUSE_TYPES.APART: 'appartement',
+           Query.HOUSE_TYPES.LAND: 'terrain',
+           Query.HOUSE_TYPES.PARKING: 'garage-parking',
+           Query.HOUSE_TYPES.OTHER: 'divers'}
+
+    def search_housings(self, type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, house_types):
+        self.session.headers.update({'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'})
+
         data = {'geo_objets_ids': ','.join(cities),
                 'surface[min]':   area_min or '',
                 'surface[max]':   area_max or '',
@@ -57,21 +59,19 @@ class PapBrowser(Browser):
                 'produit':        self.TYPES.get(type, 'location'),
                 'recherche':      1,
                 'nb_resultats_par_page': 40,
-                'submit':         'rechercher',
-                'typesbien[]':    'appartement',
-               }
+                }
 
         if nb_rooms:
             data['nb_pieces[min]'] = nb_rooms
             data['nb_pieces[max]'] = nb_rooms
 
-        self.location('/annonce/', urllib.urlencode(data))
-        assert self.is_on_page(SearchResultsPage)
+        ret = []
+        for house_type in house_types:
+            if house_type in self.RET:
+                ret.append(self.RET.get(house_type))
 
-        return self.page.iter_housings()
+        _data = '%s%s%s' % (urllib.urlencode(data), '&typesbien%5B%5D=', '&typesbien%5B%5D='.join(ret))
+        return self.search_page.go(data=_data).iter_housings()
 
-    def get_housing(self, housing):
-        self.location('/annonces/%s' % urllib.quote(housing))
-
-        assert self.is_on_page(HousingPage)
-        return self.page.get_housing()
+    def get_housing(self, _id, housing=None):
+        return self.housing.go(_id=_id).get_housing(obj=housing)
