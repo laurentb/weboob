@@ -268,6 +268,8 @@ class Module(object):
         self.weboob = weboob
         self.name = name
         self.lock = RLock()
+        if config is None:
+            config = {}
 
         # Private fields (which start with '_')
         self._private_config = dict((key, value) for key, value in config.iteritems() if key.startswith('_'))
