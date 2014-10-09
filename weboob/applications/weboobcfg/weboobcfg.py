@@ -159,7 +159,7 @@ class WeboobCfg(ReplApplication):
 
         Enable a disabled backend
         """
-        self._do_toggle(name, 1)
+        return self._do_toggle(name, 1)
 
     def do_disable(self, name):
         """
@@ -167,7 +167,7 @@ class WeboobCfg(ReplApplication):
 
         Disable a backend
         """
-        self._do_toggle(name, 0)
+        return self._do_toggle(name, 0)
 
     def do_edit(self, line):
         """
