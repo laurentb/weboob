@@ -24,6 +24,7 @@ import re
 import unicodedata
 from decimal import Decimal, InvalidOperation
 from itertools import islice
+from collections import Iterator
 
 from dateutil.parser import parse as parse_date
 
@@ -472,7 +473,9 @@ class Field(_Filter):
 
 # Based on nth from https://docs.python.org/2/library/itertools.html
 def nth(iterable, n, default=None):
-    "Returns the nth item or a default value, n can be negative"
+    "Returns the nth item or a default value, n can be negative, or '*' for all"
+    if n == '*':
+        return iterable
     if n < 0:
         iterable = reversed(list(iterable))
         n = abs(n) - 1
@@ -480,7 +483,9 @@ def nth(iterable, n, default=None):
 
 
 def ordinal(n):
-    "To have some readable debug information: 0 => 1st, 1 => 2nd..."
+    "To have some readable debug information: '*' => all, 0 => 1st, 1 => 2nd..."
+    if n == '*':
+        return 'all'
     i = abs(n)
     n = n - 1 if n < 0 else n + 1
     return str(n) + ('th' if i > 2 else ['st', 'nd', 'rd'][i])
@@ -499,6 +504,8 @@ class Regexp(Filter):
     u'08'
     >>> (Regexp(CleanText('//body'), r'(\d+)', nth=-1))(doc)
     u'1988'
+    >>> (Regexp(CleanText('//body'), r'(\d+)', template='[\\1]', nth='*'))(doc)
+    [u'[13]', u'[08]', u'[1988]']
     """
 
     def __init__(self, selector=None, pattern=None, template=None, nth=0, flags=0, default=_NO_DEFAULT):
@@ -509,21 +516,26 @@ class Regexp(Filter):
         self.template = template
         self.nth = nth
 
+    def expand(self, m):
+        if self.template is None:
+            return next(g for g in m.groups() if g is not None)
+        return self.template(m) if callable(self.template) else m.expand(self.template)
+
     @debug()
     def filter(self, txt):
         if isinstance(txt, (tuple, list)):
             txt = u' '.join([t.strip() for t in txt.itertext()])
 
-        mobj = self._regex.search(txt) if self.nth == 0 else \
-               nth(self._regex.finditer(txt), self.nth)
-        if not mobj:
-            msg = 'Unable to match %s %s in %r' % (ordinal(self.nth), self.pattern, txt)
+        m = self._regex.search(txt) if self.nth == 0 else \
+            nth(self._regex.finditer(txt), self.nth)
+        if not m:
+            msg = 'Unable to find %s %s in %r' % (ordinal(self.nth), self.pattern, txt)
             return self.default_or_raise(RegexpError(msg))
 
-        if self.template is None:
-            return next(g for g in mobj.groups() if g is not None)
-        else:
-            return self.template(mobj) if callable(self.template) else mobj.expand(self.template)
+        if isinstance(m, Iterator):
+            return map(self.expand, m)
+
+        return self.expand(m)
 
 
 class Map(Filter):
