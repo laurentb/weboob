@@ -391,6 +391,36 @@ class HTMLPage(Page):
         """
         ns['lower-case'] = lambda context, args: ' '.join([s.lower() for s in args])
 
+        def has_class(context, *classes):
+            """
+            This lxml extension allows to select by CSS class more easily
+
+            >>> ns = html.etree.FunctionNamespace(None)
+            >>> ns['has-class'] = has_class
+            >>> root = html.etree.fromstring('''
+            ... <a>
+            ...     <b class="one first text">I</b>
+            ...     <b class="two text">LOVE</b>
+            ...     <b class="three text">CSS</b>
+            ... </a>
+            ... ''')
+
+            >>> len(root.xpath('//b[has-class("text")]'))
+            3
+            >>> len(root.xpath('//b[has-class("one")]'))
+            1
+            >>> len(root.xpath('//b[has-class("text", "first")]'))
+            1
+            >>> len(root.xpath('//b[not(has-class("first"))]'))
+            2
+            >>> len(root.xpath('//b[has-class("not-exists")]'))
+            0
+            """
+            expressions = ' and '.join(["contains(concat(' ', normalize-space(@class), ' '), ' {} ')".format(c) for c in classes])
+            xpath = 'self::*[@class and {}]'.format(expressions)
+            return bool(context.context_node.xpath(xpath))
+        ns['has-class'] = has_class
+
     def build_doc(self, encoding=None):
         """
         Method to build the lxml document from response and given encoding.
