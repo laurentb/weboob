@@ -442,6 +442,7 @@ class Currency(object):
                   u'USD': u'$',
                   u'GBP': u'£',
                   u'LBP': u'ل.ل',
+                  u'AED': u'AED',
                  }
 
     EXTRACTOR = re.compile(r'[\d\s,\.\-]', re.UNICODE)
