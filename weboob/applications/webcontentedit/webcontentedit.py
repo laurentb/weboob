@@ -51,7 +51,7 @@ class WebContentEdit(ReplApplication):
             _id, backend_name = self.parse_id(id, unique_backend=True)
             backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
 
-            contents += [content for backend, content in self.do('get_content', _id, backends=backend_names) if content]
+            contents += [content for content in self.do('get_content', _id, backends=backend_names) if content]
 
         if len(contents) == 0:
             print('No contents found', file=self.stderr)
@@ -159,7 +159,7 @@ class WebContentEdit(ReplApplication):
         _id = _id.encode('utf-8')
 
         self.start_format()
-        for backend, revision in self.do('iter_revisions', _id, backends=backend_names):
+        for revision in self.do('iter_revisions', _id, backends=backend_names):
             self.format(revision)
 
     def do_get(self, line):
@@ -192,7 +192,7 @@ class WebContentEdit(ReplApplication):
         _id = _id.encode('utf-8')
 
         output = codecs.getwriter(self.encoding)(self.stdout)
-        for contents in [content for backend, content in self.do('get_content', _id, revision, backends=backend_names) if content]:
+        for contents in [content for content in self.do('get_content', _id, revision, backends=backend_names) if content]:
             output.write(contents.content)
 
         # add a newline unless we are writing

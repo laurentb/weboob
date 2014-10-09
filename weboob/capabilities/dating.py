@@ -32,7 +32,7 @@ class OptimizationNotFound(UserError):
     """
 
 
-class Optimization(object):
+class Optimization(BaseObject):
     """
     Optimization.
 

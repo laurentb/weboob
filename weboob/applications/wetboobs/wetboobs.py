@@ -87,7 +87,7 @@ class WetBoobs(ReplApplication):
         """
         self.change_path(['cities'])
         self.start_format()
-        for backend, city in self.do('iter_city_search', pattern, caps=CapWeather):
+        for city in self.do('iter_city_search', pattern, caps=CapWeather):
             self.cached_format(city)
 
     def complete_current(self, text, line, *ignored):
@@ -111,7 +111,7 @@ class WetBoobs(ReplApplication):
             self.formatter.temperature_display = lambda t: t.asfahrenheit()
 
         self.start_format()
-        for backend, current in self.do('get_current', _id, backends=backend_name, caps=CapWeather):
+        for current in self.do('get_current', _id, backends=backend_name, caps=CapWeather):
             if current:
                 self.format(current)
 
@@ -136,5 +136,5 @@ class WetBoobs(ReplApplication):
             self.formatter.temperature_display = lambda t: t.asfahrenheit()
         self.start_format()
 
-        for backend, forecast in self.do('iter_forecast', _id, backends=backend_name, caps=CapWeather):
+        for forecast in self.do('iter_forecast', _id, backends=backend_name, caps=CapWeather):
             self.format(forecast)

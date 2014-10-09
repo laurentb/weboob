@@ -71,7 +71,7 @@ class Galleroob(ReplApplication):
             return 2
 
         self.start_format(pattern=pattern)
-        for backend, gallery in self.do('search_gallery', pattern=pattern):
+        for gallery in self.do('search_gallery', pattern=pattern):
             self.cached_format(gallery)
 
     def do_download(self, line):
@@ -91,16 +91,15 @@ class Galleroob(ReplApplication):
 
         gallery = None
         _id, backend = self.parse_id(_id)
-        for _backend, result in self.do('get_gallery', _id, backends=backend):
+        for result in self.do('get_gallery', _id, backends=backend):
             if result:
-                backend = _backend
                 gallery = result
 
         if not gallery:
             print('Gallery not found: %s' % _id, file=self.stderr)
             return 3
 
-        backend.fillobj(gallery, ('title',))
+        self.weboob[backend].fillobj(gallery, ('title',))
         if dest is None:
             dest = sub('/', ' ', gallery.title)
 
@@ -113,14 +112,14 @@ class Galleroob(ReplApplication):
         os.chdir(dest)  # fail here if dest couldn't be created
 
         i = 0
-        for img in backend.iter_gallery_images(gallery):
+        for img in self.weboob[backend].iter_gallery_images(gallery):
             i += 1
             if i < first:
                 continue
 
-            backend.fillobj(img, ('url', 'data'))
+            self.weboob[backend].fillobj(img, ('url', 'data'))
             if img.data is None:
-                backend.fillobj(img, ('url', 'data'))
+                self.weboob[backend].fillobj(img, ('url', 'data'))
                 if img.data is None:
                     print("Couldn't get page %d, exiting" % i, file=self.stderr)
                     break

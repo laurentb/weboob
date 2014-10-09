@@ -268,9 +268,9 @@ class Monboob(ReplApplication):
 
     def process(self):
         try:
-            for backend, message in self.weboob.do('iter_unread_messages'):
+            for message in self.weboob.do('iter_unread_messages'):
                 if self.send_email(message.backend, message):
-                    backend.set_message_read(message)
+                    self.weboob[message.backend].set_message_read(message)
         except CallErrors as e:
             self.bcall_errors_handler(e)
 

@@ -341,7 +341,7 @@ class Boobank(ReplApplication):
             self.options.count = None
 
         self.start_format(account=account)
-        for backend, transaction in self.do(command, account, backends=account.backend):
+        for transaction in self.do(command, account, backends=account.backend):
             if end_date is not None and transaction.date < end_date:
                 break
             self.format(transaction)
@@ -414,7 +414,7 @@ class Boobank(ReplApplication):
             self.set_formatter_header(u'Available recipients')
 
             self.start_format()
-            for backend, recipient in self.do('iter_transfer_recipients', account.id, backends=account.backend):
+            for recipient in self.do('iter_transfer_recipients', account.id, backends=account.backend):
                 self.cached_format(recipient)
             return 0
 
@@ -435,7 +435,7 @@ class Boobank(ReplApplication):
             # recipients list, for example for banks which allow transfers to
             # arbitrary recipients.
             to = id_to
-            for backend, recipient in self.do('iter_transfer_recipients', account.id, backends=account.backend):
+            for recipient in self.do('iter_transfer_recipients', account.id, backends=account.backend):
                 if recipient.id == id_to:
                     to = recipient.label
                     break
@@ -448,7 +448,7 @@ class Boobank(ReplApplication):
                 return
 
         self.start_format()
-        for backend, transfer in self.do('transfer', account.id, id_to, amount, reason, backends=account.backend):
+        for transfer in self.do('transfer', account.id, id_to, amount, reason, backends=account.backend):
             self.format(transfer)
 
     def do_investment(self, id):
@@ -463,5 +463,5 @@ class Boobank(ReplApplication):
             return 2
 
         self.start_format()
-        for backend, investment in self.do('iter_investment', account, backends=account.backend):
+        for investment in self.do('iter_investment', account, backends=account.backend):
             self.format(investment)

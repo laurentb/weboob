@@ -107,5 +107,5 @@ class Booblyrics(ReplApplication):
             pattern = None
 
         self.start_format(pattern=pattern)
-        for backend, songlyrics in self.do('iter_lyrics', criteria, pattern):
+        for songlyrics in self.do('iter_lyrics', criteria, pattern):
             self.cached_format(songlyrics)

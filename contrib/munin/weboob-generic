@@ -224,9 +224,9 @@ class GenericMuninPlugin(object):
             results = []
             for result in self.weboob.do(self.object_list):
                 results.append(result)
-            for backend, result in results:
+            for result in results:
                 try:
-                    for i in self.weboob.do(self.do[0], result.id, backends=backend):
+                    for i in self.weboob.do(self.do[0], result.id, backends=result.backend):
                         yield i
                 # Do not crash if one module does not implement the feature
                 except CallErrors:
@@ -284,7 +284,7 @@ class GenericMuninPlugin(object):
             objects = []
             if self.tomonitore or self.exclude:
                 d = {}
-                for backend, result in self.build_do():
+                for result in self.build_do():
                     if self.monitored(result):
                         d[self.result2weboobid(result)] = result
 
@@ -329,7 +329,7 @@ class GenericMuninPlugin(object):
         self.new_cache(self.name)
         self.weboob.load_backends(self.capa)
         try:
-            for backend, result in self.build_do():
+            for result in self.build_do():
                 if self.monitored(result):
                     value = self.get_value(result)
                     if value is not NotAvailable:

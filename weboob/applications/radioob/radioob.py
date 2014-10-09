@@ -425,25 +425,25 @@ class Radioob(ReplApplication):
 
         if cmd == "radio":
             self.set_formatter('radio_list')
-            for backend, radio in self.do('iter_radios_search', pattern=args):
+            for radio in self.do('iter_radios_search', pattern=args):
                 self.add_object(radio)
                 self.format(radio)
 
         elif cmd == "song":
             self.set_formatter('song_list')
-            for backend, audio in self.do('search_audio', pattern=args):
+            for audio in self.do('search_audio', pattern=args):
                 self.add_object(audio)
                 self.format(audio)
 
         elif cmd == "album":
             self.set_formatter('song_list')
-            for backend, album in self.do('search_album', pattern=args):
+            for album in self.do('search_album', pattern=args):
                 self.add_object(album)
                 self.format(album)
 
         elif cmd == "playlist":
             self.set_formatter('song_list')
-            for backend, playlist in self.do('search_playlist', pattern=args):
+            for playlist in self.do('search_playlist', pattern=args):
                 self.add_object(playlist)
                 self.format(playlist)
 

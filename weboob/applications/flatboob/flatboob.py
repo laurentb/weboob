@@ -116,7 +116,7 @@ class Flatboob(ReplApplication):
                 break
 
             cities = []
-            for backend, city in self.weboob.do('search_city', pattern):
+            for city in self.weboob.do('search_city', pattern):
                 cities.append(city)
 
             if len(cities) == 0:
@@ -195,7 +195,7 @@ class Flatboob(ReplApplication):
     def complete_search(self, query):
         self.change_path([u'housings'])
         self.start_format()
-        for backend, housing in self.do('search_housings', query):
+        for housing in self.do('search_housings', query):
             self.cached_format(housing)
 
     def ask_int(self, txt):

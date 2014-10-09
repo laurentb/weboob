@@ -67,7 +67,7 @@ class BackendsCall(object):
     def store_result(self, backend, result):
         if isinstance(result, BaseObject):
             result.backend = backend.name
-        self.responses.put((backend, result))
+        self.responses.put(result)
 
     def backend_process(self, function, args, kwargs):
         backend = self.tasks.get()

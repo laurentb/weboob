@@ -147,7 +147,7 @@ class Weboorrents(ReplApplication):
         dest = self.obj_to_filename(torrent, dest, '{id}-{name}.torrent')
 
         try:
-            for backend, buf in self.do('get_torrent_file', torrent.id, backends=torrent.backend):
+            for buf in self.do('get_torrent_file', torrent.id, backends=torrent.backend):
                 if buf:
                     if dest == '-':
                         print(buf)
@@ -184,5 +184,5 @@ class Weboorrents(ReplApplication):
             pattern = None
 
         self.start_format(pattern=pattern)
-        for backend, torrent in self.do('iter_torrents', pattern=pattern):
+        for torrent in self.do('iter_torrents', pattern=pattern):
             self.cached_format(torrent)

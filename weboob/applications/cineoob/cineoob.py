@@ -241,10 +241,10 @@ class Cineoob(ReplApplication):
         self.options.count = None
 
         lid1 = []
-        for backend, id in self.do('iter_person_movies_ids', person1.id, caps=CapCinema):
+        for id in self.do('iter_person_movies_ids', person1.id, caps=CapCinema):
             lid1.append(id)
         lid2 = []
-        for backend, id in self.do('iter_person_movies_ids', person2.id, caps=CapCinema):
+        for id in self.do('iter_person_movies_ids', person2.id, caps=CapCinema):
             lid2.append(id)
         self.options.count = initial_count
         inter = list(set(lid1) & set(lid2))
@@ -274,10 +274,10 @@ class Cineoob(ReplApplication):
         self.options.count = None
 
         lid1 = []
-        for backend, id in self.do('iter_movie_persons_ids', movie1.id, caps=CapCinema):
+        for id in self.do('iter_movie_persons_ids', movie1.id, caps=CapCinema):
             lid1.append(id)
         lid2 = []
-        for backend, id in self.do('iter_movie_persons_ids', movie2.id, caps=CapCinema):
+        for id in self.do('iter_movie_persons_ids', movie2.id, caps=CapCinema):
             lid2.append(id)
         self.options.count = initial_count
         inter = list(set(lid1) & set(lid2))
@@ -327,7 +327,7 @@ class Cineoob(ReplApplication):
             pattern = None
 
         self.start_format(pattern=pattern)
-        for backend, movie in self.do('iter_movies', pattern=pattern, caps=CapCinema):
+        for movie in self.do('iter_movies', pattern=pattern, caps=CapCinema):
             self.cached_format(movie)
 
     @defaultcount(10)
@@ -342,7 +342,7 @@ class Cineoob(ReplApplication):
             pattern = None
 
         self.start_format(pattern=pattern)
-        for backend, person in self.do('iter_persons', pattern=pattern, caps=CapCinema):
+        for person in self.do('iter_persons', pattern=pattern, caps=CapCinema):
             self.cached_format(person)
 
     def do_casting(self, line):
@@ -359,7 +359,7 @@ class Cineoob(ReplApplication):
             print('Movie not found: %s' % id, file=self.stderr)
             return 3
 
-        for backend, person in self.do('iter_movie_persons', movie.id, role, backends=movie.backend, caps=CapCinema):
+        for person in self.do('iter_movie_persons', movie.id, role, backends=movie.backend, caps=CapCinema):
             self.cached_format(person)
 
     def do_filmography(self, line):
@@ -376,7 +376,7 @@ class Cineoob(ReplApplication):
             print('Person not found: %s' % id, file=self.stderr)
             return 3
 
-        for backend, movie in self.do('iter_person_movies', person.id, role, backends=person.backend, caps=CapCinema):
+        for movie in self.do('iter_person_movies', person.id, role, backends=person.backend, caps=CapCinema):
             self.cached_format(movie)
 
     def do_biography(self, person_id):
@@ -415,7 +415,7 @@ class Cineoob(ReplApplication):
             return 3
 
         # i would like to clarify with fillobj but how could i fill the movie AND choose the country ?
-        for backend, release in self.do('get_movie_releases', movie.id, country, caps=CapCinema, backends=movie.backend):
+        for release in self.do('get_movie_releases', movie.id, country, caps=CapCinema, backends=movie.backend):
             if not empty(release):
                 movie.all_release_dates = u'%s' % (release)
             else:
@@ -469,7 +469,7 @@ class Cineoob(ReplApplication):
             dest = '%s.torrent' % _id
 
         try:
-            for backend, buf in self.do('get_torrent_file', _id, backends=backend_name, caps=CapTorrent):
+            for buf in self.do('get_torrent_file', _id, backends=backend_name, caps=CapTorrent):
                 if buf:
                     if dest == '-':
                         print(buf)
@@ -506,7 +506,7 @@ class Cineoob(ReplApplication):
             pattern = None
 
         self.start_format(pattern=pattern)
-        for backend, torrent in self.do('iter_torrents', pattern=pattern, caps=CapTorrent):
+        for torrent in self.do('iter_torrents', pattern=pattern, caps=CapTorrent):
             self.cached_format(torrent)
 
     @defaultcount(10)
@@ -528,7 +528,7 @@ class Cineoob(ReplApplication):
             pattern = None
 
         self.start_format(pattern=pattern)
-        for backend, torrent in self.do('iter_torrents', pattern=pattern, caps=CapTorrent):
+        for torrent in self.do('iter_torrents', pattern=pattern, caps=CapTorrent):
             self.cached_format(torrent)
 
     #================== SUBTITLE ==================
@@ -575,7 +575,7 @@ class Cineoob(ReplApplication):
         if dest is None:
             dest = '%s' % _id
 
-        for backend, buf in self.do('get_subtitle_file', _id, backends=backend_name, caps=CapSubtitle):
+        for buf in self.do('get_subtitle_file', _id, backends=backend_name, caps=CapSubtitle):
             if buf:
                 if dest == '-':
                     print(buf)
@@ -624,7 +624,7 @@ class Cineoob(ReplApplication):
             pattern = None
 
         self.start_format(pattern=pattern)
-        for backend, subtitle in self.do('iter_subtitles', language=language, pattern=pattern, caps=CapSubtitle):
+        for subtitle in self.do('iter_subtitles', language=language, pattern=pattern, caps=CapSubtitle):
             self.cached_format(subtitle)
 
     @defaultcount(10)
@@ -666,5 +666,5 @@ class Cineoob(ReplApplication):
             pattern = None
 
         self.start_format(pattern=pattern)
-        for backend, subtitle in self.do('iter_subtitles', language=language, pattern=pattern, caps=CapSubtitle):
+        for subtitle in self.do('iter_subtitles', language=language, pattern=pattern, caps=CapSubtitle):
             self.cached_format(subtitle)

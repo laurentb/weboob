@@ -74,7 +74,7 @@ class Boobill(ReplApplication):
         for id, backend in l:
             names = (backend,) if backend is not None else None
             try:
-                for backend, result in self.do(method, id, backends=names):
+                for result in self.do(method, id, backends=names):
                     self.format(result)
             except CallErrors as errors:
                 for backend, error, backtrace in errors:
@@ -128,7 +128,7 @@ class Boobill(ReplApplication):
             mysum.price = Decimal("0.")
 
             self.start_format()
-            for backend, detail in self.do('get_details', id, backends=names):
+            for detail in self.do('get_details', id, backends=names):
                 self.format(detail)
                 mysum.price = detail.price + mysum.price
 
@@ -191,7 +191,7 @@ class Boobill(ReplApplication):
         # Special keywords, download all bills of all subscriptions
         if id == "all":
             if dest is None:
-                for backend, subscription in self.do('iter_subscription', backends=names):
+                for subscription in self.do('iter_subscription', backends=names):
                     self.download_all(subscription.id, names)
                 return
             else:
@@ -199,10 +199,10 @@ class Boobill(ReplApplication):
                 return
 
         if dest is None:
-            for backend, bill in self.do('get_bill', id, backends=names):
+            for bill in self.do('get_bill', id, backends=names):
                 dest = id + "." + bill.format
 
-        for backend, buf in self.do('download_bill', id, backends=names):
+        for buf in self.do('download_bill', id, backends=names):
             if buf:
                 if dest == "-":
                     print(buf)
@@ -217,9 +217,9 @@ class Boobill(ReplApplication):
 
     def download_all(self, id, names):
         id, backend_name = self.parse_id(id)
-        for backend, bill in self.do('iter_bills', id, backends=names):
+        for bill in self.do('iter_bills', id, backends=names):
             dest = bill.id + "." + bill.format
-            for backend2, buf in self.do('download_bill', bill.id, backends=names):
+            for buf in self.do('download_bill', bill.id, backends=names):
                 if buf:
                     if dest == "-":
                         print(buf)

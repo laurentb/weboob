@@ -39,5 +39,5 @@ class Geolooc(ReplApplication):
             print('Syntax: %s ipaddr' % argv[0], file=self.stderr)
             return 2
 
-        for backend, location in self.do('get_location', argv[1]):
+        for location in self.do('get_location', argv[1]):
             self.format(location)

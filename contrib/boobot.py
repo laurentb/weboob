@@ -193,20 +193,20 @@ class MyThread(Thread):
                     backend.set_message_read(backend.fill_thread(thread, ['root']).root)
 
     def check_dlfp(self):
-        for backend, msg in self.weboob.do('iter_unread_messages', backends=['dlfp']):
+        for msg in self.weboob.do('iter_unread_messages', backends=['dlfp']):
             word = self.find_keywords(msg.content)
             if word is not None:
                 url = msg.signature[msg.signature.find('https://linuxfr'):]
                 self.bot.send_message('[DLFP] %s talks about %s: %s' % (
                     msg.sender, word, url))
-            backend.set_message_read(msg)
+            self.weboob[msg.backend].set_message_read(msg)
 
     def check_board(self):
         def iter_messages(backend):
             with backend.browser:
                 return backend.browser.iter_new_board_messages()
 
-        for backend, msg in self.weboob.do(iter_messages, backends=['dlfp']):
+        for msg in self.weboob.do(iter_messages, backends=['dlfp']):
             word = self.find_keywords(msg.message)
             if word is not None and msg.login != 'moules':
                 message = msg.message.replace(word, '\002%s\002' % word)

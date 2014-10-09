@@ -144,7 +144,7 @@ class BoobankMuninPlugin(object):
             accounts = []
             if self.monitored_accounts is not None:
                 d = {}
-                for backend, account in self.weboob.do('iter_accounts'):
+                for account in self.weboob.do('iter_accounts'):
                     if self.monitored(account):
                         d['%s@%s' % (account.id, account.backend)] = account
 
@@ -154,7 +154,7 @@ class BoobankMuninPlugin(object):
                     except KeyError:
                         pass
             else:
-                accounts = reversed([a for b, a in self.weboob.do('iter_accounts')])
+                accounts = reversed([a for a in self.weboob.do('iter_accounts')])
 
             first = True
             for account in accounts:
@@ -191,7 +191,7 @@ class BoobankMuninPlugin(object):
         self.new_cache('boobank-munin')
         self.weboob.load_backends(CapBank)
         try:
-            for backend, account in self.weboob.do('iter_accounts'):
+            for account in self.weboob.do('iter_accounts'):
                 if self.monitored(account):
                     balance = account.balance
                     if account.coming and self.add_coming:

@@ -68,5 +68,5 @@ class Boobooks(ReplApplication):
             return 2
         names = (backend_name,) if backend_name is not None else None
 
-        for backend, renew in self.do('renew_book', id, backends=names):
+        for renew in self.do('renew_book', id, backends=names):
             self.format(renew)

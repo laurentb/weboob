@@ -213,7 +213,7 @@ class Boobcoming(ReplApplication):
 
             self.change_path([u'events'])
             self.start_format()
-            for backend, event in self.do('search_events', query):
+            for event in self.do('search_events', query):
                 if event:
                     self.cached_format(event)
 
@@ -241,7 +241,7 @@ class Boobcoming(ReplApplication):
             date_from = datetime.now()
             date_to = None
 
-        for backend, event in self.do('list_events', date_from, date_to):
+        for event in self.do('list_events', date_from, date_to):
             self.cached_format(event)
 
     def complete_info(self, text, line, *ignored):
@@ -299,7 +299,7 @@ class Boobcoming(ReplApplication):
 
         if not args:
             _ids = []
-            for backend, event in self.do('list_events', datetime.now(), None):
+            for event in self.do('list_events', datetime.now(), None):
                 _ids.append(event.id)
         else:
             _ids = args.strip().split(' ')

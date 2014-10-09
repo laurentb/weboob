@@ -261,7 +261,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                 new_backend_names.append(backend)
         backend_names = tuple(new_backend_names)
         try:
-            for backend, objiter in self.do(method, _id, backends=backend_names, fields=fields, **kargs):
+            for objiter in self.do(method, _id, backends=backend_names, fields=fields, **kargs):
                 if objiter:
                     obj = objiter
                     if objiter.id == _id:
@@ -280,8 +280,8 @@ class ReplApplication(Cmd, ConsoleApplication):
             return self.objects
         elif method is not None:
             kwargs['backends'] = self.enabled_backends
-            for backend, object in self.weboob.do(self._do_complete, None, None, method, *args, **kwargs):
-                self.add_object(object)
+            for _object in self.weboob.do(self._do_complete, None, None, method, *args, **kwargs):
+                self.add_object(_object)
             return self.objects
         # XXX: what can we do without method?
         else:
@@ -1069,9 +1069,9 @@ class ReplApplication(Cmd, ConsoleApplication):
 
             collections = []
             try:
-                for backend, res in self.do('get_collection', objs=self.COLLECTION_OBJECTS,
-                                            split_path=self.working_path.get(),
-                                            caps=CapCollection):
+                for res in self.do('get_collection', objs=self.COLLECTION_OBJECTS,
+                                   split_path=self.working_path.get(),
+                                   caps=CapCollection):
                     if res:
                         collections.append(res)
             except CallErrors as errors:
@@ -1092,9 +1092,9 @@ class ReplApplication(Cmd, ConsoleApplication):
         split_path = self.working_path.get()
 
         try:
-            for backend, res in self.do('iter_resources', objs=objs,
-                                                          split_path=split_path,
-                                                          caps=CapCollection):
+            for res in self.do('iter_resources', objs=objs,
+                                                 split_path=split_path,
+                                                 caps=CapCollection):
                 yield res
         except CallErrors as errors:
             self.bcall_errors_handler(errors, CollectionNotFound)

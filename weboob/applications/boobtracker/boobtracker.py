@@ -168,7 +168,7 @@ class BoobTracker(ReplApplication):
         query.status = self.options.status
 
         self.change_path([query.project, u'search'])
-        for backend, issue in self.do('iter_issues', query, backends=backends):
+        for issue in self.do('iter_issues', query, backends=backends):
             self.add_object(issue)
             self.format(issue)
 

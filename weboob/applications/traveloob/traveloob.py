@@ -88,7 +88,7 @@ class Traveloob(ReplApplication):
 
         Search stations.
         """
-        for backend, station in self.do('iter_station_search', pattern):
+        for station in self.do('iter_station_search', pattern):
             self.format(station)
 
     @defaultcount(10)
@@ -125,7 +125,7 @@ class Traveloob(ReplApplication):
                 print('Please enter a datetime in form "yyyy-mm-dd HH:MM" or "HH:MM".', file=self.stderr)
                 return 1
 
-        for backend, departure in self.do('iter_station_departures', station_id, arrival_id, date, backends=backends):
+        for departure in self.do('iter_station_departures', station_id, arrival_id, date, backends=backends):
             self.format(departure)
 
     def do_roadmap(self, line):
@@ -154,7 +154,7 @@ class Traveloob(ReplApplication):
             print('Please enter a datetime in form "yyyy-mm-dd HH:MM" or "HH:MM".', file=self.stderr)
             return 1
 
-        for backend, route in self.do('iter_roadmap', departure, arrival, filters):
+        for route in self.do('iter_roadmap', departure, arrival, filters):
             self.format(route)
 
     def parse_datetime(self, text):

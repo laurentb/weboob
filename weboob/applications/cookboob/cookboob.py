@@ -155,5 +155,5 @@ class Cookboob(ReplApplication):
         """
         self.change_path([u'search'])
         self.start_format(pattern=pattern)
-        for backend, recipe in self.do('iter_recipes', pattern=pattern):
+        for recipe in self.do('iter_recipes', pattern=pattern):
             self.cached_format(recipe)

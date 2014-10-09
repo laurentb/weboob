@@ -50,7 +50,7 @@ class WeboobCli(ReplApplication):
 
         self.load_backends(cap_s)
 
-        for backend, obj in self.do(cmd, *args):
+        for obj in self.do(cmd, *args):
             self.format(obj)
 
         self.flush()

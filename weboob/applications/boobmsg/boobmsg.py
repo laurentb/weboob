@@ -280,7 +280,7 @@ class Boobmsg(ReplApplication):
             backend_name = None
 
         results = {}
-        for useless, field in self.do('get_account_status',
+        for field in self.do('get_account_status',
                                       backends=backend_name,
                                       caps=CapAccount):
             if field.backend in results:
@@ -406,7 +406,7 @@ class Boobmsg(ReplApplication):
                     yield msg
 
         self.start_format()
-        for backend, msg in self.do(func):
+        for msg in self.do(func):
             self.format(msg)
 
     def do_export_thread(self, arg):
@@ -460,7 +460,7 @@ class Boobmsg(ReplApplication):
         _id, backend_name = self.parse_id(id, unique_backend=True)
 
         found = 0
-        for backend, contact in self.do('get_contact', _id, backends=backend_name, caps=CapContact):
+        for contact in self.do('get_contact', _id, backends=backend_name, caps=CapContact):
             if contact:
                 self.format(contact)
                 found = 1
@@ -482,7 +482,7 @@ class Boobmsg(ReplApplication):
         _id, backend_name = self.parse_id(id, unique_backend=True)
 
         found = 0
-        for backend, contact in self.do('get_contact', _id, backends=backend_name):
+        for contact in self.do('get_contact', _id, backends=backend_name):
             if contact:
                 # Write photo to temporary files
                 tmp_files = []
@@ -492,7 +492,7 @@ class Boobmsg(ReplApplication):
                         suffix = '.%s' % photo.url.split('/')[-1].split('.')[-1]
                     f = NamedTemporaryFile(suffix=suffix)
 
-                    photo = backend.fillobj(photo, 'data')
+                    photo = self.weboob[contact.backend].fillobj(photo, 'data')
                     f.write(photo.data)
                     tmp_files.append(f)
                 os.system(photo_cmd % ' '.join([file.name for file in tmp_files]))
