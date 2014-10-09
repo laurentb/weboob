@@ -25,7 +25,7 @@ from weboob.browser.filters.standard import Filter, Regexp, RegexpError
 from weboob.exceptions import ParseError
 
 
-__all__ = ['JSPayload', 'JSVar']
+__all__ = ['JSPayload', 'JSValue', 'JSVar']
 
 
 def _quoted(q):
@@ -62,40 +62,34 @@ class JSPayload(Filter):
         return ''.join(filter(bool, cls._splitter.split(value)))
 
 
-class JSVar(Regexp):
+class JSValue(Regexp):
     r"""
-    Get the init value of first found assignment value of a variable.
+    Get one or many JavaScript literals.
 
     It only understands literal values, but should parse them well. Values
     are converted in python values, quotes and slashes in strings are stripped.
 
-    >>> JSVar(var='test').filter("var test = .1;\nsomecode()")
-    0.1
-    >>> JSVar(var='test').filter("test = 42;\nsomecode()")
-    42
-    >>> JSVar(var='test').filter("test = 'Some \\'string\\' value, isn\\'t it ?';\nsomecode()")
-    "Some 'string' value, isn't it ?"
-    >>> JSVar(var='test').filter('test = "Some \\"string\\" value";\nsomecode()')
-    'Some "string" value'
-    >>> JSVar(var='test').filter("var test = false;\nsomecode()")
-    False
-    >>> JSVar(var='test', nth=1).filter("var test = false; test = true;\nsomecode()")
-    True
+    >>> JSValue().filter('boringVar = "boring string"')
+    u'boring string'
+    >>> JSValue().filter('somecode(); doConfuse(0xdead, cat);')
+    57005
+    >>> JSValue(need_type=int, nth=2).filter('fazboo("3", "5", 7, "9");')
+    7
+    >>> JSValue(nth='*').filter('foo([1, 2, 3], "blah", 5.0, true, null]);')
+    [1, 2, 3, u'blah', 5.0, True, None]
     """
-    pattern_template = r"""(?x)
-        (?:var\s+)?                                   # optional var keyword
-        \b%%s                                         # var name
-        \s*=\s*                                       # equal sign
-        (?:(?P<float>[-+]?\s*                         # float ?
+    pattern = r"""(?x)
+        (?:(?P<float>(?:[-+]\s*)?                     # float ?
                (?:(?:\d+\.\d*|\d*\.\d+)(?:[eE]\d+)?
                  |\d+[eE]\d+))
-          |(?P<int>[-+]?\s*(?:0[bBxXoO])?\d+)         # int ?
-          |(?:(?:new\s+String\()?(?P<str>(?:%s|%s)))  # str ?
+          |(?P<int>(?:[-+]\s*)?(?:0[bB][01]+          # int ?
+                                 |0[oO][0-7]+
+                                 |0[xX][0-9a-fA-F]+
+                                 |\d+))
+          |(?:(?:(?:new\s+)?String\()?(?P<str>(?:%s|%s)))  # str ?
           |(?P<bool>true|false)                       # bool ?
           |(?P<None>null))                            # None ?
     """ % (_quoted('"'), _quoted("'"))
-
-    _re_spaces = re.compile(r'\s+')
 
     def to_python(self, m):
         "Convert MatchObject to python value"
@@ -104,7 +98,7 @@ class JSVar(Regexp):
             if v is not None:
                 break
         if self.need_type and t != self.need_type:
-            raise ParseError('Variable %r with type %s not found' % (self.var, self.need_type))
+            raise ParseError('Value with type %s not found' % self.need_type)
         if t in ('int', 'float'):
             return literal_eval(v)
         if t == 'str':
@@ -115,16 +109,47 @@ class JSVar(Regexp):
             return
         if self.default:
             return self.default
-        raise ParseError('Unable to parse variable %r value' % self.var)
+        raise ParseError('Unable to parse %r value' % m.group(0))
+
+    def __init__(self, selector=None, need_type=None, **kwargs):
+        assert 'pattern' not in kwargs and 'flags' not in kwargs, \
+               "It would be meaningless to define a pattern and/or flags, use Regexp"
+        assert 'template' not in kwargs, "Can't use a template, use Regexp if you have to"
+        self.need_type = need_type.__name__ if type(need_type) == type else need_type
+        super(JSValue, self).__init__(selector, pattern=self.pattern, template=self.to_python, **kwargs)
+
+
+class JSVar(JSValue):
+    r"""
+    Get assigned value of a variable, either as an initialisation value, either
+    as an assignement. One can use Regexp's nth parameter to be more specific.
+
+    See JSValue for more details about parsed values.
+
+    >>> JSVar(var='test').filter("var test = .1;\nsomecode()")
+    0.1
+    >>> JSVar(var='test').filter("test = 666;\nsomecode()")
+    666
+    >>> JSVar(var='test').filter("test = 'Some \\'string\\' value, isn\\'t it ?';\nsomecode()")
+    u"Some 'string' value, isn't it ?"
+    >>> JSVar(var='test').filter('test = "Some \\"string\\" value";\nsomecode()')
+    u'Some "string" value'
+    >>> JSVar(var='test').filter("var test = false;\nsomecode()")
+    False
+    >>> JSVar(var='test', nth=1).filter("var test = false; test = true;\nsomecode()")
+    True
+    """
+    pattern_template = r"""(?x)
+        (?:var\s+)?                                   # optional var keyword
+        \b%s                                          # var name
+        \s*=\s*                                       # equal sign
+    """ + JSValue.pattern
 
     def __init__(self, selector=None, var=None, need_type=None, **kwargs):
-        assert var is not None, 'Please specify a var parameter'
-        assert 'pattern' not in kwargs, "It would be meaningless to define a pattern, use Regexp"
-        assert 'template' not in kwargs, "Can't use a template, use Regexp if you have to"
+        assert var is not None, 'Please give a var parameter'
         self.var = var
-        self.need_type = need_type.__name__ if type(need_type) == type else need_type
-        pattern = self.pattern_template % re.escape(var)
-        super(JSVar, self).__init__(selector, pattern=pattern, template=self.to_python, **kwargs)
+        self.pattern = self.pattern_template % re.escape(var)
+        super(JSVar, self).__init__(selector, need_type=need_type, **kwargs)
 
     def filter(self, txt):
         try:
