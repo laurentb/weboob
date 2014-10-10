@@ -56,17 +56,13 @@ class CreditCooperatifModule(Module, CapBank):
                                        strong_auth=self.config['auth_type'].get() == "strong")
 
     def iter_accounts(self):
-        with self.browser:
-            return self.browser.get_accounts_list()
+        return self.browser.get_accounts_list()
 
     def get_account(self, _id):
-        with self.browser:
-            return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
+        return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
 
     def iter_history(self, account):
-        with self.browser:
-            return self.browser.get_history(account)
+        return self.browser.get_history(account)
 
     def iter_coming(self, account):
-        with self.browser:
-            return self.browser.get_coming(account)
+        return self.browser.get_coming(account)
