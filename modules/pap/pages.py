@@ -63,6 +63,9 @@ class SearchResultsPage(HTMLPage):
         class item(ItemElement):
             klass = Housing
 
+            def condition(self):
+                return Regexp(Link('./div[@class="header-annonce"]/a'), '/annonces/(.*)', default=None)(self)
+
             obj_id = Regexp(Link('./div[@class="header-annonce"]/a'), '/annonces/(.*)')
             obj_title = CleanText('./div[@class="header-annonce"]/a')
             obj_area = CleanDecimal(Regexp(CleanText('./div[@class="header-annonce"]/a/span[@class="desc"]'),
