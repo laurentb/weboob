@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013      Florent Fourcot
+# Copyright(C) 2013-2014      Florent Fourcot
 #
 # This file is part of weboob.
 #
@@ -18,22 +18,22 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.json import json
-from weboob.deprecated.browser import Browser, BrowserBanned
+from weboob.browser import DomainBrowser
+from weboob.exceptions import BrowserBanned
+from weboob.browser.profiles import Android
 
 
 __all__ = ['ColissimoBrowser']
 
 
-class ColissimoBrowser(Browser):
-    PROTOCOL = 'http'
-    DOMAIN = 'www.laposte.fr'
-    ENCODING = None
-    USER_AGENT = Browser.USER_AGENTS['android']
+class ColissimoBrowser(DomainBrowser):
+    BASEURL = 'http://www.laposte.fr'
+    PROFILE = Android()
 
     api_key = '6b252eb30d3afb15c47cf3fccee3dc17352dc2d6'
 
     def get_tracking_info(self, _id):
-        json_data = self.readurl('/outilsuivi/web/suiviInterMetiers.php?key=%s&method=json&code=%s' % (self.api_key, _id))
+        json_data = self.open('/outilsuivi/web/suiviInterMetiers.php?key=%s&method=json&code=%s' % (self.api_key, _id)).text
         if json_data is None:
             raise BrowserBanned('You are banned of the colissimo API (too many requests from your IP)')
         return json.loads(json_data)
