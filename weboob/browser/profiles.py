@@ -93,3 +93,14 @@ class Wget(Profile):
             'User-Agent': 'Wget/%s' % self.version})
 
 
+class Android(Profile):
+    """
+    An android profile for mobile websites
+    """
+
+    def setup_session(self, session):
+        """
+        Set up user agent.
+        """
+        session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Linux; U; Android 2.1; en-us; Nexus One Build/ERD62) AppleWebKit/530.17 (KHTML, like Gecko) Version/4.0 Mobile Safari/530.17'})
