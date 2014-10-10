@@ -44,7 +44,8 @@ class Captcha(object):
 
         self.tiles = [[Tile(y * self.nbc + x) for y in xrange(4)] for x in xrange(4)]
 
-    def __getitem__(self, (x, y)):
+    def __getitem__(self, coords):
+        x, y = coords
         return self.inmat[x % self.nx, y % self.ny]
 
     def all_coords(self):

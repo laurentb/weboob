@@ -231,7 +231,7 @@ class StatementParser(object):
             # Infer amount type by its indentation in the layout.
             amount_total = clean_amount('0')
             for (_, _, _, _, indent, _), amount in amounts:
-                within = lambda (xmin, xmax): xmin <= indent <= xmax
+                within = lambda xmin_xmax: xmin_xmax[0] <= indent <= xmin_xmax[1]
                 if within(range_skip):
                     continue
                 elif within(range_plus):

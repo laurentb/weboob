@@ -66,8 +66,9 @@ class VirtKeyboard(MappedVirtKeyboard):
 
         return True
 
-    def get_symbol_coords(self, (x1, y1, x2, y2)):
+    def get_symbol_coords(self, coords):
         # strip borders
+        x1, y1, x2, y2 = coords
         return MappedVirtKeyboard.get_symbol_coords(self, (x1+10, y1+10, x2-10, y2-10))
 
     def get_symbol_code(self, md5sum_list):

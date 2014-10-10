@@ -39,7 +39,7 @@ class GanAssurancesModule(Module, CapBank):
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'espaceclient.groupama.fr':    u'Groupama Banque',
         'espaceclient.ganassurances.fr':   u'Gan Assurances',
-        }.iteritems(), key=lambda (k, v): (v, k))])
+        }.iteritems(), key=lambda k_v: (k_v[1], k_v[0]))])
     CONFIG = BackendConfig(Value('website',  label='Banque', choices=website_choices, default='espaceclient.ganassurances.fr'),
                            ValueBackendPassword('login',    label=u'Numéro client', masked=False),
                            ValueBackendPassword('password', label=u"Code d'accès"))

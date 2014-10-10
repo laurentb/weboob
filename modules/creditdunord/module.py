@@ -43,7 +43,7 @@ class CreditDuNordModule(Module, CapBank):
         'www.banque-kolb.fr':        u'Banque Kolb',
         'www.banque-rhone-alpes.fr': u'Banque Rhône-Alpes',
         'www.tarneaud.fr':           u'Tarneaud',
-        }.iteritems(), key=lambda (k, v): (v, k))])
+        }.iteritems(), key=lambda k_v: (k_v[1], k_v[0]))])
     CONFIG = BackendConfig(Value('website',  label='Banque', choices=website_choices, default='www.credit-du-nord.fr'),
                            ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Code confidentiel'))

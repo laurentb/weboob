@@ -81,8 +81,9 @@ class Keyboard(VirtKeyboard):
             code += self.get_symbol_code(self.symbols[c])
         return code
 
-    def get_symbol_coords(self, (x1, y1, x2, y2)):
+    def get_symbol_coords(self, coords):
         # strip borders
+        x1, y1, x2, y2 = coords
         return VirtKeyboard.get_symbol_coords(self, (x1+3, y1+3, x2-3, y2-3))
 
 class LoginPage(Page):

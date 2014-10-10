@@ -98,7 +98,8 @@ class VirtKeyboard(object):
     def check_color(self, pixel):
         return pixel == self.color
 
-    def get_symbol_coords(self, (x1, y1, x2, y2)):
+    def get_symbol_coords(self, coords):
+        (x1, y1, x2, y2) = coords
         if self.margin:
             top, right, bottom, left = self.margin
             x1, y1, x2, y2 = x1 + left, y1 + top, x2 - right, y2 - bottom
@@ -133,7 +134,8 @@ class VirtKeyboard(object):
                 newX2 = x
         return (newX1, newY1, newX2, newY2)
 
-    def checksum(self, (x1, y1, x2, y2)):
+    def checksum(self, coords):
+        (x1, y1, x2, y2) = coords
         s = ''
         for y in range(y1, min(y2 + 1, self.height)):
             for x in range(x1, min(x2 + 1, self.width)):
