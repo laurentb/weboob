@@ -61,7 +61,7 @@ class AloesBrowser(Browser):
         if not self.page.login(self.username, self.password) or \
             not self.is_logged() or \
                 (self.is_on_page(LoginPage) and self.page.is_error()):
-                raise BrowserIncorrectPassword()
+            raise BrowserIncorrectPassword()
 
     def get_rented_books_list(self):
         if not self.is_on_page(RentedPage):

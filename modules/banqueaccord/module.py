@@ -46,7 +46,7 @@ class BanqueAccordModule(Module, CapBank):
                                    self.config['password'].get())
 
     def iter_accounts(self):
-         return self.browser.get_accounts_list()
+        return self.browser.get_accounts_list()
 
     def get_account(self, _id):
         return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)

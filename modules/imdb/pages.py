@@ -117,7 +117,7 @@ class MovieCrewPage(Page):
                         person = Person(id, name)
                         person.short_description = role_detail
                         yield person
-                            # yield self.browser.get_person(id)
+                        # yield self.browser.get_person(id)
 
     def iter_persons_ids(self):
         tables = self.parser.select(self.document.getroot(), 'table.cast_list')

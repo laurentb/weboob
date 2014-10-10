@@ -35,8 +35,8 @@ class ForeignPage(Page):
 
 class CitiesPage(Page):
     def get_stations(self):
-       result = json.loads(self.document[self.document.find('{'):-2])
-       return result['CITIES']
+        result = json.loads(self.document[self.document.find('{'):-2])
+        return result['CITIES']
 
 
 class SearchPage(Page):

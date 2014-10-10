@@ -21,7 +21,7 @@ class RoadmapSearchPage(Page):
         for form in self.browser.forms():
             try:
                 if form.attrs['id'] == 'rech-iti':
-                     match = i
+                    match = i
             except KeyError:
                 pass
             i += 1

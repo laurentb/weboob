@@ -335,9 +335,9 @@ class Module(object):
         if any((tmpproxy, tmpproxys)):
             kwargs['proxy'] = {}
             if tmpproxy is not None:
-              kwargs['proxy']['http'] = tmpproxy
+                kwargs['proxy']['http'] = tmpproxy
             if tmpproxys is not None:
-              kwargs['proxy']['https'] = tmpproxys
+                kwargs['proxy']['https'] = tmpproxys
 
 
         kwargs['logger'] = self.logger

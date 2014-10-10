@@ -112,7 +112,7 @@ class Paypal(Browser):
                                 step_min=step_min,
                                 step_max=step_max,
                                 fetch_fn=fetch_fn):
-               yield i
+                yield i
         except CSVAlreadyAsked:
             for i in self.download_last_history(account):
                 yield i

@@ -126,8 +126,8 @@ class OkCBrowser(Browser):
 
     @check_login
     def get_visits(self):
-       self.location('http://m.okcupid.com/visitors')
-       return self.page.get_visits()
+        self.location('http://m.okcupid.com/visitors')
+        return self.page.get_visits()
 
     @check_login
     def get_threads_list(self):

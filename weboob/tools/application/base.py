@@ -283,7 +283,7 @@ class Application(object):
             sub = self._do_complete_obj(backend, fields, sub)
             if self.condition and self.condition.limit and \
                self.condition.limit == i:
-                   return
+                return
 
             if self.condition and not self.condition.is_valid(sub):
                 modif += 1
