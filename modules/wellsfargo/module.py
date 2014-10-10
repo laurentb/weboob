@@ -44,7 +44,7 @@ class WellsFargoModule(Module, CapBank):
                                    self.config['password'].get())
 
     def iter_accounts(self):
-        return self.browser.get_accounts()
+        return self.browser.iter_accounts()
 
     def get_account(self, id_):
         return self.browser.get_account(id_)
