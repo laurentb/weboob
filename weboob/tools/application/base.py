@@ -353,7 +353,7 @@ class Application(object):
         if self.options.shell_completion:
             items = set()
             for option in self._parser.option_list:
-                if not option.help is optparse.SUPPRESS_HELP:
+                if option.help is not optparse.SUPPRESS_HELP:
                     items.update(str(option).split('/'))
             items.update(self._get_completions())
             print(' '.join(items))

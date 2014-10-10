@@ -229,7 +229,7 @@ class WeboobCfg(ReplApplication):
             first = True
             for key, field in module.config.iteritems():
                 value = field.label
-                if not field.default is None:
+                if field.default is not None:
                     value += ' (default: %s)' % field.default
                 if first:
                     print('|                 | ')

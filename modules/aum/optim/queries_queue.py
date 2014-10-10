@@ -96,7 +96,7 @@ class QueriesQueue(Optimization):
 
             except BrowserUnavailable:
                 # We consider this profil hasn't been [correctly] analysed
-                if not id is None:
+                if id is not None:
                     self.queue.append((priority, id))
         finally:
             self.save()

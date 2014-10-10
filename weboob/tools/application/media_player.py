@@ -95,7 +95,7 @@ class MediaPlayer(object):
         Play media.url with the media player.
         """
         # if flag play_proxy...
-        if hasattr(media, '_play_proxy') and media._play_proxy == True:
+        if hasattr(media, '_play_proxy') and media._play_proxy is True:
             # use urllib2 to handle redirect and cookies
             self._play_proxy(media, player_name, args)
             return None
