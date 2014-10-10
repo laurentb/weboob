@@ -216,7 +216,7 @@ class CapContact(Capability):
         :type id: str
         :rtype: unicode
         """
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def save_notes(self, id, notes):
         """
@@ -226,4 +226,4 @@ class CapContact(Capability):
         :type id: str
         :returns: the unicode object to save as notes
         """
-        raise NotImplementedError
+        raise NotImplementedError()

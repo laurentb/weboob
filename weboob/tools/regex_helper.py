@@ -116,7 +116,7 @@ def normalize(pattern):
                 result.append(u".")
             elif ch == '|':
                 # FIXME: One day we'll should do this, but not in 1.0.
-                raise NotImplementedError
+                raise NotImplementedError()
             elif ch == "^":
                 pass
             elif ch == '$':
