@@ -111,21 +111,22 @@ class MainWindow(QtMainWindow):
         self.ui.contentEdit.setReadOnly(True)
 
         backend = str(self.ui.backendBox.currentText())
-        self.process = QtDo(self.weboob,
-                            self._loadedPage,
-                            self._errorLoadPage)
-        self.process.do('get_content', _id, backends=(backend,))
 
-    def _loadedPage(self, backend, data):
-        """ Callback for loadPage """
-        if not backend:
-            # Loading is finished
+        def finished():
             self.process = None
             if self.backend:
                 self.ui.contentEdit.setReadOnly(False)
                 self.ui.loadButton.setEnabled(True)
                 self.ui.loadButton.setText('Load')
-            return
+
+        self.process = QtDo(self.weboob,
+                            self._loadedPage,
+                            self._errorLoadPage,
+                            finished)
+        self.process.do('get_content', _id, backends=(backend,))
+
+    def _loadedPage(self, data):
+        """ Callback for loadPage """
         if not data:
             self.content = None
             self.backend = None
@@ -139,8 +140,8 @@ class MainWindow(QtMainWindow):
         self.content = data
         self.ui.contentEdit.setPlainText(self.content.content)
         self.setWindowTitle("QWebcontentedit - %s@%s" %(self.content.id,
-                                                        backend.name))
-        self.backend = backend
+                                                        self.content.backend))
+        self.backend = self.weboob[self.content.backend]
 
     def _errorLoadPage(self, backend, error, backtrace):
         """ Error callback for loadPage """
@@ -164,24 +165,22 @@ class MainWindow(QtMainWindow):
             self.ui.contentEdit.setReadOnly(True)
             self.content.content = new_content
             message = unicode(self.ui.descriptionEdit.text())
+
+            def finished():
+                self.process = None
+                self.ui.saveButton.setText('Saved')
+                self.ui.descriptionEdit.clear()
+                self.ui.contentEdit.setReadOnly(False)
+
             self.process = QtDo(self.weboob,
-                                self._savedPage,
-                                self._errorSavePage)
+                                None,
+                                self._errorSavePage,
+                                finished)
             self.process.do('push_content',
                             self.content,
                             message,
                             minor=minor,
                             backends=self.backend)
-
-    def _savedPage(self, backend, data):
-        """ Callback for savePage's QtDo """
-        if not backend:
-            # saving has finished
-            self.process = None
-            self.ui.saveButton.setText('Saved')
-            self.ui.contentEdit.setReadOnly(False)
-            return
-        self.ui.descriptionEdit.clear()
 
     def _errorSavePage(self, backend, error, backtrace):
         """ """
@@ -216,9 +215,16 @@ class MainWindow(QtMainWindow):
                                                         "Summary"])
         self.ui.historyTable.setColumnWidth(3, 1000)
 
+        def finished():
+            self.process = None
+            self.ui.loadHistoryButton.setEnabled(True)
+            self.ui.loadHistoryButton.setText("Reload")
+
+
         self.process = QtDo(self.weboob,
                             self._gotRevision,
-                            self._errorHistory)
+                            self._errorHistory,
+                            finished)
         self.process.do(self.app._do_complete,
                         self.ui.nbRevBox.value(),
                         (),
@@ -226,15 +232,8 @@ class MainWindow(QtMainWindow):
                         self.content.id,
                         backends=(self.backend,))
 
-    def _gotRevision(self, backend, revision):
+    def _gotRevision(self, revision):
         """ Callback for loadHistory's QtDo """
-        if not backend:
-            # The last revision has been processed
-            self.process = None
-            self.ui.loadHistoryButton.setEnabled(True)
-            self.ui.loadHistoryButton.setText("Reload")
-            return
-
         # we set the flags to Qt.ItemIsEnabled so that the items
         # are not modifiable (they are modifiable by default)
         item_revision = QTableWidgetItem(revision.id)

@@ -109,15 +109,15 @@ class MainWindow(QtMainWindow):
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
-        self.process = QtDo(self.weboob, self.addVideo)
-        self.process.do(self.app._do_complete, 20, (), 'search_videos', pattern, self.ui.sortbyEdit.currentIndex(), nsfw=True, backends=backend_name)
-
-    def addVideo(self, backend, video):
-        if not backend:
+        def finished():
             self.ui.searchEdit.setEnabled(True)
             self.process = None
-            return
-        minivideo = MiniVideo(self.weboob, backend, video)
+
+        self.process = QtDo(self.weboob, self.addVideo, fb=finished)
+        self.process.do(self.app._do_complete, 20, (), 'search_videos', pattern, self.ui.sortbyEdit.currentIndex(), nsfw=True, backends=backend_name)
+
+    def addVideo(self, video):
+        minivideo = MiniVideo(self.weboob, self.weboob[video.backend], video)
         self.ui.scrollAreaContent.layout().addWidget(minivideo)
         self.minivideos.append(minivideo)
         if (video.nsfw and not self.ui.nsfwCheckBox.isChecked() or

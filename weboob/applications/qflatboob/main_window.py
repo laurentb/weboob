@@ -203,7 +203,7 @@ class MainWindow(QtMainWindow):
         query.cost_max = int(q['cost_max']) or None
         query.nb_rooms = int(q['nb_rooms']) or None
 
-        self.process = QtDo(self.weboob, self.addHousing)
+        self.process = QtDo(self.weboob, self.addHousing, fb=self.addHousingEnd)
         self.process.do(self.app._do_complete, 20, (), 'search_housings', query)
 
     def displayBookmarks(self):
@@ -215,16 +215,15 @@ class MainWindow(QtMainWindow):
         self.processes = {}
         for id in self.storage.get('bookmarks'):
             _id, backend_name = id.rsplit('@', 1)
-            self.process_bookmarks[id] = QtDo(self.weboob, self.addHousing)
+            self.process_bookmarks[id] = QtDo(self.weboob, self.addHousing, fb=self.addHousingEnd)
             self.process_bookmarks[id].do('get_housing', _id, backends=backend_name)
 
-    def addHousing(self, backend, housing):
-        if not backend:
-            self.ui.queriesList.setEnabled(True)
-            self.ui.bookmarksButton.setEnabled(True)
-            self.process = None
-            return
+    def addHousingEnd(self):
+        self.ui.queriesList.setEnabled(True)
+        self.ui.bookmarksButton.setEnabled(True)
+        self.process = None
 
+    def addHousing(self, housing):
         if not housing:
             return
 
@@ -232,13 +231,13 @@ class MainWindow(QtMainWindow):
         item.setAttrs(self.storage)
 
         if housing.photos is NotLoaded:
-            process = QtDo(self.weboob, lambda b, c: self.setPhoto(c, item))
+            process = QtDo(self.weboob, lambda c: self.setPhoto(c, item))
             process.do('fillobj', housing, ['photos'], backends=housing.backend)
             self.process_photo[housing.id] = process
         elif housing.photos is not NotAvailable and len(housing.photos) > 0:
             if not self.setPhoto(housing, item):
                 photo = housing.photos[0]
-                process = QtDo(self.weboob, lambda b, p: self.setPhoto(housing, item))
+                process = QtDo(self.weboob, lambda p: self.setPhoto(housing, item))
                 process.do('fillobj', photo, ['data'], backends=housing.backend)
                 self.process_photo[housing.id] = process
 
@@ -334,13 +333,10 @@ class MainWindow(QtMainWindow):
                 label.setTextInteractionFlags(Qt.TextSelectableByMouse|Qt.LinksAccessibleByMouse)
                 self.ui.detailsFrame.layout().addRow('<b>%s:</b>' % key, label)
 
-    def gotHousing(self, backend, housing):
-        if not backend:
-            self.ui.queriesFrame.setEnabled(True)
-            self.process = None
-            return
-
+    def gotHousing(self, housing):
         self.setHousing(housing, nottext='')
+        self.ui.queriesFrame.setEnabled(True)
+        self.process = None
 
     def bookmarkChanged(self, state):
         bookmarks = set(self.storage.get('bookmarks'))
@@ -392,7 +388,7 @@ class MainWindow(QtMainWindow):
             if photo.id in self.process_photo:
                 self.process_photo.pop(photo.id)
         else:
-            self.process_photo[photo.id] = QtDo(self.weboob, lambda b,p: self.display_photo())
+            self.process_photo[photo.id] = QtDo(self.weboob, lambda p: self.display_photo())
             self.process_photo[photo.id].do('fillobj', photo, ['data'], backends=self.housing.backend)
 
             return

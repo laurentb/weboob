@@ -63,13 +63,15 @@ class QueryDialog(QDialog):
         self.ui.cityEdit.clear()
         self.ui.cityEdit.setEnabled(False)
 
-        self.search_process = QtDo(self.weboob, self.addResult)
+        self.search_process = QtDo(self.weboob, self.addResult, fb=self.addResultEnd)
         self.search_process.do('search_city', pattern)
 
-    def addResult(self, backend, city):
-        if not backend or not city:
-            self.search_process = None
-            self.ui.cityEdit.setEnabled(True)
+    def addResultEnd(self):
+        self.search_process = None
+        self.ui.cityEdit.setEnabled(True)
+
+    def addResult(self, city):
+        if not city:
             return
         item = self.buildCityItem(city)
         self.ui.resultsList.addItem(item)

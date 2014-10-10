@@ -98,7 +98,7 @@ class Result(QFrame):
         self.parent.ui.searchEdit.setEnabled(False)
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
-        self.process = QtDo(self.weboob, self.addPerson)
+        self.process = QtDo(self.weboob, self.addPerson, fb=self.processFinished)
         self.process.do('iter_movie_persons', id, role, backends=backend_name, caps=CapCinema)
         self.parent.ui.stopButton.show()
 
@@ -113,7 +113,7 @@ class Result(QFrame):
         self.parent.ui.searchEdit.setEnabled(False)
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
-        self.process = QtDo(self.weboob, self.addMovie)
+        self.process = QtDo(self.weboob, self.addMovie, fb=self.processFinished)
         self.process.do('iter_person_movies', id, role, backends=backend_name, caps=CapCinema)
         self.parent.ui.stopButton.show()
 
@@ -145,7 +145,7 @@ class Result(QFrame):
 
         backend_name = str(self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex()).toString())
 
-        self.process = QtDo(self.weboob, self.addMovie)
+        self.process = QtDo(self.weboob, self.addMovie, fb=self.processFinished)
         #self.process.do('iter_movies', pattern, backends=backend_name, caps=CapCinema)
         self.process.do(self.app._do_complete, self.parent.getCount(), ('original_title'), 'iter_movies', pattern, backends=backend_name, caps=CapCinema)
         self.parent.ui.stopButton.show()
@@ -153,14 +153,8 @@ class Result(QFrame):
     def stopProcess(self):
         self.process.process.finish_event.set()
 
-    def addMovie(self, backend, movie):
-        if not backend:
-            self.parent.ui.searchEdit.setEnabled(True)
-            QApplication.restoreOverrideCursor()
-            self.process = None
-            self.parent.ui.stopButton.hide()
-            return
-        minimovie = MiniMovie(self.weboob, backend, movie, self)
+    def addMovie(self, movie):
+        minimovie = MiniMovie(self.weboob, self.weboob[movie.backend], movie, self)
         self.ui.list_content.layout().addWidget(minimovie)
         self.minis.append(minimovie)
 
@@ -193,19 +187,13 @@ class Result(QFrame):
 
         backend_name = str(self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex()).toString())
 
-        self.process = QtDo(self.weboob, self.addPerson)
+        self.process = QtDo(self.weboob, self.addPerson, fb=self.processFinished)
         #self.process.do('iter_persons', pattern, backends=backend_name, caps=CapCinema)
         self.process.do(self.app._do_complete, self.parent.getCount(), ('name'), 'iter_persons', pattern, backends=backend_name, caps=CapCinema)
         self.parent.ui.stopButton.show()
 
-    def addPerson(self, backend, person):
-        if not backend:
-            self.parent.ui.searchEdit.setEnabled(True)
-            QApplication.restoreOverrideCursor()
-            self.process = None
-            self.parent.ui.stopButton.hide()
-            return
-        miniperson = MiniPerson(self.weboob, backend, person, self)
+    def addPerson(self, person):
+        miniperson = MiniPerson(self.weboob, self.weboob[person.backend], person, self)
         self.ui.list_content.layout().addWidget(miniperson)
         self.minis.append(miniperson)
 
@@ -238,19 +226,19 @@ class Result(QFrame):
 
         backend_name = str(self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex()).toString())
 
-        self.process = QtDo(self.weboob, self.addTorrent)
+        self.process = QtDo(self.weboob, self.addTorrent, fb=self.processFinished)
         #self.process.do('iter_torrents', pattern, backends=backend_name, caps=CapTorrent)
         self.process.do(self.app._do_complete, self.parent.getCount(), ('name'), 'iter_torrents', pattern, backends=backend_name, caps=CapTorrent)
         self.parent.ui.stopButton.show()
 
-    def addTorrent(self, backend, torrent):
-        if not backend:
-            self.parent.ui.searchEdit.setEnabled(True)
-            QApplication.restoreOverrideCursor()
-            self.process = None
-            self.parent.ui.stopButton.hide()
-            return
-        minitorrent = MiniTorrent(self.weboob, backend, torrent, self)
+    def processFinished(self):
+        self.parent.ui.searchEdit.setEnabled(True)
+        QApplication.restoreOverrideCursor()
+        self.process = None
+        self.parent.ui.stopButton.hide()
+
+    def addTorrent(self, torrent):
+        minitorrent = MiniTorrent(self.weboob, self.weboob[torrent.backend], torrent, self)
         self.ui.list_content.layout().addWidget(minitorrent)
         self.minis.append(minitorrent)
 
@@ -282,19 +270,13 @@ class Result(QFrame):
 
         backend_name = str(self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex()).toString())
 
-        self.process = QtDo(self.weboob, self.addSubtitle)
+        self.process = QtDo(self.weboob, self.addSubtitle, fb=self.processFinished)
         #self.process.do('iter_subtitles', lang, pattern, backends=backend_name, caps=CapSubtitle)
         self.process.do(self.app._do_complete, self.parent.getCount(), ('name'), 'iter_subtitles', lang, pattern, backends=backend_name, caps=CapSubtitle)
         self.parent.ui.stopButton.show()
 
-    def addSubtitle(self, backend, subtitle):
-        if not backend:
-            self.parent.ui.searchEdit.setEnabled(True)
-            QApplication.restoreOverrideCursor()
-            self.process = None
-            self.parent.ui.stopButton.hide()
-            return
-        minisubtitle = MiniSubtitle(self.weboob, backend, subtitle, self)
+    def addSubtitle(self, subtitle):
+        minisubtitle = MiniSubtitle(self.weboob, self.weboob[subtitle.backend], subtitle, self)
         self.ui.list_content.layout().addWidget(minisubtitle)
         self.minis.append(minisubtitle)
 

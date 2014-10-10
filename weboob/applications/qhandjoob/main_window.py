@@ -112,10 +112,15 @@ class MainWindow(QtMainWindow):
         if index == 1:
             self.doAdvancedSearch()
 
+    def searchFinished(self):
+        self.process = None
+        QApplication.restoreOverrideCursor()
+
     def doAdvancedSearch(self):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         self.ui.jobListAdvancedSearch.clear()
-        self.process = QtDo(self.weboob, self.addJobAdvancedSearch)
+
+        self.process = QtDo(self.weboob, self.addJobAdvancedSearch, fb=self.searchFinished)
         self.process.do('advanced_search_job')
 
     def doSearch(self):
@@ -131,30 +136,20 @@ class MainWindow(QtMainWindow):
                 self.updateCompletion()
 
         self.ui.jobList.clear()
-        self.process = QtDo(self.weboob, self.addJobSearch)
+        self.process = QtDo(self.weboob, self.addJobSearch, fb=self.searchFinished)
         self.process.do('search_job', pattern)
 
-    def addJobSearch(self, backend, job):
-        item = self.addJob(backend, job)
+    def addJobSearch(self, job):
+        item = self.addJob(job)
         if item:
             self.ui.jobList.addItem(item)
 
-        if not backend:
-            QApplication.restoreOverrideCursor()
-
-    def addJobAdvancedSearch(self, backend, job):
-        item = self.addJob(backend, job)
+    def addJobAdvancedSearch(self, job):
+        item = self.addJob(job)
         if item:
             self.ui.jobListAdvancedSearch.addItem(item)
 
-        if not backend:
-            QApplication.restoreOverrideCursor()
-
-    def addJob(self, backend, job):
-        if not backend:
-            self.process = None
-            return
-
+    def addJob(self, job):
         if not job:
             return
 
@@ -205,13 +200,10 @@ class MainWindow(QtMainWindow):
         self.ui.idEdit.clear()
         QApplication.restoreOverrideCursor()
 
-    def gotJob(self, backend, job):
-        if not backend:
-            self.ui.queriesTabWidget.setEnabled(True)
-            self.process = None
-            return
-
+    def gotJob(self, job):
         self.setJob(job)
+        self.ui.queriesTabWidget.setEnabled(True)
+        self.process = None
 
     def setJob(self, job):
         if job:

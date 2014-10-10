@@ -44,9 +44,11 @@ class Account(QFrame):
         self.title = QLabel(u'<h1>%s — %s</h1>' % (backend.name, backend.DESCRIPTION))
         self.body = QLabel()
 
-        if backend.ICON:
+        minfo = self.weboob.repositories.get_module_info(backend.NAME)
+        icon_path = self.weboob.repositories.get_module_icon_path(minfo)
+        if icon_path:
             self.icon = QLabel()
-            img = QImage(backend.ICON)
+            img = QImage(icon_path)
             self.icon.setPixmap(QPixmap.fromImage(img))
             head.addWidget(self.icon)
 
@@ -66,21 +68,20 @@ class Account(QFrame):
             self.weboob.stop(self.timer)
 
     def updateStats(self):
-        self.process = QtDo(self.weboob, self.updateStats_cb, self.updateStats_eb)
+        self.process = QtDo(self.weboob, self.updateStats_cb, self.updateStats_eb, self.updateStats_fb)
         self.process.body = u''
         self.process.in_p = False
         self.process.do('get_account_status', backends=self.backend)
 
-    def updateStats_cb(self, backend, field):
-        if not field:
-            if self.process.in_p:
-                self.process.body += u"</p>"
+    def updateStats_fb(self):
+        if self.process.in_p:
+            self.process.body += u"</p>"
 
-            self.body.setText(self.process.body)
+        self.body.setText(self.process.body)
 
-            self.process = None
-            return
+        self.process = None
 
+    def updateStats_cb(self, field):
         if field.flags & StatusField.FIELD_HTML:
             value = u'%s' % field.value
         else:

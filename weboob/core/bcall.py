@@ -65,6 +65,9 @@ class BackendsCall(object):
             self.tasks.put(backend)
 
     def store_result(self, backend, result):
+        if result is None:
+            return
+
         if isinstance(result, BaseObject):
             result.backend = backend.name
         self.responses.put(result)
@@ -75,16 +78,16 @@ class BackendsCall(object):
             try:
                 # Call method on backend
                 try:
-                    self.logger.debug('%s: Calling function %s' % (backend, function))
+                    self.logger.debug('%s: Calling function %s', backend, function)
                     if callable(function):
                         result = function(backend, *args, **kwargs)
                     else:
                         result = getattr(backend, function)(*args, **kwargs)
                 except Exception as error:
-                    self.logger.debug('%s: Called function %s raised an error: %r' % (backend, function, error))
+                    self.logger.debug('%s: Called function %s raised an error: %r', backend, function, error)
                     self.errors.append((backend, error, get_backtrace(error)))
                 else:
-                    self.logger.debug('%s: Called function %s returned: %r' % (backend, function, result))
+                    self.logger.debug('%s: Called function %s returned: %r', backend, function, result)
 
                     if hasattr(result, '__iter__') and not isinstance(result, basestring):
                         # Loop on iterator
@@ -98,20 +101,23 @@ class BackendsCall(object):
             finally:
                 self.tasks.task_done()
 
-    def _callback_thread_run(self, callback, errback):
+    def _callback_thread_run(self, callback, errback, finishback):
         while self.tasks.unfinished_tasks or not self.responses.empty():
             try:
-                callback(*self.responses.get(timeout=0.1))
+                response = self.responses.get(timeout=0.1)
+                if callback:
+                    callback(response)
             except Queue.Empty:
                 continue
 
         # Raise errors
-        while self.errors:
+        while errback and self.errors:
             errback(*self.errors.pop(0))
 
-        callback(None, None)
+        if finishback:
+            finishback()
 
-    def callback_thread(self, callback, errback=None):
+    def callback_thread(self, callback, errback=None, finishback=None):
         """
         Call this method to create a thread which will callback a
         specified function everytimes a new result comes.
@@ -120,11 +126,12 @@ class BackendsCall(object):
         both arguments set to None.
 
         The functions prototypes:
-            def callback(backend, result)
-            def errback(backend, error)
+            def callback(result)
+            def errback(backend, error, backtrace)
+            def finishback()
 
         """
-        thread = Thread(target=self._callback_thread_run, args=(callback, errback))
+        thread = Thread(target=self._callback_thread_run, args=(callback, errback, finishback))
         thread.start()
         return thread
 

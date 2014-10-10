@@ -183,18 +183,18 @@ class MainWindow(QtMainWindow):
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
-        self.process = QtDo(self.weboob, self.addRecipe)
+        self.process = QtDo(self.weboob, self.addRecipe, fb=self.addRecipeEnd)
         self.process.do(self.app._do_complete, self.getCount(), ('title'), 'iter_recipes', pattern, backends=backend_name, caps=CapRecipe)
         self.ui.stopButton.show()
 
-    def addRecipe(self, backend, recipe):
-        if not backend:
-            self.ui.searchEdit.setEnabled(True)
-            QApplication.restoreOverrideCursor()
-            self.process = None
-            self.ui.stopButton.hide()
-            return
-        minirecipe = MiniRecipe(self.weboob, backend, recipe, self)
+    def addRecipeEnd(self):
+        self.ui.searchEdit.setEnabled(True)
+        QApplication.restoreOverrideCursor()
+        self.process = None
+        self.ui.stopButton.hide()
+
+    def addRecipe(self, recipe):
+        minirecipe = MiniRecipe(self.weboob, self.weboob[recipe.backend], recipe, self)
         self.ui.list_content.layout().addWidget(minirecipe)
         self.minis.append(minirecipe)
 

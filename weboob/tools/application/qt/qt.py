@@ -184,7 +184,7 @@ class QtMainWindow(QMainWindow):
 
 
 class QtDo(QObject):
-    def __init__(self, weboob, cb, eb=None):
+    def __init__(self, weboob, cb, eb=None, fb=None):
         QObject.__init__(self)
 
         if not eb:
@@ -194,13 +194,15 @@ class QtDo(QObject):
         self.process = None
         self.cb = cb
         self.eb = eb
+        self.fb = fb
 
         self.connect(self, SIGNAL('cb'), self.local_cb)
         self.connect(self, SIGNAL('eb'), self.local_eb)
+        self.connect(self, SIGNAL('fb'), self.local_fb)
 
     def do(self, *args, **kwargs):
         self.process = self.weboob.do(*args, **kwargs)
-        self.process.callback_thread(self.thread_cb, self.thread_eb)
+        self.process.callback_thread(self.thread_cb, self.thread_eb, self.thread_fb)
 
     def default_eb(self, backend, error, backtrace):
         if isinstance(error, MoreResultsAvailable):
@@ -244,21 +246,31 @@ class QtDo(QObject):
         QMessageBox.critical(None, unicode(self.tr('Error with backend %s')) % backend.name,
                              msg, QMessageBox.Ok)
 
-    def local_cb(self, backend, data):
-        self.cb(backend, data)
-        if not backend:
-            self.disconnect(self, SIGNAL('cb'), self.local_cb)
-            self.disconnect(self, SIGNAL('eb'), self.local_eb)
-            self.process = None
+    def local_cb(self, data):
+        if self.cb:
+            self.cb(data)
 
     def local_eb(self, backend, error, backtrace):
-        self.eb(backend, error, backtrace)
+        if self.eb:
+            self.eb(backend, error, backtrace)
 
-    def thread_cb(self, backend, data):
-        self.emit(SIGNAL('cb'), backend, data)
+    def local_fb(self):
+        if self.fb:
+            self.fb()
+
+        self.disconnect(self, SIGNAL('cb'), self.local_cb)
+        self.disconnect(self, SIGNAL('eb'), self.local_eb)
+        self.disconnect(self, SIGNAL('fb'), self.local_fb)
+        self.process = None
+
+    def thread_cb(self, data):
+        self.emit(SIGNAL('cb'), data)
 
     def thread_eb(self, backend, error, backtrace):
         self.emit(SIGNAL('eb'), backend, error, backtrace)
+
+    def thread_fb(self):
+        self.emit(SIGNAL('fb'))
 
 
 class HTMLDelegate(QStyledItemDelegate):

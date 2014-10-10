@@ -47,10 +47,7 @@ class MiniVideo(QFrame):
         self.process_thumbnail = QtDo(self.weboob, self.gotThumbnail)
         self.process_thumbnail.do('fillobj', self.video, ['thumbnail'], backends=backend)
 
-    def gotThumbnail(self, backend, video):
-        if not backend:
-            return
-
+    def gotThumbnail(self, video):
         if video.thumbnail and video.thumbnail.data:
             img = QImage.fromData(video.thumbnail.data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))

@@ -214,6 +214,7 @@ class Async(_Filter):
 class Base(Filter):
     """
     Change the base element used in filters.
+
     >>> Base(Env('header'), CleanText('./h1'))  # doctest: +SKIP
     """
     def __call__(self, item):

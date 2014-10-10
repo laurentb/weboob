@@ -68,10 +68,7 @@ class SearchWidget(QWidget):
         self.newprofiles_process = QtDo(self.weboob, self.retrieveNewContacts_cb)
         self.newprofiles_process.do('iter_new_contacts')
 
-    def retrieveNewContacts_cb(self, backend, contact):
-        if not backend:
-            return
-
+    def retrieveNewContacts_cb(self, contact):
         self.contacts.insert(0, contact)
         self.ui.queueLabel.setText('%d' % len(self.contacts))
         if self.current is None:
@@ -96,9 +93,5 @@ class SearchWidget(QWidget):
             self.ui.scrollArea.setWidget(None)
 
     def sendQuery(self):
-        self.newprofiles_process = QtDo(self.weboob, self.querySent)
+        self.newprofiles_process = QtDo(self.weboob, None, fb=self.next)
         self.newprofiles_process.do('send_query', self.current.id, backends=[self.current.backend])
-
-    def querySent(self, backend, query):
-        if backend is None:
-            self.next()

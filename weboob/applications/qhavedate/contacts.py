@@ -101,7 +101,13 @@ class ContactThread(QWidget):
             return
 
         self.ui.refreshButton.setEnabled(False)
-        self.process_msg = QtDo(self.weboob, self.gotThread, self.gotError)
+        def finished():
+            #v = self.ui.scrollArea.verticalScrollBar()
+            #print v.minimum(), v.value(), v.maximum(), v.sliderPosition()
+            #self.ui.scrollArea.verticalScrollBar().setValue(self.ui.scrollArea.verticalScrollBar().maximum())
+            self.process_msg = None
+
+        self.process_msg = QtDo(self.weboob, self.gotThread, self.gotError, finished)
         if fillobj and self.thread:
             self.process_msg.do('fillobj', self.thread, ['root'], backends=self.contact.backend)
         else:
@@ -112,14 +118,7 @@ class ContactThread(QWidget):
         self.ui.sendButton.setEnabled(False)
         self.ui.refreshButton.setEnabled(True)
 
-    def gotThread(self, backend, thread):
-        if not thread:
-            #v = self.ui.scrollArea.verticalScrollBar()
-            #print v.minimum(), v.value(), v.maximum(), v.sliderPosition()
-            #self.ui.scrollArea.verticalScrollBar().setValue(self.ui.scrollArea.verticalScrollBar().maximum())
-            self.process_msg = None
-            return
-
+    def gotThread(self, thread):
         self.ui.textEdit.setEnabled(True)
         self.ui.sendButton.setEnabled(True)
         self.ui.refreshButton.setEnabled(True)
@@ -179,12 +178,10 @@ class ContactThread(QWidget):
                     receivers=None,
                     content=text,
                     parent=self.messages[0].message if len(self.messages) > 0 else None)
-        self.process_reply = QtDo(self.weboob, self._postReply_cb, self._postReply_eb)
+        self.process_reply = QtDo(self.weboob, None, self._postReply_eb, self._postReply_fb)
         self.process_reply.do('post_message', m, backends=self.contact.backend)
 
-    def _postReply_cb(self, backend, ignored):
-        if not backend:
-            return
+    def _postReply_fb(self):
         self.ui.textEdit.clear()
         self.ui.textEdit.setEnabled(True)
         self.ui.sendButton.setEnabled(True)
@@ -216,7 +213,7 @@ class ContactProfile(QWidget):
         self.displayed_photo_idx = 0
         self.process_photo = {}
 
-        missing_fields = self.gotProfile(self.weboob.get_backend(contact.backend), contact)
+        missing_fields = self.gotProfile(contact)
         if len(missing_fields) > 0:
             self.process_contact = QtDo(self.weboob, self.gotProfile, self.gotError)
             self.process_contact.do('fillobj', self.contact, missing_fields, backends=self.contact.backend)
@@ -225,10 +222,7 @@ class ContactProfile(QWidget):
         self.ui.frame_photo.hide()
         self.ui.descriptionEdit.setText('<h1>Unable to show profile</h1><p>%s</p>' % to_unicode(error))
 
-    def gotProfile(self, backend, contact):
-        if not backend:
-            return []
-
+    def gotProfile(self, contact):
         missing_fields = set()
 
         self.display_photo()
@@ -325,7 +319,7 @@ class ContactProfile(QWidget):
             if photo.id in self.process_photo:
                 self.process_photo.pop(photo.id)
         else:
-            self.process_photo[photo.id] = QtDo(self.weboob, lambda b,p: self.display_photo())
+            self.process_photo[photo.id] = QtDo(self.weboob, lambda p: self.display_photo())
             self.process_photo[photo.id].do('fillobj', photo, ['data'], backends=self.contact.backend)
 
             if photo.thumbnail_data:
@@ -357,19 +351,20 @@ class ContactNotes(QWidget):
 
         self.ui.textEdit.setEnabled(False)
         self.ui.saveButton.setEnabled(False)
-        self.process = QtDo(self.weboob, self._getNotes_cb, self._getNotes_eb)
+
+        def finished():
+            self.process = None
+            self.ui.textEdit.setEnabled(True)
+            self.ui.saveButton.setEnabled(True)
+
+        self.process = QtDo(self.weboob, self._getNotes_cb, self._getNotes_eb, finished)
         self.process.do('get_notes', self.contact.id, backends=(self.contact.backend,))
 
         self.connect(self.ui.saveButton, SIGNAL('clicked()'), self.saveNotes)
 
-    def _getNotes_cb(self, backend, data):
-        if not backend or not data:
-            self.process = None
-            self.ui.textEdit.setEnabled(True)
-            self.ui.saveButton.setEnabled(True)
-            return
-
-        self.ui.textEdit.setText(data)
+    def _getNotes_cb(self, data):
+        if data:
+            self.ui.textEdit.setText(data)
 
     def _getNotes_eb(self, backend, error, backtrace):
         if isinstance(error, NotImplementedError):
@@ -388,17 +383,14 @@ class ContactNotes(QWidget):
         self.ui.saveButton.setEnabled(False)
         self.ui.textEdit.setEnabled(False)
 
-        self.process = QtDo(self.weboob, self._saveNotes_cb, self._saveNotes_eb)
+        self.process = QtDo(self.weboob, None, self._saveNotes_eb, self._saveNotes_fb)
         self.process.do('save_notes', self.contact.id, text, backends=(self.contact.backend,))
 
-    def _saveNotes_cb(self, backend, data):
+    def _saveNotes_fb(self):
         self.ui.saveButton.setEnabled(True)
         self.ui.textEdit.setEnabled(True)
-        pass
 
     def _saveNotes_eb(self, backend, error, backtrace):
-        self.ui.saveButton.setEnabled(True)
-        self.ui.textEdit.setEnabled(True)
         content = unicode(self.tr('Unable to save notes:\n%s\n')) % to_unicode(error)
         if logging.root.level <= logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
@@ -425,15 +417,17 @@ class MetaGroup(IGroup):
         else:
             status = Contact.STATUS_ALL
 
-        self.process = QtDo(self.weboob, lambda b, d: self.cb(cb, b, d))
+        self.process = QtDo(self.weboob, lambda d: self.cb(cb, d), fb=lambda: self.fb(cb))
         self.process.do('iter_contacts', status, caps=CapContact)
 
-    def cb(self, cb, backend, contact):
+    def cb(self, cb, contact):
         if contact:
             cb(contact)
-        elif not backend:
-            self.process = None
-            cb(None)
+
+    def fb(self, fb):
+        self.process = None
+        if fb:
+            fb(None)
 
 
 class ContactsWidget(QWidget):
@@ -523,13 +517,13 @@ class ContactsWidget(QWidget):
         item.setData(Qt.UserRole, contact)
 
         if contact.photos is NotLoaded:
-            process = QtDo(self.weboob, lambda b, c: self.setPhoto(c, item))
+            process = QtDo(self.weboob, lambda c: self.setPhoto(c, item))
             process.do('fillobj', contact, ['photos'], backends=contact.backend)
             self.photo_processes[contact.id] = process
         elif len(contact.photos) > 0:
             if not self.setPhoto(contact, item):
                 photo = contact.photos.values()[0]
-                process = QtDo(self.weboob, lambda b, p: self.setPhoto(contact, item))
+                process = QtDo(self.weboob, lambda p: self.setPhoto(contact, item))
                 process.do('fillobj', photo, ['thumbnail_data'], backends=contact.backend)
                 self.photo_processes[contact.id] = process
 
@@ -578,15 +572,14 @@ class ContactsWidget(QWidget):
     def retrieveContact(self, url):
         backend_name = unicode(self.ui.backendsList.currentText())
         self.ui.urlButton.setEnabled(False)
-        self.url_process = QtDo(self.weboob, self.retrieveContact_cb, self.retrieveContact_eb)
-        self.url_process.do('get_contact', url, backends=backend_name)
-
-    def retrieveContact_cb(self, backend, contact):
-        if not backend:
+        def finished():
             self.url_process = None
             self.ui.urlButton.setEnabled(True)
-            return
 
+        self.url_process = QtDo(self.weboob, self.retrieveContact_cb, self.retrieveContact_eb, finished)
+        self.url_process.do('get_contact', url, backends=backend_name)
+
+    def retrieveContact_cb(self, contact):
         self.ui.urlEdit.clear()
         self.setContact(contact)
 
