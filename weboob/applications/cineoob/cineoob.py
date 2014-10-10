@@ -424,7 +424,7 @@ class Cineoob(ReplApplication):
         self.start_format()
         self.format(movie)
 
-    #================== TORRENT ==================
+    # ================== TORRENT ==================
 
     def complete_info_torrent(self, text, line, *ignored):
         args = line.split(' ')
@@ -484,9 +484,9 @@ class Cineoob(ReplApplication):
         except CallErrors as errors:
             for backend, error, backtrace in errors:
                 if isinstance(error, MagnetOnly):
-                    print(u'Error(%s): No direct URL available, ' \
-                        u'please provide this magnet URL ' \
-                        u'to your client:\n%s' % (backend, error.magnet), file=self.stderr)
+                    print(u'Error(%s): No direct URL available, '
+                          u'please provide this magnet URL '
+                          u'to your client:\n%s' % (backend, error.magnet), file=self.stderr)
                     return 4
                 else:
                     self.bcall_error_handler(backend, error, backtrace)
@@ -531,7 +531,7 @@ class Cineoob(ReplApplication):
         for torrent in self.do('iter_torrents', pattern=pattern, caps=CapTorrent):
             self.cached_format(torrent)
 
-    #================== SUBTITLE ==================
+    # ================== SUBTITLE ==================
 
     def complete_info_subtitle(self, text, line, *ignored):
         args = line.split(' ')

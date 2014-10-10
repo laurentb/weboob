@@ -204,7 +204,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                 print('This command works with an unique backend. Availables:')
                 for index, (name, backend) in enumerate(e.backends):
                     print('%s%d)%s %s%-15s%s   %s' % (self.BOLD, index + 1, self.NC, self.BOLD, name, self.NC,
-                        backend.DESCRIPTION))
+                          backend.DESCRIPTION))
                 i = self.ask('Select a backend to proceed with "%s"' % id)
                 if not i.isdigit():
                     if not i in dict(e.backends):
@@ -925,8 +925,8 @@ class ReplApplication(Cmd, ConsoleApplication):
                         self.commands_formatters = {}
                         self.DEFAULT_FORMATTER = self.set_formatter(args[0])
                 else:
-                    print('Formatter "%s" is not available.\n' \
-                            'Available formatters: %s.' % (args[0], ', '.join(self.formatters_loader.get_available_formatters())), file=self.stderr)
+                    print('Formatter "%s" is not available.\n'
+                          'Available formatters: %s.' % (args[0], ', '.join(self.formatters_loader.get_available_formatters())), file=self.stderr)
                     return 1
         else:
             print('Default formatter: %s' % self.DEFAULT_FORMATTER)

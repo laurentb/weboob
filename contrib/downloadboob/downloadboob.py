@@ -30,7 +30,9 @@ from weboob.core import Weboob
 from weboob.capabilities.video import CapVideo
 
 # hack to workaround bash redirection and encoding problem
-import sys, codecs, locale
+import sys
+import codecs
+import locale
 
 if sys.stdout.encoding is None:
     (lang, enc) = locale.getdefaultlocale()

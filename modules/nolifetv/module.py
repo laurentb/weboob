@@ -26,7 +26,8 @@ from weboob.tools.backend import Module, BackendConfig
 from .browser import NolifeTVBrowser
 from .video import NolifeTVVideo
 
-import urllib, time
+import urllib
+import time
 from hashlib import md5
 
 __all__ = ['NolifeTVModule']

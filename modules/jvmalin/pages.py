@@ -142,7 +142,7 @@ class RoadmapPage(Page):
                                 if len(current_step['line']) > 0 and \
                                    len(current_step['departure']) > 0 and \
                                    len(current_step['arrival']) > 0:
-                                    current_step['line'] = to_unicode("%s : %s" % \
+                                    current_step['line'] = to_unicode("%s : %s" %
                                         (current_step['mode'], current_step['line']))
                                     del current_step['mode']
                                     yield current_step

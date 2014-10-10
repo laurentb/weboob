@@ -520,7 +520,7 @@ class ConsoleApplication(Application):
                 text = f.read()
         else:
             if self.stdin.isatty():
-                print('Reading content from stdin... Type ctrl-D ' \
+                print('Reading content from stdin... Type ctrl-D '
                           'from an empty line to stop.')
             text = self.stdin.read()
         return text.decode(self.encoding)

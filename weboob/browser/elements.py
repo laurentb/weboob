@@ -207,7 +207,7 @@ class _ItemElementMeta(type):
 
         filters = [(re.sub('^obj_', '', attr_name), attrs[attr_name]) for attr_name, obj in attrs.items() if attr_name.startswith('obj_')]
         # constants first, then filters, then methods
-        filters.sort(key=lambda x: x[1]._creation_counter if hasattr(x[1], '_creation_counter') else (sys.maxint if callable(x[1]) else 0))
+        filters.sort(key=lambda x: x[1]._creation_counter if hasattr(x[1], '_creation_counter') else (sys.maxsize if callable(x[1]) else 0))
 
         new_class = super(_ItemElementMeta, mcs).__new__(mcs, name, bases, attrs)
         new_class._attrs = _attrs + [f[0] for f in filters]

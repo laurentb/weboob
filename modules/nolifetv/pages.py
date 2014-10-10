@@ -69,7 +69,7 @@ class VideoPage(Page):
 
 class VideoListPage(Page):
     def is_list_empty(self):
-        return self.document.getroot() == None
+        return self.document.getroot() is None
 
     def iter_video(self, available_videos):
         for el in self.document.getroot().xpath('//li/a'):
@@ -101,7 +101,7 @@ class FamilyPage(Page):
 
             while True:
                 el = el.getnext()
-                if el == None or el.get('data-role'):
+                if el is None or el.get('data-role'):
                     break
                 h1 = el.find('.//h1')
                 id = h1.getparent().attrib['href']

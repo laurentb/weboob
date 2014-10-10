@@ -222,9 +222,9 @@ class GridVirtKeyboard(VirtKeyboard):
 
         tileW = float(self.width) / cols
         tileH = float(self.height) / rows
-        positions = ((s, i * tileW % self.width, i / cols * tileH) \
+        positions = ((s, i * tileW % self.width, i / cols * tileH)
                      for i, s in enumerate(symbols))
-        coords = dict((s, tuple(map(int, (x, y, x + tileW, y + tileH)))) \
+        coords = dict((s, tuple(map(int, (x, y, x + tileW, y + tileH))))
                       for (s, x, y) in positions)
 
         super(GridVirtKeyboard, self).__init__()

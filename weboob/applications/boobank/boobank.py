@@ -19,7 +19,8 @@
 
 from __future__ import print_function
 
-import datetime, uuid
+import datetime
+import uuid
 from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse as parse_date
 from decimal import Decimal, InvalidOperation
@@ -334,8 +335,8 @@ class Boobank(ReplApplication):
             try:
                 end_date = parse_date(end_date)
             except ValueError:
-                print('"%s" is an incorrect date format (for example "%s")' % \
-                            (end_date, (datetime.date.today() - relativedelta(months=1)).strftime('%Y-%m-%d')), file=self.stderr)
+                print('"%s" is an incorrect date format (for example "%s")' %
+                      (end_date, (datetime.date.today() - relativedelta(months=1)).strftime('%Y-%m-%d')), file=self.stderr)
                 return 3
             old_count = self.options.count
             self.options.count = None

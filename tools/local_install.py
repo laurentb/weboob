@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
+import os
 import subprocess
 import sys
-import os
 
 if '--deps' in sys.argv:
     sys.argv.remove('--deps')
@@ -25,8 +25,8 @@ if len(sys.argv) < 2:
     print("To install all the missing dependencies, add the option --deps")
     print("at the end of the command line.")
     print()
-    print("Error: Please provide a destination, " \
-                        "for example ‘%s/bin’" % os.getenv('HOME'), file=sys.stderr)
+    print("Error: Please provide a destination, "
+          "for example ‘%s/bin’" % os.getenv('HOME'), file=sys.stderr)
     sys.exit(1)
 else:
     dest = os.path.expanduser(sys.argv[1])

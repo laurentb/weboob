@@ -102,17 +102,17 @@ class BoobankMuninPlugin(object):
         if check and (last + self.cache_expire) < time.time():
             return False
 
-        for line in f.xreadlines():
+        for line in f:
             sys.stdout.write(line)
         return True
 
     def new_cache(self, name):
-        os.umask(0077)
+        os.umask(0o077)
         new_name = '%s.new' % name
         filename = self.cachepath(new_name)
         try:
             f = open(filename, 'w')
-        except IOError, e:
+        except IOError as e:
             print >>sys.stderr, 'Unable to create the cache file %s: %s' % (filename, e)
             return
 
@@ -166,7 +166,7 @@ class BoobankMuninPlugin(object):
                 self.write_output('%s.label %s' % (id, account.label.encode('iso-8859-15')))
                 if self.cumulate:
                     self.write_output('%s.draw %s' % (id, type))
-        except CallErrors, errors:
+        except CallErrors as errors:
             self.print_errors(errors)
             self.print_cache('boobank-munin-config')
         else:
@@ -197,7 +197,7 @@ class BoobankMuninPlugin(object):
                     if account.coming and self.add_coming:
                         balance += account.coming
                     self.write_output('%s.value %d' % (self.account2id(account), balance))
-        except CallErrors, errors:
+        except CallErrors as errors:
             self.print_errors(errors)
             self.print_cache('boobank-munin')
         else:
