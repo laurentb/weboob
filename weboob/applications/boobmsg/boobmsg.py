@@ -378,7 +378,7 @@ class Boobmsg(ReplApplication):
             self.formatter._list_messages = False
 
         self.start_format()
-        for backend, thread in cmd:
+        for thread in cmd:
             if not thread:
                 continue
             if len(arg) > 0:
@@ -418,7 +418,7 @@ class Boobmsg(ReplApplication):
         _id, backend_name = self.parse_id(arg)
         cmd = self.do('get_thread', _id, backends=backend_name)
         self.start_format()
-        for backend, thread in cmd:
+        for thread in cmd:
             if thread is not None :
                 for msg in thread.iter_all_messages():
                     self.format(msg)
@@ -439,7 +439,7 @@ class Boobmsg(ReplApplication):
         except (IndexError, ValueError):
             id, backend_name = self.parse_id(arg)
             cmd = self.do('get_thread', id, backends=backend_name)
-            for backend, thread in cmd:
+            for thread in cmd:
                 if thread is not None:
                     message = thread.root
         if message is not None:
