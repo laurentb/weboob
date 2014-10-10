@@ -119,7 +119,7 @@ class DLFPModule(Module, CapMessages, CapMessagesPost, CapContent):
             thread = Thread(content.id)
 
         flags = Message.IS_HTML
-        if not thread.id in self.storage.get('seen', default={}):
+        if thread.id not in self.storage.get('seen', default={}):
             flags |= Message.IS_UNREAD
 
         thread.title = content.title
@@ -148,7 +148,7 @@ class DLFPModule(Module, CapMessages, CapMessagesPost, CapContent):
         Insert 'com' comment and its children in the parent message.
         """
         flags = Message.IS_HTML
-        if not com.id in self.storage.get('seen', parent.thread.id, 'comments', default=[]):
+        if com.id not in self.storage.get('seen', parent.thread.id, 'comments', default=[]):
             flags |= Message.IS_UNREAD
 
         if getseen or flags & Message.IS_UNREAD:

@@ -79,7 +79,7 @@ class OuiFMModule(Module, CapRadio, CapCollection):
         if not isinstance(radio, Radio):
             radio = Radio(radio)
 
-        if not radio.id in self._RADIOS:
+        if radio.id not in self._RADIOS:
             return None
 
         title, description, url, bitrate = self._RADIOS[radio.id]

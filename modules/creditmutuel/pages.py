@@ -124,7 +124,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
                 url = urlparse(link)
                 p = parse_qs(url.query)
-                if not 'rib' in p:
+                if 'rib' not in p:
                     raise SkipItem()
 
                 balance = CleanDecimal('./td[2] | ./td[3]', replace_dots=True)(self)

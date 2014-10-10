@@ -52,7 +52,7 @@ class AccountsList(BasePage):
 
     def get_list(self):
         for tr in self.document.getiterator('tr'):
-            if not 'LGNTableRow' in tr.attrib.get('class', '').split():
+            if 'LGNTableRow' not in tr.attrib.get('class', '').split():
                 continue
 
             account = Account()

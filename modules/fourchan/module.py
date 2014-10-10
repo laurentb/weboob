@@ -18,8 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-
 from weboob.capabilities.messages import CapMessages, Message, Thread
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value
@@ -51,7 +49,7 @@ class FourChanModule(Module, CapMessages):
             thread = id
             id = thread.id
 
-        if not '.' in id:
+        if '.' not in id:
             self.logger.warning('Malformated ID (%s)' % id)
             return
 
@@ -61,7 +59,7 @@ class FourChanModule(Module, CapMessages):
             _thread = self.browser.get_thread(board, thread_id)
 
         flags = 0
-        if not _thread.id in self.storage.get('boards', board, default={}):
+        if _thread.id not in self.storage.get('boards', board, default={}):
             flags |= Message.IS_UNREAD
 
         if not thread:
@@ -81,7 +79,7 @@ class FourChanModule(Module, CapMessages):
 
         for comment in _thread.comments:
             flags = 0
-            if not comment.id in self.storage.get('boards', board, _thread.id, default=[]):
+            if comment.id not in self.storage.get('boards', board, _thread.id, default=[]):
                 flags |= Message.IS_UNREAD
 
             m = Message(thread=thread,

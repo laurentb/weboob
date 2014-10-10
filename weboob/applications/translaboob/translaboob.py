@@ -103,9 +103,9 @@ class Translaboob(ReplApplication):
         lan_from, lan_to, text = self.parse_command_args(line, 3, 2)
 
         try:
-            if not lan_from in self.LANGUAGE.keys():
+            if lan_from not in self.LANGUAGE.keys():
                 raise LanguageNotSupported()
-            if not lan_to in self.LANGUAGE.keys():
+            if lan_to not in self.LANGUAGE.keys():
                 raise LanguageNotSupported()
 
             if not text or text == '-':

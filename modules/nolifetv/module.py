@@ -128,6 +128,6 @@ class NolifeTVModule(Module, CapVideo, CapCollection):
                                     'quality=%s&a=UEM%%7CSEM%%7CMEM%%7CCH%%7CSWQ&skey=%s&id%%5Fnlshow=%s&timestamp=%s' % (quality, skey, id, timestamp))
         values = dict([urllib.splitvalue(s) for s in data.split('&')])
 
-        if not 'url' in values:
+        if 'url' not in values:
             return None
         return unicode(values['url'])

@@ -201,7 +201,7 @@ class ConsoleApplication(Application):
             sys.exit(1)
 
     def do(self, function, *args, **kwargs):
-        if not 'backends' in kwargs:
+        if 'backends' not in kwargs:
             kwargs['backends'] = self.enabled_backends
         return self.weboob.do(function, *args, **kwargs)
 
@@ -216,7 +216,7 @@ class ConsoleApplication(Application):
                 backend_name = backends[0][0]
             else:
                 raise BackendNotGiven(_id, backends)
-        if backend_name is not None and not backend_name in dict(backends):
+        if backend_name is not None and backend_name not in dict(backends):
             # Is the backend a short version of a real one?
             found = False
             for key in dict(backends):

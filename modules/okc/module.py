@@ -169,7 +169,7 @@ class OkCModule(Module, CapMessages, CapContact, CapMessagesPost, CapDating):
                 flags |= Message.IS_UNREAD
 
                 if get_profiles:
-                    if not mail['id_from'] in contacts:
+                    if mail['id_from'] not in contacts:
                         with self.browser:
                             contacts[mail['id_from']] = self.get_contact(mail['id_from'])
 
@@ -219,7 +219,7 @@ class OkCModule(Module, CapMessages, CapContact, CapMessagesPost, CapDating):
 
     def _get_slut(self, id):
         sluts = self.storage.get('sluts')
-        if not sluts or not id in sluts:
+        if not sluts or id not in sluts:
             slut = {'lastmsg': datetime.datetime(1970,1,1)}
         else:
             slut = self.storage.get('sluts', id)

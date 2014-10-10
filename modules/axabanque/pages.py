@@ -128,7 +128,7 @@ class AccountsPage(BasePage):
                     continue
 
                 self.logger.debug('Args: %r' % args)
-                if not 'paramNumCompte' in args:
+                if 'paramNumCompte' not in args:
                     try:
                         label = unicode(table.xpath('./caption')[0].text.strip())
                     except Exception:

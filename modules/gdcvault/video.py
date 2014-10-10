@@ -57,7 +57,7 @@ class GDCVaultVideo(BaseVideo):
         #        # file will not be accessible (not free and not logged in)
         #        return None
 
-        if not 'vault_media_id' in data:
+        if 'vault_media_id' not in data:
             return None
         media_id = int(data['vault_media_id'])
         video = GDCVaultVideo(media_id)

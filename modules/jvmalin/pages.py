@@ -131,7 +131,7 @@ class RoadmapPage(Page):
                     continue
 
             for td in self.parser.select(tr, 'td'):
-                if not 'class' in td.attrib:
+                if 'class' not in td.attrib:
                     continue
 
                 if 'iti-inner' in td.attrib['class']:

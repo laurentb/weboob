@@ -104,7 +104,7 @@ class AccountsPage(Page):
                 text = script.text
                 if text is None:
                     continue
-                if not 'remotePerso' in text:
+                if 'remotePerso' not in text:
                     continue
 
                 account = None

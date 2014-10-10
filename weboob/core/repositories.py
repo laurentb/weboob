@@ -483,7 +483,7 @@ class Repositories(object):
         modules = {}
         for repos in reversed(self.repositories):
             for name, info in repos.modules.iteritems():
-                if not name in modules and (not caps or info.has_caps(caps)):
+                if name not in modules and (not caps or info.has_caps(caps)):
                     modules[name] = self._extend_module_info(repos, info)
         return modules
 

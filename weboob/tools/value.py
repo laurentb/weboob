@@ -90,7 +90,7 @@ class Value(object):
             raise ValueError('Value can\'t be empty')
         if self.regexp is not None and not re.match(self.regexp, unicode(v)):
             raise ValueError('Value "%s" does not match regexp "%s"' % (v, self.regexp))
-        if self.choices is not None and not v in self.choices:
+        if self.choices is not None and v not in self.choices:
             raise ValueError('Value "%s" is not in list: %s' % (
                 v, ', '.join(unicode(s) for s in self.choices)))
 
@@ -254,8 +254,8 @@ class ValueBool(Value):
 
     def check_valid(self, v):
         if not isinstance(v, bool) and \
-           not unicode(v).lower() in ('y', 'yes', '1', 'true',  'on',
-                                      'n', 'no',  '0', 'false', 'off'):
+            unicode(v).lower() not in ('y', 'yes', '1', 'true',  'on',
+                                       'n', 'no',  '0', 'false', 'off'):
             raise ValueError('Value "%s" is not a boolean (y/n)' % v)
 
     def get(self):

@@ -51,7 +51,7 @@ class CanalTP(Browser):
         result = result
         departure = ''
         for line in result.split('&'):
-            if not '=' in line:
+            if '=' not in line:
                 raise BrokenPageError('Unable to parse result: %s' % line)
             key, value = line.split('=', 1)
             if key == 'nomgare':

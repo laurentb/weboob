@@ -392,7 +392,7 @@ class BaseObject(object):
         try:
             attr = (self._fields or {})[name]
         except KeyError:
-            if not name in dir(self) and not name.startswith('_'):
+            if name not in dir(self) and not name.startswith('_'):
                 warnings.warn('Creating a non-field attribute %s. Please prefix it with _' % name,
                               AttributeCreationWarning, stacklevel=2)
             object.__setattr__(self, name, value)

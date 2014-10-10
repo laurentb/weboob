@@ -93,7 +93,7 @@ class AccountsPage(Page):
 
                 url = urlparse(link)
                 p = parse_qs(url.query)
-                if not 'rib' in p:
+                if 'rib' not in p:
                     continue
 
                 for i in (2,1):

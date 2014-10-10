@@ -177,7 +177,7 @@ class CreditMutuelBrowser(LoginBrowser):
         # look for the known "everything went well" message
         content = page.response.text
         transfer_ok_message = u'Votre virement a été exécuté ce jour'
-        if not transfer_ok_message in content:
+        if transfer_ok_message not in content:
             raise TransferError('The expected message "%s" was not found.' % transfer_ok_message)
 
         # We now have to return a Transfer object

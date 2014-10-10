@@ -204,7 +204,7 @@ class Application(object):
 
         if path is None:
             path = os.path.join(self.CONFDIR, self.APPNAME + '.storage')
-        elif not os.path.sep in path:
+        elif os.path.sep not in path:
             path = os.path.join(self.CONFDIR, path)
 
         storage = klass(path)
@@ -232,7 +232,7 @@ class Application(object):
 
         if path is None:
             path = os.path.join(self.CONFDIR, self.APPNAME)
-        elif not os.path.sep in path:
+        elif os.path.sep not in path:
             path = os.path.join(self.CONFDIR, path)
 
         self.config = klass(path)

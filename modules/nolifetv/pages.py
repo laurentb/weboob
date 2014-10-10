@@ -92,7 +92,7 @@ class FamilyPage(Page):
         subs = list()
 
         for el in self.document.xpath('//ul/li[@data-role="list-divider"]'):
-            if not el.text in subs:
+            if el.text not in subs:
                 yield Collection([el.text], unicode(el.text))
             subs.append(el.text)
 

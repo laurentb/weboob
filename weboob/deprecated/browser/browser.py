@@ -265,7 +265,7 @@ class StandardBrowser(mechanize.Browser):
         """
         Download URL data specifying what to do on failure (nothing by default).
         """
-        if not 'if_fail' in kwargs:
+        if 'if_fail' not in kwargs:
             kwargs['if_fail'] = None
         result = self.openurl(url, *args, **kwargs)
 

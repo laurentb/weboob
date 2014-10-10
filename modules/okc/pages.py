@@ -163,7 +163,7 @@ class ProfilePage(Page):
             if 'looking for' in label:
                 for i, li in enumerate(val.xpath('.//li')):
                     profile['data']['look_for'].value['look_for_%s' % i] = ProfileNode('look_for_%s' % i, '', li.text.strip())
-            elif 'summary' in label and not 'summary' in profile:
+            elif 'summary' in label and 'summary' not in profile:
                 profile['summary'] = txt
             else:
                 key = label.replace(' ', '_')

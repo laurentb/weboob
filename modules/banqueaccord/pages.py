@@ -171,7 +171,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 continue
 
             if len(left.xpath('./span[@class="precision"]')) == 0 or \
-               (left.text is None or not 'total' in left.text.lower()):
+               (left.text is None or 'total' not in left.text.lower()):
                 continue
 
             balance -= CleanDecimal('.', replace_dots=False)(right)

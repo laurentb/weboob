@@ -49,7 +49,7 @@ class HousingListWidgetItem(QListWidgetItem):
         text += u'<br /><font color="#008800">%s</font>' % storage.get('notes', self.housing.fullid, default='').strip().replace('\n', '<br />')
         self.setText(text)
 
-        if not self.housing.fullid in storage.get('read'):
+        if self.housing.fullid not in storage.get('read'):
             self.setBackground(QBrush(QColor(200, 200, 255)))
             self.read = False
         elif self.housing.fullid in storage.get('bookmarks'):

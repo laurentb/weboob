@@ -62,7 +62,7 @@ class StandardStorage(IStorage):
 
     def load(self, what, name, default={}):
         d = {}
-        if not what in self.config.values:
+        if what not in self.config.values:
             self.config.values[what] = {}
         else:
             d = self.config.values[what].get(name, {})

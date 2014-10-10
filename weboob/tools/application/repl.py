@@ -207,7 +207,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                           backend.DESCRIPTION))
                 i = self.ask('Select a backend to proceed with "%s"' % id)
                 if not i.isdigit():
-                    if not i in dict(e.backends):
+                    if i not in dict(e.backends):
                         print('Error: %s is not a valid backend' % i, file=self.stderr)
                         continue
                     backend_name = i

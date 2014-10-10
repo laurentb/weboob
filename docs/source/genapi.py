@@ -20,7 +20,7 @@ def genapi():
 
         subs = set()
         for f in files:
-            if not '.' in f:
+            if '.' not in f:
                 continue
 
             f, ext = f.rsplit('.', 1)

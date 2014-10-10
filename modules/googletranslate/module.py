@@ -49,10 +49,10 @@ class GoogleTranslateModule(Module, CapTranslate):
         }
 
     def translate(self, lan_from, lan_to, text):
-        if not lan_from in self.GOOGLELANGUAGE.keys():
+        if lan_from not in self.GOOGLELANGUAGE.keys():
             raise LanguageNotSupported()
 
-        if not lan_to in self.GOOGLELANGUAGE.keys():
+        if lan_to not in self.GOOGLELANGUAGE.keys():
             raise LanguageNotSupported()
 
         translation = Translation(0)

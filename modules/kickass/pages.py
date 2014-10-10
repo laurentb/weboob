@@ -32,7 +32,7 @@ class TorrentsPage(Page):
             if tr.attrib.get('class', '') == 'odd' or tr.attrib.get('class', '') == ' even':
                 magnet = NotAvailable
                 url = NotAvailable
-                if not 'id' in tr.attrib:
+                if 'id' not in tr.attrib:
                     continue
                 title = self.parser.tocleanstring(tr.find('.//a[@class="cellMainLink"]'))
                 # WTF is that?

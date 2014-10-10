@@ -101,7 +101,7 @@ class Contact(BaseObject):
         :type name: str
         :param kwargs: See :class:`ContactPhoto` to know what other parameters you can use
         """
-        if not name in self.photos:
+        if name not in self.photos:
             self.photos[name] = ContactPhoto(name)
 
         photo = self.photos[name]

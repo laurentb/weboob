@@ -196,7 +196,7 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
                 flags |= Message.IS_UNREAD
 
                 if get_profiles:
-                    if not mail['from'] in contacts:
+                    if mail['from'] not in contacts:
                         try:
                             with self.browser:
                                 contacts[mail['from']] = self.get_contact(mail['from'])
@@ -329,7 +329,7 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
     def _get_slut(self, id):
         id = int(id)
         sluts = self.storage.get('sluts')
-        if not sluts or not id in sluts:
+        if not sluts or id not in sluts:
             slut = {'lastmsg': datetime.datetime(1970,1,1),
                     'status':  None}
         else:

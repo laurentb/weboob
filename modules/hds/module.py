@@ -68,7 +68,7 @@ class HDSModule(Module, CapMessages):
             thread = Thread(story.id)
 
         flags = 0
-        if not thread.id in self.storage.get('seen', default=[]):
+        if thread.id not in self.storage.get('seen', default=[]):
             flags |= Message.IS_UNREAD
 
         thread.title = story.title

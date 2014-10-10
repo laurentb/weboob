@@ -366,7 +366,7 @@ class Browser(object):
         It only redirect to the refresh URL if the sleep time is inferior to
         REFRESH_MAX.
         """
-        if not 'Refresh' in response.headers:
+        if 'Refresh' not in response.headers:
             return response
 
         m = self.REFRESH_RE.match(response.headers['Refresh'])

@@ -33,7 +33,7 @@ __all__ = ['AudioAddictModule']
 #
 # WARNING
 #
-# AudioAddict playlists do not seem to be appreciated by mplayer
+# AudioAddict playlists do not seem to be appreciated by mplayer
 # VLC plays them successfully, therefore I advice to set the media_player
 # option to another player in the ~/.config/weboob/radioob config file:
 # [ROOT]
@@ -160,7 +160,7 @@ class AudioAddictModule(Module, CapRadio, CapCollection):
                 streamName = self._get_stream_name(selectedNetwork, quality)
                 if not self.RADIOS:
                     self.RADIOS = {}
-                if not selectedNetwork in self.RADIOS:
+                if selectedNetwork not in self.RADIOS:
                     document = self.browser.location('http://listen.%s/%s' %
                                                      (self.NETWORKS[selectedNetwork]['domain'],
                                                       streamName))
@@ -199,7 +199,7 @@ class AudioAddictModule(Module, CapRadio, CapCollection):
 
     def get_current(self, network, radio):
         channel = {}
-        if not network in self.HISTORY:
+        if network not in self.HISTORY:
             self._get_tracks_history(network)
             channel = self.HISTORY[network].get(str(self.RADIOS[network][radio]['id']))
         else:
@@ -229,7 +229,7 @@ class AudioAddictModule(Module, CapRadio, CapCollection):
 
         self._fetch_radio_list(network)
 
-        if not radioName in self.RADIOS[network]:
+        if radioName not in self.RADIOS[network]:
             return None
 
         radio_dict = self.RADIOS[network][radioName]

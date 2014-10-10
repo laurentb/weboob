@@ -64,7 +64,7 @@ class SeLogerModule(Module, CapHousing):
                 if categories['label'] != 'Villes':
                     continue
                 for city in categories['values']:
-                    if not 'value' in city:
+                    if 'value' not in city:
                         continue
                     c = City(city['value'])
                     c.name = unicode(city['label'])

@@ -45,7 +45,7 @@ class FacebookBrowser(DomainBrowser):
         form['pass'] = password
         form['persistent'] = 1
         form.submit(allow_redirects=False)
-        if not 'Location' in self.response.headers:
+        if 'Location' not in self.response.headers:
             raise BrowserIncorrectPassword()
 
         self.location(self.response.headers['Location'])

@@ -80,7 +80,7 @@ class MainWindow(QtMainWindow):
     def tabChanged(self, i):
         widget = self.ui.tabWidget.currentWidget()
 
-        if hasattr(widget, 'load') and not i in self.loaded_tabs:
+        if hasattr(widget, 'load') and i not in self.loaded_tabs:
             widget.load()
             self.loaded_tabs[i] = True
 

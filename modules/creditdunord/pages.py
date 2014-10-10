@@ -296,7 +296,7 @@ class ProTransactionsPage(TransactionsPage):
 
             for i, key, value in re.findall('listeopecv\[(\d+)\]\[\'(\w+)\'\]="(.*)";', txt):
                 i = int(i)
-                if not i in transactions:
+                if i not in transactions:
                     transactions[i] = {}
                 transactions[i][key] = value
 

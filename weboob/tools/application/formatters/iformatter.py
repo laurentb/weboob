@@ -149,7 +149,7 @@ class IFormatter(object):
             if selected_fields:  # can be an empty list (nothing to do), or None (return all fields)
                 obj = obj.copy()
                 for name, value in obj.iter_fields():
-                    if not name in selected_fields:
+                    if name not in selected_fields:
                         delattr(obj, name)
 
             if self.MANDATORY_FIELDS:
@@ -167,7 +167,7 @@ class IFormatter(object):
             if selected_fields:
                 obj = obj.copy()
                 for name, value in obj.iteritems():
-                    if not name in selected_fields:
+                    if name not in selected_fields:
                         obj.pop(name)
 
             if self.MANDATORY_FIELDS:

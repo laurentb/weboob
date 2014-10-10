@@ -43,10 +43,10 @@ class WordReferenceModule(Module, CapTranslate):
         }
 
     def translate(self, lan_from, lan_to, text):
-        if not lan_from in self.WRLANGUAGE.keys():
+        if lan_from not in self.WRLANGUAGE.keys():
             raise LanguageNotSupported()
 
-        if not lan_to in self.WRLANGUAGE.keys():
+        if lan_to not in self.WRLANGUAGE.keys():
             raise LanguageNotSupported()
 
         translation = Translation(0)

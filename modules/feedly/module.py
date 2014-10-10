@@ -76,7 +76,7 @@ class FeedlyModule(Module, CapMessages, CapCollection):
         if entry is None:
             return None
 
-        if not thread.id in self.storage.get('seen', default=[]):
+        if thread.id not in self.storage.get('seen', default=[]):
             entry.flags = Message.IS_UNREAD
 
         entry.thread = thread

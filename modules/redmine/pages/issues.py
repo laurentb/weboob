@@ -160,7 +160,7 @@ class IssuesPage(BaseIssuePage):
 
         def get_values(key):
             values = []
-            if not key in args:
+            if key not in args:
                 return values
             for key, value in args[key]['values']:
                 if value.isdigit():
@@ -394,7 +394,7 @@ class IssuePage(NewIssuePage):
         # check issue 666 on symlink.me
         i = 0
         alist = author.findall('a')
-        if not 'title' in alist[i].attrib:
+        if 'title' not in alist[i].attrib:
             params['author'] = (int(alist[i].attrib['href'].split('/')[-1]),
                                 to_unicode(alist[i].text))
             i += 1

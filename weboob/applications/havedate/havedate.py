@@ -205,7 +205,7 @@ class HaveDate(Boobmsg):
 
         if backend_name == '*':
             backend_name = None
-        elif backend_name is not None and not backend_name in [b.name for b in self.enabled_backends]:
+        elif backend_name is not None and backend_name not in [b.name for b in self.enabled_backends]:
             print('Error: No such backend "%s"' % backend_name, file=self.stderr)
             return 1
 
@@ -223,13 +223,13 @@ class HaveDate(Boobmsg):
             optims = {}
             backends = set()
             for (name, optim) in self.do('iter_optimizations', backends=backend_name):
-                if optims_names is not None and not name in optims_names:
+                if optims_names is not None and name not in optims_names:
                     continue
                 if optim.is_running():
                     status = 'RUNNING'
                 else:
                     status = '-------'
-                if not name in optims:
+                if name not in optims:
                     optims[name] = {optim.backend: status}
                 else:
                     optims[name][optim.backend] = status
