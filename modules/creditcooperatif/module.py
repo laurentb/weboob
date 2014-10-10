@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
@@ -60,12 +61,7 @@ class CreditCooperatifModule(Module, CapBank):
 
     def get_account(self, _id):
         with self.browser:
-            account = self.browser.get_account(_id)
-
-        if account:
-            return account
-        else:
-            raise AccountNotFound()
+            return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
 
     def iter_history(self, account):
         with self.browser:

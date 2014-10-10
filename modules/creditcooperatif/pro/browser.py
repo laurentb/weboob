@@ -76,15 +76,6 @@ class CreditCooperatif(Browser):
 
         return self.page.get_list()
 
-    def get_account(self, id):
-        assert isinstance(id, basestring)
-
-        for a in self.get_accounts_list():
-            if a.id == id:
-                return a
-
-        return None
-
     def _get_history(self, link):
         self.location(link)
 

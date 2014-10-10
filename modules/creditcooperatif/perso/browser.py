@@ -76,15 +76,6 @@ class CreditCooperatif(Browser):
 
         return self.page.get_list()
 
-    def get_account(self, id):
-        assert isinstance(id, basestring)
-
-        for a in self.get_accounts_list():
-            if a.id == id:
-                return a
-
-        return None
-
     def get_history(self, account):
         data = {'accountExternalNumber': account.id}
         self.location('/portail/particuliers/mescomptes/relevedesoperations.do', urllib.urlencode(data))
