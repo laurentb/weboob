@@ -44,6 +44,7 @@ class BackendStorage(object):
     :param storage: storage object
     :type storage: :class:`weboob.tools.storage.IStorage`
     """
+
     def __init__(self, name, storage):
         self.name = name
         self.storage = storage

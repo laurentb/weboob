@@ -89,5 +89,6 @@ class AccountHistory(Page):
     def get_IBAN(self):
         return self.document.xpath('//a[@class="lien_perso_libelle"]')[0].attrib['id'][10:26]
 
+
 class AccountComing(AccountHistory):
     pass

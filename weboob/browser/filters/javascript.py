@@ -131,4 +131,3 @@ class JSVar(Regexp):
             return super(JSVar, self).filter(txt)
         except RegexpError:
             raise ParseError('Variable %r not found' % self.var)
-

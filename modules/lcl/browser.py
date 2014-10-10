@@ -122,6 +122,7 @@ class LCLBrowser(Browser):
                 for tr in self.page.get_operations():
                     yield tr
 
+
 class LCLProBrowser(LCLBrowser):
     PROTOCOL = 'https'
     DOMAIN = 'professionnels.secure.lcl.fr'
@@ -165,4 +166,3 @@ class LCLProBrowser(LCLBrowser):
     def __init__(self, *args, **kwargs):
         Browser.__init__(self, *args, **kwargs)
         self.add_cookie("lclgen","professionnels")
-

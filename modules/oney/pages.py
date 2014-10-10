@@ -97,6 +97,7 @@ class VirtKeyboard(MappedVirtKeyboard):
             code += self.get_symbol_code(self.symbols[c])
         return code
 
+
 class LoginPage(HTMLPage):
     is_here ="//form[@id='formulaire-login']"
 
@@ -115,11 +116,13 @@ class LoginPage(HTMLPage):
         form['personneIdentifiee'] = 'N'
         form.submit()
 
+
 class IndexPage(LoggedPage, HTMLPage):
     is_here = "//div[@id='situation']"
 
     def get_balance(self):
         return  -CleanDecimal('.', replace_dots=True)(self.doc.xpath('//div[@id = "total-sommes-dues"]/p[contains(text(), "sommes dues")]/span[@class = "montant"]')[0])
+
 
 class OperationsPage(LoggedPage, HTMLPage):
     is_here = "//div[@id='releve-reserve-credit'] | //div[@id='operations-recentes'] | //select[@id='periode']"

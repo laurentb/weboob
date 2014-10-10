@@ -19,6 +19,7 @@
 
 from weboob.tools.test import BackendTest
 
+
 class SFRTest(BackendTest):
     MODULE = 'sfr'
 

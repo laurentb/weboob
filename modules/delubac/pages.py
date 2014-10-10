@@ -94,6 +94,7 @@ class OperationsPage(Page):
         if next_button:
             return next_button[0]
 
+
 class LCRPage(OperationsPage):
     def iter_history(self):
         date = None

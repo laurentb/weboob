@@ -109,6 +109,7 @@ class LxmlHtmlParser(LxmlParser):
 
     Note that it is not available on every systems.
     """
+
     def __init__(self, *args, **kwargs):
         self.module = html
 
@@ -122,6 +123,7 @@ class LxmlXmlParser(LxmlParser):
 
     Note that it is not available on every systems.
     """
+
     def __init__(self, *args, **kwargs):
         self.module = etree
 

@@ -26,6 +26,7 @@ def update_status(p, status):
     if p.status < status:
         p.status = status
 
+
 class TrackPage(Page):
     def get_info(self, _id):
         p = Parcel(_id)
@@ -69,6 +70,7 @@ class TrackPage(Page):
         except:
             pass
         return p
+
 
 class ErrorPage(Page):
     pass

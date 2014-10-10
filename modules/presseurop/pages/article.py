@@ -55,6 +55,7 @@ class PresseuropPage(GenericNewsPage):
         except:
             return author
 
+
 class DailyTitlesPage(PresseuropPage):
     def on_loaded(self):
         self.main_div = self.document.getroot()

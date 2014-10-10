@@ -125,4 +125,3 @@ class SomaFMModule(Module, CapRadio, CapCollection):
         return radio
 
     OBJECTS = {Radio: fill_radio}
-

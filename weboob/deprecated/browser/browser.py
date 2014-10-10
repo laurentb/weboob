@@ -69,6 +69,7 @@ class NoHistory(object):
     """
     We don't want to fill memory with history
     """
+
     def __init__(self):
         pass
 
@@ -702,6 +703,7 @@ class DNSTimeoutException(Exception):
     pass
 
 cacheDNS = {}
+
 
 def my_getaddrinfo(*args):
     try:

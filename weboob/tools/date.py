@@ -214,6 +214,7 @@ class ChaoticDateGuesser(LinearDateGuesser):
     This class aim to find the guess the date when you know the
     day and month and the minimum year
     """
+
     def __init__(self, min_date, current_date=None, date_max_bump=timedelta(7)):
         if min_date is None:
             raise ValueError("min_date is not set")

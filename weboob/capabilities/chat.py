@@ -57,6 +57,7 @@ class CapChat(Capability):
     """
     Websites with a chat system.
     """
+
     def iter_chat_messages(self, _id=None):
         """
         Iter messages.

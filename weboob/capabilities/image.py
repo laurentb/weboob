@@ -24,12 +24,14 @@ from .file import CapFile, BaseFile
 
 __all__ = ['BaseImage', 'CapImage']
 
+
 class _BaseImage(BaseFile):
     """
     Fake class to allow the inclusion of a BaseImage property within
     the real BaseImage class
     """
     pass
+
 
 class BaseImage(_BaseImage):
     """
@@ -61,6 +63,7 @@ class CapImage(CapFile):
     """
     Image file provider
     """
+
     def search_image(self, pattern, sortby=CapFile.SEARCH_RELEVANCE, nsfw=False):
         """
         search for an image file
@@ -83,4 +86,3 @@ class CapImage(CapFile):
         :rtype: :class:`BaseImage`]
         """
         return self.get_file(_id)
-

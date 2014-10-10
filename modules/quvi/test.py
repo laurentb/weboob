@@ -45,4 +45,3 @@ class QuviTest(BackendTest):
         assert len(v.url)
         assert len(v.title)
         assert v.page_url.startswith('http://www.youtube.com/watch?v=BaW_jenozKc')
-

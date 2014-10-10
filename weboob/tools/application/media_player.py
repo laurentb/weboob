@@ -61,6 +61,7 @@ class MediaPlayer(object):
     world, the media player used is chosen from a static list of
     programs. See PLAYERS for more information.
     """
+
     def __init__(self, logger=None):
         self.logger = getLogger('mediaplayer', logger)
 

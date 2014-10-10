@@ -111,6 +111,7 @@ class WebNip(object):
         :param backend_name: name of backend we can't load
         :param exception: exception object
         """
+
         def __init__(self, backend_name, exception):
             Exception.__init__(self, unicode(exception))
             self.backend_name = backend_name

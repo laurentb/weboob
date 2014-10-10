@@ -32,18 +32,22 @@ except ImportError:
 DEFAULT_VERSION = "1.1.6"
 DEFAULT_URL = "https://pypi.python.org/packages/source/s/setuptools/"
 
+
 def _python_cmd(*args):
     args = (sys.executable,) + args
     return subprocess.call(args) == 0
 
+
 def _check_call_py24(cmd, *args, **kwargs):
     res = subprocess.call(cmd, *args, **kwargs)
+
     class CalledProcessError(Exception):
         pass
     if not res == 0:
         msg = "Command '%s' return non-zero exit status %d" % (cmd, res)
         raise CalledProcessError(msg)
 vars(subprocess).setdefault('check_call', _check_call_py24)
+
 
 def _install(tarball, install_args=()):
     # extracting the tarball
@@ -151,6 +155,7 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
         return _do_download(version, download_base, to_dir,
                             download_delay)
 
+
 def download_file_powershell(url, target):
     """
     Download the file at url to target using Powershell (which will validate
@@ -163,6 +168,7 @@ def download_file_powershell(url, target):
         "(new-object System.Net.WebClient).DownloadFile(%(url)r, %(target)r)" % vars(),
     ]
     subprocess.check_call(cmd)
+
 
 def has_powershell():
     if platform.system() != 'Windows':
@@ -180,9 +186,11 @@ def has_powershell():
 
 download_file_powershell.viable = has_powershell
 
+
 def download_file_curl(url, target):
     cmd = ['curl', url, '--silent', '--output', target]
     subprocess.check_call(cmd)
+
 
 def has_curl():
     cmd = ['curl', '--version']
@@ -198,9 +206,11 @@ def has_curl():
 
 download_file_curl.viable = has_curl
 
+
 def download_file_wget(url, target):
     cmd = ['wget', url, '--quiet', '--output-document', target]
     subprocess.check_call(cmd)
+
 
 def has_wget():
     cmd = ['wget', '--version']
@@ -215,6 +225,7 @@ def has_wget():
     return False
 
 download_file_wget.viable = has_wget
+
 
 def download_file_insecure(url, target):
     """
@@ -241,6 +252,7 @@ def download_file_insecure(url, target):
 
 download_file_insecure.viable = lambda: True
 
+
 def get_best_downloader():
     downloaders = [
         download_file_powershell,
@@ -252,6 +264,7 @@ def get_best_downloader():
     for dl in downloaders:
         if dl.viable():
             return dl
+
 
 def download_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
                         to_dir=os.curdir, delay=15,
@@ -338,6 +351,7 @@ def _build_install_args(options):
         install_args.append('--user')
     return install_args
 
+
 def _parse_args():
     """
     Parse the command line for options
@@ -358,6 +372,7 @@ def _parse_args():
     options, args = parser.parse_args()
     # positional arguments are ignored
     return options
+
 
 def main(version=DEFAULT_VERSION):
     """Install or upgrade setuptools and EasyInstall"""

@@ -110,6 +110,7 @@ class CapHousing(Capability):
     """
     Capability of websites to search housings.
     """
+
     def search_housings(self, query):
         """
         Search housings.

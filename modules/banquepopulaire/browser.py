@@ -82,6 +82,7 @@ class BanquePopulaire(Browser):
         self.token = self.page.get_token()
 
     ACCOUNT_URLS = ['mesComptes', 'mesComptesPRO', 'maSyntheseGratuite', 'accueilSynthese']
+
     def go_on_accounts_list(self):
         for taskInfoOID in self.ACCOUNT_URLS:
             self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID=taskInfoOID, token=self.token))

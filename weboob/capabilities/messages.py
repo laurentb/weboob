@@ -173,6 +173,7 @@ class CapMessages(Capability):
     """
     Capability to read messages.
     """
+
     def iter_threads(self):
         """
         Iterates on threads, from newers to olders.
@@ -217,6 +218,7 @@ class CapMessagesPost(Capability):
     """
     This capability allow user to send a message.
     """
+
     def post_message(self, message):
         """
         Post a message.

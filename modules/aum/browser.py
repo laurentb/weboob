@@ -127,6 +127,7 @@ class WebsiteBrowser(LoginBrowser):
 
         return profile
 
+
 class AuMBrowser(Browser):
     DOMAIN = 'www.adopteunmec.com'
     APIKEY = 'fb0123456789abcd'

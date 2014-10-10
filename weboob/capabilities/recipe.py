@@ -165,6 +165,7 @@ class CapRecipe(Capability):
     """
     Recipe providers.
     """
+
     def iter_recipes(self, pattern):
         """
         Search recipes and iterate on results.

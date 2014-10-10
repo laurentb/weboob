@@ -47,6 +47,7 @@ class CapBook(CapCollection):
     """
     Library websites.
     """
+
     def iter_resources(self, objs, split_path):
         """
         Iter resources. It retuns :func:`iter_books`.

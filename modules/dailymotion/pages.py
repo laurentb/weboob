@@ -154,6 +154,7 @@ class VideoPage(Page):
 
         video.url = unicode(info[max_quality])
 
+
 class KidsVideoPage(VideoPage):
 
     CONTROLLER_PAGE = 'http://kids.dailymotion.com/controller/Page_Kids_KidsUserHome?%s'

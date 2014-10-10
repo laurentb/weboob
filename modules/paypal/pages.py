@@ -34,6 +34,7 @@ from weboob.tools.capabilities.bank.transactions import AmericanTransaction
 class CSVAlreadyAsked(Exception):
     pass
 
+
 def clean_amount(text):
     amnt = AmericanTransaction.clean_amount(text)
     return Decimal(amnt) if amnt else Decimal("0")
@@ -135,6 +136,7 @@ class DownloadHistoryPage(Page):
 
         self.browser.submit()
 
+
 class LastDownloadHistoryPage(Page):
     def download(self):
         self.browser.select_form(nr=1)
@@ -142,10 +144,12 @@ class LastDownloadHistoryPage(Page):
         self.browser['log_select'] = [log_select]
         self.browser.submit()
 
+
 class SubmitPage(Page):
     """
     Any result of form submission
     """
+
     def iter_transactions(self, account):
         csv = self.document
 

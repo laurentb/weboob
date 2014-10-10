@@ -157,6 +157,7 @@ class IssuesPage(BaseIssuePage):
             return project
 
         args = json.loads(args)
+
         def get_values(key):
             values = []
             if not key in args:

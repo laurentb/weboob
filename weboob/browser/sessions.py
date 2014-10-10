@@ -34,6 +34,7 @@ from requests.sessions import merge_setting
 from requests.structures import CaseInsensitiveDict
 from requests.utils import get_netrc_auth
 
+
 def merge_hooks(request_hooks, session_hooks, dict_class=OrderedDict):
     """
     Properly merges both requests and session hooks.

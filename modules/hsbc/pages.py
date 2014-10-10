@@ -43,6 +43,7 @@ class Transaction(FrenchTransaction):
                 (re.compile(r'^REMISE (?P<text>.*)'),      FrenchTransaction.TYPE_DEPOSIT),
                ]
 
+
 class AccountsPage(LoggedPage, HTMLPage):
     def get_frame(self):
         try:
@@ -129,6 +130,7 @@ class CBOperationPage(LoggedPage, HTMLPage):
             obj_date = DateGuesser(CleanText(TableCell("date")), Env("date_guesser"))
             obj_vdate = DateGuesser(CleanText(TableCell("date")), Env("date_guesser"))
 
+
 class CPTOperationPage(LoggedPage, HTMLPage):
     def get_history(self):
         for script in self.doc.xpath('//script'):
@@ -141,6 +143,7 @@ class CPTOperationPage(LoggedPage, HTMLPage):
                 op.set_amount(m.group(5))
                 op._coming = (re.match(r'\d+/\d+/\d+', m.group(2)) is None)
                 yield op
+
 
 class LoginPage(HTMLPage):
     def on_load(self):

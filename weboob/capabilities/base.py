@@ -45,6 +45,7 @@ def empty(value):
             return True
     return False
 
+
 def find_object(mylist, error=None, **kwargs):
     """
     Very simple tools to return an object with the matching parameters in
@@ -63,6 +64,7 @@ def find_object(mylist, error=None, **kwargs):
         raise error()
     return None
 
+
 class UserError(Exception):
     """
     Exception containing an error message for user.
@@ -78,6 +80,7 @@ class FieldNotFound(Exception):
     :param field: field not found
     :type field: :class:`Field`
     """
+
     def __init__(self, obj, field):
         Exception.__init__(self,
                            u'Field "%s" not found for object %s' % (field, obj))
@@ -102,6 +105,7 @@ class NotAvailableType(object):
     """
     NotAvailable is a constant to use on non available fields.
     """
+
     def __str__(self):
         return unicode(self).decode('utf-8')
 
@@ -199,6 +203,7 @@ class IntField(Field):
     """
     A field which accepts only :class:`int` and :class:`long` types.
     """
+
     def __init__(self, doc, **kwargs):
         Field.__init__(self, doc, int, long, **kwargs)
 
@@ -210,6 +215,7 @@ class DecimalField(Field):
     """
     A field which accepts only :class:`decimal` type.
     """
+
     def __init__(self, doc, **kwargs):
         Field.__init__(self, doc, Decimal, **kwargs)
 
@@ -223,6 +229,7 @@ class FloatField(Field):
     """
     A field which accepts only :class:`float` type.
     """
+
     def __init__(self, doc, **kwargs):
         Field.__init__(self, doc, float, **kwargs)
 
@@ -234,6 +241,7 @@ class StringField(Field):
     """
     A field which accepts only :class:`unicode` strings.
     """
+
     def __init__(self, doc, **kwargs):
         Field.__init__(self, doc, unicode, **kwargs)
 
@@ -245,6 +253,7 @@ class BytesField(Field):
     """
     A field which accepts only :class:`str` strings.
     """
+
     def __init__(self, doc, **kwargs):
         Field.__init__(self, doc, str, **kwargs)
 

@@ -101,6 +101,7 @@ class ContactThread(QWidget):
             return
 
         self.ui.refreshButton.setEnabled(False)
+
         def finished():
             #v = self.ui.scrollArea.verticalScrollBar()
             #print v.minimum(), v.value(), v.maximum(), v.sliderPosition()
@@ -572,6 +573,7 @@ class ContactsWidget(QWidget):
     def retrieveContact(self, url):
         backend_name = unicode(self.ui.backendsList.currentText())
         self.ui.urlButton.setEnabled(False)
+
         def finished():
             self.url_process = None
             self.ui.urlButton.setEnabled(True)

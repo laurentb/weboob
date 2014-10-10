@@ -201,5 +201,3 @@ class URL(object):
 
             return func(browser, id_or_url, *args, **kwargs)
         return inner
-
-

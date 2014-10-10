@@ -56,6 +56,7 @@ class AccountsPage(Page):
 
             yield a
 
+
 class TransactionsPage(Page):
     COL_ID = 0
     COL_DATE = 1
@@ -81,6 +82,7 @@ class TransactionsPage(Page):
                     return datetime.date(int(m.group(3)),
                                          self.MONTHS.index(m.group(2).rstrip('.')) + 1,
                                          int(m.group(1)))
+
     def get_beginning_debit_date(self):
         for option in self.document.xpath('//select[@id="viewPeriod"]/option'):
             if 'selected' in option.attrib:

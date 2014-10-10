@@ -23,6 +23,7 @@ from .browser import NihonNoOtoBrowser
 
 __all__ = ['NihonNoOtoModule']
 
+
 class NihonNoOtoModule(Module, CapRadio, CapCollection):
     NAME = 'nihonnooto'
     MAINTAINER = u'Thomas Lecavelier'

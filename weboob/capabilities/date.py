@@ -24,10 +24,12 @@ from weboob.capabilities.base import Field
 
 __all__ = ['DateField', 'TimeField', 'DeltaField']
 
+
 class DateField(Field):
     """
     A field which accepts only :class:`datetime.date` and :class:`datetime.datetime` types.
     """
+
     def __init__(self, doc, **kwargs):
         Field.__init__(self, doc, datetime.date, datetime.datetime, **kwargs)
 
@@ -46,6 +48,7 @@ class TimeField(Field):
     """
     A field which accepts only :class:`datetime.time` and :class:`datetime.time` types.
     """
+
     def __init__(self, doc, **kwargs):
         Field.__init__(self, doc, datetime.time, datetime.datetime, **kwargs)
 
@@ -54,5 +57,6 @@ class DeltaField(Field):
     """
     A field which accepts only :class:`datetime.timedelta` type.
     """
+
     def __init__(self, doc, **kwargs):
         Field.__init__(self, doc, datetime.timedelta, **kwargs)

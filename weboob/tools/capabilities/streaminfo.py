@@ -39,4 +39,3 @@ class StreamInfo(BaseObject):
             return u'%s - %s' % (self.who, self.what)
         else:
             return self.what
-

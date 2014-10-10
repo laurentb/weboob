@@ -256,6 +256,7 @@ class TransactionsPage(BasePage):
 
             yield t
 
+
 class CBTransactionsPage(TransactionsPage):
     COL_CB_CREDIT = 2
 

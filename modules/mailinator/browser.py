@@ -65,8 +65,10 @@ class MailinatorBrowser(Browser):
         divs = doc.cssselect('.mailview')
         return divs[0].text_content().strip()
 
+
 def millis():
     return int(time.time() * 1000)
+
 
 def frommillis(millis):
     return datetime.fromtimestamp(millis / 1000)

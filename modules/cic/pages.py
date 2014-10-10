@@ -47,9 +47,11 @@ class ChangePasswordPage(Page):
     def on_loaded(self):
         raise BrowserIncorrectPassword('Please change your password')
 
+
 class VerifCodePage(Page):
     def on_loaded(self):
         raise BrowserIncorrectPassword('Unable to login: website asks a code from a card')
+
 
 class InfoPage(Page):
     pass
@@ -302,6 +304,7 @@ class CardPage(OperationsPage):
                 # because there is a span.aide.
                 tr.set_amount(tds[-1].text)
                 yield tr
+
 
 class NoOperationsPage(OperationsPage):
     def get_history(self):

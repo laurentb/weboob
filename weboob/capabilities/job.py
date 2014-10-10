@@ -72,6 +72,7 @@ class CapJob(Capability):
     """
     Capability of job annouce websites.
     """
+
     def search_job(self, pattern=None):
         """
         Iter results of a search on a pattern.

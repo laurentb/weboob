@@ -42,6 +42,7 @@ def method(klass):
     """
     Class-decorator to call it as a method.
     """
+
     def inner(self, *args, **kwargs):
         return klass(self)(*args, **kwargs)
     return inner
@@ -300,5 +301,3 @@ class TableElement(ListElement):
 
     def get_colnum(self, name):
         return self._cols.get(name, None)
-
-

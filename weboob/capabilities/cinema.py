@@ -73,6 +73,7 @@ class CapCinema(Capability):
     """
     Cinema databases.
     """
+
     def iter_movies(self, pattern):
         """
         Search movies and iterate on results.

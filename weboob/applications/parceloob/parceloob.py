@@ -58,6 +58,7 @@ class HistoryFormatter(IFormatter):
                                 self.colored('%-17s' % (obj.location or ''), 'magenta'),
                                 self.colored(obj.activity or '', 'yellow'))
 
+
 class StatusFormatter(IFormatter):
     MANDATORY_FIELDS = ('id',)
 

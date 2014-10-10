@@ -105,6 +105,7 @@ class OfxFormatter(IFormatter):
         self.output(u'<DTASOF>%s</AVAILBAL>' % datetime.date.today().strftime('%Y%m%d'))
         self.output(u'</STMTRS></STMTTRNRS></BANKMSGSRSV1></OFX>')
 
+
 class QifFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'date', 'raw', 'amount')
 

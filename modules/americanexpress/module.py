@@ -63,4 +63,3 @@ class AmericanExpressModule(Module, CapBank):
             transactions = list(self.browser.get_history(account))
             transactions.sort(key=lambda tr: tr.rdate, reverse=True)
             return transactions
-

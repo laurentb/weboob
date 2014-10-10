@@ -29,6 +29,7 @@ from weboob.capabilities.bill import Subscription, Detail, Bill
 # Ugly array to avoid the use of french locale
 FRENCH_MONTHS = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
 
+
 class AmeliBasePage(Page):
     def is_logged(self):
         try:
@@ -40,6 +41,7 @@ class AmeliBasePage(Page):
         self.logger.debug('logged: %s' % (logged))
         return logged
 
+
 class LoginPage(AmeliBasePage):
     def login(self, login, password):
         self.browser.select_form('connexionCompteForm')
@@ -47,8 +49,10 @@ class LoginPage(AmeliBasePage):
         self.browser["connexioncompte_2codeConfidentiel"] = password.encode('utf8')
         self.browser.submit()
 
+
 class HomePage(AmeliBasePage):
     pass
+
 
 class AccountPage(AmeliBasePage):
     def iter_subscription_list(self):

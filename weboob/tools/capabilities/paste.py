@@ -70,6 +70,7 @@ def image_mime(data_base64, supported_formats=('gif', 'jpeg', 'png')):
           'MM\x2a\x00' in beginning):
         return 'image/tiff'
 
+
 def test():
     class MockPasteModule(BasePasteModule):
         def __init__(self, expirations):

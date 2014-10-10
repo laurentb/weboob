@@ -46,6 +46,7 @@ class CapGeolocIp(Capability):
     """
     Access information about IP addresses database.
     """
+
     def get_location(self, ipaddr):
         """
         Get location of an IP address.

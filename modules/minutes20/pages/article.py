@@ -24,6 +24,7 @@ from .simple import SimplePage
 
 class ArticlePage(SimplePage):
     "ArticlePage object for minutes20"
+
     def on_loaded(self):
         self.main_div = self.document.getroot()
         self.element_title_selector = "h1"

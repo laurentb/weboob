@@ -82,6 +82,7 @@ class Wget(Profile):
     Some websites will give you a version with less JavaScript.
     Some others could ban you (after all, wget is not a real browser).
     """
+
     def __init__(self, version='1.11.4'):
         self.version = version
 

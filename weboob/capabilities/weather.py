@@ -113,6 +113,7 @@ class CapWeather(Capability):
     """
     Capability for weather websites.
     """
+
     def iter_city_search(self, pattern):
         """
         Look for a city.

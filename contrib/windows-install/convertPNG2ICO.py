@@ -33,6 +33,7 @@ import os
 # bpp: bits per pixel, could *only* be 24 or 32!
 # return: an "array" of BYTES which, if write to file, is a size*size ico file
 
+
 def genico(data, size=16, bpp=24):
     from array import array
     a = array('B')
@@ -80,14 +81,12 @@ def genico(data, size=16, bpp=24):
     return a
 
 
-
 # x,y indicate the hotspot position
 # simply set the type/hotspot(x&y) after generates the icon
 def gencur(data, size=16, bpp=24, x=0, y=0):
     a = genico(data, size, bpp)
     a[3], a[10], a[12] = 2, x, y
     return a
-
 
 
 #C:\Python27\Lib\site-packages\weboob-0.g-py2.7.egg\share\icons\hicolor\64x64\apps

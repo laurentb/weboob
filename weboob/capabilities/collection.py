@@ -39,6 +39,7 @@ class BaseCollection(BaseObject):
     Inherit from this if you want to create an object that is *also* a Collection.
     However, this probably will not work properly for now.
     """
+
     def __init__(self, split_path):
         BaseObject.__init__(self, None)
         self.split_path = split_path

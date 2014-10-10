@@ -39,6 +39,7 @@ class HomePage(Page):
 
         return None
 
+
 class LoginPage(Page):
     def login(self, password):
         assert password.isdigit()
@@ -60,11 +61,14 @@ class LoginPage(Page):
     def get_result_url(self):
         return self.parser.tocleanstring(self.document.getroot())
 
+
 class UselessPage(Page):
     pass
 
+
 class LoginErrorPage(Page):
     pass
+
 
 class _AccountsPage(Page):
     COL_LABEL    = 0
@@ -223,11 +227,14 @@ class CardsPage(Page):
 
             yield t
 
+
 class AccountsPage(_AccountsPage):
     pass
 
+
 class SavingsPage(_AccountsPage):
     COL_ID       = 1
+
 
 class TransactionsPage(Page):
     def get_next_url(self):

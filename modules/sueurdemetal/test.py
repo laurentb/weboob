@@ -22,6 +22,7 @@ from weboob.tools.test import BackendTest
 from weboob.capabilities.calendar import Query, CATEGORIES
 from datetime import datetime, timedelta
 
+
 class SueurDeMetalTest(BackendTest):
     MODULE = 'sueurdemetal'
 

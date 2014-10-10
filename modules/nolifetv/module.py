@@ -32,6 +32,7 @@ from hashlib import md5
 
 __all__ = ['NolifeTVModule']
 
+
 class NolifeTVModule(Module, CapVideo, CapCollection):
     NAME = 'nolifetv'
     MAINTAINER = u'Romain Bignon'

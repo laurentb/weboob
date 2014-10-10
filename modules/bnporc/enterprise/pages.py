@@ -267,5 +267,6 @@ class HistoryPage(BEPage):
             # Last page
             return None
 
+
 class UnknownPage(BEPage):
     pass

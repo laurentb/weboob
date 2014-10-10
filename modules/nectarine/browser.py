@@ -22,6 +22,7 @@ from .pages import LivePage, StreamsPage
 
 __all__ = ['NectarineBrowser']
 
+
 class NectarineBrowser(Browser):
     DOMAIN = 'www.scenemusic.net'
     PROTOCOL = 'https'

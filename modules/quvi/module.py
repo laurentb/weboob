@@ -74,6 +74,7 @@ class QuviModule(Module, CapVideo):
             video.thumbnail.url = video.thumbnail.id
         return video
 
+
 class QuviVideo(BaseVideo):
     BACKENDS = {
         'youtube': 'https://www.youtube.com/watch?v=%s',

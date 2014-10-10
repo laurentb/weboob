@@ -52,6 +52,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
     class MyDate(Filter):
         MONTHS = ['janv', u'févr', u'mars', u'avr', u'mai', u'juin', u'juil', u'août', u'sept', u'oct', u'nov', u'déc']
+
         def filter(self, txt):
             day, month, year = txt.split(' ')
             day = int(day)

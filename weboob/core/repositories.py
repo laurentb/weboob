@@ -45,6 +45,7 @@ class ModuleInfo(object):
     """
     Information about a module available on a repository.
     """
+
     def __init__(self, name):
         self.name = name
 
@@ -380,6 +381,7 @@ class IProgress(object):
     def __repr__(self):
         return '<%s>' % self.__class__.__name__
 
+
 class PrintProgress(IProgress):
     def progress(self, percent, message):
         print('=== [%3.0f%%] %s' % (percent*100, message))
@@ -450,6 +452,7 @@ class Repositories(object):
     def load_browser(self):
         from weboob.browser.browsers import Browser
         from weboob.browser.profiles import Weboob as WeboobProfile
+
         class WeboobBrowser(Browser):
             PROFILE = WeboobProfile(self.version)
         if self.browser is None:

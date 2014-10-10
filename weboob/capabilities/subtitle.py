@@ -48,10 +48,12 @@ class Subtitle(BaseObject):
         BaseObject.__init__(self, id)
         self.name = name
 
+
 class CapSubtitle(Capability):
     """
     Subtitle providers.
     """
+
     def iter_subtitles(self, pattern):
         """
         Search subtitles and iterate on results.

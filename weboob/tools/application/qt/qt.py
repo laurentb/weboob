@@ -178,6 +178,7 @@ class QtApplication(QApplication, Application):
             QMessageBox.information(None, self.tr('Update of repositories'),
                                     self.tr('Repositories updated!'), QMessageBox.Ok)
 
+
 class QtMainWindow(QMainWindow):
     def __init__(self, parent=None):
         QMainWindow.__init__(self, parent)

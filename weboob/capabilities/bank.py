@@ -184,6 +184,7 @@ class CapBank(CapCollection):
     """
     Capability of bank websites to see accounts and transactions.
     """
+
     def iter_resources(self, objs, split_path):
         """
         Iter resources.

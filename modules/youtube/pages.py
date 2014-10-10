@@ -864,6 +864,7 @@ class VideoPage(BaseYoutubePage):
 
     def _extract_from_m3u8(self, manifest_url, video_id):
         url_map = {}
+
         def _get_urls(_manifest):
             lines = _manifest.split('\n')
             urls = filter(lambda l: l and not l.startswith('#'), lines)

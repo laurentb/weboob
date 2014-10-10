@@ -95,6 +95,7 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_UNKNOWN),
                ]
 
+
 class ITransactionsPage(Page):
     def get_next_url(self):
         # can be 'Suivant' or ' Suivant'
@@ -107,6 +108,7 @@ class ITransactionsPage(Page):
 
     def get_history(self):
         raise NotImplementedError()
+
 
 class TransactionsPage(ITransactionsPage):
     TR_DATE = 0
@@ -135,12 +137,14 @@ class TransactionsPage(ITransactionsPage):
 
             yield t
 
+
 class ComingTransactionsPage(TransactionsPage):
     TR_DATE = 2
     TR_TEXT = 1
     TR_DEBIT = -2
     TR_CREDIT = -1
     TABLE_NAME = 'operationAVenir'
+
 
 class CardTransactionsPage(ITransactionsPage):
     COM_TR_COMMENT = 0

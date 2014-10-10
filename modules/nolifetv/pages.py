@@ -67,6 +67,7 @@ class VideoPage(Page):
                                                    seconds=int(m.group(3)))
             return video
 
+
 class VideoListPage(Page):
     def is_list_empty(self):
         return self.document.getroot() is None
@@ -84,6 +85,7 @@ class VideoListPage(Page):
                     if strongs[3].text:
                         video.title = video.title + ' - ' + strongs[3].text
                     yield video
+
 
 class FamilyPage(Page):
     def iter_category(self):
@@ -109,6 +111,7 @@ class FamilyPage(Page):
                 if m and m.group(1):
                     yield Collection([m.group(1)], unicode(h1.text))
 
+
 class AboPage(Page):
     def get_available_videos(self):
         available = ['[Gratuit]']
@@ -129,6 +132,7 @@ class LoginPage(Page):
         self.browser['username'] = str(username)
         self.browser['password'] = str(password)
         self.browser.submit()
+
 
 class HomePage(Page):
     def is_logged(self):

@@ -39,4 +39,3 @@ class AudioAddictTest(BackendTest):
         self.assertTrue(radio.current.what)
         self.assertTrue(radio.streams[0].url)
         self.assertTrue(radio.streams[0].title)
-

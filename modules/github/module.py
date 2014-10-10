@@ -32,6 +32,7 @@ STATUSES = {'open': Status('open', u'Open', Status.VALUE_NEW),
             'closed': Status('closed', u'closed', Status.VALUE_RESOLVED)}
 # TODO tentatively parse github "labels"?
 
+
 class GithubModule(Module, CapBugTracker):
     NAME = 'github'
     DESCRIPTION = u'GitHub issues tracking'

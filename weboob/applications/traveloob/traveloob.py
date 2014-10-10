@@ -56,11 +56,13 @@ class DeparturesFormatter(PrettyFormatter):
 
         return s
 
+
 class StationsFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'name')
 
     def get_title(self, obj):
         return obj.name
+
 
 class Traveloob(ReplApplication):
     APPNAME = 'traveloob'

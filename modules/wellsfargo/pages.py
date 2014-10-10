@@ -353,4 +353,3 @@ class StatementPage(LoggedPage, RawPage):
             cmp=lambda t1, t2: cmp(t2.date, t1.date) or
                                cmp(t1.label, t2.label) or
                                cmp(t1.amount, t2.amount))
-

@@ -32,6 +32,7 @@ class IndexPage(Page):
         self.browser['chronoNumbers'] = _id.encode('utf-8')
         self.browser.submit()
 
+
 class TrackPage(Page):
     def get_info(self, id):
         if len(self.document.xpath('//libelle[@nom="MSG_AUCUN_EVT"]')) > 0:

@@ -37,6 +37,7 @@ class UnavailablePage(Page):
     def on_loaded(self):
         raise BrowserUnavailable()
 
+
 class Keyboard(VirtKeyboard):
     symbols={'0':'daa52d75287bea58f505823ef6c8b96c',
              '1':'f5da96c2592803a8cdc5a928a2e4a3b0',
@@ -85,6 +86,7 @@ class Keyboard(VirtKeyboard):
         # strip borders
         x1, y1, x2, y2 = coords
         return VirtKeyboard.get_symbol_coords(self, (x1+3, y1+3, x2-3, y2-3))
+
 
 class LoginPage(Page):
     def login(self, login, pwd):

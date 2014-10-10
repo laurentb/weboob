@@ -266,5 +266,3 @@ class OkCBrowser(Browser):
         self.addheaders = [('Referer', self.page.url), ('Content-Type', 'application/x-www-form-urlencoded;charset=UTF-8')]
         self.open('http://m.okcupid.com%s' %abs_url, data=data)
         return True
-
-

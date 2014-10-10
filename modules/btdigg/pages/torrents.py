@@ -50,6 +50,7 @@ class TorrentsPage(Page):
             torrent.date = date
             yield torrent
 
+
 class TorrentPage(Page):
     def get_torrent(self, id):
         trs = self.document.getroot().cssselect('table.torrent_info_tbl tr')

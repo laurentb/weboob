@@ -30,6 +30,7 @@ class FourOFourPage(Page):
 class ResultsPage(Page):
     """ Page which contains results as a list of recipies
     """
+
     def iter_recipes(self):
         for div in self.parser.select(self.document.getroot(), 'div.recipe-info'):
             thumbnail_url = NotAvailable
@@ -59,6 +60,7 @@ class ResultsPage(Page):
 class RecipePage(Page):
     """ Page which contains a recipe
     """
+
     def get_recipe(self, id):
         title = NotAvailable
         preparation_time = NotAvailable

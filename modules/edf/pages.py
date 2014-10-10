@@ -27,6 +27,7 @@ from weboob.capabilities.bill import Subscription, Detail, Bill
 
 base_url = "http://particuliers.edf.com/"
 
+
 class EdfBasePage(Page):
     def is_logged(self):
         return (u'Me déconnecter' in self.document.xpath('//a/text()')) \
@@ -45,15 +46,18 @@ class HomePage(EdfBasePage):
     def on_loaded(self):
         pass
 
+
 class FirstRedirectionPage(EdfBasePage):
     def on_loaded(self):
         self.browser.select_form("form1")
         self.browser.submit()
 
+
 class SecondRedirectionPage(EdfBasePage):
     def on_loaded(self):
         self.browser.select_form("redirectForm")
         self.browser.submit()
+
 
 class OtherPage(EdfBasePage):
     def on_loaded(self):
@@ -122,6 +126,7 @@ class BillsPage(EdfBasePage):
     def get_bill(self, bill):
         self.location(bill._url)
 
+
 class LastPaymentsPage(EdfBasePage):
 
     def on_loaded(self):
@@ -145,6 +150,7 @@ class LastPaymentsPage(EdfBasePage):
         }
 
         self.browser.location('/ASPFront/appmanager/ASPFront/front/portlet_echeancier_2?%s' % urllib.urlencode(params))
+
 
 class LastPaymentsPage2(EdfBasePage):
     def iter_payments(self, sub):

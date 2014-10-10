@@ -94,6 +94,7 @@ class CapDating(Capability):
     """
     Capability for dating websites.
     """
+
     def init_optimizations(self):
         """
         Initialization of optimizations.
@@ -155,4 +156,3 @@ class CapDating(Capability):
         :rtype: iter[:class:`Contact`]
         """
         raise NotImplementedError()
-

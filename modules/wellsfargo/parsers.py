@@ -396,4 +396,3 @@ class StatementToken(object):
 for type_, _ in StatementToken.LEX:
     setattr(StatementToken, 'is_%s' % type_,
         eval('lambda self: self._type == "%s"' % type_))
-

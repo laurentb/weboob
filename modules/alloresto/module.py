@@ -60,4 +60,3 @@ class AlloRestoModule(Module, CapBank):
 
     def iter_coming(self, account):
         return self.browser.get_coming(account)
-

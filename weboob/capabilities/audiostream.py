@@ -44,6 +44,7 @@ class CapAudioStream(CapAudio):
     """
     Audio streams provider
     """
+
     def search_audiostreams(self, pattern, sortby=CapFile.SEARCH_RELEVANCE):
         """
         Search an audio stream

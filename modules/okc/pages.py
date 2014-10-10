@@ -26,6 +26,7 @@ from weboob.capabilities.contact import ProfileNode
 from weboob.tools.html import html2text
 from weboob.tools.date import local2utc
 
+
 class LoginPage(Page):
     def login(self, username, password):
         self.browser.select_form(name='loginf')
@@ -191,6 +192,7 @@ class PostMessagePage(Page):
         self.browser['body'] = content.encode('utf-8')
         self.browser.submit()
 
+
 class VisitsPage(Page):
     def get_visits(self):
         ul_item = self.parser.select(self.document.getroot(), '//*[@id="page_content"]/ul[3]', method='xpath')[0]
@@ -205,6 +207,7 @@ class VisitsPage(Page):
                 'date': visitor_timestamp
             })
         return visitors
+
 
 class QuickMatchPage(Page):
     def get_id(self):

@@ -28,6 +28,7 @@ from .pages import VideoPage, VideoListPage, FamilyPage, AboPage, LoginPage, Hom
 
 __all__ = ['NolifeTVBrowser']
 
+
 class NolifeTVBrowser(Browser):
     USER_AGENT = Browser.USER_AGENTS['desktop_firefox']
     DOMAIN = 'mobile.nolife-tv.com'

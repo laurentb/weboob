@@ -132,6 +132,7 @@ class LoginPage(Page):
         errors = self.document.xpath(u'//div[@class="erreur" or @class="messError"]')
         return len(errors) > 0
 
+
 class ContractsPage(Page):
     def on_loaded(self):
         self.select_contract()

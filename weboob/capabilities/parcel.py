@@ -62,5 +62,6 @@ class ParcelNotFound(UserError):
     Raised when a parcell is not found.
     It can be an user error, or an expired parcel
     """
+
     def __init__(self, msg='Account not found'):
         UserError.__init__(self, msg)

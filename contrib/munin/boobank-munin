@@ -28,6 +28,7 @@ from weboob.core import Weboob, CallErrors
 from weboob.capabilities.bank import CapBank
 from weboob.exceptions import BrowserIncorrectPassword
 
+
 class BoobankMuninPlugin(object):
     def __init__(self):
         if 'weboob_path' in os.environ:

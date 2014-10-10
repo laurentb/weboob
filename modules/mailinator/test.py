@@ -32,4 +32,3 @@ class MailinatorTest(BackendTest):
         assert t.root.date
         assert t.root.sender
         assert t.root.receivers
-

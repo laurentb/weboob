@@ -29,11 +29,14 @@ def date_from_id(_id):
     textdate = _id.split('_')[0]
     return datetime.strptime(textdate, '%m-%d-%Y')
 
+
 def id_from_path(title):
     return title.replace(' ', '_').split('/')[-1]
 
+
 def combine(dt, t):
     return datetime(dt.year, dt.month, dt.day, t.hour, t.minute)
+
 
 class PageList(Page):
     def get_events(self):

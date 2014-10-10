@@ -20,6 +20,7 @@
 
 class TokenExtractor(object):
     """ Extracts texts token from an HTML document """
+
     def __init__(self):
         self.iterated_elements = []
 

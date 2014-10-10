@@ -13,6 +13,7 @@ class RoadmapAmbiguity(RoadmapError):
     def __init__(self, error):
         RoadmapError.__init__(self, error)
 
+
 class RoadmapSearchPage(Page):
     def search(self, departure, arrival, departure_time, arrival_time):
         match = -1
@@ -45,6 +46,7 @@ class RoadmapSearchPage(Page):
             except ClientForm.ItemNotFoundError:
                 raise RoadmapError('Unable to establish a roadmap with %s time at "%s"' % ('departure' if departure_time else 'arrival', time))
         self.browser.submit()
+
 
 class RoadmapResultsPage(Page):
     def html_br_strip(self, text):
@@ -95,6 +97,7 @@ class RoadmapResultsPage(Page):
         propvalue = props[0].attrib['value'].encode('utf-8')
         self.browser[propname] = [ propvalue ]
         self.browser.submit()
+
 
 class RoadmapPage(Page):
     def get_steps(self):

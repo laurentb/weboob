@@ -41,6 +41,7 @@ class CapLyrics(Capability):
     """
     Lyrics websites.
     """
+
     def iter_lyrics(self, criteria, pattern):
         """
         Search lyrics by artist or by song

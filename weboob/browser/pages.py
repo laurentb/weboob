@@ -82,6 +82,7 @@ class NextPage(Exception):
 
     See :meth:`PagesBrowser.pagination` or decorator :func:`pagination`.
     """
+
     def __init__(self, request):
         super(NextPage, self).__init__()
         self.request = request
@@ -122,16 +123,19 @@ class Page(object):
         Event called when browser leaves this page.
         """
 
+
 class FormNotFound(Exception):
     """
     Raised when :meth:`HTMLPage.get_form` can't find a form.
     """
+
 
 class FormSubmitWarning(UserWarning):
     """
     A form has more than one submit element selected, and will likely
     generate an invalid request.
     """
+
 
 class Form(OrderedDict):
     """

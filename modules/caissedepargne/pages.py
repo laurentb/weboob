@@ -39,6 +39,7 @@ class _LogoutPage(Page):
         except BrokenPageError:
             pass
 
+
 class LoginPage(_LogoutPage):
     def login(self, login):
         self.browser.select_form(name='Main')
@@ -82,6 +83,7 @@ class LoginPage(_LogoutPage):
 
 class ErrorPage(_LogoutPage):
     pass
+
 
 class UnavailablePage(Page):
     def on_loaded(self):

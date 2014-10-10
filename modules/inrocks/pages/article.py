@@ -26,6 +26,7 @@ from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage, t
 
 class ArticlePage(GenericNewsPage):
     "ArticlePage object for inrocks"
+
     def on_loaded(self):
         self.main_div = self.document.getroot()
         self.element_title_selector = "h1"

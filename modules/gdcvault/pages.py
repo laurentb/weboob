@@ -79,6 +79,8 @@ class IndexPage(Page):
 
 # the search page class uses a JSON parser,
 # since it's what search.php returns when POSTed (from Ajax)
+
+
 class SearchPage(Page):
     def iter_videos(self):
         if self.document is None or self.document['data'] is None:
@@ -89,6 +91,7 @@ class SearchPage(Page):
             if video is None:
                 continue
             yield video
+
 
 class VideoPage(Page):
     def get_video(self, video=None):

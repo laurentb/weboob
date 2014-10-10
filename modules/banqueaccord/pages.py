@@ -87,6 +87,7 @@ class VirtKeyboard(MappedVirtKeyboard):
             code += self.get_symbol_code(self.symbols[c])
         return code
 
+
 class LoginPage(HTMLPage):
     def login(self, login, password):
         vk = VirtKeyboard(self)
@@ -97,6 +98,7 @@ class LoginPage(HTMLPage):
         form['identifiant'] = login
         form['code'] = code
         form.submit()
+
 
 class IndexPage(LoggedPage, HTMLPage):
     @method
@@ -151,6 +153,7 @@ class IndexPage(LoggedPage, HTMLPage):
 
     def get_card_name(self):
         return CleanText('//h1[1]')(self.doc)
+
 
 class AccountsPage(LoggedPage, HTMLPage):
     def get_balance(self):

@@ -32,6 +32,7 @@ from weboob.exceptions import ParseError
 from weboob.browser.url import URL
 from weboob.tools.log import getLogger, DEBUG_FILTERS
 
+
 class NoDefault(object):
     def __repr__(self):
         return 'NO_DEFAULT'
@@ -217,6 +218,7 @@ class Base(Filter):
 
     >>> Base(Env('header'), CleanText('./h1'))  # doctest: +SKIP
     """
+
     def __call__(self, item):
         base = self.select(self.base, item, obj=self._obj, key=self._key)
         return self.selector(base)
@@ -425,6 +427,7 @@ class Type(Filter):
     >>> Type(type=str, minlen=0, default='a').filter('')
     'a'
     """
+
     def __init__(self, selector=None, type=None, minlen=0, default=_NO_DEFAULT):
         super(Type, self).__init__(selector, default=default)
         self.type_func = type

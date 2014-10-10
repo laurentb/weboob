@@ -236,6 +236,7 @@ class CapBugTracker(Capability):
     """
     Bug trackers websites.
     """
+
     def iter_issues(self, query):
         """
         Iter issues with optionnal patterns.

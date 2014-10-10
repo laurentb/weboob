@@ -8,6 +8,7 @@ from .browser import BTDiggBrowser
 
 __all__ = ['BTDiggModule']
 
+
 class BTDiggModule(Module, CapTorrent):
     NAME = 'btdigg'
     MAINTAINER = u'Matthieu Rakotojaona'

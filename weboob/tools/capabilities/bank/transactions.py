@@ -38,6 +38,7 @@ __all__ = ['FrenchTransaction', 'AmericanTransaction']
 class classproperty(object):
     def __init__(self, f):
         self.f = f
+
     def __get__(self, obj, owner):
         return self.f(owner)
 
@@ -225,6 +226,7 @@ class FrenchTransaction(Transaction):
     @classmethod
     def Raw(klass, *args, **kwargs):
         patterns = klass.PATTERNS
+
         class Filter(CleanText):
             def __call__(self, item):
                 raw = super(Filter, self).__call__(item)
@@ -286,6 +288,7 @@ class FrenchTransaction(Transaction):
                         break
 
                 return raw
+
             def filter(self, text):
                 text = super(Filter, self).filter(text)
                 return to_unicode(text.replace(u'\n', u' ').strip())
@@ -331,6 +334,7 @@ class AmericanTransaction(Transaction):
         if re.search(r'\d\.\d\d(?: [A-Z]+)?$', text):
             text = text.replace(',', ' ').replace('.', ',')
         return FrenchTransaction.clean_amount(text)
+
 
 def test():
     clean_amount = AmericanTransaction.clean_amount

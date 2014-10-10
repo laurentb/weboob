@@ -99,6 +99,7 @@ class CapTravel(Capability):
     """
     Travel websites.
     """
+
     def iter_station_search(self, pattern):
         """
         Iterates on search results of stations.

@@ -35,10 +35,12 @@ class Radio(BaseObject):
     current =       Field('Current emission', StreamInfo)
     streams =       Field('List of streams', list)
 
+
 class CapRadio(Capability):
     """
     Capability of radio websites.
     """
+
     def iter_radios_search(self, pattern):
         """
         Search a radio.

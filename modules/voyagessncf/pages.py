@@ -32,10 +32,12 @@ class ForeignPage(Page):
     def on_loaded(self):
         raise UserError('Your IP address is localized in a country not supported by this module (%s). Currently only the French website is supported.' % self.group_dict['country'])
 
+
 class CitiesPage(Page):
     def get_stations(self):
        result = json.loads(self.document[self.document.find('{'):-2])
        return result['CITIES']
+
 
 class SearchPage(Page):
     def search(self, departure, arrival, date, age, card, comfort_class):
@@ -57,6 +59,7 @@ class SearchPage(Page):
         self.browser['nbAnimalsForTravel'] = '0'
         self.browser.submit()
 
+
 class SearchErrorPage(Page):
     def on_loaded(self):
         p = self.document.getroot().cssselect('div.messagesError p')
@@ -64,10 +67,12 @@ class SearchErrorPage(Page):
             message = p[0].text.strip()
             raise UserError(message)
 
+
 class SearchInProgressPage(Page):
     def on_loaded(self):
         link = self.document.xpath('//a[@id="url_redirect_proposals"]')[0]
         self.browser.location(link.attrib['href'])
+
 
 class ResultsPage(Page):
     def get_value(self, div, name, last=False):

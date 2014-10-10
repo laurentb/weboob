@@ -21,4 +21,3 @@
 from .module import WellsFargoModule
 
 __all__ = ['WellsFargoModule']
-

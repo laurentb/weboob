@@ -23,6 +23,7 @@ from .browser import NectarineBrowser
 
 __all__ = ['NectarineModule']
 
+
 class NectarineModule(Module, CapRadio, CapCollection):
     NAME = 'nectarine'
     MAINTAINER = u'Thomas Lecavelier'

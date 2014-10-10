@@ -527,6 +527,7 @@ class _PagesBrowserMeta(type):
         new_class._urls.update(urls)
         return new_class
 
+
 class PagesBrowser(DomainBrowser):
     r"""
     A browser which works pages and keep state of navigation.
@@ -680,6 +681,7 @@ class LoginBrowser(PagesBrowser):
     """
     A browser which supports login.
     """
+
     def __init__(self, username, password, *args, **kwargs):
         super(LoginBrowser, self).__init__(*args, **kwargs)
         self.username = username

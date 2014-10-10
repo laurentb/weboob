@@ -29,6 +29,7 @@ class Csv(object):
     rows contains the raw rows
     drows contains the rows with cells indexed by header title
     """
+
     def __init__(self):
         self.header = None
         self.rows = []

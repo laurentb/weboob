@@ -20,6 +20,7 @@
 from weboob.tools.test import BackendTest
 import re
 
+
 class AllocineTest(BackendTest):
     MODULE = 'allocine'
 

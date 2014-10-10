@@ -53,12 +53,15 @@ class LoginErrorPage(HTMLPage):
 class EmptyPage(LoggedPage, HTMLPage):
     pass
 
+
 class UserSpacePage(LoggedPage, HTMLPage):
     pass
+
 
 class ChangePasswordPage(LoggedPage, HTMLPage):
     def on_load(self):
         raise BrowserIncorrectPassword('Please change your password')
+
 
 class VerifCodePage(LoggedPage, HTMLPage):
     def on_load(self):

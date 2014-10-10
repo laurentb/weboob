@@ -66,6 +66,7 @@ class EventsWidget(QWidget):
         self.ui.typeBox.setEnabled(False)
         self.ui.typeBox.clear()
         self.ui.typeBox.addItem('All', None)
+
         def finished():
             self.ui.refreshButton.setEnabled(True)
             self.ui.typeBox.setEnabled(True)

@@ -26,6 +26,7 @@ from .login import LoginPage, UpdateInfoPage
 
 from .two_authentication import AuthenticationPage
 
+
 class AccountPrelevement(AccountsList):
     pass
 

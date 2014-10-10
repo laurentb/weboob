@@ -74,4 +74,3 @@ class UnseeModule(Module, BasePasteModule):
         d = self.browser.post_image(paste.title, paste.contents.decode('base64'), max_code)
         paste.id = d['id']
         return paste
-

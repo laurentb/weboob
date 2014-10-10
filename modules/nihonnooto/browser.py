@@ -22,6 +22,7 @@ from .pages import LivePage, ProgramPage
 
 __all__ = ['NihonNoOtoBrowser']
 
+
 class NihonNoOtoBrowser(Browser):
     DOMAIN = 'www.nihon-no-oto.com'
     PROTOCOL = 'http'

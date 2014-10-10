@@ -47,6 +47,7 @@ class JsonFormatter(IFormatter):
     """
     Formats the whole list as a single JSON list object.
     """
+
     def __init__(self):
         IFormatter.__init__(self)
         self.queue = []
@@ -66,8 +67,10 @@ class JsonLineFormatter(IFormatter):
     Formats the list as received, with a JSON object per line.
     The advantage is that it can be streamed.
     """
+
     def format_dict(self, item):
         self.output(json.dumps(item, cls=Encoder))
+
 
 def test():
     from .iformatter import formatter_test_output as fmt

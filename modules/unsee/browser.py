@@ -36,6 +36,7 @@ def to_bytes(s):
     else:
         return s
 
+
 class FileField(object):
     def __init__(self, filename, contents=None, headers=None):
         self.filename = to_bytes(os.path.basename(filename))
