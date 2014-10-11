@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Laurent Bachelier
+# Copyright(C) 2010-2014 Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -168,7 +168,7 @@ def analyze_application(app, script_name):
                                         script_name, app.VERSION.replace('.', '\\&.'))
     name = ".SH NAME\n%s \- %s" % (script_name, application.SHORT_DESCRIPTION)
     condition = """.SH CONDITION
-The \-c and \-\-condition is a flexible way to sort and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY\-MM\-DD or YYYY\-MM\-DD HH:MM format.
+The \-c and \-\-condition is a flexible way to filter and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY\-MM\-DD or YYYY\-MM\-DD HH:MM format.
 The syntax of one expression is "\\fBfield operator value\\fR". The field to test is always the left member of the expression.
 .LP
 The field is a member of the objects returned by the command. For example, a bank account has "balance", "coming" or "label" fields.
@@ -222,7 +222,7 @@ Get transactions after the 2th December in the last 10 transactions
     footer = """.SH COPYRIGHT
 %s
 .LP
-For full COPYRIGHT see COPYING file with weboob package.
+For full copyright information see the COPYING file in the weboob package.
 .LP
 .RE
 .SH FILES
