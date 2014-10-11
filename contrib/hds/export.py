@@ -68,7 +68,7 @@ def main(filename):
     sys.stdout.write('Getting stories list from website... ')
     sys.stdout.flush()
     for story in br.iter_stories():
-        if story.id in stored:
+        if int(story.id) in stored:
             break
         to_fetch.add(story.id)
         authors.add(story.author.name)

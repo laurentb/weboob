@@ -18,43 +18,40 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser
+from weboob.browser import PagesBrowser, URL
 
 from .pages import ValidationPage, HomePage, HistoryPage, StoryPage, AuthorPage
 
 # Browser
 
 
-class HDSBrowser(Browser):
-    ENCODING = 'ISO-8859-1'
-    DOMAIN = 'histoires-de-sexe.net'
-    PAGES = {'http://histoires-de-sexe.net/': ValidationPage,
-             'http://histoires-de-sexe.net/menu.php': HomePage,
-             'http://histoires-de-sexe.net/sexe/histoires-par-date.php.*': HistoryPage,
-             'http://histoires-de-sexe.net/sexe.php\?histoire=(?P<id>.+)': StoryPage,
-             'http://histoires-de-sexe.net/fiche.php\?auteur=(?P<name>.+)': AuthorPage,
-            }
+class HDSBrowser(PagesBrowser):
+    BASEURL = 'http://histoires-de-sexe.net'
+
+    validation_page = URL('^/$', ValidationPage)
+    home = URL(r'/menu.php', HomePage)
+    history = URL(r'/sexe/histoires-par-date.php\?p=(?P<pagenum>\d+)', HistoryPage)
+    story = URL(r'/sexe.php\?histoire=(?P<id>.+)', StoryPage)
+    author = URL(r'/fiche.php\?auteur=(?P<name>.+)', AuthorPage)
 
     def iter_stories(self):
-        self.location('/sexe/histoires-par-date.php')
         n = 1
+        self.history.go(pagenum=n)
         while self.page.get_numerous() == n:
-            count = 0
-            for count, story in enumerate(self.page.iter_stories()):
+            for story in self.page.iter_stories():
                 yield story
 
             n += 1
-            self.location('/sexe/histoires-par-date.php?p=%d' % n)
+            self.history.go(pagenum=n)
 
     def get_story(self, id):
-        id = int(id)
+        self.story.go(id=id)
 
-        self.location('/sexe.php?histoire=%d' % id)
-        assert self.is_on_page(StoryPage)
+        assert self.story.is_here()
         return self.page.get_story()
 
     def get_author(self, name):
-        self.location(self.buildurl('/fiche.php', auteur=name.encode('iso-8859-15')))
+        self.author.go(name=name)
 
-        assert self.is_on_page(AuthorPage)
+        assert self.author.is_here()
         return self.page.get_author()

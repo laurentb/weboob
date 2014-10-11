@@ -40,12 +40,11 @@ class HDSModule(Module, CapMessages):
     #### CapMessages ##############################################
 
     def iter_threads(self):
-        with self.browser:
-            for story in self.browser.iter_stories():
-                thread = Thread(story.id)
-                thread.title = story.title
-                thread.date = story.date
-                yield thread
+        for story in self.browser.iter_stories():
+            thread = Thread(story.id)
+            thread.title = story.title
+            thread.date = story.date
+            yield thread
 
     GENDERS = ['<unknown>', 'boy', 'girl', 'transexual']
 
@@ -56,8 +55,7 @@ class HDSModule(Module, CapMessages):
         else:
             thread = None
 
-        with self.browser:
-            story = self.browser.get_story(id)
+        story = self.browser.get_story(id)
 
         if not story:
             return None
@@ -80,7 +78,7 @@ class HDSModule(Module, CapMessages):
                               parent=None,
                               content=story.body,
                               children=[],
-                              signature='Written by a %s (%s)' % (self.GENDERS[story.author.sex], story.author.email),
+                              signature=u'Written by a %s in category %s' % (self.GENDERS[story.author.sex], story.category),
                               flags=flags)
 
         return thread
