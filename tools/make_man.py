@@ -1,17 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-
-import imp
-import inspect
-import optparse
-import os
-import re
-import sys
-import tempfile
-import time
-
-from weboob.tools.application.base import Application
 
 # Copyright(C) 2010-2011 Laurent Bachelier
 #
@@ -29,6 +17,19 @@ from weboob.tools.application.base import Application
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+
+from __future__ import print_function
+
+import imp
+import inspect
+import optparse
+import os
+import re
+import sys
+import tempfile
+import time
+
+from weboob.tools.application.base import Application
 
 
 BASE_PATH = os.path.join(os.path.dirname(__file__), os.pardir)
