@@ -27,7 +27,7 @@ When an object is fetched, all of its fields are not necessarily loaded.
 For example, on a video search, if the *backend* gets information from the search page, the direct URL of the video
 isn't available yet.
 
-A field which isn't loaded can be set to :class:`weboob.capabilities.base.NotLoaded`.
+A field which isn't loaded can be set to :class:`weboob.capabilities.base.NotLoaded`.
 
 By default, in the object constructor, every fields should be set to
 :class:`NotLoaded <weboob.capabilities.base.NotLoaded>`, and when the backend loads them, it replaces them with

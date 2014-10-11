@@ -47,11 +47,11 @@ class FreeKeyboard(object):
             img = Image.open(imgfile)
             matrix = img.load()
             s = ""
-            # The digit is only displayed in the center of image
+            # The digit is only displayed in the center of image
             for x in range(15, 23):
                 for y in range(12, 27):
                     (r, g, b) = matrix[x, y]
-                    # If the pixel is "red" enough
+                    # If the pixel is "red" enough
                     if g + b < 450:
                         s += "1"
                     else:
@@ -64,9 +64,9 @@ class FreeKeyboard(object):
         for i, string in enumerate(self.fingerprints):
             if string == fingerprint:
                 return i
-        # Image contains some noise, and the match is not always perfect
-        # (this is why we can't use md5 hashs)
-        # But if we can't find the perfect one, we can take the best one
+        # Image contains some noise, and the match is not always perfect
+        # (this is why we can't use md5 hashs)
+        # But if we can't find the perfect one, we can take the best one
         best = 0
         result = None
         for i, string in enumerate(self.fingerprints):

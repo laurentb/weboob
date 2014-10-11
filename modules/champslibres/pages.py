@@ -55,7 +55,7 @@ class RentedPage(Page):
             yield book
 
     def renew(self, id):
-        # find the good box
+        # find the good box
         input = self.document.find('//input[@value="%s"]' % id)
         self.browser.select_form("checkout_form")
         self.browser.form.set_all_readonly(False)

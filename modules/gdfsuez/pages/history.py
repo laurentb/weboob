@@ -132,7 +132,7 @@ class PdfPage():
                     # Things for which we want a new detail
                     else:
                         # Entering here, we will instantiate a new detail.
-                        # We hadn't so before because of fragmented lines.
+                        # We hadn't so before because of fragmented lines.
                         if detail is not None and detail.label is not NotAvailable:
                             # We have a new element, return the other one
                             details.append(detail)
@@ -140,8 +140,8 @@ class PdfPage():
                         detail.price = Decimal(0)
 
                         # If the coma is not a decimal separator, then
-                        # this is is probably a loooong sentence.
-                        # When it comes to jokes, keep it short and sweet.
+                        # this is is probably a loooong sentence.
+                        # When it comes to jokes, keep it short and sweet.
                         line = re.split(textwithcoma, line)[0]
 
                         # Things we want for sure
@@ -154,7 +154,7 @@ class PdfPage():
                             label = mylist[0] + mylist[1]
                             detail.label = unicode(label, encoding='utf-8')
                         elif re.findall(endwithdigit, line):
-                            # What is this stupid number at the end of the line?
+                            # What is this stupid number at the end of the line?
                             # Line should have been split before the number
                             detail.label = unicode(re.split(endwithdigit, line)[0], encoding='utf-8')
                         # Things we don't want for sure
@@ -171,7 +171,7 @@ class PdfPage():
                             # '00,00 € HT par mois' may have been split after HT
                             # We don't need of the second line
                             detail.label = NotAvailable
-                        # Things we probably want to keep
+                        # Things we probably want to keep
                         else:
                             # Well, maybe our line is correct, after all.
                             # Not much to do.
@@ -192,7 +192,7 @@ class PdfPage():
                     label = detail.label.split(' au ')[0] + u' au ' + unicode(line, encoding='utf-8')
                     detail.label = label
             if detail.label is not NotAvailable:
-                # Do not append empty details to the list
+                # Do not append empty details to the list
                 # It seemed easier to create details anyway than dealing
                 # with None objects
                 details.append(detail)
