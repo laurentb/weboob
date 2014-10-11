@@ -31,10 +31,10 @@ class LoginPage(BasePage):
     def on_loaded(self):
         BasePage.on_loaded(self)
 
-        warns = self.parser.select(self.document.getroot(), 'span.warning')
+        warns = self.parser.select(self.document.getroot(), '.warning')
         for warn in warns:
             text = self.parser.tocleanstring(warn)
-            if text.startswith('Your username'):
+            if text.startswith('Your '):
                 raise BrowserIncorrectPassword(text)
             if text.startswith('You are banned'):
                 raise BrowserBanned(text)
@@ -43,4 +43,4 @@ class LoginPage(BasePage):
         self.browser.select_form(nr=0)
         self.browser['username'] = login
         self.browser['password'] = password
-        self.browser.submit()
+        self.browser.submit(no_login=True)
