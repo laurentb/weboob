@@ -34,6 +34,7 @@ def genapi():
 ======%(equals)s=
 
 .. automodule:: %(module)s
+   :show-inheritance:
    :members:
    :undoc-members:""" % {'module': fmod,
                          'equals': '=' * len(fmod)})
