@@ -30,7 +30,6 @@ from urllib import quote_plus
 __all__ = ['GithubBrowser']
 
 
-
 class GithubBrowser(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'api.github.com'

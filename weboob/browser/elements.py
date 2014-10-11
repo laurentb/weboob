@@ -48,7 +48,6 @@ def method(klass):
     return inner
 
 
-
 class AbstractElement(object):
     _creation_counter = 0
 

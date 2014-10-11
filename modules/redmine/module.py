@@ -18,8 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-
 from weboob.capabilities.content import CapContent, Content
 from weboob.capabilities.bugtracker import CapBugTracker, Issue, Project, User, \
                                            Version, Status, Update, Attachment, \

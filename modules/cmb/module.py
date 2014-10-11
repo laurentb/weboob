@@ -32,7 +32,6 @@ from datetime import date
 from StringIO import StringIO
 
 
-
 __all__ = ['CmbModule']
 
 

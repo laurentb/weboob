@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
 from PyQt4.QtGui import QDialog, QTreeWidgetItem, QLabel, QFormLayout, \
                         QMessageBox, QPixmap, QImage, QIcon, QHeaderView, \
                         QListWidgetItem, QTextDocument, QVBoxLayout, \

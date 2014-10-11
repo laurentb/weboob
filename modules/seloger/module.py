@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
 from weboob.capabilities.housing import CapHousing, City, Housing, HousingPhoto
 from weboob.tools.backend import Module
 

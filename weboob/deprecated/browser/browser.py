@@ -422,7 +422,6 @@ class StandardBrowser(mechanize.Browser):
         return self.form.__setitem__(key, value)
 
 
-
 class Browser(StandardBrowser):
     """
     Base browser class to navigate on a website.

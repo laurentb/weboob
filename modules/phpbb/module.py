@@ -18,8 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.newsfeed import Newsfeed
 from weboob.tools.value import Value, ValueInt, ValueBackendPassword

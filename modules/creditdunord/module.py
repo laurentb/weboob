@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
 from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.ordereddict import OrderedDict

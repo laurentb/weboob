@@ -18,8 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-
 from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
 from weboob.tools.backend import Module

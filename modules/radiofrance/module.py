@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.video import CapVideo
 from weboob.capabilities.radio import CapRadio, Radio

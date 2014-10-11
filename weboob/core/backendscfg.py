@@ -18,8 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-
 import stat
 import os
 import sys

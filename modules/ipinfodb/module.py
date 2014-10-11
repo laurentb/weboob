@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
 from weboob.capabilities.geolocip import CapGeolocIp, IpLocation
 from weboob.tools.backend import Module
 from weboob.deprecated.browser import StandardBrowser

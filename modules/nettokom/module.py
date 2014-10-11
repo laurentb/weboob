@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
 from weboob.capabilities.bill import CapBill, Subscription, SubscriptionNotFound, Detail
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword

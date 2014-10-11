@@ -18,8 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-
 try:
     import gdata.youtube.service
 except ImportError:

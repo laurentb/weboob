@@ -18,8 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-
 from weboob.capabilities.messages import CantSendMessage, CapMessages, CapMessagesPost
 from weboob.capabilities.account import CapAccount, StatusField
 from weboob.tools.backend import Module, BackendConfig

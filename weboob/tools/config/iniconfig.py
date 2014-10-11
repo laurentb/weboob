@@ -18,8 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-
 from ConfigParser import RawConfigParser, DEFAULTSECT
 from decimal import Decimal
 import logging

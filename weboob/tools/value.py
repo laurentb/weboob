@@ -135,7 +135,6 @@ class Value(object):
         return isinstance(v, basestring) and v.startswith(u'`') and v.endswith(u'`')
 
 
-
 class ValueBackendPassword(Value):
     _domain = None
     _callbacks = {}
