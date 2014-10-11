@@ -24,7 +24,6 @@ from weboob.capabilities.messages import CapMessages, CapMessagesPost, Thread, M
 from weboob.capabilities.dating import CapDating
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
-from weboob.tools.date import utc2local
 
 from .browser import PlayMeBrowser, FacebookBrowser
 
@@ -62,7 +61,7 @@ class PlayMeModule(Module, CapMessages, CapMessagesPost, CapDating):
             t = Thread(thread['id'])
             t.flags = Thread.IS_DISCUSSION
             t.title = u'Discussion with %s' % thread['name']
-            t.date = utc2local(datetime.datetime.fromtimestamp(thread['last_message']['utc_timestamp']))
+            t.date = datetime.datetime.fromtimestamp(thread['last_message']['utc_timestamp'])
             yield t
 
     def get_thread(self, thread):
@@ -102,7 +101,7 @@ class PlayMeModule(Module, CapMessages, CapMessagesPost, CapDating):
                           title=thread.title,
                           sender=unicode(self.browser.my_name if msg['from'] == self.browser.my_id else user['name']),
                           receivers=[unicode(self.browser.my_name if msg['from'] != self.browser.my_id else user['name'])],
-                          date=utc2local(datetime.datetime.fromtimestamp(msg['utc_timestamp'])),
+                          date=datetime.datetime.fromtimestamp(msg['utc_timestamp']),
                           content=content,
                           children=[],
                           parent=None,
