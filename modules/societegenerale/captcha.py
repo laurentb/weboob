@@ -18,12 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import hashlib
-from weboob.tools.log import getLogger
 
-try:
-    from PIL import Image
-except ImportError:
-    raise ImportError('Please install python-imaging')
+from PIL import Image
+
+from weboob.tools.log import getLogger
 
 
 class TileError(Exception):
