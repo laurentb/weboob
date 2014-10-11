@@ -79,7 +79,7 @@ class PlayMeModule(Module, CapMessages, CapMessagesPost, CapDating):
         signature += u'\nLast online: %s' % user['last_online']
         signature += u'\nPhotos:\n\t%s' % '\n\t'.join([user['photo_host'] + photo['large'] for photo in user['photos']])
 
-        parent = None
+        child = None
 
         for msg in self.browser.get_thread_messages(thread.id):
             flags = 0
@@ -105,14 +105,15 @@ class PlayMeModule(Module, CapMessages, CapMessagesPost, CapDating):
                           date=utc2local(datetime.datetime.fromtimestamp(msg['utc_timestamp'])),
                           content=content,
                           children=[],
-                          parent=parent,
+                          parent=None,
                           signature=signature if msg['from'] != self.browser.my_id else u'',
                           flags=flags)
 
-            if parent:
-                msg.children.append(parent)
-            parent = msg
-        thread.root = parent
+            if child:
+                msg.children.append(child)
+                child.parent = msg
+            child = msg
+        thread.root = child
 
         return thread
 
