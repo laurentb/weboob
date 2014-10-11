@@ -65,7 +65,7 @@ class IPhoneClient(Profile):
     def setup_session(self, session):
         session.headers["Accept-Language"] = "en;q=1, fr;q=0.9, de;q=0.8, ja;q=0.7, nl;q=0.6, it;q=0.5"
         session.headers["Accept"] = "*/*"
-        session.headers["UserAgent"] = "Tinder/3.0.2 (iPhone; iOS 7.1; Scale/2.00)"
+        session.headers["User-Agent"] = "Tinder/3.0.2 (iPhone; iOS 7.1; Scale/2.00)"
         session.headers["Accept-Encoding"] = "gzip, deflate"
         session.headers["Content-Type"] = "application/json"
 
