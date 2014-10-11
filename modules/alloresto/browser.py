@@ -28,7 +28,7 @@ __all__ = ['AlloRestoBrowser']
 
 
 class AlloRestoBrowser(LoginBrowser):
-    BASEURL = 'http://www.alloresto.fr'
+    BASEURL = 'https://www.alloresto.fr'
 
     login =     URL('/identification-requise.*',        LoginPage)
     accounts =  URL('/chez-moi/releve-compte-miams',    AccountsPage)
