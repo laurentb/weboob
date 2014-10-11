@@ -29,7 +29,7 @@ __all__ = ['VlilleModule']
 
 class VlilleModule(Module, CapGauge):
     NAME = 'vlille'
-    DESCRIPTION = u'access to vlille datas'
+    DESCRIPTION = u'Lille bike renting availability information'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
     VERSION = '1.0'
