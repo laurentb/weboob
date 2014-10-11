@@ -18,85 +18,99 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from decimal import Decimal
-from dateutil.parser import parse as parse_date
-
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import XMLPage, JsonPage, pagination
+from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.filters.json import Dict
+from weboob.browser.filters.html import XPath
+from weboob.browser.filters.standard import CleanText, CleanDecimal, DateTime
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.housing import Housing, HousingPhoto
+from weboob.capabilities.housing import Housing, HousingPhoto, City
 
 
-class SearchResultsPage(Page):
-    def next_page_url(self):
-        urls = self.document.getroot().xpath('//pagesuivante')
-        if len(urls) == 0:
-            return None
-        else:
-            return urls[0].text
-
-    def iter_housings(self):
-        for a in self.document.getroot().xpath('//annonce'):
-            housing = Housing(a.find('idannonce').text)
-            housing.title = unicode(a.find('titre').text)
-            housing.date = parse_date(a.find('dtfraicheur').text)
-            housing.cost = Decimal(a.find('prix').text)
-            housing.currency = u'€'
-            housing.area = Decimal(a.find('surface').text)
-            housing.text = unicode(a.find('descriptif').text.strip())
-            housing.location = unicode(a.find('ville').text)
-            try:
-                housing.station = unicode(a.find('proximite').text)
-            except AttributeError:
-                housing.station = NotAvailable
-
-            housing.photos = []
-            for photo in a.xpath('./photos/photo'):
-                url = unicode(photo.find('stdurl').text)
-                housing.photos.append(HousingPhoto(url))
-
-            yield housing
+class DictElement(ListElement):
+    def find_elements(self):
+        for el in self.el:
+            if el.get('label') == 'Villes':
+                for item in el.get('values'):
+                    if 'value' in item:
+                        yield item
 
 
-class HousingPage(Page):
-    def get_housing(self, housing=None):
-        if housing is None:
-            housing = Housing(self.groups[0])
+class CitiesPage(JsonPage):
+    @method
+    class iter_cities(DictElement):
+        class item(ItemElement):
+            klass = City
 
-        details = self.document.getroot().xpath('//detailannonce')[0]
-        if details.find('titre') is None:
-            return None
+            obj_id = Dict('value')
+            obj_name = Dict('label')
 
-        housing.title = unicode(details.find('titre').text)
-        housing.text = details.find('descriptif').text.strip()
-        housing.cost = Decimal(details.find('prix').text)
-        housing.currency = u'€'
-        housing.date = parse_date(details.find('dtfraicheur').text)
-        housing.area = Decimal(details.find('surface').text)
-        housing.phone = unicode(details.find('contact').find('telephone').text)
 
-        try:
-            housing.station = unicode(details.find('proximite').text)
-        except AttributeError:
-            housing.station = NotAvailable
+class SeLogerItem(ItemElement):
+    klass = Housing
 
-        housing.location = details.find('adresse').text
-        if not housing.location and details.find('quartier') is not None:
-            housing.location = unicode(details.find('quartier').text)
-        if not housing.location:
-            housing.location = NotAvailable
+    obj_id = CleanText('idAnnonce')
+    obj_title = CleanText('titre')
+    obj_date = DateTime(CleanText('dtFraicheur'))
+    obj_cost = CleanDecimal('prix')
+    obj_currency = CleanText('prixUnite')
+    obj_area = CleanDecimal('surface')
+    obj_text = CleanText('descriptif')
+    obj_location = CleanText('ville')
+    obj_station = CleanText('proximite', default=NotAvailable)
+    obj_url = CleanText('permaLien')
 
-        housing.photos = []
-        for photo in details.xpath('./photos/photo'):
-            if photo.find('bigurl').text:
-                url = photo.find('bigurl').text
-            else:
-                url = photo.find('stdurl').text
-            housing.photos.append(HousingPhoto(unicode(url)))
 
-        housing.details = {}
-        for detail in details.xpath('./details/detail'):
-            housing.details[detail.find('libelle').text.strip()] = detail.find('valeur').text or 'N/A'
+class SearchResultsPage(XMLPage):
+    @pagination
+    @method
+    class iter_housings(ListElement):
+        item_xpath = "//annonce"
 
-        housing.details['Reference'] = details.find('reference').text
+        def next_page(self):
+            return CleanText('//pagesuivante', default=None)(self)
 
-        return housing
+        class item(SeLogerItem):
+            def obj_photos(self):
+                photos = []
+
+                for photo in XPath('./photos/photo/stdurl')(self):
+                    photos.append(HousingPhoto(photo))
+
+                return photos
+
+
+class HousingPage(XMLPage):
+    @method
+    class get_housing(SeLogerItem):
+
+        def obj_photos(self):
+            photos = []
+
+            for photo in XPath('./photos/photo')(self):
+                url = CleanText('bigUrl', default=None)(photo)
+                if not url:
+                    url = CleanText('stdUrl', default=None)(photo)
+                photos.append(HousingPhoto(url))
+            return photos
+
+        def condition(self):
+            return CleanText('//detailAnnonce/titre', default=None)(self)
+
+        def obj_location(self):
+            location = CleanText('//detailAnnonce/adresse')(self)
+            quartier = CleanText('//detailAnnonce/quartier', default=None)(self)
+            if not location and quartier is not None:
+                location = quartier
+            ville = CleanText('ville')(self)
+            return u'%s %s' % (location, ville)
+
+        def obj_details(self):
+            details = {}
+            for detail in XPath('//detailAnnonce/details/detail')(self):
+                details[CleanText('libelle')(detail)] = CleanText('valeur', default='N/A')(detail)
+
+            details['Reference'] = CleanText('//detailAnnonce/reference')(self)
+            return details
+
+        obj_phone = CleanText('//contact/telephone')

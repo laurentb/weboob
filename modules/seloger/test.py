@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+import itertools
 from weboob.capabilities.housing import Query
 from weboob.tools.test import BackendTest
 
@@ -34,7 +34,7 @@ class SeLogerTest(BackendTest):
             city.backend = self.backend.name
             query.cities.append(city)
 
-        results = list(self.backend.search_housings(query))
+        results = list(itertools.islice(self.backend.search_housings(query), 0, 20))
         self.assertTrue(len(results) > 0)
 
         self.backend.fillobj(results[0], 'phone')

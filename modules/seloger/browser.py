@@ -17,45 +17,45 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import urllib
 
-from weboob.tools.json import json
-
-from weboob.deprecated.browser import Browser
 from weboob.capabilities.housing import Query
 
-from .pages import SearchResultsPage, HousingPage
-
+from weboob.browser import PagesBrowser, URL
+from .pages import SearchResultsPage, HousingPage, CitiesPage
+from weboob.browser.profiles import Android
 
 __all__ = ['SeLogerBrowser']
 
 
-class SeLogerBrowser(Browser):
-    PROTOCOL = 'http'
-    DOMAIN = 'www.seloger.com'
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['android']
-    PAGES = {
-         'http://ws.seloger.com/search.xml.*': SearchResultsPage,
-         'http://ws.seloger.com/annonceDetail.xml\?idAnnonce=(\d+)(&noAudiotel=\d)?': HousingPage,
-        }
+class SeLogerBrowser(PagesBrowser):
+    BASEURL = 'http://www.seloger.com'
+    PROFILE = Android()
+    cities = URL('js,ajax,villequery_v3.htm\?ville=(?P<pattern>.*)', CitiesPage)
+    search = URL('http://ws.seloger.com/search.xml\?(?P<request>.*)', SearchResultsPage)
+    housing = URL('http://ws.seloger.com/annonceDetail.xml\?idAnnonce=(?P<_id>\d+)&noAudiotel=(?P<noAudiotel>\d)', HousingPage)
 
     def search_geo(self, pattern):
-        fp = self.openurl(self.buildurl('http://www.seloger.com/js,ajax,villequery_v3.htm', ville=pattern.encode('utf-8'), mode=1))
-        return json.load(fp)
+        return self.cities.open(pattern=pattern.encode('utf-8')).iter_cities()
 
     TYPES = {Query.TYPE_RENT: 1,
              Query.TYPE_SALE: 2
-            }
+             }
 
-    def search_housings(self, type, cities, nb_rooms, area_min, area_max, cost_min, cost_max):
+    RET = {Query.HOUSE_TYPES.HOUSE: '2',
+           Query.HOUSE_TYPES.APART: '1',
+           Query.HOUSE_TYPES.LAND: '4',
+           Query.HOUSE_TYPES.PARKING: '3',
+           Query.HOUSE_TYPES.OTHER: '10'}
+
+    def search_housings(self, type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, house_types):
         data = {'ci':            ','.join(cities),
                 'idtt':          self.TYPES.get(type, 1),
-                'idtypebien':    1, #appart
                 'org':           'advanced_search',
                 'surfacemax':    area_max or '',
                 'surfacemin':    area_min or '',
                 'tri':           'd_dt_crea',
-               }
+                }
 
         if type == Query.TYPE_SALE:
             data['pxmax'] = cost_max or ''
@@ -67,24 +67,15 @@ class SeLogerBrowser(Browser):
         if nb_rooms:
             data['nb_pieces'] = nb_rooms
 
-        self.location(self.buildurl('http://ws.seloger.com/search.xml', **data))
+        ret = []
+        for house_type in house_types:
+            if house_type in self.RET:
+                ret.append(self.RET.get(house_type))
 
-        while True:
-            assert self.is_on_page(SearchResultsPage)
+        if ret:
+            data['idtypebien'] = ','.join(ret)
 
-            for housing in self.page.iter_housings():
-                yield housing
+        return self.search.go(request=urllib.urlencode(data)).iter_housings()
 
-            url = self.page.next_page_url()
-            if url is None:
-                return
-
-            self.location(url)
-
-    def get_housing(self, id, obj=None):
-        self.location(self.buildurl('http://ws.seloger.com/annonceDetail.xml', idAnnonce=id, noAudiotel=1))
-
-        assert self.is_on_page(HousingPage)
-        housing = self.page.get_housing(obj)
-
-        return housing
+    def get_housing(self, _id, obj=None):
+        return self.housing.go(_id=_id, noAudiotel=1).get_housing(obj)

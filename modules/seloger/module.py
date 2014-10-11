@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.housing import CapHousing, City, Housing, HousingPhoto
+from weboob.capabilities.housing import CapHousing, Housing, HousingPhoto
 from weboob.tools.backend import Module
 
 from .browser import SeLogerBrowser
@@ -42,10 +42,10 @@ class SeLogerModule(Module, CapHousing):
         if len(cities) == 0:
             return list([])
 
-        with self.browser:
-            return self.browser.search_housings(query.type, cities, query.nb_rooms,
-                                                query.area_min, query.area_max,
-                                                query.cost_min, query.cost_max)
+        return self.browser.search_housings(query.type, cities, query.nb_rooms,
+                                            query.area_min, query.area_max,
+                                            query.cost_min, query.cost_max,
+                                            query.house_types)
 
     def get_housing(self, housing):
         if isinstance(housing, Housing):
@@ -54,37 +54,25 @@ class SeLogerModule(Module, CapHousing):
             id = housing
             housing = None
 
-        with self.browser:
-            return self.browser.get_housing(id, housing)
+        return self.browser.get_housing(id, housing)
 
     def search_city(self, pattern):
-        with self.browser:
-            for categories in self.browser.search_geo(pattern):
-                if categories['label'] != 'Villes':
-                    continue
-                for city in categories['values']:
-                    if 'value' not in city:
-                        continue
-                    c = City(city['value'])
-                    c.name = unicode(city['label'])
-                    yield c
+        return self.browser.search_geo(pattern)
 
     def fill_housing(self, housing, fields):
-        with self.browser:
-            if fields != ['photos'] or not housing.photos:
-                housing = self.browser.get_housing(housing.id)
-            if 'photos' in fields:
-                for photo in housing.photos:
-                    if not photo.data:
-                        photo.data = self.browser.readurl(photo.url)
+        if fields != ['photos'] or not housing.photos:
+            housing = self.browser.get_housing(housing.id)
+        if 'photos' in fields:
+            for photo in housing.photos:
+                if not photo.data:
+                    photo.data = self.browser.open(photo.url)
         return housing
 
     def fill_photo(self, photo, fields):
-        with self.browser:
-            if 'data' in fields and photo.url and not photo.data:
-                photo.data = self.browser.readurl(photo.url)
+        if 'data' in fields and photo.url and not photo.data:
+            photo.data = self.browser.open(photo.url).content
         return photo
 
     OBJECTS = {Housing: fill_housing,
                HousingPhoto: fill_photo,
-              }
+               }
