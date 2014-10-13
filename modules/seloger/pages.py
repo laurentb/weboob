@@ -68,7 +68,7 @@ class SearchResultsPage(XMLPage):
         item_xpath = "//annonce"
 
         def next_page(self):
-            return CleanText('//pagesuivante', default=None)(self)
+            return CleanText('//pageSuivante', default=None)(self)
 
         class item(SeLogerItem):
             def obj_photos(self):
