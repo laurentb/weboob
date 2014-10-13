@@ -27,7 +27,7 @@ except ImportError:
     raise ImportError('Please install python-dateutil')
 
 
-__all__ = ['local2utc', 'utc2local', 'LinearDateGuesser', 'date', 'datetime', 'new_date', 'new_datetime']
+__all__ = ['local2utc', 'utc2local', 'LinearDateGuesser', 'date', 'datetime', 'new_date', 'new_datetime', 'closest_date']
 
 
 def local2utc(dateobj):
@@ -315,3 +315,47 @@ def parse_date(string):
 
     elif string.upper() == "TODAY":
         return date.today()
+
+
+def closest_date(date, date_from, date_to):
+    """
+    Adjusts year so that the date is closest to the given range.
+    Transactions dates in a statement usually contain only day and month.
+    Statement dates range have a year though.
+    Merge them all together to get a full transaction date.
+    """
+    # If the date is within given range, we're done.
+    if date_from <= date <= date_to:
+        return date
+
+    dates = [real_datetime(year, date.month, date.day)
+             for year in xrange(date_from.year, date_to.year+1)]
+
+    # Ideally, pick the date within given range.
+    for d in dates:
+        if date_from <= d <= date_to:
+            return d
+
+    # Otherwise, return the most recent date in the past.
+    return min(dates, key=lambda d: abs(d-date_from))
+
+
+def test():
+    dt = real_datetime
+    range1 = [dt(2012,12,20), dt(2013,1,10)]
+
+    assert closest_date(dt(2012,12,15), *range1) == dt(2012,12,15)
+    assert closest_date(dt(2000,12,15), *range1) == dt(2012,12,15)
+    assert closest_date(dt(2020,12,15), *range1) == dt(2012,12,15)
+
+    assert closest_date(dt(2013,1,15), *range1) == dt(2013,1,15)
+    assert closest_date(dt(2000,1,15), *range1) == dt(2013,1,15)
+    assert closest_date(dt(2020,1,15), *range1) == dt(2013,1,15)
+
+    assert closest_date(dt(2013,1,1), *range1) == dt(2013,1,1)
+    assert closest_date(dt(2000,1,1), *range1) == dt(2013,1,1)
+    assert closest_date(dt(2020,1,1), *range1) == dt(2013,1,1)
+
+    range2 = [dt(2012,12,20), dt(2014,1,10)]
+    assert closest_date(dt(2012,12,15), *range2) == dt(2013,12,15)
+    assert closest_date(dt(2014,1,15), *range2) == dt(2013,1,15)
