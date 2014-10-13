@@ -48,7 +48,7 @@ def retrying(func):
             except OnceAgain:
                 sleep(min(1 << i, MAX_DELAY))
         raise BrowserUnavailable('Unexpected site behavior. '
-            'Perhaps this module needs some fixing...')
+                                 'Perhaps this module needs some fixing...')
     return inner
 
 
@@ -109,7 +109,7 @@ class Citibank(object):
 
         HOME_URL = 'https://online.citibank.com/US/JPS/portal/Home.do'
         WIDTH = 1920
-        HEIGHT = 10000 # So that everything fits...
+        HEIGHT = 10000  # So that everything fits...
 
         self._downloads = mkdtemp()
         self._logger.debug('Saving downloaded files to %s' % self._downloads)
@@ -239,7 +239,7 @@ class Citibank(object):
 
     @retrying
     def wait_file(self, suffix):
-        self._logger.debug('Waiting for file "*%s" to finish downloading.' % \
+        self._logger.debug('Waiting for file "*%s" to finish downloading.' %
             suffix)
         for name in os.listdir(self._downloads):
             if not name.endswith(suffix):

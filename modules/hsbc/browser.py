@@ -22,7 +22,7 @@ import ssl
 from datetime import timedelta
 
 from weboob.tools.date import LinearDateGuesser
-from weboob.exceptions import  BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from .pages import AccountsPage, CBOperationPage, CPTOperationPage, LoginPage
 
@@ -53,7 +53,6 @@ class HSBC(LoginBrowser):
         conn.ssl_version = ssl.PROTOCOL_TLSv1
 
         return preq
-
 
     def home(self):
         return self.login.go()

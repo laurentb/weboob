@@ -24,7 +24,7 @@ from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
-from weboob.exceptions import  BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.elements import ListElement, ItemElement, SkipItem, method
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, TableCell
@@ -35,9 +35,9 @@ class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(r'^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
                 (re.compile(r'^PRLV (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
                 (re.compile(r'^CB (?P<text>.*)\s+(?P<dd>\d+)/(?P<mm>\d+)\s*(?P<loc>.*)'),
-                                                          FrenchTransaction.TYPE_CARD),
+                                                           FrenchTransaction.TYPE_CARD),
                 (re.compile(r'^DAB (?P<dd>\d{2})/(?P<mm>\d{2}) ((?P<HH>\d{2})H(?P<MM>\d{2}) )?(?P<text>.*?)( CB N°.*)?$'),
-                                                          FrenchTransaction.TYPE_WITHDRAWAL),
+                                                           FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile(r'^CHEQUE$'),                  FrenchTransaction.TYPE_CHECK),
                 (re.compile(r'^COTIS\.? (?P<text>.*)'),    FrenchTransaction.TYPE_BANK),
                 (re.compile(r'^REMISE (?P<text>.*)'),      FrenchTransaction.TYPE_DEPOSIT),
@@ -106,11 +106,11 @@ class Pagination(object):
         links = self.page.doc.xpath('//a[@class="fleche"]')
         if len(links) == 0:
             return
-        current_page_found= False
+        current_page_found = False
         for link in links:
             l = link.attrib.get('href')
             if current_page_found and "#op" not in l:
-                #Adding CB_IdPrestation so browser2 use CBOperationPage
+                # Adding CB_IdPrestation so browser2 use CBOperationPage
                 return l + "&CB_IdPrestation"
             elif "#op" in l:
                 current_page_found = True
@@ -172,7 +172,7 @@ class LoginPage(HTMLPage):
             raise BrowserIncorrectPassword('Your password must be %d chars long' % len(inputs))
 
         for i, inpu in enumerate(inputs):
-            #The good field are 1,2,3 and the bad one are 11,12,21,23,24,31 and so one
+            # The good field are 1,2,3 and the bad one are 11,12,21,23,24,31 and so one
             if int(inpu.attrib['id'].split('first')[1]) < 10:
                 split_pass += password[i]
         form['password'] = split_pass

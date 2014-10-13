@@ -311,4 +311,3 @@ class StatementParser(object):
         t = self._tok.tok(pos)
         return (pos+1, [float(v) for v in t.value()]) \
             if t.is_layout_tm() else (pos, None)
-

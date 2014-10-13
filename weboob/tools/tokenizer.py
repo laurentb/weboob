@@ -19,7 +19,6 @@
 
 import re
 
-
 __all__ = ['ReTokenizer']
 
 
@@ -102,7 +101,7 @@ def test():
         ('og', r'^one(g.*)$'),
         ('mg', r'^(m.*)(g.*)$')])
 
-    assert t.tok(-1).value() == None
+    assert t.tok(-1).value() is None
     assert t.tok(0).value() == 'nogroup'
     assert t.tok(1).value() == 'group'
     assert t.tok(2).value() == ('multi', 'group')

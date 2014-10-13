@@ -42,7 +42,7 @@ class RoadmapSearchPage(Page):
             try:
                 self.browser['dateFull'] = '%02d/%02d/%d' % (time.day, time.month, time.year)
                 self.browser['hour'] = ['%02d' % time.hour]
-                self.browser['minute'] = ['%02d' % (time.minute - (time.minute%5))]
+                self.browser['minute'] = ['%02d' % (time.minute - (time.minute % 5))]
             except ClientForm.ItemNotFoundError:
                 raise RoadmapError('Unable to establish a roadmap with %s time at "%s"' % ('departure' if departure_time else 'arrival', time))
         self.browser.submit()
@@ -63,7 +63,7 @@ class RoadmapResultsPage(Page):
         if len(best) == 0:
             best = self.parser.select(self.document.getroot(), 'div.bloc-iti')
             if len(best) == 0:
-                raise RoadmapError('Unable to get the best roadmap');
+                raise RoadmapError('Unable to get the best roadmap')
 
         link = self.parser.select(best[0], 'a.btn-submit')
         if len(link) == 0:
@@ -114,14 +114,14 @@ class RoadmapPage(Page):
         for tr in self.parser.select(self.document.getroot(), 'table.itineraire-detail tr'):
             if current_step is None:
                 current_step = {
-                  'id': i,
-                  'start_time': datetime.datetime.now(),
-                  'end_time': datetime.datetime.now(),
-                  'line': '',
-                  'departure': '',
-                  'arrival': '',
-                  'duration': datetime.timedelta()
-                    }
+                    'id': i,
+                    'start_time': datetime.datetime.now(),
+                    'end_time': datetime.datetime.now(),
+                    'line': '',
+                    'departure': '',
+                    'arrival': '',
+                    'duration': datetime.timedelta()
+                }
 
             if 'class' in tr.attrib:
                 if 'bg-ligne' in tr.attrib['class']:

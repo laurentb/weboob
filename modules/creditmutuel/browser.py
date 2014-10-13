@@ -29,7 +29,7 @@ from weboob.tools.compat import basestring
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.profiles import Wget
 from weboob.browser.url import URL
-from weboob.exceptions import  BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Transfer, TransferError
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
@@ -65,7 +65,6 @@ class CreditMutuelBrowser(LoginBrowser):
                       EmptyPage)
 
     currentSubBank = None
-
 
     def do_login(self):
         self.login.stay_or_go()
