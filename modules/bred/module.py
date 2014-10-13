@@ -39,7 +39,7 @@ class BredModule(Module, CapBank):
                            ValueBackendPassword('password', label='Mot de passe'),
                            Value('website', label=u"Site d'accès", default='bred',
                                  choices={'bred': 'BRED', 'dispobank': 'DispoBank'}),
-                           Value('accnum', label=u'Account number to force (optional)', default='', masked=False)
+                           Value('accnum', label=u'Numéro du compte bancaire (optionnel)', default='', masked=False)
                           )
     BROWSER = BredBrowser
 
