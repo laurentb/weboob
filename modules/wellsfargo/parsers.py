@@ -18,17 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.bank import Transaction
-from weboob.tools.capabilities.bank.transactions import AmericanTransaction
-from decimal import Decimal
-from tempfile import mkstemp
-import subprocess
-import os
+from weboob.tools.capabilities.bank.transactions import \
+    AmericanTransaction as AmTr
+from weboob.tools.date import closest_date
+from weboob.tools.pdf import decompress_pdf
+from weboob.tools.tokenizer import ReTokenizer
 import re
 import datetime
-
-
-def clean_amount(text):
-    return Decimal(AmericanTransaction.clean_amount(text))
 
 
 def clean_label(text):
@@ -40,51 +36,33 @@ def clean_label(text):
     return re.sub(u' +', u' ', text.strip().upper(), re.UNICODE)
 
 
-def full_date(date, date_from, date_to):
-    """
-    Makes sure that date is close to the given range.
-    Transactions dates in a statement contain only day and month.
-    Statement dates range have a year though.
-    Merge them all together to get a full transaction date.
-    """
-    dates = [datetime.datetime(d.year, date.month, date.day)
-             for d in (date_from, date_to)]
-
-    # Ideally, pick the date within given range.
-    for d in dates:
-        if date_from <= d <= date_to:
-            return d
-
-    # Otherwise, return the most recent date in the past
-    return min(dates, key=lambda d: abs(d-date_from))
-
-
-def decompress_pdf(inpdf):
-    inh, inname = mkstemp(suffix='.pdf')
-    outh, outname = mkstemp(suffix='.pdf')
-    os.write(inh, inpdf)
-    os.close(inh)
-    os.close(outh)
-
-    # mutool is a part of MuPDF (http://www.mupdf.com).
-    subprocess.call(['mutool', 'clean', '-d', inname, outname])
-
-    with open(outname) as f:
-        outpdf = f.read()
-    os.remove(inname)
-    os.remove(outname)
-    return outpdf
-
-
 class StatementParser(object):
     """
-    Each "read_*" method which takes position as its argument,
-    returns next token position if read was successful,
-    and the same position if it was not.
+    Each "read_*" method takes position as its argument,
+    and returns next token position if read was successful,
+    or the same position if it was not.
     """
+
+    LEX = [
+        ('amount', r'^\[\(([0-9,]+\.\d+)\)\] TJ$'),
+        ('date', r'^\[\((\d+/\d+)\)\] TJ$'),
+        ('date_range_1', r'^\[\(([A-z]+ \d+, \d{4})'
+                         r' - ([A-z]+ \d+, \d{4})\)\] TJ$'),
+        ('date_range_2', r'^\[\((\d{2}/\d{2}/\d{4})'
+                         r' to (\d{2}/\d{2}/\d{4})\)\] TJ$'),
+        ('layout_tz', r'^(\d+\.\d{2}) Tz$'),
+        ('layout_tc', r'^(\d+\.\d{2}) Tc$'),
+        ('layout_tw', r'^(\d+\.\d{2}) Tw$'),
+        ('layout_tf', r'^/F(\d) (\d+\.\d{2}) Tf$'),
+        ('layout_tm', r'^' + (r'(\d+\.\d+ )'*6) + r'Tm$'),
+        ('ref', r'^\[\(([0-9A-Z]{17})\)\] TJ$'),
+
+        ('text', r'^\[\(([^\)]+)\)\] TJ$')
+    ]
+
     def __init__(self, pdf):
         self._pdf = decompress_pdf(pdf)
-        self._tok = StatementTokenizer(self._pdf)
+        self._tok = ReTokenizer(self._pdf, '\n', self.LEX)
 
     def read_card_transactions(self):
         # Early check if this is a card account statement at all.
@@ -149,8 +127,8 @@ class StatementParser(object):
         or ref_layout is None or ref is None or desc is None or amount is None:
             return startPos, None
         else:
-            tdate = full_date(tdate, date_from, date_to)
-            pdate = full_date(pdate, date_from, date_to)
+            tdate = closest_date(tdate, date_from, date_to)
+            pdate = closest_date(pdate, date_from, date_to)
 
             trans = Transaction(ref)
             trans.date = tdate
@@ -179,7 +157,7 @@ class StatementParser(object):
         if desc is None or date is None or amount is None:
             return startPos, None
         else:
-            date = full_date(date, date_from, date_to)
+            date = closest_date(date, date_from, date_to)
 
             trans = Transaction(u'')
             trans.date = date
@@ -229,7 +207,7 @@ class StatementParser(object):
             return startPos, None
         else:
             # Infer amount type by its indentation in the layout.
-            amount_total = clean_amount('0')
+            amount_total = AmTr.decimal_amount('0')
             for (_, _, _, _, indent, _), amount in amounts:
                 within = lambda xmin_xmax: xmin_xmax[0] <= indent <= xmin_xmax[1]
                 if within(range_skip):
@@ -295,7 +273,7 @@ class StatementParser(object):
 
     def read_amount(self, pos):
         t = self._tok.tok(pos)
-        return (pos+1, clean_amount(t.value())) \
+        return (pos+1, AmTr.decimal_amount(t.value())) \
             if t.is_amount() else (pos, None)
 
     def read_date_range(self, pos):
@@ -334,65 +312,3 @@ class StatementParser(object):
         return (pos+1, [float(v) for v in t.value()]) \
             if t.is_layout_tm() else (pos, None)
 
-
-class StatementTokenizer(object):
-    def __init__(self, pdf):
-        self._tok = [StatementToken(line) for line in pdf.split('\n')]
-
-    def tok(self, index):
-        if 0 <= index < len(self._tok):
-            return self._tok[index]
-        else:
-            return StatementToken(eof=True)
-
-
-class StatementToken(object):
-    """
-    Simple regex-based lexer.
-    There's a lexing table consisting of type-regex tuples.
-    Text line is sequentially matched against regexes and first
-    successful match defines the type of the token.
-    """
-    LEX = [
-        ('amount', r'^\[\(([0-9,]+\.\d+)\)\] TJ$'),
-        ('date', r'^\[\((\d+/\d+)\)\] TJ$'),
-        ('date_range_1', r'^\[\(([A-z]+ \d+, \d{4})'
-                          r' - ([A-z]+ \d+, \d{4})\)\] TJ$'),
-        ('date_range_2', r'^\[\((\d{2}/\d{2}/\d{4})'
-                         r' to (\d{2}/\d{2}/\d{4})\)\] TJ$'),
-        ('layout_tz', r'^(\d+\.\d{2}) Tz$'),
-        ('layout_tc', r'^(\d+\.\d{2}) Tc$'),
-        ('layout_tw', r'^(\d+\.\d{2}) Tw$'),
-        ('layout_tf', r'^/F(\d) (\d+\.\d{2}) Tf$'),
-        ('layout_tm', r'^' + (r'(\d+\.\d+ )'*6) + r'Tm$'),
-        ('ref', r'^\[\(([0-9A-Z]{17})\)\] TJ$'),
-
-        ('text', r'^\[\(([^\)]+)\)\] TJ$')
-    ]
-
-    def __init__(self, line=None, eof=False):
-        self._eof = eof
-        self._value = None
-        self._type = None
-        if line is not None:
-            for type_, regex in self.LEX:
-                m = re.match(regex, line, flags=re.UNICODE)
-                if m:
-                    self._type = type_
-                    if len(m.groups()) == 1:
-                        self._value = m.groups()[0]
-                    elif m.groups():
-                        self._value = m.groups()
-                    else:
-                        self._value = m.group(0)
-                    break
-
-    def is_eof(self):
-        return self._eof
-
-    def value(self):
-        return self._value
-
-for type_, _ in StatementToken.LEX:
-    setattr(StatementToken, 'is_%s' % type_,
-        eval('lambda self: self._type == "%s"' % type_))

@@ -18,10 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.bank import Account, Transaction
+from weboob.tools.capabilities.bank.transactions import \
+    AmericanTransaction as AmTr
 from weboob.browser.pages import HTMLPage, LoggedPage, RawPage
 from urllib import unquote
 from requests.cookies import morsel_to_cookie
-from .parsers import StatementParser, clean_amount, clean_label
+from .parsers import StatementParser, clean_label
 import itertools
 import re
 import datetime
@@ -138,7 +140,7 @@ class ActivityPage(AccountPage):
         account.id = id_
         account.label = name
         account.currency = currency
-        account.balance = clean_amount(balance)
+        account.balance = AmTr.decimal_amount(balance)
         account.type = type_
         return account
 
@@ -196,9 +198,9 @@ class ActivityCashPage(ActivityPage):
             desc = clean_label(desc)
 
             deposit = deposit.strip()
-            deposit = clean_amount(deposit or '0')
+            deposit = AmTr.decimal_amount(deposit or '0')
             withdraw = withdraw.strip()
-            withdraw = clean_amount(withdraw or '0')
+            withdraw = AmTr.decimal_amount(withdraw or '0')
 
             amount = deposit - withdraw
 
@@ -273,9 +275,9 @@ class ActivityCardPage(ActivityPage):
             ref = re.match('.*<REFERENCE ([^>]+)>.*', ref).group(1)
 
             if amount.startswith('+'):
-                amount = clean_amount(amount[1:])
+                amount = AmTr.decimal_amount(amount[1:])
             else:
-                amount = -clean_amount(amount)
+                amount = -AmTr.decimal_amount(amount)
 
             trans = Transaction(ref)
             trans.date = tdate
