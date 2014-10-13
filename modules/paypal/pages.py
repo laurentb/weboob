@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from decimal import Decimal, InvalidOperation
+from decimal import InvalidOperation
 import re
 import datetime
 
@@ -28,16 +28,12 @@ from weboob.deprecated.browser.parsers.csvparser import CsvParser
 from weboob.tools.misc import to_unicode
 from weboob.tools.date import parse_french_date
 from weboob.capabilities.bank import Account, Transaction
-from weboob.tools.capabilities.bank.transactions import AmericanTransaction
+from weboob.tools.capabilities.bank.transactions import \
+    AmericanTransaction as AmTr
 
 
 class CSVAlreadyAsked(Exception):
     pass
-
-
-def clean_amount(text):
-    amnt = AmericanTransaction.clean_amount(text)
-    return Decimal(amnt) if amnt else Decimal("0")
 
 
 class LoginPage(Page):
@@ -67,7 +63,7 @@ class AccountPage(Page):
         # Primary currency account
         primary_account = Account()
         primary_account.type = Account.TYPE_CHECKING
-        primary_account.balance = clean_amount(balance)
+        primary_account.balance = AmTr.decimal_amount(balance)
         primary_account.currency = Account.get_currency(balance)
         primary_account.id = unicode(primary_account.currency)
         primary_account.label = u'%s %s*' % (self.browser.username, balance.split()[-1])
@@ -86,7 +82,7 @@ class AccountPage(Page):
         # An Account object has only one currency; secondary currencies should be other accounts.
         if balance:
             balance = balance[0].text_content().strip()
-            primary_account.balance = clean_amount(balance)
+            primary_account.balance = AmTr.decimal_amount(balance)
             # The primary currency of the "head balance" is the same; ensure we got the right one
             assert primary_account.currency == primary_account.get_currency(balance)
 
@@ -96,7 +92,7 @@ class AccountPage(Page):
             account.type = Account.TYPE_CHECKING
             # XXX it ignores 5+ devises, so it's bad, but it prevents a crash, cf #1216
             try:
-                account.balance = clean_amount(balance)
+                account.balance = AmTr.decimal_amount(balance)
             except InvalidOperation:
                 continue
             account.currency = Account.get_currency(balance)
@@ -226,9 +222,9 @@ class SubmitPage(Page):
                 trans.type = Transaction.TYPE_UNKNOWN
 
             # Net is what happens after the fee (0 for most users), so what is the most "real"
-            trans.amount = clean_amount(row[NET])
-            trans._gross = clean_amount(get(GROSS, row[NET]))
-            trans._fees = clean_amount(get(FEE, u'0.00'))
+            trans.amount = AmTr.decimal_amount(row[NET])
+            trans._gross = AmTr.decimal_amount(get(GROSS, row[NET]))
+            trans._fees = AmTr.decimal_amount(get(FEE, u'0.00'))
 
             trans._to = get(TO)
             trans._from = get(FROM)
@@ -310,7 +306,7 @@ class HistoryPage(Page):
             amount = row.xpath('.//td[@headers="gross"]')[-1].text_content().strip()
             if re.search('\d', amount):
                 currency = Account.get_currency(amount)
-                amount = clean_amount(amount)
+                amount = AmTr.decimal_amount(amount)
             else:
                 continue
 
