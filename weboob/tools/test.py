@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 from random import choice
 from unittest import TestCase
 
@@ -56,6 +57,9 @@ class BackendTest(TestCase):
         Call the parent run() for each backend instance.
         Skip the test if we have no backends.
         """
+        # This is a hack to fix an issue with nosetests running
+        # with many tests. The default is 1000.
+        sys.setrecursionlimit(10000)
         try:
             if not len(self.backends):
                 result.startTest(self)
