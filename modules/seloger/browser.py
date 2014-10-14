@@ -78,4 +78,4 @@ class SeLogerBrowser(PagesBrowser):
         return self.search.go(request=urllib.urlencode(data)).iter_housings()
 
     def get_housing(self, _id, obj=None):
-        return self.housing.go(_id=_id, noAudiotel=1).get_housing(obj)
+        return self.housing.go(_id=_id, noAudiotel=1).get_housing(obj=obj)
