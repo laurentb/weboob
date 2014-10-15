@@ -109,7 +109,7 @@ class Videoob(ReplApplication):
                         line = u'%s/%s' % (baseurl, line)
                     content += (line,)
 
-            args = ('wget',) + content + ('-O', dest)
+            args = ('wget', '-nv',) + content + ('-O', dest)
         else:
             if check_exec('wget'):
                 args = ('wget', '-c', video.url, '-O', dest)
