@@ -202,10 +202,10 @@ class GridVirtKeyboard(VirtKeyboard):
         :param symbols: Sequence of symbols, ordered in the grid from left to
             right and up to down
         :type symbols: iterable
-        :param rows: Row count of the grid
-        :type rows: int
         :param cols: Column count of the grid
         :type cols: int
+        :param rows: Row count of the grid
+        :type rows: int
         :param image: File-like object to be used as data source
         :type image: file
         :param color: Color of the meaningful pixels
@@ -219,7 +219,7 @@ class GridVirtKeyboard(VirtKeyboard):
     """
     symbols = {}
 
-    def __init__(self, symbols, rows, cols, image, color, convert=None):
+    def __init__(self, symbols, cols, rows, image, color, convert=None):
         self.load_image(image, color, convert)
 
         tileW = float(self.width) / cols
