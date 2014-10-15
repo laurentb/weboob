@@ -21,6 +21,7 @@ from __future__ import absolute_import
 
 import datetime
 import re
+import unicodedata
 from decimal import Decimal, InvalidOperation
 from itertools import islice
 
@@ -299,6 +300,10 @@ class CleanText(Filter):
     It first replaces all tabs and multiple spaces
     (including newlines if ``newlines`` is True)
     to one space and strips the result string.
+
+    The result is coerced into unicode, and optionally normalized
+    according to the ``normalize`` argument.
+
     Then it replaces all symbols given in the ``symbols`` argument.
 
     >>> CleanText().filter('coucou ')
@@ -311,26 +316,27 @@ class CleanText(Filter):
     u'coucou\\ncoucou'
     """
 
-    def __init__(self, selector=None, symbols='', replace=[], childs=True, newlines=True, **kwargs):
+    def __init__(self, selector=None, symbols='', replace=[], childs=True, newlines=True, normalize='NFC', **kwargs):
         super(CleanText, self).__init__(selector, **kwargs)
         self.symbols = symbols
         self.toreplace = replace
         self.childs = childs
         self.newlines = newlines
+        self.normalize = normalize
 
     @debug()
     def filter(self, txt):
         if isinstance(txt, (tuple, list)):
             txt = u' '.join([self.clean(item, childs=self.childs) for item in txt])
 
-        txt = self.clean(txt, childs=self.childs, newlines=self.newlines)
+        txt = self.clean(txt, self.childs, self.newlines, self.normalize)
         txt = self.remove(txt, self.symbols)
         txt = self.replace(txt, self.toreplace)
-        # lxml under Python 2 returns str instead of unicode if it is pure ASCII
+        # ensure it didn't become str by mistake
         return unicode(txt)
 
     @classmethod
-    def clean(cls, txt, childs=True, newlines=True):
+    def clean(cls, txt, childs=True, newlines=True, normalize='NFC'):
         if not isinstance(txt, basestring):
             if childs:
                 txt = [t.strip() for t in txt.itertext()]
@@ -342,7 +348,13 @@ class CleanText(Filter):
         else:
             # normalize newlines and clean what is inside
             txt = '\n'.join([cls.clean(l) for l in txt.splitlines()])
-        return txt.strip()
+        txt = txt.strip()
+        # lxml under Python 2 returns str instead of unicode if it is pure ASCII
+        txt = unicode(txt)
+        # normalize to a standard Unicode form
+        if normalize:
+            txt = unicodedata.normalize(normalize, txt)
+        return txt
 
     @classmethod
     def remove(cls, txt, symbols):
@@ -672,7 +684,17 @@ class Join(Filter):
         return res
 
 
-def test():
+def test_CleanText():
     # This test works poorly under a doctest, or would be hard to read
     assert CleanText().filter(u' coucou  \n\théhé') == u'coucou héhé'
     assert CleanText().filter('coucou\xa0coucou') == CleanText().filter(u'coucou\xa0coucou') == u'coucou coucou'
+
+    # Unicode normalization
+    assert CleanText().filter(u'Éçã') == u'Éçã'
+    assert CleanText(normalize='NFKC').filter(u'…') == u'...'
+    assert CleanText().filter(u'…') == u'…'
+    # Diacritical mark (dakuten)
+    assert CleanText().filter(u'\u3053\u3099') == u'\u3054'
+    assert CleanText(normalize='NFD').filter(u'\u3053\u3099') == u'\u3053\u3099'
+    assert CleanText(normalize='NFD').filter(u'\u3054') == u'\u3053\u3099'
+    assert CleanText(normalize=False).filter(u'\u3053\u3099') == u'\u3053\u3099'
