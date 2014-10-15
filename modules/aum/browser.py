@@ -26,7 +26,8 @@ import re
 import urllib
 import urllib2
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable
+from weboob.deprecated.browser import Browser
 from weboob.browser.browsers import LoginBrowser
 from weboob.browser.pages import HTMLPage
 from weboob.browser.filters.standard import CleanText
