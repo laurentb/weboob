@@ -409,8 +409,14 @@ class StandardBrowser(mechanize.Browser):
             raise BrowserSSLError()
 
     def _certhash(self, domain, port=443):
-        certs = ssl.get_server_certificate((domain, port))
-        return hashlib.sha256(certs).hexdigest()
+        for proto in HTTPSConnection2._PROTOCOLS:
+            try:
+                certs = ssl.get_server_certificate((domain, port), ssl_version=proto)
+            except ssl.SSLError as e:
+                continue
+            else:
+                return hashlib.sha256(certs).hexdigest()
+        raise e
 
     def __setitem__(self, key, value):
         if isinstance(value, unicode):
