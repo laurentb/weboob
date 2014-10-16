@@ -49,6 +49,9 @@ class Transaction(FrenchTransaction):
                 (re.compile('^(?P<category>REMISE CHEQUES)(?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
                ]
 
+class InvestmentHistoryPage(Page):
+    def get_operations(self, _id):
+        raise NotImplementedError()
 
 class AccountHistoryPage(Page):
     def get_operations(self, _id):
