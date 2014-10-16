@@ -165,27 +165,37 @@ class Form(OrderedDict):
         self.name = el.attrib.get('name', '')
         submits = 0
 
+        # Find all elements of the form that will be useful to create the request
         for inp in el.xpath('.//input | .//select | .//textarea'):
+            # Step 1: Ignore some elements
             try:
                 name = inp.attrib['name']
             except KeyError:
                 continue
 
+            # Ignore checkboxes and radios that are not selected
+            # as they are just not present in the request instead of being empty
+            # values.
             try:
                 if inp.attrib['type'] in ('checkbox', 'radio') and 'checked' not in inp.attrib:
                     continue
             except KeyError:
                 pass
 
+            # Either filter the submit buttons, or count how many we have found
             try:
                 if inp.attrib['type'] == 'submit':
+                    # If we chose a submit button, ignore all others
                     if self.submit_el is not None and inp is not self.submit_el:
                         continue
                     else:
+                        # Register that we have found a submit button, and that it will
+                        # be used
                         submits += 1
             except KeyError:
                 pass
 
+            # Step 2: Extract the key-value pair from the remaining elements
             if inp.tag == 'select':
                 options = inp.xpath('.//option[@selected]')
                 if len(options) == 0:
@@ -196,14 +206,14 @@ class Form(OrderedDict):
                     value = options[0].attrib.get('value', options[0].text or u'')
             else:
                 value = inp.attrib.get('value', inp.text or u'')
-
+            # TODO check if value already exists, emit warning
             self[name] = value
 
+        # Sanity checks
         if submits > 1:
             warnings.warn('Form has more than one submit input, you should chose the correct one', FormSubmitWarning, stacklevel=3)
         if self.submit_el is not None and self.submit_el is not False and submits == 0:
             warnings.warn('Form had a submit element provided, but it was not found', FormSubmitWarning, stacklevel=3)
-
 
     @property
     def request(self):
