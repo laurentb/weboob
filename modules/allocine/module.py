@@ -31,7 +31,7 @@ class AllocineModule(Module, CapCinema):
     NAME = 'allocine'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '1.0'
+    VERSION = '1.1'
     DESCRIPTION = u'AlloCiné French cinema database service'
     LICENSE = 'AGPLv3+'
     BROWSER = AllocineBrowser

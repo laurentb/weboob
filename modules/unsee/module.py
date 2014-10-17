@@ -43,7 +43,7 @@ class UnseeModule(Module, BasePasteModule):
     MAINTAINER = u'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.0'
+    VERSION = '1.1'
 
     BROWSER = UnseeBrowser
 

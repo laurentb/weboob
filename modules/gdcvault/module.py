@@ -35,7 +35,7 @@ class GDCVaultModule(Module, CapVideo, CapCollection):
     NAME = 'gdcvault'
     MAINTAINER = u'François Revol'
     EMAIL = 'revol@free.fr'
-    VERSION = '1.0'
+    VERSION = '1.1'
     DESCRIPTION = 'Game Developers Conferences Vault video streaming website'
     LICENSE = 'AGPLv3+'
     BROWSER = GDCVaultBrowser

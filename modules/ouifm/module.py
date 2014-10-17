@@ -34,7 +34,7 @@ class OuiFMModule(Module, CapRadio, CapCollection):
     NAME = 'ouifm'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.0'
+    VERSION = '1.1'
     DESCRIPTION = u'OÜI FM French radio'
     LICENSE = 'AGPLv3+'
     BROWSER = StandardBrowser

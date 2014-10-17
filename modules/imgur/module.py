@@ -50,7 +50,7 @@ class ImgurModule(Module, CapPaste):
     MAINTAINER = u'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.0'
+    VERSION = '1.1'
 
     CLIENT_ID = '87a8e692cb09382'
 

@@ -25,7 +25,7 @@ from .main_window import MainWindow
 
 class QWebContentEdit(QtApplication):
     APPNAME = 'qwebcontentedit'
-    VERSION = '1.0'
+    VERSION = '1.1'
     COPYRIGHT = u'Copyright(C) 2011 Clément Schreiner'
     DESCRIPTION = "Qt application allowing to manage content of various websites."
     SHORT_DESCRIPTION = "manage websites content"

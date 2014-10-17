@@ -31,7 +31,7 @@ class SeeklyricsModule(Module, CapLyrics):
     NAME = 'seeklyrics'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '1.0'
+    VERSION = '1.1'
     DESCRIPTION = 'SeekLyrics lyrics website'
     LICENSE = 'AGPLv3+'
     BROWSER = SeeklyricsBrowser

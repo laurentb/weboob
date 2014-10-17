@@ -34,7 +34,7 @@ class ArretSurImagesModule(Module, CapVideo, CapCollection):
     DESCRIPTION = u'arretsurimages website'
     MAINTAINER = u'franek'
     EMAIL = 'franek@chicour.net'
-    VERSION = '1.0'
+    VERSION = '1.1'
 
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='email', masked=False),
                            ValueBackendPassword('password', label='Password'))

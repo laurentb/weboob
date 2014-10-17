@@ -26,7 +26,7 @@ from .main_window import MainWindow
 
 class QHaveDate(QtApplication):
     APPNAME = 'qhavedate'
-    VERSION = '1.0'
+    VERSION = '1.1'
     COPYRIGHT = 'Copyright(C) 2010-2012 Romain Bignon'
     DESCRIPTION = "Qt application allowing to interact with various dating websites."
     SHORT_DESCRIPTION = "interact with dating websites"

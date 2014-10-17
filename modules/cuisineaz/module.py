@@ -35,7 +35,7 @@ class CuisineazModule(Module, CapRecipe):
     NAME = 'cuisineaz'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '1.0'
+    VERSION = '1.1'
     DESCRIPTION = u'Cuisine AZ French recipe website'
     LICENSE = 'AGPLv3+'
     BROWSER = CuisineazBrowser

@@ -33,7 +33,7 @@ class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost):
     NAME = 'orange'
     MAINTAINER = u'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'
-    VERSION = '1.0'
+    VERSION = '1.1'
     DESCRIPTION = 'Orange French mobile phone provider'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(Value('login', label='Login'),

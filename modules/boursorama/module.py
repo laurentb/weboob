@@ -34,7 +34,7 @@ class BoursoramaModule(Module, CapBank):
     NAME = 'boursorama'
     MAINTAINER = u'Gabriel Kerneis'
     EMAIL = 'gabriel@kerneis.info'
-    VERSION = '1.0'
+    VERSION = '1.1'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Boursorama'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Identifiant', masked=False),
