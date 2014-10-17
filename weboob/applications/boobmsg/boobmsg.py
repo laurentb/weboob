@@ -236,7 +236,7 @@ class ProfileFormatter(IFormatter):
 class Boobmsg(ReplApplication):
     APPNAME = 'boobmsg'
     VERSION = '1.1'
-    COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz'
+    COPYRIGHT = 'Copyright(C) 2010-YEAR Christophe Benz'
     DESCRIPTION = "Console application allowing to send messages on various websites and " \
                   "to display message threads and contents."
     SHORT_DESCRIPTION = "send and receive message threads"

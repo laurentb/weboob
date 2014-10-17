@@ -54,7 +54,7 @@ class VideoListFormatter(PrettyFormatter):
 class Videoob(ReplApplication):
     APPNAME = 'videoob'
     VERSION = '1.1'
-    COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz, Romain Bignon, John Obbele'
+    COPYRIGHT = 'Copyright(C) 2010-YEAR Christophe Benz, Romain Bignon, John Obbele'
     DESCRIPTION = "Console application allowing to search for videos on various websites, " \
                   "play and download them and get information."
     SHORT_DESCRIPTION = "search and play videos"

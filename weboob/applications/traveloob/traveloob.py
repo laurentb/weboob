@@ -67,7 +67,7 @@ class StationsFormatter(PrettyFormatter):
 class Traveloob(ReplApplication):
     APPNAME = 'traveloob'
     VERSION = '1.1'
-    COPYRIGHT = 'Copyright(C) 2010-2013 Romain Bignon'
+    COPYRIGHT = 'Copyright(C) 2010-YEAR Romain Bignon'
     DESCRIPTION = "Console application allowing to search for train stations and get departure times."
     SHORT_DESCRIPTION = "search for train stations and departures"
     CAPS = CapTravel

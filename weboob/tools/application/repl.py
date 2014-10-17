@@ -24,6 +24,7 @@ from cmd import Cmd
 import logging
 import re
 from optparse import OptionGroup, OptionParser, IndentedHelpFormatter
+from datetime import datetime
 import os
 
 from weboob.capabilities.base import FieldNotFound, BaseObject, UserError
@@ -113,9 +114,10 @@ class ReplApplication(Cmd, ConsoleApplication):
         Cmd.__init__(self)
         ConsoleApplication.__init__(self, ReplOptionParser(self.SYNOPSIS, version=self._get_optparse_version()))
 
+        copyright = self.COPYRIGHT.replace('YEAR', '%d' % datetime.today().year).encode(self.encoding)
         self.intro = '\n'.join(('Welcome to %s%s%s v%s' % (self.BOLD, self.APPNAME, self.NC, self.VERSION),
                                 '',
-                                self.COPYRIGHT.encode(self.encoding),
+                                copyright,
                                 'This program is free software: you can redistribute it and/or modify',
                                 'it under the terms of the GNU Affero General Public License as published by',
                                 'the Free Software Foundation, either version 3 of the License, or',

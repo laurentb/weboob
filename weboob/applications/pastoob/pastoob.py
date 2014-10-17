@@ -34,7 +34,7 @@ __all__ = ['Pastoob']
 class Pastoob(ReplApplication):
     APPNAME = 'pastoob'
     VERSION = '1.1'
-    COPYRIGHT = 'Copyright(C) 2011-2013 Laurent Bachelier'
+    COPYRIGHT = 'Copyright(C) 2011-YEAR Laurent Bachelier'
     DESCRIPTION = "Console application allowing to post and get pastes from pastebins."
     SHORT_DESCRIPTION = "post and get pastes from pastebins"
     CAPS = CapPaste

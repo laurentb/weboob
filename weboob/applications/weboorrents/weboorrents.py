@@ -91,7 +91,7 @@ class TorrentListFormatter(PrettyFormatter):
 class Weboorrents(ReplApplication):
     APPNAME = 'weboorrents'
     VERSION = '1.1'
-    COPYRIGHT = 'Copyright(C) 2010-2012 Romain Bignon'
+    COPYRIGHT = 'Copyright(C) 2010-YEAR Romain Bignon'
     DESCRIPTION = "Console application allowing to search for torrents on various trackers " \
                   "and download .torrent files."
     SHORT_DESCRIPTION = "search and download torrents"

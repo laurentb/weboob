@@ -23,6 +23,7 @@ from __future__ import print_function
 import logging
 import optparse
 from optparse import OptionGroup, OptionParser
+from datetime import datetime
 import locale
 import os
 import sys
@@ -260,7 +261,8 @@ class Application(object):
         version = None
         if self.VERSION:
             if self.COPYRIGHT:
-                version = '%s v%s %s' % (self.APPNAME, self.VERSION, self.COPYRIGHT)
+                copyright = self.COPYRIGHT.replace('YEAR', '%d' % datetime.today().year)
+                version = '%s v%s %s' % (self.APPNAME, self.VERSION, copyright)
             else:
                 version = '%s v%s' % (self.APPNAME, self.VERSION)
         return version

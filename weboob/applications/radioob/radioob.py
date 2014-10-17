@@ -126,7 +126,7 @@ class PlaylistTrackListInfoFormatter(PrettyFormatter):
 class Radioob(ReplApplication):
     APPNAME = 'radioob'
     VERSION = '1.1'
-    COPYRIGHT = 'Copyright(C) 2010-2013 Romain Bignon\nCopyright(C) 2013 Pierre Maziere'
+    COPYRIGHT = 'Copyright(C) 2010-YEAR Romain Bignon\nCopyright(C) YEAR Pierre Maziere'
     DESCRIPTION = "Console application allowing to search for web radio stations, listen to them and get information " \
                   "like the current song."
     SHORT_DESCRIPTION = "search, show or listen to radio stations"
