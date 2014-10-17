@@ -12,9 +12,11 @@ Laurent Bachelier <laurent@bachelier.name>
 
 Florent Fourcot <weboob@flo.fourcot.fr>
         * Release manager;
-        * Champslibres, Freemobile, ING, LeclercMobile, Presseurop, Sachsen,
-          Nettokom, dresdenwetter, colissimo, poivy and Taz modules maintainer;
-        * BNPorc patches.
+        * Maintainer of too many modules.
+
+Benjamin Carton <carton_ben@yahoo.fr>
+        * Core team;
+        * Maintainer of too many modules:
 
 Julien Hebert <juke@free.fr>
         * Developer of masstransit;
@@ -31,11 +33,6 @@ Julien Veyssier <julien.veyssier@aiur.fr>
           Attilasub, Opensubtitles, Tvsubtitle, Btmon, Imdb,
           Seeklyrics, Parolesmusique and Parolesmania modules maintainer.
 
-Benjamin Carton <carton_ben@yahoo.fr>
-        * adecco, apec, arte, cci, grooveshark, indeed, lolix, popolemploi and
-          vlille modules maintainer;
-        * handjoob application.
-
 Christophe Benz <christophe.benz@gmail.com>
         * Bouygues, INA, SFR and Youtube modules maintainer.
 
@@ -51,6 +48,7 @@ Clément Schreiner <clemux@clemux.info>
 François Revol <revol@free.fr>
         * Europarl, GDCVault and Vimeo modules maintainer.
         * Canaplus and qvideoob fixes
+        * Patchs for Haiku support
 
 Pierre Mazière <pierre.maziere@gmx.com>
         * RockRadio module maintainer;
@@ -64,10 +62,10 @@ Gabriel Kerneis <kerneis@pps.jussieu.fr>
         * Boursorama module maintainer.
 
 Oleg Plakhotniuk <olegus8@gmail.com>
-        * Maintainer of Walls Fargo and CityBank;
+        * Maintainer of Walls Fargo and CitiBank;
         * Improvements on the PayPal module;
-        * Various fixes
-		* Several tools
+        * Various fixes;
+        * Several tools.
 
 Vicnet <vo.publique@gmail.com>
         * lacentrale module maintainer.
@@ -194,6 +192,8 @@ leto <leto@weboob.org>
 
 Vincent Paredes <vincentparedes@gmail.com>
         * Changes in Repl.
+        * Fixes and patchs on banking modules.
+        * Backport in browser2 for wheezy support
 
 Richard Genoud <richard.genoud@gmail.com>
         * Fixes on CrArg.
@@ -263,6 +263,7 @@ Etienne Carriere <etienne.carriere@gmail.com>
 
 Simon Murail <simurail@yahoo.fr>
         * Contribution to bank capability and browser2.
+        * Add deepcopy to BaseObject
 
 Alexandre Bonhomme <alexandre.bonhomme@etudiant.univ-lille1.fr>
         * Fix and tests on several modules
