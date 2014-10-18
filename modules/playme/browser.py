@@ -21,6 +21,7 @@
 import re
 
 from weboob.browser import DomainBrowser
+from weboob.browser.exceptions import ClientError
 from weboob.browser.pages import HTMLPage
 from weboob.browser.profiles import Profile
 from weboob.exceptions import BrowserIncorrectPassword
@@ -28,6 +29,9 @@ from weboob.tools.json import json
 
 
 __all__ = ['PlayMeBrowser', 'FacebookBrowser']
+
+
+class NoCredits(Exception): pass
 
 
 class FacebookBrowser(DomainBrowser):
@@ -89,7 +93,7 @@ class PlayMeBrowser(DomainBrowser):
         self.my_name = me['name']
 
     def get_threads(self):
-        return self.request('/users/%s/contacts' % self.my_id)
+        return reversed(self.request('/users/%s/contacts' % self.my_id))
 
     def get_thread_messages(self, contact_id):
         return self.request('/messages/%s' % contact_id)
@@ -106,3 +110,30 @@ class PlayMeBrowser(DomainBrowser):
 
         r = self.location(*args, **kwargs)
         return json.loads(r.content)
+
+    def find_users(self, lat, lon):
+        r = self.request('/users/?lat=%s&lon=%s&type=full' % (lat, lon))
+        return r['pending'] + r['history']
+
+    def get_theme(self):
+        r = self.request('/questions')
+        for t in r:
+            if t['theme']['is_vip']:
+                continue
+            return t
+
+    def challenge(self, user_id):
+        try:
+            r = self.request('/users/%s/challenge/%s' % (self.my_id, user_id))
+        except ClientError as e:
+            r = json.loads(e.response.content)
+            raise NoCredits(r['credits']['next_restore_in_seconds'])
+
+        t = self.get_theme()
+
+        data = {}
+        data['theme'] = {'id': t['theme']['id'], 'is_vip': 0}
+        data['questions'] = [q['id'] for q in t['questions']]
+        data['answers'] = [{'duration': 1000, 'result': 1} for q in t['questions']]
+
+        self.request('/users/%s/challenge/%s' % (self.my_id, user_id), data=data)

@@ -21,15 +21,64 @@
 import datetime
 
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Thread, Message
-from weboob.capabilities.dating import CapDating
+from weboob.capabilities.dating import CapDating, Optimization
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.date import local2utc
+from weboob.tools.log import getLogger
 
-from .browser import PlayMeBrowser, FacebookBrowser
+from .browser import PlayMeBrowser, FacebookBrowser, NoCredits
 
 
 __all__ = ['PlayMeModule']
+
+
+class ProfilesWalker(Optimization):
+    def __init__(self, sched, storage, browser):
+        self._sched = sched
+        self._storage = storage
+        self._browser = browser
+        self._logger = getLogger('walker', browser.logger)
+
+        self._view_cron = None
+
+    def start(self):
+        self._view_cron = self._sched.schedule(1, self.view_profile)
+        return True
+
+    def stop(self):
+        self._sched.cancel(self._view_cron)
+        self._view_cron = None
+        return True
+
+    def set_config(self, params):
+        pass
+
+    def is_running(self):
+        return self._view_cron is not None
+
+    def view_profile(self):
+        delay = 900
+        try:
+            challenged = self._storage.get('challenged', default=[])
+            for user in self._browser.find_users(48.883989, 2.367168):
+                if user['id'] in challenged:
+                    continue
+
+                try:
+                    self._browser.challenge(user['id'])
+                except NoCredits as e:
+                    delay = int(str(e))
+                    self._logger.info('No more credits (next try in %d minutes)' % (delay/60))
+                else:
+                    self._logger.info('Challenged %s' % user['name'])
+                    challenged.append(user['id'])
+                    self._storage.set('challenged', challenged)
+                    self._storage.save()
+                break
+        finally:
+            if self._view_cron is not None:
+                self._view_cron = self._sched.schedule(delay, self.view_profile)
 
 
 class PlayMeModule(Module, CapMessages, CapMessagesPost, CapDating):
@@ -44,6 +93,7 @@ class PlayMeModule(Module, CapMessages, CapMessagesPost, CapDating):
 
     BROWSER = PlayMeBrowser
     STORAGE = {'contacts': {},
+               'challenged': [],
               }
 
     def create_default_browser(self):
@@ -51,6 +101,11 @@ class PlayMeModule(Module, CapMessages, CapMessagesPost, CapDating):
         facebook.login(self.config['username'].get(),
                        self.config['password'].get())
         return PlayMeBrowser(facebook)
+
+    # ---- CapDating methods -----------------------
+
+    def init_optimizations(self):
+        self.add_optimization('PROFILE_WALKER', ProfilesWalker(self.weboob.scheduler, self.storage, self.browser))
 
     # ---- CapMessages methods ---------------------
 
