@@ -16,7 +16,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 from unittest import TestCase
-from weboob.browser import URL, PagesBrowser
+
+from weboob.browser import PagesBrowser, URL
 from weboob.browser.pages import Page
 from weboob.browser.url import UrlNotResolvable
 
@@ -27,7 +28,7 @@ class MyMockBrowserWithoutBrowser():
 
 
 # Mock that allows to represent a Page
-class myMockPage(Page):
+class MyMockPage(Page):
     pass
 
 
@@ -46,8 +47,8 @@ class MyMockBrowser(PagesBrowser):
     urlParams = URL("http://test.com\?id=(?P<id>\d+)&name=(?P<name>.+)")
 
     # URL used by method is_here
-    urlIsHere = URL('http://weboob.org/(?P<param>)', myMockPage)
-    urlIsHereDifKlass = URL('http://free.fr', myMockPage)
+    urlIsHere = URL('http://weboob.org/(?P<param>)', MyMockPage)
+    urlIsHereDifKlass = URL('http://free.fr', MyMockPage)
 
 
 # Class that tests different methods from the class URL
@@ -57,8 +58,6 @@ class URLTest(TestCase):
     def setUp(self):
         self.myBrowser = MyMockBrowser()
         self.myBrowserWithoutBrowser = MyMockBrowserWithoutBrowser()
-
-# TESTS FOR MATCH METHOD
 
     # Check that an assert is sent if both base and browser are none
     def test_match_base_none_browser_none(self):
@@ -79,41 +78,31 @@ class URLTest(TestCase):
     # Check that none is returned when none of the defined urls is a regex for
     # the given url
     def test_match_url_pasregex_baseurl(self):
-        # Test
         res = self.myBrowser.urlNotRegex.match("http://weboob.org/news")
-        # Assertions
         self.assertIsNone(res)
 
     # Check that true is returned when one of the defined urls is a regex
     # for the given url
     def test_match_url_regex_baseurl(self):
-        # Test
         res = self.myBrowser.urlRegex.match("http://weboob2.org/news")
-        # Assertions
         self.assertTrue(res)
 
     # Successful test with relatives url
     def test_match_url_without_http(self):
-        # Test
         res = self.myBrowser.urlRegWithoutHttp.match("http://weboob.org/news")
-        # Assertions
         self.assertTrue(res)
 
     # Unsuccessful test with relatives url
     def test_match_url_without_http_fail(self):
-        # Test
         browser = self.myBrowser
         res = browser.urlNotRegWithoutHttp.match("http://weboob.org/news")
-        # Assertions
         self.assertIsNone(res)
-
-# TESTS FOR BUILD METHOD
 
     # Checks that build returns the right url when it needs to add
     # the value of a parameter
     def test_build_nominal_case(self):
         res = self.myBrowser.urlValue.build(id=2)
-	self.assertEquals(res, "http://test.com/2")
+        self.assertEquals(res, "http://test.com/2")
 
     # Checks that build returns the right url when it needs to add
     # identifiers and values of some parameters
@@ -133,11 +122,8 @@ class URLTest(TestCase):
         self.assertRaises(UrlNotResolvable, self.myBrowser.urlParams.build,
                           id=2, name="weboob", title="test")
 
-# TESTS FOR IS_HERE METHOD
-
     # Check that an assert is sent if both klass is none
     def test_ishere_klass_none(self):
         self.assertRaisesRegexp(AssertionError, "You can use this method" +
                                 " only if there is a Page class handler.",
                                 self.myBrowser.urlRegex.is_here, id=2)
-

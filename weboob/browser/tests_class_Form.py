@@ -15,12 +15,14 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-from unittest import TestCase
-from weboob.browser import URL
-from weboob.browser.pages import Form, FormSubmitWarning, HTMLPage
 import collections
-import lxml.html
 import warnings
+from unittest import TestCase
+
+import lxml.html
+
+from weboob.browser import URL
+from weboob.browser.pages import Form, FormSubmitWarning
 
 
 # Mock that allows to represent a Page
@@ -48,7 +50,7 @@ class FormTest(TestCase):
                    </select>
                    <input type='submit' name='submitForm' />
                </form>""")
-	self.elMoreSubmit = lxml.html.fromstring(
+        self.elMoreSubmit = lxml.html.fromstring(
             """<form method='GET'>
                    <input type ='text' name='nom' value='Dupont'/>
                    <input type ='text' name='prenom' value=''/>
@@ -103,4 +105,3 @@ class FormTest(TestCase):
             assert len(w) == 1
             assert issubclass(w[-1].category, FormSubmitWarning)
             assert warningMsg in str(w[-1].message)
-
