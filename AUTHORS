@@ -272,7 +272,11 @@ Camille Dehecq <camille@dehecq.fr>
         * Contributions on weboob-generic munin script
 
 Samuel Loury <samuel.loury@cosmo-platform.org>
-		* Fix on the documentation
+        * Fix on the documentation
+
+Leven Julia <julia.leven@etudiant.univ-lille1.fr>
+        * Tests for the browser
+
 
 Discover how to contribute to this great software:
 http://dev.weboob.org/guides/contribute
