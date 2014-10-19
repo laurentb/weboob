@@ -22,6 +22,7 @@ import datetime
 
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Thread, Message
 from weboob.capabilities.dating import CapDating, Optimization
+from weboob.capabilities.account import CapAccount, StatusField
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.date import local2utc
@@ -81,7 +82,7 @@ class ProfilesWalker(Optimization):
                 self._view_cron = self._sched.schedule(delay, self.view_profile)
 
 
-class PlayMeModule(Module, CapMessages, CapMessagesPost, CapDating):
+class PlayMeModule(Module, CapMessages, CapMessagesPost, CapDating, CapAccount):
     NAME = 'playme'
     DESCRIPTION = u'PlayMe dating mobile application'
     MAINTAINER = u'Roger Philibert'
@@ -190,6 +191,14 @@ class PlayMeModule(Module, CapMessages, CapMessagesPost, CapDating):
 
     def post_message(self, message):
         self.browser.post_message(message.thread.id, message.content)
+
+    # ---- CapAccount methods ---------------------
+
+    def get_account_status(self):
+        return (
+                StatusField(u'myname', u'My name', unicode(self.browser.my_name)),
+                StatusField(u'credits', u'Credits', unicode(self.browser.credits)),
+               )
 
     OBJECTS = {Thread: fill_thread,
               }

@@ -91,6 +91,7 @@ class PlayMeBrowser(DomainBrowser):
 
         self.my_id = me['id']
         self.my_name = me['name']
+        self.credits = me['credits']['count']
 
     def get_threads(self):
         return reversed(self.request('/users/%s/contacts' % self.my_id))
@@ -127,9 +128,11 @@ class PlayMeBrowser(DomainBrowser):
             r = self.request('/users/%s/challenge/%s' % (self.my_id, user_id))
         except ClientError as e:
             r = json.loads(e.response.content)
+            self.credits = r['credits']['count']
             raise NoCredits(r['credits']['next_restore_in_seconds'])
 
         t = self.get_theme()
+        self.credits = r['credits']['count']
 
         data = {}
         data['theme'] = {'id': t['theme']['id'], 'is_vip': 0}
