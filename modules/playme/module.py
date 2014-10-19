@@ -36,6 +36,7 @@ __all__ = ['PlayMeModule']
 
 class ProfilesWalker(Optimization):
     def __init__(self, sched, storage, browser):
+        super(ProfilesWalker, self).__init__()
         self._sched = sched
         self._storage = storage
         self._browser = browser
@@ -70,9 +71,9 @@ class ProfilesWalker(Optimization):
                     self._browser.challenge(user['id'])
                 except NoCredits as e:
                     delay = int(str(e))
-                    self._logger.info('No more credits (next try in %d minutes)' % (delay/60))
+                    self._logger.info('No more credits (next try in %d minutes)', (delay/60))
                 else:
-                    self._logger.info('Challenged %s' % user['name'])
+                    self._logger.info('Challenged %s', user['name'])
                     challenged.append(user['id'])
                     self._storage.set('challenged', challenged)
                     self._storage.save()
@@ -195,8 +196,7 @@ class PlayMeModule(Module, CapMessages, CapMessagesPost, CapDating, CapAccount):
     # ---- CapAccount methods ---------------------
 
     def get_account_status(self):
-        return (
-                StatusField(u'myname', u'My name', unicode(self.browser.my_name)),
+        return (StatusField(u'myname', u'My name', unicode(self.browser.my_name)),
                 StatusField(u'credits', u'Credits', unicode(self.browser.credits)),
                )
 

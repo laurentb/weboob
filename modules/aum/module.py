@@ -472,10 +472,10 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
     def get_account_status(self):
         with self.browser:
             return (
-                    StatusField('myname', 'My name', self.browser.get_my_name()),
-                    StatusField('score', 'Score', self.browser.score()),
-                    StatusField('avcharms', 'Available charms', self.browser.nb_available_charms()),
-                    StatusField('newvisits', 'New visits', self.browser.nb_new_visites()),
+                    StatusField(u'myname', u'My name', unicode(self.browser.get_my_name())),
+                    StatusField(u'score', u'Score', unicode(self.browser.score())),
+                    StatusField(u'avcharms', u'Available charms', unicode(self.browser.nb_available_charms())),
+                    StatusField(u'newvisits', u'New visits', unicode(self.browser.nb_new_visites())),
                    )
 
     OBJECTS = {Thread: fill_thread,

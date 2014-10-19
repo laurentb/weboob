@@ -26,42 +26,43 @@ from weboob.tools.log import getLogger
 
 class ProfilesWalker(Optimization):
     def __init__(self, sched, storage, browser):
-        self.sched = sched
-        self.storage = storage
-        self.browser = browser
-        self.logger = getLogger('walker', browser.logger)
+        super(ProfilesWalker, self).__init__()
+        self._sched = sched
+        self._storage = storage
+        self._browser = browser
+        self._logger = getLogger('walker', browser.logger)
 
-        self.walk_cron = None
-        self.view_cron = None
-        self.visited_profiles = set(storage.get('profiles_walker', 'viewed'))
-        self.logger.info(u'Loaded %d already visited profiles from storage.' % len(self.visited_profiles))
-        self.profiles_queue = set()
+        self._walk_cron = None
+        self._view_cron = None
+        self._visited_profiles = set(storage.get('profiles_walker', 'viewed'))
+        self._logger.info(u'Loaded %d already visited profiles from storage.' % len(self._visited_profiles))
+        self._profiles_queue = set()
 
     def save(self):
-        self.storage.set('profiles_walker', 'viewed', list(self.visited_profiles))
-        self.storage.save()
+        self._storage.set('profiles_walker', 'viewed', list(self._visited_profiles))
+        self._storage.save()
 
     def start(self):
-        self.walk_cron = self.sched.repeat(60, self.enqueue_profiles)
-        self.view_cron = self.sched.schedule(randint(5, 10), self.view_profile)
+        self._walk_cron = self._sched.repeat(60, self.enqueue_profiles)
+        self._view_cron = self._sched.schedule(randint(5, 10), self.view_profile)
         return True
 
     def stop(self):
-        self.sched.cancel(self.walk_cron)
-        self.sched.cancel(self.view_cron)
-        self.walk_cron = None
-        self.view_cron = None
+        self._sched.cancel(self._walk_cron)
+        self._sched.cancel(self._view_cron)
+        self._walk_cron = None
+        self._view_cron = None
         return True
 
     def is_running(self):
-        return self.walk_cron is not None
+        return self._walk_cron is not None
 
     def enqueue_profiles(self):
         try:
-            with self.browser:
-                profiles_to_visit = self.browser.search_profiles().difference(self.visited_profiles)
-                self.logger.info(u'Enqueuing profiles to visit: %s' % profiles_to_visit)
-                self.profiles_queue = set(profiles_to_visit)
+            with self._browser:
+                profiles_to_visit = self._browser.search_profiles().difference(self._visited_profiles)
+                self._logger.info(u'Enqueuing profiles to visit: %s' % profiles_to_visit)
+                self._profiles_queue = set(profiles_to_visit)
             self.save()
         except BrowserUnavailable:
             return
@@ -69,14 +70,14 @@ class ProfilesWalker(Optimization):
     def view_profile(self):
         try:
             try:
-                id = self.profiles_queue.pop()
+                id = self._profiles_queue.pop()
             except KeyError:
                 return  # empty queue
 
             try:
-                with self.browser:
-                    profile = self.browser.get_profile(id)
-                self.logger.info(u'Visited profile %s (%s)' % (profile['pseudo'], id))
+                with self._browser:
+                    profile = self._browser.get_profile(id)
+                self._logger.info(u'Visited profile %s (%s)' % (profile['pseudo'], id))
 
                 # Get score from the aum_score module
                 #d = self.nucentral_core.callService(context.Context.fromComponent(self), 'aum_score', 'score', profile)
@@ -84,15 +85,15 @@ class ProfilesWalker(Optimization):
                 # deferredlist.append(d)
 
                 # do not forget that we visited this profile, to avoid re-visiting it.
-                self.visited_profiles.add(id)
+                self._visited_profiles.add(id)
                 self.save()
 
             except BrowserUnavailable:
                 # We consider this profil hasn't been [correctly] analysed
-                self.profiles_queue.add(id)
+                self._profiles_queue.add(id)
                 return
             except Exception as e:
-                self.logger.exception(e)
+                self._logger.exception(e)
         finally:
-            if self.view_cron is not None:
-                self.view_cron = self.sched.schedule(randint(5, 10), self.view_profile)
+            if self._view_cron is not None:
+                self._view_cron = self._sched.schedule(randint(5, 10), self.view_profile)

@@ -35,34 +35,34 @@ __all__ = ['TinderModule']
 
 class ProfilesWalker(Optimization):
     def __init__(self, sched, storage, browser):
-        self.sched = sched
-        self.storage = storage
-        self.browser = browser
-        self.logger = getLogger('walker', browser.logger)
+        self._sched = sched
+        self._storage = storage
+        self._browser = browser
+        self._logger = getLogger('walker', browser.logger)
 
-        self.view_cron = None
+        self._view_cron = None
 
     def start(self):
-        self.view_cron = self.sched.schedule(1, self.view_profile)
+        self._view_cron = self._sched.schedule(1, self.view_profile)
         return True
 
     def stop(self):
-        self.sched.cancel(self.view_cron)
-        self.view_cron = None
+        self._sched.cancel(self._view_cron)
+        self._view_cron = None
         return True
 
     def set_config(self, params):
         pass
 
     def is_running(self):
-        return self.view_cron is not None
+        return self._view_cron is not None
 
     def view_profile(self):
         try:
-            self.browser.like_profile()
+            self._browser.like_profile()
         finally:
-            if self.view_cron is not None:
-                self.view_cron = self.sched.schedule(1, self.view_profile)
+            if self._view_cron is not None:
+                self._view_cron = self._sched.schedule(1, self.view_profile)
 
 
 class TinderModule(Module, CapMessages, CapMessagesPost, CapDating):

@@ -26,66 +26,67 @@ from weboob.tools.log import getLogger
 
 class QueriesQueue(Optimization):
     def __init__(self, sched, storage, browser):
-        self.sched = sched
-        self.storage = storage
-        self.browser = browser
-        self.logger = getLogger('queriesqueue', browser.logger)
+        super(QueriesQueue, self).__init__()
+        self._sched = sched
+        self._storage = storage
+        self._browser = browser
+        self._logger = getLogger('queriesqueue', browser.logger)
 
-        self.queue = storage.get('queries_queue', 'queue', default=[])
+        self._queue = storage.get('queries_queue', 'queue', default=[])
 
-        self.check_cron = None
+        self._check_cron = None
 
     def save(self):
-        self.storage.set('queries_queue', 'queue', self.queue)
-        self.storage.save()
+        self._storage.set('queries_queue', 'queue', self._queue)
+        self._storage.save()
 
     def start(self):
-        self.check_cron = self.sched.repeat(3600, self.flush_queue)
+        self._check_cron = self._sched.repeat(3600, self.flush_queue)
         return True
 
     def stop(self):
-        self.sched.cancel(self.check_cron)
-        self.check_cron = None
+        self._sched.cancel(self._check_cron)
+        self._check_cron = None
         return True
 
     def is_running(self):
-        return self.check_cron is not None
+        return self._check_cron is not None
 
     def enqueue_query(self, id, priority=999):
-        id_queue = [_id[1] for _id in self.queue]
+        id_queue = [_id[1] for _id in self._queue]
         if int(id) in id_queue:
             raise QueryError('This id is already queued')
-        self.queue.append((int(priority), int(id)))
+        self._queue.append((int(priority), int(id)))
         self.save()
         # Try to flush queue to send it now.
         self.flush_queue()
 
         # Check if the enqueued query has been sent
-        for p, i in self.queue:
+        for _, i in self._queue:
             if i == int(id):
                 return False
         return True
 
     def flush_queue(self):
-        self.queue.sort()
+        self._queue.sort()
 
         priority = 0
         id = None
 
         try:
             try:
-                while len(self.queue) > 0:
-                    priority, id = self.queue.pop()
+                while len(self._queue) > 0:
+                    priority, id = self._queue.pop()
 
                     if not id:
                         continue
 
-                    with self.browser:
-                        if self.browser.send_charm(id):
-                            self.logger.info('Charm sent to %s' % id)
+                    with self._browser:
+                        if self._browser.send_charm(id):
+                            self._logger.info('Charm sent to %s', id)
                         else:
-                            self.queue.append((priority, id))
-                            self.logger.info("Charm can't be send to %s" % id)
+                            self._queue.append((priority, id))
+                            self._logger.info("Charm can't be send to %s", id)
                             break
 
                     # As the charm has been correctly sent (no exception raised),
@@ -97,6 +98,6 @@ class QueriesQueue(Optimization):
             except BrowserUnavailable:
                 # We consider this profil hasn't been [correctly] analysed
                 if id is not None:
-                    self.queue.append((priority, id))
+                    self._queue.append((priority, id))
         finally:
             self.save()
