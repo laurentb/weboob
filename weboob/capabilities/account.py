@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import Capability, BaseObject, StringField, Field, UserError
+from .base import Capability, BaseObject, StringField, IntField, Field, UserError
 
 
 __all__ = ['AccountRegisterError', 'Account', 'StatusField', 'CapAccount']
@@ -42,14 +42,20 @@ class Account(BaseObject):
         BaseObject.__init__(self, id)
 
 
-class StatusField(object):
+class StatusField(BaseObject):
     """
-    Field of an account status.
+    Field of an account staeobjectus.
     """
     FIELD_TEXT    = 0x001     # the value is a long text
     FIELD_HTML    = 0x002     # the value is HTML formated
 
+    key =           StringField('Key')
+    label =         StringField('Label')
+    value =         StringField('Value')
+    flags =         IntField('Flags')
+
     def __init__(self, key, label, value, flags=0):
+        super(StatusField, self).__init__(key)
         self.key = key
         self.label = label
         self.value = value
