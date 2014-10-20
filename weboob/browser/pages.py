@@ -92,12 +92,28 @@ class Page(object):
     """
     Represents a page.
 
+    Encoding can be forced by setting the :attr:`ENCODING` class-wide
+    attribute, or by passing an `encoding` keyword argument, which overrides
+    :attr:`ENCODING`. Finally, it can be manually changed by assigning a new
+    value to :attr:`encoding` instance attribute. A unicode version of the
+    response content is accessible in :attr:`text`, decoded with specified
+    :attr:`encoding`.
+
     :param browser: browser used to go on the page
     :type browser: :class:`weboob.browser.browsers.Browser`
     :param response: response object
     :type response: :class:`Response`
     :param params: optional dictionary containing parameters given to the page (see :class:`weboob.browser.url.URL`)
     :type params: :class:`dict`
+    :param encoding: optional parameter to force the encoding of the page, overrides :attr:`ENCODING`
+    :type encoding: :class:`basestring`
+
+    """
+
+    ENCODING = None
+    """
+    Force a page encoding.
+    It is recommended to use None for autodetection.
     """
 
     logged = False
@@ -106,12 +122,58 @@ class Page(object):
     :class:`LoginBrowser` and the :func:`need_login` decorator.
     """
 
-    def __init__(self, browser, response, params=None):
+    def __init__(self, browser, response, params=None, encoding=None):
         self.browser = browser
         self.logger = getLogger(self.__class__.__name__.lower(), browser.logger)
         self.response = response
         self.url = self.response.url
         self.params = params
+
+        # Setup encoding and build document
+        self.forced_encoding = encoding or self.ENCODING
+        if self.forced_encoding:
+            self.response.encoding = self.forced_encoding
+        self.doc = self.build_doc(self.data)
+
+        # Last chance to change encoding, according to :meth:`detect_encoding`,
+        # which can be used to detect a document-level encoding declaration
+        encoding = self.detect_encoding()
+        if encoding != self.encoding:
+            self.response.encoding = encoding
+            self.doc = self.build_doc(self.data)
+
+    # Encoding issues are delegated to Response instance, implemented by
+    # requests module.
+
+    @property
+    def encoding(self):
+        return self.response.encoding
+
+    @encoding.setter
+    def encoding(self, value):
+        self.forced_encoding = True
+        self.response.encoding = value
+
+    @property
+    def content(self):
+        """
+        Raw content from response.
+        """
+        return self.response.content
+
+    @property
+    def text(self):
+        """
+        Content of the response, in unicode, decoded with :attr:`encoding`.
+        """
+        return self.response.text
+
+    @property
+    def data(self):
+        """
+        Data passed to :meth:`build_doc`.
+        """
+        return self.content
 
     def on_load(self):
         """
@@ -122,6 +184,22 @@ class Page(object):
         """
         Event called when browser leaves this page.
         """
+
+    def build_doc(self, content):
+        """
+        Abstract method to be implemented by subclasses to build structured
+        data (HTML, Json, CSV...) from :attr:`data` property. It also can be
+        overriden in modules pages to preprocess or postprocess data. It must
+        return an object -- that will be assigned to :attr:`doc`.
+        """
+        raise NotImplemented
+
+    def detect_encoding(self):
+        """
+        Override this method to implement detection of document-level encoding
+        declaration, if any (eg. html5's <meta charset="some-charset">).
+        """
+        return None
 
 
 class FormNotFound(Exception):
@@ -266,17 +344,14 @@ class CsvPage(Page):
     This means the rows will be also available as dictionaries.
     """
 
-    def __init__(self, browser, response, *args, **kwargs):
-        super(CsvPage, self).__init__(browser, response, *args, **kwargs)
-        content = response.content
-        encoding = self.ENCODING
+    def build_doc(self, content):
+        encoding = self.encoding
         if encoding == 'utf-16le':
             content = content.decode('utf-16le')[1:].encode('utf-8')
             encoding = 'utf-8'
         if self.NEWLINES_HACK:
             content = content.replace('\r\n', '\n').replace('\r', '\n')
-        fp = BytesIO(content)
-        self.doc = self.parse(fp, encoding)
+        return self.parse(BytesIO(content), encoding)
 
     def parse(self, data, encoding=None):
         """
@@ -322,10 +397,13 @@ class JsonPage(Page):
     Json Page.
     """
 
-    def __init__(self, browser, response, *args, **kwargs):
-        super(JsonPage, self).__init__(browser, response, *args, **kwargs)
+    @property
+    def data(self):
+        return self.response.text
+
+    def build_doc(self, text):
         from weboob.tools.json import json
-        self.doc = json.loads(response.text)
+        return json.loads(text)
 
 
 class XMLPage(Page):
@@ -333,17 +411,10 @@ class XMLPage(Page):
     XML Page.
     """
 
-    ENCODING = None
-    """
-    Force a page encoding.
-    It is recommended to use None for autodetection.
-    """
-
-    def __init__(self, browser, response, *args, **kwargs):
-        super(XMLPage, self).__init__(browser, response, *args, **kwargs)
+    def build_doc(self, content):
         import lxml.etree as etree
-        parser = etree.XMLParser(encoding=self.ENCODING or response.encoding)
-        self.doc = etree.parse(BytesIO(response.content), parser)
+        parser = etree.XMLParser(encoding=self.encoding)
+        return etree.parse(BytesIO(content), parser)
 
 
 class RawPage(Page):
@@ -351,9 +422,8 @@ class RawPage(Page):
     Raw page where the "doc" attribute is the content string.
     """
 
-    def __init__(self, browser, response, *args, **kwargs):
-        super(RawPage, self).__init__(browser, response, *args, **kwargs)
-        self.doc = response.content
+    def build_doc(self, content):
+        return content
 
 
 class HTMLPage(Page):
@@ -376,25 +446,12 @@ class HTMLPage(Page):
     The class to instanciate when using :meth:`HTMLPage.get_form`. Default to :class:`Form`.
     """
 
-    ENCODING = None
-    """
-    Force a page encoding.
-    It is recommended to use None for autodetection.
-    """
-
     def __init__(self, *args, **kwargs):
-        encoding = kwargs.pop('encoding', self.ENCODING)
-
-        super(HTMLPage, self).__init__(*args, **kwargs)
-        self.doc = None
-        self.encoding = None
-
         import lxml.html as html
         ns = html.etree.FunctionNamespace(None)
         self.define_xpath_functions(ns)
-        self.build_doc(encoding)
-        if encoding is None:
-            self.check_encoding()
+
+        super(HTMLPage, self).__init__(*args, **kwargs)
 
     def define_xpath_functions(self, ns):
         """
@@ -435,24 +492,17 @@ class HTMLPage(Page):
             return bool(context.context_node.xpath(xpath))
         ns['has-class'] = has_class
 
-    def build_doc(self, encoding=None):
+    def build_doc(self, content):
         """
         Method to build the lxml document from response and given encoding.
         """
-        if encoding is None:
-            encoding = self.response.encoding
-
         import lxml.html as html
-        parser = html.HTMLParser(encoding=encoding)
-        self.doc = html.parse(BytesIO(self.response.content), parser)
-        self.encoding = encoding
-        return self.doc
+        parser = html.HTMLParser(encoding=self.encoding)
+        return html.parse(BytesIO(content), parser)
 
-    def check_encoding(self):
+    def detect_encoding(self):
         """
-        Check in the document the "http-equiv" and "charset" meta nodes. If the
-        specified charset isn't the one given by Content-Type HTTP header,
-        parse document again with the right encoding.
+        Look for encoding in the document "http-equiv" and "charset" meta nodes.
         """
         encoding = self.encoding
         for content in self.doc.xpath('//head/meta[lower-case(@http-equiv)="content-type"]/@content'):
@@ -472,8 +522,7 @@ class HTMLPage(Page):
         except LookupError:
             encoding = 'windows-1252'
 
-        if encoding != self.encoding:
-            self.build_doc(encoding)
+        return encoding
 
     def get_form(self, xpath='//form', name=None, nr=None, submit=None):
         """
