@@ -65,9 +65,9 @@ class ExplorimmoBrowser(PagesBrowser):
                 'page': '1'
                 }
 
-        params = '%s%s%s' % (urllib.urlencode(data), '&type=', '&type='.join(ret))
+        query = '%s%s%s' % (urllib.urlencode(data), '&type=', '&type='.join(ret))
 
-        return self.search.go(query=params).iter_housings()
+        return self.search.go(query=query).iter_housings()
 
     def get_housing(self, _id, housing=None):
         return self.housing.go(_id=_id).get_housing(obj=housing)
