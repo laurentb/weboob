@@ -18,48 +18,28 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 import urllib
 
-from weboob.deprecated.browser.decorators import id2url
-from weboob.deprecated.browser import Browser
+from weboob.browser import PagesBrowser, URL
 
 from .pages import SearchPage, AdvertPage
-from .job import MonsterJobAdvert
 
 __all__ = ['MonsterBrowser']
 
 
-class MonsterBrowser(Browser):
-    PROTOCOL = 'http'
-    DOMAIN = 'offres.monster.fr'
-    ENCODING = 'utf-8'
+class MonsterBrowser(PagesBrowser):
 
-    PAGES = {
-        '%s://%s/offres-d-emploi/\?q=(.*?)' % (PROTOCOL, DOMAIN): SearchPage,
-        '%s://%s/rechercher/(.*?)' % (PROTOCOL, DOMAIN): SearchPage,
-        'http://offre-emploi.monster.fr/(.*?).aspx': AdvertPage,
-    }
+    BASEURL = 'http://offres.monster.fr'
+    advert = URL('http://offre-emploi.monster.fr/(?P<_id>.*).aspx', AdvertPage)
+    search = URL('rechercher\?q=(?P<pattern>.*)',
+                 'PowerSearch.aspx\?q=(?P<job_name>.*)&where=(?P<place>.*)&jt=(?P<contract>.*)&occ=(?P<job_category>.*)&tm=(?P<limit_date>.*)&indid=(?P<activity_domain>)',
+                 'rechercher/.*',
+                 SearchPage)
 
     def search_job(self, pattern=None):
-        self.location('%s://%s/offres-d-emploi/?q=%s'
-                      % (self.PROTOCOL, self.DOMAIN, urllib.quote_plus(pattern.encode(self.ENCODING))))
-        assert self.is_on_page(SearchPage)
-        return self.page.iter_job_adverts()
+        return self.search.go(pattern=urllib.quote_plus(pattern)).iter_job_adverts()
 
     def advanced_search_job(self, job_name, place, contract, job_category, activity_domain, limit_date):
-        self.location(
-            '%s://%s/PowerSearch.aspx?q=%s&where=%s&jt=%s&occ=%s&tm=%s&indid=%s' % (self.PROTOCOL,
-                                                                                    self.DOMAIN,
-                                                                                    urllib.quote(
-                                                                                        job_name.encode(self.ENCODING)),
-                                                                                    place,
-                                                                                    contract,
-                                                                                    job_category,
-                                                                                    limit_date,
-                                                                                    activity_domain))
-        assert self.is_on_page(SearchPage)
-        return self.page.iter_job_adverts()
+        return self.search.go(job_name=job_name, place=place, contract=contract, job_category=job_category,
+                              limit_date=limit_date, activity_domain=activity_domain).iter_job_adverts()
 
-    @id2url(MonsterJobAdvert.id2url)
-    def get_job_advert(self, url, advert):
-        self.location(url)
-        assert self.is_on_page(AdvertPage)
-        return self.page.get_job_advert(url, advert)
+    def get_job_advert(self, _id, advert):
+        return self.advert.go(_id=_id).get_job_advert(obj=advert)

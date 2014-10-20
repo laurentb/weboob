@@ -19,12 +19,11 @@
 
 
 from weboob.tools.backend import Module, BackendConfig
-from weboob.capabilities.job import CapJob
+from weboob.capabilities.job import CapJob, BaseJobAdvert
 from weboob.tools.value import Value
 from weboob.tools.ordereddict import OrderedDict
 
 from .browser import MonsterBrowser
-from .job import MonsterJobAdvert
 
 __all__ = ['MonsterModule']
 
@@ -157,25 +156,20 @@ class MonsterModule(Module, CapJob):
     )
 
     def search_job(self, pattern=None):
-        with self.browser:
-            for advert in self.browser.search_job(pattern):
-                yield advert
+        return self.browser.search_job(pattern)
 
     def advanced_search_job(self):
-        with self.browser:
-            for advert in self.browser.advanced_search_job(job_name=self.config['job_name'].get(),
-                                                           place=self.config['place'].get(),
-                                                           contract=self.config['contract'].get(),
-                                                           job_category=self.config['job_category'].get(),
-                                                           activity_domain=self.config['activity_domain'].get(),
-                                                           limit_date=self.config['limit_date'].get()):
-                yield advert
+        return self.browser.advanced_search_job(job_name=self.config['job_name'].get(),
+                                                place=self.config['place'].get(),
+                                                contract=self.config['contract'].get(),
+                                                job_category=self.config['job_category'].get(),
+                                                activity_domain=self.config['activity_domain'].get(),
+                                                limit_date=self.config['limit_date'].get())
 
     def get_job_advert(self, _id, advert=None):
-        with self.browser:
-            return self.browser.get_job_advert(_id, advert)
+        return self.browser.get_job_advert(_id, advert)
 
     def fill_obj(self, advert, fields):
-        self.get_job_advert(advert.id, advert)
+        return self.get_job_advert(advert.id, advert)
 
-    OBJECTS = {MonsterJobAdvert: fill_obj}
+    OBJECTS = {BaseJobAdvert: fill_obj}
