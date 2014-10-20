@@ -570,3 +570,17 @@ class LoggedPage(object):
     pages with a login form.
     """
     logged = True
+
+
+class ChecksumPage(object):
+    """
+    Compute a checksum of raw content before parsing it.
+    """
+    import hashlib
+
+    hashfunc = hashlib.md5
+    checksum = None
+
+    def build_doc(self, content):
+        self.checksum = self.hashfunc(content).hexdigest()
+        return super(ChecksumPage, self).build_doc(content)
