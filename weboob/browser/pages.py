@@ -345,9 +345,12 @@ class CsvPage(Page):
     """
 
     def build_doc(self, content):
+        # We may need to temporarily convert content to utf-8 because csv
+        # does not support Unicode.
         encoding = self.encoding
         if encoding == 'utf-16le':
-            content = content.decode('utf-16le')[1:].encode('utf-8')
+            # If there is a BOM, decode('utf-16') will get rid of it
+            content = content.decode('utf-16').encode('utf-8')
             encoding = 'utf-8'
         if self.NEWLINES_HACK:
             content = content.replace('\r\n', '\n').replace('\r', '\n')
