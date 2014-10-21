@@ -111,12 +111,10 @@ class VirtKeyboard(object):
             for x in range(x1, min(x2 + 1, self.width)):
                 if self.check_color(self.pixar[x, y]):
                     empty_line = False
-                    if newY1 == -1:
+                    if newY1 < 0:
                         newY1 = y
-                        break
-                    else:
-                        break
-            if newY1 != -1 and not empty_line:
+                    break
+            if newY1 >= 0 and not empty_line:
                 newY2 = y
         newX1 = -1
         newX2 = -1
@@ -125,12 +123,10 @@ class VirtKeyboard(object):
             for y in range(y1, min(y2 + 1, self.height)):
                 if self.check_color(self.pixar[x, y]):
                     empty_column = False
-                    if newX1 == -1:
+                    if newX1 < 0:
                         newX1 = x
-                        break
-                    else:
-                        break
-            if newX1 != -1 and not empty_column:
+                    break
+            if newX1 >= 0 and not empty_column:
                 newX2 = x
         return (newX1, newY1, newX2, newY2)
 
@@ -173,6 +169,7 @@ class VirtKeyboard(object):
                 for x in range(width):
                     matrix[x, y] = self.pixar[self.coords[i][0] + x, self.coords[i][1] + y]
             img.save(dir + "/" + self.md5[i] + ".png")
+        self.image.save(dir + "/image.png")
 
 
 class MappedVirtKeyboard(VirtKeyboard):
