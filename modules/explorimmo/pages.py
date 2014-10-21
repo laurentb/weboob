@@ -25,7 +25,7 @@ from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.pages import JsonPage, HTMLPage, pagination
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, BrowserURL, Filter, Format
 from weboob.browser.filters.html import CleanHTML, XPath
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.housing import Housing, HousingPhoto, City
 
 
@@ -76,9 +76,15 @@ class SearchPage(HTMLPage):
             obj_area = CleanDecimal(Regexp(CleanText('./div/h2[@itemprop="name"]/a'),
                                            '(.*?)(\d*) m2(.*?)', '\\2', default=None),
                                     default=NotAvailable)
-            obj_phone = CleanText('./div/div/ul/li/span[@class="js-clickphone"]',
+
+            def obj_phone(self):
+                phone = CleanText('./div/div/ul/li/span[@class="js-clickphone"]',
                                   replace=[(u'Téléphoner : ', u'')],
-                                  default=NotAvailable)
+                                  default=NotAvailable)(self)
+
+                if '...' in phone:
+                    return NotLoaded
+                return phone
 
             def obj_photos(self):
                 url = CleanText('./div/div/a/img[@itemprop="image"]/@src')(self)
