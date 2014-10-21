@@ -18,19 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import hashlib
-
 import re
 import lxml.etree as etree
 
 from weboob.deprecated.browser import Page, BrowserUnavailable
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard
-
-
-def md5(f):
-    md5 = hashlib.md5()
-    md5.update(f.read())
-    return md5.hexdigest()
 
 
 class UnavailablePage(Page):
@@ -48,25 +40,30 @@ class Keyboard(VirtKeyboard):
              '6':'7fedfd9e57007f2985c3a1f44fb38ea1',
              '7':'389b8ef432ae996ac0141a2fcc7b540f',
              '8':'bf357ff09cc29ea544991642cd97d453',
-             '9':'b744015eb89c1b950e13a81364112cd6'
+             '9':'b744015eb89c1b950e13a81364112cd6',
             }
 
     color=(0xff, 0xff, 0xff)
 
     def __init__(self, page):
-        img_url = re.search('background:url\((.*?)\)',etree.tostring(page.document)).group(1)
+        m = re.search(r'background:url\((.*?)\)',etree.tostring(page.document))
+        if m:
+            img_url = m.group(1)
+            size = 252
+        else:
+            img_url = page.document.xpath('//img[@id="imageCVS"]')[0].attrib['src']
+            size = 146
         coords = {}
 
-        size = 252
         x, y, width, height = (0, 0, size/4, size/4)
-        for i,a in enumerate(page.document.xpath('//div[@id="imageclavier"]//button')):
+        for i, _ in enumerate(page.document.xpath('//div[@id="imageclavier"]//button')):
             code = '%02d' % i
-            coords[code] = (x+8, y+8, x+height-8, y+height-8)
+            coords[code] = (x+4, y+4, x+width-8, y+height-8)
             if (x + width + 1) >= size:
-                y += height
+                y += height + 1
                 x = 0
             else:
-                x += width
+                x += width + 1
 
         VirtKeyboard.__init__(self, page.browser.openurl(img_url), coords, self.color)
 

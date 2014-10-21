@@ -26,11 +26,12 @@ from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, Browser
 from .pages import LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate, \
                    AccountList, AccountHistory, CardsList, UnavailablePage, \
                    TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary
+from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, ProAccountHistoryDownload, ProAccountHistoryCSV, HistoryParser
 
 from weboob.capabilities.bank import Transfer
 
 
-__all__ = ['BPBrowser']
+__all__ = ['BPBrowser', 'BProBrowser']
 
 
 class BPBrowser(Browser):
@@ -43,8 +44,15 @@ class BPBrowser(Browser):
              r'.*authentification/initialiser-identif.ea'                                : Initident,
              r'.*authentification/verifierMotDePasse-identif.ea'                         : CheckPassword,
 
+             r'.*voscomptes/identification/identification.ea.*'                          : RedirectPage,
+
              r'.*synthese_assurancesEtComptes/afficheSynthese-synthese\.ea'              : AccountList,
              r'.*synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea'     : AccountList,
+
+             r'.*voscomptes/synthese/synthese.ea'                                        : ProAccountsList,
+             r'.*voscomptes/historiqueccp/historiqueccp.ea.*'                            : ProAccountHistory,
+             r'.*voscomptes/telechargercomptes/telechargercomptes.ea.*'                  : ProAccountHistoryDownload,
+             r'.*voscomptes/telechargercomptes/1-telechargercomptes.ea'                  : (ProAccountHistoryCSV, HistoryParser()),
 
              r'.*CCP/releves_ccp/releveCPP-releve_ccp\.ea'                               : AccountHistory,
              r'.*CNE/releveCNE/releveCNE-releve_cne\.ea'                                 : AccountHistory,
@@ -61,22 +69,23 @@ class BPBrowser(Browser):
              r'https?://.*.labanquepostale.fr/delestage.html'                            : UnavailablePage,
              }
 
+    login_url = 'https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&' \
+            'ERROR_CODE=0x00000000&URL=%2Fvoscomptes%2FcanalXHTML%2Fidentif.ea%3Forigin%3Dparticuliers'
+    accounts_url = "https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea"
+
     def __init__(self, *args, **kwargs):
         kwargs['parser'] = ('lxml',)
         Browser.__init__(self, *args, **kwargs)
 
     def home(self):
-        self.location('https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&'
-            'ERROR_CODE=0x00000000&URL=%2Fvoscomptes%2FcanalXHTML%2Fidentif.ea%3Forigin%3Dparticuliers')
+        self.login()
 
     def is_logged(self):
         return not self.is_on_page(LoginPage)
 
     def login(self):
         if not self.is_on_page(LoginPage):
-            self.location('https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&'
-                'ERROR_CODE=0x00000000&URL=%2Fvoscomptes%2FcanalXHTML%2Fidentif.ea%3Forigin%3Dparticuliers',
-                no_login=True)
+            self.location(self.login_url, no_login=True)
 
         self.page.login(self.username, self.password)
 
@@ -86,12 +95,12 @@ class BPBrowser(Browser):
             raise BrowserBanned()
 
     def get_accounts_list(self):
-        self.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea")
+        self.location(self.accounts_url)
         return self.page.get_accounts_list()
 
     def get_account(self, id):
         if not self.is_on_page(AccountList):
-            self.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea")
+            self.location(self.accounts_url)
         return self.page.get_account(id)
 
     def get_history(self, account):
@@ -155,3 +164,15 @@ class BPBrowser(Browser):
         transfer.recipient = to_account.label
         transfer.date = datetime.now()
         return transfer
+
+class BProBrowser(BPBrowser):
+    login_url = "https://banqueenligne.entreprises.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&ERROR_CODE=0x00000000&URL=%2Fws_q47%2Fvoscomptes%2Fidentification%2Fidentification.ea%3Forigin%3Dprofessionnels"
+
+    def login(self):
+        BPBrowser.login(self)
+
+        v = urlsplit(self.page.url)
+        version = v.path.split('/')[1]
+
+        self.base_url = 'https://banqueenligne.entreprises.labanquepostale.fr/%s' % version
+        self.accounts_url = self.base_url + '/voscomptes/synthese/synthese.ea'
