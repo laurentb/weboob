@@ -77,7 +77,7 @@ class LoginPage(HTMLPage):
             return True
 
     def get_me(self):
-        return Regexp(Link('//a[@data-nav="profile"]'), '/(.+)')(self.doc)
+        return Regexp(Link('//a[@data-nav="view_profile"]'), '/(.+)')(self.doc)
 
 
 class ThreadPage(HTMLPage):
@@ -109,7 +109,7 @@ class ThreadPage(HTMLPage):
                                '(.{50}|.+).+')
             obj_content = CleanText('./div/p', replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')])
             obj_sender = Regexp(Link('./div/div/a[@class="details with-icn js-details"]'), '/(.+)/status/.+')
-            obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span', 'data-time'))
+            obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span | ./div/div[@class="ProfileTweet-authorDetails"]/span/a/span', 'data-time'))
 
 
 class TrendsPage(TwitterJsonHTMLPage):
@@ -130,18 +130,18 @@ class TimelineListElement(ListElement):
 
     def get_last_id(self):
         _el = self.page.doc.xpath('//*[@data-item-type="tweet"]/div')[-1]
-        return Regexp(Link('./div/div/a[@class="details with-icn js-details"]|./div/div/span/a[@class="ProfileTweet-timestamp js-permalink js-nav js-tooltip"]'), '/.+/status/(.+)')(_el)
+        return CleanText('./@data-tweet-id')(_el)
 
     class item(ItemElement):
         klass = Thread
 
-        obj_id = Regexp(Link('./div/div/a[@class="details with-icn js-details"]|./div/div/span/a[@class="ProfileTweet-timestamp js-permalink js-nav js-tooltip"]'), '/(.+)/status/(.+)', '\\1#\\2')
+        obj_id = Format('%s#%s', CleanText('./@data-screen-name'), CleanText('./@data-tweet-id'))
         obj_title = Format('%s \n\t %s',
                            CleanText('./div/div[@class="stream-item-header"]/a|./div/div[@class="ProfileTweet-authorDetails"]/a',
                                      replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')]),
                            CleanText('./div/p',
                                      replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')]))
-        obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span|./div/div/span/a[@class="ProfileTweet-timestamp js-permalink js-nav js-tooltip"]/span', 'data-time'))
+        obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span | ./div/div[@class="ProfileTweet-authorDetails"]/span/a/span', 'data-time'))
 
 
 class TimelinePage(TwitterJsonHTMLPage):
