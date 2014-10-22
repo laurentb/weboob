@@ -34,6 +34,9 @@ class LastDateFilter(Filter):
 
 
 class InfoStationPage(XMLPage):
+
+    ENCODING = 'utf-8'
+
     @method
     class get_station_infos(ListElement):
         item_xpath = "."
