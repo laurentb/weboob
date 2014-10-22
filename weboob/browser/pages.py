@@ -137,10 +137,11 @@ class Page(object):
 
         # Last chance to change encoding, according to :meth:`detect_encoding`,
         # which can be used to detect a document-level encoding declaration
-        encoding = self.detect_encoding()
-        if encoding != self.encoding:
-            self.response.encoding = encoding
-            self.doc = self.build_doc(self.data)
+        if not self.forced_encoding:
+            encoding = self.detect_encoding()
+            if encoding and encoding != self.encoding:
+                self.response.encoding = encoding
+                self.doc = self.build_doc(self.data)
 
     # Encoding issues are delegated to Response instance, implemented by
     # requests module.
