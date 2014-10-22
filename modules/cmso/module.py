@@ -19,10 +19,12 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.value import Value, ValueBackendPassword
 
-from .browser import Cmso
+from .mobile.browser import CmsoMobileBrowser
+from .web.browser import CmsoProBrowser
 
 
 __all__ = ['CmsoModule']
@@ -36,26 +38,22 @@ class CmsoModule(Module, CapBank):
     DESCRIPTION = u'Crédit Mutuel Sud-Ouest'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
-                           ValueBackendPassword('password', label='Mot de passe'))
-    BROWSER = Cmso
+                           ValueBackendPassword('password', label='Mot de passe'),
+                           Value('website', label='Type de compte', default='par',
+                                 choices={'par': 'Particuliers', 'pro': 'Professionnels'}))
+    BROWSER = CmsoMobileBrowser
 
     def create_default_browser(self):
+        b = {'par': CmsoMobileBrowser, 'pro': CmsoProBrowser}
+        self.BROWSER = b[self.config['website'].get()]
         return self.create_browser(self.config['login'].get(),
                                    self.config['password'].get())
 
     def iter_accounts(self):
-        with self.browser:
-            return self.browser.get_accounts_list()
+        return self.browser.get_accounts_list()
 
     def get_account(self, _id):
-        with self.browser:
-            account = self.browser.get_account(_id)
-
-        if account:
-            return account
-        else:
-            raise AccountNotFound()
+        return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
 
     def iter_history(self, account):
-        with self.browser:
-            return self.browser.get_history(account)
+        return self.browser.get_history(account)

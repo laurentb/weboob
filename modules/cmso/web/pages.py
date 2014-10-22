@@ -1,0 +1,107 @@
+# -*- coding: utf-8 -*-
+
+# Copyright(C) 2014      smurail
+#
+# This file is part of weboob.
+#
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
+
+
+import datetime
+
+from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.exceptions import BrowserIncorrectPassword
+from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, DateGuesser
+from weboob.browser.filters.html import Link
+from weboob.capabilities.bank import Account
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.date import LinearDateGuesser
+
+__all__ = ['LoginPage']
+
+
+class LoginPage(HTMLPage):
+    def on_load(self):
+        # Yes, I know... In the Wild Wild Web, nobody respects nothing
+        if self.response.status_code == 500:
+            raise BrowserIncorrectPassword
+
+    def login(self, username, password):
+        form = self.get_form(name='formIdentification')
+
+        form['noPersonne'] = username
+        form['motDePasse'] = password
+
+        form.submit()
+
+
+class CmsoListElement(ListElement):
+    item_xpath = '//table[@class="Tb" and tr[1][@class="LnTit"]]/tr[@class="LnA" or @class="LnB"]'
+
+
+class AccountsPage(LoggedPage, HTMLPage):
+    @method
+    class iter_accounts(CmsoListElement):
+        class item(ItemElement):
+            klass = Account
+
+            obj__history_url = Link('./td[1]/a')
+            obj_id = obj__history_url & Regexp(pattern="indCptSelectionne=(\d+)")
+            obj_label = CleanText('./td[1]')
+            obj_balance = CleanDecimal('./td[2]')
+
+
+class Transaction(FrenchTransaction):
+    pass
+
+
+class CmsoTransactionElement(ItemElement):
+    klass = Transaction
+
+    def condition(self):
+        return len(self.el) >= 5 and not self.el.get('id', '').startswith('libelleLong')
+
+
+class HistoryPage(LoggedPage, HTMLPage):
+    def iter_history(self):
+        if self.doc.xpath('//a[@href="1-situationGlobaleProfessionnel.act"]'):
+            return self.iter_history_rest_page()
+        return self.iter_history_first_page()
+
+    @method
+    class iter_history_first_page(CmsoListElement):
+        class item(CmsoTransactionElement):
+            def validate(self, obj):
+                return obj.date >= datetime.date.today().replace(day=1)
+
+            def date(selector):
+                return DateGuesser(CleanText(selector), LinearDateGuesser()) | Transaction.Date(selector)
+
+            obj_date = date('./td[1]')
+            obj_vdate = date('./td[2]')
+            # Each row is followed by a "long labelled" version
+            obj_raw = Transaction.Raw('./following-sibling::tr[1][starts-with(@id, "libelleLong")]/td[3]')
+            obj_amount = Transaction.Amount('./td[5]', './td[4]')
+
+    @method
+    class iter_history_rest_page(CmsoListElement):
+        def find_elements(self):
+            return reversed(list(super(type(self), self).find_elements()))
+
+        class item(CmsoTransactionElement):
+            obj_date = Transaction.Date('./td[2]')
+            obj_vdate = Transaction.Date('./td[1]')
+            obj_raw = Transaction.Raw('./td[3]')
+            obj_amount = Transaction.Amount('./td[5]', './td[4]', replace_dots=False)

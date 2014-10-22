@@ -23,10 +23,10 @@ from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from .pages import LoginPage, AccountsPage, TransactionsPage
 
 
-__all__ = ['Cmso']
+__all__ = ['CmsoMobileBrowser']
 
 
-class Cmso(Browser):
+class CmsoMobileBrowser(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'www.cmso.com'
     ENCODING = 'iso-8859-1'
@@ -68,16 +68,6 @@ class Cmso(Browser):
         if not self.is_on_page(AccountsPage):
             self.location('https://www.cmso.com/domimobile/m.jsp?a=sommaire')
         return self.page.get_list()
-
-    def get_account(self, id):
-        assert isinstance(id, basestring)
-
-        l = self.get_accounts_list()
-        for a in l:
-            if a.id == id:
-                return a
-
-        return None
 
     def get_history(self, account):
         if not self.is_on_page(AccountsPage):
