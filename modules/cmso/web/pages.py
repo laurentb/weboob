@@ -36,7 +36,7 @@ class LoginPage(HTMLPage):
     def on_load(self):
         # Yes, I know... In the Wild Wild Web, nobody respects nothing
         if self.response.status_code == 500:
-            raise BrowserIncorrectPassword
+            raise BrowserIncorrectPassword()
 
     def login(self, username, password):
         form = self.get_form(name='formIdentification')
