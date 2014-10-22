@@ -50,21 +50,18 @@ class INGVirtKeyboard(VirtKeyboard):
               "52": (165, 45, 193, 73)
               }
 
-    def __init__(self, basepage):
-        self.basepage = basepage
-        divkeyboard = basepage.doc.find("//div[@id='clavierdisplayLogin']")
-        if divkeyboard is None:
-            divkeyboard = basepage.doc.find("//div[@id='claviertransfer']")
-        try:
-            img = divkeyboard.xpath("img")[1]
-        except:
+    def __init__(self, page):
+        self.page = page
+        img = page.doc.xpath("//div[has-class('clavier')]/img")
+        if len(img) == 0:
             raise BrowserIncorrectPassword()
-        url = Attr('.', "src")(img)
 
-        VirtKeyboard.__init__(self, StringIO(basepage.browser.open(url).content),
+        url = Attr('.', "src")(img[1])
+
+        VirtKeyboard.__init__(self, StringIO(self.page.browser.open(url).content),
                               self.coords, self.color)
 
-        self.check_symbols(self.symbols, basepage.browser.responses_dirname)
+        self.check_symbols(self.symbols, self.page.browser.responses_dirname)
 
     def get_string_code(self, string):
         code = ''
@@ -80,15 +77,15 @@ class INGVirtKeyboard(VirtKeyboard):
             code += "%d,%d" % (x, y)
         return code
 
-    def get_coordinates(self, xpath, password):
+    def get_coordinates(self, password):
         temppasswd = ""
-        elems = self.basepage.doc.xpath(xpath + '/font')
+        elems = self.page.doc.xpath('//div[@class="digitpad"]/span/font')
         for i, font in enumerate(elems):
             if Attr('.', 'class')(font) == "vide":
                 temppasswd += password[i]
-        self.basepage.browser.logger.debug('We are looking for : ' + temppasswd)
+        self.page.browser.logger.debug('We are looking for : ' + temppasswd)
         coordinates = self.get_string_code(temppasswd)
-        self.basepage.browser.logger.debug("Coordonates: " + coordinates)
+        self.page.browser.logger.debug("Coordonates: " + coordinates)
         return coordinates
 
 
@@ -114,7 +111,7 @@ class LoginPage(HTMLPage):
         form = self.get_form(name='mrc')
         form['mrc:mrg'] = 'mrc:mrg'
         form['AJAXREQUEST'] = '_viewRoot'
-        form['mrc:mrldisplayLogin'] = vk.get_coordinates('//span[@id="digitpaddisplayLogin"]', password)
+        form['mrc:mrldisplayLogin'] = vk.get_coordinates(password)
         form.submit()
 
 

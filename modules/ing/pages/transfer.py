@@ -133,7 +133,7 @@ class TransferConfirmPage(HTMLPage):
 
         form['AJAXREQUEST'] = '_viewRoot'
         form['%s:mrgtransfer' % form.name] = '%s:mrgtransfer' % form.name
-        form['%s:mrltransfer' % form.name] = vk.get_coordinates('//span[@id="digitpadtransfer"]', password)
+        form['%s:mrltransfer' % form.name] = vk.get_coordinates(password)
         form.submit()
 
     @method
