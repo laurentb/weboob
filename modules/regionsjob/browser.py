@@ -27,22 +27,39 @@ __all__ = ['RegionsjobBrowser']
 
 class RegionsjobBrowser(PagesBrowser):
 
-    advert_page = URL('/offre_emploi/detailoffre.aspx\?numoffre=(?P<_id>.*)&de=consultation', AdvertPage)
-    search_page = URL('/offre_emploi/index.aspx\?v=___0_(?P<fonction>.*)_(?P<experience>.*)_0_(?P<contract>.*)_0_0_(?P<secteur>.*)_0_(?P<metier>.*)_', SearchPage)
+    search_page = URL('emplois/recherche.html\?.*', SearchPage)
+    advert_page = URL('emplois/(?P<_id>.*)\.html', AdvertPage)
 
     def __init__(self, website, *args, **kwargs):
         self.BASEURL = 'http://%s' % website
         PagesBrowser.__init__(self, *args, **kwargs)
 
-    def search_job(self, pattern='', fonction=0, secteur=0, contract=0, experience=0):
-        return self.search_page.go(fonction=fonction,
-                                   experience=experience,
-                                   contract=contract,
-                                   secteur=secteur,
-                                   metier=urllib.quote_plus(pattern.encode('utf-8'))
-                                   ).iter_job_adverts(domain=self.BASEURL)
+    def search_job(self, pattern='', fonction='', secteur='', contract='',
+                   experience='', qualification='', enterprise_type=''):
+
+        params = {'k': urllib.quote_plus(pattern.encode('utf-8'))}
+
+        if fonction:
+            params['f'] = fonction
+
+        if qualification:
+            params['q'] = qualification
+
+        if contract:
+            params['c'] = contract
+
+        if experience:
+            params['e'] = experience
+
+        if secteur:
+            params['s'] = secteur
+
+        if enterprise_type:
+            params['et'] = enterprise_type
+
+        return self.search_page.go(params=params).iter_job_adverts(domain=self.BASEURL)
 
     def get_job_advert(self, _id, advert):
         splitted_id = _id.split('#')
-        self.BASEURL = splitted_id[0]
+        self.BASEURL = 'http://www.%s.com' % splitted_id[0]
         return self.advert_page.go(_id=splitted_id[1]).get_job_advert(obj=advert)
