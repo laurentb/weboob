@@ -22,6 +22,7 @@ from StringIO import StringIO
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard
 from weboob.browser.pages import HTMLPage
+from weboob.browser.filters.html import Attr
 
 
 class INGVirtKeyboard(VirtKeyboard):
@@ -37,6 +38,17 @@ class INGVirtKeyboard(VirtKeyboard):
                '9': '82e63914f2e52ec04c11cfc6fecf7e08'
                }
     color = 64
+    coords = {"11": (5, 5, 33, 33),
+              "21": (45, 5, 73, 33),
+              "31": (85, 5, 113, 33),
+              "41": (125, 5, 153, 33),
+              "51": (165, 5, 193, 33),
+              "12": (5, 45, 33, 73),
+              "22": (45, 45, 73, 73),
+              "32": (85, 45, 113, 73),
+              "42": (125, 45, 153, 73),
+              "52": (165, 45, 193, 73)
+              }
 
     def __init__(self, basepage):
         self.basepage = basepage
@@ -47,20 +59,10 @@ class INGVirtKeyboard(VirtKeyboard):
             img = divkeyboard.xpath("img")[1]
         except:
             raise BrowserIncorrectPassword()
-        url = img.attrib.get("src")
-        coords = {}
-        coords["11"] = (5, 5, 33, 33)
-        coords["21"] = (45, 5, 73, 33)
-        coords["31"] = (85, 5, 113, 33)
-        coords["41"] = (125, 5, 153, 33)
-        coords["51"] = (165, 5, 193, 33)
-        coords["12"] = (5, 45, 33, 73)
-        coords["22"] = (45, 45, 73, 73)
-        coords["32"] = (85, 45, 113, 73)
-        coords["42"] = (125, 45, 153, 73)
-        coords["52"] = (165, 45, 193, 73)
+        url = Attr('.', "src")(img)
 
-        VirtKeyboard.__init__(self, StringIO(basepage.browser.open(url).content), coords, self.color)
+        VirtKeyboard.__init__(self, StringIO(basepage.browser.open(url).content),
+                              self.coords, self.color)
 
         self.check_symbols(self.symbols, basepage.browser.responses_dirname)
 
@@ -75,16 +77,14 @@ class INGVirtKeyboard(VirtKeyboard):
             codesymbol = self.get_symbol_code(self.symbols[c])
             x = (self.coords[codesymbol][0] + self.coords[codesymbol][2]) / 2
             y = (self.coords[codesymbol][1] + self.coords[codesymbol][3]) / 2
-            code += str(x)
-            code += ","
-            code += str(y)
+            code += "%d,%d" % (x, y)
         return code
 
     def get_coordinates(self, xpath, password):
         temppasswd = ""
-        span = self.basepage.doc.find(xpath)
-        for i, font in enumerate(span.getiterator('font')):
-            if font.attrib.get('class') == "vide":
+        elems = self.basepage.doc.xpath(xpath + '/font')
+        for i, font in enumerate(elems):
+            if Attr('.', 'class')(font) == "vide":
                 temppasswd += password[i]
         self.basepage.browser.logger.debug('We are looking for : ' + temppasswd)
         coordinates = self.get_string_code(temppasswd)
