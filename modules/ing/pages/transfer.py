@@ -122,7 +122,7 @@ class TransferPage(LoggedPage, HTMLPage):
             return request
 
 
-class TransferConfirmPage(HTMLPage):
+class TransferConfirmPage(LoggedPage, HTMLPage):
     def confirm(self, password):
         vk = INGVirtKeyboard(self)
 
