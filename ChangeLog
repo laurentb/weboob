@@ -348,7 +348,7 @@ Weboob 1.0 (2014-10-17)
 	* Fix: fillobj on video thumbnail
 
 	Modules: youtube
-	* Update part of the js interpreter	 
+	* Update part of the js interpreter
 
 
 Weboob 0.j (2014-09-03)
@@ -1187,7 +1187,7 @@ Weboob 0.i (2014-05-19)
 
 	Misc: Windows Installer
 	* Better script to generate the .exe
-	* Better management for 64 bits systems	 
+	* Better management for 64 bits systems
 
 
 Weboob 0.h (2014-01-08)
@@ -1549,7 +1549,7 @@ Weboob 0.h (2014-01-08)
 	* Better detection of Pillow
 
 	Misc: tools
-	* local_run: do not erase existing PYTHONPATH 
+	* local_run: do not erase existing PYTHONPATH
 
 
 Weboob 0.g (2013-08-03)
@@ -1981,7 +1981,7 @@ Weboob 0.g (2013-08-03)
 	* weboob_bash_completion: fix bash completion
 
 	Contrib: boobot
-	* Support python-irclib >= 3 
+	* Support python-irclib >= 3
 	* Proper freenode server name
 	* Irc 5.0+ compatibility
 	* Display regular URL info
@@ -2010,7 +2010,7 @@ Weboob 0.g (2013-08-03)
 	* Rename Makefile -> build.mk to avoid spurious build attempts
 	* Use Pillow, unless PIL is already there
 	* Better README/INSTALL files
-	* Workaround Debian compatibily layer	 
+	* Workaround Debian compatibily layer
 
 
 Weboob 0.f (2013-03-26)
@@ -2283,7 +2283,7 @@ Weboob 0.f (2013-03-26)
 	* Fast and silent building
 	* Ensure proper building of man pages
 	* Tell groff manpages are utf-8
-	* Update INSTALL	 
+	* Update INSTALL
 
 
 Weboob 0.e (2013-01-25)
@@ -2297,10 +2297,10 @@ Weboob 0.e (2013-01-25)
 	* New module: Gan Assurances (CapBank).
 	* New module: Mangago (CapGallery).
 	* New script: anonymiser.sh.
-	
+
 	Module: Arte
 	* Fix: parsing video title (site changed).
-	
+
 	Module: Banque Populaire
 	* Update transaction regexps.
 	* Correctly encode login and password.
@@ -2334,7 +2334,7 @@ Weboob 0.e (2013-01-25)
 	* Fix: parsing accounts when there are interlines.
 	* ignore special accounts.
 	* Fix: crash when there is no ID on a transaction.
-	
+
 	Module: Caisse d'épargne
 	* Handle login errors.
 	* Support when website is unavailable.
@@ -2346,33 +2346,33 @@ Weboob 0.e (2013-01-25)
 	* New favicon.
 	* Fix: parsing amounts in special cases
 	* Fix: parsing card pages in special cases
-	
+
 	Module: cmb
 	* do not consider special accounts
 	* Fix: parsing balance
-	
+
 	Module: CrAgr
 	* update transaction regexps
 	* Fix: do not crash if there is no history link for an account
 	* correctly use iterators
-	
+
 	Module: dlfp
 	* Allow anonyme browsing (#923)
 	* Fix: deconnection error
 	* Fix: Support new html structure
-	
+
 	Module: ebonics
 	* Add favicon
-	
+
 	Module: ehentai
 	* Fix: Support new website
-	
+
 	Module: Fortuneo
 	* Add new certificate
-	
+
 	Module: France Télévisions
 	* Fix: Support new website
-	
+
 	Module: Freemobile
 	* Fix: Support the new website
 	* Add a real id for all details objects (#932)
@@ -2381,7 +2381,7 @@ Weboob 0.e (2013-01-25)
 
 	Module: Gazelle
 	* Fix: parsing torrents descriptions
-	
+
 	Module: HSBC
 	* Raise exception on login error
 
@@ -2399,21 +2399,21 @@ Weboob 0.e (2013-01-25)
 	* Fix: login regexp
 	* Add the new SSL certificat
 	* Add a pattern to detect cards
-	
+
 	Module: Leclercmobile
 	* Fix: Support new versions of website
-	
+
 	Module: Le Figaro
 	* Fix: encoding
 	* Remove some unused files (#819)
 	* Fix: author selection
-	
+
 	Module: Nettokom
 	* Add validity date
 
 	Module: Opacwebaloes
 	* Fix: Accept ID with 8 chars (#921)
-	
+
 	Module: pastalacon
 	* Remove some test warnings
 
@@ -2421,15 +2421,15 @@ Weboob 0.e (2013-01-25)
 	* Fix: visibility detection
 	* Fix: login without API
 	* Remove some test warnings
-	
+
 	Module: Piratebay
 	* Fix: search (site changed)
-	
+
 	Module: Presseurop
 	* Remove tweeter sharing
 	* Use clean_relativ_urls
 	* Fix: Support new version of daily titles
-	
+
 	Module: Sachsen
 	* Add a favicon
 	* Search is no more case sentitive
@@ -2442,20 +2442,20 @@ Weboob 0.e (2013-01-25)
 	* New SSL certificat
 	* Check date of card debit to apply it
 	* Fix: crash on special accounts
-	
+
 	Module: Taz
 	* Remove some adds
 
 	Module: Wordreference
 	* Fix: parsing (#840, #1036)
-	
+
 	Module: youporn
 	* Set domain to www.youporn.com
 
 	Module: youtube
 	* Fix: login
-	
-	
+
+
 	CapBank
 	* Support currencies
 
@@ -2469,11 +2469,11 @@ Weboob 0.e (2013-01-25)
 	CapGauge
 	* Change API to be more flexible
 	* Add GaugeSensor objects
-	
+
 	CapVideo
 	* Fix: CapVideo-related ConversionWarnings (dailymotion, ehentai,
 	francetelevisions, ina, radiofrance, youjizz, youporn, youtube)
-	
+
 	CapWaterLevel
 	* Rename it to ICapGauge
 
@@ -2550,10 +2550,10 @@ Weboob 0.e (2013-01-25)
 	Installation
 	* setup.py: print what executable we were looking for
 	* setup.py: be less confusing when make is missing
-	
+
 	Contrib: boobank-munin
 	* Fix: encoding issue
-	
+
 	Contrib: downloadboob
 	* Correctly create symlink and support when one is removed
 	* 'exclude' parameter is case insensitive
