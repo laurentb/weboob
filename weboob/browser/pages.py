@@ -415,6 +415,12 @@ class XMLPage(Page):
     XML Page.
     """
 
+    def detect_encoding(self):
+        import re
+        m = re.search('<\?xml version="1.0" encoding="(.*)"\?>', self.data)
+        if m:
+            return m.group(1)
+
     def build_doc(self, content):
         import lxml.etree as etree
         parser = etree.XMLParser(encoding=self.encoding)
