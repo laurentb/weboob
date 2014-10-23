@@ -213,10 +213,14 @@ class InvestmentFormatter(IFormatter):
         format_quantity = '%11.2f'
         if obj.quantity._isinteger():
             format_quantity = '%11d'
+        if empty(obj.code) and not empty(obj.description):
+            code = obj.description
+        else:
+            code = obj.code
 
         return u' %s  %s  %s  %s  %s  %s' % \
                 (self.colored('%-30s' % label[:30], 'red'),
-                 self.colored('%-12s' % obj.code[:12], 'yellow') if not empty(obj.code) else ' ' * 12,
+                 self.colored('%-12s' % code[:12], 'yellow') if not empty(code) else ' ' * 12,
                  self.colored(format_quantity % obj.quantity, 'yellow'),
                  self.colored('%11.2f' % obj.unitvalue, 'yellow'),
                  self.colored('%11.2f' % obj.valuation, 'yellow'),
