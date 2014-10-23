@@ -25,7 +25,8 @@ import re
 
 from weboob.browser.pages import HTMLPage
 from weboob.browser.elements import ItemElement, SkipItem, ListElement, method
-from weboob.browser.filters.standard import Filter, CleanText, Env
+from weboob.browser.filters.standard import Filter, CleanText, Env, Format, BrowserURL
+from weboob.browser.filters.html import CleanHTML
 from weboob.browser.filters.html import Link
 
 
@@ -43,23 +44,6 @@ class Date(Filter):
 class CombineDate(Filter):
     def filter(self, text):
         return datetime.combine(format_date(text), time.max)
-
-
-class Description(Filter):
-    def filter(self, el):
-        description = ''
-
-        description_intro = el[0].xpath("div[@class='itemIntroText']/table/tbody/tr/td")
-
-        if description_intro and len(description_intro) > 0:
-            description += u'%s' % description_intro[0].text_content()
-
-        description_content = el[0].xpath("div[@class='itemFullText']/table/tbody/tr/td")
-
-        if description_content and len(description_content) > 0:
-            description += u'%s' % description_content[0].text_content()
-
-        return u'%s' % description
 
 
 class ProgramPage(HTMLPage):
@@ -109,19 +93,13 @@ class EventPage(HTMLPage):
     class get_event(ItemElement):
         klass = HybrideCalendarEvent
 
-        def parse(self, el):
-            if self.obj.id:
-                event = self.obj
-                event.url = self.page.url
-                event.description = Description('//div[@class="itemView"]/div[@class="itemBody"]')(self)
-                raise SkipItem()
-
-            self.env['url'] = self.page.url
-
         obj_id = Env('_id')
         base = '//div[@class="itemView"]/div[@class="itemHeader"]'
         obj_start_date = Date(CleanText('%s/span[@class="itemDateCreated"]' % base))
         obj_end_date = CombineDate(CleanText('%s/span[@class="itemDateCreated"]' % base))
         obj_summary = CleanText('%s/h2[@class="itemTitle"]' % base)
         obj_url = Env('url')
-        obj_description = Description('//div[@class="itemView"]/div[@class="itemBody"]')
+        obj_description = Format('%s\n%s',
+                                 CleanHTML('//div[@class="itemIntroText"]'),
+                                 CleanHTML('//div[@class="itemFullText"]'))
+        obj_url = BrowserURL('event_page', _id=Env('_id'))

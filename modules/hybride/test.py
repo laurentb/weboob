@@ -26,7 +26,8 @@ class HybrideTest(BackendTest):
     MODULE = 'hybride'
 
     def test_hybride_list(self):
-        if datetime.now() > datetime(datetime.now().year, 6, 30) and datetime.now() < datetime(datetime.now().year, 9, 15):
+        if datetime.now() > datetime(datetime.now().year, 6, 30) and\
+           datetime.now() < datetime(datetime.now().year, 9, 15):
             raise SkipTest("Fermeture estivale")
         l = list(self.backend.list_events(datetime.now()))
         assert len(l)
