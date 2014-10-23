@@ -198,8 +198,8 @@ class InvestmentFormatter(IFormatter):
     tot_diff = Decimal(0)
 
     def start_format(self, **kwargs):
-        self.output(' Label                            Code      Quantity     Unit Value   Valuation    diff    ')
-        self.output('-------------------------------+----------+------------+------------+------------+---------')
+        self.output(' Label                            Code          Quantity     Unit Value   Valuation    diff    ')
+        self.output('-------------------------------+--------------+------------+------------+------------+---------')
 
     def format_obj(self, obj, alias):
         label = obj.label
@@ -212,7 +212,7 @@ class InvestmentFormatter(IFormatter):
 
         return u' %s  %s  %s  %s  %s  %s' % \
                 (self.colored('%-30s' % label[:30], 'red'),
-                 self.colored('%-8s' % obj.code[:8], 'yellow') if not empty(obj.code) else ' ' * 8,
+                 self.colored('%-12s' % obj.code[:12], 'yellow') if not empty(obj.code) else ' ' * 12,
                  self.colored('%11.2f' % obj.quantity, 'yellow'),
                  self.colored('%11.2f' % obj.unitvalue, 'yellow'),
                  self.colored('%11.2f' % obj.valuation, 'yellow'),
@@ -220,7 +220,7 @@ class InvestmentFormatter(IFormatter):
                  )
 
     def flush(self):
-        self.output(u'-------------------------------+----------+------------+------------+------------+---------')
+        self.output(u'-------------------------------+--------------+------------+------------+------------+---------')
         self.output(u'                                                              Total  %s %s' %
                      (self.colored('%11.2f' % self.tot_valuation, 'yellow'),
                       self.colored('%9.2f' % self.tot_diff, 'green' if self.tot_diff >=0 else 'red')
