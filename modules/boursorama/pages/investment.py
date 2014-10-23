@@ -70,8 +70,8 @@ class AccountInvestment(IsinMixin, Page):
             ----------------
 
             label =       StringField('Label of stocks')
-            code =        StringField('Short code identifier of the stock')
-            description = StringField('Description of the stock')
+            code =        StringField('Identifier of the stock (ISIN code)')
+            description = StringField('Short description of the stock')
             quantity =    IntField('Quantity of stocks')
             unitprice =   DecimalField('Buy price of one stock')
             unitvalue =   DecimalField('Current value of one stock')
