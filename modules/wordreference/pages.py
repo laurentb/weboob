@@ -17,48 +17,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from weboob.browser.pages import HTMLPage
+from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.capabilities.translate import Translation
+from weboob.browser.filters.standard import CleanText, Regexp, Env
+from weboob.browser.filters.html import CleanHTML
 
-from weboob.deprecated.browser import Page
-import re
 
+class TranslatePage(HTMLPage):
+    @method
+    class get_translation(ListElement):
+        item_xpath = '//table[@class="WRD" and not(@id)]/tr[@id]'
 
-LAST_THING_IN_PARENTHESIS = re.compile("\([^)]\)$")
+        class item(ItemElement):
+            klass = Translation
 
-
-class TranslatePage(Page):
-    def get_translation(self):
-        trs = self.document.getroot().xpath("//table[@class='WRD']/tr[@class='even']")
-        if trs and len(trs) > 0:
-            # taking the first signification in the case several were found
-            return self.parser.select(trs[0], "td[@class='ToWrd']", 1, method='xpath').text
-        """
-        # taking the first signification in the case several were found
-        for tr in self.document.getiterator('tr'):
-            prev_was_nums1 = False
-            for td in tr.getiterator('td'):
-                if prev_was_nums1:
-                    result = u''+td.text_content().split(';')[0].strip()
-                    result = LAST_THING_IN_PARENTHESIS.sub("",result)
-                    return result
-                if td.attrib.get('class','') == 'nums1':
-                    prev_was_nums1 = True
-        # if only one signification is found
-        for div in self.document.getiterator('div'):
-            if div.attrib.get('class','') == "trans clickable":
-                if ']' in div.text_content():
-                    tnames = div.text_content().split(']')[1].split()[1:]
-                else:
-                    tnames = div.text_content().split()[1:]
-                names = u''+" ".join(tnames).split(';')[0]
-                names = LAST_THING_IN_PARENTHESIS.sub("",names)
-                return names.strip()
-        # another numerotation possibility...
-        for table in self.document.getiterator('table'):
-            if table.attrib.get('class','') == "trans clickable":
-                prev_was_roman1 = False
-                for td in table.getiterator('td'):
-                    if prev_was_roman1:
-                        return u''+td.text_content().split(';')[0].strip()
-                    if td.attrib.get('class','') == 'roman1':
-                        prev_was_roman1 = True
-        """
+            obj_id = Regexp(CleanText('./@id'), '.*:(.*)')
+            obj_lang_src = Env('sl')
+            obj_lang_dst = Env('tl')
+            obj_text = CleanHTML('./td[@class="ToWrd"]')

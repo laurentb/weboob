@@ -18,34 +18,22 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import urllib
-
-from weboob.deprecated.browser import Browser
-
+from weboob.browser import PagesBrowser, URL
 from .pages import TranslatePage
 
 
 __all__ = ['WordReferenceBrowser']
 
 
-class WordReferenceBrowser(Browser):
-    DOMAIN = 'www.wordreference.com'
-    ENCODING = 'UTF-8'
-    USER_AGENT = Browser.USER_AGENTS['desktop_firefox']
-    PAGES = {
-        'https?://www\.wordreference\.com/.*/.*': TranslatePage
-        }
-
-    def __init__(self, *args, **kwargs):
-        Browser.__init__(self, *args, **kwargs)
+class WordReferenceBrowser(PagesBrowser):
+    BASEURL = 'http://www.wordreference.com'
+    translation_page = URL('(?P<sl>[a-z]{2})(?P<tl>[a-z]{2})/(?P<pattern>.*)', TranslatePage)
 
     def translate(self, source, to, text):
         """
         translate 'text' from 'source' language to 'to' language
         """
-        sl   = source.encode('utf-8')
-        tl   = to.encode('utf-8')
-        text = text.encode('utf-8')
-        self.location('http://'+self.DOMAIN+'/'+sl+tl+'/'+urllib.quote(text))
-        translation = self.page.get_translation()
-        return translation
+
+        return self.translation_page.go(sl=source.encode('utf-8'),
+                                        tl=to.encode('utf-8'),
+                                        pattern=text.encode('utf-8')).get_translation()
