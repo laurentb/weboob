@@ -94,9 +94,6 @@ class HousingPage(XMLPage):
                 photos.append(HousingPhoto(url))
             return photos
 
-        def condition(self):
-            return CleanText('//detailAnnonce/titre', default=None)(self)
-
         def obj_location(self):
             location = CleanText('//detailAnnonce/adresse')(self)
             quartier = CleanText('//detailAnnonce/quartier', default=None)(self)
