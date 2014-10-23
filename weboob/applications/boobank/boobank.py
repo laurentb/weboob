@@ -210,10 +210,14 @@ class InvestmentFormatter(IFormatter):
         self.tot_diff += diff
         self.tot_valuation += obj.valuation
 
+        format_quantity = '%11.2f'
+        if obj.quantity._isinteger():
+            format_quantity = '%11d'
+
         return u' %s  %s  %s  %s  %s  %s' % \
                 (self.colored('%-30s' % label[:30], 'red'),
                  self.colored('%-12s' % obj.code[:12], 'yellow') if not empty(obj.code) else ' ' * 12,
-                 self.colored('%11.2f' % obj.quantity, 'yellow'),
+                 self.colored(format_quantity % obj.quantity, 'yellow'),
                  self.colored('%11.2f' % obj.unitvalue, 'yellow'),
                  self.colored('%11.2f' % obj.valuation, 'yellow'),
                  self.colored('%8.2f' % diff, 'green' if diff >= 0 else 'red')
