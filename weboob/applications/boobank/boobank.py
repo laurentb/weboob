@@ -198,8 +198,8 @@ class InvestmentFormatter(IFormatter):
     tot_diff = Decimal(0)
 
     def start_format(self, **kwargs):
-        self.output(' Label                           Code     Quantity   Unit Value  Valuation   diff   ')
-        self.output('-------------------------------+--------+----------+-----------+-----------+--------')
+        self.output(' Label                            Code      Quantity     Unit Value   Valuation    diff    ')
+        self.output('-------------------------------+----------+------------+------------+------------+---------')
 
     def format_obj(self, obj, alias):
         label = obj.label
@@ -210,20 +210,20 @@ class InvestmentFormatter(IFormatter):
         self.tot_diff += diff
         self.tot_valuation += obj.valuation
 
-        return u' %s %s %s %s %s   %s' % \
+        return u' %s  %s  %s  %s  %s  %s' % \
                 (self.colored('%-30s' % label[:30], 'red'),
-                 self.colored('%-10s' % obj.code[:8], 'yellow') if not empty(obj.code) else ' ' * 10,
-                 self.colored('%6d' % obj.quantity, 'yellow'),
+                 self.colored('%-8s' % obj.code[:8], 'yellow') if not empty(obj.code) else ' ' * 8,
+                 self.colored('%11.2f' % obj.quantity, 'yellow'),
                  self.colored('%11.2f' % obj.unitvalue, 'yellow'),
                  self.colored('%11.2f' % obj.valuation, 'yellow'),
                  self.colored('%8.2f' % diff, 'green' if diff >= 0 else 'red')
                  )
 
     def flush(self):
-        self.output('-------------------------------+--------+----------+-----------+-----------+--------')
-        self.output(u'                                        Total                    %s   %s' %
-                     (self.colored('%8.2f' % self.tot_valuation, 'yellow'),
-                      self.colored('%8.2f' % self.tot_diff, 'green' if self.tot_diff >=0 else 'red')
+        self.output(u'-------------------------------+----------+------------+------------+------------+---------')
+        self.output(u'                                                              Total  %s %s' %
+                     (self.colored('%11.2f' % self.tot_valuation, 'yellow'),
+                      self.colored('%9.2f' % self.tot_diff, 'green' if self.tot_diff >=0 else 'red')
                     ))
         self.tot_valuation = Decimal(0)
         self.tot_diff = Decimal(0)
