@@ -33,12 +33,16 @@ class AccountsList(Page):
     def get_list(self):
         blocks = self.document.xpath('//div[@id="synthese-list"]//div[@class="block"]')
         for div in blocks:
+            block_title = ''.join(div.xpath('.//span[@class="title"]//text()')).lower()
             for tr in div.getiterator('tr'):
                 account = Account()
                 account.id = None
                 account._link_id = None
+                if 'assurance vie' in block_title:
+                    # Life insurance accounts are investments
+                    account.type = Account.TYPE_MARKET
                 for td in tr.getiterator('td'):
-                    if td.attrib.get('class', '') == 'account-cb':
+                    if td.get('class', '') == 'account-cb':
                         try:
                             a = td.xpath('./*/a[@class="gras"]')[0]
                         except IndexError:
@@ -47,11 +51,11 @@ class AccountsList(Page):
                         account.type = Account.TYPE_CARD
                         account.label = self.parser.tocleanstring(a)
                         try:
-                            account._link_id = td.xpath('.//a')[0].attrib['href']
+                            account._link_id = td.xpath('.//a')[0].get('href')
                         except KeyError:
                             pass
 
-                    elif td.attrib.get('class', '') == 'account-name':
+                    elif td.get('class', '') == 'account-name':
                         try:
                             span = td.xpath('./span[@class="label"]')[0]
                         except IndexError:
@@ -59,23 +63,24 @@ class AccountsList(Page):
                             break
                         account.label = self.parser.tocleanstring(span)
                         try:
-                            account._link_id = td.xpath('.//a')[0].attrib['href']
+                            account._link_id = td.xpath('.//a')[0].get('href')
+                            account._detail_url = account._link_id
                         except KeyError:
                             pass
 
-                    elif td.attrib.get('class', '') == 'account-more-actions':
+                    elif td.get('class', '') == 'account-more-actions':
                         for a in td.getiterator('a'):
                             # For normal account, two "account-more-actions"
                             # One for the account, one for the credit card. Take the good one
-                            if "mouvements.phtml" in a.attrib['href'] and "/cartes/" not in a.attrib['href']:
-                                account._link_id = a.attrib['href']
+                            if "mouvements.phtml" in a.get('href') and "/cartes/" not in a.get('href'):
+                                account._link_id = a.get('href')
 
-                    elif td.attrib.get('class', '') == 'account-number':
+                    elif td.get('class', '') == 'account-number':
                         id = td.text
                         id = id.strip(u' \n\t')
                         account.id = id
 
-                    elif td.attrib.get('class', '') == 'account-total':
+                    elif td.get('class', '') == 'account-total':
                         span = td.find('span')
                         if span is None:
                             balance = td.text

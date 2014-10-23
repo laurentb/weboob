@@ -70,6 +70,11 @@ class BoursoramaModule(Module, CapBank):
             for history in self.browser.get_history(account):
                 yield history
 
+    def iter_investment(self, account):
+        with self.browser:
+            for investment in self.browser.get_investment(account):
+                yield investment
+
     # TODO
     #def iter_coming(self, account):
     #    with self.browser:
