@@ -229,7 +229,7 @@ class InvestmentFormatter(IFormatter):
 
     def flush(self):
         self.output(u'-------------------------------+--------------+------------+------------+------------+---------')
-        self.output(u'                                                              Total  %s %s' %
+        self.output(u'                                                                  Total  %s %s' %
                      (self.colored('%11.2f' % self.tot_valuation, 'yellow'),
                       self.colored('%9.2f' % self.tot_diff, 'green' if self.tot_diff >=0 else 'red')
                     ))
