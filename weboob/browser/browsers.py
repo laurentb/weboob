@@ -154,7 +154,7 @@ class Browser(object):
 
         session.proxies = self.PROXIES
 
-        session.verify = self.VERIFY and not self.logger.settings['ssl_insecure']
+        session.verify = not self.logger.settings['ssl_insecure'] and self.VERIFY
 
         # defines a max_retries. It's mandatory in case a server is not
         # handling keep alive correctly, like the proxy burp
@@ -258,7 +258,7 @@ class Browser(object):
             proxies = self.PROXIES
 
         if verify is None:
-            verify = self.VERIFY and not self.logger.settings['ssl_insecure']
+            verify = not self.logger.settings['ssl_insecure'] and self.VERIFY
 
         if timeout is None:
             timeout = self.TIMEOUT
