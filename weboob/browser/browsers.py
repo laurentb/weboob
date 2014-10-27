@@ -27,6 +27,7 @@ except ImportError:
 import os
 import sys
 from copy import deepcopy
+import inspect
 
 try:
     import requests
@@ -81,6 +82,15 @@ class Browser(object):
     """
     Maximum of threads for asynchronous requests.
     """
+
+    @classmethod
+    def asset(cls, localfile):
+        """
+        Absolute file path for a module local file.
+        """
+        if os.path.isabs(localfile):
+            return localfile
+        return os.path.join(os.path.dirname(inspect.getfile(cls)), localfile)
 
     def __init__(self, logger=None, proxy=None, responses_dirname=None):
         self.logger = getLogger('browser', logger)
