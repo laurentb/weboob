@@ -102,6 +102,9 @@ class Browser(object):
         self.responses_dirname = responses_dirname
         self.responses_count = 1
 
+        if isinstance(self.VERIFY, basestring):
+            self.VERIFY = self.asset(self.VERIFY)
+
     def _save(self, response, warning=False, **kwargs):
         if self.responses_dirname is None:
             import tempfile
