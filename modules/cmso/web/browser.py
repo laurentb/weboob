@@ -53,6 +53,9 @@ class CmsoProBrowser(LoginBrowser):
 
     @need_login
     def get_history(self, account):
+        if account._history_url.startswith('javascript:'):
+            raise NotImplementedError()
+
         # Query history for 6 last months
         def format_date(d):
             return datetime.date.strftime(d, '%d/%m/%Y')

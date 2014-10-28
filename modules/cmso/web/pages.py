@@ -25,8 +25,9 @@ from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, DateGuesser
 from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import LinearDateGuesser
+
+from ..transaction import Transaction
 
 __all__ = ['LoginPage']
 
@@ -52,13 +53,14 @@ class AccountsPage(LoggedPage, HTMLPage):
             klass = Account
 
             obj__history_url = Link('./td[1]/a')
-            obj_id = obj__history_url & Regexp(pattern="indCptSelectionne=(\d+)")
             obj_label = CleanText('./td[1]')
-            obj_balance = CleanDecimal('./td[2]')
+            obj_id = obj__history_url & Regexp(pattern="indCptSelectionne=(\d+)") | None
+            obj_balance = CleanDecimal('./td[2]', replace_dots=True)
 
-
-class Transaction(FrenchTransaction):
-    pass
+            def validate(self, obj):
+                if obj.id is None:
+                    obj.id = obj.label.replace(' ', '')
+                return True
 
 
 class CmsoTransactionElement(ItemElement):

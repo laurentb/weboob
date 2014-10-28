@@ -24,7 +24,8 @@ import re
 
 from weboob.deprecated.browser import Page
 from weboob.capabilities.bank import Account
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+
+from ..transaction import Transaction
 
 
 class LoginPage(Page):
@@ -48,26 +49,6 @@ class AccountsPage(Page):
             account.balance = Decimal(li.cssselect('p.row-right')[0].text.strip().replace(' ', '').replace(u'\xa0', '').replace(',', ''))
             account._link = li.attrib['href']
             yield account
-
-
-class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^RET DAB (?P<dd>\d{2})/?(?P<mm>\d{2})(/?(?P<yy>\d{2}))? (?P<text>.*)'),
-                                                              FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('CARTE (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
-                                                              FrenchTransaction.TYPE_CARD),
-                (re.compile('^(?P<category>VIR(EMEN)?T? (SEPA)?(RECU|FAVEUR)?)( /FRM)?(?P<text>.*)'),
-                                                              FrenchTransaction.TYPE_TRANSFER),
-                (re.compile('^PRLV (?P<text>.*)( \d+)?$'),    FrenchTransaction.TYPE_ORDER),
-                (re.compile('^(CHQ|CHEQUE) .*$'),             FrenchTransaction.TYPE_CHECK),
-                (re.compile('^(AGIOS /|FRAIS) (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
-                (re.compile('^(CONVENTION \d+ |F )?COTIS(ATION)? (?P<text>.*)'),
-                                                              FrenchTransaction.TYPE_BANK),
-                (re.compile('^REMISE (?P<text>.*)'),          FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile('^(?P<text>.*)( \d+)? QUITTANCE .*'),
-                                                              FrenchTransaction.TYPE_ORDER),
-                (re.compile('^.* LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})$'),
-                                                              FrenchTransaction.TYPE_UNKNOWN),
-               ]
 
 
 class TransactionsPage(Page):
