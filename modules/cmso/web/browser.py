@@ -22,6 +22,7 @@ import datetime
 from dateutil.relativedelta import relativedelta
 from itertools import chain
 
+from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 
 from .pages import LoginPage, AccountsPage, HistoryPage
@@ -36,7 +37,14 @@ class CmsoProBrowser(LoginBrowser):
 
     def do_login(self):
         self.login.stay_or_go()
-        self.page.login(self.username, self.password)
+        try:
+            self.page.login(self.username, self.password)
+        except BrowserHTTPError as e:
+            # Yes, I know... In the Wild Wild Web, nobody respects nothing
+            if e.response.status_code == 500:
+                raise BrowserIncorrectPassword()
+            else:
+                raise
 
     @need_login
     def get_accounts_list(self):
