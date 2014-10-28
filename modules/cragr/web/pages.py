@@ -284,8 +284,6 @@ class TransactionsPage(Page):
                 heads = tr.findall('th')
                 for i, head in enumerate(heads):
                     key = self.parser.tocleanstring(head)
-                    if 'colspan' in head.attrib:
-                        i += int(head.get('colspan')) - 1
                     if key == u'Débit':
                         self.COL_DEBIT = i - len(heads)
                     if key == u'Crédit':
@@ -317,8 +315,11 @@ class TransactionsPage(Page):
             t.rdate = t.date
             t.raw = raw
 
-            # On some accounts' history page, there is a <font> tag in columns.
             col_text = cols[self.COL_TEXT]
+            if len(col_text.xpath('.//br')) == 0:
+                col_text = cols[self.COL_TEXT+1]
+
+            # On some accounts' history page, there is a <font> tag in columns.
             if col_text.find('font') is not None:
                 col_text = col_text.find('font')
 
