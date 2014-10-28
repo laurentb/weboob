@@ -135,7 +135,9 @@ class HousingPage2(JsonPage):
             details['fees'] = Dict('characteristics/fees')(self)
             details['bedrooms'] = Dict('characteristics/bedroomCount')(self)
             details['energy'] = Dict('characteristics/energyConsumptionCategory')(self)
-            details['rooms'] = Dict('characteristics/roomCount')(self)[0]
+            rooms = Dict('characteristics/roomCount')(self)
+            if len(rooms):
+                details['rooms'] = rooms[0]
             details['available'] = Dict('characteristics/available')(self)
             return details
 
