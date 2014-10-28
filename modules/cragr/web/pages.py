@@ -284,6 +284,8 @@ class TransactionsPage(Page):
                 heads = tr.findall('th')
                 for i, head in enumerate(heads):
                     key = self.parser.tocleanstring(head)
+                    if 'colspan' in head.attrib:
+                        i += int(head.get('colspan')) - 1
                     if key == u'Débit':
                         self.COL_DEBIT = i - len(heads)
                     if key == u'Crédit':
