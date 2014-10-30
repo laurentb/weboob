@@ -132,7 +132,7 @@ class Flatboob(ReplApplication):
             r = 'notempty'
             while r != '':
                 for i, city in enumerate(cities):
-                    print('  %s%2d)%s [%s] %s' % (self.BOLD, i+1, self.NC, 'x' if city in query.cities else ' ', city.name))
+                    print('  %s%2d)%s [%s] %s (%s)' % (self.BOLD, i+1, self.NC, 'x' if city in query.cities else ' ', city.name, city.backend))
                 r = self.ask('  Select cities (or empty to stop)', regexp='(\d+|)', default='')
                 if not r.isdigit():
                     continue
