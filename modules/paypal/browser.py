@@ -20,6 +20,7 @@
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from .pages import LoginPage, AccountPage, DownloadHistoryPage, LastDownloadHistoryPage, SubmitPage, HistoryParser, UselessPage, HistoryPage, CSVAlreadyAsked
+from .newpages import NewHomePage, NewAccountPage, NewHistoryPage
 import datetime
 
 
@@ -42,11 +43,22 @@ class Paypal(Browser):
         '/cgi-bin/webscr\?cmd=_history-download-recent$': LastDownloadHistoryPage,
         '/cgi-bin/webscr\?dispatch=[a-z0-9]+$': (SubmitPage, HistoryParser()),
         '/cgi-bin/webscr\?cmd=_history-download-recent-submit&dispatch=[a-z0-9]+$': (SubmitPage, HistoryParser()),
+        'https://www.paypal.com/webapps/business/\?nav=0.0': NewHomePage,
+        'https://www.paypal.com/businessexp/money': NewAccountPage,
+        'https://www.paypal.com/webapps/business/activity\?.*': NewHistoryPage,
     }
 
     DEFAULT_TIMEOUT = 30  # CSV export is slow
 
     BEGINNING = datetime.date(1998,6,1) # The day PayPal was founded
+    website = None
+
+    def find_website_version(self):
+        self.location('/en/cgi-bin/webscr?cmd=_account&nav=0.0')
+        if self.is_on_page(AccountPage):
+            self.website = "old"
+        else:
+            self.website = "new"
 
     def home(self):
         self.location('https://' + self.DOMAIN + '/en/cgi-bin/webscr?cmd=_login-run')
@@ -68,14 +80,19 @@ class Paypal(Browser):
             raise BrowserIncorrectPassword()
 
     def get_accounts(self):
-        if not self.is_on_page(AccountPage):
+        self.find_website_version()
+        if self.website == "old" and not self.is_on_page(AccountPage):
             self.location('/en/cgi-bin/webscr?cmd=_account&nav=0.0')
+        elif not self.is_on_page(NewAccountPage):
+            self.location('/businessexp/money')
 
         return self.page.get_accounts()
 
     def get_account(self, _id):
-        if not self.is_on_page(AccountPage):
+        if self.website == "old" and not not self.is_on_page(AccountPage):
             self.location('/en/cgi-bin/webscr?cmd=_account&nav=0.0')
+        elif not self.is_on_page(NewAccountPage):
+            self.location('/businessexp/money')
 
         return self.page.get_account(_id)
 
@@ -101,9 +118,18 @@ class Paypal(Browser):
         self.page.filter(start, end)
         assert self.is_on_page(HistoryPage)
 
-    def get_download_history(self, account, step_min=90, step_max=365*2):
+    def get_download_history(self, account, step_min=None, step_max=None):
+        if step_min is None and step_max is None:
+            if self.website == "old":
+                step_min = 90
+                step_max = 365*2
+            else:
+                step_min = 90
+                step_max = 180
         def fetch_fn(start, end):
-            if self.download_history(start, end).rows:
+            if self.website == "old" and self.download_history(start, end).rows:
+                return self.page.iter_transactions(account)
+            elif self.download_history(start, end):
                 return self.page.iter_transactions(account)
         assert step_max <= 365*2 # PayPal limitations as of 2014-06-16
         try:
@@ -145,11 +171,19 @@ class Paypal(Browser):
         However, it is not normalized, and sometimes the download is refused
         and sent later by mail.
         """
-        self.location('/en/cgi-bin/webscr?cmd=_history-download&nav=0.3.1')
-        assert self.is_on_page(DownloadHistoryPage)
-        self.page.download(start, end)
-        assert self.is_on_page(SubmitPage)
-        return self.page.document
+        if self.website == "old":
+            self.location('/en/cgi-bin/webscr?cmd=_history-download&nav=0.3.1')
+            assert self.is_on_page(DownloadHistoryPage)
+            self.page.download(start, end)
+            assert self.is_on_page(SubmitPage)
+            return self.page.document
+        else:
+            s = start.strftime('%d/%m/%Y')
+            e = end.strftime('%d/%m/%Y')
+            #Settings a big magic number so we get all transaction for the period
+            LIMIT = '9999'
+            self.location('/webapps/business/activity?fromdate=' + s + '&todate=' + e + '&transactiontype=ALL_TRANSACTIONS&currency=ALL_TRANSACTIONS_CURRENCY&limit=' + LIMIT)
+            return self.page.transaction_left()
 
     def download_last_history(self, account):
         self.location('/en/cgi-bin/webscr?cmd=_history-download-recent')
