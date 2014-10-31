@@ -81,8 +81,11 @@ class HousingPage(HTMLPage):
                 splitted_a = a.split(':')
                 dpe = Regexp(CleanText('//div[@id="energy-pyramid"]/img/@src'),
                              'http://mmf.logic-immo.com/mmf/fr/static/dpe/dpe_(\w)_b.gif',
-                             '(\\1)', default="")(self)
-                details[splitted_a[0]] = '%s %s' % (splitted_a[1], dpe)
+                             default="")(self)
+                if len(splitted_a) > 1:
+                    details[splitted_a[0]] = '%s (%s)' % (splitted_a[1], dpe)
+                elif dpe:
+                    details[splitted_a[0]] = '%s'
             return details
 
     def get_phone_url_datas(self):
