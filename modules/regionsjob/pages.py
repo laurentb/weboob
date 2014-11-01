@@ -24,6 +24,7 @@ from weboob.browser.filters.html import CleanHTML, Link
 from weboob.capabilities.job import BaseJobAdvert
 from weboob.exceptions import ParseError
 from datetime import date, timedelta
+from weboob.capabilities import NotAvailable
 
 
 class SearchPage(HTMLPage):
@@ -67,7 +68,7 @@ class AdvertPage(HTMLPage):
         obj_id = Env('_id')
         obj_url = BrowserURL('advert_page', _id=Env('_id'))
         obj_publication_date = Date(Regexp(CleanText('//div[@id="annonce-detail"]/p[@class="infos"]'),
-                                           '(\d{2}/\d{2}/\d{4})'))
+                                           '(\d{2}/\d{2}/\d{4})', default=NotAvailable), default=NotAvailable)
         obj_title = CleanText('//div[@id="annonce"]/div/div/h1')
         obj_society_name = CleanText('//section[@class="entp-resume"]/h1/a')
 
