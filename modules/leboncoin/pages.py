@@ -93,8 +93,8 @@ class HousingListPage(HTMLPage):
 
             def obj_date(self):
                 _date = CleanText('./div[@class="lbc"]/div[@class="date"]',
-                                  replace=[('Aujourd\'hui', str(date.today().day)),
-                                           ('Hier', str((date.today() - timedelta(1)).day))])(self)
+                                  replace=[('Aujourd\'hui', str(date.today())),
+                                           ('Hier', str((date.today() - timedelta(1))))])(self)
                 for fr, en in DATE_TRANSLATE_FR:
                     _date = fr.sub(en, _date)
 
