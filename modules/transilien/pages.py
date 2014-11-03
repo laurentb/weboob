@@ -40,7 +40,7 @@ class DictElement(ListElement):
 
 
 class RoadMapDuration(Duration):
-    regexp = re.compile(r'(?P<mn>\d+)')
+    _regexp = re.compile(r'(?P<mn>\d?)')
     kwargs = {'minutes': 'mn'}
 
 
