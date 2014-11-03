@@ -18,9 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.weather import CapWeather
+from weboob.capabilities.weather import CapWeather, CityNotFound
 from weboob.tools.backend import Module
-
+from weboob.capabilities.base import find_object
 from .browser import MeteofranceBrowser
 
 
@@ -37,10 +37,13 @@ class MeteofranceModule(Module, CapWeather):
     BROWSER = MeteofranceBrowser
 
     def get_current(self, city_id):
-        return self.browser.get_current(city_id)
+        return self.browser.get_current(self.get_city(city_id))
 
     def iter_forecast(self, city_id):
-        return self.browser.iter_forecast(city_id)
+        return self.browser.iter_forecast(self.get_city(city_id))
 
     def iter_city_search(self, pattern):
         return self.browser.iter_city_search(pattern)
+
+    def get_city(self, _id):
+        return find_object(self.iter_city_search(_id), id=_id, error=CityNotFound)

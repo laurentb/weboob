@@ -17,53 +17,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-import urllib
-
-from weboob.deprecated.browser import Browser
-from .pages.meteo import WeatherPage, SearchCitiesPage
-from weboob.capabilities.weather import CityNotFound
+from weboob.browser import PagesBrowser, URL
+from .pages import WeatherPage, SearchCitiesPage
 
 __all__ = ['MeteofranceBrowser']
 
 
-class MeteofranceBrowser(Browser):
-    DOMAIN = 'www.meteofrance.com'
-    PROTOCOL = 'http'
-    ENCODING = 'utf-8'
-    WEATHER_URL = '{0}://{1}/previsions-meteo-france/{{city_name}}/{{city_id}}'.format(PROTOCOL, DOMAIN)
-    CITY_SEARCH_URL = 'http://www.meteofrance.com/recherche/resultats'
-    PAGES = {
-        WEATHER_URL.format(city_id=".*", city_name=".*"): WeatherPage,
-        CITY_SEARCH_URL: SearchCitiesPage,
-        }
-
-    def __init__(self, *args, **kwargs):
-        Browser.__init__(self, *args, **kwargs)
+class MeteofranceBrowser(PagesBrowser):
+    BASEURL = 'http://www.meteofrance.com'
+    cities = URL('mf3-rpc-portlet/rest/lieu/facet/previsions/search/(?P<pattern>.*)', SearchCitiesPage)
+    weather = URL('previsions-meteo-france/(?P<city_name>.*)/(?P<city_id>.*)', WeatherPage)
 
     def iter_city_search(self, pattern):
-        datas = {'facet': 'previsions',
-                 'search-type': 'previsions',
-                 'query': pattern}
-        self.location(self.CITY_SEARCH_URL, data=urllib.urlencode(datas))
-        assert self.is_on_page(SearchCitiesPage)
-        return self.page.iter_cities()
+        return self.cities.go(pattern=pattern).iter_cities()
 
-    def iter_forecast(self, city_id):
-        mcity = self.get_city(city_id)
-        self.location(self.WEATHER_URL.format(city_id=mcity.id, city_name=mcity.name))
-        assert self.is_on_page(WeatherPage)
-        return self.page.iter_forecast()
+    def iter_forecast(self, city):
+        return self.weather.go(city_id=city.id, city_name=city.name).iter_forecast()
 
-    def get_current(self, city_id):
-        mcity = self.get_city(city_id)
-        self.location(self.WEATHER_URL.format(city_id=mcity.id, city_name=mcity.name))
-        assert self.is_on_page(WeatherPage)
-        return self.page.get_current()
-
-    def get_city(self, city_id):
-        cities = self.iter_city_search(city_id)
-        for city in cities:
-            if city_id == city.id:
-                return city
-        raise CityNotFound('Unable to find a city whose id is %s' % city_id)
+    def get_current(self, city):
+        return self.weather.go(city_id=city.id, city_name=city.name).get_current()
