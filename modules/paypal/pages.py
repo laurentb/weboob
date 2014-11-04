@@ -162,15 +162,27 @@ class SubmitPage(Page):
             TIME = 1
             NAME = 3
             TYPE = 4
-            CURRENCY = 6
-            GROSS = 7
-            FEE = 8
-            NET = 9
-            FROM = 10
-            TO = 11
-            TRANS_ID = 12
-            ITEM = 15
-            SITE = 24
+            if csv.header[7] == "Devise":
+                CURRENCY = 7
+                GROSS = 8
+                FEE = 9
+                NET = 10
+                FROM = 11
+                TO = 12
+                TRANS_ID = 13
+                ITEM = 16
+                SITE = -1
+
+            else:
+                CURRENCY = 6
+                GROSS = 7
+                FEE = 8
+                NET = 9
+                FROM = 10
+                TO = 11
+                TRANS_ID = 12
+                ITEM = 15
+                SITE = 24
         elif len(csv.header) == 11:
             # Regular multi-currency account
             DATE = 0
