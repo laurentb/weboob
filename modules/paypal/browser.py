@@ -81,16 +81,18 @@ class Paypal(Browser):
 
     def get_accounts(self):
         self.find_website_version()
-        if self.website == "old" and not self.is_on_page(AccountPage):
-            self.location('/en/cgi-bin/webscr?cmd=_account&nav=0.0')
+        if self.website == "old":
+            if not self.is_on_page(AccountPage):
+                self.location('/en/cgi-bin/webscr?cmd=_account&nav=0.0')
         elif not self.is_on_page(NewAccountPage):
             self.location('/businessexp/money')
 
         return self.page.get_accounts()
 
     def get_account(self, _id):
-        if self.website == "old" and not not self.is_on_page(AccountPage):
-            self.location('/en/cgi-bin/webscr?cmd=_account&nav=0.0')
+        if self.website == "old":
+            if not self.is_on_page(AccountPage):
+                self.location('/en/cgi-bin/webscr?cmd=_account&nav=0.0')
         elif not self.is_on_page(NewAccountPage):
             self.location('/businessexp/money')
 
