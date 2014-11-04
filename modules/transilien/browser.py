@@ -42,6 +42,8 @@ class Transilien(PagesBrowser):
         dep = self.get_stations(departure, False).next().name
         arr = self.get_stations(arrival, False).next().name
         self.roadmap_page.go(url='init').request_roadmap(dep, arr, filters.arrival_time)
+        if self.page.is_ambiguous():
+            self.page.fix_ambiguity()
         return self.page.get_roadmap()
 
     def get_stations(self, pattern, only_station=True):
@@ -61,7 +63,8 @@ class Transilien(PagesBrowser):
 
                 _date = datetime.strftime(date, "%d/%m/%Y-%H:%M")
 
-                self.horaires_page.go(station=station.replace(' ', '-'), arrival=arrival_id, station2=station_id, arrival2=arrival, date=_date)
+                self.horaires_page.go(station=station.replace(' ', '-'), arrival=arrival_id, station2=station_id,
+                                      arrival2=arrival, date=_date)
                 return self.page.get_departures(station, arrival_name, date)
             return []
         else:

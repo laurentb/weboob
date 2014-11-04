@@ -60,8 +60,21 @@ class Child(Filter):
 class RoadMapPage(HTMLPage):
     def request_roadmap(self, station, arrival, arrival_date):
         form = self.get_form('//form[@id="cRechercheItineraire"]')
-        form['depart'] = station
-        form['arrivee'] = arrival
+        form['depart'] = '%s' % station
+        form['arrivee'] = '%s' % arrival
+        form.submit()
+
+    def is_ambiguous(self):
+        return self.doc.xpath('//select[@id="gare_arrivee_ambigu"] | //select[@id="gare_depart_ambigu"]')
+
+    def fix_ambiguity(self):
+        form = self.get_form('//form[@id="cRechercheItineraire"]')
+        if self.doc.xpath('//select[@id="gare_arrivee_ambigu"]'):
+            form['coordArrivee'] = self.doc.xpath('//select[@id="gare_arrivee_ambigu"]/option[@cat="STOP_AREA"]/@value')[0]
+
+        if self.doc.xpath('//select[@id="gare_depart_ambigu"]'):
+            form['coordDepart'] = self.doc.xpath('//select[@id="gare_depart_ambigu"]/option[@cat="STOP_AREA"]/@value')[0]
+
         form.submit()
 
     def get_roadmap(self):
