@@ -56,8 +56,6 @@ class AccountPage(Page):
         # Primary currency account
         primary_account = Account()
         primary_account.type = Account.TYPE_CHECKING
-        primary_account.id = unicode(primary_account.currency)
-        accounts[primary_account.id] = primary_account
 
         # Total currency balance.
         # If there are multiple currencies, this balance is all currencies
@@ -69,10 +67,12 @@ class AccountPage(Page):
             balance = balance[0].text_content().strip()
             primary_account.balance = AmTr.decimal_amount(balance)
             primary_account.currency = Account.get_currency(balance)
+            primary_account.id = unicode(primary_account.currency)
             primary_account.label = u'%s %s*' % (self.browser.username, balance.split()[-1])
         except IndexError:
             primary_account.balance = NotAvailable
             primary_account.label = u'%s' % (self.browser.username)
+        accounts[primary_account.id] = primary_account
 
         # The following code will only work if the user enabled multiple currencies.
         balance = content.xpath('.//div[@class="body"]//ul/li[@class="balance"]/span')
