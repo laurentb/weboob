@@ -302,8 +302,12 @@ class TransactionsPage(Page):
 
             t = Transaction(i)
 
+            col_text = cols[self.COL_TEXT]
+            if len(col_text.xpath('.//br')) == 0:
+                col_text = cols[self.COL_TEXT+1]
+
+            raw = self.parser.tocleanstring(col_text)
             date = self.parser.tocleanstring(cols[self.COL_DATE])
-            raw = self.parser.tocleanstring(cols[self.COL_TEXT])
             credit = self.parser.tocleanstring(cols[self.COL_CREDIT])
             if self.COL_DEBIT is not None:
                 debit =  self.parser.tocleanstring(cols[self.COL_DEBIT])
@@ -314,10 +318,6 @@ class TransactionsPage(Page):
             t.date = date_guesser.guess_date(day, month)
             t.rdate = t.date
             t.raw = raw
-
-            col_text = cols[self.COL_TEXT]
-            if len(col_text.xpath('.//br')) == 0:
-                col_text = cols[self.COL_TEXT+1]
 
             # On some accounts' history page, there is a <font> tag in columns.
             if col_text.find('font') is not None:
