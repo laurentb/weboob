@@ -19,6 +19,7 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import ValueBackendPassword, Value
@@ -51,22 +52,13 @@ class GanAssurancesModule(Module, CapBank):
                                    self.config['password'].get())
 
     def iter_accounts(self):
-        with self.browser:
-            return self.browser.get_accounts_list()
+        return self.browser.get_accounts_list()
 
     def get_account(self, _id):
-        with self.browser:
-            account = self.browser.get_account(_id)
-
-        if account:
-            return account
-        else:
-            raise AccountNotFound()
+        return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
 
     def iter_history(self, account):
-        with self.browser:
-            return self.browser.get_history(account)
+        return self.browser.get_history(account)
 
     def iter_coming(self, account):
-        with self.browser:
-            return self.browser.get_coming(account)
+        return self.browser.get_coming(account)

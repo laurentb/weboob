@@ -21,21 +21,22 @@
 from decimal import Decimal
 import re
 
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import HTMLPage
+from weboob.browser.elements import method
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-class LoginPage(Page):
+class LoginPage(HTMLPage):
     def login(self, login, passwd):
-        self.browser.select_form(name='loginForm')
-        self.browser.set_all_readonly(False)
-        self.browser['LoginPortletFormID'] = login.encode(self.browser.ENCODING)
-        self.browser['LoginPortletFormPassword1'] = passwd.encode(self.browser.ENCODING)
-        self.browser.submit(nologin=True)
+        form = self.get_form(name='loginForm')
+        form['LoginPortletFormID'] = login
+        form['LoginPortletFormPassword1'] = passwd
+        form.submit()
 
 
-class AccountsPage(Page):
+class AccountsPage(HTMLPage):
+    logged = True
     ACCOUNT_TYPES = {u'Solde des comptes bancaires - Groupama Banque':  Account.TYPE_CHECKING,
                      u'Epargne bancaire constituée - Groupama Banque':  Account.TYPE_SAVINGS,
                     }
@@ -44,7 +45,7 @@ class AccountsPage(Page):
         account_type = Account.TYPE_UNKNOWN
         accounts = []
 
-        for tr in self.document.xpath('//table[@class="ecli"]/tr'):
+        for tr in self.doc.xpath('//table[@class="ecli"]/tr'):
             if tr.attrib.get('class', '') == 'entete':
                 account_type = self.ACCOUNT_TYPES.get(tr.find('th').text.strip(), Account.TYPE_UNKNOWN)
                 continue
@@ -88,28 +89,21 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class TransactionsPage(Page):
-    def get_history(self):
-        count = 0
-        for tr in self.document.xpath('//table[@id="releve_operation"]/tr'):
-            tds = tr.findall('td')
+class TransactionsPage(HTMLPage):
+    logged = True
 
-            if len(tds) < 4:
-                continue
+    @method
+    class get_history(Transaction.TransactionsElement):
+        head_xpath = '//table[@id="releve_operation"]//tr/th'
+        item_xpath = '//table[@id="releve_operation"]//tr'
 
-            t = Transaction(count)
+        col_date =       [u'Date opé']
+        col_vdate =      [u'Date valeur']
 
-            date = u''.join([txt.strip() for txt in tds[0].itertext()])
-            raw = u' '.join([txt.strip() for txt in tds[1].itertext()])
-            debit = u''.join([txt.strip() for txt in tds[-2].itertext()])
-            credit = u''.join([txt.strip() for txt in tds[-1].itertext()])
-            t.parse(date, re.sub(r'[ ]+', ' ', raw))
-            t.set_amount(credit, debit)
-
-            yield t
-
-            count += 1
+        class item(Transaction.TransactionElement):
+            def condition(self):
+                return len(self.el.xpath('./td')) > 3
 
     def get_coming_link(self):
-        a = self.document.getroot().cssselect('div#sous_nav ul li a.bt_sans_off')[0]
+        a = self.doc.getroot().cssselect('div#sous_nav ul li a.bt_sans_off')[0]
         return re.sub('[ \t\r\n]+', '', a.attrib['href'])

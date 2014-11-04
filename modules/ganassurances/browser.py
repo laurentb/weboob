@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.browser import LoginBrowser, URL, need_login
+from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import LoginPage, AccountsPage, TransactionsPage
 
@@ -26,24 +27,16 @@ from .pages import LoginPage, AccountsPage, TransactionsPage
 __all__ = ['GanAssurances']
 
 
-class GanAssurances(Browser):
-    PROTOCOL = 'https'
-    PAGES = {'https://[^/]+/wps/portal/login.*':         LoginPage,
-             'https://[^/]+/wps/myportal/TableauDeBord': AccountsPage,
-             'https://[^/]+/wps/myportal/!ut.*':         TransactionsPage,
-            }
+class GanAssurances(LoginBrowser):
+    login = URL('/wps/portal/login.*', LoginPage)
+    accounts = URL('/wps/myportal/TableauDeBord', AccountsPage)
+    transactions = URL('/wps/myportal/!ut.*', TransactionsPage)
 
     def __init__(self, website, *args, **kwargs):
-        self.DOMAIN = website
-        Browser.__init__(self, *args, **kwargs)
+        self.BASEURL = 'https://%s' % website
+        super(GanAssurances, self).__init__(*args, **kwargs)
 
-    def is_logged(self):
-        return self.page is not None and not self.is_on_page(LoginPage)
-
-    def home(self):
-        self.location('/wps/myportal/TableauDeBord')
-
-    def login(self):
+    def do_login(self):
         """
         Attempt to log in.
         Note: this method does nothing if we are already logged in.
@@ -51,38 +44,25 @@ class GanAssurances(Browser):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
-        if self.is_logged():
-            return
-
-        if not self.is_on_page(LoginPage):
-            self.home()
+        self.login.stay_or_go()
 
         self.page.login(self.username, self.password)
 
-        if not self.is_logged():
+        if self.login.is_here():
             raise BrowserIncorrectPassword()
 
+    @need_login
     def get_accounts_list(self):
-        if not self.is_on_page(AccountsPage):
-            self.location('/wps/myportal/TableauDeBord')
+        self.accounts.stay_or_go()
         return self.page.get_list()
-
-    def get_account(self, id):
-        assert isinstance(id, basestring)
-
-        l = self.get_accounts_list()
-        for a in l:
-            if a.id == id:
-                return a
-
-        return None
 
     def get_history(self, account):
         if account._link is None:
             return iter([])
 
         self.location(account._link)
-        assert self.is_on_page(TransactionsPage)
+
+        assert self.transactions.is_here()
 
         return self.page.get_history()
 
@@ -91,9 +71,9 @@ class GanAssurances(Browser):
             return iter([])
 
         self.location(account._link)
-        assert self.is_on_page(TransactionsPage)
+        assert self.transactions.is_here()
 
         self.location(self.page.get_coming_link())
-        assert self.is_on_page(TransactionsPage)
+        assert self.transactions.is_here()
 
         return self.page.get_history()
