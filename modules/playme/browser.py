@@ -136,7 +136,7 @@ class PlayMeBrowser(DomainBrowser):
 
         data = {}
         data['theme'] = {'id': t['theme']['id'], 'is_vip': 0}
-        data['questions'] = [q['id'] for q in t['questions']]
-        data['answers'] = [{'duration': 1000, 'result': 1} for q in t['questions']]
+        data['questions'] = [q['id'] for q in t['questions']][:5]
+        data['answers'] = [{'duration': 1000, 'result': 1} for q in t['questions'][:5]]
 
         self.request('/users/%s/challenge/%s' % (self.my_id, user_id), data=data)
