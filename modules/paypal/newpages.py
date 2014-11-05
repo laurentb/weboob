@@ -39,11 +39,11 @@ class NewAccountPage(Page):
         # Primary currency account
         primary_account = Account()
         primary_account.type = Account.TYPE_CHECKING
+        balance = self.parser.tocleanstring(content.xpath('.//div[@class="col-md-6 available  "]')[0])
+        primary_account.currency = Account.get_currency(balance)
         primary_account.id = unicode(primary_account.currency)
 
-        balance = self.parser.tocleanstring(content.xpath('.//div[@class="col-md-6 available  "]')[0])
         primary_account.balance = Decimal(FrenchTransaction.clean_amount(balance))
-        primary_account.currency = Account.get_currency(balance)
 
         primary_account.label = u'%s %s*' % (self.browser.username, balance.split()[-1])
 
