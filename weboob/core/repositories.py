@@ -617,6 +617,10 @@ class Repositories(object):
             if not info.is_local() and info.is_installed():
                 to_update.append(info)
 
+        if len(to_update) == 0:
+            progress.progress(1.0, 'All modules are up-to-date.')
+            return
+
         class InstallProgress(PrintProgress):
             def __init__(self, n):
                 self.n = n
