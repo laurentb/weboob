@@ -22,6 +22,7 @@ from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env, DateTime, BrowserURL
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.housing import City, Housing, HousingPhoto
+from weboob.capabilities.base import NotAvailable
 from datetime import date, timedelta
 from weboob.tools.date import DATE_TRANSLATE_FR, LinearDateGuesser
 
@@ -116,12 +117,14 @@ class HousingPage(HTMLPage):
 
         def parse(self, el):
             details = dict()
+            self.env['location'] = NotAvailable
             for tr in el.xpath('//div[@class="floatLeft"]/table/tr'):
                 if 'Ville' in CleanText('./th')(tr):
                     self.env['location'] = CleanText('./td')(tr)
                 else:
                     details['%s' % CleanText('./th', replace=[(':', '')])(tr)] = CleanText('./td')(tr)
 
+            self.env['area'] = NotAvailable
             for tr in el.xpath('//div[@class="lbcParams criterias"]/table/tr'):
                 if 'Surface' in CleanText('./th')(tr):
                     self.env['area'] = CleanDecimal(Regexp(CleanText('./td'), '(.*)m.*'),
