@@ -26,9 +26,34 @@ from weboob.capabilities.account import CapAccount
 from weboob.core.modules import ModuleLoadError
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.ordereddict import OrderedDict
-
+from weboob.tools.application.formatters.iformatter import IFormatter
 
 __all__ = ['WeboobCfg']
+
+
+class ModuleInfoFormatter(IFormatter):
+    def format_dict(self, minfo):
+        result = '.------------------------------------------------------------------------------.\n'
+        result += '| Module %-69s |\n' % minfo['name']
+        result += "+-----------------.------------------------------------------------------------'\n"
+        result += '| Version         | %s\n' % minfo['version']
+        result += '| Maintainer      | %s\n' % minfo['maintainer']
+        result += '| License         | %s\n' % minfo['license']
+        result += '| Description     | %s\n' % minfo['description']
+        result += '| Capabilities    | %s\n' % ', '.join(minfo['capabilities'])
+        result += '| Installed       | %s\n' % minfo['installed']
+        result += '| Location        | %s\n' % minfo['location']
+        if 'config' in minfo:
+            first = True
+            for key, value in minfo['config'].iteritems():
+                if first:
+                    result += '|                 | \n'
+                    result += '| Configuration   | %s: %s\n' % (key, value)
+                    first = False
+                else:
+                    result += '|                 | %s: %s\n' % (key, value)
+        result += "'-----------------'\n"
+        return result
 
 
 class WeboobCfg(ReplApplication):
@@ -38,8 +63,10 @@ class WeboobCfg(ReplApplication):
     DESCRIPTION = "Weboob-Config is a console application to add/edit/remove backends, " \
                   "and to register new website accounts."
     SHORT_DESCRIPTION = "manage backends or register new accounts"
+    EXTRA_FORMATTERS = {'info_formatter': ModuleInfoFormatter}
     COMMANDS_FORMATTERS = {'modules':     'table',
                            'list':        'table',
+                           'info':        'info_formatter',
                            }
     DISABLE_REPL = True
 
@@ -215,29 +242,29 @@ class WeboobCfg(ReplApplication):
         except ModuleLoadError:
             module = None
 
-        print('.------------------------------------------------------------------------------.')
-        print('| Module %-69s |' % minfo.name)
-        print("+-----------------.------------------------------------------------------------'")
-        print('| Version         | %s' % minfo.version)
-        print('| Maintainer      | %s' % minfo.maintainer)
-        print('| License         | %s' % minfo.license)
-        print('| Description     | %s' % minfo.description)
-        print('| Capabilities    | %s' % ', '.join(minfo.capabilities))
-        print('| Installed       | %s%s' % (('yes' if module else 'no'), ' (new version available)' if self.weboob.repositories.versions.get(minfo.name) > minfo.version else ''))
-        print('| Location        | %s' % (minfo.url or os.path.join(minfo.path, minfo.name)))
+        self.start_format()
+        self.format(self.create_minfo_dict(minfo, module))
+
+
+    def create_minfo_dict(self, minfo, module):
+        module_info = {}
+        module_info['name'] = minfo.name
+        module_info['version'] = minfo.version
+        module_info['maintainer'] = minfo.maintainer
+        module_info['license'] = minfo.license
+        module_info['description'] = minfo.description
+        module_info['capabilities'] = minfo.capabilities
+        module_info['installed'] = '%s%s' % (('yes' if module else 'no'), ' (new version available)' if self.weboob.repositories.versions.get(minfo.name) > minfo.version else '')
+        module_info['location'] = '%s' % (minfo.url or os.path.join(minfo.path, minfo.name))
         if module:
-            first = True
+            module_info['config'] = {}
             for key, field in module.config.iteritems():
                 value = field.label
                 if field.default is not None:
                     value += ' (default: %s)' % field.default
-                if first:
-                    print('|                 | ')
-                    print('| Configuration   | %s: %s' % (key, value))
-                    first = False
-                else:
-                    print('|                 | %s: %s' % (key, value))
-        print("'-----------------'")
+
+                module_info['config'][key] = value
+        return module_info
 
     def do_applications(self, line):
         """
