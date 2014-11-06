@@ -21,6 +21,7 @@
 from weboob.capabilities.bank import AccountNotFound
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
+import ssl
 
 from .pages import LoginPage, LoginProceedPage, LoginRedirectPage, \
                    SummaryPage, ActivityCashPage, ActivityCardPage, \
@@ -71,6 +72,15 @@ class WellsFargo(LoginBrowser):
             return self.page.redirect()
         else:
             return r
+
+    def prepare_request(self, req):
+        """
+        Wells Fargo uses TLS v1.0. See issue #1647 for details.
+        """
+        preq = super(WellsFargo, self).prepare_request(req)
+        conn = self.session.adapters['https://'].get_connection(preq.url)
+        conn.ssl_version = ssl.PROTOCOL_TLSv1
+        return preq
 
     def get_account(self, id_):
         self.to_activity()
