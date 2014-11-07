@@ -45,13 +45,17 @@ class ModuleInfoFormatter(IFormatter):
         result += '| Location        | %s\n' % minfo['location']
         if 'config' in minfo:
             first = True
-            for key, value in minfo['config'].iteritems():
+            for key, field in minfo['config'].iteritems():
+                label = field['label']
+                if field['default'] is not None:
+                    label += ' (default: %s)' % field['default']
+
                 if first:
                     result += '|                 | \n'
-                    result += '| Configuration   | %s: %s\n' % (key, value)
+                    result += '| Configuration   | %s: %s\n' % (key, label)
                     first = False
                 else:
-                    result += '|                 | %s: %s\n' % (key, value)
+                    result += '|                 | %s: %s\n' % (key, label)
         result += "'-----------------'\n"
         return result
 
@@ -259,11 +263,13 @@ class WeboobCfg(ReplApplication):
         if module:
             module_info['config'] = {}
             for key, field in module.config.iteritems():
-                value = field.label
-                if field.default is not None:
-                    value += ' (default: %s)' % field.default
-
-                module_info['config'][key] = value
+                module_info['config'][key] = {'label': field.label,
+                                              'default': field.default,
+                                              'description': field.description,
+                                              'regexp': field.regexp,
+                                              'choices': field.choices,
+                                              'masked': field.masked,
+                                              'required': field.required}
         return module_info
 
     def do_applications(self, line):
