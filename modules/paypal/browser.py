@@ -46,6 +46,7 @@ class Paypal(Browser):
         'https://www.paypal.com/webapps/business/\?nav=0.0': NewHomePage,
         'https://www.paypal.com/businessexp/money': NewAccountPage,
         'https://www.paypal.com/webapps/business/activity\?.*': NewHistoryPage,
+        'https://www.paypal.com/myaccount/': NewHistoryPage,
     }
 
     DEFAULT_TIMEOUT = 30  # CSV export is slow
