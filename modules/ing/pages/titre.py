@@ -47,7 +47,8 @@ class TitrePage(LoggedPage, RawPage):
             invest = Investment(_id)
             invest.label = unicode(columns[0].split('{')[-1])
             invest.code = NotAvailable
-            invest.description = unicode(_id.split(':')[1])
+            if ':' in _id:
+                invest.description = unicode(_id.split(':')[1])
             invest.quantity = Decimal(FrenchTransaction.clean_amount(columns[1]))
             invest.unitprice = Decimal(FrenchTransaction.clean_amount(columns[2]))
             invest.unitvalue = Decimal(FrenchTransaction.clean_amount(columns[3]))
