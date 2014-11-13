@@ -114,9 +114,9 @@ class AccountPage(Page):
 
 class DownloadHistoryPage(Page):
     def download(self, start, end):
-        tr_last_file_request = self.document.xpath('//table//table//table//tr[2]//td')[1]
-        if tr_last_file_request.text is not None:
-            last_file_request = tr_last_file_request.text[:-1]
+        tr_last_file_request = self.document.xpath('//table//table//table[@width="100%"]//tr[2]//td')
+        if len(tr_last_file_request) > 1 and tr_last_file_request[1].text is not None:
+            last_file_request = tr_last_file_request[1].text[:-1]
             try:
                 last_file_request = dateutil.parser.parse(last_file_request.encode('utf-8')).date()
             except ValueError:
