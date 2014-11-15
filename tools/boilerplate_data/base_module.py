@@ -3,7 +3,6 @@ from weboob.tools.backend import Module
 
 from .browser import ${r.classname}Browser
 
-
 __all__ = ['${r.classname}Module']
 
 
