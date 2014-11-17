@@ -43,21 +43,21 @@ class IndexPage(HTMLPage):
 
     @method
     class iter_videos(ListElement):
-        item_xpath = '//div[@id="section-list_results"]/article'
+        item_xpath = '//div[@class="panel-resultat panel-separateur"]'
 
         class item(ItemElement):
             klass = BaseVideo
-
-            obj_title = Format('%s - %s', CleanText('h3/a'), CleanText('div[@class="rs-cell-details"]/a'))
-            obj_id = Link('h3/a') & Regexp(pattern=r'^http://pluzz.francetv.fr/videos/.+,(.+).html$')
-            obj_date = XPath('div/p[@class="diffusion"]') \
-                       & CleanText(replace=[(u'à', u''), (u'  ', u' ')]) \
-                       & Regexp(pattern=r'.+(\d{2}-\d{2}-\d{2}.+\d{1,2}:\d{1,2}).+') \
-                       & DateTime
-            obj_duration = DurationPluzz('div/span[@class="type-duree"]')
+            
+            obj_title = Format('%s', CleanText('div/div[@class="resultat-titre-diff"]/a'))
+            obj_id = Regexp(Link('div/div[@class="resultat-titre-diff"]/a'),
+                            '^/videos/.+,(.+).html$')
+            obj_date = DateTime(Regexp(CleanText('div/div[@class="resultat-soustitre-diff"]/span',
+                                       replace=[(u'à', u''), (u'  ', u' ')]),
+                                       '.+(\d{2}-\d{2}-\d{2}.+\d{1,2}h\d{1,2}).+'))
+            obj_duration = DurationPluzz('div/div[3]')
 
             def obj_thumbnail(self):
-                url = Attr('a[@class="vignette"]/img', 'data-src')(self)
+                url = Attr('a/img[@class="resultat-vignette"]', 'data-src')(self)
                 thumbnail = BaseImage(url)
                 thumbnail.url = thumbnail.id
                 return thumbnail
