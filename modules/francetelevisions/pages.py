@@ -25,7 +25,7 @@ from datetime import timedelta
 from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import Filter, CleanText, Regexp, Format, DateTime, Env, Duration
-from weboob.browser.filters.html import Link, Attr, XPath
+from weboob.browser.filters.html import Link, Attr
 from weboob.browser.filters.json import Dict
 
 
@@ -47,7 +47,7 @@ class IndexPage(HTMLPage):
 
         class item(ItemElement):
             klass = BaseVideo
-            
+
             obj_title = Format('%s', CleanText('div/div[@class="resultat-titre-diff"]/a'))
             obj_id = Regexp(Link('div/div[@class="resultat-titre-diff"]/a'),
                             '^/videos/.+,(.+).html$')
