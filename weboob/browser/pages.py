@@ -497,8 +497,8 @@ class HTMLPage(Page):
             >>> len(root.xpath('//b[has-class("not-exists")]'))
             0
             """
-            expressions = ' and '.join(["contains(concat(' ', normalize-space(@class), ' '), ' {} ')".format(c) for c in classes])
-            xpath = 'self::*[@class and {}]'.format(expressions)
+            expressions = ' and '.join(["contains(concat(' ', normalize-space(@class), ' '), ' {0} ')".format(c) for c in classes])
+            xpath = 'self::*[@class and {0}]'.format(expressions)
             return bool(context.context_node.xpath(xpath))
         ns['has-class'] = has_class
 
