@@ -34,7 +34,7 @@ _weboob()
 }
 
 hash weboob-config 2>/dev/null &&
-weboob_applications=$(weboob-config applications)
+weboob_applications=$(weboob-config applications 2>/dev/null)
 hash -d weboob-config
 for application in $weboob_applications
 do
