@@ -36,7 +36,7 @@ from .video import DailymotionVideo
 class IndexPage(Page):
     def iter_videos(self):
         for div in self.parser.select(self.document.getroot(), 'div.sd_video_listitem'):
-            smalldiv = self.parser.select(div, 'div.sd_video_previewtwig', 1)
+            smalldiv = self.parser.select(div, 'div.sd_video_preview', 1)
             _id = smalldiv.attrib.get('data-id', None)
 
             if _id is None:
