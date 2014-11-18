@@ -31,6 +31,19 @@ from weboob.tools.application.formatters.iformatter import IFormatter
 __all__ = ['WeboobCfg']
 
 
+class CapabilitiesWrapper(list):
+    """
+    A wrapper class to keep the list nature of capabilities,
+    but provide a comma separated list representation for
+    formaters unable to display a list by themselves.
+
+    Useful for having an array representation in JSON and
+    comma separated list for simple format.
+    """
+    def __repr__(self):
+        return ', '.join(self)
+
+
 class ModuleInfoFormatter(IFormatter):
     def format_dict(self, minfo):
         result = '.------------------------------------------------------------------------------.\n'
@@ -221,7 +234,7 @@ class WeboobCfg(ReplApplication):
         caps = line.split()
         for name, info in sorted(self.weboob.repositories.get_all_modules_info(caps).iteritems()):
             row = OrderedDict([('Name', name),
-                               ('Capabilities', ', '.join(info.capabilities)),
+                               ('Capabilities', CapabilitiesWrapper(info.capabilities)),
                                ('Description', info.description),
                                ])
             self.format(row)
