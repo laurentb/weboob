@@ -35,7 +35,11 @@ class UpcomingSimpleFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'start_date', 'category', 'summary')
 
     def format_obj(self, obj, alias):
-        return u'%s - %s - %s - %s' % (obj.backend, obj.category, obj.start_date.strftime('%H:%M'), obj.summary)
+        result = u'%s - %s' % (obj.backend, obj.category)
+        if not empty(obj.start_date):
+            result += u' - %s' % obj.start_date.strftime('%H:%M')
+        result += u' - %s' % obj.summary
+        return result
 
 
 class ICalFormatter(IFormatter):
@@ -49,8 +53,13 @@ class ICalFormatter(IFormatter):
 
     def format_obj(self, obj, alias):
         result = u'BEGIN:VEVENT\n'
-        result += u'DTSTART:%s\n' % obj.start_date.strftime("%Y%m%dT%H%M%SZ")
-        result += u'DTEND:%s\n' % obj.end_date.strftime("%Y%m%dT%H%M%SZ")
+
+        start_date = obj.start_date if not empty(obj.start_date) else datetime.now()
+        result += u'DTSTART:%s\n' % start_date.strftime("%Y%m%dT%H%M%SZ")
+
+        end_date = obj.end_date if not empty(obj.end_date) else datetime.combine(start_date, time.max)
+        result += u'DTEND:%s\n' % end_date.strftime("%Y%m%dT%H%M%SZ")
+
         result += u'SUMMARY:%s\n' % obj.summary
         result += u'UID:%s\n' % obj.id
         result += u'STATUS:%s\n' % obj.status
@@ -96,8 +105,12 @@ class UpcomingListFormatter(PrettyFormatter):
 
     def get_description(self, obj):
         result = u''
-        result += u'\tDate: %s\n' % obj.start_date.strftime('%A %d %B %Y')
-        result += u'\tHour: %s - %s \n' % (obj.start_date.strftime('%H:%M'), obj.end_date.strftime('%H:%M'))
+        if not empty(obj.start_date):
+            result += u'\tDate: %s\n' % obj.start_date.strftime('%A %d %B %Y')
+            result += u'\tHour: %s' % obj.start_date.strftime('%H:%M')
+            if not empty(obj.end_date):
+                result += ' - %s' % obj.end_date.strftime('%H:%M')
+            result += '\n'
         return result.strip('\n\t')
 
 
@@ -106,8 +119,12 @@ class UpcomingFormatter(IFormatter):
 
     def format_obj(self, obj, alias):
         result = u'%s%s - %s%s\n' % (self.BOLD, obj.category, obj.summary, self.NC)
-        result += u'Date: %s\n' % obj.start_date.strftime('%A %d %B %Y')
-        result += u'Hour: %s - %s\n' % (obj.start_date.strftime('%H:%M'), obj.end_date.strftime('%H:%M'))
+        if not empty(obj.start_date):
+            result += u'Date: %s\n' % obj.start_date.strftime('%A %d %B %Y')
+            result += u'Hour: %s' % obj.start_date.strftime('%H:%M')
+            if not empty(obj.end_date):
+                result += ' - %s' % obj.end_date.strftime('%H:%M')
+            result += '\n'
 
         if hasattr(obj, 'location') and not empty(obj.location):
             result += u'Location: %s\n' % obj.location
@@ -175,7 +192,6 @@ class Boobcoming(ReplApplication):
 
         search for an event. Parameters interactively asked
         """
-
         query = Query()
         r = 'notempty'
         while r != '':
