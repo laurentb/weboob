@@ -213,6 +213,9 @@ Camille Baldock <camille.baldock@student.ecp.fr>
 Alexandre Franke <alexandre.franke@gmail.com>
         * Contribution to boobank.
 
+Loic Bontonou <lobotomi51@gmail.com>
+        * Fix on arretsurimages module.
+
 Olivier Schwander <olivier.schwander@ens-lyon.org>
         * Fix XDG support.
 
@@ -242,6 +245,9 @@ Laurent George <setog3@gmail.com>
 
 Romain Garbage <romain.garbage@gmail.com>
         * Fixes for FreeBSD.
+
+Pierre-Louis Bonicoli <pierre-louis.bonicoli@gmx.fr>
+        * Fix on bash completion script.
 
 Philippe Fremy <phil@freehackers.org>
         * Fixes for Windows.
