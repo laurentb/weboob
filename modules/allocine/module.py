@@ -22,8 +22,6 @@ from weboob.tools.backend import Module
 
 from .browser import AllocineBrowser
 
-from urllib import quote_plus
-
 __all__ = ['AllocineModule']
 
 
@@ -43,10 +41,10 @@ class AllocineModule(Module, CapCinema):
         return self.browser.get_person(id)
 
     def iter_movies(self, pattern):
-        return self.browser.iter_movies(quote_plus(pattern.encode('utf-8')))
+        return self.browser.iter_movies(pattern.encode('utf-8'))
 
     def iter_persons(self, pattern):
-        return self.browser.iter_persons(quote_plus(pattern.encode('utf-8')))
+        return self.browser.iter_persons(pattern.encode('utf-8'))
 
     def iter_movie_persons(self, id, role=None):
         return self.browser.iter_movie_persons(id, role)

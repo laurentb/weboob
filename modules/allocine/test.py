@@ -25,7 +25,7 @@ class AllocineTest(BackendTest):
     MODULE = 'allocine'
 
     def test_search_movie(self):
-        movies = list(self.backend.iter_movies('spiderman'))
+        movies = list(self.backend.iter_movies('usual suspects'))
         assert len(movies) > 0
         for movie in movies:
             assert movie.id
@@ -37,7 +37,7 @@ class AllocineTest(BackendTest):
         assert movie.original_title
 
     def test_search_person(self):
-        persons = list(self.backend.iter_persons('dewaere'))
+        persons = list(self.backend.iter_persons('patrick dewaere'))
         assert len(persons) > 0
         for person in persons:
             assert person.id
