@@ -317,29 +317,29 @@ class CleanText(Filter):
     u'coucou\\ncoucou'
     """
 
-    def __init__(self, selector=None, symbols='', replace=[], childs=True, newlines=True, normalize='NFC', **kwargs):
+    def __init__(self, selector=None, symbols='', replace=[], children=True, newlines=True, normalize='NFC', **kwargs):
         super(CleanText, self).__init__(selector, **kwargs)
         self.symbols = symbols
         self.toreplace = replace
-        self.childs = childs
+        self.children = children
         self.newlines = newlines
         self.normalize = normalize
 
     @debug()
     def filter(self, txt):
         if isinstance(txt, (tuple, list)):
-            txt = u' '.join([self.clean(item, childs=self.childs) for item in txt])
+            txt = u' '.join([self.clean(item, children=self.children) for item in txt])
 
-        txt = self.clean(txt, self.childs, self.newlines, self.normalize)
+        txt = self.clean(txt, self.children, self.newlines, self.normalize)
         txt = self.remove(txt, self.symbols)
         txt = self.replace(txt, self.toreplace)
         # ensure it didn't become str by mistake
         return unicode(txt)
 
     @classmethod
-    def clean(cls, txt, childs=True, newlines=True, normalize='NFC'):
+    def clean(cls, txt, children=True, newlines=True, normalize='NFC'):
         if not isinstance(txt, basestring):
-            if childs:
+            if children:
                 txt = [t.strip() for t in txt.itertext()]
             else:
                 txt = [txt.text.strip()]

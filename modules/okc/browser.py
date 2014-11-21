@@ -110,7 +110,7 @@ class OkCBrowser(Browser):
     #    return r['result']['flashs']
 
     #@check_login
-    #def nb_godchilds(self):
+    #def nb_godchildren(self):
     #    r = self.api_request('member', 'view', data={'id': self.my_id})
     #    return int(r['result']['member']['popu']['invits'])
 

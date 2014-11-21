@@ -464,11 +464,11 @@ class ReplApplication(Cmd, ConsoleApplication):
     def path_completer(self, arg):
         dirname = os.path.dirname(arg)
         try:
-            childs = os.listdir(dirname or '.')
+            children = os.listdir(dirname or '.')
         except OSError:
             return ()
         l = []
-        for child in childs:
+        for child in children:
             path = os.path.join(dirname, child)
             if os.path.isdir(path):
                 child += '/'

@@ -48,7 +48,7 @@ class CitiesPage(JsonPage):
 
 class PhonePage(HTMLPage):
     def get_phone(self):
-        return CleanText('//div[has-class("phone")]', childs=False)(self.doc)
+        return CleanText('//div[has-class("phone")]', children=False)(self.doc)
 
 
 class HousingPage(HTMLPage):
