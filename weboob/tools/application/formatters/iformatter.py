@@ -23,8 +23,6 @@ from __future__ import print_function
 import os
 import sys
 import subprocess
-if sys.platform == 'win32':
-    import WConio
 
 try:
     from termcolor import colored
@@ -102,7 +100,19 @@ class IFormatter(object):
 
         if sys.stdout.isatty() and sys.stdin.isatty():
             if sys.platform == 'win32':
-                self.termrows = WConio.gettextinfo()[8]
+                from ctypes import windll, create_string_buffer
+
+                h = windll.kernel32.GetStdHandle(-12)
+                csbi = create_string_buffer(22)
+                res = windll.kernel32.GetConsoleScreenBufferInfo(h, csbi)
+
+                if res:
+                    import struct
+                    (bufx, bufy, curx, cury, wattr,
+                     left, top, right, bottom, maxx, maxy) = struct.unpack("hhhhHhhhhhh", csbi.raw)
+                    self.termrows = right - left + 1
+                else:
+                    self.termrows = 80  # can't determine actual size - return default values
             else:
                 self.termrows = int(
                     subprocess.Popen('stty size', shell=True, stdout=subprocess.PIPE).communicate()[0].split()[0]
