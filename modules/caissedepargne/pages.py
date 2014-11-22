@@ -172,26 +172,12 @@ class IndexPage(Page):
                 if tr.attrib.get('class', '') == 'DataGridHeader':
                     account_type = self.ACCOUNT_TYPES.get(tds[1].text.strip(), Account.TYPE_UNKNOWN)
                 else:
-                    label = ''
-                    i = 1
-                    a = None
-                    while label == '' and i < len(tds):
-                        a = tds[i].find('a')
-                        if a is None:
-                            continue
-
+                    # On the same row, there are many accounts (for example a
+                    # check accound and a card one).
+                    for i, a in enumerate(tds[2].xpath('./a')):
                         label = self.parser.tocleanstring(a)
-                        i += 1
-
-                    balance = ''
-                    i = -1
-                    while balance == '' and i > -len(tds):
-                        try:
-                            balance = self.parser.tocleanstring(tds[i].xpath('./a')[0])
-                        except KeyError:
-                            balance = u''.join([txt.strip() for txt in tds[i].itertext()])
-                        i -= 1
-                    self._add_account(accounts, a, label, account_type, balance)
+                        balance = self.parser.tocleanstring(tds[-2].xpath('./a')[i])
+                        self._add_account(accounts, a, label, account_type, balance)
 
         if len(accounts) == 0:
             # New website
