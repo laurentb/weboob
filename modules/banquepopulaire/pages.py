@@ -22,11 +22,14 @@ import datetime
 from urlparse import urlsplit, parse_qsl
 from decimal import Decimal
 import re
+import urllib
 from mechanize import Cookie, FormNotFoundError
 
-from weboob.deprecated.browser import Page as _BasePage, BrowserUnavailable, BrokenPageError
+from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
+from weboob.deprecated.browser import Page as _BasePage, BrokenPageError
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.json import json
 
 
 class WikipediaARC4(object):
@@ -169,6 +172,37 @@ class LoginPage(BasePage):
         self.browser['IDToken1'] = login.encode(self.browser.ENCODING)
         self.browser['IDToken2'] = passwd.encode(self.browser.ENCODING)
         self.browser.submit(nologin=True)
+
+
+class Login2Page(LoginPage):
+    @property
+    def request_url(self):
+        transactionID = self.group_dict['transactionID']
+        return 'https://www.icgauth.banquepopulaire.fr/dacswebssoissuer/api/v1u0/transaction/%s' % transactionID
+
+    def on_loaded(self):
+        r = self.browser.openurl(self.request_url)
+        doc = json.load(r)
+        self.form_id = doc['step']['validationUnits'][0]['PASSWORD_LOOKUP'][0]['id']
+
+    def login(self, login, password):
+        payload = {'validate': {'PASSWORD_LOOKUP': [{'id': self.form_id,
+                                                     'login': login.encode(self.browser.ENCODING),
+                                                     'password': password.encode(self.browser.ENCODING),
+                                                     'type': 'PASSWORD_LOOKUP'
+                                                    }]
+                               }
+                  }
+        req = self.browser.request_class(self.request_url + '/step')
+        req.add_header('Content-Type', 'application/json')
+        r = self.browser.openurl(req, json.dumps(payload))
+
+        doc = json.load(r)
+        if ('phase' in doc and doc['phase']['previousResult'] == 'FAILED_AUTHENTICATION') or \
+           doc['response']['status'] != 'AUTHENTICATION_SUCCESS':
+            raise BrowserIncorrectPassword()
+
+        self.browser.location(doc['response']['saml2_post']['action'], urllib.urlencode({'SAMLResponse': doc['response']['saml2_post']['samlResponse']}))
 
 
 class IndexPage(BasePage):

@@ -23,7 +23,7 @@ import urllib
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrokenPageError
 
 from .pages import LoginPage, IndexPage, AccountsPage, CardsPage, TransactionsPage, \
-                   UnavailablePage, RedirectPage, HomePage
+                   UnavailablePage, RedirectPage, HomePage, Login2Page
 
 
 __all__ = ['BanquePopulaire']
@@ -49,6 +49,7 @@ class BanquePopulaire(Browser):
              'https://[^/]+/portailinternet/Pages/.*.aspx\?vary=(?P<vary>.*)':                  HomePage,
              'https://[^/]+/portailinternet/Pages/default.aspx':                                HomePage,
              'https://[^/]+/portailinternet/Transactionnel/Pages/CyberIntegrationPage.aspx':    HomePage,
+             'https://[^/]+/WebSSO_BP/_(?P<bankid>\d+)/index.html\?transactionID=(?P<transactionID>.*)': Login2Page,
             }
 
     def __init__(self, website, *args, **kwargs):
@@ -60,6 +61,9 @@ class BanquePopulaire(Browser):
     def is_logged(self):
         return not self.is_on_page(LoginPage)
 
+    def home(self):
+        self.login()
+
     def login(self):
         """
         Attempt to log in.
@@ -68,11 +72,8 @@ class BanquePopulaire(Browser):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
-        if self.is_logged():
-            return
-
         if not self.is_on_page(LoginPage):
-            self.home()
+            self.location('%s://%s' % (self.PROTOCOL, self.DOMAIN), no_login=True)
 
         self.page.login(self.username, self.password)
 
