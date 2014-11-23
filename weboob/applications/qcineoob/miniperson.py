@@ -86,13 +86,7 @@ class MiniPerson(QFrame):
 
         if event.button() == 2:
             self.gotThumbnail()
-        if event.button() == 4:
-            person = self.backend.get_person(self.person.id)
-            self.parent.parent.newTab(u'Details of person "%s"' %
-                 person.name, self.backend, person=person)
+        elif event.button() == 4:
+            self.newTabPressed()
         else:
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-            person = self.backend.get_person(self.person.id)
-            if person:
-                self.parent.doAction(u'Details of person "%s"' %
-                                     person.name, self.parent.displayPerson, [person, self.backend])
+            self.viewPressed()

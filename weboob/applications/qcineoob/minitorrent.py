@@ -67,11 +67,7 @@ class MiniTorrent(QFrame):
     def mousePressEvent(self, event):
         QFrame.mousePressEvent(self, event)
 
-        torrent = self.backend.get_torrent(self.torrent.id)
         if event.button() == 4:
-            self.parent.parent.newTab(u'Details of torrent "%s"' %
-                 torrent.name, self.backend, torrent=torrent)
+            self.newTabPressed()
         else:
-            if torrent:
-                self.parent.doAction('Details of torrent "%s"' %
-                                     torrent.name, self.parent.displayTorrent, [torrent, self.backend])
+            self.viewPressed()

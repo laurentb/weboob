@@ -64,11 +64,7 @@ class MiniSubtitle(QFrame):
     def mousePressEvent(self, event):
         QFrame.mousePressEvent(self, event)
 
-        subtitle = self.backend.get_subtitle(self.subtitle.id)
         if event.button() == 4:
-            self.parent.parent.newTab(u'Details of subtitle "%s"' %
-                 subtitle.name, self.backend, subtitle=subtitle)
+            self.newTabPressed()
         else:
-            if subtitle:
-                self.parent.doAction('Details of subtitle "%s"' %
-                                     subtitle.name, self.parent.displaySubtitle, [subtitle, self.backend])
+            self.viewPressed()

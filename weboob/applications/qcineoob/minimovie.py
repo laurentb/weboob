@@ -81,12 +81,6 @@ class MiniMovie(QFrame):
         if event.button() == 2:
             self.gotThumbnail()
         elif event.button() == 4:
-            movie = self.backend.get_movie(self.movie.id)
-            self.parent.parent.newTab(u'Details of movie "%s"' %
-                 movie.original_title, self.backend, movie=movie)
+            self.newTabPressed()
         else:
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-            movie = self.backend.get_movie(self.movie.id)
-            if movie:
-                self.parent.doAction('Details of movie "%s"' %
-                                     movie.original_title, self.parent.displayMovie, [movie, self.backend])
+            self.viewPressed()
