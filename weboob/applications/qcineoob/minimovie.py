@@ -20,7 +20,7 @@
 import urllib
 
 from PyQt4.QtGui import QFrame, QImage, QPixmap, QApplication
-from PyQt4.QtCore import Qt
+from PyQt4.QtCore import Qt, SIGNAL
 
 from weboob.applications.qcineoob.ui.minimovie_ui import Ui_MiniMovie
 from weboob.capabilities.base import empty, NotAvailable
@@ -40,6 +40,9 @@ class MiniMovie(QFrame):
         self.ui.shortDescLabel.setText(movie.short_description)
         self.ui.backendLabel.setText(backend.name)
 
+        self.connect(self.ui.newTabButton, SIGNAL("clicked()"), self.newTabPressed)
+        self.connect(self.ui.viewButton, SIGNAL("clicked()"), self.viewPressed)
+
         if self.parent.parent.ui.showTCheck.isChecked():
             self.gotThumbnail()
 
@@ -50,6 +53,18 @@ class MiniMovie(QFrame):
             data = urllib.urlopen(self.movie.thumbnail_url).read()
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToHeight(100,Qt.SmoothTransformation))
+
+    def viewPressed(self):
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        movie = self.backend.get_movie(self.movie.id)
+        if movie:
+            self.parent.doAction('Details of movie "%s"' %
+                                 movie.original_title, self.parent.displayMovie, [movie, self.backend])
+
+    def newTabPressed(self):
+        movie = self.backend.get_movie(self.movie.id)
+        self.parent.parent.newTab(u'Details of movie "%s"' %
+             movie.original_title, self.backend, movie=movie)
 
     def enterEvent(self, event):
         self.setFrameShadow(self.Sunken)
