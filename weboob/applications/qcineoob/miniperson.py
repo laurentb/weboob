@@ -48,6 +48,7 @@ class MiniPerson(QFrame):
 
         self.connect(self.ui.newTabButton, SIGNAL("clicked()"), self.newTabPressed)
         self.connect(self.ui.viewButton, SIGNAL("clicked()"), self.viewPressed)
+        self.connect(self.ui.viewThumbnailButton, SIGNAL("clicked()"), self.gotThumbnail)
 
         if self.parent.parent.ui.showTCheck.isChecked():
             self.gotThumbnail()
