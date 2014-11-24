@@ -368,8 +368,8 @@ For example::
     class ListPage(LoggedPage, HTMLPage):
         def get_accounts(self):
             for el in self.doc.xpath('//ul[@id="list"]/li'):
-                id = el.attrib['id']
-                account = Account(id)
+                account = Account()
+                account.id = el.attrib['id']
                 account.label = el.xpath('./td[@class="name"]').text
                 account.balance = Decimal(el.xpath('./td[@class="balance"]').text)
                 yield account
@@ -382,7 +382,8 @@ An alternative with ``cssselect``::
         def get_accounts(self):
             for el in self.document.getroot().cssselect('ul#list li'):
                 id = el.attrib['id']
-                account = Account(id)
+                account = Account()
+                account.id = el.attrib['id']
                 account.label = el.cssselect('td.name').text
                 account.balance = Decimal(el.cssselect('td.balance').text)
                 yield account
