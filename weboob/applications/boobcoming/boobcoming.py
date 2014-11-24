@@ -214,6 +214,7 @@ class Boobcoming(ReplApplication):
 
         if query.categories and len(query.categories) > 0:
             query.city = self.ask('Enter a city', default='')
+            query.summary = self.ask('Enter a title', default='')
 
             start_date = self.ask_date('Enter a start date', default='today')
             end_date = self.ask_date('Enter a end date', default='')
