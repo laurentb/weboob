@@ -20,7 +20,7 @@
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from .pages import LoginPage, AccountPage, DownloadHistoryPage, LastDownloadHistoryPage, SubmitPage, HistoryParser, UselessPage, HistoryPage, CSVAlreadyAsked
-from .newpages import NewHomePage, NewAccountPage, NewHistoryPage
+from .newpages import NewHomePage, NewAccountPage, NewProHistoryPage, NewPartHistoryPage
 import datetime
 
 
@@ -45,8 +45,9 @@ class Paypal(Browser):
         '/cgi-bin/webscr\?cmd=_history-download-recent-submit&dispatch=[a-z0-9]+$': (SubmitPage, HistoryParser()),
         'https://www.paypal.com/webapps/business/\?nav=0.0': NewHomePage,
         'https://www.paypal.com/businessexp/money': NewAccountPage,
-        'https://www.paypal.com/webapps/business/activity\?.*': NewHistoryPage,
-        'https://www.paypal.com/myaccount/': NewHistoryPage,
+        'https://www.paypal.com/webapps/business/activity\?.*': NewProHistoryPage,
+        'https://www.paypal.com/myaccount/activity/.*': (NewPartHistoryPage, 'json'),
+        'https://www.paypal.com/myaccount/': NewProHistoryPage,
     }
 
     DEFAULT_TIMEOUT = 30  # CSV export is slow
@@ -60,6 +61,11 @@ class Paypal(Browser):
             self.website = "old"
         else:
             self.website = "new"
+            self.location('/webapps/business/?nav=0.0')
+            if self.is_on_page(NewHomePage):
+                self.account_type = "pro"
+            else:
+                self.account_type = "perso"
 
     def home(self):
         self.location('https://' + self.DOMAIN + '/en/cgi-bin/webscr?cmd=_login-run')
@@ -186,7 +192,10 @@ class Paypal(Browser):
             e = end.strftime('%d/%m/%Y')
             #Settings a big magic number so we get all transaction for the period
             LIMIT = '9999'
-            self.location('/webapps/business/activity?fromdate=' + s + '&todate=' + e + '&transactiontype=ALL_TRANSACTIONS&currency=ALL_TRANSACTIONS_CURRENCY&limit=' + LIMIT)
+            if self.account_type == "pro":
+                self.location('/webapps/business/activity?fromdate=' + s + '&todate=' + e + '&transactiontype=ALL_TRANSACTIONS&currency=ALL_TRANSACTIONS_CURRENCY&limit=' + LIMIT)
+            else:
+                self.location('/myaccount/activity/filter?start=' + s + '&end=' + e + '&limit=' + LIMIT)
             return self.page.transaction_left()
 
     def download_last_history(self, account):

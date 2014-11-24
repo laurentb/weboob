@@ -51,7 +51,7 @@ class NewAccountPage(Page):
 
         return accounts
 
-class NewHistoryPage(Page):
+class NewProHistoryPage(Page):
 
     def iter_transactions(self, account):
         for trans in self.parse():
@@ -75,3 +75,35 @@ class NewHistoryPage(Page):
 
     def transaction_left(self):
         return (len(self.document.xpath('//div[@class="no-records"]')) == 0)
+
+class NewPartHistoryPage(Page):
+    def transaction_left(self):
+        return (len(self.document['data']['activity']['COMPLETED']) > 0 or len(self.document['data']['activity']['PENDING']) > 0)
+
+    def iter_transactions(self, account):
+        for trans in self.parse():
+            if trans._currency == account.currency:
+                yield trans
+
+    def parse(self):
+        transactions = list()
+
+        for status in ['PENDING', 'COMPLETED']:
+            transac = self.document['data']['activity'][status]
+            for t in transac:
+                transactions.append(self.parse_transaction(t))
+
+        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        for t in transactions:
+            yield t
+
+    def parse_transaction(self, transaction):
+        t = FrenchTransaction(transaction['activityId'])
+        date = parse_french_date(transaction['date'])
+        raw = transaction['counterparty']
+        t.parse(date=date, raw=raw)
+        amount = transaction['displayAmount']
+        t.set_amount(amount)
+        t._currency = transaction['currencyCode']
+        return t
+
