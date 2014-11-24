@@ -95,6 +95,7 @@ class Query(BaseObject):
     end_date = DateField('End date of the event')
     city = StringField('Name of the city in witch event will take place')
     categories = Field('List of categories of the event', list, tuple)
+    summary = StringField('Title of the event')
 
     def __init__(self):
         BaseObject.__init__(self, '')
