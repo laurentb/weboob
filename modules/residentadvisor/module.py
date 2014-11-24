@@ -21,12 +21,11 @@
 from weboob.tools.backend import Module
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.backend import BackendConfig
-from weboob.capabilities.calendar import CapCalendarEvent, BaseCalendarEvent, CATEGORIES, STATUS
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.calendar import CapCalendarEvent, BaseCalendarEvent, CATEGORIES
 
 from .browser import ResidentadvisorBrowser
 
-from datetime import datetime, timedelta, time
+from datetime import timedelta
 
 
 __all__ = ['ResidentadvisorModule']
