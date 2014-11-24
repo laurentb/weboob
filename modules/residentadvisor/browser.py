@@ -35,7 +35,7 @@ class ResidentadvisorBrowser(LoginBrowser):
     login = URL('https://www.residentadvisor.net/login', LoginPage)
     event = URL('/event.aspx\?(?P<id>\d+)', EventPage)
     list_events = URL('/events.aspx\?ai=(?P<city>\d+)&v=(?P<v>.+)&yr=(?P<year>\d{4})&mn=(?P<month>\d\d?)&dy=(?P<day>\d\d?)', ListPage)
-    search_page = URL('/search.aspx?searchstr=(?P<query>)&section=events&titles=1', SearchPage)
+    search_page = URL('/search.aspx\?searchstr=(?P<query>.+)&section=events&titles=1', SearchPage)
     attends = URL('/Output/addhandler.ashx')
 
     def do_login(self):
@@ -65,7 +65,7 @@ class ResidentadvisorBrowser(LoginBrowser):
 
         return event
 
-    def search_events_by_title(self, pattern):
+    def search_events_by_summary(self, pattern):
         self.search_page.go(query = pattern)
         assert self.search_page.is_here()
 

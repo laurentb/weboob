@@ -142,6 +142,9 @@ class ResidentadvisorModule(Module, CapCalendarEvent):
 
             for event in self.browser.get_events(city = city_id):
                 yield event
+        elif query.summary:
+            for event in self.browser.search_events_by_summary(query.summary):
+                yield event
         else:
             for event in self.list_events(query.start_date, query.end_date):
                 yield event

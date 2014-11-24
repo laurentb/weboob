@@ -109,4 +109,5 @@ class SearchPage(BasePage):
             obj_id = Regexp(Link('./a[1]'), r'\?(\d+)')
             obj_summary = CleanText('./a[1]')
             obj_start_date = Date(CleanText('./span[1]'))
-            obj_booked_entries = Type(CleanText('.//p[@class="attending"]/span'), type=float)
+            obj_category = CATEGORIES.CONCERT
+            obj_status = STATUS.CONFIRMED
