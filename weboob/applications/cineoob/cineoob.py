@@ -59,8 +59,8 @@ class MovieInfoFormatter(IFormatter):
             result += '\n%sRelated persons%s\n' % (self.BOLD, self.NC)
             for role, lpersons in obj.roles.items():
                 result += ' -- %s\n' % role
-                for name in lpersons:
-                    result += '   * %s\n' % name
+                for person in lpersons:
+                    result += '   * %s\n' % person[1]
         if not empty(obj.other_titles):
             result += '\n%sOther titles%s\n' % (self.BOLD, self.NC)
             for t in obj.other_titles:
@@ -143,7 +143,7 @@ class PersonInfoFormatter(IFormatter):
             for role, lmovies in obj.roles.items():
                 result += ' -- %s\n' % role
                 for movie in lmovies:
-                    result += '   * %s\n' % movie
+                    result += '   * %s\n' % movie[1]
         if not empty(obj.short_biography):
             result += '\n%sShort biography%s\n' % (self.BOLD, self.NC)
             result += '%s' % obj.short_biography
@@ -250,6 +250,13 @@ class Cineoob(ReplApplication):
         inter = list(set(lid1) & set(lid2))
         for common in inter:
             movie = self.get_object(common, 'get_movie', caps=CapCinema)
+            role1 = movie.get_role_by_person_id(person1.id)
+            if not role1:
+                role1 = movie.get_role_by_person_name(person1.name)
+            role2 = movie.get_role_by_person_id(person2.id)
+            if not role2:
+                role2 = movie.get_role_by_person_name(person2.name)
+            movie.short_description = '%s as %s ; %s as %s'%(person1.name, role1, person2.name, role2)
             if movie:
                 self.cached_format(movie)
 
@@ -283,6 +290,13 @@ class Cineoob(ReplApplication):
         inter = list(set(lid1) & set(lid2))
         for common in inter:
             person = self.get_object(common, 'get_person', caps=CapCinema)
+            role1 = person.get_role_by_movie_id(movie1.id)
+            if not role1:
+                role1 = person.get_role_by_movie_title(movie1.original_title)
+            role2 = person.get_role_by_movie_id(movie2.id)
+            if not role2:
+                role2 = person.get_role_by_movie_title(movie2.original_title)
+            person.short_description = '%s in %s ; %s in %s'%(role1, movie1.original_title, role2, movie2.original_title)
             self.cached_format(person)
 
     def do_info_movie(self, id):

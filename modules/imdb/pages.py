@@ -206,7 +206,7 @@ class PersonPage(Page):
             category = role_div.attrib.get('data-category')
             for infos in self.parser.select(self.document.getroot(), 'div#filmography > div.filmo-category-section > div'):
                 if category in infos.attrib.get('id'):
-                    roles[role].append(infos.text_content().replace('\n', ' ').strip())
+                    roles[role].append(('N/A',infos.text_content().replace('\n', ' ').strip()))
         return roles
 
     def iter_movies(self, role_filter=None):

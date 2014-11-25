@@ -157,7 +157,7 @@ class ImdbBrowser(Browser):
             note = u'%s/10 (%s votes)' % (jres['imdbRating'], jres['imdbVotes'])
         for r in ['Actors', 'Director', 'Writer']:
             if '%s' % r in jres.keys():
-                roles['%s' % r] = jres['%s' % r].split(', ')
+                roles['%s' % r] = [('N/A',e) for e in jres['%s' % r].split(', ')]
 
         movie = Movie(id, title)
         movie.other_titles = other_titles

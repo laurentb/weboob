@@ -46,6 +46,18 @@ class Movie(BaseObject):
         BaseObject.__init__(self, id)
         self.original_title = original_title
 
+    def get_role_by_person_name(self,name):
+        for role in self.roles.keys():
+            if name.lower() in [person[1].lower() for person in self.roles[role]]:
+                 return role
+        return None
+
+    def get_role_by_person_id(self,id):
+        for role in self.roles.keys():
+            if id in [person[0] for person in self.roles[role]]:
+                 return role
+        return None
+
 
 class Person(BaseObject):
     """
@@ -67,6 +79,20 @@ class Person(BaseObject):
     def __init__(self, id, name):
         BaseObject.__init__(self, id)
         self.name = name
+
+    def get_role_by_movie_title(self,title):
+        for role in self.roles.keys():
+            for mt in [movie[1] for movie in self.roles[role]]:
+                # title we have is included ?
+                if title.lower() in mt.lower():
+                    return role
+        return None
+
+    def get_role_by_movie_id(self,id):
+        for role in self.roles.keys():
+            if id in [movie[0] for movie in self.roles[role]]:
+                 return role
+        return None
 
 
 class CapCinema(Capability):
