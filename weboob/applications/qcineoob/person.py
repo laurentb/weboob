@@ -35,6 +35,7 @@ class Person(QFrame):
 
         self.connect(self.ui.filmographyButton, SIGNAL("clicked()"), self.filmography)
         self.connect(self.ui.biographyButton, SIGNAL("clicked()"), self.biography)
+        self.connect(self.ui.moviesInCommonButton, SIGNAL("clicked()"), self.moviesInCommon)
 
         self.person = person
         self.backend = backend
@@ -87,3 +88,12 @@ class Person(QFrame):
         self.ui.biographyLabel.setText('Full biography:')
         self.ui.biographyButton.hide()
         QApplication.restoreOverrideCursor()
+
+    def moviesInCommon(self):
+        my_id = self.person.id
+        my_name = self.person.name
+        other_id = unicode(self.ui.moviesInCommonEdit.text()).split('@')[0]
+        other_person = self.backend.get_person(other_id)
+        other_name = other_person.name
+        desc = 'Movies in common %s, %s'%(my_name, other_name)
+        self.parent.doAction(desc, self.parent.moviesInCommonAction, [self.backend.name, my_id, other_id])
