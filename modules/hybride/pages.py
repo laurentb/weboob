@@ -30,20 +30,14 @@ from weboob.browser.filters.html import CleanHTML
 from weboob.browser.filters.html import Link
 
 
-def format_date(date):
-    splitted_date = date.split(',')[1]
-    if splitted_date:
-        return date_util.parse_french_date(splitted_date)
-
-
 class Date(Filter):
     def filter(self, text):
-        return format_date(text)
+        return date_util.parse_french_date(text)
 
 
 class CombineDate(Filter):
     def filter(self, text):
-        return datetime.combine(format_date(text), time.max)
+        return datetime.combine(date_util.parse_french_date(text), time.max)
 
 
 class ProgramPage(HTMLPage):
