@@ -131,9 +131,9 @@ class Result(QFrame):
         for common in inter:
             movie = backend.get_movie(common)
             movie.backend = backend_name
-            role1 = movie.get_role_by_person_id(person1.id)
-            role2 = movie.get_role_by_person_id(person2.id)
-            movie.short_description = '%s as %s ; %s as %s'%(person1.name, role1, person2.name, role2)
+            role1 = movie.get_roles_by_person_id(person1.id)
+            role2 = movie.get_roles_by_person_id(person2.id)
+            movie.short_description = '%s as %s ; %s as %s'%(person1.name, ', '.join(role1), person2.name, ', '.join(role2))
             self.addMovie(movie)
 
         self.processFinished()
@@ -167,9 +167,9 @@ class Result(QFrame):
         for common in inter:
             person = backend.get_person(common)
             person.backend = backend_name
-            role1 = movie1.get_role_by_person_id(person.id)
-            role2 = movie2.get_role_by_person_id(person.id)
-            person.short_description = '%s in %s ; %s in %s'%(role1, movie1.original_title, role2, movie2.original_title)
+            role1 = movie1.get_roles_by_person_id(person.id)
+            role2 = movie2.get_roles_by_person_id(person.id)
+            person.short_description = '%s in %s ; %s in %s'%(', '.join(role1), movie1.original_title, ', '.join(role2), movie2.original_title)
             self.addPerson(person)
 
         self.processFinished()
