@@ -23,7 +23,7 @@ from decimal import Decimal
 import re
 from time import sleep
 
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
 from weboob.deprecated.browser import Page, BrowserIncorrectPassword
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -50,10 +50,43 @@ class Transaction(FrenchTransaction):
                ]
 
 class InvestmentHistoryPage(Page):
+    COL_LABEL = 0
+    COL_QUANTITY = 1
+    COL_UNITVALUE = 2
+    COL_DATE = 3
+    COL_VALUATION = 4
+    COL_WEIGHT = 5
+    COL_UNITPRICE = 6
+    COL_PERF = 7
+    COL_PERF_PERCENT = 8
+    def get_investments(self):
+        for line in self.document.xpath('//table[@id="tableau_support"]/tbody/tr'):
+            cols = line.findall('td')
+
+            inv = Investment()
+            inv.id = unicode(re.search('cdReferentiel=(.*)', cols[self.COL_LABEL].find('a').attrib['href']).group(1))
+            inv.code = re.match('^[A-Z]+[0-9]+(.*)$', inv.id).group(1)
+            inv.quantity = self.parse_decimal(cols[self.COL_QUANTITY])
+            inv.unitprice = self.parse_decimal(cols[self.COL_UNITPRICE])
+            inv.unitvalue = self.parse_decimal(cols[self.COL_UNITVALUE])
+            inv.valuation = self.parse_decimal(cols[self.COL_VALUATION])
+            inv.diff = self.parse_decimal(cols[self.COL_PERF])
+
+            yield inv
+
+    def parse_decimal(self, string):
+        value = self.parser.tocleanstring(string)
+        if value == '-':
+            return NotAvailable
+        return Decimal(Transaction.clean_amount(value))
+
     def get_operations(self, _id):
-        raise NotImplementedError()
+        return iter([])
 
 class AccountHistoryPage(Page):
+    def get_investments(self):
+        return iter([])
+
     def get_operations(self, _id):
         """history, see http://docs.weboob.org/api/capabilities/bank.html?highlight=transaction#weboob.capabilities.bank.Transaction"""
 

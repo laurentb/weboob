@@ -58,9 +58,7 @@ class FortuneoModule(Module, CapBank):
 
     def iter_accounts(self):
         """Iter accounts"""
-
-        for account in self.browser.get_accounts_list():
-            yield account
+        return self.browser.get_accounts_list()
 
     def get_account(self, _id):
         with self.browser:
@@ -72,9 +70,9 @@ class FortuneoModule(Module, CapBank):
 
     def iter_history(self, account):
         """Iter history of transactions on a specific account"""
+        return self.browser.get_history(account)
 
-        with self.browser:
-            for history in self.browser.get_history(account):
-                yield history
+    def iter_investment(self, account):
+        return self.browser.get_investments(account)
 
 # vim:ts=4:sw=4
