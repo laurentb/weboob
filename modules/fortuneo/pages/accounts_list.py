@@ -122,6 +122,10 @@ class AccountsList(Page):
         form = self.document.xpath('//form[@name="InformationsPersonnellesForm"]')
         return len(form) > 0
 
+    ACCOUNT_TYPES = {'mes-comptes/compte-courant':    Account.TYPE_CHECKING,
+                     'mes-comptes/assurance-vie':     Account.TYPE_MARKET,
+                     'mes-comptes/livret':            Account.TYPE_LOAN,
+                    }
     def get_list(self):
         for cpt in self.document.xpath(".//*[@class='synthese_id_compte']"):
             account = Account()
@@ -154,8 +158,11 @@ class AccountsList(Page):
                 account._link_id = url_to_parse
 
             # account.label
-            temp_label = cpt.xpath('./text()')[1].replace(u'-\xa0', '').replace("\n", "").replace("\t", "")
-            account.label = " ".join(temp_label.split(" ")[:2])
+            account.label = cpt.xpath('./text()')[1].replace(u'-\xa0', '').replace("\n", "").replace("\t", "")
+
+            for pattern, type in self.ACCOUNT_TYPES.iteritems():
+                if pattern in account._link_id:
+                    account.type = type
 
             yield account
 
