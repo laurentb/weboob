@@ -227,7 +227,7 @@ class Result(QFrame):
 
     def addMovie(self, movie):
         minimovie = MiniMovie(self.weboob, self.weboob[movie.backend], movie, self)
-        self.ui.list_content.layout().addWidget(minimovie)
+        self.ui.list_content.layout().insertWidget(self.ui.list_content.layout().count()-1,minimovie)
         self.minis.append(minimovie)
 
     def displayMovie(self, movie, backend):
@@ -266,7 +266,7 @@ class Result(QFrame):
 
     def addPerson(self, person):
         miniperson = MiniPerson(self.weboob, self.weboob[person.backend], person, self)
-        self.ui.list_content.layout().addWidget(miniperson)
+        self.ui.list_content.layout().insertWidget(self.ui.list_content.layout().count()-1,miniperson)
         self.minis.append(miniperson)
 
     def displayPerson(self, person, backend):
@@ -311,7 +311,7 @@ class Result(QFrame):
 
     def addTorrent(self, torrent):
         minitorrent = MiniTorrent(self.weboob, self.weboob[torrent.backend], torrent, self)
-        self.ui.list_content.layout().addWidget(minitorrent)
+        self.ui.list_content.layout().insertWidget(self.ui.list_content.layout().count()-1,minitorrent)
         self.minis.append(minitorrent)
 
     def displayTorrent(self, torrent, backend):
@@ -349,7 +349,7 @@ class Result(QFrame):
 
     def addSubtitle(self, subtitle):
         minisubtitle = MiniSubtitle(self.weboob, self.weboob[subtitle.backend], subtitle, self)
-        self.ui.list_content.layout().addWidget(minisubtitle)
+        self.ui.list_content.layout().insertWidget(self.ui.list_content.layout().count()-1,minisubtitle)
         self.minis.append(minisubtitle)
 
     def displaySubtitle(self, subtitle, backend):
