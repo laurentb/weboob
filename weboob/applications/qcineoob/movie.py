@@ -40,6 +40,7 @@ class Movie(QFrame):
         self.connect(self.ui.castingButton, SIGNAL("clicked()"), self.casting)
         self.connect(self.ui.torrentButton, SIGNAL("clicked()"), self.searchTorrent)
         self.connect(self.ui.subtitleButton, SIGNAL("clicked()"), self.searchSubtitle)
+        self.connect(self.ui.personsInCommonButton, SIGNAL("clicked()"), self.personsInCommon)
 
         self.movie = movie
         self.backend = backend
@@ -122,3 +123,12 @@ class Movie(QFrame):
             role_desc = ' as %s' % role
         self.parent.doAction('Casting%s of movie "%s"' % (role_desc, self.movie.original_title),
                              self.parent.castingAction, [self.backend.name, self.movie.id, role])
+
+    def personsInCommon(self):
+        my_id = self.movie.id
+        my_title = self.movie.original_title
+        other_id = unicode(self.ui.personsInCommonEdit.text()).split('@')[0]
+        other_movie = self.backend.get_movie(other_id)
+        other_title = other_movie.original_title
+        desc = 'Persons in common %s, %s'%(my_title, other_title)
+        self.parent.doAction(desc, self.parent.personsInCommonAction, [self.backend.name, my_id, other_id])

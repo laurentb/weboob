@@ -102,6 +102,42 @@ class Result(QFrame):
         self.process.do('iter_movie_persons', id, role, backends=backend_name, caps=CapCinema)
         self.parent.ui.stopButton.show()
 
+    def personsInCommonAction(self, backend_name, id1, id2):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
+        for mini in self.minis:
+            self.ui.list_content.layout().removeWidget(mini)
+            mini.hide()
+            mini.deleteLater()
+
+        self.minis = []
+        self.parent.ui.searchEdit.setEnabled(False)
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+
+        for a_backend in self.weboob.iter_backends():
+            if (backend_name and a_backend.name == backend_name):
+                backend = a_backend
+                movie1 = backend.get_movie(id1)
+                movie2 = backend.get_movie(id2)
+
+        lid1 = []
+        for p in backend.iter_movie_persons_ids(id1):
+            lid1.append(p)
+        lid2 = []
+        for p in backend.iter_movie_persons_ids(id2):
+            lid2.append(p)
+
+        inter = list(set(lid1) & set(lid2))
+
+        for common in inter:
+            person = backend.get_person(common)
+            person.backend = backend_name
+            role1 = movie1.get_role_by_person_id(person.id)
+            role2 = movie2.get_role_by_person_id(person.id)
+            person.short_description = '%s in %s ; %s in %s'%(role1, movie1.original_title, role2, movie2.original_title)
+            self.addPerson(person)
+
+        self.processFinished()
+
     def filmographyAction(self, backend_name, id, role):
         self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
         for mini in self.minis:
