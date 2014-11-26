@@ -66,6 +66,7 @@ class InvestmentHistoryPage(Page):
             inv = Investment()
             inv.id = unicode(re.search('cdReferentiel=(.*)', cols[self.COL_LABEL].find('a').attrib['href']).group(1))
             inv.code = re.match('^[A-Z]+[0-9]+(.*)$', inv.id).group(1)
+            inv.label = self.parser.tocleanstring(cols[self.COL_LABEL])
             inv.quantity = self.parse_decimal(cols[self.COL_QUANTITY])
             inv.unitprice = self.parse_decimal(cols[self.COL_UNITPRICE])
             inv.unitvalue = self.parse_decimal(cols[self.COL_UNITVALUE])
