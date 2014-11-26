@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from PyQt4.QtGui import QFrame
-from PyQt4.QtCore import Qt, SIGNAL
+from PyQt4.QtCore import SIGNAL
 
 from weboob.applications.qcineoob.ui.minitorrent_ui import Ui_MiniTorrent
 from weboob.applications.weboorrents.weboorrents import sizeof_fmt
