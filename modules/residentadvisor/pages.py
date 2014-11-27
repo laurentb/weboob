@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.calendar import CATEGORIES, STATUS
+from weboob.capabilities.calendar import CATEGORIES, STATUS, TICKET
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.html import Attr, CleanHTML, Link
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, CombineDate, DateTime, Regexp, Time, Type
@@ -95,6 +95,17 @@ class EventPage(BasePage):
                 end_date += timedelta(days = 1)
 
             return end_date
+
+        def obj_ticket(self):
+            li_class = Attr('//li[@id="tickets"]//li[1]', 'class', default=None)(self)
+
+            if li_class:
+                if li_class == 'closed':
+                    return TICKET.CLOSED
+                else:
+                    return TICKET.AVAILABLE
+
+            return TICKET.NOTAVAILABLE
 
 
 class SearchPage(BasePage):
