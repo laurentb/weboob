@@ -149,6 +149,9 @@ class UpcomingFormatter(IFormatter):
         if hasattr(obj, 'price') and not empty(obj.price):
             result += u'Price: %i\n' % obj.price
 
+        if hasattr(obj, 'ticket') and not empty(obj.ticket):
+            result += u'Ticket: %s\n' % obj.ticket
+
         if hasattr(obj, 'url') and not empty(obj.url):
             result += u'url: %s\n' % obj.url
 
