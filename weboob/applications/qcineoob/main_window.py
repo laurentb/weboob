@@ -23,6 +23,7 @@ import codecs
 from PyQt4.QtCore import SIGNAL, Qt, QStringList
 from PyQt4.QtGui import QApplication, QCompleter, QFrame, QShortcut, QKeySequence
 
+from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.cinema import CapCinema
 from weboob.capabilities.torrent import CapTorrent
 from weboob.capabilities.subtitle import CapSubtitle
@@ -128,12 +129,24 @@ class Result(QFrame):
 
         inter = list(set(lid1) & set(lid2))
 
+        chrono_list = []
         for common in inter:
             movie = backend.get_movie(common)
             movie.backend = backend_name
             role1 = movie.get_roles_by_person_id(person1.id)
             role2 = movie.get_roles_by_person_id(person2.id)
-            movie.short_description = '%s as %s ; %s as %s'%(person1.name, ', '.join(role1), person2.name, ', '.join(role2))
+            if (movie.release_date != NotAvailable):
+                year = movie.release_date.year
+            else:
+                year = '????'
+            movie.short_description = '(%s) %s as %s ; %s as %s'%(year , person1.name, ', '.join(role1), person2.name, ', '.join(role2))
+            i = 0
+            while (i<len(chrono_list) and movie.release_date != NotAvailable and
+                  (chrono_list[i].release_date == NotAvailable or year > chrono_list[i].release_date.year)):
+                i += 1
+            chrono_list.insert(i, movie)
+
+        for movie in chrono_list:
             self.addMovie(movie)
 
         self.processFinished()
