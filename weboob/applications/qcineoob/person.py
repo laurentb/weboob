@@ -20,7 +20,7 @@
 import urllib
 
 from PyQt4.QtCore import SIGNAL, Qt
-from PyQt4.QtGui import QFrame, QImage, QPixmap, QApplication
+from PyQt4.QtGui import QFrame, QImage, QPixmap, QApplication, QMessageBox
 
 from weboob.applications.qcineoob.ui.person_ui import Ui_Person
 from weboob.capabilities.base import empty
@@ -94,6 +94,15 @@ class Person(QFrame):
         my_name = self.person.name
         other_id = unicode(self.ui.moviesInCommonEdit.text()).split('@')[0]
         other_person = self.backend.get_person(other_id)
-        other_name = other_person.name
-        desc = 'Movies in common %s, %s'%(my_name, other_name)
-        self.parent.doAction(desc, self.parent.moviesInCommonAction, [self.backend.name, my_id, other_id])
+        if other_id == self.person.id:
+            QMessageBox.critical(None, self.tr('"Moviess in common" error'),
+                                 unicode(self.tr('Nice try\nThe persons must be different')),
+                                 QMessageBox.Ok)
+        elif not other_person:
+            QMessageBox.critical(None, self.tr('"Movies in common" error'),
+                                 unicode(self.tr('Person not found: %s' % other_id)),
+                                 QMessageBox.Ok)
+        else:
+            other_name = other_person.name
+            desc = 'Movies in common %s, %s'%(my_name, other_name)
+            self.parent.doAction(desc, self.parent.moviesInCommonAction, [self.backend.name, my_id, other_id])
