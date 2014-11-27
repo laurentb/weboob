@@ -53,7 +53,7 @@ class AllocineBrowser(Browser):
 
     def iter_movies(self, pattern):
         params = [('partner', self.PARTNER_KEY),
-                  ('q', pattern.encode('utf-8')),
+                  ('q', pattern),
                   ('format', 'json'),
                   ('filter', 'movie')]
 
@@ -92,7 +92,7 @@ class AllocineBrowser(Browser):
 
     def iter_persons(self, pattern):
         params = [('partner', self.PARTNER_KEY),
-                  ('q', pattern.encode('utf-8')),
+                  ('q', pattern),
                   ('format', 'json'),
                   ('filter', 'person')]
 
