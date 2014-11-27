@@ -44,6 +44,7 @@ CATEGORIES = enum(CONCERT=u'Concert', CINE=u'Cinema', THEATRE=u'Theatre', TELE=u
 #see http://fr.wikipedia.org/wiki/ICalendar#Ev.C3.A9nements_.28VEVENT.29
 TRANSP = enum(OPAQUE=u'OPAQUE', TRANSPARENT=u'TRANSPARENT')
 STATUS = enum(TENTATIVE=u'TENTATIVE', CONFIRMED=u'CONFIRMED', CANCELLED=u'CANCELLED')
+TICKET = enum(AVAILABLE=u'Available', NOTAVAILABLE=u'Not available', CLOSED='Closed')
 
 
 class BaseCalendarEvent(BaseObject):
@@ -72,6 +73,8 @@ class BaseCalendarEvent(BaseObject):
     status = Field('Status of theevent', *STATUS.types)
     # (OPAQUE, TRANSPARENT)
     transp = Field('Describes if event is available', *TRANSP.types)
+    # (AVAILABLE, NOTAVAILABLE, CLOSED)
+    ticket = Field('Describes if tickets are available', *TICKET.types)
 
     @classmethod
     def id2url(cls, _id):
