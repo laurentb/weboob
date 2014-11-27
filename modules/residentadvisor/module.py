@@ -135,22 +135,26 @@ class ResidentadvisorModule(Module, CapCalendarEvent):
         if not self.has_matching_categories(query):
             raise StopIteration()
 
+        events = None
+
         if query.city:
             # FIXME
             # we need the country to search the city_id in an efficient way
             city_id = self.browser.get_city_id(query.city)
 
-            for event in self.browser.get_events(city = city_id):
-                yield event
+            events = self.browser.get_events(city = city_id)
         elif query.summary:
-            for event in self.browser.search_events_by_summary(query.summary):
-                yield event
+            events = self.browser.search_events_by_summary(query.summary)
         else:
-            for event in self.list_events(query.start_date, query.end_date):
+            events = self.list_events(query.start_date, query.end_date)
+
+        for event in events:
+            event = self.fillobj(event, ['ticket'])
+            if event.ticket in query.ticket:
                 yield event
 
     def fill_event(self, event, fields):
-        if set(fields) & set(('end_date', 'price', 'description')):
+        if set(fields) & set(('end_date', 'price', 'description', 'ticket')):
             return self.get_event(event.id)
 
         return event
