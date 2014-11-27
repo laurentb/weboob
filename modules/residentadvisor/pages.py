@@ -75,7 +75,7 @@ class EventPage(BasePage):
 
         obj_summary = CleanText('//div[@id="sectionHead"]/h1')
         obj_description = CleanHTML('//div[@id="event-item"]/div[3]/p[2]')
-        obj_price = CleanDecimal(Regexp(CleanText('//aside[@id="detail"]/ul/li[3]'), r'Cost / [^\d]+([\d ,.]+).', default=''), default=None)
+        obj_price = CleanDecimal(Regexp(CleanText('//aside[@id="detail"]/ul/li[3]'), r'Cost /[^\d]*([\d ,.]+).', default=''), default=None)
         obj_location = Regexp(CleanText('//aside[@id="detail"]/ul/li[2]'), r'Venue / (.+)')
         obj_booked_entries = Type(CleanText('//h1[@id="MembersFavouriteCount"]'), type=int)
         obj_status = STATUS.CONFIRMED
