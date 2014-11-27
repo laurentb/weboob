@@ -26,7 +26,7 @@ from weboob.applications.suboob.suboob import SubtitleInfoFormatter, SubtitleLis
 from weboob.capabilities.torrent import CapTorrent, MagnetOnly
 from weboob.capabilities.cinema import CapCinema
 from weboob.capabilities.subtitle import CapSubtitle
-from weboob.capabilities.base import empty
+from weboob.capabilities.base import empty, NotAvailable
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.core import CallErrors
@@ -248,6 +248,8 @@ class Cineoob(ReplApplication):
             lid2.append(id)
         self.options.count = initial_count
         inter = list(set(lid1) & set(lid2))
+
+        chrono_list = []
         for common in inter:
             movie = self.get_object(common, 'get_movie', caps=CapCinema)
             role1 = movie.get_roles_by_person_id(person1.id)
@@ -256,9 +258,21 @@ class Cineoob(ReplApplication):
             role2 = movie.get_roles_by_person_id(person2.id)
             if not role2:
                 role2 = movie.get_roles_by_person_name(person2.name)
-            movie.short_description = '%s as %s ; %s as %s'%(person1.name, ', '.join(role1), person2.name, ', '.join(role2))
+
+            if (movie.release_date != NotAvailable):
+                year = movie.release_date.year
+            else:
+                year = '????'
+            movie.short_description = '(%s) %s as %s ; %s as %s'%(year, person1.name, ', '.join(role1), person2.name, ', '.join(role2))
             if movie:
-                self.cached_format(movie)
+                i = 0
+                while (i<len(chrono_list) and movie.release_date != NotAvailable and
+                      (chrono_list[i].release_date == NotAvailable or year > chrono_list[i].release_date.year)):
+                    i += 1
+                chrono_list.insert(i, movie)
+
+        for movie in chrono_list:
+            self.cached_format(movie)
 
     def do_persons_in_common(self, line):
         """
