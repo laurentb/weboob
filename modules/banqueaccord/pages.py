@@ -23,6 +23,7 @@ from decimal import Decimal, InvalidOperation
 import re
 from cStringIO import StringIO
 
+from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
@@ -136,6 +137,9 @@ class IndexPage(LoggedPage, HTMLPage):
         nb = int(self.loan_nb(self.doc))
         total_amount = - self.loan_total_amount(self.doc)
         amount = self.loan_amount(self.doc)
+
+        if init_date is NotAvailable and total_amount == Decimal('0.0'):
+            return
 
         for _ in xrange(nb):
             next_date = next_date - relativedelta(months=1)
