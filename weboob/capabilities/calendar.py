@@ -97,19 +97,9 @@ class Query(BaseObject):
     start_date = DateField('Start date of the event')
     end_date = DateField('End date of the event')
     city = StringField('Name of the city in witch event will take place')
-    categories = Field('List of categories of the event', list, tuple)
-    ticket = Field('List of status of the tickets sale', list, tuple)
+    categories = Field('List of categories of the event', list, tuple, default=CATEGORIES.values)
+    ticket = Field('List of status of the tickets sale', list, tuple, default=TICKET.values)
     summary = StringField('Title of the event')
-
-    def __init__(self):
-        BaseObject.__init__(self, '')
-        self.categories = []
-        for value in CATEGORIES.values:
-            self.categories.append(value)
-
-        self.ticket = []
-        for value in TICKET.values:
-            self.ticket.append(value)
 
 
 class CapCalendarEvent(CapCollection):
