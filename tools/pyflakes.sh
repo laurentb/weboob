@@ -31,6 +31,11 @@ else
     if which pyflakes-python2 >/dev/null 2>&1; then
         PYFLAKES=pyflakes-python2
     fi
+    if [ -z "${PYFLAKES}" ]
+    then
+        echo "pyflakes not found"
+        exit 1
+    fi
     # check for modern pyflakes
     if ${PYFLAKES} --version >/dev/null 2>&1; then
         exec ${PYFLAKES} $PYFILES
