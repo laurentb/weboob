@@ -20,7 +20,7 @@
 import urllib
 
 from PyQt4.QtGui import QFrame, QImage, QPixmap, QApplication
-from PyQt4.QtCore import Qt
+from PyQt4.QtCore import Qt, SIGNAL
 
 from weboob.applications.qcookboob.ui.minirecipe_ui import Ui_MiniRecipe
 from weboob.capabilities.base import empty
@@ -46,13 +46,30 @@ class MiniRecipe(QFrame):
             self.ui.shortDescLabel.setText('')
         self.ui.backendLabel.setText(backend.name)
 
-        self.gotThumbnail()
+        self.connect(self.ui.newTabButton, SIGNAL("clicked()"), self.newTabPressed)
+        self.connect(self.ui.viewButton, SIGNAL("clicked()"), self.viewPressed)
+        self.connect(self.ui.viewThumbnailButton, SIGNAL("clicked()"), self.gotThumbnail)
+
+        if self.parent.parent.ui.showTCheck.isChecked():
+            self.gotThumbnail()
 
     def gotThumbnail(self):
         if not empty(self.recipe.thumbnail_url):
             data = urllib.urlopen(self.recipe.thumbnail_url).read()
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToHeight(100,Qt.SmoothTransformation))
+
+    def viewPressed(self):
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        recipe = self.backend.get_recipe(self.recipe.id)
+        if recipe:
+            self.parent.doAction('Details of recipe "%s"' %
+                                 recipe.title, self.parent.displayRecipe, [recipe, self.backend])
+
+    def newTabPressed(self):
+        recipe = self.backend.get_recipe(self.recipe.id)
+        self.parent.parent.newTab(u'Details of recipe "%s"' %
+             recipe.title, self.backend, recipe=recipe)
 
     def enterEvent(self, event):
         self.setFrameShadow(self.Sunken)
@@ -65,8 +82,9 @@ class MiniRecipe(QFrame):
     def mousePressEvent(self, event):
         QFrame.mousePressEvent(self, event)
 
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        recipe = self.backend.get_recipe(self.recipe.id)
-        if recipe:
-            self.parent.doAction('Details of recipe "%s"' %
-                                 recipe.title, self.parent.displayRecipe, [recipe, self.backend])
+        if event.button() == 2:
+            self.gotThumbnail()
+        elif event.button() == 4:
+            self.newTabPressed()
+        else:
+            self.viewPressed()

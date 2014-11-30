@@ -83,131 +83,27 @@
      </widget>
     </item>
     <item>
-     <widget class="QFrame" name="frame">
-      <property name="frameShape">
-       <enum>QFrame::NoFrame</enum>
+     <widget class="QTabWidget" name="resultsTab">
+      <property name="currentIndex">
+       <number>-1</number>
       </property>
-      <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
+      <property name="tabsClosable">
+       <bool>true</bool>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="backButton">
-         <property name="maximumSize">
-          <size>
-           <width>60</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>&lt;&lt;back</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="currentActionLabel">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
-     <widget class="QStackedWidget" name="stackedWidget">
-      <widget class="QWidget" name="list_page">
-       <layout class="QVBoxLayout" name="verticalLayout_3">
-        <item>
-         <widget class="QScrollArea" name="scrollArea">
-          <property name="widgetResizable">
-           <bool>true</bool>
-          </property>
-          <widget class="QWidget" name="list_content">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>708</width>
-             <height>261</height>
-            </rect>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_2"/>
-          </widget>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="info_page">
-       <layout class="QVBoxLayout" name="movieInfoLayout">
-        <item>
-         <widget class="QScrollArea" name="scrollArea_2">
-          <property name="widgetResizable">
-           <bool>true</bool>
-          </property>
-          <widget class="QWidget" name="info_content">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>96</width>
-             <height>26</height>
-            </rect>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_8"/>
-          </widget>
-         </widget>
-        </item>
-       </layout>
-      </widget>
+      <property name="movable">
+       <bool>true</bool>
+      </property>
      </widget>
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QCheckBox" name="showTCheck">
+        <property name="text">
+         <string>Show thumbnails</string>
+        </property>
+       </widget>
+      </item>
       <item>
        <widget class="QLabel" name="label_2">
         <property name="text">
@@ -228,7 +124,7 @@
      <x>0</x>
      <y>0</y>
      <width>748</width>
-     <height>23</height>
+     <height>27</height>
     </rect>
    </property>
   </widget>
@@ -244,19 +140,10 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionBackends"/>
-   <addaction name="actionQuit"/>
   </widget>
   <action name="actionBackends">
    <property name="text">
     <string>Backends</string>
-   </property>
-  </action>
-  <action name="actionQuit">
-   <property name="text">
-    <string>Quit</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Q</string>
    </property>
   </action>
  </widget>
