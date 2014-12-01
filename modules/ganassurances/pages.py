@@ -97,7 +97,7 @@ class TransactionsPage(HTMLPage):
         head_xpath = '//table[@id="releve_operation"]//tr/th'
         item_xpath = '//table[@id="releve_operation"]//tr'
 
-        col_date =       [u'Date opé', 'Date']
+        col_date =       [u'Date opé', 'Date', u'Date d\'opé']
         col_vdate =      [u'Date valeur']
 
         class item(Transaction.TransactionElement):
