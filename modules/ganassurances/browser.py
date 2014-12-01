@@ -57,23 +57,26 @@ class GanAssurances(LoginBrowser):
         return self.page.get_list()
 
     def get_history(self, account):
-        if account._link is None:
-            return iter([])
+        accounts = self.get_accounts_list()
+        for a in accounts:
+            if a.id == account.id:
+                self.location(a._link)
+                assert self.transactions.is_here()
+                return self.page.get_history()
 
-        self.location(account._link)
+        return iter([])
 
-        assert self.transactions.is_here()
-
-        return self.page.get_history()
 
     def get_coming(self, account):
-        if account._link is None:
-            return iter([])
+        accounts = self.get_accounts_list()
+        for a in accounts:
+            if a.id == account.id:
+                self.location(a._link)
+                assert self.transactions.is_here()
 
-        self.location(account._link)
-        assert self.transactions.is_here()
+                self.location(self.page.get_coming_link())
+                assert self.transactions.is_here()
 
-        self.location(self.page.get_coming_link())
-        assert self.transactions.is_here()
+                return self.page.get_history()
 
-        return self.page.get_history()
+        return iter([])
