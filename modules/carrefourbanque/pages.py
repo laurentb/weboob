@@ -19,6 +19,7 @@
 
 
 import re
+from decimal import Decimal
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
@@ -50,12 +51,17 @@ class HomePage(LoggedPage, HTMLPage):
             klass = Account
 
             def condition(self):
-                return len(self.el.xpath('.//div[@class="catre_col_one"]/h2')) > 0
+                return len(self.el.xpath('.//div[@class="catre_col_two"]/h2')) > 0
+
+            def obj_balance(self):
+                if len(self.el.xpath('.//div[@class="catre_col_one"]/h2')) > 0:
+                    return CleanDecimal(Format('-%s', CleanText('.//div[@class="catre_col_one"]/h2')), replace_dots=True)(self)
+                else:
+                    return Decimal('0')
 
             obj_id = CleanText('.//div[@class="carte_col_leftcol"]/p') & Regexp(pattern=r'(\d+)')
             obj_label = CleanText('.//div[@class="carte_col_leftcol"]/h2')
-            obj_balance = Format('-%s', CleanText('.//div[@class="catre_col_one"]/h2')) & CleanDecimal(replace_dots=True)
-            obj_currency = FrenchTransaction.Currency('.//div[@class="catre_col_one"]/h2')
+            obj_currency = FrenchTransaction.Currency('.//div[@class="catre_col_two"]/h2')
             obj__link = Link('.//a[contains(@href, "solde-dernieres-operations")]')
 
 
