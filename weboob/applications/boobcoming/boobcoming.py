@@ -364,7 +364,8 @@ class Boobcoming(ReplApplication):
 
         l = self.retrieve_events(args[0])
         for event in l:
-            self.do('attends_event', event, True)
+            # we wait till the work be done, else the errors are not handled
+            self.do('attends_event', event, True).wait()
 
     def do_unattends(self, line):
         """
