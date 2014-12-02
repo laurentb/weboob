@@ -125,8 +125,9 @@ class HousingPage2(JsonPage):
         def obj_photos(self):
             photos = []
             for img in Dict('characteristics/images')(self):
-                m = re.search('.*(http://photos.ubiflow.net.*)', img)
+                m = re.search('http://thbr\.figarocms\.net.*(http://.*)', img)
                 if m:
+                    print m.group(0)
                     photos.append(HousingPhoto(m.group(1)))
             return photos
 
@@ -164,7 +165,7 @@ class HousingPage(HTMLPage):
         def obj_photos(self):
             photos = []
             for img in XPath('//a[@class="thumbnail-link"]/img[@itemprop="image"]')(self):
-                url = Regexp(CleanText('./@src'), '.*(http://photos.ubiflow.net.*)')(img)
+                url = Regexp(CleanText('./@src'), 'http://thbr\.figarocms\.net.*(http://.*)')(img)
                 photos.append(HousingPhoto(url))
             return photos
 
