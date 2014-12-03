@@ -21,6 +21,7 @@
 from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
+from weboob.capabilities.base import find_object
 
 from .browser import LCLBrowser, LCLProBrowser
 from .enterprise.browser import LCLEnterpriseBrowser, LCLEspaceProBrowser
@@ -64,36 +65,20 @@ class LCLModule(Module, CapBank):
         if not self._browser:
             return
 
-        try:
-            deinit = self.browser.deinit
-        except AttributeError:
-            pass
-        else:
-            deinit()
+        self.browser.deinit()
 
     def iter_accounts(self):
-        for account in self.browser.get_accounts_list():
-            yield account
+        return self.browser.get_accounts_list()
 
     def get_account(self, _id):
-        with self.browser:
-            account = self.browser.get_account(_id)
-        if account:
-            return account
-        else:
-            raise AccountNotFound()
+        return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
 
     def iter_coming(self, account):
-        if self.BROWSER != LCLBrowser:
-            raise NotImplementedError()
-
-        with self.browser:
-            transactions = list(self.browser.get_cb_operations(account))
-            transactions.sort(key=lambda tr: tr.rdate, reverse=True)
-            return transactions
+        transactions = list(self.browser.get_cb_operations(account))
+        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        return transactions
 
     def iter_history(self, account):
-        with self.browser:
-            transactions = list(self.browser.get_history(account))
-            transactions.sort(key=lambda tr: tr.rdate, reverse=True)
-            return transactions
+        transactions = list(self.browser.get_history(account))
+        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        return transactions

@@ -118,6 +118,9 @@ class LCLEnterpriseBrowser(Browser):
             for tr in self.page.get_operations():
                 yield tr
 
+    def get_cb_operations(self, account):
+        raise NotImplementedError()
+
 
 class LCLEspaceProBrowser(LCLEnterpriseBrowser):
     BASEURL = 'https://espacepro.secure.lcl.fr'

@@ -18,12 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import urllib
 from urlparse import urlsplit, parse_qsl
-from mechanize import Cookie
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword
+from weboob.browser import LoginBrowser, URL, need_login
 
-from .pages import SkipPage, LoginPage, AccountsPage, AccountHistoryPage, \
+from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    CBListPage, CBHistoryPage, ContractsPage
 
 
@@ -31,67 +32,49 @@ __all__ = ['LCLBrowser','LCLProBrowser']
 
 
 # Browser
-class LCLBrowser(Browser):
-    PROTOCOL = 'https'
-    DOMAIN = 'particuliers.secure.lcl.fr'
-    CERTHASH = ['825a1cda9f3c7176af327013a20145ad587d1f7e2a7e226a1cb5c522e6e00b84']
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['wget']
-    PAGES = {
-        'https://particuliers.secure.lcl.fr/outil/UAUT/Authentication/authenticate': LoginPage,
-        'https://particuliers.secure.lcl.fr/outil/UAUT\?from=.*': LoginPage,
-        'https://particuliers.secure.lcl.fr/outil/UAUT/Accueil/preRoutageLogin': LoginPage,
-        'https://particuliers.secure.lcl.fr//outil/UAUT/Contract/routing': LoginPage,
-        'https://particuliers.secure.lcl.fr/outil/UWER/Accueil/majicER': LoginPage,
-        'https://particuliers.secure.lcl.fr/outil/UWER/Enregistrement/forwardAcc': LoginPage,
-        'https://particuliers.secure.lcl.fr/outil/UAUT/Contrat/choixContrat.*': ContractsPage,
-        'https://particuliers.secure.lcl.fr/outil/UAUT/Contract/getContract.*': ContractsPage,
-        'https://particuliers.secure.lcl.fr/outil/UAUT/Contract/selectContracts.*': ContractsPage,
-        'https://particuliers.secure.lcl.fr/outil/UWSP/Synthese': AccountsPage,
-        'https://particuliers.secure.lcl.fr/outil/UWLM/ListeMouvements.*/accesListeMouvements.*': AccountHistoryPage,
-        'https://particuliers.secure.lcl.fr/outil/UWCB/UWCBEncours.*/listeCBCompte.*': CBListPage,
-        'https://particuliers.secure.lcl.fr/outil/UWCB/UWCBEncours.*/listeOperations.*': CBHistoryPage,
-        'https://particuliers.secure.lcl.fr/outil/UAUT/Contrat/selectionnerContrat.*': SkipPage,
-        'https://particuliers.secure.lcl.fr/index.html': SkipPage
-        }
+class LCLBrowser(LoginBrowser):
+    BASEURL = 'https://particuliers.secure.lcl.fr'
 
-    def is_logged(self):
-        return not self.is_on_page(LoginPage)
+    login = URL('/outil/UAUT/Authentication/authenticate',
+                '/outil/UAUT\?from=.*',
+                '/outil/UAUT/Accueil/preRoutageLogin',
+                '.*outil/UAUT/Contract/routing',
+                '/outil/UWER/Accueil/majicER',
+                '/outil/UWER/Enregistrement/forwardAcc',
+                LoginPage)
+    contracts = URL('/outil/UAUT/Contrat/choixContrat.*',
+                    '/outil/UAUT/Contract/getContract.*',
+                    '/outil/UAUT/Contract/selectContracts.*',
+                    ContractsPage)
+    accounts = URL('/outil/UWSP/Synthese', AccountsPage)
+    history = URL('/outil/UWLM/ListeMouvements.*/accesListeMouvements.*', AccountHistoryPage)
+    cb_list = URL('/outil/UWCB/UWCBEncours.*/listeCBCompte.*', CBListPage)
+    cb_history = URL('/outil/UWCB/UWCBEncours.*/listeOperations.*', CBHistoryPage)
+    skip = URL('/outil/UAUT/Contrat/selectionnerContrat.*',
+               '/index.html')
 
-    def login(self):
+    def deinit(self):
+        pass
+
+    def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
         assert self.password.isdigit()
 
-        if not self.is_on_page(LoginPage):
-            self.location('%s://%s/outil/UAUT/Authentication/authenticate'
-                          % (self.PROTOCOL, self.DOMAIN),
-                          no_login=True)
+        self.login.stay_or_go()
 
         if not self.page.login(self.username, self.password) or \
-           (self.is_on_page(LoginPage) and self.page.is_error()) :
+           (self.login.is_here() and self.page.is_error()) :
             raise BrowserIncorrectPassword("invalid login/password.\nIf you did not change anything, be sure to check for password renewal request\non the original web site.\nAutomatic renewal will be implemented later.")
-        self.location('%s://%s/outil/UWSP/Synthese'
-                      % (self.PROTOCOL, self.DOMAIN),
-                      no_login=True)
 
+        self.accounts.stay_or_go()
+
+    @need_login
     def get_accounts_list(self):
-        if not self.is_on_page(AccountsPage):
-            self.location('%s://%s/outil/UWSP/Synthese'
-                      % (self.PROTOCOL, self.DOMAIN))
-
+        self.accounts.stay_or_go()
         return self.page.get_list()
 
-    def get_account(self, id):
-        assert isinstance(id, basestring)
-
-        l = self.get_accounts_list()
-        for a in l:
-            if a.id == id:
-                return a
-
-        return None
-
+    @need_login
     def get_history(self, account):
         self.location(account._link_id)
         for tr in self.page.get_operations():
@@ -100,6 +83,7 @@ class LCLBrowser(Browser):
         for tr in self.get_cb_operations(account, 1):
             yield tr
 
+    @need_login
     def get_cb_operations(self, account, month=0):
         """
         Get CB operations.
@@ -112,7 +96,7 @@ class LCLBrowser(Browser):
             args = dict(parse_qsl(v.query))
             args['MOIS'] = month
 
-            self.location(self.buildurl(v.path, **args))
+            self.location('%s?%s' % (v.path, urllib.urlencode(args)))
 
             for tr in self.page.get_operations():
                 yield tr
@@ -124,45 +108,11 @@ class LCLBrowser(Browser):
 
 
 class LCLProBrowser(LCLBrowser):
-    PROTOCOL = 'https'
-    DOMAIN = 'professionnels.secure.lcl.fr'
-    CERTHASH = ['6ae7053ef30f7c7810673115b021a42713f518f3a87b2e73ef565c16ead79f81']
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['wget']
-    PAGES = {
-        'https://professionnels.secure.lcl.fr/outil/UAUT?from=/outil/UWHO/Accueil/': LoginPage,
-        'https://professionnels.secure.lcl.fr/outil/UAUT\?from=.*': LoginPage,
-        'https://professionnels.secure.lcl.fr/outil/UAUT/Accueil/preRoutageLogin': LoginPage,
-        'https://professionnels.secure.lcl.fr//outil/UAUT/Contract/routing': LoginPage,
-        'https://professionnels.secure.lcl.fr/outil/UWER/Accueil/majicER': LoginPage,
-        'https://professionnels.secure.lcl.fr/outil/UWER/Enregistrement/forwardAcc': LoginPage,
-        'https://professionnels.secure.lcl.fr/outil/UAUT/Contrat/choixContrat.*': ContractsPage,
-        'https://professionnels.secure.lcl.fr/outil/UAUT/Contract/getContract.*': ContractsPage,
-        'https://professionnels.secure.lcl.fr/outil/UAUT/Contract/selectContracts.*': ContractsPage,
-        'https://professionnels.secure.lcl.fr/outil/UWSP/Synthese': AccountsPage,
-        'https://professionnels.secure.lcl.fr/outil/UWLM/ListeMouvements.*/accesListeMouvements.*': AccountHistoryPage,
-        'https://professionnels.secure.lcl.fr/outil/UWCB/UWCBEncours.*/listeCBCompte.*': CBListPage,
-        'https://professionnels.secure.lcl.fr/outil/UWCB/UWCBEncours.*/listeOperations.*': CBHistoryPage,
-        'https://professionnels.secure.lcl.fr/outil/UAUT/Contrat/selectionnerContrat.*': SkipPage,
-        'https://professionnels.secure.lcl.fr/index.html': SkipPage
-        }
+    BASEURL = 'https://professionnels.secure.lcl.fr'
+
     #We need to add this on the login form
     IDENTIFIANT_ROUTING = 'CLA'
 
-    def add_cookie(self, name, value):
-        c = Cookie(0, name, value,
-                      None, False,
-                      '.' + self.DOMAIN, True, True,
-                      '/', False,
-                      False,
-                      None,
-                      False,
-                      None,
-                      None,
-                      {})
-        cookiejar = self._ua_handlers["_cookies"].cookiejar
-        cookiejar.set_cookie(c)
-
     def __init__(self, *args, **kwargs):
-        Browser.__init__(self, *args, **kwargs)
-        self.add_cookie("lclgen","professionnels")
+        super(LCLProBrowser, self).__init__(*args, **kwargs)
+        self.session.cookies.set("lclgen","professionnels")
