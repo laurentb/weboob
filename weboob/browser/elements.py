@@ -294,11 +294,16 @@ class TableElement(ListElement):
                     cols = [cols]
                 columns[m.group(1)] = [s.lower() for s in cols]
 
-        for colnum, el in enumerate(self.el.xpath(self.head_xpath)):
+        colnum = 0
+        for el in self.el.xpath(self.head_xpath):
             title = self.cleaner.clean(el).lower()
             for name, titles in columns.iteritems():
-                if title in titles:
+                if title in titles and not name in self._cols:
                     self._cols[name] = colnum
+            try:
+                colnum += int(el.attrib.get('colspan', 1))
+            except ValueError:
+                colnum += 1
 
     def get_colnum(self, name):
         return self._cols.get(name, None)
