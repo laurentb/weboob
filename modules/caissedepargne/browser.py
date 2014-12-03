@@ -126,4 +126,5 @@ class CaisseEpargne(Browser):
     def get_coming(self, account):
         for info in account._card_links:
             for tr in self._get_history(info):
+                tr.type = tr.TYPE_CARD
                 yield tr
