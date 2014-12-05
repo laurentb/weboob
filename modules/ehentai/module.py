@@ -53,9 +53,9 @@ class EHentaiModule(Module, CapGallery, CapCollection):
             password = None
         return self.create_browser(self.config['domain'].get(), username, password)
 
-    def search_gallery(self, pattern, sortby=None):
+    def search_galleries(self, pattern, sortby=None):
         with self.browser:
-            return self.browser.search_gallery(pattern)
+            return self.browser.search_galleries(pattern)
 
     def iter_gallery_images(self, gallery):
         self.fillobj(gallery, ('url',))

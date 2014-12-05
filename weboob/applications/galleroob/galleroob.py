@@ -71,7 +71,7 @@ class Galleroob(ReplApplication):
             return 2
 
         self.start_format(pattern=pattern)
-        for gallery in self.do('search_gallery', pattern=pattern):
+        for gallery in self.do('search_galleries', pattern=pattern):
             self.cached_format(gallery)
 
     def do_download(self, line):

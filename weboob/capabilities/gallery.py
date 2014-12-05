@@ -113,7 +113,7 @@ class CapGallery(Capability):
      SEARCH_VIEWS,
      SEARCH_DATE) = range(4)
 
-    def search_gallery(self, pattern, sortby=SEARCH_RELEVANCE):
+    def search_galleries(self, pattern, sortby=SEARCH_RELEVANCE):
         """
         Iter results of a search on a pattern.
 

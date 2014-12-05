@@ -26,7 +26,7 @@ class EHentaiTest(BackendTest):
     MODULE = 'ehentai'
 
     def test_search(self):
-        l = list(self.backend.search_gallery('lol'))
+        l = list(self.backend.search_galleries('lol'))
         self.assertTrue(len(l) > 0)
         v = l[0]
         self.backend.fillobj(v, ('url',))
