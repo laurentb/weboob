@@ -302,7 +302,7 @@ class TableElement(ListElement):
                     self._cols[name] = colnum
             try:
                 colnum += int(el.attrib.get('colspan', 1))
-            except ValueError:
+            except (ValueError, AttributeError) as e:
                 colnum += 1
 
     def get_colnum(self, name):
