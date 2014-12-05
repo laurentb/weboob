@@ -730,7 +730,7 @@ socket.getaddrinfo = my_getaddrinfo
 
 class HTTPSConnection2(httplib.HTTPSConnection):
     _HOSTS = {}
-    _PROTOCOLS = [ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_SSLv3]
+    _PROTOCOLS = [ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_SSLv23]
 
     def _my_create_connection(self):
         sock = socket.create_connection((self.host, self.port), self.timeout)
