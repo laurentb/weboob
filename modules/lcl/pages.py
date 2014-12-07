@@ -221,7 +221,9 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
 
         class item(Transaction.TransactionElement):
             def condition(self):
-                return self.parent.get_colnum('date') is not None and len(self.el.findall('td')) >= 3
+                return self.parent.get_colnum('date') is not None and \
+                       len(self.el.findall('td')) >= 3 and \
+                       not 'tableTr' in self.el.get('class')
 
             def validate(self, obj):
                 return obj.category != 'RELEVE CB'
