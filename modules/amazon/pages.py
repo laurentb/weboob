@@ -129,7 +129,8 @@ class OrderNewPage(AmazonPage):
 
     def discount(self):
         return self.amount(u'Promotion applied', u'Promotion Applied',
-                           u'Subscribe & Save', u'Your Coupon Savings')
+                           u'Subscribe & Save', u'Your Coupon Savings',
+                           u'Lightning Deal')
 
     def gift(self):
         return self.amount(u'Gift Card Amount')
