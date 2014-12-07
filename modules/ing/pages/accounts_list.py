@@ -37,6 +37,7 @@ class Transaction(FrenchTransaction):
                 (re.compile(u'^virement (sepa )?(emis vers|recu|emis)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
                 (re.compile(u'^cheque (?P<text>.*)'), FrenchTransaction.TYPE_CHECK),
                 (re.compile(u'^prelevement (?P<text>.*)'), FrenchTransaction.TYPE_ORDER),
+                (re.compile(u'^prlv sepa (?P<text>.*)'), FrenchTransaction.TYPE_ORDER),
                 (re.compile(u'^prélèvement sepa en faveur de (?P<text>.*)'), FrenchTransaction.TYPE_ORDER),
                 ]
 
