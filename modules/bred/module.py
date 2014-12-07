@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012-2013 Romain Bignon
+# Copyright(C) 2012-2014 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -19,10 +19,12 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
-from .browser import BredBrowser
+from .bred import BredBrowser
+from .dispobank import DispoBankBrowser
 
 
 __all__ = ['BredModule']
@@ -41,28 +43,22 @@ class BredModule(Module, CapBank):
                                  choices={'bred': 'BRED', 'dispobank': 'DispoBank'}),
                            Value('accnum', label=u'Numéro du compte bancaire (optionnel)', default='', masked=False)
                           )
-    BROWSER = BredBrowser
+
+    BROWSERS = {'bred': BredBrowser,
+                'dispobank': DispoBankBrowser,
+               }
 
     def create_default_browser(self):
-        return self.create_browser(self.config['website'].get(),
-                                   self.config['accnum'].get(),
+        self.BROWSER = self.BROWSERS[self.config['website'].get()]
+        return self.create_browser(self.config['accnum'].get().replace(' ','').zfill(11),
                                    self.config['login'].get(),
                                    self.config['password'].get())
 
     def iter_accounts(self):
-        with self.browser:
-            for account in self.browser.get_accounts_list():
-                yield account
+        return self.browser.get_accounts_list()
 
     def get_account(self, _id):
-        with self.browser:
-            account = self.browser.get_account(_id)
-
-        if account:
-            return account
-        else:
-            raise AccountNotFound()
+        return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
 
     def iter_history(self, account):
-        with self.browser:
-            return self.browser.get_history(account)
+        return self.browser.get_history(account)

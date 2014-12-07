@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012 Romain Bignon
+# Copyright(C) 2012-2014 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -25,12 +25,12 @@ from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from .pages import LoginPage, LoginResultPage, AccountsPage, EmptyPage, TransactionsPage
 
 
-__all__ = ['BredBrowser']
+__all__ = ['DispoBankBrowser']
 
 
-class BredBrowser(Browser):
+class DispoBankBrowser(Browser):
     PROTOCOL = 'https'
-    DOMAIN = 'www.bred.fr'
+    DOMAIN = 'www.dispobank.fr'
     CERTHASH = ['9b77dab9c84e1dc9e0798de561a6541ff15f038f60b36ca74c29be1def6c19a3', '375f1fed165d34aacaaf71674ab14ca6c1b38404cf748278714fde3c58385ff0', '0853a056453b56aea6a29085ef3f3721b18db2052aa8e84220720d44e0eb22af']
     ENCODING = 'iso-8859-15'
     PAGES = {r'https://www.\w+.fr/mylittleform.*':                      LoginPage,
@@ -50,10 +50,9 @@ class BredBrowser(Browser):
                          }
            }
 
-    def __init__(self, website, accnum, *args, **kwargs):
-        self.accnum = accnum.replace(' ','').zfill(11)
-        self.DOMAIN = 'www.%s.fr' % website
-        self.website = website
+    def __init__(self, accnum, *args, **kwargs):
+        self.accnum = accnum
+        self.website = 'dispobank'
         Browser.__init__(self, *args, **kwargs)
 
     def is_logged(self):
