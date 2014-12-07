@@ -84,7 +84,7 @@ class OrderNewPage(AmazonPage):
         # Payment for not yet shipped orders may change, and is not always
         # available.
         for s in [u'Not Yet Shipped', u'Preparing for Shipment',
-                  u'Shipping now']:
+                  u'Shipping now', u'In transit']:
             if self.doc.xpath(u'//*[contains(text(),"%s")]' % s):
                 return None
 
