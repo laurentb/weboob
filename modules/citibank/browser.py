@@ -144,14 +144,14 @@ class Citibank(object):
             raise AccountNotFound()
         self._account_link().click()
         self.wait_ajax()
-        for span in self.wait('span.cM-maximizeButton'):
+        for span in self.find('span.cM-maximizeButton'):
             span.click()
-        for tr in self.wait('tr.payments,tr.purchase'):
+        for tr in self.find('tr.payments,tr.purchase'):
             trdata = lambda n: tr.find_element_by_css_selector(
                         'td.cT-bodyTableColumn%i span.cT-line1' % n).text
             treid = tr.get_attribute('id').replace('rowID', 'rowIDExt')
             tredata = {}
-            for tre in self.wait('tr#%s' % treid):
+            for tre in self.find('tr#%s' % treid):
                 labels = [x.text for x in tre.find_elements_by_css_selector(
                                                     'div.cT-labelItem')]
                 values = [x.text for x in tre.find_elements_by_css_selector(
@@ -219,11 +219,14 @@ class Citibank(object):
                 yield t
         self.finish()
 
+    def find(self, selector):
+        self._logger.debug('Finding selector """%s""" on page %s' % (
+            selector, self._browser.current_url))
+        return self._browser.find_elements_by_css_selector(selector)
+
     @retrying
     def wait(self, selector):
-        self._logger.debug('Waiting for selector """%s""" on page %s' % (
-            selector, self._browser.current_url))
-        els = self._browser.find_elements_by_css_selector(selector)
+        els = self.find(selector)
         if not els:
             raise OnceAgain()
         return els
