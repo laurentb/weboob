@@ -113,8 +113,30 @@ class OrderNewPage(AmazonPage):
             pmt.method = u'GIFT CARD'
             pmt.amount = -self.gift()
             yield pmt
-        for trans in self.transactions():
-            yield trans
+        transactions = list(self.transactions())
+        if transactions:
+            for t in transactions:
+                yield t
+        else:
+            for method in self.paymethods():
+                pmt = Payment()
+                pmt.date = self.order_date()
+                pmt.method = method
+                pmt.amount = self.grand_total()
+                yield pmt
+                break
+
+    def paymethods(self):
+        for root in self.doc.xpath('//h5[contains(text(),"Payment Method")]'):
+            alt = root.xpath('../div/img/@alt')[0]
+            span = root.xpath('../div/span/text()')[0]
+            digits = re.match(r'[^0-9]*([0-9]+)[^0-9]*', span).group(1)
+            yield u'%s %s' % (alt, digits)
+
+    def grand_total(self):
+        return AmTr.decimal_amount(self.doc.xpath(
+            u'//span[contains(text(),"Grand Total:")]/..'
+            u'/following-sibling::div[1]/span/text()')[0].strip())
 
     def date_num(self):
         return u' '.join(self.doc.xpath(
