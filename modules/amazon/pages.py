@@ -160,7 +160,7 @@ class OrderNewPage(AmazonPage):
     def amount(self, *names):
         return Decimal(sum(AmTr.decimal_amount(amount.strip())
            for n in names for amount in self.doc.xpath(
-           '//span[contains(text(),"%s:")]/../..//span[2]/text()' % n)))
+           '(//span[contains(text(),"%s:")]/../..//span)[2]/text()' % n)))
 
     def transactions(self):
         for row in self.doc.xpath('//span[contains(text(),"Transactions")]'
