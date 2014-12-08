@@ -100,7 +100,10 @@ class NewPartHistoryPage(Page):
     def parse_transaction(self, transaction):
         t = FrenchTransaction(transaction['activityId'])
         date = parse_french_date(transaction['date'])
-        raw = transaction['counterparty']
+        try:
+            raw = transaction['counterparty']
+        except KeyError:
+            raw = transaction['displayType']
         t.parse(date=date, raw=raw)
         amount = transaction['displayAmount']
         t.set_amount(amount)
