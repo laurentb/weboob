@@ -91,7 +91,9 @@ class NewPartHistoryPage(Page):
         for status in ['PENDING', 'COMPLETED']:
             transac = self.document['data']['activity'][status]
             for t in transac:
-                transactions.append(self.parse_transaction(t))
+                tran = self.parse_transaction(t)
+                if tran:
+                    transactions.append(tran)
 
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         for t in transactions:
@@ -105,7 +107,10 @@ class NewPartHistoryPage(Page):
         except KeyError:
             raw = transaction['displayType']
         t.parse(date=date, raw=raw)
-        amount = transaction['displayAmount']
+        try:
+            amount = transaction['displayAmount']
+        except KeyError:
+            return
         t.set_amount(amount)
         t._currency = transaction['currencyCode']
         return t
