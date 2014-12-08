@@ -141,6 +141,9 @@ Clément Calmels <cboulte@gmail.com>
 Gabriel Serme <gabriel@serme.net>
         * Support of two-factor authentication for Boursorama.
 
+Baptiste Delpey <bdelpey@budget-insight.com>
+        * Fixes on bank modules.
+
 Jean-Philippe Dutrève <jdutreve@winancial.com>
         * Fixes on bank modules.
 
