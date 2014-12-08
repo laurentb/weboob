@@ -187,7 +187,7 @@ class Login2Page(LoginPage):
 
     def login(self, login, password):
         payload = {'validate': {'PASSWORD_LOOKUP': [{'id': self.form_id,
-                                                     'login': login.encode(self.browser.ENCODING),
+                                                     'login': login.encode(self.browser.ENCODING).upper(),
                                                      'password': password.encode(self.browser.ENCODING),
                                                      'type': 'PASSWORD_LOOKUP'
                                                     }]
@@ -198,6 +198,7 @@ class Login2Page(LoginPage):
         r = self.browser.openurl(req, json.dumps(payload))
 
         doc = json.load(r)
+        self.logger.debug(doc)
         if ('phase' in doc and doc['phase']['previousResult'] == 'FAILED_AUTHENTICATION') or \
            doc['response']['status'] != 'AUTHENTICATION_SUCCESS':
             raise BrowserIncorrectPassword()
