@@ -25,8 +25,8 @@ from .pages import CityListPage, HousingListPage, HousingPage
 class LeboncoinBrowser(PagesBrowser):
     BASEURL = 'http://www.leboncoin.fr'
     city = URL('ajax/location_list.html\?city=(?P<city>.*)&zipcode=(?P<zip>.*)', CityListPage)
-    search = URL('(?P<type>.*)/offres/ile_de_france/occasions/\?ps=(?P<ps>.*)&pe=(?P<pe>.*)&ros=(?P<ros>.*)&location=(?P<location>.*)&sqs=(?P<sqs>.*)&sqe=(?P<sqe>.*)&ret=(?P<ret>.*)&f=(?P<advert_type>.*)',
-                 '(?P<_type>.*)/offres/ile_de_france/occasions.*?',
+    search = URL('(?P<type>.*)/offres/(?P<region>.*)/occasions/\?ps=(?P<ps>.*)&pe=(?P<pe>.*)&ros=(?P<ros>.*)&location=(?P<location>.*)&sqs=(?P<sqs>.*)&sqe=(?P<sqe>.*)&ret=(?P<ret>.*)&f=(?P<advert_type>.*)',
+                 '(?P<_type>.*)/offres/(?P<_region>.*)/occasions.*?',
                  HousingListPage)
     housing = URL('ventes_immobilieres/(?P<_id>.*).htm', HousingPage)
 
@@ -35,6 +35,10 @@ class LeboncoinBrowser(PagesBrowser):
            Query.HOUSE_TYPES.LAND: '3',
            Query.HOUSE_TYPES.PARKING: '4',
            Query.HOUSE_TYPES.OTHER: '5'}
+
+    def __init__(self, region, *args, **kwargs):
+        super(LeboncoinBrowser, self).__init__(*args, **kwargs)
+        self.region = region
 
     def get_cities(self, pattern):
         city = ''
@@ -48,7 +52,8 @@ class LeboncoinBrowser(PagesBrowser):
 
     def search_housings(self, query, advert_type):
         type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, ret = self.decode_query(query)
-        return self.search.go(location=cities,
+        return self.search.go(region=self.region,
+                              location=cities,
                               ros=nb_rooms,
                               sqs=area_min,
                               sqe=area_max,
@@ -81,7 +86,7 @@ class LeboncoinBrowser(PagesBrowser):
         if query.type == Query.TYPE_RENT:
             _type = 'locations'
 
-        self.search.go(_type=_type)
+        self.search.go(_type=_type, _region=self.region)
 
         nb_rooms = '' if not query.nb_rooms else self.page.get_rooms_min(query.nb_rooms)
         area_min = '' if not query.area_min else self.page.get_area_min(query.area_min)

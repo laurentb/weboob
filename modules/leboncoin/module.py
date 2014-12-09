@@ -38,7 +38,39 @@ class LeboncoinModule(Module, CapHousing):
     BROWSER = LeboncoinBrowser
 
     CONFIG = BackendConfig(Value('advert_type', label='Advert type',
-                                 choices={'c': 'Agency', 'p': 'Owner', 'a': 'All'}, default='a'))
+                                 choices={'c': 'Agency', 'p': 'Owner', 'a': 'All'}, default='a'),
+                           Value('region', label='Region',
+                                 choices=['alsace',
+                                          'aquitaine',
+                                          'auvergne',
+                                          'basse_normandie',
+                                          'bourgogne',
+                                          'bretagne',
+                                          'centre',
+                                          'champagne_ardenne',
+                                          'corse',
+                                          'franche_comte',
+                                          'haute_normandie',
+                                          'ile_de_france',
+                                          'languedoc_roussillon',
+                                          'limousin',
+                                          'lorraine',
+                                          'midi_pyrenees',
+                                          'nord_pas_de_calais',
+                                          'pays_de_la_loire',
+                                          'picardie',
+                                          'poitou_chanrentes',
+                                          'provence_alpes_cote_d_azur',
+                                          'rhone_alpes',
+                                          'guadeloupe',
+                                          'martinique',
+                                          'guyane',
+                                          'reunion']))
+
+
+    def create_default_browser(self):
+        region = self.config['region'].get()
+        return self.create_browser(region)
 
     def get_housing(self, _id):
         return self.browser.get_housing(_id)
