@@ -17,15 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import time, datetime
 from .calendar import HybrideCalendarEvent
 
 import weboob.tools.date as date_util
-import re
 
 from weboob.browser.pages import HTMLPage
-from weboob.browser.elements import ItemElement, SkipItem, ListElement, method
-from weboob.browser.filters.standard import Filter, CleanText, Env, Format, BrowserURL
+from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.filters.standard import Filter, CleanText, Env, Format, BrowserURL, Regexp
 from weboob.browser.filters.html import CleanHTML
 from weboob.browser.filters.html import Link
 
@@ -35,16 +33,11 @@ class Date(Filter):
         return date_util.parse_french_date(text)
 
 
-class CombineDate(Filter):
-    def filter(self, text):
-        return datetime.combine(date_util.parse_french_date(text), time.max)
-
-
 class ProgramPage(HTMLPage):
 
     @method
     class list_events(ListElement):
-        item_xpath = '//div[@class="catItemView groupLeading"]'
+        item_xpath = '//div[@class="itemContainer itemContainerLast"]'
 
         class item(ItemElement):
             klass = HybrideCalendarEvent
@@ -67,18 +60,9 @@ class ProgramPage(HTMLPage):
             def check_category(self, obj):
                 return (not self.env['categories'] or obj.category in self.env['categories'])
 
-            class CheckId(Filter):
-                def filter(self, a_id):
-                    re_id = re.compile('/programme/item/(.*?).html', re.DOTALL)
-                    _id = re_id.search(a_id).group(1)
-                    if _id:
-                        return _id
-                    raise SkipItem()
-
-            obj_id = CheckId(Link('div[@class="catItemHeader"]/h3[@class="catItemTitle"]/a'))
-            obj_start_date = Date(CleanText('div[@class="catItemHeader"]/span[@class="catItemDateCreated"]'))
-            obj_end_date = CombineDate(CleanText('div[@class="catItemHeader"]/span[@class="catItemDateCreated"]'))
-            obj_summary = CleanText('div[@class="catItemHeader"]/h3[@class="catItemTitle"]/a')
+            obj_id = Regexp(Link('div/div[@class="catItemHeader"]/h3[@class="catItemTitle"]/a'), '/programme/item/(.*?).html')
+            obj_start_date = Date(CleanText('div/div[@class="catItemHeader"]/span[@class="catItemDateCreated"]'))
+            obj_summary = CleanText('div/div[@class="catItemHeader"]/h3[@class="catItemTitle"]/a')
 
 
 class EventPage(HTMLPage):
@@ -88,11 +72,8 @@ class EventPage(HTMLPage):
         klass = HybrideCalendarEvent
 
         obj_id = Env('_id')
-        base = '//div[@class="itemView"]/div[@class="itemHeader"]'
-        obj_start_date = Date(CleanText('%s/span[@class="itemDateCreated"]' % base))
-        obj_end_date = CombineDate(CleanText('%s/span[@class="itemDateCreated"]' % base))
-        obj_summary = CleanText('%s/h2[@class="itemTitle"]' % base)
-        obj_url = Env('url')
+        obj_start_date = Date(CleanText('//span[@class="itemDateCreated"]'))
+        obj_summary = CleanText('//h2[@class="itemTitle"]')
         obj_description = Format('%s\n%s',
                                  CleanHTML('//div[@class="itemIntroText"]'),
                                  CleanHTML('//div[@class="itemFullText"]'))

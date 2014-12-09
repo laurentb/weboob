@@ -29,8 +29,8 @@ class HybrideBrowser(PagesBrowser):
     PROFILE = Firefox()
     BASEURL = 'http://www.lhybride.org'
 
-    program_page = URL('/programme.html', ProgramPage)
-    event_page = URL('/programme/item/(?P<_id>.*)', EventPage)
+    program_page = URL('programme.html', ProgramPage)
+    event_page = URL('programme/item/(?P<_id>.*)', EventPage)
 
     def list_events(self, date_from, date_to=None, city=None, categories=None):
         return self.program_page.stay_or_go().list_events(date_from=date_from,
