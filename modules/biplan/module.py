@@ -54,13 +54,13 @@ class BiplanModule(Module, CapCalendarEvent):
                                                                   query.categories)
 
             items = list(itertools.chain(concert_events, theatre_events))
-            items.sort(key=lambda o:o.start_date)
+            items.sort(key=lambda o: o.start_date)
             return items
 
     def list_events(self, date_from, date_to=None):
         items = list(itertools.chain(self.browser.list_events_concert(date_from, date_to),
                                      self.browser.list_events_theatre(date_from, date_to)))
-        items.sort(key=lambda o:o.start_date)
+        items.sort(key=lambda o: o.start_date)
         return items
 
     def get_event(self, _id):

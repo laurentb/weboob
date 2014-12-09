@@ -88,7 +88,7 @@ class ProgramPage(HTMLPage):
                 return BiplanCalendarEventConcert() if self.env['is_concert'] else BiplanCalendarEventTheatre()
 
             def condition(self):
-                return (self.el.xpath('./div'))
+                return (self.el.xpath('./div') and CleanText('./div/a/img/@src')(self)[-1] != '/')
 
             def validate(self, obj):
                 return (self.is_valid_event(obj, self.env['city'], self.env['categories']) and
