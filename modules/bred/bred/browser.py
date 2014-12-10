@@ -42,8 +42,10 @@ class BredBrowser(DomainBrowser):
     def do_login(self, login, password):
         self.location('/transactionnel/Authentication', data={'identifiant': login, 'password': password})
 
-        if 'erreur-pwd' in self.url:
-            raise BrowserIncorrectPassword()
+        if 'gestion-des-erreurs/erreur-pwd' in self.url:
+            raise BrowserIncorrectPassword('Bad login/password.')
+        if 'gestion-des-erreurs/opposition' in self.url:
+            raise BrowserIncorrectPassword('Your account is disabled')
 
     ACCOUNT_TYPES = {'000': Account.TYPE_CHECKING,
                      '999': Account.TYPE_MARKET,
