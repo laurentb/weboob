@@ -121,10 +121,8 @@ class Videoob(ReplApplication):
         os.spawnlp(os.P_WAIT, args[0], *args)
 
     def read_url(self, url):
-        r = requests.get(url, stream=False)
-        buf = r.iter_lines()
-        r.close()
-        return buf
+        r = requests.get(url, stream=True)
+        return r.iter_lines()
 
     def complete_download(self, text, line, *ignored):
         args = line.split(' ')

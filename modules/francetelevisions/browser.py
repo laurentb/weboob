@@ -47,7 +47,6 @@ class PluzzBrowser(PagesBrowser):
     def read_url(self, url):
         r = self.open(url, stream=True)
         buf = r.iter_lines()
-        r.close()
         return buf
 
     def latest_videos(self):

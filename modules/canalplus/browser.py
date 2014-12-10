@@ -80,7 +80,6 @@ class CanalplusBrowser(Browser):
     def read_url(self, url):
         r = requests.get(url, stream=True)
         buf = r.iter_lines()
-        r.close()
         return [line for line in buf if not line.startswith('#')]
 
     def iter_resources(self, split_path):
