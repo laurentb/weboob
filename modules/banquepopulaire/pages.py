@@ -366,6 +366,7 @@ class CardsPage(BasePage):
                 account._prev_debit = datetime.date(2000,1,1)
                 account.label = u' '.join([self.parser.tocleanstring(cols[self.COL_TYPE]),
                                            self.parser.tocleanstring(cols[self.COL_LABEL])])
+                account._params = None
                 account._coming_params = params.copy()
                 account._coming_params['dialogActionPerformed'] = 'SELECTION_ENCOURS_CARTE'
                 account._coming_params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]
