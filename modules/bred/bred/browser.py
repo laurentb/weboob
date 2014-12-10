@@ -108,7 +108,8 @@ class BredBrowser(DomainBrowser):
                 t.date = date.fromtimestamp(op.get('dateDebit', op.get('dateOperation'))/1000)
                 t.rdate = date.fromtimestamp(op.get('dateOperation', op.get('dateDebit'))/1000)
                 t.vdate = date.fromtimestamp(op.get('dateValeur', op.get('dateDebit', op.get('dateOperation')))/1000)
-                t.category = op['categorie']
+                if 'categorie' in op:
+                    t.category = op['categorie']
                 t.label = op['libelle']
                 t.raw = ' '.join([op['libelle']] + op['details'])
                 yield t
