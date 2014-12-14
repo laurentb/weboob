@@ -97,6 +97,7 @@ class BanquePopulaire(Browser):
             self.select_form(nr=0)
             self.set_all_readonly(False)
             self['dialogActionPerformed'] = 'EQUIPEMENT_COMPLET'
+            self['token'] = self.page.build_token(self['token'])
             self.submit()
 
     def get_accounts_list(self):
@@ -112,6 +113,7 @@ class BanquePopulaire(Browser):
             if not self.is_on_page(AccountsPage):
                 self.go_on_accounts_list()
 
+            next_page['token'] = self.page.build_token(self.page.get_token())
             self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(next_page))
 
             for a in self.page.iter_accounts():
@@ -137,6 +139,8 @@ class BanquePopulaire(Browser):
         if params is None:
             return
 
+        params['token'] = self.page.build_token(params['token'])
+
         self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(params))
         self.token = self.page.get_token()
 
@@ -147,6 +151,7 @@ class BanquePopulaire(Browser):
         if len(self.page.document.xpath('//a[@id="tcl4_srt"]')) > 0:
             self.select_form(predicate=lambda form: form.attrs.get('id', '') == 'myForm')
             self.form.action = self.absurl('/cyber/internet/Sort.do?property=tbl1&sortBlocId=blc2&columnName=dateValeur')
+            params['token'] = self.page.build_token(params['token'])
             self.submit()
 
         while True:

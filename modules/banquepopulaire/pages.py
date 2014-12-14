@@ -60,6 +60,32 @@ class BasePage(_BasePage):
     def get_token(self):
         return self.parser.select(self.document.getroot(), '//form//input[@name="token"]', 1, 'xpath').attrib['value']
 
+    def build_token(self, token):
+        """
+        These fucking faggots have introduced a new protection on the token.
+
+        Each time there is a call to SAB (selectActionButton), the token
+        available in the form is modified with a key available in JS:
+
+        ipsff(function(){TW().ipthk([12, 25, 17, 5, 23, 26, 15, 30, 6]);});
+
+        Each value of the array is an index for the current token to append the
+        char at this position at the end of the token.
+        """
+        table = None
+        for script in self.document.xpath('//script'):
+            if script.text is None:
+                continue
+            m = re.search(r'ipthk\(([^\)]+)\)', script.text, flags=re.MULTILINE)
+            if m:
+                table = json.loads(m.group(1))
+        if table is None:
+            return token
+
+        for i in table:
+            token += token[i]
+        return token
+
 
 class RedirectPage(BasePage):
     """
