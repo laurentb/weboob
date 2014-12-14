@@ -59,6 +59,9 @@ class SocieteGenerale(Browser):
         if error is None:
             return True
 
+        if error.startswith('Le service est momentan'):
+            raise BrowserUnavailable(error)
+
         return False
 
     def login(self):
