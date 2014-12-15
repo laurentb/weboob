@@ -19,7 +19,6 @@
 
 
 from weboob.tools.test import BackendTest
-from weboob.capabilities.video import BaseVideo
 
 
 class PluzzTest(BackendTest):
@@ -32,10 +31,3 @@ class PluzzTest(BackendTest):
         v = l[0]
         self.backend.fillobj(v, ('url',))
         self.assertTrue(v.url, 'URL for video "%s" not found: %s' % (v.id, v.url))
-
-    def test_latest(self):
-        l = list(self.backend.iter_resources([BaseVideo], [u'latest']))
-        assert len(l)
-        v = l[0]
-        self.backend.fillobj(v, ('url',))
-        assert v.url
