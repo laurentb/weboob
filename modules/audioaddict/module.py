@@ -112,6 +112,13 @@ class AudioAddictModule(Module, CapRadio, CapCollection):
                         'android_premium_high': {'rate': 256, 'fmt': 'mp3'},
                         'public3': {'rate': 96, 'fmt': 'mp3'}
                         }
+        },
+        'FrescaRadio': {
+            'desc': 'Fresca Radio',
+            'domain': 'frescaradio.com',
+            'streams': {
+                        'public3': {'rate': 96, 'fmt': 'mp3'}
+            }
         }
     }
 
