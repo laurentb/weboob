@@ -47,6 +47,7 @@ class Fortuneo(Browser):
             '.*/prive/mes-comptes/compte-courant/consulter-situation/consulter-solde\.jsp.*' :  AccountHistoryPage,
             '.*/prive/mes-comptes/compte-titres-.*':                                            InvestmentHistoryPage,
             '.*/prive/mes-comptes/assurance-vie.*':                                             InvestmentHistoryPage,
+            '.*/prive/mes-comptes/pea.*':                                                       InvestmentHistoryPage,
             }
 
     def __init__(self, *args, **kwargs):
