@@ -241,3 +241,6 @@ class LoanPage(HistoryBasePage):
 
 class MarketPage(HistoryBasePage):
     pass
+
+class AssurancePage(HistoryBasePage):
+    pass

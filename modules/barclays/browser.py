@@ -21,7 +21,7 @@
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, Login2Page, IndexPage, AccountsPage, TransactionsPage, \
-                   CardPage, ValuationPage, LoanPage, MarketPage
+                   CardPage, ValuationPage, LoanPage, MarketPage, AssurancePage
 
 
 __all__ = ['Barclays']
@@ -39,6 +39,7 @@ class Barclays(Browser):
              'https://.*.barclays.fr/barclaysnetV2/valuationViewBank.do.*': ValuationPage,
              'https://.*.barclays.fr/barclaysnetV2/pret.do.*':              LoanPage,
              'https://.*.barclays.fr/barclaysnetV2/titre.do.*':             MarketPage,
+             'https://.*.barclays.fr/barclaysnetV2/assurance.do.*':         AssurancePage,
             }
 
     def __init__(self, secret, *args, **kwargs):
@@ -102,7 +103,7 @@ class Barclays(Browser):
 
         self.location(account._link)
 
-        assert self.is_on_page((TransactionsPage, ValuationPage, LoanPage, MarketPage))
+        assert self.is_on_page((TransactionsPage, ValuationPage, LoanPage, MarketPage, AssurancePage))
 
         for tr in self.page.get_history():
             yield tr
