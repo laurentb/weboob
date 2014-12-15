@@ -68,9 +68,9 @@ class AudioAddictModule(Module, CapRadio, CapCollection):
                         'premium_high': {'rate': 256, 'fmt': 'mp3'}
                         }
         },
-        'SKYfm': {
-            'desc': 'SKY FM radio',
-            'domain': 'sky.fm',
+        'RadioTunes': {
+            'desc': 'Radio Tunes',
+            'domain': 'radiotunes.com',
             'streams': {'appleapp_low': {'rate': 40, 'fmt': 'aac'},
                         'appleapp': {'rate': 64, 'fmt': 'aac'},
                         'appleapp_high': {'rate': 96, 'fmt': 'mp3'},
