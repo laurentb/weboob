@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-
+from weboob.capabilities.job import BaseJobAdvert
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.job import CapJob
@@ -24,7 +24,6 @@ from weboob.tools.value import Value
 from weboob.tools.ordereddict import OrderedDict
 
 from .browser import PopolemploiBrowser
-from .job import PopolemploiJobAdvert
 
 __all__ = ['PopolemploiModule']
 
@@ -331,8 +330,7 @@ class PopolemploiModule(Module, CapJob):
                            Value('domain', label=u'Domain', choices=domain_choices, default=''))
 
     def search_job(self, pattern=None):
-        with self.browser:
-            return self.browser.search_job(pattern=pattern)
+        return self.browser.search_job(pattern=pattern)
 
     def advanced_search_job(self):
         return self.browser.advanced_search_job(metier=self.config['metier'].get(),
@@ -344,10 +342,9 @@ class PopolemploiModule(Module, CapJob):
                                                 domain=self.config['domain'].get())
 
     def get_job_advert(self, _id, advert=None):
-        with self.browser:
-            return self.browser.get_job_advert(_id, advert)
+        return self.browser.get_job_advert(_id, advert)
 
     def fill_obj(self, advert, fields):
-        self.get_job_advert(advert.id, advert)
+        return self.get_job_advert(advert.id, advert)
 
-    OBJECTS = {PopolemploiJobAdvert: fill_obj}
+    OBJECTS = {BaseJobAdvert: fill_obj}

@@ -17,55 +17,41 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.deprecated.browser.decorators import id2url
-from weboob.deprecated.browser import Browser
-import urllib
-
 from .pages import SearchPage, AdvertPage
-from .job import PopolemploiJobAdvert
+from weboob.browser import PagesBrowser, URL
 
+from urllib import quote_plus, quote
 
 __all__ = ['PopolemploiBrowser']
 
 
-class PopolemploiBrowser(Browser):
-    PROTOCOL = 'http'
-    DOMAIN = 'http://www.pole-emploi.fr/accueil/'
-    ENCODING = None
+class PopolemploiBrowser(PagesBrowser):
 
-    PAGES = {
-        'https?://candidat.pole-emploi.fr/candidat/rechercheoffres/resultats(.*?)': SearchPage,
-        'https?://candidat.pole-emploi.fr/candidat/rechercheoffres/detail/(?P<id>.+)': AdvertPage,
-    }
+    BASEURL = 'http://candidat.pole-emploi.fr'
+
+    advert = URL('candidat/rechercheoffres/detail/(?P<id>.*)', AdvertPage)
+    search = URL('candidat/rechercheoffres/resultats/(?P<search>.*?)',
+                 'http://offre.pole-emploi.fr/resultat\?offresPartenaires=true&libMetier=(?P<pattern>.*?)', SearchPage)
 
     def search_job(self, pattern=None):
-        self.location('http://offre.pole-emploi.fr/resultat?offresPartenaires=true&libMetier=%s'
-                      % pattern.replace(' ', '+'))
-        assert self.is_on_page(SearchPage)
-        return self.page.iter_job_adverts()
+        return self.search.go(pattern=quote_plus(pattern)).iter_job_adverts()
 
     def advanced_search_job(self, metier='', place=None, contrat=None, salary=None,
                             qualification=None, limit_date=None, domain=None):
 
         splitted_place = place.split('|')
 
-        params = 'A_%s_%s_%s__%s_P_%s_%s_%s_______INDIFFERENT______________%s' % (urllib.quote(metier.encode('utf-8')).replace('%', '$00'),
-                                                                                  splitted_place[1],
-                                                                                  splitted_place[2],
-                                                                                  contrat,
-                                                                                  domain,
-                                                                                  salary,
-                                                                                  qualification,
-                                                                                  limit_date
-                                                                                  )
+        search = 'A_%s_%s_%s__%s_P_%s_%s_%s_______INDIFFERENT______________%s___' % (quote(metier.encode('utf-8')).replace('%', '$00'),
+                                                                                     splitted_place[1],
+                                                                                     splitted_place[2],
+                                                                                     contrat,
+                                                                                     domain,
+                                                                                     salary,
+                                                                                     qualification,
+                                                                                     limit_date
+                                                                                     )
 
-        self.location('http://candidat.pole-emploi.fr/candidat/rechercheoffres/resultats/%s' % params)
+        return self.search.go(search=search).iter_job_adverts()
 
-        assert self.is_on_page(SearchPage)
-        return self.page.iter_job_adverts()
-
-    @id2url(PopolemploiJobAdvert.id2url)
-    def get_job_advert(self, url, advert):
-        self.location(url)
-        assert self.is_on_page(AdvertPage)
-        return self.page.get_job_advert(url, advert)
+    def get_job_advert(self, id, advert):
+        return self.advert.go(id=id).get_job_advert(obj=advert)

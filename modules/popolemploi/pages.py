@@ -17,83 +17,44 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.html import html2text
-from weboob.deprecated.browser import Page
-import dateutil.parser
-import re
-
-from .job import PopolemploiJobAdvert
-
-
-class SearchPage(Page):
-    def iter_job_adverts(self):
-        rows = self.document.getroot().xpath('//table[@class="definition-table ordered"]/tbody/tr')
-        for row in rows:
-            advert = self.create_job_advert(row)
-            if advert:
-                yield advert
-
-    def create_job_advert(self, row):
-        re_id = re.compile('/candidat/rechercheoffres/resultats\.composantresultatrechercheoffre\.tableauresultatrechercheoffre:detailoffre/(.*?)\?(.*?)', re.DOTALL)
-        a = self.parser.select(row, 'td[@headers="offre"]/a', 1, method='xpath')
-        if re_id.match(a.attrib['href']):
-            _id = u'%s' % (re_id.search(a.attrib['href']).group(1))
-            advert = PopolemploiJobAdvert(_id)
-            advert.contract_type = u'%s' % self.parser.select(row, 'td[@headers="contrat"]', 1, method='xpath').text
-            advert.title = u'%s' % a.text_content().strip()
-            society = self.parser.select(row, 'td/div/p/span[@class="company"]', method='xpath')
-            if society:
-                advert.society_name = society[0].text
-            advert.place = u'%s' % self.parser.select(row, 'td[@headers="lieu"]', 1, method='xpath').text_content()
-            date = self.parser.select(row, 'td[@headers="dateEmission"]', 1, method='xpath')
-            advert.publication_date = dateutil.parser.parse(date.text, dayfirst=True).date()
-            return advert
+from weboob.capabilities.job import BaseJobAdvert
+from weboob.browser.pages import HTMLPage
+from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.filters.standard import Regexp, CleanText, Date, Env, BrowserURL
+from weboob.browser.filters.html import Link, CleanHTML
 
 
-class AdvertPage(Page):
-    def get_job_advert(self, url, advert):
-        content = self.document.getroot().xpath('//div[@id="offre-body"]')[0]
-        if not advert:
-            _id = self.parser.select(content, 'div/div/ul/li/div[@class="value"]/span', 1, method='xpath').text
-            advert = PopolemploiJobAdvert(_id)
+class SearchPage(HTMLPage):
+    @method
+    class iter_job_adverts(ListElement):
+        item_xpath = '//table[@class="definition-table ordered"]/tbody/tr'
 
-        advert.title = u'%s' % self.parser.select(content, 'h4', 1, method='xpath').text.strip()
-        advert.job_name = u'%s' % self.parser.select(content, 'h4', 1, method='xpath').text.strip()
+        class item(ItemElement):
+            klass = BaseJobAdvert
 
-        description = self.parser.select(content, 'p[@itemprop="description"]', 1, method='xpath')
-        advert.description = html2text(self.parser.tostring(description))
+            obj_id = Regexp(Link('td[@headers="offre"]/a'), '.*detailoffre/(.*?)(?:\?|;).*')
+            obj_contract_type = CleanText('td[@headers="contrat"]')
+            obj_title = CleanText('td[@headers="offre"]/a')
+            obj_society_name = CleanText('td/div/p/span[@class="company"]/span', default='')
+            obj_place = CleanText('td[@headers="lieu"]')
+            obj_publication_date = Date(CleanText('td[@headers="dateEmission"]'))
 
-        society_name = self.parser.select(content, 'div[@class="vcard"]/p[@class="title"]/span', method='xpath')
 
-        if society_name:
-            advert.society_name = u'%s' % society_name[0].text
+class AdvertPage(HTMLPage):
+    @method
+    class get_job_advert(ItemElement):
+        klass = BaseJobAdvert
 
-        advert.url = url
-
-        place = u'%s' % self.parser.select(content,
-                                           'dl/dd/ul/li[@itemprop="addressRegion"]',
-                                           1, method='xpath').text
-        advert.place = place.strip()
-
-        contract_type = u'%s' % self.parser.select(content,
-                                                   'dl/dd/span[@itemprop="employmentType"]',
-                                                   1, method='xpath').text
-
-        advert.contract_type = contract_type.strip()
-
-        experience = u'%s' % self.parser.select(content,
-                                                'dl/dd/span[@itemprop="experienceRequirements"]',
-                                                1, method='xpath').text
-        advert.experience = experience.strip()
-
-        formation = u'%s' % self.parser.select(content,
-                                               'dl/dd/span[@itemprop="qualifications"]',
-                                               1, method='xpath').text
-        advert.formation = formation.strip()
-
-        pay = u'%s' % self.parser.select(content,
-                                         'dl/dd/span[@itemprop="baseSalary"]',
-                                         1, method='xpath').text
-        advert.pay = pay.strip()
-
-        return advert
+        obj_id = Env('id')
+        obj_url = BrowserURL('advert', id=Env('id'))
+        obj_title = CleanText('//div[@id="offre-body"]/h4[@itemprop="title"]')
+        obj_job_name = CleanText('//div[@id="offre-body"]/h4[@itemprop="title"]')
+        obj_description = CleanHTML('//div[@id="offre-body"]/p[@itemprop="description"]')
+        obj_society_name = CleanText('//div[@id="offre-body"]/div[@class="vcard"]/p[@class="title"]/span',
+                                     default='')
+        obj_contract_type = CleanText('//div[@id="offre-body"]/dl/dd/span[@itemprop="employmentType"]')
+        obj_place = CleanText('//div[@id="offre-body"]/dl/dd/ul/li[@itemprop="addressRegion"]')
+        obj_formation = CleanText('//div[@id="offre-body"]/dl/dd/span[@itemprop="qualifications"]')
+        obj_pay = CleanText('//div[@id="offre-body"]/dl/dd/span[@itemprop="baseSalary"]')
+        obj_experience = CleanText('//div[@id="offre-body"]/dl/dd/span[@itemprop="experienceRequirements"]')
+        obj_publication_date = Date(CleanText('//span[@itemprop="datePosted"]'))
