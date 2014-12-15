@@ -236,6 +236,7 @@ class WeboobCfg(ReplApplication):
             row = OrderedDict([('Name', name),
                                ('Capabilities', CapabilitiesWrapper(info.capabilities)),
                                ('Description', info.description),
+                               ('Installed', info.is_installed()),
                                ])
             self.format(row)
 
