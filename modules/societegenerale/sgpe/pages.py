@@ -219,7 +219,7 @@ class HistoryPage(SGPEPage):
         for n in self.parser.select(self.document.getroot(), '#numPageBloc'):
             cur = int(self.parser.select(n, '#numPage', 1).value)
             for end in self.parser.select(n, '.contenu3-lien'):
-                return int(end.text.replace('/', '')) > cur
+                return end.text != '/' and int(end.text.replace('/', '')) > cur
         return False
 
 
