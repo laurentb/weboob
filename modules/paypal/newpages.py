@@ -45,7 +45,7 @@ class NewAccountPage(Page):
 
         primary_account.balance = Decimal(FrenchTransaction.clean_amount(balance))
 
-        primary_account.label = u'%s %s*' % (self.browser.username, balance.split()[-1])
+        primary_account.label = u'%s %s*' % (self.browser.username, primary_account.currency)
 
         accounts[primary_account.id] = primary_account
 
