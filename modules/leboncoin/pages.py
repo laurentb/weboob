@@ -20,7 +20,7 @@ from decimal import Decimal
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env, DateTime, BrowserURL
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.html import Attr, Link, CleanHTML
 from weboob.capabilities.housing import City, Housing, HousingPhoto
 from weboob.capabilities.base import NotAvailable
 from datetime import date, timedelta
@@ -143,8 +143,8 @@ class HousingPage(HTMLPage):
         obj_cost = CleanDecimal('//span[@class="price"]', replace_dots=(',', '.'), default=Decimal(0))
 
         obj_currency = Regexp(CleanText('//span[@class="price"]'),
-                              '.*([%s%s%s])' % (u'€', u'$', u'£'))
-        obj_text = CleanText('//div[@class="content"]')
+                              '.*([%s%s%s])' % (u'€', u'$', u'£'), default='')
+        obj_text = CleanHTML('//div[@class="content"]')
         obj_location = Env('location')
         obj_details = Env('details')
         obj_area = Env('area')
