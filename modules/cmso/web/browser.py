@@ -32,6 +32,7 @@ class CmsoProBrowser(LoginBrowser):
     BASEURL = 'https://www.cmso.com/'
 
     login = URL('/banque/assurance/credit-mutuel/pro/accueil\?espace=professionnels', LoginPage)
+    subscription = URL('/domiweb/prive/espacesegment/selectionnerAbonnement/0-selectionnerAbonnement.act')
     accounts = URL('/domiweb/prive/professionnel/situationGlobaleProfessionnel/0-situationGlobaleProfessionnel.act', AccountsPage)
     history = URL('/domiweb/prive/professionnel/situationGlobaleProfessionnel/1-situationGlobaleProfessionnel.act', HistoryPage)
 
@@ -45,6 +46,8 @@ class CmsoProBrowser(LoginBrowser):
                 raise BrowserIncorrectPassword()
             else:
                 raise
+        else:
+            self.subscription.go()
 
     @need_login
     def get_accounts_list(self):
