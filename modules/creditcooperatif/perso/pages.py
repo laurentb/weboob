@@ -84,6 +84,8 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_TRANSFER),
                 (re.compile('^VIR(EMENT|EMT| SEPA EMET :)? (?P<text>.*?)(- .*)?$'),
                                                             FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^(PRLV|PRELEVEMENT) SEPA (?P<text>.*?)(- .*)?$'),
+                                                            FrenchTransaction.TYPE_ORDER),
                 (re.compile('^(PRLV|PRELEVEMENT) (?P<text>.*?)(- .*)?$'),
                                                             FrenchTransaction.TYPE_ORDER),
                 (re.compile('^CHEQUE.*'),                   FrenchTransaction.TYPE_CHECK),
