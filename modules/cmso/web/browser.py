@@ -31,7 +31,7 @@ from .pages import LoginPage, AccountsPage, HistoryPage
 class CmsoProBrowser(LoginBrowser):
     BASEURL = 'https://www.cmso.com/'
 
-    login = URL('/creditmutuel/index_espace.jsp\\?fede=cmso&espace=pro', LoginPage)
+    login = URL('/banque/assurance/credit-mutuel/pro/accueil\?espace=professionnels', LoginPage)
     accounts = URL('/domiweb/prive/professionnel/situationGlobaleProfessionnel/0-situationGlobaleProfessionnel.act', AccountsPage)
     history = URL('/domiweb/prive/professionnel/situationGlobaleProfessionnel/1-situationGlobaleProfessionnel.act', HistoryPage)
 

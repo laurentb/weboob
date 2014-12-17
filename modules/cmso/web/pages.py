@@ -34,7 +34,7 @@ __all__ = ['LoginPage']
 
 class LoginPage(HTMLPage):
     def login(self, username, password):
-        form = self.get_form(name='formIdentification')
+        form = self.get_form('//form[@id="formAuth"]')
 
         form['noPersonne'] = username
         form['motDePasse'] = password
