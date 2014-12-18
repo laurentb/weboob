@@ -19,6 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 from weboob.capabilities.video import BaseVideo
 from weboob.capabilities.image import BaseImage
+from weboob.capabilities.collection import Collection
 
 from weboob.exceptions import ParseError
 from weboob.browser.elements import ItemElement, ListElement, method
@@ -95,3 +96,41 @@ class VideoJsonPage(JsonPage):
             return data['request']['files'][codec][quality]['url']
 
         obj_ext = Regexp(Field('url'), '.*\.(.*?)\?.*')
+
+
+class CategoriesPage(HTMLPage):
+    @method
+    class iter_categories(ListElement):
+        item_xpath = '//div[@class="col_large"]/section/ul/li/a'
+
+        class item(ItemElement):
+            klass = Collection
+
+            obj_id = CleanText('./@href')
+            obj_title = CleanText('./h2')
+
+            def obj_split_path(self):
+                split_path = ['vimeo-categories']
+                category = CleanText('./@href', replace=[('/categories/', '')])(self)
+                split_path.append(category)
+                return split_path
+
+
+class ChannelsPage(HTMLPage):
+    @pagination
+    @method
+    class iter_channels(ListElement):
+        item_xpath = '//div[@id="browse_content"]/ol/li'
+        next_page = Link('//li[@class="pagination_next"]/a')
+
+        class item(ItemElement):
+            klass = Collection
+
+            obj_title = CleanText('div/a/div/p[@class="title"]')
+            obj_id = CleanText('./@id')
+
+            def obj_split_path(self):
+                split_path = ['vimeo-channels']
+                channel = CleanText('div/a/@href', replace=[('/channels/', '')])(self)
+                split_path.append(channel)
+                return split_path

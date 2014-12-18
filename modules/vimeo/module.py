@@ -21,7 +21,7 @@
 
 from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.tools.backend import Module
-from weboob.capabilities.collection import CapCollection, CollectionNotFound
+from weboob.capabilities.collection import CapCollection, CollectionNotFound, Collection
 
 from .browser import VimeoBrowser
 
@@ -66,16 +66,30 @@ class VimeoModule(Module, CapVideo, CapCollection):
         if BaseVideo in objs:
             collection = self.get_collection(objs, split_path)
             if collection.path_level == 0:
-                yield self.get_collection(objs, [u'latest'])
-            if collection.split_path == [u'latest']:
-                for video in self.browser.latest_videos():
-                    yield video
+                yield Collection([u'vimeo-categories'], u'Vimeo categories')
+                yield Collection([u'vimeo-channels'], u'Vimeo channels')
+
+            if collection.path_level == 1:
+                if collection.split_path == [u'vimeo-categories']:
+                    for category in self.browser.get_categories():
+                        yield category
+                if collection.split_path == [u'vimeo-channels']:
+                    for channel in self.browser.get_channels():
+                        yield channel
+
+            if collection.path_level == 2:
+                if collection.split_path[0] == u'vimeo-channels':
+                    for video in self.browser.get_channel_videos(collection.split_path[1]):
+                        yield video
+                if collection.split_path[0] == u'vimeo-categories':
+                    for video in self.browser.get_category_videos(collection.split_path[1]):
+                        yield video
 
     def validate_collection(self, objs, collection):
         if collection.path_level == 0:
             return
-        if BaseVideo in objs and collection.split_path == [u'latest']:
-            collection.title = u'Latest Vimeo videos'
+        if BaseVideo in objs and (collection.split_path[0] == u'vimeo-categories' or
+                                  collection.split_path[0] == u'vimeo-channels'):
             return
         raise CollectionNotFound(collection.split_path)
 

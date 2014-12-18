@@ -18,9 +18,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+
 from weboob.browser import PagesBrowser, URL
 from weboob.browser.exceptions import HTTPNotFound
-from .pages import SearchPage, VideoPage, VideoJsonPage
+from .pages import SearchPage, VideoPage, VideoJsonPage, CategoriesPage, ChannelsPage
 
 import urllib
 
@@ -32,10 +33,14 @@ class VimeoBrowser(PagesBrowser):
     BASEURL = 'http://vimeo.com'
 
     search_page = URL(r'search/page:(?P<page>.*)/sort:(?P<sortby>.*)/format:thumbnail\?type=videos&q=(?P<pattern>.*)',
+                      r'channels/(?P<channel>.*)/videos/.*?',
+                      r'categories/(?P<category>.*)/videos/.*?',
                       SearchPage)
 
-    video_url = URL(r'http://player.vimeo.com/video/(?P<_id>.*)/config', VideoJsonPage)
+    categories_page = URL('categories', CategoriesPage)
+    channels_page = URL('channels', ChannelsPage)
 
+    video_url = URL(r'http://player.vimeo.com/video/(?P<_id>.*)/config', VideoJsonPage)
     video_page = URL('http://vimeo.com/(?P<_id>.*)', VideoPage)
 
     def get_video(self, _id, video=None):
@@ -50,7 +55,14 @@ class VimeoBrowser(PagesBrowser):
                                    sortby=sortby,
                                    page=1).iter_videos()
 
-    # def latest_videos(self):
-    #     self.home()
-    #     assert self.is_on_page(IndexPage)
-    #     return self.page.iter_videos()
+    def get_categories(self):
+        return self.categories_page.go().iter_categories()
+
+    def get_channels(self):
+        return self.channels_page.go().iter_channels()
+
+    def get_channel_videos(self, channel):
+        return self.search_page.go(channel=channel).iter_videos()
+
+    def get_category_videos(self, category):
+        return self.search_page.go(category=category).iter_videos()
