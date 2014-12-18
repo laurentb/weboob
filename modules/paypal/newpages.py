@@ -108,10 +108,14 @@ class NewPartHistoryPage(Page):
             raw = transaction['displayType']
         t.parse(date=date, raw=raw)
         try:
-            amount = transaction['displayAmount']
+            amount = transaction['netAmount']
         except KeyError:
             return
-        t.set_amount(amount)
+        if transaction['isCredit']:
+            t.set_amount(credit=amount)
+        else:
+            t.set_amount(debit=amount)
         t._currency = transaction['currencyCode']
+
         return t
 
