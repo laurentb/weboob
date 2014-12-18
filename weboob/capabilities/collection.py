@@ -83,7 +83,7 @@ class Collection(BaseCollection):
     title = StringField('Collection title')
     split_path = Field('Full collection path', list)
 
-    def __init__(self, split_path, title=None):
+    def __init__(self, split_path=None, title=None):
         self.title = title
         BaseCollection.__init__(self, split_path)
 
