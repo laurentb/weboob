@@ -17,12 +17,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-from weboob.tools.test import BackendTest
+from weboob.capabilities.video import BaseVideo
+from weboob.tools.test import BackendTest, SkipTest
 
 
 class ArretSurImagesTest(BackendTest):
     MODULE = 'arretsurimages'
 
-    def test_arretsurimages(self):
-        raise NotImplementedError()
+    def test_latest_arretsurimages(self):
+        l = list(self.backend.iter_resources([BaseVideo], [u'latest']))
+        assert len(l)
+        if self.backend.browser.username != u'None':
+            v = l[0]
+            self.backend.fillobj(v, ('url',))
+            self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
+        else:
+            raise SkipTest("User credentials not defined")

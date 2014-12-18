@@ -41,7 +41,7 @@ class ArretSurImagesModule(Module, CapVideo, CapCollection):
     BROWSER = ArretSurImagesBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(), self.config['password'].get())
+        return self.create_browser(self.config['login'].get(), self.config['password'].get(), get_home=False)
 
     def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         with self.browser:

@@ -29,10 +29,13 @@ from .video import ArretSurImagesVideo
 
 
 class IndexPage(Page):
-    def iter_videos(self):
+    def iter_videos(self, pattern=None):
         videos = self.document.getroot().cssselect("div[class=bloc-contenu-8]")
         for div in videos:
             title = self.parser.select(div, 'h1', 1).text_content().replace('  ', ' ')
+            if pattern:
+                if pattern.upper() not in title.upper():
+                    continue
             m = re.match(r'/contenu.php\?id=(.*)', div.find('a').attrib['href'])
             _id = ''
             if m:

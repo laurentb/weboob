@@ -46,7 +46,7 @@ class ArretSurImagesBrowser(Browser):
     def search_videos(self, pattern):
         self.location(self.buildurl('/emissions.php'))
         assert self.is_on_page(IndexPage)
-        return self.page.iter_videos()
+        return self.page.iter_videos(pattern)
 
     @id2url(ArretSurImagesVideo.id2url)
     def get_video(self, url, video=None):
