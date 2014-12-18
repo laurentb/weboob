@@ -27,16 +27,16 @@ from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
 
 
 class VirtKeyboard(MappedVirtKeyboard):
-    symbols={'0':'40fdd263e99d7268b49e22e06b73ebf1',
-             '1':'0d53ac10dba67d3ec601a086d0881b6f',
-             '2':'91b6e36e32ef8650127367a076b03c34',
-             '3':'bbda594275b7999fdac947e2499e7884',
-             '4':'26cd3d8f2279b5ec2be6d6f2be1e9c78',
-             '5':'408ceca0885b6ae720745531587f2766',
-             '6':'9008178542bdad8b9cbcd4d8a551f2fa',
-             '7':'3ab5c3555f36617d264d4938f487480c',
-             '8':'c06676612c15345c3634af51c058e64f',
-             '9':'d8323299dd4bd6489480b1e402fa5bcc'
+    symbols={'0':'cb9af3f561915702fc7f8ebaed8d5024',
+             '1':'6154d49517dce772aedb581db6587f12',
+             '2':'e8b1f8242ff536a807a91e521921a6ea',
+             '3':'55ae6e699ff2a09c97e58dbad410d2d5',
+             '4':'b23b8dfe923349f2b082b0a30965dd49',
+             '5':'b0f2d0f28662c32ad82233313a4074f6',
+             '6':'ffb10411571a767e9f6e7c8229a5bdac',
+             '7':'ba8650fd57b2648ca91679d574150a9b',
+             '8':'cbf9b18012499c023f1e78dcc3611cce',
+             '9':'c70a99af7bc6a03f28b1217e58363ecf'
             }
 
     color=(0,0,0)

@@ -49,7 +49,7 @@ class AccountsList(Page):
                             # ignore account
                             break
                         account.type = Account.TYPE_CARD
-                        account.label = self.parser.tocleanstring(a)
+                        account.label, account.id = [s.strip() for s in self.parser.tocleanstring(td).rsplit('-', 1)]
                         try:
                             account._link_id = td.xpath('.//a')[0].get('href')
                         except KeyError:
@@ -62,6 +62,7 @@ class AccountsList(Page):
                             # ignore account
                             break
                         account.label = self.parser.tocleanstring(span)
+                        account.id = self.parser.tocleanstring(td).rsplit('-', 1)[-1].strip()
                         try:
                             account._link_id = td.xpath('.//a')[0].get('href')
                             account._detail_url = account._link_id
