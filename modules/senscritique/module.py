@@ -111,7 +111,7 @@ class SenscritiqueModule(Module, CapCalendarEvent):
         for item in self.browser.list_events(date_from, date_to, package, channels):
             items.append(item)
 
-        items.sort(key=lambda o:o.start_date)
+        items.sort(key=lambda o: o.start_date)
         return items
 
     def get_event(self, _id, event=None):

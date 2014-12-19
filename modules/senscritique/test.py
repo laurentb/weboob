@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest, SkipTest
+from weboob.tools.test import BackendTest
 from datetime import datetime
 
 
@@ -26,10 +26,7 @@ class SenscritiqueTest(BackendTest):
     MODULE = 'senscritique'
 
     def test_senscritique(self):
-        try:
-            l = list(self.backend.list_events(datetime.now()))
-            assert len(l)
-            event = self.backend.get_event(l[0].id)
-            self.assertTrue(event.url, 'URL for event "%s" not found: %s' % (event.id, event.url))
-        except StopIteration:
-            raise SkipTest("Max iteration reach")
+        l = list(self.backend.list_events(datetime.now()))
+        assert len(l)
+        event = self.backend.get_event(l[0].id)
+        self.assertTrue(event.url, 'URL for event "%s" not found: %s' % (event.id, event.url))

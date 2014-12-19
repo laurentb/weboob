@@ -17,14 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.html import html2text
 from .calendar import SensCritiquenCalendarEvent
 
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, timedelta
 
 from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import Filter, CleanText, Regexp, Join, Format
+from weboob.browser.filters.standard import Filter, CleanText, Regexp, Join, Format, BrowserURL, Env
 from weboob.browser.filters.html import Link, Attr
 
 
@@ -131,10 +130,6 @@ class AjaxPage(HTMLPage):
 
                 return False
 
-            class CombineDate(Filter):
-                def filter(self, _date):
-                    return datetime.combine(_date, time.max)
-
             class Summary(Filter):
                 def filter(self, el):
                     title = Regexp(Attr('div/img', 'alt'), '^Affiche(.*)')(el[0])
@@ -146,7 +141,6 @@ class AjaxPage(HTMLPage):
                             FormatDate("%Y%m%d%H%M", Date('div/div[@class="elgr-data-diffusion"]')),
                             CleanText(Channel('.'), replace=[(' ', '-')]))
             obj_start_date = Date('div/div[@class="elgr-data-diffusion"]')
-            obj_end_date = CombineDate(obj_start_date)
             obj_summary = CleanText(Summary('.'))
 
 
@@ -161,30 +155,13 @@ class Description(Filter):
                       Join(u'- %s\n', "%s/ul/li" % section))(el[0])
 
 
-class Resume(Filter):
-    def filter(self, el):
-        _resume = el[0].xpath("p[@data-rel='full-resume']")
-        if not _resume:
-            _resume = el[0].xpath("p[@data-rel='small-resume']")
-            if _resume:
-                resume = html2text(CleanText(_resume[0])(self))[6:]
-                return resume
-
-
 class EventPage(HTMLPage):
     @method
     class get_event(ItemElement):
         klass = SensCritiquenCalendarEvent
 
-        def parse(self, el):
-            event = self.obj
-            event.url = self.page.url
-            resume = Resume('//section[@class="pvi-productDetails"]')(self)
-            if not resume:
-                resume = self.obj._resume
-            description = Description('.')(self)
-            event.description = u'%s%s' % (description, resume)
-            return event
+        obj_url = BrowserURL('event_page', _id=Env('_id'))
+        obj_description = Description('.')
 
 
 class JsonResumePage(JsonPage):

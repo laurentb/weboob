@@ -19,7 +19,6 @@
 
 from weboob.browser import PagesBrowser, URL
 from weboob.browser.profiles import Firefox
-from .calendar import SensCritiquenCalendarEvent
 from .pages import AjaxPage, EventPage, JsonResumePage
 
 import re
@@ -71,7 +70,7 @@ class SenscritiqueBrowser(PagesBrowser):
 
     def set_package_settings(self, package, channels):
         url = 'http://www.senscritique.com/sc/tv_guides/saveSettings.json'
-        #do not use a dict because there are several same keys
+        # do not use a dict because there are several same keys
         params = "network=%s" % package
         params += ''.join(["&channels%%5B%%5D=%d" % (channel) for channel in channels])
         self.open(url, data=params)
@@ -115,26 +114,28 @@ class SenscritiqueBrowser(PagesBrowser):
             while True:
                 self.DATA['page'] = '%d' % page_nb
                 page = self.ajax_page.open(data=self.DATA)
-                event = page.list_events(_id=_id)
+                try:
+                    event = page.list_events(_id=_id).next()
+                except StopIteration:
+                    event = None
+
                 nb_events = page.count_events()
-                if event or nb_events < self.LIMIT or page >= self.LIMIT_NB_PAGES:
+                if event or nb_events < self.LIMIT or page_nb >= self.LIMIT_NB_PAGES:
                     break
 
-                page += 1
+                page_nb += 1
 
         if event:
-            if not isinstance(event, SensCritiquenCalendarEvent):
-                event = event.next()
-
-            event._resume = self.get_resume(_id)
-
+            _id = _id.split('#')[0]
             self._setup_session(Firefox())
             event = self.event_page.go(_id=_id).get_event(obj=event)
-
+            resume = self.get_resume(_id)
+            if resume:
+                event.description += self.get_resume(_id)
             return event
 
     def get_resume(self, _id):
         self.set_json_header()
         re_id = re.compile('^/?.*/(.*)', re.DOTALL)
-        a_id = re_id.search(_id.split('#')[0]).group(1)
-        return self.json_page.go(_id=a_id).get_resume()
+        _id = re_id.search(_id).group(1)
+        return self.json_page.go(_id=_id).get_resume()
