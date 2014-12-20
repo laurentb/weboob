@@ -94,7 +94,10 @@ class PlayMeBrowser(DomainBrowser):
         self.credits = me['credits']['count']
 
     def get_threads(self):
-        return reversed(self.request('/users/%s/contacts' % self.my_id))
+        r = self.request('/users/%s/contacts' % self.my_id)
+        if 'status' in r:
+            return []
+        return reversed(r)
 
     def get_thread_messages(self, contact_id):
         return self.request('/messages/%s' % contact_id)
