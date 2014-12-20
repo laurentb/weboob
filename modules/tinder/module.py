@@ -97,6 +97,11 @@ class TinderModule(Module, CapMessages, CapMessagesPost, CapDating):
 
     def iter_threads(self):
         for thread in self.browser.get_threads():
+            if not 'person' in thread:
+                # The account has been removed, probably because it was a
+                # spammer.
+                continue
+
             t = Thread(thread['_id'])
             t.flags = Thread.IS_DISCUSSION
             t.title = u'Discussion with %s' % thread['person']['name']
