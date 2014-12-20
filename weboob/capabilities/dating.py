@@ -110,6 +110,7 @@ class CapDating(Capability):
         :param optim: optimization
         :type optim: :class:`Optimization`
         """
+        optim.id = name
         setattr(self, 'OPTIM_%s' % name, optim)
 
     def iter_optimizations(self):
@@ -125,7 +126,7 @@ class CapDating(Capability):
             if attr is None:
                 continue
 
-            yield attr_name[6:], attr
+            yield attr
 
     def get_optimization(self, optim):
         """

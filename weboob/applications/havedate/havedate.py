@@ -183,8 +183,8 @@ class HaveDate(Boobmsg):
             else:
                 backend = args[2]
             optims = set()
-            for (name, optim) in self.do('iter_optimizations', backends=backend):
-                optims.add(name)
+            for optim in self.do('iter_optimizations', backends=backend):
+                optims.add(optim.id)
             return sorted(optims - set(args[3:]))
 
     def do_optim(self, line):
@@ -222,17 +222,17 @@ class HaveDate(Boobmsg):
 
             optims = {}
             backends = set()
-            for (name, optim) in self.do('iter_optimizations', backends=backend_name):
-                if optims_names is not None and name not in optims_names:
+            for optim in self.do('iter_optimizations', backends=backend_name):
+                if optims_names is not None and optim.id not in optims_names:
                     continue
                 if optim.is_running():
                     status = 'RUNNING'
                 else:
                     status = '-------'
-                if name not in optims:
-                    optims[name] = {optim.backend: status}
+                if optim.id not in optims:
+                    optims[optim.id] = {optim.backend: status}
                 else:
-                    optims[name][optim.backend] = status
+                    optims[optim.id][optim.backend] = status
                 backends.add(optim.backend)
 
             backends = sorted(backends)
