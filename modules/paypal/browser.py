@@ -44,9 +44,11 @@ class Paypal(Browser):
         '/cgi-bin/webscr\?dispatch=[a-z0-9]+$': (SubmitPage, HistoryParser()),
         '/cgi-bin/webscr\?cmd=_history-download-recent-submit&dispatch=[a-z0-9]+$': (SubmitPage, HistoryParser()),
         'https://www.paypal.com/webapps/business/\?nav=0.0': NewHomePage,
+        'https://www.paypal.com/webapps/business/\?country_lang.x=true': NewHomePage,
         'https://www.paypal.com/businessexp/money': NewAccountPage,
         'https://www.paypal.com/webapps/business/activity\?.*': NewProHistoryPage,
         'https://www.paypal.com/myaccount/activity/.*': (NewPartHistoryPage, 'json'),
+        'https://www.paypal.com/myaccount/': NewProHistoryPage,
         'https://www.paypal.com/myaccount/': NewProHistoryPage,
     }
 
