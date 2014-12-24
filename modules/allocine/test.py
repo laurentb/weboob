@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.test import BackendTest
+from weboob.capabilities.video import BaseVideo
 import re
 
 
@@ -85,3 +86,33 @@ class AllocineTest(BackendTest):
         assert len(persons_ids) > 0
         for person_id in persons_ids:
             assert person_id
+
+    def test_emissions(self):
+        l = list(self.backend.iter_resources([BaseVideo], [u'acshow']))
+        assert len(l)
+        l1 = list(self.backend.iter_resources([BaseVideo], l[0].split_path))
+        assert len(l1)
+        v = l1[0]
+        self.backend.fillobj(v, ('url',))
+        self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
+
+    def test_interview(self):
+        l = list(self.backend.iter_resources([BaseVideo], [u'interview']))
+        assert len(l)
+        v = l[0]
+        self.backend.fillobj(v, ('url',))
+        self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
+
+    def test_comingsoon(self):
+        l = list(self.backend.iter_resources([BaseVideo], [u'comingsoon']))
+        assert len(l)
+        v = l[0]
+        self.backend.fillobj(v, ('url',))
+        self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
+
+    def test_nowshowing(self):
+        l = list(self.backend.iter_resources([BaseVideo], [u'nowshowing']))
+        assert len(l)
+        v = l[0]
+        self.backend.fillobj(v, ('url',))
+        self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))

@@ -17,14 +17,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-from weboob.capabilities.base import NotAvailable, NotLoaded
+from weboob.capabilities.collection import Collection
+from weboob.capabilities.video import BaseVideo
+from weboob.capabilities.image import BaseImage
+from weboob.capabilities.base import NotAvailable, NotLoaded, find_object
 from weboob.capabilities.cinema import Movie, Person
 from weboob.deprecated.browser import Browser
 from weboob.tools.json import json
 import base64
 import hashlib
-from datetime import datetime
+from datetime import datetime, date, timedelta
 import time
 import urllib
 
@@ -190,7 +192,7 @@ class AllocineBrowser(Browser):
             for cast in jres['castMember']:
                 if cast['activity']['$'] not in roles:
                     roles[cast['activity']['$']] = []
-                person_to_append = (u'%s'%cast['person']['code'], cast['person']['name'])
+                person_to_append = (u'%s' % cast['person']['code'], cast['person']['name'])
                 roles[cast['activity']['$']].append(person_to_append)
 
         movie = Movie(id, title)
@@ -280,7 +282,6 @@ class AllocineBrowser(Browser):
                     pyear = m['movie']['productionYear']
                 movie_to_append = (u'%s' % (m['movie']['code']), u'(%s) %s' % (pyear, m['movie']['originalTitle']))
                 roles[m['activity']['$']].append(movie_to_append)
-
 
         person = Person(id, name)
         person.real_name = real_name
@@ -443,3 +444,120 @@ class AllocineBrowser(Browser):
             biography = unicode(jres['biography'])
 
         return biography
+
+    def get_categories_movies(self, category):
+        params = [('partner', self.PARTNER_KEY),
+                  ('format', 'json'),
+                  ('mediafmt', 'mp4'),
+                  ('filter', category)
+                  ]
+        res = self.__do_request('movielist', params)
+        if res is None:
+            return
+        result = json.loads(res)
+        for movie in result['feed']['movie']:
+            if 'trailer' not in movie or 'productionYear' not in movie:
+                continue
+            yield self.parse_movie(movie)
+
+    def get_categories_videos(self, category):
+        params = [('partner', self.PARTNER_KEY),
+                  ('format', 'json'),
+                  ('mediafmt', 'mp4'),
+                  ('filter', category)
+                  ]
+        res = self.__do_request('videolist', params)
+        if res is None:
+            return
+        result = json.loads(res)
+        for episode in result['feed']['media']:
+            if 'title' in episode:
+                yield self.parse_video(episode, category)
+
+    def parse_video(self, _video, category):
+        video = BaseVideo(u'%s#%s' % (_video['code'], category))
+        video.title = unicode(_video['title'])
+        video._video_code = unicode(_video['code'])
+        video.ext = u'mp4'
+        if 'runtime' in _video:
+            video.duration = timedelta(seconds=int(_video['runtime']))
+        if 'description' in _video:
+            video.description = unicode(_video['description'])
+        renditions = sorted(_video['rendition'], key=lambda x: 'bandwidth' in x and x['bandwidth']['code'], reverse=True)
+        video.url = unicode(max(renditions, key=lambda x: 'bandwidth' in x)['href'])
+        return video
+
+    def parse_movie(self, movie):
+        video = BaseVideo(u'%s#%s' % (movie['code'], 'movie'))
+        video.title = unicode(movie['trailer']['name'])
+        video._video_code = unicode(movie['trailer']['code'])
+        video.ext = u'mp4'
+        video.thumbnail = BaseImage(movie['poster']['href'])
+        video.thumbnail.url = unicode(movie['poster']['href'])
+        tdate = movie['release']['releaseDate'].split('-')
+        day = 1
+        month = 1
+        year = 1901
+        if len(tdate) > 2:
+            year = int(tdate[0])
+            month = int(tdate[1])
+            day = int(tdate[2])
+
+        video.date = date(year, month, day)
+        if 'userRating' in movie['statistics']:
+            video.rating = movie['statistics']['userRating']
+        elif 'pressRating' in movie['statistics']:
+            video.rating = movie['statistics']['pressRating']*2
+        video.rating_max = 5
+        if 'synopsis' in movie:
+            video.description = unicode(movie['synopsis'].replace('<p>', '').replace('</p>', ''))
+        elif 'synopsisShort' in movie:
+            video.description = unicode(movie['synopsisShort'].replace('<p>', '').replace('</p>', ''))
+        if 'castingShort' in movie:
+            if 'directors' in movie['castingShort']:
+                video.author = unicode(movie['castingShort']['directors'])
+        if 'runtime' in movie:
+            video.duration = timedelta(seconds=int(movie['runtime']))
+        return video
+
+    def get_movie_from_id(self, _id):
+        params = [('partner', self.PARTNER_KEY),
+                  ('format', 'json'),
+                  ('mediafmt', 'mp4'),
+                  ('filter', 'movie'),
+                  ('code', _id),
+                  ]
+        res = self.__do_request('movie', params)
+        if res is None:
+            return
+        result = json.loads(res)
+        return self.parse_video(result['movie'])
+
+    def get_video_from_id(self, _id, category):
+        return find_object(self.get_categories_videos(category), id=u'%s#%s' % (_id, category))
+
+    def get_video_url(self, code):
+        params = [('partner', self.PARTNER_KEY),
+                  ('format', 'json'),
+                  ('mediafmt', 'mp4'),
+                  ('code', code),
+                  ('profile', 'large'),
+                  ]
+        res = self.__do_request('media', params)
+        if res is None:
+            return
+        result = json.loads(res)
+        renditions = sorted(result['media']['rendition'], key=lambda x: 'bandwidth' in x and x['bandwidth']['code'], reverse=True)
+        return max(renditions, key=lambda x: 'bandwidth' in x)['href']
+
+    def get_emissions(self, basename):
+        params = [('partner', self.PARTNER_KEY),
+                  ('format', 'json'),
+                  ('filter', 'acshow'),
+                  ]
+        res = self.__do_request('termlist', params)
+        if res is None:
+            return
+        result = json.loads(res)
+        for emission in result['feed']['term']:
+            yield Collection([basename, unicode(emission['nameShort'])], unicode(emission['$']))

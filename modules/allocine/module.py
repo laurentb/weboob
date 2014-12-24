@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from weboob.capabilities.video import CapVideo, BaseVideo
+from weboob.capabilities.collection import CapCollection, CollectionNotFound, Collection
 from weboob.capabilities.cinema import CapCinema, Person, Movie
 from weboob.tools.backend import Module
 
@@ -25,7 +27,7 @@ from .browser import AllocineBrowser
 __all__ = ['AllocineModule']
 
 
-class AllocineModule(Module, CapCinema):
+class AllocineModule(Module, CapCinema, CapVideo, CapCollection):
     NAME = 'allocine'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
@@ -108,7 +110,72 @@ class AllocineModule(Module, CapCinema):
 
         return movie
 
+    def fill_video(self, video, fields):
+        if 'url' in fields:
+            with self.browser:
+                if not isinstance(video, BaseVideo):
+                    video = self.get_video(self, video.id)
+
+                if hasattr(video, '_video_code'):
+                    video.url = self.browser.get_video_url(video._video_code)
+
+        if 'thumbnail' in fields and video and video.thumbnail:
+            with self.browser:
+                video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
+        return video
+
+    def get_video(self, _id):
+        with self.browser:
+            split_id = _id.split('#')
+            if split_id[-1] == 'movir':
+                return self.browser.get_movie_from_id(split_id[0])
+            return self.browser.get_video_from_id(split_id[0], split_id[-1])
+
+    def iter_resources(self, objs, split_path):
+        with self.browser:
+            if BaseVideo in objs:
+                collection = self.get_collection(objs, split_path)
+                if collection.path_level == 0:
+                    yield Collection([u'comingsoon'], u'Films prochainement au cinéma')
+                    yield Collection([u'nowshowing'], u'Films au cinéma')
+                    yield Collection([u'acshow'], u'Émissions')
+                    yield Collection([u'interview'], u'Interviews')
+                if collection.path_level == 1:
+                    if collection.basename == u'acshow':
+                        emissions = self.browser.get_emissions(collection.basename)
+                        if emissions:
+                            for emission in emissions:
+                                yield emission
+                    elif collection.basename == u'interview':
+                        videos = self.browser.get_categories_videos(collection.basename)
+                        if videos:
+                            for video in videos:
+                                yield video
+                    else:
+                        videos = self.browser.get_categories_movies(collection.basename)
+                        if videos:
+                            for video in videos:
+                                yield video
+                if collection.path_level == 2:
+                    videos = self.browser.get_categories_videos(':'.join(collection.split_path))
+                    if videos:
+                        for video in videos:
+                            yield video
+
+    def validate_collection(self, objs, collection):
+        if collection.path_level == 0:
+            return
+        if collection.path_level == 1 and (collection.basename in
+                                           [u'comingsoon', u'nowshowing', u'acshow', u'interview']):
+            return
+
+        if collection.path_level == 2 and collection.parent_path == [u'acshow']:
+            return
+
+        raise CollectionNotFound(collection.split_path)
+
     OBJECTS = {
         Person: fill_person,
-        Movie: fill_movie
+        Movie: fill_movie,
+        BaseVideo: fill_video
     }
