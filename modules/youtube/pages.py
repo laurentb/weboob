@@ -206,7 +206,7 @@ class VideoPage(BaseYoutubePage):
 
     def _parse_sig_js(self, jscode):
         funcname = self._search_regex(
-            r'signature=([$a-zA-Z]+)', jscode,
+            r'\.sig\|\|([a-zA-Z0-9]+)\(', jscode,
             u'Initial JS player signature function name')
 
         functions = {}
