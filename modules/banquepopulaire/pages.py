@@ -394,7 +394,7 @@ class AccountsPage(BasePage):
 
                     # If there is an action needed before going to the cards page, save it.
                     m = re.search('dialogActionPerformed=([\w_]+)', self.url)
-                    if m:
+                    if m and m.group(1) != 'EQUIPEMENT_COMPLET':
                         _params['prevAction'] = m.group(1)
                     next_pages.append(_params)
                 yield account
