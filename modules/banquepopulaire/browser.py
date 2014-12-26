@@ -22,7 +22,7 @@ import urllib
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrokenPageError
 
-from .pages import LoginPage, IndexPage, AccountsPage, CardsPage, TransactionsPage, \
+from .pages import LoginPage, IndexPage, AccountsPage, AccountsFullPage, CardsPage, TransactionsPage, \
                    UnavailablePage, RedirectPage, HomePage, Login2Page
 
 
@@ -37,7 +37,8 @@ class BanquePopulaire(Browser):
              'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=mesComptes.*':             AccountsPage,
              'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=maSyntheseGratuite.*':     AccountsPage,
              'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=accueilSynthese.*':        AccountsPage,
-             'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=EQUIPEMENT_COMPLET.*': AccountsPage,
+             'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=EQUIPEMENT_COMPLET.*': AccountsFullPage,
+             'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=VUE_COMPLETE.*': AccountsPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=ENCOURS_COMPTE.*': CardsPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SELECTION_ENCOURS_CARTE.*':   TransactionsPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SOLDE.*':   TransactionsPage,
@@ -109,14 +110,22 @@ class BanquePopulaire(Browser):
         for a in self.page.iter_accounts(next_pages):
             yield a
 
-        for next_page in next_pages:
-            if not self.is_on_page(AccountsPage):
+        while len(next_pages) > 0:
+            next_page = next_pages.pop()
+
+            if not self.is_on_page(AccountsFullPage):
                 self.go_on_accounts_list()
+            # If there is an action needed to go to the "next page", do it.
+            if 'prevAction' in next_page:
+                params = self.page.get_params()
+                params['dialogActionPerformed'] = next_page.pop('prevAction')
+                params['token'] = self.page.build_token(self.page.get_token())
+                self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(params))
 
             next_page['token'] = self.page.build_token(self.page.get_token())
             self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(next_page))
 
-            for a in self.page.iter_accounts():
+            for a in self.page.iter_accounts(next_pages):
                 yield a
 
     def get_account(self, id):

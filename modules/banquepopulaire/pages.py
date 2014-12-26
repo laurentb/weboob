@@ -86,6 +86,24 @@ class BasePage(_BasePage):
             token += token[i]
         return token
 
+    def get_params(self):
+        params = {}
+        for field in self.document.xpath('//input'):
+            params[field.attrib['name']] = field.attrib.get('value', '')
+        return params
+
+    def get_button_actions(self):
+        actions = {}
+        for script in self.document.xpath('//script'):
+            if script.text is None:
+                continue
+
+            for id, action, strategy in re.findall(r'''attEvt\(window,"(?P<id>[^"]+)","click","sab\('(?P<action>[^']+)','(?P<strategy>[^']+)'\);"''', script.text, re.MULTILINE):
+                actions[id] = {'dialogActionPerformed': action,
+                               'validationStrategy': strategy,
+                              }
+        return actions
+
 
 class RedirectPage(BasePage):
     """
@@ -276,14 +294,18 @@ class HomePage(BasePage):
 
 
 class AccountsPage(BasePage):
-    ACCOUNT_TYPES = {u'Mes comptes d\'épargne':     Account.TYPE_SAVINGS,
-                     u'Mon épargne':                Account.TYPE_SAVINGS,
-                     u'Placements':                 Account.TYPE_SAVINGS,
-                     u'Mes comptes':                Account.TYPE_CHECKING,
-                     u'Comptes en euros':           Account.TYPE_CHECKING,
-                     u'Mes emprunts':               Account.TYPE_LOAN,
-                     u'Financements':               Account.TYPE_LOAN,
-                     u'Mes services':               None,    # ignore this kind of accounts (no bank ones)
+    ACCOUNT_TYPES = {u'Mes comptes d\'épargne':        Account.TYPE_SAVINGS,
+                     u'Mon épargne':                   Account.TYPE_SAVINGS,
+                     u'Placements':                    Account.TYPE_SAVINGS,
+                     u'Liste complète de mon épargne': Account.TYPE_SAVINGS,
+                     u'Mes comptes':                   Account.TYPE_CHECKING,
+                     u'Comptes en euros':              Account.TYPE_CHECKING,
+                     u'Liste complète de mes comptes': Account.TYPE_CHECKING,
+                     u'Mes emprunts':                  Account.TYPE_LOAN,
+                     u'Financements':                  Account.TYPE_LOAN,
+                     u'Mes services':                  None,    # ignore this kind of accounts (no bank ones)
+                     u'Équipements':                   None,    # ignore this kind of accounts (no bank ones)
+                     u'Synthèse':                      None,    # ignore this title
                     }
 
     def is_error(self):
@@ -307,17 +329,25 @@ class AccountsPage(BasePage):
     def iter_accounts(self, next_pages):
         account_type = Account.TYPE_UNKNOWN
 
-        params = {}
-        for field in self.document.xpath('//input'):
-            params[field.attrib['name']] = field.attrib.get('value', '')
+        params = self.get_params()
+        actions = self.get_button_actions()
 
         for div in self.document.getroot().cssselect('div.btit'):
-            if div.text is None:
+            if div.text in (None, u'Synthèse'):
                 continue
             account_type = self.ACCOUNT_TYPES.get(div.text.strip(), Account.TYPE_UNKNOWN)
 
             if account_type is None:
                 # ignore services accounts
+                continue
+
+            # Go to the full list of this kind of account, if any.
+            btn = div.getparent().xpath('.//button/span[text()="Suite"]')
+            if len(btn) > 0:
+                btn = btn[0].getparent()
+                _params = params.copy()
+                _params.update(actions[btn.attrib['id']])
+                next_pages.append(_params)
                 continue
 
             currency = None
@@ -361,9 +391,24 @@ class AccountsPage(BasePage):
                 if len(tds) >= 5 and len(tds[self.COL_COMING].xpath('.//a')) > 0:
                     _params = account._params.copy()
                     _params['dialogActionPerformed'] = 'ENCOURS_COMPTE'
+
+                    # If there is an action needed before going to the cards page, save it.
+                    m = re.search('dialogActionPerformed=([\w_]+)', self.url)
+                    if m:
+                        _params['prevAction'] = m.group(1)
                     next_pages.append(_params)
                 yield account
 
+        # Needed to preserve navigation.
+        btn = self.document.xpath('.//button/span[text()="Retour"]')
+        if len(btn) > 0:
+            btn = btn[0].getparent()
+            _params = params.copy()
+            _params.update(actions[btn.attrib['id']])
+            self.browser.openurl('/cyber/internet/ContinueTask.do', urllib.urlencode(_params))
+
+class AccountsFullPage(AccountsPage):
+    pass
 
 class CardsPage(BasePage):
     COL_ID = 0
@@ -372,10 +417,8 @@ class CardsPage(BasePage):
     COL_DATE = 3
     COL_AMOUNT = 4
 
-    def iter_accounts(self):
-        params = {}
-        for field in self.document.xpath('//input'):
-            params[field.attrib['name']] = field.attrib.get('value', '')
+    def iter_accounts(self, next_pages):
+        params = self.get_params()
 
         account = None
         for tr in self.document.xpath('//table[@id="TabCtes"]/tbody/tr'):
@@ -387,6 +430,7 @@ class CardsPage(BasePage):
                     yield account
                 account = Account()
                 account.id = id.replace(' ', '')
+                account.type = Account.TYPE_CARD
                 account.balance = account.coming = Decimal('0')
                 account._next_debit = datetime.date.today()
                 account._prev_debit = datetime.date(2000,1,1)
@@ -425,6 +469,15 @@ class CardsPage(BasePage):
 
         if account is not None:
             yield account
+
+        # Needed to preserve navigation.
+        btn = self.document.xpath('.//button/span[text()="Retour"]')
+        if len(btn) > 0:
+            btn = btn[0].getparent()
+            actions = self.get_button_actions()
+            _params = params.copy()
+            _params.update(actions[btn.attrib['id']])
+            self.browser.openurl('/cyber/internet/ContinueTask.do', urllib.urlencode(_params))
 
 
 class Transaction(FrenchTransaction):
