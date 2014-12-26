@@ -19,6 +19,8 @@
 
 from weboob.tools.test import BackendTest
 from weboob.capabilities.video import BaseVideo
+from weboob.capabilities.calendar import Query, CATEGORIES
+from datetime import datetime
 import re
 
 
@@ -93,26 +95,39 @@ class AllocineTest(BackendTest):
         l1 = list(self.backend.iter_resources([BaseVideo], l[0].split_path))
         assert len(l1)
         v = l1[0]
-        self.backend.fillobj(v, ('url',))
+        self.backend.fillobj(v, 'url')
         self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
 
     def test_interview(self):
         l = list(self.backend.iter_resources([BaseVideo], [u'interview']))
         assert len(l)
         v = l[0]
-        self.backend.fillobj(v, ('url',))
+        self.backend.fillobj(v, 'url')
         self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
 
     def test_comingsoon(self):
         l = list(self.backend.iter_resources([BaseVideo], [u'comingsoon']))
         assert len(l)
         v = l[0]
-        self.backend.fillobj(v, ('url',))
+        self.backend.fillobj(v, 'url')
         self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
 
     def test_nowshowing(self):
         l = list(self.backend.iter_resources([BaseVideo], [u'nowshowing']))
         assert len(l)
         v = l[0]
-        self.backend.fillobj(v, ('url',))
+        self.backend.fillobj(v, 'url')
         self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
+
+    def test_showtimelist(self):
+        query = Query()
+        query.city = u'59000'
+        query.categories = [CATEGORIES.CINE]
+        query.start_date = datetime.now()
+        l = self.backend.search_events(query)
+        assert len(l)
+        e = l[0]
+        self.backend.fillobj(e, 'description')
+        self.assertTrue(e.description, 'Description of "%s" not found' % (e.id))
+        e = self.backend.get_event(e.id)
+        self.assertTrue(e.description, 'Description of "%s" not found' % (e.id))

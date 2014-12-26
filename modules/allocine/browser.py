@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from weboob.capabilities.calendar import BaseCalendarEvent, TRANSP, STATUS, CATEGORIES
 from weboob.capabilities.collection import Collection
 from weboob.capabilities.video import BaseVideo
 from weboob.capabilities.image import BaseImage
@@ -29,7 +30,6 @@ import hashlib
 from datetime import datetime, date, timedelta
 import time
 import urllib
-
 
 __all__ = ['AllocineBrowser']
 
@@ -492,8 +492,9 @@ class AllocineBrowser(Browser):
         video.title = unicode(movie['trailer']['name'])
         video._video_code = unicode(movie['trailer']['code'])
         video.ext = u'mp4'
-        video.thumbnail = BaseImage(movie['poster']['href'])
-        video.thumbnail.url = unicode(movie['poster']['href'])
+        if 'poster' in movie:
+            video.thumbnail = BaseImage(movie['poster']['href'])
+            video.thumbnail.url = unicode(movie['poster']['href'])
         tdate = movie['release']['releaseDate'].split('-')
         day = 1
         month = 1
@@ -507,7 +508,7 @@ class AllocineBrowser(Browser):
         if 'userRating' in movie['statistics']:
             video.rating = movie['statistics']['userRating']
         elif 'pressRating' in movie['statistics']:
-            video.rating = movie['statistics']['pressRating']*2
+            video.rating = movie['statistics']['pressRating'] * 2
         video.rating_max = 5
         if 'synopsis' in movie:
             video.description = unicode(movie['synopsis'].replace('<p>', '').replace('</p>', ''))
@@ -561,3 +562,86 @@ class AllocineBrowser(Browser):
         result = json.loads(res)
         for emission in result['feed']['term']:
             yield Collection([basename, unicode(emission['nameShort'])], unicode(emission['$']))
+
+    def search_events(self, query):
+        params = [('partner', self.PARTNER_KEY),
+                  ('format', 'json'),
+                  ('zip', query.city)
+                  ]
+
+        if query.summary:
+            movie = self.iter_movies(query.summary).next()
+            params.append(('movie', movie.id))
+
+        res = self.__do_request('showtimelist', params)
+        if res is None:
+            return
+        result = json.loads(res)
+
+        for event in self.create_event(result):
+            if (not query.end_date or event.start_date <= query.end_date)\
+               and event.start_date >= query.start_date:
+                yield event
+
+    def get_event(self, _id):
+        split_id = _id.split('#')
+        params = [('partner', self.PARTNER_KEY),
+                  ('format', 'json'),
+                  ('theaters', split_id[0]),
+                  ('zip', split_id[1]),
+                  ('movie', split_id[2]),
+                  ]
+
+        res = self.__do_request('showtimelist', params)
+        if res is None:
+            return
+        result = json.loads(res)
+
+        for event in self.create_event(result):
+            if event.id.split('#')[-1] == split_id[-1]:
+                event.description = self.get_movie(split_id[2]).pitch
+                return event
+
+    def create_event(self, data):
+        sequence = 1
+        transp = TRANSP.TRANSPARENT
+        status = STATUS.CONFIRMED
+        category = CATEGORIES.CINE
+
+        if 'theaterShowtimes' not in data['feed']:
+            return
+
+        for items in data['feed']['theaterShowtimes']:
+            cinema = items['place']['theater']
+            city = unicode(cinema['city'])
+            location = u'%s, %s' % (cinema['name'], cinema['address'])
+            postalCode = cinema['postalCode']
+            cinemaCode = cinema['code']
+            for show in items['movieShowtimes']:
+                summary = unicode(show['onShow']['movie']['title'])
+                movieCode = show['onShow']['movie']['code']
+                for jour in show['scr']:
+                    tdate = jour['d'].split('-')
+                    year = int(tdate[0])
+                    month = int(tdate[1])
+                    day = int(tdate[2])
+                    for seance in jour['t']:
+                        ttime = seance['$'].split(':')
+                        heure = int(ttime[0])
+                        minute = int(ttime[1])
+                        start_date = datetime(year=year, month=month, day=day,
+                                              hour=heure, minute=minute)
+
+                        seanceCode = seance['code']
+                        _id = u'%s#%s#%s#%s' % (cinemaCode, postalCode, movieCode, seanceCode)
+                        event = BaseCalendarEvent()
+                        event.id = _id
+                        event.sequence = sequence
+                        event.transp = transp
+                        event.status = status
+                        event.category = category
+                        event.city = city
+                        event.location = location
+                        event.start_date = start_date
+                        event.summary = summary
+                        yield event
