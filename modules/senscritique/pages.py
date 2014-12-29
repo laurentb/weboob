@@ -76,7 +76,7 @@ class Date(Filter):
             month = _date.month
             year = _date.year
             if day_number < _date.day:
-                month = _date.month + 1
+                month = _date.month%12 + 1
                 if _date.month == 12:
                     year = _date.year + 1
             _date = date(day=day_number, month=month, year=year)
