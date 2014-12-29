@@ -75,25 +75,28 @@ class HistoryPage(AmazonPage):
                 ) if x.startswith('year-')]
 
 
-class OrderNewPage(AmazonPage):
-    is_here = u'//*[contains(text(),"Ordered on")]'
-
-    def order(self):
+class OrderPage(AmazonPage):
+    def shouldSkip(self):
         # Reports only fully shipped and delivered orders, because they have
         # finalized payment amounts.
         # Payment for not yet shipped orders may change, and is not always
         # available.
-        for s in [u'Not Yet Shipped', u'Preparing for Shipment',
-                  u'Shipping now', u'In transit']:
-            if self.doc.xpath(u'//*[contains(text(),"%s")]' % s):
-                return None
+        return bool([x for s in [u'Not Yet Shipped', u'Not yet shipped',
+            u'Preparing for Shipment', u'Shipping now', u'In transit']
+            for x in self.doc.xpath(u'//*[contains(text(),"%s")]' % s)])
 
-        order = Order(id=self.order_number())
-        order.date = self.order_date()
-        order.tax = self.tax()
-        order.discount = self.discount()
-        order.shipping = self.shipping()
-        return order
+
+class OrderNewPage(OrderPage):
+    is_here = u'//*[contains(text(),"Ordered on")]'
+
+    def order(self):
+        if not self.shouldSkip():
+            order = Order(id=self.order_number())
+            order.date = self.order_date()
+            order.tax = self.tax()
+            order.discount = self.discount()
+            order.shipping = self.shipping()
+            return order
 
     def order_date(self):
         return datetime.strptime(
@@ -207,25 +210,17 @@ class OrderNewPage(AmazonPage):
                 yield itm
 
 
-class OrderOldPage(AmazonPage):
+class OrderOldPage(OrderPage):
     is_here = u'//*[contains(text(),"Amazon.com order number")]'
 
     def order(self):
-        # Reports only fully shipped and delivered orders, because they have
-        # finalized payment amounts.
-        # Payment for not yet shipped orders may change, and are not always
-        # available.
-        for s in [u'Not Yet Shipped', u'Preparing for Shipment',
-                  u'Shipping now']:
-            if self.doc.xpath(u'//b[contains(text(),"%s")]' % s):
-                return None
-
-        order = Order(id=self.order_number())
-        order.date = self.order_date()
-        order.tax = self.tax()
-        order.discount = self.discount()
-        order.shipping = self.shipping()
-        return order
+        if not self.shouldSkip():
+            order = Order(id=self.order_number())
+            order.date = self.order_date()
+            order.tax = self.tax()
+            order.discount = self.discount()
+            order.shipping = self.shipping()
+            return order
 
     def order_date(self):
         return datetime.strptime(u' '.join(self.doc.xpath(
