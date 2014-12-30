@@ -27,16 +27,17 @@ __all__ = ['HybrideBrowser']
 
 class HybrideBrowser(PagesBrowser):
     PROFILE = Firefox()
-    BASEURL = 'http://www.lhybride.org'
+    BASEURL = 'https://www.lhybride.org'
+    VERIFY = False
 
     program_page = URL('programme.html', ProgramPage)
     event_page = URL('programme/item/(?P<_id>.*)', EventPage)
 
     def list_events(self, date_from, date_to=None, city=None, categories=None):
-        return self.program_page.stay_or_go().list_events(date_from=date_from,
-                                                          date_to=date_to,
-                                                          city=city,
-                                                          categories=categories)
+        return self.program_page.go().list_events(date_from=date_from,
+                                                  date_to=date_to,
+                                                  city=city,
+                                                  categories=categories)
 
     def get_event(self, _id, event=None):
-        return self.event_page.stay_or_go(_id=_id).get_event(obj=event)
+        return self.event_page.go(_id=_id).get_event(obj=event)
