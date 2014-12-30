@@ -20,6 +20,7 @@
 from __future__ import absolute_import, print_function
 
 import re
+import urllib3
 try:
     from urllib.parse import urlparse, urljoin
 except ImportError:
@@ -168,6 +169,8 @@ class Browser(object):
         session.proxies = self.PROXIES
 
         session.verify = not self.logger.settings['ssl_insecure'] and self.VERIFY
+        if not session.verify:
+            urllib3.disable_warnings()
 
         # defines a max_retries. It's mandatory in case a server is not
         # handling keep alive correctly, like the proxy burp
