@@ -567,7 +567,7 @@ class DateTime(Filter):
                 for search, repl in self.translations:
                     txt = search.sub(repl, txt)
             return parse_date(txt, dayfirst=self.dayfirst)
-        except ValueError as e:
+        except (ValueError, TypeError) as e:
             return self.default_or_raise(ParseError('Unable to parse %r: %s' % (txt, e)))
 
 
