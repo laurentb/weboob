@@ -146,7 +146,8 @@ class ConsoleApplication(Application):
                         else:
                             loaded += 1
                 print('%s%d)%s [%s] %s%-15s%s   %s' % (self.BOLD, len(modules), self.NC, loaded,
-                                                       self.BOLD, name, self.NC, info.description))
+                                                       self.BOLD, name, self.NC,
+                                                       info.description.encode(self.encoding)))
             print('%sa) --all--%s               install all backends' % (self.BOLD, self.NC))
             print('%sq)%s --stop--\n' % (self.BOLD, self.NC))
             r = self.ask('Select a backend to create (q to stop)', regexp='^(\d+|q|a)$')
@@ -456,7 +457,8 @@ class ConsoleApplication(Application):
                     print('     %s%s%s: %s' % (self.BOLD, key, self.NC, value))
             else:
                 for n, (key, value) in enumerate(v.choices.iteritems()):
-                    print('     %s%2d)%s %s' % (self.BOLD, n + 1, self.NC, value))
+                    print('     %s%2d)%s %s' % (self.BOLD, n + 1, self.NC,
+                                                value.encode(self.encoding)))
                     aliases[str(n + 1)] = key
                 question = u'%s (choose in list)' % question
         if v.masked:
