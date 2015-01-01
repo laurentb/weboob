@@ -185,8 +185,8 @@ class AllocineModule(Module, CapCinema, CapVideo, CapCalendarEvent, CapCollectio
                     events = list(self.browser.search_events(query))
                     events.sort(key=lambda x: x.start_date, reverse=False)
                     return events
-                else:
-                    raise UserError('You must enter a zip code in city field')
+
+                raise UserError('You must enter a zip code in city field')
 
     def get_event(self, id):
         return self.browser.get_event(id)
