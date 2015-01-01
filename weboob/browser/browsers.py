@@ -20,7 +20,10 @@
 from __future__ import absolute_import, print_function
 
 import re
-import urllib3
+try:
+    import urllib3
+except ImportError:
+    from requests.packages import urllib3
 try:
     from urllib.parse import urlparse, urljoin
 except ImportError:
