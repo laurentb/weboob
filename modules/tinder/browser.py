@@ -20,9 +20,9 @@
 
 import re
 
-from weboob.browser import DomainBrowser
+from weboob.browser.browsers import DomainBrowser, APIBrowser
 from weboob.browser.pages import HTMLPage
-from weboob.browser.profiles import Profile
+from weboob.browser.profiles import IPhone
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.json import json
 
@@ -61,18 +61,9 @@ class FacebookBrowser(DomainBrowser):
         return json.loads(self.response.content)
 
 
-class IPhoneClient(Profile):
-    def setup_session(self, session):
-        session.headers["Accept-Language"] = "en;q=1, fr;q=0.9, de;q=0.8, ja;q=0.7, nl;q=0.6, it;q=0.5"
-        session.headers["Accept"] = "*/*"
-        session.headers["User-Agent"] = "Tinder/3.0.2 (iPhone; iOS 7.1; Scale/2.00)"
-        session.headers["Accept-Encoding"] = "gzip, deflate"
-        session.headers["Content-Type"] = "application/json"
-
-
-class TinderBrowser(DomainBrowser):
+class TinderBrowser(APIBrowser):
     BASEURL = 'https://api.gotinder.com/'
-    PROFILE = IPhoneClient()
+    PROFILE = IPhone('Tinder/3.0.2')
 
     recs = []
 
@@ -101,13 +92,6 @@ class TinderBrowser(DomainBrowser):
             self.recs = resp['results']
         except KeyError:
             self.recs = []
-
-    def request(self, *args, **kwargs):
-        if 'data' in kwargs:
-            kwargs['data'] = json.dumps(kwargs['data'])
-
-        self.location(*args, **kwargs)
-        return json.loads(self.response.content)
 
     def like_profile(self):
         if len(self.recs) == 0:
