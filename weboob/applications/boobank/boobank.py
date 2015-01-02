@@ -25,6 +25,9 @@ from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse as parse_date
 from decimal import Decimal, InvalidOperation
 
+from weboob.browser.browsers import APIBrowser
+from weboob.browser.profiles import Weboob
+from weboob.exceptions import BrowserHTTPError
 from weboob.capabilities.base import empty
 from weboob.capabilities.bank import CapBank, Account, Transaction
 from weboob.tools.application.repl import ReplApplication, defaultcount
@@ -475,3 +478,56 @@ class Boobank(ReplApplication):
         self.start_format()
         for investment in self.do('iter_investment', account, backends=account.backend):
             self.format(investment)
+
+    def do_budgea(self, line):
+        """
+        budgea USERNAME PASSWORD
+
+        Export your bank accounts and transactions to Budgea.
+
+        Budgea is an online web and mobile application to manage your bank
+        accounts. To avoid giving your credentials to this service, you can use
+        this command.
+
+        https://www.budgea.com
+        """
+        username, password = self.parse_command_args(line, 2, 2)
+
+        client = APIBrowser(baseurl='https://budgea.biapi.pro/2.0/')
+        client.set_profile(Weboob(self.VERSION))
+        try:
+            r = client.request('auth/token', data={'username': username, 'password': password, 'application': 'weboob'})
+        except BrowserHTTPError as r:
+            error = r.response.json()
+            print('Error: %s' % (error['message'] or error['code']), file=self.stderr)
+            return 1
+
+        client.session.headers['Authorization'] = 'Bearer %s' % r['token']
+
+        accounts = {}
+        for account in client.request('users/me/accounts')['accounts']:
+            if account['id_connection'] is None:
+                accounts[account['number']] = account
+
+        for account in self.do('iter_accounts'):
+            if not account.id in accounts:
+                r = client.request('users/me/accounts', data={'name':    account.label,
+                                                              'balance': account.balance,
+                                                              'number':  account.id,
+                                                             })
+                self.logger.debug(r)
+                account_id = r['id']
+            else:
+                account_id = accounts[account.id]['id']
+
+            transactions = []
+            for tr in self.do('iter_history', account, backends=account.backend):
+                transactions.append({'original_wording': tr.raw,
+                                     'simplified_wording': tr.label,
+                                     'value': tr.amount,
+                                     'date': tr.date.strftime('%Y-%m-%d'),
+                                    })
+            r = client.request('users/me/accounts/%s/transactions' % account_id,
+                               data={'transactions': transactions})
+            client.request('users/me/accounts/%s' % account_id, data={'balance': account.balance})
+            print('- %s (%s%s): %s new transactions' % (account.label, account.balance, account.currency_text, len(r)))
