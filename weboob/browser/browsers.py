@@ -195,6 +195,9 @@ class Browser(object):
 
         session.cookies = WeboobCookieJar()
 
+    def set_profile(self, profile):
+        profile.setup_session(self.session)
+
     def location(self, url, **kwargs):
         """
         Like :meth:`open` but also changes the current URL and response.
