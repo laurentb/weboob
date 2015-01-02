@@ -105,3 +105,13 @@ class Android(Profile):
         """
         session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Linux; U; Android 4.0.3; fr-fr; LG-L160L Build/IML74K) AppleWebkit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30'})
+
+class IPhone(Profile):
+    def __init__(self, application):
+        self.application = application
+
+    def setup_session(self, session):
+        session.headers["Accept-Language"] = "en;q=1, fr;q=0.9, de;q=0.8, ja;q=0.7, nl;q=0.6, it;q=0.5"
+        session.headers["Accept"] = "*/*"
+        session.headers["User-Agent"] = "%s (iPhone; iOS 7.1; Scale/2.00)" % self.application
+        session.headers["Accept-Encoding"] = "gzip, deflate"
