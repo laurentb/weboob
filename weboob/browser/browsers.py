@@ -471,6 +471,11 @@ class DomainBrowser(Browser):
     More complex behavior is possible by overloading url_allowed()
     """
 
+    def __init__(self, baseurl=None, *args, **kwargs):
+        super(DomainBrowser, self).__init__(*args, **kwargs)
+        if baseurl is not None:
+            self.BASEURL = baseurl
+
     def url_allowed(self, url):
         """
         Checks if we are allowed to visit an URL.
