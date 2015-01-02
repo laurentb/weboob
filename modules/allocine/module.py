@@ -131,7 +131,7 @@ class AllocineModule(Module, CapCinema, CapVideo, CapCalendarEvent, CapCollectio
     def get_video(self, _id):
         with self.browser:
             split_id = _id.split('#')
-            if split_id[-1] == 'movir':
+            if split_id[-1] == 'movie':
                 return self.browser.get_movie_from_id(split_id[0])
             return self.browser.get_video_from_id(split_id[0], split_id[-1])
 

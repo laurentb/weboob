@@ -470,9 +470,10 @@ class AllocineBrowser(Browser):
         if res is None:
             return
         result = json.loads(res)
-        for episode in result['feed']['media']:
-            if 'title' in episode:
-                yield self.parse_video(episode, category)
+        if 'feed' in in result and 'media' in result['feed']:
+            for episode in result['feed']['media']:
+                if 'title' in episode:
+                    yield self.parse_video(episode, category)
 
     def parse_video(self, _video, category):
         video = BaseVideo(u'%s#%s' % (_video['code'], category))
