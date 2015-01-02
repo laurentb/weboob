@@ -42,6 +42,7 @@ except ImportError:
 
 from weboob.tools.log import getLogger
 from weboob.tools.ordereddict import OrderedDict
+from weboob.tools.json import json
 
 from .cookies import WeboobCookieJar
 from .exceptions import HTTPNotFound, ClientError, ServerError
@@ -721,3 +722,17 @@ class LoginBrowser(PagesBrowser):
         It is call when a login is needed.
         """
         raise NotImplementedError()
+
+
+class APIBrowser(DomainBrowser):
+    def open(self, *args, **kwargs):
+        if 'data' in kwargs:
+            kwargs['data'] = json.dumps(kwargs['data'])
+        if not 'headers' in kwargs:
+            kwargs['headers'] = {}
+        kwargs['headers']['Content-Type'] = 'application/json'
+
+        return super(APIBrowser, self).open(*args, **kwargs)
+
+    def request(self, *args, **kwargs):
+        return self.open(*args, **kwargs).json()
