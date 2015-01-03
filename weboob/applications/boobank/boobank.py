@@ -222,20 +222,20 @@ class InvestmentFormatter(IFormatter):
             code = obj.code
 
         return u' %s  %s  %s  %s  %s  %s' % \
-                (self.colored('%-30s' % label[:30], 'red'),
-                 self.colored('%-12s' % code[:12], 'yellow') if not empty(code) else ' ' * 12,
-                 self.colored(format_quantity % obj.quantity, 'yellow'),
-                 self.colored('%11.2f' % obj.unitvalue, 'yellow'),
-                 self.colored('%11.2f' % obj.valuation, 'yellow'),
-                 self.colored('%8.2f' % diff, 'green' if diff >= 0 else 'red')
-                 )
+               (self.colored('%-30s' % label[:30], 'red'),
+                self.colored('%-12s' % code[:12], 'yellow') if not empty(code) else ' ' * 12,
+                self.colored(format_quantity % obj.quantity, 'yellow'),
+                self.colored('%11.2f' % obj.unitvalue, 'yellow'),
+                self.colored('%11.2f' % obj.valuation, 'yellow'),
+                self.colored('%8.2f' % diff, 'green' if diff >= 0 else 'red')
+                )
 
     def flush(self):
         self.output(u'-------------------------------+--------------+------------+------------+------------+---------')
         self.output(u'                                                                  Total  %s %s' %
-                     (self.colored('%11.2f' % self.tot_valuation, 'yellow'),
-                      self.colored('%9.2f' % self.tot_diff, 'green' if self.tot_diff >=0 else 'red')
-                    ))
+                    (self.colored('%11.2f' % self.tot_valuation, 'yellow'),
+                     self.colored('%9.2f' % self.tot_diff, 'green' if self.tot_diff >= 0 else 'red'))
+                    )
         self.tot_valuation = Decimal(0)
         self.tot_diff = Decimal(0)
 
@@ -284,10 +284,10 @@ class AccountListFormatter(IFormatter):
     def flush(self):
         self.output(u'------------------------------------------%s+----------+----------' % (('-' * 15) if not self.interactive else ''))
         self.output(u'%s                                    Total   %s   %s' % (
-                        (' ' * 15) if not self.interactive else '',
-                        self.colored('%8.2f' % self.tot_balance, 'green' if self.tot_balance >= 0 else 'red'),
-                        self.colored('%8.2f' % self.tot_coming, 'green' if self.tot_coming >= 0 else 'red'))
-                   )
+                    (' ' * 15) if not self.interactive else '',
+                    self.colored('%8.2f' % self.tot_balance, 'green' if self.tot_balance >= 0 else 'red'),
+                    self.colored('%8.2f' % self.tot_coming, 'green' if self.tot_coming >= 0 else 'red'))
+                    )
         self.tot_balance = Decimal(0)
         self.tot_coming = Decimal(0)
 
@@ -309,7 +309,7 @@ class Boobank(ReplApplication):
                         'ofx':            OfxFormatter,
                         'ops_list':       TransactionsFormatter,
                         'investment_list': InvestmentFormatter,
-                       }
+                        }
     DEFAULT_FORMATTER = 'table'
     COMMANDS_FORMATTERS = {'ls':          'account_list',
                            'list':        'account_list',
@@ -317,7 +317,7 @@ class Boobank(ReplApplication):
                            'history':     'ops_list',
                            'coming':      'ops_list',
                            'investment':  'investment_list',
-                          }
+                           }
     COLLECTION_OBJECTS = (Account, Transaction, )
 
     def _complete_account(self, exclude=None):
@@ -510,11 +510,11 @@ class Boobank(ReplApplication):
                 accounts[account['number']] = account
 
         for account in self.do('iter_accounts'):
-            if not account.id in accounts:
+            if account.id not in accounts:
                 r = client.request('users/me/accounts', data={'name':    account.label,
                                                               'balance': account.balance,
                                                               'number':  account.id,
-                                                             })
+                                                              })
                 self.logger.debug(r)
                 account_id = r['id']
             else:
@@ -526,7 +526,7 @@ class Boobank(ReplApplication):
                                      'simplified_wording': tr.label,
                                      'value': tr.amount,
                                      'date': tr.date.strftime('%Y-%m-%d'),
-                                    })
+                                     })
             r = client.request('users/me/accounts/%s/transactions' % account_id,
                                data={'transactions': transactions})
             client.request('users/me/accounts/%s' % account_id, data={'balance': account.balance})
