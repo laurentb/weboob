@@ -71,11 +71,11 @@ class RecentPage(XMLPage):
         for ntrans in reversed(self.doc.xpath('//TRANSACTION')):
             desc = u' '.join(ntrans.xpath(
                 'TRANSDESCRIPTION/text()')[0].split())
+            tdate = u''.join(ntrans.xpath('TRANSACTIONDATE/text()'))
+            pdate = u''.join(ntrans.xpath('POSTDATE/text()'))
             t = Transaction()
-            t.date = datetime.strptime(ntrans.xpath(
-                'TRANSACTIONDATE/text()')[0], '%m/%d/%Y')
-            t.rdate = datetime.strptime(ntrans.xpath(
-                'POSTDATE/text()')[0], '%m/%d/%Y')
+            t.date = datetime.strptime(tdate, '%m/%d/%Y')
+            t.rdate = datetime.strptime(pdate or tdate, '%m/%d/%Y')
             t.type = Transaction.TYPE_UNKNOWN
             t.raw = desc
             t.label = desc
