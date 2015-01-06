@@ -24,6 +24,7 @@ from weboob.tools.backend import Module
 
 from .browser import PluzzBrowser
 
+import re
 
 __all__ = ['PluzzModule']
 
@@ -38,6 +39,9 @@ class PluzzModule(Module, CapVideo, CapCollection):
     BROWSER = PluzzBrowser
 
     def get_video(self, _id):
+        m = re.match('http://pluzz.francetv.fr/(videos/.*)', _id)
+        if m:
+            return self.browser.get_video_from_url(m.group(1))
         return self.browser.get_video(_id)
 
     def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):

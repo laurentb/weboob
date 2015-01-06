@@ -35,6 +35,11 @@ class PluzzBrowser(PagesBrowser):
     video_page = URL(r'http://webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/\?idDiffusion=(?P<id>.*)&catalogue=Pluzz', VideoPage)
     videos_list_page = URL('(?P<program>videos/.*)', VideoListPage)
 
+    def get_video_from_url(self, url):
+        video = self.videos_list_page.go(program=url).get_last_video()
+        if video:
+            return self.get_video(video.id, video)
+
     def search_videos(self, pattern):
         if not self.PROGRAMS:
             self.PROGRAMS = self.get_program_list()
