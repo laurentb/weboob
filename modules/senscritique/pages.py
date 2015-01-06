@@ -45,6 +45,7 @@ class Channel(Filter):
         'einst-24 elgr-data-logo': u'Disney Channel',
         'einst-25 elgr-data-logo': u'Disney Cinemagic',
         'einst-34 elgr-data-logo': u'Jimmy',
+        'einst-36 elgr-data-logo': u'Mangas',
         'einst-37 elgr-data-logo': u'MCM',
         'einst-41 elgr-data-logo': u'OCS Géants',
         'einst-42 elgr-data-logo': u'OCS Choc',
