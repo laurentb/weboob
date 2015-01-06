@@ -19,7 +19,7 @@
 
 from weboob.capabilities.image import BaseImage
 from weboob.capabilities.video import BaseVideo
-
+from weboob.capabilities.base import BaseObject
 from datetime import timedelta
 
 from weboob.browser.pages import HTMLPage, JsonPage
@@ -27,6 +27,15 @@ from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import Filter, CleanText, Regexp, Format, DateTime, Env, Duration
 from weboob.browser.filters.html import Link, Attr
 from weboob.browser.filters.json import Dict
+
+
+class DictElement(ListElement):
+    def find_elements(self):
+        if self.item_xpath is not None:
+            for el in self.el.get('reponse').get(self.item_xpath):
+                yield el
+        else:
+            yield self.el
 
 
 class DurationPluzz(Filter):
@@ -39,6 +48,36 @@ class DurationPluzz(Filter):
         return timedelta(hours=t[0], minutes=t[1])
 
 
+class VideoListPage(HTMLPage):
+    @method
+    class get_last_video(ItemElement):
+        klass = BaseVideo
+
+        obj_id = CleanText('//div[@id="diffusion-info"]/@data-diffusion')
+        obj_title = CleanText('//div[@id="diffusion-info"]/h1/div[@id="diffusion-titre"]')
+        obj_date = DateTime(Regexp(CleanText('//div[@id="diffusion-info"]/div/div/span/span[1]',
+                                   replace=[(u'à', u''), (u'  ', u' ')]),
+                                   '.+(\d{2}-\d{2}-\d{2}.+\d{1,2}h\d{1,2}).+'),
+                            dayfirst=True)
+
+    @method
+    class iter_videos(ListElement):
+        item_xpath = '//div[@id="player-memeProgramme"]/a'
+
+        class item(ItemElement):
+            klass = BaseVideo
+
+            def condition(self):
+                return CleanText('div[@class="autre-emission-c3"]')(self) == "En replay"
+
+            obj_id = Regexp(Link('.'), '^/videos/.+,(.+).html$')
+            obj_title = CleanText('//meta[@name="programme_titre"]/@content')
+            obj_date = DateTime(Regexp(CleanText('./div[@class="autre-emission-c2"]',
+                                                 replace=[(u'à', u''), (u'  ', u' ')]),
+                                       '(\d{2}-\d{2}.+\d{1,2}:\d{1,2})'),
+                                dayfirst=True)
+
+
 class IndexPage(HTMLPage):
 
     @method
@@ -48,7 +87,10 @@ class IndexPage(HTMLPage):
         class item(ItemElement):
             klass = BaseVideo
 
-            obj_title = Format('%s', CleanText('div/div[@class="resultat-titre-diff"]/a'))
+            obj_title = Format('%s du %s',
+                               CleanText('div/div[@class="resultat-titre-diff"]/a'),
+                               Regexp(CleanText('div/div[@class="resultat-soustitre-diff"]/span'),
+                                      '.+(\d{2}-\d{2}-\d{2}).+'))
             obj_id = Regexp(Link('div/div[@class="resultat-titre-diff"]/a'),
                             '^/videos/.+,(.+).html$')
             obj_date = DateTime(Regexp(CleanText('div/div[@class="resultat-soustitre-diff"]/span',
@@ -88,3 +130,15 @@ class VideoPage(JsonPage):
             thumbnail = BaseImage(url)
             thumbnail.url = thumbnail.id
             return thumbnail
+
+
+class Programs(JsonPage):
+    @method
+    class iter_programs(DictElement):
+        item_xpath = 'programme'
+
+        class item(ItemElement):
+            klass = BaseObject
+
+            obj_id = CleanText(Dict('url'))
+            obj__title = CleanText(Dict('titre_programme'))

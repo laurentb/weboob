@@ -19,7 +19,7 @@
 
 
 from weboob.browser import PagesBrowser, URL
-from .pages import IndexPage, VideoPage
+from .pages import IndexPage, VideoPage, Programs, VideoListPage
 
 __all__ = ['PluzzBrowser']
 
@@ -28,12 +28,29 @@ class PluzzBrowser(PagesBrowser):
     ENCODING = 'utf-8'
 
     BASEURL = 'http://pluzz.francetv.fr'
+    PROGRAMS = None
 
+    programs_page = URL('http://pluzz.webservices.francetelevisions.fr/pluzz/programme', Programs)
     index_page = URL(r'recherche\?recherche=(?P<pattern>.*)', IndexPage)
     video_page = URL(r'http://webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/\?idDiffusion=(?P<id>.*)&catalogue=Pluzz', VideoPage)
+    videos_list_page = URL('(?P<program>videos/.*)', VideoListPage)
 
     def search_videos(self, pattern):
-        return self.index_page.go(pattern=pattern).iter_videos()
+        if not self.PROGRAMS:
+            self.PROGRAMS = self.get_program_list()
+
+        videos = []
+        for program in self.PROGRAMS:
+            if pattern.upper() in program._title.upper():
+                video = self.videos_list_page.go(program=program.id).get_last_video()
+                if video:
+                    videos.append(video)
+                    videos += list(self.page.iter_videos())
+
+        return videos if len(videos) > 0 else self.index_page.go(pattern=pattern).iter_videos()
+
+    def get_program_list(self):
+        return list(self.programs_page.go().iter_programs())
 
     @video_page.id2url
     def get_video(self, url, video=None):
