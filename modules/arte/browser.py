@@ -96,6 +96,9 @@ class ArteBrowser(Browser):
         result = simplejson.loads(response.read(), self.ENCODING)
 
         quality = None
+        if 'VTI' in result['videoJsonPlayer']:
+            video.title = u'%s' % result['videoJsonPlayer']['VTI']
+
         if 'VSR' in result['videoJsonPlayer']:
             for item in result['videoJsonPlayer']['VSR']:
                 if self.quality[0] in item:
@@ -177,7 +180,7 @@ class ArteBrowser(Browser):
         if 'programImage' in item:
             url = u'%s' % item['programImage']
             video.thumbnail = BaseImage(url)
-            video.thumbnail.url=video.thumbnail.id
+            video.thumbnail.url = video.thumbnail.id
 
         video.duration = datetime.timedelta(seconds=int(item['videoDurationSeconds']))
         video.set_empty_fields(NotAvailable, ('url',))

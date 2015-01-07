@@ -29,7 +29,7 @@ from .video import ArteLiveVideo
 class ArteLiveVideoPage(Page):
     def get_video(self, video=None):
         if not video:
-            video = ArteLiveVideo(self.group_dict['id'])
+            video = ArteLiveVideo('/%s' % self.group_dict['id'])
 
         div = self.document.xpath('//div[@class="bloc-presentation"]')[0]
 
@@ -47,7 +47,7 @@ class ArteLivePage(Page):
     def iter_resources(self):
         items = list()
         for el in self.document.xpath('//ul[@class="filter-liste"]/li'):
-            _id = el.attrib['data-target'].replace('video_box_tab_','')
+            _id = el.attrib['data-target'].replace('video_box_tab_', '')
             text = self.parser.select(el, 'a/span', 1, method='xpath').text
             item = Collection([u'arte-live', u'%s' % _id], u'%s' % (text))
             items.append(item)
