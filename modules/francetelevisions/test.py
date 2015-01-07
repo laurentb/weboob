@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from weboob.capabilities.video import BaseVideo
 from weboob.tools.test import BackendTest
 
 
@@ -35,3 +35,10 @@ class PluzzTest(BackendTest):
     def test_video_from_url(self):
         v = self.backend.get_video('http://pluzz.francetv.fr/videos/faites_entrer_l_accuse.html')
         self.assertTrue(v.url, 'URL for video "%s" not found: %s' % (v.id, v.url))
+
+    def test_latest(self):
+        l = list(self.backend.iter_resources([BaseVideo], [u'latest']))
+        assert len(l)
+        v = l[0]
+        self.backend.fillobj(v, ('url',))
+        self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))

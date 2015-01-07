@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.video import CapVideo, BaseVideo
-from weboob.capabilities.collection import CapCollection
+from weboob.capabilities.collection import CapCollection, CollectionNotFound
 from weboob.tools.backend import Module
 
 from .browser import PluzzBrowser
@@ -55,5 +55,23 @@ class PluzzModule(Module, CapVideo, CapCollection):
             video.thumbnail.data = self.browser.open(video.thumbnail.url).content
 
         return video
+
+    def iter_resources(self, objs, split_path):
+        if BaseVideo in objs:
+            collection = self.get_collection(objs, split_path)
+            if collection.path_level == 0:
+                yield self.get_collection(objs, [u'latest'])
+            if collection.split_path == [u'latest']:
+                for video in self.browser.latest_videos():
+                    yield video
+
+    def validate_collection(self, objs, collection):
+        if collection.path_level == 0:
+            return
+        if BaseVideo in objs and collection.split_path == [u'latest']:
+            collection.title = u'Latest France Télévisions videos'
+            return
+
+        raise CollectionNotFound(collection.split_path)
 
     OBJECTS = {BaseVideo: fill_video}

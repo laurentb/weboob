@@ -142,3 +142,16 @@ class Programs(JsonPage):
 
             obj_id = CleanText(Dict('url'))
             obj__title = CleanText(Dict('titre_programme'))
+
+
+class LatestPage(JsonPage):
+    @method
+    class iter_videos(DictElement):
+        item_xpath = 'emissions'
+
+        class Item(ItemElement):
+            klass = BaseVideo
+
+            obj_id = Dict('id_diffusion')
+            obj_title = Dict('titre_programme')
+            obj_date = DateTime(Dict('date_diffusion'))

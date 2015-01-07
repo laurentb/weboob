@@ -19,7 +19,7 @@
 
 
 from weboob.browser import PagesBrowser, URL
-from .pages import IndexPage, VideoPage, Programs, VideoListPage
+from .pages import IndexPage, VideoPage, Programs, VideoListPage, LatestPage
 
 __all__ = ['PluzzBrowser']
 
@@ -30,6 +30,7 @@ class PluzzBrowser(PagesBrowser):
     BASEURL = 'http://pluzz.francetv.fr'
     PROGRAMS = None
 
+    latest = URL('http://pluzz.webservices.francetelevisions.fr/pluzz/liste/type/replay', LatestPage)
     programs_page = URL('http://pluzz.webservices.francetelevisions.fr/pluzz/programme', Programs)
     index_page = URL(r'recherche\?recherche=(?P<pattern>.*)', IndexPage)
     video_page = URL(r'http://webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/\?idDiffusion=(?P<id>.*)&catalogue=Pluzz', VideoPage)
@@ -69,3 +70,6 @@ class PluzzBrowser(PagesBrowser):
         r = self.open(url, stream=True)
         buf = r.iter_lines()
         return buf
+
+    def latest_videos(self):
+        return self.latest.go().iter_videos()
