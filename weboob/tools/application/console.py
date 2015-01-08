@@ -542,13 +542,15 @@ class ConsoleApplication(Application):
                 self.unload_backends(names=[backend.name])
                 self.edit_backend(backend.name)
                 self.load_backends(names=[backend.name])
+        elif isinstance(error, BrowserSSLError):
+            print(u'FATAL(%s): ' % backend.name + self.BOLD + '/!\ SERVER CERTIFICATE IS INVALID /!\\' + self.NC, file=self.stderr)
+        elif isinstance(error, BrowserForbidden):
+            print(u'Error(%s): %s' % (backend.name, msg or 'Forbidden'), file=self.stderr)
         elif isinstance(error, BrowserUnavailable):
             msg = unicode(error)
             if not msg:
                 msg = 'website is unavailable.'
             print(u'Error(%s): %s' % (backend.name, msg), file=self.stderr)
-        elif isinstance(error, BrowserForbidden):
-            print(u'Error(%s): %s' % (backend.name, msg or 'Forbidden'), file=self.stderr)
         elif isinstance(error, NotImplementedError):
             print(u'Error(%s): this feature is not supported yet by this backend.' % backend.name, file=self.stderr)
             print(u'      %s   To help the maintainer of this backend implement this feature,' % (' ' * len(backend.name)), file=self.stderr)
@@ -557,8 +559,6 @@ class ConsoleApplication(Application):
             print(u'Error(%s): %s' % (backend.name, to_unicode(error)), file=self.stderr)
         elif isinstance(error, MoreResultsAvailable):
             print(u'Hint: There are more results for backend %s' % (backend.name), file=self.stderr)
-        elif isinstance(error, BrowserSSLError):
-            print(u'FATAL(%s): ' % backend.name + self.BOLD + '/!\ SERVER CERTIFICATE IS INVALID /!\\' + self.NC, file=self.stderr)
         else:
             print(u'Bug(%s): %s' % (backend.name, to_unicode(error)), file=self.stderr)
 
