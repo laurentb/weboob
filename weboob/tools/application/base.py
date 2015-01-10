@@ -177,7 +177,10 @@ class Application(object):
     def guess_encoding(self, stdio=None):
         if stdio is None:
             stdio = self.stdout
-        encoding = stdio.encoding or locale.getpreferredencoding()
+        try:
+            encoding = stdio.encoding or locale.getpreferredencoding()
+        except AttributeError:
+            encoding = None
         # ASCII or ANSII is most likely a user mistake
         if not encoding or encoding.lower() == 'ascii' or encoding.lower().startswith('ansi'):
             encoding = 'UTF-8'
