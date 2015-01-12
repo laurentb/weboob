@@ -67,7 +67,6 @@ class LeboncoinModule(Module, CapHousing):
                                           'guyane',
                                           'reunion']))
 
-
     def create_default_browser(self):
         region = self.config['region'].get()
         return self.create_browser(region)

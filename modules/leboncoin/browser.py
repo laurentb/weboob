@@ -69,7 +69,7 @@ class LeboncoinBrowser(PagesBrowser):
     def decode_query(self, query):
         cities = []
         for c in query.cities:
-            cities.append('%s %s' % (c.id, c.name))
+            cities.append(c.name)
 
         if len(cities) == 0:
             return list()

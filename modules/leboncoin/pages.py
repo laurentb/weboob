@@ -19,7 +19,7 @@
 from decimal import Decimal
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env, DateTime, BrowserURL
+from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env, DateTime, BrowserURL, Format
 from weboob.browser.filters.html import Attr, Link, CleanHTML
 from weboob.capabilities.housing import City, Housing, HousingPhoto
 from weboob.capabilities.base import NotAvailable
@@ -36,7 +36,9 @@ class CityListPage(HTMLPage):
             klass = City
 
             obj_id = CleanText('./span[@class="zipcode"]')
-            obj_name = CleanText('./span[@class="city"]')
+            obj_name = Format('%s %s',
+                              CleanText('./span[@class="city"]'),
+                              CleanText('./span[@class="zipcode"]'))
 
 
 class HousingListPage(HTMLPage):
