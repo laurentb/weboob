@@ -165,7 +165,7 @@ class URL(object):
 
         for regex in self.urls:
             if not re.match(r'^[\w\?]+://.*', regex):
-                regex = re.escape(base).rstrip('/') + '/' + regex.lstrip('/')
+                regex = re.escape(base) + regex
             m = re.match(regex, url)
             if m:
                 return m
