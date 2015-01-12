@@ -174,7 +174,10 @@ class Browser(object):
 
         session.verify = not self.logger.settings['ssl_insecure'] and self.VERIFY
         if not session.verify:
-            urllib3.disable_warnings()
+            try:
+                urllib3.disable_warnings()
+            except AttributeError:
+                self.logger.warning('Urllib3 is too old, warnings won\'t be disable')
 
         # defines a max_retries. It's mandatory in case a server is not
         # handling keep alive correctly, like the proxy burp
