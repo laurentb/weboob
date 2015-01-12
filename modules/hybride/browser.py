@@ -27,8 +27,7 @@ __all__ = ['HybrideBrowser']
 
 class HybrideBrowser(PagesBrowser):
     PROFILE = Firefox()
-    BASEURL = 'https://www.lhybride.org'
-    VERIFY = False
+    BASEURL = 'http://www.lhybride.org'
 
     program_page = URL('programme.html', ProgramPage)
     event_page = URL('programme/item/(?P<_id>.*)', EventPage)
