@@ -20,9 +20,8 @@
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import TableElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell, Date
+from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell, Date, Env
 from weboob.capabilities.bank import Account, Transaction
-from weboob.tools.date import LinearDateGuesser
 
 
 class LoginPage(HTMLPage):
@@ -74,7 +73,7 @@ class OperationsFuturesPage(LoggedPage, HTMLPage):
             def condition(self):
                 return u'Aucune opération en attente' not in CleanText(TableCell('date'))(self)
 
-            obj_date = Date(CleanText(TableCell('date')), LinearDateGuesser())
+            obj_date = Date(CleanText(TableCell('date')), Env('date_guesser'))
             obj_type = Transaction.TYPE_UNKNOWN
             obj_label = CleanText(TableCell('operation'))
             obj_amount = CleanDecimal(TableCell('montant'), replace_dots=True)
@@ -96,7 +95,7 @@ class OperationsTraiteesPage(LoggedPage, HTMLPage):
             def condition(self):
                 return u'Aucune opération' not in CleanText(TableCell('date'))(self)
 
-            obj_date = Date(CleanText(TableCell('date')), LinearDateGuesser())
+            obj_date = Date(CleanText(TableCell('date')), Env('date_guesser'))
             obj_type = Transaction.TYPE_UNKNOWN
             obj_label = CleanText(TableCell('operation'))
             obj_amount = CleanDecimal(TableCell('montant'), replace_dots=True)

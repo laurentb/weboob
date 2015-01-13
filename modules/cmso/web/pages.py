@@ -22,10 +22,9 @@ import datetime
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, DateGuesser
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, DateGuesser, Env
 from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account
-from weboob.tools.date import LinearDateGuesser
 
 from ..transaction import Transaction
 
@@ -71,10 +70,10 @@ class CmsoTransactionElement(ItemElement):
 
 
 class HistoryPage(LoggedPage, HTMLPage):
-    def iter_history(self):
+    def iter_history(self, *args, **kwargs):
         if self.doc.xpath('//a[@href="1-situationGlobaleProfessionnel.act"]'):
-            return self.iter_history_rest_page()
-        return self.iter_history_first_page()
+            return self.iter_history_rest_page(*args, **kwargs)
+        return self.iter_history_first_page(*args, **kwargs)
 
     @method
     class iter_history_first_page(CmsoListElement):
@@ -83,7 +82,7 @@ class HistoryPage(LoggedPage, HTMLPage):
                 return obj.date >= datetime.date.today().replace(day=1)
 
             def date(selector):
-                return DateGuesser(CleanText(selector), LinearDateGuesser()) | Transaction.Date(selector)
+                return DateGuesser(CleanText(selector), Env('date_guesser')) | Transaction.Date(selector)
 
             obj_date = date('./td[1]')
             obj_vdate = date('./td[2]')

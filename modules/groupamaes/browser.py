@@ -20,6 +20,7 @@
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
+from weboob.tools.date import LinearDateGuesser
 
 from .pages import LoginPage, LoginErrorPage, AvoirPage, OperationsTraiteesPage, OperationsFuturesPage
 
@@ -50,12 +51,12 @@ class GroupamaesBrowser(LoginBrowser):
 
     @need_login
     def get_history(self):
-        transactions = list(self.operations_traitees.go().get_history())
+        transactions = list(self.operations_traitees.go().get_history(date_guesser=LinearDateGuesser()))
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions
 
     @need_login
     def get_coming(self):
-        transactions = list(self.operations_futures.go().get_list())
+        transactions = list(self.operations_futures.go().get_list(date_guesser=LinearDateGuesser()))
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions

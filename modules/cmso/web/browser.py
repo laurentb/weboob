@@ -24,6 +24,7 @@ from itertools import chain
 
 from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.tools.date import LinearDateGuesser
 
 from .pages import LoginPage, AccountsPage, HistoryPage
 
@@ -71,4 +72,6 @@ class CmsoProBrowser(LoginBrowser):
         first_page = self.page
         rest_page = self.history.go(data=query)
 
-        return chain(first_page.iter_history(), rest_page.iter_history())
+        date_guesser = LinearDateGuesser()
+
+        return chain(first_page.iter_history(date_guesser=date_guesser), rest_page.iter_history(date_guesser=date_guesser))
