@@ -26,6 +26,7 @@ import re
 import sys
 import os
 import subprocess
+import hashlib
 from datetime import datetime
 from contextlib import closing
 from compileall import compile_dir
@@ -181,7 +182,7 @@ class Repository(object):
         # Save the repository index in ~/.weboob/repositories/
         self.save(repo_path, private=True)
 
-    def retrieve_keyring(self, browser, keyring_path):
+    def retrieve_keyring(self, browser, keyring_path, progress):
         # ignore local
         if self.local:
             return
@@ -203,11 +204,11 @@ class Repository(object):
             if keyring.exists():
                 if not keyring.is_valid(keyring_data, sig_data):
                     raise InvalidSignature('the keyring itself')
-                print('The keyring was updated (and validated by the previous one).')
-            else:
-                print('First time saving the keyring, blindly accepted.')
+                progress.progress(0.0, 'The keyring was updated (and validated by the previous one).')
+            elif not progress.prompt('The repository %s isn\'t trusted yet.\nFingerprint of keyring is %s\nAre you sure you want to continue?' % (self.url, hashlib.sha1(keyring_data).hexdigest())):
+                raise RepositoryUnavailable('Repository not trusted')
             keyring.save(keyring_data, self.key_update)
-            print(keyring)
+            progress.progress(0.0, str(keyring))
 
     def parse_index(self, fp):
         """
@@ -380,6 +381,9 @@ class IProgress(object):
     def error(self, message):
         raise NotImplementedError()
 
+    def prompt(self, message):
+        raise NotImplementedError()
+
     def __repr__(self):
         return '<%s>' % self.__class__.__name__
 
@@ -390,6 +394,10 @@ class PrintProgress(IProgress):
 
     def error(self, message):
         print('ERROR: %s' % message, file=sys.stderr)
+
+    def prompt(self, message):
+        print('%s (Y/n): *** ASSUMING YES ***' % message)
+        return True
 
 
 class ModuleInstallError(Exception):
@@ -581,7 +589,7 @@ class Repositories(object):
             try:
                 repository.retrieve_index(self.browser, repo_path)
                 if gpgv:
-                    repository.retrieve_keyring(self.browser, keyring_path)
+                    repository.retrieve_keyring(self.browser, keyring_path, progress)
                 else:
                     progress.error('Cannot find gpgv to check for repository authenticity.\n'
                                     'You should install GPG for better security.')
@@ -612,7 +620,7 @@ class Repositories(object):
         :param progress: observer object.
         :type progress: :class:`IProgress`
         """
-        self.update_repositories()
+        self.update_repositories(progress)
 
         to_update = []
         for name, info in self.get_all_modules_info().iteritems():
@@ -807,8 +815,7 @@ class Keyring(object):
 
     def __str__(self):
         if self.exists():
-            with open(self.vpath, 'r') as f:
-                import hashlib
+            with open(self.path, 'r') as f:
                 h = hashlib.sha1(f.read()).hexdigest()
             return 'Keyring version %s, checksum %s' % (self.version, h)
         return 'NO KEYRING'

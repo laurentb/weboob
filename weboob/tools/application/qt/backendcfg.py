@@ -80,6 +80,11 @@ class ProgressDialog(IProgress, QProgressDialog):
     def error(self, message):
         QMessageBox.critical(self, self.tr('Error'), '%s' % message, QMessageBox.Ok)
 
+    def prompt(self, message):
+        reply = QMessageBox.question(self, '', unicode(message), QMessageBox.Yes|QMessageBox.No)
+
+        return reply == QMessageBox.Yes
+
 
 class BackendCfg(QDialog):
     def __init__(self, weboob, caps=None, parent=None):

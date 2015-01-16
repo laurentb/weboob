@@ -31,7 +31,7 @@ from weboob.capabilities import UserError
 from weboob.capabilities.account import CapAccount, Account, AccountRegisterError
 from weboob.core.backendscfg import BackendAlreadyExists
 from weboob.core.modules import ModuleLoadError
-from weboob.core.repositories import ModuleInstallError
+from weboob.core.repositories import ModuleInstallError, IProgress
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden, BrowserSSLError
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt, ValueBackendPassword
 from weboob.tools.misc import to_unicode
@@ -53,6 +53,20 @@ class BackendNotGiven(Exception):
 
 class BackendNotFound(Exception):
     pass
+
+
+class ConsoleProgress(IProgress):
+    def __init__(self, app):
+        self.app = app
+
+    def progress(self, percent, message):
+        self.app.stdout.write('=== [%3.0f%%] %s\n' % (percent*100, message))
+
+    def error(self, message):
+        self.app.stderr.write('ERROR: %s\n' % message)
+
+    def prompt(self, message):
+        return self.app.ask(message, default=True)
 
 
 class ConsoleApplication(Application):
@@ -289,7 +303,7 @@ class ConsoleApplication(Application):
 
     def install_module(self, name):
         try:
-            self.weboob.repositories.install(name)
+            self.weboob.repositories.install(name, ConsoleProgress(self))
         except ModuleInstallError as e:
             print('Unable to install module "%s": %s' % (name, e), file=self.stderr)
             return False
@@ -564,7 +578,7 @@ class ConsoleApplication(Application):
 
             minfo = self.weboob.repositories.get_module_info(backend.NAME)
             if minfo and not minfo.is_local():
-                self.weboob.repositories.update_repositories()
+                self.weboob.repositories.update_repositories(ConsoleProgress(self))
 
                 # minfo of the new available module
                 minfo = self.weboob.repositories.get_module_info(backend.NAME)

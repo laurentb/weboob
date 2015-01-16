@@ -25,6 +25,7 @@ import re
 from weboob.capabilities.account import CapAccount
 from weboob.core.modules import ModuleLoadError
 from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.console import ConsoleProgress
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.application.formatters.iformatter import IFormatter
 
@@ -308,4 +309,4 @@ class WeboobCfg(ReplApplication):
 
         Update weboob.
         """
-        self.weboob.update()
+        self.weboob.update(ConsoleProgress(self))
