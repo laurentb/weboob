@@ -163,6 +163,8 @@ class Parceloob(ReplApplication):
         """
         backends = map(get_backend_name, self.enabled_backends)
         self.start_format()
+        # XXX cleaning of cached objects may be by start_format()?
+        self.objects = []
         for id in self.storage.get('tracking', default=[]):
             # It should be safe to do it here, since all objects in storage
             # are stored with the fullid
