@@ -35,9 +35,12 @@ class CityListPage(HTMLPage):
         class item(ItemElement):
             klass = City
 
-            obj_id = CleanText('./span[@class="zipcode"]')
+            obj_id = Format('%s %s',
+                            CleanText('./span[has-class("city")]'),
+                            CleanText('./span[@class="zipcode"]'))
+
             obj_name = Format('%s %s',
-                              CleanText('./span[@class="city"]'),
+                              CleanText('./span[has-class("city")]'),
                               CleanText('./span[@class="zipcode"]'))
 
 
