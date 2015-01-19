@@ -72,7 +72,7 @@ class VideoListPage(HTMLPage):
 
             obj_id = Regexp(Link('.'), '^/videos/.+,(.+).html$')
             obj_title = CleanText('//meta[@name="programme_titre"]/@content')
-            obj_date = DateTime(Regexp(CleanText('./div[@class="autre-emission-c2"]',
+            obj_date = DateTime(Regexp(CleanText('./div[@class="autre-emission-c2"]|./div[@class="autre-emission-c4"]',
                                                  replace=[(u'à', u''), (u'  ', u' ')]),
                                        '(\d{2}-\d{2}.+\d{1,2}:\d{1,2})'),
                                 dayfirst=True)
