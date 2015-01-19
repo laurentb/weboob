@@ -30,7 +30,7 @@ class AgendadulibreBrowser(PagesBrowser):
     event_page = URL('events/(?P<_id>.*)', EventPage)
 
     def __init__(self, website, region, *args, **kwargs):
-        self.BASEURL = u'%s' % website
+        self.BASEURL = u'%s/' % website
         self.region = '&region=%s' % region if region else ''
         PagesBrowser.__init__(self, *args, **kwargs)
 

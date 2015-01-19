@@ -27,7 +27,7 @@ __all__ = ['MonsterBrowser']
 
 class MonsterBrowser(PagesBrowser):
 
-    BASEURL = 'http://offres.monster.fr'
+    BASEURL = 'http://offres.monster.fr/'
     advert = URL('http://offre-emploi.monster.fr/(?P<_id>.*).aspx', AdvertPage)
     search = URL('rechercher\?q=(?P<pattern>.*)',
                  'PowerSearch.aspx\?q=(?P<job_name>.*)&where=(?P<place>.*)&jt=(?P<contract>.*)&occ=(?P<job_category>.*)&tm=(?P<limit_date>.*)&indid=(?P<activity_domain>)',

@@ -27,7 +27,7 @@ __all__ = ['PopolemploiBrowser']
 
 class PopolemploiBrowser(PagesBrowser):
 
-    BASEURL = 'http://candidat.pole-emploi.fr'
+    BASEURL = 'http://candidat.pole-emploi.fr/'
 
     advert = URL('candidat/rechercheoffres/detail/(?P<id>.*)', AdvertPage)
     search = URL('candidat/rechercheoffres/resultats/(?P<search>.*?)',

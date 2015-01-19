@@ -24,7 +24,7 @@ from .pages import CitiesPage, SearchPage, HousingPage, PhonePage
 
 
 class LogicimmoBrowser(PagesBrowser):
-    BASEURL = 'http://www.logic-immo.com'
+    BASEURL = 'http://www.logic-immo.com/'
 
     city = URL('asset/t9/t9_district/fr/(?P<size>\d*)/(?P<first_letter>\w)/(?P<pattern>.*)\.txt\?json=%22(?P<pattern2>.*)%22',
                CitiesPage)

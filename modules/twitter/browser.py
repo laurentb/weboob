@@ -28,7 +28,7 @@ __all__ = ['TwitterBrowser']
 
 
 class TwitterBrowser(LoginBrowser):
-    BASEURL = 'https://twitter.com'
+    BASEURL = 'https://twitter.com/'
 
     thread_page = URL(u'(?P<user>.+)/status/(?P<_id>.+)', ThreadPage)
     login_error = URL(u'login/error.+', LoginErrorPage)
