@@ -63,7 +63,7 @@ class Recipe(BaseObject):
     instructions =      StringField('Instruction step list of the recipe')
     comments =          Field('User comments about the recipe', list)
 
-    def __init__(self, id, title):
+    def __init__(self, id='', title=u''):
         BaseObject.__init__(self, id)
         self.title = title
 

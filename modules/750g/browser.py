@@ -18,33 +18,25 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
-
+from weboob.browser import PagesBrowser, URL
 from .pages import RecipePage, ResultsPage
 
 
 __all__ = ['SevenFiftyGramsBrowser']
 
 
-class SevenFiftyGramsBrowser(Browser):
-    DOMAIN = 'www.750g.com'
-    PROTOCOL = 'http'
-    ENCODING = 'windows-1252'
-    USER_AGENT = Browser.USER_AGENTS['wget']
-    PAGES = {
-        'http://www.750g.com/recettes_.*.htm': ResultsPage,
-        'http://www.750g.com/fiche_de_cuisine_complete.htm\?recettes_id=[0-9]*': RecipePage,
-    }
+class SevenFiftyGramsBrowser(PagesBrowser):
+    BASEURL = 'http://www.750g.com/'
+
+    search = URL('recettes_(?P<pattern>.*).htm', ResultsPage)
+    recipe = URL('(?P<id>.*).htm', RecipePage)
 
     def iter_recipes(self, pattern):
-        self.location('http://www.750g.com/recettes_%s.htm' % (pattern.replace(' ', '_')))
-        assert self.is_on_page(ResultsPage)
-        return self.page.iter_recipes()
+        return self.search.go(pattern=pattern.replace(' ', '_')).iter_recipes()
 
-    def get_recipe(self, id):
-        try:
-            self.location('http://www.750g.com/fiche_de_cuisine_complete.htm?recettes_id=%s' % id)
-        except BrowserHTTPNotFound:
-            return
-        if self.is_on_page(RecipePage):
-            return self.page.get_recipe(id)
+    def get_recipe(self, id, recipe=None):
+        recipe = self.recipe.go(id=id).get_recipe(obj=recipe)
+        comments = list(self.page.get_comments())
+        if comments:
+            recipe.comments = comments
+        return recipe

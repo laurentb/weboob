@@ -17,93 +17,71 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from weboob.browser.pages import HTMLPage, pagination
+from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.filters.standard import Regexp, CleanText, Format, Env, Type
+from weboob.browser.filters.html import CleanHTML
 from weboob.capabilities.recipe import Recipe, Comment
-from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.deprecated.browser import Page
+from weboob.capabilities.base import NotAvailable
 
 
-class ResultsPage(Page):
+class ResultsPage(HTMLPage):
     """ Page which contains results as a list of recipies
     """
+    @pagination
+    @method
+    class iter_recipes(ListElement):
+        item_xpath = '//div[has-class("recette_classique")]'
 
-    def iter_recipes(self):
-        for div in self.parser.select(self.document.getroot(), 'div.m_search_result'):
-            tds = self.parser.select(div, 'td')
-            if len(tds) == 2:
-                title = NotAvailable
-                thumbnail_url = NotAvailable
-                short_description = NotAvailable
-                imgs = self.parser.select(tds[0], 'img')
-                if len(imgs) > 0:
-                    thumbnail_url = unicode(imgs[0].attrib.get('src', ''))
-                link = self.parser.select(tds[1], 'div.m_search_titre_recette a', 1)
-                title = unicode(link.text)
-                id = link.attrib.get('href', '').replace('.aspx', '').replace('/recettes/recette_', '')
-                short_description = unicode(' '.join(self.parser.select(tds[
-                                            1], 'div.m_search_result_part4', 1).text.strip().split('\n')))
+        def next_page(self):
+            return CleanText('//a[@id="ctl00_cphMainContent_m_ctrlSearchEngine_m_ctrlSearchListDisplay_m_ctrlSearchPagination_m_linkNextPage"]/@href',
+                             default=None)(self)
 
-                recipe = Recipe(id, title)
-                recipe.thumbnail_url = thumbnail_url
-                recipe.short_description = short_description
-                recipe.instructions = NotLoaded
-                recipe.author = NotLoaded
-                recipe.ingredients = NotLoaded
-                recipe.nb_person = NotLoaded
-                recipe.cooking_time = NotLoaded
-                recipe.preparation_time = NotLoaded
-                yield recipe
+        class item(ItemElement):
+            klass = Recipe
+            obj_id = Regexp(CleanText('./div/div[@class="m_titre_resultat"]/a/@href'),
+                            '/recettes/recette_(.*).aspx')
+            obj_title = CleanText('./div/div[@class="m_titre_resultat"]/a')
+            obj_thumbnail_url = CleanText('./a[@class="m_resultat_lien_image"]', default='')
+            obj_short_description = Format('%s. %s',
+                                           CleanText('./div/div[@class="m_detail_recette"]'),
+                                           CleanText('./div/div[@class="m_texte_resultat"]'))
 
 
-class RecipePage(Page):
+class RecipePage(HTMLPage):
     """ Page which contains a recipe
     """
+    @method
+    class get_recipe(ItemElement):
+        klass = Recipe
 
-    def get_recipe(self, id):
-        title = NotAvailable
-        preparation_time = NotAvailable
-        cooking_time = NotAvailable
-        nb_person = NotAvailable
-        ingredients = NotAvailable
-        picture_url = NotAvailable
-        instructions = NotAvailable
-        comments = NotAvailable
+        obj_id = Env('id')
+        obj_title = CleanText('//h1[@class="m_title"]')
+        obj_preparation_time = Type(CleanText('//span[@class="preptime"]'), type=int)
+        obj_cooking_time = Type(CleanText('//span[@class="cooktime"]'), type=int)
 
-        title = unicode(self.parser.select(self.document.getroot(), 'h1.m_title', 1).text_content().strip())
-        main = self.parser.select(self.document.getroot(), 'div.m_content_recette_main', 1)
-        preparation_time = int(self.parser.select(main, 'p.m_content_recette_info span.preptime', 1).text_content())
-        cooking_time = int(self.parser.select(main, 'p.m_content_recette_info span.cooktime', 1).text_content())
-        ing_header_line = self.parser.select(main, 'p.m_content_recette_ingredients span', 1).text_content()
-        if '(pour' in ing_header_line and ')' in ing_header_line:
-            nb_person = [int(ing_header_line.split('pour ')[-1].split('personnes)')[0].split()[0])]
-        ingredients = self.parser.select(main, 'p.m_content_recette_ingredients', 1).text_content().strip().split('- ')
-        ingredients = ingredients[1:]
-        rinstructions = self.parser.select(main, 'div.m_content_recette_todo', 1).text_content().strip()
-        instructions = u''
-        for line in rinstructions.split('\n'):
-            instructions += '%s\n' % line.strip()
-        instructions = instructions.strip('\n')
-        imgillu = self.parser.select(self.document.getroot(), 'a.m_content_recette_illu img')
-        if len(imgillu) > 0:
-            picture_url = unicode(imgillu[0].attrib.get('src', ''))
+        def obj_nb_person(self):
+            nb_pers = Regexp(CleanText('//p[@class="m_content_recette_ingredients"]/span[1]'),
+                             '.*\(pour (\d+) personnes\)', default=0)(self)
+            return [nb_pers] if nb_pers else NotAvailable
 
-        divcoms = self.parser.select(self.document.getroot(), 'div.m_commentaire_row')
-        if len(divcoms) > 0:
-            comments = []
-            for divcom in divcoms:
-                note = self.parser.select(divcom, 'div.m_commentaire_note span', 1).text.strip()
-                user = self.parser.select(divcom, 'div.m_commentaire_content span', 1).text.strip()
-                content = self.parser.select(divcom, 'div.m_commentaire_content p', 1).text.strip()
-                comments.append(Comment(author=user, rate=note, text=content))
+        def obj_ingredients(self):
+            ingredients = CleanText('//p[@class="m_content_recette_ingredients"]', default='')(self).split('-')
+            if len(ingredients) > 1:
+                return ingredients[1:]
 
-        recipe = Recipe(id, title)
-        recipe.preparation_time = preparation_time
-        recipe.cooking_time = cooking_time
-        recipe.nb_person = nb_person
-        recipe.ingredients = ingredients
-        recipe.instructions = instructions
-        recipe.picture_url = picture_url
-        recipe.comments = comments
-        recipe.thumbnail_url = NotLoaded
-        recipe.author = NotAvailable
-        return recipe
+        obj_instructions = CleanHTML('//div[@class="m_content_recette_todo"]')
+        obj_picture_url = CleanText('//a[@class="m_content_recette_illu"]/@href', default=NotAvailable)
+
+    @method
+    class get_comments(ListElement):
+        item_xpath = '//div[@class="m_commentaire_row"]'
+        ignore_duplicate = True
+
+        class item(ItemElement):
+            klass = Comment
+
+            obj_author = CleanText('./div[@class="m_commentaire_content"]/span[1]')
+            obj_rate = CleanText('./div[@class="m_commentaire_note"]/span')
+            obj_text = CleanText('./div[@class="m_commentaire_content"]/p[1]')
+            obj_id = CleanText('./div[@class="m_commentaire_content"]/span[1]')

@@ -18,13 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.test import BackendTest
-
+import itertools
 
 class MarmitonTest(BackendTest):
     MODULE = 'marmiton'
 
     def test_recipe(self):
-        recipes = self.backend.iter_recipes('fondue')
+        recipes = list(itertools.islice(self.backend.iter_recipes('fondue'), 0, 20))
         for recipe in recipes:
             full_recipe = self.backend.get_recipe(recipe.id)
             assert full_recipe.instructions

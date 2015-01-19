@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
+from weboob.browser import PagesBrowser, URL
 
 from .pages import RecipePage, ResultsPage
 
@@ -26,25 +26,17 @@ from .pages import RecipePage, ResultsPage
 __all__ = ['MarmitonBrowser']
 
 
-class MarmitonBrowser(Browser):
-    DOMAIN = 'www.marmiton.org'
-    PROTOCOL = 'http'
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['wget']
-    PAGES = {
-        'http://www.marmiton.org/recettes/recherche.aspx.*': ResultsPage,
-        'http://www.marmiton.org/recettes/recette_.*': RecipePage,
-    }
+class MarmitonBrowser(PagesBrowser):
+    BASEURL = 'http://www.marmiton.org/'
+    search = URL('recettes/recherche.aspx\?aqt=(?P<pattern>.*)', ResultsPage)
+    recipe = URL('recettes/recette_(?P<id>.*).aspx', RecipePage)
 
     def iter_recipes(self, pattern):
-        self.location('http://www.marmiton.org/recettes/recherche.aspx?st=5&cli=1&aqt=%s' % (pattern))
-        assert self.is_on_page(ResultsPage)
-        return self.page.iter_recipes()
+        return self.search.go(pattern=pattern).iter_recipes()
 
-    def get_recipe(self, id):
-        try:
-            self.location('http://www.marmiton.org/recettes/recette_%s.aspx' % id)
-        except BrowserHTTPNotFound:
-            return
-        if self.is_on_page(RecipePage):
-            return self.page.get_recipe(id)
+    def get_recipe(self, id, recipe=None):
+        recipe = self.recipe.go(id=id).get_recipe(obj=recipe)
+        comments = list(self.page.get_comments())
+        if comments:
+            recipe.comments = comments
+        return recipe
