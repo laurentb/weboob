@@ -52,6 +52,9 @@ class LeboncoinBrowser(PagesBrowser):
 
     def search_housings(self, query, advert_type):
         type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, ret = self.decode_query(query)
+        if len(cities) == 0 or len(ret) == 0:
+            return list()
+
         return self.search.go(region=self.region,
                               location=cities,
                               ros=nb_rooms,
@@ -71,16 +74,10 @@ class LeboncoinBrowser(PagesBrowser):
         for c in query.cities:
             cities.append(c.name)
 
-        if len(cities) == 0:
-            return list()
-
         ret = []
         for g in query.house_types:
             if g in self.RET:
                 ret.append(self.RET.get(g))
-
-        if len(ret) == 0:
-            return list()
 
         _type = 'ventes_immobilieres'
         if query.type == Query.TYPE_RENT:
