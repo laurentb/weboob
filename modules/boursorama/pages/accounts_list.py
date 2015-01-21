@@ -73,7 +73,7 @@ class AccountsList(Page):
                         for a in td.getiterator('a'):
                             # For normal account, two "account-more-actions"
                             # One for the account, one for the credit card. Take the good one
-                            if "mouvements.phtml" in a.get('href') and "/cartes/" not in a.get('href'):
+                            if 'href' in a.attrib and "mouvements.phtml" in a.get('href') and "/cartes/" not in a.get('href'):
                                 account._link_id = a.get('href')
 
                     elif td.get('class', '') == 'account-number':
@@ -93,8 +93,7 @@ class AccountsList(Page):
                             account.balance = Decimal(balance)
                         else:
                             account.balance = Decimal(0)
-
                 else:
                     # because of some weird useless <tr>
-                    if account.id is not None:
+                    if account.id is not None and (not account._link_id or not 'moneycenter' in account._link_id):
                         yield account
