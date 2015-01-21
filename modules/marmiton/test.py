@@ -20,6 +20,7 @@
 from weboob.tools.test import BackendTest
 import itertools
 
+
 class MarmitonTest(BackendTest):
     MODULE = 'marmiton'
 

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from weboob.browser.exceptions import BrowserHTTPNotFound
 from weboob.browser import PagesBrowser, URL
 from .pages import RecipePage, ResultsPage
 
@@ -35,8 +35,11 @@ class SevenFiftyGramsBrowser(PagesBrowser):
         return self.search.go(pattern=pattern.replace(' ', '_')).iter_recipes()
 
     def get_recipe(self, id, recipe=None):
-        recipe = self.recipe.go(id=id).get_recipe(obj=recipe)
-        comments = list(self.page.get_comments())
-        if comments:
-            recipe.comments = comments
-        return recipe
+        try:
+            recipe = self.recipe.go(id=id).get_recipe(obj=recipe)
+            comments = list(self.page.get_comments())
+            if comments:
+                recipe.comments = comments
+            return recipe
+        except BrowserHTTPNotFound:
+            return

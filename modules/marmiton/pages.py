@@ -42,7 +42,6 @@ class ResultsPage(HTMLPage):
             obj_id = Regexp(CleanText('./div/div[@class="m_titre_resultat"]/a/@href'),
                             '/recettes/recette_(.*).aspx')
             obj_title = CleanText('./div/div[@class="m_titre_resultat"]/a')
-            obj_thumbnail_url = CleanText('./a[@class="m_resultat_lien_image"]', default='')
             obj_short_description = Format('%s. %s',
                                            CleanText('./div/div[@class="m_detail_recette"]'),
                                            CleanText('./div/div[@class="m_texte_resultat"]'))
@@ -71,7 +70,8 @@ class RecipePage(HTMLPage):
                 return ingredients[1:]
 
         obj_instructions = CleanHTML('//div[@class="m_content_recette_todo"]')
-        obj_picture_url = CleanText('//a[@class="m_content_recette_illu"]/@href', default=NotAvailable)
+        obj_thumbnail_url = CleanText('//a[@class="m_content_recette_illu"]/img/@src', default=NotAvailable)
+        obj_picture_url = CleanText('//a[@class="m_content_recette_illu"]/img/@src', default=NotAvailable)
 
     @method
     class get_comments(ListElement):
