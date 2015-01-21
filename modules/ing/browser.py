@@ -16,6 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+import re
 import hashlib
 
 from weboob.browser import LoginBrowser, URL, need_login
@@ -60,7 +61,7 @@ class IngBrowser(LoginBrowser):
     billpage = URL('/protected/pages/common/estatement/eStatement.jsf', BillsPage)
 
     def __init__(self, *args, **kwargs):
-        self.birthday = kwargs.pop('birthday', None)
+        self.birthday = re.sub(r'[^\d]', '', kwargs.pop('birthday'))
         self.where = None
         LoginBrowser.__init__(self, *args, **kwargs)
 

@@ -46,7 +46,7 @@ class INGModule(Module, CapBank, CapBill):
                                                 regexp='^(\d{6}|)$'),
                            ValueBackendPassword('birthday',
                                                 label='Date de naissance',
-                                                regexp='^(\d{8}|)$',
+                                                regexp='^(\d{2}[/-]?\d{2}[/-]?\d{4}|)$',
                                                 masked=False)
                            )
     BROWSER = IngBrowser
