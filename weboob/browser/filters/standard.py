@@ -422,6 +422,14 @@ class CleanDecimal(CleanText):
             return self.default_or_raise(e)
 
 
+class Slugify(Filter):
+    @debug()
+    def filter(self, label):
+        label = re.sub(r'[^A-Za-z0-9]', ' ', label.lower()).strip()
+        label = re.sub(r'\s+', '-', label)
+        return label
+
+
 class Type(Filter):
     """
     Get a cleaned value of any type from an element text.
