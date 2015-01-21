@@ -43,7 +43,7 @@ class PluzzBrowser(PagesBrowser):
 
     def search_videos(self, pattern):
         if not self.PROGRAMS:
-            self.PROGRAMS = self.get_program_list()
+            self.PROGRAMS = list(self.get_program_list())
 
         videos = []
         for program in self.PROGRAMS:
