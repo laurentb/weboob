@@ -154,7 +154,7 @@ class Boursorama(Browser):
             slug = re.sub(r'[^A-Za-z0-9]', ' ', label).strip()
             slug = re.sub(r'\s+', '-', slug)
             if label in seen:
-                counter = str(seen[slug])
+                counter = str(seen[label])
                 slug = slug[:-len(counter)] + counter
             seen[label] += 1
             return slug
