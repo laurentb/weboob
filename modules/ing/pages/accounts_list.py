@@ -20,13 +20,15 @@
 
 from datetime import date, timedelta
 import datetime
+from decimal import Decimal
 import re
 
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Filter, Field, MultiFilter, Date, Lower
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Filter, Field, MultiFilter, \
+                                            Date, Lower, Regexp, Async, AsyncLoad, Slugify
 from weboob.browser.filters.html import Attr
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -57,7 +59,8 @@ class AddPref(MultiFilter):
 class AddType(Filter):
     types = {u'Courant': Account.TYPE_CHECKING, u'Livret A': Account.TYPE_SAVINGS,
              u'Orange': Account.TYPE_SAVINGS, u'Durable': Account.TYPE_SAVINGS,
-             u'Titres': Account.TYPE_MARKET, u'PEA': Account.TYPE_MARKET}
+             u'Titres': Account.TYPE_MARKET, u'PEA': Account.TYPE_MARKET,
+             u'Direct Vie': Account.TYPE_MARKET}
 
     def filter(self, label):
         for key, acc_type in self.types.items():
@@ -112,9 +115,10 @@ class INGCategory(Filter):
 
 
 class AccountsList(LoggedPage, HTMLPage):
-    def __init__(self, browser, response, *args, **kwargs):
-        super(AccountsList, self).__init__(browser, response, *args, **kwargs)
-        self.i = 0
+    i = 0
+
+    def has_error(self):
+        return self.doc.xpath('//div[has-class("alert-warning")]') > 0
 
     @method
     class get_list(ListElement):
@@ -166,8 +170,7 @@ class AccountsList(LoggedPage, HTMLPage):
         item_xpath = '//table'
 
     def get_history_jid(self):
-        span = self.doc.xpath('//span[@id="index:panelASV"]')
-        if len(span) > 1:
+        if self.is_asv:
             # Assurance Vie, we do not support this kind of account.
             return None
 
@@ -182,3 +185,48 @@ class AccountsList(LoggedPage, HTMLPage):
 
         nomore = self.doc.getroot().cssselect('.no-more-transactions')
         return (len(nomore) > 0)
+
+    @property
+    def is_asv(self):
+        span = self.doc.xpath('//span[@id="index:panelASV"]')
+        return len(span) > 0
+
+    @method
+    class iter_investments(ListElement):
+        item_xpath = '//div[has-class("asv_fond")]'
+
+        class item(ItemElement):
+            klass = Investment
+
+            # ASV.popup('/general?command=displayAVEuroEpargne')
+            load_details = Attr('.//div[has-class("asv_fond_view")]//a', 'onclick') & Regexp(pattern="'(.*)'") & AsyncLoad
+
+            obj_label = CleanText('.//span[has-class("asv_cat_lbl")]')
+            # XXX I would like to do that... but 1. CleanText doesn't deal with default 2. default values can't be filters yet
+            #obj_code = Async('details') & CleanText('//li[contains(text(), "Code ISIN")]/span') | (Field('label') & Format('XX%s', Slugify))
+            obj_code = Async('details') & CleanText('//li[contains(text(), "Code ISIN")]/span')
+            obj_id = obj_code
+            obj_description = Async('details') & CleanText('//h5')
+            obj_quantity = CleanDecimal('.//dl[contains(dt/text(), "Nombre de parts")]/dd', replace_dots=True)
+            obj_unitvalue = CleanDecimal('.//dl[contains(dt/text(), "Valeur de part")]/dd', replace_dots=True)
+            obj_valuation = CleanDecimal('.//dl[has-class("ligne-montant")]/dd', replace_dots=True)
+
+            def obj_unitprice(self):
+                if 'eurossima' in self.el.get('class'):
+                    return self.obj.unitvalue
+
+                percent = CleanDecimal('.//dl[has-class("ligne-pmvalue")]/dd', replace_dots=True)(self)
+                return (self.obj.unitvalue / (1 + percent/Decimal('100.0'))).quantize(Decimal('1.00'))
+
+            def obj_diff(self):
+                return (self.obj.valuation - (self.obj.quantity * self.obj.unitprice)).quantize(Decimal('1.00'))
+
+            def validate(self, obj):
+                if not obj.id:
+                    obj.id = obj.code = 'XX' + Slugify(self.obj_label)(self)
+
+                return True
+
+
+class TitreDetails(LoggedPage, HTMLPage):
+    pass

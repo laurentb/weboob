@@ -18,13 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 import re
 import hashlib
+import time
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, ParseError
 from weboob.capabilities.bank import Account, TransferError
 
 from .pages import AccountsList, LoginPage, TitrePage, TitreHistory,\
-    TransferPage, TransferConfirmPage, BillsPage, StopPage
+    TransferPage, TransferConfirmPage, BillsPage, StopPage, TitreDetails
 
 
 __all__ = ['IngBrowser']
@@ -52,6 +53,7 @@ class IngBrowser(LoginBrowser):
     transferpage = URL('/protected/pages/cc/transfer/transferManagement.jsf', TransferPage)
     dotransferpage = URL('/general\?command=DisplayDoTransferCommand', TransferPage)
     valtransferpage = URL('/protected/pages/cc/transfer/create/transferCreateValidation.jsf', TransferConfirmPage)
+    titredetails = URL('/general\?command=display.*', TitreDetails)
     # CapBank-Market
     starttitre = URL('/general\?command=goToAccount&zone=COMPTE', TitrePage)
     titrepage = URL('https://bourse.ingdirect.fr/priv/portefeuille-TR.php', TitrePage)
@@ -226,7 +228,17 @@ class IngBrowser(LoginBrowser):
                 "javax.faces.ViewState": account._jid,
                 "cptnbr": account._id
                 }
-        self.accountspage.go(data=data)
+
+        # On ASV pages, data maybe not available.
+        for i in range(4):
+            time.sleep(2**i)
+            self.accountspage.go(data=data)
+
+            if not self.page.has_error():
+                break
+
+        if self.page.is_asv:
+            return
 
         self.starttitre.go()
         self.where = u"titre"
@@ -237,12 +249,15 @@ class IngBrowser(LoginBrowser):
             raise NotImplementedError()
         self.go_investments(account)
 
-        self.titrerealtime.go()
+        if self.where == u'titre':
+            self.titrerealtime.go()
         return self.page.iter_investments()
 
     def get_history_titre(self, account):
         self.go_investments(account)
-        self.titrehistory.go()
+
+        if self.where == u'titre':
+            self.titrehistory.go()
         return self.page.iter_history()
 
     ############# CapBill #############
