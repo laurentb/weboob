@@ -50,7 +50,7 @@ class ResultsPage(HTMLPage):
             obj_id = Regexp(CleanText('./div[has-class("text")]/h2/a/@href'),
                             '(.*).htm')
             obj_title = CleanText('./div[has-class("text")]/h2/a')
-            obj_thumbnail_url = CleanText('./div[has-class("image")]/a/img/@src')
+            obj_thumbnail_url = CleanText('./div[has-class("image")]/a/img[1]/@src')
             obj_short_description = CleanText('./div[has-class("text")]/p')
             obj_author = CleanText('./div[has-class("text")]/h3[@class="auteur"]/a', default=NotAvailable)
 
