@@ -223,24 +223,16 @@ class QuickMatchPage(Page):
         js = self.parser.select(self.document.getroot(), "//script", method='xpath')
         for script in js:
             script = script.text
-
             if script is None:
                 continue
-            for line in script.splitlines():
-                match = re.match('.*var\s*CURRENTUSERID\s*=\s*"(\d+)"', line)
-                if match is not None:
-                    (userid,) = match.groups()
 
-        # Looking for target userid (tuid)
-        element = self.parser.select(self.document.getroot(), '//*[@id="star_5_top"]', method='xpath')[0]
-        onclick = element.get("onclick")
-
-        if onclick is None:
-            pass
-        for line in onclick.splitlines():
-            match = re.match("^Quickmatch\.vote\(\d,\s*'(\w*)'*", line)
+            match = re.search('.*var\s*CURRENTUSERID\s*=\s*"(\d+)"', script, flags=re.MULTILINE)
             if match is not None:
-                (tuid,) = match.groups()
+                userid = match.group(1)
+
+            match = re.search('"tuid"\s*:\s*"(\d+)"', script, flags=re.MULTILINE)
+            if match is not None:
+                tuid = match.group(1)
 
         # Building params hash
         if userid and tuid:
