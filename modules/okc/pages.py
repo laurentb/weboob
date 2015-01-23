@@ -135,15 +135,14 @@ class ProfilePage(Page):
         profile['id'] = unicode(title.text[len('OkCupid: '):])
         profile['data'] = OrderedDict()
 
-        profile_p = self.parser.select(self.document.getroot(), "//div[@id='page_content']//p", method='xpath')
+        profile_p = self.parser.select(self.document.getroot(), "//div[@id='page_content']//div[contains(@class, 'basics')]//p", method='xpath')
 
         profile['data']['infos'] = ProfileNode('infos', u'Informations', OrderedDict(), flags=ProfileNode.SECTION)
 
         info = {
-                        'age' : unicode(profile_p[1].text.split(' / ')[0]),
-                        'sex' : unicode(profile_p[1].text.split(' / ')[1]),
-                        'orientation' : unicode(profile_p[1].text.split(' / ')[2]),
-                        'relationship' : unicode(profile_p[1].text.split(' / ')[3]),
+                        'age' : profile_p[1].text.split(u'•', 1)[0].strip(),
+                        'location' : profile_p[1].text.split(u'•', 1)[1].strip(),
+                        'sex' : profile_p[2].text.strip(),
             }
 
         for key, val in info.iteritems():
