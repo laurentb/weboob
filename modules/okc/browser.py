@@ -193,13 +193,13 @@ class OkCBrowser(Browser):
 
     @check_login
     def get_profile(self, id):
-        self.location(self.absurl('/profile/%s' % id))
+        self.location(self.absurl('/profile/%s' % urllib.quote(id.encode('utf-8'))))
         profile = self.page.get_profile()
         return profile
 
     @check_login
     def get_photos(self, id):
-        self.location(self.absurl('/profile/%s/photos' % id))
+        self.location(self.absurl('/profile/%s/photos' % urllib.quote(id.encode('utf-8'))))
         return self.page.get_photos()
 
     #def _get_chat_infos(self):
@@ -248,7 +248,7 @@ class OkCBrowser(Browser):
 
     @check_login
     def visit_profile(self, id):
-        self.location(self.absurl('/profile/%s' % id))
+        self.location(self.absurl('/profile/%s' % urllib.quote(id.encode('utf-8'))))
         stalk, u, tuid = self.page.get_visit_button_params()
         if stalk and u and tuid:
             # Premium users, need to click on "visit button" to let the other person know his profile was visited
