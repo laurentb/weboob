@@ -47,6 +47,7 @@ class OkCBrowser(Browser):
     PAGES = OrderedDict((
             ('https://%s/login.*' % DOMAIN, LoginPage),
             ('http://%s/home' % DOMAIN, Page),
+            ('http://%s/match.*' % DOMAIN, Page),
             ('http://%s/messages' % DOMAIN, ThreadPage),
             ('http://%s/messages\?compose=1' % DOMAIN, PostMessagePage),
             ('http://\w+.okcupid.com/messages\?.*', MessagesPage),
