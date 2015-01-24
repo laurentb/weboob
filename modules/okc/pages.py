@@ -60,7 +60,7 @@ class MessagesPage(Page):
         }
 
         try:
-            mails['member']['pseudo'] = self.parser.tocleanstring(self.document.getroot().cssselect('div#message_heading div.username span.name')[0])
+            mails['member']['pseudo'] = self.parser.tocleanstring(self.document.getroot().cssselect('#message_heading div.username span.name')[0])
         except IndexError:
             mails['member']['pseudo'] = 'Unknown'
 
