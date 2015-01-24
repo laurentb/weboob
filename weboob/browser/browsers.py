@@ -177,7 +177,8 @@ class Browser(object):
             try:
                 urllib3.disable_warnings()
             except AttributeError:
-                self.logger.warning('Urllib3 is too old, warnings won\'t be disable')
+                # urllib3 is too old, warnings won't be disable
+                pass
 
         # defines a max_retries. It's mandatory in case a server is not
         # handling keep alive correctly, like the proxy burp
