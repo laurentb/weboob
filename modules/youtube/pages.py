@@ -21,6 +21,7 @@
 
 
 from urlparse import urlparse, parse_qs
+import codecs
 import zlib
 import re
 import os
@@ -98,6 +99,14 @@ def determine_ext(url, default_ext=u'unknown_video'):
     else:
         return default_ext
 
+def uppercase_escape(s):
+    unicode_escape = codecs.getdecoder('unicode_escape')
+    return re.sub(
+        r'\\U[0-9a-fA-F]{8}',
+        lambda m: unicode_escape(m.group(0))[0],
+        s)
+
+
 _NO_DEFAULT = object()
 
 
@@ -144,14 +153,17 @@ class VideoPage(BaseYoutubePage):
         '135': {'ext': 'mp4', 'height': 480, 'resolution': '480p', 'format_note': 'DASH video', 'preference': -40},
         '136': {'ext': 'mp4', 'height': 720, 'resolution': '720p', 'format_note': 'DASH video', 'preference': -40},
         '137': {'ext': 'mp4', 'height': 1080, 'resolution': '1080p', 'format_note': 'DASH video', 'preference': -40},
-        '138': {'ext': 'mp4', 'height': 2160, 'resolution': '2160p', 'format_note': 'DASH video', 'preference': -40},
+        '138': {'ext': 'mp4', 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},  # Height can vary (https://github.com/rg3/youtube-dl/issues/4559)
         '160': {'ext': 'mp4', 'height': 192, 'resolution': '192p', 'format_note': 'DASH video', 'preference': -40},
         '264': {'ext': 'mp4', 'height': 1440, 'resolution': '1440p', 'format_note': 'DASH video', 'preference': -40},
+        '298': {'ext': 'mp4', 'height': 720, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'fps': 60, 'vcodec': 'h264'},
+        '299': {'ext': 'mp4', 'height': 1080, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'fps': 60, 'vcodec': 'h264'},
+        '266': {'ext': 'mp4', 'height': 2160, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'vcodec': 'h264'},
 
         # Dash mp4 audio
-        '139': {'ext': 'm4a', 'format_note': 'DASH audio', 'vcodec': 'none', 'abr': 48, 'preference': -50},
-        '140': {'ext': 'm4a', 'format_note': 'DASH audio', 'vcodec': 'none', 'abr': 128, 'preference': -50},
-        '141': {'ext': 'm4a', 'format_note': 'DASH audio', 'vcodec': 'none', 'abr': 256, 'preference': -50},
+        '139': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'vcodec': 'none', 'abr': 48, 'preference': -50, 'container': 'm4a_dash'},
+        '140': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'vcodec': 'none', 'abr': 128, 'preference': -50, 'container': 'm4a_dash'},
+        '141': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'vcodec': 'none', 'abr': 256, 'preference': -50, 'container': 'm4a_dash'},
 
         # Dash webm
         '167': {'ext': 'webm', 'height': 360, 'width': 640, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'VP8', 'acodec': 'none', 'preference': -40},
@@ -160,6 +172,7 @@ class VideoPage(BaseYoutubePage):
         '170': {'ext': 'webm', 'height': 1080, 'width': 1920, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'VP8', 'acodec': 'none', 'preference': -40},
         '218': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'VP8', 'acodec': 'none', 'preference': -40},
         '219': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'VP8', 'acodec': 'none', 'preference': -40},
+        '278': {'ext': 'webm', 'height': 144, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'container': 'webm', 'vcodec': 'VP9'},
         '242': {'ext': 'webm', 'height': 240, 'resolution': '240p', 'format_note': 'DASH webm', 'preference': -40},
         '243': {'ext': 'webm', 'height': 360, 'resolution': '360p', 'format_note': 'DASH webm', 'preference': -40},
         '244': {'ext': 'webm', 'height': 480, 'resolution': '480p', 'format_note': 'DASH webm', 'preference': -40},
@@ -169,10 +182,20 @@ class VideoPage(BaseYoutubePage):
         '248': {'ext': 'webm', 'height': 1080, 'resolution': '1080p', 'format_note': 'DASH webm', 'preference': -40},
         '271': {'ext': 'webm', 'height': 1440, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
         '272': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
+        '302': {'ext': 'webm', 'height': 720, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'fps': 60, 'vcodec': 'VP9'},
+        '303': {'ext': 'webm', 'height': 1080, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'fps': 60, 'vcodec': 'VP9'},
+        '308': {'ext': 'webm', 'height': 1440, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'fps': 60, 'vcodec': 'VP9'},
+        '313': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'vcodec': 'VP9'},
+        '315': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'fps': 60, 'vcodec': 'VP9'},
 
         # Dash webm audio
-        '171': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH webm audio', 'abr': 48, 'preference': -50},
+        '171': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH audio', 'abr': 128, 'preference': -50},
         '172': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH webm audio', 'abr': 256, 'preference': -50},
+
+        # Dash webm audio with opus inside
+        '249': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH audio', 'acodec': 'opus', 'abr': 50, 'preference': -50},
+        '250': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH audio', 'acodec': 'opus', 'abr': 70, 'preference': -50},
+        '251': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH audio', 'acodec': 'opus', 'abr': 160, 'preference': -50},
 
         # RTMP (unnamed)
         '_rtmp': {'protocol': 'rtmp'},
@@ -182,14 +205,23 @@ class VideoPage(BaseYoutubePage):
         Page.__init__(self, *args, **kwargs)
         self._player_cache = {}
 
-    def _extract_signature_function(self, video_id, player_url, slen):
-        id_m = re.match(r'.*-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player)?\.(?P<ext>[a-z]+)$',
-                        player_url)
+    def _signature_cache_id(self, example_sig):
+        """ Return a string representation of a signature """
+        return '.'.join(unicode(len(part)) for part in example_sig.split('.'))
+
+    def _extract_signature_function(self, video_id, player_url, example_sig):
+        id_m = re.match(
+            r'.*?-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player)?\.(?P<ext>[a-z]+)$',
+            player_url)
+        if not id_m:
+            raise BrokenPageError('Cannot identify player %r' % player_url)
         player_type = id_m.group('ext')
         player_id = id_m.group('id')
 
         # Read from filesystem cache
-        func_id = '%s_%s_%d' % (player_type, player_id, slen)
+        func_id = '%s_%s_%s' % (
+            player_type, player_id, self._signature_cache_id(example_sig))
+
         assert os.path.basename(func_id) == func_id
 
         if player_type == 'js':
@@ -206,7 +238,7 @@ class VideoPage(BaseYoutubePage):
 
     def _parse_sig_js(self, jscode):
         funcname = self._search_regex(
-            r'\.sig\|\|([a-zA-Z0-9]+)\(', jscode,
+            r'\.sig\|\|([a-zA-Z0-9$]+)\(', jscode,
             u'Initial JS player signature function name')
 
         functions = {}
@@ -862,6 +894,51 @@ class VideoPage(BaseYoutubePage):
         else:
             raise BrokenPageError(u'Unable to decrypt signature, key length %d not supported; retrying might work' % (len(s)))
 
+    def _parse_dash_manifest(self, video_id, dash_manifest_url, player_url, age_gate):
+        def decrypt_sig(mobj):
+            s = mobj.group(1)
+            dec_s = self._decrypt_signature(s, video_id, player_url, age_gate)
+            return '/signature/%s' % dec_s
+
+        def int_or_none(v, default=None):
+            try:
+                return int(v)
+            except (ValueError,TypeError):
+                return default
+
+        dash_manifest_url = re.sub(r'/s/([\w\.]+)', decrypt_sig, dash_manifest_url)
+        dash_doc = self.browser.get_document(self.browser.openurl(dash_manifest_url))
+
+        formats = []
+        for r in dash_doc.findall('.//{urn:mpeg:DASH:schema:MPD:2011}Representation'):
+            url_el = r.find('{urn:mpeg:DASH:schema:MPD:2011}BaseURL')
+            if url_el is None:
+                continue
+            format_id = r.attrib['id']
+            video_url = url_el.text
+            filesize = int_or_none(url_el.attrib.get('{http://youtube.com/yt/2012/10/10}contentLength'))
+            f = {
+                'format_id': format_id,
+                'url': video_url,
+                'width': int_or_none(r.attrib.get('width')),
+                'height': int_or_none(r.attrib.get('height')),
+                'tbr': int_or_none(r.attrib.get('bandwidth'), 1000),
+                'asr': int_or_none(r.attrib.get('audioSamplingRate')),
+                'filesize': filesize,
+                'fps': int_or_none(r.attrib.get('frameRate')),
+            }
+            try:
+                existing_format = next(
+                    fo for fo in formats
+                    if fo['format_id'] == format_id)
+            except StopIteration:
+                f.update(self._formats.get(format_id, {}).items())
+                formats.append(f)
+            else:
+                existing_format.update(f)
+        return formats
+
+
     def _extract_from_m3u8(self, manifest_url, video_id):
         url_map = {}
 
@@ -892,26 +969,41 @@ class VideoPage(BaseYoutubePage):
             age_gate = True
             # We simulate the access to the video from www.youtube.com/v/{video_id}
             # this can be viewed without login into Youtube
-            data = urllib.urlencode({'video_id': video_id,
-                                                  'el': 'player_embedded',
-                                                  'gl': 'US',
-                                                  'hl': 'en',
-                                                  'eurl': 'https://youtube.googleapis.com/v/' + video_id,
-                                                  'asv': 3,
-                                                  'sts':'1588',
-                                                  })
+            url = 'https://www.youtube.com/embed/%s' % video_id
+            embed_webpage = self.browser.readurl(url)
+            data = urllib.urlencode({
+                'video_id': video_id,
+                'eurl': 'https://youtube.googleapis.com/v/' + video_id,
+                'sts': self._search_regex(
+                    r'"sts"\s*:\s*(\d+)', embed_webpage, 'sts', default=''),
+            })
+
             video_info_url = 'https://www.youtube.com/get_video_info?' + data
             video_info_webpage = self.browser.readurl(video_info_url)
             video_info = parse_qs(video_info_webpage)
         else:
             age_gate = False
-            for el_type in ['&el=embedded', '&el=detailpage', '&el=vevo', '']:
-                video_info_url = ('https://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
-                        % (video_id, el_type))
-                video_info_webpage = self.browser.readurl(video_info_url)
-                video_info = parse_qs(video_info_webpage)
-                if 'token' in video_info:
-                    break
+            try:
+                # Try looking directly into the video webpage
+                mobj = re.search(r';ytplayer\.config\s*=\s*({.*?});', video_webpage)
+                if not mobj:
+                    raise ValueError('Could not find ytplayer.config')  # caught below
+                json_code = uppercase_escape(mobj.group(1))
+                ytplayer_config = json.loads(json_code)
+                args = ytplayer_config['args']
+                # Convert to the same format returned by compat_parse_qs
+                video_info = dict((k, [v]) for k, v in args.items())
+                if 'url_encoded_fmt_stream_map' not in args:
+                    raise ValueError('No stream_map present')  # caught below
+            except ValueError:
+                # We fallback to the get_video_info pages (used by the embed page)
+                for el_type in ['&el=embedded', '&el=detailpage', '&el=vevo', '']:
+                    video_info_url = ('https://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
+                            % (video_id, el_type))
+                    video_info_webpage = self.browser.readurl(video_info_url)
+                    video_info = parse_qs(video_info_webpage)
+                    if 'token' in video_info:
+                        break
         if 'token' not in video_info:
             if 'reason' in video_info:
                 raise UserError(video_info['reason'][0])
@@ -921,30 +1013,6 @@ class VideoPage(BaseYoutubePage):
         # Check for "rental" videos
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
             raise UserError(u'"rental" videos not supported')
-
-        # Decide which formats to download
-        try:
-            mobj = re.search(r';ytplayer.config = ({.*?});', video_webpage)
-            if not mobj:
-                raise ValueError('Could not find vevo ID')
-            ytplayer_config = json.loads(mobj.group(1))
-            args = ytplayer_config['args']
-            # Easy way to know if the 's' value is in url_encoded_fmt_stream_map
-            # this signatures are encrypted
-            if 'url_encoded_fmt_stream_map' not in args:
-                raise ValueError(u'No stream_map present')  # caught below
-            re_signature = re.compile(r'[&,]s=')
-            m_s = re_signature.search(args['url_encoded_fmt_stream_map'])
-            if m_s is not None:
-                video_info['url_encoded_fmt_stream_map'] = [args['url_encoded_fmt_stream_map']]
-            m_s = re_signature.search(args.get('adaptive_fmts', u''))
-            if m_s is not None:
-                if 'adaptive_fmts' in video_info:
-                    video_info['adaptive_fmts'][0] += ',' + args['adaptive_fmts']
-                else:
-                    video_info['adaptive_fmts'] = [args['adaptive_fmts']]
-        except ValueError:
-            pass
 
         def _map_to_format_list(urlmap):
             formats = []
@@ -966,31 +1034,41 @@ class VideoPage(BaseYoutubePage):
                 'url': video_info['conn'][0],
                 'player_url': player_url,
             }]
-        elif len(video_info.get('url_encoded_fmt_stream_map', [])) >= 1 or len(video_info.get('adaptive_fmts', [])) >= 1:
-            encoded_url_map = video_info.get('url_encoded_fmt_stream_map', [''])[0] + ',' + video_info.get('adaptive_fmts',[''])[0]
+        elif len(video_info.get('url_encoded_fmt_stream_map', [''])[0]) >= 1 or len(video_info.get('adaptive_fmts', [''])[0]) >= 1:
+            encoded_url_map = video_info.get('url_encoded_fmt_stream_map', [''])[0] + ',' + video_info.get('adaptive_fmts', [''])[0]
+
             if 'rtmpe%3Dyes' in encoded_url_map:
                 raise BrokenPageError('rtmpe downloads are not supported, see https://github.com/rg3/youtube-dl/issues/343 for more information.', expected=True)
             url_map = {}
             for url_data_str in encoded_url_map.split(','):
                 url_data = parse_qs(url_data_str)
-                if 'itag' in url_data and 'url' in url_data:
-                    url = url_data['url'][0]
-                    if 'sig' in url_data:
-                        url += '&signature=' + url_data['sig'][0]
-                    elif 's' in url_data:
-                        encrypted_sig = url_data['s'][0]
-                        if not age_gate:
-                            jsplayer_url_json = self._search_regex(
-                                r'"assets":.+?"js":\s*("[^"]+")',
-                                video_webpage, u'JS player URL')
-                            player_url = json.loads(jsplayer_url_json)
+                if 'itag' not in url_data or 'url' not in url_data:
+                    continue
+                format_id = url_data['itag'][0]
+                url = url_data['url'][0]
 
-                        signature = self._decrypt_signature(
-                            encrypted_sig, video_id, player_url, age_gate)
-                        url += '&signature=' + signature
-                    if 'ratebypass' not in url:
-                        url += '&ratebypass=yes'
-                    url_map[url_data['itag'][0]] = url
+                if 'sig' in url_data:
+                    url += '&signature=' + url_data['sig'][0]
+                elif 's' in url_data:
+                    encrypted_sig = url_data['s'][0]
+
+                    jsplayer_url_json = self._search_regex(
+                        r'"assets":.+?"js":\s*("[^"]+")',
+                        embed_webpage if age_gate else video_webpage, 'JS player URL')
+                    player_url = json.loads(jsplayer_url_json)
+                    if player_url is None:
+                        player_url_json = self._search_regex(
+                            r'ytplayer\.config.*?"url"\s*:\s*("[^"]+")',
+                            video_webpage, 'age gate player URL')
+                        player_url = json.loads(player_url_json)
+
+                    signature = self._decrypt_signature(
+                        encrypted_sig, video_id, player_url, age_gate)
+                    url += '&signature=' + signature
+                if 'ratebypass' not in url:
+                    url += '&ratebypass=yes'
+                url_map[format_id] = url
+
             formats = _map_to_format_list(url_map)
         elif video_info.get('hlsvp'):
             manifest_url = video_info['hlsvp'][0]
@@ -998,6 +1076,33 @@ class VideoPage(BaseYoutubePage):
             formats = _map_to_format_list(url_map)
         else:
             raise BrokenPageError(u'no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
+
+        dash_mpd = video_info.get('dashmpd')
+        if dash_mpd:
+            dash_manifest_url = dash_mpd[0]
+            try:
+                dash_formats = self._parse_dash_manifest(
+                    video_id, dash_manifest_url, player_url, age_gate)
+            except (BrokenPageError, KeyError) as e:
+                self.logger.info( 'Skipping DASH manifest: %r' % e)
+            else:
+                    # Hide the formats we found through non-DASH
+                    dash_keys = set(df['format_id'] for df in dash_formats)
+                    for f in formats:
+                        if f['format_id'] in dash_keys:
+                            f['format_id'] = 'nondash-%s' % f['format_id']
+                            f['preference'] = f.get('preference', 0) - 10000
+                    formats.extend(dash_formats)
+
+        # Check for malformed aspect ratio
+        stretched_m = re.search(
+            r'<meta\s+property="og:video:tag".*?content="yt:stretch=(?P<w>[0-9]+):(?P<h>[0-9]+)">',
+            video_webpage)
+        if stretched_m:
+            ratio = float(stretched_m.group('w')) / float(stretched_m.group('h'))
+            for f in formats:
+                if f.get('vcodec') != 'none':
+                    f['stretched_ratio'] = ratio
 
         self._sort_formats(formats)
 

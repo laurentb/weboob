@@ -49,7 +49,7 @@ class YoutubeBrowser(Browser):
         self.page.login(self.username, self.password)
 
     def get_video_url(self, video, player_url):
-        self.location(player_url + '&has_verified=1')
+        self.location(player_url + '&has_verified=1&bpctr=9999999999')
 
         assert self.is_on_page(VideoPage)
         return self.page.get_video_url(video)
