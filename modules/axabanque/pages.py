@@ -21,6 +21,7 @@
 import urllib
 from decimal import Decimal, InvalidOperation
 import re
+import lxml.html
 
 from weboob.deprecated.browser import Page as _BasePage, BrowserUnavailable, BrokenPageError
 from weboob.capabilities.bank import Account
@@ -39,27 +40,33 @@ class UnavailablePage(BasePage):
 
 
 class VirtKeyboard(MappedVirtKeyboard):
-    symbols={'0':'f47e48cfdf3abc6716a6b0aadf8eebe3',
-             '1':'3495abaf658dc550e51c5c92ea56b60b',
-             '2':'f57e7c70ddffb71d0efcc42f534165ae',
-             '3':'bd08ced5162b033175e8cd37516c8258',
-             '4':'45893a475208cdfc66cd83abde69b8d8',
-             '5':'110008203b716a0de4fdacd7dc7666e6',
-             '6':'4e7e8808d8f4eb22f1ee4086cbd02dcb',
-             '7':'f92adf323b0b128a48a24b16ca10ec1e',
-             '8':'0283c4e25656aed61a39117247f0d3f1',
-             '9':'3de7491bba71baa8bed99ef624094af8'
+
+    margin = 2, 2, 2, 2
+
+    symbols={'0':'e2df31c137e6c6cb214f92f7d6cd590a',
+             '1':'6057c05937af4574ff453956fbbd2e0e',
+             '2':'5ea5a38efacd3977f17bbc7af83a1943',
+             '3':'560a86b430d2c77e1bd9688efa1b08f9',
+             '4':'e6b6b156ea34a8ae9304526e091b2960',
+             '5':'914483946ee0e55bcc732fce09a0b7c0',
+             '6':'c2382b8f56a0d902e9b399037a9052b5',
+             '7':'c5294f8154a1407560222ac894539d30',
+             '8':'fa1f25a1d5a674dd7bc0d201413d7cfe',
+             '9':'7658424ff8ab127d27e08b7b9b14d331'
             }
 
-    color=(0x28, 0x41, 0x55)
+    color=(0xFF, 0xFF, 0xFF, 0x0)
 
     def check_color(self, pixel):
-        # only dark blue pixels.
-        return (pixel[0] < 100 and pixel[1] < 100 and pixel[2] < 200)
+        step = 10
+        return abs(pixel[0] - self.color[0]) < step and abs(pixel[1] - self.color[1]) < step and abs(pixel[2] - self.color[2]) < step
 
     def __init__(self, page):
-        img = page.document.find("//img[@usemap='#mapPave']")
-        img_file = page.browser.openurl(img.attrib['src'])
+        key = page.document.getroot().xpath('//input')[0].value
+        page.browser.login_key = key
+        img = page.document.getroot().xpath('//img')[0]
+        img_url = 'https://www.axa.fr/.sendvirtualkeyboard.png?key=' + key
+        img_file = page.browser.openurl(img_url)
         MappedVirtKeyboard.__init__(self, img_file, page.document, img, self.color)
 
         self.check_symbols(self.symbols, page.browser.responses_dirname)
@@ -77,18 +84,27 @@ class VirtKeyboard(MappedVirtKeyboard):
 
 class LoginPage(BasePage):
     def login(self, login, password):
+        document = lxml.html.fromstring(self.document['html'])
+        self.document = document.getroottree()
+
         vk = VirtKeyboard(self)
 
-        form = self.document.xpath('//form[@name="_idJsp0"]')[0]
-        args = {'login':                    login.encode(self.browser.ENCODING),
-                'codepasse':                vk.get_string_code(password),
-                'motDePasse':               vk.get_string_code(password),
-                '_idJsp0_SUBMIT':           1,
-                '_idJsp0:_idcl':            '',
-                '_idJsp0:_link_hidden_':    '',
+        args = {'login':        login,
+                'password':     vk.get_string_code(password),
+                'remeberMe':    'false',
+                'key':          self.browser.login_key,
                }
-        self.browser.location(form.attrib['action'], urllib.urlencode(args), no_login=True)
 
+        self.browser.location('https://www.axa.fr/.loginAxa.json', urllib.urlencode(args), no_login=True)
+
+class PostLoginPage(BasePage):
+    def redirect(self):
+        if 'tokenBanque' not in self.document:
+            return False
+        url = 'https://www.axabanque.fr/webapp/axabanque/client/sso/connexion?token=%s' % self.document['tokenBanque']
+        self.browser.location(url)
+        self.browser.location('http://www.axabanque.fr/webapp/axabanque/jsp/panorama.faces')
+        return True
 
 class AccountsPage(BasePage):
     ACCOUNT_TYPES = {'courant-titre':      Account.TYPE_CHECKING,

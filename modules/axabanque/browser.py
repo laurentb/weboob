@@ -21,8 +21,9 @@
 import urllib
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser.parsers.jsonparser import JsonParser
 
-from .pages import LoginPage, AccountsPage, TransactionsPage, CBTransactionsPage, UnavailablePage
+from .pages import LoginPage, PostLoginPage, AccountsPage, TransactionsPage, CBTransactionsPage, UnavailablePage
 
 
 __all__ = ['AXABanque']
@@ -31,7 +32,8 @@ __all__ = ['AXABanque']
 class AXABanque(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'www.axabanque.fr'
-    PAGES = {'https?://www.axabanque.fr/connexion/index.html.*':                            LoginPage,
+    PAGES = {'https?://www.axa.fr/.sendvirtualkeyboard.json':                               (LoginPage, JsonParser()),
+             'https?://www.axa.fr/.loginAxa.json':                                          (PostLoginPage, JsonParser()),
              'https?://www.axabanque.fr/login_errors/indisponibilite.*':                    UnavailablePage,
              'https?://www.axabanque.fr/.*page-indisponible.html.*':                        UnavailablePage,
              'https?://www.axabanque.fr/transactionnel/client/liste-comptes.html':          AccountsPage,
@@ -61,11 +63,14 @@ class AXABanque(Browser):
             return
 
         if not self.is_on_page(LoginPage):
-            self.location('/connexion/index.html', no_login=True)
+            self.location('https://www.axa.fr/.sendvirtualkeyboard.json', data=urllib.urlencode({'login': self.username}), no_login=True)
 
         self.page.login(self.username, self.password)
 
-        if not self.is_logged():
+        if not self.is_on_page(PostLoginPage):
+            raise BrowserIncorrectPassword()
+
+        if not self.page.redirect():
             raise BrowserIncorrectPassword()
 
     def get_accounts_list(self):
