@@ -88,7 +88,7 @@ class AccountsPage(CDNBasePage):
 
     def get_account_type(self, label):
         for pattern, actype in self.TYPES.iteritems():
-            if label.startswith(pattern):
+            if label.startswith(pattern) or label.endswith(pattern):
                 return actype
 
         return Account.TYPE_UNKNOWN
