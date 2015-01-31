@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Christophe Benz
+# Copyright(C) 2015 Guilhem Bonnefille
 #
 # This file is part of weboob.
 #

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2015 Guilhem Bonnefille
 #
 # This file is part of weboob.
 #
@@ -17,12 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import datetime
 import re
 
 from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import Regexp, Format, CleanText, RegexpError, Duration, DateTime, Filter
+from weboob.browser.filters.standard import Regexp, Format, CleanText, Duration, DateTime, Filter
 from weboob.browser.filters.html import Link, XPath, CleanHTML
 from weboob.browser.filters.json import Dict
 
