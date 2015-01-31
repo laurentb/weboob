@@ -105,7 +105,7 @@ class OrderNewPage(OrderPage):
             '%B %d, %Y')
 
     def order_number(self):
-        m = re.match('.*Order# ([^ ]+) .*', self.date_num())
+        m = re.match('.*Order# +([^ ]+) .*', self.date_num())
         if m:
             return m.group(1)
 
@@ -143,7 +143,8 @@ class OrderNewPage(OrderPage):
 
     def date_num(self):
         return u' '.join(self.doc.xpath(
-            '//div[contains(text(),"Ordered on")]/text()')).replace('\n', '')
+            '//span[@class="order-date-invoice-item"]/text()'
+            )).replace('\n', '')
 
     def tax(self):
         return self.amount(u'Estimated tax to be collected')
