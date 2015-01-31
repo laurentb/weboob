@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2015 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -28,19 +28,7 @@ from .date import DateField
 __all__ = ['Thread', 'Message', 'CapMessages', 'CantSendMessage', 'CapMessagesPost']
 
 
-# Message and Thread's attributes refer to themselves, and it isn't possible
-# in python, so these base classes are used instead.
-class _Message(BaseObject):
-    """ Base message. """
-    pass
-
-
-class _Thread(BaseObject):
-    """ Base Thread. """
-    pass
-
-
-class Message(_Message):
+class Message(BaseObject):
     """
     Represents a message read or to send.
     """
@@ -53,14 +41,14 @@ class Message(_Message):
     IS_NOT_RECEIVED = 0x008
     "The receiver hass not read this message"
 
-    thread =        Field('Reference to the thread', _Thread)
+    thread =        Field('Reference to the thread', 'Thread')
     title =         StringField('Title of message')
     sender =        StringField('Author of this message')
     receivers =     Field('Receivers of the message', list)
     date =          DateField('Date when the message has been sent')
     content =       StringField('Body of message')
     signature =     StringField('Optional signature')
-    parent =        Field('Parent message', _Message)
+    parent =        Field('Parent message', 'Message')
     children =      Field('Children fields', list)
     flags =         IntField('Flags (IS_* constants)', default=0)
 
@@ -138,7 +126,7 @@ class Message(_Message):
                    self.full_id, self.title, self.date, self.sender)
 
 
-class Thread(_Thread):
+class Thread(BaseObject):
     """
     Thread containing messages.
     """
