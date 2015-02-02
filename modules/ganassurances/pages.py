@@ -45,7 +45,7 @@ class AccountsPage(HTMLPage):
         account_type = Account.TYPE_UNKNOWN
         accounts = []
 
-        for tr in self.doc.xpath('//table[@class="ecli"]/tr'):
+        for tr in self.doc.xpath('//div[@class="finance"]/form/table[@class="ecli"]/tr'):
             if tr.attrib.get('class', '') == 'entete':
                 account_type = self.ACCOUNT_TYPES.get(tr.find('th').text.strip(), Account.TYPE_UNKNOWN)
                 continue
