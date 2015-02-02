@@ -118,7 +118,7 @@ class AccountsList(LoggedPage, HTMLPage):
     i = 0
 
     def has_error(self):
-        return self.doc.xpath('//div[has-class("alert-warning")]') > 0
+        return len(self.doc.xpath('//div[has-class("alert-warning")]')) > 0
 
     @method
     class get_list(ListElement):
