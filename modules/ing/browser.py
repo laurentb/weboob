@@ -260,7 +260,10 @@ class IngBrowser(LoginBrowser):
 
         if self.where == u'titre':
             self.titrehistory.go()
-        return self.page.iter_history()
+            return self.page.iter_history()
+        else:
+            # No history for ASV accounts.
+            return iter([])
 
     ############# CapBill #############
     @need_login
