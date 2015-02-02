@@ -209,7 +209,11 @@ class AccountsList(LoggedPage, HTMLPage):
             obj_description = Async('details') & CleanText('//h5')
             obj_quantity = CleanDecimal('.//dl[contains(dt/text(), "Nombre de parts")]/dd', replace_dots=True)
             obj_unitvalue = CleanDecimal('.//dl[contains(dt/text(), "Valeur de part")]/dd', replace_dots=True)
-            obj_valuation = CleanDecimal('.//dl[has-class("ligne-montant")]/dd', replace_dots=True)
+
+            # There are two kind of lists:
+            # - Header contains percent and valuation is in a specific row ("ligne-montant")
+            # - Header contains valuation, there is no "ligne-montant" row, and percent is in a specific row
+            obj_valuation = CleanDecimal('.//dl[has-class("ligne-montant")]/dd | .//dd[@data-show="header" and not(contains(text(), "%"))]', replace_dots=True)
 
             def obj_unitprice(self):
                 if 'eurossima' in self.el.get('class'):
