@@ -841,7 +841,7 @@ class VideoPage(BaseYoutubePage):
                 player_id = (player_url, len(s))
                 if player_id not in self._player_cache:
                     func = self._extract_signature_function(
-                        video_id, player_url, len(s)
+                        video_id, player_url, s
                     )
                     self._player_cache[player_id] = func
                 func = self._player_cache[player_id]
