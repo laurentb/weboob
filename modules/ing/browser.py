@@ -244,6 +244,8 @@ class IngBrowser(LoginBrowser):
         self.where = u"titre"
         self.titrepage.go()
 
+    @need_login
+    @check_bourse
     def get_investments(self, account):
         if account.type != Account.TYPE_MARKET:
             raise NotImplementedError()
