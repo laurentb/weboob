@@ -170,10 +170,6 @@ class AccountsList(LoggedPage, HTMLPage):
         item_xpath = '//table'
 
     def get_history_jid(self):
-        if self.is_asv:
-            # Assurance Vie, we do not support this kind of account.
-            return None
-
         span = Attr('//span[starts-with(@id, "index:j_id")]', 'id')(self.doc)
         jid = span.split(':')[1]
         return jid

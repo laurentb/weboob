@@ -263,7 +263,7 @@ class IngBrowser(LoginBrowser):
             return self.page.iter_history()
         else:
             # No history for ASV accounts.
-            return iter([])
+            raise NotImplementedError()
 
     ############# CapBill #############
     @need_login
