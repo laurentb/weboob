@@ -727,6 +727,9 @@ class LoginBrowser(PagesBrowser):
         """
         raise NotImplementedError()
 
+    def do_logout(self):
+        self.session.cookies.clear()
+
 
 class APIBrowser(DomainBrowser):
     def open(self, *args, **kwargs):
