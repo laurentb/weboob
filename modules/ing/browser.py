@@ -230,12 +230,23 @@ class IngBrowser(LoginBrowser):
                 }
 
         # On ASV pages, data maybe not available.
-        for i in range(4):
-            time.sleep(2**i)
+        for i in range(5):
+            if i > 0:
+                self.logger.debug('Investments list empty, retrying in %s seconds...', (2**i))
+                time.sleep(2**i)
+
+                if i > 1:
+                    self.do_logout()
+                    self.do_login()
+                    self.accountspage.go()
+
             self.accountspage.go(data=data)
 
             if not self.page.has_error():
                 break
+
+        else:
+            self.logger.warning("Unable to get investments list...")
 
         if self.page.is_asv:
             return
