@@ -119,7 +119,7 @@ class IngBrowser(LoginBrowser):
     @need_login
     @check_bourse
     def get_history(self, account):
-        if account.type == Account.TYPE_MARKET:
+        if account.type in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE):
             for result in self.get_history_titre(account):
                 yield result
             return
@@ -258,7 +258,7 @@ class IngBrowser(LoginBrowser):
     @need_login
     @check_bourse
     def get_investments(self, account):
-        if account.type != Account.TYPE_MARKET:
+        if account.type not in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE):
             raise NotImplementedError()
         self.go_investments(account)
 

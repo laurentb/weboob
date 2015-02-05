@@ -144,7 +144,7 @@ class Boursorama(Browser):
             link = self.page.get_next_url()
 
     def get_investment(self, account):
-        if account.type != Account.TYPE_MARKET or not account._detail_url:
+        if account.type != Account.TYPE_LIFE_INSURANCE or not account._detail_url:
             raise NotImplementedError()
         self.location(account._detail_url)
 

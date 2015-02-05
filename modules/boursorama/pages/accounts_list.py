@@ -40,7 +40,7 @@ class AccountsList(Page):
                 account._link_id = None
                 if 'assurance vie' in block_title:
                     # Life insurance accounts are investments
-                    account.type = Account.TYPE_MARKET
+                    account.type = Account.TYPE_LIFE_INSURANCE
                 for td in tr.getiterator('td'):
                     if td.get('class', '') == 'account-cb':
                         try:

@@ -60,7 +60,7 @@ class AddType(Filter):
     types = {u'Courant': Account.TYPE_CHECKING, u'Livret A': Account.TYPE_SAVINGS,
              u'Orange': Account.TYPE_SAVINGS, u'Durable': Account.TYPE_SAVINGS,
              u'Titres': Account.TYPE_MARKET, u'PEA': Account.TYPE_MARKET,
-             u'Direct Vie': Account.TYPE_MARKET}
+             u'Direct Vie': Account.TYPE_LIFE_INSURANCE}
 
     def filter(self, label):
         for key, acc_type in self.types.items():
