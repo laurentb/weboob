@@ -76,6 +76,31 @@ class Firefox(Profile):
             'DNT': '1'}
 
 
+class GoogleBot(Profile):
+    """
+    Try to mimic Googlebot.
+    Keep in mind there are ways to authenticate real Googlebot IPs.
+    """
+
+    def setup_session(self, session):
+        """
+        Set up headers for a standard Firefox request
+        (except for DNT which isn't on by default but is a good idea).
+
+        The goal is to be unidentifiable.
+        """
+        # Replace all base requests headers
+        # http://googlewebmastercentral.blogspot.com/2008/03/first-date-with-googlebot-headers-and.html
+        # Cached versions of:
+        #  http://request.urih.com/
+        #  http://xhaus.com/headers
+        session.headers = {
+            'Accept-Encoding': 'gzip,deflate',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'From': 'googlebot(at)googlebot.com',
+            'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'}
+
+
 class Wget(Profile):
     """
     Common alternative user agent.
@@ -105,6 +130,7 @@ class Android(Profile):
         """
         session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Linux; U; Android 4.0.3; fr-fr; LG-L160L Build/IML74K) AppleWebkit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30'})
+
 
 class IPhone(Profile):
     def __init__(self, application):
