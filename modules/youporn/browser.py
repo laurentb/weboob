@@ -44,6 +44,9 @@ class YoupornBrowser(Browser):
         return self.page.get_video(video)
 
     def search_videos(self, pattern, sortby):
+        if pattern == 'a' or pattern == 'i':
+            raise ValueError('this pattern is not supported');
+
         self.location(self.buildurl('/search/%s' % sortby, query=pattern.encode('utf-8')))
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()
