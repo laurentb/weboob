@@ -18,74 +18,26 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
-import datetime
-from dateutil.parser import parse as parse_dt
-
+from weboob.browser.pages import HTMLPage
+from weboob.browser.elements import ItemElement, method
+from weboob.browser.filters.html import Link
+from weboob.browser.filters.standard import CleanText, Regexp, Type
 from weboob.capabilities.base import NotAvailable
-from weboob.deprecated.browser import BrokenPageError
 
-from .base import PornPage
 from ..video import YoupornVideo
 
 
-class VideoPage(PornPage):
-    def get_video(self, video=None):
-        if not PornPage.on_loaded(self):
-            return
-        if video is None:
-            video = YoupornVideo(self.group_dict['id'])
-        video.title = self.get_title()
-        video.url, video.ext = self.get_url()
-        self.set_details(video)
+class VideoPage(HTMLPage):
+    @method
+    class get_video(ItemElement):
+        klass = YoupornVideo
 
-        video.set_empty_fields(NotAvailable)
-        return video
-
-    def get_url(self):
-        download_div = self.parser.select(self.document.getroot(), 'ul.downloadList li')
-        if len(download_div) < 1:
-            raise BrokenPageError('Unable to find file URL')
-
-        a = self.parser.select(download_div[0], 'a', 1)
-        m = re.match('^(\w+) - .*', a.text)
-        if m:
-            ext = m.group(1).lower()
-        else:
-            ext = u'flv'
-        return unicode(a.attrib['href']), unicode(ext)
-
-    def get_title(self):
-        element = self.parser.select(self.document.getroot(), 'h1', 1)
-        return element.text.strip().decode('utf-8')
-
-    def set_details(self, v):
-        for li in self.parser.select(self.document.getroot(), 'ul.spaced li'):
-            span = li.find('label')
-            name = span.text.strip()
-            value = span.tail.strip()
-
-            if name == 'Duration:':
-                m = re.match('((\d+)hrs)?\s*((\d+)min)?\s*((\d+)sec)?', value)
-                if not m:
-                    raise BrokenPageError('Unable to parse datetime: %r' % value)
-                hours = m.group(2) or 0
-                minutes = m.group(4) or 0
-                seconds = m.group(6) or 0
-                v.duration = datetime.timedelta(hours=int(hours),
-                                                minutes=int(minutes),
-                                                seconds=int(seconds))
-            elif name == 'Submitted:':
-                author = li.find('i')
-                if author is None:
-                    author = li.find('a')
-                if author is None:
-                    v.author = unicode(value)
-                else:
-                    v.author = unicode(author.text)
-            elif name == 'Rating:':
-                value = li.find('span').text
-                v.rating = int(value.rstrip('%'))
-                v.rating_max = 100
-            elif name == 'Date:':
-                v.date = parse_dt(value)
+        obj_author = CleanText('//div[@class="author-block--line"][1]') & Regexp(pattern=r'By: (.*)')
+        #obj_date = Date('//div[@id="stats-date"]')
+        obj_duration = NotAvailable
+        obj_ext = 'mp4'
+        obj_rating = CleanText('//div[@class="rating-percentage"]') & Regexp(pattern=r'(..)%') & Type(type=int)
+        obj_rating_max = 100
+        obj_thumbnail = NotAvailable
+        obj_title = CleanText('//h1')
+        obj_url = Link('//ul[@class="downloadList"]/li[2]/a')

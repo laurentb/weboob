@@ -39,27 +39,18 @@ class YoupornModule(Module, CapVideo, CapCollection):
     BROWSER = YoupornBrowser
 
     def get_video(self, _id):
-        with self.browser:
-            return self.browser.get_video(_id)
+        return self.browser.get_video(_id)
 
     SORTBY = ['relevance', 'rating', 'views', 'time']
 
     def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         if not nsfw:
             return set()
-        with self.browser:
-            return self.browser.search_videos(pattern, self.SORTBY[sortby])
+
+        return self.browser.search_videos(pattern, self.SORTBY[sortby])
 
     def fill_video(self, video, fields):
-        if fields != ['thumbnail']:
-            # if we don't want only the thumbnail, we probably want also every fields
-            with self.browser:
-                video = self.browser.get_video(YoupornVideo.id2url(video.id), video)
-        if 'thumbnail' in fields and video.thumbnail:
-            with self.browser:
-                video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
-
-        return video
+        return self.browser.get_video(video.id)
 
     def iter_resources(self, objs, split_path):
         if BaseVideo in objs:

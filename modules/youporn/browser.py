@@ -18,40 +18,36 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser
-from weboob.deprecated.browser.decorators import id2url
+from weboob.browser import PagesBrowser, URL
 
 from .pages.index import IndexPage
 from .pages.video import VideoPage
-from .video import YoupornVideo
 
 
 __all__ = ['YoupornBrowser']
 
 
-class YoupornBrowser(Browser):
-    DOMAIN = 'www.youporn.com'
-    ENCODING = None
-    PAGES = {r'http://[w\.]*youporn\.com/?': IndexPage,
-             r'http://[w\.]*youporn\.com/search.*': IndexPage,
-             r'http://[w\.]*youporn\.com/watch/(?P<id>\d+)/?.*': VideoPage,
-             r'http://[w\.]*youporngay\.com:80/watch/(?P<id>.+)': VideoPage,
-            }
+class YoupornBrowser(PagesBrowser):
+    BASEURL = 'http://www.youporn.com'
 
-    @id2url(YoupornVideo.id2url)
-    def get_video(self, url, video=None):
-        self.location(url)
-        return self.page.get_video(video)
+    home = URL('/$', IndexPage)
+    search = URL('/search/\?query=(?P<query>.*)', IndexPage)
+    video = URL('/watch/(?P<id>[0-9]+)/.*', VideoPage)
+
+    def get_video(self, _id):
+        self.video.go(id=_id)
+        assert self.video.is_here()
+        return self.page.get_video()
 
     def search_videos(self, pattern, sortby):
         if pattern == 'a' or pattern == 'i':
             raise ValueError('this pattern is not supported');
 
-        self.location(self.buildurl('/search/%s' % sortby, query=pattern.encode('utf-8')))
-        assert self.is_on_page(IndexPage)
+        self.search.go(query=pattern)
+        assert self.search.is_here()
         return self.page.iter_videos()
 
     def latest_videos(self):
-        self.home()
-        assert self.is_on_page(IndexPage)
+        self.home.go()
+        assert self.home.is_here()
         return self.page.iter_videos()
