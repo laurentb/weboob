@@ -44,6 +44,9 @@ class YoujizzBrowser(PagesBrowser):
         return self.page.get_video(video)
 
     def search_videos(self, pattern):
+        if len(pattern) < 3:
+            raise ValueError('Pattern to short (min length : 3 characters)')
+
         self.search.go(pattern=pattern, pagenum=1)
         assert self.search.is_here(pattern=pattern, pagenum=1)
 
