@@ -88,12 +88,29 @@ class Citibank(object):
 
     def iter_accounts(self):
         self.start()
-        bal = self.wait('div.cT-valueItem span.cT-balanceIndicator1')[0].text
+        self._account_link().click()
+        self.wait_ajax()
+        label = self.wait('label#accountSingle .cS-accountMenuAccount')[0].text
+        bal = self._browser.find_elements_by_xpath(u'//span[contains(text(),'
+            '"Current Balance:")]/../../div[@class="cT-valueItem"]')[0].text
+        cardlimit = self._browser.find_elements_by_xpath(
+            u'//span[contains(text(),"Total Revolving Credit Line:")]'
+            '/../../div[@class="cT-valueItem"]')[0].text
+        paydue=self._browser.find_elements_by_xpath(u'//span[contains(text(),'
+            '"Minimum Payment Due") and @role="gridcell"]')[0].text
+        paydate = re.match(u'Minimum Payment Due.On (..-..-....):', paydue,
+            re.DOTALL + re.UNICODE).group(1)
+        paymin = self._browser.find_elements_by_xpath(
+            u'//span[contains(text(),"Minimum Payment Due")]'
+            '/../../div[contains(@class,"cT-valueItem")]')[0].text
         account = Account()
-        account.id = self._account_id()
-        account.label = self._account_link().text
+        account.id = label[-4:]
+        account.label = label
         account.currency = Account.get_currency(bal)
         account.balance = -AmTr.decimal_amount(bal)
+        account.cardlimit = AmTr.decimal_amount(cardlimit)
+        account.paydate = datetime.datetime.strptime(paydate, '%m-%d-%Y')
+        account.paymin = AmTr.decimal_amount(paymin)
         account.type = Account.TYPE_CARD
         self.finish()
         yield account
@@ -233,11 +250,15 @@ class Citibank(object):
 
     @retrying
     def wait_ajax(self):
+        from selenium.common.exceptions import StaleElementReferenceException
         self._logger.debug('Waiting for async requests to finish on page %s'
             % self._browser.current_url)
         els = self._browser.find_elements_by_xpath(
             u'//*[contains(text(),"Please wait")]')
-        if not els or any(x.is_displayed() for x in els):
+        try:
+            if not els or any(x.is_displayed() for x in els):
+                raise OnceAgain()
+        except StaleElementReferenceException:
             raise OnceAgain()
 
     @retrying
