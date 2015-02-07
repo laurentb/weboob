@@ -22,6 +22,7 @@ from weboob.tools.capabilities.bank.transactions import \
     AmericanTransaction as AmTr
 from weboob.browser.pages import HTMLPage, LoggedPage, RawPage
 from urllib import unquote
+from decimal import Decimal
 from requests.cookies import morsel_to_cookie
 from .parsers import StatementParser, clean_label
 import itertools
@@ -124,6 +125,12 @@ class ActivityPage(AccountPage):
     def account_balance(self):
         raise NotImplementedError()
 
+    def account_paydatemin(self):
+        return None, None
+
+    def account_cardlimit(self):
+        return None
+
     def to_account(self, id_):
         form = self.get_form(xpath='//form[@name="AccountActivityForm"]')
         form['selectedAccountUID'] = [self.account_uid(id_)]
@@ -135,6 +142,8 @@ class ActivityPage(AccountPage):
         currency = Account.get_currency(balance)
         id_ = self.account_id()
         type_ = self.account_type()
+        paydate, paymin = self.account_paydatemin()
+        cardlimit = self.account_cardlimit()
 
         account = Account()
         account.id = id_
@@ -142,6 +151,13 @@ class ActivityPage(AccountPage):
         account.currency = currency
         account.balance = AmTr.decimal_amount(balance)
         account.type = type_
+        if paydate is not None:
+            account.paydate = paydate
+        if paymin is not None:
+            account.paymin = paymin
+        if cardlimit is not None:
+            account.cardlimit = AmTr.decimal_amount(cardlimit)
+
         return account
 
     def since_last_statement(self):
@@ -233,6 +249,23 @@ class ActivityCardPage(ActivityPage):
     def account_balance(self):
         return self.doc.xpath(
             u'//td[@headers="outstandingBalance"]/text()')[0]
+
+    def account_cardlimit(self):
+        return self.doc.xpath(
+            u'//td[@headers="totalCreditLimit"]/text()')[0]
+
+    def account_paydatemin(self):
+        if self.doc.xpath(u'//p[contains(text(),'
+                          '"payment due date is not yet scheduled")]'):
+            # If payment date is not scheduled yet, set it somewhere in a
+            # distant future, so that we always have a valid date.
+            return datetime.datetime.now() + datetime.timedelta(days=999), \
+                   Decimal(0)
+        else:
+            # TODO: Parse payment date and amount.
+            # Oleg: Currently I don't have any accounts with scheduled
+            #       payments, so I have to wait for a while...
+            return None, None
 
     def get_account(self):
         account = ActivityPage.get_account(self)
