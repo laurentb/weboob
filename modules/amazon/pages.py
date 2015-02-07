@@ -145,7 +145,8 @@ class OrderNewPage(OrderPage):
     def date_num(self):
         return u' '.join(self.doc.xpath(
             '//span[@class="order-date-invoice-item"]/text()'
-            )).replace('\n', '')
+            ) or self.doc.xpath(
+            '//*[contains(text(),"Ordered on")]/text()')).replace('\n', '')
 
     def tax(self):
         return self.amount(u'Estimated tax to be collected')
