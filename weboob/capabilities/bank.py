@@ -91,6 +91,9 @@ class Account(Recipient):
     type =      IntField('Type of account', default=TYPE_UNKNOWN)
     balance =   DecimalField('Balance on this bank account')
     coming =    DecimalField('Coming balance')
+    paydate =   DateField('For credit cards. When next payment is due.')
+    paymin =    DecimalField('For credit cards. Minimal payment due.')
+    cardlimit = DecimalField('For credit cards. Credit limit.')
 
     def __repr__(self):
         return u"<Account id=%r label=%r>" % (self.id, self.label)
