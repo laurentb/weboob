@@ -43,17 +43,17 @@ class Temperature(BaseObject):
         if not self.unit:
             return u'%s' % int(round(self.value))
         elif self.unit == 'F':
-            return u'%s°F' % int(round(self.value))
+            return u'%s °F' % int(round(self.value))
         else:
-            return u'%s°F' % int(round((self.value * 9.0 / 5.0) + 32))
+            return u'%s °F' % int(round((self.value * 9.0 / 5.0) + 32))
 
     def ascelsius(self):
         if not self.unit:
             return u'%s' % int(round(self.value))
         elif self.unit == 'C':
-            return u'%s°C' % int(round(self.value))
+            return u'%s °C' % int(round(self.value))
         else:
-            return u'%s°C' % int(round((self.value - 32.0) * 5.0 / 9.0))
+            return u'%s °C' % int(round((self.value - 32.0) * 5.0 / 9.0))
 
     def __repr__(self):
         if self.value is not None and self.unit:
