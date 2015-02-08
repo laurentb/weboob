@@ -19,6 +19,7 @@
 
 
 from weboob.browser import PagesBrowser, URL
+from weboob.capabilities.base import UserError
 
 from .pages.index import IndexPage
 from .pages.video import VideoPage
@@ -41,7 +42,7 @@ class YoupornBrowser(PagesBrowser):
 
     def search_videos(self, pattern, sortby):
         if pattern == 'a' or pattern == 'i':
-            raise ValueError('this pattern is not supported');
+            raise UserError('this pattern is not supported');
 
         self.search.go(query=pattern)
         assert self.search.is_here()
