@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2014 Romain Bignon
+# Copyright(C) 2010-2015 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -24,7 +24,7 @@ import re
 
 from weboob.tools.compat import basestring, long
 
-from .base import BaseObject, Field, StringField, DecimalField, IntField, UserError, Currency
+from .base import BaseObject, Field, StringField, DecimalField, IntField, UserError, Currency, NotAvailable
 from .date import DateField
 from .collection import CapCollection
 
@@ -91,9 +91,20 @@ class Account(Recipient):
     type =      IntField('Type of account', default=TYPE_UNKNOWN)
     balance =   DecimalField('Balance on this bank account')
     coming =    DecimalField('Coming balance')
+
+    # card attributes
     paydate =   DateField('For credit cards. When next payment is due.')
     paymin =    DecimalField('For credit cards. Minimal payment due.')
     cardlimit = DecimalField('For credit cards. Credit limit.')
+
+    iban =      StringField('International Bank Account Number')
+
+    @property
+    def ban(self):
+        """ Bank Account Number part of IBAN"""
+        if not self.iban:
+            return NotAvailable
+        return self.iban[4:]
 
     def __repr__(self):
         return u"<Account id=%r label=%r>" % (self.id, self.label)
@@ -123,6 +134,13 @@ class Transaction(BaseObject):
     category =  StringField('Category of the transaction')
     label =     StringField('Pretty label')
     amount =    DecimalField('Amount of the transaction')
+
+    card =              StringField('Card number (if any)')
+    commission =        DecimalField('Commission part on the transaction (in account currency)')
+
+    # International
+    original_amount =   DecimalField('Original amount (in another currency)')
+    original_currency = StringField('Currency of the original amount')
 
     def __repr__(self):
         return "<Transaction date=%r label=%r amount=%r>" % (self.date, self.label, self.amount)
