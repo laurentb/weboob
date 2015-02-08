@@ -21,7 +21,7 @@
 from datetime import datetime, date
 
 from .base import Capability, BaseObject, Field, FloatField, \
-                  StringField, UserError
+                  StringField, UserError, NotLoaded
 from .date import DateField
 
 __all__ = ['Forecast', 'Current', 'City', 'CityNotFound', 'Temperature', 'CapWeather']
@@ -32,8 +32,8 @@ class Temperature(BaseObject):
     value =      FloatField('Temperature value')
     unit =       StringField('Input unit')
 
-    def __init__(self, value='', unit = u''):
-        BaseObject.__init__(self, value)
+    def __init__(self, value=NotLoaded, unit = u''):
+        BaseObject.__init__(self, unicode(value))
         self.value = value
         if unit not in [u'C', u'F']:
             unit = u''
@@ -69,7 +69,7 @@ class Forecast(BaseObject):
     high =      Field('High temperature', Temperature)
     text =      StringField('Comment on forecast')
 
-    def __init__(self, date='', low=None, high=None, text=None, unit=None):
+    def __init__(self, date=NotLoaded, low=None, high=None, text=None, unit=None):
         BaseObject.__init__(self, unicode(date))
         self.date = date
         self.low = Temperature(low, unit)
@@ -85,7 +85,7 @@ class Current(BaseObject):
     text =      StringField('Comment about current weather')
     temp =      Field('Current temperature', Temperature)
 
-    def __init__(self, date='', temp=None, text=None, unit=None):
+    def __init__(self, date=NotLoaded, temp=None, text=None, unit=None):
         BaseObject.__init__(self, unicode(date))
         self.date = date
         self.text = text
