@@ -23,6 +23,7 @@ from weboob.browser.exceptions import ServerError, HTTPNotFound
 from weboob.capabilities.base import Currency
 from weboob.capabilities.shop import OrderNotFound
 from weboob.exceptions import BrowserIncorrectPassword
+from requests.exceptions import ReadTimeout
 
 from .pages import HomePage, LoginPage, AmazonPage, HistoryPage, \
                    OrderOldPage, OrderNewPage
@@ -33,6 +34,7 @@ __all__ = ['Amazon']
 
 class Amazon(LoginBrowser):
     BASEURL = 'https://www.amazon.com'
+    MAX_RETRIES = 10
     home = URL(r'http://www\.amazon\.com/$', HomePage)
     login = URL(r'/ap/signin/.*$', LoginPage)
     history = URL(r'/gp/css/order-history.*$', HistoryPage)
@@ -106,6 +108,6 @@ class Amazon(LoginBrowser):
         for i in xrange(self.MAX_RETRIES):
             try:
                 return super(Amazon, self).location(*args, **kwargs)
-            except ServerError as e:
+            except (ServerError, ReadTimeout) as e:
                 pass
         raise e
