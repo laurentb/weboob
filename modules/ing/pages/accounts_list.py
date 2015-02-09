@@ -215,7 +215,7 @@ class AccountsList(LoggedPage, HTMLPage):
                 if 'eurossima' in self.el.get('class'):
                     return self.obj.unitvalue
 
-                percent = CleanDecimal('.//dl[has-class("ligne-pmvalue")]/dd', replace_dots=True)(self)
+                percent = CleanDecimal('.//span[has-class("pmvalue")]', replace_dots=True)(self)
                 return (self.obj.unitvalue / (1 + percent/Decimal('100.0'))).quantize(Decimal('1.00'))
 
             def obj_diff(self):
