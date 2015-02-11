@@ -203,6 +203,12 @@ class Page(object):
         """
         return None
 
+    def absurl(self, url):
+        """
+        Get an absolute URL from an a partial URL, relative to the Page URL
+        """
+        return urlparse.urljoin(self.url, url)
+
 
 class FormNotFound(Exception):
     """
