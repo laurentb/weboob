@@ -49,5 +49,5 @@ else:
 
 os.execvpe(
     sys.executable,
-    ['-Wall', spath] + args,
+    ['-Wall', '-s', spath] + args,
     env)
