@@ -20,7 +20,7 @@
 from .calendar import SensCritiquenCalendarEvent
 
 from datetime import date, datetime, timedelta
-
+from weboob.capabilities.base import empty
 from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import Filter, CleanText, Regexp, Join, Format, BrowserURL, Env
@@ -77,7 +77,7 @@ class Date(Filter):
             month = _date.month
             year = _date.year
             if day_number < _date.day:
-                month = _date.month%12 + 1
+                month = _date.month % 12 + 1
                 if _date.month == 12:
                     year = _date.year + 1
             _date = date(day=day_number, month=month, year=year)
@@ -123,7 +123,7 @@ class AjaxPage(HTMLPage):
                     if not self.env['date_to']:
                         return True
                     else:
-                        if obj.end_date <= self.env['date_to']:
+                        if empty(obj.end_date) or obj.end_date <= self.env['date_to']:
                             return True
 
                 if '_id' in self.env:
