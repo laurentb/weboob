@@ -26,7 +26,7 @@ from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFor
 from weboob.capabilities.base import empty
 from weboob.capabilities.calendar import CapCalendarEvent, Query, CATEGORIES, BaseCalendarEvent, TICKET
 from weboob.tools.application.repl import ReplApplication, defaultcount
-
+from weboob.tools.config.yamlconfig import YamlConfig
 
 __all__ = ['Boobcoming']
 
@@ -172,10 +172,15 @@ class Boobcoming(ReplApplication):
                         }
     COMMANDS_FORMATTERS = {'list': 'upcoming_list',
                            'search': 'upcoming_list',
+                           'load': 'upcoming_list',
                            'ls': 'upcoming_list',
                            'info': 'upcoming',
                            'export': 'ical_formatter'
                            }
+
+    def main(self, argv):
+        self.load_config(klass=YamlConfig)
+        return ReplApplication.main(self, argv)
 
     def comp_object(self, obj1, obj2):
         if isinstance(obj1, BaseCalendarEvent) and isinstance(obj2, BaseCalendarEvent):
@@ -186,7 +191,6 @@ class Boobcoming(ReplApplication):
             return -1
         else:
             return super(Boobcoming, self).comp_object(obj1, obj2)
-
 
     def select_values(self, values_from, values_to, query_str):
         r = 'notempty'
@@ -209,7 +213,6 @@ class Boobcoming(ReplApplication):
                 values_to.remove(value)
             else:
                 values_to.append(value)
-
 
     @defaultcount(10)
     def do_search(self, line):
@@ -238,15 +241,51 @@ class Boobcoming(ReplApplication):
             query.start_date = datetime.combine(start_date, time.min)
             query.end_date = end_date
 
-            self.change_path([u'events'])
-            self.start_format()
-            for event in self.do('search_events', query):
-                if event:
-                    self.cached_format(event)
+            save_query = self.ask('Save query (y/n)', default='n')
+            if save_query.upper() == 'Y':
+                name = ''
+                while not name:
+                    name = self.ask('Query name')
+
+                self.config.set('queries', name, query)
+                self.config.save()
+            self.complete_search(query)
+
+    def complete_search(self, query):
+        self.change_path([u'events'])
+        self.start_format()
+        for event in self.do('search_events', query):
+            if event:
+                self.cached_format(event)
 
     def ask_date(self, txt, default=''):
         r = self.ask(txt, default=default)
         return parse_date(r)
+
+    @defaultcount(10)
+    def do_load(self, query_name):
+        """
+        load [query name]
+        without query name : list loadable queries
+        with query name laod query
+        """
+        queries = self.config.get('queries')
+        if not queries:
+            print('There is no saved queries', file=self.stderr)
+            return 2
+
+        if not query_name:
+            for name in queries.keys():
+                print('  %s* %s %s' % (self.BOLD,
+                                       self.NC,
+                                       name))
+            query_name = self.ask('Which one')
+
+        if query_name in queries:
+            self.complete_search(queries.get(query_name))
+        else:
+            print('Unknown query', file=self.stderr)
+            return 2
 
     @defaultcount(10)
     def do_list(self, line):
