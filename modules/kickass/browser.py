@@ -27,23 +27,23 @@ __all__ = ['KickassBrowser']
 
 
 class KickassBrowser(Browser):
-    DOMAIN = 'kickass.so'
+    DOMAIN = 'kickass.to'
     PROTOCOL = 'https'
     ENCODING = 'utf-8'
     USER_AGENT = Browser.USER_AGENTS['wget']
     PAGES = {
-        'https://kickass.so/usearch/.*field=seeders&sorder=desc': TorrentsPage,
-        'https://kickass.so/.*.html': TorrentPage,
+        'https://kickass.to/usearch/.*field=seeders&sorder=desc': TorrentsPage,
+        'https://kickass.to/.*.html': TorrentPage,
     }
 
     def iter_torrents(self, pattern):
-        self.location('https://kickass.so/usearch/%s/?field=seeders&sorder=desc' % pattern.encode('utf-8'))
+        self.location('https://kickass.to/usearch/%s/?field=seeders&sorder=desc' % pattern.encode('utf-8'))
         assert self.is_on_page(TorrentsPage)
         return self.page.iter_torrents()
 
     def get_torrent(self, id):
         try:
-            self.location('https://kickass.so/%s.html' % id)
+            self.location('https://kickass.to/%s.html' % id)
         except BrowserHTTPNotFound:
             return
         if self.is_on_page(TorrentPage):
