@@ -141,6 +141,7 @@ class Transaction(BaseObject):
     # International
     original_amount =   DecimalField('Original amount (in another currency)')
     original_currency = StringField('Currency of the original amount')
+    country =           StringField('Country of transaction')
 
     def __repr__(self):
         return "<Transaction date=%r label=%r amount=%r>" % (self.date, self.label, self.amount)
