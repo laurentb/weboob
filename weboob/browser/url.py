@@ -173,6 +173,8 @@ class URL(object):
         """
         if self.klass is None:
             return
+        if response.request.method == 'HEAD':
+            return
 
         m = self.match(response.url)
         if m:
