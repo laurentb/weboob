@@ -197,7 +197,7 @@ class Paypal(Browser):
             if self.account_type == "pro":
                 self.location('/webapps/business/activity?fromdate=' + s + '&todate=' + e + '&transactiontype=ALL_TRANSACTIONS&currency=ALL_TRANSACTIONS_CURRENCY&limit=' + LIMIT)
             else:
-                self.location('/myaccount/activity/filter?start=' + s + '&end=' + e + '&limit=' + LIMIT)
+                self.location('/myaccount/activity/filter?typeFilter=all&isNewSearch=true&startDate=' + s + '&endDate=' + e + '&limit=' + LIMIT)
             return self.page.transaction_left()
 
     def download_last_history(self, account):
