@@ -73,7 +73,7 @@ class BredBrowser(DomainBrowser):
                 if poste['postePortefeuille']:
                     a.label = u'Portefeuille Titres'
                     a.balance = Decimal(str(poste['montantTitres']['valeur']))
-                    a.currency = poste['montantTitres']['monnaie']['code']
+                    a.currency = poste['montantTitres']['monnaie']['code'].strip()
                     yield a
 
                 if not 'libelle' in poste:
@@ -81,7 +81,7 @@ class BredBrowser(DomainBrowser):
 
                 a.label = ' '.join([content['intitule'].strip(), poste['libelle'].strip()])
                 a.balance = Decimal(str(poste['solde']['valeur']))
-                a.currency = poste['solde']['monnaie']['code']
+                a.currency = poste['solde']['monnaie']['code'].strip()
                 yield a
 
     def get_history(self, account):
