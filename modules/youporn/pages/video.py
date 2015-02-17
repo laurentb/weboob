@@ -21,7 +21,7 @@
 from weboob.browser.pages import HTMLPage
 from weboob.browser.elements import ItemElement, method
 from weboob.browser.filters.html import Link
-from weboob.browser.filters.standard import CleanText, Regexp, Type
+from weboob.browser.filters.standard import CleanText, Env, Regexp, Type
 from weboob.capabilities.base import NotAvailable
 
 from ..video import YoupornVideo
@@ -36,6 +36,7 @@ class VideoPage(HTMLPage):
         #obj_date = Date('//div[@id="stats-date"]')
         obj_duration = NotAvailable
         obj_ext = 'mp4'
+        obj_id = Env('id')
         obj_rating = CleanText('//div[@class="rating-percentage"]') & Regexp(pattern=r'(..)%') & Type(type=int)
         obj_rating_max = 100
         obj_thumbnail = NotAvailable
