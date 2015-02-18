@@ -22,25 +22,25 @@ from requests.exceptions import Timeout
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ServerError, HTTPNotFound
-from weboob.capabilities.base import Currency
 from weboob.capabilities.shop import OrderNotFound
 from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import HomePage, LoginPage, AmazonPage, HistoryPage, \
                    OrderOldPage, OrderNewPage
 
-
 __all__ = ['Amazon']
-
 
 class Amazon(LoginBrowser):
     BASEURL = 'https://www.amazon.com'
     MAX_RETRIES = 10
-    home = URL(r'http://www\.amazon\.com/$', HomePage)
+    CURRENCY = u'$'
+    home = URL(r'/$', r'http://www.amazon.com/$', HomePage)
     login = URL(r'/ap/signin/.*$', LoginPage)
     history = URL(r'/gp/css/order-history.*$', HistoryPage)
     order_old = URL(r'/gp/css/summary.*$',
                     r'/gp/css/summary/edit.html\?orderID=%\(order_id\)s',
+                    r'/gp/digital/your-account/order-summary.html.*$',
+                    r'/gp/digital/your-account/orderPe-summary.html\?orderID=%\(order_id\)s',
                     OrderOldPage)
     order_new = URL(r'/gp/css/summary.*$',
                     r'/gp/your-account/order-details.*$',
@@ -49,8 +49,7 @@ class Amazon(LoginBrowser):
     unknown = URL(r'/.*$', AmazonPage)
 
     def get_currency(self):
-        # Amazon uses only U.S. dollars.
-        return Currency.get_currency(u'$')
+        return self.CURRENCY
 
     def get_order(self, id_):
         order = self.to_order(id_).order()
