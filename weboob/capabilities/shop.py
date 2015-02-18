@@ -43,6 +43,7 @@ class Order(BaseObject):
     shipping = DecimalField('Shipping price')
     discount = DecimalField('Discounts')
     tax      = DecimalField('Tax')
+    total    = DecimalField('Total')
 
     def __repr__(self):
         return u"<Order id=%r date=%r>" % (self.id, self.date)
