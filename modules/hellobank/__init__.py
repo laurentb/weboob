@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2013-2015 Christophe Lampin
 #
 # This file is part of weboob.
 #

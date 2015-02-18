@@ -1,6 +1,6 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
-# Copyright(C) 2014      Oleg Plakhotniuk
+# Copyright(C) 2015      Christophe Lampin
 #
 # This file is part of weboob.
 #
@@ -91,7 +91,7 @@ class OrderPage(AmazonPage):
         m = re.match(u'.*EUR ([,0-9]+).*', amount)
         if m:
             return Decimal(m.group(1).replace(",","."))
-            
+
     def month_to_int(self, text):
         for (idx, month) in enumerate(FRENCH_MONTHS):
             text = text.replace(month, str(idx + 1))
@@ -102,9 +102,6 @@ class OrderNewPage(OrderPage):
     ENCODING='ISO-8859-15'
     is_here = u'//*[contains(text(),"Commandé le")]'
 
-#    def text(self):
-#        return self.response.text.decode('iso-8859-1').encode('utf-8')
-    
     def order(self):
         if not self.shouldSkip():
             order = Order(id=self.order_number())
@@ -116,7 +113,7 @@ class OrderNewPage(OrderPage):
             return order
 
     def order_date(self):
-        return datetime.strptime(            
+        return datetime.strptime(
             re.match(u'.*Commandé le ([0-9]+ [0-9]+ [0-9]+) .*',
                      self.month_to_int(self.date_num())).group(1),
             '%d %m %Y')
@@ -245,7 +242,7 @@ class OrderOldPage(OrderPage):
     def order_date(self):
         date_str = self.doc.xpath(u'//b[contains(text(),"Commande numérique")]')[0].text
         month_str = re.match(u'.*Commande numérique : [0-9]+ ([^ ]+) [0-9]+.*', date_str).group(1)
-        return datetime.strptime(            
+        return datetime.strptime(
             re.match(u'.*Commande numérique : ([0-9]+ [0-9]+ [0-9]+).*',
                      date_str.replace(month_str, str(FRENCH_MONTHS.index(month_str) + 1))).group(1),
             '%d %m %Y')
