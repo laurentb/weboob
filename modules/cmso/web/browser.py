@@ -74,4 +74,4 @@ class CmsoProBrowser(LoginBrowser):
 
         date_guesser = LinearDateGuesser()
 
-        return chain(first_page.iter_history(date_guesser=date_guesser), rest_page.iter_history(date_guesser=date_guesser))
+        return chain(first_page.iter_history(date_guesser=date_guesser), reversed(list(rest_page.iter_history(date_guesser=date_guesser))))

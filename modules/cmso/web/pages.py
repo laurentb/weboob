@@ -20,7 +20,7 @@
 
 import datetime
 
-from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, DateGuesser, Env
 from weboob.browser.filters.html import Link
@@ -90,10 +90,10 @@ class HistoryPage(LoggedPage, HTMLPage):
             obj_raw = Transaction.Raw('./following-sibling::tr[1][starts-with(@id, "libelleLong")]/td[3]')
             obj_amount = Transaction.Amount('./td[5]', './td[4]')
 
+    @pagination
     @method
     class iter_history_rest_page(CmsoListElement):
-        def find_elements(self):
-            return reversed(list(super(type(self), self).find_elements()))
+        next_page = Link('//span[has-class("Rappel")]/following-sibling::*[1][@href]')
 
         class item(CmsoTransactionElement):
             obj_date = Transaction.Date('./td[2]')
