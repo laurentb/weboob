@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2014 Romain Bignon
+# Copyright(C) 2014-2015 Romain Bignon, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -18,10 +18,16 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .standard import _Selector, _NO_DEFAULT
-
+from .standard import _Filter, _NO_DEFAULT, Filter, ParseError
 
 __all__ = ['Dict']
+
+
+class NotFound(object):
+    def __repr__(self):
+        return 'NOT_FOUND'
+
+_NOT_FOUND = NotFound()
 
 
 class _DictMeta(type):
@@ -29,28 +35,50 @@ class _DictMeta(type):
         return cls(name)
 
 
-class Dict(_Selector):
+class Dict(Filter):
     __metaclass__ = _DictMeta
 
     def __init__(self, selector=None, default=_NO_DEFAULT):
         super(Dict, self).__init__(self, default=default)
-        self.selector = selector.split('/') if selector is not None else []
+        if selector is None:
+            self.selector = []
+        elif isinstance(selector, basestring):
+            self.selector = selector.split('/')
+        elif callable(selector):
+            self.selector = [selector]
+        else:
+            self.selector = selector
 
     def __getitem__(self, name):
         self.selector.append(name)
         return self
 
+    def filter(self, elements):
+        if elements is not _NOT_FOUND:
+            return elements
+        else:
+            return self.default_or_raise(ParseError('Element %r not found' % self.selector))
+
     @classmethod
     def select(cls, selector, item, obj=None, key=None):
-        if isinstance(item, dict):
+        if isinstance(item, (dict, list)):
             content = item
         else:
             content = item.el
 
         for el in selector:
-            if el not in content:
-                return None
+            if isinstance(content, list):
+                el = int(el)
+            elif isinstance(el, _Filter):
+                el._key = key
+                el._obj = obj
+                el = el(item)
+            elif callable(el):
+                el = el(item)
 
-            content = content.get(el)
+            try:
+                content = content[el]
+            except (KeyError, IndexError):
+                return _NOT_FOUND
 
         return content
