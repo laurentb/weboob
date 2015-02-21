@@ -31,7 +31,7 @@ class CitelisBrowser(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'adminpayment.citelis.fr'
     ENCODING = 'UTF-8'
-    CERTHASH = '4072b9ba076917b2f54c52bb09e6d556ac17199f12ac5300e04b665e2b322c36'
+    CERTHASH = '3cccf1cdd31264a864bc206fc96257a6cd1602b5766054304a6b3c3768414c84'
 
     PAGES = {
         '%s://%s/userManager\.do\?reqCode=prepareLogin.*' % (PROTOCOL, DOMAIN): LoginPage,
