@@ -76,7 +76,7 @@ class SenscritiqueBrowser(PagesBrowser):
         self.open(url, data=params)
 
     def list_events(self, date_from, date_to=None, package=None, channels=None):
-        self._setup_session(Firefox())
+        self.set_profile(Firefox())
         self.program_page.go()
         page_nb = 1
 
@@ -103,7 +103,7 @@ class SenscritiqueBrowser(PagesBrowser):
 
     def get_event(self, _id, event=None, package=None, channels=None):
         if not event:
-            self._setup_session(Firefox())
+            self.set_profile(Firefox())
             self.program_page.go()
             page_nb = 1
 
@@ -127,7 +127,7 @@ class SenscritiqueBrowser(PagesBrowser):
 
         if event:
             _id = _id.split('#')[0]
-            self._setup_session(Firefox())
+            self.set_profile(Firefox())
             event = self.event_page.go(_id=_id).get_event(obj=event)
             resume = self.get_resume(_id)
             if resume:
