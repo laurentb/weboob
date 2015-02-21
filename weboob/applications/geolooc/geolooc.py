@@ -40,4 +40,6 @@ class Geolooc(ReplApplication):
             return 2
 
         for location in self.do('get_location', argv[1]):
+            if location.lt and location.lg:
+                location.osmlink = u'http://www.openstreetmap.org/?mlat=%s&mlon=%s#map=13/%s/%s' % (location.lt, location.lg, location.lt, location.lg)
             self.format(location)

@@ -34,6 +34,7 @@ class IpLocation(BaseObject):
     country =   StringField('Country')
     lt =        FloatField('Latitude')
     lg =        FloatField('Longitude')
+    osmlink =   StringField('Link to OpenStreetMap location page')
     host =      StringField('Hostname')
     tld =       StringField('Top Level Domain')
     isp =       StringField('Internet Service Provider')
