@@ -155,6 +155,7 @@ class AccountsPage(BEPage):
             else:
                 account._link_id = parse_qs(link.attrib['href'])['ch4'][0]
             account.id = to_unicode(tdid.text.strip().replace(' ', ''))
+            account.iban = 'FR76' + account.id
             # just in case we are showing the converted balances
             account._main_currency = Account.get_currency(tdcur.text)
             # we have to ignore those accounts, because using NotAvailable

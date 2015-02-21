@@ -63,6 +63,11 @@ class ProAccountsList(Page):
                 account._link_id = p.get('ch4', None)
                 account._stp = p.get('stp', None)
 
+            for input_tag in tr.xpath('.//input[starts-with(@id, "urlRib")]'):
+                m = re.search('ch4=(\w+)', input_tag.get('value', ''))
+                if m:
+                    account.iban = unicode(m.group(1))
+
             accounts.append(account)
 
         # If there are also personnal accounts linked, display the page and iter on them.

@@ -39,14 +39,23 @@ class AccountsList(Page):
     def on_loaded(self):
         pass
 
+    def _parse_iban(self, account, url):
+        m = re.search('ch4=(\w+)', url)
+        if m:
+            account.iban = unicode(m.group(1))
+
     def _parse_account_group(self, table):
         typename = unicode(table.attrib.get('summary', '').replace('Liste des contrats/comptes ', ''))
         typeid = self.ACCOUNT_TYPES.get(typename, Account.TYPE_UNKNOWN)
-        for tr in table.xpath('.//tr[not(@class)]'):
+        account = None
+        for tr in table.xpath('.//tr'):
             if tr.find('td') is not None and tr.find('td').attrib.get('class', '') == 'typeTitulaire':
                 account = self._parse_account(tr)
                 account.type = typeid
                 yield account
+            elif tr.get('class', '') == 'listeActionBig' and account is not None:
+                self._parse_iban(account, tr.xpath('.//a')[-1].get('href', ''))
+                account = None
 
     def _parse_account(self, tr):
         account = Account()
@@ -84,18 +93,18 @@ class AccountsList(Page):
         return Decimal(FrenchTransaction.clean_amount(elem.text))
 
     def get_list(self):
-        l = []
+        accounts = []
         for table in self.document.xpath('//table[@class="tableCompte"]'):
             for account in self._parse_account_group(table):
-                l.append(account)
+                accounts.append(account)
 
-        if len(l) == 0:
+        if len(accounts) == 0:
             # oops, no accounts? check if we have not exhausted the allowed use
             # of this password
             for img in self.document.getroot().cssselect('img[align="middle"]'):
                 if img.attrib.get('alt', '') == 'Changez votre code secret':
                     raise BrowserPasswordExpired('Your password has expired')
-        return l
+        return accounts
 
     def get_execution_id(self):
         return self.document.xpath('//input[@name="_flowExecutionKey"]')[0].attrib['value']
