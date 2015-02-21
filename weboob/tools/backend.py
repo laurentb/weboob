@@ -285,7 +285,12 @@ class Module(object):
         """
         This abstract method is called when the backend is unloaded.
         """
-        pass
+        if self._browser is None:
+            return
+
+        if hasattr(self.browser, 'dump_state'):
+            self.storage.set('browser_state', self.browser.dump_state())
+            self.storage.save()
 
     _browser = None
 
@@ -346,7 +351,12 @@ class Module(object):
             kwargs.setdefault('responses_dirname', os.path.join(self.logger.settings['responses_dirname'],
                                                                 self._private_config.get('_debug_dir', self.name)))
 
-        return self.BROWSER(*args, **kwargs)
+        browser = self.BROWSER(*args, **kwargs)
+
+        if hasattr(browser, 'load_state'):
+            browser.load_state(self.storage.get('browser_state', default={}))
+
+        return browser
 
     @classmethod
     def iter_caps(klass):

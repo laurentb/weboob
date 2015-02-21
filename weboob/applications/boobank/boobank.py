@@ -320,6 +320,9 @@ class Boobank(ReplApplication):
                            }
     COLLECTION_OBJECTS = (Account, Transaction, )
 
+    def load_default_backends(self):
+        self.load_backends(CapBank, storage=self.create_storage())
+
     def _complete_account(self, exclude=None):
         if exclude:
             exclude = '%s@%s' % self.parse_id(exclude)

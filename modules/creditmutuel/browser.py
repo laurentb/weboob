@@ -45,7 +45,9 @@ class CreditMutuelBrowser(LoginBrowser):
     PROFILE = Wget()
     BASEURL = 'https://www.creditmutuel.fr'
 
-    login =       URL('/groupe/fr/index.html',                               LoginPage)
+    login =       URL('/groupe/fr/index.html',
+                      '/(?P<subbank>.*)/fr/banques/accueil.html',
+                      LoginPage)
     login_error = URL('/(?P<subbank>.*)/fr/identification/default.cgi',      LoginErrorPage)
     accounts =    URL('/(?P<subbank>.*)/fr/banque/situation_financiere.cgi', AccountsPage)
     user_space =  URL('/(?P<subbank>.*)/fr/banque/espace_personnel.aspx',    UserSpacePage)
@@ -69,6 +71,8 @@ class CreditMutuelBrowser(LoginBrowser):
                       EmptyPage)
 
     currentSubBank = None
+
+    __states__ = ['currentSubBank']
 
     def do_login(self):
         self.login.stay_or_go()

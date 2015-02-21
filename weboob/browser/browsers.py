@@ -20,6 +20,9 @@
 from __future__ import absolute_import, print_function
 
 import re
+import pickle
+import base64
+import zlib
 try:
     import urllib3
 except ImportError:
@@ -88,6 +91,11 @@ class Browser(object):
     Maximum of threads for asynchronous requests.
     """
 
+    __states__ = []
+    """
+    Saved state variables.
+    """
+
     @classmethod
     def asset(cls, localfile):
         """
@@ -110,7 +118,27 @@ class Browser(object):
         if isinstance(self.VERIFY, basestring):
             self.VERIFY = self.asset(self.VERIFY)
 
-    def _save(self, response, warning=False, **kwargs):
+    def load_state(self, state):
+        if 'cookies' in state:
+            try:
+                self.session.cookies = pickle.loads(zlib.decompress(base64.b64decode(state['cookies'])))
+            except (TypeError, zlib.error, EOFError, ValueError):
+                self.logger.error('Unable to reload cookies from storage')
+            else:
+                self.logger.info('Reloaded cookies from storage')
+        for attrname in self.__states__:
+            if attrname in state:
+                setattr(self, attrname, state[attrname])
+
+    def dump_state(self):
+        state = {}
+        state['cookies'] = base64.b64encode(zlib.compress(pickle.dumps(self.session.cookies, -1)))
+        for attrname in self.__states__:
+            state[attrname] = getattr(self, attrname)
+        self.logger.info('Stored cookies into storage')
+        return state
+
+    def save_response(self, response, warning=False, **kwargs):
         if self.responses_dirname is None:
             import tempfile
             self.responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
@@ -194,7 +222,7 @@ class Browser(object):
         profile.setup_session(session)
 
         if self.logger.settings['save_responses']:
-            session.hooks['response'].append(self._save)
+            session.hooks['response'].append(self.save_response)
 
         self.session = session
 
@@ -605,6 +633,17 @@ class PagesBrowser(DomainBrowser):
         self._urls = deepcopy(self._urls)
         for url in self._urls.itervalues():
             url.browser = self
+
+    def load_state(self, state):
+        super(PagesBrowser, self).load_state(state)
+        if 'url' in state:
+            self.location(state['url'])
+
+    def dump_state(self):
+        state = super(PagesBrowser, self).dump_state()
+        if self.page:
+            state['url'] = self.page.url
+        return state
 
     def open(self, *args, **kwargs):
         """
