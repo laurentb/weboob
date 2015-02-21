@@ -23,6 +23,7 @@ import warnings
 from io import BytesIO
 import codecs
 from cgi import parse_header
+import urlparse
 
 import requests
 
@@ -193,7 +194,7 @@ class Page(object):
         overriden in modules pages to preprocess or postprocess data. It must
         return an object -- that will be assigned to :attr:`doc`.
         """
-        raise NotImplemented
+        raise NotImplementedError()
 
     def detect_encoding(self):
         """
@@ -462,6 +463,22 @@ class HTMLPage(Page):
         self.define_xpath_functions(ns)
 
         super(HTMLPage, self).__init__(*args, **kwargs)
+
+    def on_load(self):
+        # Default on_load handle "Refresh" meta tag.
+        self.handle_refresh()
+
+    def handle_refresh(self):
+        for refresh in self.doc.xpath('//head/meta[@http-equiv="Refresh"]'):
+            m = self.browser.REFRESH_RE.match(refresh.get('content', ''))
+            if not m:
+                continue
+            url = urlparse.urljoin(self.url, m.groupdict().get('url', None))
+
+            self.logger.info('Redirecting to %s', url)
+            self.browser.location(url)
+            break
+
 
     def define_xpath_functions(self, ns):
         """
