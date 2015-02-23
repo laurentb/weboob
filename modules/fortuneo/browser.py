@@ -48,6 +48,7 @@ class Fortuneo(Browser):
             '.*/prive/mes-comptes/compte-titres-.*':                                            InvestmentHistoryPage,
             '.*/prive/mes-comptes/assurance-vie.*':                                             InvestmentHistoryPage,
             '.*/prive/mes-comptes/pea.*':                                                       InvestmentHistoryPage,
+            '.*/prive/mes-comptes/compte-especes.*':                                            InvestmentHistoryPage,
             }
 
     def __init__(self, *args, **kwargs):
