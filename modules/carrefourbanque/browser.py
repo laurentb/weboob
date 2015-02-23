@@ -32,7 +32,7 @@ class CarrefourBanque(LoginBrowser):
 
     login = URL('/espace-client/connexion', LoginPage)
     home = URL('/espace-client$', HomePage)
-    transactions = URL('/espace-client/carte-credit/solde-dernieres-operations.*', TransactionsPage)
+    transactions = URL('/espace-client/(?P<account>.*)/solde-dernieres-operations.*', TransactionsPage)
 
     def do_login(self):
         """
@@ -56,6 +56,7 @@ class CarrefourBanque(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
+        self.home.stay_or_go()
         self.location(account._link)
 
         assert self.transactions.is_here()
