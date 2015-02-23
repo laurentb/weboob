@@ -49,6 +49,45 @@ class Transaction(FrenchTransaction):
                 (re.compile('^(?P<category>REMISE CHEQUES)(?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
                ]
 
+
+class PeaHistoryPage(Page):
+    COL_LABEL = 0
+    COL_UNITVALUE = 1
+    COL_QUANTITY = 3
+    COL_UNITPRICE = 4
+    COL_VALUATION = 5
+    COL_PERF = 6
+    COL_WEIGHT = 7
+    def get_investments(self):
+        for line in self.document.xpath('//table[@id="t_intraday"]/tbody/tr'):
+            if line.find_class('categorie') or line.find_class('detail'):
+                continue
+
+            cols = line.findall('td')
+
+            inv = Investment()
+            inv.label = self.parser.tocleanstring(cols[self.COL_LABEL])
+            link = cols[self.COL_LABEL].xpath('./a[contains(@href, "cdReferentiel")]')[0]
+            inv.id = unicode(re.search('cdReferentiel=(.*)', link.attrib['href']).group(1))
+            inv.code = re.match('^[A-Z]+[0-9]+(.*)$', inv.id).group(1)
+            inv.quantity = self.parse_decimal(cols[self.COL_QUANTITY])
+            inv.unitprice = self.parse_decimal(cols[self.COL_UNITPRICE])
+            inv.unitvalue = self.parse_decimal(cols[self.COL_UNITVALUE])
+            inv.valuation = self.parse_decimal(cols[self.COL_VALUATION])
+            inv.diff = Decimal(Transaction.clean_amount(cols[self.COL_PERF].text.strip()))
+
+            yield inv
+
+    def parse_decimal(self, string):
+        value = self.parser.tocleanstring(string)
+        if value == '-':
+            return NotAvailable
+        return Decimal(Transaction.clean_amount(value))
+
+    def get_operations(self, _id):
+        return iter([])
+
+
 class InvestmentHistoryPage(Page):
     COL_LABEL = 0
     COL_QUANTITY = 1
@@ -83,6 +122,7 @@ class InvestmentHistoryPage(Page):
 
     def get_operations(self, _id):
         return iter([])
+
 
 class AccountHistoryPage(Page):
     def get_investments(self):

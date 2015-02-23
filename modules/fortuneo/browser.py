@@ -25,7 +25,7 @@ from dateutil.relativedelta import relativedelta
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 from .pages.login import LoginPage
-from .pages.accounts_list import GlobalAccountsList, AccountsList, AccountHistoryPage, InvestmentHistoryPage
+from .pages.accounts_list import GlobalAccountsList, AccountsList, AccountHistoryPage, InvestmentHistoryPage, PeaHistoryPage
 
 __all__ = ['Fortuneo']
 
@@ -47,7 +47,7 @@ class Fortuneo(Browser):
             '.*/prive/mes-comptes/compte-courant/consulter-situation/consulter-solde\.jsp.*' :  AccountHistoryPage,
             '.*/prive/mes-comptes/compte-titres-.*':                                            InvestmentHistoryPage,
             '.*/prive/mes-comptes/assurance-vie.*':                                             InvestmentHistoryPage,
-            '.*/prive/mes-comptes/pea.*':                                                       InvestmentHistoryPage,
+            '.*/prive/mes-comptes/pea.*':                                                       PeaHistoryPage,
             '.*/prive/mes-comptes/compte-especes.*':                                            InvestmentHistoryPage,
             }
 
