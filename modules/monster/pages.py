@@ -71,8 +71,8 @@ class AdvertPage(HTMLPage):
 
         obj_id = Env('_id')
         obj_url = BrowserURL('advert', _id=Env('_id'))
-        obj_title = CleanText('//div[@id="jobcopy"]/h1[@itemprop="title"]')
-        obj_description = CleanHTML('//div[@id="jobBodyContent"]')
+        obj_title = CleanText('//div[@id="jobcopy"]/h1[@itemprop="title"]|//div[@itemprop="title"]/h1')
+        obj_description = CleanHTML('//div[@id="jobBodyContent"]|//div[@itemprop="description"]')
         obj_contract_type = Join('%s ', '//dd[starts-with(@class, "multipledd")]')
         obj_society_name = CleanText('//dd[@itemprop="hiringOrganization"]')
         obj_place = CleanText('//span[@itemprop="jobLocation"]')
