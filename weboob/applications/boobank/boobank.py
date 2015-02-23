@@ -204,18 +204,39 @@ class InvestmentFormatter(IFormatter):
         self.output(' Label                            Code          Quantity     Unit Value   Valuation    diff    ')
         self.output('-------------------------------+--------------+------------+------------+------------+---------')
 
+    def check_emptyness(self, obj):
+        if not empty(obj):
+            return (obj, '%11.2f')
+        return ('---', '%11s')
+
     def format_obj(self, obj, alias):
         label = obj.label
+
         if not empty(obj.diff):
             diff = obj.diff
-        else:
+        elif not empty(obj.quantity) and not empty(obj.unitprice):
             diff = obj.valuation - (obj.quantity * obj.unitprice)
-        self.tot_diff += diff
-        self.tot_valuation += obj.valuation
+        else:
+            diff = '---'
+            format_diff = '%8s'
+        if isinstance(diff, Decimal):
+            format_diff = '%8.2f'
+            self.tot_diff += diff
 
-        format_quantity = '%11.2f'
-        if obj.quantity._isinteger():
-            format_quantity = '%11d'
+        if not empty(obj.quantity):
+            quantity = obj.quantity
+            format_quantity = '%11.2f'
+            if obj.quantity._isinteger():
+                format_quantity = '%11d'
+        else:
+            format_quantity = '%11s'
+            quantity = '---'
+
+        unitvalue, format_unitvalue = self.check_emptyness(obj.unitvalue)
+        valuation, format_valuation = self.check_emptyness(obj.valuation)
+        if isinstance(valuation, Decimal):
+            self.tot_valuation += obj.valuation
+
         if empty(obj.code) and not empty(obj.description):
             code = obj.description
         else:
@@ -224,10 +245,10 @@ class InvestmentFormatter(IFormatter):
         return u' %s  %s  %s  %s  %s  %s' % \
                (self.colored('%-30s' % label[:30], 'red'),
                 self.colored('%-12s' % code[:12], 'yellow') if not empty(code) else ' ' * 12,
-                self.colored(format_quantity % obj.quantity, 'yellow'),
-                self.colored('%11.2f' % obj.unitvalue, 'yellow'),
-                self.colored('%11.2f' % obj.valuation, 'yellow'),
-                self.colored('%8.2f' % diff, 'green' if diff >= 0 else 'red')
+                self.colored(format_quantity % quantity, 'yellow'),
+                self.colored(format_unitvalue % unitvalue, 'yellow'),
+                self.colored(format_valuation % valuation, 'yellow'),
+                self.colored(format_diff % diff, 'green' if diff >= 0 else 'red')
                 )
 
     def flush(self):
