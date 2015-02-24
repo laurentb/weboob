@@ -46,7 +46,7 @@ __all__ = ['FilterError', 'ColumnNotFound', 'RegexpError', 'ItemNotFound',
            'Filter', 'Base', 'Env', 'TableCell', 'RawText',
            'CleanText', 'Lower', 'CleanDecimal', 'Field', 'Regexp', 'Map',
            'DateTime', 'Date', 'Time', 'DateGuesser', 'Duration',
-           'MultiFilter', 'CombineDate', 'Format', 'Join', 'Type',
+           'MultiFilter', 'CombineDate', 'Format', 'Join', 'Type', 'Eval',
            'BrowserURL', 'Async', 'AsyncLoad']
 
 
@@ -702,6 +702,23 @@ class Join(Filter):
             res += self.pattern % self.textCleaner.clean(li)
 
         return res
+
+
+class Eval(MultiFilter):
+    """
+    Evaluate a function with given 'deferred' arguments.
+
+    >>> F = Field; Eval(lambda a, b, c: a * b + c, F('foo'), F('bar'), F('baz')) # doctest: +SKIP
+    >>> Eval(lambda x, y: x * y + 1).filter([3, 7])
+    22
+    """
+    def __init__(self, func, *args):
+        super(Eval, self).__init__(*args)
+        self.func = func
+
+    @debug()
+    def filter(self, values):
+        return self.func(*values)
 
 
 def test_CleanText():
