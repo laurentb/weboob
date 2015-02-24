@@ -20,52 +20,29 @@
 from .calendar import SensCritiquenCalendarEvent
 
 from datetime import date, datetime, timedelta
-from weboob.capabilities.base import empty
+from weboob.capabilities.base import empty, BaseObject
 from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import Filter, CleanText, Regexp, Join, Format, BrowserURL, Env
-from weboob.browser.filters.html import Link, Attr
+from weboob.browser.filters.html import Link
 
 
 class Channel(Filter):
 
-    CHANNELS_PARAM = {
-        'einst-3 elgr-data-logo': u'Action',
-        'einst-8 elgr-data-logo': u'Canal+ Décalé',
-        'einst-9 elgr-data-logo': u'Canal+ Family',
-        'einst-12 elgr-data-logo': u'Ciné FX',
-        'einst-13 elgr-data-logo': u'Polar',
-        'einst-14 elgr-data-logo': u'Ciné+ Classic',
-        'einst-15 elgr-data-logo': u'Ciné+ Club',
-        'einst-16 elgr-data-logo': u'Ciné+ Emotion',
-        'einst-17 elgr-data-logo': u'Ciné+ Famiz',
-        'einst-18 elgr-data-logo': u'Ciné+ Frisson',
-        'einst-19 elgr-data-logo': u'Ciné+ Premier',
-        'einst-21 elgr-data-logo': u'Comédie+',
-        'einst-24 elgr-data-logo': u'Disney Channel',
-        'einst-25 elgr-data-logo': u'Disney Cinemagic',
-        'einst-34 elgr-data-logo': u'Jimmy',
-        'einst-36 elgr-data-logo': u'Mangas',
-        'einst-37 elgr-data-logo': u'MCM',
-        'einst-41 elgr-data-logo': u'OCS Géants',
-        'einst-42 elgr-data-logo': u'OCS Choc',
-        'einst-44 elgr-data-logo': u'OCS Max',
-        'einst-45 elgr-data-logo': u'OCS City',
-        'einst-49 elgr-data-logo': u'RTL 9',
-        'einst-52 elgr-data-logo': u'TCM Cinéma',
-        'einst-54 elgr-data-logo': u'Teva',
-        'einst-59 elgr-data-logo': u'TV Breizh',
-        'einst-4055 elgr-data-logo': u'Paramount Channel',
-    }
+    def __call__(self, item):
+        channels = item.page.browser.get_channels()
+        return self.filter(self.select(self.selector, item, key=self._key, obj=self._obj), channels)
 
-    def filter(self, el):
+    def filter(self, el, channels):
         channel_info = el[0].xpath('div/div[@class="elgr-data-channel"]')
         if channel_info:
-            channel = CleanText('.')(channel_info[0])
+            return CleanText('.', children=False)(channel_info[0])
         else:
-            channel_info = Attr('div[@class="elgr-product-data"]/span', 'class')(el[0])
-            channel = self.CHANNELS_PARAM.get(channel_info)
-        return channel
+            channel_id = Regexp(CleanText('div[@class="elgr-product-data"]/span/@class'),
+                                'einst-(.*) elgr-data-logo')(el[0])
+            for channel in channels:
+                if channel_id == channel.id:
+                    return channel._name
 
 
 class Date(Filter):
@@ -131,18 +108,14 @@ class AjaxPage(HTMLPage):
 
                 return False
 
-            class Summary(Filter):
-                def filter(self, el):
-                    title = Regexp(Attr('div/img', 'alt'), '^Affiche(.*)')(el[0])
-                    channel = Channel('.')(el[0])
-                    return u'%s - %s' % (title, channel)
-
             obj_id = Format(u'%s#%s#%s',
                             Regexp(Link('.'), '/film/(.*)'),
                             FormatDate("%Y%m%d%H%M", Date('div/div[@class="elgr-data-diffusion"]')),
                             CleanText(Channel('.'), replace=[(' ', '-')]))
             obj_start_date = Date('div/div[@class="elgr-data-diffusion"]')
-            obj_summary = CleanText(Summary('.'))
+            obj_summary = Format('%s - %s',
+                                 Regexp(CleanText('./div/img/@alt'), '^Affiche(.*)'),
+                                 Channel('.'))
 
 
 class Description(Filter):
@@ -169,3 +142,20 @@ class JsonResumePage(JsonPage):
     def get_resume(self):
         if self.doc['json']['success']:
             return self.doc['json']['data']
+
+
+class SettingsPage(HTMLPage):
+    @method
+    class get_channels(ListElement):
+        item_xpath = '//li[@class="tse-channels-item hide"]'
+
+        class item(ItemElement):
+            klass = BaseObject
+
+            obj_id = CleanText('./@data-sc-channel-id')
+
+            def obj__networks(self):
+                return CleanText('./@data-sc-networks')(self).split(',')
+
+            obj__thema = CleanText('./@data-sc-thema-id')
+            obj__name = CleanText('./label')

@@ -19,7 +19,7 @@
 
 from weboob.browser import PagesBrowser, URL
 from weboob.browser.profiles import Firefox
-from .pages import AjaxPage, EventPage, JsonResumePage
+from .pages import AjaxPage, EventPage, JsonResumePage, SettingsPage
 
 import re
 from lxml.etree import XMLSyntaxError
@@ -50,13 +50,14 @@ class SenscritiqueBrowser(PagesBrowser):
                                 })
 
     ENCODING = 'utf-8'
-
+    CHANNELS = None
     BASEURL = 'http://www.senscritique.com'
 
     program_page = URL('/sc/tv_guides')
     ajax_page = URL('/sc/tv_guides/gridContent.ajax', AjaxPage)
     event_page = URL('/film/(?P<_id>.*)', EventPage)
     json_page = URL('/sc/products/storyline/(?P<_id>.*).json', JsonResumePage)
+    setting_page = URL('/sc/tv_guides/settings.ajax', SettingsPage)
 
     LIMIT = 25  # number of results returned for each ajax call (defined in the website).
 
@@ -67,6 +68,17 @@ class SenscritiqueBrowser(PagesBrowser):
             'period': 'cette-semaine',
             'limit': '%d' % LIMIT,
             }
+
+    def get_channels(self):
+        if not self.CHANNELS:
+            self.CHANNELS = list(self.setting_page.go().get_channels())
+        return self.CHANNELS
+
+    def get_selected_channels(self, package, general=False, cinema=False):
+        for channel in self.get_channels():
+            if (package == 0 or package in channel._networks) and\
+               ((general and channel._thema in ('1', '2')) or (cinema and channel._thema == '3')):
+                yield channel.id
 
     def set_package_settings(self, package, channels):
         url = 'http://www.senscritique.com/sc/tv_guides/saveSettings.json'

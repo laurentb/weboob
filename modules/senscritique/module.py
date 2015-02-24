@@ -50,36 +50,6 @@ class SenscritiqueModule(Module, CapCalendarEvent):
         '16': u'Bouygues',
     }.iteritems())])
 
-    """
-    dict that represents ids list of general-interest channels included in a tv package
-    {'tv package id': ['general-interest channels ids list']}
-    """
-    general = {
-        9: [46, 2, 48, 56],
-        1: [49, 46, 21, 2, 36, 59, 54, 48, 56, 50, 32, 1, 51, 24, 38, 34, 37, 6, 25, 11, 53, 26, 47],
-        2: [49, 46, 21, 2, 36, 59, 54, 48, 56, 50, 32, 1, 51, 24, 38, 34, 37, 6, 25, 11, 53, 26, 47],
-        10: [46, 46, 2, 36, 59, 54, 32, 24, 34, 37, 53, 47],
-        11: [46, 46, 2, 36, 59, 54, 32, 24, 34, 37, 53, 47],
-        12: [49, 46, 2, 36, 59, 54, 32, 24, 34, 37, 53, 47],
-        15: [49, 46, 2, 36, 32, 24, 34, 37, 53, 47],
-        16: [49, 46, 2, 36, 59, 54, 32, 24, 34, 37, 53, 47],
-    }
-
-    """
-    dict that represents ids list of cinema channels included in a tv package
-    {'tv package id': ['cinema channels ids list']}
-    """
-    cinema = {
-        9: [10, 7],
-        1: [10, 7, 9, 8, 52, 19, 18, 17, 16, 20, 15, 14, 4055, 44, 3, 45, 42, 41, 43, 13, 12],
-        2: [10, 7, 9, 8, 52, 19, 18, 17, 16, 20, 15, 14, 4055, 44, 3, 45, 42, 41, 43, 13, 12],
-        10: [10, 7, 9, 8, 52, 19, 18, 17, 16, 20, 15, 14, 44, 3, 45, 42, 41, 43, 13, 12],
-        11: [10, 7, 9, 8, 52, 19, 18, 17, 16, 20, 15, 14, 4055, 44, 3, 45, 42, 41, 43, 13, 12],
-        12: [10, 7, 9, 8, 52, 19, 18, 17, 16, 20, 15, 14, 44, 3, 45, 42, 41, 43, 13, 12],
-        15: [10, 7, 9, 8, 52, 19, 18, 17, 16, 20, 15, 14, 44, 3, 45, 42, 41, 43, 13, 12],
-        16: [10, 7, 9, 8, 52, 19, 18, 17, 16, 20, 15, 14, 4055, 44, 3, 45, 42, 41, 43, 13, 12],
-    }
-
     CONFIG = BackendConfig(Value('tv_settings', label=u'T.V. package', choices=tv_settings_choices),
                            ValueBool('general', label='General', default=True),
                            ValueBool('cinema', label='Cinema', default=False),
@@ -87,14 +57,8 @@ class SenscritiqueModule(Module, CapCalendarEvent):
 
     def get_package_and_channels(self):
         package = int(self.config['tv_settings'].get())
-        channels = []
-        if package:
-            if self.config['general'].get():
-                channels += self.general[package]
-
-            if self.config['cinema'].get():
-                channels += self.cinema[package]
-
+        channels = self.browser.get_selected_channels(package, self.config['general'].get(),
+                                                      self.config['cinema'].get())
         return package, channels
 
     def search_events(self, query):
