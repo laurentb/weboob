@@ -84,6 +84,7 @@ class OrderPage(AmazonPage):
         # finalized payment amounts.
         # Payment for not yet shipped orders may change, and is not always
         # available.
+# TODO : Other French status applied ?
         return bool([x for s in [u'En préparation pour expédition']
             for x in self.doc.xpath(u'//*[contains(text(),"%s")]' % s)])
 
@@ -167,11 +168,12 @@ class OrderNewPage(OrderPage):
         return self.amount(u'Livraison :')
 
     def discount(self):
-        return self.amount(u'Promotion applied', u'Promotion Applied',
-                           u'Subscribe & Save', u'Your Coupon Savings',
+# TODO : French translation
+        return self.amount(u'Bon de réduction', u'Subscribe & Save', u'Your Coupon Savings',
                            u'Lightning Deal')
 
     def gift(self):
+# TODO : French translation
         return self.amount(u'Gift Card Amount')
 
     def amount(self, *names):
@@ -257,10 +259,12 @@ class OrderOldPage(OrderPage):
         return self.sum_amounts(u'TVA:')
 
     def discount(self):
-        return self.sum_amounts(u'Subscribe & Save:', u'Promotion applied:',
+# TODO : French translation
+        return self.sum_amounts(u'Subscribe & Save:', u'Bon de réduction:',
                             u'Promotion Applied:', u'Your Coupon Savings:')
 
     def shipping(self):
+# TODO : French translation
         return self.sum_amounts(u'Shipping & Handling:', u'Free shipping:',
                                 u'Free Shipping:')
 
@@ -270,7 +274,7 @@ class OrderOldPage(OrderPage):
             if gift:
                 pmt = Payment()
                 pmt.date = self.order_date()
-                pmt.method = u'GIFT CARD'
+                pmt.method = u'CARTE CADEAU'
                 pmt.amount = -gift
                 yield pmt
         transactions = list(self.transactions())
@@ -287,6 +291,7 @@ class OrderOldPage(OrderPage):
                 break
 
     def shipments(self):
+# TODO : French translation
         for cue in (u'Shipment #', u'Subscribe and Save Shipment'):
             for shmt in self.doc.xpath('//b[contains(text(),"%s")]' % cue):
                 yield shmt
@@ -335,15 +340,18 @@ class OrderOldPage(OrderPage):
         return Decimal(0)
 
     def gift(self, shmt):
+# TODO : French translation
         return self.amount(shmt, u'Gift Card Amount:')
 
     def paymethods(self):
+# TODO : French translation
         root = self.doc.xpath('//b[text()="Payment Method: "]/..')
         if len(root) == 0:
             return
         root = root[0]
         text = root.text_content().strip()
         while text:
+# TODO : French translation
             for pattern in [
                     u'^.*Payment Method:',
                     u'^([^\n]+)\n +\| Last digits: +([0-9]+)\n',
@@ -359,6 +367,7 @@ class OrderOldPage(OrderPage):
                 break
 
     def transactions(self):
+# TODO : French translation
         for tr in self.doc.xpath(
                 u'//div[contains(b,"Credit Card transactions")]'
                 u'/following-sibling::table[1]/tr'):
