@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013  Romain Bignon
+# Copyright(C) 2013-2015  Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -81,6 +81,7 @@ class _AccountsPage(Page):
             }
 
     def get_list(self):
+        iban = None
         for tr in self.document.xpath('//table[@class="ca-table"]/tr'):
             if not tr.attrib.get('class', '').startswith('colcelligne'):
                 continue
@@ -105,6 +106,19 @@ class _AccountsPage(Page):
             a = cols[0].find('a')
             if a is not None:
                 account._link = a.attrib['href'].replace(' ', '%20')
+                page = self.browser.get_page(self.browser.openurl(account._link))
+                url = page.get_iban_url()
+                if url:
+                    page = self.browser.get_page(self.browser.openurl(url))
+                    iban = account.iban = page.get_iban()
+                elif iban:
+                    # In case there is no available IBAN on this account (for
+                    # example saving account), calculate it from the previous
+                    # IBAN.
+                    bankcode = iban[4:9]
+                    counter = iban[9:14]
+                    key = 97 - ((int(bankcode) * 89 + int(counter) * 15 + int(account.id) * 3) % 97)
+                    account.iban = iban[:4] + bankcode + counter + account.id + str(key)
 
             yield account
 
@@ -234,6 +248,20 @@ class SavingsPage(_AccountsPage):
 
 
 class TransactionsPage(Page):
+    def get_iban_url(self):
+        for link in self.document.xpath('//a[contains(text(), "IBAN")]'):
+            m = re.search("\('([^']+)'", link.get('href', ''))
+            if m:
+                return m.group(1)
+
+        return None
+
+    def get_iban(self):
+        s = ''
+        for font in self.document.xpath('(//td[font/b/text()="IBAN"])[1]/table//font'):
+            s += self.parser.tocleanstring(font)
+        return s
+
     def get_next_url(self):
         links = self.document.xpath('//span[@class="pager"]/a[@class="liennavigationcorpspage"]')
         if len(links) < 1:
