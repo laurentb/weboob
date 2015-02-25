@@ -457,6 +457,14 @@ class HTMLPage(Page):
     The class to instanciate when using :meth:`HTMLPage.get_form`. Default to :class:`Form`.
     """
 
+    REFRESH_MAX = None
+    """
+    When handling a "Refresh" meta header, the page considers it only if the sleep
+    time in lesser than this value.
+
+    Default value is None, means refreshes aren't handled.
+    """
+
     def __init__(self, *args, **kwargs):
         import lxml.html as html
         ns = html.etree.FunctionNamespace(None)
@@ -469,16 +477,22 @@ class HTMLPage(Page):
         self.handle_refresh()
 
     def handle_refresh(self):
+        if self.REFRESH_MAX is None:
+            return
+
         for refresh in self.doc.xpath('//head/meta[@http-equiv="Refresh"]'):
             m = self.browser.REFRESH_RE.match(refresh.get('content', ''))
             if not m:
                 continue
             url = urlparse.urljoin(self.url, m.groupdict().get('url', None))
+            sleep = float(m.groupdict()['sleep'])
 
-            self.logger.info('Redirecting to %s', url)
-            self.browser.location(url)
-            break
-
+            if sleep <= self.REFRESH_MAX:
+                self.logger.info('Redirecting to %s', url)
+                self.browser.location(url)
+                break
+            else:
+                self.logger.debug('Do not refresh to %s because %s > REFRESH_MAX(%s)' % (url, sleep, self.REFRESH_MAX))
 
     def define_xpath_functions(self, ns):
         """
