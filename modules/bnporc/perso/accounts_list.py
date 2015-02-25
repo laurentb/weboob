@@ -54,7 +54,12 @@ class AccountsList(Page):
                 account.type = typeid
                 yield account
             elif tr.get('class', '') == 'listeActionBig' and account is not None:
-                self._parse_iban(account, tr.xpath('.//a')[-1].get('href', ''))
+                try:
+                    url = tr.xpath('.//a')[-1].get('href', '')
+                except IndexError:
+                    pass
+                else:
+                    self._parse_iban(account, url)
                 account = None
 
     def _parse_account(self, tr):
