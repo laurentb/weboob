@@ -19,7 +19,7 @@
 
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
-from .pages import LoginPage, AccountPage, DownloadHistoryPage, LastDownloadHistoryPage, SubmitPage, HistoryParser, UselessPage, HistoryPage, CSVAlreadyAsked
+from .pages import LoginPage, AccountPage, DownloadHistoryPage, LastDownloadHistoryPage, SubmitPage, HistoryParser, UselessPage, HistoryPage, CSVAlreadyAsked, HistoryDetailsPage
 from .newpages import NewHomePage, NewAccountPage, NewProHistoryPage, NewPartHistoryPage
 import datetime
 
@@ -45,6 +45,7 @@ class Paypal(Browser):
         '/cgi-bin/webscr\?cmd=_history-download-recent$': LastDownloadHistoryPage,
         '/cgi-bin/webscr\?dispatch=[a-z0-9]+$': (SubmitPage, HistoryParser()),
         '/cgi-bin/webscr\?cmd=_history-download-recent-submit&dispatch=[a-z0-9]+$': (SubmitPage, HistoryParser()),
+        'https://history.paypal.com/cgi-bin/webscr\?cmd=_history-details-from-hub&id=[A-Z0-9]+$': HistoryDetailsPage,
         'https://www.paypal.com/webapps/business/\?nav=0.0': NewHomePage,
         'https://www.paypal.com/webapps/business/\?country_lang.x=true': NewHomePage,
         'https://www.paypal.com/myaccount/\?nav=0.0': NewHomePage,
@@ -56,7 +57,7 @@ class Paypal(Browser):
 
     DEFAULT_TIMEOUT = 30  # CSV export is slow
 
-    BEGINNING = datetime.date(1998,6,1) # The day PayPal was founded
+    BEGINNING = datetime.date(1998, 6, 1)  # The day PayPal was founded
     website = None
 
     def find_website_version(self):
@@ -144,18 +145,19 @@ class Paypal(Browser):
             else:
                 step_min = 90
                 step_max = 180
+
         def fetch_fn(start, end):
             if self.website == "old" and self.download_history(start, end).rows:
                 return self.page.iter_transactions(account)
             elif self.download_history(start, end):
                 return self.page.iter_transactions(account)
-        assert step_max <= 365*2 # PayPal limitations as of 2014-06-16
+        assert step_max <= 365*2  # PayPal limitations as of 2014-06-16
         try:
             for i in self.smart_fetch(beginning=self.BEGINNING,
-                                end=datetime.date.today(),
-                                step_min=step_min,
-                                step_max=step_max,
-                                fetch_fn=fetch_fn):
+                                      end=datetime.date.today(),
+                                      step_min=step_min,
+                                      step_max=step_max,
+                                      fetch_fn=fetch_fn):
                 yield i
         except CSVAlreadyAsked:
             for i in self.download_last_history(account):
@@ -198,7 +200,7 @@ class Paypal(Browser):
         else:
             s = start.strftime('%d/%m/%Y')
             e = end.strftime('%d/%m/%Y')
-            #Settings a big magic number so we get all transaction for the period
+            # Settings a big magic number so we get all transaction for the period
             LIMIT = '9999'
             if self.account_type == "pro":
                 self.location('/webapps/business/activity?fromdate=' + s + '&todate=' + e + '&transactiontype=ALL_TRANSACTIONS&currency=ALL_TRANSACTIONS_CURRENCY&limit=' + LIMIT)
@@ -214,3 +216,13 @@ class Paypal(Browser):
 
     def transfer(self, from_id, to_id, amount, reason=None):
         raise NotImplementedError()
+
+    def convert_amount(self, account, trans):
+        if(trans['actions']['details']['action'] == 'ACTIVITY_DETAILS'):
+            self.location(trans['actions']['details']['url'])
+        if self.is_on_page(HistoryDetailsPage):
+            cc = self.page.get_converted_amount(account)
+            if cc:
+                trans['originalAmount'] = trans['netAmount']
+                trans['netAmount'] = cc
+        return trans

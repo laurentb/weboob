@@ -29,6 +29,7 @@ from weboob.tools.date import parse_french_date
 class NewHomePage(Page):
     pass
 
+
 class NewAccountPage(Page):
     def get_account(self, _id):
         return self.get_accounts().get(_id)
@@ -51,6 +52,7 @@ class NewAccountPage(Page):
         accounts[primary_account.id] = primary_account
 
         return accounts
+
 
 class NewProHistoryPage(Page):
 
@@ -77,22 +79,22 @@ class NewProHistoryPage(Page):
     def transaction_left(self):
         return (len(self.document.xpath('//div[@class="no-records"]')) == 0)
 
+
 class NewPartHistoryPage(Page):
     def transaction_left(self):
         return (len(self.document['data']['activity']['COMPLETED']) > 0 or len(self.document['data']['activity']['PENDING']) > 0)
 
     def iter_transactions(self, account):
-        for trans in self.parse():
-            if trans._currency == account.currency:
-                yield trans
+        for trans in self.parse(account):
+            yield trans
 
-    def parse(self):
+    def parse(self, account):
         transactions = list()
 
         for status in ['PENDING', 'COMPLETED']:
             transac = self.document['data']['activity'][status]
             for t in transac:
-                tran = self.parse_transaction(t)
+                tran = self.parse_transaction(t, account)
                 if tran:
                     transactions.append(tran)
 
@@ -100,23 +102,32 @@ class NewPartHistoryPage(Page):
         for t in transactions:
             yield t
 
-    def parse_transaction(self, transaction):
+    def parse_transaction(self, transaction, account):
         t = FrenchTransaction(transaction['activityId'])
         date = parse_french_date(transaction['date'])
         raw = transaction.get('counterparty', transaction['displayType'])
         t.parse(date=date, raw=raw)
 
+        if transaction['currencyCode'] != account.currency:
+            transaction = self.browser.convert_amount(account, transaction)
+            try:
+                t.original_amount = self.format_amount(transaction['originalAmount'], transaction["isCredit"])
+                t.original_currency = transaction["currencyCode"]
+            except KeyError:
+                return
         try:
-            m = re.search(r"\D", transaction['netAmount'][::-1])
-            amount = Decimal(re.sub(r'[^\d]', '', transaction['netAmount']))/Decimal((10 ** m.start()))
+            t.amount = self.format_amount(transaction['netAmount'], transaction["isCredit"])
         except KeyError:
             return
 
-        if transaction['isCredit']:
-            t.amount = abs(amount)
-        else:
-            t.amount = - abs(amount)
         t._currency = transaction['currencyCode']
 
         return t
 
+    def format_amount(self, to_format, is_credit):
+        m = re.search(r"\D", to_format[::-1])
+        amount = Decimal(re.sub(r'[^\d]', '', to_format))/Decimal((10 ** m.start()))
+        if is_credit:
+            return abs(amount)
+        else:
+            return -abs(amount)

@@ -141,7 +141,7 @@ class DownloadHistoryPage(Page):
 class LastDownloadHistoryPage(Page):
     def download(self):
         self.browser.select_form(nr=1)
-        log_select =  self.document.xpath('//table//form//input[@type="radio"]')[0].attrib['value']
+        log_select = self.document.xpath('//table//form//input[@type="radio"]')[0].attrib['value']
         self.browser['log_select'] = [log_select]
         self.browser.submit()
 
@@ -366,3 +366,14 @@ class HistoryPage(Page):
         for trans in self.parse():
             if trans._currency == account.currency:
                 yield trans
+
+
+class HistoryDetailsPage(Page):
+
+    def get_converted_amount(self, account):
+        convert_td = self.document.xpath('//td[contains(text(),"' + account.currency + ')")]')[0].text
+        m = re.match('.* ([^ ]+) ' + account.currency + '\).*', convert_td)
+        if m:
+            return m.group(1)
+        else:
+            return False
