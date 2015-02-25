@@ -657,7 +657,6 @@ class Browser(StandardBrowser):
 
         # Not found
         if not pageCls:
-            self.page = None
             self.logger.warning('There isn\'t any page corresponding to URL %s', result.geturl())
             self.save_response(result, warning=True)
             return
@@ -678,6 +677,10 @@ class Browser(StandardBrowser):
         """
 
         self.page = self.get_page(result)
+
+        if not self.page:
+            return
+
         if not no_login and self.password is not None and not self.is_logged():
             self.logger.debug('!! Relogin !!')
             self.login()
