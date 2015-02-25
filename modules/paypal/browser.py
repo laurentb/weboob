@@ -37,6 +37,8 @@ class Paypal(Browser):
         '/cgi-bin/webscr\?cmd=_login-submit.+$':        LoginPage,  # wrong login
         '/cgi-bin/webscr\?cmd=_login-processing.+$':    UselessPage,
         '/cgi-bin/webscr\?cmd=_account&nav=0.0$':  AccountPage,
+        '/cgi-bin/webscr\?cmd=_login-done.+$':     AccountPage,
+        '/cgi-bin/webscr\?cmd=_home&country_lang.x=true$': NewHomePage,
         '/cgi-bin/webscr\?cmd=_history-download&nav=0.3.1$':  DownloadHistoryPage,
         '/cgi-bin/webscr\?cmd=_history&nav=0.3.0$':  HistoryPage,
         '/cgi-bin/webscr\?cmd=_history&dispatch=[a-z0-9]+$':  HistoryPage,
@@ -58,11 +60,15 @@ class Paypal(Browser):
     website = None
 
     def find_website_version(self):
-        self.location('/en/cgi-bin/webscr?cmd=_account&nav=0.0')
+        self.website = "new"
+        if self.is_on_page(NewHomePage):
+            self.account_type = "pro"
+            return
+        self.location(self._response.info().getheader('refresh').split("bin/")[1])
         if self.is_on_page(AccountPage):
-            self.website = "old"
+            self.location('/myaccount')
+            self.account_type = "perso"
         else:
-            self.website = "new"
             self.location('/webapps/business/?nav=0.0')
             if self.is_on_page(NewHomePage):
                 self.account_type = "pro"

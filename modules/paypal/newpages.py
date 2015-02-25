@@ -108,7 +108,7 @@ class NewPartHistoryPage(Page):
             raw = transaction['displayType']
         t.parse(date=date, raw=raw)
         try:
-            amount = transaction['netAmount']
+            amount = transaction['netAmount'].replace('.', ',')
         except KeyError:
             return
         if transaction['isCredit']:
