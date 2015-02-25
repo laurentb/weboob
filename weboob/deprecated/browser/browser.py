@@ -628,12 +628,7 @@ class Browser(StandardBrowser):
                 response.set_data(data)
         mechanize.Browser._set_response(self, response, *args, **kwargs)
 
-    def _change_location(self, result, no_login=False):
-        """
-        This function is called when we have moved to a page, to load a Page
-        object.
-        """
-
+    def get_page(self, result):
         # Find page from url
         pageCls = None
         parser = None
@@ -663,19 +658,26 @@ class Browser(StandardBrowser):
         # Not found
         if not pageCls:
             self.page = None
-            self.logger.warning('There isn\'t any page corresponding to URL %s' % result.geturl())
+            self.logger.warning('There isn\'t any page corresponding to URL %s', result.geturl())
             self.save_response(result, warning=True)
             return
 
-        self.logger.debug('[user_id=%s] Went on %s' % (self.username, result.geturl()))
+        self.logger.debug('[user_id=%s] Went on %s', self.username, result.geturl())
         self.last_update = time.time()
 
         if self.logger.settings['save_responses']:
             self.save_response(result)
 
         document = self.get_document(result, parser, encoding=pageCls.ENCODING)
-        self.page = pageCls(self, document, result.geturl(), groups=page_groups, group_dict=page_group_dict, logger=self.logger)
+        return pageCls(self, document, result.geturl(), groups=page_groups, group_dict=page_group_dict, logger=self.logger)
 
+    def _change_location(self, result, no_login=False):
+        """
+        This function is called when we have moved to a page, to load a Page
+        object.
+        """
+
+        self.page = self.get_page(result)
         if not no_login and self.password is not None and not self.is_logged():
             self.logger.debug('!! Relogin !!')
             self.login()
