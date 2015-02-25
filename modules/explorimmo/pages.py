@@ -128,6 +128,8 @@ class HousingPage2(JsonPage):
                 m = re.search('http://thbr\.figarocms\.net.*(http://.*)', img)
                 if m:
                     photos.append(HousingPhoto(m.group(1)))
+                else:
+                    photos.append(HousingPhoto(img))
             return photos
 
         def obj_details(self):
