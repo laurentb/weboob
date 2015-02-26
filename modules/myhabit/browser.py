@@ -18,6 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from requests.exceptions import Timeout
+
 from weboob.tools.capabilities.bank.transactions import \
     AmericanTransaction as AmTr
 from weboob.browser import LoginBrowser, URL, need_login
@@ -124,6 +126,7 @@ class OrderPage(MyHabitPage):
 
 class MyHabit(LoginBrowser):
     BASEURL = 'https://www.myhabit.com'
+    MAX_RETRIES = 10
     login = URL(r'/signin', r'https://www.amazon.com/ap/signin.*$', LoginPage)
     order = URL(r'/vieworders\?.*appAction=ViewOrdersDetail.*', OrderPage)
     history = URL(r'/vieworders$',
@@ -176,3 +179,11 @@ class MyHabit(LoginBrowser):
     def do_login(self):
         if not self.login.go().login(self.username, self.password).logged:
             raise BrowserIncorrectPassword()
+
+    def location(self, *args, **kwargs):
+        for i in xrange(self.MAX_RETRIES):
+            try:
+                return super(MyHabit, self).location(*args, **kwargs)
+            except Timeout as e:
+                pass
+        raise e
