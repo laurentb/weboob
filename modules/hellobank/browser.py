@@ -109,7 +109,7 @@ class HelloBank(Browser):
 
     def go_to_history_page(self,account):
         if account._link_id is None:
-            return iter([])
+            raise NotImplementedError()
 
         if not self.is_on_page(AccountsList):
             self.location('/NSFR?Action=DSP_VGLOBALE')
@@ -127,11 +127,9 @@ class HelloBank(Browser):
                 }
         self.location('/udc', urllib.urlencode(data))
 
-        return None
-
     def go_to_coming_operations_page(self,account):
         if account._link_id is None:
-            return iter([])
+            raise NotImplementedError()
 
         if not self.is_on_page(AccountsList):
             self.location('/NSFR?Action=DSP_VGLOBALE')
@@ -148,8 +146,6 @@ class HelloBank(Browser):
                 'sendEUD': 'true',
                }
         self.location('/udc', urllib.urlencode(data))
-
-        return None
 
     def iter_history(self, account):
         self.go_to_history_page(account)

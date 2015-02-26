@@ -53,7 +53,10 @@ class AccountsList(Page):
                 account.coming = Decimal(str(compte['soldeAVenir']))
                 account.type = self.ACCOUNT_TYPES.get(id_famille, Account.TYPE_UNKNOWN)
                 account.id = None
-                account._link_id = 'KEY'+compte['key']
+                if account.type != Account.TYPE_LIFE_INSURANCE:
+                    account._link_id = 'KEY'+compte['key']
+                else:
+                    account._link_id = None
 
                 # IBAN aren't in JSON
                 # Fast method, get it from transfer page.
@@ -62,7 +65,7 @@ class AccountsList(Page):
                         account.id = i
                 # But it's doesn't work with LOAN and MARKET, so use slow method : Get it from transaction page.
                 if account.id is None:
-                    if account.type != Account.TYPE_LIFE_INSURANCE:
+                    if account._link_id:
                         self.logger.debug('Get IBAN for account %s', account.label)
                         account.id = self.browser.get_IBAN_from_account(account)
                     else:
