@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
+import locale
 from decimal import Decimal
 
 from weboob.deprecated.browser import Page
@@ -108,7 +110,10 @@ class NewPartHistoryPage(Page):
             raw = transaction['displayType']
         t.parse(date=date, raw=raw)
         try:
-            amount = transaction['netAmount'].replace('.', ',')
+            m = re.search("\D", transaction['netAmount'][::-1])
+            amount = Decimal(transaction['amount'])/Decimal((10 ** m.start()))
+            locale.setlocale(locale.LC_ALL, '')
+            amount = locale.format('%.2f', amount)
         except KeyError:
             return
         if transaction['isCredit']:
