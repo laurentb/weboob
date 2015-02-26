@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2014 Budget Insight
+# Copyright(C) 2014-2015 Budget Insight
 #
 # This file is part of weboob.
 #
@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import locale
 from decimal import Decimal
 
 from weboob.deprecated.browser import Page
@@ -104,22 +103,19 @@ class NewPartHistoryPage(Page):
     def parse_transaction(self, transaction):
         t = FrenchTransaction(transaction['activityId'])
         date = parse_french_date(transaction['date'])
-        try:
-            raw = transaction['counterparty']
-        except KeyError:
-            raw = transaction['displayType']
+        raw = transaction.get('counterparty', transaction['displayType'])
         t.parse(date=date, raw=raw)
+
         try:
-            m = re.search("\D", transaction['netAmount'][::-1])
-            amount = Decimal(transaction['amount'])/Decimal((10 ** m.start()))
-            locale.setlocale(locale.LC_ALL, '')
-            amount = locale.format('%.2f', amount)
+            m = re.search(r"\D", transaction['netAmount'][::-1])
+            amount = Decimal(re.sub(r'[^\d]', '', transaction['netAmount']))/Decimal((10 ** m.start()))
         except KeyError:
             return
+
         if transaction['isCredit']:
-            t.set_amount(credit=amount)
+            t.amount = abs(amount)
         else:
-            t.set_amount(debit=amount)
+            t.amount = - abs(amount)
         t._currency = transaction['currencyCode']
 
         return t
