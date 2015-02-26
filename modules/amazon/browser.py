@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from requests.exceptions import Timeout
+from requests.exceptions import Timeout, ConnectionError
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ServerError, HTTPNotFound
@@ -108,6 +108,6 @@ class Amazon(LoginBrowser):
         for i in xrange(self.MAX_RETRIES):
             try:
                 return super(Amazon, self).location(*args, **kwargs)
-            except (ServerError, Timeout) as e:
+            except (ServerError, Timeout, ConnectionError) as e:
                 pass
         raise e
