@@ -86,7 +86,7 @@ class Contact(BaseObject):
     status_msg =    StringField('Message of status')
     summary =       StringField('Description of contact')
     photos =        Field('List of photos', dict, default=OrderedDict())
-    profile =       Field('Contact profile', dict)
+    profile =       Field('Contact profile', dict, default=OrderedDict())
 
     def __init__(self, id, name, status):
         BaseObject.__init__(self, id)
