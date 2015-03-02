@@ -65,7 +65,7 @@ class NewProHistoryPage(Page):
             date = parse_french_date(tr.xpath('./td[@class="date"]')[0].text.strip())
             status = tr.xpath('./td[@class="desc"]/ul/li[@class="first"]')[0].text.strip()
             #We pass this because it's not transaction
-            if status == u'Créé' or status == u'Annulé':
+            if status == u'Créé' or status == u'Annulé' or status == u'Suspendu':
                 continue
             raw = tr.xpath('./td[@class="desc"]/strong')[0].text.strip()
             t.parse(date=date, raw=raw)
