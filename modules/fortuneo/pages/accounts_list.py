@@ -74,7 +74,11 @@ class PeaHistoryPage(Page):
             inv.unitprice = self.parse_decimal(cols[self.COL_UNITPRICE])
             inv.unitvalue = self.parse_decimal(cols[self.COL_UNITVALUE])
             inv.valuation = self.parse_decimal(cols[self.COL_VALUATION])
-            inv.diff = Decimal(Transaction.clean_amount(cols[self.COL_PERF].text.strip()))
+            diff = cols[self.COL_PERF].text.strip()
+            if diff == "-":
+                inv.diff = NotAvailable
+            else:
+                inv.diff = Decimal(Transaction.clean_amount(diff))
 
             yield inv
 
