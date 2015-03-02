@@ -60,7 +60,7 @@ class PeaHistoryPage(Page):
     COL_WEIGHT = 7
     def get_investments(self):
         for line in self.document.xpath('//table[@id="t_intraday"]/tbody/tr'):
-            if line.find_class('categorie') or line.find_class('detail'):
+            if line.find_class('categorie') or line.find_class('detail') or line.find_class('detail02'):
                 continue
 
             cols = line.findall('td')
