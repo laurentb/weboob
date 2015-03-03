@@ -26,9 +26,10 @@ from weboob.capabilities.shop import OrderNotFound
 from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import HomePage, LoginPage, AmazonPage, HistoryPage, \
-                   OrderOldPage, OrderNewPage
+    OrderOldPage, OrderNewPage
 
 __all__ = ['Amazon']
+
 
 class Amazon(LoginBrowser):
     BASEURL = 'https://www.amazon.com'
@@ -84,13 +85,13 @@ class Amazon(LoginBrowser):
         their users to new pages, and the rest to old ones.
         """
         if (not self.order_new.is_here() and not self.order_old.is_here()) \
-        or self.page.order_number() != order_id:
+                or self.page.order_number() != order_id:
             try:
                 self.order_new.go(order_id=order_id)
             except HTTPNotFound:
                 self.order_old.go(order_id=order_id)
         if (not self.order_new.is_here() and not self.order_old.is_here()) \
-        or self.page.order_number() != order_id:
+                or self.page.order_number() != order_id:
             raise OrderNotFound()
         return self.page
 

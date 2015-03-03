@@ -28,6 +28,7 @@ from .fr.browser import AmazonFR
 
 __all__ = ['AmazonModule']
 
+
 class AmazonModule(Module, CapShop):
     NAME = 'amazon'
     MAINTAINER = u'Oleg Plakhotniuk'
@@ -63,7 +64,6 @@ class AmazonModule(Module, CapShop):
         return self.browser.get_order(id_)
 
     def iter_orders(self):
-
         return self.browser.iter_orders()
 
     def iter_payments(self, order):

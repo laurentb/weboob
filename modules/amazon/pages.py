@@ -57,7 +57,7 @@ class HistoryPage(AmazonPage):
     @pagination
     def iter_orders(self):
         for id_ in self.doc.xpath(
-                     u'//span[contains(text(),"Order #")]/../span[2]/text()'):
+                u'//span[contains(text(),"Order #")]/../span[2]/text()'):
             yield self.browser.to_order(id_.strip())
         for next_ in self.doc.xpath(u'//ul[@class="a-pagination"]'
                                     u'//a[contains(text(),"Next")]/@href'):
@@ -71,8 +71,8 @@ class HistoryPage(AmazonPage):
 
     def opt_years(self):
         return [x for x in self.doc.xpath(
-                        '//select[@name="orderFilter"]/option/@value'
-                ) if x.startswith('year-')]
+            '//select[@name="orderFilter"]/option/@value'
+            ) if x.startswith('year-')]
 
 
 class OrderPage(AmazonPage):
@@ -82,9 +82,9 @@ class OrderPage(AmazonPage):
         # Payment for not yet shipped orders may change, and is not always
         # available.
         return bool([x for s in [u'Not Yet Shipped', u'Not yet shipped',
-            u'Preparing for Shipment', u'Shipping now', u'In transit',
-            u'On the way']
-            for x in self.doc.xpath(u'//*[contains(text(),"%s")]' % s)])
+                                 u'Preparing for Shipment', u'Shipping now', u'In transit',
+                                 u'On the way']
+                    for x in self.doc.xpath(u'//*[contains(text(),"%s")]' % s)])
 
 
 class OrderNewPage(OrderPage):
@@ -165,8 +165,8 @@ class OrderNewPage(OrderPage):
 
     def amount(self, *names):
         return Decimal(sum(AmTr.decimal_amount(amount.strip())
-           for n in names for amount in self.doc.xpath(
-           '(//span[contains(text(),"%s:")]/../..//span)[2]/text()' % n)))
+                       for n in names for amount in self.doc.xpath(
+                       '(//span[contains(text(),"%s:")]/../..//span)[2]/text()' % n)))
 
     def transactions(self):
         for row in self.doc.xpath('//span[contains(text(),"Transactions")]'
@@ -204,7 +204,7 @@ class OrderNewPage(OrderPage):
                 price *= Decimal(amount)
             if url:
                 url = unicode(self.browser.BASEURL) + \
-                      re.match(u'(/gp/product/.*)/ref=.*', url).group(1)
+                    re.match(u'(/gp/product/.*)/ref=.*', url).group(1)
             if label and price:
                 itm = Item()
                 itm.label = label
@@ -240,7 +240,7 @@ class OrderOldPage(OrderPage):
 
     def discount(self):
         return self.sum_amounts(u'Subscribe & Save:', u'Promotion applied:',
-                            u'Promotion Applied:', u'Your Coupon Savings:')
+                                u'Promotion Applied:', u'Your Coupon Savings:')
 
     def shipping(self):
         return self.sum_amounts(u'Shipping & Handling:', u'Free shipping:',
@@ -302,8 +302,8 @@ class OrderOldPage(OrderPage):
                 yield itm
 
     def sum_amounts(self, *names):
-        return sum(self.amount(shmt,x) for shmt in self.shipments()
-                                       for x in names)
+        return sum(self.amount(shmt, x) for shmt in self.shipments()
+                   for x in names)
 
     def amount(self, shmt, name):
         for root in shmt.xpath(u'../../../../../../../..'
@@ -326,7 +326,7 @@ class OrderOldPage(OrderPage):
             for pattern in [
                     u'^.*Payment Method:',
                     u'^([^\n]+)\n +\| Last digits: +([0-9]+)\n',
-                    u'^Gift Card\n', # Skip gift card.
+                    u'^Gift Card\n',  # Skip gift card.
                     u'^Billing address.*$']:
                 match = re.match(pattern, text, re.DOTALL+re.MULTILINE)
                 if match:

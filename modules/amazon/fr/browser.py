@@ -22,9 +22,10 @@ from weboob.browser import URL
 from ..browser import Amazon
 
 from .pages import HomePage, LoginPage, AmazonPage, HistoryPage, \
-OrderOldPage, OrderNewPage
+    OrderOldPage, OrderNewPage
 
 __all__ = ['AmazonFR']
+
 
 class AmazonFR(Amazon):
     BASEURL = 'https://www.amazon.fr'

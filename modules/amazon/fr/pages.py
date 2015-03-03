@@ -28,6 +28,7 @@ import re
 # Ugly array to avoid the use of french locale
 FRENCH_MONTHS = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
 
+
 class AmazonPage(HTMLPage):
     @property
     def logged(self):
@@ -51,8 +52,8 @@ class LoginPage(AmazonPage):
 
 
 class HistoryPage(AmazonPage):
-    forced_encoding=True
-    ENCODING='UTF-8'
+    forced_encoding = True
+    ENCODING = 'UTF-8'
 
     def iter_years(self):
         for year in self.opt_years():
@@ -74,8 +75,8 @@ class HistoryPage(AmazonPage):
 
     def opt_years(self):
         return [x for x in self.doc.xpath(
-                        '//select[@name="orderFilter"]/option/@value'
-                ) if x.startswith('year-')]
+            '//select[@name="orderFilter"]/option/@value'
+        ) if x.startswith('year-')]
 
 
 class OrderPage(AmazonPage):
@@ -84,23 +85,25 @@ class OrderPage(AmazonPage):
         # finalized payment amounts.
         # Payment for not yet shipped orders may change, and is not always
         # available.
-# TODO : Other French status applied ?
-        return bool([x for s in [u'En préparation pour expédition']
-            for x in self.doc.xpath(u'//*[contains(text(),"%s")]' % s)])
+
+        return bool([x for s in [u'En préparation pour expédition']  # TODO : Other French status applied ?
+                    for x in self.doc.xpath(u'//*[contains(text(),"%s")]' % s)])
 
     def decimal_amount(self, amount):
         m = re.match(u'.*EUR ([,0-9]+).*', amount)
         if m:
-            return Decimal(m.group(1).replace(",","."))
+            return Decimal(m.group(1).replace(",", "."))
 
     def month_to_int(self, text):
         for (idx, month) in enumerate(FRENCH_MONTHS):
             text = text.replace(month, str(idx + 1))
         return text
 
+
 class OrderNewPage(OrderPage):
-    forced_encoding=True
-    ENCODING='ISO-8859-15'
+    # Need to force encoding because of mixed encoding
+    forced_encoding = True
+    ENCODING = 'ISO-8859-15'
     is_here = u'//*[contains(text(),"Commandé le")]'
 
     def order(self):
@@ -157,8 +160,9 @@ class OrderNewPage(OrderPage):
             '/following-sibling::div[1]/span/text()')[0].strip())
 
     def date_num(self):
-       return u' '.join(self.doc.xpath(
-           '//span[@class="order-date-invoice-item"]/text()'
+        return u' '.join(
+            self.doc.xpath(
+                '//span[@class="order-date-invoice-item"]/text()'
             )).replace('\n', '')
 
     def tax(self):
@@ -168,18 +172,18 @@ class OrderNewPage(OrderPage):
         return self.amount(u'Livraison :')
 
     def discount(self):
-# TODO : French translation
+        # TODO : French translation
         return self.amount(u'Bon de réduction', u'Subscribe & Save', u'Your Coupon Savings',
                            u'Lightning Deal')
 
     def gift(self):
-# TODO : French translation
+        # TODO : French translation
         return self.amount(u'Gift Card Amount')
 
     def amount(self, *names):
         return Decimal(sum(self.decimal_amount(amount.strip())
-           for n in names for amount in self.doc.xpath(
-           '(//span[contains(text(),"%s")]/../..//span)[2]/text()' % n)))
+                       for n in names for amount in self.doc.xpath(
+                       '(//span[contains(text(),"%s")]/../..//span)[2]/text()' % n)))
 
     def transactions(self):
         for row in self.doc.xpath('//span[contains(text(),"Transactions")]'
@@ -217,7 +221,7 @@ class OrderNewPage(OrderPage):
                 price *= Decimal(amount)
             if url:
                 url = unicode(self.browser.BASEURL) + \
-                      re.match(u'(/gp/product/.*)/ref=.*', url).group(1)
+                    re.match(u'(/gp/product/.*)/ref=.*', url).group(1)
             if label and price:
                 itm = Item()
                 itm.label = label
@@ -227,8 +231,8 @@ class OrderNewPage(OrderPage):
 
 
 class OrderOldPage(OrderPage):
-    forced_encoding=True
-    ENCODING='ISO-8859-15'
+    forced_encoding = True
+    ENCODING = 'ISO-8859-15'
     is_here = u'//*[contains(text(),"Amazon.fr numéro de commande")]'
 
     def order(self):
@@ -238,7 +242,7 @@ class OrderOldPage(OrderPage):
             order.tax = Decimal(self.tax()) if not empty(self.tax()) else Decimal(0.00)
             order.discount = Decimal(self.discount()) if not empty(self.discount()) else Decimal(0.00)
             order.shipping = Decimal(self.shipping()) if not empty(self.shipping()) else Decimal(0.00)
-            order.total =Decimal(self.grand_total()) if not empty(self.grand_total()) else Decimal(0.00)
+            order.total = Decimal(self.grand_total()) if not empty(self.grand_total()) else Decimal(0.00)
             return order
 
     def order_date(self):
@@ -250,7 +254,7 @@ class OrderOldPage(OrderPage):
             '%d %m %Y')
 
     def order_number(self):
-        num_com =  u' '.join(self.doc.xpath(
+        num_com = u' '.join(self.doc.xpath(
             u'//b[contains(text(),"Amazon.fr numéro de commande")]/../text()')
         ).strip()
         return num_com
@@ -259,12 +263,12 @@ class OrderOldPage(OrderPage):
         return self.sum_amounts(u'TVA:')
 
     def discount(self):
-# TODO : French translation
+        # TODO : French translation
         return self.sum_amounts(u'Subscribe & Save:', u'Bon de réduction:',
-                            u'Promotion Applied:', u'Your Coupon Savings:')
+                                u'Promotion Applied:', u'Your Coupon Savings:')
 
     def shipping(self):
-# TODO : French translation
+        # TODO : French translation
         return self.sum_amounts(u'Shipping & Handling:', u'Free shipping:',
                                 u'Free Shipping:')
 
@@ -291,7 +295,7 @@ class OrderOldPage(OrderPage):
                 break
 
     def shipments(self):
-# TODO : French translation
+        # TODO : French translation
         for cue in (u'Shipment #', u'Subscribe and Save Shipment'):
             for shmt in self.doc.xpath('//b[contains(text(),"%s")]' % cue):
                 yield shmt
@@ -325,8 +329,8 @@ class OrderOldPage(OrderPage):
                 yield itm
 
     def sum_amounts(self, *names):
-        return sum(self.amount(shmt,x) for shmt in self.shipments()
-                                       for x in names)
+        return sum(self.amount(shmt, x) for shmt in self.shipments()
+                   for x in names)
 
     def amount(self, shmt, name):
         for root in shmt.xpath(u'../../../../../../../..'
@@ -340,22 +344,22 @@ class OrderOldPage(OrderPage):
         return Decimal(0)
 
     def gift(self, shmt):
-# TODO : French translation
+        # TODO : French translation
         return self.amount(shmt, u'Gift Card Amount:')
 
     def paymethods(self):
-# TODO : French translation
+        # TODO : French translation
         root = self.doc.xpath('//b[text()="Payment Method: "]/..')
         if len(root) == 0:
             return
         root = root[0]
         text = root.text_content().strip()
         while text:
-# TODO : French translation
+            # TODO : French translation
             for pattern in [
                     u'^.*Payment Method:',
                     u'^([^\n]+)\n +\| Last digits: +([0-9]+)\n',
-                    u'^Gift Card\n', # Skip gift card.
+                    u'^Gift Card\n',  # Skip gift card.
                     u'^Billing address.*$']:
                 match = re.match(pattern, text, re.DOTALL+re.MULTILINE)
                 if match:
@@ -367,7 +371,7 @@ class OrderOldPage(OrderPage):
                 break
 
     def transactions(self):
-# TODO : French translation
+        # TODO : French translation
         for tr in self.doc.xpath(
                 u'//div[contains(b,"Credit Card transactions")]'
                 u'/following-sibling::table[1]/tr'):
