@@ -307,3 +307,24 @@ class TableElement(ListElement):
 
     def get_colnum(self, name):
         return self._cols.get(name, None)
+
+
+class DictElement(ListElement):
+    def find_elements(self):
+        if self.item_xpath is None:
+            selector = []
+
+        elif isinstance(self.item_xpath, basestring):
+            selector = self.item_xpath.split('/')
+
+        else:
+            selector = self.item_xpath
+
+        for el in selector:
+            if isinstance(self.el, list):
+                el = int(el)
+
+            self.el = self.el[el]
+
+        for el in self.el:
+            yield el

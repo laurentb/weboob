@@ -21,22 +21,13 @@
 import re
 
 from weboob.browser.pages import JsonPage, HTMLPage
-from weboob.browser.elements import TableElement, ItemElement, ListElement, method
+from weboob.browser.elements import TableElement, ItemElement, DictElement, method
 from weboob.capabilities.travel import Station, Departure, RoadStep
 from weboob.capabilities import NotAvailable
 from weboob.browser.filters.standard import CleanText, TableCell, Filter, DateTime, Env, Regexp, Duration
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Link
 from weboob.tools.date import LinearDateGuesser
-
-
-class DictElement(ListElement):
-    def find_elements(self):
-        if self.item_xpath is not None:
-            for el in self.el.get(self.item_xpath):
-                yield el
-        else:
-            yield self.el
 
 
 class RoadMapDuration(Duration):

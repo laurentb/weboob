@@ -23,19 +23,10 @@ from weboob.capabilities.base import BaseObject
 from datetime import timedelta
 
 from weboob.browser.pages import HTMLPage, JsonPage
-from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.filters.standard import Filter, CleanText, Regexp, Format, DateTime, Env, Duration
 from weboob.browser.filters.html import Link, Attr
 from weboob.browser.filters.json import Dict
-
-
-class DictElement(ListElement):
-    def find_elements(self):
-        if self.item_xpath is not None:
-            for el in self.el.get('reponse').get(self.item_xpath):
-                yield el
-        else:
-            yield self.el
 
 
 class DurationPluzz(Filter):
@@ -135,7 +126,7 @@ class VideoPage(JsonPage):
 class Programs(JsonPage):
     @method
     class iter_programs(DictElement):
-        item_xpath = 'programme'
+        item_xpath = 'reponse/programme'
 
         class item(ItemElement):
             klass = BaseObject
@@ -147,7 +138,7 @@ class Programs(JsonPage):
 class LatestPage(JsonPage):
     @method
     class iter_videos(DictElement):
-        item_xpath = 'emissions'
+        item_xpath = 'reponse/emissions'
 
         class Item(ItemElement):
             klass = BaseVideo

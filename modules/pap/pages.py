@@ -22,7 +22,7 @@ from decimal import Decimal
 
 from weboob.tools.date import parse_french_date
 from weboob.browser.pages import HTMLPage, JsonPage, pagination
-from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, BrowserURL, Format
 from weboob.browser.filters.html import Link, XPath, CleanHTML
 from weboob.browser.filters.json import Dict
@@ -30,19 +30,9 @@ from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import Housing, City, HousingPhoto
 
 
-class DictElement(ListElement):
-    def find_elements(self):
-        if self.item_xpath is not None:
-            for el in self.el:
-                yield el
-        else:
-            yield self.el
-
-
 class CitiesPage(JsonPage):
     @method
     class iter_cities(DictElement):
-        item_xpath = '.'
 
         class item(ItemElement):
             klass = City

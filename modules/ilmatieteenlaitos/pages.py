@@ -21,19 +21,10 @@ from datetime import date
 from itertools import imap, ifilter
 
 from weboob.browser.pages import JsonPage, HTMLPage
-from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.capabilities.weather import Forecast, Current, City, Temperature
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import Filter, CleanText, CleanDecimal, Regexp, Format, Date
-
-
-class DictElement(ListElement):
-    def find_elements(self):
-        if self.item_xpath is not None:
-            for el in self.el:
-                yield el
-        else:
-            yield self.el
 
 
 class Id(Filter):

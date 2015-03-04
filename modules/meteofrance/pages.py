@@ -21,26 +21,16 @@
 from datetime import date
 
 from weboob.browser.pages import JsonPage, HTMLPage
-from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.capabilities.weather import Forecast, Current, City, Temperature
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import CleanHTML
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Format
 
 
-class DictElement(ListElement):
-    def find_elements(self):
-        if self.item_xpath is not None:
-            for el in self.el:
-                yield el
-        else:
-            yield self.el
-
-
 class SearchCitiesPage(JsonPage):
     @method
     class iter_cities(DictElement):
-        item_xpath = '.'
         ignore_duplicate = True
 
         class item(ItemElement):

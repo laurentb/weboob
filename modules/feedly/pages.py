@@ -22,19 +22,10 @@ from datetime import datetime
 from weboob.capabilities.messages import Message
 from weboob.capabilities.collection import Collection
 from weboob.browser.pages import JsonPage
-from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.elements import ItemElement, DictElement, method
 from weboob.browser.filters.standard import CleanText, Format
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import CleanHTML
-
-
-class DictElement(ListElement):
-    def find_elements(self):
-        if self.item_xpath is not None:
-            for el in self.el.get(self.item_xpath):
-                yield el
-        else:
-            yield self.el
 
 
 class ContentsPage(JsonPage):

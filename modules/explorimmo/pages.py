@@ -21,7 +21,7 @@ import re
 from decimal import Decimal
 from datetime import datetime
 from weboob.browser.filters.json import Dict
-from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.pages import JsonPage, HTMLPage, pagination
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, BrowserURL, Filter, Format
 from weboob.browser.filters.html import CleanHTML, XPath
@@ -29,16 +29,10 @@ from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.housing import Housing, HousingPhoto, City
 
 
-class DictElement(ListElement):
-    def find_elements(self):
-        for el in self.el[0].get(self.item_xpath):
-            yield el
-
-
 class CitiesPage(JsonPage):
     @method
     class get_cities(DictElement):
-        item_xpath = 'locations'
+        item_xpath = '0/locations'
 
         class item(ItemElement):
             klass = City

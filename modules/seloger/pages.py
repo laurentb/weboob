@@ -19,7 +19,7 @@
 
 
 from weboob.browser.pages import XMLPage, JsonPage, pagination
-from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import XPath
 from weboob.browser.filters.standard import CleanText, CleanDecimal, DateTime
@@ -27,20 +27,16 @@ from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import Housing, HousingPhoto, City
 
 
-class DictElement(ListElement):
-    def find_elements(self):
-        for el in self.el:
-            if el.get('label') == 'Villes':
-                for item in el.get('values'):
-                    if 'value' in item:
-                        yield item
-
-
 class CitiesPage(JsonPage):
     @method
     class iter_cities(DictElement):
+        item_xpath = '2/values'
+
         class item(ItemElement):
             klass = City
+
+            def condition(self):
+                return Dict('value', default=None)(self)
 
             obj_id = Dict('value')
             obj_name = Dict('label')
