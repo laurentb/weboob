@@ -371,9 +371,10 @@ class HistoryPage(Page):
 class HistoryDetailsPage(Page):
 
     def get_converted_amount(self, account):
-        convert_td = self.document.xpath('//td[contains(text(),"' + account.currency + ')")]')[0].text
-        m = re.match('.* ([^ ]+) ' + account.currency + '\).*', convert_td)
-        if m:
-            return m.group(1)
-        else:
-            return False
+        find_td = self.document.xpath('//td[contains(text(),"' + account.currency + ')")]')
+        if len(find_td) > 0 :
+            convert_td = find_td[0].text
+            m = re.match('.* ([^ ]+) ' + account.currency + '\).*', convert_td)
+            if m:
+                return m.group(1)
+        return False
