@@ -25,7 +25,10 @@ class FeedlyTest(BackendTest):
 
     def test_login(self):
         if self.backend.browser.username:
-            list(self.backend.iter_threads())
+            l1 = list(self.backend.iter_threads())
+            assert len(l1)
+            thread = self.backend.get_thread(l1[0].id)
+            assert len(thread.root.content)
         else:
             raise SkipTest("User credentials not defined")
 
