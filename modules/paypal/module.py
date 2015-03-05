@@ -47,14 +47,12 @@ class PaypalModule(Module, CapBank):
         return self.browser.get_accounts().itervalues()
 
     def get_account(self, _id):
-        with self.browser:
-            account = self.browser.get_account(_id)
+        account = self.browser.get_account(_id)
         if account:
             return account
         else:
             raise AccountNotFound()
 
     def iter_history(self, account):
-        with self.browser:
-            for history in self.browser.get_download_history(account):
-                yield history
+        for history in self.browser.get_download_history(account):
+            yield history

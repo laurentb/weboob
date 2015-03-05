@@ -18,10 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
-from .pages import LoginPage, AccountPage, DownloadHistoryPage, LastDownloadHistoryPage, SubmitPage, HistoryParser, UselessPage, HistoryPage, CSVAlreadyAsked, HistoryDetailsPage
-from .newpages import NewHomePage, NewAccountPage, NewProHistoryPage, NewPartHistoryPage
 import datetime
+from dateutil.relativedelta import relativedelta
+
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+
+from .pages import LoginPage, AccountPage, UselessPage, HomePage, ProHistoryPage, PartHistoryPage, HistoryDetailsPage
 
 
 __all__ = ['Paypal']
@@ -36,33 +38,28 @@ class Paypal(Browser):
         '/cgi-bin/webscr\?cmd=_login-run$':             LoginPage,
         '/cgi-bin/webscr\?cmd=_login-submit.+$':        LoginPage,  # wrong login
         '/cgi-bin/webscr\?cmd=_login-processing.+$':    UselessPage,
-        '/cgi-bin/webscr\?cmd=_account&nav=0.0$':  AccountPage,
-        '/cgi-bin/webscr\?cmd=_login-done.+$':     AccountPage,
-        '/cgi-bin/webscr\?cmd=_home&country_lang.x=true$': NewHomePage,
-        '/cgi-bin/webscr\?cmd=_history-download&nav=0.3.1$':  DownloadHistoryPage,
-        '/cgi-bin/webscr\?cmd=_history&nav=0.3.0$':  HistoryPage,
-        '/cgi-bin/webscr\?cmd=_history&dispatch=[a-z0-9]+$':  HistoryPage,
-        '/cgi-bin/webscr\?cmd=_history-download-recent$': LastDownloadHistoryPage,
-        '/cgi-bin/webscr\?dispatch=[a-z0-9]+$': (SubmitPage, HistoryParser()),
-        '/cgi-bin/webscr\?cmd=_history-download-recent-submit&dispatch=[a-z0-9]+$': (SubmitPage, HistoryParser()),
-        'https://history.paypal.com/cgi-bin/webscr\?cmd=_history-details-from-hub&id=[A-Z0-9]+$': HistoryDetailsPage,
-        'https://www.paypal.com/webapps/business/\?nav=0.0': NewHomePage,
-        'https://www.paypal.com/webapps/business/\?country_lang.x=true': NewHomePage,
-        'https://www.paypal.com/myaccount/\?nav=0.0': NewHomePage,
-        'https://www.paypal.com/businessexp/money': NewAccountPage,
-        'https://www.paypal.com/webapps/business/activity\?.*': NewProHistoryPage,
-        'https://www.paypal.com/myaccount/activity/.*': (NewPartHistoryPage, 'json'),
-        'https://www.paypal.com/myaccount/': NewProHistoryPage,
+        '/cgi-bin/webscr\?cmd=_account.*$':             UselessPage,
+        '/cgi-bin/webscr\?cmd=_login-done.+$':          UselessPage,
+        '/cgi-bin/webscr\?cmd=_home&country_lang.x=true$': HomePage,
+        'https://\w+.paypal.com/cgi-bin/webscr\?cmd=_history-details-from-hub&id=[A-Z0-9]+$': HistoryDetailsPage,
+        'https://\w+.paypal.com/webapps/business/\?nav=0.0': HomePage,
+        'https://\w+.paypal.com/webapps/business/\?country_lang.x=true': HomePage,
+        'https://\w+.paypal.com/myaccount/\?nav=0.0': HomePage,
+        'https://\w+.paypal.com/businessexp/money': AccountPage,
+        'https://\w+.paypal.com/webapps/business/activity\?.*': ProHistoryPage,
+        'https://\w+.paypal.com/myaccount/activity/.*': (PartHistoryPage, 'json'),
+        'https://\w+.paypal.com/myaccount/': ProHistoryPage,
     }
 
-    DEFAULT_TIMEOUT = 30  # CSV export is slow
+    DEFAULT_TIMEOUT = 60
 
     BEGINNING = datetime.date(1998, 6, 1)  # The day PayPal was founded
-    website = None
+    account_type = None
 
-    def find_website_version(self):
-        self.website = "new"
-        if self.is_on_page(NewHomePage):
+    def find_account_type(self):
+        if self.is_on_page(HomePage):
+            # XXX Unable to get more than 2 years of history on pro accounts.
+            self.BEGINNING = datetime.date.today() - relativedelta(months=24)
             self.account_type = "pro"
             return
         self.location(self._response.info().getheader('refresh').split("bin/")[1])
@@ -71,7 +68,7 @@ class Paypal(Browser):
             self.account_type = "perso"
         else:
             self.location('/webapps/business/?nav=0.0')
-            if self.is_on_page(NewHomePage):
+            if self.is_on_page(HomePage):
                 self.account_type = "pro"
             else:
                 self.account_type = "perso"
@@ -95,73 +92,37 @@ class Paypal(Browser):
         if self.is_on_page(LoginPage):
             raise BrowserIncorrectPassword()
 
-        self.find_website_version()
+        self.find_account_type()
 
     def get_accounts(self):
-        if self.website == "old":
-            if not self.is_on_page(AccountPage):
-                self.location('/en/cgi-bin/webscr?cmd=_account&nav=0.0')
-        elif not self.is_on_page(NewAccountPage):
+        if not self.is_on_page(AccountPage):
             self.location('/businessexp/money')
 
         return self.page.get_accounts()
 
     def get_account(self, _id):
-        if self.website == "old":
-            if not self.is_on_page(AccountPage):
-                self.location('/en/cgi-bin/webscr?cmd=_account&nav=0.0')
-        elif not self.is_on_page(NewAccountPage):
+        if not self.is_on_page(AccountPage):
             self.location('/businessexp/money')
 
         return self.page.get_account(_id)
 
-    def get_history(self, account, step_min=90, step_max=365*10):
-        def fetch_fn(start, end):
-            def transactions():
-                parse = True
-                while parse:
-                    for trans in self.page.iter_transactions(account):
-                        yield trans
-                    parse = self.page.next()
-            self.history(start=start, end=end)
-            if next(self.page.parse(), False):
-                return transactions()
-        return self.smart_fetch(beginning=self.BEGINNING,
-                                end=datetime.date.today(),
-                                step_min=step_min,
-                                step_max=step_max,
-                                fetch_fn=fetch_fn)
-
-    def history(self, start, end):
-        self.location('/en/cgi-bin/webscr?cmd=_history&nav=0.3.0')
-        self.page.filter(start, end)
-        assert self.is_on_page(HistoryPage)
-
     def get_download_history(self, account, step_min=None, step_max=None):
         if step_min is None and step_max is None:
-            if self.website == "old":
-                step_min = 90
-                step_max = 365*2
-            else:
-                step_min = 90
-                step_max = 180
+            step_min = 30
+            step_max = 180
 
         def fetch_fn(start, end):
-            if self.website == "old" and self.download_history(start, end).rows:
+            if self.download_history(start, end):
                 return self.page.iter_transactions(account)
-            elif self.download_history(start, end):
-                return self.page.iter_transactions(account)
+            return iter([])
+
         assert step_max <= 365*2  # PayPal limitations as of 2014-06-16
-        try:
-            for i in self.smart_fetch(beginning=self.BEGINNING,
-                                      end=datetime.date.today(),
-                                      step_min=step_min,
-                                      step_max=step_max,
-                                      fetch_fn=fetch_fn):
-                yield i
-        except CSVAlreadyAsked:
-            for i in self.download_last_history(account):
-                yield i
+        for i in self.smart_fetch(beginning=self.BEGINNING,
+                                  end=datetime.date.today(),
+                                  step_min=step_min,
+                                  step_max=step_max,
+                                  fetch_fn=fetch_fn):
+            yield i
 
     def smart_fetch(self, beginning, end, step_min, step_max, fetch_fn):
         """
@@ -172,57 +133,45 @@ class Paypal(Browser):
         step = step_min
         while end > beginning:
             start = end - datetime.timedelta(step)
-            chunk = fetch_fn(start, end)
+            chunk = list(fetch_fn(start, end))
             end = start - datetime.timedelta(1)
-            if chunk:
-                # If there're transactions in current period,
-                # decrease the period.
+            if len(chunk) > 50:
+                # If there're too much transactions in current period, decrease
+                # the period.
                 step = max(step_min, step/FACTOR)
-                for trans in chunk:
-                    yield trans
             else:
-                # If there's no transactions in current period,
+                # If there's no transactions, or only a bit, in current period,
                 # increase the period.
                 step = min(step_max, step*FACTOR)
+            for trans in chunk:
+                yield trans
 
     def download_history(self, start, end):
         """
-        Download CSV history.
+        Download history.
         However, it is not normalized, and sometimes the download is refused
         and sent later by mail.
         """
-        if self.website == "old":
-            self.location('/en/cgi-bin/webscr?cmd=_history-download&nav=0.3.1')
-            assert self.is_on_page(DownloadHistoryPage)
-            self.page.download(start, end)
-            assert self.is_on_page(SubmitPage)
-            return self.page.document
+        s = start.strftime('%d/%m/%Y')
+        e = end.strftime('%d/%m/%Y')
+        # Settings a big magic number so we hope to get all transactions for the period
+        LIMIT = '9999'
+        if self.account_type == "pro":
+            self.location('https://www.paypal.com/webapps/business/activity?fromdate=' + s + '&todate=' + e + '&transactiontype=ALL_TRANSACTIONS&currency=ALL_TRANSACTIONS_CURRENCY&limit=' + LIMIT)
         else:
-            s = start.strftime('%d/%m/%Y')
-            e = end.strftime('%d/%m/%Y')
-            # Settings a big magic number so we get all transaction for the period
-            LIMIT = '9999'
-            if self.account_type == "pro":
-                self.location('/webapps/business/activity?fromdate=' + s + '&todate=' + e + '&transactiontype=ALL_TRANSACTIONS&currency=ALL_TRANSACTIONS_CURRENCY&limit=' + LIMIT)
-            else:
-                self.location('/myaccount/activity/filter?typeFilter=all&isNewSearch=true&startDate=' + s + '&endDate=' + e + '&limit=' + LIMIT)
-            return self.page.transaction_left()
-
-    def download_last_history(self, account):
-        self.location('/en/cgi-bin/webscr?cmd=_history-download-recent')
-        self.page.download()
-        if self.page.document.rows:
-            return self.page.iter_transactions(account)
+            self.location('https://www.paypal.com/myaccount/activity/filter?typeFilter=all&isNewSearch=true&startDate=' + s + '&endDate=' + e + '&limit=' + LIMIT)
+        return self.page.transaction_left()
 
     def transfer(self, from_id, to_id, amount, reason=None):
         raise NotImplementedError()
 
     def convert_amount(self, account, trans):
-        if(trans['actions']['details']['action'] == 'ACTIVITY_DETAILS'):
+        if trans['actions']['details']['action'] == 'ACTIVITY_DETAILS':
             self.location(trans['actions']['details']['url'])
         if self.is_on_page(HistoryDetailsPage):
             cc = self.page.get_converted_amount(account)
             if cc:
                 trans['originalAmount'] = trans['netAmount']
                 trans['netAmount'] = cc
+
         return trans
