@@ -34,6 +34,21 @@ __all__ = ['UserError', 'FieldNotFound', 'NotAvailable',
            'empty', 'BaseObject']
 
 
+def enum(**enums):
+    _values = enums.values()
+    _keys = enums.keys()
+    _items = enums.items()
+    _types = list((type(value) for value in enums.values()))
+    _index = dict((value if not isinstance(value, dict) else value.itervalues().next(), i) for i, value in enumerate(enums.values()))
+
+    enums['keys'] = _keys
+    enums['values'] = _values
+    enums['items'] = _items
+    enums['index'] = _index
+    enums['types'] = _types
+    return type('Enum', (), enums)
+
+
 def empty(value):
     """
     Checks if a value is empty (None, NotLoaded or NotAvailable).

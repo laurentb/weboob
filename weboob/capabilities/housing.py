@@ -19,7 +19,7 @@
 
 
 from .base import Capability, BaseObject, Field, IntField, DecimalField, \
-                  StringField, BytesField
+                  StringField, BytesField, enum
 from .date import DateField
 
 __all__ = ['HousingPhoto', 'Housing', 'Query', 'City', 'CapHousing']
@@ -70,17 +70,6 @@ class Query(BaseObject):
     """
     TYPE_RENT = 0
     TYPE_SALE = 1
-
-    def enum(**enums):
-        _values = enums.values()
-        _items = enums.items()
-        _index = dict((value, i) for i, value in enumerate(enums.values()))
-        _types = list((type(value) for value in enums.values()))
-        enums['values'] = _values
-        enums['items'] = _items
-        enums['index'] = _index
-        enums['types'] = _types
-        return type('Enum', (), enums)
 
     HOUSE_TYPES = enum(APART=u'Apartment',
                        HOUSE=u'House',

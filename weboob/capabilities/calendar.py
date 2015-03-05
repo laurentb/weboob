@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .base import BaseObject, StringField, IntField, FloatField, Field
+from .base import BaseObject, StringField, IntField, FloatField, Field, enum
 from .collection import CapCollection, CollectionNotFound, Collection
 from .date import DateField
 
@@ -26,17 +26,6 @@ from weboob.tools.date import parse_date
 
 __all__ = ['BaseCalendarEvent', 'CapCalendarEvent']
 
-
-def enum(**enums):
-    _values = enums.values()
-    _items = enums.items()
-    _index = dict((value, i) for i, value in enumerate(enums.values()))
-    _types = list((type(value) for value in enums.values()))
-    enums['values'] = _values
-    enums['items'] = _items
-    enums['index'] = _index
-    enums['types'] = _types
-    return type('Enum', (), enums)
 
 CATEGORIES = enum(CONCERT=u'Concert', CINE=u'Cinema', THEATRE=u'Theatre', TELE=u'Television', CONF=u'Conference')
 
