@@ -51,7 +51,7 @@ class LoginErrorPage(HTMLPage):
 
 
 class EmptyPage(LoggedPage, HTMLPage):
-    pass
+    REFRESH_MAX = 10.0
 
 
 class UserSpacePage(LoggedPage, HTMLPage):
