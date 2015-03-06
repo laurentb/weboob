@@ -125,8 +125,8 @@ class Description(Filter):
         return Format(u'%s %s\n\n%s%s\n\n',
                       CleanText("%s/div[@class='d-rubric-inner']/h1" % header),
                       CleanText("%s/div[@class='d-rubric-inner']/small" % header),
-                      Join(u'- %s\n', "%s/ul[@class='pvi-product-specs']/li" % header),
-                      Join(u'- %s\n', "%s/ul/li" % section))(el[0])
+                      Join(u'- ', "%s/ul[@class='pvi-product-specs']/li" % header, newline=True),
+                      Join(u'- ', "%s/ul/li" % section, newline=True, addBefore=' - '))(el[0])
 
 
 class EventPage(HTMLPage):

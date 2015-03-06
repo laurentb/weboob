@@ -690,19 +690,31 @@ class BrowserURL(MultiFilter):
 
 
 class Join(Filter):
-    def __init__(self, pattern, selector=None, textCleaner=CleanText):
+    def __init__(self, pattern, selector=None, textCleaner=CleanText, newline=False, addBefore='', addAfter=''):
         super(Join, self).__init__(selector)
         self.pattern = pattern
         self.textCleaner = textCleaner
+        self.newline = newline
+        self.addBefore = addBefore
+        self.addAfter = addAfter
 
     @debug()
     def filter(self, el):
-        res = u''
-        for li in el:
-            res += self.pattern % self.textCleaner.clean(li)
+        items = [self.textCleaner.clean(e) for e in el]
+        items = [item for item in items if item]
 
-        return res
+        if self.newline:
+            items = ['%s\r\n' % item for item in items]
 
+        result = self.pattern.join(items)
+
+        if self.addBefore:
+            result = '%s%s' % (self.addBefore, result)
+
+        if self.addAfter:
+            result = '%s%s' % (result, self.addAfter)
+
+        return result
 
 class Eval(MultiFilter):
     """

@@ -64,7 +64,7 @@ class AdvertPage(HTMLPage):
     class get_job_advert(ItemElement):
         klass = BaseJobAdvert
 
-        obj_description = Join('\n%s', '//div[@id="annonce-detail"]/p[@class="text"]', textCleaner=CleanHTML)
+        obj_description = Join('\n', '//div[@id="annonce-detail"]/p[@class="text"]', textCleaner=CleanHTML)
         obj_id = Env('_id')
         obj_url = BrowserURL('advert_page', _id=Env('_id'))
         obj_publication_date = Date(Regexp(CleanText('//div[@id="annonce-detail"]/p[@class="infos"]'),

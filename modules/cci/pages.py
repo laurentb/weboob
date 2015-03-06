@@ -61,7 +61,7 @@ class SearchPage(HTMLPage):
         klass = BaseJobAdvert
 
         obj_url = Format('%s#%s', Env('url'), Env('id'))
-        obj_description = Join('%s\r\n',
+        obj_description = Join('\r\n',
                                'div/fieldset/*[(@class="titreParagraphe" or @class="normal")]',
                                textCleaner=CleanHTML)
         obj_title = CleanText('div/span[@class="intituleposte"]')
