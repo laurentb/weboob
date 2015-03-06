@@ -82,9 +82,13 @@ class RecentPage(XMLPage):
                 'TRANSDESCRIPTION/text()')[0].split())
             tdate = u''.join(ntrans.xpath('TRANSACTIONDATE/text()'))
             pdate = u''.join(ntrans.xpath('POSTDATE/text()'))
+            # Skip transactions which are not posted,
+            # because they are not accounted for in balance calculation.
+            if not pdate:
+                continue
             t = Transaction()
             t.date = datetime.strptime(tdate, '%m/%d/%Y')
-            t.rdate = datetime.strptime(pdate or tdate, '%m/%d/%Y')
+            t.rdate = datetime.strptime(pdate, '%m/%d/%Y')
             t.type = Transaction.TYPE_UNKNOWN
             t.raw = desc
             t.label = desc
