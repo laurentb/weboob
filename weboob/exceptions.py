@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from weboob.tools.value import Value
 
 class BrowserIncorrectPassword(Exception):
     pass
@@ -36,6 +37,13 @@ class BrowserPasswordExpired(BrowserIncorrectPassword):
 
 class BrowserUnavailable(Exception):
     pass
+
+
+class BrowserToBeContinued(BrowserUnavailable):
+    def __init__(self, *args):
+        self.fields = []
+        for arg in args:
+            self.fields.append(Value(label=arg))
 
 
 class BrowserHTTPNotFound(BrowserUnavailable):
