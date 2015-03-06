@@ -41,15 +41,12 @@ class BoursoramaModule(Module, CapBank):
                            ValueBackendPassword('password',   label='Mot de passe'),
                            ValueBool('enable_twofactors',     label='Send validation sms', default=False),
                            Value('device',                    label='Device name', regexp='\w*', default=''),
+                           Value('pin_code',                  label='Sms code', required=False),
                           )
     BROWSER = Boursorama
 
     def create_default_browser(self):
-        return self.create_browser(
-            self.config["device"].get()
-            , self.config["enable_twofactors"].get()
-            , self.config['login'].get()
-            , self.config['password'].get())
+        return self.create_browser(self.config)
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():

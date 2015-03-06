@@ -44,7 +44,7 @@ class Boursorama(Browser):
                 'b290ef629c88f0508e9cc6305421c173bd4291175e3ddedbee05ee666b34c20e']
     ENCODING = None  # refer to the HTML encoding
     PAGES = {
-             '.*/connexion/securisation/index.phtml': AuthenticationPage,
+             '.*/connexion/securisation.*': AuthenticationPage,
              '.*connexion.phtml.*': LoginPage,
              '.*/comptes/synthese.phtml': AccountsList,
              '.*/comptes/banque/detail/mouvements.phtml.*': AccountHistory,
@@ -55,10 +55,14 @@ class Boursorama(Browser):
              '.*/opcvm.phtml.*': InvestmentDetail
             }
 
-    def __init__(self, device="weboob", enable_twofactors=False,
-                 *args, **kwargs):
-        self.device = device
-        self.enable_twofactors = enable_twofactors
+    __states__ = []
+
+    def __init__(self, config=None, *args, **kwargs):
+        self.config = config
+        self.auth_token = None
+        kwargs['get_home'] = False
+        kwargs['username'] = self.config['login'].get()
+        kwargs['password'] = self.config['password'].get()
         Browser.__init__(self, *args, **kwargs)
 
     def home(self):
@@ -72,32 +76,36 @@ class Boursorama(Browser):
 
     def handle_authentication(self):
         if self.is_on_page(AuthenticationPage):
-            if self.enable_twofactors:
-                self.page.authenticate(self.device)
+            if self.config['enable_twofactors'].get():
+                if not self.config['pin_code'].get() or not self.auth_token:
+                    self.page.send_sms()
+                else:
+                    self.page.authenticate()
             else:
                 raise BrowserIncorrectAuthenticationCode(
                     """Boursorama - activate the two factor authentication in boursorama config."""
                     """ You will receive SMS code but are limited in request per day (around 15)"""
                 )
 
-
     def login(self):
-        assert isinstance(self.device, basestring)
-        assert isinstance(self.enable_twofactors, bool)
+        assert isinstance(self.config['device'].get(), basestring)
+        assert isinstance(self.config['enable_twofactors'].get(), bool)
         assert self.password.isdigit()
 
-        if not self.is_on_page(LoginPage):
-            self.location('https://' + self.DOMAIN + '/connexion.phtml', no_login=True)
+        if self.is_on_page(AuthenticationPage):
+            self.handle_authentication()
+        else:
+            if not self.is_on_page(LoginPage):
+                self.location('https://' + self.DOMAIN + '/connexion.phtml', no_login=True)
 
-        self.page.login(self.username, self.password)
+            self.page.login(self.username, self.password)
 
-        if self.is_on_page(LoginPage):
-            raise BrowserIncorrectPassword()
+            if self.is_on_page(LoginPage):
+                raise BrowserIncorrectPassword()
 
-        #after login, we might be redirected to the two factor
-        #authentication page
-        #print "handle authentication"
-        self.handle_authentication()
+            #after login, we might be redirected to the two factor
+            #authentication page
+            self.handle_authentication()
 
         self.location('/comptes/synthese.phtml', no_login=True)
 
@@ -107,6 +115,8 @@ class Boursorama(Browser):
             raise BrowserIncorrectAuthenticationCode()
 
     def get_accounts_list(self):
+        if self.is_on_page(AuthenticationPage):
+            self.login()
         if not self.is_on_page(AccountsList):
             self.location('/comptes/synthese.phtml')
 
