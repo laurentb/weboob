@@ -33,6 +33,9 @@ try:
 except ImportError:
     raise ImportError('Please install python-mechanize')
 
+import pickle
+import base64
+import zlib
 import os
 import re
 from threading import RLock
@@ -58,7 +61,7 @@ from weboob.deprecated.browser.parsers import get_parser
 
 __all__ = ['BrowserIncorrectPassword', 'BrowserForbidden', 'BrowserBanned', 'BrowserUnavailable', 'BrowserRetry',
            'BrowserPasswordExpired', 'BrowserHTTPNotFound', 'BrowserHTTPError', 'BrokenPageError', 'Page',
-           'StandardBrowser', 'Browser']
+           'StandardBrowser', 'Browser', 'StateBrowser']
 
 
 class BrowserRetry(Exception):
@@ -690,6 +693,48 @@ class Browser(StandardBrowser):
 
         if self._cookie:
             self._cookie.save()
+
+
+class StateBrowser(Browser):
+    """
+    This browser aims to store state (cookies, location and attributes).
+    """
+
+    __states__ = []
+    """
+    Saved state variables.
+    """
+
+    def __init__(self, *args, **kwargs):
+        kwargs['get_home'] = False
+        Browser.__init__(self, *args, **kwargs)
+
+    def load_state(self, state):
+        if 'cookies' in state:
+            try:
+                cookies = pickle.loads(zlib.decompress(base64.b64decode(state['cookies'])))
+            except (TypeError, zlib.error, EOFError, ValueError):
+                self.logger.error('Unable to reload cookies from storage')
+            else:
+                self.set_cookiejar(cookies)
+                self.logger.info('Reloaded cookies from storage')
+        for attrname in self.__states__:
+            if attrname in state:
+                setattr(self, attrname, state[attrname])
+        if 'url' in state:
+            self.location(state['url'], nologin=True)
+
+
+    def dump_state(self):
+        state = {}
+        cookiejar = self._ua_handlers["_cookies"].cookiejar
+        state['cookies'] = base64.b64encode(zlib.compress(pickle.dumps(cookiejar, -1)))
+        for attrname in self.__states__:
+            state[attrname] = getattr(self, attrname)
+        if self.page:
+            state['url'] = self.page.url
+        self.logger.info('Stored cookies into storage')
+        return state
 
 
 def mywrap_socket(sock, *args, **kwargs):

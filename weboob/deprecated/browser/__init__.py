@@ -23,9 +23,10 @@ from weboob.deprecated.browser.browser import BrowserIncorrectPassword, BrowserB
                                          BrowserHTTPNotFound, BrowserHTTPError, \
                                          Page, Browser, BrokenPageError, \
                                          StandardBrowser, BrowserPasswordExpired, \
-                                         BrowserForbidden
+                                         BrowserForbidden, StateBrowser
 
 
 __all__ = ['BrowserIncorrectPassword', 'BrowserPasswordExpired', 'BrowserBanned',
            'BrowserUnavailable', 'BrowserRetry', 'BrowserHTTPNotFound', 'BrowserHTTPError',
-           'Page', 'Browser', 'BrokenPageError', 'StandardBrowser', 'BrowserForbidden']
+           'Page', 'Browser', 'BrokenPageError', 'StandardBrowser', 'BrowserForbidden',
+           'StateBrowser']
