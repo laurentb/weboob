@@ -20,8 +20,10 @@
 import re
 import urllib2
 
-from weboob.exceptions import BrowserToBeContinued
+from weboob.exceptions import BrowserQuestion
 from weboob.deprecated.browser import Page, BrowserIncorrectPassword
+from weboob.tools.value import Value
+
 
 class BrowserAuthenticationCodeMaxLimit(BrowserIncorrectPassword):
     pass
@@ -34,36 +36,38 @@ class AuthenticationPage(Page):
     REFERER = SECURE_PAGE
 
     headers = {"User-Agent": "Mozilla/5.0 (Windows; U; Windows "
-        "NT 5.1; en-US; rv:1.9.2.8) Gecko/20100722 Firefox/3.6.8"
-        " GTB7.1 (.NET CLR 3.5.30729)",
-        "Referer": REFERER,
-    }
+                             "NT 5.1; en-US; rv:1.9.2.8) Gecko/20100722 Firefox/3.6.8"
+                             " GTB7.1 (.NET CLR 3.5.30729)",
+               "Referer": REFERER,
+              }
 
     headers_ajax = {"User-Agent": "Mozilla/5.0 (Windows; U; Windows "
-        "NT 5.1; en-US; rv:1.9.2.8) Gecko/20100722 Firefox/3.6.8"
-        " GTB7.1 (.NET CLR 3.5.30729)",
-        "Accept": "application/json",
-        "X-Requested-With": "XMLHttpRequest",
-        "X-Request": "JSON",
-        "X-Brs-Xhr-Request": "true",
-        "X-Brs-Xhr-Schema": "DATA+OUT",
-        "Referer": REFERER,
-        }
+                                  "NT 5.1; en-US; rv:1.9.2.8) Gecko/20100722 Firefox/3.6.8"
+                                  " GTB7.1 (.NET CLR 3.5.30729)",
+                    "Accept": "application/json",
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-Request": "JSON",
+                    "X-Brs-Xhr-Request": "true",
+                    "X-Brs-Xhr-Schema": "DATA+OUT",
+                    "Referer": REFERER,
+                   }
 
     def on_loaded(self):
         pass
 
-    def authenticate(self):
-        url = "https://" + self.browser.DOMAIN + "/ajax/banque/otp.phtml"
-        data = "authentificationforteToken=%s&authentificationforteStep=otp&alertType=10100&org=%s&otp=%s&validate=" % (self.browser.auth_token, self.REFERER, self.browser.config['pin_code'].get())
-        req = urllib2.Request(url, data, self.headers_ajax)
-        response = self.browser.open(req)
+    @classmethod
+    def authenticate(cls, browser):
+        browser.logger.info('Using the PIN Code %s to login', browser.auth_token)
+        url = "https://" + browser.DOMAIN + "/ajax/banque/otp.phtml"
+        data = "authentificationforteToken=%s&authentificationforteStep=otp&alertType=10100&org=%s&otp=%s&validate=" % (browser.auth_token, cls.REFERER, browser.config['pin_code'].get())
+        req = urllib2.Request(url, data, cls.headers_ajax)
+        browser.open(req)
 
-        url = "%s?" % (self.SECURE_PAGE)
-        data = "org=/&device=%s" % (self.browser.config['device'].get())
-        req = urllib2.Request(url, data, headers=self.headers)
-        response = self.browser.open(req)
-        self.browser.auth_token = None
+        url = "%s?" % (cls.SECURE_PAGE)
+        data = "org=/&device=%s" % (browser.config['device'].get())
+        req = urllib2.Request(url, data, headers=cls.headers)
+        browser.open(req)
+        browser.auth_token = None
 
     def send_sms(self):
         """This function simulates the registration of a device on
@@ -71,7 +75,6 @@ class AuthenticationPage(Page):
         I
         @param device device name to register
         @exception BrowserAuthenticationCodeMaxLimit when daily limit is consumed
-        @exception BrowserIncorrectAuthenticationCode when code is not correct
         """
         url = "https://%s/ajax/banque/otp.phtml?org=%s&alertType=10100" % (self.browser.DOMAIN, self.REFERER)
         req = urllib2.Request(url, headers=self.headers_ajax)
@@ -82,8 +85,7 @@ class AuthenticationPage(Page):
         regex = re.compile(self.MAX_LIMIT)
         r = regex.search(info)
         if r:
-            self.logger.info("Boursorama - Vous avez atteint le nombre maximum d'utilisation de l'authentification forte")
-            raise BrowserAuthenticationCodeMaxLimit()
+            raise BrowserAuthenticationCodeMaxLimit("Vous avez atteint le nombre maximum d'utilisation de l'authentification forte")
 
         regex = re.compile(r"name=\\\"authentificationforteToken\\\" "
             r"value=\\\"(?P<value>\w*?)\\\"")
@@ -95,4 +97,4 @@ class AuthenticationPage(Page):
         data = "authentificationforteToken=%s&authentificationforteStep=start&alertType=10100&org=%s&validate=" % (self.browser.auth_token, self.REFERER)
         req = urllib2.Request(url, data, self.headers_ajax)
         response = self.browser.open(req)
-        raise BrowserToBeContinued('pin_code')
+        raise BrowserQuestion(Value('pin_code', label='Enter the PIN Code'))

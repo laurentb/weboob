@@ -49,8 +49,7 @@ class BoursoramaModule(Module, CapBank):
         return self.create_browser(self.config)
 
     def iter_accounts(self):
-        for account in self.browser.get_accounts_list():
-            yield account
+        return self.browser.get_accounts_list()
 
     def get_account(self, _id):
         with self.browser:
@@ -61,17 +60,7 @@ class BoursoramaModule(Module, CapBank):
             raise AccountNotFound()
 
     def iter_history(self, account):
-        with self.browser:
-            for history in self.browser.get_history(account):
-                yield history
+        return self.browser.get_history(account)
 
     def iter_investment(self, account):
-        with self.browser:
-            for investment in self.browser.get_investment(account):
-                yield investment
-
-    # TODO
-    #def iter_coming(self, account):
-    #    with self.browser:
-    #        for coming in self.browser.get_coming_operations(account):
-    #            yield coming
+        return self.browser.get_investment(account)
