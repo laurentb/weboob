@@ -100,9 +100,19 @@ class TinderBrowser(APIBrowser):
             return
 
         profile = self.recs.pop()
+
+        if 'tinder_rate_limited' in profile['_id']:
+            self.logger.info(profile['bio'])
+            return 600
+
         resp = self.request('/like/%s' % profile['_id'])
 
         if resp['match']:
             self.logger.error('Match with %s!' % profile['name'])
         else:
             self.logger.info('Liked %s (%r)' % (profile['name'], profile['common_likes']))
+
+        if len(self.recs) > 0:
+            return 1
+        else:
+            return 60

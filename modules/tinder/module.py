@@ -58,11 +58,12 @@ class ProfilesWalker(Optimization):
         return self._view_cron is not None
 
     def view_profile(self):
+        next_try = 1
         try:
-            self._browser.like_profile()
+            next_try = self._browser.like_profile()
         finally:
             if self._view_cron is not None:
-                self._view_cron = self._sched.schedule(1, self.view_profile)
+                self._view_cron = self._sched.schedule(next_try, self.view_profile)
 
 
 class TinderModule(Module, CapMessages, CapMessagesPost, CapDating):
