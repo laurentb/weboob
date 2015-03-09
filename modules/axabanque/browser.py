@@ -76,6 +76,10 @@ class AXABanque(Browser):
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):
             self.location('/transactionnel/client/liste-comptes.html')
+
+        if self.page.is_password_expired():
+            raise BrowserIncorrectPassword()
+
         return self.page.get_list()
 
     def get_account(self, id):
@@ -91,6 +95,9 @@ class AXABanque(Browser):
     def get_history(self, account):
         if not self.is_on_page(AccountsPage):
             account = self.get_account(account.id)
+
+        if self.page.is_password_expired():
+            raise BrowserIncorrectPassword()
 
         args = account._args
         args['javax.faces.ViewState'] = self.page.get_view_state()
