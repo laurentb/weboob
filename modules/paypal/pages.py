@@ -125,14 +125,11 @@ class PartHistoryPage(Page):
         raw = transaction.get('counterparty', transaction['displayType'])
         t.parse(date=date, raw=raw)
 
-        if transaction['currencyCode'] != account.currency:
-            transaction = self.browser.convert_amount(account, transaction)
-            try:
+        try:
+            if transaction['currencyCode'] != account.currency:
+                transaction = self.browser.convert_amount(account, transaction)
                 t.original_amount = self.format_amount(transaction['originalAmount'], transaction["isCredit"])
                 t.original_currency = transaction["currencyCode"]
-            except KeyError:
-                return
-        try:
             t.amount = self.format_amount(transaction['netAmount'], transaction["isCredit"])
         except KeyError:
             return
