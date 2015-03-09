@@ -19,6 +19,8 @@
 
 
 import csv
+
+from weboob.tools.log import getLogger
 from .iparser import IParser
 
 
@@ -53,17 +55,23 @@ class CsvParser(IParser):
     def parse(self, data, encoding=None):
         reader = csv.reader(data, dialect=self.DIALECT, **self.FMTPARAMS)
         c = Csv()
-        for row in reader:
-            row = self.decode_row(row, encoding)
-            if c.header is None and self.HEADER:
-                c.header = row
-            else:
-                c.rows.append(row)
-                if c.header:
-                    drow = {}
-                    for i, cell in enumerate(row):
-                        drow[c.header[i]] = cell
-                    c.drows.append(drow)
+        try:
+            for row in reader:
+                row = self.decode_row(row, encoding)
+                if c.header is None and self.HEADER:
+                    c.header = row
+                else:
+                    c.rows.append(row)
+                    if c.header:
+                        drow = {}
+                        for i, cell in enumerate(row):
+                            drow[c.header[i]] = cell
+                        c.drows.append(drow)
+        except csv.Error as error:
+            # If there are errors in CSV, for example the file is truncated, do
+            # not crash as there already are lines parsed.
+            logger = getLogger('csv')
+            logger.warning('Error during parse of CSV: %s', error)
         return c
 
     def decode_row(self, row, encoding):
