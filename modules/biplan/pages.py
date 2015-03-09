@@ -69,7 +69,9 @@ class StartTime(Filter):
         a_time = content.split(' - ')[0]
         regexp = re.compile(ur'(?P<hh>\d+)h?(?P<mm>\d+)')
         m = regexp.search(a_time)
-        return time(int(m.groupdict()['hh'] or 0), int(m.groupdict()['mm'] or 0))
+        if m:
+            return time(int(m.groupdict()['hh'] or 0), int(m.groupdict()['mm'] or 0))
+        return time(0, 0)
 
 
 class EndTime(Filter):
