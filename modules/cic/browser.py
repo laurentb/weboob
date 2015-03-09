@@ -36,7 +36,7 @@ __all__ = ['CICBrowser']
 class CICBrowser(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'www.cic.fr'
-    CERTHASH = '3116c834a9877ece7488462ce7a43e27fa81e6768a8db143032b9f607b9a3f20'
+    CERTHASH = '9f41522275058310a6fb348504daeadd16ae852a686a91383b10ad045da76d29'
     ENCODING = 'iso-8859-1'
     USER_AGENT = Browser.USER_AGENTS['wget']
     PAGES = {'https://www.cic.fr/.*/fr/banques/particuliers/index.html':   LoginPage,
