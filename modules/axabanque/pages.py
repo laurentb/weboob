@@ -151,8 +151,10 @@ class AccountsPage(BasePage):
                         label = 'Unable to determine'
                     self.logger.warning('Unable to get account ID for %r' % label)
                     continue
-
-                account.id = args['paramNumCompte'] + args['paramNumContrat']
+                try:
+                    account.id = args['paramNumCompte'] + args['paramNumContrat']
+                except KeyError:
+                    account.id = args['paramNumCompte']
                 account_type_str = table.attrib['class'].split(' ')[-1][len('tableaux-comptes-'):]
                 account.type = self.ACCOUNT_TYPES.get(account_type_str, Account.TYPE_UNKNOWN)
 
