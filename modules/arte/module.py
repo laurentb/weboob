@@ -19,14 +19,14 @@
 
 
 import re
-
+from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound, Collection
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value
 
 from .browser import ArteBrowser
-from .video import ArteVideo, ArteLiveVideo
+from .video import ArteVideo, ArteSiteVideo, VERSION_VIDEO, FORMATS, LANG, QUALITY, SITE
 
 
 __all__ = ['ArteModule']
@@ -46,26 +46,25 @@ class ArteModule(Module, CapVideo, CapCollection):
              'LAST_CHANCE': 'Last chance'
              }
 
-    CONFIG = BackendConfig(Value('lang', label='Lang of videos',
-                                 choices={'fr': 'French', 'de': 'Deutsch', 'en': 'English'}, default='fr'),
-                           Value('order', label='Sort order', choices=order, default='AIRDATE_DESC'),
-                           Value('quality', label='Quality of videos', choices=['hd', 'sd', 'md', 'ed'], default='hd'))
+    versions_choice = OrderedDict([(k, u'%s' % (v.get('label'))) for k, v in VERSION_VIDEO.items])
+    format_choice = OrderedDict([(k, u'%s' % (v)) for k, v in FORMATS.items])
+    lang_choice = OrderedDict([(k, u'%s' % (v.get('label'))) for k, v in LANG.items])
+    quality_choice = [u'%s' % (k) for k, v in QUALITY.items]
 
-    TRANSLATION  = {'fr': 'F',
-                    'en': 'F',
-                    'de': 'D',
-                    'hd': ['HQ', -1],
-                    'md': ['MQ', 2],
-                    'sd': ['SQ', 0],
-                    'ed': ['EQ', 1]
-                    }
+    CONFIG = BackendConfig(Value('lang', label='Lang of videos', choices=lang_choice, default=LANG.FRENCH),
+                           Value('order', label='Sort order', choices=order, default='AIRDATE_DESC'),
+                           Value('quality', label='Quality of videos', choices=quality_choice, default=QUALITY.HD),
+                           Value('format', label='Format of videos', choices=format_choice, default=FORMATS.HTTP_MP4),
+                           Value('version', label='Version of videos', choices=versions_choice))
 
     BROWSER = ArteBrowser
 
     def create_default_browser(self):
-        return self.create_browser(lang=self.TRANSLATION[self.config['lang'].get()],
-                                   quality=self.TRANSLATION[self.config['quality'].get()],
-                                   order=self.config['order'].get())
+        return self.create_browser(lang=self.config['lang'].get(),
+                                   quality=self.config['quality'].get(),
+                                   order=self.config['order'].get(),
+                                   format=self.config['format'].get(),
+                                   version=self.config['version'].get())
 
     def parse_id(self, _id):
         m = re.match('^(\w+)\.(.*)', _id)
@@ -74,96 +73,81 @@ class ArteModule(Module, CapVideo, CapCollection):
 
         m = re.match('https?://www.arte.tv/guide/\w+/(?P<id>.+)/(.*)', _id)
         if m:
-            return 'program', m.group(1)
+            return SITE.PROGRAM.get('id'), m.group(1)
 
-        m = re.match('https?://concert.arte.tv/(\w+)/(.*)', _id)
+        m = re.match('https?://(%s).arte.tv/(\w+)/(.*)' % ('|'.join(value.get('id') for value in SITE.values)), _id)
         if m:
-            return 'live', '/%s/%s' % (m.group(1), m.group(2))
+            return m.group(1), '/%s/%s' % (m.group(2), m.group(3))
 
         return 'videos', _id
 
     def get_video(self, _id):
-        with self.browser:
-            site, _id = self.parse_id(_id)
+        site, _id = self.parse_id(_id)
 
-            if site == 'live':
-                return self.browser.get_live_video(_id)
+        if site in [value.get('id') for value in SITE.values]:
+            _site = (value for value in SITE.values if value.get('id') == site).next()
+            return getattr(self.browser, _site.get('video'))(_id)
 
-            elif site == 'program':
-                return self.browser.get_video_from_program_id(_id)
-
-            else:
-                return self.browser.get_video(_id)
+        else:
+            return self.browser.get_video(_id)
 
     def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
-        with self.browser:
-            return self.browser.search_videos(pattern)
+        return self.browser.search_videos(pattern)
 
-    def fill_video(self, video, fields):
+    def fill_arte_video(self, video, fields):
         if fields != ['thumbnail']:
-            # if we don't want only the thumbnail, we probably want also every fields
-            with self.browser:
-                site, _id = self.parse_id(video.id)
+            video = self.browser.get_video(video.id, video)
 
-                if isinstance(video, ArteVideo):
-                    video = self.browser.get_video(_id, video)
-                if isinstance(video, ArteLiveVideo):
-                    video = self.browser.get_live_video(_id, video)
         if 'thumbnail' in fields and video and video.thumbnail:
-            with self.browser:
-                video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
+            video.thumbnail.data = self.browser.open(video.thumbnail.url).content
+
+        return video
+
+    def fill_site_video(self, video, fields):
+        if fields != ['thumbnail']:
+            for site in SITE.values:
+                m = re.match('%s\.(.*)' % site.get('id'), video.id)
+                if m:
+                    video = getattr(self.browser, site.get('video'))(m.group(1), video)
+                    break
+
+        if 'thumbnail' in fields and video and video.thumbnail:
+            video.thumbnail.data = self.browser.open(video.thumbnail.url).content
 
         return video
 
     def iter_resources(self, objs, split_path):
-        with self.browser:
-            if BaseVideo in objs:
-                collection = self.get_collection(objs, split_path)
-                if collection.path_level == 0:
-                    yield Collection([u'arte-latest'], u'Latest Arte videos')
-                    yield Collection([u'arte-live'], u'Arte Web Live videos')
-                    yield Collection([u'arte-program'], u'Arte Programs')
-                if collection.path_level == 1:
-                    if collection.split_path == [u'arte-latest']:
-                        for video in self.browser.latest_videos():
-                            yield video
-                    if collection.split_path == [u'arte-live']:
-                        for categorie in self.browser.get_arte_live_categories():
-                            yield categorie
-                    if collection.split_path == [u'arte-program']:
-                        for item in self.browser.get_arte_programs():
-                            lang = self.TRANSLATION[self.config['lang'].get()]
+        if BaseVideo in objs:
+            collection = self.get_collection(objs, split_path)
+            if collection.path_level == 0:
+                yield Collection([u'arte-latest'], u'Latest Arte videos')
+                for site in SITE.values:
+                    yield Collection([site.get('id')], site.get('label'))
+            if collection.path_level == 1:
+                if collection.split_path == [u'arte-latest']:
+                    for video in self.browser.latest_videos():
+                        yield video
+                else:
+                    for site in SITE.values:
+                        if collection.split_path[0] == site.get('id') and collection.path_level in site.keys():
+                            for item in getattr(self.browser, site.get(collection.path_level))():
+                                yield item
 
-                            if lang == 'F':
-                                title = 'titleFR'
-                            elif lang == 'D':
-                                title = 'titleDE'
-                            else:
-                                title = 'name'
-
-                            name = item['clusterId']
-                            if title in item.keys():
-                                name = item[title]
-
-                            yield Collection([u'arte-program', item['clusterId']], u'%s' % name)
-                if collection.path_level == 2:
-                    if collection.split_path[0] == u'arte-live':
-                        for video in self.browser.live_videos(collection.basename):
-                            yield video
-                    if collection.split_path[0] == u'arte-program':
-                        for video in self.browser.program_videos(collection.split_path[1]):
-                            yield video
+            if collection.path_level >= 2:
+                for site in SITE.values:
+                    if collection.split_path[0] == site.get('id') and collection.path_level in site.keys():
+                        for item in getattr(self.browser, site.get(collection.path_level))(collection.split_path):
+                            yield item
 
     def validate_collection(self, objs, collection):
         if collection.path_level == 0:
             return
         if BaseVideo in objs and (collection.split_path == [u'arte-latest'] or
-                                  collection.split_path == [u'arte-live'] or
-                                  collection.split_path == [u'arte-program']):
+                                  collection.split_path[0] in [value.get('id') for value in SITE.values]):
             return
-        if BaseVideo in objs and collection.path_level == 2 and (collection.split_path[0] == u'arte-live' or
-                                                                 collection.split_path[0] == u'arte-program'):
+        if BaseVideo in objs and collection.path_level >= 2 and\
+                collection.split_path[0] in [value.get('id') for value in SITE.values]:
             return
         raise CollectionNotFound(collection.split_path)
 
-    OBJECTS = {ArteVideo: fill_video, ArteLiveVideo: fill_video}
+    OBJECTS = {ArteVideo: fill_arte_video, ArteSiteVideo: fill_site_video}

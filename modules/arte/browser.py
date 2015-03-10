@@ -18,55 +18,69 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import datetime
-import time
-import urllib
 
+from weboob.capabilities.collection import Collection
+from weboob.capabilities.base import UserError
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.image import BaseImage
-from weboob.tools.json import json as simplejson
-from weboob.deprecated.browser import Browser
-from weboob.deprecated.browser.decorators import id2url
 
-from .pages import ArteLivePage, ArteLiveVideoPage
-from .video import ArteVideo, ArteLiveVideo
+from weboob.browser import PagesBrowser, URL
+from .pages import VideosListPage, VideoPage, ArteJsonPage
+from .video import VERSION_VIDEO, LANG, QUALITY, FORMATS, SITE
+
 
 __all__ = ['ArteBrowser']
 
 
-class ArteBrowser(Browser):
-    DOMAIN = u'videos.arte.tv'
-    ENCODING = None
-    PAGES = {r'http://concert.arte.tv/\w+': ArteLivePage,
-             r'http://concert.arte.tv/(?P<id>.+)': ArteLiveVideoPage,
-            }
+class ArteBrowser(PagesBrowser):
+    BASEURL = 'http://arte.tv/'
 
-    LIVE_LANG = {'F': 'fr',
-                 'D': 'de'
-                 }
+    webservice = URL('papi/tvguide/(?P<class_name>.*)/(?P<method_name>.*)/(?P<parameters>.*).json',
+                     'http://(?P<__site>.*).arte.tv/(?P<_lang>\w{2})/player/(?P<_id>.*)',
+                     'https://api.arte.tv/api/player/v1/config/(?P<__lang>\w{2})/(?P<vid>.*)\?vector=(?P<___site>.*)',
+                     ArteJsonPage)
+    videos_list = URL('http://(?P<site>.*).arte.tv/(?P<lang>\w{2})/?(?P<cat>.*?)', VideosListPage)
+    video_page = URL('http://(?P<_site>.*).arte.tv/(?P<id>.+)', VideoPage)
 
-    API_URL = 'http://arte.tv/papi/tvguide'
-
-    def __init__(self, lang, quality, order, *args, **kwargs):
-        self.lang = lang
-        self.quality = quality
+    def __init__(self, lang, quality, order, format, version, *args, **kwargs):
         self.order = order
-        Browser.__init__(self, *args, **kwargs)
+        self.lang = (value for key, value in LANG.items if key == lang).next()
+        self.version = (value for key, value in VERSION_VIDEO.items
+                        if self.lang.get('label') in value.keys() and version == key).next()
+        self.quality = (value for key, value in QUALITY.items if key == quality).next()
+        self.format = format
 
-    @id2url(ArteVideo.id2url)
-    def get_video(self, url, video=None):
-        response = self.openurl('%s/ALL.json' % url)
-        result = simplejson.loads(response.read(), self.ENCODING)
+        if self.lang.get('label') not in self.version.keys():
+            raise UserError('%s is not available for %s' % (self.lang.get('label'), version))
 
-        if video is None:
-            video = self.create_video(result['video'])
-        try:
-            video.url = self.get_m3u8_link(result['video']['VSR'][0]['VUR'])
-            video.ext = u'm3u8'
-        except:
-            video.url, video.ext = NotAvailable, NotAvailable
+        PagesBrowser.__init__(self, *args, **kwargs)
 
+    def search_videos(self, pattern):
+        class_name = 'videos/plus7'
+        method_name = 'search'
+        parameters = '/'.join([self.lang.get('webservice'), 'L1', pattern.encode('utf-8'), 'ALL', 'ALL', '-1',
+                               self.order, '10', '0'])
+        return self.webservice.go(class_name=class_name, method_name=method_name, parameters=parameters).iter_videos()
+
+    def get_video(self, id, video=None):
+        class_name = 'videos'
+        method_name = 'stream/player'
+        parameters = '/'.join([self.lang.get('webservice'), id, 'ALL', 'ALL'])
+        video = self.webservice.go(class_name=class_name,
+                                   method_name=method_name,
+                                   parameters=parameters).get_video(obj=video)
+        video.ext, video.url = self.get_url()
         return video
+
+    def get_url(self):
+        url = self.page.get_video_url(self.quality, self.format, self.version.get(self.lang.get('label')),
+                                      self.lang.get('version'))
+        if format == FORMATS.HLS:
+            ext = u'm3u8'
+            url = self.get_m3u8_link(url)
+        else:
+            ext = u'mp4'
+            url = url
+        return ext, url
 
     def get_m3u8_link(self, url):
         r = self.openurl(url)
@@ -84,189 +98,93 @@ class ArteBrowser(Browser):
                 return links_by_quality[0]
         return NotAvailable
 
-    @id2url(ArteLiveVideo.id2url)
-    def get_live_video(self, url, video=None):
-        self.location(url)
-        assert self.is_on_page(ArteLiveVideoPage)
-        json_url, video = self.page.get_video(video)
-        return self.fill_live_video(video, json_url)
-
-    def fill_live_video(self, video, json_url):
-        response = self.openurl(json_url)
-        result = simplejson.loads(response.read(), self.ENCODING)
-
-        quality = None
-        if 'VTI' in result['videoJsonPlayer']:
-            video.title = u'%s' % result['videoJsonPlayer']['VTI']
-
-        if 'VSR' in result['videoJsonPlayer']:
-            for item in result['videoJsonPlayer']['VSR']:
-                if self.quality[0] in item:
-                    quality = item
-                    break
-
-            if not quality:
-                url = result['videoJsonPlayer']['VSR'][0]['url']
-                ext = result['videoJsonPlayer']['VSR'][0]['mediaType']
-            else:
-                url = result['videoJsonPlayer']['VSR'][quality]['url']
-                ext = result['videoJsonPlayer']['VSR'][quality]['mediaType']
-
-            video.url = u'%s' % url
-            video.ext = u'%s' % ext
-            if 'VDA' in result['videoJsonPlayer']:
-                date_string = result['videoJsonPlayer']['VDA'][:-6]
-
-                try:
-                    video.date = datetime.datetime.strptime(date_string, '%d/%m/%Y %H:%M:%S')
-                except TypeError:
-                    video.date = datetime.datetime(*(time.strptime(date_string, '%d/%m/%Y %H:%M:%S')[0:6]))
-
-            if 'VDU' in result['videoJsonPlayer'].keys():
-                video.duration = int(result['videoJsonPlayer']['VDU'])
-
-            if 'IUR' in result['videoJsonPlayer']['VTU'].keys():
-                video.thumbnail = BaseImage(result['videoJsonPlayer']['VTU']['IUR'])
-                video.thumbnail.url = video.thumbnail.id
-        return video
-
-    def home(self):
-        self.location('http://videos.arte.tv/%s/videos/toutesLesVideos' % self.lang)
-
     def get_video_from_program_id(self, _id):
         class_name = 'epg'
         method_name = 'program'
-        level = 'L2'
-        url = self.API_URL \
-            + '/' + class_name \
-            + '/' + method_name \
-            + '/' + self.lang \
-            + '/' + level \
-            + '/' + _id \
-            + '.json'
-
-        response = self.openurl(url)
-        result = simplejson.loads(response.read(), self.ENCODING)
-        if 'VDO' in result['abstractProgram'].keys():
-            video = self.create_video(result['abstractProgram']['VDO'])
-            return self.get_video(video.id, video)
-
-    def search_videos(self, pattern):
-        class_name = 'videos/plus7'
-        method_name = 'search'
-        level = 'L1'
-        cluster = 'ALL'
-        channel = 'ALL'
-        limit = '10'
-        offset = '0'
-
-        url = self.create_url_plus7(class_name, method_name, level, cluster, channel, limit, offset, pattern)
-        response = self.openurl(url)
-        result = simplejson.loads(response.read(), self.ENCODING)
-        return self.create_video_from_plus7(result['videoList'])
-
-    def create_video_from_plus7(self, result):
-        for item in result:
-            yield self.create_video(item)
-
-    def create_video(self, item):
-        video = ArteVideo(item['VID'])
-        if 'VSU' in item:
-            video.title = u'%s : %s' % (item['VTI'], item['VSU'])
-        else:
-            video.title = u'%s' % (item['VTI'])
-        video.rating = int(item['VRT'])
-
-        if 'programImage' in item:
-            url = u'%s' % item['programImage']
-            video.thumbnail = BaseImage(url)
-            video.thumbnail.url = video.thumbnail.id
-
-        video.duration = datetime.timedelta(seconds=int(item['videoDurationSeconds']))
-        video.set_empty_fields(NotAvailable, ('url',))
-        if 'VDE' in item:
-            video.description = u'%s' % item['VDE']
-        if 'VDA' in item:
-            m = re.match('(\d{2})\s(\d{2})\s(\d{4})(.*?)', item['VDA'])
-            if m:
-                dd = int(m.group(1))
-                mm = int(m.group(2))
-                yyyy = int(m.group(3))
-                video.date = datetime.date(yyyy, mm, dd)
-        return video
-
-    def create_url_plus7(self, class_name, method_name, level, cluster, channel, limit, offset, pattern=None):
-        url = self.API_URL \
-            + '/' + class_name \
-            + '/' + method_name \
-            + '/' + self.lang \
-            + '/' + level
-
-        if pattern:
-            url += '/' + urllib.quote(pattern.encode('utf-8'))
-
-        url += '/' + channel \
-            + '/' + cluster \
-            + '/' + '-1' \
-            + '/' + self.order \
-            + '/' + limit \
-            + '/' + offset \
-            + '.json'
-
-        return url
-
-    def get_arte_programs(self):
-        class_name = 'epg'
-        method_name = 'clusters'
-        url = self.API_URL \
-            + '/' + class_name \
-            + '/' + method_name \
-            + '/' + self.lang \
-            + '/0/ALL.json'
-
-        response = self.openurl(url)
-        result = simplejson.loads(response.read(), self.ENCODING)
-        return result['configClusterList']
-
-    def program_videos(self, program):
-        class_name = 'epg'
-        method_name = 'cluster'
-
-        url = self.API_URL \
-            + '/' + class_name \
-            + '/' + method_name \
-            + '/' + self.lang \
-            + '/' + program \
-            + '.json'
-
-        response = self.openurl(url)
-        result = simplejson.loads(response.read(), self.ENCODING)
-        for item in result['clusterWrapper']['broadcasts']:
-            if 'VDS' in item.keys() and len(item['VDS']) > 0:
-                video = self.get_video_from_program_id(item['programId'])
-                if video:
-                    yield video
+        parameters = '/'.join([self.lang.get('webservice'), 'L2', _id])
+        video = self.webservice.go(class_name=class_name, method_name=method_name,
+                                   parameters=parameters).get_program_video()
+        return self.get_video(video.id, video)
 
     def latest_videos(self):
         class_name = 'videos'
         method_name = 'plus7'
-        level = 'L1'
-        cluster = 'ALL'
-        channel = 'ALL'
-        limit = '10'
-        offset = '0'
+        parameters = '/'.join([self.lang.get('webservice'), 'L1', 'ALL', 'ALL', '-1', self.order, '10', '0'])
+        return self.webservice.go(class_name=class_name, method_name=method_name, parameters=parameters).iter_videos()
 
-        url = self.create_url_plus7(class_name, method_name, level, cluster, channel, limit, offset)
-        response = self.openurl(url)
-        result = simplejson.loads(response.read(), self.ENCODING)
-        return self.create_video_from_plus7(result['videoList'])
+    def get_arte_programs(self):
+        class_name = 'epg'
+        method_name = 'clusters'
+        parameters = '/'.join([self.lang.get('webservice'), '0', 'ALL'])
+        return self.webservice.go(class_name=class_name, method_name=method_name,
+                                  parameters=parameters).iter_programs(title=self.lang.get('title'))
 
-    def get_arte_live_categories(self):
-        self.location('http://concert.arte.tv/%s' % self.LIVE_LANG[self.lang])
-        assert self.is_on_page(ArteLivePage)
-        return self.page.iter_resources()
+    def get_arte_program_videos(self, program):
+        class_name = 'epg'
+        method_name = 'cluster'
+        parameters = '/'.join([self.lang.get('webservice'), program[-1]])
+        available_videos = self.webservice.go(class_name=class_name, method_name=method_name,
+                                              parameters=parameters).iter_program_videos()
+        for item in available_videos:
+            yield self.get_video_from_program_id(item.id)
 
-    def live_videos(self, cat):
-        self.location('http://concert.arte.tv/%s' % self.LIVE_LANG[self.lang])
-        assert self.is_on_page(ArteLivePage)
-        return self.page.iter_videos(cat, lang=self.LIVE_LANG[self.lang])
+    def get_arte_concert_categories(self):
+        return self.videos_list.go(site=SITE.CONCERT.get('id'), lang=self.lang.get('site'),
+                                   cat='').iter_arte_concert_categories()
+
+    def get_arte_concert_videos(self, cat):
+        return self.videos_list.go(site=SITE.CONCERT.get('id'), lang=self.lang.get('site'),
+                                   cat='').iter_arte_concert_videos(cat=cat[-1])
+
+    def get_arte_concert_video(self, id, video=None):
+        json_url = self.video_page.go(_site=SITE.CONCERT.get('id'), id=id).get_json_url()
+        m = re.search('http://(?P<__site>.*).arte.tv/(?P<_lang>\w{2})/player/(?P<_id>.*)', json_url)
+        if m:
+            video = self.webservice.go(__site=m.group('__site'), _lang=m.group('_lang'),
+                                       _id=m.group('_id')).get_arte_concert_video(obj=video)
+            video.ext, video.url = self.get_url()
+            return video
+
+    def get_arte_cinema_categories(self, cat=[]):
+        menu = self.videos_list.go(site=SITE.CINEMA.get('id'), lang=self.lang.get('site'),
+                                   cat='').get_arte_cinema_menu()
+
+        menuSplit = map(lambda x: x.split("/")[2:], menu)
+
+        result = {}
+        for record in menuSplit:
+            here = result
+            for item in record[:-1]:
+                if item not in here:
+                    here[item] = {}
+                here = here[item]
+            if "end" not in here:
+                here["end"] = []
+            here["end"].append(record[-1])
+
+        cat = cat if not cat else cat[1:]
+
+        for el in cat:
+            result = result.get(el)
+
+        if "end" in result.keys():
+            return self.page.iter_arte_cinema_categories(cat='/'.join(cat))
+        else:
+            categories = []
+            for item in result.keys():
+                categories.append(Collection([SITE.CINEMA.get('id'), unicode(item)], unicode(item)))
+            return categories
+
+    def get_arte_cinema_videos(self, cat):
+        return self.videos_list.go(site=SITE.CINEMA.get('id'), lang=self.lang.get('site'),
+                                   cat='/%s' % '/'.join(cat[1:])).get_arte_cinema_videos()
+
+    def get_arte_cinema_video(self, id, video=None):
+        json_url = self.video_page.go(_site=SITE.CINEMA.get('id'), id=id).get_json_url()
+        m = re.search('https://api.arte.tv/api/player/v1/config/(\w{2})/(.*)\?vector=(.*)\&.*', json_url)
+        if m:
+            video = self.webservice.go(__lang=m.group(1),
+                                       vid=m.group(2), ___site=m.group(3)).get_arte_cinema_video(obj=video)
+            video.ext, video.url = self.get_url()
+            video.id = id
+            return video

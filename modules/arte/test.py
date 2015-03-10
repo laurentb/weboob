@@ -20,6 +20,7 @@
 
 from weboob.tools.test import BackendTest
 from weboob.capabilities.video import BaseVideo
+from .video import SITE
 
 
 class ArteTest(BackendTest):
@@ -32,14 +33,23 @@ class ArteTest(BackendTest):
         self.backend.fillobj(v, ('url',))
         self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
 
-    def test_live(self):
-        l1 = list(self.backend.iter_resources([BaseVideo], [u'arte-live']))
-        assert len(l1)
-        l2 = list(self.backend.iter_resources([BaseVideo], l1[0].split_path))
-        assert len(l2)
-        v = l2[0]
-        self.backend.fillobj(v, ('url',))
-        self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
+    def test_sites(self):
+        for site in SITE.values:
+
+            if site.get('id') == SITE.PROGRAM.get('id'):
+                continue
+
+            l1 = list(self.backend.iter_resources([BaseVideo], [site.get('id')]))
+            assert len(l1)
+            l1 = l1[0]
+
+            while not isinstance(l1, BaseVideo):
+                l1 = list(self.backend.iter_resources([BaseVideo], l1.split_path))
+                assert len(l1)
+                l1 = l1[0]
+
+            self.backend.fillobj(l1, ('url',))
+            self.assertTrue(l1.url, 'URL for video "%s" not found' % (l1.id))
 
     def test_latest(self):
         l = list(self.backend.iter_resources([BaseVideo], [u'arte-latest']))
@@ -49,7 +59,7 @@ class ArteTest(BackendTest):
         self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
 
     def test_program(self):
-        l1 = list(self.backend.iter_resources([BaseVideo], [u'arte-program']))
+        l1 = list(self.backend.iter_resources([BaseVideo], [u'program']))
         assert len(l1)
         # some categories may contain no available videos (during summer period for example)
         for l in l1:
