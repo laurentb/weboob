@@ -75,7 +75,7 @@ class HousingListPage(HTMLPage):
             if select_value >= ref_value:
                 return select[select_value]
 
-        return select[select_keys[-1]]
+        return select[select_keys[-1]] if select else 0
 
     @pagination
     @method
