@@ -80,6 +80,8 @@ class GoogleBot(Profile):
     """
     Try to mimic Googlebot.
     Keep in mind there are ways to authenticate real Googlebot IPs.
+
+    You will most likely want to set ALLOW_REFERRER to False.
     """
 
     def setup_session(self, session):
