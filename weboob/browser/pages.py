@@ -508,6 +508,7 @@ class HTMLPage(Page):
         overloaded by children classes to add extra functions.
         """
         ns['lower-case'] = lambda context, args: ' '.join([s.lower() for s in args])
+        ns['replace'] = lambda context, args, old, new: ' '.join([s.replace(old, new) for s in args])
 
         def has_class(context, *classes):
             """
