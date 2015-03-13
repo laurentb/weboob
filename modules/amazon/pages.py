@@ -131,11 +131,15 @@ class OrderNewPage(OrderPage):
                 break
 
     def paymethods(self):
-        for root in self.doc.xpath('//h5[contains(text(),"Payment Method")]'):
-            alt = root.xpath('../div/img/@alt')[0]
-            span = root.xpath('../div/span/text()')[0]
-            digits = re.match(r'[^0-9]*([0-9]+)[^0-9]*', span).group(1)
-            yield u'%s %s' % (alt, digits)
+        for root in self.doc.xpath(u'//h5[contains(text(),"Payment Method")]'):
+            div = u''.join(root.xpath('../div/text()')).strip()
+            if div:
+                yield div
+            else:
+                alt = root.xpath('../div/img/@alt')[0]
+                span = root.xpath('../div/span/text()')[0]
+                digits = re.match(r'[^0-9]*([0-9]+)[^0-9]*', span).group(1)
+                yield u'%s %s' % (alt, digits)
 
     def grand_total(self):
         return AmTr.decimal_amount(self.doc.xpath(
@@ -205,7 +209,7 @@ class OrderNewPage(OrderPage):
             if url:
                 url = unicode(self.browser.BASEURL) + \
                     re.match(u'(/gp/product/.*)/ref=.*', url).group(1)
-            if label and price:
+            if label:
                 itm = Item()
                 itm.label = label
                 itm.url = url
