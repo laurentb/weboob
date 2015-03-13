@@ -31,7 +31,7 @@ __all__ = ['BnpcartesentrepriseModule']
 
 class BnpcartesentrepriseModule(Module, CapBank):
     NAME = 'bnpcards'
-    DESCRIPTION = u'bnpcartesentreprise website'
+    DESCRIPTION = u'BNP Cartes Entreprises'
     MAINTAINER = u'Baptiste Delpey'
     EMAIL = 'bdelpey@budget-insight.fr'
     LICENSE = 'AGPLv3+'
