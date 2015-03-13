@@ -21,14 +21,14 @@ from datetime import datetime
 
 from weboob.capabilities.messages import Message
 from weboob.capabilities.collection import Collection
-from weboob.browser.pages import JsonPage
+from weboob.browser.pages import JsonPage, LoggedPage
 from weboob.browser.elements import ItemElement, DictElement, method
 from weboob.browser.filters.standard import CleanText, Format
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import CleanHTML
 
 
-class ContentsPage(JsonPage):
+class ContentsPage(LoggedPage, JsonPage):
 
     @method
     class get_articles(DictElement):
@@ -82,8 +82,11 @@ class EssentialsPage(JsonPage):
                         return feed.get('id')
 
 
-class PreferencesPage(JsonPage):
+class PreferencesPage(LoggedPage, JsonPage):
     def get_categories(self):
         for category, value in self.doc.items():
             if value in [u"shown", u"hidden"]:
                 yield Collection([u'%s' % category], u'%s' % category.replace('global.', ''))
+
+class MarkerPage(LoggedPage):
+    pass

@@ -20,11 +20,11 @@
 from urlparse import urlparse, parse_qs
 
 from weboob.browser import LoginBrowser, URL
-from weboob.browser.pages import HTMLPage
+from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.exceptions import BrowserIncorrectPassword
 
 
-class GoogleLoginPage(HTMLPage):
+class GoogleLoginPage(LoggedPage, HTMLPage):
     def login(self, login, passwd):
         form = self.get_form('//form[@id="gaia_loginform"]')
         form['Email'] = login

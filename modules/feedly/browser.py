@@ -18,9 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.json import json
+from weboob.capabilities.base import UserError
 from weboob.capabilities.collection import Collection
 from weboob.browser import LoginBrowser, URL, need_login
-from .pages import EssentialsPage, TokenPage, ContentsPage, PreferencesPage
+from .pages import EssentialsPage, TokenPage, ContentsPage, PreferencesPage, MarkerPage
 
 
 __all__ = ['FeedlyBrowser']
@@ -33,24 +34,27 @@ class FeedlyBrowser(LoginBrowser):
     token = URL('v3/auth/token', TokenPage)
     contents = URL('v3/streams/contents', ContentsPage)
     preferences = URL('v3/preferences', PreferencesPage)
-    marker = URL('v3/markers')
+    marker = URL('v3/markers', MarkerPage)
 
     def __init__(self, username, password, login_browser, *args, **kwargs):
         super(FeedlyBrowser, self).__init__(username, password, *args, **kwargs)
-        self.login_browser = login_browser
         self.user_id = None
+        self.login_browser = login_browser
 
     def do_login(self):
-        if self.login_browser.code is None or self.user_id is None:
-            self.login_browser.do_login()
-            params = {'code': self.login_browser.code,
-                      'client_id': 'feedly',
-                      'client_secret': '0XP4XQ07VVMDWBKUHTJM4WUQ',
-                      'redirect_uri': 'http://dev.feedly.com/feedly.html',
-                      'grant_type': 'authorization_code'}
+        if self.login_browser:
+            if self.login_browser.code is None or self.user_id is None:
+                self.login_browser.do_login()
+                params = {'code': self.login_browser.code,
+                          'client_id': 'feedly',
+                          'client_secret': '0XP4XQ07VVMDWBKUHTJM4WUQ',
+                          'redirect_uri': 'http://dev.feedly.com/feedly.html',
+                          'grant_type': 'authorization_code'}
 
-            token, self.user_id = self.token.go(data=params).get_token()
-            self.session.headers['X-Feedly-Access-Token'] = token
+                token, self.user_id = self.token.go(data=params).get_token()
+                self.session.headers['X-Feedly-Access-Token'] = token
+        else:
+            raise UserError(r'You need to fill your username and password to access this page')
 
     @need_login
     def iter_threads(self):
@@ -60,6 +64,7 @@ class FeedlyBrowser(LoginBrowser):
                   'count': '100'}
         return self.contents.go(params=params).get_articles()
 
+    @need_login
     def get_unread_feed(self, url):
         params = {'streamId': url,
                   'backfill': 'true',
