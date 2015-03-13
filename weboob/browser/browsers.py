@@ -637,7 +637,10 @@ class PagesBrowser(DomainBrowser):
     def load_state(self, state):
         super(PagesBrowser, self).load_state(state)
         if 'url' in state:
-            self.location(state['url'])
+            try:
+                self.location(state['url'])
+            except requests.exceptions.HTTPError:
+                pass
 
     def dump_state(self):
         state = super(PagesBrowser, self).dump_state()
