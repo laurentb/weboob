@@ -23,7 +23,7 @@ import urllib
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.deprecated.browser.parsers.jsonparser import JsonParser
 
-from .pages import LoginPage, PostLoginPage, AccountsPage, TransactionsPage, CBTransactionsPage, UnavailablePage
+from .pages import LoginPage, PostLoginPage, AccountsPage, TransactionsPage, CBTransactionsPage, UnavailablePage, PredisconnectedPage
 
 
 __all__ = ['AXABanque']
@@ -36,6 +36,7 @@ class AXABanque(Browser):
              'https?://www.axa.fr/.loginAxa.json':                                          (PostLoginPage, JsonParser()),
              'https?://www.axabanque.fr/login_errors/indisponibilite.*':                    UnavailablePage,
              'https?://www.axabanque.fr/.*page-indisponible.html.*':                        UnavailablePage,
+             'https?://www.axa.fr/axa-predisconnect.html':                                  PredisconnectedPage,
              'https?://www.axabanque.fr/transactionnel/client/liste-comptes.html':          AccountsPage,
              'https?://www.axabanque.fr/webapp/axabanque/jsp/panorama.faces':               TransactionsPage,
              'https?://www.axabanque.fr/webapp/axabanque/jsp/detailCarteBleu.*.faces':      CBTransactionsPage,

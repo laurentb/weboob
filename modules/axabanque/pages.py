@@ -23,7 +23,7 @@ from decimal import Decimal, InvalidOperation
 import re
 import lxml.html
 
-from weboob.deprecated.browser import Page as _BasePage, BrowserUnavailable, BrokenPageError
+from weboob.deprecated.browser import Page as _BasePage, BrowserUnavailable, BrokenPageError, BrowserBanned
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
@@ -40,6 +40,11 @@ class BasePage(_BasePage):
 class UnavailablePage(BasePage):
     def on_loaded(self):
         raise BrowserUnavailable()
+
+
+class PredisconnectedPage(BasePage):
+    def on_loaded(self):
+        raise BrowserBanned()
 
 
 class VirtKeyboard(MappedVirtKeyboard):
