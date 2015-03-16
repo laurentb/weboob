@@ -29,8 +29,9 @@ from weboob.capabilities.bank import Account
 from weboob.browser.elements import method, ListElement, ItemElement, SkipItem
 from weboob.exceptions import ParseError
 from weboob.browser.pages import LoggedPage, HTMLPage, FormNotFound
+from weboob.browser.filters.html import Attr
 from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, \
-                                            CleanDecimal, Map
+                                            CleanDecimal, Map, AsyncLoad, Async
 from weboob.exceptions import BrowserUnavailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
@@ -188,7 +189,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^(?P<category>CB) (?P<text>RETRAIT) DU (?P<dd>\d+)/(?P<mm>\d+)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^(?P<category>(PRLV|PE)) (?P<text>.*)'),
+                (re.compile('^(?P<category>(PRLV|PE)( SEPA)?) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_ORDER),
                 (re.compile('^(?P<category>CHQ\.) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_CHECK),
@@ -220,6 +221,7 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
         col_raw = [u'Vos opérations', u'Libellé']
 
         class item(Transaction.TransactionElement):
+            load_details = Attr('.', 'href', default=None) & AsyncLoad
             def condition(self):
                 return self.parent.get_colnum('date') is not None and \
                        len(self.el.findall('td')) >= 3 and \
@@ -227,7 +229,11 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                        not 'tableTr' in self.el.get('class')
 
             def validate(self, obj):
-                return obj.category != 'RELEVE CB'
+                if obj.category == 'RELEVE CB':
+                    return
+
+                obj.raw = Async('details', CleanText(u'//td[contains(text(), "Libellé")]/following-sibling::*[1]', default=obj.raw))(self)
+                return True
 
     def get_operations(self):
         return self._get_operations()

@@ -47,7 +47,9 @@ class LCLBrowser(LoginBrowser):
                     '/outil/UAUT/Contract/selectContracts.*',
                     ContractsPage)
     accounts = URL('/outil/UWSP/Synthese', AccountsPage)
-    history = URL('/outil/UWLM/ListeMouvements.*/accesListeMouvements.*', AccountHistoryPage)
+    history = URL('/outil/UWLM/ListeMouvements.*/accesListeMouvements.*',
+                  '/outil/UWLM/DetailMouvement.*/accesDetailMouvement.*',
+                  AccountHistoryPage)
     cb_list = URL('/outil/UWCB/UWCBEncours.*/listeCBCompte.*', CBListPage)
     cb_history = URL('/outil/UWCB/UWCBEncours.*/listeOperations.*', CBHistoryPage)
     skip = URL('/outil/UAUT/Contrat/selectionnerContrat.*',
