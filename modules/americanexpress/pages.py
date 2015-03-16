@@ -47,7 +47,7 @@ class AccountsPage(Page):
             a.id = self.parser.tocleanstring(box.xpath('.//tr[@id="summaryImageHeaderRow"]//div[@class="summaryTitles"]')[0])
             a.label = self.parser.tocleanstring(box.xpath('.//span[@class="cardTitle"]')[0])
             balance = self.parser.tocleanstring(self.parser.select(box, 'td#colOSBalance div.summaryValues', 1))
-            if balance in (u'Indisponible', ''):
+            if balance in (u'Indisponible', u'Indisponible Facturation en cours', ''):
                 a.balance = NotAvailable
             else:
                 a.balance = - abs(Decimal(Transaction.clean_amount(balance)))
