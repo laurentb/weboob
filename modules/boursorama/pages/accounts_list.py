@@ -50,6 +50,17 @@ class AccountsList(Page):
                             break
                         account.type = Account.TYPE_CARD
                         account.label, account.id = [s.strip() for s in self.parser.tocleanstring(td).rsplit('-', 1)]
+
+                        # Sometimes there is text after the card number:
+                        #   <a class="gras" href="/comptes/banque/cartes/index.phtml?CompteCourant=ulietuliedtlueditluedt&amp;currentCB=ruisecruicertuci">
+                        #   CARTE PREMIER                            </a>
+                        #   <br>MACHIN BIDULE TRUC - 1111********1111
+                        #
+                        #   <br>
+                        #   <strong><a href="/aide/faq/index.phtml?document_id=472">Son échéance est le <span style="color:#ff8400; font-weight:bold;">31/03/2015</span>.<br>En savoir plus</a></strong>
+                        # So we have to remove all the shit after it.
+                        account.id = account.id.split(' ')[0]
+
                         try:
                             account._link_id = td.xpath('.//a')[0].get('href')
                         except KeyError:
