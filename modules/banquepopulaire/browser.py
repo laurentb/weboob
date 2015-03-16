@@ -37,6 +37,7 @@ class BanquePopulaire(Browser):
              'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=mesComptes.*':             AccountsPage,
              'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=maSyntheseGratuite.*':     AccountsPage,
              'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=accueilSynthese.*':        AccountsPage,
+             'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=equipementComplet.*':      AccountsPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=EQUIPEMENT_COMPLET.*': AccountsFullPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=VUE_COMPLETE.*': AccountsPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=ENCOURS_COMPTE.*': CardsPage,
@@ -83,7 +84,7 @@ class BanquePopulaire(Browser):
 
         self.token = self.page.get_token()
 
-    ACCOUNT_URLS = ['mesComptes', 'mesComptesPRO', 'maSyntheseGratuite', 'accueilSynthese']
+    ACCOUNT_URLS = ['mesComptes', 'mesComptesPRO', 'maSyntheseGratuite', 'accueilSynthese', 'equipementComplet']
 
     def go_on_accounts_list(self):
         for taskInfoOID in self.ACCOUNT_URLS:
