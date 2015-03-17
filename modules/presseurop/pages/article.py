@@ -29,7 +29,7 @@ class PresseuropPage(GenericNewsPage):
         self.main_div = self.document.getroot()
         self.element_title_selector = "title"
         self.element_author_selector = "div[id=content-author]>a"
-        self.element_body_selector = "div.block, div.panel"
+        self.element_body_selector = "div.block, div.panel, div.bodytext"
 
     def get_body(self):
         element_body = self.get_element_body()
@@ -61,7 +61,7 @@ class DailyTitlesPage(PresseuropPage):
         self.main_div = self.document.getroot()
         self.element_title_selector = "title"
         self.element_author_selector = "div[id=content-author]>a"
-        self.element_body_selector = "section.main"
+        self.element_body_selector = "div.bodytext"
 
     def get_body(self):
         element_body = self.get_element_body()
@@ -89,4 +89,4 @@ class CartoonPage(PresseuropPage):
         self.main_div = self.document.getroot()
         self.element_title_selector = "title"
         self.element_author_selector = "div.profilecartoontext>p>a"
-        self.element_body_selector = "div.panel"
+        self.element_body_selector = "div.bodytext"
