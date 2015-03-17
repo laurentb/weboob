@@ -183,7 +183,7 @@ class BoobankMuninPlugin(object):
         for backend, err, backtrace in errors:
             print >>sys.stderr, (u'%s(%s): %s' % (type(err).__name__, backend.name, err)).encode(sys.stdout.encoding or locale.getpreferredencoding(), 'replace')
             if isinstance(err, BrowserIncorrectPassword):
-                self.weboob.backends_config.edit_backend(backend.name, backend.NAME, {'_enabled': False})
+                self.weboob.backends_config.edit_backend(backend.name, backend.NAME, {'_enabled': 'false'})
 
     def execute(self):
         if self.check_cache('boobank-munin'):
