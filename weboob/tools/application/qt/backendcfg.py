@@ -225,7 +225,7 @@ class BackendCfg(QDialog):
                 continue
 
             item = QTreeWidgetItem(None, [instance_name, name])
-            item.setCheckState(0, Qt.Checked if params.get('_enabled', '1').lower() in ('1', 'y', 'true')
+            item.setCheckState(0, Qt.Checked if params.get('_enabled', '1').lower() in ('1', 'y', 'true', 'on', 'yes')
                 else Qt.Unchecked)
 
             self.set_icon(item, info)
