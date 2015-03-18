@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable 
 
 from .pages import LoginPage, CreditLoggedPage, AccountsPage, TransactionsPage, TransactionsJSONPage, ComingTransactionsPage
 
@@ -51,6 +51,8 @@ class CreditCooperatif(LoginBrowser):
             error = self.page.get_error()
             if error is None:
                 return
+        else:
+            raise BrowserUnavailable("not on the login page")
 
         raise BrowserIncorrectPassword(error)
 
