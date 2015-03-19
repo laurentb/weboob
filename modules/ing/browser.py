@@ -62,6 +62,8 @@ class IngBrowser(LoginBrowser):
     # CapBill
     billpage = URL('/protected/pages/common/estatement/eStatement.jsf', BillsPage)
 
+    __states__ = ['where']
+
     def __init__(self, *args, **kwargs):
         self.birthday = re.sub(r'[^\d]', '', kwargs.pop('birthday'))
         self.where = None
