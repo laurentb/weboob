@@ -82,6 +82,8 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile('^VIR COOPA (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^COOPA (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_TRANSFER),
                 (re.compile('^VIR(EMENT|EMT| SEPA EMET :)? (?P<text>.*?)(- .*)?$'),
                                                             FrenchTransaction.TYPE_TRANSFER),
                 (re.compile('^(PRLV|PRELEVEMENT) SEPA (?P<text>.*?)(- .*)?$'),
