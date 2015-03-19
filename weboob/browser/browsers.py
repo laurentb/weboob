@@ -634,20 +634,6 @@ class PagesBrowser(DomainBrowser):
         for url in self._urls.itervalues():
             url.browser = self
 
-    def load_state(self, state):
-        super(PagesBrowser, self).load_state(state)
-        if 'url' in state:
-            try:
-                self.location(state['url'])
-            except requests.exceptions.HTTPError:
-                pass
-
-    def dump_state(self):
-        state = super(PagesBrowser, self).dump_state()
-        if self.page:
-            state['url'] = self.page.url
-        return state
-
     def open(self, *args, **kwargs):
         """
         Same method than
@@ -771,6 +757,22 @@ class LoginBrowser(PagesBrowser):
 
     def do_logout(self):
         self.session.cookies.clear()
+
+    def load_state(self, state):
+        super(PagesBrowser, self).load_state(state)
+        if 'url' in state:
+            try:
+                self.location(state['url'])
+            except requests.exceptions.HTTPError:
+                pass
+
+    def dump_state(self):
+        if not self.page.logged:
+            return {}
+        state = super(LoginBrowser, self).dump_state()
+        if self.page:
+            state['url'] = self.page.url
+        return state
 
 
 class APIBrowser(DomainBrowser):
