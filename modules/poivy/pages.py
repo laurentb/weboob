@@ -57,7 +57,7 @@ class HomePage(LoggedPage, HTMLPage):
             klass = Subscription
 
             obj_id = CleanText('//span[@class="welcome-text"]/b')
-            obj__balance = CleanDecimal(CleanText('//span[@class="balance"]'), replace_dots=False)
+            obj__balance = CleanDecimal(CleanText('//span[contains(@class, "balance")]'), replace_dots=False)
             obj_label = Format(u"Poivy - %s - %s €", Field('id'), Field('_balance'))
 
 
