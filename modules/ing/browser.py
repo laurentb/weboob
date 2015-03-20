@@ -77,7 +77,7 @@ class IngBrowser(LoginBrowser):
         assert self.birthday.isdigit()
 
         self.do_logout()
-        self.loginpage.stay_or_go()
+        self.loginpage.go()
 
         self.page.prelogin(self.username, self.birthday)
         self.page.login(self.password)
