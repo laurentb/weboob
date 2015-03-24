@@ -57,9 +57,6 @@ class LCLBrowser(LoginBrowser):
 
     TIMEOUT = 30.0
 
-    def deinit(self):
-        pass
-
     def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)

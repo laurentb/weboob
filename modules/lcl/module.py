@@ -60,13 +60,6 @@ class LCLModule(Module, CapBank):
         return self.create_browser(self.config['login'].get(),
                                    self.config['password'].get())
 
-    def deinit(self):
-        # don't need to logout if the browser hasn't been used.
-        if not self._browser:
-            return
-
-        self.browser.deinit()
-
     def iter_accounts(self):
         return self.browser.get_accounts_list()
 
