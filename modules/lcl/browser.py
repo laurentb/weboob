@@ -55,6 +55,8 @@ class LCLBrowser(LoginBrowser):
     skip = URL('/outil/UAUT/Contrat/selectionnerContrat.*',
                '/index.html')
 
+    TIMEOUT = 30.0
+
     def deinit(self):
         pass
 
