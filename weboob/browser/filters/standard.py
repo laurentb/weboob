@@ -193,7 +193,7 @@ class _Selector(Filter):
 class AsyncLoad(Filter):
     def __call__(self, item):
         link = self.select(self.selector, item, key=self._key, obj=self._obj)
-        return item.page.browser.async_open(link)
+        return item.page.browser.async_open(link) if link else None
 
 
 class Async(_Filter):
@@ -209,6 +209,9 @@ class Async(_Filter):
         return self
 
     def __call__(self, item):
+        if item.loaders[self.name] is None:
+            return None
+
         result = item.loaders[self.name].result()
         assert result.page is not None, 'The loaded url %s hasn\'t been matched by an URL object' % result.url
         return self.selector(result.page.doc)
