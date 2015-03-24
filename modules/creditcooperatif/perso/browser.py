@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable 
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 
 from .pages import LoginPage, CreditLoggedPage, AccountsPage, TransactionsPage, TransactionsJSONPage, ComingTransactionsPage
 
