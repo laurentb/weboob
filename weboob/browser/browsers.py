@@ -196,7 +196,7 @@ class Browser(object):
         """
         Set up a python-requests session for our usage.
         """
-        session = FuturesSession(max_workers=self.MAX_WORKERS)
+        session = FuturesSession(max_workers=self.MAX_WORKERS, max_retries=self.MAX_RETRIES)
 
         session.proxies = self.PROXIES
 

@@ -101,7 +101,7 @@ class WeboobSession(Session):
 
 
 class FuturesSession(WeboobSession):
-    def __init__(self, executor=None, max_workers=2, *args, **kwargs):
+    def __init__(self, executor=None, max_workers=2, max_retries=2, *args, **kwargs):
         """Creates a FuturesSession
 
         Notes
@@ -119,7 +119,8 @@ class FuturesSession(WeboobSession):
             # set connection pool size equal to max_workers if needed
             if max_workers > DEFAULT_POOLSIZE:
                 adapter_kwargs = dict(pool_connections=max_workers,
-                                      pool_maxsize=max_workers)
+                                      pool_maxsize=max_workers,
+                                      max_retries=max_retries)
                 self.mount('https://', HTTPAdapter(**adapter_kwargs))
                 self.mount('http://', HTTPAdapter(**adapter_kwargs))
 
