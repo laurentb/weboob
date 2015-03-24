@@ -129,7 +129,7 @@ class PartHistoryPage(Page):
             if transaction['currencyCode'] != account.currency:
                 transaction = self.browser.convert_amount(account, transaction)
                 t.original_amount = self.format_amount(transaction['originalAmount'], transaction["isCredit"])
-                t.original_currency = transaction["currencyCode"]
+                t.original_currency = u'' + transaction["currencyCode"]
             t.amount = self.format_amount(transaction['netAmount'], transaction["isCredit"])
         except KeyError:
             return
