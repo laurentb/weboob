@@ -150,3 +150,8 @@ class FuturesSession(WeboobSession):
             return self.executor.submit(func, *args, **kwargs)
 
         return sup(*args, **kwargs)
+
+    def close(self):
+        super(FuturesSession, self).close()
+        if self.executor:
+            self.executor.shutdown()

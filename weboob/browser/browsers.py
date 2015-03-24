@@ -118,6 +118,9 @@ class Browser(object):
         if isinstance(self.VERIFY, basestring):
             self.VERIFY = self.asset(self.VERIFY)
 
+    def deinit(self):
+        self.session.close()
+
     def load_state(self, state):
         if 'cookies' in state:
             try:
