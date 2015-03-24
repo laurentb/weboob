@@ -291,6 +291,8 @@ class Module(object):
         if hasattr(self.browser, 'dump_state'):
             self.storage.set('browser_state', self.browser.dump_state())
             self.storage.save()
+        if hasattr(self.browser, 'deinit'):
+            self.browser.deinit()
 
     _browser = None
 
