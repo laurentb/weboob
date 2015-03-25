@@ -232,7 +232,9 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                 if obj.category == 'RELEVE CB':
                     return
 
-                obj.raw = Async('details', CleanText(u'//td[contains(text(), "Libellé")]/following-sibling::*[1]', default=obj.raw))(self)
+                raw = Async('details', CleanText(u'//td[contains(text(), "Libellé")]/following-sibling::*[1]', default=obj.raw))(self)
+                if raw:
+                    obj.raw = raw
                 return True
 
     def get_operations(self):
