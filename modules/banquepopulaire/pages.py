@@ -273,8 +273,13 @@ class HomePage(BasePage):
                     vary = m.group(1)
                     break
 
-        #r = self.browser.openurl(self.browser.request_class(self.browser.buildurl(self.browser.absurl("/portailinternet/_layouts/Ibp.Cyi.Application/GetuserInfo.ashx"), action='UInfo', vary=vary), None, {'Referer': self.url}))
-        #print r.read()
+        r = self.browser.openurl(self.browser.request_class(self.browser.buildurl(self.browser.absurl("/portailinternet/_layouts/Ibp.Cyi.Application/GetuserInfo.ashx"), action='UInfo', vary=vary), None, {'Referer': self.url}))
+        doc = json.load(r)
+        m = re.search("vary=([\d-]+)", doc['accountContent'])
+        if m:
+            vary = m.group(1)
+        else:
+            self.logger.warning("Vary not found")
 
         r = self.browser.openurl(self.browser.request_class(self.browser.buildurl(self.browser.absurl('/portailinternet/Transactionnel/Pages/CyberIntegrationPage.aspx'), vary=vary), 'taskId=aUniversMesComptes', {'Referer': self.url}))
         doc = self.browser.get_document(r)
@@ -283,7 +288,7 @@ class HomePage(BasePage):
             if script.text is None:
                 continue
 
-            m = re.search('lastConnectionDate":"([^"]+)"', script.text)
+            m = re.search('lastConnectionDate":"([^"]*)"', script.text)
             if m:
                 date = m.group(1)
 
