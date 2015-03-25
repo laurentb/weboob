@@ -762,7 +762,8 @@ class LoginBrowser(PagesBrowser):
         self.session.cookies.clear()
 
     def load_state(self, state):
-        super(PagesBrowser, self).load_state(state)
+        super(LoginBrowser, self).load_state(state)
+
         if 'url' in state:
             try:
                 self.location(state['url'])
@@ -770,11 +771,11 @@ class LoginBrowser(PagesBrowser):
                 pass
 
     def dump_state(self):
-        if not self.page.logged:
+        if not self.page or not self.page.logged:
             return {}
+
         state = super(LoginBrowser, self).dump_state()
-        if self.page:
-            state['url'] = self.page.url
+        state['url'] = self.page.url
         return state
 
 
