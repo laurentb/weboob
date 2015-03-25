@@ -20,13 +20,13 @@
 
 import lxml.html as html
 
-from .standard import _Selector, _NO_DEFAULT, Filter, FilterError
-from weboob.tools.html import html2text
 from weboob.tools.compat import basestring, unicode, urljoin
+from weboob.tools.html import html2text
 
+from .standard import _NO_DEFAULT, Filter, FilterError, _Selector
 
 __all__ = ['CSS', 'XPath', 'XPathNotFound', 'AttributeNotFound',
-           'Attr', 'Link', 'CleanHTML']
+           'Attr', 'Link', 'CleanHTML', 'FormValue']
 
 
 class XPathNotFound(FilterError):
@@ -61,7 +61,7 @@ class Attr(Filter):
         try:
             return u'%s' % el[0].attrib[self.attr]
         except IndexError:
-            return self.default_or_raise(XPathNotFound('Unable to find tag %s' % self.selector))
+            return self.default_or_raise(XPathNotFound('Unable to find element %s' % self.selector))
         except KeyError:
             return self.default_or_raise(AttributeNotFound('Element %s does not have attribute %s' % (el[0], self.attr)))
 
@@ -96,3 +96,43 @@ class CleanHTML(Filter):
         if not isinstance(txt, basestring):
             txt = html.tostring(txt, encoding=unicode)
         return html2text(txt)
+
+
+class UnrecognizedElement(Exception):
+    pass
+
+
+class FormValue(Filter):
+    """
+    Extract a Python value from a form element.
+    Checkboxes and radio return booleans, while the rest
+    return text. Select returns the user-visible text.
+    """
+    def filter(self, el):
+        try:
+            el = el[0]
+        except IndexError:
+            return self.default_or_raise(XPathNotFound('Unable to find element %s' % self.selector))
+        if el.tag == 'input':
+            # checkboxes or radios
+            if el.attrib.get('type') in ('radio', 'checkbox'):
+                return 'checked' in el.attrib
+            # regular text input
+            elif el.attrib.get('type', '') in ('', 'text', 'email', 'search', 'tel', 'url'):
+                try:
+                    return unicode(el.attrib['value'])
+                except KeyError:
+                    return self.default_or_raise(AttributeNotFound('Element %s does not have attribute value' % el))
+            # TODO handle html5 number, datetime, etc.
+            else:
+                raise UnrecognizedElement('Element %s is recognized' % el)
+        elif el.tag == 'textarea':
+            return unicode(el.text)
+        elif el.tag == 'select':
+            options = el.xpath('.//option[@selected]')
+            # default is the first one
+            if len(options) == 0:
+                options = el.xpath('.//option[1]')
+            return u'\n'.join([unicode(o.text) for o in options])
+        else:
+            raise UnrecognizedElement('Element %s is recognized' % el)
