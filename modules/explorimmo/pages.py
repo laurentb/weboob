@@ -134,7 +134,7 @@ class HousingPage2(JsonPage):
             rooms = Dict('characteristics/roomCount')(self)
             if len(rooms):
                 details['rooms'] = rooms[0]
-            details['available'] = Dict('characteristics/available')(self)
+            details['available'] = Dict('characteristics/available', default=NotAvailable)(self)
             return details
 
     def get_total_page(self):
