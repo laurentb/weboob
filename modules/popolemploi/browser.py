@@ -27,11 +27,11 @@ __all__ = ['PopolemploiBrowser']
 
 class PopolemploiBrowser(PagesBrowser):
 
-    BASEURL = 'http://candidat.pole-emploi.fr/'
+    BASEURL = 'https://candidat.pole-emploi.fr/'
 
     advert = URL('candidat/rechercheoffres/detail/(?P<id>.*)', AdvertPage)
     search = URL('candidat/rechercheoffres/resultats/(?P<search>.*?)',
-                 'http://offre.pole-emploi.fr/resultat\?offresPartenaires=true&libMetier=(?P<pattern>.*?)', SearchPage)
+                 'https://offre.pole-emploi.fr/resultat\?offresPartenaires=true&libMetier=(?P<pattern>.*?)', SearchPage)
 
     def search_job(self, pattern=None):
         return self.search.go(pattern=quote_plus(pattern)).iter_job_adverts()
