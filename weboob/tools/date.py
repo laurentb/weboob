@@ -271,11 +271,14 @@ DATE_TRANSLATE_FR = [(re.compile(ur'janvier', re.I),   ur'january'),
                      (re.compile(ur'dimanche', re.I),  ur'sunday')]
 
 
-def parse_french_date(date):
+def parse_french_date(date, **kwargs):
     for fr, en in DATE_TRANSLATE_FR:
         date = fr.sub(en, date)
 
-    return dateutil.parser.parse(date)
+    if 'dayfirst' not in kwargs:
+        kwargs['dayfirst'] = True
+
+    return dateutil.parser.parse(date, **kwargs)
 
 
 WEEK   = {'MONDAY': 0,
