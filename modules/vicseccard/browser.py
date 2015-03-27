@@ -17,10 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from requests.exceptions import Timeout, ConnectionError
+
 from weboob.capabilities.bank import AccountNotFound, Account, Transaction
 from weboob.tools.capabilities.bank.transactions import \
     AmericanTransaction as AmTr
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser.exceptions import ServerError
 from weboob.browser.pages import HTMLPage
 from weboob.exceptions import BrowserIncorrectPassword
 from datetime import datetime
@@ -32,7 +35,7 @@ __all__ = ['VicSecCard']
 class SomePage(HTMLPage):
     @property
     def logged(self):
-        return bool(self.doc.xpath(u'//a[text()="Sign out"]'))
+        return bool(self.doc.xpath(u'//span[text()="Sign Out"]'))
 
 
 class LoginPage(SomePage):
@@ -48,11 +51,15 @@ class LoginPage(SomePage):
 
 class HomePage(SomePage):
     def account(self):
-        id_ = self.doc.xpath(u'//h1[contains(text(),'
-            '"Information for account ending in")]/text()')[0].strip()[-4:]
-        balance = self.amount(u'Current balance')
-        cardlimit = self.amount(u'Credit limit')
-        paymin = self.amount(u'Minimum payment')
+        id_ = self.doc.xpath(u'//strong[contains(text(),'
+            '"credit card account ending in")]/text()')[0].strip()[-4:]
+        balance = self.doc.xpath(u'//section[@id=" account_summary"]'
+            '//span[text()="Current Balance"]/../span[2]/text()')[0].strip()
+        cardlimit = self.doc.xpath(u'//span[contains(text(),"Credit limit")]'
+                                    '/text()')[0].split()[-1]
+        paymin = self.doc.xpath(u'//section[@id=" account_summary"]'
+            '//strong[text()="Minimum Payment Due"]/../../span[2]/text()'
+            )[0].strip()
         a = Account()
         a.id = id_
         a.label = u'ACCOUNT ENDING IN %s' % id_
@@ -66,19 +73,13 @@ class HomePage(SomePage):
         #      Need to wait for a while...
         return a
 
-    def amount(self, name):
-        return self.doc.xpath(
-            u'//td[contains(text(),"%s")]/../td[2]/text()' % name)[0].strip()
-
 
 class RecentPage(SomePage):
     def iter_transactions(self):
-        for tr in self.doc.xpath('//table[@id="allTransactionList_table1"]'
-                                 '/tbody/tr'):
-            date = tr.xpath('td[1]/text()')[0]
-            label = u''.join(x.strip() for x in tr.xpath('td[2]/a/text()') +
-                                                tr.xpath('td[2]/text()'))
-            amount = tr.xpath('td[4]/text()')[0]
+        for li in self.doc.xpath('//section[@class="transactions"]//div/li'):
+            date = li.xpath('p[@data-type="date"]//text()')[0].strip()
+            label = li.xpath('p[@data-type="description"]//text()')[0].strip()
+            amount = li.xpath('p[@data-type="amount"]//text()')[0].strip()
             t = Transaction()
             t.date = datetime.strptime(date, '%m/%d/%Y')
             t.rdate = datetime.strptime(date, '%m/%d/%Y')
@@ -91,6 +92,8 @@ class RecentPage(SomePage):
 
 class VicSecCard(LoginBrowser):
     BASEURL = 'https://c.comenity.net'
+    MAX_RETRIES = 10
+    TIMEOUT = 30.0
     login = URL(r'/victoriassecret/$', LoginPage)
     home = URL(r'/victoriassecret/secure/SecureHome.xhtml', HomePage)
     recent = URL(r'/victoriassecret/secure/accountactivity/Transactions.xhtml',
@@ -117,3 +120,11 @@ class VicSecCard(LoginBrowser):
         self.login.go().login(self.username, self.password)
         if not self.page.logged:
             raise BrowserIncorrectPassword()
+
+    def location(self, *args, **kwargs):
+        for i in xrange(self.MAX_RETRIES):
+            try:
+                return super(VicSecCard, self).location(*args, **kwargs)
+            except (ServerError, Timeout, ConnectionError) as e:
+                pass
+        raise e
