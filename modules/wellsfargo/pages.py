@@ -262,10 +262,13 @@ class ActivityCardPage(ActivityPage):
             return datetime.datetime.now() + datetime.timedelta(days=999), \
                    Decimal(0)
         else:
-            # TODO: Parse payment date and amount.
-            # Oleg: Currently I don't have any accounts with scheduled
-            #       payments, so I have to wait for a while...
-            return None, None
+            date = self.doc.xpath(u'//span[contains(text(),"Minimum Payment")]'
+                                   '/span/text()')[0]
+            date = re.match(u'.*(../../..).*', date).group(1)
+            date = datetime.datetime.strptime(date, '%m/%d/%y')
+            amount = self.doc.xpath(u'//td[@headers="minimumPaymentDue"]'
+                                     '//text()')[0].strip()
+            return date, AmTr.decimal_amount(amount)
 
     def get_account(self):
         account = ActivityPage.get_account(self)
