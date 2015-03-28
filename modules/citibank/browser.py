@@ -21,18 +21,17 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.pages import HTMLPage, JsonPage, RawPage
 from weboob.capabilities.bank import Account, AccountNotFound, Transaction
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import \
     AmericanTransaction as AmTr
 
 from .parser import StatementParser, clean_label
 
-import gc
 import re
+import os
 from datetime import datetime
-from time import sleep
-from urllib import unquote
-from shutil import rmtree
+from tempfile import mkstemp
+from subprocess import check_output, STDOUT
 
 
 __all__ = ['Citibank']
@@ -42,6 +41,25 @@ class SomePage(HTMLPage):
     @property
     def logged(self):
         return bool(self.doc.xpath(u'//a[text()="Sign Off"]'))
+
+
+class IndexPage(SomePage):
+    def extra(self):
+        APPEND = r'jQuery\( "form" \).each\(function\(\) {' \
+                    r'if\(isValidUrl\(jQuery\(this\).attr\("action"\)\)\){' \
+                        r'jQuery\(this\).append\(([^)]+)\);}}\);'
+        script = self.doc.xpath(
+            '//script[contains(text(),"XXX_Extra")]/text()')[0]
+        script = re.sub(APPEND, lambda m: 'return %s;' % m.group(1), script)
+        script = re.sub(r'jQuery\(document\)[^\n]+\n', '', script)
+        for x in re.findall('function ([^(]+)\(', script):
+            script += '\nvar x = %s(); if (x) print(x);' % x
+        scriptFd, scriptName = mkstemp('.js')
+        os.write(scriptFd, script)
+        os.close(scriptFd)
+        html = check_output(["d8", scriptName], stderr=STDOUT)
+        os.remove(scriptName)
+        return re.findall(r'name=([^ ]+) value=([^>]+)>', html)
 
 
 class AccountsPage(JsonPage):
@@ -129,13 +147,11 @@ class StatementPage(RawPage):
 class Citibank(LoginBrowser):
     """
     Citibank website uses some kind of Javascript magic during login
-    negotiation, hence a real browser is being used to log in.
+    negotiation, hence a real JS interpreter is being used to log in.
 
     External dependencies:
-    Firefox (https://www.mozilla.org/firefox).
+    V8 JavaScript Engine (http://code.google.com/p/v8/).
     MuPDF (http://www.mupdf.com).
-    Python bindings for Selenium (https://pypi.python.org/pypi/selenium).
-    Xvfb (http://www.x.org/releases/X11R7.6/doc/man/man1/Xvfb.1.xhtml).
 
     Tested on Arch Linux snapshot of 2014-11-11 (official and user packages).
 
@@ -143,10 +159,11 @@ class Citibank(LoginBrowser):
     Contributions are welcome!
     """
 
-    MAX_RETRIES = 10
-    MAX_DELAY = 10
     BASEURL = 'https://online.citibank.com'
-    home = URL(r'/US/JPS/portal/Home.do', SomePage)
+    MAX_RETRIES = 10
+    TIMEOUT = 30.0
+    index = URL(r'/US/JPS/portal/Index.do', IndexPage)
+    signon = URL(r'/US/JSO/signon/ProcessUsernameSignon.do', SomePage)
     accounts = URL(r'/US/REST/accountsPanel'
                    r'/getCustomerAccounts.jws\?ttc=(?P<ttc>.*)$',
                    AccountsPage)
@@ -195,39 +212,8 @@ class Citibank(LoginBrowser):
         return self.page if url.is_here(**data) else url.go(data=data, **data)
 
     def do_login(self):
-        # To avoid ImportError during e.g. building modules list.
-        from selenium import webdriver
-
-        browser = webdriver.Firefox()
-        browser.get(self.BASEURL)
-        browser.execute_script('''
-            $("input[name='username']").val("%s");
-            $("input[name='password']").val("%s");
-        ''' % (self.username, self.password))
-        self.wait(browser, 'form[name="SignonForm"]')[0].submit()
         self.session.cookies.clear()
-        for c in browser.get_cookies():
-            self.session.cookies.set(name=c['name'], value=unquote(c['value']))
-        browser.close()
-        prof_dir = browser.firefox_profile.profile_dir
-        browser = None
-        gc.collect() # Make sure Firefox process is dead.
-        for i in xrange(self.MAX_RETRIES):
-            try:
-                rmtree(prof_dir)
-                break
-            except OSError:
-                sleep(min(1 << i, self.MAX_DELAY))
-        if not self.home.go().logged:
+        data = dict([('username', self.username), ('password', self.password)]+
+                    self.index.go().extra())
+        if not self.signon.go(data=data).logged:
             raise BrowserIncorrectPassword()
-
-    def wait(self, browser, selector):
-        self.logger.debug('Finding selector """%s""" on page %s' % (
-            selector, browser.current_url))
-        for i in xrange(self.MAX_RETRIES):
-            els = browser.find_elements_by_css_selector(selector)
-            if els:
-                return els
-            sleep(min(1 << i, self.MAX_DELAY))
-        raise BrowserUnavailable('Unexpected site behavior. '
-                                 'Perhaps this module needs some fixing...')
