@@ -195,7 +195,7 @@ class UnavailablePage(BasePage):
         except IndexError:
             raise BrowserUnavailable()
         else:
-            self.browser.location(a.attrib['href'])
+            self.browser.location(a.attrib['href'], nologin=True)
 
 
 class LoginPage(BasePage):

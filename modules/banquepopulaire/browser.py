@@ -45,7 +45,7 @@ class BanquePopulaire(Browser):
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SOLDE.*':   TransactionsPage,
              'https://[^/]+/cyber/internet/Page.do\?.*':                                        TransactionsPage,
              'https://[^/]+/cyber/internet/Sort.do\?.*':                                        TransactionsPage,
-             'https://[^/]+/s3f-web/indispo.*':                                                 UnavailablePage,
+             'https://[^/]+/s3f-web/.*':                                                        UnavailablePage,
              'https://[^/]+/portailinternet/_layouts/Ibp.Cyi.Layouts/RedirectSegment.aspx.*':   RedirectPage,
              'https://[^/]+/portailinternet/Catalogue/Segments/.*.aspx(\?vary=(?P<vary>.*))?':  HomePage,
              'https://[^/]+/portailinternet/Pages/.*.aspx\?vary=(?P<vary>.*)':                  HomePage,
