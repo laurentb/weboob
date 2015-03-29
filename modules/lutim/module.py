@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2014      Vincent A
+# Copyright(C) 2015      Vincent A
 #
 # This file is part of weboob.
 #
@@ -18,12 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
+from urlparse import urljoin
 from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.paste import CapPaste, BasePaste
 from weboob.tools.capabilities.paste import image_mime
 from weboob.tools.value import Value
-import re
-from urlparse import urljoin
 
 from .browser import LutimBrowser
 
@@ -33,7 +33,7 @@ __all__ = ['LutimModule']
 
 class LutimModule(Module, CapPaste):
     NAME = 'lutim'
-    DESCRIPTION = u'LUTIm website'
+    DESCRIPTION = u'lutim website'
     MAINTAINER = u'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
@@ -41,55 +41,45 @@ class LutimModule(Module, CapPaste):
 
     BROWSER = LutimBrowser
 
-    CONFIG = BackendConfig(Value('base_url', label='Hoster base URL', default='http://lut.im/'))
+    CONFIG = BackendConfig(Value('base_url', label='Hoster base URL', default='https://lut.im/'))
 
-    def _base_url(self):
+    @property
+    def base_url(self):
         url = self.config['base_url'].get()
         if not url.endswith('/'):
             url = url + '/'
         return url
 
     def create_default_browser(self):
-        return self.create_browser(self._base_url())
+        return self.create_browser(self.base_url)
 
     def can_post(self, contents, title=None, public=None, max_age=None):
-        if re.search(r'[^a-zA-Z0-9=+/\s]', contents):
+        if public:
             return 0
         elif max_age and max_age < 86400:
             return 0 # it cannot be shorter than one day
+        elif re.search(r'[^a-zA-Z0-9=+/\s]', contents):
+            return 0 # not base64, thus not binary
         else:
             mime = image_mime(contents, ('gif', 'jpeg', 'png'))
             return 20 * int(mime is not None)
 
-    def new_paste(self, *a, **kw):
-        base_url = self._base_url()
+    def get_paste(self, url):
+        if not url.startswith('http'):
+            url = urljoin(self.base_url, url)
+        paste = self.new_paste(url)
+        self.browser.fetch(paste)
+        return paste
 
-        class LutImage(BasePaste):
-            @classmethod
-            def id2url(cls, id):
-                return urljoin(base_url, id)
+    def new_paste(self, _id):
+        paste = LutimPaste(_id)
+        return paste
 
-            @classmethod
-            def url2id(cls, url):
-                if url.startswith(base_url):
-                    return url[len(base_url):]
+    def post_paste(self, paste, max_age):
+        return self.browser.post(paste, max_age)
 
-        return LutImage(*a, **kw)
 
-    def get_paste(self, id):
-        paste = self.new_paste(id)
-
-        if '/' in id:
-            paste.id = paste.url2id(id)
-            if not paste.id:
-                return None
-
-        response = self.browser.readurl(paste.page_url)
-        if response:
-            paste.contents = response.encode('base64')
-            return paste
-
-    def post_paste(self, paste, max_age=None):
-        d = self.browser.post(paste.title or None, paste.contents.decode('base64'), (max_age or 0) // 86400)
-        if d:
-            paste.id = d['id']
+class LutimPaste(BasePaste):
+    @classmethod
+    def id2url(cls, id):
+        return id

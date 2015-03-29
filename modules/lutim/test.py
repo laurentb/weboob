@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2014      Vincent A
+# Copyright(C) 2015      Vincent A
 #
 # This file is part of weboob.
 #
@@ -25,17 +25,29 @@ class LutimTest(BackendTest):
     MODULE = 'lutim'
 
     # small gif file
-    DATA = 'R0lGODlhAQABAIAAAP///wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==\n'
+    DATA = u'R0lGODlhAQABAIAAAP///wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==\n'
+    TITLE = u'foo.gif'
 
     def test_lutim(self):
-        assert self.backend.can_post(self.DATA, max_age=86400)
-
         post = self.backend.new_paste(None)
         post.contents = self.DATA
-        post.public = True
+        post.title = self.TITLE
+        assert self.backend.can_post(post.contents, post.title)
         self.backend.post_paste(post, max_age=86400)
         assert post.id
 
         got = self.backend.get_paste(post.id)
         assert got
-        assert got.contents.decode('base64') == self.DATA.decode('base64')
+        assert got.title == self.TITLE
+        assert got.contents == self.DATA
+
+        # test with an empty name
+        post.title = u''
+        self.backend.post_paste(post, max_age=86400)
+
+    def test_invalid(self):
+        post = self.backend.new_paste(None)
+        post.contents = u'FAIL'
+        post.title = self.TITLE
+
+        assert not self.backend.can_post(post.contents, post.title)

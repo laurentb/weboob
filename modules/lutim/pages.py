@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2014      Vincent A
+# Copyright(C) 2015      Vincent A
 #
 # This file is part of weboob.
 #
@@ -18,17 +18,26 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Page
 import re
+from weboob.browser.pages import JsonPage, RawPage
+from weboob.capabilities.base import UserError
 
 
-class PageAll(Page):
-    def post(self, name, content, max_days):
-        pass
+class ImagePage(RawPage):
+    @property
+    def contents(self):
+        return self.doc
 
-    def get_info(self):
-        for link in self.browser.links():
-            linkurl = link.absolute_url
-            m = re.match(re.escape(self.url) + r'([a-zA-Z0-9]+)\?dl$', linkurl)
-            if m:
-                return {'id': m.group(1)}
+    @property
+    def filename(self):
+        header = self.response.headers['content-disposition']
+        m = re.match('inline;filename="(.*)"', header)
+        return unicode(m.group(1))
+
+
+class UploadPage(JsonPage):
+    def fetch_info(self):
+        if not self.doc['success']:
+            raise UserError(self.doc['msg']['msg'])
+
+        return self.doc['msg']

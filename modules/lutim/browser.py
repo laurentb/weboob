@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2014      Vincent A
+# Copyright(C) 2015      Vincent A
 #
 # This file is part of weboob.
 #
@@ -18,31 +18,39 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser
+import math
+from urlparse import urljoin
 from StringIO import StringIO
-import re
+from weboob.browser import PagesBrowser, URL
 
-from .pages import PageAll
-
-
-__all__ = ['LutimBrowser']
+from .pages import ImagePage, UploadPage
 
 
-class LutimBrowser(Browser):
-    ENCODING = 'utf-8'
+class LutimBrowser(PagesBrowser):
+    BASEURL = 'https://lut.im'
+    VERIFY = False # XXX SNI is not supported
+
+    image_page = URL('/(?P<id>.+)', ImagePage)
+    upload_page = URL('/', UploadPage)
 
     def __init__(self, base_url, *args, **kw):
-        Browser.__init__(self, *args, **kw)
-        self.base_url = base_url
-        self.PAGES = {re.escape(self.base_url): PageAll}
+        PagesBrowser.__init__(self, *args, **kw)
+        self.base_url = self.BASEURL = base_url
 
-    def post(self, name, content, max_days):
-        self.location(self.base_url)
-        assert self.is_on_page(PageAll)
-        self.select_form(nr=0)
-        self.form['delete-day'] = [str(max_days)]
-        self.form.find_control('file').add_file(StringIO(content), filename=name)
-        self.submit()
+    def fetch(self, paste):
+        self.location(paste.id)
+        assert self.image_page.is_here()
+        paste.contents = unicode(self.page.contents.encode('base64'))
+        paste.title = self.page.filename
 
-        assert self.is_on_page(PageAll)
-        return self.page.get_info()
+    def post(self, paste, max_age=0):
+        bin = paste.contents.decode('base64')
+        name = paste.title or 'file' # filename is mandatory
+        filefield = {'file': (name, StringIO(bin))}
+        params = {'format': 'json'}
+        if max_age:
+            params['delete-day'] = math.ceil(max_age / 86400.)
+        self.location('/', data=params, files=filefield)
+        assert self.upload_page.is_here()
+        info = self.page.fetch_info()
+        paste.id = urljoin(self.base_url, info['short'])
