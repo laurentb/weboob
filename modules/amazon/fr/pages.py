@@ -101,9 +101,6 @@ class OrderPage(AmazonPage):
 
 
 class OrderNewPage(OrderPage):
-    # Need to force encoding because of mixed encoding
-    forced_encoding = True
-    ENCODING = 'ISO-8859-15'
     is_here = u'//*[contains(text(),"Commandé le")]'
 
     def order(self):

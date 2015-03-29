@@ -32,7 +32,8 @@ class AmazonFR(Amazon):
     CURRENCY = u'€'
     home = URL(r'/$', r'.*/homepage\.html.*', HomePage)
     login = URL(r'/ap/signin/.*$', LoginPage)
-    history = URL(r'/gp/css/order-history.*$', HistoryPage)
+    history = URL(r'/gp/css/order-history.*$',
+                  r'/gp/your-account/order-history.*$', HistoryPage)
     order_old = URL(r'/gp/css/summary.*$',
                     r'/gp/css/summary/edit.html\?orderID=%\(order_id\)s',
                     r'/gp/digital/your-account/order-summary.html.*$',
