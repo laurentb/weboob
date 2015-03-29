@@ -35,7 +35,7 @@ class S2eModule(Module, CapBank):
     EMAIL = 'weboob@lampin.net'
     VERSION = '1.1'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = u'S2e module for Employee Savings Plans. Support for Esalia, Capeasi, "BNP Paribas Épargne & Retraite Entreprises" and "HSBC Epargne et Retraite en Entreprise"'
+    DESCRIPTION = u'Esalia, Capeasi, BNP PERE, HSBC ERE'
 
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'm.esalia.com':             u'Esalia',                  # Good Url. Tested
