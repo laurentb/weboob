@@ -136,7 +136,7 @@ class Transaction(FrenchTransaction):
 
 
 class AccountHistory(BasePage):
-    rdate =  None
+    debit_date =  None
     def get_part_url(self):
         for script in self.document.getiterator('script'):
             if script.text is None:
@@ -192,22 +192,27 @@ class AccountHistory(BasePage):
 
             date = tr.xpath('./td[@headers="Date"]')[0].text.strip()
             if date == '':
-                m = re.search('(\d+)/(\d+)', raw)
+                m = re.search(r'(\d+)/(\d+)', raw)
                 if not m:
                     continue
-                self.rdate = t.date if t else datetime.date.today()
-                self.rdate = self.rdate.replace(day=int(m.group(1)), month=int(m.group(2)))
+                self.debit_date = t.date if t else datetime.date.today()
+                self.debit_date = self.debit_date.replace(day=int(m.group(1)), month=int(m.group(2)))
                 if not t:
                     continue
 
             t = Transaction(i)
-            t._coming = False
+
+            if 'EnTraitement' in tr.get('class', ''):
+                t._coming = True
+            else:
+                t._coming = False
+
             t.set_amount(*reversed([el.text for el in tr.xpath('./td[@class="right"]')]))
             if date == '':
-                #credit from main account
+                # Credit from main account.
                 t.amount = -t.amount
-                date = self.rdate
-            t.parse(raw=raw, date=date)
-            t.rdate = self.rdate
+                date = self.debit_date
+            t.rdate = t.parse_date(date)
+            t.parse(raw=raw, date=(self.debit_date or date))
 
             yield t
