@@ -150,6 +150,10 @@ class ProAccountsPage(AccountsPage):
         for sub in re.findall("'([^']*)'", text):
             l.append(sub)
 
+        if len(l) == 0:
+             #For account that have no history
+            return None, None
+
         kind = self.group_dict['kind']
         url = '/vos-comptes/IPT/appmanager/transac/' + kind + '?_nfpb=true&_windowLabel=portletInstance_18&_pageLabel=page_synthese_v1' + '&_cdnCltUrl=' + "/transacClippe/" + quote(l.pop(0))
         args = {}
