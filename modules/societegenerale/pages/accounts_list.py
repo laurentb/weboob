@@ -93,8 +93,6 @@ class AccountsList(BasePage):
 
             if 'CARTE_' in account._link_id:
                 account.type = account.TYPE_CARD
-                account.coming = account.balance
-                account.balance = Decimal('0')
 
             yield account
 
@@ -138,6 +136,7 @@ class Transaction(FrenchTransaction):
 
 
 class AccountHistory(BasePage):
+    rdate =  None
     def get_part_url(self):
         for script in self.document.getiterator('script'):
             if script.text is None:
@@ -149,7 +148,7 @@ class AccountHistory(BasePage):
 
         return None
 
-    def iter_transactions(self, coming):
+    def iter_transactions(self):
         url = self.get_part_url()
         if url is None:
             # There are no transactions in this kind of account
@@ -166,9 +165,7 @@ class AccountHistory(BasePage):
             s = StringIO(unicode(el.text).encode('iso-8859-1'))
             doc = self.browser.get_document(s)
 
-            for tr in self._iter_transactions(doc, coming):
-                if not tr._coming:
-                    coming = False
+            for tr in self._iter_transactions(doc):
                 yield tr
 
             el = d.xpath('//dataHeader')[0]
@@ -185,7 +182,7 @@ class AccountHistory(BasePage):
                                                   sign=p['sign'][0],
                                                   src=p['src'][0])
 
-    def _iter_transactions(self, doc, coming):
+    def _iter_transactions(self, doc):
         t = None
         for i, tr in enumerate(self.parser.select(doc.getroot(), 'tr')):
             try:
@@ -198,21 +195,19 @@ class AccountHistory(BasePage):
                 m = re.search('(\d+)/(\d+)', raw)
                 if not m:
                     continue
-                date = t.date if t else datetime.date.today()
-                date = date.replace(day=int(m.group(1)), month=int(m.group(2)))
-                if date <= datetime.date.today():
-                    coming = False
-                continue
+                self.rdate = t.date if t else datetime.date.today()
+                self.rdate = self.rdate.replace(day=int(m.group(1)), month=int(m.group(2)))
+                if not t:
+                    continue
 
             t = Transaction(i)
-            t.parse(date=date, raw=raw)
+            t._coming = False
             t.set_amount(*reversed([el.text for el in tr.xpath('./td[@class="right"]')]))
-            try:
-                t._coming = tr.xpath('./td[@headers="AVenir"]')[0].find('img') is not None
-            except IndexError:
-                t._coming = coming
-
-            if t.label.startswith('DEBIT MENSUEL CARTE'):
-                continue
+            if date == '':
+                #credit from main account
+                t.amount = -t.amount
+                date = self.rdate
+            t.parse(raw=raw, date=date)
+            t.rdate = self.rdate
 
             yield t

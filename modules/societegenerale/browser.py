@@ -113,9 +113,9 @@ class SocieteGenerale(Browser):
         if self.is_on_page(CardsList):
             for card_link in self.page.iter_cards():
                 self.location(card_link)
-                transactions += list(self.page.iter_transactions(coming=True))
+                transactions += list(self.page.iter_transactions())
         elif self.is_on_page(AccountHistory):
-            transactions += list(self.page.iter_transactions(coming=(account.type == account.TYPE_CARD)))
+            transactions += list(self.page.iter_transactions())
         else:
             self.logger.warning('This account is not supported')
 
