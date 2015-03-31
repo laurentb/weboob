@@ -150,7 +150,7 @@ class ProAccountsPage(AccountsPage):
         for sub in re.findall("'([^']*)'", text):
             l.append(sub)
 
-        if len(l) == 0:
+        if len(l) <= 1:
              #For account that have no history
             return None, None
 
