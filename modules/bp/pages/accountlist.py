@@ -22,6 +22,7 @@ from decimal import Decimal
 
 from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.deprecated.browser import Page
+from weboob.exceptions import BrowserUnavailable
 from weboob.tools.misc import to_unicode
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.ordereddict import OrderedDict
@@ -29,6 +30,8 @@ from weboob.tools.ordereddict import OrderedDict
 
 class AccountList(Page):
     def on_loaded(self):
+        if self.document.xpath(u'//h2[text()="%s"]' % u'ERREUR'):
+            raise BrowserUnavailable()
         self.accounts = OrderedDict()
         self.parse_table('comptes',         Account.TYPE_CHECKING)
         self.parse_table('comptesEpargne',  Account.TYPE_SAVINGS)
