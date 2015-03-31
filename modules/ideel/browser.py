@@ -73,7 +73,7 @@ class OrderPage(IdeelPage):
 
     def items(self):
         for tr in self.doc.xpath('//table[contains(@class,"items_table")]'
-                                 '/tr[td[@class="items_desc"]]'):
+                                 '//tr[td[@class="items_desc"]]'):
             label = tr.xpath('*//div[@class="item_desc"]//span/text()')[0]
             url = tr.xpath('*//div[@class="item_img"]//@src')[0]
             onclk = tr.xpath('*//div[@class="item_img"]//@onclick')
