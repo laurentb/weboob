@@ -1,0 +1,4 @@
+include boobank-indicator/data/indicator-boobank.png
+include boobank-indicator/data/green_light.png
+include boobank-indicator/data/red_light.png
+exclude screenshot.png
