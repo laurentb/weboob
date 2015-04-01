@@ -86,7 +86,7 @@ class OrderPage(AmazonPage):
         # Payment for not yet shipped orders may change, and is not always
         # available.
 
-        return bool([x for s in [u'En préparation pour expédition']  # TODO : Other French status applied ?
+        return bool([x for s in [u'En préparation pour expédition', u'En cours de préparation']  # TODO : Other French status applied ?
                     for x in self.doc.xpath(u'//*[contains(text(),"%s")]' % s)])
 
     def decimal_amount(self, amount):
