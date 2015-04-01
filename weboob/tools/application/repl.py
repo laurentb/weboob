@@ -711,7 +711,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                 print('Disabled: %s' % ', '.join(disabled_backends_names))
         elif action == 'add':
             for name in given_backend_names:
-                instname = self.add_backend(name)
+                instname = self.add_backend(name, name)
                 if instname:
                     self.load_backends(names=[instname])
         elif action == 'register':

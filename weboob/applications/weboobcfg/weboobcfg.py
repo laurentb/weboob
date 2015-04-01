@@ -100,11 +100,18 @@ class WeboobCfg(ReplApplication):
         if not line:
             print('You must specify a module name. Hint: use the "modules" command.', file=self.stderr)
             return 2
-        name, options = self.parse_command_args(line, 2, 1)
+        module_name, options = self.parse_command_args(line, 2, 1)
         if options:
             options = options.split(' ')
         else:
             options = ()
+
+        backend_name = module_name
+        try:
+            k, v = options[0].split('=',1)
+        except ValueError:
+            backend_name = options[0]
+            del options[0]
 
         params = {}
         # set backend params from command-line arguments
@@ -116,7 +123,7 @@ class WeboobCfg(ReplApplication):
                 return 2
             params[key] = value
 
-        self.add_backend(name, params)
+        self.add_backend(module_name, backend_name, params)
 
     def do_register(self, line):
         """
