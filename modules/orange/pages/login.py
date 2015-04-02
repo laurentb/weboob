@@ -27,7 +27,7 @@ class LoginPage(Page):
 
     def login(self, user, pwd):
         post_data = {"credential" : str(user),
-                     "pwd" : str(pwd),
+                     "password" : str(pwd),
                      "save_user": "false",
                      "save_pwd" : "false",
                      "save_TC"  : "true",

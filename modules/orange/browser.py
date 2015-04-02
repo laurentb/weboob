@@ -32,8 +32,8 @@ __all__ = ['OrangeBrowser']
 class OrangeBrowser(Browser):
     DOMAIN = 'orange.fr'
     PAGES = {
-        'http://id.orange.fr/auth_user/bin/auth_user.cgi.*': LoginPage,
-        'http://id.orange.fr/auth_user/bin/auth0user.cgi.*': LoginPage,
+        'https://authweb.orange.fr/auth_user/bin/auth_user.cgi.*': LoginPage,
+        'https://authweb.orange.fr/auth_user/bin/auth0user.cgi.*': LoginPage,
         'http://smsmms1.orange.fr/./Sms/sms_write.php.*'   : ComposePage,
         'http://smsmms1.orange.fr/./Sms/sms_write.php?command=send' : ConfirmPage,
         }
@@ -51,7 +51,7 @@ class OrangeBrowser(Browser):
 
     def login(self):
         if not self.is_on_page(LoginPage):
-            self.location('http://id.orange.fr/auth_user/bin/auth_user.cgi?url=http://www.orange.fr', no_login=True)
+            self.location('https://authweb.orange.fr/auth_user/bin/auth_user.cgi?url=http://www.orange.fr', no_login=True)
         self.page.login(self.username, self.password)
         if not self.is_logged():
             raise BrowserIncorrectPassword()
