@@ -33,16 +33,17 @@ __all__ = ['CaisseEpargne']
 class CaisseEpargne(Browser):
     DOMAIN = 'www.caisse-epargne.fr'
     PROTOCOL = 'https'
-    CERTHASH = ['dfff27d6db1fcdf1cea3ab8e3c1ca4f97c971262e95be49f3385b40c97fe640c', '9894ab2088630f341de821a09f1286c525f854f62ac186bd442368b4692c5969']
-    PAGES = {'https://[^/]+.caisse-epargne.fr/particuliers/ind_pauthpopup.aspx.*':          LoginPage,
-             'https://[^/]+.caisse-epargne.fr/Portail.aspx':                                IndexPage,
-             'https://[^/]+.caisse-epargne.fr/login.aspx':                                  ErrorPage,
-             'https://[^/]+.caisse-epargne.fr/Pages/logout.aspx.*':                         ErrorPage,
-             'https://[^/]+.caisse-epargne.fr/page_hs_dei_.*.aspx':                         UnavailablePage,
+    CERTHASH = ['dfff27d6db1fcdf1cea3ab8e3c1ca4f97c971262e95be49f3385b40c97fe640c', '9894ab2088630f341de821a09f1286c525f854f62ac186bd442368b4692c5969', '0e0fa585a8901c206c4ebbc7ee33e00e17809d7086f224e1b226c46165a4b5ac']
+    PAGES = {'https://[^/]+/particuliers/ind_pauthpopup.aspx.*':          LoginPage,
+             'https://[^/]+/Portail.aspx':                                IndexPage,
+             'https://[^/]+/login.aspx':                                  ErrorPage,
+             'https://[^/]+/Pages/logout.aspx.*':                         ErrorPage,
+             'https://[^/]+/page_hs_dei_.*.aspx':                         UnavailablePage,
             }
 
     def __init__(self, nuser, *args, **kwargs):
         self.nuser = nuser
+        self.DOMAIN = kwargs.pop('domain', self.DOMAIN)
         Browser.__init__(self, *args, **kwargs)
 
     def _certhash(self, domain, port=443):
@@ -72,7 +73,7 @@ class CaisseEpargne(Browser):
 
         self._ua_handlers['_cookies'].cookiejar.clear()
         if not self.is_on_page(LoginPage):
-            self.location('https://www.caisse-epargne.fr/particuliers/ind_pauthpopup.aspx?mar=101&reg=&fctpopup=auth&cv=0', no_login=True)
+            self.location(self.buildurl('/particuliers/ind_pauthpopup.aspx?mar=101&reg=&fctpopup=auth&cv=0'), no_login=True)
 
         self.page.login(self.username)
         if not self.page.login2(self.nuser, self.password):

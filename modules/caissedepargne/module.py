@@ -21,6 +21,7 @@
 from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
+from weboob.tools.ordereddict import OrderedDict
 
 from .browser import CaisseEpargne
 
@@ -35,15 +36,21 @@ class CaisseEpargneModule(Module, CapBank):
     VERSION = '1.1'
     DESCRIPTION = u'Caisse d\'Épargne'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant client', masked=False),
+    website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
+        'www.caisse-epargne.fr':     u'Caisse d\'Épargne',
+        'www.banquebcp.fr':          u'Banque BCP',
+        }.iteritems(), key=lambda k_v: (k_v[1], k_v[0]))])
+    CONFIG = BackendConfig(Value('website',  label='Banque', choices=website_choices, default='www.caisse-epargne.fr'),
+                           ValueBackendPassword('login',    label='Identifiant client', masked=False),
                            ValueBackendPassword('password', label='Code personnel', regexp='\d+'),
                            Value('nuser', label='User ID (optional)', default=''))
     BROWSER = CaisseEpargne
 
     def create_default_browser(self):
-        return self.create_browser(self.config['nuser'].get(),
-                                   self.config['login'].get(),
-                                   self.config['password'].get())
+        return self.create_browser(nuser=self.config['nuser'].get(),
+                                   username=self.config['login'].get(),
+                                   password=self.config['password'].get(),
+                                   domain=self.config['website'].get())
 
     def iter_accounts(self):
         with self.browser:
