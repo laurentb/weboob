@@ -200,11 +200,14 @@ class Browser(object):
         else:
             self.logger.info(msg)
 
+    def _create_session(self):
+        return FuturesSession(max_workers=self.MAX_WORKERS, max_retries=self.MAX_RETRIES)
+
     def _setup_session(self, profile):
         """
         Set up a python-requests session for our usage.
         """
-        session = FuturesSession(max_workers=self.MAX_WORKERS, max_retries=self.MAX_RETRIES)
+        session = self._create_session()
 
         session.proxies = self.PROXIES
 
