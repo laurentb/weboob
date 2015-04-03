@@ -27,6 +27,7 @@ class NewspaperInrocksBrowser(Browser):
     "NewspaperInrocksBrowser class"
     PAGES = {
              'http://www.lesinrocks.com/\?p=.+': ArticlePage,
+             'http://www.lesinrocks.com/\d{4}/\d{2}/\d{2}/actualite/.*': ArticlePage,
              'http://www.lesinrocks.com/inrockstv/.*': InrocksTvPage,
              'http://blogs.lesinrocks.com/.*': ArticlePage,
             }
