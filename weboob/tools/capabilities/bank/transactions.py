@@ -283,7 +283,7 @@ class FrenchTransaction(Transaction):
                                 else:
                                     item.obj.rdate = datetime.date(yy, mm, dd)
                             except ValueError as e:
-                                raise ParseError('Unable to date in label %r: %s' % (raw, e))
+                                raise ParseError('Unable to parse date in label %r: %s' % (raw, e))
 
                         break
 
