@@ -51,7 +51,7 @@ class ArteModule(Module, CapVideo, CapCollection):
     lang_choice = OrderedDict([(k, u'%s' % (v.get('label'))) for k, v in LANG.items])
     quality_choice = [u'%s' % (k) for k, v in QUALITY.items]
 
-    CONFIG = BackendConfig(Value('lang', label='Lang of videos', choices=lang_choice, default=LANG.FRENCH.get('label')),
+    CONFIG = BackendConfig(Value('lang', label='Lang of videos', choices=lang_choice, default='FRENCH'),
                            Value('order', label='Sort order', choices=order, default='AIRDATE_DESC'),
                            Value('quality', label='Quality of videos', choices=quality_choice, default=QUALITY.HD),
                            Value('format', label='Format of videos', choices=format_choice, default=FORMATS.HTTP_MP4),
