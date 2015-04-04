@@ -21,7 +21,7 @@ from datetime import date
 from decimal import Decimal
 
 from weboob.capabilities.bank import Account, Transaction
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPError
 from weboob.browser import DomainBrowser
 
 
@@ -36,8 +36,6 @@ class BredBrowser(DomainBrowser):
         self.login = login
         self.password = password
         self.accnum = accnum
-
-        self.do_login(login, password)
 
     def do_login(self, login, password):
         self.location('/transactionnel/Authentication', data={'identifiant': login, 'password': password})
@@ -56,8 +54,16 @@ class BredBrowser(DomainBrowser):
                      '027': Account.TYPE_SAVINGS,
                      '037': Account.TYPE_SAVINGS,
                     }
+
+    def api_open(self, *args, **kwargs):
+        try:
+            return super(BredBrowser, self).open(*args, **kwargs)
+        except BrowserHTTPError:
+            self.do_login(self.login, self.password)
+            return super(BredBrowser, self).open(*args, **kwargs)
+
     def get_accounts_list(self):
-        r = self.open('/transactionnel/services/rest/Account/accounts')
+        r = self.api_open('/transactionnel/services/rest/Account/accounts')
 
         for content in r.json()['content']:
             if self.accnum != '00000000000' and content['numero'] != self.accnum:
@@ -91,7 +97,7 @@ class BredBrowser(DomainBrowser):
         offset = 0
         next_page = True
         while next_page:
-            r = self.open('/transactionnel/services/applications/operations/get/%(number)s/%(nature)s/00/%(currency)s/%(startDate)s/%(endDate)s/%(offset)s/%(limit)s' %
+            r = self.api_open('/transactionnel/services/applications/operations/get/%(number)s/%(nature)s/00/%(currency)s/%(startDate)s/%(endDate)s/%(offset)s/%(limit)s' %
                           {'number': account._number,
                            'nature': account._nature,
                            'currency': account.currency,
