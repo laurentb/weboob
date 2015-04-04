@@ -212,7 +212,10 @@ class AccountsList(LoggedPage, HTMLPage):
             obj_valuation = CleanDecimal('.//dl[has-class("ligne-montant")]/dd | .//dd[@data-show="header" and not(contains(text(), "%"))]', replace_dots=True)
 
             def obj_unitprice(self):
-                if 'eurossima' in self.el.get('class'):
+                if 'eurossima' in self.el.get('class') or \
+                   'fondsEuro' in self.el.get('class'):
+                    # in this case, the content of field is:
+                    # <span data-sort="pm_value" class="pmvalue positive">NOT_A_NUMBER</span>
                     return self.obj.unitvalue
 
                 percent = CleanDecimal('.//span[has-class("pmvalue")]', replace_dots=True)(self)
