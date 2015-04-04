@@ -351,24 +351,27 @@ class ConsoleApplication(Application):
             if key not in params or edit:
                 params[key] = self.ask(value, default=params[key] if (key in params) else value.default)
             else:
-                print(u' [%s] %s: %s' % (key, value.description, '(masked)' if value.masked else to_unicode(params[key])))
+                print(u'[%s] %s: %s' % (key, value.description, '(masked)' if value.masked else to_unicode(params[key])))
         if asked_config:
             print('-------------------------%s' % ('-' * len(module.name)))
 
+        i = 2
         while not edit and self.weboob.backends_config.backend_exists(backend_name):
-            print('Backend instance "%s" already exists in "%s"' % (backend_name, self.weboob.backends_config.confpath), file=self.stderr)
-            if not self.ask('Add new backend for module "%s"?' % module.name, default=False):
+            if not self.ask('Backend "%s" already exists. Add a new one for module %s?' % (backend_name, module.name), default=False):
                 return 1
 
-            # TODO : Probably smarter to increment max existing backend, instead of fixed suffix
-            backend_name = self.ask('Please give new instance name', default='%s2' % module_name, regexp=r'^[\w\-_]+$')
+            backend_name = backend_name.rstrip('0123456789')
+            while self.weboob.backends_config.backend_exists('%s%s' % (backend_name, i)):
+                i += 1
+            backend_name = self.ask('Please give new instance name', default='%s%s' % (backend_name, i), regexp=r'^[\w\-_]+$')
 
         try:
             config = config.load(self.weboob, module.name, backend_name, params, nofail=True)
             for key, value in params.iteritems():
-                if key.startswith('_'):
+                if key not in config:
                     continue
                 config[key].set(value)
+
             config.save(edit=edit)
             print('Backend "%s" successfully %s.' % (backend_name, 'edited' if edit else 'added'))
             return backend_name
