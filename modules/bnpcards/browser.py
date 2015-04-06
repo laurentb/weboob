@@ -46,6 +46,8 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
                        'ce_internet_prive_ge/operationDetail.*AppliquerCorporate.event.do.*',
                        TransactionsPage)
 
+    TIMEOUT = 30.0
+
     def __init__(self, type, *args, **kwargs):
         super(BnpcartesentrepriseBrowser, self).__init__(*args, **kwargs)
         self.type = type
