@@ -116,7 +116,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                     return False
 
                 first_td = self.el.xpath('./td')[0]
-                return ((first_td.attrib.get('class', '') == 'i g' or first_td.attrib.get('class', '') == 'p g')
+                return (("i" in first_td.attrib.get('class', '') or "p" in first_td.attrib.get('class', ''))
                         and first_td.find('a') is not None)
 
             class Label(Filter):
@@ -222,7 +222,7 @@ class OperationsPage(LoggedPage, HTMLPage):
         item_xpath = '//table[@class="liste"]//tbody/tr'
 
         class item(Transaction.TransactionElement):
-            condition = lambda self: len(self.el.xpath('./td')) >= 4 and len(self.el.xpath('./td[@class="i g" or @class="p g" or contains(@class, "_c1 c _c1")]')) > 0
+            condition = lambda self: len(self.el.xpath('./td')) >= 4 and len(self.el.xpath('./td[@class="i g" or @class="p g" or contains(@class, "_c1")]')) > 0
 
             class OwnRaw(Filter):
                 def __call__(self, item):

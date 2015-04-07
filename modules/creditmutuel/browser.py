@@ -49,9 +49,12 @@ class CreditMutuelBrowser(LoginBrowser):
                       '/(?P<subbank>.*)/fr/banques/accueil.html',
                       LoginPage)
     login_error = URL('/(?P<subbank>.*)/fr/identification/default.cgi',      LoginErrorPage)
-    accounts =    URL('/(?P<subbank>.*)/fr/banque/situation_financiere.cgi', AccountsPage)
+    accounts =    URL('/(?P<subbank>.*)/fr/banque/situation_financiere.cgi',
+                      '/(?P<subbank>.*)/fr/banque/situation_financiere.html',
+                      AccountsPage)
     user_space =  URL('/(?P<subbank>.*)/fr/banque/espace_personnel.aspx',    UserSpacePage)
     operations =  URL('/(?P<subbank>.*)/fr/banque/mouvements.cgi.*',
+                      '/(?P<subbank>.*)/fr/banque/mouvements.html.*',
                       '/(?P<subbank>.*)/fr/banque/nr/nr_devbooster.aspx.*',
                       OperationsPage)
     coming =      URL('/(?P<subbank>.*)/fr/banque/mvts_instance.cgi.*',      ComingPage)
@@ -102,7 +105,7 @@ class CreditMutuelBrowser(LoginBrowser):
         self.currentSubBank = url.path.lstrip('/').split('/')[0]
 
     def list_operations(self, page_url):
-        if page_url.startswith('/'):
+        if page_url.startswith('/') or page_url.startswith('https'):
             self.location(page_url)
         else:
             self.location('%s/%s/fr/banque/%s' % (self.BASEURL, self.currentSubBank, page_url))
