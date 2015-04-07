@@ -45,6 +45,10 @@ class LoginPage(HTMLPage):
         form['_cm_pwd'] = passwd
         form.submit()
 
+    @property
+    def logged(self):
+        return self.doc.xpath('//div[@id="e_identification_ok"]')
+
 
 class LoginErrorPage(HTMLPage):
     pass

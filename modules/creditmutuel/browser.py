@@ -77,10 +77,11 @@ class CreditMutuelBrowser(LoginBrowser):
     def do_login(self):
         self.login.stay_or_go()
 
-        self.page.login(self.username, self.password)
+        if not self.page.logged:
+            self.page.login(self.username, self.password)
 
-        if not self.page.logged or self.login_error.is_here():
-            raise BrowserIncorrectPassword()
+            if not self.page.logged or self.login_error.is_here():
+                raise BrowserIncorrectPassword()
 
         self.getCurrentSubBank()
 
