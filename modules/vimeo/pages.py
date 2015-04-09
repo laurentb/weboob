@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+
 from weboob.capabilities.video import BaseVideo
 from weboob.capabilities.image import BaseImage
 from weboob.capabilities.collection import Collection
@@ -24,14 +25,15 @@ from weboob.capabilities.collection import Collection
 from weboob.exceptions import ParseError
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.pages import HTMLPage, pagination, JsonPage
-from weboob.browser.filters.standard import Regexp, Env, CleanText, DateTime, Duration, Field
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.standard import Regexp, Env, CleanText, DateTime, Duration, Field, Type
+from weboob.browser.filters.html import Attr, Link, CleanHTML, XPath
+from weboob.browser.filters.json import Dict
 
 import re
 
 
 class VimeoDuration(Duration):
-    regexp = re.compile(r'(?P<hh>\d+)H(?P<mm>\d+)M(?P<ss>\d+)S')
+    _regexp = re.compile(r'PT(?P<hh>\d+)H(?P<mm>\d+)M(?P<ss>\d+)S')
 
 
 class SearchPage(HTMLPage):
@@ -55,21 +57,26 @@ class SearchPage(HTMLPage):
 
 
 class VideoPage(HTMLPage):
+    def __init__(self, *args, **kwargs):
+        super(VideoPage, self).__init__(*args, **kwargs)
+        from weboob.tools.json import json
+        jsoncontent = XPath('//script[@type="application/ld+json"]/text()')(self.doc)[0]
+        self.doc = json.loads(jsoncontent)[0]
+
     @method
     class get_video(ItemElement):
         klass = BaseVideo
 
-        _balise = lambda x: '//div[@itemprop="video"]/meta[@itemprop="%s"]/@content' % x
-
         obj_id = Env('_id')
-        obj_title = CleanText(_balise('name'))
-        obj_date = DateTime(CleanText(_balise('dateCreated')))
-        obj_duration = VimeoDuration(CleanText(_balise('duration')))
-        obj_description = CleanText(_balise('description'))
-        obj_author = CleanText('//div[@itemprop="author"]/meta[@itemprop="name"]/@content')
+        obj_title = CleanText(Dict('name'))
+        obj_description = CleanHTML(Dict('description'))
+        obj_date = DateTime(Dict('datePublished'))
+        obj_duration = VimeoDuration(Dict('duration'))
+        obj_author = CleanText(Dict('author/name'))
+        obj_nsfw = Type(Dict('isFamilyFriendly'), type=bool)
 
         def obj_thumbnail(self):
-            thumbnail = BaseImage(CleanText('//div[@itemprop="video"]/span[@itemprop="thumbnail"]/link/@href')(self.el))
+            thumbnail = BaseImage(Dict('thumbnailUrl')(self.el))
             thumbnail.url = thumbnail.id
             return thumbnail
 
@@ -101,13 +108,13 @@ class VideoJsonPage(JsonPage):
 class CategoriesPage(HTMLPage):
     @method
     class iter_categories(ListElement):
-        item_xpath = '//div[@class="col_large"]/section/ul/li/a'
+        item_xpath = '//div[@class="category_grid"]/div/a'
 
         class item(ItemElement):
             klass = Collection
 
             obj_id = CleanText('./@href')
-            obj_title = CleanText('./h2')
+            obj_title = CleanText('./div/div/p')
 
             def obj_split_path(self):
                 split_path = ['vimeo-categories']

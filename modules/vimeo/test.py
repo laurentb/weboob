@@ -31,7 +31,7 @@ class VimeoTest(BackendTest):
         self.assertTrue(len(l) > 0)
         v = l[0]
         self.backend.fillobj(v, ('url',))
-        self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
+        self.assertTrue(v.url and v.url.startswith('https://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
 
     def test_channels(self):
         l = list(itertools.islice(self.backend.iter_resources([BaseVideo], [u'vimeo-channels']), 0, 20))
@@ -40,7 +40,7 @@ class VimeoTest(BackendTest):
         self.assertTrue(len(l1) > 0)
         v = l1[0]
         self.backend.fillobj(v, ('url',))
-        self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
+        self.assertTrue(v.url and v.url.startswith('https://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
 
     def test_categories(self):
         l = list(itertools.islice(self.backend.iter_resources([BaseVideo], [u'vimeo-categories']), 0, 20))
@@ -49,4 +49,4 @@ class VimeoTest(BackendTest):
         self.assertTrue(len(l1) > 0)
         v = l1[0]
         self.backend.fillobj(v, ('url',))
-        self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
+        self.assertTrue(v.url and v.url.startswith('https://'), 'URL for video "%s" not found: %s' % (v.id, v.url))

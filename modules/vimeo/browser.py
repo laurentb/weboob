@@ -30,7 +30,7 @@ __all__ = ['VimeoBrowser']
 
 class VimeoBrowser(PagesBrowser):
 
-    BASEURL = 'http://vimeo.com'
+    BASEURL = 'https://vimeo.com'
 
     search_page = URL(r'search/page:(?P<page>.*)/sort:(?P<sortby>.*)/format:thumbnail\?type=videos&q=(?P<pattern>.*)',
                       r'channels/(?P<channel>.*)/videos/.*?',
@@ -40,8 +40,8 @@ class VimeoBrowser(PagesBrowser):
     categories_page = URL('categories', CategoriesPage)
     channels_page = URL('channels', ChannelsPage)
 
-    video_url = URL(r'http://player.vimeo.com/video/(?P<_id>.*)/config', VideoJsonPage)
-    video_page = URL('http://vimeo.com/(?P<_id>.*)', VideoPage)
+    video_url = URL(r'https://player.vimeo.com/video/(?P<_id>.*)/config', VideoJsonPage)
+    video_page = URL('https://vimeo.com/(?P<_id>.*)', VideoPage)
 
     def get_video(self, _id, video=None):
         try:
