@@ -157,12 +157,13 @@ class OrderNewPage(OrderPage):
 
     def shipping(self):
         return self.amount(u'Free shipping', u'Free Shipping',
+                           u'Prime Pantry Delivery',
                            u'Shipping & Handling')
 
     def discount(self):
         return self.amount(u'Promotion applied', u'Promotion Applied',
                            u'Subscribe & Save', u'Your Coupon Savings',
-                           u'Lightning Deal')
+                           u'Lightning Deal', u'No-Rush Credit')
 
     def gift(self):
         return self.amount(u'Gift Card Amount')
@@ -170,7 +171,8 @@ class OrderNewPage(OrderPage):
     def amount(self, *names):
         return Decimal(sum(AmTr.decimal_amount(amount.strip())
                        for n in names for amount in self.doc.xpath(
-                       '(//span[contains(text(),"%s:")]/../..//span)[2]/text()' % n)))
+                       '//span[contains(text(),"%s:")]'
+                       '/../following::div[1]/span/text()' % n)))
 
     def transactions(self):
         for row in self.doc.xpath('//span[contains(text(),"Transactions")]'
