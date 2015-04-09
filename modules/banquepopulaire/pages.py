@@ -243,7 +243,7 @@ class Login2Page(LoginPage):
 
         doc = json.load(r)
         self.logger.debug(doc)
-        if 'phase' in doc and doc['phares']['state'] == 'TERMS_OF_USE':
+        if 'phase' in doc and doc['phase']['state'] == 'TERMS_OF_USE':
             # Got:
             # {u'phase': {u'state': u'TERMS_OF_USE'}, u'validationUnits': [{u'LIST_OF_TERMS': [{u'type': u'TERMS', u'id': u'b7f28f91-7aa0-48aa-8028-deec13ae341b', u'reference': u'CGU_CYBERPLUS'}]}]}
             payload = {'validate': doc['validationUnits'][0]}
