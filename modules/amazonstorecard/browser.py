@@ -31,6 +31,8 @@ __all__ = ['AmazonStoreCard']
 
 class AmazonStoreCard(LoginBrowser):
     BASEURL = 'https://www.onlinecreditcenter6.com'
+    MAX_RETRIES = 10
+    TIMEOUT = 30.0
     login = URL('/consumergen2/login.do\?accountType=plcc&clientId=amazon'
                 '&langId=en&subActionId=1000$',
                 '/consumergen2/consumerlogin.do.*$',
