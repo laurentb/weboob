@@ -151,8 +151,9 @@ class VideoPage(HTMLPage):
 class ArteJsonPage(JsonPage):
 
     def get_video_url(self, quality, format, version, language_version):
-        urls = Dict('videoJsonPlayer/VSR')(self.doc).keys()
-        if urls:
+        _urls = Dict('videoJsonPlayer/VSR')(self.doc)
+        if _urls:
+            urls = _urls.keys()
             key = '_'.join([format, quality, version])
             found = self.find_url(key, urls, version, quality)
             if not found:
