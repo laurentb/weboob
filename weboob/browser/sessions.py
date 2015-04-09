@@ -131,25 +131,26 @@ class FuturesSession(WeboobSession):
 
         Used by :meth:`request` and thus all of the higher level methods
 
-        If background_callback param is defined, request is processed in a
-        thread, calling background_callback and returning it's result when
-        request has been processed. If background_callback is not defined,
-        request is processed as usual, in a blocking way.
+        If the `async` param is True, the request is processed in a
+        thread. Otherwise, the request is processed as usual, in a blocking way.
+
+        In all cases, it will call the `callback` parameter and return its
+        result when the request has been processed.
         """
         sup = super(FuturesSession, self).send
 
-        background_callback = kwargs.pop('background_callback', None)
-        if background_callback:
+        callback = kwargs.pop('callback', lambda future, response: response)
+        async = kwargs.pop('async', False)
+        def func(*args, **kwargs):
+            resp = sup(*args, **kwargs)
+            return callback(self, resp)
+
+        if async:
             if not self.executor:
                 raise ImportError('Please install python-concurrent.futures')
-
-            def func(*args, **kwargs):
-                resp = sup(*args, **kwargs)
-                return background_callback(self, resp)
-
             return self.executor.submit(func, *args, **kwargs)
 
-        return sup(*args, **kwargs)
+        return func(*args, **kwargs)
 
     def close(self):
         super(FuturesSession, self).close()

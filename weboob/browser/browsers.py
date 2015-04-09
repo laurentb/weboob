@@ -346,10 +346,8 @@ class Browser(object):
                                      verify=verify,
                                      cert=cert,
                                      proxies=proxies,
-                                     background_callback=async and inner_callback)
-        if not async:
-            inner_callback(self, response)
-
+                                     callback=inner_callback,
+                                     async=async)
         return response
 
     def async_open(self, url, **kwargs):
