@@ -161,19 +161,42 @@ class Radioob(ReplApplication):
 
     def do_download(self, line):
         """
-        download ID [FILENAME]
+        download ID [DIRECTORY]
 
         Download an audio file
         """
         _id, dest = self.parse_command_args(line, 2, 1)
-        audio = self.get_object(_id, 'get_audio', ['url'])
-        if not audio:
-            print('Audio file not found: %s' % _id, file=self.stderr)
+
+        obj = self.retrieve_obj(_id)
+
+        if obj is None:
+            print('No object matches with this id:', _id, file=self.stderr)
             return 3
 
-        if not audio.url:
+        if isinstance(obj, BaseAudio):
+            streams = [obj]
+
+        else:
+            streams = obj.tracks_list
+
+        if len(streams) == 0:
+            print('Radio or Audio file not found:', _id, file=self.stderr)
+            return 3
+
+        for stream in streams:
+            self.download_file(stream, dest)
+
+    def download_file(self, audio, dest):
+        _obj = self.get_object(audio.id, 'get_audio', ['url', 'title'])
+        if not _obj:
+            print('Audio file not found: %s' % audio.id, file=self.stderr)
+            return 3
+
+        if not _obj.url:
             print('Error: the direct URL is not available.', file=self.stderr)
             return 4
+
+        audio.url = _obj.url
 
         def check_exec(executable):
             with open('/dev/null', 'w') as devnull:
@@ -187,7 +210,8 @@ class Radioob(ReplApplication):
             ext = _audio.ext
             if not ext:
                 ext = 'audiofile'
-            return '%s.%s' % (re.sub('[?:/]', '-', _audio.id), ext)
+            title = _audio.title if _audio.title else _audio.id
+            return '%s.%s' % (re.sub('[?:/]', '-', title), ext)
 
         if dest is not None and os.path.isdir(dest):
             dest += '/%s' % audio_to_file(audio)
