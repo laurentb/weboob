@@ -51,6 +51,11 @@ class LoginPage(MyHabitPage):
 
 
 class HistoryPage(MyHabitPage):
+    def is_sane(self):
+        # Occasionally MyHabit returns a page without this form.
+        # In this case we must retry until correct page is retrieved.
+        return bool(self.doc.xpath('//form[@id="viewOrdersHistory"]'))
+
     def to_year(self, year):
         form = self.get_form(xpath='//form[@id="viewOrdersHistory"]')
         form['orderRange'] = year
@@ -142,8 +147,8 @@ class MyHabit(LoginBrowser):
         # MyHabit requires dynamically generated token each time you
         # request order details, which makes it problematic to get an order
         # by id. Hence this slow and painful stub.
-        for year in self.history.stay_or_go().years():
-            hist = self.history.stay_or_go().to_year(year)
+        for year in self.to_history().years():
+            hist = self.to_history().to_year(year)
             for url in hist.iter_orders():
                 if id_ in url:
                     self.location(url)
@@ -155,8 +160,8 @@ class MyHabit(LoginBrowser):
 
     @need_login
     def iter_orders(self):
-        for year in self.history.stay_or_go().years():
-            hist = self.history.stay_or_go().to_year(year)
+        for year in self.to_history().years():
+            hist = self.to_history().to_year(year)
             for url in hist.iter_orders():
                 self.location(url)
                 assert self.order.is_here()
@@ -175,6 +180,13 @@ class MyHabit(LoginBrowser):
             self.location(order._url)
         assert self.order.is_here()
         return self.page.items()
+
+    @need_login
+    def to_history(self):
+        for i in xrange(self.MAX_RETRIES):
+            if self.history.is_here() and self.page.is_sane():
+                return self.page
+            self.history.go()
 
     def do_login(self):
         if not self.login.go().login(self.username, self.password).logged:
