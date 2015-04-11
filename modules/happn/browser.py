@@ -98,6 +98,9 @@ class HappnBrowser(DomainBrowser):
         me = self.request('/api/users/me')
         self.my_name = me['data']['name']
 
+    def load_state(self, *args, **kwargs):
+        return
+
     def request(self, *args, **kwargs):
         r = self.location(*args, **kwargs)
         return r.json()
@@ -120,3 +123,6 @@ class HappnBrowser(DomainBrowser):
 
     def accept(self, id):
         self.request('/api/users/me/accepted/%s' % id, method='POST')
+
+    def set_position(self, lat, lng):
+        self.request('/api/users/me/position', data={'latitude': lat, 'longitude': lng, 'altitude': 0.0})

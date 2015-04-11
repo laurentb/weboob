@@ -21,11 +21,13 @@
 import datetime
 from dateutil.parser import parse as parse_date
 from dateutil.tz import tzlocal
+from random import randint
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Thread, Message
 from weboob.capabilities.dating import CapDating, Optimization
 from weboob.capabilities.contact import CapContact, Contact, ProfileNode
+from weboob.exceptions import BrowserHTTPError
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.date import local2utc
 from weboob.tools.value import Value, ValueBackendPassword
@@ -63,23 +65,31 @@ class ProfilesWalker(Optimization):
     def is_running(self):
         return self._view_cron is not None
 
+    INTERVALS = [(48896403, 2303976),
+                 (48820992, 2414698)]
     def view_profile(self):
         try:
-            liked = self._storage.get('liked', default=[])
-
             n = 0
             for user in self._browser.find_users():
-                if user['notifier']['id'] in liked:
+                if user['notifier']['my_relation'] > 0:
                     continue
 
                 self._browser.accept(user['notifier']['id'])
-                liked.append(user['notifier']['id'])
-                self._storage.set('liked', liked)
-                self._storage.save()
                 self._logger.info('Liked %s %s (%s at %s)', user['notifier']['first_name'], user['notifier']['last_name'], user['notifier']['job'], user['notifier']['workplace'])
                 n += 1
                 if n > 10:
                     break
+
+            if n == 0:
+                self._logger.info('Updating position...')
+                lat = randint(self.INTERVALS[1][0], self.INTERVALS[0][0])/1000000.0
+                lng = randint(self.INTERVALS[0][1], self.INTERVALS[1][1])/1000000.0
+                try:
+                    self._browser.set_position(lat, lng)
+                except BrowserHTTPError:
+                    self._logger.warning('Unable to update position')
+                else:
+                    self._logger.info('You are now here: https://www.google.com/maps/place//@%s,%s,17z', lat, lng)
 
         finally:
             if self._view_cron is not None:
@@ -158,7 +168,6 @@ class HappnModule(Module, CapMessages, CapMessagesPost, CapDating, CapContact):
 
     BROWSER = HappnBrowser
     STORAGE = {'contacts': {},
-               'liked': [],
               }
 
     def create_default_browser(self):
