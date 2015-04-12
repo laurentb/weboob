@@ -32,6 +32,7 @@ import os
 from datetime import datetime
 from tempfile import mkstemp
 from subprocess import check_output, STDOUT
+from time import sleep
 
 
 __all__ = ['Citibank']
@@ -81,7 +82,6 @@ class AccDetailsPage(JsonPage):
         account.type = Account.TYPE_CARD
         account.label = re.sub(r'<[^>]+>', '', detact['accountName'])
         account.id = account.label[-4:]
-        account._innerId = details['instanceID']
         for bal in details['accountBalances']:
             label, value = bal['label'], (bal['value'] or ['0'])[0]
             if label == u'Current Balance:':
@@ -128,8 +128,9 @@ class AccDetailsPage(JsonPage):
 
 class StatementsPage(SomePage):
     def dates(self):
-        return self.doc.xpath(
-            '//select[@id="currentStatementsDate"]/option/text()')[1:]
+        return [x for x in self.doc.xpath(
+            u'//select[@id="currentStatementsDate"]/option/text()')
+            if re.match(u'^\d\d\d\d-\d\d-\d\d$', x)]
 
 
 class StatementPage(RawPage):
@@ -138,6 +139,9 @@ class StatementPage(RawPage):
     def __init__(self, *args, **kwArgs):
         RawPage.__init__(self, *args, **kwArgs)
         self._parser = StatementParser(self.doc)
+
+    def is_sane(self):
+        return self._parser.read_first_date_range() is not None
 
     def transactions(self):
         return sorted(self._parser.read_transactions(),
@@ -188,7 +192,7 @@ class Citibank(LoginBrowser):
             yield self.to_account(innerId).account()
 
     def iter_history(self, account):
-        innerId = account._innerId
+        innerId = self.to_accounts().inner_ids_dict()[account.id]
         for trans in self.to_account(innerId).transactions():
             yield trans
         for date in self.to_statements(innerId).dates():
@@ -205,7 +209,18 @@ class Citibank(LoginBrowser):
         return self.to_page(self.statements, accountID=innerId)
 
     def to_statement(self, date):
-        return self.to_page(self.statement, date=date)
+        # Sometimes the website returns non-PDF file.
+        # It recovers if we repeat whole browsing sequence all the way
+        # from home page up to the statement.
+        MAX_DELAY=10
+        for i in xrange(self.MAX_RETRIES):
+            if self.to_page(self.statement, date=date).is_sane():
+                return self.page
+            sleep(min(MAX_DELAY, 1 << i))
+            self.do_login()
+            innerId = self.to_accounts().inner_ids_dict().values()[0]
+            self.to_account(innerId)
+            self.to_statements(innerId)
 
     @need_login
     def to_page(self, url, **data):
