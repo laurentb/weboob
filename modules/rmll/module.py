@@ -67,7 +67,9 @@ class RmllModule(Module, CapVideo, CapCollection):
                 for video in self.browser.get_latest_videos():
                     yield video
             else:
-                for content in self.browser.get_channel_videos(split_path):
-                    yield content
+                channel_videos = self.browser.get_channel_videos(split_path)
+                if channel_videos:
+                    for content in channel_videos:
+                        yield content
 
     OBJECTS = {RmllVideo: fill_video}

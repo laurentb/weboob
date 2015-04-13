@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser import PagesBrowser, URL
-
+from weboob.browser.exceptions import HTTPNotFound
 from .pages import RmllCollectionPage, RmllVideoPage, RmllChannelsPage, RmllSearchPage, RmllLatestPage
 
 __all__ = ['RmllBrowser']
@@ -59,9 +59,13 @@ class RmllBrowser(PagesBrowser):
         oid = ''
         if len(split_path) > 0:
             oid = split_path[-1]
-        url = self.channels_page.build(oid=oid)
-        self.location(url)
-        assert self.channels_page.is_here()
-        for video in self.page.iter_resources(split_path):
-            yield video
+        try:
+            url = self.channels_page.build(oid=oid)
+            self.location(url)
+            assert self.channels_page.is_here()
+            for video in self.page.iter_resources(split_path):
+                yield video
+
+        except HTTPNotFound:
+            pass
 
