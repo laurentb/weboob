@@ -48,7 +48,7 @@ class ArteItemElement(ItemElement):
     obj_rating = Dict('VRT', default=NotAvailable)
     obj_rating_max = 10
     obj_description = Dict('VDE', default=NotAvailable)
-    obj_date = Date(Dict('VDA'))
+    obj_date = Date(Dict('VDA', default=NotAvailable), default=NotAvailable)
 
     def obj_duration(self):
         seconds = Dict('videoDurationSeconds')(self)
