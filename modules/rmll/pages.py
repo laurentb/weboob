@@ -135,6 +135,7 @@ class RmllLatestPage(JsonPage):
 
 class RmllSearchPage(JsonPage):
     def iter_resources(self):
-        for metadata in self.doc['videos']:
-            video = create_video(metadata)
-            yield video
+        if 'videos' in self.doc:
+            for metadata in self.doc['videos']:
+                video = create_video(metadata)
+                yield video
