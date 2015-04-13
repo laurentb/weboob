@@ -25,7 +25,7 @@ from weboob.capabilities.collection import Collection
 from weboob.exceptions import ParseError
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.pages import HTMLPage, pagination, JsonPage
-from weboob.browser.filters.standard import Regexp, Env, CleanText, DateTime, Duration, Field, Type
+from weboob.browser.filters.standard import Regexp, Env, CleanText, DateTime, Duration, Field
 from weboob.browser.filters.html import Attr, Link, CleanHTML, XPath
 from weboob.browser.filters.json import Dict
 
@@ -73,7 +73,10 @@ class VideoPage(HTMLPage):
         obj_date = DateTime(Dict('datePublished'))
         obj_duration = VimeoDuration(Dict('duration'))
         obj_author = CleanText(Dict('author/name'))
-        obj_nsfw = Type(Dict('isFamilyFriendly'), type=bool)
+
+        def obj_nsfw(self):
+            _sfw = Dict('isFamilyFriendly', default="True")(self)
+            return _sfw != "True"
 
         def obj_thumbnail(self):
             thumbnail = BaseImage(Dict('thumbnailUrl')(self.el))
