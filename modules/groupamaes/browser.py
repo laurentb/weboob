@@ -33,7 +33,7 @@ class GroupamaesBrowser(LoginBrowser):
 
     login = URL('/groupama-es/fr/index.html', LoginPage)
     login_error = URL('/groupama-es/fr/identification/default.cgi', LoginErrorPage)
-    avoir = URL('/groupama-es/fr/espace/devbavoirs.aspx.*', AvoirPage)
+    avoir = URL('/groupama-es/fr/espace/devbavoirs.aspx\?mode=net&menu=cpte(?P<page>.*)', AvoirPage)
     operations_traitees = URL('/groupama-es/fr/espace/ListeOperations.asp\?TypeOperation=T', OperationsTraiteesPage)
     operations_futures = URL('/groupama-es/fr/espace/ListeOperations.asp\?TypeOperation=E', OperationsFuturesPage)
 
@@ -47,7 +47,7 @@ class GroupamaesBrowser(LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
-        return self.avoir.stay_or_go().iter_accounts()
+        return self.avoir.stay_or_go(page='&page=situglob').iter_accounts()
 
     @need_login
     def get_history(self):
