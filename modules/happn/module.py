@@ -47,6 +47,7 @@ class ProfilesWalker(Optimization):
         self._storage = storage
         self._browser = browser
         self._logger = getLogger('walker', browser.logger)
+        self._last_position_update = None
 
         self._view_cron = None
 
@@ -75,22 +76,28 @@ class ProfilesWalker(Optimization):
                     continue
 
                 self._browser.accept(user['notifier']['id'])
-                self._logger.info('Liked %s %s (%s at %s)', user['notifier']['first_name'], user['notifier']['last_name'], user['notifier']['job'], user['notifier']['workplace'])
+                self._logger.info('Liked %s %s (%s at %s): https://www.facebook.com/profile.php?id=%s&fref=ufi&pnref=story',
+                                  user['notifier']['first_name'],
+                                  user['notifier']['last_name'],
+                                  user['notifier']['job'],
+                                  user['notifier']['workplace'],
+                                  user['notifier']['fb_id'])
                 n += 1
                 if n > 10:
                     break
 
-            if n == 0:
-                self._logger.info('Updating position...')
+            if n == 0 and (self._last_position_update is None or self._last_position_update + datetime.timedelta(minutes=20) < datetime.datetime.now()):
+                self._logger.info('No more new profiles, updating position...')
                 lat = randint(self.INTERVALS[1][0], self.INTERVALS[0][0])/1000000.0
                 lng = randint(self.INTERVALS[0][1], self.INTERVALS[1][1])/1000000.0
                 try:
                     self._browser.set_position(lat, lng)
                 except BrowserHTTPError:
-                    self._logger.warning('Unable to update position')
+                    self._logger.warning('Unable to update position for now, it will be retried later.')
+                    self._logger.warning('NB: don\'t be afraid, happn only allows to update position every 20 minutes.')
                 else:
                     self._logger.info('You are now here: https://www.google.com/maps/place//@%s,%s,17z', lat, lng)
-
+                    self._last_position_update = datetime.datetime.now()
         finally:
             if self._view_cron is not None:
                 self._view_cron = self._sched.schedule(60, self.view_profile)
