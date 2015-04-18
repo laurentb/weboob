@@ -127,7 +127,7 @@ class HappnContact(Contact):
         self.profile = OrderedDict()
 
         self.set_profile('info', 'id', info['id'])
-        self.set_profile('info', 'full_name', ' '.join([info['first_name'], info['last_name']]))
+        self.set_profile('info', 'full_name', ' '.join([info['first_name'] or '', info['last_name'] or '']).strip())
         self.set_profile('info', 'login', info['login'])
         if info['fb_id'] is not None:
             self.set_profile('info', 'facebook', 'https://www.facebook.com/profile.php?id=%s&fref=ufi&pnref=story' % info['fb_id'])
@@ -149,11 +149,12 @@ class HappnContact(Contact):
         self.set_profile('details', 'job', info['job'])
         self.set_profile('details', 'company', info['workplace'])
         self.set_profile('details', 'school', info['school'])
-        self.set_profile('settings', 'age_min', '%s yo' % info['matching_preferences']['age_min'])
-        self.set_profile('settings', 'age_max', '%s yo' % info['matching_preferences']['age_max'])
-        self.set_profile('settings', 'distance', '%s m' % info['matching_preferences']['distance'])
-        self.set_profile('settings', 'female', info['matching_preferences']['female'])
-        self.set_profile('settings', 'male', info['matching_preferences']['male'])
+        if info['matching_preferences'] is not None:
+            self.set_profile('settings', 'age_min', '%s yo' % info['matching_preferences']['age_min'])
+            self.set_profile('settings', 'age_max', '%s yo' % info['matching_preferences']['age_max'])
+            self.set_profile('settings', 'distance', '%s m' % info['matching_preferences']['distance'])
+            self.set_profile('settings', 'female', info['matching_preferences']['female'])
+            self.set_profile('settings', 'male', info['matching_preferences']['male'])
 
 
 class HappnModule(Module, CapMessages, CapMessagesPost, CapDating, CapContact):
