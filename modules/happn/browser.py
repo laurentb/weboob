@@ -19,6 +19,7 @@
 
 
 import re
+from collections import defaultdict
 
 from weboob.browser.browsers import DomainBrowser
 from weboob.browser.profiles import IPhone
@@ -67,7 +68,8 @@ class FacebookBrowser(DomainBrowser):
         self.info = self.request('/me')
 
     def request(self, url, *args, **kwargs):
-        url += '?access_token=' + self.access_token
+        url += '&' if ('?' in url) else '?'
+        url += 'access_token=' + self.access_token
         r = self.location(self.absurl(url, base=True), *args, **kwargs)
         return json.loads(r.content)
 
@@ -104,8 +106,23 @@ class HappnBrowser(DomainBrowser):
         r = self.location(*args, **kwargs)
         return r.json()
 
+    def get_facebook(self, facebook_id):
+        data = self.facebook.request('https://graph.facebook.com/%s' % facebook_id)
+        if not 'link' in data:
+            data['link'] = 'https://www.facebook.com/%s' % data['username']
+        likes = self.facebook.request('https://graph.facebook.com/%s/likes?limit=10000' % facebook_id)
+        data['likes'] = defaultdict(list)
+        for like in likes['data']:
+            data['likes'][like['category']].append(like['name'])
+        data['infos'] = self.facebook.request('https://graph.facebook.com/v2.3/%s?fields=about,address,age_range,bio,birthday,devices,education,email,favorite_athletes,favorite_teams,hometown,inspirational_people,install_type,interested_in,is_verified,languages,location,meeting_for,political,relationship_status,religion,significant_other,sports,quotes,timezone,updated_time,verified,website,work' % facebook_id)
+
+        return data
+
     def get_contact(self, contact_id):
-        return self.request('/api/users/%s?fields=birth_date,first_name,last_name,display_name,login,credits,referal,matching_preferences,notification_settings,unread_conversations,about,is_accepted,age,job,workplace,school,modification_date,profiles.mode(0).width(1000).height(1000).fields(url,width,height,mode),last_meet_position,my_relation,is_charmed,distance,gender' % contact_id)['data']
+        data = self.request('/api/users/%s?fields=birth_date,first_name,fb_id,last_name,display_name,login,credits,referal,matching_preferences,notification_settings,unread_conversations,about,is_accepted,age,job,workplace,school,modification_date,profiles.mode(0).width(1000).height(1000).fields(url,width,height,mode),last_meet_position,my_relation,is_charmed,distance,gender' % contact_id)['data']
+        if data['fb_id'] is not None:
+            data['fb'] = self.get_facebook(data['fb_id'])
+        return data
 
     def get_threads(self):
         return self.request('/api/users/me/conversations')['data']

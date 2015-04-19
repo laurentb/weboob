@@ -79,12 +79,12 @@ class ProfilesWalker(Optimization):
                     continue
 
                 self._browser.accept(user['notifier']['id'])
-                self._logger.info('Liked %s %s (%s at %s): https://www.facebook.com/profile.php?id=%s&fref=ufi&pnref=story',
-                                  user['notifier']['first_name'],
-                                  user['notifier']['last_name'],
+                fb = self._browser.get_facebook(user['notifier']['fb_id'])
+                self._logger.info('Liked %s (%s at %s): %s',
+                                  fb['name'],
                                   user['notifier']['job'],
                                   user['notifier']['workplace'],
-                                  user['notifier']['fb_id'])
+                                  fb['link'])
                 n += 1
                 if n > 10:
                     break
@@ -148,9 +148,16 @@ class HappnContact(Contact):
         self.profile = OrderedDict()
 
         self.set_profile('info', 'id', info['id'])
-        self.set_profile('info', 'full_name', ' '.join([info['first_name'] or '', info['last_name'] or '']).strip())
-        if info['fb_id'] is not None:
-            self.set_profile('info', 'facebook', 'https://www.facebook.com/profile.php?id=%s&fref=ufi&pnref=story' % info['fb_id'])
+        try:
+            self.set_profile('info', 'full_name', info['fb']['name'])
+        except KeyError:
+            self.set_profile('info', 'full_name', ' '.join([info['first_name'] or '', info['last_name'] or '']).strip())
+        if 'fb' in info:
+            self.set_profile('info', 'facebook', info['fb']['link'])
+            for category, likes in info['fb']['likes'].iteritems():
+                self.set_profile('facebook', 'likes', category, ', '.join(likes))
+            for name, content in info['fb']['infos'].iteritems():
+                self.set_profile('facebook', 'infos', name, content)
         if info['twitter_id'] is not None:
             self.set_profile('info', 'twitter', info['twitter_id'])
         self.set_profile('stats', 'accepted', info['is_accepted'])
@@ -228,6 +235,8 @@ class HappnModule(Module, CapMessages, CapMessagesPost, CapDating, CapContact):
 
         info = self.browser.get_thread(thread.id)
         for user in info['participants']:
+            if user['user']['fb_id'] is not None:
+                user['user']['fb'] = self.browser.get_facebook(user['user']['fb_id'])
             if user['user']['id'] == self.browser.my_id:
                 me = HappnContact(user['user'])
             else:
