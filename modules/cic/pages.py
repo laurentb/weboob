@@ -83,8 +83,11 @@ class AccountsPage(Page):
 
         for tr in self.document.getiterator('tr'):
             first_td = tr.getchildren()[0]
-            if (first_td.attrib.get('class', '') == 'i g' or first_td.attrib.get('class', '') == 'p g') \
-               and first_td.find('a') is not None:
+            if (first_td.attrib.get('class', '') == 'i g'   \
+            or first_td.attrib.get('class', '') == 'p g'    \
+            or 'i _c1' in first_td.attrib.get('class', '')  \
+            or 'p _c1' in first_td.attrib.get('class', '')) \
+            and first_td.find('a') is not None:
 
                 a = first_td.find('a')
                 link = a.get('href', '')
@@ -97,8 +100,12 @@ class AccountsPage(Page):
                     continue
 
                 for i in (2,1):
-                    balance = FrenchTransaction.clean_amount(tr.getchildren()[i].text)
-                    currency = Account.get_currency(tr.getchildren()[i].text)
+                    if tr.getchildren()[i].text is None:
+                       amout = tr.getchildren()[i].getchildren()[0].text
+                    else:
+                       amout = tr.getchildren()[i].text
+                    balance = FrenchTransaction.clean_amount(amout)
+                    currency = Account.get_currency(amout)
                     if len(balance) > 0:
                         break
                 balance = Decimal(balance)
@@ -114,7 +121,12 @@ class AccountsPage(Page):
 
                 account = Account()
                 account.id = id
-                account.label = unicode(a.text).strip().lstrip(' 0123456789').title()
+
+                if len(a.getchildren()) > 0:
+                    account.label = u' '.join([unicode(c.text) for c in a.getchildren()])
+                else:
+                    account.label = unicode(a.text)
+                account.label.strip().lstrip(' 0123456789').title()
 
                 for pattern, actype in self.TYPES.iteritems():
                     if account.label.startswith(pattern):
@@ -183,7 +195,8 @@ class OperationsPage(Page):
 
             if tds[0].attrib.get('class', '') == 'i g' or \
                tds[0].attrib.get('class', '') == 'p g' or \
-               tds[0].attrib.get('class', '').endswith('_c1 c _c1'):
+               tds[0].attrib.get('class', '').endswith('_c1 c _c1') or \
+               tds[0].attrib.get('class', '').endswith('_c1 i _c1'):
                 operation = Transaction(0)
 
                 parts = [txt.strip() for txt in tds[-3].itertext() if len(txt.strip()) > 0]
