@@ -46,6 +46,7 @@ class CreditMutuelBrowser(LoginBrowser):
     BASEURL = 'https://www.creditmutuel.fr'
 
     login =       URL('/groupe/fr/index.html',
+                      '/(?P<subbank>.*)/fr/$',
                       '/(?P<subbank>.*)/fr/banques/accueil.html',
                       LoginPage)
     login_error = URL('/(?P<subbank>.*)/fr/identification/default.cgi',      LoginErrorPage)
@@ -65,8 +66,7 @@ class CreditMutuelBrowser(LoginBrowser):
     transfert_2 = URL('/(?P<subbank>.*)/fr/banque/virements/vplw_cmweb.aspx.*', TransfertPage)
     change_pass = URL('/(?P<subbank>.*)/fr/validation/change_password.cgi',  ChangePasswordPage)
     verify_pass = URL('/(?P<subbank>.*)/fr/validation/verif_code.cgi.*',     VerifCodePage)
-    empty =       URL('/(?P<subbank>.*)/fr/$',
-                      '/(?P<subbank>.*)/fr/banques/index.html',
+    empty =       URL('/(?P<subbank>.*)/fr/banques/index.html',
                       '/(?P<subbank>.*)/fr/banque/paci_beware_of_phishing.*',
                       '/(?P<subbank>.*)/fr/validation/(?!change_password|verif_code).*',
                       '/(?P<subbank>.*)/fr/banque/paci_engine/static_content_manager.aspx',
@@ -85,6 +85,7 @@ class CreditMutuelBrowser(LoginBrowser):
 
             if not self.page.logged or self.login_error.is_here():
                 raise BrowserIncorrectPassword()
+
 
         self.getCurrentSubBank()
 
