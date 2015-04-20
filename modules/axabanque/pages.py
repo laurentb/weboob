@@ -253,6 +253,9 @@ class TransactionsPage(BasePage):
         self.browser.location(form.attrib['action'], urllib.urlencode(args))
 
     def get_history(self):
+        #DAT account can't have transaction
+        if self.document.xpath('//table[@id="table-dat"]'):
+            return
         tables = self.document.xpath('//table[@id="table-detail-operation"]')
         if len(tables) == 0:
             tables = self.document.xpath('//table[@id="table-detail"]')
