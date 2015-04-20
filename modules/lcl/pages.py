@@ -28,7 +28,7 @@ from cStringIO import StringIO
 from weboob.capabilities.bank import Account
 from weboob.browser.elements import method, ListElement, ItemElement, SkipItem
 from weboob.exceptions import ParseError
-from weboob.browser.pages import LoggedPage, HTMLPage, FormNotFound
+from weboob.browser.pages import LoggedPage, HTMLPage, FormNotFound, pagination
 from weboob.browser.filters.html import Attr
 from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, \
                                             CleanDecimal, Map, AsyncLoad, Async
@@ -210,11 +210,18 @@ class Transaction(FrenchTransaction):
                 (re.compile('^(?P<text>(?P<category>TRAIT\..*?)\s*.*)'),   FrenchTransaction.TYPE_BANK),
                 (re.compile('^(?P<category>REM CHQ) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
                ]
-
+class Pagination(object):
+    def next_page(self):
+        links = self.page.doc.xpath('//div[@class="pagination"] /a')
+        if len(links) == 0:
+            return
+        for link in links:
+            if link.xpath('./span')[0].text == 'Page suivante':
+                return link.attrib.get('href')
+        return
 
 class AccountHistoryPage(LoggedPage, HTMLPage):
-    @method
-    class _get_operations(Transaction.TransactionsElement):
+    class _get_operations(Pagination, Transaction.TransactionsElement):
         item_xpath = '//table[has-class("tagTab") and (not(@style) or @style="")]/tr'
         head_xpath = '//table[has-class("tagTab") and (not(@style) or @style="")]/tr/th'
 
@@ -237,8 +244,9 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                     obj.raw = raw
                 return True
 
+    @pagination
     def get_operations(self):
-        return self._get_operations()
+        return self._get_operations(self)()
 
 
 class CBHistoryPage(AccountHistoryPage):
