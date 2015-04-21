@@ -39,6 +39,8 @@ from weboob.tools.date import parse_french_date
 
 
 class LoginPage(HTMLPage):
+    REFRESH_MAX = 10.0
+
     def login(self, login, passwd):
         form = self.get_form(nr=0)
         form['_cm_user'] = login
