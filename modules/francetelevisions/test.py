@@ -26,7 +26,7 @@ class PluzzTest(BackendTest):
 
     def test_search(self):
         # If the test fails, it might be good news!
-        l = list(self.backend.search_videos("d'art"))
+        l = list(self.backend.search_videos("onpc"))
         self.assertTrue(len(l) > 0)
         v = l[0]
         self.backend.fillobj(v, ('url',))

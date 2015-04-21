@@ -80,11 +80,11 @@ class IndexPage(HTMLPage):
 
             obj_title = Format('%s du %s',
                                CleanText('div/div[@class="resultat-titre-diff"]/a'),
-                               Regexp(CleanText('div/div[@class="resultat-soustitre-diff"]/span'),
+                               Regexp(CleanText('div/div[@class="resultat-soustitre-diff"]'),
                                       '.+(\d{2}-\d{2}-\d{2}).+'))
             obj_id = Regexp(Link('div/div[@class="resultat-titre-diff"]/a'),
                             '^/videos/.+,(.+).html$')
-            obj_date = DateTime(Regexp(CleanText('div/div[@class="resultat-soustitre-diff"]/span',
+            obj_date = DateTime(Regexp(CleanText('div/div[@class="resultat-soustitre-diff"]',
                                        replace=[(u'à', u''), (u'  ', u' ')]),
                                        '.+(\d{2}-\d{2}-\d{2}.+\d{1,2}h\d{1,2}).+'))
             obj_duration = DurationPluzz('div/div[3]')
