@@ -88,6 +88,7 @@ class Paypal(Browser):
             self.location('https://' + self.DOMAIN + '/en/cgi-bin/webscr?cmd=_login-run')
 
         self.page.login(self.username, self.password)
+        self.page.validate_useless_captacha()
 
         if self.is_on_page(LoginPage):
             raise BrowserIncorrectPassword()

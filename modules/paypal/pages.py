@@ -20,18 +20,46 @@
 from decimal import Decimal
 import re
 
+from mechanize import Cookie
+
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
 from weboob.deprecated.browser import Page
+from weboob.deprecated.mech import ClientForm
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_french_date
 
 
+
 class LoginPage(Page):
     def login(self, login, password):
+        #Paypal use this to check if we accept cookie
+        c = Cookie(0, 'cookie_check', 'yes',
+                      None, False,
+                      '.' + self.browser.DOMAIN, True, True,
+                      '/', False,
+                      False,
+                      None,
+                      False,
+                      None,
+                      None,
+                      {})
+        cookiejar = self.browser._ua_handlers["_cookies"].cookiejar
+        cookiejar.set_cookie(c)
+
         self.browser.select_form(name='login_form')
         self.browser['login_email'] = login.encode(self.browser.ENCODING)
         self.browser['login_password'] = password.encode(self.browser.ENCODING)
+        self.browser.submit(nologin=True)
+
+    def validate_useless_captacha(self):
+        #paypal use a captcha page after login, but don't use the captcha
+        self.browser.select_form(name='challenge')
+        self.browser.form.set_all_readonly(False)
+
+        #paypal add this on the captcha page when the validate should be automatique
+        self.browser.controls.append(ClientForm.TextControl('text', 'ads_token_js', {'value': ''}))
+        self.browser['ads_token_js'] = self.browser['ads_token']
         self.browser.submit(nologin=True)
 
 
