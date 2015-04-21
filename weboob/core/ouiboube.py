@@ -323,6 +323,8 @@ class Weboob(WebNip):
 
     :param workdir: optional parameter to set path of the working directory
     :type workdir: str
+    :param datadir: optional parameter to set path of the data directory
+    :type datadir: str
     :param backends_filename: name of the *backends* file, where configuration of
                               backends is stored
     :type backends_filename: str
@@ -331,23 +333,31 @@ class Weboob(WebNip):
     """
     BACKENDS_FILENAME = 'backends'
 
-    def __init__(self, workdir=None, backends_filename=None, scheduler=None, storage=None):
+    def __init__(self, workdir=None, datadir=None, backends_filename=None, scheduler=None, storage=None):
         super(Weboob, self).__init__(modules_path=False, scheduler=scheduler, storage=storage)
 
         # Create WORKDIR
-        if workdir is not None:
-            datadir = workdir
-        elif 'WEBOOB_WORKDIR' in os.environ:
-            datadir = workdir = os.environ.get('WEBOOB_WORKDIR')
-        else:
-            workdir = os.path.join(os.environ.get('XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config')), 'weboob')
-            datadir = os.path.join(os.environ.get('XDG_DATA_HOME', os.path.join(os.path.expanduser('~'), '.local', 'share')), 'weboob')
+        if workdir is None:
+            if 'WEBOOB_WORKDIR' in os.environ:
+                workdir = os.environ.get('WEBOOB_WORKDIR')
+            else:
+                workdir = os.path.join(os.environ.get('XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config')), 'weboob')
 
         self.workdir = os.path.realpath(workdir)
         self._create_dir(workdir)
 
+        # Create DATADIR
+        if datadir is None:
+            if 'WEBOOB_DATADIR' in os.environ:
+                datadir = os.environ.get('WEBOOB_DATADIR')
+            else:
+                datadir = os.path.join(os.environ.get('XDG_DATA_HOME', os.path.join(os.path.expanduser('~'), '.local', 'share')), 'weboob')
+
+        _datadir = os.path.realpath(datadir)
+        self._create_dir(_datadir)
+
         # Modules management
-        self.repositories = Repositories(workdir, datadir, self.VERSION)
+        self.repositories = Repositories(workdir, _datadir, self.VERSION)
         self.modules_loader = RepositoryModulesLoader(self.repositories)
 
         # Backend instances config
