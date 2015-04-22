@@ -68,7 +68,8 @@ class AccountsPage(JsonPage):
 
     def inner_ids_dict(self):
         return dict((prod['parsedAccountName'][-4:], prod['accountInstanceId'])
-            for cat in self.doc['accountsSummaryViewObj']['categoryList']
+            for bean in self.doc['summaryViewBeanList']
+            for cat in bean['accountsSummaryViewObj']['categoryList']
             for prod in cat['products'] if cat['categoryType'] == 'CRD')
 
 
@@ -128,9 +129,9 @@ class AccDetailsPage(JsonPage):
 
 class StatementsPage(SomePage):
     def dates(self):
-        return [x for x in self.doc.xpath(
-            u'//select[@id="currentStatementsDate"]/option/text()')
-            if re.match(u'^\d\d\d\d-\d\d-\d\d$', x)]
+        return [x[:10] for x in self.doc.xpath(
+            u'//select[@id="currentStatementsDate"]/option/@value')
+            if re.match(u'^\d\d\d\d-\d\d-\d\d All$', x)]
 
 
 class StatementPage(RawPage):
