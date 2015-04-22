@@ -19,8 +19,9 @@
 
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable
+from weboob.capabilities.bank import Account
 
-from .pages.accounts_list import AccountsList, AccountHistory, CardsList
+from .pages.accounts_list import AccountsList, AccountHistory, CardsList, Market
 from .pages.login import LoginPage, BadLoginPage
 
 
@@ -42,6 +43,7 @@ class SocieteGenerale(Browser):
              '.*restitution/cns_listeCartes.*.html.*':      CardsList,
              '.*restitution/cns_detail.*\.html.*':          AccountHistory,
              'https://.*.societegenerale.fr/lgn/url.html.*':AccountHistory,
+             'https://.*.societegenerale.fr/brs/cct/comti20.html.*': Market,
             }
 
     def home(self):
@@ -125,3 +127,12 @@ class SocieteGenerale(Browser):
 
         transactions.sort(key=key, reverse=True)
         return iter(transactions)
+
+    def iter_investment(self, account):
+        if account.type != Account.TYPE_MARKET:
+            self.logger.warning('This account is not supported')
+            return iter([])
+
+        self.location(account._link_id)
+
+        return self.page.iter_investment()

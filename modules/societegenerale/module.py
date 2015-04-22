@@ -72,3 +72,8 @@ class SocieteGeneraleModule(Module, CapBank):
             for tr in self.browser.iter_history(account):
                 if tr._coming:
                     yield tr
+
+    def iter_investment(self, account):
+        with self.browser:
+            for inv in self.browser.iter_investment(account):
+                yield inv

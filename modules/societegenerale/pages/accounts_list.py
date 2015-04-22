@@ -26,7 +26,7 @@ from decimal import Decimal, InvalidOperation
 import re
 
 from weboob.capabilities.base import empty, NotAvailable
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.deprecated.browser import BrokenPageError
 
@@ -216,3 +216,29 @@ class AccountHistory(BasePage):
             t.parse(raw=raw, date=(self.debit_date or date))
 
             yield t
+
+
+class Market(BasePage):
+    COL_LABEL = 0
+    COL_QUANTITY = 1
+    COL_UNITPRICE = 2
+    COL_UNITVALUE = 3
+    COL_VALUATION = 3
+    COL_DIFF = 4
+
+    def iter_investment(self):
+        doc = self.browser.get_document(self.browser.openurl('/brs/fisc/fisca10a.html'), encoding='utf-8')
+
+        for tr in doc.xpath('//tr[count(td)=6]'):
+            cells = tr.findall('td')
+
+            inv = Investment()
+            inv.label = self.parser.tocleanstring(cells[self.COL_LABEL])
+            inv.code = cells[self.COL_LABEL].xpath('span')[0].attrib['title'].split(' - ')[1]
+            inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY])
+            inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE].xpath('table/tr[1]/td[2]')[0])
+            inv.unitprice = self.parse_decimal(cells[self.COL_UNITPRICE].xpath('table/tr[1]/td[2]')[0])
+            inv.valuation = self.parse_decimal(cells[self.COL_UNITPRICE].xpath('table/tr[2]/td[2]')[0])
+            inv.diff = self.parse_decimal(cells[self.COL_DIFF])
+
+            yield inv
