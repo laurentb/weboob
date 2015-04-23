@@ -21,7 +21,8 @@
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account
 
-from .pages.accounts_list import AccountsList, AccountHistory, CardsList, Market
+from .pages.accounts_list import AccountsList, AccountHistory, CardsList, LifeInsurance, \
+    LifeInsuranceInvest, Market
 from .pages.login import LoginPage, BadLoginPage
 
 
@@ -44,6 +45,9 @@ class SocieteGenerale(Browser):
              '.*restitution/cns_detail.*\.html.*':          AccountHistory,
              'https://.*.societegenerale.fr/lgn/url.html.*':AccountHistory,
              'https://.*.societegenerale.fr/brs/cct/comti20.html.*': Market,
+             'https://.*.societegenerale.fr/asv/asvcns10.html.*': LifeInsurance,
+             'https://.*.societegenerale.fr/asv/AVI/asvcns10a.html': LifeInsurance,
+             'https://.*.societegenerale.fr/asv/AVI/asvcns20a.html': LifeInsuranceInvest,
             }
 
     def home(self):
@@ -129,10 +133,15 @@ class SocieteGenerale(Browser):
         return iter(transactions)
 
     def iter_investment(self, account):
-        if account.type != Account.TYPE_MARKET:
+        if account.type == Account.TYPE_MARKET:
+            self.location(account._link_id)
+
+        elif account.type == Account.TYPE_LIFE_INSURANCE:
+            self.location(account._link_id)
+            self.location('/asv/AVI/asvcns20a.html')
+
+        else:
             self.logger.warning('This account is not supported')
             return iter([])
-
-        self.location(account._link_id)
 
         return self.page.iter_investment()
