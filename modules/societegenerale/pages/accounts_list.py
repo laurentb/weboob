@@ -222,7 +222,25 @@ class AccountHistory(BasePage):
             yield t
 
 
-class Market(BasePage):
+class Invest(object):
+    def create_investement(self, cells):
+        inv = Investment()
+        inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY])
+        inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE])
+        inv.unitprice = NotAvailable
+        inv.valuation = self.parse_decimal(cells[self.COL_VALUATION])
+        inv.diff = NotAvailable
+
+        link = cells[self.COL_LABEL].xpath('a[contains(@href, "CDCVAL=")]')[0]
+        m = re.search('CDCVAL=([^&]+)', link.attrib['href'])
+        if m:
+            inv.code = m.group(1)
+        else:
+            inv.code = NotAvailable
+        return inv
+
+
+class Market(BasePage, Invest):
     COL_LABEL = 0
     COL_QUANTITY = 1
     COL_UNITPRICE = 2
@@ -256,7 +274,7 @@ class LifeInsurance(BasePage):
             return super(LifeInsurance, self).get_error()
 
 
-class LifeInsuranceInvest(LifeInsurance):
+class LifeInsuranceInvest(LifeInsurance, Invest):
     COL_LABEL = 0
     COL_QUANTITY = 1
     COL_UNITVALUE = 2
@@ -266,27 +284,8 @@ class LifeInsuranceInvest(LifeInsurance):
         for tr in self.document.xpath("//table/tbody/tr[starts-with(@class, 'net2g_asv_tableau_ligne_')]"):
             cells = tr.findall('td')
 
-            inv = Investment()
+            inv = self.create_investement(cells)
             inv.label = cells[self.COL_LABEL].xpath('a/span')[0].text.strip()
             inv.description = cells[self.COL_LABEL].xpath('a//div/b[last()]')[0].tail
-            inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY])
-            inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE])
-            inv.unitprice = NotAvailable
-            inv.valuation = self.parse_decimal(cells[self.COL_VALUATION])
-            inv.diff = NotAvailable
-
-            link = cells[self.COL_LABEL].xpath('a[contains(@href, "CDCVAL=")]')[0]
-            m = re.search('CDCVAL=([^&]+)', link.attrib['href'])
-            if m:
-                inv.code = m.group(1)
-            else:
-                inv.code = NotAvailable
 
             yield inv
-
-    def parse_decimal(self, td):
-        value = self.parser.tocleanstring(td)
-        if value:
-            return Decimal(Transaction.clean_amount(value))
-        else:
-            return NotAvailable

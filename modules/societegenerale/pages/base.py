@@ -18,7 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from decimal import Decimal
+
+from weboob.capabilities.base import NotAvailable
 from weboob.deprecated.browser import Page as _BasePage
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
 class BasePage(_BasePage):
@@ -27,3 +31,10 @@ class BasePage(_BasePage):
             return self.document.xpath('//span[@class="error_msg"]')[0].text.strip()
         except IndexError:
             return None
+
+    def parse_decimal(self, td):
+        value = self.parser.tocleanstring(td)
+        if value:
+            return Decimal(FrenchTransaction.clean_amount(value))
+        else:
+            return NotAvailable
