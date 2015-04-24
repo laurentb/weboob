@@ -57,7 +57,7 @@ class ArteBrowser(PagesBrowser):
     def search_videos(self, pattern):
         class_name = 'videos/plus7'
         method_name = 'search'
-        parameters = '/'.join([self.lang.get('webservice'), 'L1', pattern.encode('utf-8'), 'ALL', 'ALL', '-1',
+        parameters = '/'.join([self.lang.get('webservice'), 'L1', pattern, 'ALL', 'ALL', '-1',
                                self.order, '10', '0'])
         return self.webservice.go(class_name=class_name, method_name=method_name, parameters=parameters).iter_videos()
 
