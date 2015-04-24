@@ -18,11 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import urllib
+
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account
+from weboob.capabilities.base import NotAvailable
 
 from .pages.accounts_list import AccountsList, AccountHistory, CardsList, LifeInsurance, \
-    LifeInsuranceInvest, Market
+    LifeInsuranceHistory, LifeInsuranceInvest, Market
 from .pages.login import LoginPage, BadLoginPage
 
 
@@ -48,6 +51,7 @@ class SocieteGenerale(Browser):
              'https://.*.societegenerale.fr/asv/asvcns10.html.*': LifeInsurance,
              'https://.*.societegenerale.fr/asv/AVI/asvcns10a.html': LifeInsurance,
              'https://.*.societegenerale.fr/asv/AVI/asvcns20a.html': LifeInsuranceInvest,
+             'https://.*.societegenerale.fr/asv/AVI/asvcns2[0-9]c.html': LifeInsuranceHistory,
             }
 
     def home(self):
@@ -119,6 +123,19 @@ class SocieteGenerale(Browser):
                 transactions += list(self.page.iter_transactions())
         elif self.is_on_page(AccountHistory):
             transactions += list(self.page.iter_transactions())
+
+        elif self.is_on_page(LifeInsurance):
+            self.location('/asv/AVI/asvcns20c.html')
+            transactions += [self.set_date(trans) for trans in self.page.iter_transactions()]
+
+            # go to next page
+            while self.page.document.xpath('//div[@class="net2g_asv_tableau_pager"]/a[contains(@href, "actionSuivPage")]'):
+                form = self.page.document.xpath('//form[@id="operationForm"]')[0]
+                data = dict((item.name, item.value or '') for item in form.inputs)
+                data['a100_asv_action'] = 'actionSuivPage'
+                self.location('asvcns21c.html', urllib.urlencode(data))
+                transactions += [self.set_date(trans) for trans in self.page.iter_transactions()]
+
         else:
             self.logger.warning('This account is not supported')
 
@@ -145,3 +162,40 @@ class SocieteGenerale(Browser):
             return iter([])
 
         return self.page.iter_investment()
+
+    def set_date(self, trans):
+        """fetch date and vdate from another page"""
+        form = self.page.document.xpath('//form[@id="operationForm"]')[0]
+        page_index = int(form.xpath('input[@id="a100_asv_numPage"]')[0].value)
+
+        # go to the page containing the dates
+        data = dict((item.name, item.value or '') for item in form.inputs)
+        data['a100_asv_action'] = 'detail'
+        data['a100_asv_indexOp'] = trans.id
+        self.location('/asv/AVI/asvcns21c.html', urllib.urlencode(data))
+
+        # process the data
+        date_xpath = '//td[@class="net2g_asv_suiviOperation_element1"]/following-sibling::td'
+        vdate_xpath = '//td[@class="net2g_asv_tableau_cell_date"]'
+        trans.date = self.parse_date(trans, date_xpath, 1)
+        trans.vdate = self.parse_date(trans, vdate_xpath, 0)
+
+        # 'return' doesn't return but leads to the first page of the list of transactions
+        data = {'a100_asv_action': 'retour', 'a100_asv_type': 'historique'}
+        self.location('/asv/AVI/asvcns22c.html', urllib.urlencode(data))
+
+        # returns to the previous page
+        for i in range(page_index-1):
+            form = self.page.document.xpath('//form[@id="operationForm"]')[0]
+            data = dict((item.name, item.value or '') for item in form.inputs)
+            data['a100_asv_action'] = 'actionSuivPage'
+            self.location('asvcns21c.html', urllib.urlencode(data))
+
+        return trans
+
+    def parse_date(self, trans, xpath, index):
+        elem = self.page.document.xpath(xpath)[index]
+        if elem.text:
+            return trans.parse_date(elem.text.strip())
+        else:
+            return NotAvailable

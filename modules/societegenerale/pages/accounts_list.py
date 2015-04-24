@@ -289,3 +289,30 @@ class LifeInsuranceInvest(LifeInsurance, Invest):
             inv.description = cells[self.COL_LABEL].xpath('a//div/b[last()]')[0].tail
 
             yield inv
+
+
+class LifeInsuranceHistory(LifeInsurance):
+    COL_DATE = 0
+    COL_LABEL = 1
+    COL_AMOUNT = 2
+    COL_STATUS = 3
+
+    def iter_transactions(self):
+        for tr in self.document.xpath("//table/tbody/tr[starts-with(@class, 'net2g_asv_tableau_ligne_')]"):
+            cells = tr.findall('td')
+
+            link = cells[self.COL_LABEL].xpath('a')[0]
+            # javascript:detailOperation('operationForm', '2');
+            m = re.search(", '([0-9]+)'", link.attrib['href'])
+            if m:
+                id_trans = m.group(1)
+            else:
+                id_trans = ''
+
+            trans = Transaction(id=id_trans)
+            trans.label = link.attrib['title'].strip()
+            trans.amount = self.parse_decimal(cells[self.COL_AMOUNT])
+            # search for 'Réalisé'
+            trans._coming = 'alis' not in cells[self.COL_STATUS].text.strip()
+
+            yield trans
