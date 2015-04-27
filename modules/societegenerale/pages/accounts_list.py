@@ -98,6 +98,9 @@ class AccountsList(BasePage):
             if 'CARTE_' in account._link_id:
                 account.type = account.TYPE_CARD
 
+            if account.type == Account.TYPE_UNKNOWN:
+                self.logger.debug('Unknown account type: %s', account.label)
+
             yield account
 
 
