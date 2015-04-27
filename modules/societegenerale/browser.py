@@ -116,17 +116,20 @@ class SocieteGenerale(Browser):
     def iter_history(self, account):
         self.location(account._link_id)
 
-        transactions = []
         if self.is_on_page(CardsList):
             for card_link in self.page.iter_cards():
                 self.location(card_link)
-                transactions += list(self.page.iter_transactions())
+                for trans in self.page.iter_transactions():
+                    yield trans
         elif self.is_on_page(AccountHistory):
-            transactions += list(self.page.iter_transactions())
+            for trans in self.page.iter_transactions():
+                yield trans
 
         elif self.is_on_page(LifeInsurance):
             self.location('/asv/AVI/asvcns20c.html')
-            transactions += [self.set_date(trans) for trans in self.page.iter_transactions()]
+            for trans in self.page.iter_transactions():
+                self.set_date(trans)
+                yield trans
 
             # go to next page
             while self.page.document.xpath('//div[@class="net2g_asv_tableau_pager"]/a[contains(@href, "actionSuivPage")]'):
@@ -134,7 +137,9 @@ class SocieteGenerale(Browser):
                 data = dict((item.name, item.value or '') for item in form.inputs)
                 data['a100_asv_action'] = 'actionSuivPage'
                 self.location('asvcns21c.html', urllib.urlencode(data))
-                transactions += [self.set_date(trans) for trans in self.page.iter_transactions()]
+                for trans in self.page.iter_transactions():
+                    self.set_date(trans)
+                    yield trans
 
         else:
             self.logger.warning('This account is not supported')
@@ -146,9 +151,6 @@ class SocieteGenerale(Browser):
             except AttributeError:
                 return tr.rdate
 
-        transactions.sort(key=key, reverse=True)
-        return iter(transactions)
-
     def iter_investment(self, account):
         if account.type == Account.TYPE_MARKET:
             self.location(account._link_id)
@@ -159,9 +161,10 @@ class SocieteGenerale(Browser):
 
         else:
             self.logger.warning('This account is not supported')
-            return iter([])
+            raise StopIteration()
 
-        return self.page.iter_investment()
+        for invest in self.page.iter_investment():
+            yield invest
 
     def set_date(self, trans):
         """fetch date and vdate from another page"""
@@ -190,8 +193,6 @@ class SocieteGenerale(Browser):
             data = dict((item.name, item.value or '') for item in form.inputs)
             data['a100_asv_action'] = 'actionSuivPage'
             self.location('asvcns21c.html', urllib.urlencode(data))
-
-        return trans
 
     def parse_date(self, trans, xpath, index):
         elem = self.page.document.xpath(xpath)[index]
