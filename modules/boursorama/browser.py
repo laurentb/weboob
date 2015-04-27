@@ -26,8 +26,8 @@ from collections import defaultdict
 from weboob.deprecated.browser import StateBrowser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
-from .pages import (LoginPage, AccountsList, AccountHistory, CardHistory, UpdateInfoPage,
-                    AuthenticationPage, AccountInvestment, InvestmentDetail)
+from .pages import (LoginPage, ProfilIncomplete, AccountsList, AccountHistory, CardHistory,
+                    UpdateInfoPage, AuthenticationPage, AccountInvestment, InvestmentDetail)
 
 
 __all__ = ['Boursorama']
@@ -45,6 +45,7 @@ class Boursorama(StateBrowser):
     ENCODING = None  # refer to the HTML encoding
     PAGES = {r'.*/connexion/securisation.*': AuthenticationPage,
              r'.*connexion.phtml.*': LoginPage,
+             r'.*/connexion/profil-incomplet.phtml.*': ProfilIncomplete,
              r'.*/comptes/synthese.phtml': AccountsList,
              r'.*/comptes/banque/detail/mouvements.phtml.*': AccountHistory,
              r'.*/comptes/banque/cartes/mouvements.phtml.*': CardHistory,

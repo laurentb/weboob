@@ -22,7 +22,7 @@
 from .account_history import AccountHistory
 from .card_history import CardHistory
 from .accounts_list import AccountsList
-from .login import LoginPage, UpdateInfoPage
+from .login import LoginPage, ProfilIncomplete, UpdateInfoPage
 from .two_authentication import AuthenticationPage
 from .investment import AccountInvestment, InvestmentDetail
 
@@ -31,6 +31,7 @@ class AccountPrelevement(AccountsList):
     pass
 
 __all__ = ['LoginPage',
+           'ProfilIncomplete',
            'AccountsList',
            'AccountHistory',
            'CardHistory',

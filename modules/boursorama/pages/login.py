@@ -98,6 +98,10 @@ class LoginPage(Page):
 
         self.browser.location(form.attrib['action'], urllib.urlencode(args), no_login=True)
 
+class ProfilIncomplete(Page):
+    def on_loaded(self):
+        raise BrowserIncorrectPassword()
+
 
 class UpdateInfoPage(Page):
     def on_loaded(self):
