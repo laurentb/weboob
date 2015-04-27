@@ -85,16 +85,15 @@ class Amazon(LoginBrowser):
         Amazon updates its website in stages: they reroute a random part of
         their users to new pages, and the rest to old ones.
         """
-        if (not self.order_new.is_here() and not self.order_old.is_here()) \
-                or self.page.order_number() != order_id:
+        for i in xrange(self.MAX_RETRIES):
+            if (self.order_new.is_here() or self.order_old.is_here()) \
+                    and self.page.order_number() == order_id:
+                return self.page
             try:
                 self.order_new.go(order_id=order_id)
             except HTTPNotFound:
                 self.order_old.go(order_id=order_id)
-        if (not self.order_new.is_here() and not self.order_old.is_here()) \
-                or self.page.order_number() != order_id:
-            raise OrderNotFound()
-        return self.page
+        raise OrderNotFound()
 
     def do_login(self):
         self.session.cookies.clear()
