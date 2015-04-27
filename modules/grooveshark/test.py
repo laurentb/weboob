@@ -25,7 +25,7 @@ class GroovesharkTest(BackendTest):
     MODULE = 'grooveshark'
 
     def test_grooveshark_audio_search(self):
-        result = list(self.backend.search_audio("Gronibard"))
+        result = list(self.backend.search_audio("Duster"))
         self.assertTrue(len(result) > 0)
         v = result[0]
         self.backend.fillobj(v, ('url',))
@@ -44,7 +44,7 @@ class GroovesharkTest(BackendTest):
         assert len(l1)
 
     def test_grooveshark_album_search(self):
-        result = list(self.backend.search_album("Gronibard"))
+        result = list(self.backend.search_album("Cunt"))
         self.assertTrue(len(result) > 0)
         v = result[0]
         self.backend.fillobj(v)
