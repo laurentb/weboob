@@ -119,7 +119,7 @@ class ConsoleApplication(Application):
         ret = super(ConsoleApplication, self).load_backends(*args, **kwargs)
 
         for err in errors:
-            print('Error(%s): %s' % (err.backend_name, err), file=self.stderr)
+            print(u'Error(%s): %s' % (err.backend_name, err), file=self.stderr)
             if self.ask('Do you want to reconfigure this backend?', default=True):
                 self.edit_backend(err.backend_name)
                 self.load_backends(names=[err.backend_name])
