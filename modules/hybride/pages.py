@@ -49,6 +49,8 @@ class ProgramPage(HTMLPage):
                 if self.env['date_from'] and obj.start_date >= self.env['date_from']:
                     if not self.env['date_to']:
                         return True
+                    elif not obj.end_date:
+                        return True
                     else:
                         if obj.end_date <= self.env['date_to']:
                             return True
@@ -60,7 +62,8 @@ class ProgramPage(HTMLPage):
             def check_category(self, obj):
                 return (not self.env['categories'] or obj.category in self.env['categories'])
 
-            obj_id = Regexp(Link('div/div[@class="catItemHeader"]/h3[@class="catItemTitle"]/a'), '/programme/item/(.*?).html')
+            obj_id = Regexp(Link('div/div[@class="catItemHeader"]/h3[@class="catItemTitle"]/a'),
+                            '/programme/item/(.*?).html')
             obj_start_date = Date(CleanText('div/div[@class="catItemHeader"]/span[@class="catItemDateCreated"]'))
             obj_summary = CleanText('div/div[@class="catItemHeader"]/h3[@class="catItemTitle"]/a')
 
