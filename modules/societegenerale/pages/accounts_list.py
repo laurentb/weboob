@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import urllib
 import datetime
 from urlparse import parse_qs, urlparse
 from lxml.etree import XML
@@ -318,4 +319,30 @@ class LifeInsuranceHistory(LifeInsurance):
             # search for 'Réalisé'
             trans._coming = 'alis' not in cells[self.COL_STATUS].text.strip()
 
+            self.set_date(trans)
+
             yield trans
+
+    def set_date(self, trans):
+        """fetch date and vdate from another page"""
+        form = self.document.xpath('//form[@id="operationForm"]')[0]
+
+        # go to the page containing the dates
+        data = dict((item.name, item.value or '') for item in form.inputs)
+        data['a100_asv_action'] = 'detail'
+        data['a100_asv_indexOp'] = trans.id
+        doc = self.browser.get_document(self.browser.openurl('/asv/AVI/asvcns21c.html', urllib.urlencode(data)), encoding='utf-8')
+
+        # process the data
+        date_xpath = '//td[@class="net2g_asv_suiviOperation_element1"]/following-sibling::td'
+        vdate_xpath = '//td[@class="net2g_asv_tableau_cell_date"]'
+        trans.date = self.parse_date(doc, trans, date_xpath, 1)
+        trans.vdate = self.parse_date(doc, trans, vdate_xpath, 0)
+
+    @staticmethod
+    def parse_date(doc, trans, xpath, index):
+        elem = doc.xpath(xpath)[index]
+        if elem.text:
+            return trans.parse_date(elem.text.strip())
+        else:
+            return NotAvailable

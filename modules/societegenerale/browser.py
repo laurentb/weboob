@@ -22,7 +22,6 @@ import urllib
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account
-from weboob.capabilities.base import NotAvailable
 
 from .pages.accounts_list import AccountsList, AccountHistory, CardsList, LifeInsurance, \
     LifeInsuranceHistory, LifeInsuranceInvest, Market
@@ -128,7 +127,6 @@ class SocieteGenerale(Browser):
         elif self.is_on_page(LifeInsurance):
             self.location('/asv/AVI/asvcns20c.html')
             for trans in self.page.iter_transactions():
-                self.set_date(trans)
                 yield trans
 
             # go to next page
@@ -138,7 +136,6 @@ class SocieteGenerale(Browser):
                 data['a100_asv_action'] = 'actionSuivPage'
                 self.location('asvcns21c.html', urllib.urlencode(data))
                 for trans in self.page.iter_transactions():
-                    self.set_date(trans)
                     yield trans
 
         else:
@@ -165,38 +162,3 @@ class SocieteGenerale(Browser):
 
         for invest in self.page.iter_investment():
             yield invest
-
-    def set_date(self, trans):
-        """fetch date and vdate from another page"""
-        form = self.page.document.xpath('//form[@id="operationForm"]')[0]
-        page_index = int(form.xpath('input[@id="a100_asv_numPage"]')[0].value)
-
-        # go to the page containing the dates
-        data = dict((item.name, item.value or '') for item in form.inputs)
-        data['a100_asv_action'] = 'detail'
-        data['a100_asv_indexOp'] = trans.id
-        self.location('/asv/AVI/asvcns21c.html', urllib.urlencode(data))
-
-        # process the data
-        date_xpath = '//td[@class="net2g_asv_suiviOperation_element1"]/following-sibling::td'
-        vdate_xpath = '//td[@class="net2g_asv_tableau_cell_date"]'
-        trans.date = self.parse_date(trans, date_xpath, 1)
-        trans.vdate = self.parse_date(trans, vdate_xpath, 0)
-
-        # 'return' doesn't return but leads to the first page of the list of transactions
-        data = {'a100_asv_action': 'retour', 'a100_asv_type': 'historique'}
-        self.location('/asv/AVI/asvcns22c.html', urllib.urlencode(data))
-
-        # returns to the previous page
-        for i in range(page_index-1):
-            form = self.page.document.xpath('//form[@id="operationForm"]')[0]
-            data = dict((item.name, item.value or '') for item in form.inputs)
-            data['a100_asv_action'] = 'actionSuivPage'
-            self.location('asvcns21c.html', urllib.urlencode(data))
-
-    def parse_date(self, trans, xpath, index):
-        elem = self.page.document.xpath(xpath)[index]
-        if elem.text:
-            return trans.parse_date(elem.text.strip())
-        else:
-            return NotAvailable
