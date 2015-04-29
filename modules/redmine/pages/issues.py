@@ -235,7 +235,7 @@ class NewIssuePage(BaseIssuePage):
             if 'type' in div.attrib and div.attrib['type'] == 'hidden':
                 continue
             label = self.document.xpath('//label[@for="%s"]' % div.attrib['id'])[0]
-            yield label.text.strip(), div
+            yield self.parser.tocleanstring(label), div
 
     def set_title(self, title):
         self.browser['issue[subject]'] = title.encode('utf-8')
