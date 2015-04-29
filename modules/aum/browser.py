@@ -367,7 +367,7 @@ class AuMBrowser(Browser):
             # retrieve query
             self.login()
 
-        r = self.api_request('users?count=100&offset=0&%s' % self.search_query)
+        r = self.api_request('users?count=100&offset=0&%s' % (self.search_query % {'lat': self.my_coords[0], 'lng': self.my_coords[1]}))
         ids = [s['id'] for s in r['results']]
         return set(ids)
 
