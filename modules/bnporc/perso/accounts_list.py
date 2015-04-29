@@ -32,7 +32,7 @@ class AccountsList(Page):
         u'Liquidités': Account.TYPE_CHECKING,
         u'Epargne disponible': Account.TYPE_SAVINGS,
         u'Titres': Account.TYPE_MARKET,
-        u'Assurance vie': Account.TYPE_DEPOSIT,
+        u'Assurance vie': Account.TYPE_LIFE_INSURANCE,
         u'Crédit immobilier': Account.TYPE_LOAN,
     }
 
@@ -77,10 +77,15 @@ class AccountsList(Page):
         if m:
             account._link_id = m.group(1)
         else:
-            # Can't get history for this account.
-            account._link_id = None
-            # To prevent multiple-IDs for CIF (for example), add an arbitrary char in ID.
-            account.id += 'C'
+            # Find _link_id of life insurances
+            m = re.match(r'javascript:overviewRedirectionOperation.*contrat=(\d+)', a.get('onclick', ''))
+            if m:
+                account._link_id = m.group(1)
+            else:
+                # Can't get history for this account.
+                account._link_id = None
+                # To prevent multiple-IDs for CIF (for example), add an arbitrary char in ID.
+                account.id += 'C'
 
         account.label = u''+a.text.strip()
 

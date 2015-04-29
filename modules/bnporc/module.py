@@ -101,6 +101,10 @@ class BNPorcModule(Module, CapBank, CapMessages):
         with self.browser:
             return self.browser.iter_coming_operations(account)
 
+    def iter_investment(self, account):
+        with self.browser:
+            return self.browser.iter_investment(account)
+
     def iter_transfer_recipients(self, ignored):
         if self.config['website'].get() != 'pp':
             raise NotImplementedError()
