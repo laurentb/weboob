@@ -314,8 +314,8 @@ class LifeInsuranceHistory(LifeInsurance):
                 id_trans = ''
 
             trans = Transaction(id=id_trans)
-            trans.label = link.attrib['title'].strip()
-            trans.amount = self.parse_decimal(cells[self.COL_AMOUNT])
+            trans.parse(raw=link.attrib['title'], date=cells[self.COL_DATE].text)
+            trans.set_amount(cells[self.COL_AMOUNT].text)
             # search for 'Réalisé'
             trans._coming = 'alis' not in cells[self.COL_STATUS].text.strip()
 
