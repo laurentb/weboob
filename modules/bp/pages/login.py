@@ -19,7 +19,6 @@
 
 
 import re
-import lxml.etree as etree
 
 from weboob.deprecated.browser import Page, BrowserUnavailable
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard
@@ -46,7 +45,7 @@ class Keyboard(VirtKeyboard):
     color=(0xff, 0xff, 0xff)
 
     def __init__(self, page):
-        m = re.search(r'background:url\((.*?)\)',etree.tostring(page.document))
+        m = re.search(r'background:url\("(.*?)"\)', ''.join(page.document.xpath('//script/text()')))
         if m:
             img_url = m.group(1)
             size = 252
