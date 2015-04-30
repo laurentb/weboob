@@ -144,6 +144,9 @@ class SGPEBrowser(Browser):
                 else:
                     page = False
 
+    def iter_investment(self, account):
+        raise NotImplementedError()
+
 
 class SGProfessionalBrowser(SGPEBrowser):
     DOMAIN = 'professionnels.secure.societegenerale.fr'
