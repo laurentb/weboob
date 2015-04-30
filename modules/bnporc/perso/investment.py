@@ -70,7 +70,8 @@ class AccountMarketInvestment(Page):
 
 class AccountLifeInsuranceInvestment(Page):
     def iter_investment(self):
-        rows = self.document.xpath('//table[@id="mefav_repartition_supports_BPF"]//tr')
+        rows = self.document.xpath('//table[@id="mefav_repartition_supports_BPF"]//tr') or \
+               self.document.xpath('//tbody[@id="mefav_repartition_supports"]//tr')
         for tr in rows:
             cells = clean_cells(tr.findall('td'))
             cells[3:] = clean_amounts(cells[3:])
