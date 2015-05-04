@@ -28,7 +28,10 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
     BASEURL = 'https://www.cartesentreprise.bnpparibas.com'
 
     login = URL('/ce_internet_public/seConnecter.builder.do', LoginPage)
-    error = URL('.*.seConnecter.event.do', ErrorPage)
+    error = URL('.*.seConnecter.event.do',
+                '.*.compteGestChgPWD.builder.do',
+                '/ce_internet_prive_ge/accueilInternetGe.builder.do',
+                ErrorPage)
     acc_home = URL('/ce_internet_prive_ge/carteCorporateParc.builder.do', AccountsPage)
     accounts = URL('/ce_internet_prive_ge/operationVotreParcAfficherCorporate.event.do',
                    '/ce_internet_prive_ge/operationVotreParcAppliquerCorporate.event.do.*',
@@ -56,6 +59,7 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
         self.login.stay_or_go()
+        assert self.login.is_here()
         self.page.login(self.type, self.username, self.password)
         if self.error.is_here():
             raise BrowserIncorrectPassword()
