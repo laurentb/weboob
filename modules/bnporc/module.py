@@ -26,7 +26,7 @@ from weboob.capabilities.messages import CapMessages, Thread
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
-from .browser import BNPorc
+from .deprecated.browser import BNPorc
 from .enterprise.browser import BNPEnterprise
 
 
