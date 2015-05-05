@@ -144,8 +144,20 @@ class CPTOperationPage(LoggedPage, HTMLPage):
                 op._coming = (re.match(r'\d+/\d+/\d+', m.group(2)) is None)
                 yield op
 
+class AppGonePage(HTMLPage):
+    def on_load(self):
+        self.browser.app_gone = True
+        self.browser.do_logout()
+        self.browser.do_login()
+
 
 class LoginPage(HTMLPage):
+    @property
+    def logged(self):
+        if self.doc.xpath(u'//p[contains(text(), "You are now being redirected to your Personal Internet Banking.")]'):
+            return True
+        return False
+
     def on_load(self):
         for message in self.doc.getroot().cssselect('div.csPanelErrors'):
             raise BrowserIncorrectPassword(CleanText('.')(message))
