@@ -62,10 +62,10 @@ def mini_jsonpath(node, path):
         if name is None:
             yield node
             continue
-        elif type(node) not in (dict, list):
-            continue
-        if name == '*':
+        elif name == '*':
             keys = iterkeys(node)
+        elif type(node) not in (dict, list) or name not in node:
+            continue
         else:
             keys = [int(name) if type(node) is list else name]
         for k in keys:
