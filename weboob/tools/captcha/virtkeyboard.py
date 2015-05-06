@@ -20,7 +20,6 @@
 
 import hashlib
 import tempfile
-from string import maketrans
 
 try:
     from PIL import Image
