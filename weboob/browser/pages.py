@@ -420,9 +420,9 @@ class JsonPage(Page):
                 break
         return node
 
-    def path(self, path):
+    def path(self, path, context=None):
         from weboob.tools.json import mini_jsonpath
-        return mini_jsonpath(self.doc, path)
+        return mini_jsonpath(context or self.doc, path)
 
     def build_doc(self, text):
         from weboob.tools.json import json
