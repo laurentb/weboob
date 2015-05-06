@@ -28,6 +28,7 @@ from weboob.tools.value import ValueBackendPassword, Value
 
 from .deprecated.browser import BNPorc
 from .enterprise.browser import BNPEnterprise
+from .browser import BNPParibasBrowser
 
 
 __all__ = ['BNPorcModule']
@@ -47,7 +48,9 @@ class BNPorcModule(Module, CapBank, CapMessages):
         #    label='Password to set when the allowed uses are exhausted (6 digits)',
         #    regexp='^(\d{6}|)$'),
         Value('website', label='Type de compte', default='pp',
-              choices={'pp': 'Particuliers/Professionnels', 'ent': 'Entreprises'}))
+              choices={'pp': 'Particuliers/Professionnels',
+                       'ent': 'Entreprises',
+                       'pp2': 'Particuliers/Professionnels (nouveau site)'}))
     STORAGE = {'seen': []}
 
     # Store the messages *list* for this duration
@@ -59,7 +62,7 @@ class BNPorcModule(Module, CapBank, CapMessages):
         self._threads_age = datetime.utcnow()
 
     def create_default_browser(self):
-        b = {'pp': BNPorc, 'ent': BNPEnterprise}
+        b = {'pp': BNPorc, 'ent': BNPEnterprise, 'pp2': BNPParibasBrowser}
         self.BROWSER = b[self.config['website'].get()]
         #if self.config['rotating_password'].get().isdigit() and len(self.config['rotating_password'].get()) == 6:
         #    rotating_password = self.config['rotating_password'].get()
