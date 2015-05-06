@@ -381,7 +381,7 @@ class CsvPage(Page):
         for i, row in enumerate(reader):
             if self.HEADER and i+1 < self.HEADER:
                 continue
-            row = self.decode_row(row, encoding)
+            row = map(unicode.strip, self.decode_row(row, encoding))
             if header is None and self.HEADER:
                 header = row
             else:
