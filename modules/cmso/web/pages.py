@@ -99,4 +99,4 @@ class HistoryPage(LoggedPage, HTMLPage):
             obj_date = Transaction.Date('./td[2]')
             obj_vdate = Transaction.Date('./td[1]')
             obj_raw = Transaction.Raw('./td[3]')
-            obj_amount = Transaction.Amount('./td[5]', './td[4]', replace_dots=False)
+            obj_amount = Transaction.Amount('./td[5]', './td[4]')
