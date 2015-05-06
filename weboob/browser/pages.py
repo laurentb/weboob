@@ -412,6 +412,18 @@ class JsonPage(Page):
     def data(self):
         return self.response.text
 
+    def get(self, path):
+        node = self.doc
+        for name in filter(None, path.strip('.').split('.')):
+            node = node.get(name)
+            if node is None:
+                break
+        return node
+
+    def path(self, path):
+        from weboob.tools.json import mini_jsonpath
+        return mini_jsonpath(self.doc, path)
+
     def build_doc(self, text):
         from weboob.tools.json import json
         return json.loads(text)
