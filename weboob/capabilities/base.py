@@ -474,6 +474,15 @@ class BaseObject(object):
         fields_iterator = self.iter_fields()
         return OrderedDict(iter_decorate(fields_iterator))
 
+    @classmethod
+    def from_dict(cls, values, backend=None):
+        self = cls()
+
+        for attr in values:
+            setattr(self, attr, values[attr])
+
+        return self
+
 
 class Currency(object):
     CURRENCIES = {u'EUR': u'€',
