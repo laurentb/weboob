@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
 from cStringIO import StringIO
 from random import randint
 from decimal import Decimal
@@ -25,7 +26,7 @@ from decimal import Decimal
 from weboob.browser.pages import JsonPage, LoggedPage
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.capabilities.bank import Account
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.json import json
 from weboob.tools.date import parse_french_date as Date
@@ -143,7 +144,7 @@ class AccountsPage(BNPPage):
                     'currency': a.get('devise'),
                     'type': self.FAMILY_TO_TYPE.get(f.get('idFamilleCompte')) or Account.TYPE_UNKNOWN,
                     'balance': a.get('soldeDispo'),
-                    'coming': a.get('soldeDispo') + a.get('soldeAVenir'),
+                    'coming': a.get('soldeAVenir'),
                     'iban': ibans.get(a.get('key')) or a.get('value')
                 })
 
@@ -151,6 +152,30 @@ class AccountsPage(BNPPage):
 class AccountsIBANPage(BNPPage):
     def get_ibans_dict(self):
         return dict((a.get('ibanCrypte'), a.get('iban')) for a in self.path('listeRib.*.infoCompte'))
+
+
+class Transaction(FrenchTransaction):
+    PATTERNS = [(re.compile(u'^(?P<category>CHEQUE)(?P<text>.*)'),        FrenchTransaction.TYPE_CHECK),
+                (re.compile('^(?P<category>FACTURE CARTE) DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*?)( CA?R?T?E? ?\d*X*\d*)?$'),
+                                                            FrenchTransaction.TYPE_CARD),
+                (re.compile('^(?P<category>(PRELEVEMENT|TELEREGLEMENT|TIP)) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_ORDER),
+                (re.compile('^(?P<category>PRLV( EUROPEEN)? SEPA) (?P<text>.*?)( MDT/.*?)?( ECH/\d+)?( ID .*)?$'),
+                                                            FrenchTransaction.TYPE_ORDER),
+                (re.compile('^(?P<category>ECHEANCEPRET)(?P<text>.*)'),   FrenchTransaction.TYPE_LOAN_PAYMENT),
+                (re.compile('^(?P<category>RETRAIT DAB) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})( (?P<HH>\d+)H(?P<MM>\d+))?( \d+)? (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile('^(?P<category>VIR(EMEN)?T? (RECU |FAVEUR )?(TIERS )?)\w+ \d+/\d+ \d+H\d+ \w+ (?P<text>.*)$'),
+                                                            FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^(?P<category>VIR(EMEN)?T? (EUROPEEN )?(SEPA )?(RECU |FAVEUR |EMIS )?(TIERS )?)(/FRM |/DE |/MOTIF |/BEN )?(?P<text>.*?)(/.+)?$'),
+                                                            FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^(?P<category>REMBOURST) CB DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_PAYBACK),
+                (re.compile('^(?P<category>REMBOURST)(?P<text>.*)'),     FrenchTransaction.TYPE_PAYBACK),
+                (re.compile('^(?P<category>COMMISSIONS)(?P<text>.*)'),   FrenchTransaction.TYPE_BANK),
+                (re.compile('^(?P<text>(?P<category>REMUNERATION).*)'),   FrenchTransaction.TYPE_BANK),
+                (re.compile('^(?P<category>REMISE CHEQUES)(?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+               ]
 
 
 class HistoryPage(BNPPage):
@@ -189,27 +214,27 @@ class HistoryPage(BNPPage):
     def iter_history(self):
         for op in self.get('data.listerOperations.compte.operationPassee') or []:
             codeFamille = cast(self.one('operationType.codeFamille', op), int)
-            yield Transaction.from_dict({
+            tr = Transaction.from_dict({
                 'id': op.get('idOperation'),
-                'date': Date(op.get('dateOperation')),
-                'rdate': Date(self.one('montant.executionDate', op)),
-                'vdate': Date(self.one('montant.valueDate', op)),
                 'type': self.CODE_TO_TYPE.get(codeFamille) or Transaction.TYPE_UNKNOWN,
-                'raw': op.get('libelleOperation'),
                 'category': op.get('categorie'),
                 'amount': self.one('montant.montant', op),
             })
+            tr.parse(raw=op.get('libelleOperation'),
+                     date=Date(op.get('dateOperation')),
+                     vdate=Date(self.one('montant.valueDate', op)))
+            yield tr
 
     def iter_coming(self):
         for op in self.path('data.listerOperations.compte.operationAvenir.*.operation.*'):
             codeOperation = cast(op.get('codeOperation'), int, 0)
-            yield Transaction.from_dict({
+            tr = Transaction.from_dict({
                 'id': op.get('idOperation'),
-                'date': Date(op.get('dateOperation')),
-                'rdate': Date(op.get('executionDate')),
-                'vdate': Date(op.get('valueDate')),
                 'type': self.COMING_TYPE_TO_TYPE.get(codeOperation) or Transaction.TYPE_UNKNOWN,
-                'raw': op.get('libelle'),
                 'amount': op.get('montant'),
                 'card': op.get('numeroPorteurCarte'),
             })
+            tr.parse(date=Date(op.get('dateOperation')),
+                     vdate=Date(op.get('valueDate')),
+                     raw=op.get('libelle'))
+            yield tr
