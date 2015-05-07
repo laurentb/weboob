@@ -33,7 +33,6 @@ __all__ = ['HSBC']
 class HSBC(LoginBrowser):
     BASEURL = 'https://client.hsbc.fr'
     app_gone = False
-    accounts_list = dict()
 
     connection =      URL(r'https://www.hsbc.fr/1/2/hsbc-france/particuliers/connexion', LoginPage)
     login =           URL(r'https://www.hsbc.fr/1/*', LoginPage)
@@ -48,6 +47,7 @@ class HSBC(LoginBrowser):
     accounts =        URL(r'/cgi-bin/emcgi', AccountsPage)
 
     def __init__(self, username, password, secret, *args, **kwargs):
+        self.accounts_list = dict()
         self.secret = secret
         LoginBrowser.__init__(self, username, password, *args, **kwargs)
 
