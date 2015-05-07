@@ -91,7 +91,6 @@ class _AccountsPage(BasePage):
             }
 
     def get_list(self):
-        iban = None
         for tr in self.document.xpath('//table[@class="ca-table"]/tr'):
             if not tr.attrib.get('class', '').startswith('colcelligne'):
                 continue
@@ -113,22 +112,7 @@ class _AccountsPage(BasePage):
             account.currency = account.get_currency(self.parser.tocleanstring(cols[self.COL_CURRENCY]))
             account._link = None
 
-            a = cols[0].find('a')
-            if a is not None:
-                account._link = a.attrib['href'].replace(' ', '%20')
-                page = self.browser.get_page(self.browser.openurl(account._link))
-                url = page.get_iban_url()
-                if url:
-                    page = self.browser.get_page(self.browser.openurl(url))
-                    iban = account.iban = page.get_iban()
-                elif iban:
-                    # In case there is no available IBAN on this account (for
-                    # example saving account), calculate it from the previous
-                    # IBAN.
-                    bankcode = iban[4:9]
-                    counter = iban[9:14]
-                    key = 97 - ((int(bankcode) * 89 + int(counter) * 15 + int(account.id) * 3) % 97)
-                    account.iban = iban[:4] + bankcode + counter + account.id + str(key)
+            self.set_link(account, cols)
 
             yield account
 
@@ -250,7 +234,25 @@ class CardsPage(BasePage):
 
 
 class AccountsPage(_AccountsPage):
-    pass
+
+    def set_link(self, account, cols):
+        iban = None
+        a = cols[0].find('a')
+        if a is not None:
+            account._link = a.attrib['href'].replace(' ', '%20')
+            page = self.browser.get_page(self.browser.openurl(account._link))
+            url = page.get_iban_url()
+            if url:
+                page = self.browser.get_page(self.browser.openurl(url))
+                iban = account.iban = page.get_iban()
+            elif iban:
+                # In case there is no available IBAN on this account (for
+                # example saving account), calculate it from the previous
+                # IBAN.
+                bankcode = iban[4:9]
+                counter = iban[9:14]
+                key = 97 - ((int(bankcode) * 89 + int(counter) * 15 + int(account.id) * 3) % 97)
+                account.iban = iban[:4] + bankcode + counter + account.id + str(key)
 
 
 class SavingsPage(_AccountsPage):
