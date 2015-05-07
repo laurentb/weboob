@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import urllib
 import re
+import urllib
 from urlparse import urlparse
 
 from weboob.capabilities.bank import Account

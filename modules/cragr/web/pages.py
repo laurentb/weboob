@@ -17,14 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import re
 from decimal import Decimal
+import re
 
-from weboob.tools.date import parse_french_date
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.deprecated.browser import Page, BrokenPageError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
+from weboob.tools.date import parse_french_date
 
 
 class BasePage(Page):
@@ -261,7 +261,7 @@ class AccountsPage(_AccountsPage):
 
 
 class SavingsPage(_AccountsPage):
-    COL_ID       = 1
+    COL_ID = 1
 
     def set_link(self, account, cols):
         if not account._link:
