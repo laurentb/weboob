@@ -26,7 +26,8 @@ from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.tools.date import LinearDateGuesser
 
 from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, \
-                   SavingsPage, TransactionsPage, UselessPage, CardsPage
+                   SavingsPage, TransactionsPage, UselessPage, CardsPage, \
+                   LifeInsurancePage
 
 
 __all__ = ['Cragr']
@@ -50,6 +51,7 @@ class Cragr(Browser):
              'https?://[^/]+/stb/entreeBam\?.*act=Messagesprioritaires': UselessPage,
              'https?://[^/]+/stb/collecteNI\?.*fwkaction=Cartes.*':      CardsPage,
              'https?://[^/]+/stb/collecteNI\?.*fwkaction=Detail.*sessionAPP=Cartes.*': CardsPage,
+             'https://assurance-personnes.credit-agricole.fr:443/filiale/entreeBam\?identifiantBAM=.*': LifeInsurancePage,
             }
 
     class WebsiteNotSupported(Exception):
@@ -193,3 +195,48 @@ class Cragr(Browser):
                     yield tr
 
                 url = self.page.get_next_url()
+
+    def iter_investment(self, account):
+        if not account._link or account.type != Account.TYPE_LIFE_INSURANCE:
+            self.logger.warning('This account is not supported')
+            return
+
+        new_location = self.moveto_insurance_website(account)
+        self.location(new_location, urllib.urlencode({}))
+
+        for inv in self.page.iter_investment():
+            yield inv
+
+        self.quit_insurance_website()
+
+    def moveto_insurance_website(self, account):
+        doc = self.get_document(self.openurl(account._link), encoding='utf-8')
+        # POST to https://assurance-personnes.credit-agricole.fr/filiale/ServletReroutageCookie
+        form = doc.find('//form[@name="formulaire"]')
+        data = {
+            'page': form.inputs['page'].attrib['value'],
+            'cMaxAge': '-1',
+        }
+        script = doc.find('//script').text
+        for value in ('cMaxAge', 'cName', 'cValue'):
+            m = re.search('%s.value *= *"([^"]+)"' % value, script)
+            if m:
+                data[value] = m.group(1)
+            else:
+                raise self.WebsiteNotSupported()
+
+        doc = self.get_document(self.openurl(form.attrib['action'], urllib.urlencode(data)), encoding='utf-8')
+
+        # POST to https://assurance-personnes.credit-agricole.fr:443/filiale/entreeBam?identifiantBAM=xxx
+        form = doc.find('//form[@name="formulaire"]')
+        return form.attrib['action']
+
+    def quit_insurance_website(self):
+        exit_url = 'https://assurance-personnes.credit-agricole.fr/filiale/entreeBam?actCrt=Synthcomptes&sessionSAG=%s&stbpg=pagePU&act=&typeaction=reroutage_retour&site=BAMG2&stbzn=bnc'
+        script = self.page.document.xpath("//script[contains(.,'idSessionSag =')]")
+        sag = re.search('idSessionSag = "([^"]+)";', script[0].text).group(1)
+        doc = self.get_document(self.openurl(exit_url % sag), encoding='utf-8')
+        form = doc.find('//form[@name="formulaire"]')
+        # 'act' parameter allows page recognition, this parameter is ignored by
+        # server
+        self.location(form.attrib['action'] + '&act=Synthepargnes')

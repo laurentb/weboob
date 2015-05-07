@@ -108,5 +108,10 @@ class CragrModule(Module, CapBank):
     def iter_history(self, account):
         return self.browser.get_history(account)
 
+    def iter_investment(self, account):
+        with self.browser:
+            for inv in self.browser.iter_investment(account):
+                yield inv
+
     def transfer(self, account, to, amount, reason=None):
         return self.browser.do_transfer(account, to, amount, reason)

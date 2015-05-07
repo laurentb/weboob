@@ -21,7 +21,8 @@ import re
 from decimal import Decimal
 
 from weboob.tools.date import parse_french_date
-from weboob.capabilities.bank import Account
+from weboob.capabilities import NotAvailable
+from weboob.capabilities.bank import Account, Investment
 from weboob.deprecated.browser import Page, BrokenPageError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 
@@ -261,6 +262,16 @@ class AccountsPage(_AccountsPage):
 class SavingsPage(_AccountsPage):
     COL_ID       = 1
 
+    def set_link(self, account, cols):
+        if not account._link:
+            a = cols[0].xpath("descendant::a[contains(@href, \"'PREDICA','CONTRAT'\")]")
+            if a:
+                account.type = Account.TYPE_LIFE_INSURANCE
+                url = 'https://%s/stb/entreeBam?sessionSAG=%s&stbpg=pagePU&site=PREDICA&' \
+                      'typeaction=reroutage_aller&sdt=CONTRAT&parampartenaire=%s'
+                script = self.document.xpath("//script[contains(.,'idSessionSag =')]")
+                sag = re.search('idSessionSag = "([^"]+)";', script[0].text).group(1)
+                account._link = url % (self.browser.request.host, sag, account.id)
 
 
 class TransactionsPage(BasePage):
@@ -393,3 +404,30 @@ class TransactionsPage(BasePage):
             yield t
 
             i += 1
+
+
+class LifeInsurancePage(BasePage):
+    COL_ID = 0
+    COL_QUANTITY = 3
+    COL_UNITVALUE = 1
+    COL_VALUATION = 4
+
+    def iter_investment(self):
+
+        for line in self.document.xpath('//table[@summary and count(descendant::td) > 1]/tbody/tr'):
+            cells = line.findall('td')
+
+            inv = Investment()
+            inv.label = unicode(cells[self.COL_ID].text_content().strip())
+            a = cells[self.COL_ID].find('a')
+            if a is not None:
+                inv.code = a.attrib['id']
+            else:
+                inv.code = NotAvailable
+            inv.quantity = Decimal(Transaction.clean_amount(cells[self.COL_QUANTITY].text_content())) or NotAvailable
+            inv.unitvalue = Decimal(Transaction.clean_amount(cells[self.COL_UNITVALUE].text_content())) or NotAvailable
+            inv.valuation = Decimal(Transaction.clean_amount(cells[self.COL_VALUATION].text_content()))
+            inv.unitprice = NotAvailable
+            inv.diff = NotAvailable
+
+            yield inv
