@@ -28,7 +28,7 @@ from weboob.tools.value import ValueBackendPassword, Value
 
 from .deprecated.browser import BNPorc
 from .enterprise.browser import BNPEnterprise
-from .browser import BNPParibasBrowser
+from .pp.browser import BNPParibasBrowser
 
 
 __all__ = ['BNPorcModule']
