@@ -265,6 +265,11 @@ class SavingsPage(_AccountsPage):
 
     def set_link(self, account, cols):
         if not account._link:
+            a = cols[0].xpath('descendant::a[contains(@href, "CATITRES")]')
+            if a:
+                url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&site=CATITRES&typeaction=reroutage_aller'
+                account._link = url % self.browser.request.host
+
             a = cols[0].xpath("descendant::a[contains(@href, \"'PREDICA','CONTRAT'\")]")
             if a:
                 account.type = Account.TYPE_LIFE_INSURANCE
@@ -403,6 +408,31 @@ class TransactionsPage(BasePage):
             yield t
 
             i += 1
+
+
+class MarketPage(BasePage):
+    COL_ID = 1
+    COL_QUANTITY = 2
+    COL_UNITVALUE = 3
+    COL_VALUATION = 4
+    COL_UNITPRICE = 5
+    COL_DIFF = 6
+
+    def iter_investment(self):
+
+        for line in self.document.xpath('//table[contains(@class, "ca-data-table")]/descendant::tr[count(td)=8]'):
+            cells = line.findall('td')
+
+            inv = Investment()
+            inv.label = unicode(cells[self.COL_ID].find('div/a').text.strip())
+            inv.code = cells[self.COL_ID].find('div/br').tail.strip()
+            inv.quantity = Decimal(Transaction.clean_amount(cells[self.COL_QUANTITY].find('span').text))
+            inv.unitvalue = Decimal(Transaction.clean_amount(cells[self.COL_UNITVALUE].text))
+            inv.valuation = Decimal(Transaction.clean_amount(cells[self.COL_VALUATION].text))
+            inv.unitprice = Decimal(Transaction.clean_amount(cells[self.COL_UNITPRICE].text))
+            inv.diff = Decimal(Transaction.clean_amount(cells[self.COL_DIFF].text_content()))
+
+            yield inv
 
 
 class LifeInsurancePage(BasePage):

@@ -20,6 +20,7 @@
 
 import urllib
 import re
+from urlparse import urlparse
 
 from weboob.capabilities.bank import Account
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
@@ -27,7 +28,7 @@ from weboob.tools.date import LinearDateGuesser
 
 from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, \
                    SavingsPage, TransactionsPage, UselessPage, CardsPage, \
-                   LifeInsurancePage
+                   LifeInsurancePage, MarketPage
 
 
 __all__ = ['Cragr']
@@ -51,6 +52,7 @@ class Cragr(Browser):
              'https?://[^/]+/stb/entreeBam\?.*act=Messagesprioritaires': UselessPage,
              'https?://[^/]+/stb/collecteNI\?.*fwkaction=Cartes.*':      CardsPage,
              'https?://[^/]+/stb/collecteNI\?.*fwkaction=Detail.*sessionAPP=Cartes.*': CardsPage,
+             'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.WalletVal\?nump=.*': MarketPage,
              'https://assurance-personnes.credit-agricole.fr:443/filiale/entreeBam\?identifiantBAM=.*': LifeInsurancePage,
             }
 
@@ -62,6 +64,7 @@ class Cragr(Browser):
         self.accounts_url = None
         self.savings_url = None
         self._sag = None  # updated while browsing
+        self.code_caisse = None  # constant for a given website
         Browser.__init__(self, *args, **kwargs)
 
     def home(self):
@@ -136,6 +139,10 @@ class Cragr(Browser):
         if not self.is_on_page(AccountsPage):
             raise self.WebsiteNotSupported()
 
+        if self.code_caisse is None:
+            scripts = self.page.document.xpath('//script[contains(., " codeCaisse")]')
+            self.code_caisse = re.search('var +codeCaisse *= *"([0-9]+)"', scripts[0].text).group(1)
+
         # Store the current url to go back when requesting accounts list.
         self.accounts_url = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', self.page.url)
 
@@ -174,6 +181,10 @@ class Cragr(Browser):
         return None
 
     def get_history(self, account):
+        if account.type in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE):
+            self.logger.warning('This account is not supported')
+            return
+
         # some accounts may exist without a link to any history page
         if account._link is None:
             return
@@ -201,17 +212,51 @@ class Cragr(Browser):
                 url = self.page.get_next_url()
 
     def iter_investment(self, account):
-        if not account._link or account.type != Account.TYPE_LIFE_INSURANCE:
+        if not account._link or account.type not in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE):
             self.logger.warning('This account is not supported')
             return
 
-        new_location = self.moveto_insurance_website(account)
-        self.location(new_location, urllib.urlencode({}))
+        if account.type == Account.TYPE_MARKET:
+            new_location = self.moveto_market_website(account)
+            self.location(new_location)
+        elif account.type == Account.TYPE_LIFE_INSURANCE:
+            new_location = self.moveto_insurance_website(account)
+            self.location(new_location, urllib.urlencode({}))
 
         for inv in self.page.iter_investment():
             yield inv
 
-        self.quit_insurance_website()
+        if account.type == Account.TYPE_MARKET:
+            self.quit_market_website()
+        elif account.type == Account.TYPE_LIFE_INSURANCE:
+            self.quit_insurance_website()
+
+    def moveto_market_website(self, account):
+        response = self.openurl(account._link % self.sag).read()
+        self._sag = None
+        # https://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.navigation.AccueilBridge?TOKEN_ID=
+        m = re.search('document.location="([^"]+)"', response)
+        if m:
+            url = m.group(1)
+        else:
+            self.logger.warn('Unable to go to market website')
+            raise self.WebsiteNotSupported()
+
+        self.openurl(url)
+        parsed = urlparse(url)
+        url = '%s://%s/netfinca-titres/servlet/com.netfinca.frontcr.account.WalletVal?nump=%s:%s'
+        return url % (parsed.scheme, parsed.netloc, account.id, self.code_caisse)
+
+    def quit_market_website(self):
+        parsed = urlparse(self.geturl())
+        exit_url = '%s://%s/netfinca-titres/servlet/com.netfinca.frontcr.login.ContextTransferDisconnect' % (parsed.scheme, parsed.netloc)
+        doc = self.get_document(self.openurl(exit_url), encoding='utf-8')
+        form = doc.find('//form[@name="formulaire"]')
+        # 'act' parameter allows page recognition, this parameter is ignored by
+        # server
+        self.location(form.attrib['action'] + '&act=Synthepargnes')
+
+        self.update_sag()
 
     def moveto_insurance_website(self, account):
         doc = self.get_document(self.openurl(account._link % self.sag), encoding='utf-8')
