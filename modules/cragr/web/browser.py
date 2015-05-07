@@ -62,7 +62,7 @@ class Cragr(Browser):
         self.login()
 
     def is_logged(self):
-        return self.page is not None and not self.is_on_page(HomePage)
+        return self.page is not None and not self.is_on_page(HomePage) and self.page.get_error() is None
 
     def login(self):
         """
