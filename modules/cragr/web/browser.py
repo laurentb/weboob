@@ -60,6 +60,8 @@ class Cragr(Browser):
     def __init__(self, website, *args, **kwargs):
         self.DOMAIN = re.sub('^m\.', 'www.', website)
         self.accounts_url = None
+        self.savings_url = None
+        self._sag = None  # updated while browsing
         Browser.__init__(self, *args, **kwargs)
 
     def home(self):
@@ -80,6 +82,8 @@ class Cragr(Browser):
         if self.is_logged():
             self.logger.debug('already logged in')
             return
+
+        self._sag = None
 
         if not self.is_on_page(HomePage):
             self.location(self.absurl('/'), no_login=True)
@@ -133,7 +137,7 @@ class Cragr(Browser):
             raise self.WebsiteNotSupported()
 
         # Store the current url to go back when requesting accounts list.
-        self.accounts_url = self.page.url
+        self.accounts_url = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', self.page.url)
 
         # we can deduce the URL to "savings" accounts from the regular accounts one
         self.savings_url  = re.sub('act=([^&=]+)', 'act=Synthepargnes', self.accounts_url, 1)
@@ -142,7 +146,7 @@ class Cragr(Browser):
         accounts_list = []
         # regular accounts
         if not self.is_on_page(AccountsPage):
-            self.location(self.accounts_url)
+            self.location(self.accounts_url.format(self.sag))
         accounts_list.extend(self.page.get_list())
 
         # credit cards
@@ -152,7 +156,7 @@ class Cragr(Browser):
             accounts_list.extend(self.page.get_list())
 
         # savings accounts
-        self.location(self.savings_url)
+        self.location(self.savings_url.format(self.sag))
         if self.is_on_page(SavingsPage):
             for account in self.page.get_list():
                 if account not in accounts_list:
@@ -179,7 +183,7 @@ class Cragr(Browser):
             account = self.get_account(account.id)
 
         date_guesser = LinearDateGuesser()
-        self.location(account._link)
+        self.location(account._link.format(self.sag))
 
         if self.is_on_page(CardsPage):
             for tr in self.page.get_history(date_guesser):
@@ -210,7 +214,8 @@ class Cragr(Browser):
         self.quit_insurance_website()
 
     def moveto_insurance_website(self, account):
-        doc = self.get_document(self.openurl(account._link), encoding='utf-8')
+        doc = self.get_document(self.openurl(account._link % self.sag), encoding='utf-8')
+        self._sag = None
         # POST to https://assurance-personnes.credit-agricole.fr/filiale/ServletReroutageCookie
         form = doc.find('//form[@name="formulaire"]')
         data = {
@@ -233,10 +238,22 @@ class Cragr(Browser):
 
     def quit_insurance_website(self):
         exit_url = 'https://assurance-personnes.credit-agricole.fr/filiale/entreeBam?actCrt=Synthcomptes&sessionSAG=%s&stbpg=pagePU&act=&typeaction=reroutage_retour&site=BAMG2&stbzn=bnc'
-        script = self.page.document.xpath("//script[contains(.,'idSessionSag =')]")
-        sag = re.search('idSessionSag = "([^"]+)";', script[0].text).group(1)
-        doc = self.get_document(self.openurl(exit_url % sag), encoding='utf-8')
+        doc = self.get_document(self.openurl(exit_url % self.sag), encoding='utf-8')
         form = doc.find('//form[@name="formulaire"]')
         # 'act' parameter allows page recognition, this parameter is ignored by
         # server
         self.location(form.attrib['action'] + '&act=Synthepargnes')
+        self.update_sag()
+
+    @property
+    def sag(self):
+        if not self._sag:
+            self.update_sag()
+        return self._sag
+
+    def update_sag(self):
+        if not self.is_logged():
+            self.login()
+
+        script = self.page.document.xpath("//script[contains(.,'idSessionSag =')]")
+        self._sag = re.search('idSessionSag = "([^"]+)";', script[0].text).group(1)

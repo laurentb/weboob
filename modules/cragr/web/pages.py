@@ -245,6 +245,7 @@ class AccountsPage(_AccountsPage):
         if a is not None:
             account._link = a.attrib['href'].replace(' ', '%20')
             page = self.browser.get_page(self.browser.openurl(account._link))
+            account._link = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', account._link)
             url = page.get_iban_url()
             if url:
                 page = self.browser.get_page(self.browser.openurl(url))
@@ -267,11 +268,9 @@ class SavingsPage(_AccountsPage):
             a = cols[0].xpath("descendant::a[contains(@href, \"'PREDICA','CONTRAT'\")]")
             if a:
                 account.type = Account.TYPE_LIFE_INSURANCE
-                url = 'https://%s/stb/entreeBam?sessionSAG=%s&stbpg=pagePU&site=PREDICA&' \
+                url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&site=PREDICA&' \
                       'typeaction=reroutage_aller&sdt=CONTRAT&parampartenaire=%s'
-                script = self.document.xpath("//script[contains(.,'idSessionSag =')]")
-                sag = re.search('idSessionSag = "([^"]+)";', script[0].text).group(1)
-                account._link = url % (self.browser.request.host, sag, account.id)
+                account._link = url % (self.browser.request.host, account.id)
 
 
 class TransactionsPage(BasePage):
