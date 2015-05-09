@@ -19,6 +19,7 @@
 
 
 from time import time, sleep
+import locale
 import os
 import sys
 import traceback
@@ -90,6 +91,17 @@ def to_unicode(text):
             return unicode(text, 'iso-8859-15')
         except UnicodeError:
             return unicode(text, 'windows-1252', 'replace')
+
+
+def guess_encoding(stdio):
+    try:
+        encoding = stdio.encoding or locale.getpreferredencoding()
+    except AttributeError:
+        encoding = None
+    # ASCII or ANSII is most likely a user mistake
+    if not encoding or encoding.lower() == 'ascii' or encoding.lower().startswith('ansi'):
+        encoding = 'UTF-8'
+    return encoding
 
 
 def limit(iterator, lim):

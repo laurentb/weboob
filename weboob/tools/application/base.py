@@ -24,7 +24,6 @@ import logging
 import optparse
 from optparse import OptionGroup, OptionParser
 from datetime import datetime
-import locale
 import os
 import sys
 import warnings
@@ -35,7 +34,7 @@ from weboob.core.backendscfg import BackendsConfig
 from weboob.tools.config.iconfig import ConfigError
 from weboob.exceptions import FormFieldConversionWarning
 from weboob.tools.log import createColoredFormatter, getLogger, DEBUG_FILTERS, settings as log_settings
-from weboob.tools.misc import to_unicode
+from weboob.tools.misc import to_unicode, guess_encoding
 from .results import ResultsConditionError
 
 __all__ = ['Application']
@@ -175,16 +174,7 @@ class Application(object):
         self._is_default_count = True
 
     def guess_encoding(self, stdio=None):
-        if stdio is None:
-            stdio = self.stdout
-        try:
-            encoding = stdio.encoding or locale.getpreferredencoding()
-        except AttributeError:
-            encoding = None
-        # ASCII or ANSII is most likely a user mistake
-        if not encoding or encoding.lower() == 'ascii' or encoding.lower().startswith('ansi'):
-            encoding = 'UTF-8'
-        return encoding
+        return guess_encoding(stdio or self.stdout)
 
     def deinit(self):
         self.weboob.want_stop()
