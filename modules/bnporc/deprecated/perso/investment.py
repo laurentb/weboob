@@ -38,7 +38,7 @@ def clean_cells(cells):
 
 
 def clean_amount(amount):
-    return Decimal(FrenchTransaction.clean_amount(amount)) if amount else NotAvailable
+    return Decimal(FrenchTransaction.clean_amount(amount)) if amount and amount != ' NS' else NotAvailable
 
 
 def clean_amounts(amounts):
@@ -63,7 +63,8 @@ class AccountMarketInvestment(Page):
             inv.unitprice = clean_amount(tr2td.xpath('.//td[@class="hdotc1nb"]')[0].text)
 
             inv.description = u''
-            inv.diff = inv.quantity * inv.unitprice - inv.valuation
+            if inv.unitprice:
+                inv.diff = inv.quantity * inv.unitprice - inv.valuation
 
             yield inv
 
