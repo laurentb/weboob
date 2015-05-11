@@ -152,6 +152,9 @@ class BNPorc(Browser):
         return None
 
     def iter_history(self, account):
+        if account.type == Account.TYPE_LIFE_INSURANCE:
+            raise NotImplementedError()
+
         if account._link_id is None:
             return iter([])
 
