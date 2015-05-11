@@ -28,6 +28,7 @@ from weboob.deprecated.browser import Page
 from weboob.deprecated.mech import ClientForm
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_french_date
+from weboob.tools.js import Javascript
 
 
 
@@ -59,7 +60,12 @@ class LoginPage(Page):
 
         #paypal add this on the captcha page when the validate should be automatique
         self.browser.controls.append(ClientForm.TextControl('text', 'ads_token_js', {'value': ''}))
-        self.browser['ads_token_js'] = self.browser['ads_token']
+
+        code = ''.join(self.document.xpath('//script[contains(text(), "convert")]/text()'))
+        code = re.sub('if \(autosubmit.*', '', code)
+        js = Javascript(code)
+        self.browser['ads_token_js'] = str(js.call('convert', self.browser['ads_token']))
+
         self.browser.submit(nologin=True)
 
 
