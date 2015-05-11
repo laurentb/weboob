@@ -593,6 +593,8 @@ class TransactionsPage(BasePage):
     def get_card_history(self, account, coming):
         if coming:
             debit_date = account._next_debit
+        elif not hasattr(account, '_prev_balance'):
+            return
         else:
             debit_date = account._prev_debit
             if 'ContinueTask.do' in self.url:
