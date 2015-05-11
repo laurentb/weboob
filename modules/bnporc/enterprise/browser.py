@@ -108,3 +108,6 @@ class BNPEnterprise(Browser):
         for tr in self._get_history('/RLOPI?chC=%s&ch8=0000&chB=1&ch7=%s&ch9=%s' % (account.id, d1, d2)):
             if tr._coming:
                 yield tr
+
+    def iter_investment(self, account):
+        raise NotImplementedError()
