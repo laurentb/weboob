@@ -83,10 +83,10 @@ class PeaHistoryPage(Page):
             yield inv
 
     def parse_decimal(self, string):
-        value = self.parser.tocleanstring(string)
+        value = Transaction.clean_amount(self.parser.tocleanstring(string))
         if value == '-':
             return NotAvailable
-        return Decimal(Transaction.clean_amount(value))
+        return Decimal(value)
 
     def get_operations(self, _id):
         return iter([])
