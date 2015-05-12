@@ -23,7 +23,7 @@ import urllib
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrokenPageError
 
 from .pages import LoginPage, IndexPage, AccountsPage, AccountsFullPage, CardsPage, TransactionsPage, \
-                   UnavailablePage, RedirectPage, HomePage, Login2Page
+                   UnavailablePage, RedirectPage, HomePage, Login2Page, InvestmentPage
 
 
 __all__ = ['BanquePopulaire']
@@ -52,6 +52,7 @@ class BanquePopulaire(Browser):
              'https://[^/]+/portailinternet/Pages/default.aspx':                                HomePage,
              'https://[^/]+/portailinternet/Transactionnel/Pages/CyberIntegrationPage.aspx':    HomePage,
              'https://[^/]+/WebSSO_BP/_(?P<bankid>\d+)/index.html\?transactionID=(?P<transactionID>.*)': Login2Page,
+             'https://www.linebourse.fr/Portefeuille':                                          InvestmentPage,
             }
 
     def __init__(self, website, *args, **kwargs):
@@ -176,3 +177,17 @@ class BanquePopulaire(Browser):
                 return
 
             self.location(self.buildurl('/cyber/internet/Page.do', **next_params))
+
+    def get_investment(self, account):
+        account = self.get_account(account.id)
+        params = account._params
+        if params is None:
+            return
+        params['token'] = self.page.build_token(params['token'])
+        self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(params))
+        params = self.page.get_investment_page_params()
+        if params:
+            self.open('https://www.linebourse.fr/ReroutageSJR', urllib.urlencode(params))
+            self.location('https://www.linebourse.fr/Portefeuille')
+            return self.page.get_investments()
+

@@ -89,3 +89,7 @@ class BanquePopulaireModule(Module, CapBank):
     def iter_coming(self, account):
         with self.browser:
             return self.browser.get_history(account, coming=True)
+
+    def iter_investment(self, account):
+        with self.browser:
+            return self.browser.get_investment(account)

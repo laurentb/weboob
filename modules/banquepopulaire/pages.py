@@ -27,7 +27,7 @@ from mechanize import Cookie, FormNotFoundError
 
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.deprecated.browser import Page as _BasePage, BrokenPageError
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.json import json
 
@@ -627,3 +627,39 @@ class TransactionsPage(BasePage):
             return True
 
         return False
+
+    def get_investment_page_params(self):
+        script = self.document.xpath('//body')[0].attrib['onload']
+        params = {}
+        for key, value in re.findall(r"key:'(?P<key>SJRToken)'\,value:'(?P<value>.*?)'}", script, re.MULTILINE):
+            params[key] = value
+        return params
+
+
+class InvestmentPage(_BasePage):
+    COL_LABEL = 0
+    COL_QUANTITY = 1
+    COL_UNITVALUE = 2
+    COL_VALUATION = 3
+    COL_UNITPRICE = 4
+    COL_PERF_PERCENT = 5
+    COL_PERF = 6
+    def get_investments(self):
+        for line in self.document.xpath('//table[contains(@summary, "Contenu")]/tbody/tr[@class="color4"]'):
+            cols1 = line.findall('td')
+            cols2 = line.xpath('./following-sibling::tr')[0].findall('td')
+
+            inv = Investment()
+            inv.label = self.parser.tocleanstring(cols1[self.COL_LABEL].xpath('.//span')[0])
+            inv.code = self.parser.tocleanstring(cols1[self.COL_LABEL].xpath('./a')[0]).split(' ')[-1]
+            inv.quantity = self.parse_decimal(cols2[self.COL_QUANTITY])
+            inv.unitprice = self.parse_decimal(cols2[self.COL_UNITPRICE])
+            inv.unitvalue = self.parse_decimal(cols2[self.COL_UNITVALUE])
+            inv.valuation = self.parse_decimal(cols2[self.COL_VALUATION])
+            inv.diff = self.parse_decimal(cols2[self.COL_PERF])
+
+            yield inv
+
+    def parse_decimal(self, string):
+        value = self.parser.tocleanstring(string)
+        return Decimal(Transaction.clean_amount(value))
