@@ -60,5 +60,9 @@ class TrackPage(Page):
         p.info = ' '.join([t.strip() for t in self.document.xpath('//div[@class="numeroColi2"]')[0].itertext()][1:])
         if u'Livraison effectuée' in p.history[0].activity:
             p.status = p.STATUS_ARRIVED
+        elif u"en cours d'acheminement" in p.history[0].activity or \
+             u"en cours de livraison" in p.history[0].activity or \
+             u"Envoi entré dans le pays de destination" in p.history[0].activity:
+            p.status = p.STATUS_IN_TRANSIT
 
         return p
