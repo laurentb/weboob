@@ -22,6 +22,7 @@ from __future__ import print_function
 
 import os
 import sys
+import locale
 import subprocess
 
 try:
@@ -121,7 +122,7 @@ class IFormatter(object):
     def output(self, formatted):
         if self.outfile != sys.stdout:
             with open(self.outfile, "a+") as outfile:
-                outfile.write(formatted.encode('utf-8') + os.linesep)
+                outfile.write(formatted.encode(locale.getpreferredencoding(), errors='replace') + os.linesep)
 
         else:
             for line in formatted.split('\n'):
@@ -133,7 +134,7 @@ class IFormatter(object):
                     self.print_lines = 0
 
                 if isinstance(line, unicode):
-                    line = line.encode('utf-8')
+                    line = line.encode(locale.getpreferredencoding(), errors='replace')
                 print(line)
                 self.print_lines += 1
 
