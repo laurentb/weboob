@@ -70,7 +70,7 @@ class AccountsPage(LoggedPage, HTMLPage):
         form['fldParam_datas'] = "1"
         if 'Histo' in self.url:
             form['periodeDeb'] = (date.today() - relativedelta(months=6)).strftime("%d/%m/%Y")
-            form['periodeFin'] = date.today().strftime("%d/%m/%Y")
+            form['periodeFin'] = self.doc.xpath('//select[@name="periodeSaisie"]/option[@selected]/text()')[0]
             form['periodeSelectionMode'] = "input"
         onclick = self.doc.xpath(submit)[0].get("onclick")
         url_parts = re.findall("'([^']*)'", onclick)
