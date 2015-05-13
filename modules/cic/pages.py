@@ -82,6 +82,8 @@ class AccountsPage(Page):
         accounts = OrderedDict()
 
         for tr in self.document.getiterator('tr'):
+            if not tr.getchildren():
+                continue
             first_td = tr.getchildren()[0]
             if (first_td.attrib.get('class', '') == 'i g'   \
             or first_td.attrib.get('class', '') == 'p g'    \
@@ -101,6 +103,8 @@ class AccountsPage(Page):
 
                 for i in (2,1):
                     if tr.getchildren()[i].text is None:
+                       if not tr.getchildren()[i].getchildren():
+                           continue
                        amout = tr.getchildren()[i].getchildren()[0].text
                     else:
                        amout = tr.getchildren()[i].text
