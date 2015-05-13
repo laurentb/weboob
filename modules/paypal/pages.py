@@ -68,6 +68,8 @@ class LoginPage(Page):
 
         self.browser.submit(nologin=True)
 
+class ErrorPage(Page):
+    pass
 
 class UselessPage(Page):
     pass

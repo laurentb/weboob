@@ -23,7 +23,7 @@ from dateutil.relativedelta import relativedelta
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountPage, UselessPage, HomePage, ProHistoryPage, PartHistoryPage, HistoryDetailsPage
+from .pages import LoginPage, AccountPage, UselessPage, HomePage, ProHistoryPage, PartHistoryPage, HistoryDetailsPage, ErrorPage
 
 
 __all__ = ['Paypal']
@@ -46,6 +46,7 @@ class Paypal(Browser):
         '/cgi-bin/webscr\?cmd=_account.*$':             UselessPage,
         '/cgi-bin/webscr\?cmd=_login-done.+$':          UselessPage,
         '/cgi-bin/webscr\?cmd=_home&country_lang.x=true$': HomePage,
+        '/auth/validatecaptcha$':                       ErrorPage,
         'https://\w+.paypal.com/cgi-bin/webscr\?cmd=_history-details-from-hub&id=[A-Z0-9]+$': HistoryDetailsPage,
         'https://\w+.paypal.com/webapps/business/\?nav=0.0': HomePage,
         'https://\w+.paypal.com/webapps/business/\?country_lang.x=true': HomePage,
@@ -95,7 +96,7 @@ class Paypal(Browser):
         self.page.login(self.username, self.password)
         self.page.validate_useless_captacha()
 
-        if self.is_on_page(LoginPage):
+        if self.is_on_page(LoginPage) or self.is_on_page(ErrorPage):
             raise BrowserIncorrectPassword()
 
         self.find_account_type()
