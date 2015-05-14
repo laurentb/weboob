@@ -182,7 +182,7 @@ class BanquePopulaire(Browser):
         account = self.get_account(account.id)
         params = account._params
         if params is None:
-            return
+            return iter([])
         params['token'] = self.page.build_token(params['token'])
         self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(params))
         params = self.page.get_investment_page_params()
@@ -191,3 +191,4 @@ class BanquePopulaire(Browser):
             self.location('https://www.linebourse.fr/Portefeuille')
             return self.page.get_investments()
 
+        return iter([])
