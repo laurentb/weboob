@@ -28,25 +28,25 @@ __all__ = ['ApecBrowser']
 
 
 class ApecBrowser(Browser):
-    PROTOCOL = 'http'
+    PROTOCOL = 'https'
     DOMAIN = 'www.apec.fr'
     ENCODING = 'ISO-8859-1'
 
     PAGES = {
-        'http://cadres.apec.fr/liste-offres-emploi-cadres/71____(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)___offre-d-emploi.html': SearchPage,
-        'http://cadres.apec.fr/MesOffres/RechercheOffres/ApecRechercheOffre.jsp\?keywords=(.*?)': SearchPage,
-        'http://cadres.apec.fr/offres-emploi-cadres/offres-emploi-cadres/\d*_\d*_\d*_(.*?)________(.*?).html(.*?)': AdvertPage,
+        'https://cadres.apec.fr/liste-offres-emploi-cadres/71____(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)___offre-d-emploi.html': SearchPage,
+        'https://cadres.apec.fr/MesOffres/RechercheOffres/ApecRechercheOffre.jsp\?keywords=(.*?)': SearchPage,
+        'https://cadres.apec.fr/offres-emploi-cadres/offres-emploi-cadres/\d*_\d*_\d*_(.*?)________(.*?).html(.*?)': AdvertPage,
     }
 
     def search_job(self, pattern=None):
-        self.location('http://cadres.apec.fr/MesOffres/RechercheOffres/ApecRechercheOffre.jsp?keywords=%s'
+        self.location('https://cadres.apec.fr/MesOffres/RechercheOffres/ApecRechercheOffre.jsp?keywords=%s'
                       % urllib.quote_plus(pattern.encode(self.ENCODING)))
         assert self.is_on_page(SearchPage)
         return self.page.iter_job_adverts()
 
     def advanced_search_job(self, region=None, fonction=None, secteur=None, salaire=None, contrat=None, limit_date=None, level=None):
         self.location(
-            'http://cadres.apec.fr/liste-offres-emploi-cadres/71____%s_%s_%s_%s_%s_%s_%s___offre-d-emploi.html'
+            'https://cadres.apec.fr/liste-offres-emploi-cadres/71____%s_%s_%s_%s_%s_%s_%s___offre-d-emploi.html'
             % (
                 region,
                 fonction,
