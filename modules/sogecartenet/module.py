@@ -31,13 +31,13 @@ __all__ = ['SogecartenetModule']
 
 class SogecartenetModule(Module, CapBank):
     NAME = 'sogecartenet'
-    DESCRIPTION = u'Societe General Cartes Entreprises'
+    DESCRIPTION = u'Sogecarte Net'
     MAINTAINER = u'Vincent Paredes'
     EMAIL = 'vparedes@budget-insight.fr'
     LICENSE = 'AGPLv3+'
     VERSION = '1.1'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
-                           ValueBackendPassword('password', label='Code personnel'))
+                           ValueBackendPassword('password', label='Mot de passe'))
 
     BROWSER = SogecartesBrowser
 
