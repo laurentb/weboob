@@ -36,7 +36,7 @@ class SeLogerBrowser(PagesBrowser):
     housing = URL('http://ws.seloger.com/annonceDetail.xml\?idAnnonce=(?P<_id>\d+)&noAudiotel=(?P<noAudiotel>\d)', HousingPage)
 
     def search_geo(self, pattern):
-        return self.cities.open(pattern=pattern.encode('utf-8')).iter_cities()
+        return self.cities.open(pattern=pattern).iter_cities()
 
     TYPES = {Query.TYPE_RENT: 1,
              Query.TYPE_SALE: 2

@@ -30,7 +30,7 @@ class SeLogerTest(BackendTest):
         query.area_min = 20
         query.cost_max = 1000
         query.cities = []
-        for city in self.backend.search_city('paris'):
+        for city in self.backend.search_city(u'Ferté'):
             city.backend = self.backend.name
             query.cities.append(city)
 
