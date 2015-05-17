@@ -19,9 +19,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import date
-from dateutil.relativedelta import relativedelta
-
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 from .pages.login import LoginPage
@@ -45,7 +42,7 @@ class Fortuneo(Browser):
 
             '.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp.*' :          AccountHistoryPage,
             '.*/prive/mes-comptes/compte-courant/consulter-situation/consulter-solde\.jsp.*' :  AccountHistoryPage,
-            '.*/prive/mes-comptes/compte-titres-.*':                                            InvestmentHistoryPage,
+            '.*/prive/mes-comptes/compte-titres-.*':                                            PeaHistoryPage,
             '.*/prive/mes-comptes/assurance-vie.*':                                             InvestmentHistoryPage,
             '.*/prive/mes-comptes/pea.*':                                                       PeaHistoryPage,
             '.*/prive/mes-comptes/compte-especes.*':                                            InvestmentHistoryPage,
@@ -93,12 +90,7 @@ class Fortuneo(Browser):
     def get_history(self, account):
         self.location(account._link_id)
 
-        if self.is_on_page(AccountHistoryPage):
-            self.select_form(name='ConsultationHistoriqueOperationsForm')
-            self.set_all_readonly(False)
-            self['dateRechercheDebut'] = (date.today() - relativedelta(years=1)).strftime('%d/%m/%Y')
-            self['nbrEltsParPage'] = '100'
-            self.submit()
+        self.page.select_period()
 
         return self.page.get_operations(account)
 
