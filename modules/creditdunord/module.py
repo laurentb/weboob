@@ -80,3 +80,8 @@ class CreditDuNordModule(Module, CapBank):
             transactions = list(self.browser.get_card_operations(account))
             transactions.sort(key=lambda tr: tr.rdate, reverse=True)
             return [tr for tr in transactions if tr._is_coming]
+
+    def iter_investment(self, account):
+        with self.browser:
+            account = self.browser.get_account(account.id)
+            return self.browser.get_investment(account)

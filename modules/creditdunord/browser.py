@@ -22,6 +22,7 @@ import re
 import urllib
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, AccountsPage, ProAccountsPage, TransactionsPage, ProTransactionsPage
 
@@ -35,6 +36,7 @@ class CreditDuNordBrowser(Browser):
     PAGES = {'https://[^/]+/?':                                         LoginPage,
              'https://[^/]+/.*\?.*_pageLabel=page_erreur_connexion':    LoginPage,
              'https://[^/]+/vos-comptes/particuliers(\?.*)?':           AccountsPage,
+             'https://[^/]+/vos-comptes/particuliers/transac_tableau_de_bord(\?.*)?':           AccountsPage,
              'https://[^/]+/vos-comptes/.*/transac/particuliers.*':     TransactionsPage,
              'https://[^/]+/vos-comptes/(?P<kind>professionnels|entreprises).*':    ProAccountsPage,
              'https://[^/]+/vos-comptes/.*/transac/(professionnels|entreprises).*': ProTransactionsPage,
@@ -86,7 +88,7 @@ class CreditDuNordBrowser(Browser):
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):
-            self.location(self.buildurl('/vos-comptes/%s' % self.account_type))
+            self.location(self.buildurl('/vos-comptes/%s/transac_tableau_de_bord' % self.account_type))
         return self.page.get_list()
 
     def get_account(self, id):
@@ -127,3 +129,13 @@ class CreditDuNordBrowser(Browser):
         for link_args in account._card_ids:
             for tr in self.iter_transactions(account._link, link_args, True):
                 yield tr
+
+    def get_investment(self, account):
+        if not account._inv:
+            return
+        self.location(account._link, urllib.urlencode(account._args))
+        if (account.type == Account.TYPE_MARKET):
+            return self.page.get_market_investment()
+        elif (account.type == Account.TYPE_DEPOSIT):
+            self.page.follow_detail()
+            return self.page.get_deposit_investment()

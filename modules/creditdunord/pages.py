@@ -18,14 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from urllib import quote
+from urllib import quote, urlencode
 from decimal import Decimal
 import re
 from cStringIO import StringIO
 
 from weboob.deprecated.browser import Page, BrokenPageError
 from weboob.tools.json import json
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -72,6 +72,7 @@ class CDNBasePage(Page):
 
 class AccountsPage(CDNBasePage):
     COL_HISTORY = 2
+    COL_FIRE_EVENT = 3
     COL_ID = 4
     COL_LABEL = 5
     COL_BALANCE = -1
@@ -114,8 +115,9 @@ class AccountsPage(CDNBasePage):
             a.balance = Decimal(FrenchTransaction.clean_amount(line[self.COL_BALANCE]))
             a.currency = a.get_currency(line[self.COL_BALANCE])
             a.type = self.get_account_type(a.label)
-            a._link = self.get_history_link()
             if line[self.COL_HISTORY] == 'true':
+                a._inv = False
+                a._link = self.get_history_link()
                 a._args = {'_eventId':         'clicDetailCompte',
                            '_ipc_eventValue':  '',
                            '_ipc_fireEvent':   '',
@@ -124,7 +126,11 @@ class AccountsPage(CDNBasePage):
                            'idCompteClique':   line[self.COL_ID],
                           }
             else:
-                a._args = None
+                a._inv = True
+                a._args = {'_ipc_eventValue':  line[self.COL_ID],
+                           '_ipc_fireEvent':   line[self.COL_FIRE_EVENT],
+                          }
+                a._link = self.document.xpath('//form[@name="changePageForm"]')[0].attrib['action']
 
             if a.id.find('_CarteVisa') >= 0:
                 accounts[-1]._card_ids.append(a._args)
@@ -287,6 +293,71 @@ class TransactionsPage(CDNBasePage):
 
             yield t
 
+    def follow_detail(self):
+        nav = re.findall(r"'(.+?)'",  self.document.xpath('//table[@class="datas"]//a')[0].attrib["href"])
+        data = {'IndiceClassement' : self.get_from_js('detail.IndiceClassement.value="', '";'),
+                'IndiceCompte' : self.get_from_js('detail.IndiceCompte.value="', '";'),
+                'Banque' : self.get_from_js('detail.Banque.value="', '";'),
+                'Agence' : self.get_from_js('detail.Agence.value="', '";'),
+                'Classement' : self.get_from_js('detail.Classement.value="', '";'),
+                'Serie' : self.get_from_js('detail.Serie.value="', '";'),
+                'SScompte' : self.get_from_js('detail.SScompte.value="', '";'),
+                'Categorie' : nav[0],
+                'IndiceSupport' : nav[1],
+                'NumPolice' : nav[2],
+                'LinkHypertext' : nav[3],
+               }
+        txt = self.get_from_js('document.detail.action="', '";', is_list=True)
+
+        self.browser.location(self.browser.buildurl("https://" + self.browser.DOMAIN + txt.split(',')[1]), urlencode(data), no_login=True)
+        self.browser.location(self.browser.buildurl("https://" + self.browser.DOMAIN + txt.split(',')[1].replace("_attente", "_detail_contrat_rep")), urlencode(data), no_login=True)
+
+    def get_market_investment(self):
+        COL_LABEL = 0
+        COL_QUANTITY = 1
+        COL_UNITPRICE = 2
+        COL_UNITVALUE = 3
+        COL_VALUATION = 4
+        COL_PERF = 5
+        for table in self.document.xpath('//table[@class="datas-large"]'):
+            for tr in table.xpath('.//tr[not(@class="entete")]'):
+                cols = tr.findall('td')
+                if len(cols) != 7:
+                    continue
+
+                inv = Investment()
+                inv.code = self.parser.tocleanstring(cols[COL_LABEL].xpath('.//span')[1])
+                inv.label = self.parser.tocleanstring(cols[COL_LABEL].xpath('.//span')[0])
+                inv.quantity = self.parse_decimal(cols[COL_QUANTITY])
+                inv.unitprice = self.parse_decimal(cols[COL_UNITPRICE])
+                inv.unitvalue = self.parse_decimal(cols[COL_UNITVALUE])
+                inv.valuation = self.parse_decimal(cols[COL_VALUATION])
+                inv.diff = self.parse_decimal(cols[COL_PERF])
+
+                yield inv
+
+    def get_deposit_investment(self):
+        COL_LABEL = 0
+        COL_QUANTITY = 3
+        COL_UNITVALUE = 4
+        COL_VALUATION = 5
+        for tr in self.document.xpath('//table[@class="datas"]/tr[not(@class="entete")]'):
+            cols = tr.findall('td')
+
+            inv = Investment()
+            inv.label = self.parser.tocleanstring(cols[COL_LABEL].xpath('.//a')[0])
+            inv.code = self.parser.tocleanstring(cols[COL_LABEL]).replace(inv.label, "")
+            inv.quantity = self.parse_decimal(cols[COL_QUANTITY])
+            inv.unitvalue = self.parse_decimal(cols[COL_UNITVALUE])
+            inv.valuation = self.parse_decimal(cols[COL_VALUATION])
+
+            yield inv
+
+    def parse_decimal(self, string):
+        value = self.parser.tocleanstring(string)
+        if value == '-':
+            return NotAvailable
+        return Decimal(Transaction.clean_amount(value))
 
 class ProTransactionsPage(TransactionsPage):
     def get_next_args(self, args):
