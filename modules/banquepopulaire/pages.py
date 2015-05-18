@@ -28,6 +28,7 @@ from mechanize import Cookie, FormNotFoundError
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.deprecated.browser import Page as _BasePage, BrokenPageError
 from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.json import json
 
@@ -662,4 +663,6 @@ class InvestmentPage(_BasePage):
 
     def parse_decimal(self, string):
         value = self.parser.tocleanstring(string)
+        if value == '':
+            return NotAvailable
         return Decimal(Transaction.clean_amount(value))
