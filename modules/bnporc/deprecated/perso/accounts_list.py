@@ -33,6 +33,7 @@ class AccountsList(Page):
         u'Epargne disponible': Account.TYPE_SAVINGS,
         u'Titres': Account.TYPE_MARKET,
         u'Assurance vie': Account.TYPE_LIFE_INSURANCE,
+        u'Capitalisation': Account.TYPE_LIFE_INSURANCE,
         u'Crédit immobilier': Account.TYPE_LOAN,
     }
 
