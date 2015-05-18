@@ -87,7 +87,10 @@ class _AccountsPage(BasePage):
              'LIV A':  Account.TYPE_SAVINGS,
              'LDD':    Account.TYPE_SAVINGS,
              'PEL':    Account.TYPE_MARKET,
+             'PEA':    Account.TYPE_MARKET,
+             'CPS':    Account.TYPE_MARKET,
              'TITR':   Account.TYPE_MARKET,
+             'TITR CTD':   Account.TYPE_MARKET,
             }
 
     def get_list(self):
