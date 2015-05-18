@@ -413,6 +413,12 @@ class AccountsPage(BasePage):
                     if m and m.group(1) != 'EQUIPEMENT_COMPLET':
                         _params['prevAction'] = m.group(1)
                     next_pages.append(_params)
+
+                if not account._params:
+                    account._params = params.copy()
+                    account._params['dialogActionPerformed'] = 'CONTRAT'
+                    account._params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]
+
                 yield account
 
         # Needed to preserve navigation.
@@ -631,13 +637,21 @@ class TransactionsPage(BasePage):
 
     def get_investment_page_params(self):
         script = self.document.xpath('//body')[0].attrib['onload']
+        url = None
+        m = re.search(r"','(.+?)',\[", script, re.MULTILINE)
+        if m:
+            url = m.group(1)
         params = {}
         for key, value in re.findall(r"key:'(?P<key>SJRToken)'\,value:'(?P<value>.*?)'}", script, re.MULTILINE):
             params[key] = value
-        return params
+        return url, params if url and params else None
 
 
-class InvestmentPage(_BasePage):
+class LineboursePage(_BasePage):
+    pass
+
+
+class InvestmentLineboursePage(_BasePage):
     COL_LABEL = 0
     COL_QUANTITY = 1
     COL_UNITVALUE = 2
@@ -664,5 +678,35 @@ class InvestmentPage(_BasePage):
     def parse_decimal(self, string):
         value = self.parser.tocleanstring(string)
         if value == '':
+            return NotAvailable
+        return Decimal(Transaction.clean_amount(value))
+
+
+class NatixisPage(_BasePage):
+    def submit_form(self):
+        self.browser.select_form(name="formRoutage")
+        self.browser.submit(nologin=True)
+
+
+class InvestmentNatixisPage(_BasePage):
+    COL_LABEL = 0
+    COL_QUANTITY = 2
+    COL_UNITVALUE = 3
+    COL_VALUATION = 4
+    def get_investments(self):
+        for line in self.document.xpath('//div[@class="row-fluid table-contrat-supports"]/table/tbody[(@class)]/tr'):
+            cols = line.findall('td')
+
+            inv = Investment()
+            inv.label = self.parser.tocleanstring(cols[self.COL_LABEL]).replace('Cas sans risque ', '')
+            inv.quantity = self.parse_decimal(cols[self.COL_QUANTITY])
+            inv.unitvalue = self.parse_decimal(cols[self.COL_UNITVALUE])
+            inv.valuation = self.parse_decimal(cols[self.COL_VALUATION])
+
+            yield inv
+
+    def parse_decimal(self, string):
+        value = self.parser.tocleanstring(string).replace('Si famille fonds generaux, on affiche un tiret', '').replace('Cas sans risque', '').replace(' ', '')
+        if value == '-':
             return NotAvailable
         return Decimal(Transaction.clean_amount(value))

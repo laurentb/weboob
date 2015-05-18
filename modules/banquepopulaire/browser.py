@@ -23,7 +23,8 @@ import urllib
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrokenPageError
 
 from .pages import LoginPage, IndexPage, AccountsPage, AccountsFullPage, CardsPage, TransactionsPage, \
-                   UnavailablePage, RedirectPage, HomePage, Login2Page, InvestmentPage
+                   UnavailablePage, RedirectPage, HomePage, Login2Page, \
+                   LineboursePage, NatixisPage, InvestmentNatixisPage, InvestmentLineboursePage
 
 
 __all__ = ['BanquePopulaire']
@@ -43,6 +44,7 @@ class BanquePopulaire(Browser):
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=ENCOURS_COMPTE.*': CardsPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SELECTION_ENCOURS_CARTE.*':   TransactionsPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SOLDE.*':   TransactionsPage,
+             'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=CONTRAT.*':   TransactionsPage,
              'https://[^/]+/cyber/internet/Page.do\?.*':                                        TransactionsPage,
              'https://[^/]+/cyber/internet/Sort.do\?.*':                                        TransactionsPage,
              'https://[^/]+/s3f-web/.*':                                                        UnavailablePage,
@@ -52,7 +54,10 @@ class BanquePopulaire(Browser):
              'https://[^/]+/portailinternet/Pages/default.aspx':                                HomePage,
              'https://[^/]+/portailinternet/Transactionnel/Pages/CyberIntegrationPage.aspx':    HomePage,
              'https://[^/]+/WebSSO_BP/_(?P<bankid>\d+)/index.html\?transactionID=(?P<transactionID>.*)': Login2Page,
-             'https://www.linebourse.fr/Portefeuille':                                          InvestmentPage,
+             'https://www.linebourse.fr/ReroutageSJR':                                          LineboursePage,
+             'https://www.linebourse.fr/Portefeuille':                                          InvestmentLineboursePage,
+             'https://www.assurances.natixis.fr/espaceinternet-bp/views/common.*':              NatixisPage,
+             'https://www.assurances.natixis.fr/espaceinternet-bp/views/contrat.*':             InvestmentNatixisPage,
             }
 
     def __init__(self, website, *args, **kwargs):
@@ -181,14 +186,15 @@ class BanquePopulaire(Browser):
     def get_investment(self, account):
         account = self.get_account(account.id)
         params = account._params
-        if params is None:
-            return iter([])
         params['token'] = self.page.build_token(params['token'])
         self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(params))
-        params = self.page.get_investment_page_params()
+        url, params = self.page.get_investment_page_params()
         if params:
-            self.open('https://www.linebourse.fr/ReroutageSJR', urllib.urlencode(params))
-            self.location('https://www.linebourse.fr/Portefeuille')
+            self.location(url, urllib.urlencode(params))
+            if self.is_on_page(LineboursePage):
+                self.location('https://www.linebourse.fr/Portefeuille')
+            elif self.is_on_page(NatixisPage):
+                self.page.submit_form()
             return self.page.get_investments()
 
         return iter([])
