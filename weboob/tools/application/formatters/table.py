@@ -17,11 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import locale
-
 from prettytable import PrettyTable
 
 from weboob.capabilities.base import empty
+from weboob.tools.misc import guess_encoding
 
 from .iformatter import IFormatter
 
@@ -41,7 +40,7 @@ class TableFormatter(IFormatter):
     def flush(self):
         s = self.get_formatted_table()
         if s is not None:
-            self.output(s.encode(locale.getpreferredencoding(), errors='replace'))
+            self.output(s.encode(guess_encoding(self.outfile), errors='replace'))
 
     def get_formatted_table(self):
         if len(self.queue) == 0:

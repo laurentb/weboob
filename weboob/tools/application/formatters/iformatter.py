@@ -22,7 +22,6 @@ from __future__ import print_function
 
 import os
 import sys
-import locale
 import subprocess
 
 try:
@@ -62,7 +61,7 @@ else:
 from weboob.capabilities.base import BaseObject
 from weboob.tools.application.console import ConsoleApplication
 from weboob.tools.ordereddict import OrderedDict
-
+from weboob.tools.misc import guess_encoding
 
 __all__ = ['IFormatter', 'MandatoryFieldsNotFound']
 
@@ -122,7 +121,7 @@ class IFormatter(object):
     def output(self, formatted):
         if self.outfile != sys.stdout:
             with open(self.outfile, "a+") as outfile:
-                outfile.write(formatted.encode(locale.getpreferredencoding(), errors='replace') + os.linesep)
+                outfile.write(formatted.encode(guess_encoding(outfile), errors='replace') + os.linesep)
 
         else:
             for line in formatted.split('\n'):
@@ -134,7 +133,7 @@ class IFormatter(object):
                     self.print_lines = 0
 
                 if isinstance(line, unicode):
-                    line = line.encode(locale.getpreferredencoding(), errors='replace')
+                    line = line.encode(guess_encoding(self.outfile), errors='replace')
                 print(line)
                 self.print_lines += 1
 
