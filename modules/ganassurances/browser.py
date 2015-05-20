@@ -18,6 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import ssl
+
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
@@ -35,6 +37,15 @@ class GanAssurances(LoginBrowser):
     def __init__(self, website, *args, **kwargs):
         self.BASEURL = 'https://%s' % website
         super(GanAssurances, self).__init__(*args, **kwargs)
+
+    def prepare_request(self, req):
+        """
+        Gan Assurances does not support SSL anymore.
+        """
+        preq = super(GanAssurances, self).prepare_request(req)
+        conn = self.session.adapters['https://'].get_connection(preq.url)
+        conn.ssl_version = ssl.PROTOCOL_TLSv1
+        return preq
 
     def do_login(self):
         """
