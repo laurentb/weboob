@@ -17,25 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.deprecated.browser import Browser
+from weboob.browser import PagesBrowser, URL
 from .pages import TrackPage, ErrorPage
 
 
-__all__ = ['ColispriveBrowser']
+class ColispriveBrowser(PagesBrowser):
 
-
-class ColispriveBrowser(Browser):
-    PROTOCOL = 'https'
-    DOMAIN = 'www.colisprive.com'
-    ENCODING = 'utf8'
-
-    PAGES = {'https://www.colisprive.com/moncolis/pages/detailColis.aspx.*': TrackPage,
-             'https://www.colisprive.com/moncolis/Default.aspx.*': ErrorPage,
-             }
+    track_page = URL('https://www.colisprive.com/moncolis/pages/detailColis.aspx\?numColis=(?P<id>.+)', TrackPage)
+    error_page = URL('https://www.colisprive.fr', ErrorPage)
 
     def get_tracking_info(self, _id):
-        self.location('https://www.colisprive.com/moncolis/pages/detailColis.aspx?numColis=%s' % _id)
-        if not self.is_on_page(TrackPage):
-            return None
-
-        return self.page.get_info(_id)
+        return self.track_page.go(id=_id).get_info(_id)

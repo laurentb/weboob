@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import date
-from weboob.deprecated.browser import Page
-from weboob.capabilities.parcel import Parcel, Event
+from weboob.browser.pages import HTMLPage
+from weboob.capabilities.parcel import Parcel, Event, ParcelNotFound
 
 
 def update_status(p, status):
@@ -27,28 +27,28 @@ def update_status(p, status):
         p.status = status
 
 
-class TrackPage(Page):
+class TrackPage(HTMLPage):
     def get_info(self, _id):
         p = Parcel(_id)
 
-        statustr = self.document.xpath('//tr[@class="bandeauText"]')[0]
-        status = self.parser.tocleanstring(statustr.xpath('td')[1])
+        statustr = self.doc.xpath('//tr[@class="bandeauText"]')[0]
+        status = statustr.xpath('td')[1].text
 
         p.info = status
         p.status = p.STATUS_UNKNOWN
 
         p.history = []
-        for i, tr in enumerate(self.document.xpath('//div[@class="mainbloc4Evt"]//tr')):
+        for i, tr in enumerate(self.doc.xpath('//table[@class="tableHistoriqueColis"]//tr[@class="bandeauText"]')):
             tds = tr.findall('td')
             try:
-                if tds[0].attrib['class'] != "titrestatutdate2":
+                if tds[0].attrib['class'] != "tdText":
                     continue
             except:
                 continue
 
             ev = Event(i)
             ev.location = None
-            ev.activity = self.parser.tocleanstring(tds[1])
+            ev.activity = tds[1].text
             if u"Votre colis a été expédié par votre webmarchand" in ev.activity:
                 update_status(p, p.STATUS_PLANNED)
             elif u"Votre colis est pris en charge par Colis Privé" in ev.activity:
@@ -59,12 +59,12 @@ class TrackPage(Page):
                 update_status(p, p.STATUS_IN_TRANSIT)
             elif u"Votre colis a été livré" in ev.activity:
                 update_status(p, p.STATUS_ARRIVED)
-            ev.date = date(*reversed([int(x) for x in self.parser.tocleanstring(tds[0]).split('/')]))
+            ev.date = date(*reversed([int(x) for x in tds[0].text.split('/')]))
             p.history.append(ev)
 
         try:
-            datelivre = self.document.xpath('//div[@class="NoInstNoRecla"]')
-            clean = self.parser.tocleanstring(datelivre[0])
+            datelivre = self.doc.xpath('//div[@class="NoInstNoRecla"]')
+            clean = datelivre[0].text
             if "Votre colis a déja été livré" in clean:
                 p.status = p.STATUS_ARRIVED
         except:
@@ -72,5 +72,6 @@ class TrackPage(Page):
         return p
 
 
-class ErrorPage(Page):
-    pass
+class ErrorPage(HTMLPage):
+    def get_info(self, _id):
+        raise ParcelNotFound("No such ID: %s" % _id)

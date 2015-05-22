@@ -17,8 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.parcel import CapParcel
 from weboob.tools.backend import Module
+from weboob.capabilities.parcel import CapParcel
 
 from .browser import ColispriveBrowser
 
@@ -36,5 +36,4 @@ class ColispriveModule(Module, CapParcel):
     BROWSER = ColispriveBrowser
 
     def get_parcel_tracking(self, _id):
-        with self.browser:
-            return self.browser.get_tracking_info(_id)
+        return self.browser.get_tracking_info(_id)
