@@ -32,7 +32,7 @@ class SearchPage(HTMLPage):
         if result_id != _id:
             raise ParcelNotFound("ID mismatch: expecting %s, got %s" % (_id, result_id))
 
-        p = Parcel(id)
+        p = Parcel(_id)
         events = self.doc.xpath('//div[@id="shipment-event-table-cell"]')
         p.history = [self.build_event(i, div) for i, div in enumerate(events)]
         most_recent = p.history[0]
