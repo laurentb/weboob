@@ -20,7 +20,6 @@
 
 from decimal import Decimal
 
-from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Investment
 from weboob.browser.pages import RawPage, HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
@@ -46,7 +45,7 @@ class TitrePage(LoggedPage, RawPage):
             _id = columns[0].split('{')[2]
             invest = Investment(_id)
             invest.label = unicode(columns[0].split('{')[-1])
-            invest.code = NotAvailable
+            invest.code = _id.split(':')[0]
             if ':' in _id:
                 invest.description = unicode(_id.split(':')[1])
             invest.quantity = Decimal(FrenchTransaction.clean_amount(columns[1]))
