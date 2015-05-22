@@ -18,8 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import CapBank, AccountNotFound,\
-    Account, Recipient
+from weboob.capabilities.bank import CapBank, Account, Recipient
 from weboob.capabilities.bill import CapBill, Bill, Subscription,\
     SubscriptionNotFound, BillNotFound
 from weboob.capabilities.base import UserError, find_object
@@ -68,7 +67,7 @@ class INGModule(Module, CapBank, CapBill):
         return self.browser.get_accounts_list()
 
     def get_account(self, _id):
-        return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
+        return self.browser.get_account(_id)
 
     def iter_history(self, account):
         if not isinstance(account, Account):
