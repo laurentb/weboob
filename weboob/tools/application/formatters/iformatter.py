@@ -121,7 +121,7 @@ class IFormatter(object):
     def output(self, formatted):
         if self.outfile != sys.stdout:
             with open(self.outfile, "a+") as outfile:
-                outfile.write(formatted.encode(guess_encoding(outfile), errors='replace') + os.linesep)
+                outfile.write(formatted.encode(guess_encoding(outfile), 'replace') + os.linesep)
 
         else:
             for line in formatted.split('\n'):
@@ -133,7 +133,7 @@ class IFormatter(object):
                     self.print_lines = 0
 
                 if isinstance(line, unicode):
-                    line = line.encode(guess_encoding(self.outfile), errors='replace')
+                    line = line.encode(guess_encoding(self.outfile), 'replace')
                 print(line)
                 self.print_lines += 1
 

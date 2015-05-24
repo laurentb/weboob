@@ -40,7 +40,7 @@ class TableFormatter(IFormatter):
     def flush(self):
         s = self.get_formatted_table()
         if s is not None:
-            self.output(s.encode(guess_encoding(self.outfile), errors='replace'))
+            self.output(s.encode(guess_encoding(self.outfile), 'replace'))
 
     def get_formatted_table(self):
         if len(self.queue) == 0:
