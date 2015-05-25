@@ -452,13 +452,23 @@ class LifeInsurancePage(BasePage):
             inv.label = unicode(cells[self.COL_ID].text_content().strip())
             a = cells[self.COL_ID].find('a')
             if a is not None:
-                inv.code = a.attrib['id']
+                try:
+                    inv.code = a.attrib['id']
+                except KeyError:
+                    #For "Mandat d'arbitrage" which is a recapitulatif of more investement
+                    continue
             else:
                 inv.code = NotAvailable
-            inv.quantity = Decimal(Transaction.clean_amount(cells[self.COL_QUANTITY].text_content())) or NotAvailable
-            inv.unitvalue = Decimal(Transaction.clean_amount(cells[self.COL_UNITVALUE].text_content())) or NotAvailable
-            inv.valuation = Decimal(Transaction.clean_amount(cells[self.COL_VALUATION].text_content()))
+            inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY].text_content())
+            inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE].text_content())
+            inv.valuation = self.parse_decimal(cells[self.COL_VALUATION].text_content())
             inv.unitprice = NotAvailable
             inv.diff = NotAvailable
 
             yield inv
+
+    def parse_decimal(self, value):
+        v = value.strip()
+        if v == '-' or v == '':
+            return NotAvailable
+        return Decimal(Transaction.clean_amount(value)) or NotAvailable
