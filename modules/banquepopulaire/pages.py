@@ -333,6 +333,11 @@ class AccountsPage(BasePage):
 
         return False
 
+    def pop_up(self):
+        if self.document.xpath('//span[contains(text(), "du navigateur Internet.")]'):
+            return True
+        return False
+
     def is_short_list(self):
         return len(self.document.xpath('//script[contains(text(), "EQUIPEMENT_COMPLET")]')) > 0
 

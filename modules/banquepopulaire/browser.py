@@ -97,6 +97,8 @@ class BanquePopulaire(Browser):
         for taskInfoOID in self.ACCOUNT_URLS:
             self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID=taskInfoOID, token=self.token))
             if not self.page.is_error():
+                if self.page.pop_up():
+                    self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID=taskInfoOID, token=self.page.get_token()))
                 self.ACCOUNT_URLS = [taskInfoOID]
                 break
         else:
