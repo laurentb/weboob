@@ -489,10 +489,10 @@ class Boobank(ReplApplication):
                     to = recipient.label
                     break
 
-            print('Amount: %s%s' % (amount, account.currency_text))
-            print('From:   %s' % account.label)
-            print('To:     %s' % to)
-            print('Reason: %s' % (reason or ''))
+            self.print('Amount: %s%s' % (amount, account.currency_text))
+            self.print('From:   %s' % account.label)
+            self.print('To:     %s' % to)
+            self.print('Reason: %s' % (reason or ''))
             if not self.ask('Are you sure to do this transfer?', default=True):
                 return
 

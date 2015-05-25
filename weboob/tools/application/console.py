@@ -520,6 +520,9 @@ class ConsoleApplication(Application):
         v.noprompt = True
         return v.get()
 
+    def print(self, txt):
+        print(txt.encode(self.encoding, "replace"))
+
     def acquire_input(self, content=None, editor_params=None):
         editor = os.getenv('EDITOR', 'vi')
         if self.stdin.isatty() and editor:
