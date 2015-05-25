@@ -427,10 +427,14 @@ class MarketPage(BasePage):
             inv.label = unicode(cells[self.COL_ID].find('div/a').text.strip())
             inv.code = cells[self.COL_ID].find('div/br').tail.strip()
             inv.quantity = Decimal(Transaction.clean_amount(cells[self.COL_QUANTITY].find('span').text))
-            inv.unitvalue = Decimal(Transaction.clean_amount(cells[self.COL_UNITVALUE].text))
             inv.valuation = Decimal(Transaction.clean_amount(cells[self.COL_VALUATION].text))
-            inv.unitprice = Decimal(Transaction.clean_amount(cells[self.COL_UNITPRICE].text))
             inv.diff = Decimal(Transaction.clean_amount(cells[self.COL_DIFF].text_content()))
+            if "%" in cells[self.COL_UNITPRICE].text and "%" in cells[self.COL_UNITVALUE].text:
+                inv.unitvalue = inv.valuation / inv.quantity
+                inv.unitprice = (inv.valuation - inv.diff) / inv.quantity
+            else:
+                inv.unitprice = Decimal(Transaction.clean_amount(cells[self.COL_UNITPRICE].text))
+                inv.unitvalue = Decimal(Transaction.clean_amount(cells[self.COL_UNITVALUE].text))
 
             yield inv
 
