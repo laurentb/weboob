@@ -195,6 +195,7 @@ class ProAccountsPage(AccountsPage):
 
 
             a._card_ids = []
+            a._inv = False
 
             yield a
 
