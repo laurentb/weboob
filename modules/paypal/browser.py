@@ -52,6 +52,7 @@ class Paypal(Browser):
         'https://\w+.paypal.com/webapps/business/\?country_lang.x=true': HomePage,
         'https://\w+.paypal.com/myaccount/\?nav=0.0': HomePage,
         'https://\w+.paypal.com/businessexp/money': AccountPage,
+        'https://\w+.paypal.com/businessexp/summary': ProHistoryPage,
         'https://\w+.paypal.com/webapps/business/activity\?.*': ProHistoryPage,
         'https://\w+.paypal.com/myaccount/activity/.*': (PartHistoryPage, 'json'),
         'https://\w+.paypal.com/myaccount/': ProHistoryPage,
