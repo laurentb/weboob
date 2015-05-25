@@ -257,7 +257,8 @@ class TransactionsPage(CDNBasePage):
                 # there is no transactions for this account, this is normal.
                 return
             else:
-                raise BrokenPageError('Unable to find transactions list in scripts')
+                # No history on this account
+                return
 
         data = json.loads('[%s]' % txt.replace('"', '\\"').replace("'", '"'))
 
