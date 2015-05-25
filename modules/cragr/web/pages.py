@@ -445,6 +445,8 @@ class LifeInsurancePage(BasePage):
 
         for line in self.document.xpath('//table[@summary and count(descendant::td) > 1]/tbody/tr'):
             cells = line.findall('td')
+            if len(cells) < 5:
+                continue
 
             inv = Investment()
             inv.label = unicode(cells[self.COL_ID].text_content().strip())
