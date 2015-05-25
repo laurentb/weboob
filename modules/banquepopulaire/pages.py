@@ -710,3 +710,12 @@ class InvestmentNatixisPage(_BasePage):
         if value == '-':
             return NotAvailable
         return Decimal(Transaction.clean_amount(value))
+
+class MessagePage(_BasePage):
+    def skip(self):
+        try:
+            self.browser.select_form(name="leForm")
+        except FormNotFoundError:
+            pass
+        else:
+            self.browser.submit(nologin=True)

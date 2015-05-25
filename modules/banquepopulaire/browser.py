@@ -24,7 +24,7 @@ from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrokenP
 
 from .pages import LoginPage, IndexPage, AccountsPage, AccountsFullPage, CardsPage, TransactionsPage, \
                    UnavailablePage, RedirectPage, HomePage, Login2Page, \
-                   LineboursePage, NatixisPage, InvestmentNatixisPage, InvestmentLineboursePage
+                   LineboursePage, NatixisPage, InvestmentNatixisPage, InvestmentLineboursePage, MessagePage
 
 
 __all__ = ['BanquePopulaire']
@@ -55,6 +55,7 @@ class BanquePopulaire(Browser):
              'https://[^/]+/portailinternet/Transactionnel/Pages/CyberIntegrationPage.aspx':    HomePage,
              'https://[^/]+/WebSSO_BP/_(?P<bankid>\d+)/index.html\?transactionID=(?P<transactionID>.*)': Login2Page,
              'https://www.linebourse.fr/ReroutageSJR':                                          LineboursePage,
+             'https://www.linebourse.fr/DetailMessage.*':                                       MessagePage,
              'https://www.linebourse.fr/Portefeuille':                                          InvestmentLineboursePage,
              'https://www.assurances.natixis.fr/espaceinternet-bp/views/common.*':              NatixisPage,
              'https://www.assurances.natixis.fr/espaceinternet-bp/views/contrat.*':             InvestmentNatixisPage,
@@ -193,6 +194,9 @@ class BanquePopulaire(Browser):
             self.location(url, urllib.urlencode(params))
             if self.is_on_page(LineboursePage):
                 self.location('https://www.linebourse.fr/Portefeuille')
+                while self.is_on_page(MessagePage):
+                    self.page.skip()
+                    self.location('https://www.linebourse.fr/Portefeuille')
             elif self.is_on_page(NatixisPage):
                 self.page.submit_form()
             return self.page.get_investments()
