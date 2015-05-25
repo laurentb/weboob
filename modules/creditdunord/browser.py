@@ -132,7 +132,7 @@ class CreditDuNordBrowser(Browser):
 
     def get_investment(self, account):
         if not account._inv:
-            return
+            return iter([])
         self.location(account._link, urllib.urlencode(account._args))
         if (account.type == Account.TYPE_MARKET):
             return self.page.get_market_investment()
