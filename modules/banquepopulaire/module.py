@@ -63,7 +63,9 @@ class BanquePopulaireModule(Module, CapBank):
     BROWSER = BanquePopulaire
 
     def create_default_browser(self):
-        return self.create_browser(self.config['website'].get(),
+        repls = ('alsace', 'bpalc'), ('lorrainechampagne', 'bpalc')
+        website = reduce(lambda a, kv: a.replace(*kv), repls, self.config['website'].get())
+        return self.create_browser(website,
                                    self.config['login'].get(),
                                    self.config['password'].get())
 
