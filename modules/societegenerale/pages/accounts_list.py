@@ -264,7 +264,7 @@ class Market(BasePage, Invest):
             inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY])
             inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE].xpath('table/tr[1]/td[2]')[0])
             inv.unitprice = self.parse_decimal(cells[self.COL_UNITPRICE].xpath('table/tr[1]/td[2]')[0])
-            inv.valuation = self.parse_decimal(cells[self.COL_UNITPRICE].xpath('table/tr[2]/td[2]')[0])
+            inv.valuation = self.parse_decimal(cells[self.COL_UNITVALUE].xpath('table/tr[2]/td[2]')[0])
             inv.diff = self.parse_decimal(cells[self.COL_DIFF])
 
             yield inv
