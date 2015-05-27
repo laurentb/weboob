@@ -18,8 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import ssl
-import hashlib
 from urlparse import urlsplit
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
@@ -45,11 +43,6 @@ class CaisseEpargne(Browser):
         self.nuser = nuser
         self.DOMAIN = kwargs.pop('domain', self.DOMAIN)
         Browser.__init__(self, *args, **kwargs)
-
-    def _certhash(self, domain, port=443):
-        # XXX overload the Browser method to force use of TLSv1.
-        certs = ssl.get_server_certificate((domain, port), ssl_version=ssl.PROTOCOL_TLSv1)
-        return hashlib.sha256(certs).hexdigest()
 
     def is_logged(self):
         return self.page is not None and not self.is_on_page((LoginPage,ErrorPage))
