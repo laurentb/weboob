@@ -75,3 +75,6 @@ class LCLModule(Module, CapBank):
         transactions = list(self.browser.get_history(account))
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions
+
+    def iter_investment(self, account):
+        return self.browser.get_investment(account)

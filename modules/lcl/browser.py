@@ -24,9 +24,11 @@ from urlparse import urlsplit, parse_qsl
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
-                   CBListPage, CBHistoryPage, ContractsPage
+                   CBListPage, CBHistoryPage, ContractsPage, BoursePage, \
+                   AVPage, AVDetailPage, BourseDiscPage
 
 
 __all__ = ['LCLBrowser','LCLProBrowser']
@@ -58,6 +60,16 @@ class LCLBrowser(LoginBrowser):
     skip = URL('/outil/UAUT/Contrat/selectionnerContrat.*',
                '/index.html')
 
+    bourse = URL('https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis',
+                 'https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.*',
+                 '/outil/UWBO.*', BoursePage)
+    boursedisc = URL('https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.login.ContextTransferDisconnect',
+                     'https://particuliers.secure.lcl.fr/outil/UAUT/RetourPartenaire/retourCar', BourseDiscPage)
+
+    assurancevie = URL('/outil/UWVI/AssuranceVie/accesSynthese', AVPage)
+    avdetail = URL('https://ASSURANCE-VIE-et-prevoyance.secure.lcl.fr.*',
+                   '/outil/UWVI/Routage', AVDetailPage)
+
     TIMEOUT = 30.0
 
     def __init__(self, *args, **kwargs):
@@ -83,12 +95,32 @@ class LCLBrowser(LoginBrowser):
         self.accounts.stay_or_go()
 
     @need_login
+    def connexion_bourse(self):
+        self.location('/outil/UWBO/AccesBourse/temporisationCar?codeTicker=TICKERBOURSECLI')
+        self.location(self.page.get_next())
+        self.bourse.stay_or_go()
+
+    def deconnexion_bourse(self):
+        self.boursedisc.stay_or_go()
+        self.page.come_back()
+        self.page.come_back()
+
+    @need_login
     def get_accounts_list(self):
+        self.assurancevie.stay_or_go()
+        for a in self.page.get_list():
+            yield a
         self.accounts.stay_or_go()
-        return self.page.get_list()
+        accounts = self.page.get_list()
+        self.connexion_bourse()
+        for a in self.page.populate(accounts):
+            yield a
+        self.deconnexion_bourse()
 
     @need_login
     def get_history(self, account):
+        if not account._link_id:
+            return
         self.location(account._link_id)
         for tr in self.page.get_operations():
             yield tr
@@ -118,6 +150,23 @@ class LCLBrowser(LoginBrowser):
                 self.location(card_link)
                 for tr in self.page.get_operations():
                     yield tr
+
+    @need_login
+    def get_investment(self, account):
+        if account.type == Account.TYPE_LIFE_INSURANCE and account._form:
+            self.assurancevie.stay_or_go()
+            account._form.submit()
+            self.page.sub()
+            self.page.sub()
+            for inv in self.page.iter_investment():
+                yield inv
+            self.accounts.stay_or_go()
+        elif account._market_link:
+            self.connexion_bourse()
+            self.location(account._market_link)
+            for inv in self.page.iter_investment():
+                yield inv
+            self.deconnexion_bourse()
 
 
 class LCLProBrowser(LCLBrowser):

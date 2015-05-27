@@ -25,7 +25,7 @@ import random
 from cStringIO import StringIO
 
 
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
 from weboob.browser.elements import method, ListElement, ItemElement, SkipItem
 from weboob.exceptions import ParseError
 from weboob.browser.pages import LoggedPage, HTMLPage, FormNotFound, pagination
@@ -35,6 +35,44 @@ from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, \
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
+
+
+def MyDecimal(*args, **kwargs):
+    kwargs.update(replace_dots=True, default=Decimal(0))
+    return CleanDecimal(*args, **kwargs)
+
+
+class LCLBasePage(HTMLPage):
+    def get_from_js(self, pattern, end, is_list=False):
+        """
+        find a pattern in any javascript text
+        """
+        value = None
+        for script in self.doc.xpath('//script'):
+            txt = script.text
+            if txt is None:
+                continue
+
+            start = txt.find(pattern)
+            if start < 0:
+                continue
+
+            while True:
+                if value is None:
+                    value = ''
+                else:
+                    value += ','
+                value += txt[start+len(pattern):start+txt[start+len(pattern):].find(end)+len(pattern)]
+
+                if not is_list:
+                    break
+
+                txt = txt[start+len(pattern)+txt[start+len(pattern):].find(end):]
+
+                start = txt.find(pattern)
+                if start < 0:
+                    break
+            return value
 
 
 class LCLVirtKeyboard(MappedVirtKeyboard):
@@ -162,6 +200,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return '/outil/UWLM/ListeMouvement' in self.el.attrib['onclick']
 
             NATURE2TYPE = {'006': Account.TYPE_CHECKING,
+                           '046': Account.TYPE_SAVINGS,
                            '049': Account.TYPE_SAVINGS,
                            '068': Account.TYPE_MARKET,
                            '069': Account.TYPE_SAVINGS,
@@ -174,6 +213,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_balance = CleanDecimal('.//td[has-class("right")]', replace_dots=True)
             obj_currency = FrenchTransaction.Currency('.//td[has-class("right")]')
             obj_type = Map(Regexp(Field('_link_id'), r'.*nature=(\w+)'), NATURE2TYPE, default=Account.TYPE_UNKNOWN)
+            obj__market_link = None
 
         class card(ItemElement):
             def condition(self):
@@ -269,3 +309,93 @@ class CBListPage(CBHistoryPage):
             if link is not None and link.startswith('/outil/UWCB/UWCBEncours') and 'listeOperations' in link:
                 cards.append(link)
         return cards
+
+
+class BoursePage(LoggedPage, HTMLPage):
+    def get_next(self):
+        return re.search('"(.*?)"', self.doc.xpath('.//body')[0].attrib['onload']).group(1)
+
+    def populate(self, accounts):
+        for a in accounts:
+            for tr in self.doc.xpath('.//table[contains(@class, "tableau_comptes_details")]/tbody/tr'):
+                ac_code = tr.xpath('.//td[2]/br')[0].tail.strip().split(' - ')
+                if a.id == '%s%s' % (ac_code[0], ac_code[1]):
+                    a._market_link = Regexp(CleanText('.//td[2]/@onclick'), "'(.*?)'")(tr)
+                    a.balance += CleanDecimal('.//td[has-class("last")]', replace_dots=True)(tr)
+            yield a
+
+    @method
+    class iter_investment(ListElement):
+        item_xpath = '//table[@id="tableValeurs"]/tbody/tr[not(@class) and count(descendant::td) > 1]'
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText('.//td[2]/div/a')
+            obj_code = CleanText('.//td[2]/div/br/following-sibling::text()')
+            obj_quantity = MyDecimal('.//td[3]/span')
+            obj_diff = MyDecimal('.//td[7]/span')
+            obj_valuation = MyDecimal('.//td[5]')
+
+            def obj_unitvalue(self):
+                if "%" in CleanText('.//td[4]')(self) and "%" in CleanText('.//td[6]')(self):
+                    return self.obj_valuation(self) / self.obj_quantity(self)
+                else:
+                    return MyDecimal('.//td[4]')(self)
+
+            def obj_unitprice(self):
+                if "%" in CleanText('.//td[4]')(self) and "%" in CleanText('.//td[6]')(self):
+                    return self.obj_valuation(self) / self.obj_quantity(self)
+                    return (self.obj_valuation(self) - self.obj_diff(self)) / self.obj_quantity(self)
+                else:
+                    return MyDecimal('.//td[6]')(self)
+
+class BourseDiscPage(LoggedPage, HTMLPage):
+    def come_back(self):
+        form = self.get_form()
+        form.submit()
+
+class AVPage(LoggedPage, HTMLPage):
+    @method
+    class get_list(ListElement):
+        item_xpath = '//table[@class]/tbody/tr'
+
+        class account(ItemElement):
+            klass = Account
+
+            obj__owner = CleanText('.//td[1]') & Regexp(pattern=r' (\w+)$')
+            obj_label = Format(u'%s %s', CleanText('.//td/a'), obj__owner)
+            obj_balance = CleanDecimal('.//td[has-class("right")]', replace_dots=True)
+            obj_id = CleanText(Field('label'), replace=[(' ', '')])
+            obj_type = Account.TYPE_LIFE_INSURANCE
+            obj__link_id = None
+
+            def obj__form(self):
+                form_id = Attr('.//td/a', 'id', default=None)(self)
+                if not form_id:
+                    return
+                form = self.page.get_form('//form[@id="formRoutage"]')
+                form['ID_CONTRAT'] = re.search(r'^(.*?)-', form_id).group(1)
+                form['PRODUCTEUR'] = re.search(r'-(.*?)$', form_id).group(1)
+                return form
+
+
+class AVDetailPage(LoggedPage, LCLBasePage):
+    def sub(self):
+        form = self.get_form(name="formulaire")
+        cName = self.get_from_js('.cName.value  = "', '";')
+        if cName:
+            form['cName'] = cName
+            form['cValue'] = self.get_from_js('.cValue.value  = "', '";')
+            form['cMaxAge'] = '-1'
+        form.submit()
+
+    @method
+    class iter_investment(ListElement):
+        item_xpath = '(//table[@class="table"])[1]/tbody/tr'
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText('.//td[1]/span')
+            obj_quantity = MyDecimal('.//td[4]/span')
+            obj_unitvalue = MyDecimal('.//td[2]/span')
+            obj_valuation = MyDecimal('.//td[5]/span')
