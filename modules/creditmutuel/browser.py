@@ -48,6 +48,7 @@ class CreditMutuelBrowser(LoginBrowser):
     login =       URL('/groupe/fr/index.html',
                       '/(?P<subbank>.*)/fr/$',
                       '/(?P<subbank>.*)/fr/banques/accueil.html',
+                      '/(?P<subbank>.*)/fr/banques/particuliers/index.html',
                       LoginPage)
     login_error = URL('/(?P<subbank>.*)/fr/identification/default.cgi',      LoginErrorPage)
     accounts =    URL('/(?P<subbank>.*)/fr/banque/situation_financiere.cgi',
