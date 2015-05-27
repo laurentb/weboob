@@ -64,7 +64,7 @@ class LCLEnterpriseBrowser(Browser):
         self._logged = False
 
     def deinit(self):
-        super(LCLEnterpriseBrowser, self).deinit()
+        Browser.deinit(self)
         if self._logged:
             self.logout()
 
