@@ -232,6 +232,8 @@ class AccountsList(Page):
     ACCOUNT_TYPES = {'mes-comptes/compte-courant':    Account.TYPE_CHECKING,
                      'mes-comptes/assurance-vie':     Account.TYPE_LIFE_INSURANCE,
                      'mes-comptes/livret':            Account.TYPE_LOAN,
+                     'mes-comptes/pea':               Account.TYPE_MARKET,
+                     'mes-comptes/compte-titres':     Account.TYPE_MARKET,
                     }
     def get_list(self):
         for cpt in self.document.xpath(".//*[@class='synthese_id_compte']"):
