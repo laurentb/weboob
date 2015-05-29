@@ -224,6 +224,10 @@ class AccountsList(LoggedPage, HTMLPage):
                 return (self.obj.unitvalue / (1 + percent/Decimal('100.0'))).quantize(Decimal('1.00'))
 
             def obj_diff(self):
+                if not self.obj.quantity:
+                    # Quantity of euro funds is null.
+                    return Decimal('0.00')
+
                 return (self.obj.valuation - (self.obj.quantity * self.obj.unitprice)).quantize(Decimal('1.00'))
 
             def validate(self, obj):
