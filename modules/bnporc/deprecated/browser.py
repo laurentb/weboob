@@ -238,7 +238,7 @@ class BNPorc(Browser):
 
     def iter_investment(self, account):
         if account.type == Account.TYPE_MARKET:
-            if not account.iban:
+            if not account.iban or u'espèce' in account.label.lower():
                 return iter([])
 
             stp = datetime.strftime(datetime.now(), '%Y%m%d%H%M%S')
