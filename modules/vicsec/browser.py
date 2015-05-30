@@ -85,11 +85,13 @@ class OrderPage(VicSecPage):
         for tr in self.doc.xpath('//tbody[@class="payment-summary"]'
                         '//th[text()="Payment Summary"]/../../../tbody/tr'):
             method = tr.xpath('td[1]/text()')[0]
-            amount = tr.xpath('td[2]')[0].text_content().strip()
+            amnode = tr.xpath('td[2]')[0]
+            amsign = -1 if amnode.xpath('em') else 1
+            amount = amnode.text_content().strip()
             pmt = Payment()
             pmt.date = self.order_date()
             pmt.method = unicode(method)
-            pmt.amount = AmTr.decimal_amount(amount)
+            pmt.amount = amsign * AmTr.decimal_amount(amount)
             yield pmt
 
     def items(self):
@@ -137,10 +139,13 @@ class OrderPage(VicSecPage):
         return dcnt + subt + rett - items
 
     def payment_part(self, which):
+        # The numbers notation on VS is super wierd.
+        # Sometimes negative amounts are represented by <em> element.
         for node in self.doc.xpath('//tbody[@class="payment-summary"]'
                               '//td[contains(text(),"%s")]/../td[2]' % which):
-            x = node.text_content().strip()
-            return Decimal(0) if x == u'FREE' else AmTr.decimal_amount(x)
+            strv = node.text_content().strip()
+            v = Decimal(0) if strv == u'FREE' else AmTr.decimal_amount(strv)
+            return -v if node.xpath('em') and v > 0 else v
         return Decimal(0)
 
 
