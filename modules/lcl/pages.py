@@ -124,7 +124,7 @@ class LoginPage(HTMLPage):
         return True
 
     def is_error(self):
-        errors = self.doc.xpath(u'//div[@class="erreur" or @class="messError"]')
+        errors = self.doc.xpath(u'//*[@class="erreur" or @class="messError"]')
         return len(errors) > 0
 
 
