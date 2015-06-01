@@ -53,6 +53,7 @@ class BredBrowser(DomainBrowser):
                      '080': Account.TYPE_SAVINGS,
                      '027': Account.TYPE_SAVINGS,
                      '037': Account.TYPE_SAVINGS,
+                     '730': Account.TYPE_DEPOSIT,
                     }
 
     def api_open(self, *args, **kwargs):
