@@ -85,6 +85,7 @@ class AccountsPage(CDNBasePage):
              'LIVRET':              Account.TYPE_SAVINGS,
              'P.E.A.':              Account.TYPE_MARKET,
              'PEA':                 Account.TYPE_MARKET,
+             'TITRES':              Account.TYPE_MARKET,
             }
 
     def get_account_type(self, label):
@@ -323,17 +324,20 @@ class TransactionsPage(CDNBasePage):
         for table in self.document.xpath('//table[@class="datas-large"]'):
             for tr in table.xpath('.//tr[not(@class="entete")]'):
                 cols = tr.findall('td')
-                if len(cols) != 7:
+                if len(cols) < 7:
                     continue
+                delta = 0
+                if len(cols) == 9:
+                    delta = 1
 
                 inv = Investment()
-                inv.code = self.parser.tocleanstring(cols[COL_LABEL].xpath('.//span')[1])
-                inv.label = self.parser.tocleanstring(cols[COL_LABEL].xpath('.//span')[0])
-                inv.quantity = self.parse_decimal(cols[COL_QUANTITY])
-                inv.unitprice = self.parse_decimal(cols[COL_UNITPRICE])
-                inv.unitvalue = self.parse_decimal(cols[COL_UNITVALUE])
-                inv.valuation = self.parse_decimal(cols[COL_VALUATION])
-                inv.diff = self.parse_decimal(cols[COL_PERF])
+                inv.code = self.parser.tocleanstring(cols[COL_LABEL + delta].xpath('.//span')[1])
+                inv.label = self.parser.tocleanstring(cols[COL_LABEL + delta].xpath('.//span')[0])
+                inv.quantity = self.parse_decimal(cols[COL_QUANTITY + delta])
+                inv.unitprice = self.parse_decimal(cols[COL_UNITPRICE + delta])
+                inv.unitvalue = self.parse_decimal(cols[COL_UNITVALUE + delta])
+                inv.valuation = self.parse_decimal(cols[COL_VALUATION + delta])
+                inv.diff = self.parse_decimal(cols[COL_PERF + delta])
 
                 yield inv
 
