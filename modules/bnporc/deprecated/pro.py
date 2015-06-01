@@ -22,6 +22,7 @@ import re
 from urlparse import urlparse, parse_qsl
 from decimal import Decimal, InvalidOperation
 
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.deprecated.browser import Page
@@ -34,6 +35,10 @@ class ProAccountsList(Page):
     COL_ID      = 2
     COL_BALANCE = 3
     COL_COMING  = 5
+
+    def on_loaded(self):
+        for msg in self.document.xpath('//div[@id="idMessageInfoUdC"]'):
+            raise BrowserIncorrectPassword(self.parser.tocleanstring(msg))
 
     def get_list(self, pro=True):
         accounts = []
