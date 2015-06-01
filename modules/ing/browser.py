@@ -25,7 +25,7 @@ from weboob.exceptions import BrowserIncorrectPassword, ParseError
 from weboob.capabilities.bank import Account, TransferError, AccountNotFound
 from weboob.capabilities.base import find_object
 
-from .pages import AccountsList, LoginPage, TitrePage, TitreHistory,\
+from .pages import AccountsList, LoginPage, NetissimaPage, TitrePage, TitreHistory,\
     TransferPage, TransferConfirmPage, BillsPage, StopPage, TitreDetails
 
 
@@ -56,6 +56,7 @@ class IngBrowser(LoginBrowser):
     valtransferpage = URL('/protected/pages/cc/transfer/create/transferCreateValidation.jsf', TransferConfirmPage)
     titredetails = URL('/general\?command=display.*', TitreDetails)
     # CapBank-Market
+    netissima = URL('/data/asv/fiches-fonds/fonds-netissima.html', NetissimaPage)
     starttitre = URL('/general\?command=goToAccount&zone=COMPTE', TitrePage)
     titrepage = URL('https://bourse.ingdirect.fr/priv/portefeuille-TR.php', TitrePage)
     titrehistory = URL('https://bourse.ingdirect.fr/priv/compte.php\?ong=3', TitreHistory)

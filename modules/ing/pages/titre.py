@@ -28,6 +28,9 @@ from weboob.browser.filters.standard import CleanDecimal, CleanText, Date
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
+class NetissimaPage(HTMLPage):
+    pass
+
 class Transaction(FrenchTransaction):
     pass
 
