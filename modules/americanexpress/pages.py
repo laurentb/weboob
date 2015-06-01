@@ -91,6 +91,7 @@ class TransactionsPage(Page):
                     return datetime.date(int(m.group(3)),
                                          self.MONTHS.index(m.group(2).rstrip('.')) + 1,
                                          int(m.group(1)))
+        return datetime.date.today()
 
     COL_DATE = 0
     COL_TEXT = 1
