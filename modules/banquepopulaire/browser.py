@@ -63,7 +63,6 @@ class BanquePopulaire(Browser):
 
     def __init__(self, website, *args, **kwargs):
         self.DOMAIN = website
-        self.token = None
 
         Browser.__init__(self, *args, **kwargs)
 
@@ -89,15 +88,14 @@ class BanquePopulaire(Browser):
         if not self.is_logged():
             raise BrowserIncorrectPassword()
 
-        self.token = self.page.get_token()
-
     ACCOUNT_URLS = ['mesComptes', 'mesComptesPRO', 'maSyntheseGratuite', 'accueilSynthese', 'equipementComplet']
 
     def go_on_accounts_list(self):
         for taskInfoOID in self.ACCOUNT_URLS:
-            self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID=taskInfoOID, token=self.token))
+            self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID=taskInfoOID, token=self.page.get_token()))
             if not self.page.is_error():
                 if self.page.pop_up():
+                    self.logger.debug('Popup displayed, retry')
                     self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID=taskInfoOID, token=self.page.get_token()))
                 self.ACCOUNT_URLS = [taskInfoOID]
                 break
@@ -113,7 +111,6 @@ class BanquePopulaire(Browser):
 
     def get_accounts_list(self):
         self.go_on_accounts_list()
-        self.token = self.page.get_token()
 
         next_pages = []
 
@@ -161,7 +158,6 @@ class BanquePopulaire(Browser):
         params['token'] = self.page.build_token(params['token'])
 
         self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(params))
-        self.token = self.page.get_token()
 
         if self.page.no_operations():
             return
@@ -175,7 +171,6 @@ class BanquePopulaire(Browser):
 
         while True:
             assert self.is_on_page(TransactionsPage)
-            self.token = self.page.get_token()
 
             for tr in self.page.get_history(account, coming):
                 yield tr
