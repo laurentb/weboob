@@ -76,7 +76,7 @@ class SenscritiqueBrowser(PagesBrowser):
 
     def get_selected_channels(self, package, general=False, cinema=False):
         for channel in self.get_channels():
-            if (package == 0 or package in channel._networks) and\
+            if (package == 0 or u'%s' % package in channel._networks) and\
                ((general and channel._thema in ('1', '2')) or (cinema and channel._thema == '3')):
                 yield channel.id
 
@@ -84,7 +84,7 @@ class SenscritiqueBrowser(PagesBrowser):
         url = 'http://www.senscritique.com/sc/tv_guides/saveSettings.json'
         # do not use a dict because there are several same keys
         params = "network=%s" % package
-        params += ''.join(["&channels%%5B%%5D=%d" % (channel) for channel in channels])
+        params += ''.join(["&channels%%5B%%5D=%s" % (channel) for channel in channels])
         self.open(url, data=params)
 
     def list_events(self, date_from, date_to=None, package=None, channels=None):
