@@ -371,6 +371,8 @@ class AVPage(LoggedPage, HTMLPage):
             obj_id = CleanText(Field('label'), replace=[(' ', '')])
             obj_type = Account.TYPE_LIFE_INSURANCE
             obj__link_id = None
+            obj__market_link = None
+            obj__coming_links = []
 
             def obj__form(self):
                 form_id = Attr('.//td/a', 'id', default=None)(self)
