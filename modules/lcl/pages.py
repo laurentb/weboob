@@ -354,6 +354,9 @@ class BourseDiscPage(LoggedPage, HTMLPage):
         form = self.get_form()
         form.submit()
 
+class NoBoursePage(LoggedPage, HTMLPage):
+    pass
+
 class AVPage(LoggedPage, HTMLPage):
     @method
     class get_list(ListElement):

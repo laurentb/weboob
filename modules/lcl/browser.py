@@ -28,7 +28,7 @@ from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    CBListPage, CBHistoryPage, ContractsPage, BoursePage, \
-                   AVPage, AVDetailPage, BourseDiscPage
+                   AVPage, AVDetailPage, BourseDiscPage, NoBoursePage
 
 
 __all__ = ['LCLBrowser','LCLProBrowser']
@@ -59,6 +59,7 @@ class LCLBrowser(LoginBrowser):
     cb_history = URL('/outil/UWCB/UWCBEncours.*/listeOperations.*', CBHistoryPage)
     skip = URL('/outil/UAUT/Contrat/selectionnerContrat.*',
                '/index.html')
+    no_bourse = URL('/outil/UAUT/SansDroit/affichePageSansDroit\?controlleurAppelant=AccesBourse&codeOpAppelant=UWBO', NoBoursePage)
 
     bourse = URL('https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis',
                  'https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.*',
@@ -97,8 +98,11 @@ class LCLBrowser(LoginBrowser):
     @need_login
     def connexion_bourse(self):
         self.location('/outil/UWBO/AccesBourse/temporisationCar?codeTicker=TICKERBOURSECLI')
+        if self.no_bourse.is_here():
+            return False
         self.location(self.page.get_next())
         self.bourse.stay_or_go()
+        return True
 
     def deconnexion_bourse(self):
         self.boursedisc.stay_or_go()
@@ -112,10 +116,13 @@ class LCLBrowser(LoginBrowser):
             yield a
         self.accounts.stay_or_go()
         accounts = self.page.get_list()
-        self.connexion_bourse()
-        for a in self.page.populate(accounts):
-            yield a
-        self.deconnexion_bourse()
+        if self.connexion_bourse():
+            for a in self.page.populate(accounts):
+                yield a
+            self.deconnexion_bourse()
+        else:
+            for a in accounts:
+                yield a
 
     @need_login
     def get_history(self, account):
