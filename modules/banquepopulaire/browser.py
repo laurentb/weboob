@@ -63,6 +63,7 @@ class BanquePopulaire(Browser):
 
     def __init__(self, website, *args, **kwargs):
         self.DOMAIN = website
+        self.token = None
 
         Browser.__init__(self, *args, **kwargs)
 
@@ -92,11 +93,11 @@ class BanquePopulaire(Browser):
 
     def go_on_accounts_list(self):
         for taskInfoOID in self.ACCOUNT_URLS:
-            self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID=taskInfoOID, token=self.page.get_token()))
+            self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID=taskInfoOID, token=self.token))
             if not self.page.is_error():
                 if self.page.pop_up():
                     self.logger.debug('Popup displayed, retry')
-                    self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID=taskInfoOID, token=self.page.get_token()))
+                    self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID=taskInfoOID, token=self.token))
                 self.ACCOUNT_URLS = [taskInfoOID]
                 break
         else:
@@ -126,10 +127,10 @@ class BanquePopulaire(Browser):
             if 'prevAction' in next_page:
                 params = self.page.get_params()
                 params['dialogActionPerformed'] = next_page.pop('prevAction')
-                params['token'] = self.page.build_token(self.page.get_token())
+                params['token'] = self.page.build_token(self.token)
                 self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(params))
 
-            next_page['token'] = self.page.build_token(self.page.get_token())
+            next_page['token'] = self.page.build_token(self.token)
             self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(next_page))
 
             for a in self.page.iter_accounts(next_pages):

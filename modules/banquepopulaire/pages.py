@@ -61,6 +61,13 @@ class BasePage(_BasePage):
     def get_token(self):
         return self.parser.select(self.document.getroot(), '//form//input[@name="token"]', 1, 'xpath').attrib['value']
 
+    def on_loaded(self):
+        if not self.is_error():
+            self.browser.token = self.get_token()
+
+    def is_error(self):
+        return False
+
     def build_token(self, token):
         """
         These fucking faggots have introduced a new protection on the token.
