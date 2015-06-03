@@ -23,7 +23,7 @@ from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import Format, CleanText, Regexp, CleanDecimal, Date, Env, BrowserURL
-from weboob.browser.filters.html import XPath
+from weboob.browser.filters.html import XPath, CleanHTML
 from weboob.capabilities.housing import Housing, HousingPhoto, City
 from weboob.capabilities.base import NotAvailable
 
@@ -52,65 +52,81 @@ class HousingPage(HTMLPage):
         obj_title = CleanText('//meta[@itemprop="name"]/@content')
         obj_area = CleanDecimal(Regexp(CleanText('//meta[@itemprop="name"]/@content'),
                                        '(.*?)(\d*) m\xb2(.*?)', '\\2'), default=NotAvailable)
-        obj_cost = CleanDecimal('//span[@itemprop="price"]')
-        obj_currency = Regexp(CleanText('//span[@itemprop="price"]'),
+        obj_cost = CleanDecimal('//div[@itemprop="price"]')
+        obj_currency = Regexp(CleanText('//div[@itemprop="price"]'),
                               '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
-        obj_date = Date(Regexp(CleanText('//p[@class="size_11 darkergrey"]'), u'.* Mis à jour : (\d{2}/\d{2}/\d{4}).*'))
-        obj_text = CleanText('//div[@class="columns offer-description alpha"]')
-        obj_location = CleanText('//span[@itemprop="address"]')
+        obj_date = Date(Regexp(CleanText('//p[@class="offer-description-notes"]'),
+                               u'.* Mis à jour : (\d{2}/\d{2}/\d{4}).*'))
+        obj_text = CleanHTML('//div[@class="offer-description-text"]')
+        obj_location = CleanText('//div[@itemprop="address"]')
         obj_url = BrowserURL('housing', _id=Env('_id'))
 
         def obj_photos(self):
             photos = []
-            for img in XPath('//div[@class="carousel"]/ul/li/a/img/@src')(self):
+            for img in XPath('//div[@class="carousel-content"]/ul/li/a/img/@src')(self):
                 photos.append(HousingPhoto(u'%s' % img))
             return photos
 
         def obj_details(self):
             details = {}
-            a = CleanText('//div[@class="box box-noborder"]/p[@class="size_13 darkergrey bold"]')(self)
-            if a:
-                splitted_a = a.split(':')
-                dpe = Regexp(CleanText('//div[@id="energy-pyramid"]/img/@src'),
-                             'http://mmf.logic-immo.com/mmf/fr/static/dpe/dpe_(\w)_b.gif',
-                             default="")(self)
-                if len(splitted_a) > 1:
-                    details[splitted_a[0]] = '%s (%s)' % (splitted_a[1], dpe)
-                elif dpe:
-                    details[splitted_a[0]] = '%s'
+            energy = CleanText('//div[has-class("energy-summary")]/span[@class="section-label"]', default='')(self)
+            energy_value = CleanText('//div[has-class("energy-summary")]/div[@class="arrow "]', default='')(self)
+            if energy and energy_value:
+                details[energy] = energy_value
+
+            greenhouse = CleanText('//div[has-class("greenhouse-summary")]/span[@class="section-label"]',
+                                   default='')(self)
+            greenhouse_value = CleanText('//div[has-class("greenhouse-summary")]/div[@class="arrow "]',
+                                         default='')(self)
+            if greenhouse and greenhouse_value:
+                details[greenhouse] = greenhouse_value
+
+            for li in XPath('//ul[@itemprop="description"]/li')(self):
+                label = CleanText('./div[has-class("criteria-label")]')(li)
+                value = CleanText('./div[has-class("criteria-value")]')(li)
+                details[label] = value
+
             return details
 
     def get_phone_url_datas(self):
-        a = XPath('//a[has-class("phone-link")]')(self.doc)[0]
-        urlcontact = CleanText('./@data-urlcontact')(a)
+        a = XPath('//button[has-class("offer-contact-vertical-phone")]')(self.doc)[0]
+        urlcontact = 'http://www.logic-immo.com/modalMail'
         params = {}
-        params['univers'] = CleanText('./@data-univers')(a)
+        params['universe'] = CleanText('./@data-univers')(a)
+        params['source'] = CleanText('./@data-source')(a)
         params['pushcontact'] = CleanText('./@data-pushcontact')(a)
         params['mapper'] = CleanText('./@data-mapper')(a)
         params['offerid'] = CleanText('./@data-offerid')(a)
         params['offerflag'] = CleanText('./@data-offerflag')(a)
         params['campaign'] = CleanText('./@data-campaign')(a)
         params['xtpage'] = CleanText('./@data-xtpage')(a)
+        params['offertransactiontype'] = CleanText('./@data-offertransactiontype')(a)
+        params['aeisource'] = CleanText('./@data-aeisource')(a)
+        params['shownumber'] = CleanText('./@data-shownumber')(a)
+        params['corail'] = 1
         return urlcontact, params
 
 
 class SearchPage(HTMLPage):
     @method
     class iter_housings(ListElement):
-        item_xpath = '//article'
+        item_xpath = '//div[@class="offer-block "]'
 
         class item(ItemElement):
             klass = Housing
 
-            obj_id = Format('%s-%s', Env('type'), CleanText('./div/header/@id', replace=[('header-offer-', '')]))
-            obj_title = CleanText('./div/header/section/p[@class="property-type"]/span/@title')
-            obj_area = CleanDecimal(Regexp(CleanText('./div/header/section/p[@class="property-type"]/span/@title'),
-                                           '(.*?)(\d*) m\xb2(.*?)', '\\2'), default=NotAvailable)
-            obj_cost = CleanDecimal(CleanText('./div/header/section/p[@class="price"]'),
-                                    replace_dots=(',', '.'), default=Decimal(0))
-            obj_currency = Regexp(CleanText('./div/header/section/p[@class="price"]'),
-                                  '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
-            obj_date = Date(Regexp(CleanText('./div/header/section/p[has-class("update-date")]'),
+            obj_id = Format('%s-%s', Env('type'), CleanText('./@id', replace=[('header-offer-', '')]))
+            obj_title = CleanText('./div/div/div[@class="offer-details-wrapper"]/div/div/p[@class="offer-type"]/span/@title')
+            obj_area = CleanDecimal(CleanText('./div/div/div[@class="offer-details-wrapper"]/div/div/div/div/h3/a/span[@class="offer-area-number"]',
+                                              default=NotAvailable))
+            obj_cost = CleanDecimal(Regexp(CleanText('./div/div/div[@class="offer-details-wrapper"]/div/div/p[@class="offer-price"]/span',
+                                                     default=NotAvailable),
+                                           '(.*) [%s%s%s]' % (u'€', u'$', u'£'),
+                                           default=NotAvailable), default=Decimal(0))
+            obj_currency = Regexp(CleanText('./div/div/div[@class="offer-details-wrapper"]/div/div/p[@class="offer-price"]/span',
+                                            default=NotAvailable),
+                                  '.* ([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+            obj_date = Date(Regexp(CleanText('./div/div/div[has-class("offer-picture-more")]/div/p[@class="offer-update"]'),
                                    ".*(\d{2}/\d{2}/\d{4}).*"))
-            obj_text = CleanText('./div/div[@class="content-offer"]/section[has-class("content-desc")]/p/span[@intemprop="adress"]')
-            obj_location = CleanText('./div/div[@class="content-offer"]/section[has-class("content-desc")]/p/span[not(@intemprop)]')
+            obj_text = CleanText('./div/div/div[@class="offer-details-wrapper"]/div/div/div/p[has-class("offer-description")]/span')
+            obj_location = CleanText('./div/div/div[@class="offer-details-wrapper"]/div/div/div/div/h2')
