@@ -70,7 +70,9 @@ class LCLBrowser(LoginBrowser):
         assert isinstance(self.password, basestring)
         assert self.password.isdigit()
 
-        self.login.stay_or_go()
+        # we force the browser to go to login page so it's work even
+        # if the session expire
+        self.login.go()
 
         if not self.page.login(self.username, self.password) or \
            (self.login.is_here() and self.page.is_error()) :
