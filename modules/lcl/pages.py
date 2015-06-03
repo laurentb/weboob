@@ -365,7 +365,7 @@ class AVPage(LoggedPage, HTMLPage):
         class account(ItemElement):
             klass = Account
 
-            obj__owner = CleanText('.//td[1]') & Regexp(pattern=r' (\w+)$')
+            obj__owner = CleanText('.//td[1]') & Regexp(pattern=r' ([^ ]+)$')
             obj_label = Format(u'%s %s', CleanText('.//td/a'), obj__owner)
             obj_balance = CleanDecimal('.//td[has-class("right")]', replace_dots=True)
             obj_id = CleanText(Field('label'), replace=[(' ', '')])
