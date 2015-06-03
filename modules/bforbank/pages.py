@@ -106,7 +106,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 balance = re.sub(r'[^\d\-\,]', '', balance)
                 return Decimal(re.sub(r',(?!(\d+$))', '', balance).replace(',', '.'))
 
-            obj_id = CleanText('./td/div/div[3]/span')
+            obj_id = CleanText('./td/div/div[3]/span') & Regexp(pattern=r'(\d+)')
             obj_label = CleanText('./td/div/div[2]/span')
             obj_currency = FrenchTransaction.Currency('./td/div/div[1]/div/span')
             obj_type = Map(Regexp(Field('label'), r'^(\w+)'), TYPE, default=Account.TYPE_UNKNOWN)
