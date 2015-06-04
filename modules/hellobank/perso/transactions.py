@@ -46,7 +46,7 @@ class Transaction(FrenchTransaction):
 
 
 class AccountHistory(Page):
-    def iter_operations(self):
+    def get_operations(self):
         for tr in self.document.xpath('//table[@id="tableCompte"]//tr'):
             if len(tr.xpath('td[@class="debit"]')) == 0:
                 continue
@@ -86,8 +86,31 @@ class AccountHistory(Page):
                 operation.set_amount(tds[2].text)
                 yield operation
 
+    def get_next_page(self):
+        others = self.document.xpath('//span[@class="OthersPage"]')
+        current = self.document.xpath('//span[@class="currentPage"]/strong')
+
+        if len(current) < 1:
+            return None
+
+        current = current[0].text
+        for other in others:
+            if (other.text <= current):
+                continue
+            else:
+                return other.text
+
+        return None
+
+    def get_flowExecutionKey(self):
+        flowExecutionKey = self.document.xpath('//input[@name="_flowExecutionKey"]/@value')
+        if len(flowExecutionKey) > 0:
+            return flowExecutionKey[0]
+        else:
+            return None
+
     def get_IBAN(self):
-        return self.document.xpath('//a[@class="lien_perso_libelle"]')[0].attrib['id'][10:26]
+        return self.document.xpath('//a[@class="lien_perso_libelle"]')[0].attrib['id'][5:28]
 
 
 class AccountComing(AccountHistory):

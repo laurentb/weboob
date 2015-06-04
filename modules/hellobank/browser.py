@@ -105,16 +105,17 @@ class HelloBank(Browser):
 
     def get_IBAN_from_account(self, account):
         self.go_to_history_page(account)
-        return self.page.get_IBAN()
+        return self.page.get_IBAN()[5:21]
 
-    def go_to_history_page(self,account):
+    def go_to_history_page(self, account, page = None):
         if account._link_id is None:
             raise NotImplementedError()
 
-        if not self.is_on_page(AccountsList):
-            self.location('/NSFR?Action=DSP_VGLOBALE')
+        if (page == None):
+            if not self.is_on_page(AccountsList):
+                self.location('/NSFR?Action=DSP_VGLOBALE')
 
-        data = {'gt': 'homepage:basic-theme',
+            data = {'gt': 'homepage:basic-theme',
                 'externalIAId': 'IAStatements',
                 'cboFlowName': 'flow/iastatement',
                 'contractId': account._link_id,
@@ -123,8 +124,24 @@ class HelloBank(Browser):
                 'groupSelected':'-2',
                 'step': 'STAMENTS',
                 'pageId': 'releveoperations',
-                'sendEUD': 'true',
+                'sendEUD': 'true'
                 }
+        else:
+            data = {'_eventId': 'gotoPage',
+                'contractId': self.page.get_IBAN(),
+                'groupId': '-2',
+                'pageId': 'releveoperations',
+                'operations.pageNumber': page,
+                'categorisationInProgress': '',
+                'newCategoryId': '',
+                'operations.objectsPerPage': '30',
+                '_flowExecutionKey': self.page.get_flowExecutionKey(),
+                }
+            for i in range(0,30):
+                data.update({"operations.list[" + str(i) + "].extendedAttributes['audience']": 'particulier',
+                    "_operations.list[" + str(i) + "].checkedOff": 'on',
+                    "_operations.list[" + str(i) + "].selectedForCategorization": 'on'})
+
         self.location('/udc', urllib.urlencode(data))
 
     def go_to_coming_operations_page(self,account):
@@ -149,7 +166,14 @@ class HelloBank(Browser):
 
     def iter_history(self, account):
         self.go_to_history_page(account)
-        return self.page.iter_operations()
+        for tr in self.page.get_operations():
+            yield tr
+        next_page = self.page.get_next_page()
+        while( next_page > 1) :
+            self.go_to_history_page(account, next_page)
+            for tr in self.page.get_operations():
+                yield tr
+            next_page = self.page.get_next_page()
 
     def iter_coming_operations(self, account):
         self.go_to_coming_operations_page(account)
