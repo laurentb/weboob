@@ -21,7 +21,7 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.messages import Message
 from .pages import LoginPage, LoginErrorPage, ThreadPage, Tweet, TrendsPage,\
-    TimelinePage, HomeTimelinePage, SearchTimelinePage
+    TimelinePage, HomeTimelinePage, SearchTimelinePage, SearchHomePage
 
 
 __all__ = ['TwitterBrowser']
@@ -30,19 +30,22 @@ __all__ = ['TwitterBrowser']
 class TwitterBrowser(LoginBrowser):
     BASEURL = 'https://twitter.com/'
 
+    authenticity_token = None
+
     thread_page = URL(u'(?P<user>.+)/status/(?P<_id>.+)', ThreadPage)
     login_error = URL(u'login/error.+', LoginErrorPage)
     tweet = URL(u'i/tweet/create', Tweet)
-    trends = URL(u'trends', TrendsPage)
+    search_home = URL(u'search-home', SearchHomePage)
+    trends = URL(u'i/trends\?pc=true&show_context=false&src=search-home&k=(?P<token>.*)', TrendsPage)
     search = URL(u'i/search/timeline', SearchTimelinePage)
     profil = URL(u'i/profiles/show/(?P<path>.+)/timeline/with_replies', HomeTimelinePage)
     timeline = URL(u'i/timeline', TimelinePage)
     login = URL(u'', LoginPage)
 
     def do_login(self):
-        self.login.go()
+        self.login.stay_or_go()
 
-        if not self.page.logged:
+        if not self.authenticity_token:
             self.authenticity_token = self.page.login(self.username, self.password)
 
         if not self.page.logged or self.login_error.is_here():
@@ -60,11 +63,14 @@ class TwitterBrowser(LoginBrowser):
         if self.username:
             return self.get_logged_trendy_subject()
         else:
-            return self.trends.open().get_trendy_subjects()
+            return self.trends.open(token="").get_trendy_subjects()
 
-    @need_login
     def get_logged_trendy_subject(self):
-        return self.trends.open().get_trendy_subjects()
+        if not self.authenticity_token:
+            self.do_login()
+
+        trends_token = self.search_home.open().get_trends_token()
+        return self.trends.open(token=trends_token).get_trendy_subjects()
 
     @need_login
     def post(self, thread, message):
