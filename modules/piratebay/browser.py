@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Julien Veyssier
+# Copyright(C) 2010-2015 Julien Veyssier, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -18,23 +18,28 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from urlparse import urlsplit
+import random
 import urllib
+from urlparse import urlsplit
 
 from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
 
 from .pages.index import IndexPage
-from .pages.torrents import TorrentsPage, TorrentPage
-
+from .pages.torrents import TorrentPage, TorrentsPage
 
 __all__ = ['PiratebayBrowser']
 
 
 class PiratebayBrowser(Browser):
     ENCODING = 'utf-8'
+    DOMAINS = ['thepiratebay.vg',
+               'thepiratebay.la',
+               'thepiratebay.am',
+               'thepiratebay.mn',
+               'thepiratebay.gd']
 
     def __init__(self, url, *args, **kwargs):
-        url = url or 'https://thepiratebay.se/'
+        url = url or 'https://%s/' % random.choice(self.DOMAINS)
         url_parsed = urlsplit(url)
         self.PROTOCOL = url_parsed.scheme
         self.DOMAIN = url_parsed.netloc

@@ -30,8 +30,8 @@ __all__ = ['PiratebayModule']
 
 class PiratebayModule(Module, CapTorrent):
     NAME = 'piratebay'
-    MAINTAINER = u'Julien Veyssier'
-    EMAIL = 'julien.veyssier@aiur.fr'
+    MAINTAINER = u'Laurent Bachelier'
+    EMAIL = 'laurent@bachelier.name'
     VERSION = '1.1'
     DESCRIPTION = 'The Pirate Bay BitTorrent tracker'
     LICENSE = 'AGPLv3+'
