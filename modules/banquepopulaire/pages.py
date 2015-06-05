@@ -64,6 +64,7 @@ class BasePage(_BasePage):
     def on_loaded(self):
         if not self.is_error():
             self.browser.token = self.get_token()
+            self.logger.debug('Update token to %s', self.browser.token)
 
     def is_error(self):
         return False
@@ -195,6 +196,17 @@ class RedirectPage(BasePage):
         else:
             self.browser.submit(nologin=True)
 
+
+class ErrorPage(BasePage):
+    def get_token(self):
+        try:
+            buf = self.document.xpath('//body/@onload')[0]
+        except IndexError:
+            return
+        else:
+            m = re.search("saveToken\('([^']+)'\)", buf)
+            if m:
+                return m.group(1)
 
 class UnavailablePage(BasePage):
     def on_loaded(self):
@@ -411,6 +423,7 @@ class AccountsPage(BasePage):
                 account._next_debit = None
                 account._params = None
                 account._coming_params = None
+                account._invest_params = None
                 if balance != u'' and len(tds[3].xpath('.//a')) > 0:
                     account._params = params.copy()
                     account._params['dialogActionPerformed'] = 'SOLDE'
@@ -427,9 +440,9 @@ class AccountsPage(BasePage):
                     next_pages.append(_params)
 
                 if not account._params:
-                    account._params = params.copy()
-                    account._params['dialogActionPerformed'] = 'CONTRAT'
-                    account._params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]
+                    account._invest_params = params.copy()
+                    account._invest_params['dialogActionPerformed'] = 'CONTRAT'
+                    account._invest_params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]
 
                 yield account
 
@@ -471,6 +484,7 @@ class CardsPage(BasePage):
                 account.label = u' '.join([self.parser.tocleanstring(cols[self.COL_TYPE]),
                                            self.parser.tocleanstring(cols[self.COL_LABEL])])
                 account._params = None
+                account._invest_params = None
                 account._coming_params = params.copy()
                 account._coming_params['dialogActionPerformed'] = 'SELECTION_ENCOURS_CARTE'
                 account._coming_params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]

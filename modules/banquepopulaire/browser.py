@@ -23,7 +23,7 @@ import urllib
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrokenPageError
 
 from .pages import LoginPage, IndexPage, AccountsPage, AccountsFullPage, CardsPage, TransactionsPage, \
-                   UnavailablePage, RedirectPage, HomePage, Login2Page, \
+                   UnavailablePage, RedirectPage, HomePage, Login2Page, ErrorPage, \
                    LineboursePage, NatixisPage, InvestmentNatixisPage, InvestmentLineboursePage, MessagePage
 
 
@@ -47,6 +47,7 @@ class BanquePopulaire(Browser):
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=CONTRAT.*':   TransactionsPage,
              'https://[^/]+/cyber/internet/Page.do\?.*':                                        TransactionsPage,
              'https://[^/]+/cyber/internet/Sort.do\?.*':                                        TransactionsPage,
+             'https://[^/]+/cyber/internet/ContinueTask.do':                                    ErrorPage,
              'https://[^/]+/s3f-web/.*':                                                        UnavailablePage,
              'https://[^/]+/portailinternet/_layouts/Ibp.Cyi.Layouts/RedirectSegment.aspx.*':   RedirectPage,
              'https://[^/]+/portailinternet/Catalogue/Segments/.*.aspx(\?vary=(?P<vary>.*))?':  HomePage,
@@ -160,7 +161,7 @@ class BanquePopulaire(Browser):
 
         self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(params))
 
-        if self.page.no_operations():
+        if not self.page or self.page.no_operations():
             return
 
         # Sort by values dates (see comment in TransactionsPage.get_history)
@@ -183,10 +184,17 @@ class BanquePopulaire(Browser):
             self.location(self.buildurl('/cyber/internet/Page.do', **next_params))
 
     def get_investment(self, account):
+        if not account._invest_params:
+            raise NotImplementedError()
+
         account = self.get_account(account.id)
-        params = account._params
+        params = account._invest_params
         params['token'] = self.page.build_token(params['token'])
         self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(params))
+
+        if self.is_on_page(ErrorPage):
+            raise NotImplementedError()
+
         url, params = self.page.get_investment_page_params()
         if params:
             self.location(url, urllib.urlencode(params))
