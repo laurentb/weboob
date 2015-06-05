@@ -59,7 +59,7 @@ class TitrePage(LoggedPage, RawPage):
                 invest.quantity = NotAvailable
             unitprice = FrenchTransaction.clean_amount(columns[2])
             if unitprice != '':
-                invest.unitprice = Decimal()
+                invest.unitprice = Decimal(unitprice)
             else:
                 invest.unitprice = NotAvailable
             unitvalue = FrenchTransaction.clean_amount(columns[3])
