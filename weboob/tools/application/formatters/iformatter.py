@@ -48,7 +48,8 @@ else:
     def readch():
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
-        tty.setraw(fd)
+        #tty.setraw(fd)
+        tty.setcbreak(fd)
         try:
             c = sys.stdin.read(1)
             # XXX do not read magic number
@@ -111,12 +112,18 @@ class IFormatter(object):
                     (bufx, bufy, curx, cury, wattr,
                      left, top, right, bottom, maxx, maxy) = struct.unpack("hhhhHhhhhhh", csbi.raw)
                     self.termrows = right - left + 1
+                    self.termcols = bottom - top + 1
                 else:
                     self.termrows = 80  # can't determine actual size - return default values
+                    self.termcols = 80
             else:
                 self.termrows = int(
                     subprocess.Popen('stty size', shell=True, stdout=subprocess.PIPE).communicate()[0].split()[0]
                 )
+                self.termcols = int(
+                    subprocess.Popen('stty size', shell=True, stdout=subprocess.PIPE).communicate()[0].split()[1]
+                )
+
 
     def output(self, formatted):
         if self.outfile != sys.stdout:
@@ -134,8 +141,10 @@ class IFormatter(object):
 
                 if isinstance(line, unicode):
                     line = line.encode(guess_encoding(self.outfile), 'replace')
+                #self.outfile.write(line)
                 print(line)
-                self.print_lines += 1
+                self.print_lines += int(len(line)/self.termcols) + 1
+                #self.print_lines += 1
 
     def start_format(self, **kwargs):
         pass
