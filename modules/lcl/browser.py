@@ -117,9 +117,12 @@ class LCLBrowser(LoginBrowser):
         self.accounts.stay_or_go()
         accounts = self.page.get_list()
         if self.connexion_bourse():
-            for a in self.page.populate(accounts):
-                yield a
+            acc = list(self.page.populate(accounts))
             self.deconnexion_bourse()
+            # Disconnecting from bourse portal before returning account list
+            # to be sure that we are on the banque portal
+            for a in acc:
+                yield a
         else:
             for a in accounts:
                 yield a
