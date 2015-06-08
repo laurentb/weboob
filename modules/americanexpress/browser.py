@@ -22,7 +22,7 @@ from urlparse import urlsplit, parse_qsl
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountsPage, TransactionsPage
+from .pages import LoginPage, AccountsPage, TransactionsPage, NewAccountsPage
 
 
 __all__ = ['AmericanExpressBrowser']
@@ -34,6 +34,7 @@ class AmericanExpressBrowser(Browser):
     ENCODING = 'ISO-8859-1'
     PAGES = {'https://global.americanexpress.com/myca/logon/.*':            LoginPage,
              'https://global.americanexpress.com/myca/intl/acctsumm/.*':    AccountsPage,
+             'https://global.americanexpress.com/myca/intl/isummary/.*':    NewAccountsPage,
              'https://global.americanexpress.com/myca/intl/estatement/.*':  TransactionsPage,
             }
 
@@ -64,7 +65,7 @@ class AmericanExpressBrowser(Browser):
         self.submit()
 
     def get_accounts_list(self):
-        if not self.is_on_page(AccountsPage):
+        if not self.is_on_page(AccountsPage) and not self.is_on_page(NewAccountsPage):
             self.go_on_accounts_list()
         return self.page.get_list()
 
@@ -79,15 +80,18 @@ class AmericanExpressBrowser(Browser):
         return None
 
     def get_history(self, account):
-        if not self.is_on_page(AccountsPage):
+        if not self.is_on_page(AccountsPage) and not self.is_on_page(NewAccountsPage):
             self.go_on_accounts_list()
 
         url = account._link
 
         while url is not None:
-            self.select_form(name='leftnav')
-            self.form.action = self.absurl(url)
-            self.submit()
+            if self.is_on_page(NewAccountsPage):
+                self.location(url)
+            else:
+                self.select_form(name='leftnav')
+                self.form.action = self.absurl(url)
+                self.submit()
 
             assert self.is_on_page(TransactionsPage)
 

@@ -40,6 +40,23 @@ class LoginPage(Page):
         self.browser.submit(nologin=True)
 
 
+class NewAccountsPage(Page):
+    def get_list(self):
+        for div in self.document.xpath('.//div[@id="card-details"]'):
+            a = Account()
+            a.id = self.parser.tocleanstring(div.xpath('.//span[@class="acc-num"]')[0])
+            a.label =self.parser.tocleanstring( div.xpath('.//span[@class="card-desc"]')[0])
+            balance = self.parser.tocleanstring(div.xpath('.//span[@class="balance-data"]')[0])
+            if balance in (u'Indisponible', u'Indisponible Facturation en cours', ''):
+                a.balance = NotAvailable
+            else:
+                a.balance = - abs(Decimal(Transaction.clean_amount(balance)))
+                a.currency = a.get_currency(balance)
+            a._link = self.document.xpath('.//div[@class="wide-bar"]/h3/a')[0].attrib['href']
+
+            yield a
+
+
 class AccountsPage(Page):
     def get_list(self):
         for box in self.document.getroot().cssselect('div.roundedBox div.contentBox'):
