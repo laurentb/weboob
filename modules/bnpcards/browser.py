@@ -39,6 +39,7 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
     com_home = URL('/ce_internet_prive_ge/operationCorporateEnCours.builder.do', AccountsPage)
     coming = URL('/ce_internet_prive_ge/operationEnCoursAfficherCorporate.event.do',
                  '/ce_internet_prive_ge/operationEnCoursAppliquerCorporate.event.do.*',
+                 'ce_internet_prive_ge/operationEnCoursDetailAppliquerCorporate.event.do.*',
                  AccountsPage)
     his_home = URL('/ce_internet_prive_ge/operationCorporateHisto.builder.do', AccountsPage)
     history = URL('/ce_internet_prive_ge/operationHistoriqueAfficherCorporate.event.do',
