@@ -139,3 +139,4 @@ class CreditDuNordBrowser(Browser):
         elif (account.type == Account.TYPE_DEPOSIT):
             self.page.follow_detail()
             return self.page.get_deposit_investment()
+        return iter([])
