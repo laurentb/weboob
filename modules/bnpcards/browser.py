@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired
 from weboob.browser import LoginBrowser, URL, need_login
 
 from .pages import LoginPage, ErrorPage, AccountsPage, TransactionsPage
@@ -67,6 +67,8 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
     @need_login
     def iter_accounts(self):
         self.acc_home.go()
+        if self.error.is_here():
+            raise BrowserPasswordExpired()
         self.page.expand()
         return self.page.iter_accounts()
 
