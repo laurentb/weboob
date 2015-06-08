@@ -113,6 +113,8 @@ class SocieteGenerale(Browser):
         return None
 
     def iter_history(self, account):
+        if not account._link_id:
+            return
         self.location(account._link_id)
 
         if self.is_on_page(CardsList):

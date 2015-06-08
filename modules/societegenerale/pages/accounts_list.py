@@ -71,6 +71,9 @@ class AccountsList(BasePage):
                     else:
                         if account._link_id.startswith('/asv/asvcns10.html'):
                             account.type = Account.TYPE_LIFE_INSURANCE
+                        # Website crash when going on this URL
+                        if account._link_id.startswith('/restitution/cns_detailAVPAT.html'):
+                            account._link_id = None
 
                 elif td.attrib.get('headers', '') == 'NumeroCompte':
                     account.id = self.parser.tocleanstring(td).replace(u'\xa0', '')
@@ -96,7 +99,7 @@ class AccountsList(BasePage):
             if not account.label or empty(account.balance):
                 continue
 
-            if 'CARTE_' in account._link_id:
+            if account._link_id and 'CARTE_' in account._link_id:
                 account.type = account.TYPE_CARD
 
             if account.type == Account.TYPE_UNKNOWN:
