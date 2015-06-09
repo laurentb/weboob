@@ -65,7 +65,7 @@ class LCLBrowser(LoginBrowser):
                  'https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.*',
                  '/outil/UWBO.*', BoursePage)
     disc = URL('https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.login.ContextTransferDisconnect',
-                     'https://particuliers.secure.lcl.fr/outil/UAUT/RetourPartenaire/retourCar', DiscPage)
+               '/outil/UAUT/RetourPartenaire/retourCar', DiscPage)
 
     assurancevie = URL('/outil/UWVI/AssuranceVie/accesSynthese', AVPage)
     avdetail = URL('https://ASSURANCE-VIE-et-prevoyance.secure.lcl.fr.*',
