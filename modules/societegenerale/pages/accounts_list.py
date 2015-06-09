@@ -52,6 +52,14 @@ class AccountsList(BasePage):
             }
 
     def get_list(self):
+        def check_valid_url(url):
+            pattern = ['/restitution/cns_detailAVPAT.html', '/restitution/cns_detailPea.html']
+
+            for p in pattern:
+                if url.startswith(p):
+                    return False
+            return True
+
         for tr in self.document.getiterator('tr'):
             if 'LGNTableRow' not in tr.attrib.get('class', '').split():
                 continue
@@ -64,6 +72,8 @@ class AccountsList(BasePage):
                         break
                     account.label = self.parser.tocleanstring(a)
                     account._link_id = a.get('href', '')
+                    if not check_valid_url(account._link_id):
+                        account._link_id = None
                     for pattern, actype in self.TYPES.iteritems():
                         if account.label.startswith(pattern):
                             account.type = actype
@@ -72,8 +82,6 @@ class AccountsList(BasePage):
                         if account._link_id.startswith('/asv/asvcns10.html'):
                             account.type = Account.TYPE_LIFE_INSURANCE
                         # Website crash when going on this URL
-                        if account._link_id.startswith('/restitution/cns_detailAVPAT.html'):
-                            account._link_id = None
 
                 elif td.attrib.get('headers', '') == 'NumeroCompte':
                     account.id = self.parser.tocleanstring(td).replace(u'\xa0', '')
