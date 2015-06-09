@@ -74,7 +74,10 @@ class Paypal(Browser):
             self.location('/myaccount')
             self.account_type = "perso"
         else:
-            self.location('/webapps/business/?nav=0.0')
+            if not self.page or self.page.document.xpath('.//a[contains(@class, "try-now-bttn")]'):
+                raise BrowserIncorrectPassword("Please update your account to the new PayPal website to continue to use our services")
+            else:
+                self.location('/webapps/business/?nav=0.0')
             if self.is_on_page(HomePage):
                 self.account_type = "pro"
             else:
