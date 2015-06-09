@@ -23,6 +23,7 @@ from decimal import Decimal
 import math
 import random
 from cStringIO import StringIO
+from urllib import urlencode
 
 
 from weboob.capabilities.bank import Account, Investment
@@ -349,7 +350,7 @@ class BoursePage(LoggedPage, HTMLPage):
                 else:
                     return MyDecimal('.//td[6]')(self)
 
-class BourseDiscPage(LoggedPage, HTMLPage):
+class DiscPage(LoggedPage, HTMLPage):
     def come_back(self):
         form = self.get_form()
         form.submit()
@@ -368,7 +369,8 @@ class AVPage(LoggedPage, HTMLPage):
             obj__owner = CleanText('.//td[1]') & Regexp(pattern=r' ([^ ]+)$')
             obj_label = Format(u'%s %s', CleanText('.//td/a'), obj__owner)
             obj_balance = CleanDecimal('.//td[has-class("right")]', replace_dots=True)
-            obj_id = CleanText(Field('label'), replace=[(' ', '')])
+            obj__id = CleanText('./td/a/@id')
+            obj_id = Format(u'%s%s', CleanText(Field('label'), replace=[(' ', '')]), obj__id)
             obj_type = Account.TYPE_LIFE_INSURANCE
             obj__link_id = None
             obj__market_link = None
@@ -394,13 +396,25 @@ class AVDetailPage(LoggedPage, LCLBasePage):
             form['cMaxAge'] = '-1'
         form.submit()
 
+    def come_back(self):
+        session = self.get_from_js('idSessionSag = "', '"')
+        params = {}
+        params['sessionSAG'] = session
+        params['stbpg'] = 'pagePU'
+        params['act'] = ''
+        params['typeaction'] = 'reroutage_retour'
+        params['site'] = 'LCLI'
+        params['stbzn'] = 'bnc'
+        self.browser.location('https://assurance-vie-et-prevoyance.secure.lcl.fr/filiale/entreeBam?%s' % urlencode(params))
+
     @method
     class iter_investment(ListElement):
         item_xpath = '(//table[@class="table"])[1]/tbody/tr'
         class item(ItemElement):
             klass = Investment
 
-            obj_label = CleanText('.//td[1]/span')
+            obj_label = CleanText('.//td[1]/a | .//td[1]/span ')
+            obj_code = CleanText('.//td[1]/a/@id')
             obj_quantity = MyDecimal('.//td[4]/span')
             obj_unitvalue = MyDecimal('.//td[2]/span')
             obj_valuation = MyDecimal('.//td[5]/span')

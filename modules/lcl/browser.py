@@ -28,7 +28,7 @@ from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    CBListPage, CBHistoryPage, ContractsPage, BoursePage, \
-                   AVPage, AVDetailPage, BourseDiscPage, NoBoursePage
+                   AVPage, AVDetailPage, DiscPage, NoBoursePage
 
 
 __all__ = ['LCLBrowser','LCLProBrowser']
@@ -64,11 +64,12 @@ class LCLBrowser(LoginBrowser):
     bourse = URL('https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis',
                  'https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.*',
                  '/outil/UWBO.*', BoursePage)
-    boursedisc = URL('https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.login.ContextTransferDisconnect',
-                     'https://particuliers.secure.lcl.fr/outil/UAUT/RetourPartenaire/retourCar', BourseDiscPage)
+    disc = URL('https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.login.ContextTransferDisconnect',
+                     'https://particuliers.secure.lcl.fr/outil/UAUT/RetourPartenaire/retourCar', DiscPage)
 
     assurancevie = URL('/outil/UWVI/AssuranceVie/accesSynthese', AVPage)
     avdetail = URL('https://ASSURANCE-VIE-et-prevoyance.secure.lcl.fr.*',
+                   'https://assurance-vie-et-prevoyance.secure.lcl.fr.*',
                    '/outil/UWVI/Routage', AVDetailPage)
 
     TIMEOUT = 30.0
@@ -105,7 +106,7 @@ class LCLBrowser(LoginBrowser):
         return True
 
     def deconnexion_bourse(self):
-        self.boursedisc.stay_or_go()
+        self.disc.stay_or_go()
         self.page.come_back()
         self.page.come_back()
 
@@ -161,6 +162,11 @@ class LCLBrowser(LoginBrowser):
                 for tr in self.page.get_operations():
                     yield tr
 
+    def disc_from_AV_investment_detail(self):
+        self.page.come_back()
+        self.page.sub()
+        self.page.come_back()
+
     @need_login
     def get_investment(self, account):
         if account.type == Account.TYPE_LIFE_INSURANCE and account._form:
@@ -170,7 +176,7 @@ class LCLBrowser(LoginBrowser):
             self.page.sub()
             for inv in self.page.iter_investment():
                 yield inv
-            self.accounts.stay_or_go()
+            self.disc_from_AV_investment_detail()
         elif account._market_link:
             self.connexion_bourse()
             self.location(account._market_link)
