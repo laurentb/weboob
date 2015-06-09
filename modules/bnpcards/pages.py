@@ -23,7 +23,7 @@ from dateutil.relativedelta import relativedelta
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText
+from weboob.browser.filters.standard import CleanText, Field
 from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -36,7 +36,7 @@ class LoginPage(HTMLPage):
         form = self.get_form(name='connecterForm')
         form['type'] = type
         form['login'] = username
-        form['pwd'] = password
+        form['pwd'] = password[:8]
         form.url = '/ce_internet_public/seConnecter.event.do'
         form.submit()
 
@@ -107,5 +107,66 @@ class TransactionsPage(LoggedPage, HTMLPage):
         form['sort_datas'] = 'down'
         form.submit()
 
+
 class ErrorPage(HTMLPage):
     pass
+
+
+class TiHomePage(HTMLPage):
+    pass
+
+
+class TiCardPage(LoggedPage, HTMLPage):
+    @method
+    class iter_accounts(ListElement):
+        item_xpath = '//table[@class="params"]/tr'
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_id = CleanText('./td[2]/select/option', replace=[(' ', '')])
+            obj_label = CleanText('./td[1]/b[2]')
+            obj_type = Account.TYPE_CARD
+
+    @pagination
+    @method
+    class get_transactions(ListElement):
+        item_xpath = '//table[@id="datas"]/tbody/tr'
+
+        next_page = Link('//tfoot//b/following-sibling::a[1]')
+
+        class item(ItemElement):
+            klass = FrenchTransaction
+
+            obj_rdate = FrenchTransaction.Date(CleanText('./td[1]'))
+            obj_date = FrenchTransaction.Date(CleanText('./td[3]'))
+            obj_raw = FrenchTransaction.Raw(CleanText('./td[2]'))
+            obj_amount = FrenchTransaction.Amount(CleanText('./td[5]'), replace_dots=False)
+            obj_original_amount = FrenchTransaction.Amount(CleanText('./td[4]'), replace_dots=False)
+            obj_original_currency = FrenchTransaction.Currency(CleanText('./td[4]'))
+            obj_commission = FrenchTransaction.Amount(CleanText('./td[6]'), replace_dots=False)
+
+            def obj__coming(self):
+                if Field('date')(self) >= date.today():
+                    return True
+                return
+
+    def expand(self):
+        form = self.get_form(submit='//input[@value="Display"]')
+        form['bouton'] = 'rechercher'
+        form.submit()
+
+
+class TiHistoPage(TiCardPage):
+    def get_periods(self):
+        periods = []
+        for period in self.doc.xpath('//select[@name="periodeSaisie"]/option/@value'):
+            periods.append(period)
+        return periods
+
+    def expand(self, period):
+        form = self.get_form(submit='//input[@value="Display"]')
+        form['bouton'] = 'rechercher'
+        form['periodeSaisie'] = period
+        form['periodeSaisieCache'] = period
+        form.submit()

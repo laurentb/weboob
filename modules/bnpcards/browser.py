@@ -21,7 +21,8 @@
 from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired
 from weboob.browser import LoginBrowser, URL, need_login
 
-from .pages import LoginPage, ErrorPage, AccountsPage, TransactionsPage
+from .pages import LoginPage, ErrorPage, AccountsPage, TransactionsPage, \
+                   TiHomePage, TiCardPage, TiHistoPage
 
 
 class BnpcartesentrepriseBrowser(LoginBrowser):
@@ -30,7 +31,7 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
     login = URL('/ce_internet_public/seConnecter.builder.do', LoginPage)
     error = URL('.*.seConnecter.event.do',
                 '.*.compteGestChgPWD.builder.do',
-                #'/ce_internet_prive_ge/accueilInternetGe.builder.do',
+                '/ce_internet_prive_ti/compteTituChgPWD.builder.do',
                 ErrorPage)
     acc_home = URL('/ce_internet_prive_ge/carteCorporateParc.builder.do', AccountsPage)
     accounts = URL('/ce_internet_prive_ge/operationVotreParcAfficherCorporate.event.do',
@@ -50,6 +51,13 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
                        'ce_internet_prive_ge/operationDetail.*AppliquerCorporate.event.do.*',
                        TransactionsPage)
 
+    ti_home = URL('/ce_internet_prive_ti/accueilInternetTi.builder.do', TiHomePage)
+    ti_card = URL('/ce_internet_prive_ti/operationEnCoursDetail.builder.do',
+                  '/ce_internet_prive_ti/operationEnCoursDetail.event.do.*',
+                  '/ce_internet_prive_ti/pageOperationEnCoursDetail.event.do.*', TiCardPage)
+    ti_histo = URL('/ce_internet_prive_ti/operationHistoDetail.builder.do',
+                   '/ce_internet_prive_ti/operationHistoDetail.event.do.*',
+                   '/ce_internet_prive_ti/pageOperationHistoDetail.event.do.*', TiHistoPage)
     TIMEOUT = 60.0
 
     def __init__(self, type, *args, **kwargs):
@@ -67,13 +75,38 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
 
     @need_login
     def iter_accounts(self):
-        self.acc_home.go()
+        if self.type == '1':
+            self.ti_card.go()
+        elif self.type == '2':
+            self.acc_home.go()
         if self.error.is_here():
             raise BrowserPasswordExpired()
-        self.page.expand()
+        if self.type == '2':
+            self.page.expand()
         return self.page.iter_accounts()
 
+    @need_login
+    def get_ti_transactions(self, account, coming=False):
+        self.ti_card.go()
+        self.page.expand()
+        for tr in self.page.get_transactions():
+            if coming and tr._coming:
+                yield tr
+            elif not coming and not tr._coming:
+                yield tr
+        self.ti_histo.stay_or_go()
+        for period in self.page.get_periods():
+            self.page.expand(period)
+            for tr in self.page.get_transactions():
+                if coming and tr._coming:
+                    yield tr
+                elif not coming and not tr._coming:
+                    yield tr
+
+    @need_login
     def get_coming(self, account):
+        if self.type == '1':
+            return self.get_ti_transactions(account, coming=True)
         self.com_home.go()
         self.page.expand()
         accounts = self.page.iter_accounts()
@@ -85,7 +118,10 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
         return iter([])
 
 
+    @need_login
     def get_history(self, account):
+        if self.type == '1':
+            return self.get_ti_transactions(account)
         self.his_home.go()
         self.page.expand()
         accounts = self.page.iter_accounts()
