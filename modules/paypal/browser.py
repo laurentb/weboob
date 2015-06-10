@@ -58,7 +58,7 @@ class Paypal(Browser):
         'https://\w+.paypal.com/myaccount/': HomePage,
     }
 
-    DEFAULT_TIMEOUT = 60
+    DEFAULT_TIMEOUT = 120
 
     BEGINNING = datetime.date(1998, 6, 1)  # The day PayPal was founded
     account_type = None
