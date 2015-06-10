@@ -55,7 +55,7 @@ class Paypal(Browser):
         'https://\w+.paypal.com/businessexp/summary': ProHistoryPage,
         'https://\w+.paypal.com/webapps/business/activity\?.*': ProHistoryPage,
         'https://\w+.paypal.com/myaccount/activity/.*': (PartHistoryPage, 'json'),
-        'https://\w+.paypal.com/myaccount/': ProHistoryPage,
+        'https://\w+.paypal.com/myaccount/': HomePage,
     }
 
     DEFAULT_TIMEOUT = 60
@@ -78,7 +78,7 @@ class Paypal(Browser):
                 raise BrowserIncorrectPassword("Please update your account to the new PayPal website to continue to use our services")
             else:
                 self.location('/webapps/business/?nav=0.0')
-            if self.is_on_page(HomePage):
+            if self.is_on_page(ProHistoryPage):
                 self.account_type = "pro"
             else:
                 self.account_type = "perso"
