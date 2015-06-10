@@ -20,7 +20,7 @@
 
 import re
 
-from weboob.deprecated.browser import Page, BrowserUnavailable
+from weboob.deprecated.browser import Page, BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard
 
 
@@ -97,7 +97,9 @@ class LoginPage(Page):
 
 class repositionnerCheminCourant(Page):
     def on_loaded(self):
-        self.browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/initialiser-identif.ea")
+        page = self.browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/initialiser-identif.ea")
+        if "vous ne disposez pas" in page.read():
+            raise BrowserIncorrectPassword("No online banking service for these ids")
 
 
 class Initident(Page):
