@@ -49,6 +49,7 @@ class BPBrowser(Browser):
              r'.*synthese_assurancesEtComptes/afficheSynthese-synthese\.ea'              : AccountList,
              r'.*synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea'     : AccountList,
 
+             r'.*voscomptes/synthese/3-synthese.ea'                                      : RedirectPage,
              r'.*voscomptes/synthese/synthese.ea'                                        : ProAccountsList,
              r'.*voscomptes/historiqueccp/historiqueccp.ea.*'                            : ProAccountHistory,
              r'.*voscomptes/telechargercomptes/telechargercomptes.ea.*'                  : ProAccountHistoryDownload,
