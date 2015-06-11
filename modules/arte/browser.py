@@ -142,6 +142,7 @@ class ArteBrowser(PagesBrowser):
         if m:
             video = self.webservice.go(__site=m.group('__site'), _lang=m.group('_lang'),
                                        _id=m.group('_id')).get_arte_concert_video(obj=video)
+            video.id = u'%s.%s' % (video._site, id)
             video.ext, video.url = self.get_url()
             return video
 

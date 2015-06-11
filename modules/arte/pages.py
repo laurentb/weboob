@@ -230,7 +230,6 @@ class ArteJsonPage(JsonPage):
 
         klass = ArteSiteVideo
         obj__site = SITE.CONCERT.get('id')
-        obj_id = Format('%s.%s', Field('_site'), Regexp(Dict('VTR'), 'http://concert.arte.tv(.*)'))
 
     @method
     class get_arte_cinema_video(ArteItemElement):
