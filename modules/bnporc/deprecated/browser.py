@@ -184,7 +184,10 @@ class BNPorc(Browser):
 
             self.location('https://www.secure.bnpparibas.net/banque/portail/particulier/FicheA', urllib.urlencode(data))
 
-            execution = self.page.document.xpath('//form[@name="displayStatementForm"]/input[@name="_flowExecutionKey"]')[0].attrib['value']
+            e = self.page.document.xpath('//form[@name="displayStatementForm"]/input[@name="_flowExecutionKey"]')
+            if len(e) != 1:
+                return
+            execution = e[0].attrib['value']
             data = {'_eventId':                  'changeOperationsPerPage',
                     'newCategoryId':             '',
                     'categorisationInProgress':  '',
