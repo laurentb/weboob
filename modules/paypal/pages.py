@@ -61,10 +61,11 @@ class LoginPage(Page):
         #paypal add this on the captcha page when the validate should be automatique
         self.browser.controls.append(ClientForm.TextControl('text', 'ads_token_js', {'value': ''}))
 
-        code = ''.join(self.document.xpath('//script[contains(text(), "convert")]/text()'))
+        code = ''.join(self.document.xpath('//script[contains(text(), "autosubmit")]/text()'))
         code = re.sub('if \(autosubmit.*', '', code)
         js = Javascript(code)
-        self.browser['ads_token_js'] = str(js.call('convert', self.browser['ads_token']))
+        func_name = re.search(r'function (\w+)\(e\)', code).group(1)
+        self.browser['ads_token_js'] = str(js.call(func_name, self.browser['ads_token']))
 
         self.browser.submit(nologin=True)
 
