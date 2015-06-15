@@ -98,6 +98,9 @@ class HistoryPage(CMSOPage):
             obj_raw = Transaction.Raw('./following-sibling::tr[1][starts-with(@id, "libelleLong")]/td[3]')
             obj_amount = Transaction.Amount('./td[5]', './td[4]')
 
+            def condition(self):
+                return len(self.el) >= 5 and not self.el.get('id', '').startswith('libelleLong') and len(self.el.xpath('.//i')) > 0
+
     @pagination
     @method
     class iter_history_rest_page(CmsoListElement):
