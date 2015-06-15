@@ -119,7 +119,7 @@ class Paypal(Browser):
 
     def get_download_history(self, account, step_min=None, step_max=None):
         if step_min is None and step_max is None:
-            step_min = 30
+            step_min = 10
             step_max = 180
 
         def fetch_fn(start, end):
@@ -140,13 +140,13 @@ class Paypal(Browser):
         Fetches transactions in small chunks to avoid request timeouts.
         Time period of each requested chunk is adjusted dynamically.
         """
-        FACTOR = 2
+        FACTOR = 1.5
         step = step_min
         while end > beginning:
             start = end - datetime.timedelta(step)
             chunk = list(fetch_fn(start, end))
             end = start - datetime.timedelta(1)
-            if len(chunk) > 50:
+            if len(chunk) > 40:
                 # If there're too much transactions in current period, decrease
                 # the period.
                 step = max(step_min, step/FACTOR)
