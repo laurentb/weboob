@@ -18,14 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.video import BaseVideo
-from weboob.capabilities.image import BaseImage
 
 from weboob.browser.elements import ItemElement, DictElement, method
-from weboob.browser.pages import HTMLPage, JsonPage
-from weboob.browser.filters.standard import Regexp, CleanText
+from weboob.browser.pages import JsonPage
+from weboob.browser.filters.standard import Regexp
 from weboob.browser.filters.json import Dict
-
-import re
 
 
 class SearchPage(JsonPage):
@@ -38,7 +35,7 @@ class SearchPage(JsonPage):
             obj_id = Regexp(Dict('shareUrl'), '/([a-zA-Z0-9]*)$')
             obj_title = Dict('description')
             obj_url = Dict('videoUrl')
-            obj_ext = Regexp(Dict('videoUrl'), '.*\.(.*?)\?.*')
+            obj_ext = Regexp(Dict('videoUrl'), r'.*\.(.*?)\?.*')
             obj_author = Dict('username')
 
 class PostPage(JsonPage):
