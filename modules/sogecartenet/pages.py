@@ -84,7 +84,7 @@ class TransactionsPage(SogeLoggedPage, CsvPage):
             obj_raw = FrenchTransaction.Raw(CleanText(Dict('corporate name')))
             obj_amount = FrenchTransaction.Amount(CleanText(Dict('charged amt')), replace_dots=False)
             obj_original_amount = FrenchTransaction.Amount(CleanText(Dict('orig. currency gross amt')), replace_dots=False)
-            obj_original_currency = FrenchTransaction.Currency(CleanText(Dict('orig. currency code')))
+            obj_original_currency = CleanText(Dict('orig. currency code'))
             obj_country = CleanText(Dict('country cde'))
 
             def condition(self):
