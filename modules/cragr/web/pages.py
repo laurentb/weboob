@@ -426,20 +426,26 @@ class MarketPage(BasePage):
             inv = Investment()
             inv.label = unicode(cells[self.COL_ID].find('div/a').text.strip())
             inv.code = cells[self.COL_ID].find('div/br').tail.strip()
-            inv.quantity = Decimal(Transaction.clean_amount(cells[self.COL_QUANTITY].find('span').text))
-            inv.valuation = Decimal(Transaction.clean_amount(cells[self.COL_VALUATION].text))
-            inv.diff = Decimal(Transaction.clean_amount(cells[self.COL_DIFF].text_content()))
+            inv.quantity = self.parse_decimal(Transaction.clean_amount(cells[self.COL_QUANTITY].find('span').text))
+            inv.valuation = self.parse_decimal(Transaction.clean_amount(cells[self.COL_VALUATION].text))
+            inv.diff = self.parse_decimal(Transaction.clean_amount(cells[self.COL_DIFF].text_content()))
             if "%" in cells[self.COL_UNITPRICE].text and "%" in cells[self.COL_UNITVALUE].text:
                 inv.unitvalue = inv.valuation / inv.quantity
                 inv.unitprice = (inv.valuation - inv.diff) / inv.quantity
             else:
-                inv.unitprice = Decimal(Transaction.clean_amount(cells[self.COL_UNITPRICE].text))
-                inv.unitvalue = Decimal(Transaction.clean_amount(cells[self.COL_UNITVALUE].text))
+                inv.unitprice = self.parse_decimal(Transaction.clean_amount(cells[self.COL_UNITPRICE].text))
+                inv.unitvalue = self.parse_decimal(Transaction.clean_amount(cells[self.COL_UNITVALUE].text))
 
             yield inv
 
+    def parse_decimal(self, value):
+        v = value.strip()
+        if v == '-' or v == '':
+            return NotAvailable
+        return Decimal(Transaction.clean_amount(value)) or NotAvailable
 
-class LifeInsurancePage(BasePage):
+
+class LifeInsurancePage(MarketPage):
     COL_ID = 0
     COL_QUANTITY = 3
     COL_UNITVALUE = 1
@@ -470,9 +476,3 @@ class LifeInsurancePage(BasePage):
             inv.diff = NotAvailable
 
             yield inv
-
-    def parse_decimal(self, value):
-        v = value.strip()
-        if v == '-' or v == '':
-            return NotAvailable
-        return Decimal(Transaction.clean_amount(value)) or NotAvailable
