@@ -100,7 +100,7 @@ class _AccountsPage(BasePage):
                 continue
 
             cols = tr.findall('td')
-            if not cols:
+            if not cols or len(cols) < 7:
                 continue
 
             account = Account()
