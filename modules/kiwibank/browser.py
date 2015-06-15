@@ -32,7 +32,6 @@ class HistoryUnavailable(Exception):
 
 class Kiwibank(LoginBrowser):
     BASEURL = 'https://www.ib.kiwibank.co.nz/mobile/'
-    CERTHASH = ['5dc8be7430a2e37fab4dbfe232038ec60feed827d7ce0f68613532676962c197']
     TIMEOUT = 30
 
     login = URL('login/', LoginPage)
