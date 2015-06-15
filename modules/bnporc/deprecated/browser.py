@@ -186,7 +186,7 @@ class BNPorc(Browser):
 
             e = self.page.document.xpath('//form[@name="displayStatementForm"]/input[@name="_flowExecutionKey"]')
             if len(e) != 1:
-                return
+                return iter([])
             execution = e[0].attrib['value']
             data = {'_eventId':                  'changeOperationsPerPage',
                     'newCategoryId':             '',
