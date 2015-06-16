@@ -442,7 +442,7 @@ class MarketPage(BasePage):
         v = value.strip()
         if v == '-' or v == '':
             return NotAvailable
-        return Decimal(Transaction.clean_amount(value)) or NotAvailable
+        return Decimal(Transaction.clean_amount(value))
 
 
 class LifeInsurancePage(MarketPage):
