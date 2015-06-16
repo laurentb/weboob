@@ -67,6 +67,9 @@ class CreditMutuelModule(Module, CapBank):
             if not tr._is_coming:
                 yield tr
 
+    def iter_investment(self, account):
+        return self.browser.get_investment(account)
+
     def iter_transfer_recipients(self, ignored):
         for account in self.browser.get_accounts_list():
             recipient = Recipient()

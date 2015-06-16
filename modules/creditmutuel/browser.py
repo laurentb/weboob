@@ -35,7 +35,8 @@ from weboob.capabilities.bank import Transfer, TransferError
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
                    OperationsPage, CardPage, ComingPage, NoOperationsPage, \
-                   TransfertPage, ChangePasswordPage, VerifCodePage, EmptyPage
+                   TransfertPage, ChangePasswordPage, VerifCodePage,       \
+                   EmptyPage, PorPage
 
 
 __all__ = ['CreditMutuelBrowser']
@@ -74,6 +75,8 @@ class CreditMutuelBrowser(LoginBrowser):
                       '/(?P<subbank>.*)/fr/banque/paci_engine/static_content_manager.aspx',
                       '/(?P<subbank>.*)/fr/banque/DELG_Gestion.*',
                       EmptyPage)
+    por =         URL('/(?P<subbank>.*)/fr/banque/POR_SyntheseLst.aspx',
+                      '/(?P<subbank>.*)/fr/banque/POR_ValoToute.aspx', PorPage)
 
     currentSubBank = None
 
@@ -96,7 +99,11 @@ class CreditMutuelBrowser(LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
-        return self.accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts()
+        accounts = []
+        for a in self.accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts():
+            accounts.append(a)
+        self.por.go(subbank=self.currentSubBank).add_por_accounts(accounts)
+        return accounts
 
     def get_account(self, id):
         assert isinstance(id, basestring)
@@ -124,6 +131,8 @@ class CreditMutuelBrowser(LoginBrowser):
     def get_history(self, account):
         transactions = []
         last_debit = None
+        if not account._link_id:
+            return iter([])
         for tr in self.list_operations(account._link_id):
             # to prevent redundancy with card transactions, we do not
             # store 'RELEVE CARTE' transaction.
@@ -154,6 +163,13 @@ class CreditMutuelBrowser(LoginBrowser):
 
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions
+
+    def get_investment(self, account):
+        if account._is_inv:
+            self.por.go(subbank=self.currentSubBank)
+            self.page.send_form(account)
+            return self.page.iter_investment()
+        return iter([])
 
     def transfer(self, account, to, amount, reason=None):
         # access the transfer page

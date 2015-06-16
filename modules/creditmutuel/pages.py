@@ -33,7 +33,7 @@ from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal
 from weboob.browser.filters.html import Link
 from weboob.exceptions import BrowserIncorrectPassword, ParseError
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_french_date
 
@@ -143,6 +143,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj__link_id = Link('./td[1]/a')
             obj__card_links = []
             obj_type = Type(Field('label'))
+            obj__is_inv = False
 
             def parse(self, el):
                 link = el.xpath('./td[1]/a')[0].get('href', '')
@@ -342,3 +343,47 @@ class CardPage(OperationsPage, LoggedPage):
 class NoOperationsPage(OperationsPage, LoggedPage):
     def get_history(self):
         return iter([])
+
+
+class PorPage(LoggedPage, HTMLPage):
+    def add_por_accounts(self, accounts):
+        for ele in self.doc.xpath('//select[contains(@name, "POR_Synthese")]/option'):
+            for a in accounts:
+                if a.id.startswith(ele.attrib['value']):
+                    a._is_inv = True
+                    break
+            else:
+                acc = Account()
+                acc.id = ele.attrib['value']
+                acc.label = unicode(re.sub("\d", '', ele.text).strip())
+                acc._link_id = None
+                acc.type = Account.TYPE_MARKET
+                acc._is_inv = True
+                acc.balance, acc.currency = self.fill(acc)
+                accounts.append(acc)
+
+    def fill(self, acc):
+        self.send_form(acc)
+        ele = self.doc.xpath('.//table[@class="fiche bourse"]/thead/tr')[0]
+        balance = CleanDecimal(ele.xpath('.//td[1]'), default=Decimal(0), replace_dots=True)(ele)
+        currency = FrenchTransaction.Currency('./td[1]')(ele)
+        return balance, currency
+
+    def send_form(self, account):
+        form = self.get_form(name="frmMere")
+        form['POR_SyntheseEntete1$esdselLstPor'] = re.sub('\D', '', account.id)
+        form.submit()
+
+    @method
+    class iter_investment(ListElement):
+        item_xpath = '//table[@id="bwebDynamicTable"]/tbody/tr[not(@id="LigneTableVide")]'
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText('.//td[1]/a')
+            obj_code = CleanText('.//td[1]/a/@title')
+            obj_quantity = CleanDecimal('.//td[2]', default=Decimal(0), replace_dots=True)
+            obj_unitprice = CleanDecimal('//td[3]', default=Decimal(0), replace_dots=True)
+            obj_unitvalue = CleanDecimal('.//td[4]', default=Decimal(0), replace_dots=True)
+            obj_valuation = CleanDecimal('.//td[5]', default=Decimal(0), replace_dots=True)
+            obj_diff = CleanDecimal('.//td[6]', default=Decimal(0), replace_dots=True)
