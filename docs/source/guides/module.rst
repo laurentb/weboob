@@ -347,51 +347,58 @@ When your browser locates on a page, an instance of the class related to the
 is created. You can declare methods on your class to allow your browser to
 interact with it.
 
-The first thing to know is that your instance owns these attributes:
-
-* ``browser`` - your ``ExampleBrowser`` class
-* ``logger`` - context logger
-* ``encoding`` - the encoding of the page
-* ``response`` - the ``Response`` object from ``requests``
-* ``url`` - current url
-* ``doc`` - parsed document with ``lxml``
-
-The most important attribute is ``doc`` you will use to get information from the page. You can call two methods:
-
-* ``xpath`` - xpath expressions
-* ``cssselect`` - CSS selectors
+The first thing to know is that page parsing is done in a descriptive way. You
+don't have to loop on HTML elements to construct the object. Just describe how
+to get correct data to construct it. It is the Browser class work to actually
+construct the object.
 
 For example::
 
+    from weboob.browser.filters.html import Attr
+    from weboob.browser.filters.standard import CleanDecimal, CleanText
     from weboob.capabilities.bank import Account
 
     class ListPage(LoggedPage, HTMLPage):
-        def get_accounts(self):
-            for el in self.doc.xpath('//ul[@id="list"]/li'):
-                account = Account()
-                account.id = el.attrib['id']
-                account.label = el.xpath('./td[@class="name"]').text
-                account.balance = Decimal(el.xpath('./td[@class="balance"]').text)
-                yield account
+        @method
+        class get_accounts(ListElement):
+            item_xpath = '//ul[@id="list"]/li'
 
-An alternative with ``cssselect``::
+            class item(ItemElement):
+                klass = Account()
 
-    from weboob.capabilities.bank import Account
+                obj_id = Attr('id')
+                obj_label = CleanText('./td[@class="name"]')
+                obj_balance = CleanDecimal('./td[@class="balance"]')
 
-    class ListPage(LoggedPage, HTMLPage):
-        def get_accounts(self):
-            for el in self.document.getroot().cssselect('ul#list li'):
-                id = el.attrib['id']
-                account = Account()
-                account.id = el.attrib['id']
-                account.label = el.cssselect('td.name').text
-                account.balance = Decimal(el.cssselect('td.balance').text)
-                yield account
+As you see, we first set ``item_xpath`` which is the xpath string used to
+iterate over elements to access data. In a second time we define ``klass`` which
+is the real class of our object. And then we describe how to fill each object's
+attribute using what we call filters.
+
+Some example of filters:
+
+* :class:`Attr <weboob.browser.filters.html.Attr>`: extract a tag attribute
+* :class:`CleanText <weboob.browser.filters.standard.CleanText>`: get a cleaned text from an element
+* :class:`CleanDecimal <weboob.browser.filters.standard.CleanDecimal>`: get a cleaned Decimal value from an element
+* :class:`Date <weboob.browser.filters.standard.Date>`: read common date formats
+* :class:`Link <weboob.browser.filters.html.Link>`: get the link uri of an element
+* :class:`Regexp <weboob.browser.filters.standard.Regexp>`: apply a regex
+* :class:`Time <weboob.browser.filters.standard.Time>`: read common time formats
+* :class:`Type <weboob.browser.filters.standard.Type>`: get a cleaned value of any type from an element text
+
+Filters can be combined. For example::
+
+    obj_id = Link('./a[1]') & Regexp(r'id=(\d+)') & Type(type=int)
+
+This code do several things, in order:
+
+#) extract the href attribute of our item first ``a`` tag child
+#) apply a regex to extract a value
+#) convert this value to int type
 
 .. note::
 
    All objects ID must be unique, and useful to get more information later
-
 
 Your module is now functional and you can use this command::
 
