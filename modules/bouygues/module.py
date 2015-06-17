@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Christophe Benz
+# Copyright(C) 2010-2015 Bezleputh
 #
 # This file is part of weboob.
 #
@@ -30,15 +30,14 @@ __all__ = ['BouyguesModule']
 
 class BouyguesModule(Module, CapMessages, CapMessagesPost):
     NAME = 'bouygues'
-    MAINTAINER = u'Christophe Benz'
-    EMAIL = 'christophe.benz@gmail.com'
+    MAINTAINER = u'Bezleputh'
+    EMAIL = 'carton_ben@yahoo.fr'
     VERSION = '1.1'
     DESCRIPTION = u'Bouygues Télécom French mobile phone provider'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(Value('login', label='Login'),
+    CONFIG = BackendConfig(Value('login', label='Login/Phone number'),
                            ValueBackendPassword('password', label='Password'))
     BROWSER = BouyguesBrowser
-    ACCOUNT_REGISTER_PROPERTIES = None
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(), self.config['password'].get())
@@ -46,5 +45,4 @@ class BouyguesModule(Module, CapMessages, CapMessagesPost):
     def post_message(self, message):
         if not message.content.strip():
             raise CantSendMessage(u'Message content is empty.')
-        with self.browser:
-            self.browser.post_message(message)
+        self.browser.post_message(message)

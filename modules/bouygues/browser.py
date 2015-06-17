@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Christophe Benz
+# Copyright(C) 2010-2015 Bezleputh
 #
 # This file is part of weboob.
 #
@@ -17,46 +17,48 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from weboob.browser import LoginBrowser, URL, need_login
+from weboob.exceptions import BrowserIncorrectPassword
+from .pages import LoginPage, LoginSuccess, SendSMSPage, SendSMSErrorPage
 
-from .pages.compose import ComposeFrame, ComposePage, ConfirmPage, SentPage
-from .pages.login import LoginPage, LoginSASPage
-
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
-
+from weboob.capabilities.messages import CantSendMessage
 
 __all__ = ['BouyguesBrowser']
 
 
-class BouyguesBrowser(Browser):
-    DOMAIN = 'www.bouyguestelecom.fr'
-    PAGES = {
-        'http://www.espaceclient.bouyguestelecom.fr/ECF/jsf/client/envoiSMS/viewEnvoiSMS.jsf': ComposePage,
-        'http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/sendSMS.phtml': ComposeFrame,
-        'http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/confirmSendSMS.phtml': ConfirmPage,
-        'https://www.espaceclient.bouyguestelecom.fr/ECF/jsf/submitLogin.jsf': LoginPage,
-        'https://www.espaceclient.bouyguestelecom.fr/ECF/SasUnifie': LoginSASPage,
-        'http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/resultSendSMS.phtml': SentPage,
-        }
+class BouyguesBrowser(LoginBrowser):
+    BASEURL = 'https://www.mon-compte.bouyguestelecom.fr/'
+    TIMEOUT = 20
 
-    def home(self):
-        self.location('http://www.espaceclient.bouyguestelecom.fr/ECF/jsf/client/envoiSMS/viewEnvoiSMS.jsf')
+    home = URL('http://www.bouyguestelecom.fr/mon-compte/', LoginSuccess)
+    login = URL('cas/login', LoginPage)
 
-    def is_logged(self):
-        return 'code' not in [form.name for form in self.forms()]
+    sms_page = URL('http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/sendSMS.phtml',
+                   'http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/confirmSendSMS.phtml',
+                   SendSMSPage)
 
-    def login(self):
-        self.location('https://www.espaceclient.bouyguestelecom.fr/ECF/jsf/submitLogin.jsf', no_login=True)
-        self.page.login(self.username, self.password)
-        assert self.is_on_page(LoginSASPage)
-        self.page.login()
-        if not self.is_logged():
-            raise BrowserIncorrectPassword()
+    confirm = URL('http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/resultSendSMS.phtml')
 
+    sms_error_page = URL('http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/SMS_erreur.phtml',
+                         SendSMSErrorPage)
+
+    def do_login(self):
+        self.login.go().login(self.username, self.password)
+
+        if not self.home.is_here():
+            raise BrowserIncorrectPassword
+
+    @need_login
     def post_message(self, message):
-        if not self.is_on_page(ComposeFrame):
-            self.home()
-            self.location('http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/sendSMS.phtml')
-        self.page.post_message(message)
-        assert self.is_on_page(ConfirmPage)
-        self.page.confirm()
-        assert self.is_on_page(SentPage)
+        self.sms_page.go()
+
+        if self.sms_error_page.is_here():
+            raise CantSendMessage(self.page.get_error_message())
+
+        receivers = ";".join(list(message.receivers)) if message.receivers else self.username
+        self.page.send_sms(message, receivers)
+
+        if self.sms_error_page.is_here():
+            raise CantSendMessage(self.page.get_error_message())
+
+        self.confirm.open()
