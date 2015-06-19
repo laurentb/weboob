@@ -70,7 +70,7 @@ class StatementParser(object):
 
     LEX = [
         ('date_range', r'^\((\d{2}/\d{2}/\d{2})-(\d{2}/\d{2}/\d{2})\) Tj$'),
-        ('amount', r'^\((-?\$\d+\.\d{2})\) Tj$'),
+        ('amount', r'^\((-?\$\d+(,\d{3})*\.\d{2})\) Tj$'),
         ('date', r'^\((\d{2}/\d{2})\) Tj$'),
         ('text', r'^\((.*)\) Tj$'),
         ('layout_tf', r'^.* Tf$'),
@@ -196,7 +196,8 @@ class StatementParser(object):
 
     @formatted
     def read_amount(self, pos):
-        return self._tok.simple_read('amount', pos, AmTr.decimal_amount)
+        return self._tok.simple_read('amount', pos,
+                                     lambda xs: AmTr.decimal_amount(xs[0]))
 
     def read_text(self, pos):
         startPos = pos
