@@ -33,7 +33,7 @@ class Child(Filter):
 class SearchPage(HTMLPage):
     @method
     class iter_job_adverts(TableElement):
-        item_xpath = "//tr[(@class='texteCol2TableauClair' or @class='texteCol2TableauFonce')]"
+        item_xpath = '//tr[position() > 1]'
         head_xpath = "//tr[1]/td[@class='titreCol2Tableau']/text()"
 
         col_place = u'Région'
@@ -70,6 +70,6 @@ class SearchPage(HTMLPage):
         obj_publication_date = DateTime(CleanText('div/fieldset/p[@class="dateOffre"]'), dayfirst=True)
 
         def parse(self, el):
-            self.el = el.xpath("//a[@name='%s']/following-sibling::div[1]" % self.obj.id)[0]
+            self.el = el.xpath('//div[@id="%s"]/div' % self.obj.id)[0]
             self.env['url'] = self.page.url
             self.env['id'] = self.obj.id
