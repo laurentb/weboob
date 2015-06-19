@@ -72,33 +72,14 @@ class AccountsPage(LoggedPage, HTMLPage):
                 def filter(self, label):
                     return Account.TYPE_UNKNOWN
 
-            obj_id = Env('id')
+            obj_id = CleanText('./td[2]', replace=[('.', ''), (' ', '')])
             obj_label = Label(CleanText('./td[1]/a'))
             obj_coming = Env('coming')
-            obj_balance = Env('balance')
-            obj_currency = FrenchTransaction.Currency('./td[2] | ./td[3]')
+            obj_balance = CleanDecimal('./td[3]', replace_dots=True)
+            obj_currency = FrenchTransaction.Currency('./td[3]')
             obj__link_id = Link('./td[1]/a')
             obj_type = Type(Field('label'))
-
-            def parse(self, el):
-                link = el.xpath('./td[1]/a')[0].get('href', '')
-                url = urlparse(link)
-                p = parse_qs(url.query)
-
-                if 'CPT_IdPrestation' in p:
-                    id = p['CPT_IdPrestation'][0]
-                elif 'Ass_IdPrestation' in p:
-                    id = p['Ass_IdPrestation'][0]
-                elif 'CB_IdPrestation' in p:
-                    id = p['CB_IdPrestation'][0]
-                else:
-                    raise SkipItem()
-
-                balance = CleanDecimal('./td[3]', replace_dots=True)(self)
-
-                self.env['id'] = id
-                self.env['balance'] = balance
-                self.env['coming'] = NotAvailable
+            obj_coming = NotAvailable
 
 
 class Pagination(object):
@@ -147,6 +128,7 @@ class CPTOperationPage(LoggedPage, HTMLPage):
 class AppGonePage(HTMLPage):
     def on_load(self):
         self.browser.app_gone = True
+        self.logger.info('Application has gone. Relogging...')
         self.browser.do_logout()
         self.browser.do_login()
 

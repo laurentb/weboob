@@ -36,10 +36,13 @@ class HSBC(LoginBrowser):
 
     connection =      URL(r'https://www.hsbc.fr/1/2/hsbc-france/particuliers/connexion', LoginPage)
     login =           URL(r'https://www.hsbc.fr/1/*', LoginPage)
-    cptPage =         URL(r'/cgi-bin/emcgi.*\&CPT_IdPrestation.*',
+    cptPage =         URL(r'/cgi-bin/emcgi.*\&Cpt=.*',
+                          r'/cgi-bin/emcgi.*\&Epa=.*',
+                          r'/cgi-bin/emcgi.*\&CPT_IdPrestation.*',
                           r'/cgi-bin/emcgi.*\&Ass_IdPrestation.*',
                           CPTOperationPage)
-    cbPage =          URL(r'/cgi-bin/emcgi.*\&CB_IdPrestation.*',
+    cbPage =          URL(r'/cgi-bin/emcgi.*\&Cb=.*',
+                          r'/cgi-bin/emcgi.*\&CB_IdPrestation.*',
                           CBOperationPage)
     appGone =     URL(r'/.*_absente.html',
                       r'/pm_absent_inter.html',
@@ -51,6 +54,9 @@ class HSBC(LoginBrowser):
         self.secret = secret
         LoginBrowser.__init__(self, username, password, *args, **kwargs)
 
+    def load_state(self, state):
+        return
+
     def prepare_request(self, req):
         preq = super(HSBC, self).prepare_request(req)
 
@@ -59,11 +65,8 @@ class HSBC(LoginBrowser):
 
         return preq
 
-    def home(self):
-        return self.login.go()
-
     def do_login(self):
-        self.connection.stay_or_go()
+        self.connection.go()
         self.page.login(self.username)
 
         no_secure_key_link = self.page.get_no_secure_key()
@@ -95,9 +98,12 @@ class HSBC(LoginBrowser):
 
     @need_login
     def get_history(self, account):
-
         if account._link_id is None:
             return
+
+        if account._link_id.startswith('javascript'):
+            raise NotImplementedError()
+
         self.location(self.accounts_list[account.id]._link_id)
 
         #If we relogin on hsbc, all link have change
