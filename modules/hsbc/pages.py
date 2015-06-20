@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from urlparse import urlparse, parse_qs
 import re
 
 from weboob.capabilities import NotAvailable
@@ -25,7 +24,7 @@ from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.browser.elements import ListElement, ItemElement, SkipItem, method
+from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, TableCell
 from weboob.browser.filters.html import Link
