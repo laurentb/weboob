@@ -40,7 +40,7 @@ class GoogleTranslateModule(Module, CapTranslate):
         'Arabic':'ar', 'Afrikaans':'af', 'Albanian':'sq', 'Armenian':'hy', 'Azerbaijani':'az', 'Basque':'eu', 'Belarusian':'be',
         'Bengali':'bn', 'Bulgarian':'bg', 'Catalan':'ca', 'Chinese':'zh-CN', 'Croatian':'hr', 'Czech':'cs', 'Danish':'da',
         'Dutch':'nl', 'English':'en', 'Esperanto':'eo', 'Estonian':'et', 'Filipino':'tl', 'Finnish':'fi', 'French':'fr',
-        'Galician':'gl', 'Georgian':'ka', 'German':'de', 'Greek':'gr', 'Gujarati':'gu', 'Haitian':'ht', 'Hebrew':'iw',
+        'Galician':'gl', 'Georgian':'ka', 'German':'de', 'Greek':'el', 'Gujarati':'gu', 'Haitian':'ht', 'Hebrew':'iw',
         'Hindi':'hi', 'Hungaric':'hu', 'Icelandic':'is', 'Indonesian':'id', 'Irish':'ga', 'Italian':'it', 'Japanese':'ja',
         'Kannada':'kn', 'Korean':'ko', 'Latin':'la', 'Latvian':'lv', 'Lithuanian':'lt', 'Macedonian':'mk', 'Malay':'ms',
         'Maltese':'mt', 'Norwegian':'no', 'Persian':'fa', 'Polish':'pl', 'Portuguese':'pt', 'Romanian':'ro', 'Russian':'ru',
