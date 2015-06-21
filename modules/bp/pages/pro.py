@@ -35,22 +35,31 @@ class HistoryParser(CsvParser):
 
 
 class ProAccountsList(Page):
+    ACCOUNT_TYPES = {u'Comptes Ã©pargne':    Account.TYPE_SAVINGS,
+                     u'Comptes courants':    Account.TYPE_CHECKING,
+                    }
     def get_accounts_list(self):
-        for tr in self.document.xpath('//div[@class="comptestabl"]/table/tbody/tr'):
-            cols = tr.findall('td')
+        for table in self.document.xpath('//div[@class="comptestabl"]/table'):
+            try:
+                account_type = self.ACCOUNT_TYPES[table.xpath('./caption/text()')[0].strip()]
+            except (IndexError,KeyError):
+                account_type = Account.TYPE_UNKNOWN
+            for tr in table.xpath('./tbody/tr'):
+                cols = tr.findall('td')
 
-            link = cols[0].find('a')
-            if link is None:
-                continue
+                link = cols[0].find('a')
+                if link is None:
+                    continue
 
-            a = Account()
-            a.id, a.label = map(unicode, link.attrib['title'].split(' ', 1))
-            tmp_balance = self.parser.tocleanstring(cols[1])
-            a.currency = a.get_currency(tmp_balance)
-            a.balance = Decimal(Transaction.clean_amount(tmp_balance))
-            a._card_links = []
-            a._link_id = link.attrib['href']
-            yield a
+                a = Account()
+                a.type = account_type
+                a.id, a.label = map(unicode, link.attrib['title'].split(' ', 1))
+                tmp_balance = self.parser.tocleanstring(cols[1])
+                a.currency = a.get_currency(tmp_balance)
+                a.balance = Decimal(Transaction.clean_amount(tmp_balance))
+                a._card_links = []
+                a._link_id = link.attrib['href']
+                yield a
 
     def get_account(self, id):
         for account in self.get_accounts_list():
