@@ -122,7 +122,7 @@ class AccountLifeInsurance(IsinMixin, Page):
 class InvestmentDetail(IsinMixin, Page):
     _re_isin = re.compile('(\w+)')
     _isin = XPath('//h2[@class and contains(concat(" ", normalize-space(@class), " "), " fv-isin ")]')
-    _description = XPath('//p[@class="taj"]')
+    _description = XPath('//p[@class="taj"] | //div[@class="taj"]')
 
     def get_investment_detail(self, inv):
         subtitle = el_to_string(self._isin(self.document)[0])

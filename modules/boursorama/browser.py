@@ -55,6 +55,7 @@ class Boursorama(StateBrowser):
              r'.*/date_anniversaire.phtml.*':    UpdateInfoPage,
              r'.*/detail.phtml.*': AccountLifeInsurance,
              r'.*/opcvm.phtml.*': InvestmentDetail,
+             r'.*/bourse/trackers/etf.phtml.*': InvestmentDetail,
              r'.*/positions_engagements.phtml.*': AccountMarket,
             }
 
