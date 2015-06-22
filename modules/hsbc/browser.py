@@ -101,7 +101,7 @@ class HSBC(LoginBrowser):
         if account._link_id is None:
             return
 
-        if account._link_id.startswith('javascript'):
+        if account._link_id.startswith('javascript') or '&Crd=' in account._link_id:
             raise NotImplementedError()
 
         self.location(self.accounts_list[account.id]._link_id)
