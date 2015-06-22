@@ -139,7 +139,7 @@ class IFormatter(object):
                     self.outfile.write('\b \b' * len(PROMPT))
                     self.print_lines = 0
 
-                plen = len(u'%s'.replace(self.BOLD, '').replace(self.NC, '') % line)
+                plen = len('%s'.replace(self.BOLD, '').replace(self.NC, '') % line)
                 if isinstance(line, unicode):
                     line = line.encode(guess_encoding(self.outfile), 'replace')
 
