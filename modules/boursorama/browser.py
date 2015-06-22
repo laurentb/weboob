@@ -133,11 +133,6 @@ class Boursorama(StateBrowser):
 
     def get_history(self, account):
         link = account._link_id
-        #We need to skip the first link on card page because there is a summary,
-        #and so the recent transaction are displayed twice
-        if account.type == Account.TYPE_CARD:
-            self.location(link)
-            link = self.page.get_next_url()
 
         while link is not None:
             self.location(link)
