@@ -51,6 +51,7 @@ class LCLBrowser(LoginBrowser):
     accounts = URL('/outil/UWSP/Synthese', AccountsPage)
     history = URL('/outil/UWLM/ListeMouvements.*/accesListeMouvements.*',
                   '/outil/UWLM/DetailMouvement.*/accesDetailMouvement.*',
+                  '/outil/UWLM/Rebond',
                   AccountHistoryPage)
     cb_list = URL('/outil/UWCB/UWCBEncours.*/listeCBCompte.*', CBListPage)
     cb_history = URL('/outil/UWCB/UWCBEncours.*/listeOperations.*', CBHistoryPage)
