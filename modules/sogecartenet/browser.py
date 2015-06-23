@@ -31,8 +31,8 @@ class SogecartesBrowser(LoginBrowser):
     accounts = URL('/internationalisation/gestionParcCartes', AccountsPage)
     transactions = URL('/internationalisation/csv/operationsParCarte.*', TransactionsPage)
 
-    def __init__(self, *args, **kwargs):
-        super(SogecartesBrowser, self).__init__(*args, **kwargs)
+    def load_state(self, state):
+        pass
 
     def do_login(self):
         assert isinstance(self.username, basestring)
