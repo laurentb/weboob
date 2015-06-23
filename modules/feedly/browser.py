@@ -28,9 +28,9 @@ __all__ = ['FeedlyBrowser']
 
 
 class FeedlyBrowser(LoginBrowser):
-    BASEURL = 'http://www.feedly.com/'
+    BASEURL = 'https://www.feedly.com/'
 
-    essentials = URL('http://s3.feedly.com/essentials/essentials_fr.json', EssentialsPage)
+    essentials = URL('https://s3.feedly.com/essentials/essentials_fr.json', EssentialsPage)
     token = URL('v3/auth/token', TokenPage)
     contents = URL('v3/streams/contents', ContentsPage)
     preferences = URL('v3/preferences', PreferencesPage)

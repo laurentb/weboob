@@ -88,5 +88,6 @@ class PreferencesPage(LoggedPage, JsonPage):
             if value in [u"shown", u"hidden"]:
                 yield Collection([u'%s' % category], u'%s' % category.replace('global.', ''))
 
+
 class MarkerPage(LoggedPage):
     pass

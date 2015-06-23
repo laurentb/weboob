@@ -74,6 +74,7 @@ class FeedlyModule(Module, CapMessages, CapCollection):
                 if article.id == id:
                     entry = article
         if entry is None:
+
             return None
 
         if thread.id not in self.storage.get('seen', default=[]):
@@ -107,7 +108,7 @@ class FeedlyModule(Module, CapMessages, CapCollection):
         if username:
             password = self.config['password'].get()
             login_browser = GoogleBrowser(username, password,
-                                          'https://feedly.com/v3/auth/callback&scope=profile+email&state=Ak7fo397ImkiOiJmZWVkbHkiLCJyIjoiaHR0cDovL2ZlZWRseS5jb20vZmVlZGx5Lmh0bWwiLCJwIjoiR29vZ)2xlUGx1cyIsImMiOiJmZWVkbHkuZGVza3RvcCAyMC40Ljc3NSJ9')
+                                          'https://feedly.com/v3/auth/callback&scope=profile+email&state=Amm-1gV7ImkiOiJmZWVkbHkiLCJycCI6IndlbGNvbWUiLCJyIjoiaHR0cDovL2ZlZWRseS5jb20vZmVlZGx5Lmh0bWwiLCJwIjoiR29vZ2xlUGx1cyIsImMiOiJmZWVkbHkuZGVza3RvcCAyOC4wLjk1NSJ9')
         else:
             password = None
             login_browser = None

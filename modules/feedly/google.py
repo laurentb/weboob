@@ -26,17 +26,19 @@ from weboob.exceptions import BrowserIncorrectPassword
 
 class GoogleLoginPage(LoggedPage, HTMLPage):
     def login(self, login, passwd):
-        form = self.get_form('//form[@id="gaia_loginform"]')
+        form = self.get_form('//form[@id="gaia_loginform"]', submit='//input[@id="signIn"]')
         form['Email'] = login
         form['Passwd'] = passwd
         form.submit()
 
 
 class GoogleBrowser(LoginBrowser):
-    BASEURL = 'https://accounts.google.com'
+    BASEURL = 'https://accounts.google.com/'
 
     code = None
-    google_login = URL('https://accounts.google.com/(?P<auth>.+)', GoogleLoginPage)
+    google_login = URL('https://accounts.google.com/(?P<auth>.+)',
+                       'AccountLoginInfo',
+                       GoogleLoginPage)
 
     def __init__(self, username, password, redirect_uri, *args, **kwargs):
         super(GoogleBrowser, self).__init__(username, password, *args, **kwargs)
@@ -49,6 +51,9 @@ class GoogleBrowser(LoginBrowser):
 
         queryString = "&".join([key+'='+value for key, value in params.items()])
         self.google_login.go(auth='o/oauth2/auth', params=queryString).login(self.username, self.password)
+
+        if self.google_login.is_here():
+            self.page.login(self.username, self.password)
 
         try:
             self.code = parse_qs(urlparse(self.url).query).get('code')[0]
