@@ -49,7 +49,7 @@ class SogecartesBrowser(LoginBrowser):
 
     @need_login
     def iter_accounts(self):
-        self.accounts.stay_or_go()
+        self.accounts.go()
         return self.page.iter_accounts()
 
     @need_login
