@@ -24,7 +24,7 @@ from dateutil.relativedelta import relativedelta
 from weboob.exceptions import BrowserHTTPError
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountPage, UselessPage, HomePage, ProHistoryPage, PartHistoryPage, HistoryDetailsPage, ErrorPage
+from .pages import PromoPage, LoginPage, AccountPage, UselessPage, HomePage, ProHistoryPage, PartHistoryPage, HistoryDetailsPage, ErrorPage
 
 
 __all__ = ['Paypal']
@@ -49,6 +49,7 @@ class Paypal(Browser):
         '/cgi-bin/webscr\?cmd=_home&country_lang.x=true$': HomePage,
         '/auth/validatecaptcha$':                       ErrorPage,
         'https://\w+.paypal.com/cgi-bin/webscr\?cmd=_history-details-from-hub&id=[A-Z0-9]+$': HistoryDetailsPage,
+        'https://www.paypal.com/fr/webapps/mpp/clickthru/paypal-app-promo-2.*': PromoPage,
         'https://\w+.paypal.com/webapps/business/\?nav=0.0': HomePage,
         'https://\w+.paypal.com/webapps/business/\?country_lang.x=true': HomePage,
         'https://\w+.paypal.com/myaccount/\?nav=0.0': HomePage,

@@ -24,13 +24,19 @@ from mechanize import Cookie
 
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
-from weboob.deprecated.browser import Page
+from weboob.deprecated.browser import Page, BrowserUnavailable
 from weboob.deprecated.mech import ClientForm
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_french_date
 from weboob.tools.js import Javascript
 
 
+
+class PromoPage(Page):
+    def on_loaded(self):
+        # We land sometimes on this page, it's better to raise an unavailable browser
+        # than an Incorrect Password
+        raise BrowserUnavailable('Promo Page')
 
 class LoginPage(Page):
     def login(self, login, password):
