@@ -36,13 +36,16 @@ class HistoryParser(CsvParser):
 
 
 class ProAccountsList(Page):
-    ACCOUNT_TYPES = {u'Comptes Ã©pargne':    Account.TYPE_SAVINGS,
+    ACCOUNT_TYPES = {u'Comptes titres': Account.TYPE_MARKET,
+                     u'Comptes Ã©pargne':    Account.TYPE_SAVINGS,
                      u'Comptes courants':    Account.TYPE_CHECKING,
                     }
     def get_accounts_list(self):
         for table in self.document.xpath('//div[@class="comptestabl"]/table'):
             try:
-                account_type = self.ACCOUNT_TYPES[table.xpath('./caption/text()')[0].strip()]
+                account_type = self.ACCOUNT_TYPES[table.get('summary')]
+                if not account_type:
+                    account_type = self.ACCOUNT_TYPES[table.xpath('./caption/text()')[0].strip()]
             except (IndexError,KeyError):
                 account_type = Account.TYPE_UNKNOWN
             for tr in table.xpath('./tbody/tr'):
