@@ -35,13 +35,27 @@ class WellsFargoModule(Module, CapBank):
     VERSION = '1.1'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Wells Fargo'
-    CONFIG = BackendConfig(ValueBackendPassword('login',      label='Username', masked=False),
-                           ValueBackendPassword('password',   label='Password'))
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login',      label='Username', masked=False),
+        ValueBackendPassword('password',   label='Password'),
+        ValueBackendPassword('question1',  label='Question 1', masked=False),
+        ValueBackendPassword('answer1',    label='Answer 1', masked=False),
+        ValueBackendPassword('question2',  label='Question 2', masked=False),
+        ValueBackendPassword('answer2',    label='Answer 2', masked=False),
+        ValueBackendPassword('question3',  label='Question 3', masked=False),
+        ValueBackendPassword('answer3',    label='Answer 3', masked=False))
     BROWSER = WellsFargo
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get())
+        return self.create_browser(
+            username = self.config['login'].get(),
+            password = self.config['password'].get(),
+            question1 = self.config['question1'].get(),
+            answer1 = self.config['answer1'].get(),
+            question2 = self.config['question2'].get(),
+            answer2 = self.config['answer2'].get(),
+            question3 = self.config['question3'].get(),
+            answer3 = self.config['answer3'].get())
 
     def iter_accounts(self):
         return self.browser.iter_accounts()

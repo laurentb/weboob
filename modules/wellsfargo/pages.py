@@ -31,14 +31,6 @@ import datetime
 import Cookie
 
 
-class LoginPage(HTMLPage):
-    def login(self, login, password):
-        form = self.get_form(xpath='//form[@name="Signon"]')
-        form['userid'] = login
-        form['password'] = password
-        form.submit()
-
-
 class LoginProceedPage(LoggedPage, HTMLPage):
     is_here = '//script[contains(text(),"setAndCheckCookie")]'
 

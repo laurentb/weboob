@@ -22,8 +22,13 @@ from weboob.capabilities.bank import AccountNotFound
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 import ssl
+import json
+import os
+from tempfile import mkstemp
+from subprocess import check_output, STDOUT
+from urllib import unquote
 
-from .pages import LoginPage, LoginProceedPage, LoginRedirectPage, \
+from .pages import LoginProceedPage, LoginRedirectPage, \
                    SummaryPage, ActivityCashPage, ActivityCardPage, \
                    StatementsPage, StatementPage, LoggedInPage
 
@@ -33,7 +38,8 @@ __all__ = ['WellsFargo']
 
 class WellsFargo(LoginBrowser):
     BASEURL = 'https://online.wellsfargo.com'
-    login = URL('/$', LoginPage)
+    TIMEOUT = 30
+    MAX_RETRIES = 10
     login_proceed = URL('/das/cgi-bin/session.cgi\?screenid=SIGNON.*$',
                         '/login\?ERROR_CODE=.*LOB=CONS&$',
                         LoginProceedPage)
@@ -53,12 +59,54 @@ class WellsFargo(LoginBrowser):
                     StatementPage)
     unknown = URL('/.*$', LoggedInPage) # E.g. random advertisement pages.
 
+    def __init__(self, question1, answer1, question2, answer2,
+                 question3, answer3, *args, **kwargs):
+        super(WellsFargo, self).__init__(*args, **kwargs)
+        self.question1 = question1
+        self.answer1 = answer1
+        self.question2 = question2
+        self.answer2 = answer2
+        self.question3 = question3
+        self.answer3 = answer3
+
     def do_login(self):
-        self.session.cookies.clear()
-        self.login.go()
-        self.page.login(self.username, self.password)
-        if not self.page.logged:
-            raise BrowserIncorrectPassword()
+        '''
+        There's a bunch of dynamically generated obfuscated JavaScript,
+        which uses DOM. For now the easiest option seems to be to run it in
+        PhantomJs.
+        '''
+        for i in xrange(self.MAX_RETRIES):
+            scrf, scrn = mkstemp('.js')
+            cookf, cookn = mkstemp('.json')
+            os.write(scrf, LOGIN_JS % {
+                'timeout': self.TIMEOUT,
+                'username': self.username,
+                'password': self.password,
+                'output': cookn,
+                'question1': self.question1,
+                'answer1': self.answer1,
+                'question2': self.question2,
+                'answer2': self.answer2,
+                'question3': self.question3,
+                'answer3': self.answer3})
+            os.close(scrf)
+            os.close(cookf)
+            check_output(["phantomjs", scrn], stderr=STDOUT)
+            with open(cookn) as cookf:
+                cookies = json.loads(cookf.read())
+            os.remove(scrn)
+            os.remove(cookn)
+            self.session.cookies.clear()
+            for c in cookies:
+              for k in ['expiry', 'expires', 'httponly']:
+                c.pop(k, None)
+              c['value'] = unquote(c['value'])
+              self.session.cookies.set(**c)
+            self.summary.go()
+            if self.page.logged:
+                break
+        else:
+            raise BrowserIncorrectPassword
 
     def location(self, *args, **kwargs):
         """
@@ -160,3 +208,62 @@ class WellsFargo(LoginBrowser):
                 self.to_statement(stmt)
                 for trans in self.page.iter_transactions():
                     yield trans
+
+LOGIN_JS = u'''\
+var TIMEOUT = %(timeout)s*1000; // milliseconds
+var page = require('webpage').create();
+
+page.open('https://online.wellsfargo.com/');
+
+var waitForForm = function() {
+  var hasForm = page.evaluate(function(){
+    return !!document.getElementById('Signon')
+  });
+  if (hasForm) {
+    page.evaluate(function(){
+      document.getElementById('username').value = '%(username)s';
+      document.getElementById('password').value = '%(password)s';
+      document.getElementById('Signon').submit();
+    });
+  } else {
+    setTimeout(waitForForm, 1000);
+  }
+}
+
+var waitForQuestions = function() {
+  var isQuestion = page.content.indexOf('Confirm Your Identity') != -1;
+  if (isQuestion) {
+    var questions = {
+      "%(question1)s": "%(answer1)s",
+      "%(question2)s": "%(answer2)s",
+      "%(question3)s": "%(answer3)s"
+    };
+    for (var question in questions) {
+      if (page.content.indexOf(question)) {
+        page.evaluate(function(answer){
+          document.getElementById('answer').value = answer;
+          document.getElementById('command').submit.click();
+        }, questions[question]);
+      }
+    }
+  }
+  setTimeout(waitForQuestions, 2000);
+}
+
+var waitForLogin = function() {
+  var isSplash = page.content.indexOf('Splash Page') != -1;
+  var hasSignOff = page.content.indexOf('Sign Off') != -1;
+  if (isSplash || hasSignOff) {
+    var cookies = JSON.stringify(phantom.cookies);
+    require('fs').write('%(output)s', cookies, 'w');
+    phantom.exit();
+  } else {
+    setTimeout(waitForLogin, 2000);
+  }
+}
+
+waitForForm();
+waitForQuestions();
+waitForLogin();
+setTimeout(function(){phantom.exit(-1);}, TIMEOUT);
+'''
