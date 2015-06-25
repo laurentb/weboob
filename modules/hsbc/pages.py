@@ -69,9 +69,10 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             class Type(Filter):
                 def filter(self, label):
+                    if 'invest' in label.lower():
+                        return Account.TYPE_MARKET
                     return Account.TYPE_UNKNOWN
 
-            obj_id = CleanText('./td[2]', replace=[('.', ''), (' ', '')])
             obj_label = Label(CleanText('./td[1]/a'))
             obj_coming = Env('coming')
             obj_balance = CleanDecimal('./td[3]', replace_dots=True)
@@ -79,6 +80,14 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj__link_id = Link('./td[1]/a')
             obj_type = Type(Field('label'))
             obj_coming = NotAvailable
+
+            @property
+            def obj_id(self):
+                # Investment account and main account can have the same id
+                # so we had account type in case of Investment to prevent conflict
+                if Field('type')(self) == Account.TYPE_MARKET:
+                    return CleanText(replace=[('.', ''), (' ', '')]).filter(self.el.xpath('./td[2]')) + ".INVEST"
+                return CleanText(replace=[('.', ''), (' ', '')]).filter(self.el.xpath('./td[2]'))
 
 
 class Pagination(object):
