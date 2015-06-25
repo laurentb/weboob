@@ -61,10 +61,11 @@ class LCLBrowser(LoginBrowser):
     TIMEOUT = 30.0
 
     def __init__(self, *args, **kwargs):
-        requests.packages.urllib3.contrib.pyopenssl.DEFAULT_SSL_CIPHER_LIST += ':RC4'
+        if hasattr(requests.packages.urllib3.contrib, 'pyopenssl') \
+           and ':RC4' not in requests.packages.urllib3.contrib.pyopenssl.DEFAULT_SSL_CIPHER_LIST:
+            requests.packages.urllib3.contrib.pyopenssl.DEFAULT_SSL_CIPHER_LIST += ':RC4'
 
         super(LCLBrowser, self).__init__(*args, **kwargs)
-
 
     def do_login(self):
         assert isinstance(self.username, basestring)
