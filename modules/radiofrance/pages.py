@@ -48,7 +48,7 @@ class TimelinePage(JsonPage):
             for item in self.doc:
                 if item['debut'] < now and item['fin'] > now:
                     emission = ''
-                    if 'diffusions' in item and item['diffusions']:
+                    if 'diffusions' in item and item['diffusions'] and 'title' in item['diffusions'][0]:
                         emission = item['diffusions'][0]['title']
 
                     title = item['title_emission']
