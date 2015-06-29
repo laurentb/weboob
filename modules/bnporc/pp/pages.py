@@ -32,9 +32,6 @@ from weboob.tools.json import json
 from weboob.tools.date import parse_french_date as Date
 
 
-__all__ = ['LoginPage']
-
-
 def cast(x, typ, default=None):
     try:
         return typ(x or default)
@@ -139,19 +136,24 @@ class AccountsPage(BNPPage):
         for f in self.path('data.infoUdc.familleCompte.*'):
             for a in f.get('compte'):
                 yield Account.from_dict({
-                    'id': a.get('key'),
+                    '_key': a.get('key'),
                     'label': a.get('libellePersoProduit') or a.get('libelleProduit'),
                     'currency': a.get('devise'),
                     'type': self.FAMILY_TO_TYPE.get(f.get('idFamilleCompte')) or Account.TYPE_UNKNOWN,
                     'balance': a.get('soldeDispo'),
                     'coming': a.get('soldeAVenir'),
-                    'iban': ibans.get(a.get('key')) or a.get('value')
+                    'iban': ibans.get(a.get('key'))
                 })
 
 
 class AccountsIBANPage(BNPPage):
     def get_ibans_dict(self):
-        return dict((a.get('ibanCrypte'), a.get('iban')) for a in self.path('listeRib.*.infoCompte'))
+        return {a['ibanCrypte']: a['iban'] for a in self.path('data.listeRib.*.infoCompte')}
+
+
+class TransferInitPage(BNPPage):
+    def get_ibans_dict(self):
+        return {a['ibanCrypte']: a['iban'] for a in self.path('data.infoVirement.listeComptesCrediteur.*')}
 
 
 class Transaction(FrenchTransaction):

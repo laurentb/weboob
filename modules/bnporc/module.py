@@ -50,7 +50,7 @@ class BNPorcModule(Module, CapBank, CapMessages):
         Value('website', label='Type de compte', default='pp',
               choices={'pp': 'Particuliers/Professionnels',
                        'ent': 'Entreprises',
-                       'pp2': 'Particuliers/Professionnels (nouveau site)'}))
+                       'ppold': 'Particuliers/Professionnels (ancien site)'}))
     STORAGE = {'seen': []}
 
     # Store the messages *list* for this duration
@@ -62,25 +62,10 @@ class BNPorcModule(Module, CapBank, CapMessages):
         self._threads_age = datetime.utcnow()
 
     def create_default_browser(self):
-        b = {'pp': BNPorc, 'ent': BNPEnterprise, 'pp2': BNPParibasBrowser}
+        b = {'ppold': BNPorc, 'ent': BNPEnterprise, 'pp': BNPParibasBrowser}
         self.BROWSER = b[self.config['website'].get()]
-        #if self.config['rotating_password'].get().isdigit() and len(self.config['rotating_password'].get()) == 6:
-        #    rotating_password = self.config['rotating_password'].get()
-        #else:
-        rotating_password = None
-        if self.config['website'].get() != 'pp':
-            return self.create_browser(self.config['login'].get(),
-                                       self.config['password'].get())
-        else:
-            return self.create_browser(self.config['login'].get(),
-                                       self.config['password'].get(),
-                                       password_changed_cb=self._password_changed_cb,
-                                       rotating_password=rotating_password)
-
-    def _password_changed_cb(self, old, new):
-        self.config['password'].set(new)
-        self.config['rotating_password'].set(old)
-        self.config.save()
+        return self.create_browser(self.config['login'].get(),
+                                   self.config['password'].get())
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():

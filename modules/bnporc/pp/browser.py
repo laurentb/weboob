@@ -25,7 +25,7 @@ from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import AccountNotFound
 from weboob.tools.json import json
 
-from .pages import LoginPage, AccountsPage, AccountsIBANPage, HistoryPage
+from .pages import LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, TransferInitPage
 
 
 __all__ = ['BNPParibasBrowser']
@@ -59,17 +59,18 @@ class JsonBrowserMixin(object):
 
 
 class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
-    BASEURL_TEMPLATE = r'https://%s.bnpparibas.net/'
+    BASEURL_TEMPLATE = r'https://%s.bnpparibas/'
     BASEURL = BASEURL_TEMPLATE % 'mabanque'
     TIMEOUT = 30.0
 
-    login = URL(r'identification-wspl-pres/identification\?acceptRedirection=true&timestamp=(?P<timestamp>)',
+    login = URL(r'identification-wspl-pres/identification\?acceptRedirection=true&timestamp=(?P<timestamp>\d+)',
                 'SEEA-pa01/devServer/seeaserver',
                 'https://mabanqueprivee.bnpparibas.net/fr/espace-prive/comptes-et-contrats\?u=%2FSEEA-pa01%2FdevServer%2Fseeaserver',
                 LoginPage)
     accounts = URL('udc-wspl/rest/getlstcpt', AccountsPage)
     ibans = URL('rib-wspl/rpc/comptes', AccountsIBANPage)
     history = URL('rop-wspl/rest/releveOp', HistoryPage)
+    transfer_init = URL('virement-wspl/rest/initialisationVirement', TransferInitPage)
 
     def switch(self, subdomain):
         self.BASEURL = self.BASEURL_TEMPLATE % subdomain
@@ -83,10 +84,11 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
-        ibans = self.ibans.go()
-        self.accounts.go()
-        assert self.accounts.is_here()
-        return self.page.iter_accounts(ibans.get_ibans_dict())
+        ibans = self.ibans.go().get_ibans_dict()
+        ibans.update(self.transfer_init.go(data=JSON({'restitutionVF': 1, 'type': 'TOUS'})).get_ibans_dict())
+
+        self.accounts.go().iter_accounts(ibans)
+        return self.page.iter_accounts(ibans)
 
     @need_login
     def get_account(self, _id):
@@ -95,7 +97,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     @need_login
     def iter_history(self, account, coming=False):
         self.page = self.history.go(data=JSON({
-            "ibanCrypte": account.id,
+            "ibanCrypte": account._key,
             "pastOrPending": 1,
             "triAV": 0,
             "startDate": None,
