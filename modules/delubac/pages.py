@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013      Noe Rubinstein
+# Copyright(C) 2015 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -17,111 +17,115 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-from decimal import Decimal
 import re
+from io import BytesIO
 
-from weboob.capabilities.bank import Account
-from weboob.deprecated.browser import Page
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.browser.pages import HTMLPage
+from weboob.exceptions import ParseError
+from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 
 
-class LoginPage(Page):
+class DelubacVirtKeyboard(GridVirtKeyboard):
+    symbols = {'0': ('ad0ae6278e58bf2300cb7e0b87729e4d', '33e6fecddeb02ad3756570b541320914', '9f47d540a8bf89056106bc2c06fdea2e',
+                     '176c63721c61da6cbae04ed95b36a343'),
+               '1': ('ba6ca06344687bd2337e2bfb39e2378a'),
+               '2': ('c442cd1cee0c95d8423665983e9e45b7', '38aac4c0dcc1c40bfa0173bb2fc959f6', '8be33fe7de693d8d1404c0b51ce6f893',
+                     '85bf89cc03d7d772f7b0b4aa9a7897c6', '955423582ae4cde07b0831eee879c068', '19712acd76beedef3038b131ee9b5f19',
+                     '34b0276d52b8bdc2e68c98f1bac8fecc'),
+               '3': ('f5ebe3bdfc645210c38f1b89bde6b732', '0ff42e4481af10901213636a654d56ab', '3b6b94bc9748a881fd0692f5a8c4a791',
+                     '38809719796e812285e8da365268336d', '31ee44b350e8a062fcde5c8c6e8e1dbf', '84012a1fe9c2809fb348d3dcd362d15a'),
+               '4': ('6d194520cb4d7e5ba0c24fa6dad21285', '08e40532e7c4207239c543576a2fa7b1', '4f7267f5879ba5fdda61ff6ac7897d75',
+                     '7a5d5abb743d13a036a7d8582576b284', '59767e1a982ee4212d795acf1f3bda3d', '9f796703a309453d5f4c0f3baddf2f0d',
+                     '9d52b25d92866001c6035ea3abfc04ed'),
+               '5': ('b3d5990972b82abd9e8c049457794ab1', '4c761e7b65eed3baf899960e0ba0d131', '729a2baf278fe557ee54f532b8263a98',
+                     '634e8b3ec904f219b858990a739b8283', '55138402b60e3d3027e1d26b078b73f9', '7a03617f129806672ae5c4b478535b29',
+                     'c4bb4958271d61d098bd239e403e9ecc'),
+               '6': ('c69e8ad49ffa359ca7f77658c090e1dd', 'e0294f0af8037d544f5b4729931453f3', '359f46ac7dc0d8dee18831981c863a73',
+                     '6752eb433a0f72312f19b24f69ea6adb', '50e2c34749b3aa4010db73d108e241ae', '3fdc463cfea86a565151059d8d114123',
+                     '9e321e0d31a1e54510b51ae5c2e91749', 'fab5e1970f78c521a94d8aa52a88075a', 'b620c174da8d74d04139b0d334d064b5',
+                     'd83eff07ba513c875dc42ec87a441989', '67b214138a7efe3f600adaea1d1cffbc', '014dc575b0a980b0037cf1e8f5ed9987'),
+               '7': ('57b179554275be15562824284395c833', '687f5020c59bdde6edac72917cbbebc2', '6752eb433a0f72312f19b24f69ea6adb',
+                     'ea6eec45008ddb61cd830bd690a3d55f'),
+               '8': ('394752d62aea07c5c5f5650b3e404e88', 'dc72f59b61e18dd313e16d4ee0bb8207', '06297c98471f5a06a9c180dbb8b82305',
+                     '8349e6ae068167ee565721a34a4bcc9f', '1347687d61f0fb4c9c0601a9ff4c7d60', '5dd319ab0d0dd40730b90abdf2ad27c4',
+                     '70e543a626496f719f837e57a798c288', 'ab34d9ff8f1504e949e06d7c51049837', 'bafa9bc81270863eeaba9267412ce854',
+                     '27f6b4127a02026ce5bb42a7686a05de', '4ceccf7b8f24316465838c5f97bc06c8', 'bef000f56d1907697a6e0922b2a5184b',
+                     '55b2820aec3e9cb8af88e50068620a73', 'f6722d76cca62ebb150c1b79338c2325'),
+               '9': ('d040ced0ae3a55365fe46b498316d734', '0f518491d0a16f91bd6e4df1f9db47b2', '59a08f18d72d52eed250cc6a88aebd40',
+                     '0e474a38e1c330613e406bf738723f01', '4bfe94b095e8c4b391abf42c0a4a8dc6', '1810d4ce38929acaa8a788a35b9b5e5d',
+                     'e19ea6338bcbbcaf3e40017bea21c770', '2f2b034747480bdc583335a43b5cdcb7', '15497fc6422cd626d4d3639dbb01aa35')}
+
+    margin = 1
+    color = (0xff,0xf7,0xff)
+    nrow = 4
+    ncol = 4
+
+    def __init__(self, browser, session, codes):
+        f = BytesIO(browser.open('%s.jpg' % session).content)
+
+        super(DelubacVirtKeyboard, self).__init__(range(16), self.ncol, self.nrow, f, self.color)
+
+        self.check_symbols(self.symbols, browser.responses_dirname)
+
+        self.codes = codes
+
+    def check_color(self, pixel):
+        for p in pixel:
+            if p < 0xd0:
+                return False
+        return True
+
+    def get_string_code(self, string):
+        res = []
+        ndata = self.nrow * self.ncol
+        for nbchar, c in enumerate(string):
+            index = self.get_symbol_code(self.symbols[c])
+
+            res.append(self.codes[(nbchar * ndata) + index])
+        return ','.join(res)
+
+
+class LoginPage(HTMLPage):
     def login(self, username, password):
-        self.browser.select_form(name="frmLogin")
-        self.browser['username'] = username.encode('utf-8')
-        self.browser['password'] = password.encode('utf-8')
-        self.browser.find_control('lang').readonly = False
-        self.browser['lang'] = 'fr'
-        self.browser.submit(nologin=True)
+        for script in self.doc.xpath('//script'):
+            m = re.search("session='([^']+)'", script.text or '')
+            if m:
+                session = m.group(1)
+            m = re.search('codes = "([^"]+)"', script.text or '')
+            if m:
+                codes = m.group(1).split(',')
+
+        vk = DelubacVirtKeyboard(self.browser, session, codes)
+
+        form = self.get_form(name='codeident')
+        form['identifiant'] = username
+        form['motpasse'] = vk.get_string_code(password)
+        form['CodSec'] = vk.get_string_code(password)
+        form['modeClavier'] = '1'
+        form['identifiantDlg'] = ''
+        form.submit()
 
 
-class DashboardPage(Page):
-    def iter_accounts(self):
-        for line in self._accounts():
-            yield self._get_account(line)
-
-    def get_account(self, _id):
-        xpath = './/a[@href="tbord.do?id=%s"]' % _id
-        account = next(a for a in self._accounts() if a.xpath(xpath))
-        return self._get_account(account)
-
-    def _accounts(self):
-        return self.document.getroot().cssselect('.tbord_account')
-
-    _FIELD_XPATH = './/span[@class="%s"]//text()'
-    _URL_XPATH = './/span[@class="accountLabel"]//a/@href'
-
-    def _get_account(self, line):
-        def get_field(field):
-            return unicode(line.xpath(self._FIELD_XPATH % field)[0]).strip()
-
-        account = Account()
-        account._url = unicode(line.xpath(self._URL_XPATH)[0])
-        account.id = account._url.replace("tbord.do?id=", "")
-        account.balance = Decimal(FrenchTransaction.clean_amount(
-            get_field('accountTotal')))
-        account.label = get_field('accountLabel2')
-        account.currency = account.get_currency(get_field('accountDev'))
-
-        return account
+class LoginSuccessPage(HTMLPage):
+    logged = True
 
 
-class OperationsPage(Page):
-    _LINE_XPATH = '//tr[starts-with(@class,"PL_LIGLST_")]'
-    _NEXT_XPATH = '//a[contains(@class,"pg_next")]/@href'
+class MenuPage(HTMLPage):
+    logged = True
 
-    def iter_history(self):
-        i = 0
-        for line in self.document.xpath(self._LINE_XPATH):
-            i += 1
-            operation = Transaction(i)
+    def get_link(self, name):
+        for script in self.doc.xpath('//script'):
+            m = re.search(r"""\["%s",'([^']+)'""" % name, script.text or '', flags=re.MULTILINE)
+            if m:
+                return m.group(1)
 
-            date = line.xpath('.//td[@class="nlb d"]')[0].text_content().strip()
-            raw = self.parser.tocleanstring(line.xpath('.//td[@class="t"]')[0])
+        raise ParseError('Link %r not found' % name)
 
-            amounts = line.xpath('.//td[@class="n"]')
-            [debit, credit] = [amount.text_content().strip()
-                               for amount in amounts]
-
-            operation.parse(date=date, raw=raw)
-            operation.set_amount(credit, debit)
-
-            yield operation
-
-    def next_page(self):
-        next_button = self.document.xpath(self._NEXT_XPATH)
-        if next_button:
-            return next_button[0]
+    @property
+    def accounts_url(self):
+        return self.get_link(u'Comptes')
 
 
-class LCRPage(OperationsPage):
-    def iter_history(self):
-        date = None
-        for line in self.document.xpath('//table[@id="encoursTable"]/tbody/tr'):
-            if line.attrib.get('class', '').startswith('PL_LIGLST_'):
-                ref = self.parser.tocleanstring(line.xpath('./td[2]')[0])
-                tr = Transaction(ref)
-
-                raw = self.parser.tocleanstring(line.xpath('./td[1]')[0])
-                amount = self.parser.tocleanstring(line.xpath('./td')[-1])
-                tr.parse(date=date, raw=raw)
-                tr.set_amount(amount)
-                yield tr
-            elif line.find('td').attrib.get('class', '').startswith('PL_TOT'):
-                m = re.search('(\d+/\d+/\d+)', line.xpath('./td')[0].text)
-                if m:
-                    date = m.group(1)
-
-
-class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^(?:Vir(?:ement)?|VRT) (?P<text>.*)', re.I),
-                 FrenchTransaction.TYPE_TRANSFER),
-                (re.compile('^CARTE(?: ETR.)? ' +
-                            '(?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) ' +
-                            '(?P<text>.*)'),
-                 FrenchTransaction.TYPE_CARD),
-                (re.compile('^CHQ (?P<text>.*)$'),
-                 FrenchTransaction.TYPE_CHECK),
-                (re.compile('^RCH (?P<text>.*)'),
-                 FrenchTransaction.TYPE_DEPOSIT)]
+class AccountsPage(HTMLPage):
+    is_here = u'//title[text() = "Solde de chacun de vos comptes"]'
+    pass
