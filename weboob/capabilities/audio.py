@@ -21,6 +21,7 @@ import re
 
 from datetime import timedelta
 
+from weboob.browser.filters.standard import Format
 from .image import BaseImage
 from .base import Field, StringField, IntField, BaseObject
 from .file import CapFile, BaseFile
@@ -44,6 +45,14 @@ def decode_id(decode_id):
     return wrapper
 
 
+class AlbumIdFilter(Format):
+    """
+    Filter that help to fill Albums id field
+    """
+    def __init__(self, *args):
+        super(AlbumIdFilter, self).__init__(u'album.%s', *args)
+
+
 class Album(BaseObject):
     """
     Represent an album
@@ -54,9 +63,6 @@ class Album(BaseObject):
     thumbnail = Field('Image associated to the album', BaseImage)
     tracks_list = Field('list of tracks', list)
 
-    def __init__(self, _id):
-        BaseObject.__init__(self, unicode("album.%s" % _id))
-
     @classmethod
     def decode_id(cls, _id):
         if _id:
@@ -66,15 +72,20 @@ class Album(BaseObject):
             return _id
 
 
+class PlaylistIdFilter(Format):
+    """
+    Filter that help to fill Albums id field
+    """
+    def __init__(self, *args):
+        super(PlaylistIdFilter, self).__init__(u'playlist.%s', *args)
+
+
 class Playlist(BaseObject):
     """
     Represent a playlist
     """
     title = StringField('playlist name')
     tracks_list = Field('list of tracks', list)
-
-    def __init__(self, _id):
-        BaseObject.__init__(self, unicode("playlist.%s" % _id))
 
     @classmethod
     def decode_id(cls, _id):
@@ -85,6 +96,14 @@ class Playlist(BaseObject):
             return _id
 
 
+class BaseAudioIdFilter(Format):
+    """
+    Filter that help to fill Albums id field
+    """
+    def __init__(self, *args):
+        super(BaseAudioIdFilter, self).__init__(u'audio.%s', *args)
+
+
 class BaseAudio(BaseFile):
     """
     Represent an audio file
@@ -93,9 +112,6 @@ class BaseAudio(BaseFile):
     bitrate =   Field('file bit rate in Kbps', int)
     format =    StringField('file format')
     thumbnail = Field('Image associated to the file', BaseImage)
-
-    def __init__(self, _id):
-        BaseFile.__init__(self, unicode("audio.%s" % _id))
 
     @classmethod
     def decode_id(cls, _id):
