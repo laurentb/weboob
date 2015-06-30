@@ -429,9 +429,9 @@ class Radioob(ReplApplication):
     @defaultcount(10)
     def do_search(self, pattern=None):
         """
-        search (radio|song|album|playlist) PATTERN
+        search (radio|song|file|album|playlist) PATTERN
 
-        List (radio|song|album|playlist) matching a PATTERN.
+        List (radio|song|file|album|playlist) matching a PATTERN.
 
         If PATTERN is not given, this command will list all the (radio|song|album|playlist).
         """
@@ -453,7 +453,7 @@ class Radioob(ReplApplication):
                 self.add_object(radio)
                 self.format(radio)
 
-        elif cmd == "song":
+        elif cmd == "song" or cmd == "file":
             self.set_formatter('song_list')
             for audio in self.do('search_audio', pattern=args):
                 self.add_object(audio)
@@ -472,7 +472,7 @@ class Radioob(ReplApplication):
                 self.format(playlist)
 
         else:
-            print('Search command only supports "radio", "song", "album" and "playlist" arguments.', file=self.stderr)
+            print('Search command only supports "radio", "song", "file", "album" and "playlist" arguments.', file=self.stderr)
             return 2
 
     def do_ls(self, line):
