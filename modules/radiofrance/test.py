@@ -19,21 +19,26 @@
 
 
 from weboob.tools.test import BackendTest
-from weboob.capabilities.video import BaseVideo
+from weboob.capabilities.audio import BaseAudio
 from weboob.capabilities.radio import Radio
 
 
 class RadioFranceTest(BackendTest):
     MODULE = 'radiofrance'
 
-    def test_get_radios(self):
+    def test_get_radios_and_selections(self):
         l = list(self.backend.iter_resources(objs=[Radio], split_path=[]))
+
         self.assertTrue(0 < len(l) < 30)
         for radio in l:
             name = radio.split_path[-1]
             if name != 'francebleu':
                 streams = self.backend.get_radio(name).streams
                 self.assertTrue(len(streams) > 0)
+
+                l_sel = list(self.backend.iter_resources(objs=[BaseAudio], split_path=[name]))
+                self.assertTrue(len(l_sel) > 0)
+                self.assertTrue(len(l_sel[0].url) > 0)
 
         l = list(self.backend.iter_resources(objs=[Radio], split_path=['francebleu']))
         self.assertTrue(len(l) > 30)
@@ -42,5 +47,18 @@ class RadioFranceTest(BackendTest):
             streams = self.backend.get_radio(radio.split_path[-1]).streams
             self.assertTrue(len(streams) > 0)
 
-        l = list(self.backend.iter_resources(objs=[BaseVideo], split_path=[]))
-        self.assertEquals(len(l), 0)
+            l_sel = list(self.backend.iter_resources(objs=[BaseAudio], split_path=['francebleu', radio.split_path[-1]]))
+            if len(l_sel) > 0:
+                self.assertTrue(len(l_sel[0].url) > 0)
+
+    def test_search_radio(self):
+        l = list(self.backend.iter_radios_search('bleu'))
+        self.assertTrue(len(l) > 0)
+        self.assertTrue(len(l[0].streams) > 0)
+
+    def test_search_get_audio(self):
+        l = list(self.backend.search_audio('journal'))
+        self.assertTrue(len(l) > 0)
+
+        a = self.backend.get_audio(l[0].id)
+        self.assertTrue(a.url)
