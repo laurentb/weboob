@@ -148,11 +148,11 @@ class AccountsPage(LoggedPage, HTMLPage):
 
                 url = urlparse(link)
                 p = parse_qs(url.query)
-                if 'rib' not in p:
+                if 'rib' not in p and 'webid' not in p:
                     raise SkipItem()
 
                 balance = CleanDecimal('./td[2] | ./td[3]', replace_dots=True)(self)
-                id = p['rib'][0]
+                id = p['rib'][0] if 'rib' in p else p['webid'][0]
 
                 # Handle cards
                 if id in self.parent.objects:
