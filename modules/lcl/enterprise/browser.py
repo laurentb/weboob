@@ -33,6 +33,7 @@ class LCLEnterpriseBrowser(Browser):
     CERTHASH = ['04e3509c20ac8bdbdb3d0ed37bc34db2dde5ed4bc4c30a3605f63403413099a9',
                 '5fcf4a9ceeec25e406a04dffe0c6eacbdf72d11d394cd049701bfbaba3d853d9',
                 '774ac6f1c419083541a27d95672a87a5edf5c82d948368008eab2764e65866f9',
+                '736ead61d4347035622500a2ed0f251317fa8dfa3e8c5832b2093bb6d269e00e',
                 '3db256edfeb7ba255625724b7e62d4dab229557226336ba87b9753006721f16f']
     ENCODING = 'utf-8'
     USER_AGENT = Browser.USER_AGENTS['wget']
