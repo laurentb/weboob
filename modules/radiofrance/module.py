@@ -347,7 +347,7 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
                 radio.current = StreamInfo(0)
             radio.current.what = title
             radio.current.who = artist
-            return radio
+        return radio
 
     def fill_audio(self, audio, fields):
         if 'thumbnail' in fields and audio.thumbnail:
@@ -361,11 +361,11 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
         return ''
 
     def search_audio(self, pattern, sortby=CapAudio.SEARCH_RELEVANCE):
-            for radio in self._RADIOS:
-                selection_url = self._RADIOS[radio]['selection']
-                radio_url = radio if not radio.startswith('fb') else 'francebleu'
-                for item in self.browser.search_audio(pattern, radio_url, selection_url, radio):
-                    yield item
+        for radio in self._RADIOS:
+            selection_url = self._RADIOS[radio]['selection']
+            radio_url = radio if not radio.startswith('fb') else 'francebleu'
+            for item in self.browser.search_audio(pattern, radio_url, selection_url, radio):
+                yield item
 
     def get_audio(self, _id):
         radio = self.get_radio_id(_id)
