@@ -26,7 +26,7 @@ from weboob.capabilities.radio import Radio
 class RadioFranceTest(BackendTest):
     MODULE = 'radiofrance'
 
-    def test_get_radios_and_selections(self):
+    def test_ls_radios_and_selections(self):
         l = list(self.backend.iter_resources(objs=[Radio], split_path=[]))
 
         self.assertTrue(0 < len(l) < 30)
@@ -36,7 +36,7 @@ class RadioFranceTest(BackendTest):
                 streams = self.backend.get_radio(name).streams
                 self.assertTrue(len(streams) > 0)
 
-                l_sel = list(self.backend.iter_resources(objs=[BaseAudio], split_path=[name]))
+                l_sel = list(self.backend.iter_resources(objs=[BaseAudio], split_path=[name, 'selection']))
                 self.assertTrue(len(l_sel) > 0)
                 self.assertTrue(len(l_sel[0].url) > 0)
 
@@ -47,9 +47,22 @@ class RadioFranceTest(BackendTest):
             streams = self.backend.get_radio(radio.split_path[-1]).streams
             self.assertTrue(len(streams) > 0)
 
-            l_sel = list(self.backend.iter_resources(objs=[BaseAudio], split_path=['francebleu', radio.split_path[-1]]))
+            l_sel = list(self.backend.iter_resources(objs=[BaseAudio],
+                                                     split_path=['francebleu',
+                                                                 radio.split_path[-1],
+                                                                 'selection']))
             if len(l_sel) > 0:
                 self.assertTrue(len(l_sel[0].url) > 0)
+
+    def test_podcasts(self):
+        for key, item in self.backend._RADIOS.iteritems():
+            if 'podcast' in item:
+                emissions = list(self.backend.iter_resources(objs=[BaseAudio], split_path=[key, 'podcasts']))
+                self.assertTrue(len(emissions) > 0)
+                podcasts = list(self.backend.iter_resources(objs=[BaseAudio], split_path=emissions[0].split_path))
+                self.assertTrue(len(podcasts) > 0)
+                podcast = self.backend.get_audio(podcasts[0].id)
+                self.assertTrue(podcast.url)
 
     def test_search_radio(self):
         l = list(self.backend.iter_radios_search('bleu'))

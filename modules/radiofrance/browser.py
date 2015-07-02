@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser import PagesBrowser, URL
-from .pages import PlayerPage, JsonPage
+from .pages import RadioPage, JsonPage, PodcastPage
 
 __all__ = ['RadioFranceBrowser']
 
@@ -26,11 +26,12 @@ __all__ = ['RadioFranceBrowser']
 class RadioFranceBrowser(PagesBrowser):
     json_page = URL('sites/default/files/(?P<json_url>.*).json',
                     'player-json/reecoute/(?P<json_url_fip>.*)', JsonPage)
-    player_page = URL('(?P<player>.*)', PlayerPage)
+    podcast_page = URL('podcast09/rss_(?P<podcast_id>.*)\.xml', PodcastPage)
+    radio_page = URL('(?P<page>.*)', RadioPage)
 
     def get_radio_url(self, radio, player):
         self.BASEURL = 'http://www.%s.fr/' % radio
-        return self.player_page.go(player=player).get_url()
+        return self.radio_page.go(page=player).get_url()
 
     def get_current(self, radio, json_url):
         self.BASEURL = 'http://www.%s.fr/' % radio
@@ -53,3 +54,24 @@ class RadioFranceBrowser(PagesBrowser):
         for item in self.get_selection(radio_url, json_url, radio_id):
             if pattern.upper() in item.title.upper():
                 yield item
+
+    def get_podcast_emissions(self, radio_url, podcast_url, split_path):
+        self.BASEURL = 'http://www.%s.fr/' % radio_url
+        if split_path[0] == 'franceinter':
+            return self.radio_page.go(page=podcast_url).get_france_inter_podcast_emissions(split_path=split_path)
+        elif split_path[0] == 'franceculture':
+            return self.radio_page.go(page=podcast_url).get_france_culture_podcast_emissions(split_path=split_path)
+        elif split_path[0] == 'franceinfo':
+            return self.radio_page.go(page=podcast_url).get_france_info_podcast_emissions(split_path=split_path)
+        elif split_path[0] == 'francemusique':
+            return self.radio_page.go(page=podcast_url).get_france_musique_podcast_emissions(split_path=split_path)
+        elif split_path[0] == 'mouv':
+            return self.radio_page.go(page=podcast_url).get_mouv_podcast_emissions(split_path=split_path)
+
+    def get_podcasts(self, podcast_id):
+        self.BASEURL = 'http://radiofrance-podcast.net/'
+        return self.podcast_page.go(podcast_id=podcast_id).iter_podcasts()
+
+    def get_france_culture_podcasts_url(self, url):
+        self.BASEURL = 'http://www.franceculture.fr/podcast/'
+        return self.radio_page.go(page=url).get_france_culture_podcasts_url()

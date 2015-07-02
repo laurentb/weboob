@@ -48,14 +48,17 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
         'franceinter': {u'title': u'France Inter',
                         u'player': u'player',
                         u'live': u'lecteur_commun_json/timeline',
+                        u'podcast': u'podcasts',
                         u'selection': u'lecteur_commun_json/reecoute-%s' % int(time.mktime(datetime.now().replace(hour=14, minute=0, second=0).timetuple()))},
         'franceculture': {u'title': u'France Culture',
                           u'player': u'player',
                           u'live': u'lecteur_commun_json/timeline',
+                          u'podcast': u'podcasts',
                           u'selection': u'lecteur_commun_json/reecoute-%s' % int(time.mktime(datetime.now().replace(hour=14, minute=0, second=0).timetuple()))},
         'franceinfo': {u'title': u'France Info',
                        u'player': u'player',
                        u'live': u'lecteur_commun_json/timeline',
+                       u'podcast': u'programmes-chroniques/podcasts',
                        u'selection': u'lecteur_commun_json/reecoute-%s' % int(time.mktime(datetime.now().replace(hour=14, minute=0, second=0).timetuple()))},
         'fbidf': {u'title': u'France Bleu Île-de-France (Paris)',
                   u'player': u'player/france-bleu-107-1',
@@ -68,10 +71,12 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
         'francemusique': {u'title': u'France Musique',
                           u'player': u'player',
                           u'live': u'lecteur_commun_json/reecoute-%s' % int(time.mktime(datetime.now().replace(hour=14, minute=0, second=0).timetuple())),
+                          u'podcast': u'emissions',
                           u'selection': u'lecteur_commun_json/reecoute-%s' % int(time.mktime(datetime.now().replace(hour=14, minute=0, second=0).timetuple()))},
         'mouv': {u'title': u'Le Mouv\'',
                  u'player': u'player',
                  u'live': u'lecteur_commun_json/timeline',
+                 u'podcast': u'podcasts',
                  u'selection': u'lecteur_commun_json/reecoute-%s' % int(time.mktime(datetime.now().replace(hour=14, minute=0, second=0).timetuple()))},
         'fbalsace': {u'title': u'France Bleu Alsace (Strasbourg)',
                      u'player': u'player/station/france-bleu-alsace',
@@ -252,7 +257,13 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
     }
 
     def iter_resources(self, objs, split_path):
-        if split_path and split_path[0] == u'francebleu':
+        if len(split_path) == 0:
+            for _id, item in sorted(self._RADIOS.iteritems()):
+                if not _id.startswith('fb'):
+                    yield Collection([_id], item['title'])
+            yield Collection([u'francebleu'], u'France Bleu')
+
+        elif split_path[0] == u'francebleu':
             if len(split_path) == 1:
                 for _id, item in sorted(self._RADIOS.iteritems()):
                     if _id.startswith('fb'):
@@ -264,18 +275,33 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
                         for item in self.browser.get_selection('francebleu', selection_url, _id):
                             yield item
                         break
-        elif len(split_path) == 0:
-            for _id, item in sorted(self._RADIOS.iteritems()):
-                if not _id.startswith('fb'):
-                    yield Collection([_id], item['title'])
-            yield Collection([u'francebleu'], u'France Bleu')
+
         elif len(split_path) == 1:
+            yield Collection([split_path[0], u'selection'], u'Selection')
+            if 'podcast' in self._RADIOS[split_path[0]]:
+                yield Collection([split_path[0], u'podcasts'], u'Podcast')
+
+        elif len(split_path) == 2 and split_path[1] == 'selection':
             for _id, item in sorted(self._RADIOS.iteritems()):
                 if _id == split_path[0]:
                     selection_url = self._RADIOS[_id]['selection']
                     for item in self.browser.get_selection(_id, selection_url, _id):
                         yield item
                     break
+
+        elif len(split_path) == 2 and split_path[1] == 'podcasts':
+            for item in self.browser.get_podcast_emissions(split_path[0],
+                                                           self._RADIOS[split_path[0]]['podcast'],
+                                                           split_path):
+                yield item
+
+        elif len(split_path) == 3:
+            podcasts_url = split_path[-1]
+            if split_path[0] == 'franceculture':
+                podcasts_url = self.browser.get_france_culture_podcasts_url(split_path[-1])
+            for item in self.browser.get_podcasts(podcasts_url):
+                yield item
+
         else:
             raise CollectionNotFound(split_path)
 
@@ -347,6 +373,12 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
             selection_url = self._RADIOS[radio]['selection']
             radio_url = radio if not radio.startswith('fb') else 'francebleu'
             return self.browser.get_audio(_id, radio_url, selection_url, radio)
+        elif radio == 'podcast':
+            m = re.match('audio\.podcast\.(\d*)-.*', _id)
+            if m:
+                for item in self.browser.get_podcasts(m.group(1)):
+                    if _id == item.id:
+                        return item
 
     def iter_radios_search(self, pattern):
         for key, radio in self._RADIOS.iteritems():
