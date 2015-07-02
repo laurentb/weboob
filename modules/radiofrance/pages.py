@@ -21,7 +21,8 @@ from weboob.browser.elements import ItemElement, DictElement, ListElement, metho
 from weboob.browser.pages import HTMLPage, JsonPage, XMLPage
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import Format, CleanText, Join, Env, Regexp, Duration
-from weboob.capabilities.audio import BaseAudio, BaseAudioIdFilter
+from weboob.capabilities.audio import BaseAudio
+from weboob.tools.capabilities.audio.audio import BaseAudioIdFilter
 from weboob.capabilities.image import BaseImage
 from weboob.capabilities.collection import Collection
 

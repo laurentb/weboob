@@ -21,7 +21,6 @@ import re
 
 from datetime import timedelta
 
-from weboob.browser.filters.standard import Format
 from .image import BaseImage
 from .base import Field, StringField, IntField, BaseObject
 from .file import CapFile, BaseFile
@@ -45,14 +44,6 @@ def decode_id(decode_id):
     return wrapper
 
 
-class AlbumIdFilter(Format):
-    """
-    Filter that help to fill Albums id field
-    """
-    def __init__(self, *args):
-        super(AlbumIdFilter, self).__init__(u'album.%s', *args)
-
-
 class Album(BaseObject):
     """
     Represent an album
@@ -72,14 +63,6 @@ class Album(BaseObject):
             return _id
 
 
-class PlaylistIdFilter(Format):
-    """
-    Filter that help to fill Albums id field
-    """
-    def __init__(self, *args):
-        super(PlaylistIdFilter, self).__init__(u'playlist.%s', *args)
-
-
 class Playlist(BaseObject):
     """
     Represent a playlist
@@ -94,14 +77,6 @@ class Playlist(BaseObject):
             if m:
                 return m.group(2)
             return _id
-
-
-class BaseAudioIdFilter(Format):
-    """
-    Filter that help to fill Albums id field
-    """
-    def __init__(self, *args):
-        super(BaseAudioIdFilter, self).__init__(u'audio.%s', *args)
 
 
 class BaseAudio(BaseFile):
