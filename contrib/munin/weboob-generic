@@ -298,7 +298,7 @@ class GenericMuninPlugin(object):
                     for id in d:
                         objects.append(d[id])
             else:
-                objects = reversed([a for b, a in self.build_do()])
+                objects = reversed([a for a in self.build_do()])
 
             first = True
             for result in objects:
