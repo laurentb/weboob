@@ -20,6 +20,7 @@
 
 import datetime
 from dateutil.parser import parse as parse_date
+from dateutil.relativedelta import relativedelta
 from dateutil.tz import tzlocal
 from random import randint
 
@@ -98,6 +99,16 @@ class ProfilesWalker(Optimization):
                 else:
                     self._logger.info('You are now here: https://www.google.com/maps/place//@%s,%s,17z', lat, lng)
                     self._last_position_update = datetime.datetime.now()
+
+            for thread in self._browser.get_threads():
+                other_name = ''
+                for user in thread['participants']:
+                    if user['user']['id'] != self._browser.my_id:
+                        other_name = user['user']['display_name']
+
+                if len(thread['messages']) == 0 and parse_date(thread['creation_date']) < (datetime.datetime.now(tzlocal()) - relativedelta(hours=1)):
+                    self._browser.post_message(thread['id'], u'Coucou %s :)' % other_name)
+                    self._logger.info(u'Welcome message sent to %s' % other_name)
         finally:
             if self._view_cron is not None:
                 self._view_cron = self._sched.schedule(60, self.view_profile)
