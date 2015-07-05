@@ -23,7 +23,7 @@ try:
 except ImportError:
     from urllib.parse import urlparse, parse_qs
 
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import re
 from dateutil.relativedelta import relativedelta
 
@@ -31,7 +31,7 @@ from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, SkipItem, method
 from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, TableCell
 from weboob.browser.filters.html import Link
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, ParseError
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -151,7 +151,16 @@ class AccountsPage(LoggedPage, HTMLPage):
                 if 'rib' not in p and 'webid' not in p:
                     raise SkipItem()
 
-                balance = CleanDecimal('./td[2] | ./td[3]', replace_dots=True)(self)
+                for td in el.xpath('./td[2] | ./td[3]'):
+                    try:
+                        balance = CleanDecimal('.', replace_dots=True)(td)
+                    except InvalidOperation:
+                        continue
+                    else:
+                        break
+                else:
+                    raise ParseError('Unable to find balance for account %s' % CleanText('./td[1]/a')(el))
+
                 id = p['rib'][0] if 'rib' in p else p['webid'][0]
 
                 # Handle cards
