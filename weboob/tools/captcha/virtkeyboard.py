@@ -140,10 +140,14 @@ class VirtKeyboard(object):
                     s += " "
         return hashlib.md5(s).hexdigest()
 
-    def get_symbol_code(self, md5sum):
-        for i in self.md5:
-            if md5sum == self.md5[i]:
-                return i
+    def get_symbol_code(self, md5sum_list):
+        if isinstance(md5sum_list, basestring):
+            md5sum_list = [md5sum_list]
+
+        for md5sum in md5sum_list:
+            for i in self.md5:
+                if md5sum == self.md5[i]:
+                    return i
         raise VirtKeyboardError('Symbol not found for hash "%s".' % md5sum)
 
     def get_string_code(self, string):
