@@ -346,6 +346,9 @@ class NoOperationsPage(OperationsPage, LoggedPage):
 
 
 class PorPage(LoggedPage, HTMLPage):
+    def find_amount(self, title):
+        return None
+
     def add_por_accounts(self, accounts):
         for ele in self.doc.xpath('//select[contains(@name, "POR_Synthese")]/option'):
             for a in accounts:
