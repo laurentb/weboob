@@ -133,7 +133,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                     return Account.TYPE_UNKNOWN
 
             obj_id = Env('id')
-            obj_label = Label(CleanText('./td[1]/a'))
+            obj_label = Label(CleanText('./td[1]/a/node()[not(contains(@class, "doux"))]'))
             obj_coming = Env('coming')
             obj_balance = Env('balance')
             obj_currency = FrenchTransaction.Currency('./td[2] | ./td[3]')
