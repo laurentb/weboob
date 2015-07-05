@@ -42,7 +42,7 @@ class LoginPage(HTMLPage):
     REFRESH_MAX = 10.0
 
     def login(self, login, passwd):
-        form = self.get_form(nr=0)
+        form = self.get_form(xpath='//form[contains(@name, "ident")]')
         form['_cm_user'] = login
         form['_cm_pwd'] = passwd
         form.submit()

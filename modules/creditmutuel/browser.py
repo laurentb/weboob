@@ -79,6 +79,9 @@ class CreditMutuelBrowser(LoginBrowser):
     __states__ = ['currentSubBank']
 
     def do_login(self):
+        # Clear cookies.
+        self.do_logout()
+
         self.login.go()
 
         if not self.page.logged:
