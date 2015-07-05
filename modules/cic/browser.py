@@ -18,105 +18,104 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from urlparse import urlsplit, parse_qsl, urlparse
-from datetime import datetime, timedelta
+try:
+    from urlparse import urlsplit, parse_qsl, urlparse
+except ImportError:
+    from urllib.parse import urlsplit, parse_qsl, urlparse
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from datetime import datetime, timedelta
+from random import randint
+
+from weboob.tools.compat import basestring
+from weboob.browser.browsers import LoginBrowser, need_login
+from weboob.browser.profiles import Wget
+from weboob.browser.url import URL
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Transfer, TransferError
 
-from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, EmptyPage, \
-                   OperationsPage, CardPage, ComingPage, NoOperationsPage, InfoPage, \
-                   TransfertPage, ChangePasswordPage, VerifCodePage
+from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
+                   OperationsPage, CardPage, ComingPage, NoOperationsPage, \
+                   TransfertPage, ChangePasswordPage, VerifCodePage, EmptyPage
 
 
 __all__ = ['CICBrowser']
 
 
-# Browser
-class CICBrowser(Browser):
-    PROTOCOL = 'https'
-    DOMAIN = 'www.cic.fr'
-    CERTHASH = '9f41522275058310a6fb348504daeadd16ae852a686a91383b10ad045da76d29'
-    ENCODING = 'iso-8859-1'
-    USER_AGENT = Browser.USER_AGENTS['wget']
-    PAGES = {'https://www.cic.fr/.*/fr/banques/particuliers/index.html':   LoginPage,
-             'https://www.cic.fr/.*/fr/identification/default.cgi': LoginErrorPage,
-             'https://www.cic.fr/.*/fr/banque/situation_financiere.cgi': AccountsPage,
-             'https://www.cic.fr/.*/fr/banque/situation_financiere.html': AccountsPage,
-             'https://www.cic.fr/.*/fr/banque/espace_personnel.aspx': UserSpacePage,
-             'https://www.cic.fr/.*/fr/banque/mouvements.cgi.*': OperationsPage,
-             'https://www.cic.fr/.*/fr/banque/mouvements.html.*': OperationsPage,
-             'https://www.cic.fr/.*/fr/banque/mvts_instance.cgi.*': ComingPage,
-             'https://www.cic.fr/.*/fr/banque/nr/nr_devbooster.aspx.*': OperationsPage,
-             'https://www.cic.fr/.*/fr/banque/operations_carte\.cgi.*': CardPage,
-             'https://www.cic.fr/.*/fr/banque/CR/arrivee\.asp.*': NoOperationsPage,
-             'https://www.cic.fr/.*/fr/banque/BAD.*': InfoPage,
-             'https://www.cic.fr/.*/fr/banque/.*Vir.*': TransfertPage,
-             'https://www.cic.fr/.*/fr/validation/change_password.cgi': ChangePasswordPage,
-             'https://www.cic.fr/.*/fr/validation/verif_code.cgi.*': VerifCodePage,
-             'https://www.cic.fr/.*/fr/': EmptyPage,
-             'https://www.cic.fr/.*/fr/banques/index.html': EmptyPage,
-             'https://www.cic.fr/.*/fr/banque/paci_beware_of_phishing.html.*': EmptyPage,
-             'https://www.cic.fr/.*/fr/validation/(?!change_password|verif_code).*': EmptyPage,
-            }
+class CICBrowser(LoginBrowser):
+    PROFILE = Wget()
+    BASEURL = 'https://www.cic.fr'
+
+    login =       URL('/sb/fr/banques/particuliers/index.html',
+                      '/(?P<subbank>.*)/fr/$',
+                      '/(?P<subbank>.*)/fr/banques/accueil.html',
+                      '/(?P<subbank>.*)/fr/banques/particuliers/index.html',
+                      LoginPage)
+    login_error = URL('/(?P<subbank>.*)/fr/identification/default.cgi',      LoginErrorPage)
+    accounts =    URL('/(?P<subbank>.*)/fr/banque/situation_financiere.cgi',
+                      '/(?P<subbank>.*)/fr/banque/situation_financiere.html',
+                      AccountsPage)
+    user_space =  URL('/(?P<subbank>.*)/fr/banque/espace_personnel.aspx',    UserSpacePage)
+    operations =  URL('/(?P<subbank>.*)/fr/banque/mouvements.cgi.*',
+                      '/(?P<subbank>.*)/fr/banque/mouvements.html.*',
+                      '/(?P<subbank>.*)/fr/banque/nr/nr_devbooster.aspx.*',
+                      OperationsPage)
+    coming =      URL('/(?P<subbank>.*)/fr/banque/mvts_instance.cgi.*',      ComingPage)
+    card =        URL('/(?P<subbank>.*)/fr/banque/operations_carte.cgi.*',   CardPage)
+    noop =        URL('/(?P<subbank>.*)/fr/banque/CR/arrivee.asp.*',         NoOperationsPage)
+    info =        URL('/(?P<subbank>.*)/fr/banque/BAD.*',                    EmptyPage)
+    transfert =   URL('/(?P<subbank>.*)/fr/banque/virements/vplw_vi.html',   EmptyPage)
+    transfert_2 = URL('/(?P<subbank>.*)/fr/banque/virements/vplw_cmweb.aspx.*', TransfertPage)
+    change_pass = URL('/(?P<subbank>.*)/fr/validation/change_password.cgi',  ChangePasswordPage)
+    verify_pass = URL('/(?P<subbank>.*)/fr/validation/verif_code.cgi.*',     VerifCodePage)
+    empty =       URL('/(?P<subbank>.*)/fr/banques/index.html',
+                      '/(?P<subbank>.*)/fr/banque/paci_beware_of_phishing.*',
+                      '/(?P<subbank>.*)/fr/validation/(?!change_password|verif_code).*',
+                      '/(?P<subbank>.*)/fr/banque/paci_engine/static_content_manager.aspx',
+                      '/(?P<subbank>.*)/fr/banque/DELG_Gestion.*',
+                      EmptyPage)
 
     currentSubBank = None
 
-    def is_logged(self):
-        return not self.is_on_page(LoginPage) and not self.is_on_page(LoginErrorPage)
+    __states__ = ['currentSubBank']
 
-    def home(self):
-        return self.location('https://www.cic.fr/sb/fr/banques/particuliers/index.html')
+    def do_login(self):
+        self.login.go()
 
-    def login(self):
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
+        if not self.page.logged:
+            self.page.login(self.username, self.password)
 
-        if not self.is_on_page(LoginPage):
-            self.location('https://www.cic.fr/', no_login=True)
+            if not self.page.logged or self.login_error.is_here():
+                raise BrowserIncorrectPassword()
 
-        self.page.login(self.username, self.password)
-
-        if not self.is_logged() or self.is_on_page(LoginErrorPage):
-            raise BrowserIncorrectPassword()
 
         self.getCurrentSubBank()
 
+    @need_login
     def get_accounts_list(self):
-        if not self.is_on_page(AccountsPage):
-            self.location('https://www.cic.fr/%s/fr/banque/situation_financiere.cgi' % self.currentSubBank)
-        return self.page.get_list()
+        return self.accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts()
 
     def get_account(self, id):
         assert isinstance(id, basestring)
 
-        l = self.get_accounts_list()
-        for a in l:
+        for a in self.get_accounts_list():
             if a.id == id:
                 return a
 
-        return None
-
     def getCurrentSubBank(self):
         # the account list and history urls depend on the sub bank of the user
-        url = urlparse(self.geturl())
+        url = urlparse(self.url)
         self.currentSubBank = url.path.lstrip('/').split('/')[0]
 
     def list_operations(self, page_url):
         if page_url.startswith('/') or page_url.startswith('https'):
             self.location(page_url)
         else:
-            self.location('https://%s/%s/fr/banque/%s' % (self.DOMAIN, self.currentSubBank, page_url))
+            self.location('%s/%s/fr/banque/%s' % (self.BASEURL, self.currentSubBank, page_url))
 
-        go_next = True
-        while go_next:
-            if not self.is_on_page(OperationsPage):
-                return
+        if not self.operations.is_here():
+            return iter([])
 
-            for op in self.page.get_history():
-                yield op
-
-            go_next = self.page.go_next()
+        return self.pagination(lambda: self.page.get_history())
 
     def get_history(self, account):
         transactions = []
@@ -129,7 +128,7 @@ class CICBrowser(Browser):
             elif last_debit is None:
                 last_debit = (tr.date - timedelta(days=10)).month
 
-        coming_link = self.page.get_coming_link() if self.is_on_page(OperationsPage) else None
+        coming_link = self.page.get_coming_link() if self.operations.is_here() else None
         if coming_link is not None:
             for tr in self.list_operations(coming_link):
                 transactions.append(tr)
@@ -154,44 +153,53 @@ class CICBrowser(Browser):
 
     def transfer(self, account, to, amount, reason=None):
         # access the transfer page
-        transfert_url = 'WI_VPLV_VirUniSaiCpt.asp?RAZ=ALL&Cat=6&PERM=N&CHX=A'
-        self.location('https://%s/%s/fr/banque/%s' % (self.DOMAIN, self.currentSubBank, transfert_url))
+        self.transfert.go(subbank=self.currentSubBank)
 
         # fill the form
-        self.select_form(name='FormVirUniSaiCpt')
-        self['IDB'] = [account[-1]]
-        self['ICR'] = [to[-1]]
-        self['MTTVIR'] = '%s' % str(amount).replace('.', ',')
+        form = self.page.get_form(xpath="//form[@id='P:F']")
+        try:
+            form['data_input_indiceCompteADebiter'] = self.page.get_from_account_index(account)
+            form['data_input_indiceCompteACrediter'] = self.page.get_to_account_index(to)
+        except ValueError as e:
+            raise TransferError(e.message)
+        form['[t:dbt%3adouble;]data_input_montant_value_0_'] = '%s' % str(amount).replace('.', ',')
         if reason is not None:
-            self['LIBDBT'] = reason
-            self['LIBCRT'] = reason
-        self.submit()
+            form['[t:dbt%3astring;x(27)]data_input_libelleCompteDebite'] = reason
+            form['[t:dbt%3astring;x(31)]data_input_motifCompteCredite'] = reason
+        del form['_FID_GoCancel']
+        del form['_FID_DoValidate']
+        form['_FID_DoValidate.x'] = str(randint(3, 125))
+        form['_FID_DoValidate.y'] = str(randint(3, 22))
+        form.submit()
 
         # look for known errors
-        content = unicode(self.response().get_data(), self.ENCODING)
-        insufficient_amount_message     = u'Montant insuffisant.'
-        maximum_allowed_balance_message = u'Solde maximum autorisé dépassé.'
+        content = self.page.get_unicode_content()
+        insufficient_amount_message =     u'Le montant du virement doit être positif, veuillez le modifier'
+        maximum_allowed_balance_message = u'Montant maximum autorisé au débit pour ce compte'
 
-        if content.find(insufficient_amount_message) != -1:
+        if insufficient_amount_message in content:
             raise TransferError('The amount you tried to transfer is too low.')
 
-        if content.find(maximum_allowed_balance_message) != -1:
+        if maximum_allowed_balance_message in content:
             raise TransferError('The maximum allowed balance for the target account has been / would be reached.')
 
         # look for the known "all right" message
-        ready_for_transfer_message = u'Confirmez un virement entre vos comptes'
-        if not content.find(ready_for_transfer_message):
+        ready_for_transfer_message = u'Confirmer un virement entre vos comptes'
+        if ready_for_transfer_message not in content:
             raise TransferError('The expected message "%s" was not found.' % ready_for_transfer_message)
 
         # submit the confirmation form
-        self.select_form(name='FormVirUniCnf')
+        form = self.page.get_form(xpath="//form[@id='P:F']")
+        del form['_FID_DoConfirm']
+        form['_FID_DoConfirm.x'] = str(randint(3, 125))
+        form['_FID_DoConfirm.y'] = str(randint(3, 22))
         submit_date = datetime.now()
-        self.submit()
+        form.submit()
 
         # look for the known "everything went well" message
-        content = unicode(self.response().get_data(), self.ENCODING)
-        transfer_ok_message = u'Votre virement a été exécuté ce jour'
-        if not content.find(transfer_ok_message):
+        content = self.page.get_unicode_content()
+        transfer_ok_message = u'Votre virement a &#233;t&#233; ex&#233;cut&#233;'
+        if transfer_ok_message not in content:
             raise TransferError('The expected message "%s" was not found.' % transfer_ok_message)
 
         # We now have to return a Transfer object

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2010-2011 Julien Veyssier
+# Copyright(C) 2012-2013 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -33,8 +34,8 @@ __all__ = ['CICModule']
 
 class CICModule(Module, CapBank):
     NAME = 'cic'
-    MAINTAINER = u'Romain Bignon'
-    EMAIL = 'romain@weboob.org'
+    MAINTAINER = u'Julien Veyssier'
+    EMAIL = 'julien.veyssier@aiur.fr'
     VERSION = '1.1'
     DESCRIPTION = u'CIC'
     LICENSE = 'AGPLv3+'
@@ -57,16 +58,14 @@ class CICModule(Module, CapBank):
             raise AccountNotFound()
 
     def iter_coming(self, account):
-        with self.browser:
-            for tr in self.browser.get_history(account):
-                if tr._is_coming:
-                    yield tr
+        for tr in self.browser.get_history(account):
+            if tr._is_coming:
+                yield tr
 
     def iter_history(self, account):
-        with self.browser:
-            for tr in self.browser.get_history(account):
-                if not tr._is_coming:
-                    yield tr
+        for tr in self.browser.get_history(account):
+            if not tr._is_coming:
+                yield tr
 
     def iter_transfer_recipients(self, ignored):
         for account in self.browser.get_accounts_list():
@@ -88,5 +87,4 @@ class CICModule(Module, CapBank):
         except (AssertionError, ValueError):
             raise AccountNotFound()
 
-        with self.browser:
-            return self.browser.transfer(account, to, amount, reason)
+        return self.browser.transfer(account, to, amount, reason)
