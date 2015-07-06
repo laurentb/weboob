@@ -33,7 +33,7 @@ class PluzzTest(BackendTest):
         self.assertTrue(v.url, 'URL for video "%s" not found: %s' % (v.id, v.url))
 
     def test_video_from_url(self):
-        v = self.backend.get_video('http://pluzz.francetv.fr/videos/faites_entrer_l_accuse.html')
+        v = self.backend.get_video('http://pluzz.francetv.fr/videos/plus_belle_la_vie.html')
         self.assertTrue(v.url, 'URL for video "%s" not found: %s' % (v.id, v.url))
 
     def test_latest(self):
