@@ -62,7 +62,7 @@ class ListPage(HTMLPage):
                 self.env['object'] = data[1]
                 self.env['datetime'] = data[2]
                 self.env['levelvalue'] = data[3]
-                self.env['flowvalue'] = data[4]
+                self.env['flowvalue'] = data[4].replace(",", ".")
                 self.env['forecast'] = data[5]
                 self.env['alarm'] = img
 
