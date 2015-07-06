@@ -37,8 +37,8 @@ class RadioFranceTest(BackendTest):
                 self.assertTrue(len(streams) > 0)
 
                 l_sel = list(self.backend.iter_resources(objs=[BaseAudio], split_path=[name, 'selection']))
-                self.assertTrue(len(l_sel) > 0)
-                self.assertTrue(len(l_sel[0].url) > 0)
+                if len(l_sel) > 0:
+                    self.assertTrue(len(l_sel[0].url) > 0)
 
         l = list(self.backend.iter_resources(objs=[Radio], split_path=['francebleu']))
         self.assertTrue(len(l) > 30)

@@ -73,6 +73,7 @@ class RadioPage(HTMLPage):
     @method
     class get_france_culture_podcast_emissions(ListElement):
         item_xpath = '//li/h3/a'
+        ignore_duplicate = True
 
         class item(ItemElement):
             klass = Collection
@@ -109,6 +110,7 @@ class RadioPage(HTMLPage):
     @method
     class get_mouv_podcast_emissions(ListElement):
         item_xpath = '//div[@class="view-content"]/div'
+        ignore_duplicate = True
 
         class item(ItemElement):
             klass = Collection
@@ -131,6 +133,7 @@ class RadioPage(HTMLPage):
     @method
     class get_france_musique_podcast_emissions(ListElement):
         item_xpath = '//div[@class="liste-emissions"]/ul/li'
+        ignore_duplicate = True
 
         class item(ItemElement):
             klass = Collection
@@ -178,9 +181,13 @@ class JsonPage(JsonPage):
     @method
     class get_selection(DictElement):
         item_xpath = 'diffusions'
+        ignore_duplicate = True
 
         class item(ItemElement):
             klass = BaseAudio
+
+            def condition(self):
+                return Dict('path_mp3')(self)
 
             obj_id = BaseAudioIdFilter(Format(u'%s.%s', Env('radio_id'), Dict('nid')))
             obj_format = u'mp3'
