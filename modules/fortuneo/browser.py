@@ -90,9 +90,10 @@ class Fortuneo(Browser):
     def get_history(self, account):
         self.location(account._link_id)
 
-        self.page.select_period()
+        if self.page.select_period():
+            return self.page.get_operations(account)
 
-        return self.page.get_operations(account)
+        return ([])
 
     def get_accounts_list(self):
         """accounts list"""

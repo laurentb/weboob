@@ -25,6 +25,8 @@ from time import sleep
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
+from mechanize import FormNotFoundError
+
 from weboob.capabilities.bank import Account, Investment
 from weboob.deprecated.browser import Page, BrowserIncorrectPassword
 from weboob.capabilities import NotAvailable
@@ -91,7 +93,7 @@ class PeaHistoryPage(Page):
         return Decimal(value)
 
     def select_period(self):
-        pass
+        return True
 
     def get_operations(self, _id):
         return iter([])
@@ -132,11 +134,15 @@ class InvestmentHistoryPage(Page):
     def select_period(self):
         self.browser.location(self.url.replace('portefeuille-assurance-vie.jsp', 'operations/assurance-vie-operations.jsp'))
 
-        self.browser.select_form(name='OperationsForm')
+        try:
+            self.browser.select_form(name='OperationsForm')
+        except FormNotFoundError:
+            return False
         self.browser.set_all_readonly(False)
         self.browser['dateDebut'] = (date.today() - relativedelta(years=1)).strftime('%d/%m/%Y')
         self.browser['nbrEltsParPage'] = '100'
         self.browser.submit()
+        return True
 
     def get_operations(self, _id):
         for tr in self.document.xpath('//table[@id="tableau_histo_opes"]/tbody/tr'):
@@ -159,6 +165,8 @@ class AccountHistoryPage(Page):
         self.browser['dateRechercheDebut'] = (date.today() - relativedelta(years=1)).strftime('%d/%m/%Y')
         self.browser['nbrEltsParPage'] = '100'
         self.browser.submit()
+
+        return True
 
 
     def get_operations(self, _id):
