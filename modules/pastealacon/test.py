@@ -34,7 +34,7 @@ class PastealaconTest(BackendTest):
         p = self.backend.get_paste(_id)
         self.backend.fillobj(p, ['title'])
         assert p.title == u'ouiboube'
-        assert p.page_url.startswith('http://pastealacon.com/')
+        assert p.page_url.startswith('http://paste.alacon.org/')
         assert u'héhéhé' in p.contents
         assert p.public is True
 
@@ -42,7 +42,7 @@ class PastealaconTest(BackendTest):
         p = self.backend.get_paste(_id)
         self.backend.fillobj(p, ['contents'])
         assert p.title is NotLoaded
-        assert p.page_url.startswith('http://pastealacon.com/')
+        assert p.page_url.startswith('http://paste.alacon.org/')
         assert u'héhéhé' in p.contents
         assert p.public is True
 
@@ -59,7 +59,7 @@ class PastealaconTest(BackendTest):
         self._get_paste(p.id)
 
         # same but from the full URL
-        self._get_paste('http://pastealacon.com/'+p.id)
+        self._get_paste('http://paste.alacon.org/'+p.id)
 
     def test_spam(self):
         p = self.backend.new_paste(None, title=u'viagra', contents=u'http://example.com/')
@@ -67,7 +67,7 @@ class PastealaconTest(BackendTest):
 
     def test_notfound(self):
         for _id in ('424242424242424242424242424242424242',
-                    'http://pastealacon.com/424242424242424242424242424242424242'):
+                    'http://paste.alacon.org/424242424242424242424242424242424242'):
             # html method
             p = self.backend.get_paste(_id)
             self.assertRaises(PasteNotFound, self.backend.fillobj, p, ['title'])
@@ -80,7 +80,7 @@ class PastealaconTest(BackendTest):
         # call with an URL we can't handle with this backend
         assert self.backend.get_paste('http://pastebin.com/nJG9ZFG8') is None
         # same even with correct domain (IDs are numeric)
-        assert self.backend.get_paste('http://pastealacon.com/nJG9ZFG8') is None
+        assert self.backend.get_paste('http://paste.alacon.org/nJG9ZFG8') is None
         assert self.backend.get_paste('nJG9ZFG8') is None
 
     def test_can_post(self):

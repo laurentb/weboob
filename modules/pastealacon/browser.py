@@ -75,7 +75,7 @@ class PostPage(HTMLPage):
 
 
 class PastealaconBrowser(PagesBrowser):
-    BASEURL = 'http://pastealacon.com/'
+    BASEURL = 'http://paste.alacon.org/'
 
     paste = URL(r'(?P<id>\d+)', PastePage)
     captcha = URL(r'%s' % re.escape('pastebin.php?captcha=1'), CaptchaPage)
