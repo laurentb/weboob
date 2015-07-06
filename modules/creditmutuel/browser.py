@@ -43,6 +43,7 @@ __all__ = ['CreditMutuelBrowser']
 
 class CreditMutuelBrowser(LoginBrowser):
     PROFILE = Wget()
+    TIMEOUT = 30
     BASEURL = 'https://www.creditmutuel.fr'
 
     login =       URL('/groupe/fr/index.html',
