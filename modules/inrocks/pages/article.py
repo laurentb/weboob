@@ -28,16 +28,17 @@ class ArticlePage(GenericNewsPage):
     "ArticlePage object for inrocks"
 
     def on_loaded(self):
-        self.main_div = self.document.getroot()
+        main = self.parser.select(self.document.getroot(), "div#content")
+        self.main_div = main[0] if len(main) else None
         self.element_title_selector = "h1"
-        self.element_author_selector    = "div.name>span"
-        self.element_body_selector      = "div.maincol"
+        self.element_author_selector = "div.name>span"
+        self.element_body_selector = "div.maincol"
 
     def get_body(self):
-        try :
+        try:
             element_body = self.get_element_body()
         except NoneMainDiv:
-            return None
+            return u'Ceci est un article payant'
         else:
             div_header_element = self.parser.select(element_body, "div.header", 1)
             element_detail = self.parser.select(element_body, "div.details", 1)
@@ -55,14 +56,14 @@ class ArticlePage(GenericNewsPage):
                                           div_content_element,
                                           ["div.tw_button", "div.wpfblike"])
 
-            try :
+            try:
                 description_element = self.parser.select(div_header_element,
-                                             "div.description", 1)
+                                                         "div.description", 1)
             except BrokenPageError:
                 pass
             else:
                 text_content = description_element.text_content()
-                if len(text_content.strip()) == 0 :
+                if len(text_content.strip()) == 0:
                     description_element.drop_tree()
                 else:
                     if len(description_element) == 1:
