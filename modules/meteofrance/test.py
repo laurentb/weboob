@@ -34,3 +34,6 @@ class MeteoFranceTest(BackendTest):
 
         forecasts = list(self.backend.iter_forecast(city.id))
         self.assertTrue(len(forecasts) > 0)
+
+        forecast2 = list(self.backend.iter_forecast('blagnac'))
+        self.assertTrue(len(forecast2) > 0)

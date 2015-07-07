@@ -46,4 +46,12 @@ class MeteofranceModule(Module, CapWeather):
         return self.browser.iter_city_search(pattern)
 
     def get_city(self, _id):
-        return find_object(self.iter_city_search(_id), id=_id, error=CityNotFound)
+        cities = list(self.iter_city_search(_id))
+
+        if len(cities) == 0:
+            raise CityNotFound()
+
+        try:
+            return find_object(cities, id=_id, error=CityNotFound)
+        except CityNotFound:
+            return cities[0]
