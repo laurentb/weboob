@@ -19,6 +19,7 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.capabilities.base import find_object
 
 
 class SachsenTest(BackendTest):
@@ -28,10 +29,14 @@ class SachsenTest(BackendTest):
         l = list(self.backend.iter_gauges())
         self.assertTrue(len(l) > 0)
 
-        gauge = l[0]
+        gauge = find_object(l, id=u'501060')
 
         sensors = list(self.backend.iter_sensors(gauge))
         self.assertTrue(len(sensors) > 0)
+
+        for sensor in sensors:
+            self.assertTrue(sensor.lastvalue.level > 0)
+
         sensor = sensors[0]
 
         history = list(self.backend.iter_gauge_history(sensor))
