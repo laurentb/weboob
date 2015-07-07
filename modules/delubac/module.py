@@ -50,5 +50,4 @@ class DelubacModule(Module, CapBank):
         return self.browser.get_account(_id)
 
     def iter_history(self, account, coming=False):
-        with self.browser:
-            return self.browser.iter_history(account)
+        return self.browser.iter_history(account)
