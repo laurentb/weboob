@@ -70,7 +70,7 @@ class AccountsPage(LoggedPage, HTMLPage):
         form['fldParam_datas'] = "1"
         if 'Histo' in self.url:
             form['periodeDeb'] = (date.today() - relativedelta(months=6)).strftime("%d/%m/%Y")
-            form['periodeFin'] = self.doc.xpath('//select[@name="periodeSaisie"]/option[@selected]/text()')[0]
+            form['periodeFin'] = (date.today() + relativedelta(months=3)).strftime("%d/%m/%Y")
             form['periodeSelectionMode'] = "input"
         onclick = self.doc.xpath(submit)[0].get("onclick")
         url_parts = re.findall("'([^']*)'", onclick)
@@ -97,14 +97,20 @@ class TransactionsPage(LoggedPage, HTMLPage):
             obj_original_currency = FrenchTransaction.Currency(CleanText('./td[4]'))
             obj_commission = FrenchTransaction.Amount(CleanText('./td[6]'), replace_dots=False)
 
-    def is_not_sorted(self):
-        return len(self.doc.xpath('//table[@id="ContentTable_datas"]/thead/tr/th[1]//img[contains(@src, "tri_bas_on")]')) == 0
+            def obj__coming(self):
+                if Field('date')(self) >= date.today():
+                    return True
+                return
 
-    def sort(self):
+    def is_not_sorted(self, order='down'):
+        translate = {'down':'bas','up':'bas'}
+        return len(self.doc.xpath('//table[@id="ContentTable_datas"]/thead/tr/th[1]//img[contains(@src, "tri_%s_on")]' % translate[order])) == 0
+
+    def sort(self, order='down'):
         form = self.get_form(nr=0)
         form.url += '?sortDescriptor_datas=true'
-        form['indexSort_datas'] = 1
-        form['sort_datas'] = 'down'
+        form['indexSort_datas'] = 3
+        form['sort_datas'] = order
         form.submit()
 
 

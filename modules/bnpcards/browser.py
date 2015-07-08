@@ -107,14 +107,18 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
     def get_coming(self, account):
         if self.type == '1':
             return self.get_ti_transactions(account, coming=True)
-        self.com_home.go()
+        self.his_home.go()
         self.page.expand()
         accounts = self.page.iter_accounts()
         for a in accounts:
             if a.id == account.id:
                 self.location(self.page.get_link(a.id))
                 assert self.transactions.is_here()
-                return self.page.get_history()
+
+                if self.page.is_not_sorted('up'):
+                    self.page.sort('up')
+
+                return [t for t in self.page.get_history() if t._coming]
         return iter([])
 
 
@@ -133,5 +137,5 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
                 if self.page.is_not_sorted():
                     self.page.sort()
 
-                return self.page.get_history()
+                return [t for t in self.page.get_history() if not t._coming]
         return iter([])
