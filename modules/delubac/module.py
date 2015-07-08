@@ -37,7 +37,7 @@ class DelubacModule(Module, CapBank):
     BROWSER = DelubacBrowser
 
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
-                           ValueBackendPassword('password', label='Mot de passe'))
+                           ValueBackendPassword('password', label='Mot de passe', regexp='^\d+$'))
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(),
