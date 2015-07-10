@@ -51,7 +51,9 @@ class AmazonStoreCard(LoginBrowser):
     def do_login(self):
         self.session.cookies.clear()
         self.login.go()
-        while self.login.is_here():
+        for i in xrange(self.MAX_RETRIES):
+            if not self.login.is_here():
+                break
             self.page.proceed(self.config)
         if not self.page.logged:
             raise BrowserIncorrectPassword()
