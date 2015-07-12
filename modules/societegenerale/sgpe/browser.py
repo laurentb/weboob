@@ -147,4 +147,4 @@ class SGEnterpriseBrowser(SGPEBrowser):
     DOMAIN = 'entreprises.secure.societegenerale.fr'
     LOGIN_FORM = 'auth'
     MENUID = 'BANREL'
-    CERTHASH = 'd5c21d47c7d5a300b40856be49d0b36b42eaae409c8891184652b888d16a05f5'
+    CERTHASH = '4c7e609ead0772f3702ae139f0c29bdf8050fa9c6d7a1edb6f21ff3bf04ba84c'
