@@ -41,7 +41,8 @@ class Boursorama(StateBrowser):
     DOMAIN = 'www.boursorama.com'
     PROTOCOL = 'https'
     CERTHASH = ['6bdf8b6dd177bd417ddcb1cfb818ede153288e44115eb269f2ddd458c8461039',
-                'b290ef629c88f0508e9cc6305421c173bd4291175e3ddedbee05ee666b34c20e']
+                'b290ef629c88f0508e9cc6305421c173bd4291175e3ddedbee05ee666b34c20e',
+                '22418bc2676cac139aaf64cb36d14f4ad845ade64acbbd729463ef78cbe96b3e']
     ENCODING = None  # refer to the HTML encoding
     PAGES = {r'.*/connexion/securisation.*': AuthenticationPage,
              r'.*connexion.phtml.*': LoginPage,
