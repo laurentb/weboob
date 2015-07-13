@@ -58,7 +58,7 @@ class Paypal(Browser):
         'https://\w+.paypal.com/myaccount/': HomePage,
     }
 
-    DEFAULT_TIMEOUT = 120
+    DEFAULT_TIMEOUT = 180
 
     BEGINNING = datetime.date(1998, 6, 1)  # The day PayPal was founded
     account_type = None
@@ -120,7 +120,7 @@ class Paypal(Browser):
     def get_download_history(self, account, step_min=None, step_max=None):
         if step_min is None and step_max is None:
             step_min = 10
-            step_max = 180
+            step_max = 120
 
         def fetch_fn(start, end):
             if self.download_history(start, end):
