@@ -342,8 +342,9 @@ class ReplApplication(Cmd, ConsoleApplication):
         if backends is None:
             kwargs['backends'] = []
             for backend in self.enabled_backends:
-                actual_function = getattr(backend, function, None)
-                if actual_function is not None and callable(actual_function):
+                actual_function = getattr(backend, function, None) if isinstance(function, basestring) else function
+
+                if callable(actual_function):
                     kwargs['backends'].append(backend)
         else:
             kwargs['backends'] = backends
