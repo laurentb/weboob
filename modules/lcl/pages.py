@@ -369,12 +369,16 @@ class AVPage(LoggedPage, HTMLPage):
             obj__owner = CleanText('.//td[1]') & Regexp(pattern=r' ([^ ]+)$')
             obj_label = Format(u'%s %s', CleanText('.//td/a'), obj__owner)
             obj_balance = CleanDecimal('.//td[has-class("right")]', replace_dots=True)
-            obj__id = CleanText('./td/a/@id')
-            obj_id = Format(u'%s%s', CleanText(Field('label'), replace=[(' ', '')]), obj__id)
             obj_type = Account.TYPE_LIFE_INSURANCE
             obj__link_id = None
             obj__market_link = None
             obj__coming_links = []
+
+            def obj_id(self):
+                _id = CleanText('.//td/a/@id')(self)
+                if not _id:
+                    _id = Regexp(CleanText('.//td/a/@href'), r'ID_CONTRAT=(\d+)')(self)
+                return Format(u'%s%s', CleanText(Field('label'), replace=[(' ', '')]), _id)(self)
 
             def obj__form(self):
                 form_id = Attr('.//td/a', 'id', default=None)(self)
