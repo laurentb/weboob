@@ -34,7 +34,6 @@ class PiratebayBrowser(Browser):
     ENCODING = 'utf-8'
     DOMAINS = ['thepiratebay.vg',
                'thepiratebay.la',
-               'thepiratebay.am',
                'thepiratebay.mn',
                'thepiratebay.gd']
 
