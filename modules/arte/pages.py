@@ -35,6 +35,9 @@ from .video import ArteVideo, ArteSiteVideo, SITE
 
 class ArteItemElement(ItemElement):
 
+    def condition(self):
+        return 'VID' in self.el
+
     obj_id = Dict('VID')
 
     def obj_title(self):

@@ -104,7 +104,8 @@ class ArteBrowser(PagesBrowser):
         parameters = '/'.join([self.lang.get('webservice'), 'L2', _id])
         video = self.webservice.go(class_name=class_name, method_name=method_name,
                                    parameters=parameters).get_program_video()
-        return self.get_video(video.id, video)
+        if video:
+            return self.get_video(video.id, video)
 
     def latest_videos(self):
         class_name = 'videos'
@@ -126,7 +127,9 @@ class ArteBrowser(PagesBrowser):
         available_videos = self.webservice.go(class_name=class_name, method_name=method_name,
                                               parameters=parameters).iter_program_videos()
         for item in available_videos:
-            yield self.get_video_from_program_id(item.id)
+            video = self.get_video_from_program_id(item.id)
+            if video:
+                yield video
 
     def get_arte_concert_categories(self):
         return self.videos_list.go(site=SITE.CONCERT.get('id'), lang=self.lang.get('site'),
