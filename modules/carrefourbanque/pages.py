@@ -55,7 +55,7 @@ class HomePage(LoggedPage, HTMLPage):
 
             def obj_balance(self):
                 if len(self.el.xpath('.//div[@class="catre_col_one"]/h2')) > 0:
-                    return CleanDecimal(Format('-%s', CleanText('.//div[@class="catre_col_one"]/h2')), replace_dots=True)(self)
+                    return -CleanDecimal(CleanText('.//div[@class="catre_col_one"]/h2'), replace_dots=True)(self)
                 else:
                     return Decimal('0')
 
