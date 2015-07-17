@@ -339,7 +339,7 @@ class Weboob(WebNip):
         # Create WORKDIR
         if workdir is None:
             if 'WEBOOB_WORKDIR' in os.environ:
-                workdir = os.environ.get('WEBOOB_WORKDIR')
+                workdir = os.environ['WEBOOB_WORKDIR']
             else:
                 workdir = os.path.join(os.environ.get('XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config')), 'weboob')
 
@@ -349,7 +349,9 @@ class Weboob(WebNip):
         # Create DATADIR
         if datadir is None:
             if 'WEBOOB_DATADIR' in os.environ:
-                datadir = os.environ.get('WEBOOB_DATADIR')
+                datadir = os.environ['WEBOOB_DATADIR']
+            elif 'WEBOOB_WORKDIR' in os.environ:
+                datadir = os.environ['WEBOOB_WORKDIR']
             else:
                 datadir = os.path.join(os.environ.get('XDG_DATA_HOME', os.path.join(os.path.expanduser('~'), '.local', 'share')), 'weboob')
 

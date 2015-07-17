@@ -50,7 +50,9 @@ class Weboobmc():
 
     def get_backend_icon(self, module):
         if 'WEBOOB_DATADIR' in os.environ:
-            datadir = os.environ.get('WEBOOB_DATADIR')
+            datadir = os.environ['WEBOOB_DATADIR']
+        elif 'WEBOOB_WORKDIR' in os.environ:
+            datadir = os.environ['WEBOOB_WORKDIR']
         else:
             datadir = os.path.join(os.environ.get('XDG_DATA_HOME',
                                                   os.path.join(os.path.expanduser('~'), '.local', 'share')
