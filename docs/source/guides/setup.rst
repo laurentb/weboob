@@ -22,7 +22,7 @@ All executables in ~/bin/ will be accessible in console, and all python modules 
 be loadable. Add symbolic links::
 
     $ ln -s $HOME/src/weboob/weboob ~/python/
-    $ find $HOME/src/weboob/scripts -exec ln -s \{\} ~/bin/ \;
+    $ find $HOME/src/weboob/scripts -type f -exec ln -s \{\} ~/bin/ \;
 
 Repositories setup
 ------------------
