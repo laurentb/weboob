@@ -17,50 +17,97 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.deprecated.browser.decorators import id2url
-from weboob.deprecated.browser import Browser
-import urllib
-from .pages import SearchPage, AdvertPage
-from .job import ApecJobAdvert
+from weboob.browser.profiles import Profile
+from weboob.browser import PagesBrowser, URL
+from .pages import IdsPage, OffrePage
 
 
 __all__ = ['ApecBrowser']
 
 
-class ApecBrowser(Browser):
-    PROTOCOL = 'https'
-    DOMAIN = 'www.apec.fr'
-    ENCODING = 'ISO-8859-1'
+class JsonProfile(Profile):
+    def setup_session(self, session):
+        session.headers["Content-Type"] = "application/json"
 
-    PAGES = {
-        'https://cadres.apec.fr/liste-offres-emploi-cadres/71____(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)___offre-d-emploi.html': SearchPage,
-        'https://cadres.apec.fr/MesOffres/RechercheOffres/ApecRechercheOffre.jsp\?keywords=(.*?)': SearchPage,
-        'https://cadres.apec.fr/offres-emploi-cadres/offres-emploi-cadres/\d*_\d*_\d*_(.*?)________(.*?).html(.*?)': AdvertPage,
-    }
+
+class ApecBrowser(PagesBrowser):
+    BASEURL = 'https://cadres.apec.fr'
+    PROFILE = JsonProfile()
+
+    start = 0
+    json_count = URL('/cms/webservices/rechercheOffre/count', IdsPage)
+    json_ids = URL('/cms/webservices/rechercheOffre/ids', IdsPage)
+    json_offre = URL('/cms/webservices/offre/public\?numeroOffre=(?P<_id>.*)', OffrePage)
+
+    def create_parameters(self, pattern='', fonctions='[]', lieux='[]', secteursActivite='[]', typesContrat='[]', typesConvention='[]', niveauxExperience='[]', salaire_min='', salaire_max='', date_publication='', start=0, range=20):
+
+        if date_publication:
+            date_publication = ',"anciennetePublication":%s' % (date_publication)
+
+        if salaire_max:
+            salaire_max = ',"salaireMaximum":%s' % (salaire_max)
+
+        if salaire_min:
+            salaire_min = ',"salaireMinimum":%s' % (salaire_min)
+
+        return '{"activeFiltre":true,"motsCles":"%s","fonctions":%s,"lieux":%s,"secteursActivite":%s,"typesContrat":%s,"typesConvention":%s,"niveauxExperience":%s%s%s%s,"sorts":[{"type":"SCORE","direction":"DESCENDING"}],"pagination":{"startIndex":%s,"range":%s},"typeClient":"CADRE"}' % (pattern, fonctions, lieux, secteursActivite, typesContrat, typesConvention, niveauxExperience, salaire_min, salaire_max, date_publication, start, range)
 
     def search_job(self, pattern=None):
-        self.location('https://cadres.apec.fr/MesOffres/RechercheOffres/ApecRechercheOffre.jsp?keywords=%s'
-                      % urllib.quote_plus(pattern.encode(self.ENCODING)))
-        assert self.is_on_page(SearchPage)
-        return self.page.iter_job_adverts()
+        data = self.create_parameters(pattern=pattern)
+        count = self.json_count.go(data=data).get_adverts_number()
+        self.start = 0
+        if count:
+            ids = self.json_ids.go(data=data).iter_job_adverts(pattern=pattern,
+                                                               fonctions='[]',
+                                                               lieux='[]',
+                                                               secteursActivite='[]',
+                                                               typesContrat='[]',
+                                                               typesConvention='[]',
+                                                               niveauxExperience='[]',
+                                                               salaire_min='',
+                                                               salaire_max='',
+                                                               date_publication='',
+                                                               start=self.start,
+                                                               count=count,
+                                                               range=20)
+            for _id in ids:
+                yield self.json_offre.go(_id=_id.id).get_job_advert()
 
-    def advanced_search_job(self, region=None, fonction=None, secteur=None, salaire=None, contrat=None, limit_date=None, level=None):
-        self.location(
-            'https://cadres.apec.fr/liste-offres-emploi-cadres/71____%s_%s_%s_%s_%s_%s_%s___offre-d-emploi.html'
-            % (
-                region,
-                fonction,
-                secteur,
-                salaire,
-                level,
-                limit_date,
-                contrat
-            ))
-        assert self.is_on_page(SearchPage)
-        return self.page.iter_job_adverts()
+    def get_job_advert(self, _id, advert=None):
+        return self.json_offre.go(_id=_id).get_job_advert(obj=advert)
 
-    @id2url(ApecJobAdvert.id2url)
-    def get_job_advert(self, url, advert):
-        self.location(url)
-        assert self.is_on_page(AdvertPage)
-        return self.page.get_job_advert(url, advert)
+    def advanced_search_job(self, region='', fonction='', secteur='', salaire='', contrat='', limit_date='', level=''):
+        salaire_max = ''
+        salaire_min = ''
+
+        if salaire:
+            s = salaire.split('|')
+            salaire_max = s[1]
+            salaire_min = s[0]
+
+        data = self.create_parameters(fonctions='[%s]' % fonction,
+                                      lieux='[%s]' % region,
+                                      secteursActivite='[%s]' % secteur,
+                                      typesContrat='[%s]' % contrat,
+                                      niveauxExperience='[%s]' % level,
+                                      salaire_min=salaire_min,
+                                      salaire_max=salaire_max,
+                                      date_publication=limit_date)
+
+        count = self.json_count.go(data=data).get_adverts_number()
+        self.start
+        if count:
+            ids = self.json_ids.go(data=data).iter_job_adverts(pattern='',
+                                                               fonctions='[%s]' % fonction,
+                                                               lieux='[%s]' % region,
+                                                               secteursActivite='[%s]' % secteur,
+                                                               typesContrat='[%s]' % contrat,
+                                                               niveauxExperience='[%s]' % level,
+                                                               salaire_min=salaire_min,
+                                                               salaire_max=salaire_max,
+                                                               date_publication=limit_date,
+                                                               start=self.start,
+                                                               count=count,
+                                                               range=20)
+            for _id in ids:
+                yield self.json_offre.go(_id=_id).get_job_advert()

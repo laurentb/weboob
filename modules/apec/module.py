@@ -17,13 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from weboob.capabilities.job import BaseJobAdvert
 from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.job import CapJob
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
 from .browser import ApecBrowser
-from .job import ApecJobAdvert
 
 __all__ = ['ApecModule']
 
@@ -38,63 +37,174 @@ class ApecModule(Module, CapJob):
     BROWSER = ApecBrowser
 
     places_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
-        '00|': u'-- Indifférent --',
-        '01|700': u'Alsace',
-        '02|701': u'Aquitaine',
-        '03|702': u'Auvergne',
-        '04|703': u'Basse-Normandie',
-        '05|704': u'Bourgogne',
-        '06|705': u'Bretagne',
-        '07|706': u'Centre',
-        '08|707': u'Champagne',
-        '09|20': u'Corse',
-        '10|99712': u'France Outre-Mer',
-        '11|709': u'Franche-Comté',
-        '12|710': u'Haute-Normandie',
-        '13|711': u'Ile-de-France',
-        '14|712': u'Languedoc-Roussillon',
-        '15|713': u'Limousin',
-        '16|714': u'Lorraine',
-        '17|715': u'Midi-Pyrénées',
-        '18|716': u'Nord-Pas-de-Calais',
-        '19|720': u'PACA',
-        '20|717': u'Pays de La Loire',
-        '21|718': u'Picardie',
-        '22|719': u'Poitou-Charentes',
-        '23|721': u'Rhône-Alpes',
-        '24|99109': u'Allemagne',
-        '25|99106': u'Estonie',
-        '26|99108': u'Lituanie',
-        '27|99116': u'République Tchèque',
-        '28|99110': u'Autriche',
-        '29|99105': u'Finlande',
-        '30|99137': u'Luxembourg',
-        '31|99114': u'Roumanie',
-        '32|99131': u'Belgique',
-        '33|99126': u'Grèce',
-        '34|99144': u'Malte',
-        '35|99132': u'Royaume Uni',
-        '36|99111': u'Bulgarie',
-        '37|99112': u'Hongrie',
-        '38|99135': u'Pays Bas',
-        '39|99117': u'Slovaquie',
-        '40|99254': u'Chypre',
-        '41|99136': u'Irlande',
-        '42|99122': u'Pologne',
-        '43|99145': u'Slovénie',
-        '44|99101': u'Danemark',
-        '45|99127': u'Italie',
-        '46|99139': u'Portugal',
-        '47|99104': u'Suède',
-        '48|99134': u'Espagne',
-        '49|99107': u'Lettonie',
-        '50|99700': u'UE Hors France',
-        '51|99702': u'Amérique du Nord',
-        '52|99715': u'Afrique',
-        '53|99711': u'Océanie',
-        '54|99701': u'Europe Hors UE',
-        '55|99714': u'Amérique Latine',
-        '56|99716': u'Asie',
+        '001|99700': u'UE Hors France',
+        '002|99126': u'..Grèce',
+        '003|99132': u'..Royaume Uni',
+        '004|99134': u'..Espagne',
+        '005|99136': u'..Irlande',
+        '006|99139': u'..Portugal',
+        '007|99254': u'..Chypre',
+        '008|99127': u'..Italie',
+        '009|99131': u'..Belgique',
+        '010|99135': u'..Pays Bas',
+        '011|99137': u'..Luxembourg',
+        '012|99144': u'..Malte',
+        '013|99145': u'..Slovénie',
+        '014|99101': u'..Danemark',
+        '015|99104': u'..Suède',
+        '016|99105': u'..Finlande',
+        '017|99106': u'..Estonie',
+        '018|99107': u'..Lettonie',
+        '019|99108': u'..Lituanie',
+        '020|99109': u'..Allemagne',
+        '021|99110': u'..Autriche',
+        '022|99111': u'..Bulgarie',
+        '023|99112': u'..Hongrie',
+        '024|99114': u'..Roumanie',
+        '025|99116': u'..République Tchèque',
+        '026|99117': u'..Slovaquie',
+        '027|99119': u'..Croatie',
+        '028|99122': u'..Pologne',
+        '029|799': u'France',
+        '030|711': u'..Ile-de-France',
+        '031|75': u'....Paris',
+        '032|77': u'....Seine-et-Marne',
+        '033|78': u'....Yvelines',
+        '034|91': u'....Essonne',
+        '035|92': u'....Hauts-de-Seine',
+        '036|93': u'....Seine-Saint-Denis',
+        '037|94': u'....Val-de-Marne',
+        '038|95': u'....Val-d\'Oise',
+        '039|703': u'..Basse-Normandie',
+        '040|14': u'....Calvados',
+        '041|50': u'....Manche',
+        '042|61': u'....Orne',
+        '043|705': u'..Bretagne',
+        '044|22': u'....Côtes d\'Armor',
+        '045|29': u'....Finistère',
+        '046|35': u'....Ille-et-Vilaine',
+        '047|56': u'....Morbihan',
+        '048|706': u'..Centre',
+        '049|18': u'....Cher',
+        '050|28': u'....Eure-et-Loir',
+        '051|36': u'....Indre',
+        '052|37': u'....Indre-et-Loire',
+        '053|41': u'....Loir-et-Cher',
+        '054|45': u'....Loiret',
+        '055|710': u'..Haute-Normandie',
+        '056|27': u'....Eure',
+        '057|76': u'....Seine-Maritime',
+        '058|717': u'..Pays de La Loire',
+        '059|44': u'....Loire-Atlantique',
+        '060|49': u'....Maine-et-Loire',
+        '061|53': u'....Mayenne',
+        '062|72': u'....Sarthe',
+        '063|85': u'....Vendée',
+        '064|700': u'..Alsace',
+        '065|67': u'....Bas-Rhin',
+        '066|68': u'....Haut-Rhin',
+        '067|704': u'..Bourgogne',
+        '068|21': u'....Côte d\'Or',
+        '069|58': u'....Nièvre',
+        '070|71': u'....Saône-et-Loire',
+        '071|89': u'....Yonne',
+        '072|707': u'..Champagne',
+        '073|8': u'....Ardennes',
+        '074|10': u'....Aube',
+        '075|51': u'....Marne',
+        '076|52': u'....Haute-Marne',
+        '077|709': u'..Franche-Comté',
+        '078|25': u'....Doubs',
+        '079|39': u'....Jura',
+        '080|70': u'....Haute-Saône',
+        '081|90': u'....Territoire de Belfort',
+        '082|714': u'..Lorraine',
+        '083|54': u'....Meurthe-et-Moselle',
+        '084|55': u'....Meuse',
+        '085|57': u'....Moselle',
+        '086|88': u'....Vosges',
+        '087|716': u'..Nord-Pas-de-Calais',
+        '088|59': u'....Nord',
+        '089|62': u'....Pas-de-Calais',
+        '090|718': u'..Picardie',
+        '091|2': u'....Aisne',
+        '092|60': u'....Oise',
+        '093|80': u'....Somme',
+        '094|20': u'..Corse',
+        '095|750': u'....Corse du Sud',
+        '096|751': u'....Haute-Corse',
+        '097|702': u'..Auvergne',
+        '098|3': u'....Allier',
+        '099|15': u'....Cantal',
+        '100|43': u'....Haute-Loire',
+        '101|63': u'....Puy-de-Dôme',
+        '102|720': u'..PACA',
+        '103|4': u'....Alpes-de-Haute-Provence',
+        '104|5': u'....Hautes-Alpes',
+        '105|6': u'....Alpes-Maritimes',
+        '106|13': u'....Bouches-du-Rhône',
+        '107|83': u'....Var',
+        '108|84': u'....Vaucluse',
+        '109|721': u'..Rhône-Alpes',
+        '110|1': u'....Ain',
+        '111|7': u'....Ardèche',
+        '112|26': u'....Drôme',
+        '113|38': u'....Isère',
+        '114|42': u'....Loire',
+        '115|69': u'....Rhône',
+        '116|73': u'....Savoie',
+        '117|74': u'....Haute-Savoie',
+        '118|701': u'..Aquitaine',
+        '119|24': u'....Dordogne',
+        '120|33': u'....Gironde',
+        '121|40': u'....Landes',
+        '122|47': u'....Lot-et-Garonne',
+        '123|64': u'....Pyrénées-Atlantiques',
+        '124|712': u'..Languedoc-Roussillon',
+        '125|11': u'....Aude',
+        '126|30': u'....Gard',
+        '127|34': u'....Hérault',
+        '128|48': u'....Lozère',
+        '129|66': u'....Pyrénées-Orientales',
+        '130|713': u'..Limousin',
+        '131|19': u'....Corrèze',
+        '132|23': u'....Creuse',
+        '133|87': u'....Haute-Vienne',
+        '134|715': u'..Midi-Pyrénées',
+        '135|9': u'....Ariège',
+        '136|12': u'....Aveyron',
+        '137|31': u'....Haute-Garonne',
+        '138|32': u'....Gers',
+        '139|46': u'....Lot',
+        '140|65': u'....Hautes-Pyrénées',
+        '141|81': u'....Tarn',
+        '142|82': u'....Tarn-et-Garonne',
+        '143|719': u'..Poitou-Charentes',
+        '144|16': u'....Charente',
+        '145|17': u'....Charente-Maritime',
+        '146|79': u'....Deux-Sèvres',
+        '147|86': u'....Vienne',
+        '148|99712': u'..France Outre-Mer',
+        '149|99519': u'....Terres Australes et Antarctiques Françaises',
+        '150|97100': u'....Guadeloupe',
+        '151|97200': u'....Martinique',
+        '152|97300': u'....Guyane',
+        '153|97400': u'....La Réunion',
+        '154|97500': u'....Saint-Pierre-et-Miquelon',
+        '155|97600': u'....Mayotte',
+        '156|98300': u'....Polynésie Française',
+        '157|98600': u'....Wallis et Futuna',
+        '158|98800': u'....Nouvelle Calédonie',
+        '159|97800': u'....Saint-Martin',
+        '160|97700': u'....Saint-Barthélémy',
+        '161|102099': u'International',
+        '162|99715': u'..Afrique',
+        '163|99716': u'..Asie',
+        '164|99700': u'..UE Hors France',
+        '165|99701': u'..Europe Hors UE',
+        '166|99702': u'..Amérique du Nord',
+        '167|99711': u'..Océanie',
+        '168|99714': u'..Amérique Latine',
     }.iteritems())])
 
     fonction_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
@@ -191,18 +301,18 @@ class ApecModule(Module, CapJob):
 
     type_contrat_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         ' ': u'-- Indifférent --',
-        '143694': u'CDI',
-        '143695': u'CDD',
-        '143696': u'Travail Temporaire',
+        '101888': u'CDI',
+        '101887': u'CDD',
+        '101889': u'Interim',
     }.iteritems())])
 
     salary_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         ' ': u'-- Indifférent --',
-        '101839': u'Moins de 35 K€',
-        '101840': u'Entre 35 et 49 K€',
-        '101841': u'Entre 50 et 69 K€',
-        '101842': u'Entre 70 et 90 K€',
-        '101843': u'Plus de 90 K€',
+        '0|35': u'Moins de 35 K€',
+        '35|50': u'Entre 35 et 49 K€',
+        '50|70': u'Entre 50 et 69 K€',
+        '70|90': u'Entre 70 et 90 K€',
+        '90|1000': u'Plus de 90 K€',
     }.iteritems())])
 
     date_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
@@ -214,9 +324,9 @@ class ApecModule(Module, CapJob):
     }.iteritems())])
 
     level_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
-        ' ': u'-- Indifférent --',
-        '101846': u'Débutant',
-        '101848': u'Expérimenté',
+        '101882': u'Tous niveaux d\'expérience',
+        '101881': u'Débutant',
+        '101883': u'Expérimenté',
     }.iteritems())])
 
     CONFIG = BackendConfig(Value('place', label=u'Lieu', choices=places_choices, default=''),
@@ -228,9 +338,8 @@ class ApecModule(Module, CapJob):
                            Value('level', label=u'Expérience', choices=level_choices, default=''))
 
     def search_job(self, pattern=None):
-        with self.browser:
-            for job_advert in self.browser.search_job(pattern=pattern):
-                yield job_advert
+        for job_advert in self.browser.search_job(pattern=pattern):
+            yield self.fill_obj(job_advert)
 
     def decode_choice(self, choice):
         splitted_choice = choice.split('|')
@@ -247,13 +356,19 @@ class ApecModule(Module, CapJob):
                                                            contrat=self.config['contrat'].get(),
                                                            limit_date=self.config['limit_date'].get(),
                                                            level=self.config['level'].get()):
-            yield job_advert
+            yield self.fill_obj(job_advert)
 
     def get_job_advert(self, _id, advert=None):
-        with self.browser:
-            return self.browser.get_job_advert(_id, advert)
+        job_advert = self.browser.get_job_advert(_id, advert)
+        return self.fill_obj(job_advert)
 
-    def fill_obj(self, advert, fields):
-        self.get_job_advert(advert.id, advert)
+    def fill_obj(self, advert, fields=None):
+        if advert.contract_type in self.type_contrat_choices:
+            advert.contract_type = self.type_contrat_choices[advert.contract_type]
 
-    OBJECTS = {ApecJobAdvert: fill_obj}
+        if advert.experience in self.level_choices:
+            advert.experience = self.level_choices[advert.experience]
+
+        return advert
+
+    OBJECTS = {BaseJobAdvert: fill_obj}

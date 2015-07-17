@@ -16,67 +16,63 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+import requests
+
+from weboob.browser.elements import ItemElement, method, DictElement
+from weboob.browser.pages import JsonPage, pagination
+from weboob.browser.filters.standard import DateTime, Format, Regexp
+from weboob.browser.filters.json import Dict
+from weboob.browser.filters.html import CleanHTML
+from weboob.capabilities.job import BaseJobAdvert
+from weboob.capabilities.base import NotAvailable
 
 
-from weboob.deprecated.browser import Page
-from weboob.tools.html import html2text
-import dateutil.parser
-import re
+class IdsPage(JsonPage):
 
-from .job import ApecJobAdvert
+    def get_adverts_number(self):
+        return self.doc['totalCount']
+
+    @pagination
+    @method
+    class iter_job_adverts(DictElement):
+        item_xpath = 'resultats'
+
+        def next_page(self):
+            self.page.browser.start += self.env['range']
+            if self.page.browser.start <= self.env['count']:
+                data = self.page.browser.create_parameters(pattern=self.env['pattern'],
+                                                           fonctions=self.env['fonctions'],
+                                                           lieux=self.env['lieux'],
+                                                           secteursActivite=self.env['secteursActivite'],
+                                                           typesContrat=self.env['typesContrat'],
+                                                           typesConvention=self.env['typesConvention'],
+                                                           niveauxExperience=self.env['niveauxExperience'],
+                                                           salaire_min=self.env['salaire_min'],
+                                                           salaire_max=self.env['salaire_max'],
+                                                           date_publication=self.env['date_publication'],
+                                                           start=self.page.browser.start,
+                                                           range=self.env['range'])
+
+                return requests.Request("POST", self.page.url, data=data)
+
+        class item(ItemElement):
+            klass = BaseJobAdvert
+            obj_id = Regexp(Dict('@uriOffre'), '.*=(.*)')
 
 
-class SearchPage(Page):
-    def iter_job_adverts(self):
-        re_id_title = re.compile('/offres-emploi-cadres/\d*_\d*_\d*_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?).html', re.DOTALL)
-        divs = self.document.getroot().xpath("//div[@class='boxContent offre']") + self.document.getroot().xpath("//div[@class='boxContent offre even']")
-        for div in divs:
-            a = self.parser.select(div, 'div/div/h3/a', 1, method='xpath')
-            _id = u'%s/%s' % (re_id_title.search(a.attrib['href']).group(1), re_id_title.search(a.attrib['href']).group(9))
-            advert = ApecJobAdvert(_id)
-            advert.title = u'%s' % re_id_title.search(a.attrib['href']).group(9).replace('-', ' ')
-            l = self.parser.select(div, 'h4', 1).text.split('-')
-            advert.society_name = u'%s' % l[0].strip()
-            advert.place = u'%s' % l[-1].strip()
-            date = self.parser.select(div, 'div/div/div', 1, method='xpath')
-            advert.publication_date = dateutil.parser.parse(date.text_content().strip()[8:]).date()
-            yield advert
+class OffrePage(JsonPage):
+    @method
+    class get_job_advert(ItemElement):
+        klass = BaseJobAdvert
 
-
-class AdvertPage(Page):
-    def get_job_advert(self, url, advert):
-        re_id_title = re.compile('/offres-emploi-cadres/\d*_\d*_\d*_(.*?)________(.*?).html(.*?)', re.DOTALL)
-        if advert is None:
-            _id = u'%s/%s' % (re_id_title.search(url).group(1), re_id_title.search(url).group(2))
-            advert = ApecJobAdvert(_id)
-            advert.title = re_id_title.search(url).group(2).replace('-', ' ')
-
-        description = self.document.getroot().xpath("//div[@class='contentWithDashedBorderTop marginTop boxContent']/div")[0]
-        advert.description = html2text(self.parser.tostring(description))
-
-        advert.job_name = advert.title
-
-        trs = self.document.getroot().xpath("//table[@class='noFieldsTable']/tr")
-        for tr in trs:
-            th = self.parser.select(tr, 'th', 1, method='xpath')
-            td = self.parser.select(tr, 'td', 1, method='xpath')
-            if u'Date de publication' in u'%s' % th.text_content():
-                advert.publication_date = dateutil.parser.parse(td.text_content()).date()
-            elif u'Société' in u'%s' % th.text_content() and not advert.society_name:
-                society_name = td.text_content()
-                a = self.parser.select(td, 'a', method='xpath')
-                if a:
-                    advert.society_name = u'%s' % society_name.replace(a[0].text_content(), '').strip()
-                else:
-                    advert.society_name = society_name.strip()
-            elif u'Type de contrat' in u'%s' % th.text_content():
-                advert.contract_type = u'%s' % td.text_content().strip()
-            elif u'Lieu' in u'%s' % th.text_content():
-                advert.place = u'%s' % td.text_content()
-            elif u'Salaire' in u'%s' % th.text_content():
-                advert.pay = u'%s' % td.text_content()
-            elif u'Expérience' in u'%s' % th.text_content():
-                advert.experience = u'%s' % td.text_content()
-
-        advert.url = url
-        return advert
+        obj_id = Dict('numeroOffre')
+        obj_title = Dict('intitule')
+        obj_description = CleanHTML(Dict('texteHtml'))
+        obj_job_name = Dict('intitule')
+        obj_publication_date = DateTime(Dict('datePublication'))
+        obj_society_name = Dict('nomCommercialEtablissement', default=NotAvailable)
+        obj_contract_type = Dict('idNomTypeContrat')
+        obj_place = Dict('lieuTexte')
+        obj_pay = Dict('salaireTexte')
+        obj_experience = Dict('idNomNiveauExperience')
+        obj_url = Format('https://cadres.apec.fr/home/mes-offres/recherche-des-offres-demploi/liste-des-offres-demploi/detail-de-loffre-demploi.html?numIdOffre=%s', Dict('numeroOffre'))
