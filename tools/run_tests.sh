@@ -70,6 +70,7 @@ ${PYTHON} "$(dirname $0)/stale_pyc.py"
 echo "file://${WEBOOB_MODULES}" > "${WEBOOB_TMPDIR}/sources.list"
 
 export WEBOOB_WORKDIR="${WEBOOB_TMPDIR}"
+export WEBOOB_DATADIR="${WEBOOB_TMPDIR}"
 export PYTHONPATH="${WEBOOB_DIR}:${PYTHONPATH}"
 export NOSE_NOPATH="1"
 ${PYTHON} "${WEBOOB_DIR}/scripts/weboob-config" update

@@ -22,6 +22,7 @@ chmod 600 "${WEBOOB_TMPDIR}/backends"
 echo "file://$WEBOOB_DIR/modules" > "${WEBOOB_TMPDIR}/sources.list"
 
 export WEBOOB_WORKDIR="${WEBOOB_TMPDIR}"
+export WEBOOB_DATADIR="${WEBOOB_TMPDIR}"
 export PYTHONPATH="${WEBOOB_DIR}"
 "${WEBOOB_DIR}/scripts/weboob-config" update
 

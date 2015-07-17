@@ -24,6 +24,7 @@ if project not in paths:
 env = os.environ.copy()
 env['PYTHONPATH'] = ':'.join(p for p in paths if p)
 env['WEBOOB_WORKDIR'] = wd
+env['WEBOOB_DATADIR'] = wd
 env['WEBOOB_BACKENDS'] = os.getenv('WEBOOB_LOCAL_BACKENDS',
                                    os.getenv('WEBOOB_BACKENDS',
                                              os.path.join(os.environ.get('XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config')), 'weboob', 'backends')))
