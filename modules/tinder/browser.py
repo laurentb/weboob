@@ -102,7 +102,7 @@ class TinderBrowser(APIBrowser):
         if len(self.recs) == 0:
             self.update_recs()
         if len(self.recs) == 0:
-            return
+            return 60
 
         profile = self.recs.pop()
 
