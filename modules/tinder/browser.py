@@ -44,6 +44,11 @@ class FacebookBrowser(DomainBrowser):
         form['email'] = username
         form['pass'] = password
         form['persistent'] = 1
+        for script in page.doc.xpath('//script'):
+            m = re.search('"_js_datr","([^"]+)"', script.text or '')
+            if m:
+                self.session.cookies.set('_js_datr', m.group(1))
+
         form.submit(allow_redirects=False)
         if 'Location' not in self.response.headers:
             raise BrowserIncorrectPassword()
