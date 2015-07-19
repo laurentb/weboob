@@ -116,7 +116,7 @@ class HappnBrowser(DomainBrowser):
         self.request('/api/conversations/%s/messages/' % thread_id, data={'message': content})
 
     def find_users(self):
-        return self.request('/api/users/me/notifications?fields=id,is_pushed,lon,actions,creation_date,is_notified,lat,modification_date,notification_type,nb_times,notifier.fields(id,job,is_accepted,workplace,my_relation,distance,gender,my_conversation,is_charmed,nb_photos,last_name,first_name,age),notified.fields(is_accepted,is_charmed)')['data']
+        return self.request('/api/users/me/notifications?types=468&fields=id,is_pushed,lon,actions,creation_date,is_notified,lat,modification_date,notification_type,nb_times,notifier.fields(id,job,is_accepted,workplace,my_relation,distance,gender,my_conversation,is_charmed,nb_photos,last_name,first_name,age),notified.fields(is_accepted,is_charmed)')['data']
 
     def accept(self, id):
         self.request('/api/users/me/accepted/%s' % id, method='POST')
