@@ -88,7 +88,7 @@ class LoginPage(JsonPage):
 
         if error:
             msg = self.get('message')
-            if error == 201:
+            if error == 201 or error == 21510:
                 raise BrowserIncorrectPassword(msg)
             self.logger.debug('Unexpected error at login: "%s" (code=%s)' % (msg, error))
 
