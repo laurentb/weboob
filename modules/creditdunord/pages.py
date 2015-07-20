@@ -315,6 +315,9 @@ class ProTransactionsPage(TransactionsPage):
             t.parse(date, raw)
             t.set_amount(tr['mont'])
 
+            if t.date is NotAvailable:
+                continue
+
             if self.set_coming(t):
                 continue
 
