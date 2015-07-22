@@ -237,7 +237,15 @@ class OperationsPage(LoggedPage, HTMLPage):
 
             class OwnRaw(Filter):
                 def __call__(self, item):
-                    parts = [txt.strip() for txt in TableCell('raw')(item)[0].itertext() if len(txt.strip()) > 0]
+                    el = TableCell('raw')(item)[0]
+
+                    # Remove hidden parts of labels:
+                    # hideifscript: Date de valeur XX/XX/XXXX
+                    # fd: Avis d'opéré
+                    for sub in el.xpath('.//*[has-class("hideifscript") or has-class("fd")]'):
+                        sub.drop_tree()
+
+                    parts = [txt.strip() for txt in el.itertext() if len(txt.strip()) > 0]
 
                     # To simplify categorization of CB, reverse order of parts to separate
                     # location and institution.
