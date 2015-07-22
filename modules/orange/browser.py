@@ -32,10 +32,16 @@ __all__ = ['OrangeBrowser']
 class OrangeBrowser(Browser):
     DOMAIN = 'orange.fr'
     PAGES = {
+        'http://id.orange.fr/auth_user/bin/auth_user.cgi.*': LoginPage,
+        'http://id.orange.fr/auth_user/bin/auth0user.cgi.*': LoginPage,
+        'https://id.orange.fr/auth_user/bin/auth_user.cgi.*': LoginPage,
+        'https://id.orange.fr/auth_user/bin/auth0user.cgi.*': LoginPage,
         'https://authweb.orange.fr/auth_user/bin/auth_user.cgi.*': LoginPage,
         'https://authweb.orange.fr/auth_user/bin/auth0user.cgi.*': LoginPage,
         'http://smsmms1.orange.fr/./Sms/sms_write.php.*'   : ComposePage,
         'http://smsmms1.orange.fr/./Sms/sms_write.php?command=send' : ConfirmPage,
+        'https://smsmms1.orange.fr/./Sms/sms_write.php.*'   : ComposePage,
+        'https://smsmms1.orange.fr/./Sms/sms_write.php?command=send' : ConfirmPage,
         }
 
     def get_nb_remaining_free_sms(self):
