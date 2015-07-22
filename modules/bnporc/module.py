@@ -28,6 +28,7 @@ from weboob.tools.value import ValueBackendPassword, Value
 
 from .deprecated.browser import BNPorc
 from .enterprise.browser import BNPEnterprise
+from .company.browser import BNPCompany
 from .pp.browser import BNPParibasBrowser
 
 
@@ -50,7 +51,8 @@ class BNPorcModule(Module, CapBank, CapMessages):
         Value('website', label='Type de compte', default='pp',
               choices={'pp': 'Particuliers/Professionnels',
                        'ent': 'Entreprises',
-                       'ppold': 'Particuliers/Professionnels (ancien site)'}))
+                       'ppold': 'Particuliers/Professionnels (ancien site)',
+                       'ent2': 'Entreprises et PME (nouveau site)'}))
     STORAGE = {'seen': []}
 
     # Store the messages *list* for this duration
@@ -62,7 +64,7 @@ class BNPorcModule(Module, CapBank, CapMessages):
         self._threads_age = datetime.utcnow()
 
     def create_default_browser(self):
-        b = {'ppold': BNPorc, 'ent': BNPEnterprise, 'pp': BNPParibasBrowser}
+        b = {'ppold': BNPorc, 'ent': BNPEnterprise, 'ent2': BNPCompany, 'pp': BNPParibasBrowser}
         self.BROWSER = b[self.config['website'].get()]
         return self.create_browser(self.config['login'].get(),
                                    self.config['password'].get())
