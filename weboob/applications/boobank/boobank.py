@@ -79,7 +79,10 @@ class OfxFormatter(IFormatter):
         self.output(u'<DTEND>%s' % datetime.date.today().strftime('%Y%m%d'))
 
     def format_obj(self, obj, alias):
-        if obj.type != 0:
+        # special case of coming operations with card ID
+        if hasattr(obj, '_coming') and obj._coming and hasattr(obj, 'obj._cardid') and not empty(obj._cardid):
+            result = u'<STMTTRN><TRNTYPE>%s\n' % obj._cardid
+        elif obj.type != 0:
             result = u'<STMTTRN><TRNTYPE>%s\n' % self.TYPES_TRANS[obj.type]
         else:
             result = u'<STMTTRN><TRNTYPE>%s\n' % ('DEBIT' if obj.amount < 0 else 'CREDIT')

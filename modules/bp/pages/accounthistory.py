@@ -63,6 +63,9 @@ class AccountHistory(Page):
         operations = []
 
         if deferred:
+            card_no_re = re.compile('indexCarte=(\d)')
+            card_no = card_no_re.search(self.url).group(0).replace('indexCarte=', '')
+
             # look for the debit date, and if it is already debited
             txt = u''.join([txt.strip() for txt in self.document.xpath('//div[@class="infosynthese"]')[0].itertext()])
             m = re.search('(\d+)/(\d+)/(\d+)', txt)
@@ -93,6 +96,7 @@ class AccountHistory(Page):
             op.set_amount(amount)
 
             if deferred:
+                op._cardid = 'CARTE %s' % card_no
                 op.rdate = op.date
                 op.date = debit_date
                 # on card page, amounts are without sign
