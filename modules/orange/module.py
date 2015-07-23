@@ -31,8 +31,8 @@ __all__ = ['OrangeModule']
 
 class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost):
     NAME = 'orange'
-    MAINTAINER = u'Nicolas Duhamel'
-    EMAIL = 'nicolas@jombi.fr'
+    MAINTAINER = u'Lucas Nussbaum'
+    EMAIL = 'lucas@lucas-nussbaum.net'
     VERSION = '1.1'
     DESCRIPTION = 'Orange French mobile phone provider'
     LICENSE = 'AGPLv3+'
