@@ -21,6 +21,7 @@
 import datetime
 from dateutil.relativedelta import relativedelta
 
+from weboob.exceptions import BrowserHTTPError
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, AccountPage, UselessPage, HomePage, ProHistoryPage, PartHistoryPage, HistoryDetailsPage, ErrorPage
@@ -128,12 +129,15 @@ class Paypal(Browser):
             return iter([])
 
         assert step_max <= 365*2  # PayPal limitations as of 2014-06-16
-        for i in self.smart_fetch(beginning=self.BEGINNING,
-                                  end=datetime.date.today(),
-                                  step_min=step_min,
-                                  step_max=step_max,
-                                  fetch_fn=fetch_fn):
-            yield i
+        try:
+            for i in self.smart_fetch(beginning=self.BEGINNING,
+                                      end=datetime.date.today(),
+                                      step_min=step_min,
+                                      step_max=step_max,
+                                      fetch_fn=fetch_fn):
+                yield i
+        except BrowserHTTPError:
+            self.logger.warning("Paypal timeout")
 
     def smart_fetch(self, beginning, end, step_min, step_max, fetch_fn):
         """
