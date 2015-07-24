@@ -24,7 +24,6 @@ from weboob.browser.pages import JsonPage, HTMLPage
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.capabilities.weather import Forecast, Current, City, Temperature
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.html import CleanHTML
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Format
 
 
@@ -46,30 +45,31 @@ class SearchCitiesPage(JsonPage):
 class WeatherPage(HTMLPage):
     @method
     class iter_forecast(ListElement):
-        item_xpath = '//div[@class="group-days-summary"]/div'
+        item_xpath = '//div[@class="group-days-summary"]/article'
 
         class item(ItemElement):
             klass = Forecast
 
-            obj_id = CleanText('./div/div/h3[@class="day-summary-title"]')
-            obj_date = CleanText('./div/div/h3[@class="day-summary-title"]')
+            obj_id = CleanText('./header/h4')
+            obj_date = CleanText('./header/h4')
 
             def obj_low(self):
-                temp = CleanDecimal(Regexp(CleanText('./div/div/div[@class="day-summary-temperature"]'),
-                                           '(.*)\|.*'))(self)
-                unit = Regexp(CleanText('./div/div/div[@class="day-summary-temperature"]'), u'.*\xb0(\w) \|.*')(self)
+                temp = CleanDecimal(Regexp(CleanText('./ul/li[@class="day-summary-temperature"]'),
+                                           '(.*) / .*'))(self)
+                unit = Regexp(CleanText('./ul/li[@class="day-summary-temperature"]'), u'.*\xb0(\w) Minimale / .*')(self)
                 return Temperature(float(temp), unit)
 
             def obj_high(self):
-                temp = CleanDecimal(Regexp(CleanText('./div/div/div[@class="day-summary-temperature"]'),
-                                           '.*\|(.*)'))(self)
-                unit = Regexp(CleanText('./div/div/div[@class="day-summary-temperature"]'), u'.*\|.*\xb0(\w).*')(self)
+                temp = CleanDecimal(Regexp(CleanText('./ul/li[@class="day-summary-temperature"]'),
+                                           '.* / (.*)'))(self)
+                unit = Regexp(CleanText('./ul/li[@class="day-summary-temperature"]'), u'.* / .*\xb0(\w).*')(self)
                 return Temperature(float(temp), unit)
 
-            obj_text = Format('%s %s %s %s', CleanHTML('./div/div/div[@class="day-summary-broad"]'),
-                              CleanHTML('./div/div/div[@class="day-summary-wind"]'),
-                              CleanHTML('./div/div/div[@class="day-summary-uv"]'),
-                              CleanHTML('./div/div/div[@class="day-summary-indice"]/img/@title'))
+            obj_text = Format('%s - %s - %s - %s',
+                              CleanText('./ul/li[@class="day-summary-temperature"]'),
+                              CleanText('./ul/li[@class="day-summary-image"]'),
+                              CleanText('./ul/li[@class="day-summary-uv"]'),
+                              CleanText('./ul/li[@class="day-summary-wind"]'))
 
     @method
     class get_current(ItemElement):
@@ -77,15 +77,14 @@ class WeatherPage(HTMLPage):
 
         obj_id = date.today()
         obj_date = date.today()
-        obj_text = Format('%s %s %s %s',
-                          CleanHTML('(//div[@class="group-days-summary"])[1]/div[1]/div/div/div[@class="day-summary-broad"]'),
-                          CleanHTML('(//div[@class="group-days-summary"])[1]/div[1]/div/div/div[@class="day-summary-wind"]'),
-                          CleanHTML('(//div[@class="group-days-summary"])[1]/div[1]/div/div/div[@class="day-summary-uv"]'),
-                          CleanHTML('(//div[@class="group-days-summary"])[1]/div[1]/div/div/div[@class="day-summary-indice"]/img/@title'))
+        obj_text = Format('%s - %s - %s - %s',
+                          CleanText('(//div[@class="group-days-summary"])[1]/article[1]/ul/li[@class="day-summary-temperature"]'),
+                          CleanText('(//div[@class="group-days-summary"])[1]/article[1]/ul/li[@class="day-summary-image"]'),
+                          CleanText('(//div[@class="group-days-summary"])[1]/article[1]/ul/li[@class="day-summary-uv"]'),
+                          CleanText('(//div[@class="group-days-summary"])[1]/article[1]/ul/li[@class="day-summary-wind"]'))
 
         def obj_temp(self):
-            temp = CleanDecimal(Regexp(CleanText('(//div[@class="group-days-summary"])[1]/div[1]/div/div/div[@class="day-summary-temperature"]'),
-                                       '(.*)\|.*'))(self)
-            unit = Regexp(CleanText('(//div[@class="group-days-summary"])[1]/div[1]/div/div/div[@class="day-summary-temperature"]'),
-                          u'.*\xb0(\w) \|.*')(self)
+            temp = CleanDecimal('//div[@id="detail-day-01"]/table/tr[@class="in-between"]/td[1]')(self)
+            unit = Regexp(CleanText('//div[@id="detail-day-01"]/table/tr[@class="in-between"]/td[1]'),
+                          u'.*\xb0(\w)')(self)
             return Temperature(float(temp), unit)
