@@ -22,8 +22,10 @@ from datetime import datetime
 import re
 import urllib
 from decimal import Decimal
+
 from weboob.deprecated.browser import Page
 from weboob.capabilities.bill import Subscription, Detail, Bill
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 base_url = "http://particuliers.edf.com/"
 
@@ -109,19 +111,15 @@ class BillsPage(EdfBasePage):
                     if amount is None:
                         continue
 
-                    # Remove SPACE character
-                    amount = re.sub(u'\xa0', '', amount)
-
-                    # Remove euro character
-                    amount = re.sub(u'\u20ac', '', amount)
-
-                    bil = Bill()
-                    bil.id = sub._id + "." + date.strftime("%Y%m%d")
-                    bil.date = date
-                    bil.label = u''+amount.strip()
-                    bil.format = u'pdf'
-                    bil._url = url
-                    yield bil
+                    bill = Bill()
+                    bill.id = sub._id + "." + date.strftime("%Y%m%d")
+                    bill.price = Decimal(FrenchTransaction.clean_amount(amount))
+                    bill.currency = bill.get_currency(amount)
+                    bill.date = date
+                    bill.label = self.parser.tocleanstring(list_tds[0])
+                    bill.format = u'pdf'
+                    bill._url = url
+                    yield bill
 
     def get_bill(self, bill):
         self.location(bill._url)
