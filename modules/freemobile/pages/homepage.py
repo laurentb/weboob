@@ -30,6 +30,12 @@ class GetID(Filter):
 
 
 class HomePage(BadUTF8Page):
+    def is_here(self):
+        if len(self.doc.xpath('//form[@id="form_connect"]')) > 0:
+            return False
+
+        return True
+
     @method
     class get_list(ListElement):
         item_xpath = '//div[@class="abonne"]'
