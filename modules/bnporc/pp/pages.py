@@ -136,7 +136,7 @@ class AccountsPage(BNPPage):
         for f in self.path('data.infoUdc.familleCompte.*'):
             for a in f.get('compte'):
                 yield Account.from_dict({
-                    '_key': a.get('key'),
+                    'id': a.get('key'),
                     'label': a.get('libellePersoProduit') or a.get('libelleProduit'),
                     'currency': a.get('devise'),
                     'type': self.FAMILY_TO_TYPE.get(f.get('idFamilleCompte')) or Account.TYPE_UNKNOWN,

@@ -97,7 +97,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     @need_login
     def iter_history(self, account, coming=False):
         self.page = self.history.go(data=JSON({
-            "ibanCrypte": account._key,
+            "ibanCrypte": account.id,
             "pastOrPending": 1,
             "triAV": 0,
             "startDate": None,
