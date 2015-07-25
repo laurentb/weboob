@@ -80,6 +80,11 @@ class CmbModule(Module, CapBank):
                 compile('^F (?P<text>.*)'),
                 Transaction.TYPE_BANK,
                 '%(text)s'
+            ),
+            (   # deposit
+                compile('^VRST (?P<text>.*)'),
+                Transaction.TYPE_DEPOSIT,
+                '%(text)s'
             )
             ]
 
