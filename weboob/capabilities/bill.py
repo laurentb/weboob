@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import BaseObject, StringField, DecimalField, UserError
+from .base import BaseObject, StringField, DecimalField, UserError, Currency
 from .date import DateField
 from .collection import CapCollection
 
@@ -44,7 +44,7 @@ class BillNotFound(UserError):
         UserError.__init__(self, msg)
 
 
-class Detail(BaseObject):
+class Detail(BaseObject, Currency):
     """
     Detail of a subscription
     """
@@ -61,7 +61,7 @@ class Detail(BaseObject):
         BaseObject.__init__(self, 0)
 
 
-class Bill(BaseObject):
+class Bill(BaseObject, Currency):
     """
     Bill.
     """
