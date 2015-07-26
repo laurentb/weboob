@@ -287,6 +287,7 @@ class IngBrowser(LoginBrowser):
 
     ############# CapBill #############
     @need_login
+    @check_bourse
     def get_subscriptions(self):
         return self.billpage.go().iter_account()
 
