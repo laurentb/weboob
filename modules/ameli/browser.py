@@ -34,7 +34,7 @@ class AmeliBrowser(LoginBrowser):
     homep = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_accueil_page', HomePage)
     accountp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_info_perso_page', AccountPage)
     billsp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_revele_mensuel_presta_page', BillsPage)
-    paymentdetailsp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_dernier_paiement_page&paiements_1_actionOverride=%2Fportlets%2Fpaiements%2Fdetailpaiements&paiements_1idPaiement=.*', PaymentDetailsPage)
+    paymentdetailsp = URL('/PortailAS/appmanager/PortailAS/assure\?.*_pageLabel=as_dernier_paiement_page&paiements_1_actionOverride=%2Fportlets%2Fpaiements%2Fdetailpaiements.*', PaymentDetailsPage)
     lastpaymentsp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_dernier_paiement_page$', LastPaymentsPage)
 
     logged = False
