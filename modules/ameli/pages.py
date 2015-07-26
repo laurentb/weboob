@@ -38,12 +38,21 @@ class AmeliBasePage(HTMLPage):
         self.logger.debug('logged: %s' % (logged))
         return logged
 
+    def is_error(self):
+        errors = self.doc.xpath(u'//*[@id="r_errors"]')
+        if errors:
+            return errors[0].text_content()
+        return False
+
 class LoginPage(AmeliBasePage):
     def login(self, login, password):
         form = self.get_form('//form[@name="connexionCompteForm"]')
         form['connexioncompte_2numSecuriteSociale'] = login.encode('utf8')
         form['connexioncompte_2codeConfidentiel'] = password.encode('utf8')
         form.submit()
+
+class LoginValidationPage(AmeliBasePage):
+    pass
 
 class HomePage(AmeliBasePage):
     pass

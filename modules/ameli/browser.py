@@ -21,7 +21,7 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bill import Detail
 from decimal import Decimal
-from .pages import LoginPage, HomePage, AccountPage, LastPaymentsPage, PaymentDetailsPage, BillsPage
+from .pages import LoginPage, LoginValidationPage, HomePage, AccountPage, LastPaymentsPage, PaymentDetailsPage, BillsPage
 
 __all__ = ['AmeliBrowser']
 
@@ -30,6 +30,7 @@ class AmeliBrowser(LoginBrowser):
     BASEURL = 'https://assure.ameli.fr'
 
     loginp = URL('/PortailAS/appmanager/PortailAS/assure\?.*_pageLabel=as_login_page', LoginPage)
+    login_validationp = URL('https://assure.ameli.fr:443/PortailAS/appmanager/PortailAS/assure;jsessionid=[a-zA-Z0-9!;-]+\?_nfpb=true&_windowLabel=connexioncompte_2&connexioncompte_2_actionOverride=%2Fportlets%2Fconnexioncompte%2Fvalidationconnexioncompte&_pageLabel=as_login_page$', LoginValidationPage)
     homep = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_accueil_page', HomePage)
     accountp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_info_perso_page', AccountPage)
     billsp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_revele_mensuel_presta_page', BillsPage)
@@ -50,7 +51,11 @@ class AmeliBrowser(LoginBrowser):
 
         self.page.login(self.username, self.password)
 
-        self.homep.stay_or_go() # Redirection not interpreted by browser. Mannually redirect on homep
+        error = self.page.is_error()
+        if error:
+            raise BrowserIncorrectPassword(error)
+
+        self.homep.stay_or_go()  # Redirection not interpreted by browser. Mannually redirect on homep
 
         if not self.homep.is_here():
             raise BrowserIncorrectPassword()
