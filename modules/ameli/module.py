@@ -60,11 +60,6 @@ class AmeliModule(Module, CapBill):
             subscription = self.get_subscription(subscription)
         return self.browser.iter_history(subscription)
 
-    def get_details(self, subscription):
-        if not isinstance(subscription, Subscription):
-            subscription = self.get_subscription(subscription)
-        return self.browser.iter_details(subscription)
-
     def iter_bills(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)

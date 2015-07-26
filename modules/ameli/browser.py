@@ -89,16 +89,6 @@ class AmeliBrowser(LoginBrowser):
                 yield payment
 
     @need_login
-    def iter_details(self, sub):
-        self.logger.debug('call Browser.iter_details')
-        det = Detail()
-        det.id = sub.id
-        det.label = sub.label
-        det.infos = ''
-        det.price = Decimal('0.0')
-        yield det
-
-    @need_login
     def iter_bills(self, sub):
         self.logger.debug('call Browser.iter_bills')
         if not sub._id.isdigit():
