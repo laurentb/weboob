@@ -24,7 +24,7 @@ import urllib
 from decimal import Decimal
 from weboob.browser.pages import HTMLPage
 from weboob.capabilities.bill import Subscription, Detail, Bill
-from weboob.browser.filters.standard import CleanText
+from weboob.browser.filters.standard import CleanText, RawText, Regexp
 
 # Ugly array to avoid the use of french locale
 FRENCH_MONTHS = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
@@ -59,24 +59,26 @@ class HomePage(AmeliBasePage):
 
 class AccountPage(AmeliBasePage):
     def iter_subscription_list(self):
-        name = CleanText('//div[@id="bloc_contenu_masituation"]/h3', replace=[('Titulaire du compte : ', '')])(self.doc)
+        fullname = CleanText('//div[@id="bloc_contenu_masituation"]/h3', replace=[('Titulaire du compte : ', '')])(self.doc)
         number = re.sub('[^\d]+', '', self.doc.xpath('//div[@id="bloc_contenu_masituation"]/ul/li')[2].text)
         sub = Subscription(number)
         sub._id = number
-        sub.label = unicode(name)
-        sub.subscriber = unicode(name)
+        sub.label = unicode(fullname)
+        firstname = Regexp(RawText('//div[@id="bloc_contenu_masituation"]/h3'), '\t([^\xa0\t]+)\xa0[^:]')(self.doc)
+        sub.subscriber = unicode(firstname)
         yield sub
 
         nb_childs = 0
         childs = self.doc.xpath('//div[@class="bloc_infos"]')
         for child in childs:
-            name = CleanText('.//h3[1]')(child)
+            fullname = CleanText('.//h3[1]')(child)
             nb_childs = nb_childs + 1
             number = "AFFILIE" + str(nb_childs)
             sub = Subscription(number)
             sub._id = number
-            sub.label = unicode(name)
-            sub.subscriber = unicode(name)
+            sub.label = unicode(fullname)
+            firstname = Regexp(RawText('./h3'), '\t([^\xa0\t]+)\xa0[^:]')(child)
+            sub.subscriber = unicode(firstname)
             yield sub
 
 
@@ -94,18 +96,14 @@ class LastPaymentsPage(AmeliBasePage):
 
 class PaymentDetailsPage(AmeliBasePage):
     def iter_payment_details(self, sub):
-        if sub._id.isdigit():
-            idx = 0
-        else:
-            idx = sub._id.replace('AFFILIE', '')
-        if len(self.doc.xpath('//div[@class="centrepage"]/h2')) > idx or self.doc.xpath('//table[@id="DetailPaiement3"]') > idx:
-            id_str = self.doc.xpath('//div[@class="centrepage"]/h2')[idx].text.strip()
+        if CleanText('//div[@class="infoPrestationsAssure"]/span')(self.doc).startswith('Pour %s' % sub.subscriber):
+            id_str = self.doc.xpath('//div[@class="centrepage"]/h2')[0].text.strip()
             m = re.match('.*le (.*) pour un montant de.*', id_str)
             if m:
                 id_str = m.group(1)
                 id_date = datetime.strptime(id_str, '%d/%m/%Y').date()
                 id = sub._id + "." + datetime.strftime(id_date, "%Y%m%d")
-                table = self.doc.xpath('//table[@class="tableau"]')[idx].xpath('.//tr')
+                table = self.doc.xpath('//div[@class="infoPrestationsAssure"]//table')[0].xpath('.//tr')
                 line = 1
                 last_date = None
                 for tr in table:
