@@ -50,10 +50,12 @@ class TwitterJsonHTMLPage(JsonPage):
         if 'module_html' in self.doc:
             self.doc = html.parse(StringIO(self.doc['module_html']), parser)
         else:
-            if 'scroll_cursor' in self.doc:
-                self.scroll_cursor = self.doc['scroll_cursor']
-
             self.has_next = self.doc['has_more_items']
+
+            self.min_position = None
+            if 'min_position' in self.doc:
+                self.min_position = self.doc['min_position']
+
             if self.doc['items_html']:
                 el = html.parse(StringIO(self.doc['items_html']), parser)
                 self.doc = el if el.getroot() is not None else html.Element('brinbrin')
@@ -115,10 +117,13 @@ class ThreadPage(HTMLPage):
             obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span | ./div/div[@class="ProfileTweet-authorDetails"]/span/a/span', 'data-time'))
 
 
-class SearchHomePage(HTMLPage):
+class SearchPage(HTMLPage):
     def get_trends_token(self):
         json_data = CleanText('//input[@id="init-data"]/@value')(self.doc)
         return json.loads(json_data)['trendsCacheKey']
+
+    def get_min_position(self):
+        return CleanText('//div[@class="stream-container "]/@data-min-position')(self.doc)
 
 
 class TrendsPage(TwitterJsonHTMLPage):
@@ -180,7 +185,10 @@ class SearchTimelinePage(TwitterJsonHTMLPage):
 
         def next_page(self):
             params = self.env['params']
-            params['scroll_cursor'] = self.page.scroll_cursor
+            params['max_position'] = self.page.min_position
+            if 'min_position' in self.env and not params['max_position']:
+                params['max_position'] = self.env['min_position']
+
             if self.page.has_next:
                 return u'%s?%s' % (self.page.url.split('?')[0], urllib.urlencode(params))
 

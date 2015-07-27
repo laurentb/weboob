@@ -21,7 +21,7 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.messages import Message
 from .pages import LoginPage, LoginErrorPage, ThreadPage, Tweet, TrendsPage,\
-    TimelinePage, HomeTimelinePage, SearchTimelinePage, SearchHomePage
+    TimelinePage, HomeTimelinePage, SearchTimelinePage, SearchPage
 
 
 __all__ = ['TwitterBrowser']
@@ -35,9 +35,10 @@ class TwitterBrowser(LoginBrowser):
     thread_page = URL(u'(?P<user>.+)/status/(?P<_id>.+)', ThreadPage)
     login_error = URL(u'login/error.+', LoginErrorPage)
     tweet = URL(u'i/tweet/create', Tweet)
-    search_home = URL(u'search-home', SearchHomePage)
     trends = URL(u'i/trends\?pc=true&show_context=false&src=search-home&k=(?P<token>.*)', TrendsPage)
     search = URL(u'i/search/timeline', SearchTimelinePage)
+    search_page = URL(u'search\?q=(?P<pattern>.+)&src=sprv',
+                      u'search-home', SearchPage)
     profil = URL(u'i/profiles/show/(?P<path>.+)/timeline/with_replies', HomeTimelinePage)
     timeline = URL(u'i/timeline', TimelinePage)
     login = URL(u'', LoginPage)
@@ -69,7 +70,7 @@ class TwitterBrowser(LoginBrowser):
         if not self.authenticity_token:
             self.do_login()
 
-        trends_token = self.search_home.open().get_trends_token()
+        trends_token = self.search_page.open().get_trends_token()
         return self.trends.open(token=trends_token).get_trendy_subjects()
 
     @need_login
@@ -124,7 +125,8 @@ class TwitterBrowser(LoginBrowser):
         return self.get_tweets_from_search(u'#%s' % path if not path.startswith('#') else path)
 
     def get_tweets_from_search(self, path):
+        min_position = self.search_page.go(pattern=path).get_min_position()
         params = {'q': "%s" % path,
-                  'src': 'typd',
-                  'f': 'realtime'}
-        return self.search.go(params=params).iter_threads(params=params)
+                  'src': 'sprv'}
+
+        return self.search.go(params=params).iter_threads(params=params, min_position=min_position)
