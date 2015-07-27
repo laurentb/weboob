@@ -39,7 +39,9 @@ class ApecBrowser(PagesBrowser):
     json_ids = URL('/cms/webservices/rechercheOffre/ids', IdsPage)
     json_offre = URL('/cms/webservices/offre/public\?numeroOffre=(?P<_id>.*)', OffrePage)
 
-    def create_parameters(self, pattern='', fonctions='[]', lieux='[]', secteursActivite='[]', typesContrat='[]', typesConvention='[]', niveauxExperience='[]', salaire_min='', salaire_max='', date_publication='', start=0, range=20):
+    def create_parameters(self, pattern='', fonctions='[]', lieux='[]', secteursActivite='[]', typesContrat='[]',
+                          typesConvention='[]', niveauxExperience='[]', salaire_min='', salaire_max='',
+                          date_publication='', start=0, range=20):
 
         if date_publication:
             date_publication = ',"anciennetePublication":%s' % (date_publication)
@@ -54,19 +56,23 @@ class ApecBrowser(PagesBrowser):
 
     def search_job(self, pattern=None):
         data = self.create_parameters(pattern=pattern)
+        return self.get_job_adverts(data, pattern=pattern)
+
+    def get_job_adverts(self, data, pattern='', lieux='', fonctions='', secteursActivite='', salaire_min='',
+                        salaire_max='', typesContrat='', date_publication='', niveauxExperience='', typesConvention=''):
         count = self.json_count.go(data=data).get_adverts_number()
         self.start = 0
         if count:
             ids = self.json_ids.go(data=data).iter_job_adverts(pattern=pattern,
-                                                               fonctions='[]',
-                                                               lieux='[]',
-                                                               secteursActivite='[]',
-                                                               typesContrat='[]',
-                                                               typesConvention='[]',
-                                                               niveauxExperience='[]',
-                                                               salaire_min='',
-                                                               salaire_max='',
-                                                               date_publication='',
+                                                               fonctions='[%s]' % fonctions,
+                                                               lieux='[%s]' % lieux,
+                                                               secteursActivite='[%s]' % secteursActivite,
+                                                               typesContrat='[%s]' % typesContrat,
+                                                               niveauxExperience='[%s]' % niveauxExperience,
+                                                               typesConvention='[%s]' % typesConvention,
+                                                               salaire_min=salaire_min,
+                                                               salaire_max=salaire_max,
+                                                               date_publication=date_publication,
                                                                start=self.start,
                                                                count=count,
                                                                range=20)
@@ -94,20 +100,12 @@ class ApecBrowser(PagesBrowser):
                                       salaire_max=salaire_max,
                                       date_publication=limit_date)
 
-        count = self.json_count.go(data=data).get_adverts_number()
-        self.start
-        if count:
-            ids = self.json_ids.go(data=data).iter_job_adverts(pattern='',
-                                                               fonctions='[%s]' % fonction,
-                                                               lieux='[%s]' % region,
-                                                               secteursActivite='[%s]' % secteur,
-                                                               typesContrat='[%s]' % contrat,
-                                                               niveauxExperience='[%s]' % level,
-                                                               salaire_min=salaire_min,
-                                                               salaire_max=salaire_max,
-                                                               date_publication=limit_date,
-                                                               start=self.start,
-                                                               count=count,
-                                                               range=20)
-            for _id in ids:
-                yield self.json_offre.go(_id=_id).get_job_advert()
+        return self.get_job_adverts(data,
+                                    fonctions=fonction,
+                                    lieux=region,
+                                    secteursActivite=secteur,
+                                    typesContrat=contrat,
+                                    niveauxExperience=level,
+                                    salaire_min=salaire_min,
+                                    salaire_max=salaire_max,
+                                    date_publication=limit_date)
