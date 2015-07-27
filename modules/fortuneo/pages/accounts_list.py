@@ -203,7 +203,7 @@ class AccountHistoryPage(Page):
 
 class AccountsList(Page):
     def on_loaded(self):
-        warn = self.document.xpath('//div[@id="message_renouvellement_mot_passe"]')
+        warn = self.document.xpath('//div[@id="message_renouvellement_mot_passe"] | //span[contains(text(), "Votre identifiant change")]')
         if len(warn) > 0:
             raise BrowserIncorrectPassword(warn[0].text)
 
