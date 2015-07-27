@@ -76,24 +76,20 @@ class BNPorcModule(Module, CapBank, CapMessages):
     def get_account(self, _id):
         if not _id.isdigit():
             raise AccountNotFound()
-        with self.browser:
-            account = self.browser.get_account(_id)
+        account = self.browser.get_account(_id)
         if account:
             return account
         else:
             raise AccountNotFound()
 
     def iter_history(self, account):
-        with self.browser:
-            return self.browser.iter_history(account)
+        return self.browser.iter_history(account)
 
     def iter_coming(self, account):
-        with self.browser:
-            return self.browser.iter_coming_operations(account)
+        return self.browser.iter_coming_operations(account)
 
     def iter_investment(self, account):
-        with self.browser:
-            return self.browser.iter_investment(account)
+        return self.browser.iter_investment(account)
 
     def iter_transfer_recipients(self, ignored):
         if self.config['website'].get() != 'pp':
