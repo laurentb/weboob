@@ -24,8 +24,9 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import AccountNotFound
 from weboob.tools.json import json
+from weboob.exceptions import BrowserPasswordExpired
 
-from .pages import LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, TransferInitPage
+from .pages import LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, TransferInitPage, ConnectionThresholdPage
 
 
 __all__ = ['BNPParibasBrowser']
@@ -67,6 +68,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
                 'SEEA-pa01/devServer/seeaserver',
                 'https://mabanqueprivee.bnpparibas.net/fr/espace-prive/comptes-et-contrats\?u=%2FSEEA-pa01%2FdevServer%2Fseeaserver',
                 LoginPage)
+    con_threshold = URL(r'/fr/connexion/100-connexions', ConnectionThresholdPage)
     accounts = URL('udc-wspl/rest/getlstcpt', AccountsPage)
     ibans = URL('rib-wspl/rpc/comptes', AccountsIBANPage)
     history = URL('rop-wspl/rest/releveOp', HistoryPage)
@@ -81,6 +83,8 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
         self.login.go(timestamp=timestamp())
         if self.login.is_here():
             self.page.login(self.username, self.password)
+        if self.con_threshold.is_here():
+            raise BrowserPasswordExpired(u'Vous avez atteint le seuil de 100 connexions avec le même code secret. Par mesure de sécurité, veuillez le changer.')
 
     @need_login
     def get_accounts_list(self):

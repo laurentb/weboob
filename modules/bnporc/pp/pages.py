@@ -23,7 +23,7 @@ from cStringIO import StringIO
 from random import randint
 from decimal import Decimal
 
-from weboob.browser.pages import JsonPage, LoggedPage
+from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -31,6 +31,9 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.json import json
 from weboob.tools.date import parse_french_date as Date
 
+
+class ConnectionThresholdPage(HTMLPage):
+    pass
 
 def cast(x, typ, default=None):
     try:
@@ -88,7 +91,7 @@ class LoginPage(JsonPage):
 
         if error:
             msg = self.get('message')
-            if error == 201 or error == 21510:
+            if error == 201 or error == 21510 or error == 203:
                 raise BrowserIncorrectPassword(msg)
             self.logger.debug('Unexpected error at login: "%s" (code=%s)' % (msg, error))
 
