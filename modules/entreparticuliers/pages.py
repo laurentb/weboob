@@ -26,6 +26,7 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import CleanHTML
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, BrowserURL
 from weboob.capabilities.housing import Housing, HousingPhoto, City
+from weboob.capabilities.base import NotAvailable
 
 
 class CitiesPage(JsonPage):
@@ -79,7 +80,8 @@ class HousingPage(HTMLPage):
                               '.*([%s%s%s])' % (u'€', u'$', u'£'), default='')
         obj_text = CleanHTML('//article[@class="bloc description"]/p')
         obj_location = CleanText('//span[@class="i ville"]')
-        obj_area = CleanDecimal(Regexp(CleanText('//span[@class="i"]'), '.*/(.*) m.*'))
+        obj_area = CleanDecimal(Regexp(CleanText('//span[@class="i"]'), '.*/(.*) m.*', default=NotAvailable),
+                                default=NotAvailable)
         obj_url = BrowserURL('housing', _id=Env('_id'))
         obj_phone = CleanText('//input[@id="hftel"]/@value')
         obj_date = datetime.now
@@ -94,6 +96,6 @@ class HousingPage(HTMLPage):
         def obj_photos(self):
             photos = []
             for img in self.el.xpath('//ul[@id="ulPhotos"]/li/img/@src'):
-                url = 'http://www.entreparticuliers.com/%s' % img
+                url = u'http://www.entreparticuliers.com/%s' % img
                 photos.append(HousingPhoto(url))
             return photos
