@@ -20,11 +20,13 @@
 from StringIO import StringIO
 import hashlib
 from decimal import Decimal
+from datetime import datetime
 
 from weboob.capabilities.bank import Account
+from weboob.exceptions import BrowserIncorrectPassword
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
-from weboob.tools.json import json
 
 
 class BNPVirtKeyboard(MappedVirtKeyboard):
@@ -89,20 +91,71 @@ class LoginPage(HTMLPage):
         form['gridpass_hidden_input'] = vk.get_string_code(password)
         form.submit()
 
+    def on_load(self):
+        if self.doc.xpath('//p[contains(text(), "Your identification is wrong.")]'):
+            raise BrowserIncorrectPassword("Your identification is wrong.")
 
 
-class AccountsPage(JsonPage, LoggedPage):
+class AccountsPage(LoggedPage, JsonPage):
+    FAMILY_TO_TYPE = {
+        u"Compte chèque": Account.TYPE_CHECKING,
+    }
+
     def iter_accounts(self):
         for f in self.path('tableauSoldes.listeGroupes'):
             for g in f:
                 for a in g.get('listeComptes'):
                     yield Account.from_dict({
                         'id': a.get('numeroCompte'),
+                        'type': self.FAMILY_TO_TYPE.get(a.get('libelleType')) or Account.TYPE_UNKNOWN,
                         'label': '%s %s' % (a.get('libelleType'), a.get('libelleTitulaire')),
                         'currency': a.get('deviseTenue'),
                         'balance': Decimal(a.get('soldeComptable')) / 100,
                         'coming': Decimal(a.get('soldePrevisionnel')) / 100,
                     })
 
-class HistoryPage(JsonPage, LoggedPage):
-    pass
+
+class HistoryPage(LoggedPage, JsonPage):
+    CODE_TO_TYPE = {
+        "AUTOP": FrenchTransaction.TYPE_UNKNOWN, # Autres opérations,
+        "BOURS": FrenchTransaction.TYPE_BANK, # Bourse / Titres,
+        "CARTE": FrenchTransaction.TYPE_CARD, # Cartes,
+        "CHEQU": FrenchTransaction.TYPE_CHECK, # Chèques,
+        "CREDD": FrenchTransaction.TYPE_UNKNOWN, # Crédits documentaires,
+        "CREDI": FrenchTransaction.TYPE_UNKNOWN, # Crédits,
+        "EFFET": FrenchTransaction.TYPE_UNKNOWN, # Effets,
+        "ESPEC": FrenchTransaction.TYPE_UNKNOWN, # Espèces,
+        "FACCB": FrenchTransaction.TYPE_UNKNOWN, # Factures / Retraits cartes,
+        "ICHEQ": FrenchTransaction.TYPE_UNKNOWN, # Impayés chèques,
+        "IEFFE": FrenchTransaction.TYPE_UNKNOWN, # Impayés et incidents effets,
+        "IMPAY": FrenchTransaction.TYPE_UNKNOWN, # Impayés et rejets,
+        "IPRLV": FrenchTransaction.TYPE_UNKNOWN, # Impayés prélèvements, TIP et télérèglements,
+        "PRLVT": FrenchTransaction.TYPE_UNKNOWN, # Prélèvements, TIP et télérèglements,
+        "REMCB": FrenchTransaction.TYPE_UNKNOWN, # Remises cartes,
+        "RJVIR": FrenchTransaction.TYPE_ORDER, # Rejets de virements,
+        "VIREM": FrenchTransaction.TYPE_ORDER, # Virements,
+        "VIRIT": FrenchTransaction.TYPE_ORDER, # Virements internationaux,
+        "VIRSP": FrenchTransaction.TYPE_ORDER, # Virements européens,
+        "VIRTR": FrenchTransaction.TYPE_ORDER, # Virements de trésorerie,
+        "VIRXX": FrenchTransaction.TYPE_ORDER, # Autres virements
+    }
+
+    def one(self, path, context=None):
+        try:
+            return list(self.path(path, context))[0]
+        except IndexError:
+            return None
+
+    def iter_history(self):
+        for op in self.get('mouvementsBDDF'):
+            codeFamille = self.one('nature.codefamille', op)
+            tr = FrenchTransaction.from_dict({
+                'id': op.get('id'),
+                'type': self.CODE_TO_TYPE.get(codeFamille) or FrenchTransaction.TYPE_UNKNOWN,
+                'category': self.one('nature.libelle', op),
+                'raw': ' '.join(op.get('libelle').split()) or op.get('nature')['libelle'],
+                'date': datetime.fromtimestamp(op.get('dateOperation') / 1000),
+                'vdate': datetime.fromtimestamp(op.get('dateValeur') / 1000),
+                'amount': Decimal(self.one('montant.montant', op)) / 100,
+            })
+            yield tr
