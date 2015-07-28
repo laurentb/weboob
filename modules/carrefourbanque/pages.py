@@ -23,7 +23,7 @@ from decimal import Decimal
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import Regexp, CleanText, CleanDecimal, Format
+from weboob.browser.filters.standard import Regexp, CleanText, CleanDecimal
 from weboob.browser.filters.html import Link
 
 from weboob.capabilities.bank import Account
