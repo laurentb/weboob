@@ -175,7 +175,11 @@ class PaymentDetailsPage(AmeliBasePage):
 
 class BillsPage(AmeliBasePage):
     def iter_bills(self, sub):
-        table = self.doc.xpath('//table[@id="relevesMensuels"]')[0].xpath('.//tr')
+        try:
+            table = self.doc.xpath('//table[@id="relevesMensuels"]')[0].xpath('.//tr')
+        # When no operations was done in the last month, there is no table. That is fine.
+        except IndexError:
+            return
         for tr in table:
             list_tds = tr.xpath('.//td')
             if len(list_tds) == 0:
