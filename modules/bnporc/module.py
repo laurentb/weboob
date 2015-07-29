@@ -66,8 +66,14 @@ class BNPorcModule(Module, CapBank, CapMessages):
     def create_default_browser(self):
         b = {'ppold': BNPorc, 'ent': BNPEnterprise, 'ent2': BNPCompany, 'pp': BNPParibasBrowser}
         self.BROWSER = b[self.config['website'].get()]
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get())
+        try:
+            return self.create_browser(self.config['login'].get(),
+                                       self.config['password'].get())
+        except BNPParibasBrowser.ProAccount:
+            self.logger.debug('Switching on old website because this is a pro account.')
+            self.BROWSER = BNPorc
+            return self.create_browser(self.config['login'].get(),
+                                       self.config['password'].get())
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():

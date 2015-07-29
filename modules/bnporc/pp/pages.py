@@ -109,7 +109,9 @@ class LoginPage(JsonPage):
         # XXX useless ?
         csrf = self.generate_token()
 
-        self.browser.location(target, data={'AUTH': auth, 'CSRF': csrf})
+        response = self.browser.location(target, data={'AUTH': auth, 'CSRF': csrf})
+        if response.url.startswith('https://pro.mabanque.bnpparibas'):
+            raise self.browser.ProAccount()
 
 
 class BNPPage(LoggedPage, JsonPage):

@@ -74,6 +74,13 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     history = URL('rop-wspl/rest/releveOp', HistoryPage)
     transfer_init = URL('virement-wspl/rest/initialisationVirement', TransferInitPage)
 
+    class ProAccount(Exception):
+        pass
+
+    def __init__(self, *args, **kwargs):
+        super(BNPParibasBrowser, self).__init__(*args, **kwargs)
+        self.do_login()
+
     def switch(self, subdomain):
         self.BASEURL = self.BASEURL_TEMPLATE % subdomain
 
