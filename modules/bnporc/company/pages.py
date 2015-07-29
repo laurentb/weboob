@@ -107,6 +107,7 @@ class AccountsPage(LoggedPage, JsonPage):
                 for a in g.get('listeComptes'):
                     yield Account.from_dict({
                         'id': a.get('numeroCompte'),
+                        'iban': a.get('numeroCompte'),
                         'type': self.FAMILY_TO_TYPE.get(a.get('libelleType')) or Account.TYPE_UNKNOWN,
                         'label': '%s %s' % (a.get('libelleType'), a.get('libelleTitulaire')),
                         'currency': a.get('deviseTenue'),
