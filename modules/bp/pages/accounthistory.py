@@ -63,11 +63,13 @@ class AccountHistory(Page):
         operations = []
 
         if deferred:
-            card_no_re = re.compile('indexCarte=(\d)')
-            card_no = card_no_re.search(self.url).group(0).replace('indexCarte=', '')
-
-            # look for the debit date, and if it is already debited
+            # look for the card number, debit date, and if it is already debited
             txt = u''.join([txt.strip() for txt in self.document.xpath('//div[@class="infosynthese"]')[0].itertext()])
+            m = re.search(u'sur votre carte n°\*\*\*\*\*\*(\d+)\*', txt)
+            card_no = u'inconnu'
+            if m:
+                card_no = m.group(1)
+
             m = re.search('(\d+)/(\d+)/(\d+)', txt)
             if m:
                 debit_date = datetime.date(*map(int, reversed(m.groups())))
