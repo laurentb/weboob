@@ -41,7 +41,8 @@ __all__ = ['BNPorc']
 class BNPorc(Browser):
     DOMAIN = 'www.secure.bnpparibas.net'
     PROTOCOL = 'https'
-    CERTHASH = ['5511f0ff19c982b6351c17b901bfa7419f075edb13f2df41e446248beb7866bb', 'fa8cb72ef2e46054469af916f7ec222b1904901fecde8511a0f769ba0385410d', '86cd4ba8cfbc53937dfc402e8c2d0a2d5ffb630a73bbeafd09c39f8b54a6a6c3']
+    CERTHASH = ['5511f0ff19c982b6351c17b901bfa7419f075edb13f2df41e446248beb7866bb', 'fa8cb72ef2e46054469af916f7ec222b1904901fecde8511a0f769ba0385410d', '86cd4ba8cfbc53937dfc402e8c2d0a2d5ffb630a73bbeafd09c39f8b54a6a6c3',
+                'dfab57aecb7dd8460ba0e802c798e7aff3288b10451992a372e3e8bdc5f1f0c7']
     ENCODING = None  # refer to the HTML encoding
     PAGES = {'.*pageId=unedescomptes.*':                    AccountsList,
              '.*pageId=releveoperations.*':                 AccountHistory,
