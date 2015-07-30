@@ -84,6 +84,8 @@ class _AccountsPage(BasePage):
     COL_VALUE    = 4
     COL_CURRENCY = 5
 
+    NB_COLS = 7
+
     TYPES = {'CCHQ':   Account.TYPE_CHECKING,
              'LIV A':  Account.TYPE_SAVINGS,
              'LDD':    Account.TYPE_SAVINGS,
@@ -100,7 +102,7 @@ class _AccountsPage(BasePage):
                 continue
 
             cols = tr.findall('td')
-            if not cols or len(cols) < 7:
+            if not cols or len(cols) < self.NB_COLS:
                 continue
 
             account = Account()
@@ -119,6 +121,9 @@ class _AccountsPage(BasePage):
             self.set_link(account, cols)
 
             yield account
+
+    def set_link(self, account, cols):
+        raise NotImplementedError()
 
     def cards_pages(self):
         # Use a set because it is possible to see several times the same link.
@@ -238,7 +243,6 @@ class CardsPage(BasePage):
 
 
 class AccountsPage(_AccountsPage):
-
     def set_link(self, account, cols):
         iban = None
         a = cols[0].find('a')
@@ -258,6 +262,15 @@ class AccountsPage(_AccountsPage):
                 counter = iban[9:14]
                 key = 97 - ((int(bankcode) * 89 + int(counter) * 15 + int(account.id) * 3) % 97)
                 account.iban = iban[:4] + bankcode + counter + account.id + str(key)
+
+
+class LoansPage(_AccountsPage):
+    COL_ID = 1
+
+    NB_COLS = 6
+
+    def set_link(self, account, cols):
+        account.balance = -abs(account.balance)
 
 
 class SavingsPage(_AccountsPage):

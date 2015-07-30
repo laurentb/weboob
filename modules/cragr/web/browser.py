@@ -28,7 +28,7 @@ from weboob.tools.date import LinearDateGuesser
 
 from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, \
                    SavingsPage, TransactionsPage, UselessPage, CardsPage, \
-                   LifeInsurancePage, MarketPage
+                   LifeInsurancePage, MarketPage, LoansPage
 
 
 __all__ = ['Cragr']
@@ -45,6 +45,7 @@ class Cragr(Browser):
              'https?://[^/]+/stb/entreeBam\?.*Interstitielle.*':         UselessPage,
              'https?://[^/]+/stb/entreeBam\?.*act=Tdbgestion':           UselessPage,
              'https?://[^/]+/stb/entreeBam\?.*act=Synthcomptes':         AccountsPage,
+             'https?://[^/]+/stb/entreeBam\?.*act=Synthcredits':         LoansPage,
              'https?://[^/]+/stb/entreeBam\?.*act=Synthepargnes':        SavingsPage,
              'https?://[^/]+/stb/.*act=Releves.*':                       TransactionsPage,
              'https?://[^/]+/stb/collecteNI\?.*sessionAPP=Releves.*':    TransactionsPage,
@@ -146,8 +147,9 @@ class Cragr(Browser):
         # Store the current url to go back when requesting accounts list.
         self.accounts_url = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', self.page.url)
 
-        # we can deduce the URL to "savings" accounts from the regular accounts one
+        # we can deduce the URL to "savings" and "loan" accounts from the regular accounts one
         self.savings_url  = re.sub('act=([^&=]+)', 'act=Synthepargnes', self.accounts_url, 1)
+        self.loans_url  = re.sub('act=([^&=]+)', 'act=Synthcredits', self.accounts_url, 1)
 
     def get_accounts_list(self):
         accounts_list = []
@@ -161,6 +163,13 @@ class Cragr(Browser):
             self.location(cards_page)
             assert self.is_on_page(CardsPage)
             accounts_list.extend(self.page.get_list())
+
+        # loan accounts
+        self.location(self.loans_url.format(self.sag))
+        if self.is_on_page(LoansPage):
+            for account in self.page.get_list():
+                if account not in accounts_list:
+                    accounts_list.append(account)
 
         # savings accounts
         self.location(self.savings_url.format(self.sag))
