@@ -170,6 +170,10 @@ class Cragr(Browser):
         if account._link is None:
             return
 
+        # card accounts need to get an updated link
+        if account.type == Account.TYPE_CARD:
+            account = self.get_account(account.id)
+
         date_guesser = LinearDateGuesser()
         self.location(account._link)
 
