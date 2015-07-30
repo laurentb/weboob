@@ -153,12 +153,12 @@ class AccountsPage(BNPPage):
 
 class AccountsIBANPage(BNPPage):
     def get_ibans_dict(self):
-        return {a['ibanCrypte']: a['iban'] for a in self.path('data.listeRib.*.infoCompte')}
+        return dict([(a['ibanCrypte'], a['iban']) for a in self.path('data.listeRib.*.infoCompte')])
 
 
 class TransferInitPage(BNPPage):
     def get_ibans_dict(self):
-        return {a['ibanCrypte']: a['iban'] for a in self.path('data.infoVirement.listeComptesCrediteur.*')}
+        return dict([(a['ibanCrypte'], a['iban']) for a in self.path('data.infoVirement.listeComptesCrediteur.*')])
 
 
 class Transaction(FrenchTransaction):
