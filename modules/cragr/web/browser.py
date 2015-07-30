@@ -36,7 +36,7 @@ class Cragr(Browser):
     ENCODING = 'ISO-8859-1'
 
     PAGES = {'https?://[^/]+/':                                          HomePage,
-             'https?://[^/]+/stb/entreeBam.*':                           LoginPage,
+             'https?://[^/]+/stb/entreeBam':                             LoginPage,
              'https?://[^/]+/stb/entreeBam\?.*typeAuthentification=CLIC_ALLER.*': LoginPage,
              'https?://[^/]+/stb/entreeBam\?.*pagePremVisite.*':         UselessPage,
              'https?://[^/]+/stb/entreeBam\?.*Interstitielle.*':         UselessPage,
