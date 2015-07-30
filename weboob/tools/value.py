@@ -20,8 +20,10 @@
 
 import re
 import subprocess
-from .ordereddict import OrderedDict
+
+from .compat import check_output
 from .misc import to_unicode
+from .ordereddict import OrderedDict
 
 
 __all__ = ['ValuesDict', 'Value', 'ValueBackendPassword', 'ValueInt', 'ValueFloat', 'ValueBool']
@@ -149,7 +151,7 @@ class ValueBackendPassword(Value):
         if self.is_command(password):
             cmd = password[1:-1]
             try:
-                password = subprocess.check_output(cmd, shell=True)
+                password = check_output(cmd, shell=True)
             except subprocess.CalledProcessError as e:
                 raise ValueError(u'The call to the external tool failed: %s' % e)
             else:

@@ -31,7 +31,9 @@ import re
 import os
 from datetime import datetime
 from tempfile import mkstemp
-from subprocess import check_output, STDOUT
+from subprocess import STDOUT
+from weboob.tools.compat import check_output
+
 from time import sleep
 
 

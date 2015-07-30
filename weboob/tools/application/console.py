@@ -35,6 +35,7 @@ from weboob.core.repositories import ModuleInstallError, IProgress
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden, BrowserSSLError, BrowserQuestion
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt, ValueBackendPassword
 from weboob.tools.misc import to_unicode
+from weboob.tools.compat import check_output
 from weboob.tools.ordereddict import OrderedDict
 
 from .base import Application, MoreResultsAvailable
@@ -448,7 +449,7 @@ class ConsoleApplication(Application):
                 while True:
                     cmd = self.ask('')
                     try:
-                        subprocess.check_output(cmd, shell=True)
+                        check_output(cmd, shell=True)
                     except subprocess.CalledProcessError as e:
                         print('%s' % e)
                     else:
