@@ -18,18 +18,38 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from weboob.capabilities.bill import CapBill, Subscription, Bill, SubscriptionNotFound, BillNotFound
 from weboob.capabilities.messages import CantSendMessage, CapMessages, CapMessagesPost
+from weboob.capabilities.base import find_object
 from weboob.capabilities.account import CapAccount, StatusField
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import OrangeBrowser
+from .bill.browser import OrangeBillBrowser
 
 
 __all__ = ['OrangeModule']
 
+# We need to have a switcher, CapMessages use a browser1 and
+# CapBill use a browser2
+# This will be remove when CapMessages use a browser2
+def browser_switcher(b):
+    def set_browser(func):
+        def func_wrapper(*args, **kwargs):
+            self = args[0]
+            if self._browser is None or type(self._browser) != b:
+                self.BROWSER = b
+                try:
+                    self._browser = self._browsers[b]
+                except KeyError:
+                    self._browsers[b] = self.create_default_browser()
+                    self._browser = self._browsers[b]
+            return func(*args, **kwargs)
+        return func_wrapper
+    return set_browser
 
-class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost):
+class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost, CapBill):
     NAME = 'orange'
     MAINTAINER = u'Lucas Nussbaum'
     EMAIL = 'lucas@lucas-nussbaum.net'
@@ -38,21 +58,54 @@ class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost):
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(Value('login', label='Login'),
                            ValueBackendPassword('password', label='Password'),
-                           Value('phonenumber', Label='Phone number')
+                           Value('phonenumber', label='Phone number', default='')
                            )
-    BROWSER = OrangeBrowser
     ACCOUNT_REGISTER_PROPERTIES = None
+    BROWSER = OrangeBrowser
+
+
+    def __init__(self, *args, **kwargs):
+        self._browsers = dict()
+        super(OrangeModule, self).__init__(*args, **kwargs)
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
+    @browser_switcher(OrangeBrowser)
     def get_account_status(self):
-        with self.browser:
-            return (StatusField('nb_remaining_free_sms', 'Number of remaining free SMS',
+       return (StatusField('nb_remaining_free_sms', 'Number of remaining free SMS',
                                 self.browser.get_nb_remaining_free_sms()),)
 
+    @browser_switcher(OrangeBrowser)
     def post_message(self, message):
         if not message.content.strip():
             raise CantSendMessage(u'Message content is empty.')
-        with self.browser:
-            self.browser.post_message(message, self.config['phonenumber'].get())
+        self.browser.post_message(message, self.config['phonenumber'].get())
+
+    @browser_switcher(OrangeBillBrowser)
+    def iter_subscription(self):
+        return self.browser.get_subscription_list()
+
+    @browser_switcher(OrangeBillBrowser)
+    def get_subscription(self, _id):
+        return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
+
+    @browser_switcher(OrangeBillBrowser)
+    def get_bill(self, _id):
+        subid = _id.split('.')[0]
+        subscription = self.get_subscription(subid)
+
+        return find_object(self.iter_bills(subscription), id=_id, error=BillNotFound)
+
+    @browser_switcher(OrangeBillBrowser)
+    def iter_bills(self, subscription):
+        if not isinstance(subscription, Subscription):
+            subscription = self.get_subscription(subscription)
+        return self.browser.iter_bills(subscription)
+
+    @browser_switcher(OrangeBillBrowser)
+    def download_bill(self, bill):
+        if not isinstance(bill, Bill):
+            bill = self.get_bill(bill)
+        return self.browser.open(bill._url).content
+
