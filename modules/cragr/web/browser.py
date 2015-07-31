@@ -21,6 +21,7 @@
 import urllib
 import re
 
+from weboob.capabilities.bank import Account
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.tools.date import LinearDateGuesser
 
