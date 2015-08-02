@@ -97,9 +97,7 @@ class Boobill(ReplApplication):
 
         List all subscriptions.
         """
-        self.start_format()
-        for subscription in self.get_object_list('iter_subscription'):
-            self.format(subscription)
+        return self.do_ls(line)
 
     def do_details(self, id):
         """
