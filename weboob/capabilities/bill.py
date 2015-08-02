@@ -57,9 +57,6 @@ class Detail(BaseObject, Currency):
     quantity =  DecimalField('Number of units consumed')
     unit =      StringField('Unit of the consumption')
 
-    def __init__(self):
-        BaseObject.__init__(self, 0)
-
 
 class Bill(BaseObject, Currency):
     """
@@ -68,15 +65,12 @@ class Bill(BaseObject, Currency):
     date =          DateField('The day the bill has been sent to the subscriber')
     format =        StringField('file format of the bill')
     label =         StringField('label of bill')
-    idparent =      StringField('id of the parent subscription')
     price =         DecimalField('Price to pay')
     currency =      StringField('Currency', default=None)
+    vat =           DecimalField('VAT included in the price')
     deadline =      DateField('The latest day to pay')
     startdate =     DateField('The first day the bill applies to')
     finishdate =    DateField('The last day the bill applies to')
-
-    def __init__(self):
-        BaseObject.__init__(self, 0)
 
 
 class Subscription(BaseObject):
