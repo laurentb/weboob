@@ -118,7 +118,7 @@ class DetailsPage(LoggedPage, BadUTF8Page):
 
             obj__url = Attr('.//div[@class="pdf"]/a', 'href')
             obj__localid = Regexp(Field('_url'), '&l=(\d*)&id', u'\\1')
-            obj_label = Regexp(Field('_url'), '&date=(\d*)$', u'\\1')
+            obj_label = Regexp(Field('_url'), '&date=(\d*)', u'\\1')
             obj_id = Format('%s.%s', Env('subid'), Field('label'))
             obj_date = FormatDate(Field('label'))
             obj_format = u"pdf"
