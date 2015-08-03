@@ -161,6 +161,10 @@ class AccountsPage(BasePage):
                     continue
                 try:
                     account.id = args['paramNumCompte'] + args['paramNumContrat']
+                    if 'Visa' in account.label:
+                        card_id = re.search('(\d+)', box.xpath('./td[2]')[0].text.strip())
+                        if card_id:
+                            account.id += card_id.group(1)
                 except KeyError:
                     account.id = args['paramNumCompte']
                 account_type_str = table.attrib['class'].split(' ')[-1][len('tableaux-comptes-'):]
