@@ -19,6 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
 from decimal import Decimal
 
 from weboob.capabilities.bank import Account
@@ -63,6 +64,10 @@ class AccountsList(Page):
 
                         try:
                             account._link_id = td.xpath('.//a')[0].get('href')
+                            # Try to use account._link_id for account.id to prevent duplicate accounts
+                            currentCB = re.search('currentCB=(.*)', account._link_id)
+                            if currentCB:
+                                account.id = currentCB.group(1)
                         except KeyError:
                             pass
 
