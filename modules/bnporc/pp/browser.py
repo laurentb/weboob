@@ -68,7 +68,8 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
                 'SEEA-pa01/devServer/seeaserver',
                 'https://mabanqueprivee.bnpparibas.net/fr/espace-prive/comptes-et-contrats\?u=%2FSEEA-pa01%2FdevServer%2Fseeaserver',
                 LoginPage)
-    con_threshold = URL(r'/fr/connexion/100-connexions', ConnectionThresholdPage)
+    con_threshold = URL('/fr/connexion/100-connexions',
+                        '/fr/espace-prive/100-connexions.*', ConnectionThresholdPage)
     accounts = URL('udc-wspl/rest/getlstcpt', AccountsPage)
     ibans = URL('rib-wspl/rpc/comptes', AccountsIBANPage)
     history = URL('rop-wspl/rest/releveOp', HistoryPage)
@@ -79,13 +80,13 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
 
     def __init__(self, *args, **kwargs):
         super(BNPParibasBrowser, self).__init__(*args, **kwargs)
+        self.switch('mabanque')
         self.do_login()
 
     def switch(self, subdomain):
         self.BASEURL = self.BASEURL_TEMPLATE % subdomain
 
     def do_login(self):
-        self.switch('mabanque')
         timestamp = lambda: int(time.time() * 1e3)
         self.login.go(timestamp=timestamp())
         if self.login.is_here():

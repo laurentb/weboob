@@ -91,7 +91,7 @@ class LoginPage(JsonPage):
 
         if error:
             msg = self.get('message')
-            if error == 201 or error == 21510 or error == 203:
+            if error == 201 or error == 21510 or error == 203 or error == 202:
                 raise BrowserIncorrectPassword(msg)
             self.logger.debug('Unexpected error at login: "%s" (code=%s)' % (msg, error))
 
@@ -112,6 +112,8 @@ class LoginPage(JsonPage):
         response = self.browser.location(target, data={'AUTH': auth, 'CSRF': csrf})
         if response.url.startswith('https://pro.mabanque.bnpparibas'):
             raise self.browser.ProAccount()
+        if response.url.startswith('https://banqueprivee.mabanque.bnpparibas'):
+            self.browser.switch('banqueprivee.mabanque')
 
 
 class BNPPage(LoggedPage, JsonPage):
