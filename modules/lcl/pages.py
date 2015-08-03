@@ -193,7 +193,7 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_ORDER),
                 (re.compile('^(?P<category>CHQ\.) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_CHECK),
-                (re.compile('^(?P<category>RELEVE CB) AU (?P<dd>\d+)/(?P<mm>\d+)/(?P<yy>\d+)'),
+                (re.compile('^(?P<category>RELEVE CB) AU (\d+)/(\d+)/(\d+)'),
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile('^(?P<category>CB) (?P<text>.*) (?P<dd>\d+)/(?P<mm>\d+)/(?P<yy>\d+)'),
                                                             FrenchTransaction.TYPE_CARD),
