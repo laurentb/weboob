@@ -19,8 +19,6 @@
 
 
 import calendar
-from StringIO import StringIO
-import lxml.html as html
 from datetime import datetime
 from decimal import Decimal
 
@@ -38,12 +36,7 @@ class FormatDate(Filter):
 
 
 class BadUTF8Page(HTMLPage):
-    def __init__(self, browser, response, *args, **kwargs):
-        # XXX it is volontary the parent class of HTMLPage's constructor which
-        # is called, but that's ugly.
-        super(HTMLPage, self).__init__(browser, response, *args, **kwargs)
-        parser = html.HTMLParser(encoding='UTF-8')
-        self.doc = html.parse(StringIO(response.content), parser)
+    ENCODING = 'UTF-8'
 
 
 class DetailsPage(LoggedPage, BadUTF8Page):
