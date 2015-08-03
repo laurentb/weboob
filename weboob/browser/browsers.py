@@ -91,11 +91,6 @@ class Browser(object):
     Maximum of threads for asynchronous requests.
     """
 
-    __states__ = []
-    """
-    Saved state variables.
-    """
-
     ALLOW_REFERRER = True
     """
     Controls the behavior of get_referrer.
@@ -125,26 +120,6 @@ class Browser(object):
 
     def deinit(self):
         self.session.close()
-
-    def load_state(self, state):
-        if 'cookies' in state:
-            try:
-                self.session.cookies = pickle.loads(zlib.decompress(base64.b64decode(state['cookies'])))
-            except (TypeError, zlib.error, EOFError, ValueError):
-                self.logger.error('Unable to reload cookies from storage')
-            else:
-                self.logger.info('Reloaded cookies from storage')
-        for attrname in self.__states__:
-            if attrname in state:
-                setattr(self, attrname, state[attrname])
-
-    def dump_state(self):
-        state = {}
-        state['cookies'] = base64.b64encode(zlib.compress(pickle.dumps(self.session.cookies, -1)))
-        for attrname in self.__states__:
-            state[attrname] = getattr(self, attrname)
-        self.logger.info('Stored cookies into storage')
-        return state
 
     def save_response(self, response, warning=False, **kwargs):
         if self.responses_dirname is None:
@@ -772,8 +747,28 @@ class LoginBrowser(PagesBrowser):
     def do_logout(self):
         self.session.cookies.clear()
 
+
+class StatesMixin(object):
+    """
+    Mixin to store states of browser.
+    """
+
+    __states__ = []
+    """
+    Saved state variables.
+    """
+
     def load_state(self, state):
-        super(LoginBrowser, self).load_state(state)
+        if 'cookies' in state:
+            try:
+                self.session.cookies = pickle.loads(zlib.decompress(base64.b64decode(state['cookies'])))
+            except (TypeError, zlib.error, EOFError, ValueError):
+                self.logger.error('Unable to reload cookies from storage')
+            else:
+                self.logger.info('Reloaded cookies from storage')
+        for attrname in self.__states__:
+            if attrname in state:
+                setattr(self, attrname, state[attrname])
 
         if 'url' in state:
             try:
@@ -782,11 +777,12 @@ class LoginBrowser(PagesBrowser):
                 pass
 
     def dump_state(self):
-        if not self.page or not self.page.logged:
-            return {}
-
-        state = super(LoginBrowser, self).dump_state()
+        state = {}
         state['url'] = self.page.url
+        state['cookies'] = base64.b64encode(zlib.compress(pickle.dumps(self.session.cookies, -1)))
+        for attrname in self.__states__:
+            state[attrname] = getattr(self, attrname)
+        self.logger.info('Stored cookies into storage')
         return state
 
 
