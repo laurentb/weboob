@@ -268,15 +268,25 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
                 for _id, item in sorted(self._RADIOS.iteritems()):
                     if _id.startswith('fb'):
                         yield Collection([_id], item['title'])
-            elif len(split_path) == 2:
-                for _id, item in sorted(self._RADIOS.iteritems()):
-                    if _id == split_path[1]:
-                        selection_url = self._RADIOS[_id]['selection']
-                        for item in self.browser.get_selection('francebleu', selection_url, _id):
-                            yield item
-                        break
+
+            elif len(split_path) > 1 and split_path[1] in self._RADIOS:
+                if len(split_path) == 2:
+                    yield Collection([split_path[0], u'direct'], u'Direct')
+                    yield Collection([split_path[0], u'selection'], u'Selection')
+
+                elif len(split_path) == 3 and split_path[2] == 'selection':
+                    selection_url = self._RADIOS[split_path[1]]['selection']
+                    for item in self.browser.get_selection('francebleu', selection_url, split_path[1]):
+                        yield item
+
+                elif len(split_path) == 3 and split_path[2] == 'direct':
+                    yield self.get_radio(split_path[1])
+
+            else:
+                raise CollectionNotFound(split_path)
 
         elif len(split_path) == 1:
+            yield Collection([split_path[0], u'direct'], u'Direct')
             yield Collection([split_path[0], u'selection'], u'Selection')
             if 'podcast' in self._RADIOS[split_path[0]]:
                 yield Collection([split_path[0], u'podcasts'], u'Podcast')
@@ -294,6 +304,9 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
                                                            self._RADIOS[split_path[0]]['podcast'],
                                                            split_path):
                 yield item
+
+        elif len(split_path) == 2 and split_path[1] == 'direct':
+            yield self.get_radio(split_path[0])
 
         elif len(split_path) == 3:
             podcasts_url = split_path[-1]
