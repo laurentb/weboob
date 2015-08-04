@@ -72,3 +72,6 @@ class CaisseEpargneModule(Module, CapBank):
     def iter_coming(self, account):
         with self.browser:
             return self.browser.get_coming(account)
+
+    def iter_investment(self, account):
+        return self.browser.get_investment(account)

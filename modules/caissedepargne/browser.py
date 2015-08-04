@@ -21,8 +21,9 @@
 from urlparse import urlsplit
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.capabilities.bank import Account
 
-from .pages import LoginPage, IndexPage, ErrorPage, UnavailablePage
+from .pages import LoginPage, IndexPage, ErrorPage, UnavailablePage, MarketPage, LifeInsurance
 
 
 __all__ = ['CaisseEpargne']
@@ -37,6 +38,11 @@ class CaisseEpargne(Browser):
              'https://[^/]+/login.aspx':                                  ErrorPage,
              'https://[^/]+/Pages/logout.aspx.*':                         ErrorPage,
              'https://[^/]+/page_hs_dei_.*.aspx':                         UnavailablePage,
+             'https://[^/]+/Pages/Bourse.*':                              MarketPage,
+             'https://www.caisse-epargne.offrebourse.com/ReroutageSJR':   MarketPage,
+             'https://www.caisse-epargne.offrebourse.com/Portefeuille':   MarketPage,
+             'https://[^/]+/Assurance/Pages/Assurance.aspx':              LifeInsurance,
+             'https://www.extranet2.caisse-epargne.fr.*':                 LifeInsurance,
             }
 
     def __init__(self, nuser, *args, **kwargs):
@@ -98,6 +104,8 @@ class CaisseEpargne(Browser):
         return None
 
     def _get_history(self, info):
+        if not info['link'].startswith('HISTORIQUE'):
+            return
         if self.is_on_page(IndexPage):
             self.page.go_list()
         else:
@@ -122,3 +130,21 @@ class CaisseEpargne(Browser):
             for tr in self._get_history(info):
                 tr.type = tr.TYPE_CARD
                 yield tr
+
+    def get_investment(self, account):
+        if account.type is not Account.TYPE_LIFE_INSURANCE and account.type is not Account.TYPE_MARKET:
+            raise NotImplementedError()
+        if self.is_on_page(IndexPage):
+            self.page.go_list()
+        else:
+            self.location(self.buildurl('/Portail.aspx'))
+
+        self.page.go_history(account._info)
+        if account.type is Account.TYPE_MARKET:
+            self.page.submit()
+            self.location('https://www.caisse-epargne.offrebourse.com/Portefeuille')
+        elif account.type is Account.TYPE_LIFE_INSURANCE:
+            self.page.go_life_insurance()
+            self.page.submit()
+            self.location('https://www.extranet2.caisse-epargne.fr%s' % self.page.get_cons_repart())
+        return self.page.iter_investment()

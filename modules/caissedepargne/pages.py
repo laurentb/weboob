@@ -28,7 +28,7 @@ from weboob.deprecated.mech import ClientForm
 from weboob.tools.ordereddict import OrderedDict
 from weboob.deprecated.browser import Page, BrokenPageError, BrowserUnavailable, BrowserIncorrectPassword
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -126,7 +126,7 @@ class IndexPage(Page):
                     }
 
     def _get_account_info(self, a):
-        m = re.search("PostBack(Options)?\([\"'][^\"']+[\"'],\s*['\"]HISTORIQUE_([\d\w&]+)['\"]", a.attrib.get('href', ''))
+        m = re.search("PostBack(Options)?\([\"'][^\"']+[\"'],\s*['\"]([HISTORIQUE_\w|SYNTHESE_ASSURANCE_CNP|BOURSE][\d\w&]+)?['\"]", a.attrib.get('href', ''))
         if m is None:
             return None
         else:
@@ -134,7 +134,21 @@ class IndexPage(Page):
             # and is necessary for navigation.
             link = m.group(2)
             parts = link.split('&')
-            return {'type': parts[0], 'id': parts[1], 'link': link}
+            info = {}
+            if len(parts) > 1:
+                info['type'] = parts[0]
+                info['id'] = parts[1]
+            else:
+                id = re.search("([\d]+)", a.attrib.get('title'))
+                info['type'] = link
+                info['id'] = id.group(1)
+            if info['type'] == 'SYNTHESE_ASSURANCE_CNP':
+                info['acc_type'] = Account.TYPE_LIFE_INSURANCE
+            if info['type'] == 'BOURSE':
+                info['acc_type'] = Account.TYPE_MARKET
+            info['link'] = link
+            return info
+
 
     def _add_account(self, accounts, link, label, account_type, balance):
         info = self._get_account_info(link)
@@ -146,12 +160,12 @@ class IndexPage(Page):
         account.id = info['id']
         account._info = info
         account.label = label
-        account.type = account_type
-        account.balance = Decimal(FrenchTransaction.clean_amount(balance))
+        account.type = info['acc_type'] if 'acc_type' in info else account_type
+        account.balance = Decimal(FrenchTransaction.clean_amount(balance)) if balance else NotAvailable
         account.currency = account.get_currency(balance)
         account._card_links = []
 
-        if account._info['type'] == 'CB' and account.id in accounts:
+        if account._info['type'] == 'HISTORIQUE_CB' and account.id in accounts:
             a = accounts[account.id]
             if not a.coming:
                 a.coming = Decimal('0.0')
@@ -233,7 +247,7 @@ class IndexPage(Page):
         self.browser.select_form(name='main')
         self.browser.set_all_readonly(False)
         self.browser['__EVENTTARGET'] = 'MM$SYNTHESE'
-        self.browser['__EVENTARGUMENT'] = 'HISTORIQUE_%s' % info['link']
+        self.browser['__EVENTARGUMENT'] = info['link']
         try:
             self.browser['MM$m_CH$IsMsgInit'] = '0'
         except ControlNotFoundError:
@@ -323,3 +337,90 @@ class IndexPage(Page):
         self.browser.submit()
 
         return True
+
+    def go_life_insurance(self):
+        link = self.document.xpath('//table[@summary="Mes contrats d\'assurance vie"]/tbody/tr//a')[0]
+        m = re.search("PostBack(Options)?\([\"'][^\"']+[\"'],\s*['\"](REDIR_ASS_VIE[\d\w&]+)?['\"]", link.attrib.get('href', ''))
+        if m is not None:
+            self.browser.select_form(name='main')
+            self.browser.set_all_readonly(False)
+            self.browser['__EVENTTARGET'] = 'MM$SYNTHESE_ASSURANCE_CNP'
+            self.browser['__EVENTARGUMENT'] = m.group(2)
+            try:
+                self.browser['MM$m_CH$IsMsgInit'] = '0'
+            except ControlNotFoundError:
+                # Not available on new website.
+                pass
+            self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
+            self.browser['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$SYNTHESE'
+            try:
+                self.browser.controls.remove(self.browser.find_control(name='Cartridge$imgbtnMessagerie', type='image'))
+                self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageFondMessagerie', type='image'))
+                self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageMessagerie', type='image'))
+            except ControlNotFoundError:
+                pass
+            self.browser.submit()
+
+
+class MarketPage(Page):
+    def parse_decimal(self, td):
+        value = self.parser.tocleanstring(td)
+        if value and value != '-':
+            return Decimal(FrenchTransaction.clean_amount(value))
+        else:
+            return NotAvailable
+
+    def submit(self):
+        self.browser.select_form(nr=1)
+        self.browser.submit()
+
+    def iter_investment(self):
+        for tbody in self.document.xpath(u'//table[@summary="Contenu du portefeuille valorisé"]/tbody'):
+
+            inv = Investment()
+            inv.label = self.parser.tocleanstring(tbody.xpath('./tr[1]/td[1]/a/span')[0])
+            inv.code = self.parser.tocleanstring(tbody.xpath('./tr[1]/td[1]/a')[0]).split(' - ')[1]
+            inv.quantity = self.parse_decimal(tbody.xpath('./tr[2]/td[2]')[0])
+            inv.unitvalue = self.parse_decimal(tbody.xpath('./tr[2]/td[3]')[0])
+            inv.unitprice = self.parse_decimal(tbody.xpath('./tr[2]/td[5]')[0])
+            inv.valuation = self.parse_decimal(tbody.xpath('./tr[2]/td[4]')[0])
+            inv.diff = self.parse_decimal(tbody.xpath('./tr[2]/td[7]')[0])
+
+            yield inv
+
+
+class LifeInsurance(MarketPage):
+    def get_cons_repart(self):
+        return self.document.xpath('//tr[@id="sousMenuConsultation3"]/td/div/a')[0].attrib['href']
+
+    def iter_investment(self):
+        for tr in self.document.xpath(u'//table[@class="boursedetail"]/tr[@class and not(@class="total")]'):
+
+            inv = Investment()
+            libelle = self.parser.tocleanstring(tr.xpath('./td[1]')[0]).split(' ')
+            inv.label, inv.code = self.split_label_code(libelle)
+            diff = self.parse_decimal(tr.xpath('./td[6]')[0])
+            inv.quantity = self.parse_decimal(tr.xpath('./td[2]')[0])
+            inv.unitvalue = self.parse_decimal(tr.xpath('./td[3]')[0])
+            inv.unitprice = self.calc(inv.unitvalue, diff)
+            inv.valuation = self.parse_decimal(tr.xpath('./td[5]')[0])
+            inv.diff = self.get_diff(inv.valuation, self.calc(inv.valuation, diff))
+
+            yield inv
+
+    def calc(self, value, diff):
+        if value is NotAvailable or diff is NotAvailable:
+            return NotAvailable
+        return Decimal(value) / (1 + Decimal(diff)/100)
+
+    def get_diff(self, valuation, calc):
+        if valuation is NotAvailable or calc is NotAvailable:
+            return NotAvailable
+        return valuation - calc
+
+    def split_label_code(self, libelle):
+        m = re.search('FR\d+', libelle[-1])
+        if m:
+            return ' '.join(libelle[:-1]), libelle[-1]
+        else:
+            return ' '.join(libelle), NotAvailable
