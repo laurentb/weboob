@@ -39,9 +39,14 @@ class SearchPage(HTMLPage):
         class item(ItemElement):
             klass = BaseJobAdvert
 
+            def condition(self):
+                return Regexp(CleanText('h1/a[@class="lien-annonce"]/@href'),
+                              '/emplois/(.*)\.html',
+                              default=None)(self)
+
             obj_id = Format(u'%s#%s',
                             Regexp(Env('domain'), 'http://www\.(.*)\.com'),
-                            Regexp(CleanText('h1/a[2]/@href'), '/emplois/(.*)\.html'))
+                            Regexp(CleanText('h1/a[@class="lien-annonce"]/@href'), '/emplois/(.*)\.html'))
             obj_title = CleanText('h1/a[2]')
             obj_society_name = CleanText('figure/span[@itemprop="name"]')
             obj_place = CleanText('p[@class="inlineblock max-width-75"]')
