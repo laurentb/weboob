@@ -161,7 +161,7 @@ class IndexPage(Page):
         account._info = info
         account.label = label
         account.type = info['acc_type'] if 'acc_type' in info else account_type
-        account.balance = Decimal(FrenchTransaction.clean_amount(balance)) if balance else NotAvailable
+        account.balance = Decimal(FrenchTransaction.clean_amount(balance)) if balance else self.get_balance(account)
         account.currency = account.get_currency(balance)
         account._card_links = []
 
@@ -174,6 +174,14 @@ class IndexPage(Page):
             return
 
         accounts[account.id] = account
+
+    def get_balance(self, account):
+        if not account.type == Account.TYPE_LIFE_INSURANCE:
+            return NotAvailable
+        self.go_history(account._info)
+        balance = self.browser.page.document.xpath('.//tr[td[contains(text(), ' + account.id + ')]]/td[contains(@class, "somme")]')[0]
+        balance = Decimal(FrenchTransaction.clean_amount(self.parser.tocleanstring(balance)))
+        return balance
 
     def get_list(self):
         accounts = OrderedDict()
