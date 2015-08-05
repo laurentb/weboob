@@ -144,7 +144,10 @@ class CaisseEpargne(Browser):
             self.page.submit()
             self.location('https://www.caisse-epargne.offrebourse.com/Portefeuille')
         elif account.type is Account.TYPE_LIFE_INSURANCE:
-            self.page.go_life_insurance()
-            self.page.submit()
-            self.location('https://www.extranet2.caisse-epargne.fr%s' % self.page.get_cons_repart())
+            try:
+                self.page.go_life_insurance(account)
+                self.page.submit()
+                self.location('https://www.extranet2.caisse-epargne.fr%s' % self.page.get_cons_repart())
+            except IndexError:
+                return iter([])
         return self.page.iter_investment()

@@ -179,8 +179,13 @@ class IndexPage(Page):
         if not account.type == Account.TYPE_LIFE_INSURANCE:
             return NotAvailable
         self.go_history(account._info)
-        balance = self.browser.page.document.xpath('.//tr[td[contains(text(), ' + account.id + ')]]/td[contains(@class, "somme")]')[0]
-        balance = Decimal(FrenchTransaction.clean_amount(self.parser.tocleanstring(balance)))
+        balance = self.browser.page.document.xpath('.//tr[td[contains(text(), ' + account.id + ')]]/td[contains(@class, "somme")]')
+        if len(balance) > 0:
+            balance = self.parser.tocleanstring(balance[0])
+            balance = Decimal(FrenchTransaction.clean_amount(balance)) if balance != u'' else NotAvailable
+        else:
+            balance = NotAvailable
+        self.go_list()
         return balance
 
     def get_list(self):
@@ -346,8 +351,8 @@ class IndexPage(Page):
 
         return True
 
-    def go_life_insurance(self):
-        link = self.document.xpath('//table[@summary="Mes contrats d\'assurance vie"]/tbody/tr//a')[0]
+    def go_life_insurance(self, account):
+        link = self.document.xpath('//table[@summary="Mes contrats d\'assurance vie"]/tbody/tr[td[contains(text(), ' + account.id + ') ]]//a')[0]
         m = re.search("PostBack(Options)?\([\"'][^\"']+[\"'],\s*['\"](REDIR_ASS_VIE[\d\w&]+)?['\"]", link.attrib.get('href', ''))
         if m is not None:
             self.browser.select_form(name='main')
