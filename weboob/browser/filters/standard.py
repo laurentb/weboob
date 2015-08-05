@@ -406,6 +406,9 @@ class CleanDecimal(CleanText):
 
     @debug()
     def filter(self, text):
+        if type(text) in (float, int, long):
+            text = str(text)
+
         if empty(text):
             return self.default_or_raise(ParseError('Unable to parse %r' % text))
 
