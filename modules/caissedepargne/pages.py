@@ -376,6 +376,9 @@ class IndexPage(Page):
 
 
 class MarketPage(Page):
+    def is_error(self):
+        return self.document.xpath('//caption')[0].text == "Erreur"
+
     def parse_decimal(self, td):
         value = self.parser.tocleanstring(td)
         if value and value != '-':

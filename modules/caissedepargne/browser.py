@@ -142,6 +142,8 @@ class CaisseEpargne(Browser):
         self.page.go_history(account._info)
         if account.type is Account.TYPE_MARKET:
             self.page.submit()
+            if self.page.is_error():
+                return iter([])
             self.location('https://www.caisse-epargne.offrebourse.com/Portefeuille')
         elif account.type is Account.TYPE_LIFE_INSURANCE:
             try:
