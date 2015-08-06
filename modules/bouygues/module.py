@@ -18,7 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from weboob.capabilities.bill import CapBill, Subscription, Bill, SubscriptionNotFound, BillNotFound
 from weboob.capabilities.messages import CantSendMessage, CapMessages, CapMessagesPost
+from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -28,7 +30,7 @@ from .browser import BouyguesBrowser
 __all__ = ['BouyguesModule']
 
 
-class BouyguesModule(Module, CapMessages, CapMessagesPost):
+class BouyguesModule(Module, CapMessages, CapMessagesPost, CapBill):
     NAME = 'bouygues'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
@@ -46,3 +48,26 @@ class BouyguesModule(Module, CapMessages, CapMessagesPost):
         if not message.content.strip():
             raise CantSendMessage(u'Message content is empty.')
         self.browser.post_message(message)
+
+    def iter_subscription(self):
+        return self.browser.get_subscription_list()
+
+    def get_subscription(self, _id):
+        return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
+
+    def get_bill(self, _id):
+        subid = _id.split('.')[0]
+        subscription = self.get_subscription(subid)
+
+        return find_object(self.iter_bills(subscription), id=_id, error=BillNotFound)
+
+    def iter_bills(self, subscription):
+        if not isinstance(subscription, Subscription):
+            subscription = self.get_subscription(subscription)
+        return self.browser.iter_bills(subscription)
+
+    def download_bill(self, bill):
+        if not isinstance(bill, Bill):
+            bill = self.get_bill(bill)
+        return self.browser.open('http://www.bouyguestelecom.fr/mon-compte/suiviconso/index/facturepdf?id=%s' % bill._id_bill).content
+

@@ -16,10 +16,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from decimal import Decimal
+import re
+
 from weboob.capabilities.messages import CantSendMessage
 
+from weboob.capabilities.bill import Bill, Subscription
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Regexp
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Date, Regexp
+from weboob.browser.elements import ListElement, ItemElement, method
 
 
 class LoginPage(HTMLPage):
@@ -30,8 +35,18 @@ class LoginPage(HTMLPage):
         form.submit()
 
 
-class LoginSuccess(HTMLPage, LoggedPage):
-    pass
+class HomePage(HTMLPage, LoggedPage):
+    @method
+    class get_list(ListElement):
+        class item(ItemElement):
+            klass = Subscription
+
+            obj_label = CleanText('//span[@class="ecconumteleule"]')
+            obj_subscriber = CleanText('//span[@class="economligneaseule eccobold"]')
+            obj_id = Env('id')
+
+            def parse(self, el):
+                self.env['id'] = re.sub(r'[^\d\-\.]', '', el.xpath('//span[@class="ecconumteleule"]')[0].text)
 
 
 class SendSMSPage(HTMLPage):
@@ -50,3 +65,27 @@ class SendSMSPage(HTMLPage):
 class SendSMSErrorPage(HTMLPage):
     def get_error_message(self):
         return CleanText('//span[@class="txt12-o"][1]')(self.doc)
+
+
+class BillsPage(HTMLPage):
+    @method
+    class get_bills(ListElement):
+        item_xpath = '//table[@class="ecconotif historique"]/tbody/tr'
+
+        class item(ItemElement):
+            klass = Bill
+
+            obj_id = Format('%s.%s', Env('subid'), Env('id'))
+            obj__id_bill = Env('id')
+            obj_date = Date(CleanText('./td[1]/span'), dayfirst=True)
+            obj_format = u"pdf"
+            obj_price = Env('price')
+
+            def parse(self, el):
+                try:
+                    deci = Decimal(el.xpath('./td[2]//span[@class="priceCT"]')[0].text) / 100
+                except IndexError:
+                    deci = 0
+                self.env['price'] = Decimal(el.xpath('./td[2]/span')[0].text) + deci
+                onclick = el.xpath('.//td[@class="visuFacture"]/span/a/@onclick')[0]
+                self.env['id'] = re.findall(r'\d\d+', onclick)[0]

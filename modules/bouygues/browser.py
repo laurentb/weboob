@@ -19,7 +19,7 @@
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
-from .pages import LoginPage, LoginSuccess, SendSMSPage, SendSMSErrorPage
+from .pages import LoginPage, HomePage, SendSMSPage, SendSMSErrorPage, BillsPage
 
 from weboob.capabilities.messages import CantSendMessage
 
@@ -30,7 +30,8 @@ class BouyguesBrowser(LoginBrowser):
     BASEURL = 'https://www.mon-compte.bouyguestelecom.fr/'
     TIMEOUT = 20
 
-    home = URL('http://www.bouyguestelecom.fr/mon-compte/', LoginSuccess)
+    billspage = URL('http://www.bouyguestelecom.fr/mon-compte/mes-factures', BillsPage)
+    home = URL('http://www.bouyguestelecom.fr/mon-compte/', HomePage)
     login = URL('cas/login', LoginPage)
 
     sms_page = URL('http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/sendSMS.phtml',
@@ -42,8 +43,12 @@ class BouyguesBrowser(LoginBrowser):
     sms_error_page = URL('http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/SMS_erreur.phtml',
                          SendSMSErrorPage)
 
+
     def do_login(self):
-        self.login.go().login(self.username, self.password)
+        self.login.go()
+        if self.home.is_here():
+            return
+        self.page.login(self.username, self.password)
 
         if not self.home.is_here():
             raise BrowserIncorrectPassword
@@ -62,3 +67,11 @@ class BouyguesBrowser(LoginBrowser):
             raise CantSendMessage(self.page.get_error_message())
 
         self.confirm.open()
+
+    @need_login
+    def get_subscription_list(self):
+        return self.home.stay_or_go().get_list()
+
+    @need_login
+    def iter_bills(self, subscription):
+        return self.billspage.stay_or_go().get_bills(subid=subscription.id)
