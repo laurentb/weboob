@@ -319,7 +319,7 @@ class BoursePage(LoggedPage, HTMLPage):
     def populate(self, accounts):
         for a in accounts:
             for tr in self.doc.xpath('.//table[contains(@class, "tableau_comptes_details")]/tbody/tr'):
-                ac_code = tr.xpath('.//td[2]/br')[-1].tail.strip().split(' - ')
+                ac_code = tr.xpath('.//td[2]/div')[-1].text.strip().split(' - ')
                 if a.id == '%s%s' % (ac_code[0], ac_code[1]):
                     a._market_link = Regexp(CleanText('.//td[2]/@onclick'), "'(.*?)'")(tr)
                     a.balance += CleanDecimal('.//td[has-class("last")]', replace_dots=True)(tr)
