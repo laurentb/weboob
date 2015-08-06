@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
+from weboob.browser import PagesBrowser, URL
 
 from .pages import RecipePage, ResultsPage
 
@@ -26,26 +26,18 @@ from .pages import RecipePage, ResultsPage
 __all__ = ['CuisineazBrowser']
 
 
-class CuisineazBrowser(Browser):
-    DOMAIN = 'www.cuisineaz.com'
-    PROTOCOL = 'http'
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['wget']
-    PAGES = {
-        'http://www.cuisineaz.com/recettes/recherche_v2.aspx\?recherche=.*': ResultsPage,
-        'http://www.cuisineaz.com/recettes/.*[0-9]*.aspx': RecipePage,
-    }
+class CuisineazBrowser(PagesBrowser):
+
+    BASEURL = 'http://www.cuisineaz.com'
+
+    search = URL('recettes/recherche_v2.aspx\?recherche=(?P<pattern>.*)', ResultsPage)
+    recipe = URL('recettes/(?P<_id>.*).aspx', RecipePage)
 
     def iter_recipes(self, pattern):
-        self.location('http://www.cuisineaz.com/recettes/recherche_v2.aspx?recherche=%s' % (
-            pattern.replace(' ', '-')))
-        assert self.is_on_page(ResultsPage)
-        return self.page.iter_recipes()
+        return self.search.go(pattern=pattern.replace(' ', '-')).iter_recipes()
 
-    def get_recipe(self, id):
-        try:
-            self.location('http://www.cuisineaz.com/recettes/%s.aspx' % id)
-        except BrowserHTTPNotFound:
-            return
-        if self.is_on_page(RecipePage):
-            return self.page.get_recipe(id)
+    def get_recipe(self, _id, obj=None):
+        return self.recipe.go(_id=_id).get_recipe(obj=obj)
+
+    def get_comments(self, _id):
+        return self.recipe.go(_id=_id).get_comments()

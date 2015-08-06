@@ -18,13 +18,15 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.test import BackendTest
+import itertools
 
 
 class CuisineazTest(BackendTest):
     MODULE = 'cuisineaz'
 
     def test_recipe(self):
-        recipes = self.backend.iter_recipes('fondue')
+        recipes = list(itertools.islice(self.backend.iter_recipes(u'purée'), 0, 20))
+        assert len(recipes)
         for recipe in recipes:
             full_recipe = self.backend.get_recipe(recipe.id)
             assert full_recipe.instructions
