@@ -51,7 +51,7 @@ class JsonBrowserMixin(object):
     def open(self, *args, **kwargs):
         if isJSON(kwargs.get('data')):
             kwargs['data'] = json.dumps(kwargs['data'][1])
-            if not 'headers' in kwargs:
+            if 'headers' not in kwargs:
                 kwargs['headers'] = {}
             kwargs['headers']['Content-Type'] = 'application/json'
 

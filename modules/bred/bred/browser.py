@@ -89,7 +89,7 @@ class BredBrowser(DomainBrowser):
                     a.currency = poste['montantTitres']['monnaie']['code'].strip()
                     yield a
 
-                if not 'libelle' in poste:
+                if 'libelle' not in poste:
                     continue
 
                 a.label = ' '.join([content['intitule'].strip(), poste['libelle'].strip()])

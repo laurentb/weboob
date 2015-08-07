@@ -794,7 +794,7 @@ class APIBrowser(DomainBrowser):
     def open(self, *args, **kwargs):
         if 'data' in kwargs:
             kwargs['data'] = json.dumps(kwargs['data'])
-        if not 'headers' in kwargs:
+        if 'headers' not in kwargs:
             kwargs['headers'] = {}
         kwargs['headers']['Content-Type'] = 'application/json'
 

@@ -298,7 +298,7 @@ class TableElement(ListElement):
         for el in self.el.xpath(self.head_xpath):
             title = self.cleaner.clean(el).lower()
             for name, titles in columns.iteritems():
-                if title in titles and not name in self._cols:
+                if title in titles and name not in self._cols:
                     self._cols[name] = colnum
             try:
                 colnum += int(el.attrib.get('colspan', 1))

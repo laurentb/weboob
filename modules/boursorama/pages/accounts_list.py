@@ -116,5 +116,5 @@ class AccountsList(Page):
                             account.balance = Decimal(0)
                 else:
                     # because of some weird useless <tr>
-                    if account.id is not None and (not account._link_id or not 'moneycenter' in account._link_id):
+                    if account.id is not None and (not account._link_id or 'moneycenter' not in account._link_id):
                         yield account

@@ -233,7 +233,7 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                 return self.parent.get_colnum('date') is not None and \
                        len(self.el.findall('td')) >= 3 and \
                        self.el.get('class') and \
-                       not 'tableTr' in self.el.get('class')
+                       'tableTr' not in self.el.get('class')
 
             def validate(self, obj):
                 if obj.category == 'RELEVE CB':

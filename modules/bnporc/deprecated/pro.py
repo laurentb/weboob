@@ -101,7 +101,7 @@ class ProAccountHistory(Page):
         except IndexError:
             return
 
-        if not 'checked' in checkbox.attrib:
+        if 'checked' not in checkbox.attrib:
             self.browser.select_form(name='formtri')
             self.browser['szTriDate'] = ['date']
             self.browser['szTriRub'] = []
