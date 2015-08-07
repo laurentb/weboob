@@ -19,7 +19,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.base import UserError
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 from .pages.login import LoginPage
@@ -83,7 +82,7 @@ class Fortuneo(Browser):
         if self.is_on_page(AccountsList) and self.page.need_reload():
             self.location('/ReloadContext?action=1&')
         elif self.is_on_page(AccountsList):
-            raise UserError('Authentification with sms is not supported')
+            raise BrowserIncorrectPassword('Authentification with sms is not supported')
 
     def get_investments(self, account):
         self.location(account._link_id)
