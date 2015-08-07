@@ -172,7 +172,7 @@ class AccountsList(LoggedPage, HTMLPage):
         item_xpath = '//table'
 
     def get_history_jid(self):
-        span = Attr('//span[starts-with(@id, "index:j_id")]', 'id')(self.doc)
+        span = Attr('//*[starts-with(@id, "index:j_id")]', 'id')(self.doc)
         jid = span.split(':')[1]
         return jid
 
