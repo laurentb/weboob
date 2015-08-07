@@ -196,9 +196,13 @@ class Browser(object):
 
         # defines a max_retries. It's mandatory in case a server is not
         # handling keep alive correctly, like the proxy burp
-        a = requests.adapters.HTTPAdapter(max_retries=self.MAX_RETRIES)
-        session.mount('http://', a)
-        session.mount('https://', a)
+        adapter_kwargs = dict(max_retries=self.MAX_RETRIES)
+        # set connection pool size equal to MAX_WORKERS if needed
+        if self.MAX_WORKERS > requests.adapters.DEFAULT_POOLSIZE:
+            adapter_kwargs.update(pool_connections=self.MAX_WORKERS,
+                                  pool_maxsize=self.MAX_WORKERS)
+        session.mount('https://', requests.adapters.HTTPAdapter(**adapter_kwargs))
+        session.mount('http://', requests.adapters.HTTPAdapter(**adapter_kwargs))
 
         if self.TIMEOUT:
             session.timeout = self.TIMEOUT
