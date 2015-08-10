@@ -34,7 +34,7 @@ class CaisseEpargne(Browser):
     PROTOCOL = 'https'
     CERTHASH = ['dfff27d6db1fcdf1cea3ab8e3c1ca4f97c971262e95be49f3385b40c97fe640c', '9894ab2088630f341de821a09f1286c525f854f62ac186bd442368b4692c5969', '0e0fa585a8901c206c4ebbc7ee33e00e17809d7086f224e1b226c46165a4b5ac']
     PAGES = {'https://[^/]+/particuliers/ind_pauthpopup.aspx.*':          LoginPage,
-             'https://[^/]+/Portail.aspx':                                IndexPage,
+             'https://[^/]+/Portail.aspx.*':                              IndexPage,
              'https://[^/]+/login.aspx':                                  ErrorPage,
              'https://[^/]+/Pages/logout.aspx.*':                         ErrorPage,
              'https://[^/]+/page_hs_dei_.*.aspx':                         UnavailablePage,
@@ -109,7 +109,7 @@ class CaisseEpargne(Browser):
         if self.is_on_page(IndexPage):
             self.page.go_list()
         else:
-            self.location(self.buildurl('/Portail.aspx'))
+            self.location(self.buildurl('/Portail.aspx?tache=CPTSYNT0'))
 
         self.page.go_history(info)
 
