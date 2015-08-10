@@ -30,7 +30,8 @@ __all__ = ['GanAssurances']
 
 
 class GanAssurances(LoginBrowser):
-    login = URL('/wps/portal/login.*', LoginPage)
+    login = URL('/wps/portal/login.*',
+                '/wps/portal/inscription.*', LoginPage)
     accounts = URL('/wps/myportal/TableauDeBord', AccountsPage)
     transactions = URL('/wps/myportal/!ut.*', TransactionsPage)
 
