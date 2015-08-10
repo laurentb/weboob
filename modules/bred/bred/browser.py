@@ -79,6 +79,10 @@ class BredBrowser(DomainBrowser):
                 a.id = '%s.%s' % (a._number, a._nature)
                 a.type = self.ACCOUNT_TYPES.get(poste['codeNature'], Account.TYPE_UNKNOWN)
 
+                if 'numeroDossier' in poste and poste['numeroDossier']:
+                    a._file_number = poste['numeroDossier']
+                    a.id += '.%s' % a._file_number
+
                 if poste['postePortefeuille']:
                     a.label = u'Portefeuille Titres'
                     a.balance = Decimal(str(poste['montantTitres']['valeur']))
