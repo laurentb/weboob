@@ -54,7 +54,7 @@ class Attr(Filter):
         try:
             return u'%s' % el[0].attrib[self.attr]
         except IndexError:
-            return self.default_or_raise(XPathNotFound('Unable to find link %s' % self.selector))
+            return self.default_or_raise(XPathNotFound('Unable to find tag %s' % self.selector))
         except KeyError:
             return self.default_or_raise(AttributeNotFound('Element %s does not have attribute %s' % (el[0], self.attr)))
 
