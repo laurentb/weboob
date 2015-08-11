@@ -22,6 +22,7 @@ from requests.exceptions import Timeout, ConnectionError
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ServerError, HTTPNotFound
+from weboob.capabilities.bill import Subscription, Bill
 from weboob.capabilities.shop import OrderNotFound
 from weboob.exceptions import BrowserIncorrectPassword
 
@@ -112,3 +113,24 @@ class Amazon(LoginBrowser):
             except (ServerError, Timeout, ConnectionError) as e:
                 pass
         raise e
+
+    @need_login
+    def get_subscription_list(self):
+        sub = Subscription()
+        sub.label = u'amazon'
+        sub.id = u'amazon'
+        yield sub
+
+    @need_login
+    def iter_bills(self, subscription):
+        orders = self.iter_orders()
+        for o in orders:
+            b = Bill()
+            b._url = o._bill['url']
+            b.id = '%s.%s' % (subscription.id, o.id)
+            b.date = o.date
+            b.price = o.total
+            b.format = o._bill['format']
+            b.currency = self.get_currency()
+            b.vat = o.tax
+            yield b

@@ -111,7 +111,15 @@ class OrderNewPage(OrderPage):
             order.discount = self.discount()
             order.shipping = self.shipping()
             order.total = self.grand_total()
+            order._bill = self.bill()
             return order
+
+    def bill(self):
+        pdf = self.doc.xpath(u'//a[contains(text(), "Imprimer une facture")]')
+        htlm = self.doc.xpath(u'//a[contains(text(), "Imprimer un récapitulatif de commande")]')
+        format = u'pdf' if pdf else u'html'
+        url = pdf[0].attrib['href'] if pdf else htlm[0].attrib['href']
+        return {'url': url, 'format': format}
 
     def order_date(self):
         return datetime.strptime(

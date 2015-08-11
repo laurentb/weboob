@@ -18,7 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from weboob.capabilities.bill import CapBill, Subscription, Bill, SubscriptionNotFound, BillNotFound
 from weboob.capabilities.shop import CapShop, Order
+from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.ordereddict import OrderedDict
@@ -29,7 +31,7 @@ from .fr.browser import AmazonFR
 __all__ = ['AmazonModule']
 
 
-class AmazonModule(Module, CapShop):
+class AmazonModule(Module, CapShop, CapBill):
     NAME = 'amazon'
     MAINTAINER = u'Oleg Plakhotniuk'
     EMAIL = 'olegus8@gmail.com'
@@ -75,3 +77,26 @@ class AmazonModule(Module, CapShop):
         if not isinstance(order, Order):
             order = self.get_order(order)
         return self.browser.iter_items(order)
+
+    def iter_subscription(self):
+        return self.browser.get_subscription_list()
+
+    def get_subscription(self, _id):
+        return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
+
+    def get_bill(self, _id):
+        subid = _id.split('.')[0]
+        subscription = self.get_subscription(subid)
+        return find_object(self.iter_bills(subscription), id=_id, error=BillNotFound)
+
+    def iter_bills(self, subscription):
+        if not isinstance(subscription, Subscription):
+            subscription = self.get_subscription(subscription)
+        return self.browser.iter_bills(subscription)
+
+    def download_bill(self, bill):
+        if not isinstance(bill, Bill):
+            bill = self.get_bill(bill)
+        if bill._url:
+            return self.browser.open(bill._url).content
+        return None
