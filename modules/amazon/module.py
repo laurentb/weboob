@@ -78,6 +78,14 @@ class AmazonModule(Module, CapShop, CapBill):
             order = self.get_order(order)
         return self.browser.iter_items(order)
 
+    def iter_resources(self, objs, split_path):
+        if Order in objs:
+            self._restrict_level(split_path)
+            return self.iter_orders()
+        if Subscription in objs:
+            self._restrict_level(split_path)
+            return self.iter_subscription()
+
     def iter_subscription(self):
         return self.browser.get_subscription_list()
 

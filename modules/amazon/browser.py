@@ -131,6 +131,6 @@ class Amazon(LoginBrowser):
             b.date = o.date
             b.price = o.total
             b.format = o._bill['format']
-            b.currency = self.get_currency()
+            b.currency = b.get_currency(self.get_currency())
             b.vat = o.tax
             yield b
