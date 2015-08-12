@@ -67,10 +67,6 @@ class GalleryPage(Page):
 
     def fill_gallery(self, gallery):
         gallery.title = self.document.xpath("//h1[@id='gn']/text()")[0]
-        try:
-            gallery.original_title = self.document.xpath("//h1[@id='gj']/text()")[0]
-        except IndexError:
-            gallery.original_title = None
         description_div = self.document.xpath("//div[@id='gd71']")[0]
         description_html = self.parser.tostring(description_div)
         gallery.description = html2text(description_html)
