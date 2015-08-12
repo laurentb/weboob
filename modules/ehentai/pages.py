@@ -20,7 +20,7 @@
 
 from weboob.deprecated.browser import Page
 from weboob.tools.html import html2text
-from weboob.capabilities.image import BaseImage
+from weboob.tools.capabilities.thumbnail import Thumbnail
 
 from datetime import datetime
 import re
@@ -86,8 +86,7 @@ class GalleryPage(Page):
             thumbnail_style = self.document.xpath("//div[@class='gdtm']/div/attribute::style")[0]
             thumbnail_url = re.search(r"background:[^;]+url\((.+?)\)", thumbnail_style).group(1)
 
-        gallery.thumbnail = BaseImage(thumbnail_url)
-        gallery.thumbnail.url = gallery.thumbnail.id
+        gallery.thumbnail = Thumbnail(thumbnail_url)
 
 
 class ImagePage(Page):
