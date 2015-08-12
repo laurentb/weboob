@@ -67,7 +67,7 @@ class GalleryPage(Page):
 
     def fill_gallery(self, gallery):
         gallery.title = self.document.xpath("//h1[@id='gn']/text()")[0]
-        cardinality_string = self.document.xpath("//div[@id='gdd']//tr[td[@class='gdt1']/text()='Images:']/td[@class='gdt2']/text()")[0]
+        cardinality_string = self.document.xpath("//div[@id='gdd']//tr[td[@class='gdt1']/text()='Length:']/td[@class='gdt2']/text()")[0]
         gallery.cardinality = int(re.match(r"\d+", cardinality_string).group(0))
         date_string = self.document.xpath("//div[@id='gdd']//tr[td[@class='gdt1']/text()='Posted:']/td[@class='gdt2']/text()")[0]
         gallery.date = datetime.strptime(date_string, "%Y-%m-%d %H:%M")
