@@ -83,6 +83,7 @@
 # Example: env.category bank
 # For some running examples, see at the end of the script
 
+from __future__ import print_function
 
 import os
 import sys
@@ -144,28 +145,28 @@ class GenericMuninPlugin(object):
 
 
     def display_help(self):
-        print 'generic-munin is a plugin for munin'
-        print ''
-        print 'Copyright(C) 2013 Romain Bignon, Florent Fourcot'
-        print ''
-        print 'To use it, create a symlink /etc/munin/plugins/nameyouwant to this script'
-        print 'and add this section in /etc/munin/plugin-conf.d/munin-node:'
-        print ''
-        print '[nameyouwant]'
-        print 'user romain'
-        print 'group romain'
-        print 'env.HOME /home/romain'
-        print '# The weboob directory path.'
-        print 'env.weboob_path /home/romain/.config/weboob/'
-        print '# Monitored objects. If this parameter is missing, all objects'
-        print '# will be displayed.'
-        print 'env.id_monitored myid@backend1 otherid@backend2'
-        print '# To prevent mass connections to websites, results are cached.'
-        print '# You can set here the expiration delay (in seconds).'
-        print 'env.cache_expire 7200'
-        print '# Cumulate values'
-        print 'env.cumulate 1'
-        print ''
+        print('generic-munin is a plugin for munin')
+        print('')
+        print('Copyright(C) 2013 Romain Bignon, Florent Fourcot')
+        print('')
+        print('To use it, create a symlink /etc/munin/plugins/nameyouwant to this script')
+        print('and add this section in /etc/munin/plugin-conf.d/munin-node:')
+        print('')
+        print('[nameyouwant]')
+        print('user romain')
+        print('group romain')
+        print('env.HOME /home/romain')
+        print('# The weboob directory path.')
+        print('env.weboob_path /home/romain/.config/weboob/')
+        print('# Monitored objects. If this parameter is missing, all objects')
+        print('# will be displayed.')
+        print('env.id_monitored myid@backend1 otherid@backend2')
+        print('# To prevent mass connections to websites, results are cached.')
+        print('# You can set here the expiration delay (in seconds).')
+        print('env.cache_expire 7200')
+        print('# Cumulate values')
+        print('env.cumulate 1')
+        print('')
 
     def cachepath(self, name):
         tmpdir = os.path.join(self.weboob.workdir, "munin")
@@ -202,7 +203,7 @@ class GenericMuninPlugin(object):
         try:
             f = open(filename, 'w')
         except IOError as e:
-            print >>sys.stderr, 'Unable to create the cache file %s: %s' % (filename, e)
+            print('Unable to create the cache file %s: %s' % (filename, e), file=sys.stderr)
             return
 
         self.cache = f
@@ -318,7 +319,7 @@ class GenericMuninPlugin(object):
 
     def print_errors(self, errors):
         for backend, err, backtrace in errors:
-            print >>sys.stderr, (u'%s(%s): %s' % (type(err).__name__, backend.name, err)).encode(sys.stdout.encoding or locale.getpreferredencoding(), 'replace')
+            print((u'%s(%s): %s' % (type(err).__name__, backend.name, err)).encode(sys.stdout.encoding or locale.getpreferredencoding(), 'replace'), file=sys.stderr)
             if isinstance(err, BrowserIncorrectPassword):
                 self.weboob.backends_config.edit_backend(backend.name, backend.NAME, {'_enabled': 'false'})
 
@@ -347,7 +348,7 @@ class GenericMuninPlugin(object):
         elif cmd == 'config':
             self.config()
         elif cmd == 'autoconf':
-            print 'no'
+            print('no')
             sys.exit(1)
         elif cmd == 'suggest':
             sys.exit(1)

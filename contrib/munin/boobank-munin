@@ -19,6 +19,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import os
 import sys
 import locale
@@ -44,33 +46,33 @@ class BoobankMuninPlugin(object):
         self.cache = None
 
     def display_help(self):
-        print 'boobank-munin is a plugin for munin'
-        print ''
-        print 'Copyright(C) 2010-2011 Romain Bignon'
-        print ''
-        print 'To use it, create a symlink /etc/munin/plugins/boobank to this script'
-        print 'and add this section in /etc/munin/plugin-conf.d/munin-node:'
-        print ''
-        print '[boobank]'
-        print 'user romain'
-        print 'group romain'
-        print 'env.HOME /home/romain'
-        print '# The weboob directory path.'
-        print 'env.weboob_path /home/romain/.config/weboob/'
-        print '# Monitored accounts. If this parameter is missing, all accounts'
-        print '# will be displayed.'
-        print 'env.boobank_monitored 0125XXXXXXXXXXXX@bnporc 0125XXXXXXXXXXXX@bnporc'
-        print '# To prevent mass connections to bank websites, results are cached.'
-        print '# You can set here the expiration delay (in seconds).'
-        print 'env.boobank_cache_expire 7200'
-        print '# If enabled, coming operations are added to the value of accounts\''
-        print '# balance.'
-        print 'env.boobank_add_coming 1'
-        print '# Cumulate accounts values'
-        print 'env.boobank_cumulate 1'
-        print ''
-        print 'When you change configuration, you can use this command to reset cache:'
-        print '$ boobank-munin --reset'
+        print('boobank-munin is a plugin for munin')
+        print('')
+        print('Copyright(C) 2010-2011 Romain Bignon')
+        print('')
+        print('To use it, create a symlink /etc/munin/plugins/boobank to this script')
+        print('and add this section in /etc/munin/plugin-conf.d/munin-node:')
+        print('')
+        print('[boobank]')
+        print('user romain')
+        print('group romain')
+        print('env.HOME /home/romain')
+        print('# The weboob directory path.')
+        print('env.weboob_path /home/romain/.config/weboob/')
+        print('# Monitored accounts. If this parameter is missing, all accounts')
+        print('# will be displayed.')
+        print('env.boobank_monitored 0125XXXXXXXXXXXX@bnporc 0125XXXXXXXXXXXX@bnporc')
+        print('# To prevent mass connections to bank websites, results are cached.')
+        print('# You can set here the expiration delay (in seconds).')
+        print('env.boobank_cache_expire 7200')
+        print('# If enabled, coming operations are added to the value of accounts\'')
+        print('# balance.')
+        print('env.boobank_add_coming 1')
+        print('# Cumulate accounts values')
+        print('env.boobank_cumulate 1')
+        print('')
+        print('When you change configuration, you can use this command to reset cache:')
+        print('$ boobank-munin --reset')
 
     def clear_cache(self):
         for name in ('boobank-munin', 'boobank-munin-config'):
@@ -114,7 +116,7 @@ class BoobankMuninPlugin(object):
         try:
             f = open(filename, 'w')
         except IOError as e:
-            print >>sys.stderr, 'Unable to create the cache file %s: %s' % (filename, e)
+            print('Unable to create the cache file %s: %s' % (filename, e), file=sys.stderr)
             return
 
         self.cache = f
@@ -181,7 +183,7 @@ class BoobankMuninPlugin(object):
 
     def print_errors(self, errors):
         for backend, err, backtrace in errors:
-            print >>sys.stderr, (u'%s(%s): %s' % (type(err).__name__, backend.name, err)).encode(sys.stdout.encoding or locale.getpreferredencoding(), 'replace')
+            print((u'%s(%s): %s' % (type(err).__name__, backend.name, err)).encode(sys.stdout.encoding or locale.getpreferredencoding(), 'replace'), file=sys.stderr)
             if isinstance(err, BrowserIncorrectPassword):
                 self.weboob.backends_config.edit_backend(backend.name, backend.NAME, {'_enabled': 'false'})
 
@@ -211,7 +213,7 @@ class BoobankMuninPlugin(object):
         elif cmd == 'config':
             self.config()
         elif cmd == 'autoconf':
-            print 'no'
+            print('no')
             sys.exit(1)
         elif cmd == 'suggest':
             sys.exit(1)
