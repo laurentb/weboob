@@ -27,13 +27,14 @@ from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired
 from weboob.tools.json import json
 from weboob.tools.date import parse_french_date as Date
 
 
 class ConnectionThresholdPage(HTMLPage):
-    pass
+    def on_load(self):
+        raise BrowserPasswordExpired(u'Vous avez atteint le seuil de 100 connexions avec le même code secret. Par mesure de sécurité, veuillez le changer.')
 
 def cast(x, typ, default=None):
     try:
