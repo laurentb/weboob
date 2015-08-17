@@ -138,21 +138,20 @@ class VideoPage(Page):
 
         embed_page = self.browser.readurl('http://www.dailymotion.com/embed/video/%s' % video.id)
 
-        m = re.search('var info = ({.*?}),[^{"]', embed_page)
+        m = re.search('playerV5\s*=\s*dmp\.create\([^,]+?,\s*({.+?})\);', embed_page)
         if not m:
             raise BrokenPageError('Unable to find information about video')
 
         info = json.loads(m.group(1))
-        for key in ['stream_h264_hd1080_url', 'stream_h264_hd_url',
-                    'stream_h264_hq_url', 'stream_h264_url',
-                    'stream_h264_ld_url']:
-            if info.get(key):
+        qualities = info.get('metadata').get('qualities')
+        for key in ['2160', '1440', '1080', '720', '480', '380', '240']:
+            if qualities.get(key):
                 max_quality = key
                 break
         else:
             raise BrokenPageError(u'Unable to extract video URL')
 
-        video.url = unicode(info[max_quality])
+        video.url = unicode(qualities.get(max_quality)[0].get('url'))
 
 
 class KidsVideoPage(VideoPage):
