@@ -81,7 +81,7 @@ class Fortuneo(Browser):
 
         if self.is_on_page(AccountsList) and self.page.need_reload():
             self.location('/ReloadContext?action=1&')
-        elif self.is_on_page(AccountsList):
+        elif self.is_on_page(AccountsList) and self.page.need_sms():
             raise BrowserIncorrectPassword('Authentification with sms is not supported')
 
     def get_investments(self, account):

@@ -237,6 +237,9 @@ class AccountsList(Page):
         form = self.document.xpath('//form[@name="InformationsPersonnellesForm"]')
         return len(form) > 0
 
+    def need_sms(self):
+        return len(self.document.xpath('//div[@id="aidesecuforte"]'))
+
     ACCOUNT_TYPES = {'mes-comptes/compte-courant':    Account.TYPE_CHECKING,
                      'mes-comptes/assurance-vie':     Account.TYPE_LIFE_INSURANCE,
                      'mes-comptes/livret':            Account.TYPE_SAVINGS,
