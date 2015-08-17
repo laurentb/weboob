@@ -176,13 +176,13 @@ class ProAccountsPage(AccountsPage):
             cols = tr.findall('td')
 
             a = Account()
-            a.id = cols[self.COL_ID].xpath('.//span[@class="right-underline"]')[0].text.replace(' ', '').strip()
             a.label = unicode(cols[self.COL_ID].xpath('.//span[@class="left-underline"]')[0].text.strip())
             a.type = self.get_account_type(a.label)
             balance = self.parser.tocleanstring(cols[self.COL_BALANCE])
             a.balance = Decimal(FrenchTransaction.clean_amount(balance))
             a.currency = a.get_currency(balance)
             a._link, a._args = self.params_from_js(cols[self.COL_ID].find('a').attrib['href'])
+            a.id = '%s%s' % (cols[self.COL_ID].xpath('.//span[@class="right-underline"]')[0].text.replace(' ', '').strip(), a._args['IndiceCompte'])
 
             a._card_ids = []
 
