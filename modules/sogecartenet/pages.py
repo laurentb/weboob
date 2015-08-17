@@ -20,6 +20,7 @@
 import requests
 
 from weboob.browser.pages import HTMLPage, CsvPage, pagination
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.elements import ListElement, DictElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Env
 from weboob.browser.filters.json import Dict
@@ -38,6 +39,10 @@ class SogeLoggedPage(object):
         if hasattr(self.doc, 'xpath'):
             return not self.doc.xpath('//input[@value="LOGIN"][@name="QUEFAIRE"]')
         return True
+
+    def on_load(self):
+        if hasattr(self.doc, 'xpath') and self.doc.xpath('//input[@value="LOGIN"][@name="QUEFAIRE"]'):
+            raise BrowserIncorrectPassword()
 
 class AccountsPage(SogeLoggedPage, HTMLPage):
     @pagination

@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 
 from .pages import LoginPage, AccountsPage, TransactionsPage
@@ -44,8 +43,6 @@ class SogecartesBrowser(LoginBrowser):
                 "QUEFAIRE": "LOGIN",
                 }
         self.login.open(data=data)
-        if self.login.is_here():
-            raise BrowserIncorrectPassword()
 
     @need_login
     def iter_accounts(self):
