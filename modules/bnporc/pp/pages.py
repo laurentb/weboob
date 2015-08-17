@@ -27,7 +27,7 @@ from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.json import json
 from weboob.tools.date import parse_french_date as Date
 
@@ -118,7 +118,10 @@ class LoginPage(JsonPage):
 
 class BNPPage(LoggedPage, JsonPage):
     def build_doc(self, text):
-        return json.loads(text, parse_float=Decimal)
+        try:
+            return json.loads(text, parse_float=Decimal)
+        except ValueError:
+            raise BrowserUnavailable()
 
     def on_load(self):
         code = cast(self.get('codeRetour'), int, 0)
