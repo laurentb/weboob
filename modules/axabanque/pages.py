@@ -263,6 +263,9 @@ class TransactionsPage(BasePage):
         #DAT account can't have transaction
         if self.document.xpath('//table[@id="table-dat"]'):
             return
+        #These accounts have investments, no transactions
+        if self.document.xpath('//table[@id="InfosPortefeuille"]'):
+            return
         tables = self.document.xpath('//table[@id="table-detail-operation"]')
         if len(tables) == 0:
             tables = self.document.xpath('//table[@id="table-detail"]')
