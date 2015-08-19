@@ -32,7 +32,7 @@ from weboob.browser.pages import LoggedPage, HTMLPage, FormNotFound, pagination
 from weboob.browser.filters.html import Attr
 from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, \
                                             CleanDecimal, Map, AsyncLoad, Async
-from weboob.exceptions import BrowserUnavailable
+from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 
@@ -143,7 +143,7 @@ class AccountsPage(LoggedPage, HTMLPage):
     def on_load(self):
         warn = self.doc.xpath('//div[@id="attTxt"]')
         if len(warn) > 0:
-            raise BrowserUnavailable(warn[0].text)
+            raise BrowserIncorrectPassword(warn[0].text)
 
     @method
     class get_list(ListElement):
