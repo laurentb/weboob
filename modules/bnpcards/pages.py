@@ -19,7 +19,6 @@
 
 import re
 from datetime import date
-from dateutil.relativedelta import relativedelta
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method
@@ -28,7 +27,12 @@ from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
-__all__ = ['LoginPage', 'ErrorPage', 'AccountsPage', 'TransactionsPage']
+
+class HomePage(LoggedPage, HTMLPage):
+    def is_corporate(self):
+        el = self.doc.xpath('//div[@class="marges5"]/h5/a[contains(text(), "CORPORATE")]')
+        if el:
+            return True
 
 
 class LoginPage(HTMLPage):
@@ -41,129 +45,21 @@ class LoginPage(HTMLPage):
         form.submit()
 
 
-class AccountsPage(LoggedPage, HTMLPage):
-    @pagination
-    @method
-    class iter_accounts(ListElement):
-        item_xpath = '//table[@id="ContentTable_datas"]//tr[@class]'
+class ExpandablePage(LoggedPage, HTMLPage):
+    def expand(self):
+        form = self.get_form()
+        form.submit()
 
-        next_page = Link('//table[@id="tgDecorationFoot"]//b/following-sibling::a[1]')
 
-        class item(ItemElement):
-            klass = Account
-
-            obj_id = CleanText('./td[2]', replace=[(' ', '')])
-            obj_label = CleanText('./td[1]')
-            obj_type = Account.TYPE_CARD
-
+class GetableLinksPage(LoggedPage, HTMLPage):
     def get_link(self, account_id):
-        return self.doc.xpath('.//a[replace(@title, " ", "")="%s"]' % account_id)[0].get("href")
-
-    def expand(self):
-        submit = '//input[contains(@value, "Display")]'
-        form = self.get_form(submit=submit)
-        node_checked = ''
-        for item in self.doc.xpath('//input[contains(@id,"tree_id_checkbox")]'):
-            node_checked += item.name.split('box_')[1] + '--'
-        form['tree_idtreeviewNodeChecked'] = node_checked
-        form['tree_idtreeviewNodeId'] = "0"
-        form['fldParam_datas'] = "1"
-        if 'Histo' in self.url:
-            form['periodeDeb'] = (date.today() - relativedelta(months=6)).strftime("%d/%m/%Y")
-            form['periodeFin'] = (date.today() + relativedelta(months=3)).strftime("%d/%m/%Y")
-            form['periodeSelectionMode'] = "input"
-        onclick = self.doc.xpath(submit)[0].get("onclick")
-        url_parts = re.findall("'([^']*)'", onclick)
-        form.url = 'operation%s%sCorporate.event.do' % (url_parts[1], url_parts[0].title())
-        form.submit()
+        el = self.doc.xpath('.//a[contains(text(), "%s")]' % account_id)
+        if not el:
+            return
+        return el[0].get("href")
 
 
-class TransactionsPage(LoggedPage, HTMLPage):
-    @pagination
-    @method
-    class get_history(ListElement):
-        item_xpath = '//table[@id="ContentTable_datas"]//tr[@class]'
-
-        next_page = Link('//table[@id="tgDecorationFoot"]//b/following-sibling::a[1]')
-
-        class item(ItemElement):
-            klass = FrenchTransaction
-
-            obj_rdate = FrenchTransaction.Date(CleanText('./td[1]'))
-            obj_date = FrenchTransaction.Date(CleanText('./td[3]'))
-            obj_raw = FrenchTransaction.Raw(CleanText('./td[2]'))
-            obj_amount = FrenchTransaction.Amount(CleanText('./td[5]'), replace_dots=False)
-            obj_original_amount = FrenchTransaction.Amount(CleanText('./td[4]'), replace_dots=False)
-            obj_original_currency = FrenchTransaction.Currency(CleanText('./td[4]'))
-            obj_commission = FrenchTransaction.Amount(CleanText('./td[6]'), replace_dots=False)
-
-            def obj__coming(self):
-                if Field('date')(self) >= date.today():
-                    return True
-                return
-
-    def is_not_sorted(self, order='down'):
-        translate = {'down':'bas','up':'bas'}
-        return len(self.doc.xpath('//table[@id="ContentTable_datas"]/thead/tr/th[1]//img[contains(@src, "tri_%s_on")]' % translate[order])) == 0
-
-    def sort(self, order='down'):
-        form = self.get_form(nr=0)
-        form.url += '?sortDescriptor_datas=true'
-        form['indexSort_datas'] = 3
-        form['sort_datas'] = order
-        form.submit()
-
-
-class ErrorPage(HTMLPage):
-    pass
-
-
-class TiHomePage(HTMLPage):
-    pass
-
-
-class TiCardPage(LoggedPage, HTMLPage):
-    @method
-    class iter_accounts(ListElement):
-        item_xpath = '//table[@class="params"]/tr'
-
-        class item(ItemElement):
-            klass = Account
-
-            obj_id = CleanText('./td[2]/select/option', replace=[(' ', '')])
-            obj_label = CleanText('./td[1]/b[2]')
-            obj_type = Account.TYPE_CARD
-
-    @pagination
-    @method
-    class get_transactions(ListElement):
-        item_xpath = '//table[@id="datas"]/tbody/tr'
-
-        next_page = Link('//tfoot//b/following-sibling::a[1]')
-
-        class item(ItemElement):
-            klass = FrenchTransaction
-
-            obj_rdate = FrenchTransaction.Date(CleanText('./td[1]'))
-            obj_date = FrenchTransaction.Date(CleanText('./td[3]'))
-            obj_raw = FrenchTransaction.Raw(CleanText('./td[2]'))
-            obj_amount = FrenchTransaction.Amount(CleanText('./td[5]'), replace_dots=False)
-            obj_original_amount = FrenchTransaction.Amount(CleanText('./td[4]'), replace_dots=False)
-            obj_original_currency = FrenchTransaction.Currency(CleanText('./td[4]'))
-            obj_commission = FrenchTransaction.Amount(CleanText('./td[6]'), replace_dots=False)
-
-            def obj__coming(self):
-                if Field('date')(self) >= date.today():
-                    return True
-                return
-
-    def expand(self):
-        form = self.get_form(submit='//input[@value="Display"]')
-        form['bouton'] = 'rechercher'
-        form.submit()
-
-
-class TiHistoPage(TiCardPage):
+class PeriodsPage(LoggedPage, HTMLPage):
     def get_periods(self):
         periods = []
         for period in self.doc.xpath('//select[@name="periodeSaisie"]/option/@value'):
@@ -176,3 +72,76 @@ class TiHistoPage(TiCardPage):
         form['periodeSaisie'] = period
         form['periodeSaisieCache'] = period
         form.submit()
+
+
+class AccountsPage(ExpandablePage, GetableLinksPage):
+    @pagination
+    @method
+    class iter_accounts(ListElement):
+        item_xpath = '//table[@id="datas"]/tbody/tr'
+
+        next_page = Link('//table[@id="datas"]/tfoot//b/following-sibling::a[1]')
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_id = CleanText('./td[2]')
+            obj_label = CleanText('./td[1]')
+            obj_type = Account.TYPE_CARD
+
+
+class ComingPage(ExpandablePage):
+    def get_link(self, account_id):
+        el = self.doc.xpath('.//a[contains(text(), "%s")]' % account_id)
+        if not el:
+            return
+        link = re.search(r",'(.*)'\);", el[0].get("href"))
+        if link:
+            return link.group(1)
+
+
+class HistoPage(GetableLinksPage, PeriodsPage):
+    pass
+
+
+class TransactionsPage(LoggedPage, HTMLPage):
+    @pagination
+    @method
+    class get_history(ListElement):
+        item_xpath = '//table[@id="datas"]/tbody/tr'
+        next_page = Link('//table[@id="datas"]/tfoot//b/following-sibling::a[1]')
+
+        class item(ItemElement):
+            klass = FrenchTransaction
+
+            obj_rdate = FrenchTransaction.Date(CleanText('./td[1]'))
+            obj_date = FrenchTransaction.Date(CleanText('./td[3]'))
+            obj_raw = FrenchTransaction.Raw(CleanText('./td[2]'))
+            obj_amount = FrenchTransaction.Amount(CleanText('./td[5]'), replace_dots=False)
+            obj_original_amount = FrenchTransaction.Amount(CleanText('./td[4]'), replace_dots=False)
+            obj_original_currency = FrenchTransaction.Currency(CleanText('./td[4]'))
+            obj_commission = FrenchTransaction.Amount(CleanText('./td[6]'), replace_dots=False)
+
+            def obj__coming(self):
+                if Field('date')(self) >= date.today():
+                    return True
+                return
+
+
+class ErrorPage(HTMLPage):
+    pass
+
+
+class TiCardPage(ExpandablePage, TransactionsPage):
+    @method
+    class iter_accounts(ListElement):
+        item_xpath = '//table[@class="params"]/tr'
+        class item(ItemElement):
+            klass = Account
+            obj_id = CleanText('./td[2]/select/option', replace=[(' ', '')])
+            obj_label = CleanText('./td[1]/b[2]')
+            obj_type = Account.TYPE_CARD
+
+
+class TiHistoPage(PeriodsPage, TransactionsPage):
+    pass
