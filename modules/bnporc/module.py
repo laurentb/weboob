@@ -96,7 +96,7 @@ class BNPorcModule(Module, CapBank, CapMessages):
         return self.browser.iter_investment(account)
 
     def iter_transfer_recipients(self, ignored):
-        if self.config['website'].get() != 'pp':
+        if self.config['website'].get() != 'ppold':
             raise NotImplementedError()
 
         for account in self.browser.get_transfer_accounts().itervalues():
@@ -106,7 +106,7 @@ class BNPorcModule(Module, CapBank, CapMessages):
             yield recipient
 
     def transfer(self, account, to, amount, reason=None):
-        if self.config['website'].get() != 'pp':
+        if self.config['website'].get() != 'ppold':
             raise NotImplementedError()
 
         if isinstance(account, Account):
@@ -147,7 +147,7 @@ class BNPorcModule(Module, CapBank, CapMessages):
             return self.get_thread(thread)
 
     def get_thread(self, _id):
-        if self.config['website'].get() != 'pp':
+        if self.config['website'].get() != 'ppold':
             raise NotImplementedError()
 
         if isinstance(_id, Thread):
@@ -160,7 +160,7 @@ class BNPorcModule(Module, CapBank, CapMessages):
         return thread
 
     def iter_unread_messages(self):
-        if self.config['website'].get() != 'pp':
+        if self.config['website'].get() != 'ppold':
             raise NotImplementedError()
 
         threads = list(self.iter_threads(cache=True))
