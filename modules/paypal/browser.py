@@ -54,7 +54,7 @@ class Paypal(Browser):
         'https://\w+.paypal.com/myaccount/\?nav=0.0': HomePage,
         'https://\w+.paypal.com/businessexp/money': AccountPage,
         'https://\w+.paypal.com/businessexp/summary': ProHistoryPage,
-        'https://\w+.paypal.com/webapps/business/activity\?.*': ProHistoryPage,
+        'https://\w+.paypal.com/webapps/business/bookkeeping\?.*': ProHistoryPage,
         'https://\w+.paypal.com/myaccount/activity/.*': (PartHistoryPage, 'json'),
         'https://\w+.paypal.com/myaccount/': HomePage,
     }
@@ -161,7 +161,7 @@ class Paypal(Browser):
             for trans in chunk:
                 yield trans
 
-    def download_history(self, start, end):
+    def download_history(self, start, end, retry=3):
         """
         Download history.
         However, it is not normalized, and sometimes the download is refused
@@ -172,9 +172,15 @@ class Paypal(Browser):
         # Settings a big magic number so we hope to get all transactions for the period
         LIMIT = '9999'
         if self.account_type == "pro":
-            self.location('https://www.paypal.com/webapps/business/activity?fromdate=' + s + '&todate=' + e + '&transactiontype=ALL_TRANSACTIONS&currency=ALL_TRANSACTIONS_CURRENCY&limit=' + LIMIT)
+            self.location('https://www.paypal.com/webapps/business/bookkeeping?fromdate=' + s + '&todate=' + e + '&transactiontype=BALANCE_AFFECTING_TRANSACTIONS&currency=ALL_TRANSACTIONS_CURRENCY&limit=' + LIMIT)
         else:
             self.location('https://www.paypal.com/myaccount/activity/filter?typeFilter=all&isNewSearch=true&startDate=' + s + '&endDate=' + e + '&limit=' + LIMIT)
+        # catch occasional errors and try to rerun page three times until fail
+        if not self.page:
+            if retry:
+                return self.download_history(start, end, retry=retry-1)
+            self.logger.warning("Error getting history from %s to %s" % (start, end))
+            return False
         return self.page.transaction_left()
 
     def transfer(self, from_id, to_id, amount, reason=None):

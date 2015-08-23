@@ -116,17 +116,24 @@ class ProHistoryPage(Page):
                 yield trans
 
     def parse(self):
-        for tr in self.document.xpath('//tr'):
-            t = FrenchTransaction(tr.xpath('./td[@class="transactionId"]/span')[0].text.strip())
+        for tr in self.document.xpath('//tbody/tr'):
+            tlink = tr.xpath('./td[@class="desc"]/a[@class="rowClick"]')[0].attrib['href'].strip()
+            t = FrenchTransaction(tlink[tlink.find('&id=')+4:])
             date = parse_french_date(tr.xpath('./td[@class="date"]')[0].text.strip())
-            status = tr.xpath('./td[@class="desc"]/ul/li[@class="first"]')[0].text.strip()
-            #We pass this because it's not transaction
-            if status in [u'Créé', u'Annulé', u'Suspendu', u'Mis à jour', u'Actif']:
+            raw = tr.xpath('./td[@class="desc"]/a[@class="rowClick"]')[0].tail.strip()
+            # Filter lines that do not actually modify the balance
+            if raw.startswith('Autorisation ') or raw.endswith(' en attente  par PayPal'):
                 continue
-            raw = tr.xpath('./td[@class="desc"]/strong')[0].text.strip()
             t.parse(date=date, raw=raw)
-            amount = tr.xpath('./td[@class="price"]/span')[0].text.strip()
+
+            amount = tr.xpath('./td[@class="price-value net"]')[0].text.strip()
             t.set_amount(amount)
+            commission = tr.xpath('./td[@class="price-value fee"]')[0].text.strip()
+            t.commission = Decimal(t.clean_amount(commission))
+            t.label = t.raw
+            if t.commission:
+                t.label += " (%s)" % tr.xpath('./td[@class="price-value gross"]')[0].text.strip()
+
             t._currency = Account.get_currency(amount)
             yield t
 
