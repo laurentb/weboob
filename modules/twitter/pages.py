@@ -104,17 +104,21 @@ class ThreadPage(HTMLPage):
 
     @method
     class iter_comments(ListElement):
-        item_xpath = '//ol[@id="stream-items-id"]/li/div'
+        item_xpath = '//ol[@id="stream-items-id"]/li/ol/div/li/div'
 
         class item(ItemElement):
             klass = Message
 
-            obj_id = Regexp(Link('./div/div/a[@class="details with-icn js-details"]'), '/.+/status/(.+)')
+            obj_id = Regexp(Link('./div/div/small/a', default=''), '/.+/status/(.+)', default=None)
+
             obj_title = Regexp(CleanText('./div/p', replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')]),
                                '(.{50}|.+).+')
             obj_content = CleanText('./div/p', replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')])
-            obj_sender = Regexp(Link('./div/div/a[@class="details with-icn js-details"]'), '/(.+)/status/.+')
+            obj_sender = Regexp(Link('./div/div/small/a', default=''), '/(.+)/status/.+', default=None)
             obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span | ./div/div[@class="ProfileTweet-authorDetails"]/span/a/span', 'data-time'))
+
+            def validate(self, obj):
+                return obj.id is not None
 
 
 class SearchPage(HTMLPage):
