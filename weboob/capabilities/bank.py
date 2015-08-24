@@ -143,6 +143,9 @@ class Transaction(BaseObject):
     original_currency = StringField('Currency of the original amount')
     country =           StringField('Country of transaction')
 
+    # Financial arbitrations
+    investments =       Field('List of investments related to the transaction', default=[])
+
     def __repr__(self):
         return "<Transaction date=%r label=%r amount=%r>" % (self.date, self.label, self.amount)
 
@@ -189,6 +192,7 @@ class Investment(BaseObject):
     unitprice =   DecimalField('Buy price of one stock')
     unitvalue =   DecimalField('Current value of one stock')
     valuation =   DecimalField('Total current valuation of the Investment')
+    vdate     =   DateField('Value date of the valuation amount')
     diff =        DecimalField('Difference between the buy cost and the current valuation')
 
 
