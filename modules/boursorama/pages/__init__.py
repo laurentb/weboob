@@ -24,7 +24,7 @@ from .card_history import CardHistory
 from .accounts_list import AccountsList
 from .login import LoginPage, ProfilIncomplete, UpdateInfoPage
 from .two_authentication import AuthenticationPage
-from .investment import AccountInvestment, InvestmentDetail
+from .investment import AccountMarket, AccountLifeInsurance, InvestmentDetail
 
 
 class AccountPrelevement(AccountsList):
@@ -37,6 +37,7 @@ __all__ = ['LoginPage',
            'CardHistory',
            'UpdateInfoPage',
            'AuthenticationPage',
-           'AccountInvestment',
+           'AccountMarket',
+           'AccountLifeInsurance',
            'InvestmentDetail',
           ]

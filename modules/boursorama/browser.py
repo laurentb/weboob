@@ -27,7 +27,8 @@ from weboob.deprecated.browser import StateBrowser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
 from .pages import (LoginPage, ProfilIncomplete, AccountsList, AccountHistory, CardHistory,
-                    UpdateInfoPage, AuthenticationPage, AccountInvestment, InvestmentDetail)
+                    UpdateInfoPage, AuthenticationPage, AccountLifeInsurance, AccountMarket,
+                    InvestmentDetail)
 
 
 __all__ = ['Boursorama']
@@ -52,8 +53,9 @@ class Boursorama(StateBrowser):
              r'.*/comptes/banque/cartes/mouvements.phtml.*': CardHistory,
              r'.*/comptes/epargne/mouvements.phtml.*': AccountHistory,
              r'.*/date_anniversaire.phtml.*':    UpdateInfoPage,
-             r'.*/detail.phtml.*': AccountInvestment,
-             r'.*/opcvm.phtml.*': InvestmentDetail
+             r'.*/detail.phtml.*': AccountLifeInsurance,
+             r'.*/opcvm.phtml.*': InvestmentDetail,
+             r'.*/positions_engagements.phtml.*': AccountMarket,
             }
 
     __states__ = ('auth_token',)
@@ -146,7 +148,7 @@ class Boursorama(StateBrowser):
             link = self.page.get_next_url()
 
     def get_investment(self, account):
-        if account.type != Account.TYPE_LIFE_INSURANCE or not account._detail_url:
+        if account.type not in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET) or not account._detail_url:
             raise NotImplementedError()
         self.location(account._detail_url)
 

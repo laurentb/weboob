@@ -25,6 +25,30 @@ from weboob.deprecated.browser import Page
 from weboob.capabilities.bank import Investment
 from weboob.browser.filters.standard import CleanDecimal
 
+Decimal = CleanDecimal(replace_dots=True).filter
+
+class AccountMarket(Page):
+    def get_investment(self):
+        for tr in self.document.xpath('//table[@id="liste-positions-engagements"]/tbody/tr'):
+            cells = tr.xpath('./td')
+
+            if len(cells) < 6:
+                continue
+
+            inv = Investment()
+            inv.label = self.parser.tocleanstring(cells[0].xpath('.//a')[0])
+            isin_div = cells[0].xpath('.//div')
+            if len(isin_div) > 0:
+                inv.id = inv.code = self.parser.tocleanstring(isin_div[0])
+
+            inv.quantity = Decimal(cells[1])
+            inv.unitprice = Decimal(cells[2])
+            inv.unitvalue = Decimal(cells[3])
+            inv.valuation = Decimal(cells[4])
+            inv.diff = Decimal(cells[5])
+            inv._detail_url = None
+
+            yield inv
 
 _el_to_string = XPath('string()')
 
@@ -39,15 +63,13 @@ class IsinMixin(object):
             return mobj.group(1)
 
 
-class AccountInvestment(IsinMixin, Page):
+class AccountLifeInsurance(IsinMixin, Page):
     _re_isin = re.compile(r'isin=(\w+)')
     _tr_list = XPath('//div[@id="content-gauche"]//table[@class="list"]/tbody/tr')
     _td_list = XPath('./td')
     _link = XPath('./td[1]/a/@href')
 
     def get_investment(self):
-        Decimal = CleanDecimal(replace_dots=True).filter
-
         for tr in self._tr_list(self.document):
             cells = list(el_to_string(td) for td in self._td_list(tr))
             link = unicode(self._link(tr)[0])
