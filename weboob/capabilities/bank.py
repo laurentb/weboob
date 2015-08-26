@@ -144,7 +144,7 @@ class Transaction(BaseObject):
     country =           StringField('Country of transaction')
 
     # Financial arbitrations
-    investments =       Field('List of investments related to the transaction', default=[])
+    investments =       Field('List of investments related to the transaction', list, default=[])
 
     def __repr__(self):
         return "<Transaction date=%r label=%r amount=%r>" % (self.date, self.label, self.amount)
