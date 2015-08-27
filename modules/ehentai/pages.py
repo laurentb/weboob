@@ -19,7 +19,6 @@
 
 
 from weboob.deprecated.browser import Page
-from weboob.tools.html import html2text
 from weboob.tools.capabilities.thumbnail import Thumbnail
 
 from datetime import datetime
