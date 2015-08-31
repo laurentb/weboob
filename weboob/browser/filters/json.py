@@ -78,7 +78,7 @@ class Dict(Filter):
 
             try:
                 content = content[el]
-            except (KeyError, IndexError):
+            except (KeyError, IndexError, TypeError):
                 return _NOT_FOUND
 
         return content
