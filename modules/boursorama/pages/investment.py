@@ -42,7 +42,7 @@ class AccountMarket(Page):
                 inv.id = inv.code = self.parser.tocleanstring(isin_div[0])
 
             inv.quantity = Decimal(cells[1])
-            inv.unitprice = Decimal(cells[2])
+            inv.unitprice = Decimal(cells[2].xpath('text()')[0])
             inv.unitvalue = Decimal(cells[3])
             inv.valuation = Decimal(cells[4])
             inv.diff = Decimal(cells[5])
