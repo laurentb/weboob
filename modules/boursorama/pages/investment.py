@@ -42,6 +42,7 @@ class AccountMarket(Page):
                 inv.id = inv.code = self.parser.tocleanstring(isin_div[0])
 
             inv.quantity = Decimal(cells[1])
+            # <td data-header="Cours">20,650<br>(<span class="varup">+0,54%</span>)</td>
             inv.unitprice = Decimal(cells[2].xpath('text()')[0])
             inv.unitvalue = Decimal(cells[3])
             inv.valuation = Decimal(cells[4])
