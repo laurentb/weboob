@@ -28,7 +28,7 @@ from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    CBListPage, CBHistoryPage, ContractsPage, BoursePage, \
-                   AVPage, AVDetailPage, DiscPage, NoBoursePage
+                   AVPage, AVDetailPage, DiscPage, NoBoursePage, RibPage
 
 
 __all__ = ['LCLBrowser','LCLProBrowser']
@@ -55,6 +55,7 @@ class LCLBrowser(LoginBrowser):
                   '/outil/UWLM/DetailMouvement.*/accesDetailMouvement.*',
                   '/outil/UWLM/Rebond',
                   AccountHistoryPage)
+    rib = URL('/outil/UWRI/Accueil/detailRib', RibPage)
     cb_list = URL('/outil/UWCB/UWCBEncours.*/listeCBCompte.*', CBListPage)
     cb_history = URL('/outil/UWCB/UWCBEncours.*/listeOperations.*', CBHistoryPage)
     skip = URL('/outil/UAUT/Contrat/selectionnerContrat.*',
@@ -116,7 +117,14 @@ class LCLBrowser(LoginBrowser):
         for a in self.page.get_list():
             yield a
         self.accounts.stay_or_go()
-        accounts = self.page.get_list()
+        accounts = list()
+        for acc in self.page.get_list():
+            self.location('https://particuliers.secure.lcl.fr/outil/UWRI/Accueil/')
+            self.rib.go(data={'compte': '%s/%s/%s' % (acc.id[0:5],acc.id[5:11],acc.id[11:])})
+            if self.rib.is_here():
+                acc.iban = self.page.get_iban()
+            accounts.append(acc)
+
         if self.connexion_bourse():
             acc = list(self.page.populate(accounts))
             self.deconnexion_bourse()

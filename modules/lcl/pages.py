@@ -424,3 +424,8 @@ class AVDetailPage(LoggedPage, LCLBasePage):
             obj_quantity = MyDecimal('.//td[4]/span')
             obj_unitvalue = MyDecimal('.//td[2]/span')
             obj_valuation = MyDecimal('.//td[5]/span')
+
+class RibPage(LoggedPage, LCLBasePage):
+    def get_iban(self):
+        if (self.doc.xpath('//div[contains(@class, "rib_cadre")]//div[contains(@class, "rib_internat")]')):
+            return CleanText().filter(self.doc.xpath('//div[contains(@class, "rib_cadre")]//div[contains(@class, "rib_internat")]//p//strong')[0].text)
