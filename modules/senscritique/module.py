@@ -17,9 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.ordereddict import OrderedDict
-from weboob.tools.value import Value, ValueBool
+from weboob.tools.backend import Module
 from weboob.capabilities.calendar import CapCalendarEvent, CATEGORIES
 
 from .browser import SenscritiqueBrowser
@@ -38,49 +36,21 @@ class SenscritiqueModule(Module, CapCalendarEvent):
     ASSOCIATED_CATEGORIES = [CATEGORIES.TELE]
     BROWSER = SenscritiqueBrowser
 
-    tv_settings_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
-        '000000': u'-- Indifférent --',
-        '9': u'TNT',
-        '1': u'Canalsat',
-        '2': u'Numericable',
-        '10': u'Orange',
-        '11': u'Free',
-        '12': u'SFR',
-        '15': u'Darty box via ADSL',
-        '16': u'Bouygues',
-    }.iteritems())])
-
-    CONFIG = BackendConfig(Value('tv_settings', label=u'T.V. package', choices=tv_settings_choices),
-                           ValueBool('general', label='General', default=True),
-                           ValueBool('cinema', label='Cinema', default=False),
-                           )
-
-    def get_package_and_channels(self):
-        package = int(self.config['tv_settings'].get())
-        channels = self.browser.get_selected_channels(package, self.config['general'].get(),
-                                                      self.config['cinema'].get())
-        return package, channels
-
     def search_events(self, query):
         if self.has_matching_categories(query):
-            package, channels = self.get_package_and_channels()
-            return self.browser.list_events(query.start_date,
-                                            query.end_date,
-                                            package,
-                                            channels)
+            return self.list_events(query.start_date,
+                                    query.end_date)
 
     def list_events(self, date_from, date_to=None):
         items = []
-        package, channels = self.get_package_and_channels()
-        for item in self.browser.list_events(date_from, date_to, package, channels):
+        for item in self.browser.list_events(date_from, date_to):
             items.append(item)
 
         items.sort(key=lambda o: o.start_date)
         return items
 
     def get_event(self, _id, event=None):
-        package, channels = self.get_package_and_channels()
-        return self.browser.get_event(_id, event, package=package, channels=channels)
+        return self.browser.get_event(_id, event)
 
     def fill_obj(self, event, fields):
         return self.get_event(event.id, event)

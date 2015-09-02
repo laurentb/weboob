@@ -20,29 +20,31 @@
 from .calendar import SensCritiquenCalendarEvent
 
 from datetime import date, datetime, timedelta
-from weboob.capabilities.base import empty, BaseObject
+from weboob.capabilities.base import empty
 from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import Filter, CleanText, Regexp, Join, Format, BrowserURL, Env
 from weboob.browser.filters.html import Link
 
 
-class Channel(Filter):
+class Description(Filter):
+    def filter(self, el):
+        header = "//div[@class='pvi-hero-product']"
+        section = "//section[@class='pvi-productDetails']"
+        return Format(u'%s %s\n\n%s%s\n\n',
+                      CleanText("%s/div[@class='d-rubric-inner']/h1" % header),
+                      CleanText("%s/div[@class='d-rubric-inner']/small" % header),
+                      Join(u'- ', "%s/ul[@class='pvi-product-specs']/li" % header, newline=True),
+                      Join(u'- ', "%s/ul/li" % section, newline=True, addBefore='- '))(el[0])
 
-    def __call__(self, item):
-        channels = item.page.browser.get_channels()
-        return self.filter(self.select(self.selector, item, key=self._key, obj=self._obj), channels)
 
-    def filter(self, el, channels):
-        channel_info = el[0].xpath('div/div[@class="elgr-data-channel"]')
-        if channel_info:
-            return CleanText('.', children=False)(channel_info[0])
-        else:
-            channel_id = Regexp(CleanText('div[@class="elgr-product-data"]/span/@class'),
-                                'einst-(.*) elgr-data-logo')(el[0])
-            for channel in channels:
-                if channel_id == channel.id:
-                    return channel._name
+class FormatDate(Filter):
+    def __init__(self, pattern, selector):
+        super(FormatDate, self).__init__(selector)
+        self.pattern = pattern
+
+    def filter(self, _date):
+        return _date.strftime(self.pattern)
 
 
 class Date(Filter):
@@ -65,68 +67,10 @@ class Date(Filter):
         return datetime.combine(_date, _time.time())
 
 
-class FormatDate(Filter):
-    def __init__(self, pattern, selector):
-        super(FormatDate, self).__init__(selector)
-        self.pattern = pattern
-
-    def filter(self, date):
-        return date.strftime(self.pattern)
-
-
-class AjaxPage(HTMLPage):
-
-    def count_events(self):
-        return len(self.doc.xpath("//a"))
-
-    @method
-    class list_events(ListElement):
-        item_xpath = '//a'
-        ignore_duplicate = True
-
-        class item(ItemElement):
-            klass = SensCritiquenCalendarEvent
-
-            def condition(self):
-                if '_id' in self.env and self.env['_id']:
-                    return Format(u'%s#%s#%s',
-                                  Regexp(Link('.'), '/film/(.*)'),
-                                  FormatDate("%Y%m%d%H%M", Date('div/div[@class="elgr-data-diffusion"]')),
-                                  CleanText(Channel('.'), replace=[(' ', '-')]))(self) == self.env['_id']
-                return True
-
-            def validate(self, obj):
-                if 'date_from' in self.env and self.env['date_from'] and obj.start_date > self.env['date_from']:
-                    if not self.env['date_to']:
-                        return True
-                    else:
-                        if empty(obj.end_date) or obj.end_date <= self.env['date_to']:
-                            return True
-
-                if '_id' in self.env:
-                    return True
-
-                return False
-
-            obj_id = Format(u'%s#%s#%s',
-                            Regexp(Link('.'), '/film/(.*)'),
-                            FormatDate("%Y%m%d%H%M", Date('div/div[@class="elgr-data-diffusion"]')),
-                            CleanText(Channel('.'), replace=[(' ', '-')]))
-            obj_start_date = Date('div/div[@class="elgr-data-diffusion"]')
-            obj_summary = Format('%s - %s',
-                                 Regexp(CleanText('./div/img/@alt'), '^Affiche(.*)'),
-                                 Channel('.'))
-
-
-class Description(Filter):
-    def filter(self, el):
-        header = "//div[@class='pvi-hero-product']"
-        section = "//section[@class='pvi-productDetails']"
-        return Format(u'%s %s\n\n%s%s\n\n',
-                      CleanText("%s/div[@class='d-rubric-inner']/h1" % header),
-                      CleanText("%s/div[@class='d-rubric-inner']/small" % header),
-                      Join(u'- ', "%s/ul[@class='pvi-product-specs']/li" % header, newline=True),
-                      Join(u'- ', "%s/ul/li" % section, newline=True, addBefore=' - '))(el[0])
+class JsonResumePage(JsonPage):
+    def get_resume(self):
+        if self.doc['json']['success']:
+            return self.doc['json']['data']
 
 
 class EventPage(HTMLPage):
@@ -138,24 +82,45 @@ class EventPage(HTMLPage):
         obj_description = Description('.')
 
 
-class JsonResumePage(JsonPage):
-    def get_resume(self):
-        if self.doc['json']['success']:
-            return self.doc['json']['data']
-
-
-class SettingsPage(HTMLPage):
+class FilmsPage(HTMLPage):
     @method
-    class get_channels(ListElement):
-        item_xpath = '//li[@class="tse-channels-item hide"]'
+    class iter_films(ListElement):
+        item_xpath = '//li[@class="elgr-mosaic "]/a'
 
         class item(ItemElement):
-            klass = BaseObject
+            klass = SensCritiquenCalendarEvent
 
-            obj_id = CleanText('./@data-sc-channel-id')
+            def condition(self):
+                if '_id' in self.env and self.env['_id']:
+                    return Format(u'%s#%s#%s',
+                                  Regexp(Link('.'), '/film/(.*)'),
+                                  FormatDate("%Y%m%d%H%M",
+                                             Date('div/div[@class="elgr-data-diffusion"]')),
+                                  CleanText('./div/span[@class="d-offset"]',
+                                            replace=[(' ', '-')]))(self) == self.env['_id']
+                return True
 
-            def obj__networks(self):
-                return CleanText('./@data-sc-networks')(self).split(',')
+            def validate(self, obj):
+                if 'date_from' in self.env and self.env['date_from'] and obj.start_date > self.env['date_from']:
+                    if not self.env['date_to']:
+                        return True
+                    else:
+                        if empty(obj.end_date):
+                            if obj.start_date < self.env['date_to']:
+                                return True
+                        elif obj.end_date <= self.env['date_to']:
+                            return True
 
-            obj__thema = CleanText('./@data-sc-thema-id')
-            obj__name = CleanText('./label')
+                if '_id' in self.env:
+                    return True
+
+                return False
+
+            obj_id = Format(u'%s#%s#%s',
+                            Regexp(Link('.'), '/film/(.*)'),
+                            FormatDate("%Y%m%d%H%M", Date('div/div[@class="elgr-data-diffusion"]')),
+                            CleanText('./div/span[@class="d-offset"]', replace=[(' ', '-')]))
+            obj_start_date = Date('div/div[@class="elgr-data-diffusion"]')
+            obj_summary = Format('%s - %s',
+                                 Regexp(CleanText('./div/img/@alt'), '^Affiche(.*)'),
+                                 CleanText('./div/span[@class="d-offset"]'))
