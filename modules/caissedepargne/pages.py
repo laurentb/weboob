@@ -312,7 +312,7 @@ class IndexPage(Page):
             credit = u''.join([txt.strip() for txt in tds[-1].itertext()])
 
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
-            if t.date is NotAvailable:
+            if t.date is NotAvailable or 'Tot Dif' in t.raw:
                 continue
             t.set_amount(credit, debit)
             yield t
