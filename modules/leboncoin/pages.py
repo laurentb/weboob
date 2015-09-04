@@ -176,4 +176,9 @@ class HousingPage(HTMLPage):
                                 default='')(img)
                 if url:
                     photos.append(HousingPhoto(url))
+
+            if not photos:
+                img = self.el.xpath('//div[@class="lbcImages"]/meta/@content')
+                if img:
+                    photos.append(HousingPhoto(img[0]))
             return photos
