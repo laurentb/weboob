@@ -119,10 +119,10 @@ class WebsiteBrowser(LoginBrowser):
             text = script.text
             if text is None:
                 continue
-            m = re.search('"memberLat":\s*([\-\d\.]+),', text, re.IGNORECASE)
+            m = re.search("'memberLat'\s*:\s*([\-\d\.]+),", text, re.IGNORECASE)
             if m:
                 profile['lat'] = float(m.group(1))
-            m = re.search('"memberLng":\s*([\-\d\.]+),', text, re.IGNORECASE)
+            m = re.search("'memberLng'\s*:\s*([\-\d\.]+),", text, re.IGNORECASE)
             if m:
                 profile['lng'] = float(m.group(1))
 
