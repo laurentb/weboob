@@ -26,7 +26,7 @@ from weboob.capabilities.bank import Account, TransferError, AccountNotFound
 from weboob.capabilities.base import find_object
 
 from .pages import AccountsList, LoginPage, NetissimaPage, TitrePage, TitreHistory,\
-    TransferPage, TransferConfirmPage, BillsPage, StopPage, TitreDetails
+    TransferPage, TransferConfirmPage, BillsPage, StopPage, TitreDetails, TitreValuePage
 
 
 __all__ = ['IngBrowser']
@@ -61,6 +61,7 @@ class IngBrowser(LoginBrowser):
     titrepage = URL('https://bourse.ingdirect.fr/priv/portefeuille-TR.php', TitrePage)
     titrehistory = URL('https://bourse.ingdirect.fr/priv/compte.php\?ong=3', TitreHistory)
     titrerealtime = URL('https://bourse.ingdirect.fr/streaming/compteTempsReelCK.php', TitrePage)
+    titrevalue = URL('https://bourse.ingdirect.fr/priv/fiche-valeur.php\?val=(?P<val>.*)&popup=1', TitreValuePage)
     # CapBill
     billpage = URL('/protected/pages/common/estatement/eStatement.jsf', BillsPage)
 

@@ -35,6 +35,11 @@ class Transaction(FrenchTransaction):
     pass
 
 
+class TitreValuePage(LoggedPage, HTMLPage):
+    def get_isin(self):
+        return self.doc.xpath('//div[@id="headFiche"]//span[@id="test3"]/text()')[0].split(' - ')[0].strip()
+
+
 class TitrePage(LoggedPage, RawPage):
     def iter_investments(self):
         # We did not get some html, but something like that (XX is a quantity, YY a price):
@@ -49,9 +54,9 @@ class TitrePage(LoggedPage, RawPage):
             _id = columns[0].split('{')[2]
             invest = Investment(_id)
             invest.label = unicode(columns[0].split('{')[-1])
-            invest.code = _id.split(':')[0]
-            if ':' in _id:
-                invest.description = unicode(_id.split(':')[1])
+            invest.code = unicode(_id)
+            if ':' in invest.code:
+                invest.code = self.browser.titrevalue.open(val=invest.code).get_isin()
             quantity = FrenchTransaction.clean_amount(columns[1])
             if quantity != '':
                 invest.quantity = Decimal(quantity)
