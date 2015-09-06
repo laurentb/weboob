@@ -432,22 +432,21 @@ class MarketPage(BasePage):
     COL_DIFF = 6
 
     def iter_investment(self):
-
         for line in self.document.xpath('//table[contains(@class, "ca-data-table")]/descendant::tr[count(td)=8]'):
             cells = line.findall('td')
 
             inv = Investment()
             inv.label = unicode(cells[self.COL_ID].find('div/a').text.strip())
             inv.code = cells[self.COL_ID].find('div/br').tail.strip()
-            inv.quantity = self.parse_decimal(Transaction.clean_amount(cells[self.COL_QUANTITY].find('span').text))
-            inv.valuation = self.parse_decimal(Transaction.clean_amount(cells[self.COL_VALUATION].text))
-            inv.diff = self.parse_decimal(Transaction.clean_amount(cells[self.COL_DIFF].text_content()))
+            inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY].find('span').text)
+            inv.valuation = self.parse_decimal(cells[self.COL_VALUATION].text)
+            inv.diff = self.parse_decimal(cells[self.COL_DIFF].text_content())
             if "%" in cells[self.COL_UNITPRICE].text and "%" in cells[self.COL_UNITVALUE].text:
                 inv.unitvalue = inv.valuation / inv.quantity
                 inv.unitprice = (inv.valuation - inv.diff) / inv.quantity
             else:
-                inv.unitprice = self.parse_decimal(Transaction.clean_amount(cells[self.COL_UNITPRICE].text))
-                inv.unitvalue = self.parse_decimal(Transaction.clean_amount(cells[self.COL_UNITVALUE].text))
+                inv.unitprice = self.parse_decimal(cells[self.COL_UNITPRICE].text)
+                inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE].text)
 
             yield inv
 
