@@ -44,7 +44,7 @@ class AccountMarket(Page):
             inv.quantity = Decimal(cells[1])
             # <td data-header="Cours">20,650<br>(<span class="varup">+0,54%</span>)</td>
             inv.unitprice = Decimal(cells[2].xpath('text()')[0])
-            inv.unitvalue = Decimal(cells[3])
+            inv.unitvalue = Decimal(cells[3].xpath('text()')[0])
             inv.valuation = Decimal(cells[4])
             inv.diff = Decimal(cells[5])
             inv._detail_url = None
