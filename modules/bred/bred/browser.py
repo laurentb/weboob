@@ -18,10 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import date
+from dateutil.relativedelta import relativedelta
 from decimal import Decimal
 
 from weboob.capabilities.bank import Account, Transaction
-from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPError, BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPError, BrowserUnavailable, ParseError
 from weboob.browser import DomainBrowser
 
 
@@ -38,13 +39,13 @@ class BredBrowser(DomainBrowser):
         self.accnum = accnum
 
     def do_login(self, login, password):
-        self.location('/transactionnel/Authentication', data={'identifiant': login, 'password': password})
+        r = self.open('/transactionnel/Authentication', data={'identifiant': login, 'password': password})
 
-        if 'gestion-des-erreurs/erreur-pwd' in self.url:
+        if 'gestion-des-erreurs/erreur-pwd' in r.url:
             raise BrowserIncorrectPassword('Bad login/password.')
-        if 'gestion-des-erreurs/opposition' in self.url:
+        if 'gestion-des-erreurs/opposition' in r.url:
             raise BrowserIncorrectPassword('Your account is disabled')
-        if '/pages-gestion-des-erreurs/erreur-technique' in self.url:
+        if '/pages-gestion-des-erreurs/erreur-technique' in r.url:
             raise BrowserUnavailable('A technical error occured')
 
     ACCOUNT_TYPES = {'000': Account.TYPE_CHECKING,
@@ -103,22 +104,28 @@ class BredBrowser(DomainBrowser):
 
         offset = 0
         next_page = True
+        transactions = []
+        seen = set()
         while next_page:
             r = self.api_open('/transactionnel/services/applications/operations/get/%(number)s/%(nature)s/00/%(currency)s/%(startDate)s/%(endDate)s/%(offset)s/%(limit)s' %
                           {'number': account._number,
                            'nature': account._nature,
                            'currency': account.currency,
-                           'startDate': '2000-01-01',
+                           'startDate': (date.today() - relativedelta(months=1)).strftime('%Y-%m-%d'),
                            'endDate': date.today().strftime('%Y-%m-%d'),
                            'offset': offset,
                            'limit': 50
                           })
             next_page = False
             offset += 50
-            for op in r.json()['content']['operations']:
-                next_page = True
+            for op in reversed(r.json()['content']['operations']):
+                # XXX it seems that currently the website returns all transactions at once and doesn't support anymore pagination.
+                #next_page = True
                 t = Transaction()
+                if op['id'] in seen:
+                    raise ParseError('There are several transactions with the same ID, probably an infinite loop')
                 t.id = op['id']
+                seen.add(t.id)
                 t.amount = Decimal(str(op['montant']))
                 t.date = date.fromtimestamp(op.get('dateDebit', op.get('dateOperation'))/1000)
                 t.rdate = date.fromtimestamp(op.get('dateOperation', op.get('dateDebit'))/1000)
@@ -127,4 +134,7 @@ class BredBrowser(DomainBrowser):
                     t.category = op['categorie']
                 t.label = op['libelle']
                 t.raw = ' '.join([op['libelle']] + op['details'])
-                yield t
+                transactions.append(t)
+
+        # Transactions are unsorted
+        return sorted(transactions, key=lambda t: t.rdate, reverse=True)
