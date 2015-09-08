@@ -60,14 +60,15 @@ class RecipePage(HTMLPage):
         obj_cooking_time = Type(CleanText('//span[@class="cooktime"]'), type=int)
 
         def obj_nb_person(self):
-            nb_pers = Regexp(CleanText('//p[@class="m_content_recette_ingredients"]/span[1]'),
+            nb_pers = Regexp(CleanText('//div[@class="m_content_recette_ingredients m_avec_substitution"]/span[1]'),
                              '.*\(pour (\d+) personnes\)', default=0)(self)
             return [nb_pers] if nb_pers else NotAvailable
 
         def obj_ingredients(self):
-            ingredients = CleanText('//p[@class="m_content_recette_ingredients"]', default='')(self).split('-')
+            ingredients = CleanText('//div[@class="m_content_recette_ingredients m_avec_substitution"]', default='')(self).split('-')
             if len(ingredients) > 1:
                 return ingredients[1:]
+            return []
 
         obj_instructions = CleanHTML('//div[@class="m_content_recette_todo"]')
         obj_thumbnail_url = CleanText('//a[@class="m_content_recette_illu"]/img/@src', default=NotAvailable)
