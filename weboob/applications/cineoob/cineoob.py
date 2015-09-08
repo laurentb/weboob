@@ -503,7 +503,7 @@ class Cineoob(ReplApplication):
                         print(buf)
                     else:
                         try:
-                            with open(dest, 'w') as f:
+                            with open(dest, 'wb') as f:
                                 f.write(buf)
                         except IOError as e:
                             print('Unable to write .torrent in "%s": %s' % (dest, e), file=self.stderr)

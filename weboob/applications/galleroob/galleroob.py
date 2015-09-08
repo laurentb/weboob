@@ -133,7 +133,7 @@ class Galleroob(ReplApplication):
             name = '%03d.%s' % (i, ext)
             print('Writing file %s' % name)
 
-            with open(name, 'w') as f:
+            with open(name, 'wb') as f:
                 f.write(img.data)
 
         os.chdir(os.path.pardir)

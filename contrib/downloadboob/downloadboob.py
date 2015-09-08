@@ -192,7 +192,7 @@ class Downloadboob(object):
             return 4
 
         def check_exec(executable):
-            with open('/dev/null', 'w') as devnull:
+            with open(os.devnull, 'w') as devnull:
                 process = subprocess.Popen(['which', executable], stdout=devnull)
                 if process.wait() != 0:
                     print('Please install "%s"' % executable, file=sys.stderr)
