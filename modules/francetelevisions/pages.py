@@ -46,7 +46,7 @@ class VideoListPage(HTMLPage):
 
         obj_id = CleanText('//div[@id="diffusion-info"]/@data-diffusion')
         obj_title = CleanText('//div[@id="diffusion-info"]/h1/div[@id="diffusion-titre"]')
-        obj_date = DateTime(Regexp(CleanText('//div[@id="diffusion-info"]/div/div/*[1]',
+        obj_date = DateTime(Regexp(CleanText('//div[@id="diffusion-info"]/h1|//div[@id="diffusion-info"]/div/div/*[1]',
                                    replace=[(u'à', u''), (u'  ', u' ')]),
                                    '.+(\d{2}-\d{2}-\d{2}.+\d{1,2}h\d{1,2}).+'),
                             dayfirst=True)
