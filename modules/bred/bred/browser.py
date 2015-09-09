@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import date
-from dateutil.relativedelta import relativedelta
 from decimal import Decimal
 
 from weboob.capabilities.bank import Account, Transaction
@@ -104,23 +103,22 @@ class BredBrowser(DomainBrowser):
 
         offset = 0
         next_page = True
-        transactions = []
         seen = set()
         while next_page:
             r = self.api_open('/transactionnel/services/applications/operations/get/%(number)s/%(nature)s/00/%(currency)s/%(startDate)s/%(endDate)s/%(offset)s/%(limit)s' %
                           {'number': account._number,
                            'nature': account._nature,
                            'currency': account.currency,
-                           'startDate': (date.today() - relativedelta(months=1)).strftime('%Y-%m-%d'),
+                           'startDate': '2000-01-01',
                            'endDate': date.today().strftime('%Y-%m-%d'),
                            'offset': offset,
                            'limit': 50
                           })
             next_page = False
             offset += 50
+            transactions = []
             for op in reversed(r.json()['content']['operations']):
-                # XXX it seems that currently the website returns all transactions at once and doesn't support anymore pagination.
-                #next_page = True
+                next_page = True
                 t = Transaction()
                 if op['id'] in seen:
                     raise ParseError('There are several transactions with the same ID, probably an infinite loop')
@@ -136,5 +134,6 @@ class BredBrowser(DomainBrowser):
                 t.raw = ' '.join([op['libelle']] + op['details'])
                 transactions.append(t)
 
-        # Transactions are unsorted
-        return sorted(transactions, key=lambda t: t.rdate, reverse=True)
+            # Transactions are unsorted
+            for t in sorted(transactions, key=lambda t: t.rdate, reverse=True):
+                yield t
