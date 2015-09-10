@@ -20,7 +20,6 @@
 import logging
 import time
 
-
 __all__ = ['retry']
 
 
@@ -42,7 +41,10 @@ def retry(ExceptionToCheck, tries=4, delay=3, backoff=2):
                     try_one_last_time = False
                     break
                 except ExceptionToCheck as e:
-                    logging.debug(u'%s, Retrying in %d seconds...' % (e, mdelay))
+                    try:
+                        logging.debug(u'%s, Retrying in %d seconds...' % (e, mdelay))
+                    except UnicodeDecodeError:
+                        logging.debug(u'%s, Retrying in %d seconds...' % (repr(e), mdelay))
                     time.sleep(mdelay)
                     mtries -= 1
                     mdelay *= backoff
