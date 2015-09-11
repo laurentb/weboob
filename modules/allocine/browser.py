@@ -645,4 +645,5 @@ class AllocineBrowser(Browser):
                         event.location = location
                         event.start_date = start_date
                         event.summary = summary
+                        event.timezone = 'Europe/Paris'
                         yield event

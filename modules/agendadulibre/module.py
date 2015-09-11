@@ -128,6 +128,19 @@ class AgendadulibreModule(Module, CapCalendarEvent):
         return self.browser.get_event(event_id)
 
     def fill_obj(self, event, fields):
-        return self.browser.get_event(event.id, event)
+        event = self.browser.get_event(event.id, event)
+        choice = self.config['region'].get().split('#')
+        selected_region = '' if len(choice) < 2 else choice[-1]
+        if selected_region == '23':
+            event.timezone = 'America/Guadeloupe'
+        elif selected_region == '24':
+            event.timezone = 'America/Guyana'
+        elif selected_region == '26':
+            event.timezone = 'Indian/Reunion'
+        elif selected_region == '25':
+            event.timezone = 'America/Martinique'
+        else:
+            event.timezone = 'Europe/Paris'
+        return event
 
     OBJECTS = {AgendadulibreBrowser: fill_obj}

@@ -20,6 +20,7 @@
 from __future__ import print_function
 
 from datetime import time, datetime
+from dateutil import tz
 
 from weboob.tools.date import parse_date
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
@@ -54,11 +55,18 @@ class ICalFormatter(IFormatter):
     def format_obj(self, obj, alias):
         result = u'BEGIN:VEVENT\r\n'
 
+        utc_zone = tz.gettz('UTC')
+
+        event_timezone = tz.gettz(obj.timezone)
         start_date = obj.start_date if not empty(obj.start_date) else datetime.now()
-        result += u'DTSTART:%s\r\n' % start_date.strftime("%Y%m%dT%H%M%SZ")
+        start_date = start_date.replace(tzinfo=event_timezone)
+        utc_start_date = start_date.astimezone(utc_zone)
+        result += u'DTSTART:%s\r\n' % utc_start_date.strftime("%Y%m%dT%H%M%SZ")
 
         end_date = obj.end_date if not empty(obj.end_date) else datetime.combine(start_date, time.max)
-        result += u'DTEND:%s\r\n' % end_date.strftime("%Y%m%dT%H%M%SZ")
+        end_date = end_date.replace(tzinfo=event_timezone)
+        utc_end_date = end_date.astimezone(utc_zone)
+        result += u'DTEND:%s\r\n' % utc_end_date.strftime("%Y%m%dT%H%M%SZ")
 
         result += u'SUMMARY:%s\r\n' % obj.summary
         result += u'UID:%s\r\n' % obj.id

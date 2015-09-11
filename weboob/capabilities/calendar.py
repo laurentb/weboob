@@ -44,6 +44,7 @@ class BaseCalendarEvent(BaseObject):
     url = StringField('URL of the event')
     start_date = DateField('Start date of the event')
     end_date = DateField('End date of the event')
+    timezone = StringField('Timezone of the event in order to convert to utc time', default='Etc/UCT')
     summary = StringField('Title of the event')
     city = StringField('Name of the city in witch event will take place')
     location = StringField('Location of the event')
