@@ -46,23 +46,23 @@ class ICalFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'start_date', 'end_date', 'summary', 'status')
 
     def start_format(self, **kwargs):
-        result = u'BEGIN:VCALENDAR\n'
-        result += u'VERSION:2.0\n'
-        result += u'PRODID:-//hacksw/handcal//NONSGML v1.0//EN\n'
+        result = u'BEGIN:VCALENDAR\r\n'
+        result += u'VERSION:2.0\r\n'
+        result += u'PRODID:-//hacksw/handcal//NONSGML v1.0//EN\r\n'
         self.output(result)
 
     def format_obj(self, obj, alias):
-        result = u'BEGIN:VEVENT\n'
+        result = u'BEGIN:VEVENT\r\n'
 
         start_date = obj.start_date if not empty(obj.start_date) else datetime.now()
-        result += u'DTSTART:%s\n' % start_date.strftime("%Y%m%dT%H%M%SZ")
+        result += u'DTSTART:%s\r\n' % start_date.strftime("%Y%m%dT%H%M%SZ")
 
         end_date = obj.end_date if not empty(obj.end_date) else datetime.combine(start_date, time.max)
-        result += u'DTEND:%s\n' % end_date.strftime("%Y%m%dT%H%M%SZ")
+        result += u'DTEND:%s\r\n' % end_date.strftime("%Y%m%dT%H%M%SZ")
 
-        result += u'SUMMARY:%s\n' % obj.summary
-        result += u'UID:%s\n' % obj.id
-        result += u'STATUS:%s\n' % obj.status
+        result += u'SUMMARY:%s\r\n' % obj.summary
+        result += u'UID:%s\r\n' % obj.id
+        result += u'STATUS:%s\r\n' % obj.status
 
         location = ''
         if hasattr(obj, 'location') and not empty(obj.location):
@@ -72,25 +72,27 @@ class ICalFormatter(IFormatter):
             location += obj.city + ' '
 
         if not empty(location):
-            result += u'LOCATION:%s\n' % location
+            result += u'LOCATION:%s\r\n' % location
 
         if hasattr(obj, 'categories') and not empty(obj.categories):
-            result += u'CATEGORIES:%s\n' % obj.categories
+            result += u'CATEGORIES:%s\r\n' % obj.categories
 
         if hasattr(obj, 'description') and not empty(obj.description):
-            result += u'DESCRIPTION:%s\n' % obj.description.replace('\r\n', '\\n') \
-                                                           .replace(',', '\,')
+            result += u'DESCRIPTION:%s\r\n' % obj.description.strip(' \t\n\r')\
+                                                             .replace('\r', '')\
+                                                             .replace('\n', r'\n')\
+                                                             .replace(',', '\,')
 
         if hasattr(obj, 'transp') and not empty(obj.transp):
-            result += u'TRANSP:%s\n' % obj.transp
+            result += u'TRANSP:%s\r\n' % obj.transp
 
         if hasattr(obj, 'sequence') and not empty(obj.sequence):
-            result += u'SEQUENCE:%s\n' % obj.sequence
+            result += u'SEQUENCE:%s\r\n' % obj.sequence
 
         if hasattr(obj, 'url') and not empty(obj.url):
-            result += u'URL:%s\n' % obj.url
+            result += u'URL:%s\r\n' % obj.url
 
-        result += u'END:VEVENT\n'
+        result += u'END:VEVENT\r\n'
         return result
 
     def flush(self, **kwargs):
