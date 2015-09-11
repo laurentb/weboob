@@ -51,12 +51,13 @@ class TitrePage(LoggedPage, RawPage):
         lines.pop(0)
         for line in lines:
             columns = line.split('#')
+            _pl = columns[0].split('{')[1]
             _id = columns[0].split('{')[2]
             invest = Investment(_id)
             invest.label = unicode(columns[0].split('{')[-1])
             invest.code = unicode(_id)
             if ':' in invest.code:
-                invest.code = self.browser.titrevalue.open(val=invest.code).get_isin()
+                invest.code = self.browser.titrevalue.open(val=invest.code,pl=_pl).get_isin()
             quantity = FrenchTransaction.clean_amount(columns[1])
             if quantity != '':
                 invest.quantity = Decimal(quantity)
