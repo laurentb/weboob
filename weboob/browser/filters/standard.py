@@ -622,7 +622,7 @@ class DateGuesser(Filter):
 
 class Time(Filter):
     klass = datetime.time
-    _regexp = re.compile(r'(?P<hh>\d+):?(?P<mm>\d+)(:(?P<ss>\d+))?')
+    _regexp = re.compile(r'(?P<hh>\d+)[:h]?(?P<mm>\d+)([:m](?P<ss>\d+))?')
     kwargs = {'hour': 'hh', 'minute': 'mm', 'second': 'ss'}
 
     def __init__(self, selector=None, default=_NO_DEFAULT):
