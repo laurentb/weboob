@@ -147,7 +147,7 @@ class ProHistoryPage(HistoryPage, JsonPage):
             t.original_currency = u'' + transaction['transactionAmount']['currencyCode']
             t.set_amount(cc)
         else:
-            t.amount = Decimal(transaction['transactionAmount']['currencyDoubleValue'])
+            t.amount = Decimal(transaction['net']['currencyDoubleValue'])
         date = parse_french_date(transaction['transactionTime'])
         raw = transaction['transactionDescription']
         t.commission = Decimal(transaction['fee']['currencyDoubleValue'])
