@@ -25,17 +25,24 @@ __all__ = ['RadioFranceBrowser']
 
 class RadioFranceBrowser(PagesBrowser):
     json_page = URL('sites/default/files/(?P<json_url>.*).json',
-                    'player-json/reecoute/(?P<json_url_fip>.*)', JsonPage)
+                    'player-json/reecoute/(?P<json_url_fip>.*)',
+                    'station/(?P<fbplayer>.*)', JsonPage)
     podcast_page = URL('podcast09/rss_(?P<podcast_id>.*)\.xml', PodcastPage)
     radio_page = URL('(?P<page>.*)', RadioPage)
 
     def get_radio_url(self, radio, player):
         self.BASEURL = 'http://www.%s.fr/' % radio
-        return self.radio_page.go(page=player).get_url()
+        if radio == 'francebleu':
+            return self.json_page.go(fbplayer=player).get_fburl()
+        else:
+            return self.radio_page.go(page=player).get_url()
 
-    def get_current(self, radio, json_url):
+    def get_current(self, radio, url):
         self.BASEURL = 'http://www.%s.fr/' % radio
-        return self.json_page.go(json_url=json_url).get_current()
+        if radio == 'francebleu':
+            return self.radio_page.go(page=url).get_current()
+        else:
+            return self.json_page.go(json_url=url).get_current()
 
     def get_selection(self, radio_url, json_url, radio_id):
         self.BASEURL = 'http://www.%s.fr/' % radio_url

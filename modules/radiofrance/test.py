@@ -47,12 +47,17 @@ class RadioFranceTest(BackendTest):
             streams = self.backend.get_radio(radio.split_path[-1]).streams
             self.assertTrue(len(streams) > 0)
 
-            l_sel = list(self.backend.iter_resources(objs=[BaseAudio],
-                                                     split_path=['francebleu',
-                                                                 radio.split_path[-1],
-                                                                 'selection']))
-            if len(l_sel) > 0:
-                self.assertTrue(len(l_sel[0].url) > 0)
+            l_sel1 = list(self.backend.iter_resources(objs=[BaseAudio],
+                                                      split_path=['francebleu',
+                                                                  radio.split_path[-1]]))
+
+            if 'Selection' in [el.title for el in l_sel1]:
+                l_sel = list(self.backend.iter_resources(objs=[BaseAudio],
+                                                         split_path=['francebleu',
+                                                                     radio.split_path[-1],
+                                                                     'selection']))
+                if len(l_sel) > 0:
+                    self.assertTrue(len(l_sel[0].url) > 0)
 
     def test_podcasts(self):
         for key, item in self.backend._RADIOS.iteritems():

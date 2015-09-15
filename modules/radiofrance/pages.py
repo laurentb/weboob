@@ -20,14 +20,14 @@
 from weboob.browser.elements import ItemElement, DictElement, ListElement, method
 from weboob.browser.pages import HTMLPage, JsonPage, XMLPage
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.standard import Format, CleanText, Join, Env, Regexp, Duration
+from weboob.browser.filters.standard import Format, CleanText, Join, Env, Regexp, Duration, Time
 from weboob.capabilities.audio import BaseAudio
 from weboob.tools.capabilities.audio.audio import BaseAudioIdFilter
 from weboob.capabilities.image import BaseImage
 from weboob.capabilities.collection import Collection
 
 import time
-from datetime import timedelta
+from datetime import timedelta, datetime, date
 
 
 class PodcastPage(XMLPage):
@@ -64,7 +64,10 @@ class PodcastPage(XMLPage):
 
 class RadioPage(HTMLPage):
     def get_url(self):
-        return CleanText('//a[@id="player"][1]/@href')(self.doc)
+        url = Regexp(CleanText('//script'), '.*liveUrl: \'(.*)\', timeshiftUrl.*', default=None)(self.doc)
+        if not url:
+            url = CleanText('//a[@id="player"][1]/@href')(self.doc)
+        return url
 
     def get_france_culture_podcasts_url(self):
         return Regexp(CleanText('//a[@class="lien-rss"][1]/@href'),
@@ -176,6 +179,20 @@ class RadioPage(HTMLPage):
                             'http://radiofrance-podcast.net/podcast09/rss_(.*).xml')
             obj_title = CleanText('./h2/a')
 
+    def get_current(self):
+        now = datetime.now()
+        today = date.today()
+
+        emission_title = u''
+        for el in self.doc.xpath('//li[@class="chronique clear"]'):
+            emission_time = Time(CleanText('./div[@class="quand"]',
+                                           replace=[(u'à', '')]))(el)
+            emission_datetime = datetime.combine(today, emission_time)
+            if emission_datetime > now:
+                return u'', emission_title
+            emission_title = CleanText('./h3[@class="titre"]')(el)
+        return u'', u''
+
 
 class JsonPage(JsonPage):
     @method
@@ -222,7 +239,8 @@ class JsonPage(JsonPage):
             now = int(time.time())
             for item in self.doc['diffusions']:
                 if item['debut'] < now and item['fin'] > now:
-                    title = u'%s: %s' % (item['title_emission'], item['title_diff'])
+                    title = u'%s: %s' % (item['title_emission'],
+                                         item['title_diff'] if 'title_diff' in item else '')
                     person = u''
                     return person, title
             return u'', u''
@@ -243,3 +261,8 @@ class JsonPage(JsonPage):
                         person = u','.join(item['personnes'])
                     return person, title
             return u'', u''
+
+    def get_fburl(self):
+        for el in self.doc['url']:
+            if el['type'] == 'live' and el['bitrate'] == 128:
+                return Dict('url')(el)
