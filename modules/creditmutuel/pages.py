@@ -321,6 +321,19 @@ class CardPage(OperationsPage, LoggedPage):
                 obj_type = Transaction.TYPE_CARD
                 obj_date = Env('debit_date')
                 obj_rdate = Transaction.Date(TableCell('date'))
+                obj_amount = Env('amount')
+                obj_original_amount = Env('original_amount')
+                obj_original_currency = Env('original_currency')
+
+                def parse(self, el):
+                    self.env['amount'] = CleanDecimal(replace_dots=True).filter(self.el.xpath('./td[last()]')[0].text)
+                    original_amount = self.el.xpath('./td[last()]/span')[0].text
+                    if original_amount:
+                        self.env['original_amount'] = CleanDecimal(replace_dots=True).filter(original_amount)
+                        self.env['original_currency'] =  Account.get_currency(original_amount[1:-1])
+                    else:
+                        self.env['original_amount'] = NotAvailable
+                        self.env['original_currency'] = NotAvailable
 
 
 class NoOperationsPage(OperationsPage, LoggedPage):
