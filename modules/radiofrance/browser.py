@@ -34,15 +34,15 @@ class RadioFranceBrowser(PagesBrowser):
         self.BASEURL = 'http://www.%s.fr/' % radio
         if radio == 'francebleu':
             return self.json_page.go(fbplayer=player).get_fburl()
-        else:
-            return self.radio_page.go(page=player).get_url()
+
+        return self.radio_page.go(page=player).get_url()
 
     def get_current(self, radio, url):
         self.BASEURL = 'http://www.%s.fr/' % radio
         if radio == 'francebleu':
             return self.radio_page.go(page=url).get_current()
-        else:
-            return self.json_page.go(json_url=url).get_current()
+
+        return self.json_page.go(json_url=url).get_current()
 
     def get_selection(self, radio_url, json_url, radio_id):
         self.BASEURL = 'http://www.%s.fr/' % radio_url
