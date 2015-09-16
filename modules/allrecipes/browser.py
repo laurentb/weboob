@@ -16,36 +16,24 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-
-
-from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
-
-from .pages import RecipePage, ResultsPage, FourOFourPage
-
+from weboob.browser import PagesBrowser, URL
+from .pages import ResultsPage, RecipePage
 
 __all__ = ['AllrecipesBrowser']
 
 
-class AllrecipesBrowser(Browser):
-    DOMAIN = 'allrecipes.com'
-    PROTOCOL = 'http'
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['wget']
-    PAGES = {
-        'http://allrecipes.com/search/default.aspx\?qt=k&wt=.*&rt=r&origin=.*': ResultsPage,
-        'http://allrecipes.com/Recipe/.*/Detail.aspx': RecipePage,
-        'http://allrecipes.com/404.aspx.*': FourOFourPage
-    }
+class AllrecipesBrowser(PagesBrowser):
+    BASEURL = 'http://allrecipes.com'
+    results = URL('search/results/\?wt=(?P<pattern>.*)\&sort=re',
+                  'recipes/.*', ResultsPage)
+    recipe = URL('recipe/(?P<_id>.*)/', RecipePage)
 
     def iter_recipes(self, pattern):
-        self.location('http://allrecipes.com/search/default.aspx?qt=k&wt=%s&rt=r&origin=Home%%20Page' % (pattern))
-        assert self.is_on_page(ResultsPage)
-        return self.page.iter_recipes()
+        return self.results.go(pattern=pattern).iter_recipes()
 
-    def get_recipe(self, id):
-        try:
-            self.location('http://allrecipes.com/Recipe/%s/Detail.aspx' % id)
-        except BrowserHTTPNotFound:
-            return
-        if self.is_on_page(RecipePage):
-            return self.page.get_recipe(id)
+    def get_recipe(self, _id, obj=None):
+        recipe = self.recipe.go(_id=_id).get_recipe(obj=obj)
+        comments = list(self.page.get_comments())
+        if comments:
+            recipe.comments = comments
+        return recipe

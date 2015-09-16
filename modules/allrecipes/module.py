@@ -43,19 +43,8 @@ class AllrecipesModule(Module, CapRecipe):
         return self.browser.iter_recipes(quote_plus(pattern.encode('utf-8')))
 
     def fill_recipe(self, recipe, fields):
-        if 'nb_person' in fields or 'instructions' in fields:
-            rec = self.get_recipe(recipe.id)
-            recipe.picture_url = rec.picture_url
-            recipe.instructions = rec.instructions
-            recipe.ingredients = rec.ingredients
-            recipe.comments = rec.comments
-            recipe.author = rec.author
-            recipe.nb_person = rec.nb_person
-            recipe.cooking_time = rec.cooking_time
-            recipe.preparation_time = rec.preparation_time
-
+        if 'nb_person' in fields or 'instructions' in fields or 'thumbnail_url' in fields:
+            recipe = self.browser.get_recipe(recipe.id, recipe)
         return recipe
 
-    OBJECTS = {
-        Recipe: fill_recipe,
-    }
+    OBJECTS = {Recipe: fill_recipe}

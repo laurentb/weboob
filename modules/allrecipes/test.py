@@ -19,14 +19,16 @@
 
 from weboob.tools.test import BackendTest
 
+import itertools
+
 
 class AllrecipesTest(BackendTest):
     MODULE = 'allrecipes'
 
     def test_recipe(self):
-        recipes = self.backend.iter_recipes('french fries')
-        for recipe in recipes:
-            full_recipe = self.backend.get_recipe(recipe.id)
-            assert full_recipe.instructions
-            assert full_recipe.ingredients
-            assert full_recipe.title
+        recipes = list(itertools.islice(self.backend.iter_recipes('french fries'), 0, 20))
+        assert len(recipes)
+        full_recipe = self.backend.get_recipe(recipes[0].id)
+        assert full_recipe.instructions
+        assert full_recipe.ingredients
+        assert full_recipe.title

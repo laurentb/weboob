@@ -18,109 +18,80 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.recipe import Recipe
-from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import HTMLPage, pagination
+from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.capabilities.recipe import Recipe, Comment
+from weboob.capabilities.base import NotAvailable
+from weboob.browser.filters.standard import Regexp, CleanText, Env, Duration
+from weboob.browser.filters.html import CleanHTML
+
+import re
 
 
-class FourOFourPage(Page):
-    pass
+class CookingDuration(Duration):
+    _regexp = re.compile(r'PT((?P<hh>\d+)H)?((?P<mm>\d+)M)?((?P<ss>\d+)S)?')
 
 
-class ResultsPage(Page):
-    """ Page which contains results as a list of recipies
-    """
+class ResultsPage(HTMLPage):
+    @pagination
+    @method
+    class iter_recipes(ListElement):
+        item_xpath = '//article[@class="grid-col--fixed-tiles"]'
 
-    def iter_recipes(self):
-        for div in self.parser.select(self.document.getroot(), 'div.recipe-info'):
-            thumbnail_url = NotAvailable
-            short_description = NotAvailable
-            imgs = self.parser.select(div.getparent(), 'img')
-            if len(imgs) > 0:
-                url = unicode(imgs[0].attrib.get('src', ''))
-                if url.startswith('http://'):
-                    thumbnail_url = url
+        def next_page(self):
+            return CleanText('//button[@id="btnMoreResults"]/@href')(self)
 
-            link = self.parser.select(div, 'a.title', 1)
-            title = unicode(link.text)
-            id = unicode(link.attrib.get('href', '').split('/')[2])
+        class item(ItemElement):
+            klass = Recipe
 
-            recipe = Recipe(id, title)
-            recipe.thumbnail_url = thumbnail_url
-            recipe.short_description = short_description
-            recipe.instructions = NotLoaded
-            recipe.ingredients = NotLoaded
-            recipe.nb_person = NotLoaded
-            recipe.cooking_time = NotLoaded
-            recipe.preparation_time = NotLoaded
-            recipe.author = NotLoaded
-            yield recipe
+            obj_id = Regexp(CleanText('./a[1]/@href'),
+                            '/recipe/(.*)/')
+            obj_title = CleanText('./a/h3')
+            obj_short_description = CleanText('./a/div/div[@class="rec-card__description"]')
 
 
-class RecipePage(Page):
-    """ Page which contains a recipe
-    """
+class RecipePage(HTMLPage):
+    @method
+    class get_recipe(ItemElement):
+        klass = Recipe
 
-    def get_recipe(self, id):
-        title = NotAvailable
-        preparation_time = NotAvailable
-        cooking_time = NotAvailable
-        author = NotAvailable
-        nb_person = NotAvailable
-        ingredients = NotAvailable
-        picture_url = NotAvailable
-        instructions = NotAvailable
-        comments = NotAvailable
+        obj_id = Env('_id')
+        obj_title = CleanText('//h1[@itemprop="name"]')
 
-        title = unicode(self.parser.select(self.document.getroot(), 'h1#itemTitle', 1).text)
-        imgillu = self.parser.select(self.document.getroot(), 'img#imgPhoto')
-        if len(imgillu) > 0:
-            picture_url = unicode(imgillu[0].attrib.get('src', ''))
+        def obj_preparation_time(self):
+            dt = CookingDuration(CleanText('//time[@itemprop="prepTime"]/@datetime'))(self)
+            return int(dt.total_seconds() / 60)
 
-        ingredients = []
-        l_ing = self.parser.select(self.document.getroot(), 'li#liIngredient')
-        for ing in l_ing:
-            ingtxt = unicode(ing.text_content().strip())
-            if ingtxt != '':
-                ingredients.append(ingtxt)
+        def obj_cooking_time(self):
+            dt = CookingDuration(CleanText('//time[@itemprop="cookTime"]/@datetime'))(self)
+            return int(dt.total_seconds() / 60)
 
-        instructions = u''
-        l_divinst = self.parser.select(self.document.getroot(), 'div.directLeft li')
-        num_instr = 1
-        for inst in l_divinst:
-            instructions += '%s: %s\n' % (num_instr, inst.text_content())
-            num_instr += 1
+        def obj_nb_person(self):
+            nb_pers = CleanText('//meta[@id="metaRecipeServings"]/@content')(self)
+            return [nb_pers] if nb_pers else NotAvailable
 
-        prepmin = 0
-        emprep = self.parser.select(self.document.getroot(), 'span#prepHoursSpan em')
-        if len(emprep) > 0:
-            prepmin += int(emprep[0].text) * 60
-        emprep = self.parser.select(self.document.getroot(), 'span#prepMinsSpan em')
-        if len(emprep) > 0:
-            prepmin += int(emprep[0].text)
-        if prepmin != 0:
-            preparation_time = prepmin
-        cookmin = 0
-        emcooktime = self.parser.select(self.document.getroot(), 'span#cookHoursSpan em')
-        if len(emcooktime) > 0:
-            cookmin += int(emcooktime[0].text) * 60
-        emcooktime = self.parser.select(self.document.getroot(), 'span#cookMinsSpan em')
-        if len(emcooktime) > 0:
-            cookmin += int(emcooktime[0].text)
-        if cookmin != 0:
-            cooking_time = cookmin
-        l_nbpers = self.parser.select(self.document.getroot(), 'span#lblYield[itemprop=recipeYield]')
-        if len(l_nbpers) > 0 and 'servings' in l_nbpers[0].text:
-            nb_person = [int(l_nbpers[0].text.split()[0])]
+        def obj_ingredients(self):
+            ingredients = []
+            for el in self.el.xpath('//ul[has-class("checklist")]/li/label/span[@itemprop="ingredients"]'):
+                ing = CleanText('.')(el)
+                if ing:
+                    ingredients.append(ing)
+            return ingredients
 
-        recipe = Recipe(id, title)
-        recipe.preparation_time = preparation_time
-        recipe.cooking_time = cooking_time
-        recipe.nb_person = nb_person
-        recipe.ingredients = ingredients
-        recipe.instructions = instructions
-        recipe.picture_url = picture_url
-        recipe.comments = comments
-        recipe.author = author
-        recipe.thumbnail_url = NotLoaded
-        return recipe
+        obj_instructions = CleanHTML('//ol[@itemprop="recipeInstructions"]')
+        obj_thumbnail_url = CleanText('//section[has-class("hero-photo")]/span/a/img/@src')
+
+        obj_picture_url = CleanText('//section[has-class("hero-photo")]/span/a/img/@src')
+
+    @method
+    class get_comments(ListElement):
+        item_xpath = '//div[@itemprop="review"]'
+        ignore_duplicate = True
+
+        class item(ItemElement):
+            klass = Comment
+
+            obj_author = CleanText('./article/a/div/a/ul/li/h4[@itemprop="author"]')
+            obj_rate = CleanText('./article/div/div[@class="rating-stars"]/@data-ratingstars')
+            obj_text = CleanText('./p[@itemprop="reviewBody"]')
+            obj_id = CleanText('./article/a/@href')
