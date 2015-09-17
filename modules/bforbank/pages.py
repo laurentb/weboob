@@ -18,14 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
-from decimal import Decimal
 from StringIO import StringIO
 from PIL import Image
 
 from weboob.browser.pages import LoggedPage, HTMLPage
 from weboob.browser.elements import method, ListElement, ItemElement
 from weboob.capabilities.bank import Account
-from weboob.browser.filters.standard import CleanText, Regexp, Field, Map
+from weboob.browser.filters.standard import CleanText, Regexp, Field, Map, CleanDecimal
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -76,6 +75,7 @@ class BfBKeyboard(object):
             code += str(codesymbol)
         return code
 
+
 class LoginPage(HTMLPage):
     def login(self, birthdate, username, password):
         vk = BfBKeyboard(self)
@@ -90,6 +90,7 @@ class LoginPage(HTMLPage):
 class ErrorPage(HTMLPage):
     pass
 
+
 class AccountsPage(LoggedPage, HTMLPage):
     @method
     class iter_accounts(ListElement):
@@ -99,16 +100,13 @@ class AccountsPage(LoggedPage, HTMLPage):
             klass = Account
 
             TYPE = {'Livret': Account.TYPE_SAVINGS,
+                    'Compte': Account.TYPE_CHECKING,
                    }
 
-            def obj_balance(self):
-                balance = CleanText(self.el.xpath('./td/div/div[1]/div/span'))(self)
-                balance = re.sub(r'[^\d\-\,]', '', balance)
-                return Decimal(re.sub(r',(?!(\d+$))', '', balance).replace(',', '.'))
-
-            obj_id = CleanText('./td/div/div[3]/span') & Regexp(pattern=r'(\d+)')
-            obj_label = CleanText('./td/div/div[2]/span')
-            obj_currency = FrenchTransaction.Currency('./td/div/div[1]/div/span')
+            obj_id = CleanText('./td//div[contains(@class, "-synthese-title") or contains(@class, "-synthese-text")]') & Regexp(pattern=r'(\d+)')
+            obj_label = CleanText('./td//div[contains(@class, "-synthese-title")]')
+            obj_balance = CleanDecimal('./td//div[contains(@class, "-synthese-num")]', replace_dots=True)
+            obj_currency = FrenchTransaction.Currency('./td//div[contains(@class, "-synthese-num")]')
             obj_type = Map(Regexp(Field('label'), r'^(\w+)'), TYPE, default=Account.TYPE_UNKNOWN)
             obj__link = CleanText('./@data-href')
 
@@ -119,7 +117,7 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class HistoryPage(LoggedPage, HTMLPage):
+class LoanHistoryPage(LoggedPage, HTMLPage):
     @method
     class get_operations(ListElement):
         item_xpath = '//table[contains(@class, "table")]/tbody/div/tr[contains(@class, "submit")]'
@@ -127,11 +125,31 @@ class HistoryPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Transaction
 
-            def obj_amount(self):
-                balance = CleanText(self.el.xpath('./td[4]'))(self)
-                balance = re.sub(r'[^\d\-\,]', '', balance)
-                return Decimal(re.sub(r',(?!(\d+$))', '', balance).replace(',', '.'))
-
+            obj_amount = Transaction.Amount('./td[4]')
             obj_date = Transaction.Date('./td[2]')
             obj_vdate = Transaction.Date('./td[3]')
             obj_raw = Transaction.Raw('./td[1]')
+
+
+class HistoryPage(LoggedPage, HTMLPage):
+    @method
+    class get_operations(ListElement):
+        item_xpath = '//table[has-class("style-operations")]/tbody//tr'
+
+        class item(ItemElement):
+            klass = Transaction
+
+            def condition(self):
+                if 'tr-section' in self.el.attrib['class']:
+                    self.parent.env['date'] = Transaction.Date(Regexp(CleanText('.//th'), '(\d+/\d+/\d+)'))(self.el)
+                    return False
+                if 'tr-trigger' in self.el.attrib['class']:
+                    return True
+
+                return False
+
+            def obj_date(self):
+                return self.parent.env['date']
+
+            obj_raw = Transaction.Raw('./td[1]')
+            obj_amount = Transaction.Amount('./td[2]')

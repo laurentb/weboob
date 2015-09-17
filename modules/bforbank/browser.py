@@ -21,7 +21,7 @@
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 
-from .pages import LoginPage, ErrorPage, AccountsPage, HistoryPage
+from .pages import LoginPage, ErrorPage, AccountsPage, HistoryPage, LoanHistoryPage
 
 
 class BforbankBrowser(LoginBrowser):
@@ -30,7 +30,8 @@ class BforbankBrowser(LoginBrowser):
     login = URL('/connexion-client/service/login\?urlBack=%2Fespace-client', LoginPage)
     error = URL('/connexion-client/service/auth', ErrorPage)
     home = URL('/espace-client/$', AccountsPage)
-    history = URL('/espace-client/livret/consultation.*', HistoryPage)
+    loan_history = URL('/espace-client/livret/consultation.*', LoanHistoryPage)
+    history = URL('/espace-client/consultation/operations/.*', HistoryPage)
 
     def __init__(self, birthdate, *args, **kwargs):
         super(BforbankBrowser, self).__init__(*args, **kwargs)
@@ -53,6 +54,5 @@ class BforbankBrowser(LoginBrowser):
 
     @need_login
     def get_history(self, account):
-        self.location(account._link)
-        for tr in self.page.get_operations():
-            yield tr
+        self.location(account._link.replace('tableauDeBord', 'operations'))
+        return self.page.get_operations()
