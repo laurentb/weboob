@@ -254,8 +254,13 @@ class AccountsList(Page):
             account.id = cpt.xpath("./span[1]/text()")[0].replace(u"\xa0", "").replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xb0", '').replace(" ", "").replace('N', '')
 
             # account balance
-            account.balance = Decimal(Transaction.clean_amount(cpt.xpath("./span[2]/text()")[0]))
-            account.currency = account.get_currency(cpt.xpath("./span[2]/text()")[0])
+            try:
+                balance = cpt.xpath("./span[2]/text()")[0]
+            except IndexError:
+                continue
+
+            account.balance = Decimal(Transaction.clean_amount(balance))
+            account.currency = account.get_currency(balance)
 
             # account coming TODO
             #mycomingval = cpt.xpath("../../following-sibling::*[1]/td[2]/a[@class='lien_synthese_encours']/span/text()")[0].replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xa0", "")
