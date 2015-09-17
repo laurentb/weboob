@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2009-2013  Romain Bignon
+# Copyright(C) 2009-2015  Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -25,7 +25,8 @@ from decimal import Decimal
 
 from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired
 from weboob.tools.json import json
@@ -251,3 +252,41 @@ class HistoryPage(BNPPage):
                      vdate=Date(op.get('valueDate')),
                      raw=op.get('libelle'))
             yield tr
+
+
+class LifeInsurancesPage(BNPPage):
+    investments_path = 'data.infosContrat.repartition.listeSupport.*'
+
+    def iter_investments(self):
+        for support in self.path(self.investments_path):
+            inv = Investment()
+            if 'codeIsin' in support:
+                inv.code = inv.id = support['codeIsin']
+                inv.quantity = support['nbUC']
+                inv.unitvalue = support['valUC']
+
+            inv.label = support['libelle']
+            inv.valuation = support['montant']
+            inv.set_empty_fields(NotAvailable)
+            yield inv
+
+
+class LifeInsurancesHistoryPage(BNPPage):
+    def iter_history(self, coming):
+        for op in self.get('data.listerMouvements.listeMouvements') or []:
+            tr = Transaction.from_dict({
+                'type': Transaction.TYPE_BANK,
+                'state': op.get('statut'),
+                'amount': op.get('montantNet'),
+                })
+            tr.parse(date=Date(op.get('dateSaisie')),
+                     vdate=Date(op.get('dateEffet')),
+                     raw='%s %s' % (op.get('libelleMouvement'), op.get('canalSaisie') or ''))
+            tr._op = op
+
+            if (op.get('statut') == u'Traité') ^ coming:
+                yield tr
+
+
+class LifeInsurancesDetailPage(LifeInsurancesPage):
+    investments_path = 'data.detailMouvement.listeSupport.*'

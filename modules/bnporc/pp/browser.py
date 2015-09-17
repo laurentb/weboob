@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2009-2013  Romain Bignon
+# Copyright(C) 2009-2015  Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -25,7 +25,9 @@ from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import AccountNotFound
 from weboob.tools.json import json
 
-from .pages import LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, TransferInitPage, ConnectionThresholdPage
+from .pages import LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, TransferInitPage, \
+                   ConnectionThresholdPage, LifeInsurancesPage, LifeInsurancesHistoryPage, \
+                   LifeInsurancesDetailPage
 
 
 __all__ = ['BNPParibasBrowser']
@@ -76,6 +78,10 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     history = URL('rop-wspl/rest/releveOp', HistoryPage)
     transfer_init = URL('virement-wspl/rest/initialisationVirement', TransferInitPage)
 
+    lifeinsurances = URL('mefav-wspl/rest/infosContrat', LifeInsurancesPage)
+    lifeinsurances_history = URL('mefav-wspl/rest/listMouvements', LifeInsurancesHistoryPage)
+    lifeinsurances_detail = URL('mefav-wspl/rest/detailMouvement', LifeInsurancesDetailPage)
+
     class ProAccount(Exception):
         pass
 
@@ -107,14 +113,34 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
 
     @need_login
     def iter_history(self, account, coming=False):
-        self.page = self.history.go(data=JSON({
-            "ibanCrypte": account.id,
-            "pastOrPending": 1,
-            "triAV": 0,
-            "startDate": None,
-            "endDate": None
-        }))
+        if account.type == account.TYPE_LIFE_INSURANCE:
+            return self.iter_lifeinsurance_history(account, coming)
+        else:
+            self.page = self.history.go(data=JSON({
+                "ibanCrypte": account.id,
+                "pastOrPending": 1,
+                "triAV": 0,
+                "startDate": None,
+                "endDate": None
+            }))
         return self.page.iter_coming() if coming else self.page.iter_history()
+
+    @need_login
+    def iter_lifeinsurance_history(self, account, coming=False):
+        self.page = self.lifeinsurances_history.go(data=JSON({
+            "ibanCrypte": account.id,
+        }))
+
+        for tr in self.page.iter_history(coming):
+            page = self.lifeinsurances_detail.go(data=JSON({
+                "ibanCrypte": account.id,
+                "idMouvement": tr._op.get('idMouvement'),
+                "ordreMouvement": tr._op.get('ordreMouvement'),
+                "codeTypeMouvement": tr._op.get('codeTypeMouvement'),
+            }))
+            tr.investments = list(page.iter_investments())
+            yield tr
+
 
     @need_login
     def iter_coming_operations(self, account):
@@ -122,7 +148,10 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
 
     @need_login
     def iter_investment(self, account):
-        raise NotImplementedError()
+        self.page = self.lifeinsurances.go(data=JSON({
+            "ibanCrypte": account.id,
+        }))
+        return self.page.iter_investments()
 
     @need_login
     def get_transfer_accounts(self):
