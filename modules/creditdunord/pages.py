@@ -182,7 +182,11 @@ class ProAccountsPage(AccountsPage):
             a.balance = Decimal(FrenchTransaction.clean_amount(balance))
             a.currency = a.get_currency(balance)
             a._link, a._args = self.params_from_js(cols[self.COL_ID].find('a').attrib['href'])
-            a.id = '%s%s' % (cols[self.COL_ID].xpath('.//span[@class="right-underline"]')[0].text.replace(' ', '').strip(), a._args['IndiceCompte'])
+            if a._args and 'IndiceCompte' in a._args:
+                a.id = '%s%s' % (cols[self.COL_ID].xpath('.//span[@class="right-underline"]')[0].text.replace(' ', '').strip(), a._args['IndiceCompte'])
+            else:
+                a.id = cols[self.COL_ID].xpath('.//span[@class="right-underline"]')[0].text.replace(' ', '').strip()
+
 
             a._card_ids = []
 
