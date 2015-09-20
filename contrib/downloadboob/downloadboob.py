@@ -102,14 +102,13 @@ class Downloadboob(object):
             if i == max_results:
                 break
 
+            self.backend.fill_video(video, ('url', 'title', 'url', 'duration', 'ext'))
             if not self.is_downloaded(video):
-                self.backend.fill_video(video, ('url','title', 'url', 'duration'))
                 if not(self.is_excluded(video.title, title_exclude)) and self.id_regexp_matched(video.id, id_regexp):
                     print("  %s\n    Id:%s\n    Duration:%s" % (video.title, video.id, video.duration))
                     videos.append(video)
             else:
                 print("Already downloaded, check %s" % video.id)
-                self.backend.fill_video(video, ('url','title', 'url', 'duration'))
                 linkname = self.get_linkname(video)
                 if not os.path.exists(linkname):
                     self.remove_download(video)
