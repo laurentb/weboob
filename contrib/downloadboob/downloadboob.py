@@ -45,7 +45,8 @@ if sys.stdout.encoding is None:
 # end of hack
 
 
-def removeNonAscii(s): return "".join(i for i in s if ord(i)<128)
+def removeNonAscii(s):
+    return "".join(i for i in s if ord(i) < 128)
 
 rx = re.compile(u'[ \\/\\?\\:\\>\\<\\!\\\\\\*]+', re.UNICODE)
 
@@ -53,7 +54,7 @@ rx = re.compile(u'[ \\/\\?\\:\\>\\<\\!\\\\\\*]+', re.UNICODE)
 def removeSpecial(s):
     return rx.sub(u' ', u'%s' % s)
 
-DOWNLOAD_DIRECTORY=".files"
+DOWNLOAD_DIRECTORY = ".files"
 
 
 class Downloadboob(object):
@@ -65,12 +66,12 @@ class Downloadboob(object):
         self.backend = None
         self.weboob = Weboob()
         self.weboob.load_backends(modules=[self.backend_name])
-        self.backend=self.weboob.get_backend(self.backend_name)
+        self.backend = self.weboob.get_backend(self.backend_name)
 
     def purge(self):
         if not os.path.isdir(self.links_directory):
             return
-        dirList=os.listdir(self.links_directory)
+        dirList = os.listdir(self.links_directory)
         for local_link_name in dirList:
             link_name = self.links_directory + "/" + local_link_name
             if not self.check_link(link_name):
@@ -94,7 +95,7 @@ class Downloadboob(object):
 
         # create directory for links
         if not os.path.isdir(self.links_directory):
-	    print("  create link to %s" % self.links_directory)
+            print("  create link to %s" % self.links_directory)
             os.makedirs(self.links_directory)
 
         # search for videos
@@ -188,7 +189,7 @@ class Downloadboob(object):
 
     def do_download(self, video):
         if not video:
-            print('Video not found: %s' %  video, file=sys.stderr)
+            print('Video not found: %s' % video, file=sys.stderr)
             return 3
 
         if not video.url:
@@ -244,32 +245,32 @@ config = ConfigParser.ConfigParser()
 config.read(['/etc/downloadboob.conf', os.path.expanduser('~/downloadboob.conf'), 'downloadboob.conf'])
 
 try:
-    links_directory=os.path.expanduser(config.get('main','directory', '.'))
+    links_directory = os.path.expanduser(config.get('main', 'directory', '.'))
 except ConfigParser.NoSectionError:
     print("Please create a documentation file (see the README file and the downloadboob.conf example file)")
     sys.exit(2)
 
-links_directory=links_directory.decode('utf-8')
+links_directory = links_directory.decode('utf-8')
 
-download_directory=os.path.join(links_directory, DOWNLOAD_DIRECTORY)
+download_directory = os.path.join(links_directory, DOWNLOAD_DIRECTORY)
 
 print("Downloading to %s" % (links_directory))
 
 for section in config.sections():
     if section != "main":
-        backend_name=config.get(section, "backend")
-        pattern=config.get(section, "pattern")
+        backend_name = config.get(section, "backend")
+        pattern = config.get(section, "pattern")
         if config.has_option(section, "title_exclude"):
-            title_exclude=config.get(section, "title_exclude").decode('utf-8').split('|')
+            title_exclude = config.get(section, "title_exclude").decode('utf-8').split('|')
         else:
-            title_exclude=[]
+            title_exclude = []
         if config.has_option(section, "id_regexp"):
-            id_regexp=config.get(section, "id_regexp")
+            id_regexp = config.get(section, "id_regexp")
         else:
-            id_regexp=None
-        max_result=config.getint(section, "max_results")
-        section_sublinks_directory=config.get(section,"directory")
-        section_links_directory=os.path.join(links_directory, section_sublinks_directory)
+            id_regexp = None
+        max_result = config.getint(section, "max_results")
+        section_sublinks_directory = config.get(section, "directory")
+        section_links_directory = os.path.join(links_directory, section_sublinks_directory)
 
         downloadboob = Downloadboob(backend_name, download_directory, section_links_directory)
         downloadboob.purge()
