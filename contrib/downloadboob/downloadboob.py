@@ -92,8 +92,8 @@ class Downloadboob(object):
         print("For backend %s, search for '%s'" % (backend_name, pattern))
 
         # create directory for links
-        print("  create link to %s" % self.links_directory)
         if not os.path.isdir(self.links_directory):
+	    print("  create link to %s" % self.links_directory)
             os.makedirs(self.links_directory)
 
         # search for videos
