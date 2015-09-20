@@ -131,6 +131,14 @@ class Downloadboob(object):
             return re.search(id_regexp, video_id) is not None
         return True
 
+    def get_downloaded_ext(self, video):
+        ext = video.ext
+        if not ext:
+            ext = 'avi'
+        elif ext == u'm3u8':
+            ext = 'mp4'
+        return ext
+
     def get_filename(self, video, relative=False):
         if relative:
             directory = os.path.join("..", DOWNLOAD_DIRECTORY, self.backend_name)
@@ -139,11 +147,7 @@ class Downloadboob(object):
             if not os.path.exists(directory):
                 os.makedirs(directory)
 
-        ext = video.ext
-        if not ext:
-            ext = 'avi'
-        if ext == u'm3u8':
-            ext = 'mp4'
+        ext = self.get_downloaded_ext(video)
 
         return u"%s/%s.%s" % (directory, removeNonAscii(video.id), ext)
 
@@ -151,11 +155,7 @@ class Downloadboob(object):
         if not os.path.exists(self.links_directory):
             os.makedirs(self.links_directory)
 
-        ext = video.ext
-        if not ext:
-            ext = 'avi'
-        if ext == u'm3u8':
-            ext = 'mp4'
+        ext = self.get_downloaded_ext(video)
 
         misc = video.date
         if not misc:
