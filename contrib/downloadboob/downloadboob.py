@@ -21,6 +21,7 @@
 from __future__ import print_function
 
 import subprocess
+import requests
 import os
 import re
 
@@ -140,6 +141,8 @@ class Downloadboob(object):
         ext = video.ext
         if not ext:
             ext = 'avi'
+        if ext == u'm3u8':
+            ext = 'mp4'
 
         return u"%s/%s.%s" % (directory, removeNonAscii(video.id), ext)
 
@@ -150,6 +153,8 @@ class Downloadboob(object):
         ext = video.ext
         if not ext:
             ext = 'avi'
+        if ext == u'm3u8':
+            ext = 'mp4'
 
         misc = video.date
         if not misc:
@@ -208,13 +213,31 @@ class Downloadboob(object):
             if not check_exec('mimms'):
                 return 1
             args = ('mimms', video.url, dest)
+        elif u'm3u8' == video.ext:
+            _dest, _ = os.path.splitext(dest)
+            dest = u'%s.%s' % (_dest, 'mp4')
+            content = tuple()
+            baseurl = video.url.rpartition('/')[0]
+            for line in self.read_url(video.url):
+                if not line.startswith('#'):
+                    if not line.startswith('http'):
+                        line = u'%s/%s' % (baseurl, line)
+                    content += (line,)
+            args = ('wget', '-nv',) + content + ('-O', dest)
         else:
-            if not check_exec('wget'):
+            if check_exec('wget'):
+                args = ('wget', '-c', video.url, '-O', dest)
+            elif check_exec('curl'):
+                args = ('curl', '-C', '-', video.url, '-o', dest)
+            else:
                 return 1
-            args = ('wget', video.url, '-O', dest)
 
         os.spawnlp(os.P_WAIT, args[0], *args)
         self.set_linkname(video)
+
+    def read_url(self, url):
+        r = requests.get(url, stream=True)
+        return r.iter_lines()
 
 
 config = ConfigParser.ConfigParser()
