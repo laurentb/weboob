@@ -135,9 +135,12 @@ class ContractsPage(LoggedPage, HTMLPage):
     def select_contract(self):
         # XXX We select automatically the default contract in list. We should let user
         # ask what contract he wants to see, or display accounts for all contracts.
-        form = self.get_form(nr=0)
-        form.submit()
-
+        link = self.doc.xpath('//a[contains(text(), "Votre situation globale")]')
+        if len(link):
+            self.browser.location(link[0].attrib['href'])
+        else:
+            form = self.get_form(nr=0)
+            form.submit()
 
 class AccountsPage(LoggedPage, HTMLPage):
     def on_load(self):
