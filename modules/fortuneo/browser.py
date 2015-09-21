@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
@@ -77,6 +78,10 @@ class Fortuneo(Browser):
         if self.is_on_page(LoginPage):
             raise BrowserIncorrectPassword()
 
+        m = re.match('https://(.*?fr)', self.page.url)
+        if m:
+            self.DOMAIN_LOGIN = m.group(1)
+
         self.location('https://' + self.DOMAIN_LOGIN + '/fr/prive/mes-comptes/synthese-mes-comptes.jsp')
 
         if self.is_on_page(AccountsList) and self.page.need_reload():
@@ -85,12 +90,12 @@ class Fortuneo(Browser):
             raise BrowserIncorrectPassword('Authentification with sms is not supported')
 
     def get_investments(self, account):
-        self.location(account._link_id)
+        self.location('https://' + self.DOMAIN_LOGIN + account._link_id)
 
         return self.page.get_investments()
 
     def get_history(self, account):
-        self.location(account._link_id)
+        self.location('https://' + self.DOMAIN_LOGIN + account._link_id)
 
         if self.page.select_period():
             return self.page.get_operations(account)

@@ -32,7 +32,7 @@ class LoginPage(Page):
         if "maintenance" in msg:
             raise BrowserUnavailable(msg)
 
-        self.browser.select_form(nr=3)
+        self.browser.select_form(name="acces_identification")
         self.browser['login'] = login.encode('utf-8')
         self.browser['passwd'] = passwd.encode('utf-8')
         self.browser.submit(nologin=True)
