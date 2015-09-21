@@ -128,7 +128,7 @@ class AccountsPage(Page):
                             account.type = account_type
                             account.balance = Decimal(FrenchTransaction.clean_amount(attribs['soldeDateOpeValeurFormatted']))
                             account.currency = account.get_currency(attribs['codeDevise'])
-                            account._link = 'tbord.do?id=%s' % attribs['id']
+                            account._link = 'tbord.do?id=%s&%s' % (attribs['id'], self.browser.SESSION_PARAM)
                             account._card_links = []
 
                             if account.id.endswith('CRT'):

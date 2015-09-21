@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
@@ -42,6 +43,8 @@ class Barclays(Browser):
              'https://.*.barclays.fr/barclaysnetV2/assurance.do.*':         AssurancePage,
             }
 
+    SESSION_PARAM = None
+
     def __init__(self, secret, *args, **kwargs):
         self.secret = secret
 
@@ -52,9 +55,20 @@ class Barclays(Browser):
 
     def home(self):
         if self.is_logged():
-            self.location('tbord.do')
+            link = self.page.document.xpath('.//a[contains(@id, "tbordalllink")]')[0].attrib['href']
+            m = re.match('(.*?fr)', self.page.url)
+            if m:
+                absurl = m.group(1)
+                self.location('%s%s' % (absurl, link))
         else:
             self.login()
+
+    def set_session_param(self):
+        if self.is_logged():
+            link = self.page.document.xpath('.//a[contains(@id, "tbordalllink")]')[0].attrib['href']
+            m = re.search('&(.*)', link)
+            if m:
+                self.SESSION_PARAM = m.group(1)
 
     def login(self):
         """
@@ -82,9 +96,11 @@ class Barclays(Browser):
         if not self.is_logged():
             raise BrowserIncorrectPassword()
 
+        self.set_session_param()
+
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):
-            self.location('tbord.do')
+            self.home()
         return self.page.get_list()
 
     def get_account(self, id):
@@ -99,7 +115,7 @@ class Barclays(Browser):
 
     def get_history(self, account):
         if not self.is_on_page(AccountsPage):
-            self.location('tbord.do')
+            self.home()
 
         self.location(account._link)
 
@@ -114,7 +130,7 @@ class Barclays(Browser):
     def get_card_operations(self, account):
         for card in account._card_links:
             if not self.is_on_page(AccountsPage):
-                self.location('tbord.do')
+                self.home()
 
             self.location(card)
 
