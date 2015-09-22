@@ -233,6 +233,29 @@ class Base(Filter):
         self.base = base
 
 
+class Decode(Filter):
+    """
+    Filter that aims to decode urlencoded strings
+
+    >>> Decode(Env(_id))
+    >>> Decode(Link(./a))
+
+    """
+    def __call__(self, item):
+        self.encoding = item.page.ENCODING if item.page.ENCODING else 'utf-8'
+        return self.filter(self.select(self.selector, item, key=self._key, obj=self._obj))
+
+    @debug()
+    def filter(self, txt):
+        from urllib import unquote
+        try:
+            txt = unquote(txt.encode('ascii')).decode(self.encoding)
+        except (UnicodeDecodeError, UnicodeEncodeError):
+            pass
+
+        return txt
+
+
 class Env(_Filter):
     """
     Filter to get environment value of the item.
