@@ -33,6 +33,16 @@ class PopolemploiBrowser(PagesBrowser):
     search = URL('candidat/rechercheoffres/resultats/(?P<search>.*?)',
                  'https://offre.pole-emploi.fr/resultat\?offresPartenaires=true&libMetier=(?P<pattern>.*?)', SearchPage)
 
+    decode_salary = {
+        'FOURCHETTE1': u'|15000|A',
+        'FOURCHETTE2': u'15000|18000|A',
+        'FOURCHETTE3': u'18000|21000|A',
+        'FOURCHETTE4': u'21000|24000|A',
+        'FOURCHETTE5': u'24000|36000|A',
+        'FOURCHETTE6': u'36000|60000|A',
+        'FOURCHETTE7': u'60000||A',
+    }
+
     def search_job(self, pattern=None):
         return self.search.go(pattern=quote_plus(pattern)).iter_job_adverts()
 
@@ -40,17 +50,28 @@ class PopolemploiBrowser(PagesBrowser):
                             qualification=None, limit_date=None, domain=None):
 
         splitted_place = place.split('|')
+        _domain = "%s-" % domain if domain else ""
 
-        search = 'A_%s_%s_%s__%s_P_%s_%s_%s_______INDIFFERENT______________%s___' % (quote(metier.encode('utf-8')).replace('%', '$00'),
-                                                                                     splitted_place[1],
-                                                                                     splitted_place[2],
-                                                                                     contrat,
-                                                                                     domain,
-                                                                                     salary,
-                                                                                     qualification,
-                                                                                     limit_date
-                                                                                     )
+        if salary in self.decode_salary:
+            salary_time = self.decode_salary.get(salary).split('|')[2]
+            salary_low = self.decode_salary.get(salary).split('|')[0]
+            salary_hight = self.decode_salary.get(salary).split('|')[1]
+        else:
+            salary_time = ""
+            salary_low = ""
+            salary_hight = ""
 
+        search = "A_%s_%s_%s__%s_P_%s_%s_%s_____________________%s_%s_%s_______" % (
+            quote(metier.encode('utf-8')).replace('%', '$00'),
+            splitted_place[1],
+            splitted_place[2],
+            contrat,
+            _domain,
+            salary_time,
+            qualification,
+            limit_date,
+            salary_low,
+            salary_hight)
         return self.search.go(search=search).iter_job_adverts()
 
     def get_job_advert(self, id, advert):

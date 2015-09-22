@@ -38,7 +38,7 @@ class PopolemploiModule(Module, CapJob):
     BROWSER = PopolemploiBrowser
 
     places_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
-        '100|FRANCE|O1': u'France entière',
+        '100|PAYS|01': u'France entière',
         '102|REGION|42': u'Alsace',
         '103|DEPARTEMENT|67': u'-- Rhin (Bas) (67)',
         '104|DEPARTEMENT|68': u'-- Rhin (Haut) (68)',
