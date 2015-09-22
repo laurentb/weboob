@@ -86,7 +86,7 @@ class RecipePage(HTMLPage):
         obj_preparation_time = Time(CleanText('//span[@class="preptime"]'))
 
         def obj_nb_person(self):
-            return [Type(CleanText('//span[@class="yield"]'), type=int)(self)]
+            return [Type(CleanText('//span[@class="yield"]'), type=int, default=0)(self)]
 
         obj_instructions = CleanHTML('//div[@class="recette_etapes"]')
         obj_picture_url = CleanText('//section[has-class("recette_infos")]/div/img[@class="photo"]/@src')
