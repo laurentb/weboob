@@ -23,7 +23,7 @@ import weboob.tools.date as date_util
 
 from weboob.browser.pages import HTMLPage
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import Filter, CleanText, Env, Format, BrowserURL, Regexp
+from weboob.browser.filters.standard import Filter, CleanText, Env, Format, BrowserURL, Regexp, Decode
 from weboob.browser.filters.html import CleanHTML
 from weboob.browser.filters.html import Link
 
@@ -73,7 +73,7 @@ class EventPage(HTMLPage):
     class get_event(ItemElement):
         klass = HybrideCalendarEvent
 
-        obj_id = Env('_id')
+        obj_id = Decode(Env('_id'))
         obj_start_date = Date(CleanText('//span[@class="itemDateCreated"]'))
         obj_summary = CleanText('//h2[@class="itemTitle"]')
         obj_description = Format('%s\n%s',
