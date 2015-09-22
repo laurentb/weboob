@@ -91,6 +91,14 @@ class ErrorPage(HTMLPage):
     pass
 
 
+class MyDecimal(CleanDecimal):
+    # BforBank uses commas for thousands seps et and decimal seps
+    def filter(self, text):
+        text = super(CleanDecimal, self).filter(text)
+        text = re.sub(r'[^\d\-\,]', '', text)
+        text = re.sub(r',(?!(\d+$))', '', text)
+        return super(MyDecimal, self).filter(text)
+
 class AccountsPage(LoggedPage, HTMLPage):
     @method
     class iter_accounts(ListElement):
@@ -105,7 +113,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             obj_id = CleanText('./td//div[contains(@class, "-synthese-title") or contains(@class, "-synthese-text")]') & Regexp(pattern=r'(\d+)')
             obj_label = CleanText('./td//div[contains(@class, "-synthese-title")]')
-            obj_balance = CleanDecimal('./td//div[contains(@class, "-synthese-num")]', replace_dots=True)
+            obj_balance = MyDecimal('./td//div[contains(@class, "-synthese-num")]', replace_dots=True)
             obj_currency = FrenchTransaction.Currency('./td//div[contains(@class, "-synthese-num")]')
             obj_type = Map(Regexp(Field('label'), r'^(\w+)'), TYPE, default=Account.TYPE_UNKNOWN)
             obj__link = CleanText('./@data-href')
@@ -125,7 +133,7 @@ class LoanHistoryPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_amount = Transaction.Amount('./td[4]')
+            obj_amount = MyDecimal('./td[4]', replace_dots=True)
             obj_date = Transaction.Date('./td[2]')
             obj_vdate = Transaction.Date('./td[3]')
             obj_raw = Transaction.Raw('./td[1]')
@@ -152,4 +160,4 @@ class HistoryPage(LoggedPage, HTMLPage):
                 return self.parent.env['date']
 
             obj_raw = Transaction.Raw('./td[1]')
-            obj_amount = Transaction.Amount('./td[2]')
+            obj_amount = MyDecimal('./td[2]', replace_dots=True)
