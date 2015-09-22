@@ -55,11 +55,11 @@ class ResultsPage(HTMLPage):
 
             def condition(self):
                 return Regexp(CleanText('./div[has-class("searchTitle")]/h2/a/@href'),
-                              'http://www.cuisineaz.com/recettes/(.*).aspx',
+                              '/recettes/(.*).aspx',
                               default=None)(self.el)
 
             obj_id = Regexp(CleanText('./div[has-class("searchTitle")]/h2/a/@href'),
-                            'http://www.cuisineaz.com/recettes/(.*).aspx')
+                            '/recettes/(.*).aspx')
             obj_title = CleanText('./div[has-class("searchTitle")]/h2/a')
 
             obj_thumbnail_url = CleanText('./div[has-class("searchImg")]/span/img[@data-src!=""]/@data-src|./div[has-class("searchImg")]/div/span/img[@src!=""]/@src',
