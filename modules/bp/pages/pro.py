@@ -21,6 +21,7 @@ import datetime
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal
 
+from weboob.browser.filters.standard import CleanText
 from weboob.deprecated.browser import Page
 from weboob.deprecated.browser.parsers.csvparser import CsvParser
 from weboob.capabilities.bank import Account, AccountNotFound
@@ -91,3 +92,17 @@ class ProAccountHistoryCSV(AccountHistory):
             t.set_amount(line[2])
             t._coming = False
             yield t
+
+class DownloadRib(Page):
+    def get_rib_value(self, acc_id):
+        opt = self.document.xpath('//div[@class="rechform"]//option')
+        for o in opt:
+            if acc_id in o.text:
+                return o.xpath('./@value')[0]
+        return None
+
+class RibPage(Page):
+    def get_iban(self):
+        return CleanText()\
+                .filter(self.document.xpath('//div[@class="blocbleu"][2]//table[@class="datalist"]')[0])\
+                .replace(' ', '').strip()

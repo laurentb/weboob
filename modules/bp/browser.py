@@ -26,7 +26,7 @@ from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, Browser
 from .pages import LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate, \
                    AccountList, AccountHistory, CardsList, UnavailablePage, \
                    TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary
-from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, ProAccountHistoryDownload, ProAccountHistoryCSV, HistoryParser
+from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, ProAccountHistoryDownload, ProAccountHistoryCSV, HistoryParser, DownloadRib, RibPage
 
 from weboob.capabilities.bank import Transfer
 
@@ -68,6 +68,8 @@ class BPBrowser(Browser):
              r'.*ost/messages\.CVS\.html\?param=0x132120c8.*'                            : BadLoginPage,
              r'.*ost/messages\.CVS\.html\?param=0x132120cb.*'                            : AccountDesactivate,
              r'https?://.*.labanquepostale.fr/delestage.html'                            : UnavailablePage,
+             r'.*/voscomptes/rib/init-rib.ea'                                            : DownloadRib,
+             r'.*/voscomptes/rib/preparerRIB-rib.*'                                      : RibPage,
              }
 
     login_url = 'https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&' \
@@ -177,3 +179,16 @@ class BProBrowser(BPBrowser):
 
         self.base_url = 'https://banqueenligne.entreprises.labanquepostale.fr/%s' % version
         self.accounts_url = self.base_url + '/voscomptes/synthese/synthese.ea'
+
+    def get_accounts_list(self):
+        accounts = BPBrowser.get_accounts_list(self)
+        for acc in accounts:
+            self.location('%s/voscomptes/rib/init-rib.ea' % self.base_url)
+            value = self.page.get_rib_value(acc.id)
+            if value:
+                self.location('%s/voscomptes/rib/preparerRIB-rib.ea?%s' % (self.base_url, value))
+                if self.is_on_page(RibPage):
+                    acc.iban = self.page.get_iban()
+            yield acc
+
+
