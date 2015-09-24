@@ -25,12 +25,15 @@ import re
 import urllib
 from mechanize import Cookie, FormNotFoundError
 
+
+from weboob.browser.filters.standard import CleanText
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.deprecated.browser import Page as _BasePage, BrokenPageError
 from weboob.capabilities.bank import Account, Investment
-from weboob.capabilities import NotAvailable
+from weboob.capabilities import NotAvailable, UserError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.json import json
+from weboob.tools.pdf import decompress_pdf
 
 
 class WikipediaARC4(object):
@@ -739,3 +742,50 @@ class MessagePage(_BasePage):
             pass
         else:
             self.browser.submit(nologin=True)
+
+class DocumentsPage(BasePage):
+    def get_account_extract(self, acc_id):
+        for td in self.document.xpath('//tbody[@class="ts tms"]/tr'):
+            if CleanText().filter(td.xpath('./td[1]')[0]) in acc_id and CleanText().filter(td.xpath('./td[4]')[0]) == "Extrait de compte":
+                self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'myForm')
+                self.browser.set_all_readonly(False)
+                doc_id = self.browser['taskOID']
+                self.browser['token'] = self.build_token(self.browser['token'])
+                self.browser['attribute($SEL_ACTIVE$tbl2)'] = td.xpath('./@id')[0].split('_', 1)[1]
+                self.browser['dialogActionPerformed'] = "TELECHARGER"
+                self.browser['attribute($SEL_$lst1_hidden)'] = 'lst1$listeTypeDoc$listeTypeDocSelectionne$'
+                self.browser['attribute($SEL_$lst2_hidden)'] = 'lst2$listeCompteRecherche$listeCompteSelect$'
+                self.browser['dateDebut'] = '23/09/2014'
+                self.browser['dateFin'] = '23/09/2015'
+                self.browser['attribute($SEL_$tbl2_hidden)'] = 'tbl2$listeDocumentSelectionne$'
+                self.browser['attribute($SEL_ACTIVE$tbl2_hidden)'] = 'tbl2$documentSelectionne$'
+                self.browser.submit()
+                return doc_id
+        return False
+
+class PostDocument(BasePage):
+    def get_doc_id(self):
+        for script in self.document.xpath('//script'):
+            if script.text is None:
+                continue
+
+            m = re.search("DocumentUtils\.download\('(.*)'\)", script.text)
+            if m:
+                return m.group(1)
+
+        return None
+
+class ExtractPdf(_BasePage):
+    iban_regexp= r'\(IBAN \) Tj(?:.*[\n\r]){5}\((\w{4})\)(?:.*[\n\r]){10}\((\d{4})\)(?:.*[\n\r]){10}\((\d{4})\)(?:.*[\n\r]){10}\((\d{4})\)(?:.*[\n\r]){10}\((\d{4})\)(?:.*[\n\r]){10}\((\d{4})\)(?:.*[\n\r]){10}\((\d{3})\)'
+    def __init__(self, *args, **kwargs):
+        _BasePage.__init__(self, *args, **kwargs)
+        try:
+            self._pdf = decompress_pdf(self.document)
+        except OSError as e:
+            raise UserError(u'Make sure mupdf-tools is installed (%s)' % e)
+
+    def get_iban(self):
+        res = re.findall(self.iban_regexp, self._pdf)
+        if res and len(res) == 1:
+            return u''.join(res[0])
+        return None
