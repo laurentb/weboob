@@ -19,9 +19,10 @@
 
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser.parsers.jsonparser import JsonParser
 from weboob.tools.ordereddict import OrderedDict
 
-from .pages import LoginPage, ErrorPage, AccountsPage, CardsPage, HistoryPage, CardHistoryPage
+from .pages import LoginPage, ErrorPage, AccountsPage, CardsPage, HistoryPage, CardHistoryPage, OrderPage
 
 
 __all__ = ['SGProfessionalBrowser', 'SGEnterpriseBrowser']
@@ -37,6 +38,7 @@ class SGPEBrowser(Browser):
             ('%s://%s/Pgn/.+PageID=Cartes&.+' % (self.PROTOCOL, self.DOMAIN), CardsPage),
             ('%s://%s/Pgn/.+PageID=ReleveCompteV3&.+' % (self.PROTOCOL, self.DOMAIN), HistoryPage),
             ('%s://%s/Pgn/.+PageID=ReleveCarte&.+' % (self.PROTOCOL, self.DOMAIN), CardHistoryPage),
+            ('%s://%s/ord-web/ord//ord-liste-compte-emetteur.json' % (self.PROTOCOL, self.DOMAIN), (OrderPage, JsonParser())),
             ('%s://%s/authent\.html' % (self.PROTOCOL, self.DOMAIN), ErrorPage),
             ('%s://%s/' % (self.PROTOCOL, self.DOMAIN), LoginPage),
         ))
@@ -96,13 +98,19 @@ class SGPEBrowser(Browser):
             self.accounts()
 
         assert self.is_on_page(AccountsPage)
+        accounts = []
         for acc in self.page.get_list():
-            yield acc
+            accounts.append(acc)
 
         if self.cards():
             assert self.is_on_page(CardsPage)
             for acc in self.page.get_list():
-                yield acc
+                accounts.append(acc)
+
+        self.location('/ord-web/ord//ord-liste-compte-emetteur.json')
+        for acc in accounts:
+            acc.iban = self.page.get_iban(acc.id)
+            yield acc
 
     def get_account(self, _id):
         for a in self.get_accounts_list():

@@ -29,6 +29,7 @@ from weboob.deprecated.mech import ClientForm
 from weboob.tools.misc import to_unicode
 
 from weboob.capabilities.bank import Account
+from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 from ..captcha import Captcha, TileError
@@ -264,3 +265,16 @@ class CardHistoryPage(SGPEPage):
             return True
 
         return False
+
+
+class OrderPage(Page):
+    def get_iban(self, acc_id):
+        for acc in self.document['donnees']:
+            if acc_id in acc['ibanCompte']:
+                return unicode(acc['ibanCompte'])
+
+        return NotAvailable
+
+    def get_error(self):
+        # Maybe later we need to implement this
+        return None
