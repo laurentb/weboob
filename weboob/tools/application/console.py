@@ -569,6 +569,7 @@ class ConsoleApplication(Application):
         elif isinstance(error, BrowserSSLError):
             print(u'FATAL(%s): ' % backend.name + self.BOLD + '/!\ SERVER CERTIFICATE IS INVALID /!\\' + self.NC, file=self.stderr)
         elif isinstance(error, BrowserForbidden):
+            msg = unicode(error)
             print(u'Error(%s): %s' % (backend.name, msg or 'Forbidden'), file=self.stderr)
         elif isinstance(error, BrowserUnavailable):
             msg = unicode(error)
