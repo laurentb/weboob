@@ -117,7 +117,7 @@ class TwitterModule(Module, CapMessages, CapMessagesPost, CapCollection):
             self.storage.save()
 
     def post_message(self, message):
-        if self.config['username'].get():
+        if not self.config['username'].get():
             raise BrowserForbidden()
         self.browser.post(find_object(self.iter_threads(), id=message.full_id.split('.')[0]),
                           message.content)
