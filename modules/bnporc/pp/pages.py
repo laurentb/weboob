@@ -92,8 +92,9 @@ class LoginPage(JsonPage):
         error = cast(self.get('errorCode'), int, 0)
 
         if error:
+            codes = [201, 21510, 203, 202, 1001]
             msg = self.get('message')
-            if error == 201 or error == 21510 or error == 203 or error == 202:
+            if error in codes:
                 raise BrowserIncorrectPassword(msg)
             self.logger.debug('Unexpected error at login: "%s" (code=%s)' % (msg, error))
 
