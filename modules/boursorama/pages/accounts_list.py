@@ -86,6 +86,8 @@ class AccountsList(Page):
                         account.id = self.parser.tocleanstring(td).rsplit('-', 1)[-1].strip()
                         try:
                             account._link_id = td.xpath('.//a')[0].get('href')
+                            if 'souscription' in account._link_id:
+                                account._link_id = td.xpath('.//a')[1].get('href')
                             account._detail_url = account._link_id
                         except KeyError:
                             pass
