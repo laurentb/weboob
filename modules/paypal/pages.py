@@ -20,85 +20,72 @@
 from decimal import Decimal
 import re
 
-from mechanize import Cookie
-
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
-from weboob.deprecated.browser import Page, BrowserUnavailable
-from weboob.deprecated.mech import ClientForm
+from weboob.exceptions import BrowserUnavailable
+from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
+from weboob.browser.filters.standard import CleanText
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_french_date
 from weboob.tools.js import Javascript
 
 
 
-class PromoPage(Page):
-    def on_loaded(self):
+class PromoPage(LoggedPage, HTMLPage):
+    def on_load(self):
         # We land sometimes on this page, it's better to raise an unavailable browser
         # than an Incorrect Password
         raise BrowserUnavailable('Promo Page')
 
-class LoginPage(Page):
+class LoginPage(HTMLPage):
+    def get_token_and_csrf(self, code):
+        code1 = re.search('(function .*)\(function\(\)', code).group(1)
+        js = Javascript(code1)
+        func_name = re.search(r'function (\w+)\(e\)', code1).group(1)
+        param = re.search(r'var e=' + func_name + '\("(.*?)"\)', code).group(1)
+        token = str(js.call(func_name, param))
+        csrf = re.search(r'csrf="\+encodeURIComponent\("(.*?)"\)', code).group(1)
+        return token, csrf
+
     def login(self, login, password):
         #Paypal use this to check if we accept cookie
-        c = Cookie(0, 'cookie_check', 'yes',
-                      None, False,
-                      '.' + self.browser.DOMAIN, True, True,
-                      '/', False,
-                      False,
-                      None,
-                      False,
-                      None,
-                      None,
-                      {})
-        cookiejar = self.browser._ua_handlers["_cookies"].cookiejar
-        cookiejar.set_cookie(c)
+        self.browser.session.cookies.set('cookie_check', 'yes')
 
-        self.browser.select_form(name='login_form')
-        self.browser['login_email'] = login.encode(self.browser.ENCODING)
-        self.browser['login_password'] = password.encode(self.browser.ENCODING)
-        self.browser.submit(nologin=True)
+        form = self.get_form(name='login')
+        form['login_email'] = login
+        form['login_password'] = password
+        form.submit(headers={'X-Requested-With': 'XMLHttpRequest'})
 
-    def validate_useless_captacha(self):
-        #paypal use a captcha page after login, but don't use the captcha
-        self.browser.select_form(name='challenge')
-        self.browser.form.set_all_readonly(False)
+    def get_script_url(self):
+        list1 = self.doc.xpath('//script')
+        for s in list1:
+            if 'src' in s.attrib and 'challenge' in s.attrib['src']:
+                return s.attrib['src']
 
-        #paypal add this on the captcha page when the validate should be automatique
-        self.browser.controls.append(ClientForm.TextControl('text', 'ads_token_js', {'value': ''}))
-
-        code = ''.join(self.document.xpath('//script[contains(text(), "autosubmit")]/text()'))
-        code = re.search('(function .*)try', code).group(1)
-        js = Javascript(code)
-        func_name = re.search(r'function (\w+)\(e\)', code).group(1)
-        self.browser['ads_token_js'] = str(js.call(func_name, self.browser['ads_token']))
-
-        self.browser.submit(nologin=True)
-
-class ErrorPage(Page):
+class ErrorPage(HTMLPage):
     pass
 
-class UselessPage(Page):
+class UselessPage(LoggedPage, HTMLPage):
     pass
 
 
-class HomePage(Page):
+class HomePage(LoggedPage, HTMLPage):
     pass
 
 
-class AccountPage(Page):
+class AccountPage(LoggedPage, HTMLPage):
     def get_account(self, _id):
         return self.get_accounts().get(_id)
 
     def get_accounts(self):
         accounts = {}
-        content = self.document.xpath('//div[@id="moneyPage"]')[0]
+        content = self.doc.xpath('//div[@id="moneyPage"]')[0]
 
         # Primary currency account
         primary_account = Account()
         primary_account.type = Account.TYPE_CHECKING
         try:
-            balance = self.parser.tocleanstring(content.xpath('//div[contains(@class, "col-md-6")][contains(@class, "available")]')[0])
+            balance = CleanText('//div[contains(@class, "col-md-6")][contains(@class, "available")]')(content)
         except IndexError:
             primary_account.id = 'EUR'
             primary_account.currency = 'EUR'
@@ -115,42 +102,7 @@ class AccountPage(Page):
         return accounts
 
 
-class ProHistoryPage(Page):
-    def iter_transactions(self, account):
-        for trans in self.parse():
-            if trans._currency == account.currency:
-                yield trans
-
-    def parse(self):
-        for tr in self.document.xpath('//tbody/tr'):
-            tlink = tr.xpath('./td[@class="desc"]/a[@class="rowClick"]')[0].attrib['href'].strip()
-            t = FrenchTransaction(tlink[tlink.find('&id=')+4:])
-            date = parse_french_date(tr.xpath('./td[@class="date"]')[0].text.strip())
-            raw = tr.xpath('./td[@class="desc"]/a[@class="rowClick"]')[0].tail.strip()
-            # Filter lines that do not actually modify the balance
-            if raw.startswith('Autorisation ') or raw.endswith(' en attente  par PayPal'):
-                continue
-            t.parse(date=date, raw=raw)
-
-            amount = tr.xpath('./td[@class="price-value net"]')[0].text.strip()
-            t.set_amount(amount)
-            commission = tr.xpath('./td[@class="price-value fee"]')[0].text.strip()
-            t.commission = Decimal(t.clean_amount(commission))
-            t.label = t.raw
-            if t.commission:
-                t.label += " (%s)" % tr.xpath('./td[@class="price-value gross"]')[0].text.strip()
-
-            t._currency = Account.get_currency(amount)
-            yield t
-
-    def transaction_left(self):
-        return len(self.document.xpath('//div[@class="no-records"]')) == 0
-
-
-class PartHistoryPage(Page):
-    def transaction_left(self):
-        return len(self.document['data']['activity']['COMPLETED']) > 0 or len(self.document['data']['activity']['PENDING']) > 0
-
+class HistoryPage(LoggedPage):
     def iter_transactions(self, account):
         for trans in self.parse(account):
             yield trans
@@ -158,35 +110,15 @@ class PartHistoryPage(Page):
     def parse(self, account):
         transactions = list()
 
-        for status in ['PENDING', 'COMPLETED']:
-            transac = self.document['data']['activity'][status]
-            for t in transac:
-                tran = self.parse_transaction(t, account)
-                if tran:
-                    transactions.append(tran)
+        transacs = self.get_transactions()
 
-        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        for t in transacs:
+            tran = self.parse_transaction(t, account)
+            if tran:
+                transactions.append(tran)
+
         for t in transactions:
             yield t
-
-    def parse_transaction(self, transaction, account):
-        t = FrenchTransaction(transaction['activityId'])
-        date = parse_french_date(transaction['date'])
-        raw = transaction.get('counterparty', transaction['displayType'])
-        t.parse(date=date, raw=raw)
-
-        try:
-            if transaction['currencyCode'] != account.currency:
-                transaction = self.browser.convert_amount(account, transaction)
-                t.original_amount = self.format_amount(transaction['originalAmount'], transaction["isCredit"])
-                t.original_currency = u'' + transaction["currencyCode"]
-            t.amount = self.format_amount(transaction['netAmount'], transaction["isCredit"])
-        except KeyError:
-            return
-
-        t._currency = transaction['currencyCode']
-
-        return t
 
     def format_amount(self, to_format, is_credit):
         m = re.search(r"\D", to_format[::-1])
@@ -196,9 +128,93 @@ class PartHistoryPage(Page):
         else:
             return -abs(amount)
 
-class HistoryDetailsPage(Page):
+class ProHistoryPage(HistoryPage, JsonPage):
+    def transaction_left(self):
+        return len(self.doc['data']['transactions']) > 0
+
+    def get_transactions(self):
+        return self.doc['data']['transactions']
+
+    def parse_transaction(self, transaction, account):
+        if transaction['transactionStatus'] in [u'Créé', u'Annulé', u'Suspendu', u'Mis à jour', u'Actif', u'Payé', u'En attente']:
+            return
+        t = FrenchTransaction(transaction['transactionId'])
+        if not transaction['transactionAmount']['currencyCode'] == account.currency:
+            cc = self.browser.convert_amount(account, transaction, 'https://www.paypal.com/cgi-bin/webscr?cmd=_history-details-from-hub&id=' + transaction['transactionId'])
+            if not cc:
+                return
+            t.original_amount = Decimal(transaction['transactionAmount']['currencyDoubleValue'])
+            t.original_currency = u'' + transaction['transactionAmount']['currencyCode']
+            t.set_amount(cc)
+        else:
+            t.amount = Decimal(transaction['transactionAmount']['currencyDoubleValue'])
+        date = parse_french_date(transaction['transactionTime'])
+        raw = transaction['transactionDescription']
+        t.commission = Decimal(transaction['fee']['currencyDoubleValue'])
+        t.parse(date=date, raw=raw)
+        return t
+
+
+class PartHistoryPage(HistoryPage, JsonPage):
+    def on_load(self):
+        self.browser.is_new_api = self.doc['viewName'] == 'activityBeta/index'
+
+    def transaction_left(self):
+        if self.browser.is_new_api:
+            return self.doc['data']['activity']['hasTransactionsCompleted'] or self.doc['data']['activity']['hasTransactionsPending']
+        return len(self.doc['data']['activity']['COMPLETED']) > 0 or len(self.doc['data']['activity']['PENDING']) > 0
+
+    def get_transactions(self):
+        if self.browser.is_new_api:
+            transacs = self.doc['data']['activity']['transactions']
+        else:
+            for status in ['PENDING', 'COMPLETED']:
+                transacs = list()
+                transacs += self.doc['data']['activity'][status]
+        return transacs
+
+    def parse_new_api_transaction(self, transaction, account):
+        t = FrenchTransaction(transaction['id'])
+        if not transaction['isPrimaryCurrency']:
+            cc = self.browser.convert_amount(account, transaction, transaction['detailsLink'])
+            if not cc:
+                return
+            t.original_amount = self.format_amount(transaction['amounts']['net']['value'], transaction["isCredit"])
+            t.original_currency = u'' + transaction['amounts']['txnCurrency']
+            t.amount = self.format_amount(cc, transaction['isCredit'])
+        else:
+            t.amount = self.format_amount(transaction['amounts']['net']['value'], transaction['isCredit'])
+        date = parse_french_date(transaction['date']['formattedDate'] + ' ' + transaction['date']['year'])
+        raw = transaction.get('counterparty', transaction['displayType'])
+        t.parse(date=date, raw=raw)
+
+        return t
+
+    def parse_transaction(self, transaction, account):
+        if self.browser.is_new_api:
+            return self.parse_new_api_transaction(transaction, account)
+
+        t = FrenchTransaction(transaction['transactionId'])
+        date = parse_french_date(transaction['date'])
+        if not transaction['txnIsInPrimaryCurrency']:
+            cc = self.browser.convert_amount(account, transaction, transaction['actions']['details']['url'])
+            if not cc:
+                return
+            t.original_amount = self.format_amount(transaction['netAmount'], transaction["isCredit"])
+            t.original_currency = u'' + transaction["currencyCode"]
+            t.amount = self.format_amount(cc, transaction['isCredit'])
+        elif 'netAmount' in transaction:
+            t.amount = self.format_amount(transaction['netAmount'], transaction["isCredit"])
+        else:
+            return
+        raw = transaction.get('counterparty', transaction['displayType'])
+        t.parse(date=date, raw=raw)
+
+        return t
+
+class HistoryDetailsPage(LoggedPage, HTMLPage):
     def get_converted_amount(self, account):
-        find_td = self.document.xpath('//td[contains(text(),"' + account.currency + ')")]')
+        find_td = self.doc.xpath('//td[contains(text(),"' + account.currency + ')")]')
         if len(find_td) > 0 :
             convert_td = find_td[0].text
             m = re.match('.* ([^ ]+) ' + account.currency + '\).*', convert_td)

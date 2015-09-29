@@ -18,11 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import urllib
 import datetime
 from dateutil.relativedelta import relativedelta
 
-from weboob.exceptions import BrowserHTTPError
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword
+from weboob.browser.browsers import LoginBrowser, need_login
+from weboob.browser.url import URL
 
 from .pages import PromoPage, LoginPage, AccountPage, UselessPage, HomePage, ProHistoryPage, PartHistoryPage, HistoryDetailsPage, ErrorPage
 
@@ -30,115 +32,116 @@ from .pages import PromoPage, LoginPage, AccountPage, UselessPage, HomePage, Pro
 __all__ = ['Paypal']
 
 
-class Paypal(Browser):
-    DOMAIN = 'www.paypal.com'
-    PROTOCOL = 'https'
-    CERTHASH = [
-            'b8f6c76050ed3035aab08474b1da0ff783f20d114b1740e8db275fe433ff69af',
-            '96753399cf183334cef00a72719ea8e13cfe68d1e953006348f41f884180de15',
-            '9d3039499e97f7a081244ee01c5d25d82441e5b1f43bd45d6b78dccf1f36652e',
-            '72470503a807108c5ff1bc684b786cc3b25b2ec3ba108ac63407193da7bc12a0',
-            ]
-    ENCODING = 'UTF-8'
-    PAGES = {
-        '/cgi-bin/webscr\?cmd=_login-run$':             LoginPage,
-        '/cgi-bin/webscr\?cmd=_login-submit.+$':        LoginPage,  # wrong login
-        '/cgi-bin/webscr\?cmd=_login-processing.+$':    UselessPage,
-        '/cgi-bin/webscr\?cmd=_account.*$':             UselessPage,
-        '/cgi-bin/webscr\?cmd=_login-done.+$':          UselessPage,
-        '/cgi-bin/webscr\?cmd=_home&country_lang.x=true$': HomePage,
-        '/auth/validatecaptcha$':                       ErrorPage,
-        'https://\w+.paypal.com/cgi-bin/webscr\?cmd=_history-details-from-hub&id=[A-Z0-9]+$': HistoryDetailsPage,
-        'https://www.paypal.com/fr/webapps/mpp/clickthru/paypal-app-promo-2.*': PromoPage,
-        'https://\w+.paypal.com/webapps/business/\?nav=0.0': HomePage,
-        'https://\w+.paypal.com/webapps/business/\?country_lang.x=true': HomePage,
-        'https://\w+.paypal.com/myaccount/\?nav=0.0': HomePage,
-        'https://\w+.paypal.com/businessexp/money': AccountPage,
-        'https://\w+.paypal.com/businessexp/summary': ProHistoryPage,
-        'https://\w+.paypal.com/webapps/business/bookkeeping\?.*': ProHistoryPage,
-        'https://\w+.paypal.com/myaccount/activity/.*': (PartHistoryPage, 'json'),
-        'https://\w+.paypal.com/myaccount/': HomePage,
-    }
+class Paypal(LoginBrowser):
+    BASEURL = 'https://www.paypal.com'
 
-    DEFAULT_TIMEOUT = 180
+    login = URL('https://\w+.paypal.com/signin/.*',
+                '/cgi-bin/webscr\?cmd=_login-submit.+$',
+                LoginPage)
+    useless = URL('/cgi-bin/webscr\?cmd=_login-processing.+$',
+                  '/cgi-bin/webscr\?cmd=_account.*$',
+                  '/cgi-bin/webscr\?cmd=_login-done.+$',
+                  UselessPage)
+    home = URL('/cgi-bin/webscr\?cmd=_home&country_lang.x=true$',
+               'https://\w+.paypal.com/webapps/business/\?country_lang.x=true',
+               'https://\w+.paypal.com/myaccount/\?nav=0.0',
+               'https://\w+.paypal.com/webapps/business/\?nav=0.0',
+               'https://\w+.paypal.com/myaccount/$',
+               HomePage)
+    error = URL('/auth/validatecaptcha$', ErrorPage)
+    history_details = URL('https://\w+.paypal.com/cgi-bin/webscr\?cmd=_history-details-from-hub&id=[\-A-Z0-9]+$',
+                          HistoryDetailsPage)
+    promo = URL('https://www.paypal.com/fr/webapps/mpp/clickthru/paypal-app-promo-2.*', PromoPage)
+    account = URL('https://www.paypal.com/businessexp/money', AccountPage)
+    pro_history = URL('https://\w+.paypal.com/webapps/business/activity\?.*',
+                      'https://\w+.paypal.com/businessexp/summary',
+                      ProHistoryPage)
+    part_history = URL('https://\w+.paypal.com/myaccount/activity/.*', PartHistoryPage)
 
-    BEGINNING = datetime.date(1998, 6, 1)  # The day PayPal was founded
+    TIMEOUT = 180.0
+
+    BEGINNING = datetime.date.today() - relativedelta(months=24)
     account_type = None
+    is_new_api = False
 
     def find_account_type(self):
-        if self.is_on_page(HomePage):
-            # XXX Unable to get more than 2 years of history on pro accounts.
-            self.BEGINNING = datetime.date.today() - relativedelta(months=24)
-            self.account_type = "pro"
-            return
-        self.location(self._response.info().getheader('refresh').split("bin/")[1])
-        if self.is_on_page(AccountPage):
-            self.location('/myaccount')
+        try:
+            self.location('https://www.paypal.com/myaccount/')
             self.account_type = "perso"
-        else:
-            if not self.page or self.page.document.xpath('.//a[contains(@class, "try-now-bttn")]'):
-                raise BrowserIncorrectPassword("Please update your account to the new PayPal website to continue to use our services")
-            else:
-                self.location('/webapps/business/?nav=0.0')
-            if self.is_on_page(ProHistoryPage):
-                self.account_type = "pro"
-            else:
-                self.account_type = "perso"
+        except:
+            self.account_type = "pro"
 
-    def home(self):
-        self.location('https://' + self.DOMAIN + '/en/cgi-bin/webscr?cmd=_login-run')
-
-    def is_logged(self):
-        # TODO Does not handle disconnect mid-session
-        return not self.is_on_page(LoginPage)
-
-    def login(self):
+    def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
-        if not self.is_on_page(LoginPage):
-            self.location('https://' + self.DOMAIN + '/en/cgi-bin/webscr?cmd=_login-run')
+        if not self.login.is_here():
+            self.location('/signin/')
 
+        response = self.open(self.page.get_script_url())
+        token, csrf = self.page.get_token_and_csrf(response.text)
+        data = {}
+        data['ads_token_js'] = token
+        data['_csrf'] = csrf
+        data = urllib.urlencode(data)
+        self.open('/auth/verifychallenge', data=data)
         self.page.login(self.username, self.password)
-        self.page.validate_useless_captacha()
 
-        if self.is_on_page(LoginPage) or self.is_on_page(ErrorPage):
+        if self.login.is_here() or self.error.is_here():
             raise BrowserIncorrectPassword()
 
         self.find_account_type()
 
+    @need_login
     def get_accounts(self):
-        if not self.is_on_page(AccountPage):
-            self.location('/businessexp/money')
+        self.account.stay_or_go()
 
         return self.page.get_accounts()
 
+    @need_login
     def get_account(self, _id):
-        if not self.is_on_page(AccountPage):
-            self.location('/businessexp/money')
+        self.account.stay_or_go()
 
         return self.page.get_account(_id)
 
+    @need_login
+    def get_personal_history(self, account):
+        s = self.BEGINNING.strftime('%Y-%m-%d')
+        e = datetime.date.today().strftime('%Y-%m-%d')
+        s_ = self.BEGINNING.strftime('%d/%m/%Y')
+        e_ = datetime.date.today().strftime('%d/%m/%Y')
+        self.location('https://www.paypal.com/myaccount/activity/filter?transactionType=ALL&startDate=' + s + '&endDate=' + e, headers={'Accept' : 'application/json'})
+        if not self.is_new_api:
+            self.location('https://www.paypal.com/myaccount/activity/filter?typeFilter=all&isNewSearch=true&startDate=' + s_ + '&endDate=' + e_ + '&limit=9999')
+        if self.page.transaction_left():
+            return self.page.iter_transactions(account)
+        return iter([])
+
+    @need_login
     def get_download_history(self, account, step_min=None, step_max=None):
-        if step_min is None and step_max is None:
-            step_min = 10
-            step_max = 120
-
-        def fetch_fn(start, end):
-            if self.download_history(start, end):
-                return self.page.iter_transactions(account)
-            return iter([])
-
-        assert step_max <= 365*2  # PayPal limitations as of 2014-06-16
-        try:
-            for i in self.smart_fetch(beginning=self.BEGINNING,
-                                      end=datetime.date.today(),
-                                      step_min=step_min,
-                                      step_max=step_max,
-                                      fetch_fn=fetch_fn):
+        if self.account_type == "perso":
+            for i in self.get_personal_history(account):
                 yield i
-        except BrowserHTTPError:
-            self.logger.warning("Paypal timeout")
+        else:
+            if step_min is None and step_max is None:
+                step_min = 30
+                step_max = 180
+
+            def fetch_fn(start, end):
+                if self.download_history(start, end):
+                    return self.page.iter_transactions(account)
+                return iter([])
+
+            assert step_max <= 365*2  # PayPal limitations as of 2014-06-16
+            try:
+                for i in self.smart_fetch(beginning=self.BEGINNING,
+                                        end=datetime.date.today(),
+                                        step_min=step_min,
+                                        step_max=step_max,
+                                        fetch_fn=fetch_fn):
+                    yield i
+            except BrowserHTTPError:
+                self.logger.warning("Paypal timeout")
 
     def smart_fetch(self, beginning, end, step_min, step_max, fetch_fn):
         """
@@ -162,7 +165,7 @@ class Paypal(Browser):
             for trans in chunk:
                 yield trans
 
-    def download_history(self, start, end, retry=3):
+    def download_history(self, start, end):
         """
         Download history.
         However, it is not normalized, and sometimes the download is refused
@@ -172,28 +175,14 @@ class Paypal(Browser):
         e = end.strftime('%d/%m/%Y')
         # Settings a big magic number so we hope to get all transactions for the period
         LIMIT = '9999'
-        if self.account_type == "pro":
-            self.location('https://www.paypal.com/webapps/business/bookkeeping?fromdate=' + s + '&todate=' + e + '&transactiontype=BALANCE_AFFECTING_TRANSACTIONS&currency=ALL_TRANSACTIONS_CURRENCY&limit=' + LIMIT)
-        else:
-            self.location('https://www.paypal.com/myaccount/activity/filter?typeFilter=all&isNewSearch=true&startDate=' + s + '&endDate=' + e + '&limit=' + LIMIT)
-        # catch occasional errors and try to rerun page three times until fail
-        if not self.page:
-            if retry:
-                return self.download_history(start, end, retry=retry-1)
-            self.logger.warning("Error getting history from %s to %s" % (start, end))
-            return False
+        self.location('https://www.paypal.com/webapps/business/activity?fromdate=' + s + '&todate=' + e + '&transactiontype=ALL_TRANSACTIONS&currency=ALL_TRANSACTIONS_CURRENCY&limit=' + LIMIT, headers={'X-Requested-With': 'XMLHttpRequest'})
         return self.page.transaction_left()
 
     def transfer(self, from_id, to_id, amount, reason=None):
         raise NotImplementedError()
 
-    def convert_amount(self, account, trans):
-        if trans['actions']['details']['action'] == 'ACTIVITY_DETAILS':
-            self.location(trans['actions']['details']['url'])
-        if self.is_on_page(HistoryDetailsPage):
+    def convert_amount(self, account, trans, link):
+        self.location(link)
+        if self.history_details.is_here():
             cc = self.page.get_converted_amount(account)
-            if cc:
-                trans['originalAmount'] = trans['netAmount']
-                trans['netAmount'] = cc
-
-        return trans
+            return cc
