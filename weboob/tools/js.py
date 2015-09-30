@@ -21,6 +21,9 @@
 __all__ = ['Javascript']
 
 
+from weboob.tools.log import getLogger
+
+
 class Javascript(object):
     HEADER = """
   function btoa(str) {
@@ -43,15 +46,20 @@ class Javascript(object):
   var document = {};
     """
 
-    def __init__(self, script):
+    def __init__(self, script, logger=None):
         try:
             import execjs
         except ImportError:
             raise ImportError('Please install PyExecJS')
 
         self.runner = execjs.get()
+        self.logger = getLogger('js', logger)
 
         self.ctx = self.runner.compile(self.HEADER + script)
 
     def call(self, *args, **kwargs):
-        return self.ctx.call(*args, **kwargs)
+        retval = self.ctx.call(*args, **kwargs)
+
+        self.logger.debug('Calling %s%s = %s', args[0], args[1:], retval)
+
+        return retval
