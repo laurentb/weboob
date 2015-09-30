@@ -62,7 +62,12 @@ class WikipediaARC4(object):
 
 class BasePage(_BasePage):
     def get_token(self):
-        return self.parser.select(self.document.getroot(), '//form//input[@name="token"]', 1, 'xpath').attrib['value']
+        try:
+            token = self.parser.select(self.document.getroot(), '//form//input[@name="token"]', 1, 'xpath').attrib['value']
+        except BrokenPageError:
+            token = self.parser.select(self.document.getroot(), '//body', 1, 'xpath').attrib['onload']
+            token = re.search(r"saveToken\('(.*?)'", token).group(1)
+        return token
 
     def on_loaded(self):
         if not self.is_error():
