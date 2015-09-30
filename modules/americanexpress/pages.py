@@ -19,7 +19,6 @@
 
 
 import datetime
-from decimal import Decimal
 import re
 
 from weboob.deprecated.browser import Page, BrokenPageError
@@ -27,6 +26,8 @@ from weboob.capabilities.bank import Account
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.date import ChaoticDateGuesser
+
+from weboob.browser.filters.standard import CleanDecimal
 
 
 class LoginPage(Page):
@@ -50,9 +51,15 @@ class NewAccountsPage(Page):
             if balance in (u'Indisponible', u'Indisponible Facturation en cours', ''):
                 a.balance = NotAvailable
             else:
-                a.balance = - abs(Decimal(Transaction.clean_amount(balance)))
                 a.currency = a.get_currency(balance)
-            a._link = self.document.xpath('.//div[@class="wide-bar"]/h3/a')[0].attrib['href']
+                a.balance = - abs(CleanDecimal(replace_dots=a.currency == 'EUR').filter(balance))
+
+            # Cancel card don't have a link to watch history
+            link = self.document.xpath('.//div[@class="wide-bar"]/h3/a')
+            if len(link) == 1:
+                a._link = link[0].attrib['href']
+            else:
+                a._link = None
 
             yield a
 
@@ -67,8 +74,8 @@ class AccountsPage(Page):
             if balance in (u'Indisponible', u'Indisponible Facturation en cours', ''):
                 a.balance = NotAvailable
             else:
-                a.balance = - abs(Decimal(Transaction.clean_amount(balance)))
                 a.currency = a.get_currency(balance)
+                a.balance =  - abs(CleanDecimal(replace_dots=a.currency == 'EUR').filter(balance))
             a._link = self.parser.select(box, 'div.summaryTitles a.summaryLink', 1).attrib['href']
 
             yield a
@@ -115,9 +122,11 @@ class TransactionsPage(Page):
     COL_CREDIT = -2
     COL_DEBIT = -1
 
-    MONTHS = ['janv', u'févr', u'mars', u'avr', u'mai', u'juin', u'juil', u'août', u'sept', u'oct', u'nov', u'déc']
+    FR_MONTHS = ['janv', u'févr', u'mars', u'avr', u'mai', u'juin', u'juil', u'août', u'sept', u'oct', u'nov', u'déc']
+    US_MONTHS = ['Jan', u'Feb', u'Mar', u'Apr', u'May', u'Jun', u'Jul', u'Aug', u'Sep', u'Oct', u'Nov', u'Dec']
 
-    def get_history(self):
+    def get_history(self, currency):
+        self.MONTHS = self.FR_MONTHS if currency == 'EUR' else self.US_MONTHS
         #checking if the card is still valid
         if self.document.xpath('//div[@id="errorbox"]'):
             return
@@ -153,7 +162,7 @@ class TransactionsPage(Page):
             t.rdate = date
             t.raw = re.sub(r'[ ]+', ' ', raw)
             t.label = re.sub('(.*?)( \d+)?  .*', r'\1', raw).strip()
-            t.set_amount(credit, debit)
+            t.amount = CleanDecimal(replace_dots=currency == 'EUR').filter(credit or debit) * (1 if credit else -1)
             if t.amount > 0:
                 t.type = t.TYPE_ORDER
             else:

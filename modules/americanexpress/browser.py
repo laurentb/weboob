@@ -84,6 +84,8 @@ class AmericanExpressBrowser(Browser):
             self.go_on_accounts_list()
 
         url = account._link
+        if not url:
+            return
 
         while url is not None:
             if self.is_on_page(NewAccountsPage):
@@ -95,7 +97,7 @@ class AmericanExpressBrowser(Browser):
 
             assert self.is_on_page(TransactionsPage)
 
-            for tr in self.page.get_history():
+            for tr in self.page.get_history(account.currency):
                 yield tr
 
             if self.page.is_last():
