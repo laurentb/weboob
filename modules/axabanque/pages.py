@@ -36,6 +36,13 @@ class BasePage(_BasePage):
     def is_password_expired(self):
         return len(self.document.xpath('//div[@id="popup_client_modifier_code_confidentiel"]'))
 
+    def parse_number(self, number):
+        # For some client they randomly displayed 4,115.00 and 4 115,00.
+        # Browser is waiting for for 4 115,00 so we format the number to match this.
+        if '.' in number and len(number.split('.')[-1]) == 2:
+            return number.replace(',', ' ').replace('.', ',')
+        return number
+
 
 class UnavailablePage(BasePage):
     def on_loaded(self):
@@ -181,7 +188,7 @@ class AccountsPage(BasePage):
                     account.currency = account.get_currency(m.group(1))
 
                 try:
-                    account.balance = Decimal(FrenchTransaction.clean_amount(u''.join([txt.strip() for txt in box.cssselect("td.montant")[0].itertext()])))
+                    account.balance = Decimal(FrenchTransaction.clean_amount(self.parse_number(u''.join([txt.strip() for txt in box.cssselect("td.montant")[0].itertext()]))))
                 except InvalidOperation:
                     #The account doesn't have a amount
                     pass
@@ -287,8 +294,8 @@ class TransactionsPage(BasePage):
             t = Transaction(0)
             date = u''.join([txt.strip() for txt in tds[self.COL_DATE].itertext()])
             raw = u''.join([txt.strip() for txt in tds[self.COL_TEXT].itertext()])
-            debit = u''.join([txt.strip() for txt in tds[self.COL_DEBIT].itertext()])
-            credit = u''.join([txt.strip() for txt in tds[self.COL_CREDIT].itertext()])
+            debit = self.parse_number(u''.join([txt.strip() for txt in tds[self.COL_DEBIT].itertext()]))
+            credit = self.parse_number(u''.join([txt.strip() for txt in tds[self.COL_CREDIT].itertext()]))
 
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
             t.set_amount(credit, debit)
@@ -312,8 +319,8 @@ class CBTransactionsPage(TransactionsPage):
 
             t = Transaction(0)
             date = u''.join([txt.strip() for txt in tds[self.COL_DATE].itertext()])
-            raw = u''.join([txt.strip() for txt in tds[self.COL_TEXT].itertext()])
-            credit = u''.join([txt.strip() for txt in tds[self.COL_CB_CREDIT].itertext()])
+            raw = self.parse_number(u''.join([txt.strip() for txt in tds[self.COL_TEXT].itertext()]))
+            credit = self.parse_number(u''.join([txt.strip() for txt in tds[self.COL_CB_CREDIT].itertext()]))
             debit = ""
 
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
