@@ -275,11 +275,16 @@ class LifeInsurancesPage(BNPPage):
 class LifeInsurancesHistoryPage(BNPPage):
     def iter_history(self, coming):
         for op in self.get('data.listerMouvements.listeMouvements') or []:
+            #We have not date for this statut so we just skit it
+            if op.get('statut') == u'En cours':
+                continue
+
             tr = Transaction.from_dict({
                 'type': Transaction.TYPE_BANK,
                 'state': op.get('statut'),
                 'amount': op.get('montantNet'),
                 })
+
             tr.parse(date=Date(op.get('dateSaisie')),
                      vdate=Date(op.get('dateEffet')),
                      raw='%s %s' % (op.get('libelleMouvement'), op.get('canalSaisie') or ''))
