@@ -23,6 +23,7 @@ from weboob.tools.date import datetime
 from weboob.deprecated.browser.parsers.jsonparser import json
 import lxml.html
 import time
+import email
 
 
 __all__ = ['MailinatorBrowser']
@@ -48,22 +49,31 @@ class MailinatorBrowser(Browser):
         return j
 
     def get_mails(self, boxid, after=None):
-        box = self._get_json('http://mailinator.com/useit?box=%s&time=%s' % (boxid, millis()))
-        address = box['address']
-
-        mails = self._get_json('http://mailinator.com/grab?inbox=%s&address=%s' % (boxid, address))
-        for mail in mails['maildir']:
-            d = {'id': mail['id'], 'from': mail['fromfull'], 'to': mail['to'], 'from_name': mail['from'], 'datetime': frommillis(mail['time']), 'subject': mail['subject'], 'read': mail['been_read'], 'box': (boxid, address)}
+        mails = self._get_json('http://mailinator.com/api/webinbox?to=%s&time=%d' % (boxid, millis()))
+        for mail in mails['messages']:
+            d = {'id': mail['id'],
+                 'from': mail['fromfull'],
+                 'to': mail['to'],
+                 'from_name': mail['from'],
+                 'datetime': frommillis(mail['time']),
+                 'subject': mail['subject'],
+                 'read': mail['been_read'],
+                 'box': boxid
+                 }
             yield d
 
     def get_mail_content(self, mailid):
-        frame = self._get_unicode('http://mailinator.com/rendermail.jsp?msgid=%s&time=%s' % (mailid, millis())).strip()
+        frame = self._get_unicode('http://mailinator.com/rendermail.jsp?msgid=%s&time=%s&text=true' % (mailid, millis())).strip()
         if not len(frame):
             # likely we're banned
             return ''
         doc = lxml.html.fromstring(frame)
-        divs = doc.cssselect('.mailview')
-        return divs[0].text_content().strip()
+        pre = doc.xpath('//pre')[0]
+        msg = email.message_from_string(pre.text_content().strip().encode('utf-8'))
+        if msg.is_multipart():
+            return msg.get_payload(0).get_payload()
+
+        return msg.get_payload()
 
 
 def millis():

@@ -47,36 +47,55 @@ class MailinatorModule(Module, CapMessages):
         if not inbox:
             raise NotImplementedError()
         else:
-            return [self.get_thread(inbox)]
+            for d in self.browser.get_mails(inbox):
+                thread = Thread(d['id'])
+                thread.title = d['subject']
+                thread.flags = thread.IS_DISCUSSION
 
-    def get_thread(self, _id):
-        t = Thread(_id)
-        t.title = 'Mail for %s' % _id
-        t.flags = t.IS_DISCUSSION
+                msg = self.make_message(d, thread)
+                if not msg.content:
+                    msg.content = self.browser.get_mail_content(msg.id)
 
+                thread.root = msg
+                yield thread
+
+    def _get_messages_thread(self, inbox, thread):
         first = True
-        for d in self.browser.get_mails(_id):
-            m = self.make_message(d, t)
-            if not m.content:
-                m.content = self.browser.get_mail_content(m.id)
+        for d in self.browser.get_mails(inbox):
+            msg = self.make_message(d, thread)
+            if not msg.content:
+                msg.content = self.browser.get_mail_content(msg.id)
 
             if first:
                 first = False
-                t.root = m
+                thread.root = msg
             else:
-                m.parent = t.root
-                m.parent.children.append(m)
+                msg.parent = thread.root
+                msg.parent.children.append(msg)
 
-        return t
+    def get_thread(self, _id):
+        thread = Thread(_id)
+        thread.title = 'Mail for %s' % _id
+        thread.flags = thread.IS_DISCUSSION
+
+        self._get_messages_thread(_id, thread)
+        return thread
 
     def make_message(self, d, thread):
-        m = Message(thread, d['id'])
-        m.children = []
-        m.sender = d['from']
-        m.flags = 0
+        msg = Message(thread, d['id'])
+        msg.children = []
+        msg.sender = d['from']
+        msg.flags = 0
         if not d.get('read', True):
-            m.flags = m.IS_UNREAD
-        m.title = d['subject']
-        m.date = d['datetime']
-        m.receivers = [d['to']]
-        return m
+            msg.flags = msg.IS_UNREAD
+        msg.title = d['subject']
+        msg.date = d['datetime']
+        msg.receivers = [d['to']]
+        return msg
+
+    def fill_msg(self, msg, fields):
+        if 'content' in fields:
+            msg.content = self.browser.get_mail_content(msg.id)
+        return msg
+
+    OBJECTS = {Message: fill_msg}
