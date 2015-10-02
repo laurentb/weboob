@@ -29,6 +29,7 @@ class BiplanCalendarEvent(BaseCalendarEvent):
         self.sequence = 1
         self.transp = TRANSP.TRANSPARENT
         self.status = STATUS.CONFIRMED
+        self.timezone = u'Europe/Paris'
 
 
 class BiplanCalendarEventConcert(BiplanCalendarEvent):

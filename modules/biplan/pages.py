@@ -66,7 +66,7 @@ class StartTime(Filter):
     def filter(self, el):
         index = 1 if len(el) > 1 else 0
         content = CleanText.clean(CleanText('.', ['HORAIRES'])(el[index]))
-        a_time = content.split(' - ')[0]
+        a_time = content.split(' - ')[2]
         regexp = re.compile(ur'(?P<hh>\d+)h?(?P<mm>\d+)')
         m = regexp.search(a_time)
         if m:
@@ -122,6 +122,8 @@ class ProgramPage(HTMLPage):
 
 
 class EventPage(HTMLPage):
+
+    encoding = u'utf-8'
 
     @method
     class get_event(ItemElement):
