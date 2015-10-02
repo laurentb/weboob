@@ -101,6 +101,9 @@ class VideoPage(JsonPage):
     class get_video(ItemElement):
         klass = BaseVideo
 
+        def validate(self, obj):
+            return obj.url
+
         def parse(self, el):
             for video in el['videos']:
                 if video['format'] != 'm3u8-download':

@@ -62,6 +62,9 @@ class PluzzBrowser(PagesBrowser):
     def get_video(self, url, video=None):
         self.location(url)
         video = self.page.get_video(obj=video)
+        if not video:
+            return
+
         for item in self.read_url(video.url):
             video.url = u'%s' % item
         return video
