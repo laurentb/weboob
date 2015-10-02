@@ -19,58 +19,36 @@
 
 from dateutil.parser import parse as parse_date
 
-from weboob.browser.pages import HTMLPage
+from weboob.browser.pages import JsonPage
 from weboob.capabilities.parcel import Parcel, Event, ParcelNotFound
 
-# Based on http://www.parcelok.com/delivery-status-dhl.html
+# Based on http://www.dhl.com/etc/designs/dhl/docroot/tracking/less/tracking.css
 STATUSES = {
-    "The instruction data for this shipment have been provided by the sender to DHL "
-    "electronically": Parcel.STATUS_PLANNED,
-    "The shipment has been posted by the sender at the retail outlet": Parcel.STATUS_PLANNED,
-
-    "The shipment has been processed in the destination parcel center": Parcel.STATUS_IN_TRANSIT,
-    "The international shipment has been processed in the parcel center of origin": Parcel.STATUS_IN_TRANSIT,
-    "The international shipment has been processed in the export parcel center": Parcel.STATUS_IN_TRANSIT,
-    "The shipment will be transported to the destination country and, from there, handed over to "
-    "the delivery organization.": Parcel.STATUS_IN_TRANSIT,
-    "The shipment has arrived in the destination country": Parcel.STATUS_IN_TRANSIT,
-    "The shipment has arrived at the parcel center.": Parcel.STATUS_IN_TRANSIT,
-    "Shipment is prepared for customs clearance in country of destination": Parcel.STATUS_IN_TRANSIT,
-    "The shipment is being prepared for delivery in the delivery depot": Parcel.STATUS_IN_TRANSIT,
-    "Scheduled for delivery": Parcel.STATUS_IN_TRANSIT,
-    "The shipment has been loaded onto the delivery vehicle": Parcel.STATUS_IN_TRANSIT,
-    "Shipment has arrived at delivery location": Parcel.STATUS_IN_TRANSIT,
-    "With delivery courier": Parcel.STATUS_IN_TRANSIT,
-    "Delivery attempted; consignee premises closed": Parcel.STATUS_IN_TRANSIT,
-    "The shipment has been damaged and is being returned to the parcel center for"
-    "repackaging": Parcel.STATUS_IN_TRANSIT,
-
-    "The shipment has been successfully delivered": Parcel.STATUS_ARRIVED,
+    u'105': Parcel.STATUS_PLANNED,
+    u'104': Parcel.STATUS_PLANNED,
+    u'102': Parcel.STATUS_IN_TRANSIT,
+    u'101': Parcel.STATUS_ARRIVED,
 }
 
 
-class SearchPage(HTMLPage):
+class SearchPage(JsonPage):
     def get_info(self, _id):
-        result_id = self.doc.xpath('//th[@class="mm_sendungsnummer"]')
-        if not result_id:
+        if self.doc.has_key(u'errors'):
             raise ParcelNotFound("No such ID: %s" % _id)
-        result_id = result_id[0].text
-        if result_id != _id:
-            raise ParcelNotFound("ID mismatch: expecting %s, got %s" % (_id, result_id))
+        elif self.doc.has_key(u'results'):
+            result = self.doc[u'results'][0]
+            p = Parcel(_id)
+            p.history = [self.build_event(e) for e in result[u'checkpoints']]
+            p.status = STATUSES.get(result[u'delivery'][u'code'], Parcel.STATUS_UNKNOWN)
+            p.info = p.history[0].activity
+            return p
+        else:
+            raise ParcelNotFound("Unexpected reply from server")
 
-        p = Parcel(_id)
-        events = self.doc.xpath('//div[@class="accordion-inner"]/table/tbody/tr')
-        p.history = [self.build_event(i, tr) for i, tr in enumerate(events)]
-        p.status, p.info = self.guess_status(p.history[-1])
-        return p
-
-    def guess_status(self, most_recent):
-        txt = most_recent.activity
-        return STATUSES.get(txt, Parcel.STATUS_UNKNOWN), txt
-
-    def build_event(self, index, tr):
+    def build_event(self, e):
+        index = e[u'counter']
         event = Event(index)
-        event.date = parse_date(tr.xpath('./td[1]')[0].text.strip(), dayfirst=True, fuzzy=True)
-        event.location = unicode(tr.xpath('./td[2]')[0].text.strip())
-        event.activity = unicode(tr.xpath('./td[3]')[0].text.strip())
+        event.date = parse_date(e[u'date'] + " " + e.get(u'time',''), dayfirst=True, fuzzy=True)
+        event.location = e.get(u'location', '')
+        event.activity = e[u'description']
         return event
