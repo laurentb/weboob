@@ -584,7 +584,8 @@ class HTMLPage(Page):
 
         return encoding
 
-    def get_form(self, xpath='//form', name=None, nr=None, submit=None):
+    def get_form(self, xpath='//form', name=None, id=None, nr=None,
+                 submit=None):
         """
         Get a :class:`Form` object from a selector.
         The form will be analyzed and its parameters extracted.
@@ -606,6 +607,8 @@ class HTMLPage(Page):
         i = 0
         for el in self.doc.xpath(xpath):
             if name is not None and el.attrib.get('name', '') != name:
+                continue
+            if id is not None and el.attrib.get('id', '') != id:
                 continue
             if nr is not None and i != nr:
                 i += 1
