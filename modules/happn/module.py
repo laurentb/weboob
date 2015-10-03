@@ -192,7 +192,7 @@ class HappnModule(Module, CapMessages, CapMessagesPost, CapDating, CapContact):
         facebook = FacebookBrowser()
         facebook.login(self.config['username'].get(),
                        self.config['password'].get())
-        return HappnBrowser(facebook)
+        return self.create_browser(facebook)
 
     # ---- CapDating methods -----------------------
 

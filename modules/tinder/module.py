@@ -84,7 +84,7 @@ class TinderModule(Module, CapMessages, CapMessagesPost, CapDating):
         facebook = FacebookBrowser()
         facebook.login(self.config['username'].get(),
                        self.config['password'].get())
-        return TinderBrowser(facebook)
+        return self.create_browser(facebook)
 
     # ---- CapDating methods -----------------------
 

@@ -102,7 +102,7 @@ class PlayMeModule(Module, CapMessages, CapMessagesPost, CapDating, CapAccount):
         facebook = FacebookBrowser()
         facebook.login(self.config['username'].get(),
                        self.config['password'].get())
-        return PlayMeBrowser(facebook)
+        return self.create_browser(facebook)
 
     # ---- CapDating methods -----------------------
 
