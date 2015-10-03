@@ -146,7 +146,6 @@ class HappnContact(Contact):
 
         self.set_profile('info', 'id', info['id'])
         self.set_profile('info', 'full_name', ' '.join([info['first_name'] or '', info['last_name'] or '']).strip())
-        self.set_profile('info', 'login', info['login'])
         if info['fb_id'] is not None:
             self.set_profile('info', 'facebook', 'https://www.facebook.com/profile.php?id=%s&fref=ufi&pnref=story' % info['fb_id'])
         if info['twitter_id'] is not None:

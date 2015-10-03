@@ -112,7 +112,7 @@ class HappnBrowser(DomainBrowser):
         return self.request('/api/users/me/conversations')['data']
 
     def get_thread(self, id):
-        r = self.request('/api/users/me/conversations/%s?fields=id,messages.limit(100).fields(id,message,creation_date,sender.fields(id)),participants.fields(user.fields(birth_date,first_name,last_name,display_name,login,credits,referal,matching_preferences,notification_settings,unread_conversations,about,is_accepted,age,job,workplace,school,modification_date,profiles.mode(0).width(1000).height(1000).fields(url,width,height,mode),last_meet_position,my_relation,is_charmed,distance,gender))' % id)['data']
+        r = self.request('/api/users/%s/conversations/%s?fields=id,messages.limit(100).fields(id,message,creation_date,sender.fields(id)),participants.fields(user.fields(birth_date,first_name,last_name,display_name,credits,referal,matching_preferences,notification_settings,unread_conversations,about,is_accepted,age,job,workplace,school,modification_date,profiles.mode(0).width(1000).height(1000).fields(url,width,height,mode),last_meet_position,my_relation,is_charmed,distance,gender))' % (self.my_id, id))['data']
         return r
 
     def post_message(self, thread_id, content):
