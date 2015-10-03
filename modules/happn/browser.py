@@ -23,6 +23,7 @@ import re
 from weboob.browser.browsers import DomainBrowser
 from weboob.browser.profiles import IPhone
 from weboob.browser.pages import HTMLPage
+from weboob.browser.filters.standard import CleanText
 from weboob.exceptions import BrowserIncorrectPassword, ParseError
 from weboob.tools.json import json
 
@@ -44,7 +45,7 @@ class FacebookBrowser(DomainBrowser):
         form = page.get_form('//form[@id="login_form"]')
         form['email'] = username
         form['pass'] = password
-        form['persistent'] = 1
+        form.pop('toggle_password_visibility')
         form.submit(allow_redirects=False)
         if 'Location' not in self.response.headers:
             raise BrowserIncorrectPassword()
@@ -52,6 +53,9 @@ class FacebookBrowser(DomainBrowser):
         self.location(self.response.headers['Location'])
 
         page = HTMLPage(self, self.response)
+        if len(page.doc.xpath('//td/div[has-class("s")]')) > 0:
+            raise BrowserIncorrectPassword(CleanText('//td/div[has-class("s")]')(page.doc))
+
         form = page.get_form(nr=0, submit='//input[@value="OK"]')
         form.submit()
 
@@ -71,13 +75,15 @@ class FacebookBrowser(DomainBrowser):
 
 class HappnBrowser(DomainBrowser):
     BASEURL = 'https://api.happn.fr/'
-    PROFILE = IPhone('Happn/3.0.2')
+    PROFILE = IPhone('Happn/18.3.1')
+    ALLOW_REFERRER = False
 
     recs = []
 
     def __init__(self, facebook, *args, **kwargs):
         super(HappnBrowser, self).__init__(*args, **kwargs)
         self.facebook = facebook
+        self.session.headers['User-Agent'] = 'Happn/18.3.1 AndroidSDK/11'
 
         r = self.request('/connect/oauth/token', data={
             'client_id': 'FUE-idSEP-f7AqCyuMcPr2K-1iCIU_YlvK-M-im3c',
@@ -94,9 +100,6 @@ class HappnBrowser(DomainBrowser):
 
         me = self.request('/api/users/me')
         self.my_name = me['data']['name']
-
-    def load_state(self, *args, **kwargs):
-        return
 
     def request(self, *args, **kwargs):
         r = self.location(*args, **kwargs)
