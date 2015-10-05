@@ -75,7 +75,9 @@ class HSBC(LoginBrowser):
         self.location(no_secure_key_link)
 
         self.page.login_w_secure(self.password, self.secret)
-        self.page.useless_form()
+        for _ in range(2):
+            if self.login.is_here():
+                self.page.useless_form()
 
         home_url = self.page.get_frame()
         if not home_url or not self.page.logged:
