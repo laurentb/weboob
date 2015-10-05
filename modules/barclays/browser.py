@@ -22,7 +22,7 @@ import re
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 from .pages import LoginPage, Login2Page, IndexPage, AccountsPage, TransactionsPage, \
-                   CardPage, ValuationPage, LoanPage, MarketPage, AssurancePage
+                   CardPage, ValuationPage, LoanPage, MarketPage, AssurancePage, LogoutPage
 
 
 __all__ = ['Barclays']
@@ -31,16 +31,17 @@ __all__ = ['Barclays']
 class Barclays(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'www.barclays.fr'
-    PAGES = {'https?://.*.barclays.fr/\d-index.html':                       IndexPage,
-             'https://.*.barclays.fr/barclaysnetV2/logininstit.do.*':       LoginPage,
-             'https://.*.barclays.fr/barclaysnetV2/loginSecurite.do.*':     Login2Page,
-             'https://.*.barclays.fr/barclaysnetV2/tbord.do.*':             AccountsPage,
-             'https://.*.barclays.fr/barclaysnetV2/releve.do.*':            TransactionsPage,
-             'https://.*.barclays.fr/barclaysnetV2/cartes.do.*':            CardPage,
-             'https://.*.barclays.fr/barclaysnetV2/valuationViewBank.do.*': ValuationPage,
-             'https://.*.barclays.fr/barclaysnetV2/pret.do.*':              LoanPage,
-             'https://.*.barclays.fr/barclaysnetV2/titre.do.*':             MarketPage,
-             'https://.*.barclays.fr/barclaysnetV2/assurance.do.*':         AssurancePage,
+    PAGES = {'https?://.*.barclays.fr/\d-index.html':                                   IndexPage,
+             'https://.*.barclays.fr/barclaysnetV2/logininstit.do.*':                   LoginPage,
+             'https://.*.barclays.fr/barclaysnetV2/loginSecurite.do.*':                 Login2Page,
+             'https://.*.barclays.fr/bayexterne/barclaysnet/deconnexion/index.html':    LogoutPage,
+             'https://.*.barclays.fr/barclaysnetV2/tbord.do.*':                         AccountsPage,
+             'https://.*.barclays.fr/barclaysnetV2/releve.do.*':                        TransactionsPage,
+             'https://.*.barclays.fr/barclaysnetV2/cartes.do.*':                        CardPage,
+             'https://.*.barclays.fr/barclaysnetV2/valuationViewBank.do.*':             ValuationPage,
+             'https://.*.barclays.fr/barclaysnetV2/pret.do.*':                          LoanPage,
+             'https://.*.barclays.fr/barclaysnetV2/titre.do.*':                         MarketPage,
+             'https://.*.barclays.fr/barclaysnetV2/assurance.do.*':                     AssurancePage,
             }
 
     SESSION_PARAM = None
@@ -90,6 +91,9 @@ class Barclays(Browser):
             raise BrowserIncorrectPassword()
 
         self.location('loginSecurite.do', no_login=True)
+
+        if self.is_on_page(LogoutPage):
+            raise BrowserIncorrectPassword()
 
         self.page.login(self.secret)
 

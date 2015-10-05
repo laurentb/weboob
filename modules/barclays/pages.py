@@ -244,3 +244,6 @@ class MarketPage(HistoryBasePage):
 
 class AssurancePage(HistoryBasePage):
     pass
+
+class LogoutPage(Page):
+    pass
