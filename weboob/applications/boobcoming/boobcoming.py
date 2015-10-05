@@ -120,6 +120,9 @@ class UpcomingListFormatter(PrettyFormatter):
             result += u'\tHour: %s' % obj.start_date.strftime('%H:%M')
             if not empty(obj.end_date):
                 result += ' - %s' % obj.end_date.strftime('%H:%M')
+                days_diff = (obj.end_date - obj.start_date).days
+                if days_diff >= 1:
+                    result += ' (%i day(s) later)' % (days_diff)
             result += '\n'
         return result.strip('\n\t')
 
@@ -129,11 +132,21 @@ class UpcomingFormatter(IFormatter):
 
     def format_obj(self, obj, alias):
         result = u'%s%s - %s%s\n' % (self.BOLD, obj.category, obj.summary, self.NC)
+
         if not empty(obj.start_date):
-            result += u'Date: %s\n' % obj.start_date.strftime('%A %d %B %Y')
-            result += u'Hour: %s' % obj.start_date.strftime('%H:%M')
             if not empty(obj.end_date):
-                result += ' - %s' % obj.end_date.strftime('%H:%M')
+                days_diff = (obj.end_date - obj.start_date).days
+                if days_diff >= 1:
+                    result += u'From: %s to %s ' % (obj.start_date.strftime('%A %d %B %Y'),
+                                                    obj.end_date.strftime('%A %d %B %Y'))
+                else:
+                    result += u'Date: %s\n' % obj.start_date.strftime('%A %d %B %Y')
+                    result += u'Hour: %s' % obj.start_date.strftime('%H:%M')
+                    result += ' - %s' % obj.end_date.strftime('%H:%M')
+            else:
+                result += u'Date: %s\n' % obj.start_date.strftime('%A %d %B %Y')
+                result += u'Hour: %s' % obj.start_date.strftime('%H:%M')
+
             result += '\n'
 
         if hasattr(obj, 'location') and not empty(obj.location):
@@ -157,7 +170,7 @@ class UpcomingFormatter(IFormatter):
             result += u'Description:\n %s\n\n' % obj.description
 
         if hasattr(obj, 'price') and not empty(obj.price):
-            result += u'Price: %i\n' % obj.price
+            result += u'Price: %.2f\n' % obj.price
 
         if hasattr(obj, 'ticket') and not empty(obj.ticket):
             result += u'Ticket: %s\n' % obj.ticket
