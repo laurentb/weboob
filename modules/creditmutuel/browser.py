@@ -127,7 +127,7 @@ class CreditMutuelBrowser(LoginBrowser):
         for tr in self.list_operations(account._link_id):
             # to prevent redundancy with card transactions, we do not
             # store 'RELEVE CARTE' transaction.
-            if tr.raw != 'RELEVE CARTE':
+            if not tr.raw.startswith('RELEVE CARTE'):
                 transactions.append(tr)
             elif last_debit is None:
                 last_debit = (tr.date - timedelta(days=10)).month
