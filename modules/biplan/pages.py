@@ -66,7 +66,8 @@ class StartTime(Filter):
     def filter(self, el):
         index = 1 if len(el) > 1 else 0
         content = CleanText.clean(CleanText('.', ['HORAIRES'])(el[index]))
-        a_time = content.split(' - ')[2]
+        _content = content.split(' - ')
+        a_time = _content[2] if len(_content) > 2 else _content[0]
         regexp = re.compile(ur'(?P<hh>\d+)h?(?P<mm>\d+)')
         m = regexp.search(a_time)
         if m:
