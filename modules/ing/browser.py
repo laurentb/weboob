@@ -128,7 +128,7 @@ class IngBrowser(LoginBrowser):
     @need_login
     @check_bourse
     def get_history(self, account):
-        if account.type in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE):
+        if account.type == Account.TYPE_MARKET:
             for result in self.get_history_titre(account):
                 yield result
             return
