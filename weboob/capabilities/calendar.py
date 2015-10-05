@@ -27,7 +27,7 @@ from weboob.tools.date import parse_date
 __all__ = ['BaseCalendarEvent', 'CapCalendarEvent']
 
 
-CATEGORIES = enum(CONCERT=u'Concert', CINE=u'Cinema', THEATRE=u'Theatre', TELE=u'Television', CONF=u'Conference')
+CATEGORIES = enum(CONCERT=u'Concert', CINE=u'Cinema', THEATRE=u'Theatre', TELE=u'Television', CONF=u'Conference', AUTRE=u'Autre', EXPO=u'Exposition', SPECTACLE=u'Spectacle', FEST=u'Festival', SPORT=u'Sport')
 
 #the following elements deal with ICalendar stantdards
 #see http://fr.wikipedia.org/wiki/ICalendar#Ev.C3.A9nements_.28VEVENT.29
