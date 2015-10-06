@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.bank import Account, Transaction
+from weboob.browser.exceptions import ServerError
 from weboob.browser.pages import HTMLPage, RawPage, XMLPage
 from weboob.tools.capabilities.bank.transactions import \
     AmericanTransaction as AmTr
@@ -103,7 +104,14 @@ class StatementsPage(SomePage):
     def iter_statements(self):
         for url in self.doc.xpath('//a[contains(@href,"ebillViewPDF")]/@href'):
             if url.endswith('inline=false'):
-                self.browser.location(url)
+                for i in xrange(self.browser.MAX_RETRIES):
+                    try:
+                        self.browser.location(url)
+                        break
+                    except ServerError as e:
+                        pass
+                else:
+                    raise e
                 yield self.browser.page
 
 
