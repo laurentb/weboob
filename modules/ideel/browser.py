@@ -112,8 +112,12 @@ class OrderPage(IdeelPage):
             '//span[@id="taxes"]/text()')[0])
 
     def shipping(self):
-        return AmTr.decimal_amount(self.doc.xpath(
-            '//span[@id="shipping_fee"]/text()')[0])
+        if self.doc.xpath('//tr[@id="shipping_fee_row"]'
+                          '//span[@class="free_shipping"]'):
+            amount = '0'
+        else:
+            amount = self.doc.xpath('//span[@id="shipping_fee"]/text()')[0]
+        return AmTr.decimal_amount(amount)
 
     def discount(self):
         TAGS = ['coupon_discount_amount', 'promo_discount_amount',
