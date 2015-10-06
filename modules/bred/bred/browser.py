@@ -74,6 +74,7 @@ class BredBrowser(DomainBrowser):
             for poste in content['postes']:
                 a = Account()
                 a._number = content['numeroLong']
+                a.iban = self.api_open('/transactionnel/services/rest/Account/account/%s/iban' % a._number).json()['content']['iban']
                 a._nature = poste['codeNature']
                 a._consultable = poste['consultable']
                 a.id = '%s.%s' % (a._number, a._nature)
