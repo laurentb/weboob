@@ -119,7 +119,7 @@ class LCLBrowser(LoginBrowser):
         self.accounts.stay_or_go()
         accounts = list()
         for acc in self.page.get_list():
-            self.location('https://particuliers.secure.lcl.fr/outil/UWRI/Accueil/')
+            self.location('/outil/UWRI/Accueil/')
             self.rib.go(data={'compte': '%s/%s/%s' % (acc.id[0:5],acc.id[5:11],acc.id[11:])})
             if self.rib.is_here():
                 acc.iban = self.page.get_iban()
