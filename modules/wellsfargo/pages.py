@@ -182,12 +182,13 @@ class ActivityCashPage(ActivityPage):
             u'//td[@headers="currentPostedBalance"]/span/text()')[0]
 
     def since_last_statement(self):
-        form = self.get_form(xpath='//form[@id="ddaShowForm"]')
-        form['showTabDDACommand.transactionTypeFilterValue'] = [
-            u'All Transactions']
-        form['showTabDDACommand.timeFilterValue'] = ['8']
-        form.submit()
-        return True
+        if not self.doc.xpath(u'//p[@id="noactivitymessage"]'):
+            form = self.get_form(xpath='//form[@id="ddaShowForm"]')
+            form['showTabDDACommand.transactionTypeFilterValue'] = [
+                u'All Transactions']
+            form['showTabDDACommand.timeFilterValue'] = ['8']
+            form.submit()
+            return True
 
     def iter_transactions(self):
         for row in self.doc.xpath('//tr/th[@headers='
