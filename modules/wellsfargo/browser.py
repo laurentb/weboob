@@ -20,7 +20,7 @@
 
 from weboob.capabilities.bank import AccountNotFound
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 import ssl
 import json
 import os
@@ -181,8 +181,12 @@ class WellsFargo(LoginBrowser):
 
     @need_login
     def to_statement(self, uri):
-        self.location(uri)
-        assert self.statement.is_here()
+        for i in xrange(self.MAX_RETRIES):
+            self.location(uri)
+            if self.statement.is_here():
+                break
+        else:
+            raise BrowserUnavailable()
 
     def iter_history(self, account):
         self.to_activity(account.id)
