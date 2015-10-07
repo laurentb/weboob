@@ -24,7 +24,7 @@ import urllib
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
-from .pages import LoginPage, AccountsPage, ProAccountsPage, TransactionsPage, ProTransactionsPage
+from .pages import LoginPage, AccountsPage, ProAccountsPage, TransactionsPage, ProTransactionsPage, IbanPage
 
 
 __all__ = ['CreditDuNordBrowser']
@@ -40,6 +40,7 @@ class CreditDuNordBrowser(Browser):
              'https://[^/]+/vos-comptes/.*/transac/particuliers.*':     TransactionsPage,
              'https://[^/]+/vos-comptes/(?P<kind>professionnels|entreprises).*':    ProAccountsPage,
              'https://[^/]+/vos-comptes/.*/transac/(professionnels|entreprises).*': ProTransactionsPage,
+             'https://[^/]+/vos-comptes/IPT/cdnProxyResource/transacClippe/RIB_impress.asp.*': IbanPage,
             }
     account_type = 'particuliers'
 
@@ -53,6 +54,7 @@ class CreditDuNordBrowser(Browser):
     def home(self):
         if self.is_logged():
             self.location(self.buildurl('/vos-comptes/%s' % self.account_type))
+            self.location(self.page.document.xpath(u'//a[contains(text(), "Synthèse")]')[0].attrib['href'])
         else:
             self.login()
 
@@ -86,15 +88,22 @@ class CreditDuNordBrowser(Browser):
         if m:
             self.account_type = m.group(1)
 
-    def get_accounts_list(self):
+    def get_accounts_list(self, iban=True):
         if not self.is_on_page(AccountsPage):
-            self.location(self.buildurl('/vos-comptes/%s/transac_tableau_de_bord' % self.account_type))
-        return self.page.get_list()
+            self.home()
+        accounts = list(self.page.get_list())
+        if iban:
+            self.page.iban_page()
+            link = self.page.iban_go()
+            for a in [a for a in accounts if a._acc_nb]:
+                self.location('%s%s' % (link, a._acc_nb))
+                a.iban = self.page.get_iban()
+        return iter(accounts)
 
     def get_account(self, id):
         assert isinstance(id, basestring)
 
-        l = self.get_accounts_list()
+        l = self.get_accounts_list(iban=False)
         for a in l:
             if a.id == id:
                 return a

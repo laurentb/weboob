@@ -69,6 +69,9 @@ class CDNBasePage(Page):
     def get_execution(self):
         return self.get_from_js("name: 'execution', value: '", "'")
 
+    def iban_go(self):
+        return '%s%s' % ('/vos-comptes/IPT/cdnProxyResource', self.get_from_js('C_PROXY.StaticResourceClientTranslation( "', '"'))
+
 
 class AccountsPage(CDNBasePage):
     COL_HISTORY = 2
@@ -111,6 +114,7 @@ class AccountsPage(CDNBasePage):
         for line in data:
             a = Account()
             a.id = line[self.COL_ID].replace(' ', '')
+            a._acc_nb = a.id.split('_')[0] if len(a.id.split('_')) > 1 else None
             fp = StringIO(unicode(line[self.COL_LABEL]).encode(self.browser.ENCODING))
             a.label = self.parser.tocleanstring(self.parser.parse(fp, self.browser.ENCODING).xpath('//div[@class="libelleCompteTDB"]')[0])
             a.balance = Decimal(FrenchTransaction.clean_amount(line[self.COL_BALANCE]))
@@ -144,6 +148,13 @@ class AccountsPage(CDNBasePage):
             accounts.append(a)
 
         return iter(accounts)
+
+    def iban_page(self):
+        self.browser.select_form(name="changePageForm")
+        self.browser.form.set_all_readonly(False)
+        self.browser['_ipc_fireEvent'] = 'V1_rib'
+        self.browser['_ipc_eventValue'] = 'bouchon=bouchon'
+        self.browser.submit()
 
 
 class ProAccountsPage(AccountsPage):
@@ -189,16 +200,27 @@ class ProAccountsPage(AccountsPage):
             a.balance = Decimal(FrenchTransaction.clean_amount(balance))
             a.currency = a.get_currency(balance)
             a._link, a._args = self.params_from_js(cols[self.COL_ID].find('a').attrib['href'])
+            a._acc_nb = cols[self.COL_ID].xpath('.//span[@class="right-underline"]')[0].text.replace(' ', '').strip()
             if a._args:
-                a.id = '%s%s%s' % (cols[self.COL_ID].xpath('.//span[@class="right-underline"]')[0].text.replace(' ', '').strip(), a._args['IndiceCompte'], a._args['Indiceclassement'])
+                a.id = '%s%s%s' % (a._acc_nb, a._args['IndiceCompte'], a._args['Indiceclassement'])
             else:
-                a.id = cols[self.COL_ID].xpath('.//span[@class="right-underline"]')[0].text.replace(' ', '').strip()
-
+                a.id = a._acc_nb
 
             a._card_ids = []
             a._inv = False
 
             yield a
+
+    def iban_page(self):
+        self.browser.location(self.document.xpath('.//a[contains(text(), "Impression IBAN")]')[0].attrib['href'])
+
+
+class IbanPage(Page):
+    def get_iban(self):
+        try:
+            return unicode(self.document.xpath('.//td[@width="315"]/font')[0].text.replace(' ', '').strip())
+        except AttributeError:
+            return NotAvailable
 
 
 class Transaction(FrenchTransaction):
