@@ -254,10 +254,8 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
 
 class CBHistoryPage(AccountHistoryPage):
     def get_operations(self):
-        def validate(self, obj):
-            return True
-        self._get_operations.item.validate = validate
-        for tr in AccountHistoryPage.get_operations(self):
+        validate = None
+        for tr in self._get_operations(self)():
             tr.type = tr.TYPE_CARD
             yield tr
 
