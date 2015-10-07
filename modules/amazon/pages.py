@@ -201,7 +201,7 @@ class OrderNewPage(OrderPage):
             label = u''.join(item.xpath(
                 '*//a[contains(@href,"/gp/product")]/text()')).strip()
             price = u''.join(x.strip() for x in item.xpath(
-                '*//span[contains(text(),"$")]/text()')
+                '*//span[contains(text(),"$")]/text()')[:1]
                 if x.strip().startswith('$'))
             price = AmTr.decimal_amount(price)
             multi = re.match(u'([0-9]+) of (.*)', label)
