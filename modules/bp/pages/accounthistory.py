@@ -26,15 +26,19 @@ from weboob.deprecated.browser import Page
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile(u'^(?P<category>CHEQUE)( N)? (?P<text>.*)'),        FrenchTransaction.TYPE_CHECK),
+    PATTERNS = [(re.compile(u'^(?P<category>CHEQUE)( N)? (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_CHECK),
                 (re.compile(r'^(?P<category>ACHAT CB) (?P<text>.*) (?P<dd>\d{2})\.(?P<mm>\d{2}).(?P<yy>\d{2}).*'),
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile('^(?P<category>(PRELEVEMENT DE|TELEREGLEMENT|TIP)) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_ORDER),
-                (re.compile('^(?P<category>ECHEANCEPRET)(?P<text>.*)'),   FrenchTransaction.TYPE_LOAN_PAYMENT),
-   (re.compile('^CARTE \w+ (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) A (?P<HH>\d+)H(?P<MM>\d+) (?P<category>RETRAIT DAB) (?P<text>.*)'),
+                (re.compile('^(?P<category>ECHEANCEPRET)(?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_LOAN_PAYMENT),
+                (re.compile(r'^CARTE \w+ (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) A (?P<HH>\d+)H(?P<MM>\d+) (?P<category>RETRAIT DAB) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^(?P<category>RETRAIT DAB) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) (?P<HH>\d+)H(?P<MM>\d+) (?P<text>.*)'),
+                (re.compile(r'^(?P<category>RETRAIT DAB) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) (?P<HH>\d+)H(?P<MM>\d+) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile(r'^(?P<category>RETRAIT) (?P<text>.*) (?P<dd>\d{2})\.(?P<mm>\d{2})\.(?P<yy>\d{2})'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('^(?P<category>VIR(EMEN)?T?) (DE |POUR )?(?P<text>.*)'),
                                                             FrenchTransaction.TYPE_TRANSFER),
