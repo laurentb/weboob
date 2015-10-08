@@ -46,4 +46,4 @@ class HomePage(BadUTF8Page):
             obj_subscriber = CleanText('div[@class="idAbonne pointer"]/p[1]', symbols='-', children=False)
             obj_id = CleanText('div[@class="idAbonne pointer"]/p/span')
             obj__login = GetID(Attr('.//div[@class="acceuil_btn"]/a', 'href'))
-            obj_label = Format(u'%s - %s', Field('id'), CleanText('//div[@class="forfaitChoisi"]'))
+            obj_label = Format(u'%s - %s', Field('id'), CleanText('.//div[@class="forfaitChoisi"]'))
