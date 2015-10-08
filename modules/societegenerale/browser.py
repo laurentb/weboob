@@ -29,7 +29,7 @@ __all__ = ['SocieteGenerale']
 
 class SocieteGenerale(Browser):
     DOMAIN_LOGIN = 'particuliers.societegenerale.fr'
-    CERTHASH_LOGIN = ['7c13aac3a32e10c8210aa72612a0f4e7a2d11773b69b9d36b8e013b82d0c5b64']
+    CERTHASH_LOGIN = ['a84fd13e19c80b1dd70498292f983d9d0d19f88c2d35fcd21a5f310072b1d386']
     DOMAIN = 'particuliers.secure.societegenerale.fr'
     CERTHASH = '2275084c61b3d12bfd8886a4c2995fae99ee60f28ef30b11efc414ceb0ee2022'
     PROTOCOL = 'https'
