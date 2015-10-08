@@ -123,7 +123,7 @@ class DetailsPage(LoggedPage, BadUTF8Page):
 
     def get_renew_date(self, subscription):
         div = self.doc.xpath('//div[@login="%s"]' % subscription._login)[0]
-        mydate = Date(CleanText('//div[@class="resumeConso"]/span[@class="actif"][1]'), dayfirst=True)(div)
+        mydate = Date(CleanText('.//div[@class="resumeConso"]/span[@class="actif"][1]'), dayfirst=True)(div)
         if mydate.month == 12:
             mydate = mydate.replace(month=1)
             mydate = mydate.replace(year=mydate.year + 1)
