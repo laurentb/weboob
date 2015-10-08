@@ -254,7 +254,6 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
 
 class CBHistoryPage(AccountHistoryPage):
     def get_operations(self):
-        validate = None
         for tr in self._get_operations(self)():
             tr.type = tr.TYPE_CARD
             yield tr
