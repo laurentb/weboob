@@ -357,7 +357,7 @@ class DiscPage(LoggedPage, HTMLPage):
         form = self.get_form()
         form.submit()
 
-class NoBoursePage(LoggedPage, HTMLPage):
+class NoPermissionPage(LoggedPage, HTMLPage):
     pass
 
 class AVPage(LoggedPage, HTMLPage):
