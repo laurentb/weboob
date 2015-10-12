@@ -20,6 +20,7 @@
 from datetime import date
 from decimal import Decimal
 
+from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account, Transaction
 from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPError, BrowserUnavailable, ParseError
 from weboob.browser import DomainBrowser
@@ -74,7 +75,8 @@ class BredBrowser(DomainBrowser):
             for poste in content['postes']:
                 a = Account()
                 a._number = content['numeroLong']
-                a.iban = self.api_open('/transactionnel/services/rest/Account/account/%s/iban' % a._number).json()['content']['iban']
+                iban_response = self.api_open('/transactionnel/services/rest/Account/account/%s/iban' % a._number).json()
+                a.iban = iban_response['content']['iban'] if 'content' in iban_response else NotAvailable
                 a._nature = poste['codeNature']
                 a._consultable = poste['consultable']
                 a.id = '%s.%s' % (a._number, a._nature)
