@@ -54,7 +54,7 @@ class LoginPage(HTMLPage):
         form = self.get_form(name='login')
         form['login_email'] = login
         form['login_password'] = password
-        form.submit(headers={'X-Requested-With': 'XMLHttpRequest'})
+        return form.submit(headers={'X-Requested-With': 'XMLHttpRequest'})
 
     def get_script_url(self):
         list1 = self.doc.xpath('//script')

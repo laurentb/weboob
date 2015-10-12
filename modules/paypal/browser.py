@@ -85,9 +85,9 @@ class Paypal(LoginBrowser):
         data['_csrf'] = csrf
         data = urllib.urlencode(data)
         self.open('/auth/verifychallenge', data=data)
-        self.page.login(self.username, self.password)
+        res = self.page.login(self.username, self.password)
 
-        if self.login.is_here() or self.error.is_here():
+        if 'LoginFailed' in res.content or self.login.is_here() or self.error.is_here():
             raise BrowserIncorrectPassword()
 
         self.find_account_type()
