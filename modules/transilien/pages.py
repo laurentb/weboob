@@ -31,7 +31,7 @@ from weboob.tools.date import LinearDateGuesser
 
 
 class RoadMapDuration(Duration):
-    _regexp = re.compile(r'(?P<mn>\d?)')
+    _regexp = re.compile(r'(?P<mn>\d+)')
     kwargs = {'minutes': 'mn'}
 
 
