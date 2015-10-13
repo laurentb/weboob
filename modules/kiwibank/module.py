@@ -36,13 +36,13 @@ class KiwibankModule(Module, CapBank):
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Kiwibank'
     CONFIG = BackendConfig(
-        ValueBackendPassword('username', label='Username', masked=False),
+        ValueBackendPassword('login', label='Access number', masked=False),
         ValueBackendPassword('password', label='Password'),
     )
     BROWSER = Kiwibank
 
     def create_default_browser(self):
-        return self.create_browser(self.config['username'].get(), self.config['password'].get())
+        return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
     def iter_accounts(self):
         return self.browser.get_accounts()
