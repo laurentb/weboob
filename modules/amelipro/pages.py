@@ -104,7 +104,11 @@ class BillsPage(HTMLPage):
                 bil = Bill()
                 bil.id = date.strftime("%Y%m") + format
                 bil.date = date
-                bil.price = Decimal('-'+amount.strip().replace(',','.'))
+                clean_amount = amount.strip().replace(',','.')
+                if clean_amount != '':
+                    bil.price = Decimal('-'+clean_amount)
+                else:
+                    bil.price = 0
                 bil.label = u''+date.strftime("%Y%m%d")
                 bil.format = u''+format
                 filedate = date.strftime("%m%Y")
