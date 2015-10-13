@@ -33,7 +33,8 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
                 '.*.compteGestChgPWD.builder.do',
                 '/ce_internet_prive_ti/compteTituChgPWD.builder.do',
                 ErrorPage)
-    home = URL('/ce_internet_prive_ge/accueilInternetGe.builder.do', HomePage)
+    home = URL('/ce_internet_prive_ge/accueilInternetGe.builder.do',
+               '/ce_internet_prive_ti/accueilInternetTi.builder.do', HomePage)
     accounts = URL('/ce_internet_prive_ge/carteAffaireParc.builder.do',
                    '/ce_internet_prive_ge/carteAffaireParcChange.event.do', AccountsPage)
     coming = URL('/ce_internet_prive_ge/operationEnCours.builder.do',
@@ -67,7 +68,7 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
         self.login.stay_or_go()
         assert self.login.is_here()
         self.page.login(self.type, self.username, self.password)
-        if self.error.is_here():
+        if self.error.is_here() or self.page.is_error():
             raise BrowserIncorrectPassword()
         if self.type == '2' and self.page.is_corporate():
             raise self.CorporateCard()

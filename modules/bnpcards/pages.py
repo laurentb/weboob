@@ -34,6 +34,10 @@ class HomePage(LoggedPage, HTMLPage):
         if el:
             return True
 
+    def is_error(self):
+        if self.doc.xpath('//h1[contains(text(), "Change your password")]'):
+            return True
+
 
 class LoginPage(HTMLPage):
     def login(self, type, username, password):
