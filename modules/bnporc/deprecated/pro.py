@@ -72,6 +72,17 @@ class ProAccountsList(Page):
                 m = re.search('ch4=(\w+)', input_tag.get('value', ''))
                 if m:
                     account.iban = unicode(m.group(1))
+                    break
+            else:
+                select = tr.xpath('.//select//@onchange')[0]
+                m = re.search("\(this,'(\w+)", select)
+                if m:
+                    iban = unicode(m.group(1))
+                    if iban.startswith('FR') and len(iban) == 27:
+                        account.iban = unicode(m.group(1))
+
+
+
 
             accounts.append(account)
 
