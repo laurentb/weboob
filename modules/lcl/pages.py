@@ -128,8 +128,10 @@ class LoginPage(HTMLPage):
         return len(errors) > 0
 
 
-class ContractsPage(LoggedPage, HTMLPage):
+class ContractsPage(LoginPage):
     def on_load(self):
+        if self.is_error():
+            raise BrowserIncorrectPassword()
         self.select_contract()
 
     def select_contract(self):
