@@ -158,6 +158,7 @@ class IndexPage(Page):
 
         account = Account()
         account.id = info['id']
+        account.iban = u'FR76' + info['id']
         account._info = info
         account.label = label
         account.type = info['acc_type'] if 'acc_type' in info else account_type
