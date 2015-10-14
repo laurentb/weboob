@@ -390,3 +390,11 @@ class PorPage(LoggedPage, HTMLPage):
             obj_unitvalue = CleanDecimal('.//td[4]', default=Decimal(0), replace_dots=True)
             obj_valuation = CleanDecimal('.//td[5]', default=Decimal(0), replace_dots=True)
             obj_diff = CleanDecimal('.//td[6]', default=Decimal(0), replace_dots=True)
+
+
+class IbanPage(LoggedPage, HTMLPage):
+    def fill_iban(self, accounts):
+        for ele in self.doc.xpath('//table[@class="liste"]/tr[@class]/td[1]'):
+            for a in accounts:
+                if a.label in CleanText('.//div[1]')(ele).title():
+                    a.iban = CleanText('.//div[5]/em', replace=[(' ', '')])(ele)

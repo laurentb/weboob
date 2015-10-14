@@ -36,7 +36,7 @@ from weboob.capabilities.bank import Transfer, TransferError
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
                    OperationsPage, CardPage, ComingPage, NoOperationsPage, \
                    TransfertPage, ChangePasswordPage, VerifCodePage,       \
-                   EmptyPage, PorPage
+                   EmptyPage, PorPage, IbanPage
 
 
 __all__ = ['CreditMutuelBrowser']
@@ -77,6 +77,8 @@ class CreditMutuelBrowser(LoginBrowser):
                       EmptyPage)
     por =         URL('/(?P<subbank>.*)/fr/banque/POR_SyntheseLst.aspx',
                       '/(?P<subbank>.*)/fr/banque/POR_ValoToute.aspx', PorPage)
+    iban =        URL('/(?P<subbank>.*)/fr/banque/rib.cgi', IbanPage)
+
 
     currentSubBank = None
 
@@ -102,6 +104,7 @@ class CreditMutuelBrowser(LoginBrowser):
         accounts = []
         for a in self.accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts():
             accounts.append(a)
+        self.iban.go(subbank=self.currentSubBank).fill_iban(accounts)
         self.por.go(subbank=self.currentSubBank).add_por_accounts(accounts)
         return accounts
 
