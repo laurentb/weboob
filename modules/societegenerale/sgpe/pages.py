@@ -179,6 +179,7 @@ class CardsPage(SGPEPage):
                 self.logger.error('Unable to parse link %r' % link.attrib['onclick'])
                 continue
             account._link_num = m.group(1) #useless
+            account._link = m.group(2)
             account.id = m.group(2) + account._link_num
             account._link_date = urllib.quote(m.group(3))
             account._link_rib = rib

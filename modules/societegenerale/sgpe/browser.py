@@ -119,16 +119,17 @@ class SGPEBrowser(Browser):
 
     def iter_history(self, account):
         if account._is_card:
-            page = 1
-            while page:
-                self.card_history(account._link_rib, account.id, account._link_date, account._link_currency, page)
-                assert self.is_on_page(CardHistoryPage)
-                for tr in self.page.iter_transactions():
-                    yield tr
-                if self.page.has_next():
-                    page += 1
-                else:
-                    page = False
+            for history_link in [account.id, account._link]:
+                page = 1
+                while page:
+                    self.card_history(account._link_rib, history_link, account._link_date, account._link_currency, page)
+                    assert self.is_on_page(CardHistoryPage)
+                    for tr in self.page.iter_transactions():
+                        yield tr
+                    if self.page.has_next():
+                        page += 1
+                    else:
+                        page = False
         else:
             page = 1
             basecount = 0
