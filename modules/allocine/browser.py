@@ -187,7 +187,7 @@ class AllocineBrowser(Browser):
         if 'synopsis' in jres:
             pitch = unicode(jres['synopsis'])
         if 'statistics' in jres and 'userRating' in jres['statistics']:
-            note = u'%s/10 (%s votes)' % (jres['statistics']['userRating'], jres['statistics']['userReviewCount'])
+            note = u'%s/5 (%s votes)' % (jres['statistics']['userRating'], jres['statistics']['userReviewCount'])
         if 'castMember' in jres:
             for cast in jres['castMember']:
                 if cast['activity']['$'] not in roles:
@@ -645,5 +645,5 @@ class AllocineBrowser(Browser):
                         event.location = location
                         event.start_date = start_date
                         event.summary = summary
-                        event.timezone = 'Europe/Paris'
+                        event.timezone = u'Europe/Paris'
                         yield event
