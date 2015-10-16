@@ -41,9 +41,8 @@ class LoginPage(HTMLPage):
     def get_token_and_csrf(self, code):
         code1 = re.search('(function .*)\(function\(\)', code).group(1)
         js = Javascript(code1)
-        func_name = re.search(r'function (\w+)\(e\)', code1).group(1)
-        param = re.search(r'var e=' + func_name + '\("(.*?)"\)', code).group(1)
-        token = str(js.call(func_name, param))
+        func_name = re.search(r'function (\w+)\(\)', code1).group(1)
+        token = str(js.call(func_name))
         csrf = re.search(r'csrf="\+encodeURIComponent\("(.*?)"\)', code).group(1)
         return token, csrf
 
