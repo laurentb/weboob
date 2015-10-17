@@ -32,7 +32,7 @@ from weboob.capabilities.account import CapAccount, Account, AccountRegisterErro
 from weboob.core.backendscfg import BackendAlreadyExists
 from weboob.core.modules import ModuleLoadError
 from weboob.core.repositories import ModuleInstallError, IProgress
-from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden, BrowserSSLError, BrowserQuestion
+from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden, BrowserSSLError, BrowserQuestion, BrowserHTTPSDowngrade
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt, ValueBackendPassword
 from weboob.tools.misc import to_unicode
 from weboob.tools.compat import check_output
@@ -568,6 +568,8 @@ class ConsoleApplication(Application):
                 self.load_backends(names=[backend.name])
         elif isinstance(error, BrowserSSLError):
             print(u'FATAL(%s): ' % backend.name + self.BOLD + '/!\ SERVER CERTIFICATE IS INVALID /!\\' + self.NC, file=self.stderr)
+        elif isinstance(error, BrowserHTTPSDowngrade):
+            print(u'FATAL(%s): ' % backend.name + 'Downgrade from HTTPS to HTTP')
         elif isinstance(error, BrowserForbidden):
             msg = unicode(error)
             print(u'Error(%s): %s' % (backend.name, msg or 'Forbidden'), file=self.stderr)

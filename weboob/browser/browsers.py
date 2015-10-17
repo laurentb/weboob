@@ -43,6 +43,8 @@ try:
 except ImportError:
     raise ImportError('Please install python-requests >= 2.0')
 
+from weboob.exceptions import BrowserHTTPSDowngrade
+
 from weboob.tools.log import getLogger
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.json import json
@@ -659,6 +661,16 @@ class PagesBrowser(DomainBrowser):
                     break
 
             if response.page is None:
+                regexp = r'^(?P<proto>\w+)://.*'
+
+                proto_base = re.match(regexp, response.url)
+                if proto_base:
+                    proto_base = proto_base.group('proto')
+                    proto_resp = re.match(regexp, self.BASEURL).group('proto')
+
+                    if proto_base == 'https' and proto_resp != 'https':
+                        raise BrowserHTTPSDowngrade()
+
                 self.logger.debug('Unable to handle %s' % response.url)
 
             return callback(response)

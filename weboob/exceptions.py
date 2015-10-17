@@ -55,6 +55,10 @@ class BrowserHTTPError(BrowserUnavailable):
     pass
 
 
+class BrowserHTTPSDowngrade(BrowserUnavailable):
+    pass
+
+
 class BrowserSSLError(BrowserUnavailable):
     pass
 
