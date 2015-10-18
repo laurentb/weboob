@@ -100,7 +100,7 @@ class AccountRIB(Page):
         self.text = ''
 
         try:
-            from pdfminer.pdfparser import PDFDocument, PDFParser
+            from pdfminer.pdfparser import PDFDocument, PDFParser, PDFSyntaxError
             from pdfminer.converter import TextConverter
             from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
         except ImportError:
@@ -109,7 +109,11 @@ class AccountRIB(Page):
             parser = PDFParser(StringIO(self.document))
             doc = PDFDocument()
             parser.set_document(doc)
-            doc.set_parser(parser)
+            try:
+                doc.set_parser(parser)
+            except PDFSyntaxError:
+                return
+
             doc.initialize()
 
             rsrcmgr = PDFResourceManager()
