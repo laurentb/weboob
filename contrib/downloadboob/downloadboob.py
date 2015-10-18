@@ -241,8 +241,17 @@ class Downloadboob(object):
         return r.iter_lines()
 
 
+config_file = 'downloadboob.conf'
+sections = None
+if len(sys.argv) >= 3:
+    sections = sys.argv[2:]
+if len(sys.argv) >= 2:
+    config_file = sys.argv[1]
+
 config = ConfigParser.ConfigParser()
-config.read(['/etc/downloadboob.conf', os.path.expanduser('~/downloadboob.conf'), 'downloadboob.conf'])
+config.read(['/etc/downloadboob.conf', os.path.expanduser('~/downloadboob.conf'), config_file])
+if sections is None:
+    sections = config.sections()
 
 try:
     links_directory = os.path.expanduser(config.get('main', 'directory', '.'))
@@ -257,7 +266,7 @@ download_directory = os.path.join(links_directory, DOWNLOAD_DIRECTORY)
 print("Downloading to %s" % (links_directory))
 
 for section in config.sections():
-    if section != "main":
+    if section != "main" and section in sections:
         backend_name = config.get(section, "backend")
         pattern = config.get(section, "pattern")
         if config.has_option(section, "title_exclude"):
