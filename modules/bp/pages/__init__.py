@@ -19,11 +19,11 @@
 
 
 from .login import LoginPage, Initident, CheckPassword,repositionnerCheminCourant, BadLoginPage, AccountDesactivate, UnavailablePage
-from .accountlist import AccountList
+from .accountlist import AccountList, AccountRIB
 from .accounthistory import AccountHistory, CardsList
 from .transfer import TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary
 
 
 __all__ = ['LoginPage','Initident', 'CheckPassword', 'repositionnerCheminCourant', "AccountList", 'AccountHistory', 'BadLoginPage',
            'AccountDesactivate', 'TransferChooseAccounts', 'CompleteTransfer', 'TransferConfirm', 'TransferSummary', 'UnavailablePage',
-           'CardsList']
+           'CardsList', 'AccountRIB']

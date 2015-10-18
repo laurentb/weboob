@@ -18,6 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from cStringIO import StringIO
+import re
 from decimal import Decimal
 
 from weboob.capabilities.bank import Account, AccountNotFound
@@ -79,8 +81,48 @@ class AccountList(Page):
                 account._card_links = []
                 self.accounts[account.id] = account
 
+                page = self.browser.get_page(self.browser.openurl(self.browser.buildurl('/voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea', ('compte.numero', account.id))))
+                account.iban = page.get_iban()
+
     def get_account(self, id):
         try:
             return self.accounts[id]
         except KeyError:
             raise AccountNotFound('Unable to find account: %s' % id)
+
+
+class AccountRIB(Page):
+    iban_regexp= r'BankIdentiferCode(\w+)PSS'
+
+    def __init__(self, *args, **kwargs):
+        super(AccountRIB, self).__init__(*args, **kwargs)
+
+        self.text = ''
+
+        try:
+            from pdfminer.pdfparser import PDFDocument, PDFParser
+            from pdfminer.converter import TextConverter
+            from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+        except ImportError:
+            self.logger.warning('Please install python-pdfminer to get IBANs')
+        else:
+            parser = PDFParser(StringIO(self.document))
+            doc = PDFDocument()
+            parser.set_document(doc)
+            doc.set_parser(parser)
+            doc.initialize()
+
+            rsrcmgr = PDFResourceManager()
+            out = StringIO()
+            device = TextConverter(rsrcmgr, out)
+            interpreter = PDFPageInterpreter(rsrcmgr, device)
+            for page in doc.get_pages():
+                interpreter.process_page(page)
+
+            self.text = out.getvalue()
+
+    def get_iban(self):
+        m = re.search(self.iban_regexp, self.text)
+        if m:
+            return m.group(1)
+        return None

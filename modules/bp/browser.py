@@ -22,9 +22,10 @@ from urlparse import urlsplit, parse_qsl
 from datetime import datetime
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserBanned
+from weboob.deprecated.browser.parsers.iparser import RawParser
 
 from .pages import LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate, \
-                   AccountList, AccountHistory, CardsList, UnavailablePage, \
+                   AccountList, AccountHistory, CardsList, UnavailablePage, AccountRIB, \
                    TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary
 from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, ProAccountHistoryDownload, ProAccountHistoryCSV, HistoryParser, DownloadRib, RibPage
 
@@ -48,6 +49,7 @@ class BPBrowser(Browser):
 
              r'.*synthese_assurancesEtComptes/afficheSynthese-synthese\.ea'              : AccountList,
              r'.*synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea'     : AccountList,
+             r'.*voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea.*' : (AccountRIB, RawParser()),
 
              r'.*voscomptes/synthese/3-synthese.ea'                                      : RedirectPage,
              r'.*voscomptes/synthese/synthese.ea'                                        : ProAccountsList,
