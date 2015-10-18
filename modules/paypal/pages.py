@@ -144,14 +144,14 @@ class ProHistoryPage(HistoryPage, JsonPage):
             cc = self.browser.convert_amount(account, transaction, 'https://www.paypal.com/cgi-bin/webscr?cmd=_history-details-from-hub&id=' + transaction['transactionId'])
             if not cc:
                 return
-            t.original_amount = Decimal(transaction['transactionAmount']['currencyDoubleValue'])
+            t.original_amount = Decimal('%.2f' % transaction['transactionAmount']['currencyDoubleValue'])
             t.original_currency = u'' + transaction['transactionAmount']['currencyCode']
             t.set_amount(cc)
         else:
-            t.amount = Decimal(transaction['net']['currencyDoubleValue'])
+            t.amount = Decimal('%.2f' % transaction['net']['currencyDoubleValue'])
         date = parse_french_date(transaction['transactionTime'])
         raw = transaction['transactionDescription']
-        t.commission = Decimal(transaction['fee']['currencyDoubleValue'])
+        t.commission = Decimal('%.2f' % transaction['fee']['currencyDoubleValue'])
         t.parse(date=date, raw=raw)
         return t
 
