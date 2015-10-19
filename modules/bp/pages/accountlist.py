@@ -128,5 +128,5 @@ class AccountRIB(Page):
     def get_iban(self):
         m = re.search(self.iban_regexp, self.text)
         if m:
-            return m.group(1)
+            return unicode(m.group(1))
         return None
