@@ -446,7 +446,7 @@ class Weboob(WebNip):
             minfo = self.repositories.get_module_info(module_name)
             if minfo is None:
                 self.logger.warning(u'Backend "%s" is referenced in %s but was not found. '
-                                    u'Perhaps a missing repository?', module_name, self.backends_config.confpath)
+                                    u'Perhaps a missing repository or a removed module?', module_name, self.backends_config.confpath)
                 continue
 
             if caps is not None and not minfo.has_caps(caps):
