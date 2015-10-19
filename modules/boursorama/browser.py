@@ -28,7 +28,7 @@ from weboob.capabilities.bank import Account
 
 from .pages import (LoginPage, ProfilIncomplete, AccountsList, AccountHistory, CardHistory,
                     UpdateInfoPage, AuthenticationPage, AccountLifeInsurance, AccountMarket,
-                    InvestmentDetail)
+                    InvestmentDetail, LifeInsuranceHistory)
 
 
 __all__ = ['Boursorama']
@@ -51,6 +51,7 @@ class Boursorama(StateBrowser):
              r'.*/comptes/synthese.phtml': AccountsList,
              r'.*/comptes/banque/detail/mouvements.phtml.*': AccountHistory,
              r'.*/comptes/banque/cartes/mouvements.phtml.*': CardHistory,
+             r'.*/comptes/assurancevie/mouvements.phtml.*': LifeInsuranceHistory,
              r'.*/comptes/epargne/mouvements.phtml.*': AccountHistory,
              r'.*/date_anniversaire.phtml.*':    UpdateInfoPage,
              r'.*/detail.phtml.*': AccountLifeInsurance,
@@ -140,7 +141,7 @@ class Boursorama(StateBrowser):
 
         while link is not None:
             self.location(link)
-            if not self.is_on_page(AccountHistory) and not self.is_on_page(CardHistory):
+            if not self.is_on_page(AccountHistory) and not self.is_on_page(CardHistory) and not self.is_on_page(LifeInsuranceHistory):
                 raise NotImplementedError()
 
             for tr in self.page.get_operations():

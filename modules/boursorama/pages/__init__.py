@@ -25,6 +25,7 @@ from .accounts_list import AccountsList
 from .login import LoginPage, ProfilIncomplete, UpdateInfoPage
 from .two_authentication import AuthenticationPage
 from .investment import AccountMarket, AccountLifeInsurance, InvestmentDetail
+from .lifeinsurance_history import LifeInsuranceHistory
 
 
 class AccountPrelevement(AccountsList):
@@ -40,4 +41,5 @@ __all__ = ['LoginPage',
            'AccountMarket',
            'AccountLifeInsurance',
            'InvestmentDetail',
+           'LifeInsuranceHistory',
           ]
