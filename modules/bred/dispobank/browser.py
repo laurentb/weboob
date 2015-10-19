@@ -31,7 +31,10 @@ __all__ = ['DispoBankBrowser']
 class DispoBankBrowser(Browser):
     PROTOCOL = 'https'
     DOMAIN = 'www.dispobank.fr'
-    CERTHASH = ['9b77dab9c84e1dc9e0798de561a6541ff15f038f60b36ca74c29be1def6c19a3', '375f1fed165d34aacaaf71674ab14ca6c1b38404cf748278714fde3c58385ff0', '0853a056453b56aea6a29085ef3f3721b18db2052aa8e84220720d44e0eb22af']
+    CERTHASH = ['9b77dab9c84e1dc9e0798de561a6541ff15f038f60b36ca74c29be1def6c19a3',
+                '375f1fed165d34aacaaf71674ab14ca6c1b38404cf748278714fde3c58385ff0',
+                '0853a056453b56aea6a29085ef3f3721b18db2052aa8e84220720d44e0eb22af',
+                'a2b017a0cecf8e8bacf1e04c10d4fa647f5ade416fe64129bfc034ef95f310f5']
     ENCODING = 'iso-8859-15'
     PAGES = {r'https://www.\w+.fr/mylittleform.*':                      LoginPage,
              r'https://www.\w+.fr/Andromede/MainAuth.*':                LoginResultPage,
