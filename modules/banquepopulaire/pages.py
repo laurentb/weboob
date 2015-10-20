@@ -274,6 +274,8 @@ class Login2Page(LoginPage):
         if 'phase' in doc and doc['phase']['state'] == 'TERMS_OF_USE':
             # Got:
             # {u'phase': {u'state': u'TERMS_OF_USE'}, u'validationUnits': [{u'LIST_OF_TERMS': [{u'type': u'TERMS', u'id': u'b7f28f91-7aa0-48aa-8028-deec13ae341b', u'reference': u'CGU_CYBERPLUS'}]}]}
+            if 'reference' in doc['validationUnits'][0]:
+                del doc['validationUnits'][0]['reference']
             payload = {'validate': doc['validationUnits'][0]}
             req = self.browser.request_class(self.request_url + '/step')
             req.add_header('Content-Type', 'application/json')
