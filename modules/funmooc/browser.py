@@ -23,6 +23,8 @@ from weboob.browser import LoginBrowser, URL, need_login
 from .pages import PageLogin, PageDashboard, PageChapter, PageSection
 from .video import MoocVideo
 
+import re
+
 
 class FunmoocBrowser(LoginBrowser):
     BASEURL = 'https://www.france-universite-numerique-mooc.fr'
@@ -49,8 +51,13 @@ class FunmoocBrowser(LoginBrowser):
         csrf = self.session.cookies.get('csrftoken')
         self.page.login(self.username, self.password, csrf)
 
-    @need_login
     def get_video(self, _id):
+        if re.search('[^a-zA-Z0-9_-]', _id):
+            match = self.file.match(_id)
+            if not match:
+                return None
+            _id = match.group('id')
+
         v = MoocVideo(_id)
         v.url = self.file.build(id=_id, quality=self.quality)
         v.ext = 'mp4'
