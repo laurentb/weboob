@@ -28,14 +28,31 @@ from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.json import json
 from weboob.tools.date import parse_french_date as Date
 
 
 class ConnectionThresholdPage(HTMLPage):
+    def change_pass(self, oldpass, newpass):
+        res = self.browser.open('/identification-wspl-pres/grille?accessible=false')
+        url = '/identification-wspl-pres/grille/%s' % res.json()['data']['idGrille']
+        keyboard = self.browser.open(url)
+        vk = BNPKeyboard(self, keyboard)
+        data = {}
+        data['codeAppli'] = 'PORTAIL'
+        data['idGrille'] = res.json()['data']['idGrille']
+        data['typeGrille'] = res.json()['data']['typeGrille']
+        data['confirmNouveauPassword'] = vk.get_string_code(newpass)
+        data['nouveauPassword'] = vk.get_string_code(newpass)
+        data['passwordActuel'] = vk.get_string_code(oldpass)
+        self.browser.location('/mcs-wspl/rpc/modifiercodesecret', data=data)
+
     def on_load(self):
-        raise BrowserPasswordExpired(u'Vous avez atteint le seuil de 100 connexions avec le même code secret. Par mesure de sécurité, veuillez le changer.')
+        new_pass = ''.join([str((int(l) + 1) % 10) for l in self.browser.password])
+        self.logger.warning('Password expired. Renewing it...')
+        self.change_pass(self.browser.password, new_pass)
+        self.change_pass(new_pass, self.browser.password)
 
 def cast(x, typ, default=None):
     try:
