@@ -61,8 +61,14 @@ class BasePage(HTMLPage):
         def parse(self, el):
             _json = CleanText('.')(XPath('//script[@type="application/ld+json"][1]')(el)[0])
 
-            from weboob.tools.json import json
-            self.env['_json'] = json.loads(_json)
+            try:
+                from weboob.tools.json import json
+                self.env['_json'] = json.loads(_json)
+            except ValueError:
+                self.env['_json'] = {}
+
+        def validate(self, obj):
+            return self.env['_json']
 
         obj_id = Format('%s.%s',
                         Env('region'),
@@ -77,6 +83,9 @@ class BasePage(HTMLPage):
             return desc
 
         def obj_start_date(self):
+            if not self.env['_json']:
+                return
+
             _time = Time(CleanText('//div[@class="hours"]'), default=None)(self)
             if not _time:
                 _time = time.min
@@ -84,24 +93,42 @@ class BasePage(HTMLPage):
             return datetime.combine(date, _time)
 
         def obj_end_date(self):
+            if not self.env['_json']:
+                return
+
             date = AgendaculturelDate(Dict('endDate'))(self.env['_json'])
             return datetime.combine(date, time.max)
 
         def obj_url(self):
+            if not self.env['_json']:
+                return
+
             return Dict('url')(self.env['_json'])
 
         def obj_city(self):
+            if not self.env['_json']:
+                return
+
             return Dict('location/address/addressLocality')(self.env['_json'])
 
         def obj_category(self):
+            if not self.env['_json']:
+                return
+
             return AgendaculturelCategory(Dict('@type'))(self.env['_json'])
 
         def obj_location(self):
+            if not self.env['_json']:
+                return
+
             return Format('%s, %s',
                           Dict('location/name'),
                           Dict('location/address/streetAddress'))(self.env['_json'])
 
         def obj_price(self):
+            if not self.env['_json']:
+                return
+
             return Type(CleanText(Dict('offers/price', default="0")),
                         type=float,
                         default=0)(self.env['_json'])
