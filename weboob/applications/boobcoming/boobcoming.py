@@ -374,11 +374,14 @@ class Boobcoming(ReplApplication):
 
         _file, args = self.parse_command_args(line, 2, req_n=1)
 
+        l = self.retrieve_events(args)
+        if l == 3:
+            return 3
+
         if not _file == "-":
             dest = self.check_file_ext(_file)
             self.formatter.outfile = dest
 
-        l = self.retrieve_events(args)
         self.formatter.start_format()
         for item in l:
             self.format(item)
