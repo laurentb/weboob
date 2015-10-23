@@ -40,7 +40,9 @@ class PromoPage(LoggedPage, HTMLPage):
 class LoginPage(HTMLPage):
     def get_token_and_csrf(self, code):
         code1 = re.search('(function .*)\(function\(\)', code).group(1)
-        js = Javascript(code1)
+        # now it checks if some browsers-only builtin variables are defined:
+        # e+=function(e,t){return typeof navigator!="undefined"?e:t}
+        js = Javascript('var navigator = {}; ' + code1)
         func_name = re.search(r'function (\w+)\(\)', code1).group(1)
         token = str(js.call(func_name))
         csrf = re.search(r'csrf="\+encodeURIComponent\("(.*?)"\)', code).group(1)
