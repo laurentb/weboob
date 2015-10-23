@@ -19,7 +19,7 @@
 
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import Regexp, CleanText, DateTime, Filter, Type, Env, Format, CombineDate
+from weboob.browser.filters.standard import Regexp, CleanText, DateTime, Env, Format, BrowserURL
 from weboob.browser.filters.html import Link, XPath, CleanHTML
 
 from .calendar import AgendaDuLibreCalendarEvent
@@ -27,28 +27,39 @@ from datetime import time, datetime, date
 import re
 
 
-class EventEndDate(Filter):
-    def filter(self, el):
-        return time.max
-
-
 class EventPage(HTMLPage):
     @method
     class get_event(ItemElement):
         klass = AgendaDuLibreCalendarEvent
 
-        def parse(self, el):
-            self.env['url'] = self.page.url
-
         obj_id = Env('_id')
-        obj_url = Env('url')
-        obj_summary = CleanText('//meta[@property="DC:title"]/@content')
+        obj_url = BrowserURL('event_page', _id=Env('_id'))
+        obj_summary = Format('%s %s',
+                             CleanText('//meta[@name="geo:placename"]/@content'),
+                             CleanText('//meta[@name="DC:title"]/@content'))
         obj_description = CleanHTML('//div[@class="description"]')
         obj_location = CleanText('//p[@class="full_address"]/span[1]')
-        obj_city = CleanText('//meta[@property="geo:placename"]/@content')
-        obj_start_date = DateTime(CleanText('//meta[@property="DC:date"]/@content'))
-        obj_end_date = CombineDate(DateTime(CleanText('//meta[@property="DC:date"]/@content')),
-                                   EventEndDate('.'))
+        obj_city = CleanText('//meta[@name="geo:placename"]/@content')
+
+        def obj_start_date(self):
+            m = re.findall(u'(\w* \w* \d?\d \w* \d{4} \w* \d{2}h\d{2})', (CleanText('(//p)[1]')(self)))
+            if m:
+                return DateTime(Regexp(CleanText('(//p)[1]'),
+                                       '\w* \w* (\d?\d \w* \d{4}) \w* (\d{2}h\d{2})',
+                                       '\\1 \\2'))(self)
+
+        def obj_end_date(self):
+            m = re.findall(u'(\w* \w* \d?\d \w* \d{4} \w* \d{2}h\d{2})', (CleanText('(//p)[1]')(self)))
+            if m:
+                if len(m) == 1:
+                    return DateTime(Regexp(CleanText('(//p)[1]'),
+                                           '\w* \w* (\d?\d \w* \d{4}) \w* \d{2}h\d{2} \w* (\d{2}h\d{2})',
+                                           '\\1 \\2'))(self)
+                else:
+                    return DateTime(Regexp(Regexp(CleanText('(//p)[1]'),
+                                                  '(\w* \w* \d?\d \w* \d{4} \w* \d{2}h\d{2})', nth=-1),
+                                           '\w* \w* (\d?\d \w* \d{4}) \w* (\d{2}h\d{2})',
+                                           '\\1 \\2'))(self)
 
 
 class EventListPage(HTMLPage):
@@ -87,18 +98,25 @@ class EventListPage(HTMLPage):
             obj_city = CleanText('./a/strong[@class="city"]')
             obj_summary = CleanText('./a')
 
-            def get_date(self, _time):
-                m = re.match('.*/events\?start_date=(\d{4})-(\d{2})-\d{2}', self.page.url)
-                if m:
-                    day = Type(CleanText('./ancestor::td/div[@class="day_number"]'), type=int)(self)
-                    start_date = date(year=int(m.group(1)), month=int(m.group(2)), day=day)
-                    return datetime.combine(start_date, _time)
-
             def obj_start_date(self):
-                return self.get_date(time.min)
+                m = re.findall(u'(\w* \w* \d?\d \w* \d{4} \w* \d{2}h\d{2})', (CleanText('./@title')(self)))
+                if m:
+                    return DateTime(Regexp(CleanText('./@title'),
+                                           '\w* \w* (\d?\d \w* \d{4}) \w* (\d{2}h\d{2})',
+                                           '\\1 \\2'))(self)
 
             def obj_end_date(self):
-                return self.get_date(time.max)
+                m = re.findall(u'(\w* \w* \d?\d \w* \d{4} \w* \d{2}h\d{2})', (CleanText('./@title')(self)))
+                if m:
+                    if len(m) == 1:
+                        return DateTime(Regexp(CleanText('./@title'),
+                                               '\w* \w* (\d?\d \w* \d{4}) \w* \d{2}h\d{2} \w* (\d{2}h\d{2})',
+                                               '\\1 \\2'))(self)
+                    else:
+                        return DateTime(Regexp(Regexp(CleanText('./@title'),
+                                                      '(\w* \w* \d?\d \w* \d{4} \w* \d{2}h\d{2})', nth=-1),
+                                               '\w* \w* (\d?\d \w* \d{4}) \w* (\d{2}h\d{2})',
+                                               '\\1 \\2'))(self)
 
             def validate(self, obj):
                 return (self.is_valid_event(obj, self.env['city'], self.env['categories']) and
