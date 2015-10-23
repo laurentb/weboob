@@ -1,0 +1,147 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# vim: ft=python et softtabstop=4 cinoptions=4 shiftwidth=4 ts=4 ai
+
+
+# Copyright(C) 2009-2011  Romain Bignon
+#
+# This file is part of weboob.
+#
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
+
+import re
+import os
+import sys
+import inspect
+from datetime import datetime, timedelta
+
+import weboob.applications
+from weboob.tools.ordereddict import OrderedDict
+
+from weboob.tools.application.console import ConsoleApplication
+
+
+class Weboob(ConsoleApplication):
+
+    UPDATE_DAYS_DELAY = 20
+
+    def __init__(self):
+        ConsoleApplication.__init__(self)
+        self.update()
+
+        capApplicationDict = self.init_CapApplicationDict()
+
+        if len(sys.argv) >= 2:
+            cap = sys.argv.pop(1)
+            if cap not in capApplicationDict:
+                print('Unknown capability, please choose one in the following list')
+                cap = self.choose_capability(capApplicationDict)
+
+        else:
+            cap = self.choose_capability(capApplicationDict)
+
+        applications = capApplicationDict[cap]
+        application = applications[0] if len(applications) == 1 else self.choose_application(applications)
+        application.run()
+
+    def update(self):
+        for repository in self.weboob.repositories.repositories:
+            update_date = datetime.strptime(str(repository.update), '%Y%m%d%H%M')
+            if (datetime.now() - timedelta(days=self.UPDATE_DAYS_DELAY)) > update_date:
+                update = self.ask('The repositories have not been updated for %s days, do you want to update them ? (y/n)'
+                                  % self.UPDATE_DAYS_DELAY,
+                                  default='n')
+                if update.upper() == 'Y':
+                    self.weboob.repositories.update()
+                break
+
+    def choose_application(self, applications):
+        application = None
+        while not application:
+            for app in applications:
+                print('  %s%2d)%s %s: %s' % (self.BOLD,
+                                             applications.index(app) + 1,
+                                             self.NC,
+                                             app.APPNAME,
+                                             app.DESCRIPTION))
+            r = self.ask('  Select an application', regexp='(\d+|)', default='')
+            if not r.isdigit():
+                continue
+            r = int(r)
+            if r <= 0 or r > len(applications):
+                continue
+            application = applications[r - 1]
+        return application
+
+    def choose_capability(self, capApplicationDict):
+        cap = None
+        while cap not in capApplicationDict.keys():
+            for _cap in capApplicationDict.keys():
+                print('  %s%2d)%s %s' % (self.BOLD,
+                                         capApplicationDict.keys().index(_cap) + 1,
+                                         self.NC,
+                                         _cap))
+            r = self.ask('  Select a capability', regexp='(\d+|)', default='')
+            if not r.isdigit():
+                continue
+            r = int(r)
+            if r <= 0 or r > len(capApplicationDict.keys()):
+                continue
+            cap = capApplicationDict.keys()[r - 1]
+        return cap
+
+    def init_CapApplicationDict(self):
+        capApplicationDict = {}
+        for path in weboob.applications.__path__:
+            regexp = re.compile('^%s/([\w\d_]+)$' % path)
+            for root, dirs, files in os.walk(path):
+                m = regexp.match(root)
+                if not (m and '__init__.py' in files):
+                    continue
+
+                application = self.get_applicaction_from_filename(m.group(1))
+                if not application:
+                    continue
+
+                capabilities = self.get_application_capabilities(application)
+                if not capabilities:
+                    continue
+
+                for capability in capabilities:
+                    if capability in capApplicationDict:
+                        capApplicationDict[capability].append(application)
+                    else:
+                        capApplicationDict[capability] = [application]
+
+        return OrderedDict([(k, v) for k, v in sorted(capApplicationDict.iteritems())])
+
+    def get_application_capabilities(self, application):
+        if 'CAPS' in dir(application) and application.CAPS:
+            _capabilities = list(application.CAPS) if isinstance(application.CAPS, tuple) else [application.CAPS]
+            return [os.path.splitext(os.path.basename(inspect.getfile(x)))[0] for x in _capabilities]
+
+    def get_applicaction_from_filename(self, name):
+        module = 'weboob.applications.%s.%s' % (name, name)
+        try:
+            _module = __import__(module, fromlist=['*'])
+        except ImportError:
+            return
+
+        _application = [x for x in dir(_module) if x.lower() == name]
+        if _application:
+            return getattr(_module, _application[0])
+
+
+if __name__ == '__main__':
+    Weboob()
