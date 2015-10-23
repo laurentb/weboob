@@ -17,32 +17,29 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.deprecated.browser.decorators import id2url
-from weboob.deprecated.browser import Browser
-from .job import AdeccoJobAdvert
+from weboob.browser import PagesBrowser, URL
+
 from .pages import SearchPage, AdvertPage
+
 import urllib
 
 __all__ = ['AdeccoBrowser']
 
 
-class AdeccoBrowser(Browser):
-    PROTOCOL = 'http'
-    DOMAIN = 'www.adecco.fr'
-    ENCODING = None
+class AdeccoBrowser(PagesBrowser):
 
-    PAGES = {
-        '%s://%s/trouver-un-emploi/Pages/Offres-d-emploi.aspx?(.*)$' % (PROTOCOL, DOMAIN): SearchPage,
-        '%s://%s/trouver-un-emploi/Pages/Details-de-l-Offre/(.*?)/(.*?).aspx\?IOF=(.*?)$' % (PROTOCOL, DOMAIN): AdvertPage,
-    }
+    BASEURL = 'http://www.adecco.fr/'
+
+    search_page = URL('trouver-un-emploi/Pages/Offres-d-emploi.aspx\?(?P<query>.*)', SearchPage)
+    advert_page = URL('trouver-un-emploi/Pages/Details-de-l-Offre/(?P<part1>.*)/(?P<part2>.*).aspx\?IOF=(?P<part3>.*)',
+                      AdvertPage)
 
     def search_job(self, pattern=None):
-        self.location('%s://%s/trouver-un-emploi/Pages/Offres-d-emploi.aspx?keywords=%s'
-                      % (self.PROTOCOL, self.DOMAIN, pattern.replace(' ', '+')))
-        assert self.is_on_page(SearchPage)
-        return self.page.iter_job_adverts()
+        query = {'keywords': urllib.quote_plus(pattern)}
+        return self.search_page.go(query=urllib.urlencode(query)).iter_job_adverts()
 
-    def advanced_search_job(self, publication_date=None, contract_type=None, conty=None, region=None, job_category=None, activity_domain=None):
+    def advanced_search_job(self, publication_date=None, contract_type=None, conty=None, region=None, job_category=None,
+                            activity_domain=None):
         data = {
             'publicationDate': publication_date,
             'department': conty,
@@ -51,13 +48,10 @@ class AdeccoBrowser(Browser):
             'activityDomain': activity_domain,
             'contractTypes': contract_type,
         }
-        self.location('%s://%s/trouver-un-emploi/Pages/Offres-d-emploi.aspx?%s'
-                      % (self.PROTOCOL, self.DOMAIN, urllib.urlencode(data)))
-        assert self.is_on_page(SearchPage)
-        return self.page.iter_job_adverts()
+        return self.search_page.go(query=urllib.urlencode(data)).iter_job_adverts()
 
-    @id2url(AdeccoJobAdvert.id2url)
-    def get_job_advert(self, url, advert):
-        self.location(url)
-        assert self.is_on_page(AdvertPage)
-        return self.page.get_job_advert(url, advert)
+    def get_job_advert(self, _id, advert):
+        splitted_id = _id.split('/')
+        return self.advert_page.go(part1=splitted_id[0],
+                                   part2=splitted_id[1],
+                                   part3=splitted_id[2]).get_job_advert(obj=advert)

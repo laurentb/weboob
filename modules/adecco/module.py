@@ -21,9 +21,8 @@
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
-from weboob.capabilities.job import CapJob
+from weboob.capabilities.job import CapJob, BaseJobAdvert
 from .browser import AdeccoBrowser
-from .job import AdeccoJobAdvert
 
 __all__ = ['AdeccoModule']
 
@@ -276,9 +275,8 @@ class AdeccoModule(Module, CapJob):
                            )
 
     def search_job(self, pattern=None):
-        with self.browser:
-            for advert in self.browser.search_job(pattern):
-                yield advert
+        for advert in self.browser.search_job(pattern):
+            yield advert
 
     def decode_choice(self, place):
         splitted_choice = place.split('|')
@@ -302,10 +300,9 @@ class AdeccoModule(Module, CapJob):
             yield advert
 
     def get_job_advert(self, _id, advert=None):
-        with self.browser:
-            return self.browser.get_job_advert(_id, advert)
+        return self.browser.get_job_advert(_id, advert)
 
     def fill_obj(self, advert, fields):
-        self.get_job_advert(advert.id, advert)
+        return self.get_job_advert(advert.id, advert)
 
-    OBJECTS = {AdeccoJobAdvert: fill_obj}
+    OBJECTS = {BaseJobAdvert: fill_obj}
