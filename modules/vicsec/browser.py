@@ -92,11 +92,12 @@ class OrderPage(VicSecPage):
             pmt.date = self.order_date()
             pmt.method = unicode(method)
             pmt.amount = amsign * AmTr.decimal_amount(amount)
-            yield pmt
+            if pmt.method not in [u'Funds to be applied on backorder']:
+                yield pmt
 
     def items(self):
         for tr in self.doc.xpath('//tbody[@class="order-items"]/tr'):
-            label = tr.xpath('*//h1')[0].text_content()
+            label = tr.xpath('*//h1')[0].text_content().strip()
             price = AmTr.decimal_amount(re.match(r'^\s*([^\s]+)(\s+.*)?',
                 tr.xpath('*//div[@class="price"]')[0].text_content(),
                 re.DOTALL).group(1))
@@ -123,7 +124,7 @@ class OrderPage(VicSecPage):
         return self.payment_part(u'Shipping & Handling')
 
     def order_info(self, which):
-        info = self.doc.xpath('//p[@class="orderinfo details"]'
+        info = self.doc.xpath('//p[@class="orderinfo"]'
                              )[0].text_content()
         return re.match(u'.*%s:\\s+([^\\s]+)\\s'%which,info,re.DOTALL).group(1)
 
@@ -152,9 +153,9 @@ class OrderPage(VicSecPage):
 class VicSec(LoginBrowser):
     BASEURL = 'https://www.victoriassecret.com'
     login = URL(r'/account/signin/overlay$', LoginPage)
-    history = URL(r'/account/orderhistory$', HistoryPage)
-    order = URL(r'/account/orderdetails\?orderNumber=(?P<order_num>\d+)$',
-                r'/account/orderdetails.*$',
+    history = URL(r'/account/orderlist$', HistoryPage)
+    order = URL(r'/account/orderstatus/submit/view\?emailId=(?P<email>.*)&orderNumber=(?P<order_num>\d+)$',
+                r'/account/orderstatus.*$',
                 OrderPage)
     unknown = URL(r'/.*$', VicSecPage)
 
@@ -167,7 +168,8 @@ class VicSec(LoginBrowser):
 
     def iter_orders(self):
         for order in self.to_history().iter_orders():
-            yield self.to_order(order).order()
+            if not self.to_order(order).is_void():
+                yield self.page.order()
 
     def iter_payments(self, order):
         return self.to_order(order.id).payments()
@@ -183,15 +185,15 @@ class VicSec(LoginBrowser):
 
     @need_login
     def to_order(self, order_num):
-        self.order.stay_or_go(order_num=order_num)
-        assert self.order.is_here(order_num=order_num)
-        if self.page.is_void():
-            raise OrderNotFound()
+        self.order.stay_or_go(order_num=order_num, email=self.username.upper())
+        assert self.order.is_here(order_num=order_num,
+                                  email=self.username.upper())
         return self.page
 
     def do_login(self):
         self.session.cookies.clear()
         # Need to go there two times. Perhaps because of cookies...
+        self.location('/secureoverlay/wrapper/medium/account/signin/overlay/show')
         self.login.go()
         self.login.go().login(self.username, self.password)
         self.history.go()
