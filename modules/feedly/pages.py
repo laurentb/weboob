@@ -39,7 +39,8 @@ class ContentsPage(LoggedPage, JsonPage):
 
             obj_id = Format(u'%s#%s', CleanText(Dict('origin/streamId')), CleanText(Dict('id')))
             obj_sender = CleanText(Dict('author', default=u''))
-            obj_title = Format(u'%s - %s', CleanText(Dict('origin/title', default=u'')), CleanText(Dict('title')))
+            obj_title = Format(u'%s - %s', CleanText(Dict('origin/title', default=u'')),
+                               CleanText(Dict('title', default=u'')))
 
             def obj_date(self):
                 return datetime.fromtimestamp(Dict('published')(self.el) / 1e3)
