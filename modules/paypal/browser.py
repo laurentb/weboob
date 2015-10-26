@@ -87,7 +87,7 @@ class Paypal(LoginBrowser):
         self.open('/auth/verifychallenge', data=data)
         res = self.page.login(self.username, self.password)
 
-        if 'LoginFailed' in res.content or self.login.is_here() or self.error.is_here():
+        if 'LoginFailed' in res.content or 'Sorry, we can\'t log you in' in res.content or self.login.is_here() or self.error.is_here():
             raise BrowserIncorrectPassword()
 
         self.find_account_type()
