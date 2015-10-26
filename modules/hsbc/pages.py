@@ -26,7 +26,7 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
-from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, TableCell
+from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, TableCell, Regexp
 from weboob.browser.filters.html import Link
 
 
@@ -116,8 +116,10 @@ class CBOperationPage(LoggedPage, HTMLPage):
         class item(Transaction.TransactionElement):
             condition = lambda self: len(self.el.xpath('./td')) >= 4
 
-            obj_date = DateGuesser(CleanText(TableCell("date")), Env("date_guesser"))
-            obj_vdate = DateGuesser(CleanText(TableCell("date")), Env("date_guesser"))
+            obj_rdate = Transaction.Date(TableCell('date'))
+
+            def obj_date(self):
+                return DateGuesser(Regexp(CleanText(self.page.doc.xpath('//table/tr[2]/td[1]')), r'(\d{2}/\d{2})'), Env("date_guesser"))(self)
 
 
 class CPTOperationPage(LoggedPage, HTMLPage):

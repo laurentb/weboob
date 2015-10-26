@@ -19,7 +19,7 @@
 
 
 import ssl
-from datetime import timedelta
+from datetime import timedelta, date
 
 from weboob.tools.date import LinearDateGuesser
 from weboob.exceptions import BrowserIncorrectPassword
@@ -99,7 +99,7 @@ class HSBC(LoginBrowser):
                 self.accounts_list[a.id] = a
 
     @need_login
-    def get_history(self, account):
+    def get_history(self, account, coming=False):
         if account._link_id is None:
             return
 
@@ -114,15 +114,16 @@ class HSBC(LoginBrowser):
             self.update_accounts_list()
             self.location(self.accounts_list[account.id]._link_id)
 
-
         if self.page is None:
             return
 
         if self.cbPage.is_here():
             guesser = LinearDateGuesser(date_max_bump=timedelta(45))
-            return self.page.get_history(date_guesser=guesser)
-        else:
+            return [tr for tr in self.page.get_history(date_guesser=guesser) if (coming and tr.date > date.today()) or (not coming and tr.date <= date.today())]
+        elif not coming:
             return self._get_history()
+        else:
+            raise NotImplementedError()
 
     def _get_history(self):
         for tr in self.page.get_history():

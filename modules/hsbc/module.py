@@ -56,3 +56,7 @@ class HSBCModule(Module, CapBank):
     def iter_history(self, account):
         for tr in self.browser.get_history(account):
             yield tr
+
+    def iter_coming(self, account):
+        for tr in self.browser.get_history(account, coming=True):
+            yield tr
