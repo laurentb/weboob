@@ -49,8 +49,11 @@ class LifeInsuranceHistory(Page):
             yield operation
 
     def get_next_url(self):
-        selected = self.document.xpath('//div[@class="pagination"]/ul/li[@class="selected active"]/a')[0].attrib['href']
-        link = self.document.xpath('//div[@class="pagination"]/ul/li[@class="next"]/a')[0].attrib['href']
+        selected = self.document.xpath('//div[@class="pagination"]/ul/li[@class="selected active"]/a')
+        link = self.document.xpath('//div[@class="pagination"]/ul/li[@class="next"]/a')
+        if selected and link:
+            selected = selected[0].attrib['href']
+            link = link[0].attrib['href']
 
         if selected != link:
             return link
