@@ -100,9 +100,11 @@ class AccountsPage(LoggedPage, HTMLPage):
     TYPES = {'C/C':             Account.TYPE_CHECKING,
              'Livret':          Account.TYPE_SAVINGS,
              'Pret':            Account.TYPE_LOAN,
+             'Cic Immo':        Account.TYPE_LOAN,
              'Compte Courant':  Account.TYPE_CHECKING,
              'Compte Cheque':   Account.TYPE_CHECKING,
              'Compte Epargne':  Account.TYPE_SAVINGS,
+             'Plan D\'Epargne': Account.TYPE_SAVINGS,
             }
 
     @method
