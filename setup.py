@@ -132,6 +132,7 @@ def install_weboob():
         'requests>=2.0.0',
         'python-dateutil',
         'PyYAML',
+        'html2text>=3.200',
         'six',
     ]
     try:

@@ -17,35 +17,23 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import warnings
-
 from weboob.tools.compat import unicode
 
 __all__ = ['html2text']
 
 
-try:
-    from html2text import HTML2Text
+from html2text import HTML2Text
 
-    def html2text(html):
-        h = HTML2Text()
-        h.unicode_snob = True
-        h.skip_internal_links = True
-        h.inline_links = False
-        h.links_each_paragraph = True
-        return unicode(h.handle(html))
 
-except ImportError:
-    # Older versions of html2text do not have a class, so we have
-    # to configure the module globally.
-    try:
-        import html2text as h2t
-        h2t.UNICODE_SNOB = 1
-        h2t.SKIP_INTERNAL_LINKS = True
-        h2t.INLINE_LINKS = False
-        h2t.LINKS_EACH_PARAGRAPH = True
-        html2text = h2t.html2text
-    except ImportError:
-        def html2text(html):
-            warnings.warn('python-html2text is not present. HTML pages are not converted into text.', stacklevel=2)
-            return html
+def html2text(html, **options):
+    h = HTML2Text()
+    defaults = dict(
+        unicode_snob=True,
+        skip_internal_links=True,
+        inline_links=False,
+        links_each_paragraph=True,
+    )
+    defaults.update(options)
+    for k, v in defaults.items():
+        setattr(h, k, v)
+    return unicode(h.handle(html))
