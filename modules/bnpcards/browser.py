@@ -42,6 +42,7 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
     history = URL('/ce_internet_prive_ge/operationHisto.builder.do',
                    '/ce_internet_prive_ge/operationHisto.event.do', HistoPage)
     transactions = URL('ce_internet_prive_ge/operationEnCoursDetail.builder.do.*',
+                       'ce_internet_prive_ge/pageOperationEnCoursDetail.event.do.*',
                        'ce_internet_prive_ge/operationHistoDetail.builder.do.*',
                        TransactionsPage)
 
