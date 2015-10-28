@@ -86,7 +86,7 @@ class _AccountsPage(BasePage):
     TYPES = {'CCHQ':   Account.TYPE_CHECKING,
              'LIV A':  Account.TYPE_SAVINGS,
              'LDD':    Account.TYPE_SAVINGS,
-             'PEL':    Account.TYPE_MARKET,
+             'PEL':    Account.TYPE_SAVINGS,
              'PEA':    Account.TYPE_MARKET,
              'CPS':    Account.TYPE_MARKET,
              'TITR':   Account.TYPE_MARKET,
