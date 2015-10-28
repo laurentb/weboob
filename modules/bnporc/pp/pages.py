@@ -131,7 +131,7 @@ class LoginPage(JsonPage):
 
         response = self.browser.location(target, data={'AUTH': auth, 'CSRF': csrf})
         if response.url.startswith('https://pro.mabanque.bnpparibas'):
-            raise self.browser.ProAccount()
+            self.browser.switch('pro.mabanque')
         if response.url.startswith('https://banqueprivee.mabanque.bnpparibas'):
             self.browser.switch('banqueprivee.mabanque')
 

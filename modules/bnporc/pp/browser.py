@@ -82,14 +82,6 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     lifeinsurances_history = URL('mefav-wspl/rest/listMouvements', LifeInsurancesHistoryPage)
     lifeinsurances_detail = URL('mefav-wspl/rest/detailMouvement', LifeInsurancesDetailPage)
 
-    class ProAccount(Exception):
-        pass
-
-    def __init__(self, *args, **kwargs):
-        super(BNPParibasBrowser, self).__init__(*args, **kwargs)
-        self.switch('mabanque')
-        self.do_login()
-
     def switch(self, subdomain):
         self.BASEURL = self.BASEURL_TEMPLATE % subdomain
 
