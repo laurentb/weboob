@@ -104,7 +104,7 @@ class Downloadboob(object):
             if i == max_results:
                 break
 
-            self.backend.fill_video(video, ('url', 'title', 'url', 'duration', 'ext'))
+            self.backend.fillobj(video, ('url', 'title', 'url', 'duration', 'ext'))
             if not self.is_downloaded(video):
                 if not(self.is_excluded(video.title, title_exclude)) and self.id_regexp_matched(video.id, id_regexp):
                     print("  %s\n    Id:%s\n    Duration:%s" % (video.title, video.id, video.duration))
