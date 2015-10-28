@@ -56,6 +56,9 @@ class AccountsList(Page):
                             break
                         account.type = Account.TYPE_CARD
                         account.label, account.id = [s.strip() for s in self.parser.tocleanstring(td).rsplit('-', 1)]
+                        # Those cards immediately debits transactions on the linked checking account, so we ignore those accounts to avoid doubled transactions.
+                        if 'DEBIT IMMEDIAT' in account.label:
+                            break
 
                         # Sometimes there is text after the card number:
                         #   <a class="gras" href="/comptes/banque/cartes/index.phtml?CompteCourant=ulietuliedtlueditluedt&amp;currentCB=ruisecruicertuci">
