@@ -18,8 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser.exceptions import ServerError
 from weboob.exceptions import BrowserIncorrectPassword
-from .pages import LoginPage, HomePage, SendSMSPage, SendSMSErrorPage, BillsPage
+from .pages import BillsPage, HomePage, LoginPage, ProfilePage, SendSMSPage, SendSMSErrorPage
 
 from weboob.capabilities.messages import CantSendMessage
 
@@ -30,7 +31,8 @@ class BouyguesBrowser(LoginBrowser):
     BASEURL = 'https://www.mon-compte.bouyguestelecom.fr/'
     TIMEOUT = 20
 
-    billspage = URL('http://www.bouyguestelecom.fr/mon-compte/mes-factures', BillsPage)
+    bills = URL('http://www.bouyguestelecom.fr/mon-compte/mes-factures/historique\?no_reference=(?P<ref>)', BillsPage)
+    profile = URL('https://api-mc.bouyguestelecom.fr/client/me/header.json', ProfilePage)
     home = URL('http://www.bouyguestelecom.fr/mon-compte/', HomePage)
     login = URL('cas/login', LoginPage)
 
@@ -77,8 +79,16 @@ class BouyguesBrowser(LoginBrowser):
 
     @need_login
     def get_subscription_list(self):
-        return self.home.stay_or_go().get_list()
+        try:
+            # Informations are available in the header.json file.
+            # The only required field is the contract number
+            # which is available is the source of the homepage too.
+            # Possibly the json file contains more informations but
+            # he appears to be unavailable sometimes.
+            return self.profile.stay_or_go().get_list()
+        except ServerError:
+            return self.home.stay_or_go().get_list()
 
     @need_login
     def iter_bills(self, subscription):
-        return self.billspage.stay_or_go().get_bills(subid=subscription.id)
+        return self.bills.stay_or_go(ref=subscription._contract).get_bills(subid=subscription.id)

@@ -16,15 +16,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from decimal import Decimal
 import re
 
 from weboob.capabilities.messages import CantSendMessage
 
 from weboob.capabilities.bill import Bill, Subscription
-from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Date, Regexp
-from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
+from weboob.browser.filters.json import Dict
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Regexp
+from weboob.browser.elements import DictElement, ItemElement, ListElement, method
 
 
 class LoginPage(HTMLPage):
@@ -44,9 +44,33 @@ class HomePage(HTMLPage, LoggedPage):
             obj_label = CleanText('//span[@class="ecconumteleule"]')
             obj_subscriber = CleanText('//span[@class="economligneaseule eccobold"]')
             obj_id = Env('id')
+            obj__contract = Env('contract')
 
             def parse(self, el):
                 self.env['id'] = re.sub(r'[^\d\-\.]', '', el.xpath('//span[@class="ecconumteleule"]')[0].text)
+                self.env['contract'] = re.search("tc_vars\[\"ID_contrat\"\] = '([0-9]+)'", self.page.data).group(1)
+
+
+class ProfilePage(JsonPage, LoggedPage):
+    @method
+    class get_list(DictElement):
+        item_xpath = 'data/lignes'
+
+        class item(ItemElement):
+            klass = Subscription
+
+            obj_id = CleanText(Dict('num_ligne'))
+            obj__type = CleanText(Dict('type'))
+            obj_label = Env('label')
+            obj_subscriber = Format("%s %s %s", CleanText(Dict('civilite')),
+                                    CleanText(Dict('prenom')), CleanText(Dict('nom')))
+            obj__contract = Env('contract')
+
+            def parse(self, el):
+                # add spaces
+                number = iter(self.obj_id(el))
+                self.env['label'] = ' '.join(a+b for a, b in zip(number, number))
+                self.env['contract'] = re.search('\\"user_id\\":\\"([0-9]+)\\"', self.page.get('data.tag')).group(1)
 
 
 class SendSMSPage(HTMLPage):
@@ -70,22 +94,14 @@ class SendSMSErrorPage(HTMLPage):
 class BillsPage(HTMLPage):
     @method
     class get_bills(ListElement):
-        item_xpath = '//table[@class="ecconotif historique"]/tbody/tr'
+        item_xpath = '//div[@facture-id]'
 
         class item(ItemElement):
             klass = Bill
 
-            obj_id = Format('%s.%s', Env('subid'), Env('id'))
-            obj__id_bill = Env('id')
-            obj_date = Date(CleanText('./td[1]/span'), dayfirst=True)
+            obj__ref = CleanText('//input[@id="noref"]/@value')
+            obj_id = CleanText('./@facture-id')
+            obj_label = CleanText('./text()')
+            obj_price = CleanDecimal(CleanText('./span', replace=[(u' € ', '.')]))
             obj_format = u"pdf"
-            obj_price = Env('price')
-
-            def parse(self, el):
-                try:
-                    deci = Decimal(el.xpath('./td[2]//span[@class="priceCT"]')[0].text) / 100
-                except IndexError:
-                    deci = 0
-                self.env['price'] = Decimal(el.xpath('./td[2]/span')[0].text) + deci
-                onclick = el.xpath('.//td[@class="visuFacture"]/span/a/@onclick')[0]
-                self.env['id'] = re.findall(r'\d\d+', onclick)[0]
+            obj__url = Format('http://www.bouyguestelecom.fr/mon-compte/facture/download/index?id=%s', obj_id)

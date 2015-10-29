@@ -56,10 +56,10 @@ class BouyguesModule(Module, CapMessages, CapMessagesPost, CapBill):
         return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
 
     def get_bill(self, _id):
-        subid = _id.split('.')[0]
+        subid, billid = _id.split('.')
         subscription = self.get_subscription(subid)
 
-        return find_object(self.iter_bills(subscription), id=_id, error=BillNotFound)
+        return find_object(self.iter_bills(subscription), id=billid, error=BillNotFound)
 
     def iter_bills(self, subscription):
         if not isinstance(subscription, Subscription):
@@ -69,5 +69,4 @@ class BouyguesModule(Module, CapMessages, CapMessagesPost, CapBill):
     def download_bill(self, bill):
         if not isinstance(bill, Bill):
             bill = self.get_bill(bill)
-        return self.browser.open('http://www.bouyguestelecom.fr/mon-compte/suiviconso/index/facturepdf?id=%s' % bill._id_bill).content
-
+        return self.browser.open(bill._url).content
