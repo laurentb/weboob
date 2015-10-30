@@ -220,13 +220,20 @@ class AccountsList(LoggedPage, HTMLPage):
                     # <span data-sort="pm_value" class="pmvalue positive">NOT_A_NUMBER</span>
                     return self.obj.unitvalue
 
-                percent = CleanDecimal('.//span[has-class("pmvalue")]', replace_dots=True)(self)
+                if self.el.xpath('.//span[has-class("pmvalue")]')[0].text == u'+∞ %':
+                    percent = NotAvailable
+                    return NotAvailable
+                else:
+                    percent = CleanDecimal('.//span[has-class("pmvalue")]', replace_dots=True)(self)
                 return (self.obj.unitvalue / (1 + percent/Decimal('100.0'))).quantize(Decimal('1.00'))
 
             def obj_diff(self):
                 if not self.obj.quantity:
                     # Quantity of euro funds is null.
                     return Decimal('0.00')
+
+                if not self.obj.unitprice:
+                    return NotAvailable
 
                 return (self.obj.valuation - (self.obj.quantity * self.obj.unitprice)).quantize(Decimal('1.00'))
 
