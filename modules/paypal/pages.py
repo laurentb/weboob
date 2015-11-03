@@ -86,10 +86,10 @@ class AccountPage(LoggedPage, HTMLPage):
         primary_account = Account()
         primary_account.type = Account.TYPE_CHECKING
         try:
-            balance = CleanText('//div[contains(@class, "col-md-6")][contains(@class, "available")]')(content)
+            balance = CleanText('.')(content.xpath('//div[contains(@class, "col-md-6")][contains(@class, "available")]')[0])
         except IndexError:
             primary_account.id = 'EUR'
-            primary_account.currency = 'EUR'
+            primary_account.currency = u'EUR'
             primary_account.balance = NotAvailable
             primary_account.label = u'%s' % (self.browser.username)
         else:
