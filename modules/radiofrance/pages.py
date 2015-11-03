@@ -197,7 +197,13 @@ class RadioPage(HTMLPage):
 class JsonPage(JsonPage):
     @method
     class get_selection(DictElement):
-        item_xpath = 'diffusions'
+
+        def __init__(self, *args, **kwargs):
+            super(DictElement, self).__init__(*args, **kwargs)
+            if 'json_url' not in self.env or \
+               self.env['json_url'] != u'lecteur_commun_json/selection':
+                self.item_xpath = 'diffusions'
+
         ignore_duplicate = True
 
         class item(ItemElement):
