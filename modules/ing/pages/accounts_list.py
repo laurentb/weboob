@@ -202,7 +202,7 @@ class AccountsList(LoggedPage, HTMLPage):
             obj_label = CleanText('.//span[has-class("asv_cat_lbl")]')
             # XXX I would like to do that... but 1. CleanText doesn't deal with default 2. default values can't be filters yet
             #obj_code = Async('details') & CleanText('//li[contains(text(), "Code ISIN")]/span') | (Field('label') & Format('XX%s', Slugify))
-            obj_code = Async('details') & CleanText('//li[contains(text(), "Code ISIN")]/span')
+            obj_code = Async('details') & CleanText('//li[contains(text(), "Code ISIN")]/span[1]')
             obj_id = obj_code
             obj_description = Async('details') & CleanText('//h5')
             obj_quantity = CleanDecimal('.//dl[contains(dt/text(), "Nombre de parts")]/dd', replace_dots=True)
