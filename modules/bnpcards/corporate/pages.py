@@ -23,7 +23,7 @@ from dateutil.relativedelta import relativedelta
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, Field
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Field
 from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -92,7 +92,7 @@ class TransactionsPage(LoggedPage, HTMLPage):
             obj_rdate = FrenchTransaction.Date(CleanText('./td[1]'))
             obj_date = FrenchTransaction.Date(CleanText('./td[3]'))
             obj_raw = FrenchTransaction.Raw(CleanText('./td[2]'))
-            obj_amount = FrenchTransaction.Amount(CleanText('./td[5]'), replace_dots=False)
+            _obj_amnt = FrenchTransaction.Amount(CleanText('./td[5]'), replace_dots=False)
             obj_original_amount = FrenchTransaction.Amount(CleanText('./td[4]'), replace_dots=False)
             obj_original_currency = FrenchTransaction.Currency(CleanText('./td[4]'))
             obj_commission = FrenchTransaction.Amount(CleanText('./td[6]'), replace_dots=False)
@@ -101,6 +101,12 @@ class TransactionsPage(LoggedPage, HTMLPage):
                 if Field('date')(self) >= date.today():
                     return True
                 return
+
+            def obj_amount(self):
+                if not Field('obj_commission'):
+                    return Field('_obj_amnt')
+                else:
+                    return CleanDecimal(replace_dots=False).filter(self.el.xpath('./td[5]')) - CleanDecimal(replace_dots=False).filter(self.el.xpath('./td[6]'))
 
     def is_not_sorted(self, order='down'):
         translate = {'down':'bas','up':'bas'}
