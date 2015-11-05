@@ -401,7 +401,7 @@ class StandardBrowser(mechanize.Browser):
             return
 
     def lowsslcheck(self, domain, hsh):
-        if self.INSECURE or (self.logger is not None and self.logger.settings['ssl_insecure']):
+        if self.INSECURE or (self.logger is not None and self.logger.settings['ssl_insecure']) or self.proxy is not None:
             return
         certhash = self._certhash(domain)
         if self.logger:
