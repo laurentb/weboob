@@ -61,7 +61,9 @@ class BnpcartesentrepriseModule(Module, CapBank):
         return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)
 
     def iter_accounts(self):
-        return self.browser.iter_accounts()
+        for acc in self.browser.iter_accounts():
+            acc._bisoftcap = {'all': {'softcap_day':5,'day_for_softcap':100}}
+            yield acc
 
     def iter_coming(self, account):
         return self.browser.get_coming(account)
