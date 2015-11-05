@@ -22,7 +22,7 @@ from datetime import date
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, Field
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Field
 from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
