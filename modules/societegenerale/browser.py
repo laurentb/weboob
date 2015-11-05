@@ -44,11 +44,8 @@ class SocieteGenerale(Browser):
              'https://.*.societegenerale.fr/lgn/url.html.*':AccountHistory,
             }
 
-    def __init__(self, *args, **kwargs):
-        self.lowsslcheck(self.DOMAIN_LOGIN, self.CERTHASH_LOGIN)
-        Browser.__init__(self, *args, **kwargs)
-
     def home(self):
+        self.lowsslcheck(self.DOMAIN_LOGIN, self.CERTHASH_LOGIN)
         self.location('https://' + self.DOMAIN_LOGIN + '/index.html')
 
     def is_logged(self):
