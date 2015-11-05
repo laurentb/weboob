@@ -18,17 +18,17 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.video import CapVideo
+from weboob.capabilities.video import CapVideo, BaseVideo
+from weboob.capabilities.audio import CapAudio, BaseAudio, decode_id
+
 from weboob.tools.backend import Module
 
 from .browser import InaBrowser
-from .video import InaVideo
-
 
 __all__ = ['InaModule']
 
 
-class InaModule(Module, CapVideo):
+class InaModule(Module, CapVideo, CapAudio):
     NAME = 'ina'
     MAINTAINER = u'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
@@ -41,18 +41,28 @@ class InaModule(Module, CapVideo):
         return self.browser.get_video(_id)
 
     def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
-        with self.browser:
-            return self.browser.search_videos(pattern)
+        return self.browser.search_videos(pattern)
 
-    def fill_video(self, video, fields):
-        if fields != ['thumbnail']:
+    def fill_media(self, media, fields):
+        if fields != ['thumbnail'] and fields != ['url']:
             # if we don't want only the thumbnail, we probably want also every fields
-            with self.browser:
-                video = self.browser.get_video(video.id, video)
-        if 'thumbnail' in fields and video.thumbnail:
-            with self.browser:
-                video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
+            if isinstance(media, BaseVideo):
+                media = self.browser.get_video(media.id, media)
+            else:
+                _id = BaseAudio.decode_id(media.id)
+                media = self.browser.get_audio(_id, media)
+        if 'url' in fields and not media.url:
+            _id = BaseAudio.decode_id(media.id) if isinstance(media, BaseAudio) else media.id
+            media.url = self.browser.get_media_url(_id)
+        if 'thumbnail' in fields and media.thumbnail:
+            media.thumbnail.data = self.browser.open(media.thumbnail.url).content
+        return media
 
-        return video
+    def search_audio(self, pattern, sortby=CapAudio.SEARCH_RELEVANCE):
+        return self.browser.search_audio(pattern)
 
-    OBJECTS = {InaVideo: fill_video}
+    @decode_id(BaseAudio.decode_id)
+    def get_audio(self, _id):
+        return self.browser.get_audio(_id)
+
+    OBJECTS = {BaseVideo: fill_media, BaseAudio: fill_media}

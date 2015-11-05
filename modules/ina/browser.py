@@ -18,29 +18,41 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser
-from weboob.deprecated.browser.decorators import id2url
-
-from .pages.video import VideoPage
-from .pages.search import SearchPage
-from .video import InaVideo
-
+from weboob.browser import PagesBrowser, URL
+from .pages import SearchPage, MediaPage, RssPage
 
 __all__ = ['InaBrowser']
 
 
-class InaBrowser(Browser):
-    DOMAIN = 'ina.fr'
-    PAGES = {'http://player.ina.fr/notices/.+\.mrss': (VideoPage, 'xml'),
-             'http://boutique\.ina\.fr/recherche/.+': SearchPage,
-             }
+class InaBrowser(PagesBrowser):
+    BASEURL = 'http://www.ina.fr/'
 
-    @id2url(InaVideo.id2url)
-    def get_video(self, url, video=None):
-        self.location(url)
-        return self.page.get_video(video)
+    search_page = URL('layout/set/ajax/recherche/result\?q=(?P<pattern>.*)&autopromote=&b=(?P<first_item>.*)&type=(?P<type>(Audio|Video))&r=', SearchPage)
+    media_page = URL('/(?P<type>(audio|video))/(?P<_id>.*)', MediaPage)
+    rss_page = URL('https://player.ina.fr/notices/(?P<_id>.*).mrss', RssPage)
+
+    def get_video(self, _id, video=None):
+        if not video:
+            video = self.media_page.go(_id=_id, type='video').get_video(obj=video)
+
+        video.url = self.get_media_url(_id)
+        return video
+
+    def get_media_url(self, _id):
+        return self.rss_page.go(_id=_id).get_media_url()
 
     def search_videos(self, pattern):
-        self.location(self.buildurl('http://boutique.ina.fr/recherche/recherche', search=pattern.encode('utf-8')))
-        assert self.is_on_page(SearchPage)
-        return self.page.iter_videos()
+        return self.search_page.go(pattern=pattern.encode('utf-8'),
+                                   type='Video',
+                                   first_item='0').iter_videos()
+
+    def get_audio(self, _id, audio=None):
+        if not audio:
+            audio = self.media_page.go(_id=_id, type='audio').get_audio(obj=audio)
+        audio.url = self.get_media_url(_id)
+        return audio
+
+    def search_audio(self, pattern):
+        return self.search_page.go(pattern=pattern.encode('utf-8'),
+                                   type='Audio',
+                                   first_item='0').iter_audios()

@@ -17,17 +17,23 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+import itertools
 from weboob.tools.test import BackendTest
 
 
 class INATest(BackendTest):
     MODULE = 'ina'
 
-    def test_ina(self):
-        l = list(self.backend.search_videos('chirac'))
+    def test_video_ina(self):
+        l = list(itertools.islice(self.backend.search_videos('chirac'), 0, 20))
         self.assertTrue(len(l) > 0)
-        v = l[0]
-        self.backend.fillobj(v, ('url',))
+        v_id = l[0].id
+        v = self.backend.get_video(v_id)
         self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
-        self.backend.browser.openurl(v.url)
+
+    def test_audio_ina(self):
+        l = list(itertools.islice(self.backend.search_audio('chirac'), 0, 20))
+        self.assertTrue(len(l) > 0)
+        a_id = l[0].id
+        a = self.backend.get_audio(a_id)
+        self.assertTrue(a.url and a.url.startswith('http://'), 'URL for video "%s" not found: %s' % (a.id, a.url))
