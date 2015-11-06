@@ -96,8 +96,8 @@ class LoginPage(HTMLPage):
         form = self.get_form('//form[@id="formulaire-login"]')
         code = vk.get_string_code(password)
         assert len(code)==10, ParseError("Wrong number of character.")
-        form['identifiant'] = login
-        form['code'] = code
+        form['accordirect.identifiant'] = login
+        form['accordirect.code'] = code
         form.submit()
 
 
