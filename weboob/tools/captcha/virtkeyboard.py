@@ -189,7 +189,7 @@ class MappedVirtKeyboard(VirtKeyboard):
         for area in map.getiterator("area"):
             code = area.attrib.get(map_attr)
             area_coords = []
-            for coord in area.attrib.get("coords").split(','):
+            for coord in area.attrib.get("coords").split(' ')[0].split(','):
                 area_coords.append(int(coord))
             coords[code] = tuple(area_coords)
 
