@@ -159,24 +159,13 @@ class ProHistoryPage(HistoryPage, JsonPage):
 
 
 class PartHistoryPage(HistoryPage, JsonPage):
-    def on_load(self):
-        self.browser.is_new_api = self.doc['viewName'] == 'activityBeta/index'
-
     def transaction_left(self):
-        if self.browser.is_new_api:
-            return self.doc['data']['activity']['hasTransactionsCompleted'] or self.doc['data']['activity']['hasTransactionsPending']
-        return len(self.doc['data']['activity']['COMPLETED']) > 0 or len(self.doc['data']['activity']['PENDING']) > 0
+        return self.doc['data']['activity']['hasTransactionsCompleted'] or self.doc['data']['activity']['hasTransactionsPending']
 
     def get_transactions(self):
-        if self.browser.is_new_api:
-            transacs = self.doc['data']['activity']['transactions']
-        else:
-            for status in ['PENDING', 'COMPLETED']:
-                transacs = list()
-                transacs += self.doc['data']['activity'][status]
-        return transacs
+            return self.doc['data']['activity']['transactions']
 
-    def parse_new_api_transaction(self, transaction, account):
+    def parse_transaction(self, transaction, account):
         t = FrenchTransaction(transaction['id'])
         if not transaction['isPrimaryCurrency']:
             cc = self.browser.convert_amount(account, transaction, transaction['detailsLink'])
@@ -188,28 +177,6 @@ class PartHistoryPage(HistoryPage, JsonPage):
         else:
             t.amount = self.format_amount(transaction['amounts']['net']['value'], transaction['isCredit'])
         date = parse_french_date(transaction['date']['formattedDate'] + ' ' + transaction['date']['year'])
-        raw = transaction.get('counterparty', transaction['displayType'])
-        t.parse(date=date, raw=raw)
-
-        return t
-
-    def parse_transaction(self, transaction, account):
-        if self.browser.is_new_api:
-            return self.parse_new_api_transaction(transaction, account)
-
-        t = FrenchTransaction(transaction['transactionId'])
-        date = parse_french_date(transaction['date'])
-        if not transaction['txnIsInPrimaryCurrency']:
-            cc = self.browser.convert_amount(account, transaction, transaction['actions']['details']['url'])
-            if not cc:
-                return
-            t.original_amount = self.format_amount(transaction['netAmount'], transaction["isCredit"])
-            t.original_currency = u'' + transaction["currencyCode"]
-            t.amount = self.format_amount(cc, transaction['isCredit'])
-        elif 'netAmount' in transaction:
-            t.amount = self.format_amount(transaction['netAmount'], transaction["isCredit"])
-        else:
-            return
         raw = transaction.get('counterparty', transaction['displayType'])
         t.parse(date=date, raw=raw)
 

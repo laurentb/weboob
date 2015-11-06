@@ -62,7 +62,6 @@ class Paypal(LoginBrowser):
 
     BEGINNING = datetime.date.today() - relativedelta(months=24)
     account_type = None
-    is_new_api = False
 
     def find_account_type(self):
         try:
@@ -108,11 +107,7 @@ class Paypal(LoginBrowser):
     def get_personal_history(self, account):
         s = self.BEGINNING.strftime('%Y-%m-%d')
         e = datetime.date.today().strftime('%Y-%m-%d')
-        s_ = self.BEGINNING.strftime('%d/%m/%Y')
-        e_ = datetime.date.today().strftime('%d/%m/%Y')
         self.location('https://www.paypal.com/myaccount/activity/filter?transactionType=ALL&startDate=' + s + '&endDate=' + e, headers={'Accept' : 'application/json'})
-        if not self.is_new_api:
-            self.location('https://www.paypal.com/myaccount/activity/filter?typeFilter=all&isNewSearch=true&startDate=' + s_ + '&endDate=' + e_ + '&limit=9999')
         if self.page.transaction_left():
             return self.page.iter_transactions(account)
         return iter([])
