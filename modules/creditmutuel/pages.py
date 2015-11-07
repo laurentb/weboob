@@ -354,10 +354,14 @@ class PorPage(LoggedPage, HTMLPage):
             for a in accounts:
                 if a.id.startswith(ele.attrib['value']):
                     a._is_inv = True
+                    a.type = Account.TYPE_MARKET
                     break
             else:
                 acc = Account()
                 acc.id = ele.attrib['value']
+                if acc.id == '9999':
+                    # fake account
+                    continue
                 acc.label = unicode(re.sub("\d", '', ele.text).strip())
                 acc._link_id = None
                 acc.type = Account.TYPE_MARKET

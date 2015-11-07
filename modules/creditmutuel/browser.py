@@ -75,8 +75,9 @@ class CreditMutuelBrowser(LoginBrowser):
                       '/(?P<subbank>.*)/fr/banque/paci_engine/static_content_manager.aspx',
                       '/(?P<subbank>.*)/fr/banque/DELG_Gestion.*',
                       EmptyPage)
-    por =         URL('/(?P<subbank>.*)/fr/banque/POR_SyntheseLst.aspx',
-                      '/(?P<subbank>.*)/fr/banque/POR_ValoToute.aspx', PorPage)
+    por =         URL('/(?P<subbank>.*)/fr/banque/POR_ValoToute.aspx',
+                      '/(?P<subbank>.*)/fr/banque/POR_SyntheseLst.aspx',
+                      PorPage)
     iban =        URL('/(?P<subbank>.*)/fr/banque/rib.cgi', IbanPage)
 
 
