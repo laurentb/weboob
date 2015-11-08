@@ -114,8 +114,11 @@ class LCLBrowser(LoginBrowser):
     @need_login
     def get_accounts_list(self):
         self.assurancevie.stay_or_go()
-        for a in self.page.get_list():
-            yield a
+        if self.no_perm.is_here():
+            self.logger.warning('Life insurances are unavailable.')
+        else:
+            for a in self.page.get_list():
+                yield a
         self.accounts.stay_or_go()
         accounts = list()
         for acc in self.page.get_list():
