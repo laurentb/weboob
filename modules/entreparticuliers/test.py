@@ -28,7 +28,7 @@ class EntreparticuliersTest(BackendTest):
     def test_entreparticuliers(self):
         query = Query()
         query.cities = []
-        for city in self.backend.search_city('lille'):
+        for city in self.backend.search_city('paris'):
             city.backend = self.backend.name
             query.cities.append(city)
 

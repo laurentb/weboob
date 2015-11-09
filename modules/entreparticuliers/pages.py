@@ -36,7 +36,8 @@ class CitiesPage(JsonPage):
             klass = City
 
             def condition(self):
-                return Dict('id', default=None)(self)
+                return Dict('id', default=None)(self) and\
+                    Dict('localisationType')(self) == u'ville'
 
             obj_id = Dict('id')
             obj_name = Dict('libelle')

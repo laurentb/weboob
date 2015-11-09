@@ -36,8 +36,8 @@ class EntreparticuliersBrowser(PagesBrowser):
     def search_city(self, pattern):
         return self.cities.open(pattern=pattern).iter_cities()
 
-    TYPES = {Query.TYPE_RENT: '1',
-             Query.TYPE_SALE: '4'
+    TYPES = {Query.TYPE_RENT: 1,
+             Query.TYPE_SALE: 4
              }
 
     RET = {Query.TYPE_RENT: {Query.HOUSE_TYPES.HOUSE: '2',
@@ -68,13 +68,13 @@ class EntreparticuliersBrowser(PagesBrowser):
             data = {}
             data['rubrique'] = self.TYPES.get(type)
             data['ach_id'] = None
-            data['FromMoteur'] = "true"
+            data['FromMoteur'] = True
 
             for bien in biens:
                 if bien['Idchoix'] == int(id_type):
                     data['lstSSTbien'] = bien['SsTypebien']
-                    data['lstTbien'] = bien['TypeBien']
-                    data['caracteristique'] = bien['Idchoix']
+                    data['lstTbien'] = u'%s' % bien['TypeBien']
+                    data['Caracteristique'] = bien['Idchoix']
 
             data['OrigineAlerte'] = "SaveSearchMoteurHome"
             data['pays'] = "fra"
@@ -82,13 +82,36 @@ class EntreparticuliersBrowser(PagesBrowser):
             data['prix_max'] = cost_max if cost_max and cost_max > 0 else None
             data['lstThemes'] = ""
 
-            min_rooms = nb_rooms if nb_rooms and nb_rooms > 1 else 1
-            max_rooms = 5
-            if min_rooms == 1 and max_rooms == 5:
-                data['lstNbPieces'] = 0
+            min_rooms = nb_rooms if nb_rooms else None
+            max_rooms = 5 if min_rooms else None
+            if not min_rooms:
+                data['lstNbPieces'] = u'0'
             else:
-                data['lstNbPieces'] = ','.join('%s' % n for n in range(min_rooms, max_rooms + 1))
+                data['lstNbPieces'] = ','.join('%s' % n for n in range(min_rooms, 6))
 
+            data['Neuf'] = False
+            data['EnCours'] = False
+            data['IsMarket'] = None
+            data['Kilometrage'] = 0
+            data['VehiculeAnnee'] = 0
+            data['idalerte'] = 0
+            data['questionnaire'] = False
+            data['Criteres_supplementaires'] = None
+            data['financement'] = None
+            data['Keyword'] = None
+            data['categorielabel'] = None
+            data['souscategorielabel'] = None
+            data['lstLocalisationIdExtended'] = None
+            data['IsVilleMereUniqueSearch'] = False
+            data['titre_alerte'] = None
+            data['nb_annonces'] = 0
+            data['extended_nb_annonces'] = 0
+            data['vitrine'] = None
+            data['Capacite'] = None
+            data['CapaciteMin'] = None
+            data['CapaciteMax'] = None
+            data['SmsSend'] = False
+            data['lstCategorie'] = None
             data['lstNbChambres'] = None
             data['surface_min'] = area_min if area_min else None
             # var modes = { "all": -1, "ville": 5, "region": 2, "departement": 4, "pays": 1, "regionUsuelle": 3 };
@@ -98,12 +121,14 @@ class EntreparticuliersBrowser(PagesBrowser):
             data['nbpiecesMax'] = max_rooms
             data['rayon'] = 0
             data['localisation_id_rayon'] = None
+            data['listLocalisationExclues'] = None
+            data['lstLocalisationIdRayon'] = None
             data['lstLocalisationId'] = ','.join(cities)
             data['photos'] = 0
             data['colocation'] = ''
             data['meuble'] = ''
             data['pageNumber'] = 1
-            data['order_by'] = 5
+            data['order_by'] = 1
             data['sort_order'] = 1
             data['top'] = 25
             data['SaveSearch'] = "false"
@@ -111,6 +136,7 @@ class EntreparticuliersBrowser(PagesBrowser):
             data['GSMUser'] = ""
 
             self.search.go(data="{'p_SearchParams':'%s'}" % json.dumps(data))
+
             for item in self.search_result.go().iter_housings():
                 yield item
 
