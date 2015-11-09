@@ -101,8 +101,8 @@ class CmbModule(Module, CapBank):
             }
 
         try:
-            self.browser.open("https://www.cmb.fr/domiweb/servlet/Identification", allow_redirects=False, data=data)
-            self.browser.open("https://www.cmb.fr/domiweb/prive/particulier/releve/0-releve.act")
+            self.browser.open("https://www.cmb.fr/domiweb/servlet/Identification", data=data)
+            self.browser.open("https://www.cmb.fr/domiweb/prive/espacesegment/selectionnerAbonnement/0-selectionnerAbonnement.act")
         except BrowserHTTPError:
             raise BrowserIncorrectPassword()
         else:
