@@ -103,6 +103,7 @@ class AccountsPage(LoggedPage, HTMLPage):
              'Cic Immo':        Account.TYPE_LOAN,
              'Compte Courant':  Account.TYPE_CHECKING,
              'Compte Cheque':   Account.TYPE_CHECKING,
+             'Start':           Account.TYPE_CHECKING,
              'Compte Epargne':  Account.TYPE_SAVINGS,
              'Plan D\'Epargne': Account.TYPE_SAVINGS,
             }
