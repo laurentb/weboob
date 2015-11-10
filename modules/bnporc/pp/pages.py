@@ -22,6 +22,7 @@ import re
 from cStringIO import StringIO
 from random import randint
 from decimal import Decimal
+from datetime import datetime
 
 from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
@@ -301,7 +302,7 @@ class LifeInsurancesHistoryPage(BNPPage):
 
             tr = Transaction.from_dict({
                 'type': Transaction.TYPE_BANK,
-                'state': op.get('statut'),
+                '_state': op.get('statut'),
                 'amount': op.get('montantNet'),
                 })
 
@@ -316,3 +317,46 @@ class LifeInsurancesHistoryPage(BNPPage):
 
 class LifeInsurancesDetailPage(LifeInsurancesPage):
     investments_path = 'data.detailMouvement.listeSupport.*'
+
+
+class MarketListPage(BNPPage):
+    def get_list(self):
+        return self.get('securityAccountsList') or []
+
+
+class MarketPage(BNPPage):
+    investments_path = 'listofPortfolios.*'
+
+    def iter_investments(self):
+        for support in self.path(self.investments_path):
+            inv = Investment()
+            inv.code = inv.id = support['securityCode']
+            inv.quantity = support['quantityOwned']
+            inv.unitvalue = support['currentQuote']
+            inv.unitprice = support['averagePrice']
+            inv.label = support['securityName']
+            inv.valuation = support['valorizationValuation']
+            inv.diff = support['profitLossValorisation']
+            inv.set_empty_fields(NotAvailable)
+            yield inv
+
+
+class MarketHistoryPage(BNPPage):
+    def iter_history(self):
+        for op in self.get('contentList') or []:
+
+            tr = Transaction.from_dict({
+                'type': Transaction.TYPE_BANK,
+                'amount': op.get('movementAmount'),
+                'date': datetime.fromtimestamp(op.get('movementDate') / 1000),
+                'label': op.get('operationName'),
+                })
+
+            tr.investments = []
+            inv = Investment()
+            inv.code = op.get('securityCode')
+            inv.quantity = op.get('movementQuantity')
+            inv.label = op.get('securityName')
+            inv.set_empty_fields(NotAvailable)
+            tr.investments.append(inv)
+            yield tr

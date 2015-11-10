@@ -27,7 +27,7 @@ from weboob.tools.json import json
 
 from .pages import LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, TransferInitPage, \
                    ConnectionThresholdPage, LifeInsurancesPage, LifeInsurancesHistoryPage, \
-                   LifeInsurancesDetailPage
+                   LifeInsurancesDetailPage, MarketListPage, MarketPage, MarketHistoryPage
 
 
 __all__ = ['BNPPartPro', 'HelloBank']
@@ -80,6 +80,10 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     lifeinsurances_history = URL('mefav-wspl/rest/listMouvements', LifeInsurancesHistoryPage)
     lifeinsurances_detail = URL('mefav-wspl/rest/detailMouvement', LifeInsurancesDetailPage)
 
+    market_list = URL('pe-war/rpc/SAVaccountDetails/get', MarketListPage)
+    market = URL('pe-war/rpc/portfolioDetails/get', MarketPage)
+    market_history = URL('/pe-war/rpc/turnOverHistory/get', MarketHistoryPage)
+
     def do_login(self):
         timestamp = lambda: int(time.time() * 1e3)
         self.login.go(timestamp=timestamp())
@@ -102,6 +106,15 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     def iter_history(self, account, coming=False):
         if account.type == account.TYPE_LIFE_INSURANCE:
             return self.iter_lifeinsurance_history(account, coming)
+        elif account.type == account.TYPE_MARKET and not coming:
+            self.page = self.market_list.go(data=JSON({}))
+            for market_acc in self.page.get_list():
+                if account.label == market_acc['securityAccountName']:
+                    self.page = self.market_history.go(data=JSON({
+                        "securityAccountNumber": market_acc['securityAccountNumber'],
+                    }))
+                    return self.page.iter_history()
+            return iter([])
         else:
             self.page = self.history.go(data=JSON({
                 "ibanCrypte": account.id,
@@ -135,10 +148,20 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
 
     @need_login
     def iter_investment(self, account):
-        self.page = self.lifeinsurances.go(data=JSON({
-            "ibanCrypte": account.id,
-        }))
-        return self.page.iter_investments()
+        if account.type == account.TYPE_LIFE_INSURANCE:
+            self.page = self.lifeinsurances.go(data=JSON({
+                "ibanCrypte": account.id,
+            }))
+            return self.page.iter_investments()
+        elif account.type == account.TYPE_MARKET:
+            self.page = self.market_list.go(data=JSON({}))
+            for market_acc in self.page.get_list():
+                if account.label == market_acc['securityAccountName']:
+                    self.page = self.market.go(data=JSON({
+                        "securityAccountNumber": market_acc['securityAccountNumber'],
+                    }))
+                    return self.page.iter_investments()
+        return iter([])
 
     @need_login
     def get_transfer_accounts(self):
