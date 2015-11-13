@@ -66,7 +66,8 @@ class SearchResultsPage(HTMLPage):
                                   '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
 
             def obj_date(self):
-                _date = CleanText('./div[@class="header-annonce"]/span[@class="date"]')(self)
+                _date = Regexp(CleanText('./div[@class="header-annonce"]/span[@class="date"]'),
+                               '.* / (.*)')(self)
                 return parse_french_date(_date)
 
             obj_station = CleanText('./div/div/div[@cladd=metro]', default=NotAvailable)
