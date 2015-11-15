@@ -23,7 +23,8 @@ import re
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
 from .pages.login import LoginPage
-from .pages.accounts_list import GlobalAccountsList, AccountsList, AccountHistoryPage, InvestmentHistoryPage, PeaHistoryPage
+from .pages.accounts_list import GlobalAccountsList, AccountsList, AccountHistoryPage, CardHistoryPage, \
+                                 InvestmentHistoryPage, PeaHistoryPage
 
 __all__ = ['Fortuneo']
 
@@ -35,14 +36,15 @@ class Fortuneo(Browser):
     CERTHASH = ['4ff0301115f80f18c4e81a136ca28829b46d416d404174945b1ae48abd0634e2']
     ENCODING = None # refer to the HTML encoding
     PAGES = {
-            '.*identification\.jsp.*' :                                                         LoginPage,
+            '.*identification\.jsp.*':                                                         LoginPage,
 
-            '.*prive/default\.jsp.*' :                                                          AccountsList,
-            '.*/prive/mes-comptes/synthese-mes-comptes\.jsp' :                                  AccountsList,
-            '.*/prive/mes-comptes/synthese-globale/synthese-mes-comptes\.jsp' :                 GlobalAccountsList,
+            '.*prive/default\.jsp.*':                                                          AccountsList,
+            '.*/prive/mes-comptes/synthese-mes-comptes\.jsp':                                  AccountsList,
+            '.*/prive/mes-comptes/synthese-globale/synthese-mes-comptes\.jsp':                 GlobalAccountsList,
 
-            '.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp.*' :          AccountHistoryPage,
-            '.*/prive/mes-comptes/compte-courant/consulter-situation/consulter-solde\.jsp.*' :  AccountHistoryPage,
+            '.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp.*':           AccountHistoryPage,
+            '.*/prive/mes-comptes/compte-courant/consulter-situation/consulter-solde\.jsp.*':   AccountHistoryPage,
+            '.*/prive/mes-comptes/compte-courant/carte-bancaire/encours-debit-differe\.jsp.*':  CardHistoryPage,
             '.*/prive/mes-comptes/compte-titres-.*':                                            PeaHistoryPage,
             '.*/prive/mes-comptes/assurance-vie.*':                                             InvestmentHistoryPage,
             '.*/prive/mes-comptes/pea.*':                                                       PeaHistoryPage,
@@ -100,7 +102,14 @@ class Fortuneo(Browser):
         if self.page.select_period():
             return self.page.get_operations(account)
 
-        return ([])
+        return iter([])
+
+    def get_coming(self, account):
+        for cb_link in account._card_links:
+            self.location('https://' + self.DOMAIN_LOGIN + cb_link)
+
+            for tr in self.page.get_operations(account):
+                yield tr
 
     def get_accounts_list(self):
         """accounts list"""
@@ -114,9 +123,7 @@ class Fortuneo(Browser):
         """Get an account from its ID"""
 
         assert isinstance(id, basestring)
-        l = self.get_accounts_list()
-
-        for a in l:
+        for a in list(self.get_accounts_list()):
             if a.id == id:
                 return a
 

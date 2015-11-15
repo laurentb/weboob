@@ -36,18 +36,8 @@ class FortuneoModule(Module, CapBank):
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Fortuneo'
     CONFIG = BackendConfig(
-                ValueBackendPassword(
-                        'login',
-                        label='Identifiant',
-                        masked=False,
-                        required=True
-                ),
-                ValueBackendPassword(
-                        'password',
-                        label='Mot de passe',
-                        required=True
-                )
-    )
+                ValueBackendPassword('login',     label='Identifiant', masked=False, required=True),
+                ValueBackendPassword('password',  label='Mot de passe', required=True))
     BROWSER = Fortuneo
 
     def create_default_browser(self):
@@ -71,6 +61,9 @@ class FortuneoModule(Module, CapBank):
     def iter_history(self, account):
         """Iter history of transactions on a specific account"""
         return self.browser.get_history(account)
+
+    def iter_coming(self, account):
+        return self.browser.get_coming(account)
 
     def iter_investment(self, account):
         return self.browser.get_investments(account)

@@ -27,9 +27,10 @@ from dateutil.relativedelta import relativedelta
 
 from mechanize import FormNotFoundError
 
+from weboob.browser.filters.standard import CleanText
+from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.deprecated.browser import Page, BrowserIncorrectPassword
-from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.json import json
 
@@ -95,7 +96,7 @@ class PeaHistoryPage(Page):
     def select_period(self):
         return True
 
-    def get_operations(self, _id):
+    def get_operations(self, account):
         return iter([])
 
 
@@ -144,7 +145,7 @@ class InvestmentHistoryPage(Page):
         self.browser.submit()
         return True
 
-    def get_operations(self, _id):
+    def get_operations(self, account):
         for tr in self.document.xpath('//table[@id="tableau_histo_opes"]/tbody/tr'):
             tds = tr.findall('td')
 
@@ -169,7 +170,7 @@ class AccountHistoryPage(Page):
         return True
 
 
-    def get_operations(self, _id):
+    def get_operations(self, account):
         """history, see http://docs.weboob.org/api/capabilities/bank.html?highlight=transaction#weboob.capabilities.bank.Transaction"""
 
         # TODO need to rewrite that with FrenchTransaction class http://tinyurl.com/6lq4r9t
@@ -199,6 +200,28 @@ class AccountHistoryPage(Page):
             operation.set_amount(amount)
 
             yield operation
+
+
+class CardHistoryPage(Page):
+    def get_investments(self):
+        return iter([])
+
+    def select_period(self):
+        return True
+
+    def get_operations(self, account):
+        for op in self.document.xpath('//table[@id="tableauEncours"]/tbody/tr'):
+            rdate =  self.parser.tocleanstring(op.xpath('./td[1]')[0])
+            date =   self.parser.tocleanstring(op.xpath('./td[2]')[0])
+            raw =    self.parser.tocleanstring(op.xpath('./td[3]')[0])
+            credit = self.parser.tocleanstring(op.xpath('./td[4]')[0])
+            debit =  self.parser.tocleanstring(op.xpath('./td[5]')[0])
+
+            tr = Transaction()
+            tr.parse(date=date, raw=raw)
+            tr.rdate = tr.parse_date(rdate)
+            tr.set_amount(credit, debit)
+            yield tr
 
 
 class AccountsList(Page):
@@ -240,50 +263,44 @@ class AccountsList(Page):
     def need_sms(self):
         return len(self.document.xpath('//div[@id="aidesecuforte"]'))
 
-    ACCOUNT_TYPES = {'mes-comptes/compte-courant':    Account.TYPE_CHECKING,
-                     'mes-comptes/assurance-vie':     Account.TYPE_LIFE_INSURANCE,
-                     'mes-comptes/livret':            Account.TYPE_SAVINGS,
-                     'mes-comptes/pea':               Account.TYPE_MARKET,
-                     'mes-comptes/compte-titres':     Account.TYPE_MARKET,
+    ACCOUNT_TYPES = {'mes-comptes/compte-courant/consulter-situation': Account.TYPE_CHECKING,
+                     'mes-comptes/compte-courant/carte-bancaire':      Account.TYPE_CARD,
+                     'mes-comptes/assurance-vie':                      Account.TYPE_LIFE_INSURANCE,
+                     'mes-comptes/livret':                             Account.TYPE_SAVINGS,
+                     'mes-comptes/pea':                                Account.TYPE_MARKET,
+                     'mes-comptes/compte-titres':                      Account.TYPE_MARKET,
                     }
     def get_list(self):
-        for cpt in self.document.xpath(".//*[@class='synthese_id_compte']"):
+        account = None
+
+        for cpt in self.document.xpath('//a[@class="synthese_id_compte" or @class="synthese_carte_differe"]'):
+            url_to_parse = cpt.xpath('@href')[0].replace("\n", "")  # link
+            # account._link_id = lien vers historique d'un compte (courant ou livret)
+            if '/mes-comptes/livret/' in url_to_parse:
+                compte_id_re = re.compile(r'.*\?(.*)$')
+                link_id = '/fr/prive/mes-comptes/livret/consulter-situation/consulter-solde.jsp?%s' % \
+                    (compte_id_re.search(url_to_parse).groups()[0])
+            else:
+                link_id = url_to_parse
+
+            number = cpt.xpath('./span[@class="synthese_numero_compte"]')
+            if len(number) == 0:
+                account._card_links.append(link_id)
+                continue
+
             account = Account()
+            account.id = self.parser.tocleanstring(number[0]).replace(u'N°', '')
 
-            # account.id
-            account.id = cpt.xpath("./span[1]/text()")[0].replace(u"\xa0", "").replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xb0", '').replace(" ", "").replace('N', '')
-
-            # account balance
             try:
-                balance = cpt.xpath("./span[2]/text()")[0]
+                balance = self.parser.tocleanstring(cpt.xpath('./span[contains(@class, "synthese_solde")]')[0])
             except IndexError:
                 continue
 
             account.balance = Decimal(Transaction.clean_amount(balance))
             account.currency = account.get_currency(balance)
-
-            # account coming TODO
-            #mycomingval = cpt.xpath("../../following-sibling::*[1]/td[2]/a[@class='lien_synthese_encours']/span/text()")[0].replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xa0", "")
-            #mycomingval = cpt.xpath("../../following-sibling::*[1]/td[2]")[0]
-            #mycomingval = cpt.xpath("./../../../a[@class='lien_synthese_encours']/span[@class='synthese_encours']/text()")[0].replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xa0", "")
-
-            #if mycomingval == '-':
-            #    account.coming = Decimal(0)
-            #else:
-            #    account.coming = Decimal(mycomingval)
-
-            url_to_parse = cpt.xpath('@href')[0].replace("\n", "")  # link
-
-            # account._link_id = lien vers historique d'un compte (courant of livret)
-            if '/mes-comptes/livret/' in url_to_parse:
-                compte_id_re = re.compile(r'.*\?(.*)$')
-                account._link_id = '/fr/prive/mes-comptes/livret/consulter-situation/consulter-solde.jsp?%s' % \
-                    (compte_id_re.search(url_to_parse).groups()[0])
-            else:
-                account._link_id = url_to_parse
-
-            # account.label
-            account.label = cpt.xpath('./text()')[1].replace(u'-\xa0', '').replace("\n", "").replace("\t", "")
+            account._link_id = link_id
+            account._card_links = []
+            account.label = (' '.join([CleanText.clean(part) for part in cpt.xpath('./text()')])).strip(' - ').strip()
 
             for pattern, type in self.ACCOUNT_TYPES.iteritems():
                 if pattern in account._link_id:
@@ -294,5 +311,3 @@ class AccountsList(Page):
 
 class GlobalAccountsList(Page):
     pass
-
-# vim:ts=4:sw=4
