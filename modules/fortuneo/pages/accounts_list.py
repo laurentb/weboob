@@ -220,6 +220,7 @@ class CardHistoryPage(Page):
             tr = Transaction()
             tr.parse(date=date, raw=raw)
             tr.rdate = tr.parse_date(rdate)
+            tr.type = tr.TYPE_CARD
             tr.set_amount(credit, debit)
             yield tr
 
