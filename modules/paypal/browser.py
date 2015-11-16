@@ -50,6 +50,7 @@ class Paypal(LoginBrowser):
                HomePage)
     error = URL('/auth/validatecaptcha$', ErrorPage)
     history_details = URL('https://\w+.paypal.com/cgi-bin/webscr\?cmd=_history-details-from-hub&id=[\-A-Z0-9]+$',
+                          'https://\w+.paypal.com/myaccount/transaction/details/[\-A-Z0-9]+$',
                           HistoryDetailsPage)
     promo = URL('https://www.paypal.com/fr/webapps/mpp/clickthru/paypal-app-promo-2.*', PromoPage)
     account = URL('https://www.paypal.com/businessexp/money', AccountPage)
