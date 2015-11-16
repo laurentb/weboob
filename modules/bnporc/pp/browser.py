@@ -24,6 +24,7 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import AccountNotFound
 from weboob.tools.json import json
+from weboob.browser.exceptions import ServerError
 
 from .pages import LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, TransferInitPage, \
                    ConnectionThresholdPage, LifeInsurancesPage, LifeInsurancesHistoryPage, \
@@ -157,9 +158,14 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
             self.page = self.market_list.go(data=JSON({}))
             for market_acc in self.page.get_list():
                 if account.label == market_acc['securityAccountName']:
-                    self.page = self.market.go(data=JSON({
-                        "securityAccountNumber": market_acc['securityAccountNumber'],
-                    }))
+                    # Sometimes generate an Internal Server Error ...
+                    try:
+                        self.page = self.market.go(data=JSON({
+                            "securityAccountNumber": market_acc['securityAccountNumber'],
+                        }))
+                    except ServerError:
+                        self.logger.warning("An Internal Server Error occured")
+                        break
                     return self.page.iter_investments()
         return iter([])
 
