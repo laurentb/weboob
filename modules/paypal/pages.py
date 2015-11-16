@@ -137,7 +137,7 @@ class ProHistoryPage(HistoryPage, JsonPage):
         return self.doc['data']['transactions']
 
     def parse_transaction(self, transaction, account):
-        if transaction['transactionStatus'] in [u'Créé', u'Annulé', u'Suspendu', u'Mis à jour', u'Actif', u'Payé', u'En attente', u'Rejeté']:
+        if transaction['transactionStatus'] in [u'Créé', u'Annulé', u'Suspendu', u'Mis à jour', u'Actif', u'Payé', u'En attente', u'Rejeté', u'Expiré']:
             return
         if transaction['transactionDescription'].startswith('Offre de remboursement'):
             return
