@@ -21,7 +21,7 @@ from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env, DateTime, BrowserURL, Format
 from weboob.browser.filters.html import Attr, Link, CleanHTML
-from weboob.capabilities.housing import City, Housing, HousingPhoto
+from weboob.capabilities.housing import City, Housing, HousingPhoto, Query
 from weboob.capabilities.base import NotAvailable
 from datetime import date, timedelta
 from weboob.tools.date import DATE_TRANSLATE_FR, LinearDateGuesser
@@ -57,11 +57,13 @@ class HousingListPage(HTMLPage):
     # def get_rooms_max(self, asked_rooms):
     #     return self.find_select_value(asked_rooms, '//select[@id="roe"]/option')
 
-    def get_cost_min(self, asked_cost):
-        return self.find_select_value(asked_cost, '//select[@id="ps"]/option')
+    def get_cost_min(self, asked_cost, _type):
+        _id = "ps" if _type == Query.TYPE_SALE else "mrs"
+        return self.find_select_value(asked_cost, '//select[@id="%s"]/option' % _id)
 
-    def get_cost_max(self, asked_cost):
-        return self.find_select_value(asked_cost, '//select[@id="pe"]/option')
+    def get_cost_max(self, asked_cost, _type):
+        _id = "pe" if _type == Query.TYPE_SALE else "mre"
+        return self.find_select_value(asked_cost, '//select[@id="%s"]/option' % _id)
 
     def find_select_value(self, ref_value, selector):
         select = {}

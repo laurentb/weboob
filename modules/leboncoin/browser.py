@@ -25,7 +25,7 @@ from .pages import CityListPage, HousingListPage, HousingPage
 class LeboncoinBrowser(PagesBrowser):
     BASEURL = 'http://www.leboncoin.fr/'
     city = URL('ajax/location_list.html\?city=(?P<city>.*)&zipcode=(?P<zip>.*)', CityListPage)
-    search = URL('(?P<type>.*)/offres/(?P<region>.*)/occasions/\?ps=(?P<ps>.*)&pe=(?P<pe>.*)&ros=(?P<ros>.*)&location=(?P<location>.*)&sqs=(?P<sqs>.*)&sqe=(?P<sqe>.*)&ret=(?P<ret>.*)&f=(?P<advert_type>.*)',
+    search = URL('(?P<type>.*)/offres/(?P<region>.*)/occasions/\?(?P<_ps>ps|mrs)=(?P<ps>.*)&(?P<_pe>pe|mre)=(?P<pe>.*)&ros=(?P<ros>.*)&location=(?P<location>.*)&sqs=(?P<sqs>.*)&sqe=(?P<sqe>.*)&ret=(?P<ret>.*)&f=(?P<advert_type>.*)',
                  '(?P<_type>.*)/offres/(?P<_region>.*)/occasions.*?',
                  HousingListPage)
     housing = URL('ventes_immobilieres/(?P<_id>.*).htm', HousingPage)
@@ -60,7 +60,9 @@ class LeboncoinBrowser(PagesBrowser):
                               ros=nb_rooms,
                               sqs=area_min,
                               sqe=area_max,
+                              _ps="mrs" if query.type == Query.TYPE_RENT else "ps",
                               ps=cost_min,
+                              _pe="mre" if query.type == Query.TYPE_RENT else "pe",
                               pe=cost_max,
                               type=type,
                               advert_type=advert_type,
@@ -88,7 +90,7 @@ class LeboncoinBrowser(PagesBrowser):
         nb_rooms = '' if not query.nb_rooms else self.page.get_rooms_min(query.nb_rooms)
         area_min = '' if not query.area_min else self.page.get_area_min(query.area_min)
         area_max = '' if not query.area_max else self.page.get_area_max(query.area_max)
-        cost_min = '' if not query.cost_min else self.page.get_cost_min(query.cost_min)
-        cost_max = '' if not query.cost_max else self.page.get_cost_max(query.cost_max)
+        cost_min = '' if not query.cost_min else self.page.get_cost_min(query.cost_min, query.type)
+        cost_max = '' if not query.cost_max else self.page.get_cost_max(query.cost_max, query.type)
 
         return _type, ','.join(cities), nb_rooms, area_min, area_max, cost_min, cost_max, '&ret='.join(ret)
