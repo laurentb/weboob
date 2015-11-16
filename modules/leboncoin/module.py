@@ -86,6 +86,6 @@ class LeboncoinModule(Module, CapHousing):
         return self.browser.get_cities(pattern)
 
     def search_housings(self, query):
-        return self.browser.search_housings(query, self.config['advert_type'].get())
+        return self.browser.search_housings(query, self.config['advert_type'].get(), self.name)
 
     OBJECTS = {Housing: fill_housing, HousingPhoto: fill_photo}
