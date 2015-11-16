@@ -108,10 +108,23 @@ class Paypal(LoginBrowser):
     def get_personal_history(self, account):
         s = self.BEGINNING.strftime('%Y-%m-%d')
         e = datetime.date.today().strftime('%Y-%m-%d')
-        self.location('https://www.paypal.com/myaccount/activity/filter?transactionType=ALL&startDate=' + s + '&endDate=' + e, headers={'Accept' : 'application/json'})
-        if self.page.transaction_left():
-            return self.page.iter_transactions(account)
-        return iter([])
+        data = {'transactionType':  'ALL',
+                'timeFrame':        '90',
+                'nextPageToken':    '',
+                'freeTextSearch':   '',
+                'startDate':        s,
+                'endDate':          e,
+               }
+        # The response is sometimes not the one we expect.
+        for i in xrange(3):
+            try:
+                self.location('https://www.paypal.com/myaccount/activity/filter?%s' % urllib.urlencode(data), headers={'Accept' : 'application/json, text/javascript, */*; q=0.01'})
+                if self.page.transaction_left():
+                    return self.page.iter_transactions(account)
+                return iter([])
+            except KeyError as e:
+                self.logger.warning("retrying to get activity ...")
+        raise e
 
     @need_login
     def get_download_history(self, account, step_min=None, step_max=None):
