@@ -36,7 +36,7 @@ from weboob.capabilities.bank import Transfer, TransferError
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
                    OperationsPage, CardPage, ComingPage, NoOperationsPage, \
                    TransfertPage, ChangePasswordPage, VerifCodePage,       \
-                   EmptyPage, PorPage, IbanPage
+                   EmptyPage, PorPage, IbanPage, NewHomePage
 
 
 __all__ = ['CreditMutuelBrowser']
@@ -80,8 +80,17 @@ class CreditMutuelBrowser(LoginBrowser):
                       PorPage)
     iban =        URL('/(?P<subbank>.*)/fr/banque/rib.cgi', IbanPage)
 
+    new_home =    URL('/fr/banque/pageaccueil.html',
+                      '/fr/banque/welcome_pack.html', NewHomePage)
+    new_accounts = URL('/fr/banque/comptes-et-contrats.html', AccountsPage)
+    new_operations = URL('/fr/banque/mouvements.cgi',
+                         '/fr/banque/mouvements.html', OperationsPage)
+    new_por = URL('/fr/banque/POR_ValoToute.aspx',
+                  '/fr/banque/POR_SyntheseLst.aspx', PorPage)
+    new_iban = URL('/fr/banque/rib.cgi', IbanPage)
 
     currentSubBank = None
+    is_new_website = False
 
     __states__ = ['currentSubBank']
 
@@ -97,16 +106,22 @@ class CreditMutuelBrowser(LoginBrowser):
             if not self.page.logged or self.login_error.is_here():
                 raise BrowserIncorrectPassword()
 
-
-        self.getCurrentSubBank()
+        if not self.is_new_website:
+            self.getCurrentSubBank()
 
     @need_login
     def get_accounts_list(self):
         accounts = []
-        for a in self.accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts():
-            accounts.append(a)
-        self.iban.go(subbank=self.currentSubBank).fill_iban(accounts)
-        self.por.go(subbank=self.currentSubBank).add_por_accounts(accounts)
+        if not self.is_new_website:
+            for a in self.accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts():
+                accounts.append(a)
+            self.iban.go(subbank=self.currentSubBank).fill_iban(accounts)
+            self.por.go(subbank=self.currentSubBank).add_por_accounts(accounts)
+        else:
+            for a in self.new_accounts.stay_or_go().iter_accounts():
+                accounts.append(a)
+            self.new_iban.go().fill_iban(accounts)
+            self.new_por.go().add_por_accounts(accounts)
         return accounts
 
     def get_account(self, id):
@@ -124,8 +139,10 @@ class CreditMutuelBrowser(LoginBrowser):
     def list_operations(self, page_url):
         if page_url.startswith('/') or page_url.startswith('https'):
             self.location(page_url)
-        else:
+        elif not self.is_new_website:
             self.location('%s/%s/fr/banque/%s' % (self.BASEURL, self.currentSubBank, page_url))
+        else:
+            self.location('%s/fr/banque/%s' % (self.BASEURL, page_url))
 
         if not self.operations.is_here():
             return iter([])
@@ -170,12 +187,17 @@ class CreditMutuelBrowser(LoginBrowser):
 
     def get_investment(self, account):
         if account._is_inv:
-            self.por.go(subbank=self.currentSubBank)
+            if not self.is_new_website:
+                self.por.go(subbank=self.currentSubBank)
+            else:
+                self.new_por.go()
             self.page.send_form(account)
             return self.page.iter_investment()
         return iter([])
 
     def transfer(self, account, to, amount, reason=None):
+        if self.is_new_website:
+            raise NotImplementedError()
         # access the transfer page
         self.transfert.go(subbank=self.currentSubBank)
 

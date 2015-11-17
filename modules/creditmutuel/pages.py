@@ -38,6 +38,10 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_french_date
 
 
+class NewHomePage(LoggedPage, HTMLPage):
+    def on_load(self):
+        self.browser.is_new_website = True
+
 class LoginPage(HTMLPage):
     REFRESH_MAX = 10.0
 
@@ -167,11 +171,14 @@ class AccountsPage(LoggedPage, HTMLPage):
                     raise ParseError('Unable to find balance for account %s' % CleanText('./td[1]/a')(el))
 
                 self.env['_is_webid'] = False
-                if 'rib' in p:
-                    id = p['rib'][0]
+                if self.page.browser.is_new_website:
+                    id = CleanText('./td[1]/a/node()[contains(@class, "doux")]', replace=[(' ', '')])(el)
                 else:
-                    id = p['webid'][0]
-                    self.env['_is_webid'] = True
+                    if 'rib' in p:
+                        id = p['rib'][0]
+                    else:
+                        id = p['webid'][0]
+                        self.env['_is_webid'] = True
 
                 # Handle cards
                 if id in self.parent.objects:
@@ -409,5 +416,9 @@ class IbanPage(LoggedPage, HTMLPage):
                 if a._is_webid:
                     if a.label in CleanText('.//div[1]')(ele).title():
                         a.iban = CleanText('.//div[5]/em', replace=[(' ', '')])(ele)
-                elif a.id[:-3] in CleanText('.//div[3]/em', replace=[(' ','')])(ele).title():
-                    a.iban = CleanText('.//div[5]/em', replace=[(' ', '')])(ele)
+                elif self.browser.is_new_website:
+                    if a.id in CleanText('.//div[5]/em', replace=[(' ','')])(ele).title():
+                        a.iban = CleanText('.//div[5]/em', replace=[(' ', '')])(ele)
+                else:
+                    if a.id[:-3] in CleanText('.//div[5]/em', replace=[(' ','')])(ele).title():
+                        a.iban = CleanText('.//div[5]/em', replace=[(' ', '')])(ele)
