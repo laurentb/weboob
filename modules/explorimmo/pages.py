@@ -138,7 +138,7 @@ class HousingPage2(JsonPage):
             return details
 
     def get_total_page(self):
-        return self.doc.get('pagination').get('total')
+        return self.doc.get('pagination').get('total') if 'pagination' in self.doc else 0
 
 
 class HousingPage(HTMLPage):
