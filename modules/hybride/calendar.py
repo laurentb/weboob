@@ -30,4 +30,4 @@ class HybrideCalendarEvent(BaseCalendarEvent):
         self.transp = TRANSP.TRANSPARENT
         self.status = STATUS.CONFIRMED
         self.category = CATEGORIES.CINE
-        self.timezone = 'Europe/Paris'
+        self.timezone = u'Europe/Paris'

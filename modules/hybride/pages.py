@@ -62,7 +62,7 @@ class ProgramPage(HTMLPage):
                 return (not self.env['categories'] or obj.category in self.env['categories'])
 
             obj_id = Regexp(Link('div/div[@class="catItemHeader"]/h3[@class="catItemTitle"]/a'),
-                            '/programme/item/(.*?).html')
+                            '/programme/item/(\d*?)-.*.html')
             obj_start_date = Date(CleanText('div/div[@class="catItemHeader"]/span[@class="catItemDateCreated"]'))
             obj_summary = CleanText('div/div[@class="catItemHeader"]/h3[@class="catItemTitle"]/a')
 
