@@ -187,7 +187,7 @@ class HistoryDetailsPage(LoggedPage, HTMLPage):
         find_td = self.doc.xpath('//td[contains(text(),"' + account.currency + '")] | //dd[contains(text(),"' + account.currency + '")]')
         if len(find_td) > 0 :
             convert_td = unicode(find_td[0].text)
-            m = re.search(u'([^\xa0]*)[\xa0 ]' + account.currency, convert_td)
+            m = re.search(u'(^|\xa0| )([^\xa0^ ]*)[\xa0 ]' + account.currency, convert_td)
             if m:
                 return m.group(1)
         return False
