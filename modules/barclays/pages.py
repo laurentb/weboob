@@ -108,6 +108,7 @@ class AccountsPage(Page):
                     continue
 
                 account = None
+                card_account = None
                 attribs = {}
                 account_type = Account.TYPE_UNKNOWN
                 for line in text.split('\n'):
@@ -132,12 +133,21 @@ class AccountsPage(Page):
                             account._card_links = []
 
                             if account.id.endswith('CRT'):
-                                a = accounts[-1]
-                                a._card_links.append(account._link)
-                                if not a.coming:
-                                    a.coming = Decimal('0.0')
-                                a.coming += account.balance
+                                if not len(accounts):
+                                    card_account = account
+                                else:
+                                    a = accounts[-1]
+                                    a._card_links.append(account._link)
+                                    if not a.coming:
+                                        a.coming = Decimal('0.0')
+                                    a.coming += account.balance
                             else:
+                                if card_account:
+                                    account._card_links.append(card_account._link)
+                                    if not account.coming:
+                                        account.coming = Decimal('0.0')
+                                    account.coming += card_account.balance
+                                    card_account = None
                                 accounts.append(account)
                             account = None
 
