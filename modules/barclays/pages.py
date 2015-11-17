@@ -49,7 +49,7 @@ class Login2Page(Page):
             letters += secret[int(n) - 1]
 
         self.browser.select_form(name='frmControl')
-        self.browser['word'] = letters
+        self.browser['word'] = letters.encode(self.browser.ENCODING)
         self.browser.submit(name='valider', nologin=True)
 
 
@@ -142,6 +142,17 @@ class AccountsPage(Page):
                                         a.coming = Decimal('0.0')
                                     a.coming += account.balance
                             else:
+                                if 'COURANT' in account.label:
+                                    account.type = account.TYPE_CHECKING
+                                elif account.id.endswith('TTR'):
+                                    account.type = account.TYPE_MARKET
+                                elif re.match('^\d+C$', account.id):
+                                    account.type = account.TYPE_LIFE_INSURANCE
+                                elif re.match('^\d+PRT$', account.id):
+                                    account.type = account.TYPE_LOAN
+                                elif not account.type:
+                                    account.type = account.TYPE_SAVINGS
+
                                 if card_account:
                                     account._card_links.append(card_account._link)
                                     if not account.coming:
