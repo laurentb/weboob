@@ -189,5 +189,5 @@ class HistoryDetailsPage(LoggedPage, HTMLPage):
             convert_td = unicode(find_td[0].text)
             m = re.search(u'(^|\xa0| )([^\xa0^ ]*)[\xa0 ]' + account.currency, convert_td)
             if m:
-                return m.group(1)
+                return m.group(2)
         return False
