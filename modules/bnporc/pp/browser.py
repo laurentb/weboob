@@ -70,6 +70,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
                 'https://mabanqueprivee.bnpparibas.net/fr/espace-prive/comptes-et-contrats\?u=%2FSEEA-pa01%2FdevServer%2Fseeaserver',
                 LoginPage)
     con_threshold = URL('/fr/connexion/100-connexions',
+                        '/fr/connexion/mot-de-passe-expire',
                         '/fr/espace-prive/100-connexions.*',
                         '/fr/espace-pro/100-connexions-pro.*',
                         '/fr/systeme/page-indisponible', ConnectionThresholdPage)
