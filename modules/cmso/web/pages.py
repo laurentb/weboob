@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
 import datetime
 
 from weboob.browser.pages import HTMLPage, pagination
@@ -31,12 +32,29 @@ from ..transaction import Transaction
 __all__ = ['LoginPage']
 
 
+class ChoiceLinkPage(HTMLPage):
+    def on_load(self):
+        link_line = self.doc.xpath('//script')[-1].text
+        m = re.search(r'lien\("(.*)"', link_line)
+        if m:
+            self.browser.location(m.group(1))
+
+class WebsiteChoosePage(HTMLPage):
+    def on_load(self):
+        for div in self.doc.xpath('//div[@class="listeAbonnementsBox"]'):
+            site_type = div.xpath('./div[1]')[0].text
+            if site_type == 'Professionnel':
+                link = div.xpath('./div[2]')[0].attrib['onclick']
+                m = re.search(r"href='(.*)'", link)
+                if m:
+                    self.browser.location(m.group(1))
+
 class LoginPage(HTMLPage):
     def login(self, username, password):
         form = self.get_form('//form[@id="formAuth"]')
 
         form['noPersonne'] = username
-        form['motDePasse'] = password
+        form['motDePasse'] = password[:16]
 
         form.submit()
 
