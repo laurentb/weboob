@@ -43,7 +43,8 @@ __all__ = ['Citibank']
 class SomePage(HTMLPage):
     @property
     def logged(self):
-        return bool(self.doc.xpath(u'//a[text()="Sign Off"]'))
+        return bool(self.doc.xpath(u'//a[text()="Sign Off"]') +
+            self.doc.xpath(u'//div[@id="CardsLoadingDiv"]'))
 
 
 class IndexPage(SomePage):
@@ -171,6 +172,8 @@ class Citibank(LoginBrowser):
     TIMEOUT = 30.0
     index = URL(r'/US/JPS/portal/Index.do', IndexPage)
     signon = URL(r'/US/JSO/signon/ProcessUsernameSignon.do', SomePage)
+    accdetailhtml = URL(u'/US/NCPS/accountdetailactivity/flow.action.*$',
+                        SomePage)
     accounts = URL(r'/US/REST/accountsPanel'
                    r'/getCustomerAccounts.jws\?ttc=(?P<ttc>.*)$',
                    AccountsPage)
