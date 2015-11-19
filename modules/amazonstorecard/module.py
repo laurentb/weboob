@@ -36,14 +36,19 @@ class AmazonStoreCardModule(Module, CapBank):
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Amazon Store Card'
     CONFIG = BackendConfig(
-        ValueBackendPassword('userid', label='User ID', masked=False),
+        ValueBackendPassword('username', label='User ID', masked=False),
         ValueBackendPassword('password', label='Password'),
-        ValueBackendPassword('challengeanswer1',
-            label='Challenge answer 1', masked=False))
+        ValueBackendPassword('phone',
+            label='Phone to send verification code to', masked=False),
+        ValueBackendPassword('code_file',
+            label='File to read the verification code from', masked=False))
     BROWSER = AmazonStoreCard
 
     def create_default_browser(self):
-        return self.create_browser(config = self.config)
+        return self.create_browser(username = self.config['username'].get(),
+                                   password = self.config['password'].get(),
+                                   phone = self.config['phone'].get(),
+                                   code_file = self.config['code_file'].get())
 
     def iter_accounts(self):
         return self.browser.iter_accounts()

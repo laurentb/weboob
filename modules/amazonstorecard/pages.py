@@ -26,42 +26,32 @@ from weboob.tools.date import closest_date
 from weboob.tools.pdf import decompress_pdf
 from weboob.tools.tokenizer import ReTokenizer
 from datetime import datetime, timedelta
+import re
 
 
 class SomePage(HTMLPage):
     @property
     def logged(self):
-        return bool(self.doc.xpath('//span[@class="logoutBtn"]'))
-
-
-class LoginPage(SomePage):
-    INPUTS = ['userId', 'password', 'challengeAnswer1']
-
-    is_here = '//form[@name="consumerLoginForm"]'
-
-    def proceed(self, config):
-        form = self.get_form(name='consumerLoginForm')
-        for inp in (i for i in self.INPUTS if i in form):
-            form[inp] = config[inp.lower()].get()
-        form.submit()
-        return self.browser.page
+        return bool(self.doc.xpath(u'//a[text()="Logout"]'))
 
 
 class SummaryPage(SomePage):
-    DATA = {'subActionId': '1201', 'clientId': 'amazon',
-            'accountType': 'plcc', 'langId': 'en'}
-
     def account(self):
-        label = u' '.join(u''.join(self.doc.xpath(
-            u'//text()[contains(.,"Account ending in")]')).split())
-        balance = self.doc.xpath(
-            '//span[@id="currentBalance"]/..')[0].text_content()
-        cardlimit = self.doc.xpath(u'//td[contains(text(),'
-            '"Total Credit Limit")]/../td[2]')[0].text_content()
-        paydate = self.doc.xpath(u'//td[contains(text(),'
-            '"Payment Due Date")]/../td[2]')[0].text_content()
-        paymin = self.doc.xpath(
-            '//span[@id="nextMinPayment"]/..')[0].text_content()
+        label = u' '.join(self.doc.xpath(
+            '//div[contains(@class,"myCreditCardDetails")]')[0]\
+            .text_content().split())
+        balance = self.amount(u'Balance')
+        cardlimit = self.doc.xpath(
+            u'//li[text()="Available to Spend"]')[0].text_content()\
+            .replace(u'Available to Spend', u'').replace(u'Limit', u'').strip()
+        paymin = self.amount(u'Payment Due')
+        if self.doc.xpath(u'//li[@class="noPaymentDue"]'):
+            # If payment date is not scheduled yet, set it somewhere in a
+            # distant future, so that we always have a valid date.
+            paydate = datetime.now() + timedelta(days=999)
+        else:
+            #TODO: parse it
+            paydate = None
         a = Account()
         a.id = label[-4:]
         a.label = label
@@ -69,50 +59,31 @@ class SummaryPage(SomePage):
         a.balance = -AmTr.decimal_amount(balance)
         a.type = Account.TYPE_CARD
         a.cardlimit = AmTr.decimal_amount(cardlimit)
-        a.paydate = datetime.strptime(paydate, '%m/%d/%Y')
         a.paymin = AmTr.decimal_amount(paymin)
+        if paydate is not None:
+            a.paydate = paydate
         return a
 
-
-class RecentPage(XMLPage):
-    DATA = {'subActionId': '1300', 'requestType': 'ajaxReq'}
-
-    def iter_transactions(self):
-        for ntrans in reversed(self.doc.xpath('//TRANSACTION')):
-            desc = u' '.join(ntrans.xpath(
-                'TRANSDESCRIPTION/text()')[0].split())
-            tdate = u''.join(ntrans.xpath('TRANSACTIONDATE/text()'))
-            pdate = u''.join(ntrans.xpath('POSTDATE/text()'))
-            # Skip transactions which are not posted,
-            # because they are not accounted for in balance calculation.
-            if not pdate:
-                continue
-            t = Transaction()
-            t.date = datetime.strptime(tdate, '%m/%d/%Y')
-            t.rdate = datetime.strptime(pdate, '%m/%d/%Y')
-            t.type = Transaction.TYPE_UNKNOWN
-            t.raw = desc
-            t.label = desc
-            t.amount = -AmTr.decimal_amount(ntrans.xpath('AMOUNT/text()')[0])
-            yield t
+    def amount(self, name):
+        return u''.join(self.doc.xpath(
+            u'//li[text()[.="%s"]]/../li[1]'%name)[0].text_content().split())\
+            .replace(u'\xb7',u'.').replace(u'*',u'')
 
 
 class StatementsPage(SomePage):
-    DATA = {'subActionId': '8168', 'clientId': 'amazon',
-            'accountType': 'plcc', 'langId': 'en'}
-
     def iter_statements(self):
-        for url in self.doc.xpath('//a[contains(@href,"ebillViewPDF")]/@href'):
-            if url.endswith('inline=false'):
-                for i in xrange(self.browser.MAX_RETRIES):
-                    try:
-                        self.browser.location(url)
-                        break
-                    except ServerError as e:
-                        pass
-                else:
-                    raise e
-                yield self.browser.page
+        jss = self.doc.xpath(u'//a/@onclick[contains(.,"eBillViewPDFAction")]')
+        for js in jss:
+            url = re.match("window.open\('([^']*).*\)", js).group(1)
+            for i in xrange(self.browser.MAX_RETRIES):
+                try:
+                    self.browser.location(url)
+                    break
+                except ServerError as e:
+                    pass
+            else:
+                raise e
+            yield self.browser.page
 
 
 class StatementPage(RawPage):

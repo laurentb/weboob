@@ -21,41 +21,66 @@
 from weboob.capabilities.bank import AccountNotFound
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
+import json
+import os
+from tempfile import mkstemp
+from subprocess import check_output, STDOUT, CalledProcessError
+from urllib import unquote
 
-from .pages import SomePage, LoginPage, RecentPage, StatementsPage, \
-                   StatementPage, SummaryPage
+from .pages import SomePage, StatementsPage, StatementPage, SummaryPage
 
 
 __all__ = ['AmazonStoreCard']
 
 
 class AmazonStoreCard(LoginBrowser):
-    BASEURL = 'https://www.onlinecreditcenter6.com'
+    BASEURL = 'https://www.synchronycredit.com'
     MAX_RETRIES = 10
-    TIMEOUT = 30.0
-    login = URL('/consumergen2/login.do\?accountType=plcc&clientId=amazon'
-                '&langId=en&subActionId=1000$',
-                '/consumergen2/consumerlogin.do.*$',
-                LoginPage)
-    stmts = URL('/consumergen2/ebill.do$', StatementsPage)
-    recent = URL('/consumergen2/recentActivity.do$', RecentPage)
-    statement = URL('/consumergen2/ebillViewPDF.do.*$', StatementPage)
-    summary = URL('/consumergen2/accountSummary.do$', SummaryPage)
+    TIMEOUT = 60.0
+    stmts = URL('/eService/EBill/eBillAction.action$', StatementsPage)
+    statement = URL('eService/EBill/eBillViewPDFAction.action.*$',
+                    StatementPage)
+    summary = URL('/eService/AccountSummary/initiateAccSummaryAction.action$',
+                  SummaryPage)
     unknown = URL('.*', SomePage)
 
-    def __init__(self, config, *args, **kwargs):
-        super(AmazonStoreCard, self).__init__(config['userid'].get(),
-            config['password'].get(), *args, **kwargs)
-        self.config = config
+    def __init__(self, phone, code_file, *args, **kwargs):
+        super(AmazonStoreCard, self).__init__(*args, **kwargs)
+        self.phone = phone
+        self.code_file = code_file
 
     def do_login(self):
-        self.session.cookies.clear()
-        self.login.go()
+        scrf, scrn = mkstemp('.js')
+        cookf, cookn = mkstemp('.json')
+        os.write(scrf, LOGIN_JS % {
+            'timeout': 300,
+            'username': self.username,
+            'password': self.password,
+            'output': cookn,
+            'code': self.code_file,
+            'phone': self.phone[-4:],
+            'agent': self.session.headers['User-Agent']})
+        os.close(scrf)
+        os.close(cookf)
         for i in xrange(self.MAX_RETRIES):
-            if not self.login.is_here():
+            try:
+                check_output(["phantomjs", scrn], stderr=STDOUT)
                 break
-            self.page.proceed(self.config)
-        if not self.page.logged:
+            except CalledProcessError as error:
+                pass
+        else:
+            raise error
+        with open(cookn) as cookf:
+            cookies = json.loads(cookf.read())
+        os.remove(scrn)
+        os.remove(cookn)
+        self.session.cookies.clear()
+        for c in cookies:
+          for k in ['expiry', 'expires', 'httponly']:
+            c.pop(k, None)
+          c['value'] = unquote(c['value'])
+          self.session.cookies.set(**c)
+        if not self.summary.go().logged:
             raise BrowserIncorrectPassword()
 
     @need_login
@@ -67,12 +92,100 @@ class AmazonStoreCard(LoginBrowser):
 
     @need_login
     def iter_accounts(self):
-        yield self.summary.go(data=SummaryPage.DATA).account()
+        yield self.summary.go().account()
 
     @need_login
     def iter_history(self, account):
-        for t in self.recent.go(data=RecentPage.DATA).iter_transactions():
-            yield t
-        for s in self.stmts.go(data=StatementsPage.DATA).iter_statements():
+        #TODO: parse recent activity as well
+        for s in self.stmts.go().iter_statements():
             for t in s.iter_transactions():
                 yield t
+
+LOGIN_JS = u'''\
+var TIMEOUT = %(timeout)s*1000; // milliseconds
+var page = require('webpage').create();
+page.settings.userAgent = "%(agent)s";
+page.open('http://www.syncbank.com/amazon');
+
+var waitForForm = function() {
+  var hasForm = page.evaluate(function(){
+    return !!document.getElementById('secLoginBtn')
+  });
+  if (hasForm) {
+    page.evaluate(function(){
+      document.getElementById('loginUserID').value = '%(username)s';
+      document.getElementById('loginPassword').value = '%(password)s';
+      var href = document.getElementById('secLoginBtn').getAttribute('href');
+      window.location.href = href;
+    });
+  } else {
+    setTimeout(waitForForm, 1000);
+  }
+}
+
+var waitForLogin = function() {
+  var hasLogout = page.content.indexOf('Logout') != -1;
+  if (hasLogout) {
+    var cookies = JSON.stringify(phantom.cookies);
+    require('fs').write('%(output)s', cookies, 'w');
+    phantom.exit();
+  } else {
+    setTimeout(waitForLogin, 2000);
+  }
+}
+
+var waitForSendCode = function() {
+  var hasSendCode = page.evaluate(function(){
+    return document.getElementsByClassName('sendCodeTo').length > 0
+        && document.getElementById('phoneNumbers').children.length > 0;
+  });
+  if (hasSendCode) {
+    page.evaluate(function(){
+      var nums = document.getElementById('phoneNumbers').children;
+      for (var inum = 0; inum < nums.length; inum++) {
+        var num = nums[inum].children[0];
+        if (num.text.indexOf('%(phone)s') != -1) {
+          selectPhone((inum+1).toString());
+          var methods = document.getElementById('deliveryMethods').children;
+          for (var imtd = 0; imtd < methods.length; imtd++) {
+            var method = methods[imtd].children[0];
+            if (method.text.indexOf('SMS') != -1) {
+              selectDeliveryMenthod((imtd+1).toString());
+              otpGenerateAjax('otpGenerateAjax');
+              return;
+            }
+          }
+        }
+      }
+    });
+  } else {
+    setTimeout(waitForSendCode, 2000);
+  }
+}
+
+var waitForEnterCode = function() {
+  var hasEnterCode = page.evaluate(function(){
+    return !!document.getElementById('fourDigitId');
+  });
+  var code = "";
+  try {
+    code = require('fs').read('%(code)s');
+  } catch (e) {
+  }
+  if (hasEnterCode && code.length >= 4) {
+    page.evaluate(function(code){
+      document.getElementById('fourDigitId').value = code.substr(0,4);
+      document.getElementById('Yes1').checked = true;
+      otpVerifyAjax('otpVerifyAjax');
+    }, code);
+  } else {
+    setTimeout(waitForEnterCode, 2000);
+  }
+}
+
+waitForForm();
+waitForLogin();
+waitForSendCode();
+waitForEnterCode();
+setTimeout(function(){phantom.exit(-1);}, TIMEOUT);
+'''
