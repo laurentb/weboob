@@ -26,6 +26,7 @@ from decimal import Decimal
 from requests.cookies import morsel_to_cookie
 from .parsers import StatementParser, clean_label
 import itertools
+import json
 import re
 import datetime
 import Cookie
@@ -69,13 +70,13 @@ class SummaryPage(LoggedInPage):
         href = self.doc.xpath(u'//a[text()="Account Activity"]/@href')[0]
         self.browser.location(href)
 
-    def to_statements(self):
+    def to_documents(self):
         href = self.doc.xpath('//a[text()="Statements & Documents"]'
                               '/@href')[0]
         self.browser.location(href)
 
 
-class AccountPage(LoggedInPage):
+class AccountPage:
     def account_id(self, name=None):
         if name:
             return name[-4:] # Last 4 digits of "BLAH XXXXXXX1234"
@@ -83,7 +84,7 @@ class AccountPage(LoggedInPage):
             return self.account_id(self.account_name())
 
 
-class ActivityPage(AccountPage):
+class ActivityPage(AccountPage, LoggedInPage):
     def is_here(self):
         return bool(self.doc.xpath(
             u'contains(//title/text(),"Account Activity")'))
@@ -322,49 +323,64 @@ class ActivityCardPage(ActivityPage):
         return False
 
 
-class StatementsPage(AccountPage):
-    is_here = u'contains(//title/text(),"Statements")'
+class DocumentsPage(LoggedInPage):
+    is_here = u'//h1[contains(text(),"Statements and Documents")]'
 
+    def to_statements(self):
+        url = self.doc.xpath(u'//a[@data-async-load-template="stmtdisc.html"]'
+                             u'/@data-async-load-url')[0]
+        self.browser.location(url)
+
+
+class WfJsonPage(LoggedPage, RawPage):
+    def __init__(self, *args, **kwArgs):
+        RawPage.__init__(self, *args, **kwArgs)
+        clean = self.doc.replace('"/*WellFargoProprietary%','') \
+            .replace('%WellFargoProprietary*/"','').decode('string_escape')
+        self.doc = json.loads(clean)
+
+
+class StatementsPage(AccountPage, WfJsonPage):
     def account_name(self):
-        return self.doc.xpath(
-            u'//select[@name="selectedAccountKey"]'
-            u'/option[@selected="selected"]/text()')[0]
-
-    def account_uid(self, id_):
-        return self.doc.xpath(
-            u'//select[@name="selectedAccountKey"]'
-            u'/option[contains(text(),"%s")]/@value' % id_)[0]
+        for account in self.accounts():
+            if account['selected']:
+                return account['accountDisplayName']
 
     def to_account(self, id_):
-        form = self.get_form(xpath='//form[@id="statementsAndDocumentsModel"]')
-        form['selectedAccountKey'] = [self.account_uid(id_)]
-        form.submit()
+        for account in self.accounts():
+            if account['accountDisplayName'].endswith(id_):
+                self.browser.location(account['url'])
 
     def year(self):
-        for text in self.doc.xpath('//h2/strong/text()'):
-            try:
-                return int(text)
-            except ValueError:
-                pass
+        for period in self.periods():
+            if period['selected']:
+                try:
+                    return int(period['timePeriod'])
+                except ValueError:
+                    pass
 
     def years(self):
-        for text in self.doc.xpath('//h2//strong/text()'):
+        for period in self.periods():
             try:
-                yield int(text)
+                yield int(period['timePeriod'])
             except ValueError:
                 pass
 
     def to_year(self, year):
-        href = self.doc.xpath('//h2/a/strong[text()="%s"]/../@href' % year)[0]
-        self.browser.location(href)
+        for period in self.periods():
+            if period['timePeriod'] == str(year):
+                self.browser.location(period['url'])
 
     def statements(self):
-        for outer_uri in self.doc.xpath(
-                                '//table[@id="listOfStatements"]'
-                                '//a[contains(text(), "Statement")]/@href'):
-            inner_uri = re.match('.*destinationClickUrl=([^&]+)&.*',
-                                 outer_uri).group(1)
-            yield unquote(inner_uri)
+        stmts = self.doc['statementsDisclosuresInfo'].get('statements', [])
+        for stmt in stmts:
+            yield stmt['url']
+
+    def accounts(self):
+        return self.doc['statementsDisclosuresInfo']['accountList']
+
+    def periods(self):
+        return self.doc['statementsDisclosuresInfo']['timePeriodList']
 
 
 class StatementPage(LoggedPage, RawPage):

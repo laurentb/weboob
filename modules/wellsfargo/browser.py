@@ -31,7 +31,8 @@ from urllib import unquote
 
 from .pages import LoginProceedPage, LoginRedirectPage, \
                    SummaryPage, ActivityCashPage, ActivityCardPage, \
-                   StatementsPage, StatementPage, LoggedInPage
+                   DocumentsPage, StatementPage, StatementsPage, \
+                   LoggedInPage
 
 
 __all__ = ['WellsFargo']
@@ -52,11 +53,14 @@ class WellsFargo(LoginBrowser):
                         ActivityCashPage)
     activity_card = URL('/das/cgi-bin/session.cgi\?sessargs=.+$',
                         ActivityCardPage)
-    statements = URL(
-        '/das/cgi-bin/session.cgi\?sessargs=.+$',
-        '/das/channel/accountActivityDDA\?action=doSetPage&page=.*$',
-        StatementsPage)
-    statement = URL('/das/cgi-bin/session.cgi\?sessargs=.+$',
+    documents = URL('https://connect.secure.wellsfargo.com'
+                    '/accounts/start\?.+$',
+                    DocumentsPage)
+    statements = URL('https://connect.secure.wellsfargo.com'
+                     '/accounts/documents/statement/list.+$',
+                     StatementsPage)
+    statement = URL('https://connect.secure.wellsfargo.com'
+                    '/accounts/documents/retrieve/.+$',
                     StatementPage)
     unknown = URL('/.*$', LoggedInPage) # E.g. random advertisement pages.
 
@@ -168,6 +172,8 @@ class WellsFargo(LoginBrowser):
     def to_statements(self, id_=None, year=None):
         if not self.statements.is_here():
             self.to_summary()
+            self.page.to_documents()
+            assert self.documents.is_here()
             self.page.to_statements()
             assert self.statements.is_here()
         if id_ and self.page.account_id() != id_:
@@ -218,17 +224,17 @@ LOGIN_JS = u'''\
 var TIMEOUT = %(timeout)s*1000; // milliseconds
 var page = require('webpage').create();
 
-page.open('https://online.wellsfargo.com/');
+page.open('https://www.wellsfargo.com/');
 
 var waitForForm = function() {
   var hasForm = page.evaluate(function(){
-    return !!document.getElementById('Signon')
+    return !!document.getElementById('frmSignon')
   });
   if (hasForm) {
     page.evaluate(function(){
-      document.getElementById('username').value = '%(username)s';
+      document.getElementById('userid').value = '%(username)s';
       document.getElementById('password').value = '%(password)s';
-      document.getElementById('Signon').submit();
+      document.getElementById('frmSignon').submit();
     });
   } else {
     setTimeout(waitForForm, 1000);
