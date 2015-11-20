@@ -117,14 +117,11 @@ class ListPage(HTMLPage):
 class HistoryPage(HTMLPage):
     @method
     class iter_history(ListElement):
-        item_xpath = '//table[@width="215"]/tr'
+        item_xpath = '//table[@class="quickbarTable"]/tbody/tr'
 
         class item(ItemElement):
             klass = GaugeMeasure
             verif = re.compile("\d\d.\d\d.\d+ \d\d:\d\d")
-
-            def condition(self):
-                return self.verif.match(self.el[0].text_content())
 
             obj_date = DateTime(Regexp(CleanText('.'), r'(\d+)\.(\d+)\.(\d+) (\d+):(\d+)', r'\3-\2-\1 \4:\5'))
             sensor_types = [u'Level', u'Flow']
