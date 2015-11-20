@@ -28,8 +28,8 @@ __all__ = ['SachsenBrowser']
 class SachsenBrowser(PagesBrowser):
     BASEURL = 'http://www.umwelt.sachsen.de'
 
-    homepage = URL('/de/wu/umwelt/lfug/lfug-internet/hwz/inhalt_re.html.*', ListPage)
-    history = URL('/de/wu/umwelt/lfug/lfug-internet/hwz/MP/(?P<idgauge>.*)/index.html', HistoryPage)
+    homepage = URL('/umwelt/infosysteme/hwims/portal/web/wasserstand-uebersicht.*', ListPage)
+    history = URL('/umwelt/infosysteme/hwims/portal/web/wasserstand-pegel-(?P<idgauge>.*)', HistoryPage)
 
     def get_rivers_list(self):
         return self.homepage.stay_or_go().get_rivers_list()

@@ -16,6 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+import lxml.html
 
 from weboob.browser.pages import HTMLPage
 from weboob.browser.elements import ListElement, ItemElement, method
@@ -24,6 +25,8 @@ from weboob.browser.filters.html import Attr
 from weboob.capabilities.gauge import Gauge, GaugeMeasure, GaugeSensor
 from weboob.capabilities.base import NotAvailable, NotLoaded
 
+from weboob.exceptions import ParseError
+
 import re
 
 
@@ -31,14 +34,15 @@ class ListPage(HTMLPage):
 
     @method
     class get_rivers_list(ListElement):
-        item_xpath = ".//a[@onmouseout='pegelaus()']"
+        item_xpath = ".//div[@class='msWrapper']/script"
 
         class item(ItemElement):
             klass = Gauge
 
-            forecasts = {'pf_gerade.png': u'stable',
-                         'pf_unten.png':  u'Go down',
-                         'pf_oben.png':   u'Go up',
+            extract = re.compile(".*content:(?P<html>.*),show")
+            forecasts = {'pfeil_gerade.png.jsf': u'stable',
+                         'pfeil_unten.png.jsf':  u'Go down',
+                         'pfeil_oben.png.jsf':   u'Go up',
                          }
             alarmlevel = {"as1.gif": u"Alarmstufe 1", "as2.gif": u"Alarmstufe 2",
                           "as3.gif": u"Alarmstufe 3", "as4.gig": u"Alarmstufe 4",
@@ -52,19 +56,32 @@ class ListPage(HTMLPage):
             obj_object = Env('object')
 
             def parse(self, el):
-                div = el.getparent()
-                img = Regexp(Attr('.//img', 'src'), "(.*?)/(.*)", "\\2")(div)
-                data = unicode(el.attrib['onmouseover']) \
-                    .strip('pegelein(').strip(')').replace(",'", ",").split("',")
+                raw = self.extract.match(el.text).group("html")
+                raw = raw.replace('\\"', '"').replace('\\n', '').replace('\\/', '/')
+                parsed = lxml.html.fromstring(raw)
 
-                self.env['id'] = data[7].strip()
-                self.env['name'] = data[0]
-                self.env['object'] = data[1]
-                self.env['datetime'] = data[2]
-                self.env['levelvalue'] = data[3]
-                self.env['flowvalue'] = data[4].replace(",", ".")
-                self.env['forecast'] = data[5]
-                self.env['alarm'] = img
+                self.env['name'] = CleanText('.//span[@class="popUpTitleBold"]')(parsed)
+                self.env['object'] = CleanText('.//span[@class="popUpTitleNormal"]')(parsed).strip(' /')
+                url = Attr('.//div[@class="popUpMsDiagramm"]/img', 'src')(parsed)
+                self.env['id'] = url.split('_')[1]
+
+                for tr in parsed.xpath('.//tr'):
+                    td = tr.xpath('.//td')
+                    if len(td) == 1 and "Datum" in td[0].text:
+                        l = td[0].text.split()[1:3]
+                        self.env['datetime'] = "%s %s" % (l[0], l[1])
+                    elif len(td) == 2:
+                        if "Wasserstand" in td[0].text:
+                            self.env['levelvalue'] = td[1].text.split()[0]
+                        elif "Durchfluss" in td[0].text:
+                            self.env['flowvalue'] = td[1].text.split()[0]
+                        elif "Tendenz" in td[0].text:
+                            try:
+                                self.env['forecast'] = Attr('img', 'src')(td[1]).split("/")[-1]
+                            except ParseError:
+                                self.env['forecast'] = None
+                # TODO
+                self.env['alarm'] = None
 
             def add_sensor(self, sensors, name, unit, value, forecast, alarm, date):
                 sensor = GaugeSensor("%s-%s" % (self.obj.id, name.lower()))
