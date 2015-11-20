@@ -100,7 +100,11 @@ class AccountRIB(Page):
         self.text = ''
 
         try:
-            from pdfminer.pdfparser import PDFDocument, PDFParser, PDFSyntaxError
+            try:
+                from pdfminer.pdfdocument import PDFDocument
+            except ImportError:
+                from pdfminer.pdfparser import PDFDocument
+            from pdfminer.pdfparser import PDFParser, PDFSyntaxError
             from pdfminer.converter import TextConverter
             from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
         except ImportError:
