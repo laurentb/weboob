@@ -102,8 +102,10 @@ class AccountRIB(Page):
         try:
             try:
                 from pdfminer.pdfdocument import PDFDocument
+                newapi = True
             except ImportError:
                 from pdfminer.pdfparser import PDFDocument
+                newapi = False
             from pdfminer.pdfparser import PDFParser, PDFSyntaxError
             from pdfminer.converter import TextConverter
             from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
@@ -111,12 +113,15 @@ class AccountRIB(Page):
             self.logger.warning('Please install python-pdfminer to get IBANs')
         else:
             parser = PDFParser(StringIO(self.document))
-            doc = PDFDocument()
-            parser.set_document(doc)
-            try:
-                doc.set_parser(parser)
-            except PDFSyntaxError:
-                return
+            if newapi:
+                doc = PDFDocument(parser)
+            else:
+                doc = PDFDocument()
+                parser.set_document(doc)
+                try:
+                    doc.set_parser(parser)
+                except PDFSyntaxError:
+                    return
 
             doc.initialize()
 
