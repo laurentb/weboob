@@ -45,7 +45,6 @@ class FacebookBrowser(DomainBrowser):
         form = page.get_form('//form[@id="login_form"]')
         form['email'] = username
         form['pass'] = password
-        form.pop('toggle_password_visibility')
         form.submit(allow_redirects=False)
         if 'Location' not in self.response.headers:
             raise BrowserIncorrectPassword()
