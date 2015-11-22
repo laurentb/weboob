@@ -123,6 +123,7 @@ class IndexPage(Page):
                      u'Compte Courant':             Account.TYPE_CHECKING,
                      u'Mes comptes':                Account.TYPE_CHECKING,
                      u'Mon épargne':                Account.TYPE_SAVINGS,
+                     u'Mes autres comptes':         Account.TYPE_SAVINGS,
                     }
 
     def _get_account_info(self, a):

@@ -129,6 +129,9 @@ class LoginPage(BEPage):
 
 
 class AccountsPage(BEPage):
+    TYPES = {u'Compte de chèques':  Account.TYPE_CHECKING,
+            }
+
     def find_table(self):
         for table in self.parser.select(self.document.getroot(), 'table', 'many'):
             for td in self.parser.select(table, 'tr td'):
@@ -164,6 +167,7 @@ class AccountsPage(BEPage):
                 continue
             account.balance = Decimal(Transaction.clean_amount(tdbal.text_content()))
             account.currency = Account.get_currency(tdbalcur.text)
+            account.type = self.TYPES.get(account.label, Account.TYPE_UNKNOWN)
             account._updated = datetime.strptime(tdupdated.text, '%d/%m/%Y')
             yield account
 

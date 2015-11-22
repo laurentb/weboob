@@ -86,20 +86,47 @@ class _AccountsPage(BasePage):
 
     NB_COLS = 7
 
-    TYPES = {'CCHQ':     Account.TYPE_CHECKING,
-             'LIV A':    Account.TYPE_SAVINGS,
-             'LDD':      Account.TYPE_SAVINGS,
-             'PEL':      Account.TYPE_SAVINGS,
-             'CEL':      Account.TYPE_SAVINGS,
-             'CODEBIS':  Account.TYPE_SAVINGS,
-             'PEA':      Account.TYPE_MARKET,
-             'CPS':      Account.TYPE_MARKET,
-             'TITR':     Account.TYPE_MARKET,
-             'TITR CTD': Account.TYPE_MARKET,
+    TYPES = {u'CCHQ':       Account.TYPE_CHECKING, # par
+             u'CCOU':       Account.TYPE_CHECKING, # pro
+             u'LIV A':      Account.TYPE_SAVINGS,
+             u'LDD':        Account.TYPE_SAVINGS,
+             u'PEL':        Account.TYPE_SAVINGS,
+             u'CEL':        Account.TYPE_SAVINGS,
+             u'CODEBIS':    Account.TYPE_SAVINGS,
+             u'LJMO':       Account.TYPE_SAVINGS,
+             u'CSL':        Account.TYPE_SAVINGS,
+             u'LEP':        Account.TYPE_SAVINGS,
+             u'TIWI':       Account.TYPE_SAVINGS,
+             u'CSL LSO':    Account.TYPE_SAVINGS,
+             u'PRET PERSO': Account.TYPE_LOAN,
+             u'P. HABITAT': Account.TYPE_LOAN,
+             u'PRET 0%':    Account.TYPE_LOAN,
+             u'DAV PEA':    Account.TYPE_MARKET,
+             u'PEA':        Account.TYPE_MARKET,
+             u'CPS':        Account.TYPE_MARKET,
+             u'TITR':       Account.TYPE_MARKET,
+             u'TITR CTD':   Account.TYPE_MARKET,
+             u'réserves de crédit':     Account.TYPE_CHECKING,
+             u'prêts personnels':       Account.TYPE_LOAN,
+             u'crédits immobiliers':    Account.TYPE_LOAN,
+             u'épargne disponible':     Account.TYPE_SAVINGS,
+             u'épargne à terme':        Account.TYPE_DEPOSIT,
+             u'épargne boursière':      Account.TYPE_MARKET,
+             u'assurance vie et capitalisation': Account.TYPE_LIFE_INSURANCE,
+
             }
 
     def get_list(self):
+        account_type = Account.TYPE_UNKNOWN
+
         for tr in self.document.xpath('//table[@class="ca-table"]/tr'):
+            try:
+                title = tr.xpath('.//h3/text()')[0].lower().strip()
+            except IndexError:
+                pass
+            else:
+                account_type = self.TYPES.get(title, Account.TYPE_UNKNOWN)
+
             if not tr.attrib.get('class', '').startswith('colcelligne'):
                 continue
 
@@ -110,7 +137,7 @@ class _AccountsPage(BasePage):
             account = Account()
             account.id = self.parser.tocleanstring(cols[self.COL_ID])
             account.label = self.parser.tocleanstring(cols[self.COL_LABEL])
-            account.type = self.TYPES.get(account.label, Account.TYPE_UNKNOWN)
+            account.type = account_type or self.TYPES.get(account.label, Account.TYPE_UNKNOWN)
             balance = self.parser.tocleanstring(cols[self.COL_VALUE])
             # we have to ignore those accounts, because using NotAvailable
             # makes boobank and probably many others crash
