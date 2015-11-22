@@ -39,14 +39,15 @@ class AccountsList(Page):
         blocks = self.document.xpath('//div[@id="synthese-list"]//div[@class="block"]')
         for div in blocks:
             block_title = ''.join(div.xpath('.//span[@class="title"]/a/text()')).lower().strip()
+            if block_title == 'assurance':
+                # Only promotional fake accounts...
+                continue
+
             for tr in div.getiterator('tr'):
                 account = Account()
                 account.id = None
                 account._link_id = None
                 account.type = self.ACCOUNT_TYPES.get(block_title, Account.TYPE_UNKNOWN)
-                if 'assurance vie' in block_title:
-                    # Life insurance accounts are investments
-                    account.type = Account.TYPE_LIFE_INSURANCE
                 for td in tr.getiterator('td'):
                     if td.get('class', '') == 'account-cb':
                         try:
