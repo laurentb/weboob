@@ -147,7 +147,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             def parse(self, el):
                 link = el.xpath('./td[1]/a')[0].get('href', '')
-                if link.startswith('POR_SyntheseLst'):
+                if 'POR_SyntheseLst' in link:
                     raise SkipItem()
 
                 url = urlparse(link)
