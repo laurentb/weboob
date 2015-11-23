@@ -25,7 +25,7 @@ from weboob.capabilities.bank import Account
 
 from .pages.accounts_list import AccountsList, AccountHistory, CardsList, LifeInsurance, \
     LifeInsuranceHistory, LifeInsuranceInvest, Market
-from .pages.login import LoginPage, BadLoginPage
+from .pages.login import LoginPage, BadLoginPage, ReinitPasswordPage
 
 
 __all__ = ['SocieteGenerale']
@@ -42,6 +42,7 @@ class SocieteGenerale(Browser):
              'https://particuliers.societegenerale.fr/.*':  LoginPage,
              'https://.*.societegenerale.fr//acces/authlgn.html': BadLoginPage,
              'https://.*.societegenerale.fr/error403.html': BadLoginPage,
+             '.*/acces/changecodeobligatoire.html': ReinitPasswordPage,
              '.*restitution/cns_listeprestation.html':      AccountsList,
              '.*restitution/cns_listeCartes.*.html.*':      CardsList,
              '.*restitution/cns_detail.*\.html.*':          AccountHistory,

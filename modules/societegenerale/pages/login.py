@@ -25,6 +25,7 @@ from weboob.tools.json import json
 
 from weboob.deprecated.browser import BrowserUnavailable
 from weboob.deprecated.mech import ClientForm
+from weboob.exceptions import BrowserPasswordExpired
 
 from .base import BasePage
 from ..captcha import Captcha, TileError
@@ -116,3 +117,8 @@ class LoginPage(BasePage):
 
 class BadLoginPage(BasePage):
     pass
+
+
+class ReinitPasswordPage(BasePage):
+    def on_loaded(self):
+        raise BrowserPasswordExpired()
