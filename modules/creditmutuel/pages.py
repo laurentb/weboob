@@ -144,6 +144,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj__card_links = []
             obj_type = Type(Field('label'))
             obj__is_inv = False
+            obj__is_webid = Env('_is_webid')
 
             def parse(self, el):
                 link = el.xpath('./td[1]/a')[0].get('href', '')
@@ -165,7 +166,12 @@ class AccountsPage(LoggedPage, HTMLPage):
                 else:
                     raise ParseError('Unable to find balance for account %s' % CleanText('./td[1]/a')(el))
 
-                id = p['rib'][0] if 'rib' in p else p['webid'][0]
+                self.env['_is_webid'] = False
+                if 'rib' in p:
+                    id = p['rib'][0]
+                else:
+                    id = p['webid'][0]
+                    self.env['_is_webid'] = True
 
                 # Handle cards
                 if id in self.parent.objects:
@@ -400,5 +406,8 @@ class IbanPage(LoggedPage, HTMLPage):
     def fill_iban(self, accounts):
         for ele in self.doc.xpath('//table[@class="liste"]/tr[@class]/td[1]'):
             for a in accounts:
-                if a.label in CleanText('.//div[1]')(ele).title():
+                if a._is_webid:
+                    if a.label in CleanText('.//div[1]')(ele).title():
+                        a.iban = CleanText('.//div[5]/em', replace=[(' ', '')])(ele)
+                elif a.id[:-3] in CleanText('.//div[3]/em', replace=[(' ','')])(ele).title():
                     a.iban = CleanText('.//div[5]/em', replace=[(' ', '')])(ele)
