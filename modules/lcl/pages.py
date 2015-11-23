@@ -25,13 +25,13 @@ import random
 from cStringIO import StringIO
 from urllib import urlencode
 
-
+from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.browser.elements import method, ListElement, ItemElement, SkipItem
 from weboob.exceptions import ParseError
 from weboob.browser.pages import LoggedPage, HTMLPage, FormNotFound, pagination
 from weboob.browser.filters.html import Attr
-from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, \
+from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, Date, \
                                             CleanDecimal, Map, AsyncLoad, Async
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -289,6 +289,12 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                 raw = Async('details', CleanText(u'//td[contains(text(), "Libellé")]/following-sibling::*[1]', default=obj.raw))(self)
                 if raw:
                     obj.raw = raw
+                    if not obj.date:
+                        obj.label = raw
+                        obj.date = Async('details', Date(CleanText(u'//td[contains(text(), "Date de l\'opération")]/following-sibling::*[1]', default=u''), default=NotAvailable))(self)
+                        obj.rdate = obj.date
+                        obj.vdate = Async('details', Date(CleanText(u'//td[contains(text(), "Date de valeur")]/following-sibling::*[1]', default=u''), default=NotAvailable))(self)
+                        obj.amount = Async('details', CleanDecimal(u'//td[contains(text(), "Montant")]/following-sibling::*[1]', replace_dots=True, default=NotAvailable))(self)
                 return True
 
     @pagination
