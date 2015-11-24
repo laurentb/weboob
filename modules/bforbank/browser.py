@@ -20,6 +20,7 @@
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, ErrorPage, AccountsPage, HistoryPage, LoanHistoryPage
 
@@ -54,5 +55,7 @@ class BforbankBrowser(LoginBrowser):
 
     @need_login
     def get_history(self, account):
+        if account.type == Account.TYPE_MARKET:
+            raise NotImplementedError()
         self.location(account._link.replace('tableauDeBord', 'operations'))
         return self.page.get_operations()

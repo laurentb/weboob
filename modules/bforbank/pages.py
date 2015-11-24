@@ -109,6 +109,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             TYPE = {'Livret': Account.TYPE_SAVINGS,
                     'Compte': Account.TYPE_CHECKING,
+                    'PEA':    Account.TYPE_MARKET,
                    }
 
             obj_id = CleanText('./td//div[contains(@class, "-synthese-title") or contains(@class, "-synthese-text")]') & Regexp(pattern=r'(\d+)')
@@ -118,6 +119,8 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_type = Map(Regexp(Field('label'), r'^(\w+)'), TYPE, default=Account.TYPE_UNKNOWN)
             obj__link = CleanText('./@data-href')
 
+            def condition(self):
+                return not len(self.el.xpath('./td[@class="chart"]'))
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^(?P<category>VIREMENT)'), FrenchTransaction.TYPE_TRANSFER),
