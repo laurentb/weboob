@@ -88,6 +88,7 @@ class _AccountsPage(BasePage):
 
     TYPES = {u'CCHQ':       Account.TYPE_CHECKING, # par
              u'CCOU':       Account.TYPE_CHECKING, # pro
+             u'DAV PEA':    Account.TYPE_CHECKING,
              u'LIV A':      Account.TYPE_SAVINGS,
              u'LDD':        Account.TYPE_SAVINGS,
              u'PEL':        Account.TYPE_SAVINGS,
@@ -101,7 +102,6 @@ class _AccountsPage(BasePage):
              u'PRET PERSO': Account.TYPE_LOAN,
              u'P. HABITAT': Account.TYPE_LOAN,
              u'PRET 0%':    Account.TYPE_LOAN,
-             u'DAV PEA':    Account.TYPE_MARKET,
              u'PEA':        Account.TYPE_MARKET,
              u'CPS':        Account.TYPE_MARKET,
              u'TITR':       Account.TYPE_MARKET,
