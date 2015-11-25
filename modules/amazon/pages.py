@@ -163,7 +163,8 @@ class OrderNewPage(OrderPage):
     def discount(self):
         return self.amount(u'Promotion applied', u'Promotion Applied',
                            u'Subscribe & Save', u'Your Coupon Savings',
-                           u'Lightning Deal', u'No-Rush Credit')
+                           u'Lightning Deal', u'No-Rush Credit',
+                           u'Courtesy Credit')
 
     def gift(self):
         return self.amount(u'Gift Card Amount')
