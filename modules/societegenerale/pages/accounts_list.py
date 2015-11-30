@@ -261,27 +261,36 @@ class Invest(object):
 class Market(BasePage, Invest):
     COL_LABEL = 0
     COL_QUANTITY = 1
-    COL_UNITPRICE = 2
-    COL_UNITVALUE = 3
+    COL_UNITVALUE = 2
     COL_VALUATION = 3
     COL_DIFF = 4
 
     def iter_investment(self):
         doc = self.browser.get_document(self.browser.openurl('/brs/fisc/fisca10a.html'), encoding='utf-8')
+        num_page = None
+        try:
+            num_page = int(self.parser.tocleanstring(doc.xpath(u'.//tr[contains(td[1], "Relevé des plus ou moins values latentes")]/td[2]')[0]).split('/')[1])
+        except IndexError:
+            pass
+        docs = [doc]
+        if num_page:
+            for n in xrange(2, num_page + 1):
+                docs.append(self.browser.get_document(self.browser.openurl('%s%s' % ('/brs/fisc/fisca10a.html?action=12&numPage=', str(n))), encoding='utf-8'))
 
-        for tr in doc.xpath('//tr[count(td)=6]'):
-            cells = tr.findall('td')
+        for doc in docs:
+            for tr in doc.xpath('//tr[count(td)=6 and td[1]/strong]'):
+                cells = tr.findall('td')
 
-            inv = Investment()
-            inv.label = self.parser.tocleanstring(cells[self.COL_LABEL])
-            inv.code = cells[self.COL_LABEL].xpath('span')[0].attrib['title'].split(' - ')[1]
-            inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY])
-            inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE].xpath('table/tr[1]/td[2]')[0])
-            inv.unitprice = self.parse_decimal(cells[self.COL_UNITPRICE].xpath('table/tr[1]/td[2]')[0])
-            inv.valuation = self.parse_decimal(cells[self.COL_UNITVALUE].xpath('table/tr[2]/td[2]')[0])
-            inv.diff = self.parse_decimal(cells[self.COL_DIFF])
+                inv = Investment()
+                inv.label = unicode(cells[self.COL_LABEL].xpath('.//span')[0].attrib['title'].split(' - ')[0])
+                inv.code = unicode(cells[self.COL_LABEL].xpath('.//span')[0].attrib['title'].split(' - ')[1])
+                inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY])
+                inv.unitprice = self.parse_decimal(tr.xpath('./following-sibling::tr/td[3]')[0])
+                inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE])
+                inv.valuation = self.parse_decimal(cells[self.COL_VALUATION])
+                inv.diff = self.parse_decimal(cells[self.COL_DIFF])
 
-            yield inv
+                yield inv
 
 
 class LifeInsurance(BasePage):
