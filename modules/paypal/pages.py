@@ -21,7 +21,7 @@ from decimal import Decimal
 import re
 
 from weboob.capabilities.bank import Account
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, Currency
 from weboob.exceptions import BrowserUnavailable
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.filters.standard import CleanText
@@ -114,9 +114,8 @@ class HistoryPage(LoggedPage):
         transacs = self.get_transactions()
 
         for t in transacs:
-            tran = self.parse_transaction(t, account)
-            if tran:
-                transactions.append(tran)
+            for trans in self.parse_transaction(t, account):
+                transactions.append(trans)
 
         for t in transactions:
             yield t
@@ -137,6 +136,7 @@ class ProHistoryPage(HistoryPage, JsonPage):
         return self.doc['data']['transactions']
 
     def parse_transaction(self, transaction, account):
+        trans = []
         if transaction['transactionStatus'] in [u'Créé', u'Annulé', u'Suspendu', u'Mis à jour', u'Actif', u'Payé', u'En attente', u'Rejeté', u'Expiré']:
             return
         if transaction['transactionDescription'].startswith('Offre de remboursement'):
@@ -153,9 +153,18 @@ class ProHistoryPage(HistoryPage, JsonPage):
             t.amount = Decimal('%.2f' % transaction['net']['currencyDoubleValue'])
         date = parse_french_date(transaction['transactionTime'])
         raw = transaction['transactionDescription']
+        if raw.startswith(u'Paiement \xe0'):
+            payback_id, payback_raw, payback_amount, payback_currency = self.browser.check_for_payback(transaction,  'https://www.paypal.com/cgi-bin/webscr?cmd=_history-details-from-hub&id=' + transaction['transactionId'])
+            if payback_id and payback_raw and payback_amount and payback_currency:
+                t_payback = FrenchTransaction(payback_id)
+                t_payback.amount = payback_amount
+                t_payback.original_currency = payback_currency
+                t_payback.parse(date=date, raw=payback_raw)
+                trans.append(t_payback)
         t.commission = Decimal('%.2f' % transaction['fee']['currencyDoubleValue'])
         t.parse(date=date, raw=raw)
-        return t
+        trans.append(t)
+        return trans
 
 
 class PartHistoryPage(HistoryPage, JsonPage):
@@ -180,7 +189,7 @@ class PartHistoryPage(HistoryPage, JsonPage):
         raw = transaction.get('counterparty', transaction['displayType'])
         t.parse(date=date, raw=raw)
 
-        return t
+        return [t]
 
 class HistoryDetailsPage(LoggedPage, HTMLPage):
     def get_converted_amount(self, account):
@@ -191,3 +200,29 @@ class HistoryDetailsPage(LoggedPage, HTMLPage):
             if m:
                 return m.group(2)
         return False
+
+    def get_payback_url(self):
+        if not self.doc.xpath(u'//td[contains(text(), "Transaction associée")]'):
+            return None, None
+        url = self.doc.xpath(u'//tr[td[contains(text(),"Approvisionnement à")]]//a[contains(text(), "Détails")]/@href')
+        if len(url) == 1:
+            return url[0]
+        return None
+
+
+class HistoryPaybackPage(LoggedPage, HTMLPage):
+    def get_payback(self):
+        if not self.doc.xpath(u'//td[contains(text(), "Transaction associée")]'):
+            return None, None, None, None
+        tr = self.doc.xpath(u'//tr[td[contains(text(),"Approvisionnement à")]]')
+        td_id = self.doc.xpath(u'//td[span[contains(text(),"Approvisionnement à")]]')
+        if len(tr) > 0 and len(td_id)>0:
+            tr = tr[0]
+            m = re.search(u'Nº de transaction unique ([a-zA-Z0-9_]*)', CleanText().filter(td_id[0]))
+            if m:
+                id = m.group(1)
+                raw = CleanText().filter(tr.xpath('./td[2]')[0])
+                amount = Decimal(FrenchTransaction.clean_amount(CleanText().filter(tr.xpath('./td[5]')[0])))
+                currency = Currency.get_currency(CleanText().filter(tr.xpath('./td[5]')[0]))
+                return id, raw, amount, currency
+        return None, None, None, None

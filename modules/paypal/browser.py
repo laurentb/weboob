@@ -26,7 +26,7 @@ from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.url import URL
 
-from .pages import PromoPage, LoginPage, AccountPage, UselessPage, HomePage, ProHistoryPage, PartHistoryPage, HistoryDetailsPage, ErrorPage
+from .pages import PromoPage, LoginPage, AccountPage, UselessPage, HomePage, ProHistoryPage, PartHistoryPage, HistoryDetailsPage, HistoryPaybackPage, ErrorPage
 
 
 __all__ = ['Paypal']
@@ -52,6 +52,7 @@ class Paypal(LoginBrowser):
     history_details = URL('https://\w+.paypal.com/cgi-bin/webscr\?cmd=_history-details-from-hub&id=[\-A-Z0-9]+$',
                           'https://\w+.paypal.com/myaccount/transaction/details/[\-A-Z0-9]+$',
                           HistoryDetailsPage)
+    history_payback = URL('https://history.paypal.com/fr/cgi-bin/webscr\?cmd=_history-details.*', HistoryPaybackPage)
     promo = URL('https://www.paypal.com/fr/webapps/mpp/clickthru/paypal-app-promo-2.*', PromoPage)
     account = URL('https://www.paypal.com/businessexp/money', AccountPage)
     pro_history = URL('https://\w+.paypal.com/webapps/business/activity\?.*',
@@ -195,3 +196,12 @@ class Paypal(LoginBrowser):
         if self.history_details.is_here():
             cc = self.page.get_converted_amount(account)
             return cc
+
+    def check_for_payback(self, trans, link):
+        self.location(link)
+        if self.history_details.is_here():
+            url = self.page.get_payback_url()
+            if url:
+                self.location(url)
+                if self.history_payback.is_here():
+                    return self.page.get_payback()
