@@ -36,6 +36,7 @@ class AXABanque(Browser):
              'https?://www.axa.fr/.loginAxa.json':                                          (PostLoginPage, JsonParser()),
              'https?://www.axabanque.fr/login_errors/indisponibilite.*':                    UnavailablePage,
              'https?://www.axabanque.fr/.*page-indisponible.html.*':                        UnavailablePage,
+             'https?://www.axabanque.fr/.*erreur/erreurBanque.faces':                       UnavailablePage,
              'https?://www.axa.fr/axa-predisconnect.html':                                  PredisconnectedPage,
              'https?://www.axabanque.fr/transactionnel/client/liste-comptes.html':          AccountsPage,
              'https?://www.axabanque.fr/webapp/axabanque/jsp/panorama.faces':               TransactionsPage,
