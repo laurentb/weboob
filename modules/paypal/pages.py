@@ -179,7 +179,7 @@ class PartHistoryPage(HistoryPage, JsonPage):
         if not transaction['isPrimaryCurrency']:
             cc = self.browser.convert_amount(account, transaction, transaction['detailsLink'])
             if not cc:
-                return
+                return []
             t.original_amount = self.format_amount(transaction['amounts']['net']['value'], transaction["isCredit"])
             t.original_currency = u'' + transaction['amounts']['txnCurrency']
             t.amount = self.format_amount(cc, transaction['isCredit'])
