@@ -67,7 +67,8 @@ class ArteModule(Module, CapVideo, CapCollection):
                                    version=self.config['version'].get())
 
     def parse_id(self, _id):
-        m = re.match('^(\w+)\.(.*)', _id)
+        sites = '|'.join(k.get('id') for k in SITE.values)
+        m = re.match('^(%s)\.(.*)' % sites, _id)
         if m:
             return m.groups()
 
@@ -75,11 +76,12 @@ class ArteModule(Module, CapVideo, CapCollection):
         if m:
             return SITE.PROGRAM.get('id'), m.group(1)
 
-        m = re.match('https?://(%s).arte.tv/(\w+)/(.*)' % ('|'.join(value.get('id') for value in SITE.values)), _id)
+        m = re.match('https?://(%s).arte.tv/(\w+)/(.*)' % (sites), _id)
         if m:
             return m.group(1), '/%s/%s' % (m.group(2), m.group(3))
 
-        return 'videos', _id
+        if not _id.startswith('http'):
+            return 'videos', _id
 
     def get_video(self, _id):
         site, _id = self.parse_id(_id)
