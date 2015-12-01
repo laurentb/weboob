@@ -127,13 +127,13 @@ class MediaPage(HTMLPage):
     class get_video(InaMediaElement):
         klass = BaseVideo
         obj_ext = u'mp4'
-        obj_id = Env('_id')
+        obj_id = Env('id')
 
     @method
     class get_audio(InaMediaElement):
         klass = BaseAudio
         obj_ext = u'mp3'
-        obj_id = BaseAudioIdFilter(Env('_id'))
+        obj_id = BaseAudioIdFilter(Env('id'))
 
 
 class RssPage(XMLPage):

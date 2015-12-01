@@ -28,14 +28,18 @@ class InaBrowser(PagesBrowser):
     BASEURL = 'http://www.ina.fr/'
 
     search_page = URL('layout/set/ajax/recherche/result\?q=(?P<pattern>.*)&autopromote=&b=(?P<first_item>.*)&type=(?P<type>(Audio|Video))&r=', SearchPage)
-    media_page = URL('/(?P<type>(audio|video))/(?P<_id>.*)', MediaPage)
+    video_page = URL('/video/(?P<id>.*)', MediaPage)
+    audio_page = URL('/audio/(?P<id>.*)', MediaPage)
     rss_page = URL('https://player.ina.fr/notices/(?P<_id>.*).mrss', RssPage)
 
-    def get_video(self, _id, video=None):
+    @video_page.id2url
+    def get_video(self, url, video=None):
         if not video:
-            video = self.media_page.go(_id=_id, type='video').get_video(obj=video)
+            self.location(url)
+            assert self.video_page.is_here()
+            video = self.page.get_video(obj=video)
 
-        video.url = self.get_media_url(_id)
+        video.url = self.get_media_url(video.id)
         return video
 
     def get_media_url(self, _id):
@@ -46,10 +50,11 @@ class InaBrowser(PagesBrowser):
                                    type='Video',
                                    first_item='0').iter_videos()
 
-    def get_audio(self, _id, audio=None):
+    def get_audio(self, id, audio=None):
         if not audio:
-            audio = self.media_page.go(_id=_id, type='audio').get_audio(obj=audio)
-        audio.url = self.get_media_url(_id)
+            audio = self.audio_page.go(id=id).get_audio(obj=audio)
+
+        audio.url = self.get_media_url(id)
         return audio
 
     def search_audio(self, pattern):
