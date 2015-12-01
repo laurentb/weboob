@@ -34,7 +34,7 @@ class CreditDuNordBrowser(Browser):
     PROTOCOL = 'https'
     ENCODING = 'UTF-8'
     PAGES = {'https://[^/]+/?':                                         LoginPage,
-             'https://[^/]+/.*\?.*_pageLabel=page_erreur_connexion':    LoginPage,
+             'https://[^/]+/.*\?.*_pageLabel=page_erreur_connexion.*':  LoginPage,
              'https://[^/]+/vos-comptes/particuliers(\?.*)?':           AccountsPage,
              'https://[^/]+/vos-comptes/particuliers/transac_tableau_de_bord(\?.*)?':           AccountsPage,
              'https://[^/]+/vos-comptes/.*/transac/particuliers.*':     TransactionsPage,
