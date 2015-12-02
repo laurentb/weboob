@@ -119,6 +119,9 @@ class LoginPage(SGPEPage):
 
 
 class AccountsPage(SGPEPage):
+    TYPES = {u'COMPTE COURANT':       Account.TYPE_CHECKING,
+            }
+
     def get_list(self):
         table = self.parser.select(self.document.getroot(), '#tab-corps', 1)
         for tr in self.parser.select(table, 'tr', 'many'):
@@ -129,6 +132,7 @@ class AccountsPage(SGPEPage):
             if all((tdname, tdid, tdbalance)):
                 account = Account()
                 account.label = to_unicode(tdname)
+                account.type = self.TYPES.get(account.label, Account.TYPE_UNKNOWN)
                 account.id = to_unicode(tdid.replace(u'\xa0', '').replace(' ', ''))
                 account._agency = to_unicode(tdagency)
                 account._is_card = False
@@ -169,6 +173,7 @@ class CardsPage(SGPEPage):
                 continue
 
             account = Account()
+            account.type = Account.TYPE_CARD
             account.label = self.parser.tocleanstring(tds[self.COL_LABEL])
             if len(account.label) == 0:
                 continue
