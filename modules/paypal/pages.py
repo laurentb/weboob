@@ -138,14 +138,14 @@ class ProHistoryPage(HistoryPage, JsonPage):
     def parse_transaction(self, transaction, account):
         trans = []
         if transaction['transactionStatus'] in [u'Créé', u'Annulé', u'Suspendu', u'Mis à jour', u'Actif', u'Payé', u'En attente', u'Rejeté', u'Expiré']:
-            return
+            return []
         if transaction['transactionDescription'].startswith('Offre de remboursement'):
-            return
+            return []
         t = FrenchTransaction(transaction['transactionId'])
         if not transaction['transactionAmount']['currencyCode'] == account.currency:
             cc = self.browser.convert_amount(account, transaction, 'https://www.paypal.com/cgi-bin/webscr?cmd=_history-details-from-hub&id=' + transaction['transactionId'])
             if not cc:
-                return
+                return []
             t.original_amount = Decimal('%.2f' % transaction['transactionAmount']['currencyDoubleValue'])
             t.original_currency = u'' + transaction['transactionAmount']['currencyCode']
             t.set_amount(cc)
