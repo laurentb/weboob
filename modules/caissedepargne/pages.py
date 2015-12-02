@@ -199,7 +199,7 @@ class IndexPage(Page):
             for tr in table.xpath('./tr'):
                 tds = tr.findall('td')
                 if tr.attrib.get('class', '') == 'DataGridHeader':
-                    account_type = self.ACCOUNT_TYPES.get(tds[1].text.strip(), Account.TYPE_UNKNOWN)
+                    account_type = self.ACCOUNT_TYPES.get(tds[1].text.strip()) or self.ACCOUNT_TYPES.get(tds[2].xpath('./a')[0].text.strip(), Account.TYPE_UNKNOWN)
                 else:
                     # On the same row, there are many accounts (for example a
                     # check accound and a card one).
