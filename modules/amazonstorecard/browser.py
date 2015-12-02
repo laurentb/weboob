@@ -27,7 +27,8 @@ from tempfile import mkstemp
 from subprocess import check_output, STDOUT, CalledProcessError
 from urllib import unquote
 
-from .pages import SomePage, StatementsPage, StatementPage, SummaryPage
+from .pages import SomePage, StatementsPage, StatementPage, SummaryPage, \
+                   ActivityPage
 
 
 __all__ = ['AmazonStoreCard']
@@ -42,6 +43,9 @@ class AmazonStoreCard(LoginBrowser):
                     StatementPage)
     summary = URL('/eService/AccountSummary/initiateAccSummaryAction.action$',
                   SummaryPage)
+    activity = URL('/eService/BillingActivity'
+                   '/initiateBillingActivityAction.action$',
+                   ActivityPage)
     unknown = URL('.*', SomePage)
 
     def __init__(self, phone, code_file, *args, **kwargs):
@@ -96,7 +100,8 @@ class AmazonStoreCard(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
-        #TODO: parse recent activity as well
+        for t in self.activity.go().iter_recent():
+            yield t
         for s in self.stmts.go().iter_statements():
             for t in s.iter_transactions():
                 yield t

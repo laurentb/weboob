@@ -27,6 +27,7 @@ from weboob.tools.pdf import decompress_pdf
 from weboob.tools.tokenizer import ReTokenizer
 from datetime import datetime, timedelta
 import re
+import json
 
 
 class SomePage(HTMLPage):
@@ -69,6 +70,31 @@ class SummaryPage(SomePage):
             u'//li[text()[.="%s"]]/../li[1]'%name)[0].text_content().split())\
             .replace(u'\xb7',u'.').replace(u'*',u'')
 
+
+class ActivityPage(SomePage):
+    def iter_recent(self):
+        records = json.loads(self.doc.xpath(
+            '//div[@id="completedActivityRecords"]//input[1]/@value')[0])
+        recent = [x for x in records if x['PDF_LOC'] is None]
+        for rec in sorted(recent, ActivityPage.cmp_records, reverse=True):
+            desc = u' '.join(rec['TRANS_DESC'].split())
+            trans = Transaction(rec['REF_NUM'].strip())
+            trans.date = ActivityPage.parse_date(rec['TRANS_DATE'])
+            trans.rdate = ActivityPage.parse_date(rec['POST_DATE'])
+            trans.type = Transaction.TYPE_UNKNOWN
+            trans.raw = desc
+            trans.label = desc
+            trans.amount = -AmTr.decimal_amount(rec['TRANS_AMOUNT'])
+            yield trans
+
+    @staticmethod
+    def cmp_records(rec1, rec2):
+        return cmp(ActivityPage.parse_date(rec1['TRANS_DATE']),
+                   ActivityPage.parse_date(rec2['TRANS_DATE']))
+
+    @staticmethod
+    def parse_date(recdate):
+        return datetime.strptime(recdate, u'%B %d, %Y')
 
 class StatementsPage(SomePage):
     def iter_statements(self):
