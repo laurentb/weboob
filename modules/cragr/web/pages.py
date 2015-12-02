@@ -50,9 +50,13 @@ class HomePage(BasePage):
 
         return None
 
+    def go_to_auth(self):
+        self.browser.select_form('bamaccess')
+        self.browser.submit(no_login=True)
+
 
 class LoginPage(BasePage):
-    def login(self, password):
+    def login(self, username, password):
         imgmap = {}
         for td in self.document.xpath('//table[@id="pave-saisie-code"]/tr/td'):
             a = td.find('a')
@@ -62,6 +66,9 @@ class LoginPage(BasePage):
 
         self.browser.select_form(name='formulaire')
         self.browser.set_all_readonly(False)
+        if self.browser.new_login:
+            self.browser['CCPTE'] = username
+
         self.browser['CCCRYC'] = ','.join(['%02d' % imgmap[c] for c in password])
         self.browser['CCCRYC2'] = '0' * len(password)
         self.browser.submit(nologin=True)
@@ -69,6 +76,15 @@ class LoginPage(BasePage):
     def get_result_url(self):
         return self.parser.tocleanstring(self.document.getroot())
 
+    def get_accounts_url(self):
+        for script in self.document.xpath('//script'):
+            text = script.text
+            if text is None:
+                continue
+            m = re.search(r'idSessionSag = "([^"]+)"', script.text)
+            if m:
+                idSessionSag = m.group(1)
+        return '%s%s%s%s' % (self.url, '?sessionSAG=', idSessionSag, '&stbpg=pagePU&actCrt=Synthcomptes&stbzn=btn&act=Synthcomptes')
 
 class UselessPage(BasePage):
     pass

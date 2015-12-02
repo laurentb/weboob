@@ -57,11 +57,18 @@ class Cragr(Browser):
              'https://assurance-personnes.credit-agricole.fr:443/filiale/entreeBam\?identifiantBAM=.*': LifeInsurancePage,
             }
 
+    new_login_domain = ['m.ca-normandie.fr']
+    new_login = False
+
     class WebsiteNotSupported(Exception):
         pass
 
     def __init__(self, website, *args, **kwargs):
-        self.DOMAIN = re.sub('^m\.', 'www.', website)
+        if website in self.new_login_domain:
+            self.DOMAIN = re.sub('^m\.', 'w2.', website)
+            self.new_login = True
+        else:
+            self.DOMAIN = re.sub('^m\.', 'www.', website)
         self.accounts_url = None
         self.savings_url = None
         self._sag = None  # updated while browsing
@@ -92,34 +99,40 @@ class Cragr(Browser):
         if not self.is_on_page(HomePage):
             self.location(self.absurl('/'), no_login=True)
 
-        # On the homepage, we get the URL of the auth service.
-        url = self.page.get_post_url()
-        if url is None:
-            raise self.WebsiteNotSupported()
+        if self.new_login:
+            self.page.go_to_auth()
+        else:
+            # On the homepage, we get the URL of the auth service.
+            url = self.page.get_post_url()
+            if url is None:
+                raise self.WebsiteNotSupported()
 
-        # First, post account number to get the password prompt.
-        data = {'CCPTE':                self.username.encode(self.ENCODING),
-                'canal':                'WEB',
-                'hauteur_ecran':        768,
-                'largeur_ecran':        1024,
-                'liberror':             '',
-                'matrice':              'true',
-                'origine':              'vitrine',
-                'situationTravail':     'BANCAIRE',
-                'typeAuthentification': 'CLIC_ALLER',
-                'urlOrigine':           self.page.url,
-                'vitrine':              0,
-               }
+            # First, post account number to get the password prompt.
+            data = {'CCPTE':                self.username.encode(self.ENCODING),
+                    'canal':                'WEB',
+                    'hauteur_ecran':        768,
+                    'largeur_ecran':        1024,
+                    'liberror':             '',
+                    'matrice':              'true',
+                    'origine':              'vitrine',
+                    'situationTravail':     'BANCAIRE',
+                    'typeAuthentification': 'CLIC_ALLER',
+                    'urlOrigine':           self.page.url,
+                    'vitrine':              0,
+                }
 
-        self.location(url, urllib.urlencode(data))
+            self.location(url, urllib.urlencode(data))
 
         assert self.is_on_page(LoginPage)
 
         # Then, post the password.
-        self.page.login(self.password)
+        self.page.login(self.username, self.password)
 
-        # The result of POST is the destination URL.
-        url = self.page.get_result_url()
+        if self.new_login:
+            url = self.page.get_accounts_url()
+        else:
+            # The result of POST is the destination URL.
+            url = self.page.get_result_url()
 
         if not url.startswith('http'):
             raise BrowserIncorrectPassword(url)
