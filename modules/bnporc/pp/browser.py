@@ -30,7 +30,7 @@ from .pages import LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, Trans
                    LifeInsurancesDetailPage
 
 
-__all__ = ['BNPParibasBrowser']
+__all__ = ['BNPPartPro', 'HelloBank']
 
 
 class CompatMixin(object):
@@ -59,10 +59,7 @@ class JsonBrowserMixin(object):
 
         return super(JsonBrowserMixin, self).open(*args, **kwargs)
 
-
 class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
-    BASEURL_TEMPLATE = r'https://%s.bnpparibas/'
-    BASEURL = BASEURL_TEMPLATE % 'mabanque'
     TIMEOUT = 30.0
 
     login = URL(r'identification-wspl-pres/identification\?acceptRedirection=true&timestamp=(?P<timestamp>\d+)',
@@ -82,9 +79,6 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     lifeinsurances = URL('mefav-wspl/rest/infosContrat', LifeInsurancesPage)
     lifeinsurances_history = URL('mefav-wspl/rest/listMouvements', LifeInsurancesHistoryPage)
     lifeinsurances_detail = URL('mefav-wspl/rest/detailMouvement', LifeInsurancesDetailPage)
-
-    def switch(self, subdomain):
-        self.BASEURL = self.BASEURL_TEMPLATE % subdomain
 
     def do_login(self):
         timestamp = lambda: int(time.time() * 1e3)
@@ -161,3 +155,13 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     @need_login
     def get_thread(self, thread):
         raise NotImplementedError()
+
+class BNPPartPro(BNPParibasBrowser):
+    BASEURL_TEMPLATE = r'https://%s.bnpparibas/'
+    BASEURL = BASEURL_TEMPLATE % 'mabanque'
+
+    def switch(self, subdomain):
+        self.BASEURL = self.BASEURL_TEMPLATE % subdomain
+
+class HelloBank(BNPParibasBrowser):
+    BASEURL = 'https://www.hellobank.fr/'

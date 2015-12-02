@@ -29,7 +29,7 @@ from weboob.tools.value import ValueBackendPassword, Value
 from .deprecated.browser import BNPorc
 from .enterprise.browser import BNPEnterprise
 from .company.browser import BNPCompany
-from .pp.browser import BNPParibasBrowser
+from .pp.browser import BNPPartPro, HelloBank
 
 
 __all__ = ['BNPorcModule']
@@ -50,6 +50,7 @@ class BNPorcModule(Module, CapBank, CapMessages):
         #    regexp='^(\d{6}|)$'),
         Value('website', label='Type de compte', default='pp',
               choices={'pp': 'Particuliers/Professionnels',
+                       'hbank': 'HelloBank',
                        'ent': 'Entreprises',
                        'ppold': 'Particuliers/Professionnels (ancien site)',
                        'ent2': 'Entreprises et PME (nouveau site)'}))
@@ -64,7 +65,7 @@ class BNPorcModule(Module, CapBank, CapMessages):
         self._threads_age = datetime.utcnow()
 
     def create_default_browser(self):
-        b = {'ppold': BNPorc, 'ent': BNPEnterprise, 'ent2': BNPCompany, 'pp': BNPParibasBrowser}
+        b = {'ppold': BNPorc, 'ent': BNPEnterprise, 'ent2': BNPCompany, 'pp': BNPPartPro, 'hbank': HelloBank}
         self.BROWSER = b[self.config['website'].get()]
         return self.create_browser(self.config['login'].get(),
                                    self.config['password'].get())
