@@ -153,7 +153,7 @@ class ProHistoryPage(HistoryPage, JsonPage):
             t.amount = Decimal('%.2f' % transaction['net']['currencyDoubleValue'])
         date = parse_french_date(transaction['transactionTime'])
         raw = transaction['transactionDescription']
-        if raw.startswith(u'Paiement \xe0'):
+        if raw.startswith(u'Paiement \xe0') or raw.startswith('Achat de'):
             payback_id, payback_raw, payback_amount, payback_currency = self.browser.check_for_payback(transaction,  'https://www.paypal.com/cgi-bin/webscr?cmd=_history-details-from-hub&id=' + transaction['transactionId'])
             if payback_id and payback_raw and payback_amount and payback_currency:
                 t_payback = FrenchTransaction(payback_id)
