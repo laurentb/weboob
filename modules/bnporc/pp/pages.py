@@ -169,13 +169,14 @@ class AccountsPage(BNPPage):
         for f in self.path('data.infoUdc.familleCompte.*'):
             for a in f.get('compte'):
                 yield Account.from_dict({
-                    'id': a.get('key'),
+                    'id': ibans.get(a.get('key'))[9:25],
                     'label': a.get('libellePersoProduit') or a.get('libelleProduit'),
                     'currency': a.get('devise'),
                     'type': self.FAMILY_TO_TYPE.get(f.get('idFamilleCompte')) or Account.TYPE_UNKNOWN,
                     'balance': a.get('soldeDispo'),
                     'coming': a.get('soldeAVenir'),
-                    'iban': ibans.get(a.get('key'))
+                    'iban': ibans.get(a.get('key')),
+                    '_ibancrypte': a.get('key')
                 })
 
 
