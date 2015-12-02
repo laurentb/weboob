@@ -204,7 +204,7 @@ class HistoryDetailsPage(LoggedPage, HTMLPage):
 
     def get_payback_url(self):
         if not self.doc.xpath(u'//td[contains(text(), "Transaction associée")]'):
-            return None, None
+            return None
         url = self.doc.xpath(u'//tr[td[contains(text(),"Approvisionnement à")]]//a[contains(text(), "Détails")]/@href')
         if len(url) == 1:
             return url[0]

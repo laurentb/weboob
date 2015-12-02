@@ -205,3 +205,4 @@ class Paypal(LoginBrowser):
                 self.location(url)
                 if self.history_payback.is_here():
                     return self.page.get_payback()
+        return None, None, None, None
