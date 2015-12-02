@@ -19,11 +19,11 @@
 
 
 import datetime
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import re
 
 from weboob.deprecated.browser import Page
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment, NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -192,8 +192,12 @@ class Transaction(FrenchTransaction):
 
 
 class HistoryBasePage(Page):
+    def iter_investments(self):
+        self.logger.warning('Do not support investments on account of type %s' % type(self).__name__)
+        return iter([])
+
     def get_history(self):
-        self.logger.warning('Do not support account of type %s' % type(self).__name__)
+        self.logger.warning('Do not support history on account of type %s' % type(self).__name__)
         return iter([])
 
 
@@ -263,8 +267,30 @@ class LoanPage(HistoryBasePage):
 class MarketPage(HistoryBasePage):
     pass
 
+
 class AssurancePage(HistoryBasePage):
-    pass
+    def iter_investments(self):
+        for tr in self.document.xpath('//table[@id="support"]/tbody/tr'):
+            tds = tr.findall('td')
+
+            inv = Investment()
+            inv.label = self.parser.tocleanstring(tds[0])
+            inv.code = NotAvailable
+
+            try:
+                inv.quantity = Decimal(Transaction.clean_amount(self.parser.tocleanstring(tds[1])))
+            except InvalidOperation:
+                pass
+
+            try:
+                inv.unitvalue = Decimal(Transaction.clean_amount(self.parser.tocleanstring(tds[2])))
+            except InvalidOperation:
+                pass
+
+            inv.valuation = Decimal(Transaction.clean_amount(self.parser.tocleanstring(tds[3])))
+            inv.set_empty_fields(NotAvailable)
+            yield inv
+
 
 class LogoutPage(Page):
     pass

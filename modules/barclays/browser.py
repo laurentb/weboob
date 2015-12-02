@@ -42,6 +42,7 @@ class Barclays(Browser):
              'https://.*.barclays.fr/barclaysnetV2/pret.do.*':                          LoanPage,
              'https://.*.barclays.fr/barclaysnetV2/titre.do.*':                         MarketPage,
              'https://.*.barclays.fr/barclaysnetV2/assurance.do.*':                     AssurancePage,
+             'https://.*.barclays.fr/barclaysnetV2/assuranceSupports.do.*':             AssurancePage,
             }
 
     SESSION_PARAM = None
@@ -146,3 +147,17 @@ class Barclays(Browser):
 
             for tr in self.page.get_history():
                 yield tr
+
+    def iter_investments(self, account):
+        if account.type not in (account.TYPE_MARKET, account.TYPE_LIFE_INSURANCE):
+            raise NotImplementedError()
+
+        if not self.is_on_page(AccountsPage):
+            self.home()
+
+        self.location(account._link)
+
+        if account.type == account.TYPE_LIFE_INSURANCE:
+            self.location(self.page.url.replace('assurance.do', 'assuranceSupports.do'))
+
+        return self.page.iter_investments()

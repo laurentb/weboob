@@ -59,13 +59,14 @@ class BarclaysModule(Module, CapBank):
             raise AccountNotFound()
 
     def iter_history(self, account):
-        with self.browser:
-            for tr in self.browser.get_history(account):
-                if not tr._coming:
-                    yield tr
+        for tr in self.browser.get_history(account):
+            if not tr._coming:
+                yield tr
 
     def iter_coming(self, account):
-        with self.browser:
-            for tr in self.browser.get_card_operations(account):
-                if tr._coming:
-                    yield tr
+        for tr in self.browser.get_card_operations(account):
+            if tr._coming:
+                yield tr
+
+    def iter_investment(self, account):
+        return self.browser.iter_investments(account)
