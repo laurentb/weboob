@@ -341,6 +341,7 @@ class AccountsPage(BasePage):
                      u'Comptes en euros':              Account.TYPE_CHECKING,
                      u'Liste complète de mes comptes': Account.TYPE_CHECKING,
                      u'Mes emprunts':                  Account.TYPE_LOAN,
+                     u'Liste complète de mes emprunts':Account.TYPE_LOAN,
                      u'Financements':                  Account.TYPE_LOAN,
                      u'Mes services':                  None,    # ignore this kind of accounts (no bank ones)
                      u'Équipements':                   None,    # ignore this kind of accounts (no bank ones)
