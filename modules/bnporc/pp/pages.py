@@ -162,6 +162,7 @@ class AccountsPage(BNPPage):
         5: Account.TYPE_LIFE_INSURANCE,
         6: Account.TYPE_LIFE_INSURANCE,
         8: Account.TYPE_LOAN,
+        9: Account.TYPE_LOAN,
     }
 
     def iter_accounts(self, ibans):
