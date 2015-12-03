@@ -200,7 +200,8 @@ class AccountsPage(LoggedPage, HTMLPage):
             def condition(self):
                 return '/outil/UWLM/ListeMouvement' in self.el.attrib['onclick']
 
-            NATURE2TYPE = {'006': Account.TYPE_CHECKING,
+            NATURE2TYPE = {'001': Account.TYPE_SAVINGS,
+                           '006': Account.TYPE_CHECKING,
                            '012': Account.TYPE_SAVINGS,
                            '046': Account.TYPE_SAVINGS,
                            '049': Account.TYPE_SAVINGS,
