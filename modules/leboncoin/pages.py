@@ -125,7 +125,7 @@ class HousingPage(HTMLPage):
         def parse(self, el):
             details = dict()
             self.env['location'] = NotAvailable
-            for tr in el.xpath('//div[@class="floatLeft"]/table/tr'):
+            for tr in el.xpath('//div[@class="floatLeft"]/table/tbody/tr'):
                 if 'Ville' in CleanText('./th')(tr):
                     self.env['location'] = CleanText('./td')(tr)
                 else:
@@ -146,7 +146,7 @@ class HousingPage(HTMLPage):
             self.env['details'] = details
 
         obj_id = Env('_id')
-        obj_title = CleanText('//h2[@id="ad_subject"]')
+        obj_title = CleanText('//h1[@id="ad_subject"]')
         obj_cost = CleanDecimal('//span[@class="price"]', replace_dots=(',', '.'), default=Decimal(0))
 
         obj_currency = Regexp(CleanText('//span[@class="price"]'),
