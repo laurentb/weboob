@@ -74,7 +74,7 @@ class HousingPage(HTMLPage):
         klass = Housing
 
         obj_id = Env('_id')
-        obj_title = CleanText('//section[class="wctrl"]/h1')
+        obj_title = CleanText('//main/section/div/h1')
         obj_cost = CleanDecimal('//span[@class="i prix"]', replace_dots=(',', '.'), default=Decimal(0))
 
         obj_currency = Regexp(CleanText('//span[@class="i prix"]'),
