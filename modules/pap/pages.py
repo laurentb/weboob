@@ -94,9 +94,9 @@ class HousingPage(HTMLPage):
         obj_area = CleanDecimal(Regexp(CleanText('//h1[@class="desc clearfix"]/span[@class="title"]'),
                                 '(.*?)(\d*) m\xb2(.*?)', '\\2'), default=NotAvailable)
         obj_location = CleanText('//div[@class="text-annonce"]/h2')
-        obj_text = CleanHTML('//div[@class="text-annonce"]/p')
+        obj_text = CleanText(CleanHTML('//div[@class="text-annonce-container"]/p'))
         obj_station = CleanText('//div[@class="metro"]')
-        obj_phone = CleanText('//span[@class="telephone hide-tel"]')
+        obj_phone = CleanText('(//span[@class="telephone hide-tel"])[1]')
         obj_url = BrowserURL('housing', _id=Env('_id'))
 
         def obj_details(self):
