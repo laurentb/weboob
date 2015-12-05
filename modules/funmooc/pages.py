@@ -28,7 +28,7 @@ class PageLogin(HTMLPage):
     def login(self, email, password, csrf):
         data = {'email': email, 'password': password, 'remember': 'true'}
         headers = {'X-CSRFToken': csrf}
-        form = self.get_form(id='login-form')
+        form = self.get_form(xpath='//form[contains(@class,"login-form")]')
 
         req = self.browser.build_request(form.url, data=data, headers=headers)
         self.browser.open(req)
