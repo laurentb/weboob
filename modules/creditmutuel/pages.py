@@ -29,7 +29,7 @@ from dateutil.relativedelta import relativedelta
 
 from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, SkipItem, method
-from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, TableCell
+from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, TableCell, Regexp
 from weboob.browser.filters.html import Link
 from weboob.exceptions import BrowserIncorrectPassword, ParseError
 from weboob.capabilities import NotAvailable
@@ -394,7 +394,7 @@ class PorPage(LoggedPage, HTMLPage):
             klass = Investment
 
             obj_label = CleanText('.//td[1]/a')
-            obj_code = CleanText('.//td[1]/a/@title')
+            obj_code = CleanText('.//td[1]/a/@title') & Regexp(pattern='^([^ ]+)')
             obj_quantity = CleanDecimal('.//td[2]', default=Decimal(0), replace_dots=True)
             obj_unitprice = CleanDecimal('.//td[3]', default=Decimal(0), replace_dots=True)
             obj_unitvalue = CleanDecimal('.//td[4]', default=Decimal(0), replace_dots=True)
