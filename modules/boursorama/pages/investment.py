@@ -36,7 +36,7 @@ class AccountMarket(Page):
                 continue
 
             inv = Investment()
-            inv.label = self.parser.tocleanstring(cells[0].xpath('.//a')[0])
+            inv.label = self.parser.tocleanstring(cells[0].xpath('.//a')[-1])
             isin_div = cells[0].xpath('.//div')
             if len(isin_div) > 0:
                 inv.id = inv.code = self.parser.tocleanstring(isin_div[0])
