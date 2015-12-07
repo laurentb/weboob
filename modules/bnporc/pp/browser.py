@@ -71,6 +71,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
                         '/fr/connexion/mot-de-passe-expire',
                         '/fr/espace-prive/100-connexions.*',
                         '/fr/espace-pro/100-connexions-pro.*',
+                        '/fr/espace-client/100-connexions',
                         '/fr/systeme/page-indisponible', ConnectionThresholdPage)
     accounts = URL('udc-wspl/rest/getlstcpt', AccountsPage)
     ibans = URL('rib-wspl/rpc/comptes', AccountsIBANPage)
