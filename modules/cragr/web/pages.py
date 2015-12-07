@@ -23,6 +23,7 @@ import re
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.deprecated.browser import Page, BrokenPageError
+from weboob.deprecated.browser import BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.date import parse_french_date
 
@@ -56,6 +57,10 @@ class HomePage(BasePage):
 
 
 class LoginPage(BasePage):
+    def on_loaded(self):
+        if self.document.xpath('//font[@class="taille2"]'):
+            raise BrowserIncorrectPassword()
+
     def login(self, username, password):
         imgmap = {}
         for td in self.document.xpath('//table[@id="pave-saisie-code"]/tr/td'):
