@@ -38,9 +38,17 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_french_date
 
 
+class RedirectPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        link = self.doc.xpath('//a[@id="P:F_1.R2:link"]')
+        if link:
+            self.browser.location(link[0].attrib['href'])
+
+
 class NewHomePage(LoggedPage, HTMLPage):
     def on_load(self):
         self.browser.is_new_website = True
+
 
 class LoginPage(HTMLPage):
     REFRESH_MAX = 10.0

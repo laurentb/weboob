@@ -36,7 +36,7 @@ from weboob.capabilities.bank import Transfer, TransferError
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
                    OperationsPage, CardPage, ComingPage, NoOperationsPage, \
                    TransfertPage, ChangePasswordPage, VerifCodePage,       \
-                   EmptyPage, PorPage, IbanPage, NewHomePage
+                   EmptyPage, PorPage, IbanPage, NewHomePage, RedirectPage
 
 
 __all__ = ['CreditMutuelBrowser']
@@ -88,6 +88,8 @@ class CreditMutuelBrowser(LoginBrowser):
     new_por = URL('/fr/banque/POR_ValoToute.aspx',
                   '/fr/banque/POR_SyntheseLst.aspx', PorPage)
     new_iban = URL('/fr/banque/rib.cgi', IbanPage)
+
+    redirect = URL('/fr/banque/paci_engine/static_content_manager.aspx', RedirectPage)
 
     currentSubBank = None
     is_new_website = False
