@@ -114,7 +114,7 @@ class Weboorrents(ReplApplication):
 
         Get information about a torrent.
         """
-        torrent = self.get_object(id, 'get_torrent', ('description', 'files'))
+        torrent = self.get_object(id, 'get_torrent', ('id', 'name', 'size', 'seeders', 'leechers', 'url', 'files', 'description'))
         if not torrent:
             print('Torrent not found: %s' % id, file=self.stderr)
             return 3
