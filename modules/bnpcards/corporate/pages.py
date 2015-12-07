@@ -23,7 +23,7 @@ from dateutil.relativedelta import relativedelta
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Field
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Format
 from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -52,7 +52,7 @@ class AccountsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
-            obj_id = CleanText('./td[2]', replace=[(' ', '')])
+            obj_id = Format('%s%s', CleanText('./td[2]', replace=[(' ', '')]), CleanText('./td[3]'))
             obj_label = CleanText('./td[1]')
             obj_type = Account.TYPE_CARD
 
