@@ -54,6 +54,7 @@ class BanquePopulaire(Browser):
              'https://[^/]+/cyber/internet/ContinueTask.do':                                    ErrorPage,
              'https://[^/]+/cyber/internet/DownloadDocument.do\?documentId=.*':                 (ExtractPdf, RawParser()),
              'https://[^/]+/s3f-web/.*':                                                        UnavailablePage,
+             'https://[^/]+/static/errors/nondispo.html':                                       UnavailablePage,
              'https://[^/]+/portailinternet/_layouts/Ibp.Cyi.Layouts/RedirectSegment.aspx.*':   RedirectPage,
              'https://[^/]+/portailinternet/Catalogue/Segments/.*.aspx(\?vary=(?P<vary>.*))?':  HomePage,
              'https://[^/]+/portailinternet/Pages/.*.aspx\?vary=(?P<vary>.*)':                  HomePage,
