@@ -28,7 +28,7 @@ from weboob.capabilities.base import NotAvailable
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Filter, Field, MultiFilter, \
-                                            Date, Lower, Regexp, Async, AsyncLoad, Slugify
+                                            Date, Lower, Regexp, Async, AsyncLoad
 from weboob.browser.filters.html import Attr
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -200,8 +200,6 @@ class AccountsList(LoggedPage, HTMLPage):
             load_details = Attr('.//div[has-class("asv_fond_view")]//a', 'onclick') & Regexp(pattern="'(.*)'") & AsyncLoad
 
             obj_label = CleanText('.//span[has-class("asv_cat_lbl")]')
-            # XXX I would like to do that... but 1. CleanText doesn't deal with default 2. default values can't be filters yet
-            #obj_code = Async('details') & CleanText('//li[contains(text(), "Code ISIN")]/span') | (Field('label') & Format('XX%s', Slugify))
             obj_code = Async('details') & CleanText('//li[contains(text(), "Code ISIN")]/span[1]')
             obj_id = obj_code
             obj_description = Async('details') & CleanText('//h5')
@@ -236,12 +234,6 @@ class AccountsList(LoggedPage, HTMLPage):
                     return NotAvailable
 
                 return (self.obj.valuation - (self.obj.quantity * self.obj.unitprice)).quantize(Decimal('1.00'))
-
-            def validate(self, obj):
-                if not obj.id:
-                    obj.id = obj.code = 'XX' + Slugify(self.obj_label)(self)
-
-                return True
 
 
 class TitreDetails(LoggedPage, HTMLPage):
