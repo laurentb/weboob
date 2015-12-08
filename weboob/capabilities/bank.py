@@ -99,6 +99,9 @@ class Account(Recipient):
 
     iban =      StringField('International Bank Account Number')
 
+    # market and lifeinssurance accounts
+    valuation_diff = DecimalField('+/- values total')
+
     @property
     def ban(self):
         """ Bank Account Number part of IBAN"""
