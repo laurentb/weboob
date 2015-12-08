@@ -23,7 +23,7 @@ from urlparse import urlsplit
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
-from .pages import LoginPage, IndexPage, ErrorPage, UnavailablePage, MarketPage, LifeInsurance
+from .pages import LoginPage, IndexPage, ErrorPage, UnavailablePage, MarketPage, LifeInsurance, GarbagePage
 
 
 __all__ = ['CaisseEpargne']
@@ -43,6 +43,7 @@ class CaisseEpargne(Browser):
              'https://www.caisse-epargne.offrebourse.com/Portefeuille':   MarketPage,
              'https://[^/]+/Assurance/Pages/Assurance.aspx':              LifeInsurance,
              'https://www.extranet2.caisse-epargne.fr.*':                 LifeInsurance,
+             'https://www.caisse-epargne.offrebourse.com/DetailMessage\?refresh=O': GarbagePage,
             }
 
     def __init__(self, nuser, *args, **kwargs):
@@ -152,4 +153,6 @@ class CaisseEpargne(Browser):
                 self.location('https://www.extranet2.caisse-epargne.fr%s' % self.page.get_cons_repart())
             except IndexError:
                 return iter([])
+        if self.is_on_page(GarbagePage):
+            return iter([])
         return self.page.iter_investment()

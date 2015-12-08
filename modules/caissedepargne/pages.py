@@ -32,6 +32,10 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
+class GarbagePage(Page):
+    pass
+
+
 class _LogoutPage(Page):
     def on_loaded(self):
         try:
