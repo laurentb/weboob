@@ -165,7 +165,7 @@ class Flatboob(ReplApplication):
                 query.house_types.append(value)
 
         _type = None
-        while _type not in [query.TYPE_RENT, query.TYPE_SALE]:
+        while _type not in [query.TYPE_RENT, query.TYPE_SALE, query.TYPE_SHARING]:
             print('  %s%2d)%s %s' % (self.BOLD,
                                      query.TYPE_RENT,
                                      self.NC,
@@ -174,6 +174,10 @@ class Flatboob(ReplApplication):
                                      query.TYPE_SALE,
                                      self.NC,
                                      "Sale"))
+            print('  %s%2d)%s %s' % (self.BOLD,
+                                     query.TYPE_SHARING,
+                                     self.NC,
+                                     "Sharing"))
             _type = self.ask_int('Type of query')
 
         query.type = _type

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.json import json
-from weboob.capabilities.housing import Query
+from weboob.capabilities.housing import Query, TypeNotSupported
 from weboob.browser import PagesBrowser, URL
 
 from .pages import CitiesPage, SearchPage, HousingPage
@@ -53,6 +53,10 @@ class EntreparticuliersBrowser(PagesBrowser):
            }
 
     def search_housings(self, type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, house_types):
+
+        if type not in self.TYPES:
+            raise TypeNotSupported
+
         referer = "http://www.entreparticuliers.com/annonces-immobilieres/vente/resultats-de-recherche-ergo"
         self.session.headers.update({"X-Requested-With": "XMLHttpRequest",
                                      "Referer": referer,

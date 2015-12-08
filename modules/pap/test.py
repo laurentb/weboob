@@ -29,6 +29,7 @@ class PapTest(BackendTest):
         query = Query()
         query.area_min = 20
         query.cost_max = 900
+        query.type = Query.TYPE_RENT
         query.cities = []
         for city in self.backend.search_city('paris'):
             city.backend = self.backend.name

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser import PagesBrowser, URL
-from weboob.capabilities.housing import Query
+from weboob.capabilities.housing import Query, TypeNotSupported
 from .pages import CityListPage, HousingListPage, HousingPage
 
 
@@ -29,6 +29,10 @@ class LeboncoinBrowser(PagesBrowser):
                  '(?P<_type>.*)/offres/(?P<_region>.*)/occasions.*?',
                  HousingListPage)
     housing = URL('ventes_immobilieres/(?P<_id>.*).htm', HousingPage)
+
+    TYPES = {Query.TYPE_RENT: 'locations',
+             Query.TYPE_SALE: 'ventes_immobilieres',
+             Query.TYPE_SHARING: 'colocations', }
 
     RET = {Query.HOUSE_TYPES.HOUSE: '1',
            Query.HOUSE_TYPES.APART: '2',
@@ -51,6 +55,10 @@ class LeboncoinBrowser(PagesBrowser):
         return self.city.go(city=city, zip=zip_code).get_cities()
 
     def search_housings(self, query, advert_type, module_name):
+
+        if query.type not in self.TYPES:
+            return TypeNotSupported()
+
         type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, ret = self.decode_query(query, module_name)
         if len(cities) == 0 or len(ret) == 0:
             return list()
@@ -74,9 +82,7 @@ class LeboncoinBrowser(PagesBrowser):
     def decode_query(self, query, module_name):
         cities = [c.name for c in query.cities if c.backend == module_name]
         ret = [self.RET.get(g) for g in query.house_types if g in self.RET]
-        _type = 'ventes_immobilieres'
-        if query.type == Query.TYPE_RENT:
-            _type = 'locations'
+        _type = self.TYPES.get(query.type)
 
         self.search.go(_type=_type, _region=self.region)
 

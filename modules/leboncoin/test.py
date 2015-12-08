@@ -28,6 +28,7 @@ class LeboncoinTest(BackendTest):
     def test_leboncoin(self):
         query = Query()
         query.cities = []
+        query.type = Query.TYPE_SALE
         for city in self.backend.search_city('lille'):
             city.backend = self.backend.name
             query.cities.append(city)

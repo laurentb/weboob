@@ -19,10 +19,20 @@
 
 
 from .base import Capability, BaseObject, Field, IntField, DecimalField, \
-                  StringField, BytesField, enum
+                  StringField, BytesField, enum, UserError
 from .date import DateField
 
 __all__ = ['HousingPhoto', 'Housing', 'Query', 'City', 'CapHousing']
+
+
+class TypeNotSupported(UserError):
+    """
+    Raised when query type is not supported
+    """
+
+    def __init__(self,
+                 msg='This type of house is not supported by this module'):
+        UserError.__init__(self, msg)
 
 
 class HousingPhoto(BaseObject):
@@ -70,6 +80,7 @@ class Query(BaseObject):
     """
     TYPE_RENT = 0
     TYPE_SALE = 1
+    TYPE_SHARING = 2
 
     HOUSE_TYPES = enum(APART=u'Apartment',
                        HOUSE=u'House',

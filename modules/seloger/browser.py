@@ -19,7 +19,7 @@
 
 import urllib
 
-from weboob.capabilities.housing import Query
+from weboob.capabilities.housing import Query, TypeNotSupported
 
 from weboob.browser import PagesBrowser, URL
 from .pages import SearchResultsPage, HousingPage, CitiesPage
@@ -33,13 +33,14 @@ class SeLogerBrowser(PagesBrowser):
     PROFILE = Android()
     cities = URL('js,ajax,villequery_v3.htm\?ville=(?P<pattern>.*)', CitiesPage)
     search = URL('http://ws.seloger.com/search.xml\?(?P<request>.*)', SearchResultsPage)
-    housing = URL('http://ws.seloger.com/annonceDetail.xml\?idAnnonce=(?P<_id>\d+)&noAudiotel=(?P<noAudiotel>\d)', HousingPage)
+    housing = URL('http://ws.seloger.com/annonceDetail.xml\?idAnnonce=(?P<_id>\d+)&noAudiotel=(?P<noAudiotel>\d)',
+                  HousingPage)
 
     def search_geo(self, pattern):
         return self.cities.open(pattern=pattern).iter_cities()
 
     TYPES = {Query.TYPE_RENT: 1,
-             Query.TYPE_SALE: 2
+             Query.TYPE_SALE: 2,
              }
 
     RET = {Query.HOUSE_TYPES.HOUSE: '2',
@@ -49,6 +50,10 @@ class SeLogerBrowser(PagesBrowser):
            Query.HOUSE_TYPES.OTHER: '10'}
 
     def search_housings(self, type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, house_types):
+
+        if type not in self.TYPES:
+            raise TypeNotSupported()
+
         data = {'ci':            ','.join(cities),
                 'idtt':          self.TYPES.get(type, 1),
                 'org':           'advanced_search',

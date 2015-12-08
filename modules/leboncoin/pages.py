@@ -90,7 +90,8 @@ class HousingListPage(HTMLPage):
         class item(ItemElement):
             klass = Housing
 
-            obj_id = Regexp(Link('.'), 'http://www.leboncoin.fr/(ventes_immobilieres|locations)/(.*).htm', '\\2')
+            obj_id = Regexp(Link('.'), 'http://www.leboncoin.fr/(ventes_immobilieres|locations|colocations)/(.*).htm',
+                            '\\2')
             obj_title = CleanText('./div[@class="lbc"]/div/h2[@class="title"]')
             obj_cost = CleanDecimal('./div[@class="lbc"]/div/div[@class="price"]',
                                     replace_dots=(',', '.'),

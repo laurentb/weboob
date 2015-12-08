@@ -19,7 +19,7 @@
 
 import urllib
 from weboob.browser import PagesBrowser, URL
-from weboob.capabilities.housing import Query
+from weboob.capabilities.housing import Query, TypeNotSupported
 from .pages import CitiesPage, SearchPage, HousingPage, HousingPage2, PhonePage
 
 
@@ -46,6 +46,9 @@ class ExplorimmoBrowser(PagesBrowser):
         return self.cities.open(city=pattern).get_cities()
 
     def search_housings(self, type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, house_types):
+
+        if type not in self.TYPES:
+            raise TypeNotSupported()
 
         ret = []
         for house_type in house_types:

@@ -29,6 +29,7 @@ class SeLogerTest(BackendTest):
         query = Query()
         query.area_min = 20
         query.cost_max = 1000
+        query.type = Query.TYPE_RENT
         query.cities = []
         for city in self.backend.search_city(u'Ferté'):
             city.backend = self.backend.name

@@ -64,7 +64,7 @@ class SearchResultsPage(XMLPage):
         item_xpath = "//annonce"
 
         def next_page(self):
-            page =  CleanText('//pageSuivante', default=None)(self)
+            page = CleanText('//pageSuivante', default=None)(self)
             if page:
                 return page
 

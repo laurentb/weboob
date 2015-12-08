@@ -19,7 +19,7 @@
 
 
 from weboob.browser import PagesBrowser, URL
-from weboob.capabilities.housing import Query
+from weboob.capabilities.housing import Query, TypeNotSupported
 from .pages import CitiesPage, SearchPage, HousingPage, PhonePage
 
 
@@ -28,12 +28,13 @@ class LogicimmoBrowser(PagesBrowser):
 
     city = URL('asset/t9/t9_district/fr/(?P<size>\d*)/(?P<first_letter>\w)/(?P<pattern>.*)\.txt\?json=%22(?P<pattern2>.*)%22',
                CitiesPage)
-    search = URL('(?P<type>location|vente)-immobilier-(?P<cities>.*)/options/(?P<options>.*)', SearchPage)
+    search = URL('(?P<type>location-immobilier|vente-immobilier|recherche-colocation)-(?P<cities>.*)/options/(?P<options>.*)', SearchPage)
     housing = URL('detail-(?P<_id>.*).htm', HousingPage)
     phone = URL('(?P<urlcontact>.*)', PhonePage)
 
-    TYPES = {Query.TYPE_RENT: 'location',
-             Query.TYPE_SALE: 'vente'}
+    TYPES = {Query.TYPE_RENT: 'location-immobilier',
+             Query.TYPE_SALE: 'vente-immobilier',
+             Query.TYPE_SHARING: 'recherche-colocation'}
 
     RET = {Query.HOUSE_TYPES.HOUSE: '2',
            Query.HOUSE_TYPES.APART: '1',
@@ -50,6 +51,10 @@ class LogicimmoBrowser(PagesBrowser):
                                 pattern2=pattern.upper()).get_cities()
 
     def search_housings(self, type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, house_types):
+
+        if type not in self.TYPES:
+            raise TypeNotSupported()
+
         options = []
 
         ret = []
@@ -71,15 +76,24 @@ class LogicimmoBrowser(PagesBrowser):
             options.append('areamax=%s' % area_max)
 
         if nb_rooms:
-            options.append('nbrooms=%s' % nb_rooms)
+            if type == Query.TYPE_SHARING:
+                options.append('nbbedrooms=%s' % ','.join([str(i) for i in range(nb_rooms, 7)]))
+            else:
+                options.append('nbrooms=%s' % ','.join([str(i) for i in range(nb_rooms, 7)]))
 
-        return self.search.go(type=self.TYPES.get(type, 'location'),
-                              cities=cities,
-                              options='/'.join(options)).iter_housings()
+        self.search.go(type=self.TYPES.get(type, 'location-immobilier'),
+                       cities=cities,
+                       options='/'.join(options))
+
+        if type == Query.TYPE_SHARING:
+            return self.page.iter_sharing()
+
+        return self.page.iter_housings()
 
     def get_housing(self, _id, housing=None):
         return self.housing.go(_id=_id).get_housing(obj=housing)
 
     def get_phone(self, _id):
-        urlcontact, params = self.housing.stay_or_go(_id=_id).get_phone_url_datas()
-        return self.phone.go(urlcontact=urlcontact, params=params).get_phone()
+        if _id.startswith('location') or _id.startswith('vente'):
+            urlcontact, params = self.housing.stay_or_go(_id=_id).get_phone_url_datas()
+            return self.phone.go(urlcontact=urlcontact, params=params).get_phone()

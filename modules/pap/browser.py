@@ -21,7 +21,7 @@
 import urllib
 
 from weboob.browser import PagesBrowser, URL
-from weboob.capabilities.housing import Query
+from weboob.capabilities.housing import Query, TypeNotSupported
 
 from .pages import SearchResultsPage, HousingPage, CitiesPage
 
@@ -49,6 +49,10 @@ class PapBrowser(PagesBrowser):
            Query.HOUSE_TYPES.OTHER: 'divers'}
 
     def search_housings(self, type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, house_types):
+
+        if type not in self.TYPES:
+            raise TypeNotSupported()
+
         self.session.headers.update({'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'})
 
         data = {'geo_objets_ids': ','.join(cities),
