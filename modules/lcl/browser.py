@@ -55,7 +55,8 @@ class LCLBrowser(LoginBrowser):
                   '/outil/UWLM/DetailMouvement.*/accesDetailMouvement.*',
                   '/outil/UWLM/Rebond',
                   AccountHistoryPage)
-    rib = URL('/outil/UWRI/Accueil/detailRib', RibPage)
+    rib = URL('/outil/UWRI/Accueil/detailRib',
+              '/outil/UWRI/Accueil/listeRib', RibPage)
     cb_list = URL('/outil/UWCB/UWCBEncours.*/listeCBCompte.*', CBListPage)
     cb_history = URL('/outil/UWCB/UWCBEncours.*/listeOperations.*', CBHistoryPage)
     skip = URL('/outil/UAUT/Contrat/selectionnerContrat.*',

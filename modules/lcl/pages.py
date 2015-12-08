@@ -436,4 +436,4 @@ class AVDetailPage(LoggedPage, LCLBasePage):
 class RibPage(LoggedPage, LCLBasePage):
     def get_iban(self):
         if (self.doc.xpath('//div[contains(@class, "rib_cadre")]//div[contains(@class, "rib_internat")]')):
-            return CleanText().filter(self.doc.xpath('//div[contains(@class, "rib_cadre")]//div[contains(@class, "rib_internat")]//p//strong')[0].text)
+            return CleanText().filter(self.doc.xpath('//div[contains(@class, "rib_cadre")]//div[contains(@class, "rib_internat")]//p//strong')[0].text).replace(' ','')
