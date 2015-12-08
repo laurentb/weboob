@@ -88,6 +88,7 @@ class RecipePage(HTMLPage):
         def obj_nb_person(self):
             return [Type(CleanText('//span[@class="yield"]'), type=int, default=0)(self)]
 
-        obj_instructions = CleanHTML('//div[@class="recette_etapes"]')
+        obj_instructions = CleanHTML('//article[@class="recette_etape"]/h3|//article[@class="recette_etape"]/div[@class="recette_etape_texte"]/*[not(self::article)]')
+
         obj_picture_url = CleanText('//section[has-class("recette_infos")]/div/img[@class="photo"]/@src')
         obj_author = CleanText('//span[@class="author"]', default=NotAvailable)
