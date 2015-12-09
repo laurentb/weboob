@@ -86,7 +86,9 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
             raise BrowserPasswordExpired()
         if self.type == '2':
             self.page.expand()
-        return self.page.iter_accounts()
+        self.accounts = [acc for acc in self.page.iter_accounts()]
+        for acc in self.accounts:
+            yield acc
 
     @need_login
     def get_ti_transactions(self, account, coming=False):
@@ -110,10 +112,12 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
     def get_coming(self, account):
         if self.type == '1':
             return self.get_ti_transactions(account, coming=True)
+        if not hasattr(self, 'accounts') or not self.accounts:
+            self.iter_accounts()
         self.his_home.go()
         self.page.expand()
         accounts = self.page.iter_accounts()
-        for a in accounts:
+        for a in self.accounts:
             if a.id == account.id:
                 self.location(self.page.get_link(a.id))
                 assert self.transactions.is_here()
@@ -129,10 +133,11 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
     def get_history(self, account):
         if self.type == '1':
             return self.get_ti_transactions(account)
+        if not hasattr(self, 'accounts') or not self.accounts:
+            self.iter_accounts()
         self.his_home.go()
         self.page.expand()
-        accounts = self.page.iter_accounts()
-        for a in accounts:
+        for a in self.accounts:
             if a.id == account.id:
                 self.location(self.page.get_link(a.id))
                 assert self.transactions.is_here()
