@@ -138,6 +138,13 @@ class AccountsPage(BEPage):
                 if td.text and td.text.strip().startswith('COMPTES '):
                     return table
 
+    def calculate_key(self, rib):
+        table = dict((ord(a), b) for a, b in zip(
+            u'abcdefghijklmnopqrstuvwxyz', u'12345678912345678923456789'))
+        rib = rib.lower().translate(table)
+        return 97 - (100 * int(rib)) % 97
+
+
     def get_list(self):
         table = self.find_table()
         for tr in self.parser.select(table, 'tr', 'many'):
@@ -159,6 +166,10 @@ class AccountsPage(BEPage):
                 account._link_id = parse_qs(link.attrib['href'])['ch4'][0]
             account.id = to_unicode(tdid.text.strip().replace(' ', ''))
             account.iban = 'FR76' + account.id
+            if len(account.iban) == 25:
+                # We miss the key at the end of iban
+                account.iban = 'FR76' + account.id + str(self.calculate_key(account.id))
+
             # just in case we are showing the converted balances
             account._main_currency = Account.get_currency(tdcur.text)
             # we have to ignore those accounts, because using NotAvailable
