@@ -63,7 +63,7 @@ class TransactionsPage(Page):
 
     def get_history(self):
         for div in self.document.xpath('//ol[@class="affichMontant"]/li/div'):
-            t = Transaction(0)
+            t = Transaction()
             raw = div.xpath('.//div[@class="row-lib"]')[0].text
             date = div.xpath('.//span')[0].text.strip()
             m = re.match('(\d+)(er)? ([^ ]+)( \d+)?$', date)

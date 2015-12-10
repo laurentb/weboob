@@ -223,7 +223,7 @@ class AccountHistory(BasePage):
                 if not t:
                     continue
 
-            t = Transaction(i)
+            t = Transaction()
 
             if 'EnTraitement' in tr.get('class', ''):
                 t._coming = True

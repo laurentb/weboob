@@ -316,7 +316,7 @@ class IndexPage(Page):
             if len(detail) > 0:
                 detail[0].drop_tree()
 
-            t = Transaction(i)
+            t = Transaction()
 
             date = u''.join([txt.strip() for txt in tds[i+0].itertext()])
             raw = u' '.join([txt.strip() for txt in tds[i+1].itertext()])

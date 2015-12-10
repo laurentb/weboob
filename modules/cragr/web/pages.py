@@ -294,7 +294,7 @@ class CardsPage(BasePage):
             label = cols[1]
             amount = cols[-1]
 
-            t = Transaction(i)
+            t = Transaction()
             t.set_amount(amount)
             t.label = t.raw = label
 
@@ -432,7 +432,6 @@ class TransactionsPage(BasePage):
             }
 
     def get_history(self, date_guesser):
-        i = 0
         for tr in self.document.xpath('//table[@class="ca-table"]//tr'):
             parent = tr.getparent()
             while parent is not None and parent.tag != 'table':
@@ -461,7 +460,7 @@ class TransactionsPage(BasePage):
             if tr.find('th') is not None or len(cols) < 3:
                 continue
 
-            t = Transaction(i)
+            t = Transaction()
 
             col_text = cols[self.COL_TEXT]
             if len(col_text.xpath('.//br')) == 0:
@@ -509,7 +508,6 @@ class TransactionsPage(BasePage):
             t.set_amount(credit, debit)
             yield t
 
-            i += 1
 
 
 class MarketPage(BasePage):

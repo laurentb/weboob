@@ -238,7 +238,7 @@ class CardPage(HistoryBasePage):
             if len(tds) != 3:
                 continue
 
-            t = Transaction(0)
+            t = Transaction()
             date = u''.join([txt.strip() for txt in tds[0].itertext()])
             raw = u' '.join([txt.strip() for txt in tds[1].itertext()])
             amount = u''.join([txt.strip() for txt in tds[-1].itertext()])

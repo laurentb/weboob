@@ -246,7 +246,7 @@ class HistoryPage(BEPage):
                     tdamount = '- %s' % tddebit
                 else:
                     tdamount = tdcredit
-                t = Transaction(i)
+                t = Transaction()
                 t.set_amount(tdamount)
                 t.parse(tddate, tdlabel, tdval)
 

@@ -492,7 +492,7 @@ class ProTransactionsPage(TransactionsPage):
 
     def get_history(self):
         for i, tr in self.parse_transactions():
-            t = Transaction(i)
+            t = Transaction()
             date = tr['date']
             raw = self.parser.strip('<p>%s</p>' % (' '.join([tr['typeope'], tr['LibComp']])))
             t.parse(date, raw)

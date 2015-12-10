@@ -114,7 +114,7 @@ class TransactionsJSONPage(LoggedPage, JsonPage):
     def get_transactions(self):
         seen = set()
         for tr in self.doc['exportData'][1:]:
-            t = Transaction(0)
+            t = Transaction()
             t.parse(tr[self.ROW_DATE], tr[self.ROW_TEXT])
             t.set_amount(tr[self.ROW_CREDIT], tr[self.ROW_DEBIT])
             t.id = t.unique_id(seen)
@@ -145,7 +145,7 @@ class ComingTransactionsPage(LoggedPage, HTMLPage):
             break
 
         for tr in data:
-            t = Transaction(0)
+            t = Transaction()
             t.parse(tr[self.ROW_DATE], tr[self.ROW_TEXT])
             t.set_amount(tr[self.ROW_CREDIT], tr[self.ROW_DEBIT])
             yield t

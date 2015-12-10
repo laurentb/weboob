@@ -10,3 +10,5 @@ tags
 docs/source/api
 modules/modules.list
 /localconfig
+*.idea/
+*.DS_Store

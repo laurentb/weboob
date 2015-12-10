@@ -291,7 +291,7 @@ class TransactionsPage(BasePage):
             if len(tds) < 4:
                 continue
 
-            t = Transaction(0)
+            t = Transaction()
             date = u''.join([txt.strip() for txt in tds[self.COL_DATE].itertext()])
             raw = u''.join([txt.strip() for txt in tds[self.COL_TEXT].itertext()])
             debit = self.parse_number(u''.join([txt.strip() for txt in tds[self.COL_DEBIT].itertext()]))
@@ -317,7 +317,7 @@ class CBTransactionsPage(TransactionsPage):
             if len(tds) < 3:
                 continue
 
-            t = Transaction(0)
+            t = Transaction()
             date = u''.join([txt.strip() for txt in tds[self.COL_DATE].itertext()])
             raw = self.parse_number(u''.join([txt.strip() for txt in tds[self.COL_TEXT].itertext()]))
             credit = self.parse_number(u''.join([txt.strip() for txt in tds[self.COL_CB_CREDIT].itertext()]))

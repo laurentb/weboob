@@ -209,7 +209,7 @@ class HistoryPage(SGPEPage):
             tdamount = tddebit or tdcredit
             # not sure it has empty rows like AccountsPage, but check anyway
             if all((tddate, tdlabel, tdamount)):
-                t = Transaction(i)
+                t = Transaction()
                 t.set_amount(tdamount)
                 date = datetime.strptime(tddate, '%d/%m/%Y')
                 val = datetime.strptime(tdval, '%d/%m/%Y')
@@ -248,7 +248,7 @@ class CardHistoryPage(SGPEPage):
             if len(date) == 0:
                 continue
 
-            t = Transaction(i)
+            t = Transaction()
             t.parse(date, raw)
             t.set_amount(amount)
             yield t

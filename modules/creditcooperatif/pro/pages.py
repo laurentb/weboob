@@ -131,7 +131,7 @@ class TransactionsPage(ITransactionsPage):
             debit = get_content(tds[self.TR_DEBIT])
             credit = get_content(tds[self.TR_CREDIT])
 
-            t = Transaction(date+""+raw)
+            t = Transaction()
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
             t.set_amount(credit, debit)
 
@@ -176,7 +176,7 @@ class CardTransactionsPage(ITransactionsPage):
             else:
                 date += "/%d" % time.localtime().tm_year
 
-            t = Transaction(date+""+raw)
+            t = Transaction()
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
             t.set_amount("", debit)
 

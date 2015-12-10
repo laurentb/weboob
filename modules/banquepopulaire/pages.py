@@ -636,7 +636,7 @@ class TransactionsPage(BasePage):
         else:
             debit_date = account._prev_debit
             if 'ContinueTask.do' in self.url:
-                t = Transaction(0)
+                t = Transaction()
                 t.parse(debit_date, 'RELEVE CARTE')
                 t.amount = -account._prev_balance
                 yield t
@@ -647,7 +647,7 @@ class TransactionsPage(BasePage):
             if len(tds) < 3:
                 continue
 
-            t = Transaction(i)
+            t = Transaction()
 
             date = self.parser.tocleanstring(tds[self.COL_CARD_DATE])
             label = self.parser.tocleanstring(tds[self.COL_CARD_LABEL])
