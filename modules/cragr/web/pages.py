@@ -123,6 +123,7 @@ class _AccountsPage(BasePage):
              u'PRET PERSO': Account.TYPE_LOAN,
              u'P. HABITAT': Account.TYPE_LOAN,
              u'PRET 0%':    Account.TYPE_LOAN,
+             u'INV PRO':    Account.TYPE_LOAN,
              u'PEA':        Account.TYPE_MARKET,
              u'CPS':        Account.TYPE_MARKET,
              u'TITR':       Account.TYPE_MARKET,
@@ -380,6 +381,7 @@ class TransactionsPage(BasePage):
     COL_CREDIT = -1
 
     TYPES = {'Paiement Par Carte':          Transaction.TYPE_CARD,
+             'Remise Carte':                Transaction.TYPE_CARD,
              'Retrait Au Distributeur':     Transaction.TYPE_WITHDRAWAL,
              'Frais':                       Transaction.TYPE_BANK,
              'Cotisation':                  Transaction.TYPE_BANK,
@@ -390,6 +392,7 @@ class TransactionsPage(BasePage):
              'Prelevement':                 Transaction.TYPE_ORDER,
              'Prelevt':                     Transaction.TYPE_ORDER,
              'Prelevmnt':                   Transaction.TYPE_ORDER,
+             'Remboursement De Pret':       Transaction.TYPE_LOAN_PAYMENT,
             }
 
     def get_history(self, date_guesser):
