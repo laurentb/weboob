@@ -108,6 +108,13 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
                 elif not coming and not tr._coming:
                     yield tr
 
+
+    @need_login
+    def get_link(self, id):
+        links = [l for l in self.page.get_link(id)]
+        if len(links) > 0:
+            return links[0]
+
     @need_login
     def get_coming(self, account):
         if self.type == '1':
@@ -119,13 +126,15 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
         accounts = self.page.iter_accounts()
         for a in self.accounts:
             if a.id == account.id:
-                self.location(self.page.get_link(a.id))
-                assert self.transactions.is_here()
+                link = self.get_link(a.id)
+                if link:
+                    self.location(link)
+                    assert self.transactions.is_here()
 
-                if self.page.is_not_sorted('up'):
-                    self.page.sort('up')
+                    if self.page.is_not_sorted('up'):
+                        self.page.sort('up')
 
-                return [t for t in self.page.get_history() if t._coming]
+                    return [t for t in self.page.get_history() if t._coming]
         return iter([])
 
 
@@ -139,11 +148,13 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
         self.page.expand()
         for a in self.accounts:
             if a.id == account.id:
-                self.location(self.page.get_link(a.id))
-                assert self.transactions.is_here()
+                link = self.get_link(a.id)
+                if link:
+                    self.location(link)
+                    assert self.transactions.is_here()
 
-                if self.page.is_not_sorted():
-                    self.page.sort()
+                    if self.page.is_not_sorted():
+                        self.page.sort()
 
-                return [t for t in self.page.get_history() if not t._coming]
+                    return [t for t in self.page.get_history() if not t._coming]
         return iter([])
