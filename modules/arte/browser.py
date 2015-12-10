@@ -168,6 +168,9 @@ class ArteBrowser(PagesBrowser):
 
         cat = cat if not cat else cat[1:]
 
+        if not cat and "end" in result:
+            del result["end"]
+
         for el in cat:
             result = result.get(el)
 
