@@ -87,6 +87,7 @@ class ProAccountHistoryCSV(AccountHistory):
         return False
 
     def get_history(self, deferred=False):
+        operations = []
         for line in self.document.rows:
             if len(line) < 4 or line[0] == 'Date':
                 continue
@@ -94,7 +95,12 @@ class ProAccountHistoryCSV(AccountHistory):
             t.parse(raw=line[1], date=line[0])
             t.set_amount(line[2])
             t._coming = False
-            yield t
+            operations.append(t)
+        operations = sorted(operations,
+                      lambda a, b: cmp(a.date, b.date), reverse=True)
+        for op in operations:
+            yield op
+
 
 class DownloadRib(Page):
     def get_rib_value(self, acc_id):
