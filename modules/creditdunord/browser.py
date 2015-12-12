@@ -24,7 +24,7 @@ import urllib
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
-from .pages import LoginPage, AccountsPage, ProAccountsPage, TransactionsPage, ProTransactionsPage, IbanPage
+from .pages import LoginPage, AccountsPage, ProAccountsPage, TransactionsPage, ProTransactionsPage, IbanPage, RedirectPage
 
 
 __all__ = ['CreditDuNordBrowser']
@@ -35,6 +35,7 @@ class CreditDuNordBrowser(Browser):
     ENCODING = 'UTF-8'
     PAGES = {'https://[^/]+/?':                                         LoginPage,
              'https://[^/]+/.*\?.*_pageLabel=page_erreur_connexion.*':  LoginPage,
+             'https://[^/]+/swm/redirectCDN.html':                      RedirectPage,
              'https://[^/]+/vos-comptes/particuliers(\?.*)?':           AccountsPage,
              'https://[^/]+/vos-comptes/particuliers/transac_tableau_de_bord(\?.*)?':           AccountsPage,
              'https://[^/]+/vos-comptes/.*/transac/particuliers.*':     TransactionsPage,
@@ -62,24 +63,9 @@ class CreditDuNordBrowser(Browser):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
-        # not necessary (and very slow)
-        #self.location('https://www.credit-du-nord.fr/', no_login=True)
+        self.location('https://' + self.DOMAIN, no_login=True)
 
-        m = re.match('www.([^\.]+).fr', self.DOMAIN)
-        if not m:
-            bank_name = 'credit-du-nord'
-            self.logger.error('Unable to find bank name for %s' % self.DOMAIN)
-        else:
-            bank_name = m.group(1)
-
-        data = {'bank':         bank_name,
-                'pagecible':    'vos-comptes',
-                'password':     self.password.encode(self.ENCODING),
-                'pwAuth':       'Authentification+mot+de+passe',
-                'username':     self.username.encode(self.ENCODING),
-               }
-
-        self.location(self.buildurl('/saga/authentification'), urllib.urlencode(data), no_login=True)
+        self.page.login(self.username, self.password)
 
         if not self.is_logged():
             raise BrowserIncorrectPassword()

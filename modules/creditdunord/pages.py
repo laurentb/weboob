@@ -22,17 +22,98 @@ from urllib import quote, urlencode
 from decimal import Decimal
 import re
 from cStringIO import StringIO
+from io import BytesIO
 
 from weboob.deprecated.browser import Page, BrokenPageError
 from weboob.tools.json import json
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 
+class CDNVirtKeyboard(GridVirtKeyboard):
+    symbols = {'0': '3de2346a63b658c977fce4da925ded28',
+               '1': 'c571018d2dc267cdf72fafeeb9693037',
+               '2': '72d7bad4beb833d85047f6912ed42b1d',
+               '3': 'fbfce4677a8b2f31f3724143531079e3',
+               '4': '54c723c5b0b5848a0475b4784100b9e0',
+               '5': 'd00164307cacd4ca21b930db09403baa',
+               '6': '101adc6f5d03df0f512c3ec2bef88de9',
+               '7': '3b48f598209718397eb1118d81cf07ba',
+               '8': '881f0acdaba2c44b6a5e64331f4f53d3',
+               '9': 'a47d9a0a2ebbc65a0e625f20cb07822b',
+              }
+
+    margin = 1
+    color = (0xff,0xf7,0xff)
+    nrow = 4
+    ncol = 4
+
+    def __init__(self, browser, crypto, grid):
+        f = BytesIO(browser.openurl('/sec/vk/gen_ui?modeClavier=0&cryptogramme=%s' % crypto).read())
+        super(CDNVirtKeyboard, self).__init__(range(16), self.ncol, self.nrow, f, self.color)
+        self.check_symbols(self.symbols, browser.responses_dirname)
+        self.codes = grid
+
+    def check_color(self, pixel):
+        for p in pixel:
+            if p > 0xd0:
+                return False
+        return True
+
+    def get_string_code(self, string):
+        res = []
+        ndata = self.nrow * self.ncol
+        for nbchar, c in enumerate(string):
+            index = self.get_symbol_code(self.symbols[c])
+            res.append(self.codes[(nbchar * ndata) + index])
+        return ','.join(res)
+
+
+class RedirectPage(Page):
+    def on_loaded(self):
+        for script in self.document.xpath('//script'):
+            self.browser.location(re.search(r'href="([^"]+)"', script.text).group(1))
 
 class LoginPage(Page):
-    pass
+    def login(self, username, password):
+        login_selector = self.document.xpath('//input[@id="codsec"]')
+        if login_selector:
+            self.vk_login(username, password)
+        else:
+            self.classic_login(username,password)
 
+    def vk_login(self, username, password):
+        res = self.browser.openurl('/sec/vk/gen_crypto?estSession=0').read()
+        crypto = re.search(r"'crypto': '([^']+)'", res).group(1)
+        grid = re.search(r"'grid': \[([^\]]+)]", res).group(1).split(',')
+
+        vk = CDNVirtKeyboard(self.browser, crypto, grid)
+
+        data = {'user_id':      username,
+                'codsec':       vk.get_string_code(password),
+                'cryptocvcs':   crypto,
+                'vk_op':        'auth',
+               }
+
+        self.browser.location(self.browser.buildurl('/swm/redirectCDN.html'), urlencode(data), no_login=True)
+
+    def classic_login(self, username, password):
+        m = re.match('www.([^\.]+).fr', self.browser.DOMAIN)
+        if not m:
+            bank_name = 'credit-du-nord'
+            self.logger.error('Unable to find bank name for %s' % self.browser.DOMAIN)
+        else:
+            bank_name = m.group(1)
+
+        data = {'bank':         bank_name,
+                'pagecible':    'vos-comptes',
+                'password':     password.encode(self.browser.ENCODING),
+                'pwAuth':       'Authentification+mot+de+passe',
+                'username':     username.encode(self.browser.ENCODING),
+               }
+
+        self.browser.location(self.browser.buildurl('/saga/authentification'), urlencode(data), no_login=True)
 
 class CDNBasePage(Page):
     def get_from_js(self, pattern, end, is_list=False):
