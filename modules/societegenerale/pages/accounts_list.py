@@ -278,7 +278,7 @@ class Market(BasePage, Invest):
             pass
         docs = [doc]
         if num_page:
-            for n in xrange(2, num_page + 1):
+            for n in range(2, num_page + 1):
                 docs.append(self.browser.get_document(self.browser.openurl('%s%s' % ('/brs/fisc/fisca10a.html?action=12&numPage=', str(n))), encoding='utf-8'))
 
         for doc in docs:
