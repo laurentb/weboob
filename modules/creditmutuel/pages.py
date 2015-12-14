@@ -392,7 +392,7 @@ class PorPage(LoggedPage, HTMLPage):
 
     def fill(self, acc):
         self.send_form(acc)
-        ele = self.doc.xpath('.//table[@class="fiche bourse"]//td[contains(@id, "Valorisation")]')[0]
+        ele = self.browser.page.doc.xpath('.//table[@class="fiche bourse"]//td[contains(@id, "Valorisation")]')[0]
         balance = CleanDecimal(ele.xpath('.'), default=Decimal(0), replace_dots=True)(ele)
         currency = FrenchTransaction.Currency('.')(ele)
         return balance, currency
