@@ -421,6 +421,10 @@ class MarketPage(Page):
 
             yield inv
 
+    def get_valuation_diff(self, account):
+        valuation_diff = re.sub(r'\(.*\)', '', self.document.xpath(u'//td[contains(text(), "values latentes")]/following-sibling::*[1]')[0].text)
+        account.valuation_diff = Decimal(FrenchTransaction.clean_amount(valuation_diff))
+
 
 class LifeInsurance(MarketPage):
     def get_cons_repart(self):
