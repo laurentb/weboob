@@ -121,7 +121,12 @@ class Boursorama(StateBrowser):
         if not self.is_on_page(AccountsList):
             self.location('/comptes/synthese.phtml')
 
-        return self.page.get_list()
+        accounts = list(self.page.get_list())
+        for account in accounts:
+            if account.type == Account.TYPE_LIFE_INSURANCE:
+                self.location(account._detail_url)
+                self.page.get_valuation_diff(account)
+        return iter(accounts)
 
     def get_account(self, id):
         assert isinstance(id, basestring)

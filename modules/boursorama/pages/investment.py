@@ -119,6 +119,9 @@ class AccountLifeInsurance(IsinMixin, Page):
 
             yield inv
 
+    def get_valuation_diff(self, account):
+        account.valuation_diff = Decimal(self.document.xpath('//td[contains(text(), "Total des +/- values **")]/following-sibling::*[1]'))
+
 
 class InvestmentDetail(IsinMixin, Page):
     _re_isin = re.compile('(\w+)')
