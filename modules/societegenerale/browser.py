@@ -24,7 +24,7 @@ from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, Browser
 from weboob.capabilities.bank import Account
 
 from .pages.accounts_list import AccountsList, AccountHistory, CardsList, LifeInsurance, \
-    LifeInsuranceHistory, LifeInsuranceInvest, Market
+    LifeInsuranceHistory, LifeInsuranceInvest, Market, ListRibPage
 from .pages.login import LoginPage, BadLoginPage, ReinitPasswordPage
 
 
@@ -52,6 +52,7 @@ class SocieteGenerale(Browser):
              'https://.*.societegenerale.fr/asv/AVI/asvcns10a.html': LifeInsurance,
              'https://.*.societegenerale.fr/asv/AVI/asvcns20a.html': LifeInsuranceInvest,
              'https://.*.societegenerale.fr/asv/AVI/asvcns2[0-9]c.html': LifeInsuranceHistory,
+             'https://.*.societegenerale.fr/restitution/imp_listeRib.html': ListRibPage,
             }
 
     def home(self):
@@ -99,7 +100,17 @@ class SocieteGenerale(Browser):
         if not self.is_on_page(AccountsList):
             self.location('/restitution/cns_listeprestation.html')
 
-        return self.page.get_list()
+        accounts = [acc for acc in self.page.get_list()]
+        self.location('/restitution/imp_listeRib.html')
+        if self.is_on_page(ListRibPage):
+            # Caching rib url, so we don't have to go back and forth for each account
+            for account in accounts:
+                account._rib_url = self.page.get_rib_url(account)
+            for account in accounts:
+                if account._rib_url:
+                    self.location(account._rib_url)
+                    account.iban = self.page.get_iban()
+        return accounts
 
     def get_account(self, id):
         assert isinstance(id, basestring)

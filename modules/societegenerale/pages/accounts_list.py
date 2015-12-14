@@ -30,6 +30,7 @@ from weboob.capabilities.base import empty, NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.deprecated.browser import BrokenPageError
+from weboob.browser.filters.standard import CleanText
 
 from .base import BasePage
 
@@ -239,6 +240,9 @@ class AccountHistory(BasePage):
 
             yield t
 
+    def get_iban(self):
+        return CleanText().filter(self.document.xpath("//font[contains(text(),'IBAN')]/b[1]")[0]).replace(' ', '')
+
 
 class Invest(object):
     def create_investement(self, cells):
@@ -369,3 +373,13 @@ class LifeInsuranceHistory(LifeInsurance):
             return trans.parse_date(elem.text.strip())
         else:
             return NotAvailable
+
+
+class ListRibPage(BasePage):
+    def get_rib_url(self, account):
+        for div in self.document.xpath('//table//td[@class="fond_cellule"]//div[@class="tableauBodyEcriture1"]//table//tr'):
+            if account.id == CleanText().filter(div.xpath('./td[2]//div/div')).replace(' ', ''):
+                href = CleanText().filter(div.xpath('./td[4]//a/@href'))
+                m = re.search("javascript:windowOpenerRib\('(.*?)'(.*)\)", href)
+                if m:
+                    return m.group(1)
