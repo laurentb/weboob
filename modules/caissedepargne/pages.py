@@ -131,8 +131,14 @@ class IndexPage(Page):
                      u'Compte Epargne et DAT':  Account.TYPE_SAVINGS,
                     }
 
+    def on_loaded(self):
+        # This page is sometimes an useless step to the market website.
+        bourse_link = self.document.xpath(u'//div[@id="MM_COMPTE_TITRE_pnlbourseoic"]//a[contains(text(), "Accédez à la consultation")]')
+        if len(bourse_link) == 1:
+            self.browser.location(bourse_link[0].attrib['href'])
+
     def _get_account_info(self, a):
-        m = re.search("PostBack(Options)?\([\"'][^\"']+[\"'],\s*['\"]([HISTORIQUE_\w|SYNTHESE_ASSURANCE_CNP|BOURSE][\d\w&]+)?['\"]", a.attrib.get('href', ''))
+        m = re.search("PostBack(Options)?\([\"'][^\"']+[\"'],\s*['\"]([HISTORIQUE_\w|SYNTHESE_ASSURANCE_CNP|BOURSE|COMPTE_TITRE][\d\w&]+)?['\"]", a.attrib.get('href', ''))
         if m is None:
             return None
         else:
@@ -150,7 +156,7 @@ class IndexPage(Page):
                 info['id'] = id.group(1)
             if info['type'] == 'SYNTHESE_ASSURANCE_CNP':
                 info['acc_type'] = Account.TYPE_LIFE_INSURANCE
-            if info['type'] == 'BOURSE':
+            if info['type'] in ('BOURSE', 'COMPTE_TITRE'):
                 info['acc_type'] = Account.TYPE_MARKET
             info['link'] = link
             return info
