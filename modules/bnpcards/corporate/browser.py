@@ -123,7 +123,6 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
             self.iter_accounts()
         self.his_home.go()
         self.page.expand()
-        accounts = self.page.iter_accounts()
         for a in self.accounts:
             if a.id == account.id:
                 link = self.get_link(a.id)
