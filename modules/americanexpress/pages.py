@@ -132,7 +132,7 @@ class TransactionsPage(Page):
             return
 
         #adding a time delta because amex have hard time to put the date in a good interval
-        beginning_date = self.get_beginning_debit_date() - datetime.timedelta(days=180)
+        beginning_date = self.get_beginning_debit_date() - datetime.timedelta(days=300)
         end_date = self.get_end_debit_date()
 
         guesser = ChaoticDateGuesser(beginning_date, end_date)
@@ -147,11 +147,16 @@ class TransactionsPage(Page):
             month = self.MONTHS.index(month.rstrip('.')) + 1
             date = guesser.guess_date(day, month)
 
+            rdate = None
             try:
                 detail = self.parser.select(cols[self.COL_TEXT], 'div.hiddenROC', 1)
             except BrokenPageError:
                 pass
             else:
+                rday, rmonth = (' '.join([txt.strip() for txt in detail.itertext()])).strip().split(' ')[3:5]
+                rday = int(rday)
+                rmonth = self.MONTHS.index(rmonth.rstrip('.')) + 1
+                rdate = guesser.guess_date(rday, rmonth)
                 detail.drop_tree()
 
             raw = (' '.join([txt.strip() for txt in cols[self.COL_TEXT].itertext()])).strip()
@@ -159,7 +164,7 @@ class TransactionsPage(Page):
             debit = self.parser.tocleanstring(cols[self.COL_DEBIT])
 
             t.date = date
-            t.rdate = date
+            t.rdate = rdate or date
             t.raw = re.sub(r'[ ]+', ' ', raw)
             t.label = re.sub('(.*?)( \d+)?  .*', r'\1', raw).strip()
             t.amount = CleanDecimal(replace_dots=currency == 'EUR').filter(credit or debit) * (1 if credit else -1)
