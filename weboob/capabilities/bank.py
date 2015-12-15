@@ -99,6 +99,7 @@ class Account(Recipient):
 
     iban =      StringField('International Bank Account Number')
 
+    number =    StringField('Shown by the bank to identify your account ie ****7489')
     # market and lifeinssurance accounts
     valuation_diff = DecimalField('+/- values total')
 
