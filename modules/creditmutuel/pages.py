@@ -376,6 +376,7 @@ class PorPage(LoggedPage, HTMLPage):
                 if a.id.startswith(ele.attrib['value']):
                     a._is_inv = True
                     a.type = Account.TYPE_MARKET
+                    self.fill(a)
                     break
             else:
                 acc = Account()
@@ -387,15 +388,16 @@ class PorPage(LoggedPage, HTMLPage):
                 acc._link_id = None
                 acc.type = Account.TYPE_MARKET
                 acc._is_inv = True
-                acc.balance, acc.currency = self.fill(acc)
+                self.fill(acc)
                 accounts.append(acc)
 
     def fill(self, acc):
         self.send_form(acc)
-        ele = self.browser.page.doc.xpath('.//table[@class="fiche bourse"]//td[contains(@id, "Valorisation")]')[0]
-        balance = CleanDecimal(ele.xpath('.'), default=Decimal(0), replace_dots=True)(ele)
-        currency = FrenchTransaction.Currency('.')(ele)
-        return balance, currency
+        ele = self.browser.page.doc.xpath('.//table[@class="fiche bourse"]')[0]
+        balance = CleanDecimal(ele.xpath('.//td[contains(@id, "Valorisation")]'), default=Decimal(0), replace_dots=True)(ele)
+        acc.balance = balance + acc.balance if acc.balance else balance
+        acc.currency = FrenchTransaction.Currency('.')(ele)
+        acc.valuation_diff = CleanDecimal(ele.xpath('.//td[contains(@id, "Variation")]'), default=Decimal(0), replace_dots=True)(ele)
 
     def send_form(self, account):
         form = self.get_form(name="frmMere")
