@@ -324,6 +324,11 @@ class MarketListPage(BNPPage):
         return self.get('securityAccountsList') or []
 
 
+class MarketSynPage(BNPPage):
+    def get_list(self):
+        return self.get('synSecurityAccounts') or []
+
+
 class MarketPage(BNPPage):
     investments_path = 'listofPortfolios.*'
 

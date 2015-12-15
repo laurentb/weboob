@@ -28,7 +28,8 @@ from weboob.browser.exceptions import ServerError
 
 from .pages import LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, TransferInitPage, \
                    ConnectionThresholdPage, LifeInsurancesPage, LifeInsurancesHistoryPage, \
-                   LifeInsurancesDetailPage, MarketListPage, MarketPage, MarketHistoryPage
+                   LifeInsurancesDetailPage, MarketListPage, MarketPage, MarketHistoryPage, \
+                   MarketSynPage
 
 
 __all__ = ['BNPPartPro', 'HelloBank']
@@ -83,6 +84,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     lifeinsurances_detail = URL('mefav-wspl/rest/detailMouvement', LifeInsurancesDetailPage)
 
     market_list = URL('pe-war/rpc/SAVaccountDetails/get', MarketListPage)
+    market_syn = URL('pe-war/rpc/synthesis/get', MarketSynPage)
     market = URL('pe-war/rpc/portfolioDetails/get', MarketPage)
     market_history = URL('/pe-war/rpc/turnOverHistory/get', MarketHistoryPage)
 
@@ -97,8 +99,14 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
         ibans = self.ibans.go().get_ibans_dict()
         ibans.update(self.transfer_init.go(data=JSON({'restitutionVF': 1, 'type': 'TOUS'})).get_ibans_dict())
 
-        self.accounts.go().iter_accounts(ibans)
-        return self.page.iter_accounts(ibans)
+        accounts = self.accounts.go().iter_accounts(ibans)
+        self.market_syn.go(data=JSON({}))
+        for account in accounts:
+            for market_acc in self.page.get_list():
+                if account.label == market_acc['securityAccountName']:
+                    account.valuation_diff = market_acc['profitLoss']
+                    break
+            yield account
 
     @need_login
     def get_account(self, _id):
