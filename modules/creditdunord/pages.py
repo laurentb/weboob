@@ -161,7 +161,7 @@ class AccountsPage(CDNBasePage):
     COL_LABEL = 5
     COL_BALANCE = -1
 
-    TYPES = {'ASSURANCE VIE':       Account.TYPE_DEPOSIT,
+    TYPES = {'ASSURANCE VIE':       Account.TYPE_LIFE_INSURANCE,
              'CARTE':               Account.TYPE_CARD,
              'COMPTE COURANT':      Account.TYPE_CHECKING,
              'COMPTE EPARGNE':      Account.TYPE_SAVINGS,

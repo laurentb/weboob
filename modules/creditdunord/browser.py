@@ -131,7 +131,7 @@ class CreditDuNordBrowser(Browser):
         self.location(account._link, urllib.urlencode(account._args))
         if (account.type == Account.TYPE_MARKET):
             return self.page.get_market_investment()
-        elif (account.type == Account.TYPE_DEPOSIT):
+        elif (account.type == Account.TYPE_LIFE_INSURANCE):
             self.page.follow_detail()
             return self.page.get_deposit_investment()
         return iter([])
