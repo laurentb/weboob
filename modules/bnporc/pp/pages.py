@@ -176,7 +176,8 @@ class AccountsPage(BNPPage):
                     'type': self.FAMILY_TO_TYPE.get(f.get('idFamilleCompte')) or Account.TYPE_UNKNOWN,
                     'balance': a.get('soldeDispo'),
                     'coming': a.get('soldeAVenir'),
-                    'iban': ibans.get(a.get('key'))
+                    'iban': ibans.get(a.get('key')),
+                    'number': a.get('value')
                 })
 
 
