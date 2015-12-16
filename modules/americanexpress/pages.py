@@ -153,9 +153,9 @@ class TransactionsPage(Page):
             except BrokenPageError:
                 pass
             else:
-                rday, rmonth = (' '.join([txt.strip() for txt in detail.itertext()])).strip().split(' ')[3:5]
+                rday, rmonth = re.search(r' (\d{2} .{3,4})\.', (' '.join([txt.strip() for txt in detail.itertext()])).strip()).group(1).split(' ')
                 rday = int(rday)
-                rmonth = self.MONTHS.index(rmonth.rstrip('.')) + 1
+                rmonth = self.MONTHS.index(rmonth) + 1
                 rdate = guesser.guess_date(rday, rmonth)
                 detail.drop_tree()
 
