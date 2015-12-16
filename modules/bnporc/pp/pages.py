@@ -265,8 +265,8 @@ class HistoryPage(BNPPage):
     def iter_coming(self):
         for op in self.path('data.listerOperations.compte.operationAvenir.*.operation.*'):
             codeOperation = cast(op.get('codeOperation'), int, 0)
+            # Coming transactions don't have real id
             tr = Transaction.from_dict({
-                'id': op.get('idOperation'),
                 'type': self.COMING_TYPE_TO_TYPE.get(codeOperation) or Transaction.TYPE_UNKNOWN,
                 'amount': op.get('montant'),
                 'card': op.get('numeroPorteurCarte'),
