@@ -161,8 +161,7 @@ class AccountsPage(CDNBasePage):
     COL_LABEL = 5
     COL_BALANCE = -1
 
-    TYPES = {'ASSURANCE VIE':       Account.TYPE_LIFE_INSURANCE,
-             'CARTE':               Account.TYPE_CARD,
+    TYPES = {'CARTE':               Account.TYPE_CARD,
              'COMPTE COURANT':      Account.TYPE_CHECKING,
              'COMPTE EPARGNE':      Account.TYPE_SAVINGS,
              'COMPTE SUR LIVRET':   Account.TYPE_SAVINGS,
@@ -182,6 +181,9 @@ class AccountsPage(CDNBasePage):
     def get_history_link(self):
         return self.parser.strip(self.get_from_js(",url: Ext.util.Format.htmlDecode('", "'"))
 
+    def get_av_link(self):
+        return self.document.xpath('//a[contains(text(), "Consultation")]')[0].attrib['href']
+
     def get_list(self):
         accounts = []
 
@@ -198,6 +200,10 @@ class AccountsPage(CDNBasePage):
             a._acc_nb = a.id.split('_')[0] if len(a.id.split('_')) > 1 else None
             fp = StringIO(unicode(line[self.COL_LABEL]).encode(self.browser.ENCODING))
             a.label = self.parser.tocleanstring(self.parser.parse(fp, self.browser.ENCODING).xpath('//div[@class="libelleCompteTDB"]')[0])
+            # This account can be multiple life insurance accounts
+            if a.label == 'ASSURANCE VIE-BON CAPI-SCPI-DIVERS *':
+                continue
+
             a.balance = Decimal(FrenchTransaction.clean_amount(line[self.COL_BALANCE]))
             a.currency = a.get_currency(line[self.COL_BALANCE])
             a.type = self.get_account_type(a.label)
@@ -228,7 +234,7 @@ class AccountsPage(CDNBasePage):
             a._card_ids = []
             accounts.append(a)
 
-        return iter(accounts)
+        return accounts
 
     def iban_page(self):
         self.browser.select_form(name="changePageForm")
@@ -236,6 +242,41 @@ class AccountsPage(CDNBasePage):
         self.browser['_ipc_fireEvent'] = 'V1_rib'
         self.browser['_ipc_eventValue'] = 'bouchon=bouchon'
         self.browser.submit()
+
+
+class AVPage(CDNBasePage):
+    COL_LABEL = 0
+    COL_BALANCE = 3
+
+    ARGS = ['IndiceClassement', 'IndiceCompte', 'Banque', 'Agence', 'Classement', 'Serie', 'SScompte', 'Categorie', 'IndiceSupport', 'NumPolice', 'LinkHypertext']
+
+    def get_params(self, text):
+        url = self.get_from_js('document.detail.action="', '";')
+        args = {}
+        l = []
+        for sub in re.findall("'([^']*)'", text):
+            l.append(sub)
+        for i, key in enumerate(self.ARGS):
+            args[key] = unicode(l[self.ARGS.index(key)]).encode(self.browser.ENCODING)
+
+        return url, args
+
+    def get_av_accounts(self):
+        for tr in self.document.xpath('//table[@class="datas"]/tr[not(@class)]'):
+            cols = tr.findall('td')
+            if len(cols) != 4:
+                continue
+
+            a = Account()
+            a.label = self.parser.tocleanstring(cols[self.COL_LABEL])
+            a.type = Account.TYPE_LIFE_INSURANCE
+            a.balance = Decimal(FrenchTransaction.clean_amount(self.parser.tocleanstring(cols[self.COL_BALANCE])))
+            a._link, a._args = self.get_params(cols[self.COL_LABEL].find('span/a').attrib['href'])
+            a.id = '%s%s' % (a._args['IndiceSupport'], a._args['NumPolice'])
+            a._acc_nb = None
+            a._card_ids = []
+            a._inv = True
+            yield a
 
 
 class ProAccountsPage(AccountsPage):
@@ -398,25 +439,6 @@ class TransactionsPage(CDNBasePage):
 
             yield t
 
-    def follow_detail(self):
-        nav = re.findall(r"'(.+?)'",  self.document.xpath('//table[@class="datas"]//a')[0].attrib["href"])
-        data = {'IndiceClassement' : self.get_from_js('detail.IndiceClassement.value="', '";'),
-                'IndiceCompte' : self.get_from_js('detail.IndiceCompte.value="', '";'),
-                'Banque' : self.get_from_js('detail.Banque.value="', '";'),
-                'Agence' : self.get_from_js('detail.Agence.value="', '";'),
-                'Classement' : self.get_from_js('detail.Classement.value="', '";'),
-                'Serie' : self.get_from_js('detail.Serie.value="', '";'),
-                'SScompte' : self.get_from_js('detail.SScompte.value="', '";'),
-                'Categorie' : nav[0],
-                'IndiceSupport' : nav[1],
-                'NumPolice' : nav[2],
-                'LinkHypertext' : nav[3],
-               }
-        txt = self.get_from_js('document.detail.action="', '";', is_list=True)
-
-        self.browser.location(self.browser.buildurl("https://" + self.browser.DOMAIN + txt.split(',')[1]), urlencode(data), no_login=True)
-        self.browser.location(self.browser.buildurl("https://" + self.browser.DOMAIN + txt.split(',')[1].replace("_attente", "_detail_contrat_rep")), urlencode(data), no_login=True)
-
     def get_market_investment(self):
         COL_LABEL = 0
         COL_QUANTITY = 1
@@ -466,6 +488,9 @@ class TransactionsPage(CDNBasePage):
         if value == '-':
             return NotAvailable
         return Decimal(Transaction.clean_amount(value))
+
+    def fill_valuation_diff(self, account):
+        account.valuation_diff = self.parse_decimal(self.document.xpath(u'//td[span[contains(text(), "dont +/- value : ")]]//b')[0])
 
 class ProTransactionsPage(TransactionsPage):
     def get_next_args(self, args):

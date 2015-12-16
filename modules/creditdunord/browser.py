@@ -24,7 +24,7 @@ import urllib
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
-from .pages import LoginPage, AccountsPage, ProAccountsPage, TransactionsPage, ProTransactionsPage, IbanPage, RedirectPage
+from .pages import LoginPage, AccountsPage, ProAccountsPage, TransactionsPage, ProTransactionsPage, IbanPage, RedirectPage, AVPage
 
 
 __all__ = ['CreditDuNordBrowser']
@@ -38,6 +38,7 @@ class CreditDuNordBrowser(Browser):
              'https://[^/]+/swm/redirectCDN.html':                      RedirectPage,
              'https://[^/]+/vos-comptes/particuliers(\?.*)?':           AccountsPage,
              'https://[^/]+/vos-comptes/particuliers/transac_tableau_de_bord(\?.*)?':           AccountsPage,
+             'https://[^/]+/vos-comptes/particuliers/V1_transactional_portal_page_.*':          AVPage,
              'https://[^/]+/vos-comptes/.*/transac/particuliers.*':     TransactionsPage,
              'https://[^/]+/vos-comptes/(?P<kind>professionnels|entreprises).*':    ProAccountsPage,
              'https://[^/]+/vos-comptes/.*/transac/(professionnels|entreprises).*': ProTransactionsPage,
@@ -77,7 +78,14 @@ class CreditDuNordBrowser(Browser):
     def get_accounts_list(self, iban=True):
         if not self.is_on_page(AccountsPage):
             self.home()
-        accounts = list(self.page.get_list())
+        accounts = self.page.get_list()
+        self.location(self.page.get_av_link())
+        for a in self.page.get_av_accounts():
+            self.location(a._link, urllib.urlencode(a._args))
+            self.location(a._link.replace("_attente", "_detail_contrat_rep"), urllib.urlencode(a._args))
+            self.page.fill_valuation_diff(a)
+            accounts.append(a)
+        self.home()
         if iban:
             self.page.iban_page()
             link = self.page.iban_go()
@@ -128,10 +136,11 @@ class CreditDuNordBrowser(Browser):
     def get_investment(self, account):
         if not account._inv:
             return iter([])
-        self.location(account._link, urllib.urlencode(account._args))
         if (account.type == Account.TYPE_MARKET):
+            self.location(account._link, urllib.urlencode(account._args))
             return self.page.get_market_investment()
         elif (account.type == Account.TYPE_LIFE_INSURANCE):
-            self.page.follow_detail()
+            self.location(account._link, urllib.urlencode(account._args))
+            self.location(account._link.replace("_attente", "_detail_contrat_rep"), urllib.urlencode(account._args))
             return self.page.get_deposit_investment()
         return iter([])
