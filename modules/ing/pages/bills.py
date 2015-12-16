@@ -45,10 +45,10 @@ class BillsPage(LoggedPage, HTMLPage):
             obj__formid = FormId(Attr('input', 'onclick'))
 
     def postpredown(self, _id):
-        _id = _id.split("'")[5]
-        form = self.get_form(name="statements_form")
-        form['AJAXREQUEST'] = 'statements_form:stat_region'
-        form[_id] = _id
+        _id = _id.split("'")[3]
+        form = self.get_form(name="downpdf_form")
+        form['statements_form'] = 'statements_form'
+        form['statements_form:j_idcl'] = _id
         form.submit()
 
     @pagination
@@ -84,5 +84,4 @@ class BillsPage(LoggedPage, HTMLPage):
             obj_label = CleanText('a[1]', replace=[(' ', '-')])
             obj_id = Format(u"%s-%s", Env('subid'), Field('label'))
             obj_format = u"pdf"
-            obj__url = Attr('a[2]', 'href')
-            obj__localid = Attr('a[2]', 'onmouseover')
+            obj__localid = Attr('a[2]', 'onclick')

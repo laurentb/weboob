@@ -119,6 +119,5 @@ class INGModule(Module, CapBank, CapBill):
         if not isinstance(bill, Bill):
             bill = self.get_bill(bill)
         self.browser.predownload(bill)
-        request = self.browser.open("https://secure.ingdirect.fr" + bill._url, stream=True)
-        assert(request.headers['content-type'] == "application/pdf")
-        return request.content
+        assert(self.browser.response.headers['content-type'] == "application/pdf")
+        return self.browser.response.content
