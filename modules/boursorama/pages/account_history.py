@@ -58,7 +58,7 @@ class AccountHistory(Page):
                 try:
                     _id = tr.xpath('.//input[@type="hidden"]')[0].attrib['id'].split('_')[1]
                 except (KeyError,IndexError):
-                    _id = 0
+                    _id = None
 
                 operation = Transaction(_id)
                 operation.parse(date=date, raw=label)

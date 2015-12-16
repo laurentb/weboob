@@ -180,7 +180,7 @@ class AccountHistoryPage(Page):
             return
 
         for i in range(len(tables)):
-            operation = Transaction(i)
+            operation = Transaction()
             operation.type  = 0
             operation.category  = NotAvailable
 
