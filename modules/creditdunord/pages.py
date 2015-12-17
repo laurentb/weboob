@@ -378,7 +378,7 @@ class TransactionsPage(CDNBasePage):
         data = json.loads('[%s]' % txt.replace('"', '\\"').replace("'", '"'))
 
         for line in data:
-            t = Transaction(line[self.COL_ID])
+            t = Transaction()
 
             if self.is_coming is not None:
                 t.type = t.TYPE_CARD
