@@ -600,7 +600,7 @@ class TransactionsPage(BasePage):
             if len(tds) < 5:
                 continue
 
-            t = Transaction(tr.attrib.get('id', '0_0').split('_', 1)[1])
+            t = Transaction()
 
             # XXX We currently take the *value* date, but it will probably
             # necessary to use the *operation* one.
