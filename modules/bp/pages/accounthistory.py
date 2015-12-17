@@ -82,7 +82,7 @@ class AccountHistory(Page):
             coming = False
 
         for mvt in mvt_ligne:
-            op = Transaction(len(operations))
+            op = Transaction()
             op.parse(date=mvt.xpath("./td/span")[0].text.strip(),
                      raw=unicode(self.parser.tocleanstring(mvt.xpath('./td/span')[1]).strip()))
 
