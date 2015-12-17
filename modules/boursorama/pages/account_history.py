@@ -55,12 +55,7 @@ class AccountHistory(Page):
                 label = self.parser.tocleanstring(span)
                 amount = self.parser.tocleanstring(tr.cssselect('td.amount')[0])
 
-                try:
-                    _id = tr.xpath('.//input[@type="hidden"]')[0].attrib['id'].split('_')[1]
-                except (KeyError,IndexError):
-                    _id = None
-
-                operation = Transaction(_id)
+                operation = Transaction()
                 operation.parse(date=date, raw=label)
                 operation.set_amount(amount)
 
