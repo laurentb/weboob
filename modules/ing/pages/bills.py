@@ -80,7 +80,7 @@ class BillsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Bill
 
-            condition = lambda self: not (u"tous les relev" in CleanText('a[1]')(self.el))
+            condition = lambda self: not (u"tous les relev" in CleanText('a[1]')(self.el)) and not (u'annuel' in CleanText('a[1]')(self.el))
 
             obj_label = CleanText('a[1]', replace=[(' ', '-')])
             obj_id = Format(u"%s-%s", Env('subid'), Field('label'))
