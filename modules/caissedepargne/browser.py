@@ -95,6 +95,9 @@ class CaisseEpargne(Browser):
         accounts = self.page.get_list()
         for account in accounts:
             if account.type == Account.TYPE_MARKET:
+                if not self.is_on_page(IndexPage):
+                    self.location(self.buildurl('/Portail.aspx'))
+
                 self.page.go_history(account._info)
                 self.page.submit()
                 if self.page.is_error():
