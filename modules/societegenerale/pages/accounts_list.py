@@ -340,7 +340,8 @@ class LifeInsuranceHistory(LifeInsurance):
             else:
                 id_trans = ''
 
-            trans = Transaction(id=id_trans)
+            trans = Transaction()
+            trans._temp_id = id_trans
             trans.parse(raw=link.attrib['title'], date=cells[self.COL_DATE].text)
             trans.set_amount(cells[self.COL_AMOUNT].text)
             # search for 'Réalisé'
@@ -357,7 +358,7 @@ class LifeInsuranceHistory(LifeInsurance):
         # go to the page containing the dates
         data = dict((item.name, item.value or '') for item in form.inputs)
         data['a100_asv_action'] = 'detail'
-        data['a100_asv_indexOp'] = trans.id
+        data['a100_asv_indexOp'] = trans._temp_id
         doc = self.browser.get_document(self.browser.openurl('/asv/AVI/asvcns21c.html', urllib.urlencode(data)), encoding='utf-8')
 
         # process the data
