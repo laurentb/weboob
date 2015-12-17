@@ -211,7 +211,7 @@ class CmbModule(Module, CapBank):
             for tr in table.getiterator('tr'):
                 if (tr.get('class') != 'LnTit' and
                         tr.get('class') != 'LnTot'):
-                    operation = Transaction(i)
+                    operation = Transaction()
                     td = tr.xpath('td')
 
                     div = td[1].xpath('div')

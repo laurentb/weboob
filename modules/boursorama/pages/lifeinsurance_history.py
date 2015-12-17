@@ -37,9 +37,8 @@ class LifeInsuranceHistory(Page):
             date = self.parser.tocleanstring(tds[0])
             label = self.parser.tocleanstring(tds[1])
             amount = self.parser.tocleanstring(tds[2])
-            _id = 0
 
-            operation = FrenchTransaction(_id)
+            operation = FrenchTransaction()
             operation.parse(date=date, raw=label)
             operation.set_amount(amount)
 
