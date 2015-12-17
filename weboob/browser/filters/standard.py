@@ -590,10 +590,11 @@ class Map(Filter):
 
 
 class DateTime(Filter):
-    def __init__(self, selector=None, default=_NO_DEFAULT, dayfirst=False, translations=None):
+    def __init__(self, selector=None, default=_NO_DEFAULT, dayfirst=False, translations=None, parse_func=parse_date):
         super(DateTime, self).__init__(selector, default=default)
         self.dayfirst = dayfirst
         self.translations = translations
+        self.parse_func = parse_func
 
     @debug()
     def filter(self, txt):
@@ -603,14 +604,14 @@ class DateTime(Filter):
             if self.translations:
                 for search, repl in self.translations:
                     txt = search.sub(repl, txt)
-            return parse_date(txt, dayfirst=self.dayfirst)
+            return self.parse_func(txt, dayfirst=self.dayfirst)
         except (ValueError, TypeError) as e:
             return self.default_or_raise(ParseError('Unable to parse %r: %s' % (txt, e)))
 
 
 class Date(DateTime):
-    def __init__(self, selector=None, default=_NO_DEFAULT, dayfirst=False, translations=None):
-        super(Date, self).__init__(selector, default=default, dayfirst=dayfirst, translations=translations)
+    def __init__(self, selector=None, default=_NO_DEFAULT, dayfirst=False, translations=None, parse_func=parse_date):
+        super(Date, self).__init__(selector, default=default, dayfirst=dayfirst, translations=translations, parse_func=parse_func)
 
     @debug()
     def filter(self, txt):
