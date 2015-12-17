@@ -19,9 +19,10 @@
 
 from weboob.capabilities.bill import Bill, Subscription
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
-from weboob.browser.filters.standard import Filter, CleanText, Format, Field, Env
+from weboob.browser.filters.standard import Filter, CleanText, Format, Field, Env, Date
 from weboob.browser.filters.html import Attr
 from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.tools.date import parse_french_date
 
 
 class FormId(Filter):
@@ -83,5 +84,7 @@ class BillsPage(LoggedPage, HTMLPage):
 
             obj_label = CleanText('a[1]', replace=[(' ', '-')])
             obj_id = Format(u"%s-%s", Env('subid'), Field('label'))
+            # Force first day of month as label is in form "janvier 2016"
+            obj_date = Format("1 %s", Field('label')) & Date(parse_func=parse_french_date)
             obj_format = u"pdf"
             obj__localid = Attr('a[2]', 'onclick')
