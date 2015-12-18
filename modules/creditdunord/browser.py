@@ -81,7 +81,7 @@ class CreditDuNordBrowser(Browser):
     def get_accounts_list(self, iban=True):
         if not self.is_on_page(AccountsPage):
             self.home()
-        accounts = self.page.get_list()
+        accounts = []
         self.location(self.page.get_av_link())
         for a in self.page.get_av_accounts():
             self.location(a._link, urllib.urlencode(a._args))
@@ -89,6 +89,8 @@ class CreditDuNordBrowser(Browser):
             self.page.fill_valuation_diff(a)
             accounts.append(a)
         self.home()
+        for a in self.page.get_list():
+            accounts.append(a)
         if iban:
             self.page.iban_page()
             link = self.page.iban_go()
