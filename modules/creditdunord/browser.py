@@ -83,11 +83,12 @@ class CreditDuNordBrowser(Browser):
             self.home()
         accounts = []
         self.location(self.page.get_av_link())
-        for a in self.page.get_av_accounts():
-            self.location(a._link, urllib.urlencode(a._args))
-            self.location(a._link.replace("_attente", "_detail_contrat_rep"), urllib.urlencode(a._args))
-            self.page.fill_valuation_diff(a)
-            accounts.append(a)
+        if self.is_on_page(AVPage):
+            for a in self.page.get_av_accounts():
+                self.location(a._link, urllib.urlencode(a._args))
+                self.location(a._link.replace("_attente", "_detail_contrat_rep"), urllib.urlencode(a._args))
+                self.page.fill_valuation_diff(a)
+                accounts.append(a)
         self.home()
         for a in self.page.get_list():
             accounts.append(a)
