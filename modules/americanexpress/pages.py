@@ -47,6 +47,8 @@ class NewAccountsPage(Page):
             a = Account()
             a.id = self.parser.tocleanstring(div.xpath('.//span[@class="acc-num"]')[0])
             a.label =self.parser.tocleanstring( div.xpath('.//span[@class="card-desc"]')[0])
+            if "carte" in a.label.lower():
+                a.type = Account.TYPE_CARD
             balance = self.parser.tocleanstring(div.xpath('.//span[@class="balance-data"]')[0])
             if balance in (u'Indisponible', u'Indisponible Facturation en cours', ''):
                 a.balance = NotAvailable
@@ -70,6 +72,8 @@ class AccountsPage(Page):
             a = Account()
             a.id = self.parser.tocleanstring(box.xpath('.//tr[@id="summaryImageHeaderRow"]//div[@class="summaryTitles"]')[0])
             a.label = self.parser.tocleanstring(box.xpath('.//span[@class="cardTitle"]')[0])
+            if "carte" in a.label.lower():
+                a.type = Account.TYPE_CARD
             balance = self.parser.tocleanstring(self.parser.select(box, 'td#colOSBalance div.summaryValues', 1))
             if balance in (u'Indisponible', u'Indisponible Facturation en cours', ''):
                 a.balance = NotAvailable
