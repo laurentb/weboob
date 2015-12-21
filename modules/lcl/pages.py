@@ -202,6 +202,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             NATURE2TYPE = {'001': Account.TYPE_SAVINGS,
                            '006': Account.TYPE_CHECKING,
+                           '007': Account.TYPE_SAVINGS,
                            '012': Account.TYPE_SAVINGS,
                            '023': Account.TYPE_CHECKING,
                            '046': Account.TYPE_SAVINGS,
