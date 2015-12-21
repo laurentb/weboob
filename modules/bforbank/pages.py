@@ -107,16 +107,17 @@ class AccountsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
-            TYPE = {'Livret': Account.TYPE_SAVINGS,
-                    'Compte': Account.TYPE_CHECKING,
-                    'PEA':    Account.TYPE_MARKET,
+            TYPE = {'Livret':        Account.TYPE_SAVINGS,
+                    'Compte':        Account.TYPE_CHECKING,
+                    'PEA':           Account.TYPE_MARKET,
+                    'Compte-titres': Account.TYPE_MARKET,
                    }
 
             obj_id = CleanText('./td//div[contains(@class, "-synthese-title") or contains(@class, "-synthese-text")]') & Regexp(pattern=r'(\d+)')
             obj_label = CleanText('./td//div[contains(@class, "-synthese-title")]')
             obj_balance = MyDecimal('./td//div[contains(@class, "-synthese-num")]', replace_dots=True)
             obj_currency = FrenchTransaction.Currency('./td//div[contains(@class, "-synthese-num")]')
-            obj_type = Map(Regexp(Field('label'), r'^(\w+)'), TYPE, default=Account.TYPE_UNKNOWN)
+            obj_type = Map(Regexp(Field('label'), r'^([^ ]*)'), TYPE, default=Account.TYPE_UNKNOWN)
             obj__link = CleanText('./@data-href')
 
             def condition(self):
