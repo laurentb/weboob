@@ -117,7 +117,11 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
         if account.type == account.TYPE_LIFE_INSURANCE:
             return self.iter_lifeinsurance_history(account, coming)
         elif account.type == account.TYPE_MARKET and not coming:
-            self.page = self.market_list.go(data=JSON({}))
+            try:
+                self.page = self.market_list.go(data=JSON({}))
+            except ServerError:
+                self.logger.warning("An Internal Server Error occured")
+                return iter([])
             for market_acc in self.page.get_list():
                 if account.label == market_acc['securityAccountName']:
                     self.page = self.market_history.go(data=JSON({
@@ -164,7 +168,11 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
             }))
             return self.page.iter_investments()
         elif account.type == account.TYPE_MARKET:
-            self.page = self.market_list.go(data=JSON({}))
+            try:
+                self.page = self.market_list.go(data=JSON({}))
+            except ServerError:
+                self.logger.warning("An Internal Server Error occured")
+                return iter([])
             for market_acc in self.page.get_list():
                 if account.label == market_acc['securityAccountName']:
                     # Sometimes generate an Internal Server Error ...
