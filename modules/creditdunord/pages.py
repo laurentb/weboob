@@ -24,7 +24,7 @@ import re
 from cStringIO import StringIO
 from io import BytesIO
 
-from weboob.deprecated.browser import Page, BrokenPageError
+from weboob.deprecated.browser import Page, BrokenPageError, BrowserIncorrectPassword
 from weboob.tools.json import json
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities import NotAvailable
@@ -79,6 +79,8 @@ class LoginPage(Page):
     def login(self, username, password):
         login_selector = self.document.xpath('//input[@id="codsec"]')
         if login_selector:
+            if not password.isdigit() or not len(password) == 6:
+                raise BrowserIncorrectPassword('The credentials have changed on website %s. Please update them.' % self.browser.DOMAIN)
             self.vk_login(username, password)
         else:
             self.classic_login(username,password)

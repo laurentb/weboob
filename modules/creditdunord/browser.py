@@ -64,9 +64,6 @@ class CreditDuNordBrowser(Browser):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
-        if not self.password.isdigit():
-            raise BrowserIncorrectPassword('The credentials have changed on website %s. Please update them.' % self.DOMAIN)
-
         self.location('https://' + self.DOMAIN, no_login=True)
 
         self.page.login(self.username, self.password)
