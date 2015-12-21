@@ -92,13 +92,16 @@ class CaisseEpargne(Browser):
         else:
             self.location(self.buildurl('/Portail.aspx'))
 
-        accounts = self.page.get_list()
+        accounts = list(self.page.get_list())
         for account in accounts:
             if account.type == Account.TYPE_MARKET:
                 if not self.is_on_page(IndexPage):
                     self.location(self.buildurl('/Portail.aspx'))
 
                 self.page.go_history(account._info)
+                # Some users may not have access to this.
+                if not self.is_on_page(MarketPage):
+                    continue
                 self.page.submit()
                 if self.page.is_error():
                     continue
@@ -106,7 +109,7 @@ class CaisseEpargne(Browser):
                 if self.is_on_page(GarbagePage):
                     continue
                 self.page.get_valuation_diff(account)
-            yield account
+        return iter(accounts)
 
 
     def get_account(self, id):
@@ -157,6 +160,9 @@ class CaisseEpargne(Browser):
 
         self.page.go_history(account._info)
         if account.type is Account.TYPE_MARKET:
+            # Some users may not have access to this.
+            if not self.is_on_page(MarketPage):
+                return iter([])
             self.page.submit()
             if self.page.is_error():
                 return iter([])
