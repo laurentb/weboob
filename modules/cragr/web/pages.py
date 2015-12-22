@@ -171,6 +171,7 @@ class _AccountsPage(BasePage):
 
             self.set_link(account, cols)
 
+            account._perimeter = self.browser.current_perimeter
             yield account
 
     def set_link(self, account, cols):
@@ -188,6 +189,40 @@ class _AccountsPage(BasePage):
                 if not link.startswith('javascript:'):
                     links.add(link)
         return links
+
+    def check_perimeters(self):
+        return len(self.document.xpath('//a[@title="Espace Autres Comptes"]'))
+
+class PerimeterPage(BasePage):
+    def get_current(self):
+        current_elem = self.document.xpath('//div[@id="libPerimetre"]/span[@class="texte"]')[0]
+        self.browser.current_perimeter = re.search(': (.*)$', self.parser.tocleanstring(current_elem)).group(1).lower()
+
+    def check_multiple_perimeters(self):
+        self.browser.perimeters = list()
+        self.get_current()
+        self.browser.perimeters.append(self.browser.current_perimeter)
+        multiple = self.document.xpath(u'//p[span/a[contains(text(), "Accès")]]')
+        if not multiple:
+            assert self.document.xpath(u'//div[contains(text(), "Périmètre en cours de chargement. Merci de patienter quelques secondes.")]')
+            # We change perimeter in this case to add the second one.
+            self.browser.location(self.browser.chg_perimeter_url.format(self.browser.sag))
+        for p in multiple:
+            self.browser.perimeters.append(' '.join(p.find('label').text.lower().split()))
+
+    def get_perimeter_link(self, perimeter):
+        for p in self.document.xpath(u'//p[span/a[contains(text(), "Accès")]]'):
+            if perimeter in ' '.join(p.find('label').text.lower().split()):
+                link = p.xpath('./span/a')[0].attrib['href']
+                return link
+
+
+class ChgPerimeterPage(PerimeterPage):
+    def on_loaded(self):
+        self.get_current()
+        if not self.browser.current_perimeter.lower() in [' '.join(p.lower().split()) for p in self.browser.perimeters]:
+            assert len(self.browser.perimeters) == 1
+            self.browser.perimeters.append(self.browser.current_perimeter)
 
 
 class CardsPage(BasePage):
@@ -243,6 +278,7 @@ class CardsPage(BasePage):
             else:
                 account._link = self.url
 
+            account._perimeter = self.browser.current_perimeter
             yield account
 
     def get_history(self, date_guesser):

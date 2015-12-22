@@ -28,7 +28,8 @@ from weboob.tools.date import LinearDateGuesser
 
 from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, \
                    SavingsPage, TransactionsPage, UselessPage, CardsPage, \
-                   LifeInsurancePage, MarketPage, LoansPage
+                   LifeInsurancePage, MarketPage, LoansPage, PerimeterPage, \
+                   ChgPerimeterPage
 
 
 __all__ = ['Cragr']
@@ -56,6 +57,9 @@ class Cragr(Browser):
              'https?://[^/]+/stb/collecteNI\?.*fwkaction=Detail.*sessionAPP=Cartes.*': CardsPage,
              'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.WalletVal\?nump=.*': MarketPage,
              'https://assurance-personnes.credit-agricole.fr:443/filiale/entreeBam\?identifiantBAM=.*': LifeInsurancePage,
+
+             'https?://[^/]+/stb/entreeBam\?.*act=Perimetre':        PerimeterPage,
+             'https?://[^/]+/stb/entreeBam\?.*act=ChgPerim.*':       ChgPerimeterPage,
             }
 
     new_login_domain = ['m.ca-normandie.fr']
@@ -74,6 +78,8 @@ class Cragr(Browser):
         self.savings_url = None
         self._sag = None  # updated while browsing
         self.code_caisse = None  # constant for a given website
+        self.perimeters = None
+        self.current_perimeter = None
         Browser.__init__(self, *args, **kwargs)
 
     def home(self):
@@ -165,7 +171,33 @@ class Cragr(Browser):
         self.savings_url  = re.sub('act=([^&=]+)', 'act=Synthepargnes', self.accounts_url, 1)
         self.loans_url  = re.sub('act=([^&=]+)', 'act=Synthcredits', self.accounts_url, 1)
 
-    def get_accounts_list(self):
+        if self.page.check_perimeters():
+            self.perimeter_url = re.sub('act=([^&=]+)', 'act=Perimetre', self.accounts_url, 1)
+            self.chg_perimeter_url = '%s%s' % (re.sub('act=([^&=]+)', 'act=ChgPerim', self.accounts_url, 1), '&typeaction=ChgPerim')
+            self.location(self.perimeter_url.format(self.sag))
+            self.page.check_multiple_perimeters()
+
+    def go_perimeter(self, perimeter):
+        self.location(self.perimeter_url.format(self.sag))
+        if len(self.perimeters) > 2:
+            perimeter_link = self.page.get_perimeter_link(perimeter)
+            self.location(perimeter_link)
+        self.location(self.chg_perimeter_url.format(self.sag))
+
+    def get_accounts_list(self, no_move=False):
+        l = list()
+        if self.perimeters and not no_move:
+            for perimeter in self.perimeters:
+                if self.current_perimeter != perimeter:
+                    self.go_perimeter(perimeter)
+                for account in self.get_list():
+                    if not account in l:
+                        l.append(account)
+        else:
+            l = self.get_list()
+        return l
+
+    def get_list(self):
         accounts_list = []
         # regular accounts
         if not self.is_on_page(AccountsPage):
@@ -193,10 +225,10 @@ class Cragr(Browser):
                     accounts_list.append(account)
         return accounts_list
 
-    def get_account(self, id):
+    def get_account(self, id, no_move=False):
         assert isinstance(id, basestring)
 
-        l = self.get_accounts_list()
+        l = self.get_accounts_list(no_move)
         for a in l:
             if a.id == ('%s' % id):
                 return a
@@ -212,9 +244,14 @@ class Cragr(Browser):
         if account._link is None:
             return
 
+        did_move = False
+        if account._perimeter != self.current_perimeter:
+            self.go_perimeter(account._perimeter)
+            did_move = True
+
         # card accounts need to get an updated link
         if account.type == Account.TYPE_CARD:
-            account = self.get_account(account.id)
+            account = self.get_account(account.id, no_move=True)
 
         date_guesser = LinearDateGuesser()
         self.location(account._link.format(self.sag))
@@ -234,10 +271,17 @@ class Cragr(Browser):
 
                 url = self.page.get_next_url()
 
+        # Ugly hack needed for for following card accounts history
+        if did_move:
+            self.get_accounts_list()
+
     def iter_investment(self, account):
         if not account._link or account.type not in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE):
             self.logger.warning('This account is not supported')
             return
+
+        if account._perimeter != self.current_perimeter:
+            self.go_perimeter(account._perimeter)
 
         if account.type == Account.TYPE_MARKET:
             new_location = self.moveto_market_website(account)
