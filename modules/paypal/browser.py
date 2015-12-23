@@ -185,7 +185,7 @@ class Paypal(LoginBrowser):
         e = end.strftime('%d/%m/%Y')
         # Settings a big magic number so we hope to get all transactions for the period
         LIMIT = '9999'
-        self.location('https://www.paypal.com/webapps/business/activity?fromdate=' + s + '&todate=' + e + '&transactiontype=ALL_TRANSACTIONS&currency=ALL_TRANSACTIONS_CURRENCY&limit=' + LIMIT, headers={'X-Requested-With': 'XMLHttpRequest'})
+        self.location('https://www.paypal.com/webapps/business/activity?fromdate=' + s + '&todate=' + e + '&transactiontype=ALL_TRANSACTIONS&currency=ALL_TRANSACTIONS_CURRENCY&limit=' + LIMIT + '&archive=true', headers={'X-Requested-With': 'XMLHttpRequest'})
         return self.page.transaction_left()
 
     def transfer(self, from_id, to_id, amount, reason=None):
