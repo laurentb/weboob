@@ -148,7 +148,7 @@ class ProHistoryPage(HistoryPage, JsonPage):
                 return []
             t.original_amount = Decimal('%.2f' % transaction['transactionAmount']['currencyDoubleValue'])
             t.original_currency = u'' + transaction['transactionAmount']['currencyCode']
-            t.set_amount(cc)
+            t.amount = abs(cc) if not transaction['debit'] else -abs(cc)
         else:
             t.amount = Decimal('%.2f' % transaction['net']['currencyDoubleValue'])
         date = parse_french_date(transaction['transactionTime'])
@@ -196,10 +196,7 @@ class HistoryDetailsPage(LoggedPage, HTMLPage):
     def get_converted_amount(self, account):
         find_td = self.doc.xpath('//td[contains(text(),"' + account.currency + '")] | //dd[contains(text(),"' + account.currency + '")]')
         if len(find_td) > 0 :
-            convert_td = unicode(find_td[0].text)
-            m = re.search(u'(^|\xa0| )([^\xa0^ ]*)[\xa0 ]' + account.currency, convert_td)
-            if m:
-                return m.group(2)
+            return Decimal(FrenchTransaction.clean_amount(CleanText().filter(find_td[0])))
         return False
 
     def get_payback_url(self):
