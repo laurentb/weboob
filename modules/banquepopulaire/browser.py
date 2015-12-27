@@ -74,6 +74,13 @@ class BanquePopulaire(Browser):
 
         Browser.__init__(self, *args, **kwargs)
 
+    # XXX FUCKING HACK BECAUSE BANQUE POPULAIRE ARE FAGGOTS AND INCLUDE NULL
+    # BYTES IN DOCUMENTS.
+    def get_document(self, result, parser=None, encoding=None):
+        from io import BytesIO
+        buf = BytesIO(result.read().replace('\0', ''))
+        return Browser.get_document(self, buf, parser, encoding)
+
     def is_logged(self):
         return not self.is_on_page(LoginPage)
 

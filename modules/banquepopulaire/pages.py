@@ -384,6 +384,7 @@ class AccountsPage(BasePage):
 
             if account_type is None:
                 # ignore services accounts
+                self.logger.debug('Ignore account type %s', div.text.strip())
                 continue
 
             # Go to the full list of this kind of account, if any.
