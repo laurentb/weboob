@@ -120,9 +120,16 @@ class HistoryPage(LoggedPage):
         for t in transactions:
             yield t
 
-    def format_amount(self, to_format, is_credit):
-        m = re.search(r"\D", to_format[::-1])
-        amount = Decimal(re.sub(r'[^\d]', '', to_format))/Decimal((10 ** m.start()))
+    def format_amount(self, amount, is_credit):
+        """
+        This function takes a textual amount to convert it to Decimal.
+
+        It tries to guess what is the decimal separator (, or .).
+        """
+        if not isinstance(amount, Decimal):
+            m = re.search(r"\D", amount[::-1])
+            amount = Decimal(re.sub(r'[^\d]', '', amount))/Decimal((10 ** m.start()))
+
         if is_credit:
             return abs(amount)
         else:
@@ -196,7 +203,10 @@ class HistoryDetailsPage(LoggedPage, HTMLPage):
     def get_converted_amount(self, account):
         find_td = self.doc.xpath('//td[contains(text(),"' + account.currency + '")] | //dd[contains(text(),"' + account.currency + '")]')
         if len(find_td) > 0 :
-            return Decimal(FrenchTransaction.clean_amount(CleanText().filter(find_td[0])))
+            # In case text is "12,34 EUR = 56.78 USD"
+            for text in CleanText().filter(find_td[0]).split('='):
+                if account.currency in text:
+                    return Decimal(FrenchTransaction.clean_amount(text))
         return False
 
     def get_payback_url(self):
