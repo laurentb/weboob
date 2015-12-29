@@ -31,6 +31,7 @@ from contextlib import closing
 from weboob.core.repositories import Repository
 
 from weboob.tools.application.repl import ReplApplication
+from weboob.tools.misc import find_exe
 
 
 __all__ = ['WeboobRepos']
@@ -103,7 +104,7 @@ class WeboobRepos(ReplApplication):
 
         if r.signed:
             sigfiles = [r.KEYRING, Repository.INDEX]
-            gpg = self._find_gpg()
+            gpg = find_exe('gpg2') or find_exe('gpg')
             if not gpg:
                 raise Exception('Unable to find the gpg executable.')
             krname = os.path.join(repo_path, r.KEYRING)
@@ -208,17 +209,6 @@ class WeboobRepos(ReplApplication):
                         '--sign', filepath])
                     os.utime(sigpath, (file_mtime, file_mtime))
             print('Signatures are up to date')
-
-    @staticmethod
-    def _find_gpg():
-        if os.getenv('GPG_EXECUTABLE'):
-            return os.getenv('GPG_EXECUTABLE')
-        paths = os.getenv('PATH', os.defpath).split(os.pathsep)
-        for path in paths:
-            for ex in ('gpg2', 'gpg'):
-                fpath = os.path.join(path, ex)
-                if os.path.exists(fpath) and os.access(fpath, os.X_OK):
-                    return fpath
 
     def _archive_excludes(self, filename):
         # Skip *.pyc files in tarballs.

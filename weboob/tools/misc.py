@@ -29,7 +29,7 @@ from .compat import unicode
 
 
 __all__ = ['get_backtrace', 'get_bytes_size', 'iter_fields',
-            'to_unicode', 'limit']
+            'to_unicode', 'limit', 'find_exe']
 
 
 def get_backtrace(empty="Empty backtrace."):
@@ -148,3 +148,29 @@ def ratelimit(group, delay):
         sleep(delay - offset)
 
     os.utime(path, None)
+
+
+def find_exe(basename):
+    """
+    Find the path to an executable by its base name (such as 'gpg').
+
+    The executable can be overriden using an environment variable in the form
+    `NAME_EXECUTABLE` where NAME is the specified base name in upper case.
+
+    If the environment variable is not provided, the PATH will be searched
+    both without and with a ".exe" suffix for Windows compatibility.
+
+    If the executable can not be found, None is returned.
+    """
+
+    env_exe = os.getenv('%s_EXECUTABLE' % basename.upper())
+    if env_exe and os.path.exists(env_exe) and os.access(env_exe, os.X_OK):
+        return env_exe
+
+    paths = os.getenv('PATH', os.defpath).split(os.pathsep)
+    for path in paths:
+        for ex in (basename, basename + '.exe'):
+            fpath = os.path.join(path, ex)
+            if os.path.exists(fpath) and os.access(fpath, os.X_OK):
+                return fpath
+

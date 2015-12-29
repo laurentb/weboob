@@ -35,7 +35,7 @@ from io import BytesIO
 from weboob.exceptions import BrowserHTTPError, BrowserHTTPNotFound
 from .modules import LoadedModule
 from weboob.tools.log import getLogger
-from weboob.tools.misc import get_backtrace, to_unicode
+from weboob.tools.misc import get_backtrace, to_unicode, find_exe
 try:
     from ConfigParser import RawConfigParser, DEFAULTSECT
 except ImportError:
@@ -578,7 +578,7 @@ class Repositories(object):
         for name in os.listdir(self.repos_dir):
             os.remove(os.path.join(self.repos_dir, name))
 
-        gpgv = Keyring.find_gpgv()
+        gpg_found = Keyring.find_gpg() or Keyring.find_gpgv()
         for line in self._parse_source_list():
             progress.progress(0.0, 'Getting %s' % line)
             repository = Repository(line)
@@ -588,11 +588,11 @@ class Repositories(object):
             keyring_path = os.path.join(self.keyrings_dir, filename)
             try:
                 repository.retrieve_index(self.browser, repo_path)
-                if gpgv:
+                if gpg_found:
                     repository.retrieve_keyring(self.browser, keyring_path, progress)
                 else:
-                    progress.error('Cannot find gpgv to check for repository authenticity.\n'
-                                    'You should install GPG for better security.')
+                    progress.error('Cannot find gpg or gpgv to check for repository authenticity.\n'
+                                   'You should install GPG for better security.')
             except RepositoryUnavailable as e:
                 progress.error('Unable to load repository: %s' % e)
             else:
@@ -688,7 +688,7 @@ class Repositories(object):
             raise ModuleInstallError('Unable to fetch module: %s' % e)
 
         # Check signature
-        if module.signed and Keyring.find_gpgv():
+        if module.signed and (Keyring.find_gpg() or Keyring.find_gpgv()):
             progress.progress(0.5, 'Checking module authenticity...')
             sig_data = self.browser.open(posixpath.join(module.url + '.sig')).content
             keyring_path = os.path.join(self.keyrings_dir, self.url2filename(module.repo_url))
@@ -769,21 +769,26 @@ class Keyring(object):
 
     @staticmethod
     def find_gpgv():
-        if os.getenv('GPGV_EXECUTABLE'):
-            return os.getenv('GPGV_EXECUTABLE')
-        paths = os.getenv('PATH', os.defpath).split(os.pathsep)
-        for path in paths:
-            for ex in ('gpgv2', 'gpgv', 'gpgv2.exe', 'gpgv.exe'):
-                fpath = os.path.join(path, ex)
-                if os.path.exists(fpath) and os.access(fpath, os.X_OK):
-                    return fpath
+        return find_exe('gpgv2') or find_exe('gpgv')
+
+    @staticmethod
+    def find_gpg():
+        return find_exe('gpg2') or find_exe('gpg')
 
     def is_valid(self, data, sigdata):
         """
         Check if the data is signed by an accepted key.
         data and sigdata should be strings.
         """
+        gpg = self.find_gpg()
         gpgv = self.find_gpgv()
+
+        if gpg:
+            verify_command = [gpg, '--verify', '--no-options',
+                              '--no-default-keyring', '--quiet']
+        elif gpgv:
+            verify_command = [gpgv]
+
         from tempfile import NamedTemporaryFile
         with NamedTemporaryFile(suffix='.sig', delete=False) as sigfile:
             temp_filename = sigfile.name
@@ -795,7 +800,7 @@ class Keyring(object):
                 sigfile.flush()  # very important
                 assert isinstance(data, basestring)
                 # Yes, all of it is necessary
-                proc = subprocess.Popen([gpgv,
+                proc = subprocess.Popen(verify_command + [
                         '--status-fd', '1',
                         '--keyring', os.path.realpath(self.path),
                         os.path.realpath(sigfile.name),
