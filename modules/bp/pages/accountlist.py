@@ -102,10 +102,10 @@ class AccountRIB(Page):
         try:
             try:
                 from pdfminer.pdfdocument import PDFDocument
+                from pdfminer.pdfpage import PDFPage
                 newapi = True
             except ImportError:
                 from pdfminer.pdfparser import PDFDocument
-                from pdfminer.pdfpage import PDFPage
                 newapi = False
             from pdfminer.pdfparser import PDFParser, PDFSyntaxError
             from pdfminer.converter import TextConverter
