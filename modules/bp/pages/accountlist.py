@@ -92,7 +92,7 @@ class AccountList(Page):
 
 
 class AccountRIB(Page):
-    iban_regexp= r'BankIdentiferCode(\w+)PSS'
+    iban_regexp = r'BankIdentiferCode(\w+)PSS'
 
     def __init__(self, *args, **kwargs):
         super(AccountRIB, self).__init__(*args, **kwargs)
@@ -105,6 +105,7 @@ class AccountRIB(Page):
                 newapi = True
             except ImportError:
                 from pdfminer.pdfparser import PDFDocument
+                from pdfminer.pdfpage import PDFPage
                 newapi = False
             from pdfminer.pdfparser import PDFParser, PDFSyntaxError
             from pdfminer.converter import TextConverter
@@ -123,14 +124,16 @@ class AccountRIB(Page):
                 except PDFSyntaxError:
                     return
 
-            if hasattr(doc, 'initialize'):
-                doc.initialize()
-
             rsrcmgr = PDFResourceManager()
             out = StringIO()
             device = TextConverter(rsrcmgr, out)
             interpreter = PDFPageInterpreter(rsrcmgr, device)
-            for page in doc.get_pages():
+            if newapi:
+                pages = PDFPage.create_pages(doc)
+            else:
+                doc.initialize()
+                pages = doc.get_pages()
+            for page in pages:
                 interpreter.process_page(page)
 
             self.text = out.getvalue()
