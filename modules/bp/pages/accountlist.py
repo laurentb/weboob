@@ -123,7 +123,8 @@ class AccountRIB(Page):
                 except PDFSyntaxError:
                     return
 
-            doc.initialize()
+            if hasattr(doc, 'initialize'):
+                doc.initialize()
 
             rsrcmgr = PDFResourceManager()
             out = StringIO()
