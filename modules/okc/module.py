@@ -63,6 +63,8 @@ class OkcContact(Contact):
 
         self.profile = OrderedDict()
 
+        self.set_profile('info', 'status', profile['status_str'])
+        self.set_profile('info', 'orientation', profile['orientation_str'])
         self.set_profile('info', 'age', '%s yo' % profile['age'])
         self.set_profile('info', 'birthday', '%04d-%02d-%02d' % (profile['birthday']['year'], profile['birthday']['month'], profile['birthday']['day']))
         self.set_profile('info', 'sex', profile['gender_str'])
