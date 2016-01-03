@@ -75,6 +75,9 @@ class OkcContact(Contact):
             self.set_profile('details', key, value or '-')
 
         for essay in profile['essays']:
+            if len(essay['essay']) == 0:
+                continue
+
             self.summary += '%s:\n' % essay['title']
             self.summary += '-' * (len(essay['title']) + 1)
             self.summary += '\n'
