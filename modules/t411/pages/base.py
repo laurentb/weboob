@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import BrowserUnavailable, Page as _BasePage
+from weboob.deprecated.browser import Page as _BasePage
 
 
 class BasePage(_BasePage):

@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import BrowserIncorrectPassword, BrowserBanned
 from .base import BasePage
 
 

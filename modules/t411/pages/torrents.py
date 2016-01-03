@@ -19,9 +19,6 @@
 
 
 import re
-import urlparse
-from logging import warning, debug
-from urlparse import parse_qs
 
 from weboob.tools.misc import get_bytes_size
 from weboob.tools.html import html2text
@@ -51,7 +48,7 @@ class SearchPage(BasePage):
                 id = nfolink.attrib.get('href','').split('=')[-1]
 
                 downurl = 'https://www.t411.in/torrents/download/?id=%s'%id
-                detailurl = 'https://www.t411.in/t/%s'%id
+                #detailurl = 'https://www.t411.in/t/%s'%id
 
                 rawsize = tds[5].text
                 nsize = float(rawsize.split()[0])
@@ -83,8 +80,6 @@ class TorrentPage(BasePage):
         seeders = 0
         leechers = 0
         description = NotAvailable
-        url = NotAvailable
-        magnet = NotAvailable
         title = NotAvailable
         filename = NotAvailable
         files = []
@@ -92,8 +87,8 @@ class TorrentPage(BasePage):
 
         divdesc = self.browser.parser.select(self.document.getroot(), 'div.description', 1)
         desctxt = html2text(self.parser.tostring(divdesc))
-        strippedlines = '\n'.join([s.strip() for s in desctxt.split('\n') if re.search('\[[0-9]+\]', s) is None])
-        description = re.sub('\s\s+', '\n\n', strippedlines)
+        strippedlines = '\n'.join([s.strip() for s in desctxt.split('\n') if re.search(r'\[[0-9]+\]', s) is None])
+        description = re.sub(r'\s\s+', '\n\n', strippedlines)
 
         title = self.browser.parser.select(self.document.getroot(), 'div.torrentDetails h2 span', 1).text
 
