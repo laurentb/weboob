@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012 Roger Philibert
+# Copyright(C) 2012-2016 Roger Philibert
 #
 # This file is part of weboob.
 #
@@ -17,258 +17,93 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
-
-from weboob.deprecated.browser import Browser, Page
+from weboob.browser import LoginBrowser, URL
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.tools.ordereddict import OrderedDict
+from weboob.tools.json import json
 
-from .pages import LoginPage, ThreadPage, MessagesPage, PostMessagePage, ProfilePage, PhotosPage, VisitsPage, QuickMatchPage, SentPage
 
 __all__ = ['OkCBrowser']
 
 
-class OkCException(Exception):
-    pass
-
-
-def check_login(func):
-    def inner(self, *args, **kwargs):
-        if not self.logged_in:
-            self.login()
-        return func(self, *args, **kwargs)
+def need_login(func):
+    def inner(browser, *args, **kwargs):
+        if not browser.access_token:
+            browser.do_login()
+        return func(browser, *args, **kwargs)
     return inner
 
 
-class OkCBrowser(Browser):
-    DOMAIN = 'm.okcupid.com'
-    PROTOCOL = 'https'
-    ENCODING = 'UTF-8'
-    PAGES = OrderedDict((
-            ('https://%s/login.*' % DOMAIN, LoginPage),
-            ('http://%s/home' % DOMAIN, Page),
-            ('http://%s/match.*' % DOMAIN, Page),
-            ('http://%s/messages' % DOMAIN, ThreadPage),
-            ('http://%s/messages\?compose=1' % DOMAIN, PostMessagePage),
-            ('http://\w+.okcupid.com/messages\?.*', MessagesPage),
-            ('http://%s/profile/.*/photos' % DOMAIN, PhotosPage),
-            ('http://%s/profile/[^/]*' % DOMAIN, ProfilePage),
-            ('http://%s/visitors' % DOMAIN, VisitsPage),
-            ('http://%s/quickmatch' % DOMAIN, QuickMatchPage),
-            ('http://%s/mailbox' % DOMAIN, SentPage),
-    ))
+class OkCBrowser(LoginBrowser):
+    BASEURL = 'https://www.okcupid.com'
 
-    logged_in = False
+    login = URL('/login')
+    threads = URL('/messages')
+    messages = URL('/apitun/messages/conversations/global_messaging')
+    thread_delete = URL(r'/1/apitun/messages/conversations/(?P<thread_id>\d+)/delete')
+    message_send = URL('/apitun/messages/send')
+    quickmatch = URL(r'/quickmatch\?okc_api=1')
+    like = URL(r'/1/apitun/profile/(?P<user_id>\d+)/like')
+    profile = URL(r'/apitun/profile/(?P<user_id>\d+)')
+    full_profile = URL(r'/profile/(?P<username>.*)\?okc_api=1')
 
-    def home(self):
-        self.location(self.absurl('/home'))
+    access_token = None
+    me = None
 
-    def login(self):
-        self.location(self.absurl('/login'), no_login=True)
-        self.page.login(self.username, self.password)
+    def do_login(self):
+        r = self.login.go(data={'username': self.username, 'password': self.password, 'okc_api': 1}).json()
 
-        if self.is_on_page(LoginPage):
-            raise BrowserIncorrectPassword()
+        if not 'oauth_accesstoken' in r:
+            raise BrowserIncorrectPassword(r['status_str'])
 
-        self.logged_in = True
+        self.access_token = r['oauth_accesstoken']
+        self.me = {'userid':    r['userid'],
+                   'username':  r['screenname'],
+                  }
+        self.session.headers['X-OkCupid-Platform'] = 'DESKTOP'
+        self.session.headers['X-Requested-With'] = 'XMLHttpRequest'
+        self.session.headers['Authorization'] = 'Bearer %s' % self.access_token
 
-    def is_logged(self):
-        return self.logged_in
+    @need_login
+    def get_threads_list(self, folder=1):
+        return self.threads.go(params={'okc_api': 1, 'folder': folder, 'messages_dropdown_ajax': 1}).json()
 
-    def get_consts(self):
-        return { 'conts' : 'blah' }
-    #    if self.consts is not None:
-    #        return self.consts
+    @need_login
+    def get_thread_messages(self, thread_id):
+        r = self.messages.go(params={'access_token': self.access_token,
+                                     '_json': '{"userids":["%s"]}' % thread_id}).json()
+        return r[thread_id]
 
-    #    self.consts = []
-    #    for i in xrange(2):
-    #        r = self.api_request('me', 'all_values', data={'sex': i})
-    #        self.consts.append(r['result']['values'])
+    @need_login
+    def post_message(self, thread_id, content):
+        data = {'body': content,
+                'profile_tab': '',
+                'receiverid': thread_id,
+                'service': 'mailbox',
+                'source': 'desktop_global'}
 
-    #    return self.consts
+        self.message_send.go(params={'access_token': self.access_token},
+                             data=json.dumps(data))
 
-    #@check_login
-    #def score(self):
-    #    #r = self.api_request('member', 'view', data={'id': self.my_id})
-    #    return int(r['result']['member']['popu']['popu'])
+    @need_login
+    def delete_thread(self, thread_id):
+        self.thread_delete.go(method='POST', thread_id=thread_id)
 
-    def get_my_name(self):
-        return self.username
+    @need_login
+    def find_match_profile(self):
+        r = self.quickmatch.go().json()
+        return r['tracking_userid']
 
-    #@check_login
-    #def nb_new_mails(self):
-    #    r = self.api_request('me', '[default]')
-    #    return r['result']['news']['newMails']
+    @need_login
+    def do_rate(self, user_id):
+        self.like.go(method='POST', user_id=user_id)
 
-    #@check_login
-    #def nb_new_baskets(self):
-    #    r = self.api_request('me', '[default]')
-    #    return r['result']['news']['newBaskets']
+    @need_login
+    def get_username(self, user_id):
+        return self.profile.go(user_id=user_id).json()['username']
 
-    #@check_login
-    #def nb_new_visites(self):
-    #    r = self.api_request('me', '[default]')
-    #    return r['result']['news']['newVisits']
+    @need_login
+    def get_profile(self, username):
+        if username.isdigit():
+            username = self.get_username(username)
 
-    #@check_login
-    #def nb_available_charms(self):
-    #    r = self.login()
-    #    return r['result']['flashs']
-
-    #@check_login
-    #def nb_godchildren(self):
-    #    r = self.api_request('member', 'view', data={'id': self.my_id})
-    #    return int(r['result']['member']['popu']['invits'])
-
-    #@check_login
-    #def get_baskets(self):
-    #    r = self.api_request('me', 'basket')
-    #    return r['result']['basket']
-
-    #@check_login
-    #def get_flashs(self):
-    #    r = self.api_request('me', 'flashs')
-    #    return r['result']['all']
-
-    @check_login
-    def get_visits(self):
-        self.location('http://m.okcupid.com/visitors')
-        return self.page.get_visits()
-
-    @check_login
-    def get_threads_list(self):
-        self.location('http://m.okcupid.com/messages')
-        return self.page.get_threads()
-
-    @check_login
-    def get_thread_mails(self, id):
-        id = int(id)
-        self.location('http://www.okcupid.com/messages?readmsg=true&threadid=%i&folder=1' % id)
-
-        return self.page.get_thread_mails()
-
-    @check_login
-    def post_mail(self, id, content):
-        self.location(self.absurl('/messages?compose=1'))
-        self.page.post_mail(id, content)
-
-    @check_login
-    def post_reply(self, thread_id, content):
-        self.location(self.absurl('/messages?readmsg=true&threadid=%s&folder=1' % thread_id))
-        username, key = self.page.get_post_params()
-        data = urllib.urlencode({
-            'ajax' : 1,
-            'sendmsg' : 1,
-            'r1' : username,
-            'subject' : '',
-            'body' : content,
-            'threadid' : thread_id,
-            'authcode' : key,
-            'reply' : 1,
-            })
-        self.addheaders = [('Referer', self.page.url), ('Content-Type', 'application/x-www-form-urlencoded')]
-        self.open('http://m.okcupid.com/mailbox', data=data)
-
-    #@check_login
-    #@url2id
-    #def delete_thread(self, id):
-    #    r = self.api_request('message', 'delete', data={'id_user': id})
-    #    self.logger.debug('Thread deleted: %r' % r)
-
-    #@check_login
-    #@url2id
-    #def send_charm(self, id):
-    #    try:
-    #        self.api_request('member', 'addBasket', data={'id': id})
-    #    except AuMException:
-    #        return False
-    #    else:
-    #        return True
-
-    @check_login
-    def find_match_profile(self, **kwargs):
-        self.location(self.absurl('/quickmatch'))
-        user_id = self.page.get_id()
-        return user_id
-
-    @check_login
-    def get_profile(self, id):
-        self.location(self.absurl('/profile/%s' % urllib.quote(id.encode('utf-8'))))
-        profile = self.page.get_profile()
-        return profile
-
-    @check_login
-    def get_photos(self, id):
-        self.location(self.absurl('/profile/%s/photos' % urllib.quote(id.encode('utf-8'))))
-        return self.page.get_photos()
-
-    #def _get_chat_infos(self):
-    #    try:
-    #        data = json.load(self.openurl('http://www.adopteunmec.com/1.1_cht_get.php?anticache=%f' % random.random()))
-    #    except ValueError:
-    #        raise BrowserUnavailable()
-
-    #    if data['error']:
-    #        raise ChatException(u'Error while getting chat infos. json:\n%s' % data)
-    #    return data
-
-    #def iter_contacts(self):
-    #    def iter_dedupe(contacts):
-    #        yielded_ids = set()
-    #        for contact in contacts:
-    #            if contact['id'] not in yielded_ids:
-    #                yield contact
-    #            yielded_ids.add(contact['id'])
-
-    #    data = self._get_chat_infos()
-    #    return iter_dedupe(data['contacts'])
-
-    #def iter_chat_messages(self, _id=None):
-    #    data = self._get_chat_infos()
-    #    if data['messages'] is not None:
-    #        for message in data['messages']:
-    #            yield ChatMessage(id_from=message['id_from'], id_to=message['id_to'], message=message['message'], date=message['date'])
-
-    #def send_chat_message(self, _id, message):
-    #    url = 'http://www.adopteunmec.com/1.1_cht_send.php?anticache=%f' % random.random()
-    #    data = dict(id=_id, message=message)
-    #    headers = {
-    #            'Content-type': 'application/x-www-form-urlencoded',
-    #            'Accept': 'text/plain',
-    #            'Referer': 'http://www.adopteunmec.com/chat.php',
-    #            'Origin': 'http://www.adopteunmec.com',
-    #            }
-    #    request = self.request_class(url, urllib.urlencode(data), headers)
-    #    response = self.openurl(request).read()
-    #    try:
-    #        datetime.datetime.strptime(response,  '%Y-%m-%d %H:%M:%S')
-    #        return True
-    #    except ValueError:
-    #        return False
-
-    @check_login
-    def visit_profile(self, id):
-        self.location(self.absurl('/profile/%s' % urllib.quote(id.encode('utf-8'))))
-        stalk, u, tuid = self.page.get_visit_button_params()
-        if stalk and u and tuid:
-            # Premium users, need to click on "visit button" to let the other person know his profile was visited
-
-            data = urllib.urlencode({
-                'ajax' : 1,
-                'stalk': stalk,
-                'u':u,
-                'tuid': tuid
-                })
-            self.addheaders = [('Referer', self.page.url), ('Content-Type', 'application/x-www-form-urlencoded;charset=UTF-8')]
-            self.open('http://m.okcupid.com/profile', data=data)
-        return True
-
-    @check_login
-    def do_rate(self, id):
-        # Need to be in quickmatch page
-        abs_url, rating,params = self.page.get_rating_params()
-        # print abs_url, rating, params
-        data = urllib.urlencode(params)
-        self.addheaders = [('Referer', self.page.url), ('Content-Type', 'application/x-www-form-urlencoded;charset=UTF-8')]
-        self.open('http://m.okcupid.com%s' %abs_url, data=data)
-        return True
+        return self.full_profile.go(username=username).json()
