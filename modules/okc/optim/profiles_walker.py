@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 from random import randint
 
 from weboob.capabilities.dating import Optimization
@@ -74,13 +72,6 @@ class ProfilesWalker(Optimization):
 
     def view_profile(self):
         try:
-            # Remove old threads
-            for thread in self._browser.get_threads_list(folder=2): # folder 2 is the sentbox
-                last_message = datetime.fromtimestamp(thread['timestamp'])
-                if not thread['replied'] and last_message < (datetime.now() - relativedelta(months=6)):
-                    self._logger.info('Removing old thread with %s from %s', thread['user']['username'], last_message)
-                    self._browser.delete_thread(thread['userid'])
-
             # Find a new profile
             user_id = self._browser.find_match_profile()
             if user_id in self._visited_profiles:
