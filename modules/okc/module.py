@@ -124,6 +124,7 @@ class OkCModule(Module, CapMessages, CapContact, CapMessagesPost, CapDating):
             t = Thread(thread['userid'])
             t.flags = Thread.IS_DISCUSSION
             t.title = u'Discussion with %s' % thread['user']['username']
+            t.date = datetime.fromtimestamp(thread['timestamp'])
             yield t
 
     def get_thread(self, thread):
@@ -177,6 +178,10 @@ class OkCModule(Module, CapMessages, CapContact, CapMessagesPost, CapDating):
 
     def iter_unread_messages(self):
         for thread in self.iter_threads():
+            contact = self.storage.get('sluts', thread.id, default={'lastmsg': datetime(1970,1,1)})
+            if thread.date <= contact['lastmsg']:
+                continue
+
             thread = self.get_thread(thread)
             for message in thread.iter_all_messages():
                 if message.flags & message.IS_UNREAD:
