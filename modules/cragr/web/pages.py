@@ -120,6 +120,7 @@ class _AccountsPage(BasePage):
              u'LEP':        Account.TYPE_SAVINGS,
              u'TIWI':       Account.TYPE_SAVINGS,
              u'CSL LSO':    Account.TYPE_SAVINGS,
+             u'CSL CSP':    Account.TYPE_SAVINGS,
              u'PRET PERSO': Account.TYPE_LOAN,
              u'P. HABITAT': Account.TYPE_LOAN,
              u'PRET 0%':    Account.TYPE_LOAN,
