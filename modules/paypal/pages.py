@@ -203,8 +203,8 @@ class HistoryDetailsPage(LoggedPage, HTMLPage):
     def get_converted_amount(self, account):
         find_td = self.doc.xpath('//td[contains(text(),"' + account.currency + '")] | //dd[contains(text(),"' + account.currency + '")]')
         if len(find_td) > 0 :
-            # In case text is "12,34 EUR = 56.78 USD"
-            for text in CleanText().filter(find_td[0]).split('='):
+            # In case text is "12,34 EUR = 56.78 USD" or "-£115,62 GBP soit -€163,64 EUR"
+            for text in re.split('=|soit', CleanText().filter(find_td[0])):
                 if account.currency in text:
                     return Decimal(FrenchTransaction.clean_amount(text))
         return False
