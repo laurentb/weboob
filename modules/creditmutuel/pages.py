@@ -113,6 +113,7 @@ class AccountsPage(LoggedPage, HTMLPage):
              'Livret':          Account.TYPE_SAVINGS,
              'Pret':            Account.TYPE_LOAN,
              'Cic Immo':        Account.TYPE_LOAN,
+             'Passeport Credit': Account.TYPE_LOAN,
              'Compte Courant':  Account.TYPE_CHECKING,
              'Compte Cheque':   Account.TYPE_CHECKING,
              'Start':           Account.TYPE_CHECKING,
