@@ -80,6 +80,12 @@ class Value(object):
         self.required = kwargs.get('required', self.default is None)
         self._value = kwargs.get('value', None)
 
+    def show_value(self, v):
+        if self.masked:
+            return len(unicode(v)) * '*'
+        else:
+            return v
+
     def check_valid(self, v):
         """
         Check if the given value is valid.
@@ -91,10 +97,10 @@ class Value(object):
         if v == '' and self.default != '' and (self.choices is None or v not in self.choices):
             raise ValueError('Value can\'t be empty')
         if self.regexp is not None and not re.match(self.regexp, unicode(v)):
-            raise ValueError('Value "%s" does not match regexp "%s"' % (v, self.regexp))
+            raise ValueError('Value "%s" does not match regexp "%s"' % (self.show_value(v), self.regexp))
         if self.choices is not None and v not in self.choices:
             raise ValueError('Value "%s" is not in list: %s' % (
-                v, ', '.join(unicode(s) for s in self.choices)))
+                self.show_value(v), ', '.join(unicode(s) for s in self.choices)))
 
     def load(self, domain, v, callbacks):
         """
@@ -242,7 +248,7 @@ class ValueFloat(Value):
         try:
             float(v)
         except ValueError:
-            raise ValueError('Value "%s" is not a float value')
+            raise ValueError('Value "%s" is not a float value' % self.show_value(v))
 
     def get(self):
         return float(self._value)
@@ -257,7 +263,7 @@ class ValueBool(Value):
         if not isinstance(v, bool) and \
             unicode(v).lower() not in ('y', 'yes', '1', 'true',  'on',
                                        'n', 'no',  '0', 'false', 'off'):
-            raise ValueError('Value "%s" is not a boolean (y/n)' % v)
+            raise ValueError('Value "%s" is not a boolean (y/n)' % self.show_value(v))
 
     def get(self):
         return (isinstance(self._value, bool) and self._value) or \
