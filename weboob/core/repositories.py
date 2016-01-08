@@ -784,8 +784,11 @@ class Keyring(object):
         gpgv = self.find_gpgv()
 
         if gpg:
+            from tempfile import mkdtemp
+            gpg_homedir = mkdtemp(prefix='weboob_gpg_')
             verify_command = [gpg, '--verify', '--no-options',
-                              '--no-default-keyring', '--quiet']
+                              '--no-default-keyring', '--quiet',
+                              '--homedir', gpg_homedir]
         elif gpgv:
             verify_command = [gpgv]
 
@@ -812,6 +815,8 @@ class Keyring(object):
                 return_code = proc.returncode
             finally:
                 os.unlink(temp_filename)
+                if gpg:
+                    shutil.rmtree(gpg_homedir)
 
             if return_code or 'GOODSIG' not in out or 'VALIDSIG' not in out:
                 print(out, err, file=sys.stderr)
