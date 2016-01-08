@@ -43,12 +43,6 @@ class IndexPage(LoggedPage, HTMLPage):
     def is_here(self):
         return bool(self.doc.xpath('//img[contains(@src, "deconnexion.jpg")]'))
 
-    def do_more_stuff(self):
-        for ele in self.doc.xpath('//tr[td[1]//a[@class="adhesionLink"]]'):
-            print ele
-
-    pass
-
     @method
     class iter_accounts(ListElement):
         item_xpath = '//tr[td[1]//a[@class="adhesionLink"]]'
