@@ -125,10 +125,14 @@ class Barclays(Browser):
 
         assert self.is_on_page((TransactionsPage, ValuationPage, LoanPage, MarketPage, AssurancePage))
 
+        transactions = list()
         for tr in self.page.get_history():
-            yield tr
+            transactions.append(tr)
 
         for tr in self.get_card_operations(account):
+            transactions.append(tr)
+
+        for tr in sorted(transactions, key=lambda t: t.rdate, reverse=True) :
             yield tr
 
     def get_card_operations(self, account):
