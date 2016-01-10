@@ -40,8 +40,8 @@ class S2eModule(Module, CapBank):
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'm.esalia.com':             u'Esalia',                  # Good Url. Tested
         'mobile.capeasi.com':       u'Capeasi',                 # Good Url. Not fully tested
-        'mobi.ere.hsbc.fr':         u'ERE HSBC',                # Good Url. Not fully tested
-        'smartphone.s2e-net.com':   u'BNPP ERE',                # Url To Confirm. Not tested
+        'mobi.ere.hsbc.fr':         u'ERE HSBC',                # Good Url. Tested
+        'smartphone.s2e-net.com':   u'BNPP ERE',                # Good Url. Tested
         # 'smartphone.s2e-net.com':   u'Groupe Crédit du Nord',  # Mobile version not available yet.
     }.iteritems(), key=lambda k_v: (k_v[1], k_v[0]))])
 
@@ -68,6 +68,9 @@ class S2eModule(Module, CapBank):
 
     def get_account(self, _id):
         return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
+
+    def iter_investment(self, account):
+        return account._investments
 
     def iter_history(self, account):
         return self.browser.iter_history(account)

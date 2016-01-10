@@ -19,19 +19,17 @@
 
 from datetime import datetime
 from decimal import Decimal
+from dateutil.parser import parse as parse_date
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.profiles import Android
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.capabilities.bank import Account, Transaction
+from weboob.capabilities.bank import Account, Transaction, Investment
 
 from .pages import LoginPage, CalcPage, ProfilPage, AccountsPage, HistoryPage, I18nPage
 
-__all__ = ['Esalia']
-
 
 class S2eBrowser(LoginBrowser):
-
     PROFILE = Android()
     CTCC = ""
     LANG = "FR"
@@ -52,7 +50,7 @@ class S2eBrowser(LoginBrowser):
     def do_login(self):
         self.logger.debug('call Browser.do_login')
         self.loginp.stay_or_go()
-        self.page.login(self.username, self.password)
+        self.sessionId = self.page.login(self.username, self.password)
         if self.sessionId is None:
             raise BrowserIncorrectPassword()
 
@@ -63,13 +61,29 @@ class S2eBrowser(LoginBrowser):
                 'login': self.username,
                 'session': self.sessionId}
 
-        for k, fond in self.accountsp.open(data=data).get_list().items():
+        for dispositif in self.accountsp.open(data=data).get_list():
+            if dispositif['montantBrutDispositif'] == 0:
+                continue
+
             a = Account()
-            a.id = k
-            a.type = Account.TYPE_LOAN
-            a.balance = Decimal(fond["montantValeurEuro"]).quantize(Decimal('.01'))
-            a.label = fond["libelleSupport"]
+            a.id = dispositif['codeDispositif']
+            a.type = Account.TYPE_MARKET
+            a.balance = Decimal(dispositif["montantBrutDispositif"]).quantize(Decimal('.01'))
+            a.label = dispositif['titreDispositif']
             a.currency = u"EUR"  # Don't find any possbility to get that from configuration.
+            a._investments = []
+            for fund in dispositif['listeFonds']:
+                if fund['montantValeurEuro'] == 0:
+                    continue
+
+                i = Investment()
+                i.id = i.code = dispositif['codeEntreprise'] + dispositif["codeDispositif"] + fund["codeSupport"]
+                i.label = fund['libelleSupport']
+                i.unitvalue = Decimal(fund["montantValeur"]).quantize(Decimal('.01'))
+                i.valuation = Decimal(fund["montantValeurEuro"]).quantize(Decimal('.01'))
+                i.quantity = i.valuation / i.unitvalue
+                i.vdate = parse_date(fund['dateValeur'], dayfirst=True)
+                a._investments.append(i)
             yield a
 
     @need_login

@@ -43,7 +43,7 @@ class LoginPage(HTMLPage):
     def login(self, login, password):
         uuid = self.generate_uuid()
         data = self.browser.calcp.open(uuid=uuid).get_data(login, password)
-        self.browser.profilp.open(data=data).store_sessionId()
+        return self.browser.profilp.open(data=data).get_session_id()
 
 
 class CalcPage(JsonPage):
@@ -66,24 +66,16 @@ class CalcPage(JsonPage):
 
 
 class ProfilPage(JsonPage):
-    def store_sessionId(self):
-        self.browser.sessionId = self.doc['session']
+    def get_session_id(self):
+        return self.doc['session']
 
 
 class AccountsPage(LoggedPage, JsonPage):
     def get_list(self):
-        accounts = {}
         for entreprise in self.doc["listeEntreprise"]:
             for dispositif in entreprise["listeDispositf"]:  # Ceci n'est pas une erreur de frappe ;)
-                for fonds in dispositif["listeFonds"]:
-                    if fonds["montantValeurEuro"] == 0:
-                        continue
-                    fonds["codeLong"] = entreprise["codeEntreprise"] + dispositif["codeDispositif"] + fonds["codeSupport"]
-                    if fonds["codeLong"] in accounts:
-                        accounts[fonds["codeLong"]]["montantValeurEuro"] += fonds["montantValeurEuro"]
-                    else:
-                        accounts[fonds["codeLong"]] = fonds
-        return accounts
+                dispositif['codeEntreprise'] = entreprise['codeEntreprise']
+                yield dispositif
 
 
 class HistoryPage(LoggedPage, JsonPage):
