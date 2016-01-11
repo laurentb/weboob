@@ -181,10 +181,15 @@ class Cragr(Browser):
             self.page.check_multiple_perimeters()
 
     def go_perimeter(self, perimeter):
-        self.location(self.perimeter_url.format(self.sag))
+        # If this fails, there is no point in retrying with same cookies.
+        self.location(self.perimeter_url.format(self.sag), no_login=True)
+        if self.page.get_error() is not None:
+            self.login()
+            self.location(self.perimeter_url.format(self.sag))
         if len(self.perimeters) > 2:
             perimeter_link = self.page.get_perimeter_link(perimeter)
-            self.location(perimeter_link)
+            if perimeter_link:
+                self.location(perimeter_link)
         self.location(self.chg_perimeter_url.format(self.sag))
 
     def get_accounts_list(self, no_move=False):
