@@ -22,8 +22,7 @@ import re
 
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
-from weboob.deprecated.browser import Page, BrokenPageError
-from weboob.deprecated.browser import BrowserIncorrectPassword
+from weboob.deprecated.browser import Page, BrokenPageError, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.date import parse_french_date
 

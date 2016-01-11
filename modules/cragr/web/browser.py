@@ -23,7 +23,7 @@ import urllib
 from urlparse import urlparse
 
 from weboob.capabilities.bank import Account
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.date import LinearDateGuesser
 
 from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, \
@@ -86,6 +86,9 @@ class Cragr(Browser):
         self.login()
 
     def is_logged(self):
+        # This avoids infinite loop. I don't see a way to yield defaut perimeter datas when this crash occurs.
+        if self.is_on_page(ChgPerimeterPage) and self.page.get_error() is not None:
+            raise BrowserUnavailable()
         return self.page is not None and not self.is_on_page(HomePage) and self.page.get_error() is None
 
     def login(self):
