@@ -206,7 +206,7 @@ class HistoryDetailsPage(LoggedPage, HTMLPage):
             # In case text is "12,34 EUR = 56.78 USD" or "-£115,62 GBP soit -€163,64 EUR"
             for text in re.split('=|soit', CleanText().filter(find_td[0])):
                 if account.currency in text:
-                    return Decimal(FrenchTransaction.clean_amount(text))
+                    return Decimal(FrenchTransaction.clean_amount(text.split(account.currency)[0]))
         return False
 
     def get_payback_url(self):

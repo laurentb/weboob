@@ -72,15 +72,18 @@ class AccountsPage(Page):
             account_type = self.ACCOUNT_TYPES.get(head_type, Account.TYPE_UNKNOWN)
             for tr in block.cssselect('ul li.tbord_account'):
                 id = tr.attrib.get('id', '')
+                print id
                 if id.find('contratId') != 0:
                     self.logger.warning('Unable to parse contract ID: %r' % id)
                     continue
                 id = id[id.find('contratId')+len('contratId'):]
 
                 link = tr.cssselect('span.accountLabel a')[0]
+                print link
                 balance = Decimal(FrenchTransaction.clean_amount(tr.cssselect('span.accountTotal')[0].text))
 
                 if id.endswith('CRT'):
+                    print 'append'
                     account = accounts[-1]
                     account._card_links.append(link.attrib['href'])
                     if not account.coming:
