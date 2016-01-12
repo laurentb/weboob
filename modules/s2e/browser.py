@@ -104,7 +104,10 @@ class S2eBrowser(LoginBrowser):
             t.rdate = datetime.strptime(trans["dateHeureSaisie"], "%d/%m/%Y")
             t.type = Transaction.TYPE_DEPOSIT if trans["montantNetEuro"] > 0 else Transaction.TYPE_PAYBACK
             t.raw = trans["typeOperation"]
-            t.label = self.i18n["OPERATION_TYPE_" + trans["casDeGestion"]]
+            try:
+                t.label = self.i18n["OPERATION_TYPE_" + trans["casDeGestion"]]
+            except KeyError:
+                t.label = self.i18n["OPERATION_TYPE_TOTAL_" + trans["casDeGestion"]]
             t.amount = Decimal(trans["montantNetEuro"]).quantize(Decimal('.01'))
             yield t
 
