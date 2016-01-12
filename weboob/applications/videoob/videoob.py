@@ -118,6 +118,7 @@ class Videoob(ReplApplication):
             else:
                 return 1
 
+        self.logger.debug(' '.join(args))
         os.spawnlp(os.P_WAIT, args[0], *args)
 
     def read_url(self, url):
