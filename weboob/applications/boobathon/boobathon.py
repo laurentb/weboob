@@ -772,12 +772,12 @@ class Boobathon(ReplApplication):
         """
         Overload a Application method.
         """
-        for instance_name, backend_name, params in self.weboob.backends_config.iter_backends():
-            if backend_name != 'redmine':
+        for backend_name, module_name, params in self.weboob.backends_config.iter_backends():
+            if module_name != 'redmine':
                 continue
             v = urlsplit(params['url'])
             if v.netloc == 'symlink.me':
-                self.load_backends(names=[instance_name])
+                self.load_backends(names=[backend_name])
                 return
 
         if not self.check_loaded_backends({'url': 'https://symlink.me'}):

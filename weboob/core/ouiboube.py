@@ -415,11 +415,11 @@ class Weboob(WebNip):
 
         :param caps: load backends which implement all of specified caps
         :type caps: tuple[:class:`weboob.capabilities.base.Capability`]
-        :param names: load backends with instance name in list
+        :param names: load backends in list
         :type names: tuple[:class:`str`]
         :param modules: load backends which module is in list
         :type modules: tuple[:class:`str`]
-        :param exclude: do not load modules in list
+        :param exclude: do not load backends in list
         :type exclude: tuple[:class:`str`]
         :param storage: use this storage if specified
         :type storage: :class:`weboob.tools.storage.IStorage`
@@ -436,11 +436,11 @@ class Weboob(WebNip):
             self.logger.error(u'Repositories are not consistent with the sources.list')
             raise VersionsMismatchError(u'Versions mismatch, please run "weboob-config update"')
 
-        for instance_name, module_name, params in self.backends_config.iter_backends():
+        for backend_name, module_name, params in self.backends_config.iter_backends():
             if '_enabled' in params and not params['_enabled'].lower() in ('1', 'y', 'true', 'on', 'yes') or \
-               names is not None and instance_name not in names or \
+               names is not None and backend_name not in names or \
                modules is not None and module_name not in modules or \
-               exclude is not None and instance_name in exclude:
+               exclude is not None and backend_name in exclude:
                 continue
 
             minfo = self.repositories.get_module_info(module_name)
@@ -462,15 +462,15 @@ class Weboob(WebNip):
                 self.logger.error(u'Unable to load module "%s": %s', module_name, e)
                 continue
 
-            if instance_name in self.backend_instances:
-                self.logger.warning(u'Oops, the backend "%s" is already loaded. Unload it before reloading...', instance_name)
-                self.unload_backends(instance_name)
+            if backend_name in self.backend_instances:
+                self.logger.warning(u'Oops, the backend "%s" is already loaded. Unload it before reloading...', backend_name)
+                self.unload_backends(backend_name)
 
             try:
-                backend_instance = module.create_instance(self, instance_name, params, storage)
+                backend_instance = module.create_instance(self, backend_name, params, storage)
             except Module.ConfigError as e:
                 if errors is not None:
-                    errors.append(self.LoadError(instance_name, e))
+                    errors.append(self.LoadError(backend_name, e))
             else:
-                self.backend_instances[instance_name] = loaded[instance_name] = backend_instance
+                self.backend_instances[backend_name] = loaded[backend_name] = backend_instance
         return loaded

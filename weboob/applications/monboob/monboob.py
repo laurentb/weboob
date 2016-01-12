@@ -200,31 +200,31 @@ class Monboob(ReplApplication):
         if reply_to is None:
             # This is a new message
             if '.' in to:
-                bname, thread_id = to.split('.', 1)
+                backend_name, thread_id = to.split('.', 1)
             else:
-                bname = to
+                backend_name = to
                 thread_id = None
         else:
             # This is a reply
             try:
-                bname, id = reply_to.split('.', 1)
+                backend_name, id = reply_to.split('.', 1)
                 thread_id, parent_id = id.rsplit('.', 1)
             except ValueError:
                 print('In-Reply-To header might be in form <backend.thread_id.message_id>', file=self.stderr)
                 return 1
 
             # Default use the To header field to know the backend to use.
-            if to and bname != to:
-                bname = to
+            if to and backend_name != to:
+                backend_name = to
 
         try:
-            backend = self.weboob.backend_instances[bname]
+            backend = self.weboob.backend_instances[backend_name]
         except KeyError:
-            print('Backend %s not found' % bname, file=self.stderr)
+            print('Backend %s not found' % backend_name, file=self.stderr)
             return 1
 
         if not backend.has_caps(CapMessagesPost):
-            print('The backend %s does not implement CapMessagesPost' % bname, file=self.stderr)
+            print('The backend %s does not implement CapMessagesPost' % backend_name, file=self.stderr)
             return 1
 
         thread = Thread(thread_id)

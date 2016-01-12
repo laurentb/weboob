@@ -332,11 +332,11 @@ class ConsoleApplication(Application):
                 module = self.weboob.modules_loader.get_or_load_module(module_name)
                 config = module.config
             else:
-                bname, items = self.weboob.backends_config.get_backend(backend_name)
-                module = self.weboob.modules_loader.get_or_load_module(bname)
+                module_name, items = self.weboob.backends_config.get_backend(backend_name)
+                module = self.weboob.modules_loader.get_or_load_module(module_name)
                 items.update(params)
                 params = items
-                config = module.config.load(self.weboob, bname, backend_name, params, nofail=True)
+                config = module.config.load(self.weboob, module_name, backend_name, params, nofail=True)
         except ModuleLoadError as e:
             print('Unable to load module "%s": %s' % (module_name, e), file=self.stderr)
             return 1

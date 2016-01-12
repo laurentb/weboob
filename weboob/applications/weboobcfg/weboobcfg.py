@@ -172,17 +172,17 @@ class WeboobCfg(ReplApplication):
         Show backends.
         """
         caps = line.split()
-        for instance_name, name, params in sorted(self.weboob.backends_config.iter_backends()):
+        for backend_name, module_name, params in sorted(self.weboob.backends_config.iter_backends()):
             try:
-                module = self.weboob.modules_loader.get_or_load_module(name)
+                module = self.weboob.modules_loader.get_or_load_module(module_name)
             except ModuleLoadError as e:
-                self.logger.warning('Unable to load module %r: %s' % (name, e))
+                self.logger.warning('Unable to load module %r: %s' % (module_name, e))
                 continue
 
             if caps and not module.has_caps(*caps):
                 continue
-            row = OrderedDict([('Name', instance_name),
-                               ('Module', name),
+            row = OrderedDict([('Name', backend_name),
+                               ('Module', module_name),
                                ('Configuration', ', '.join(
                                    '%s=%s' % (key, ('*****' if key in module.config and module.config[key].masked
                                                     else value))
@@ -190,39 +190,39 @@ class WeboobCfg(ReplApplication):
                                ])
             self.format(row)
 
-    def do_remove(self, instance_name):
+    def do_remove(self, backend_name):
         """
         remove NAME
 
         Remove a backend.
         """
-        if not self.weboob.backends_config.remove_backend(instance_name):
-            print('Backend instance "%s" does not exist' % instance_name, file=self.stderr)
+        if not self.weboob.backends_config.remove_backend(backend_name):
+            print('Backend instance "%s" does not exist' % backend_name, file=self.stderr)
             return 1
 
-    def _do_toggle(self, name, state):
+    def _do_toggle(self, backend_name, state):
         try:
-            bname, items = self.weboob.backends_config.get_backend(name)
+            module_name, items = self.weboob.backends_config.get_backend(backend_name)
         except KeyError:
-            print('Backend instance "%s" does not exist' % name, file=self.stderr)
+            print('Backend instance "%s" does not exist' % backend_name, file=self.stderr)
             return 1
-        self.weboob.backends_config.edit_backend(name, bname, {'_enabled': state})
+        self.weboob.backends_config.edit_backend(backend_name, module_name, {'_enabled': state})
 
-    def do_enable(self, name):
+    def do_enable(self, backend_name):
         """
         enable BACKEND
 
         Enable a disabled backend
         """
-        return self._do_toggle(name, "true")
+        return self._do_toggle(backend_name, "true")
 
-    def do_disable(self, name):
+    def do_disable(self, backend_name):
         """
         disable BACKEND
 
         Disable a backend
         """
-        return self._do_toggle(name, "false")
+        return self._do_toggle(backend_name, "false")
 
     def do_edit(self, line):
         """

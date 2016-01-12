@@ -219,12 +219,12 @@ class BackendCfg(QDialog):
 
     def loadBackendsList(self):
         self.ui.backendsList.clear()
-        for instance_name, name, params in self.weboob.backends_config.iter_backends():
-            info = self.weboob.repositories.get_module_info(name)
+        for backend_name, module_name, params in self.weboob.backends_config.iter_backends():
+            info = self.weboob.repositories.get_module_info(module_name)
             if not info or (self.caps and not info.has_caps(self.caps)):
                 continue
 
-            item = QTreeWidgetItem(None, [instance_name, name])
+            item = QTreeWidgetItem(None, [backend_name, module_name])
             item.setCheckState(0, Qt.Checked if params.get('_enabled', '1').lower() in ('1', 'y', 'true', 'on', 'yes')
                 else Qt.Unchecked)
 
@@ -235,29 +235,29 @@ class BackendCfg(QDialog):
     def backendEnabled(self, item, col):
         self.is_enabling += 1
 
-        instname = unicode(item.text(0))
-        bname = unicode(item.text(1))
+        backend_name = unicode(item.text(0))
+        module_name = unicode(item.text(1))
         if item.checkState(0) == Qt.Checked:
-            self.to_load.add(instname)
+            self.to_load.add(backend_name)
             enabled = 'true'
         else:
-            self.to_unload.add(instname)
+            self.to_unload.add(backend_name)
             try:
-                self.to_load.remove(instname)
+                self.to_load.remove(backend_name)
             except KeyError:
                 pass
             enabled = 'false'
 
-        self.weboob.backends_config.edit_backend(instname, bname, {'_enabled': enabled})
+        self.weboob.backends_config.edit_backend(backend_name, module_name, {'_enabled': enabled})
 
     def backendClicked(self, item, col):
         if self.is_enabling:
             self.is_enabling -= 1
             return
 
-        bname = unicode(item.text(0))
+        backend_name = unicode(item.text(0))
 
-        self.editBackend(bname)
+        self.editBackend(backend_name)
 
     def addEvent(self):
         self.editBackend()
@@ -267,38 +267,38 @@ class BackendCfg(QDialog):
         if not item:
             return
 
-        bname = unicode(item.text(0))
+        backend_name = unicode(item.text(0))
         reply = QMessageBox.question(self, self.tr('Remove a backend'),
-            unicode(self.tr("Are you sure you want to remove the backend '%s'?")) % bname,
+            unicode(self.tr("Are you sure you want to remove the backend '%s'?")) % backend_name,
             QMessageBox.Yes|QMessageBox.No)
 
         if reply != QMessageBox.Yes:
             return
 
-        self.weboob.backends_config.remove_backend(bname)
-        self.to_unload.add(bname)
+        self.weboob.backends_config.remove_backend(backend_name)
+        self.to_unload.add(backend_name)
         try:
-            self.to_load.remove(bname)
+            self.to_load.remove(backend_name)
         except KeyError:
             pass
         self.ui.configFrame.hide()
         self.loadBackendsList()
 
-    def editBackend(self, name=None):
+    def editBackend(self, backend_name=None):
         self.ui.registerButton.hide()
         self.ui.configFrame.show()
 
-        if name is not None:
-            bname, params = self.weboob.backends_config.get_backend(name)
+        if backend_name is not None:
+            module_name, params = self.weboob.backends_config.get_backend(backend_name)
 
-            items = self.ui.modulesList.findItems(bname, Qt.MatchFixedString)
+            items = self.ui.modulesList.findItems(module_name, Qt.MatchFixedString)
             if not items:
                 warning('Backend not found')
             else:
                 self.ui.modulesList.setCurrentItem(items[0])
                 self.ui.modulesList.setEnabled(False)
 
-            self.ui.nameEdit.setText(name)
+            self.ui.nameEdit.setText(backend_name)
             self.ui.nameEdit.setEnabled(False)
 
             if '_proxy' in params:
@@ -310,10 +310,10 @@ class BackendCfg(QDialog):
 
             params.pop('_enabled', None)
 
-            info = self.weboob.repositories.get_module_info(bname)
+            info = self.weboob.repositories.get_module_info(module_name)
             if info and (info.is_installed() or self.installModule(info)):
-                module = self.weboob.modules_loader.get_or_load_module(bname)
-                for key, value in module.config.load(self.weboob, bname, name, params, nofail=True).iteritems():
+                module = self.weboob.modules_loader.get_or_load_module(module_name)
+                for key, value in module.config.load(self.weboob, module_name, backend_name, params, nofail=True).iteritems():
                     try:
                         l, widget = self.config_widgets[key]
                     except KeyError:
@@ -400,7 +400,7 @@ class BackendCfg(QDialog):
         self.ui.proxyEdit.setEnabled(state)
 
     def acceptBackend(self):
-        bname = unicode(self.ui.nameEdit.text())
+        backend_name = unicode(self.ui.nameEdit.text())
         selection = self.ui.modulesList.selectedItems()
 
         if not selection:
@@ -420,18 +420,18 @@ class BackendCfg(QDialog):
 
         params = {}
 
-        if not bname:
+        if not backend_name:
             QMessageBox.critical(self, self.tr('Missing field'), self.tr('Please specify a backend name'))
             return
 
         if self.ui.nameEdit.isEnabled():
-            if not re.match(r'^[\w\-_]+$', bname):
+            if not re.match(r'^[\w\-_]+$', backend_name):
                 QMessageBox.critical(self, self.tr('Invalid value'),
                     self.tr('The backend name can only contain letters and digits'))
                 return
-            if self.weboob.backends_config.backend_exists(bname):
+            if self.weboob.backends_config.backend_exists(backend_name):
                 QMessageBox.critical(self, self.tr('Unable to create backend'),
-                         unicode(self.tr('Unable to create backend "%s": it already exists')) % bname)
+                         unicode(self.tr('Unable to create backend "%s": it already exists')) % backend_name)
                 return
 
         if self.ui.proxyBox.isChecked():
@@ -440,7 +440,7 @@ class BackendCfg(QDialog):
                 QMessageBox.critical(self, self.tr('Missing field'), self.tr('Please specify a proxy URL'))
                 return
 
-        config = module.config.load(self.weboob, module.name, bname, {}, nofail=True)
+        config = module.config.load(self.weboob, module.name, backend_name, {}, nofail=True)
         for key, field in config.iteritems():
             label, qtvalue = self.config_widgets[key]
 
@@ -457,10 +457,10 @@ class BackendCfg(QDialog):
             config.save(edit=not self.ui.nameEdit.isEnabled(), params=params)
         except BackendAlreadyExists:
             QMessageBox.critical(self, self.tr('Unable to create backend'),
-                     unicode(self.tr('Unable to create backend "%s": it already exists')) % bname)
+                     unicode(self.tr('Unable to create backend "%s": it already exists')) % backend_name)
             return
 
-        self.to_load.add(bname)
+        self.to_load.add(backend_name)
         self.ui.configFrame.hide()
 
         self.loadBackendsList()
