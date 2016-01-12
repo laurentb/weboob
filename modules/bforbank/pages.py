@@ -111,6 +111,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                     'Compte':        Account.TYPE_CHECKING,
                     'PEA':           Account.TYPE_MARKET,
                     'Compte-titres': Account.TYPE_MARKET,
+                    'PEA-PME':       Account.TYPE_MARKET,
                    }
 
             obj_id = CleanText('./td//div[contains(@class, "-synthese-title") or contains(@class, "-synthese-text")]') & Regexp(pattern=r'(\d+)')
