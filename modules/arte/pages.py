@@ -135,7 +135,10 @@ class VideosListPage(HTMLPage):
                     len(XPath('.//article')(self)) == 0
 
             obj__site = SITE.CINEMA.get('id')
-            obj_id = Format('%s.%s', Field('_site'), CleanText('./@about'))
+            obj_id = Format('%s.%s', Field('_site'),
+                            Regexp(CleanText('./div/a/@href'),
+                                   '(http://.*\.arte\.tv)?/(.*)',
+                                   '\\2'))
             obj_title = Join(u' - ',
                              './/div[@class="article-secondary "]/div/div')
 
@@ -145,8 +148,6 @@ class VideosListPage(HTMLPage):
                 thumbnail.url = thumbnail.id
                 return thumbnail
 
-
-class VideoPage(HTMLPage):
     def get_json_url(self):
         return self.doc.xpath('//div[@class="video-container"]')[0].attrib['arte_vp_url']
 

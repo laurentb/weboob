@@ -24,7 +24,7 @@ from weboob.capabilities.base import UserError
 from weboob.capabilities import NotAvailable
 
 from weboob.browser import PagesBrowser, URL
-from .pages import VideosListPage, VideoPage, ArteJsonPage
+from .pages import VideosListPage, ArteJsonPage
 from .video import VERSION_VIDEO, LANG, QUALITY, FORMATS, SITE
 
 
@@ -38,8 +38,9 @@ class ArteBrowser(PagesBrowser):
                      'http://(?P<__site>.*).arte.tv/(?P<_lang>\w{2})/player/(?P<_id>.*)',
                      'https://api.arte.tv/api/player/v1/config/(?P<__lang>\w{2})/(?P<vid>.*)\?vector=(?P<___site>.*)',
                      ArteJsonPage)
-    videos_list = URL('http://(?P<site>.*).arte.tv/(?P<lang>\w{2})/?(?P<cat>.*?)', VideosListPage)
-    video_page = URL('http://(?P<_site>.*).arte.tv/(?P<id>.+)', VideoPage)
+    videos_list = URL('http://(?P<site>.*).arte.tv/(?P<lang>\w{2})/?(?P<cat>.*?)',
+                      'http://(?P<_site>.*).arte.tv/(?P<id>.+)',
+                      VideosListPage)
 
     def __init__(self, lang, quality, order, format, version, *args, **kwargs):
         self.order = order
@@ -140,7 +141,7 @@ class ArteBrowser(PagesBrowser):
                                    cat='').iter_arte_concert_videos(cat=cat[-1])
 
     def get_arte_concert_video(self, id, video=None):
-        json_url = self.video_page.go(_site=SITE.CONCERT.get('id'), id=id).get_json_url()
+        json_url = self.videos_list.go(_site=SITE.CONCERT.get('id'), id=id).get_json_url()
         m = re.search('http://(?P<__site>.*).arte.tv/(?P<_lang>\w{2})/player/(?P<_id>.*)', json_url)
         if m:
             video = self.webservice.go(__site=m.group('__site'), _lang=m.group('_lang'),
@@ -187,7 +188,7 @@ class ArteBrowser(PagesBrowser):
                                    cat='/%s' % '/'.join(cat[1:])).get_arte_cinema_videos()
 
     def get_arte_cinema_video(self, id, video=None):
-        json_url = self.video_page.go(_site=SITE.CINEMA.get('id'), id=id).get_json_url()
+        json_url = self.videos_list.go(_site=SITE.CINEMA.get('id'), id=id).get_json_url()
         m = re.search('https://api.arte.tv/api/player/v1/config/(\w{2})/(.*)\?vector=(.*)\&.*', json_url)
         if m:
             video = self.webservice.go(__lang=m.group(1),
