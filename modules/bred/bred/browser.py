@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import json
 from datetime import date
 from decimal import Decimal
 
@@ -37,6 +38,8 @@ class BredBrowser(DomainBrowser):
         self.login = login
         self.password = password
         self.accnum = accnum
+        self.universes = None
+        self.current_univers = None
 
     def do_login(self, login, password):
         r = self.open('/transactionnel/Authentication', data={'identifiant': login, 'password': password})
@@ -66,7 +69,43 @@ class BredBrowser(DomainBrowser):
             self.do_login(self.login, self.password)
             return super(BredBrowser, self).open(*args, **kwargs)
 
+    def set_universes(self):
+        universes = []
+        r = self.api_open('/transactionnel/services/applications/menu/getMenuUnivers')
+        for univers in r.json()['content']['menus']:
+            universes.append(univers['universKey'])
+        if not universes:
+            # There is just the default univers here.
+            universes.append('')
+            self.current_universes = ''
+        else:
+            # The following is needed to get the default univers in the list.
+            self.move_to_univers(universes[0])
+            r = self.api_open('/transactionnel/services/applications/menu/getMenuUnivers')
+            for univers in r.json()['content']['menus']:
+                if univers['universKey'] not in universes:
+                    universes.append(univers['universKey'])
+        self.universes = universes
+
+    def move_to_univers(self, univers):
+        x_token_bred = self.api_open('/transactionnel/services/rest/User/nonce?random=').json()['content']
+        data = {}
+        data['all'] = 'true'
+        data['univers'] = univers
+        self.api_open('/transactionnel/services/rest/User/switch', data=json.dumps(data), headers={'x-token-bred': x_token_bred})
+        self.current_univers = univers
+
     def get_accounts_list(self):
+        if not self.universes:
+            self.set_universes()
+        accounts = []
+        for univers in self.universes:
+            if univers != self.current_univers:
+                self.move_to_univers(univers)
+            accounts.extend(self.get_list())
+        return accounts
+
+    def get_list(self):
         r = self.api_open('/transactionnel/services/rest/Account/accounts')
 
         for content in r.json()['content']:
@@ -79,6 +118,7 @@ class BredBrowser(DomainBrowser):
                 a.iban = iban_response['content']['iban'] if 'content' in iban_response else NotAvailable
                 a._nature = poste['codeNature']
                 a._consultable = poste['consultable']
+                a._univers = self.current_univers
                 a.id = '%s.%s' % (a._number, a._nature)
                 a.type = self.ACCOUNT_TYPES.get(poste['codeNature'], Account.TYPE_UNKNOWN)
 
@@ -104,6 +144,8 @@ class BredBrowser(DomainBrowser):
         if not account._consultable:
             raise NotImplementedError()
 
+        if account._univers != self.current_univers:
+            self.move_to_univers(account._univers)
         offset = 0
         next_page = True
         seen = set()
