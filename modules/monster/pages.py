@@ -23,7 +23,7 @@ from datetime import datetime, time, timedelta
 
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import CleanText, Regexp, Filter, Env, BrowserURL, Join
+from weboob.browser.filters.standard import CleanText, Regexp, Filter, Env, BrowserURL, Join, Date, Format
 from weboob.browser.filters.html import Link, CleanHTML
 from weboob.capabilities.job import BaseJobAdvert
 from weboob.capabilities.base import NotAvailable
@@ -57,7 +57,8 @@ class SearchPage(HTMLPage):
             klass = BaseJobAdvert
 
             obj_id = Regexp(Link('./td/div/div[@class="jobTitleContainer"]/a'),
-                            'http://offre-emploi.monster.fr:80/(.*?).aspx')
+                            'http://offre-(d?)emploi.monster.fr:80/(.*?)(.aspx|\?).*',
+                            '\\1#\\2')
             obj_society_name = CleanText('./td/div/div[@class="companyContainer"]/div/a')
             obj_title = CleanText('./td/div/div[@class="jobTitleContainer"]/a')
             obj_publication_date = MonsterDate(CleanText('td/div/div[@class="fnt20"]'))
@@ -69,13 +70,32 @@ class AdvertPage(HTMLPage):
     class get_job_advert(ItemElement):
         klass = BaseJobAdvert
 
-        obj_id = Env('_id')
+        obj_id = Format('#%s', Env('_id'))
         obj_url = BrowserURL('advert', _id=Env('_id'))
         obj_title = CleanText('//div[@id="jobcopy"]/h1[@itemprop="title"]|//div[@itemprop="title"]/h1')
         obj_description = CleanHTML('//div[@id="jobBodyContent"]|//div[@itemprop="description"]')
-        obj_contract_type = Join(' ', '//dd[starts-with(@class, "multipledd")]')
+        obj_contract_type = Join(u' ', '//dd[starts-with(@class, "multipledd")]')
         obj_society_name = CleanText('//dd[@itemprop="hiringOrganization"]')
         obj_place = CleanText('//span[@itemprop="jobLocation"]')
         obj_pay = CleanText('//span[@itemprop="baseSalary"]')
         obj_formation = CleanText('//span[@itemprop="educationRequirements"]')
         obj_experience = CleanText('//span[@itemprop="qualifications"]')
+
+
+class AdvertPage2(HTMLPage):
+    @method
+    class get_job_advert(ItemElement):
+        klass = BaseJobAdvert
+
+        obj_id = Format('d#%s', Env('_id'))
+        obj_url = BrowserURL('advert2', _id=Env('_id'))
+        obj_title = CleanText('//h3')
+        obj_description = CleanHTML('//div[@id="jobBodyContent"]|//div[@itemprop="description"]')
+        obj_contract_type = CleanHTML('//div[@class="jobview-section"]')
+        obj_society_name = Regexp(CleanText('//h4[@class="company"]'),
+                                  '.* : (.*) - .*')
+        obj_place = Regexp(CleanText('//h4[@class="company"]'),
+                           '.* - (.*)')
+        obj_publication_date = Date(Regexp(CleanText('//span[@class="postedDate"]'),
+                                           '.* : (.*)'),
+                                    dayfirst=True)
