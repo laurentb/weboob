@@ -32,8 +32,7 @@ __all__ = ['PiratebayBrowser']
 
 class PiratebayBrowser(Browser):
     ENCODING = 'utf-8'
-    DOMAINS = ['thepiratebay.ms',
-               'thepiratebay.se']
+    DOMAINS = ['thepiratebay.se']
 
     def __init__(self, url, *args, **kwargs):
         url = url or 'https://%s/' % random.choice(self.DOMAINS)
