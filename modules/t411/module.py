@@ -36,14 +36,12 @@ class T411Module(Module, CapTorrent):
     VERSION = '1.1'
     DESCRIPTION = 'T411 BitTorrent tracker'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(Value('protocol', label='Protocol to use', choices=('http', 'https')),
-                           Value('username', label='Username'),
+    CONFIG = BackendConfig(Value('username', label='Username'),
                            ValueBackendPassword('password', label='Password'))
     BROWSER = T411Browser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['protocol'].get(),
-                                   self.config['username'].get(),
+        return self.create_browser(self.config['username'].get(),
                                    self.config['password'].get())
 
     def get_torrent(self, id):

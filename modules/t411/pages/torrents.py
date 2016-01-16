@@ -25,57 +25,50 @@ from weboob.tools.html import html2text
 from weboob.capabilities.torrent import Torrent
 from weboob.capabilities.base import NotLoaded, NotAvailable
 
-from .base import BasePage
+from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage
+from weboob.browser.filters.standard import Regexp, CleanText, Format, Env, Type
+from weboob.browser.filters.html import CleanHTML
 
 
-class SearchPage(BasePage):
-
-    def format_url(self, url):
-        return '%s://%s/%s' % (self.browser.PROTOCOL,
-                               self.browser.DOMAIN,
-                               url)
+class SearchPage(LoggedPage, HTMLPage):
 
     def iter_torrents(self):
-        #table = self.document.getroot().cssselect('table.results', 1)
-        trs = self.parser.select(self.document.getroot(), 'table.results tbody tr')
-        if len(trs) > 0:
-            for tr in trs:
-                tds = tr.findall('td')
-                tdlink = tds[1]
-                tlink = tdlink.findall('a')[0]
-                title = tlink.attrib.get('title','')
-                nfolink = self.parser.select(tds[2], 'a.nfo')[0]
-                id = nfolink.attrib.get('href','').split('=')[-1]
+        for tr in self.doc.getroot().cssselect('table.results tbody tr'):
+            tds = tr.findall('td')
+            tdlink = tds[1]
+            tlink = tdlink.findall('a')[0]
+            title = tlink.attrib.get('title','')
+            nfolink = tds[2].cssselect('a.nfo')[0]
+            fullid = nfolink.attrib.get('href','').split('=')[-1]
 
-                downurl = 'https://www.t411.in/torrents/download/?id=%s'%id
-                #detailurl = 'https://www.t411.in/t/%s'%id
+            downurl = 'https://www.t411.in/torrents/download/?id=%s'%fullid
 
-                rawsize = tds[5].text
-                nsize = float(rawsize.split()[0])
-                usize = rawsize.split()[-1].upper()
-                size = get_bytes_size(nsize,usize)
-                try:
-                    seeders = int(tds[7].text)
-                except ValueError:
-                    seeders = 0
-                try:
-                    leechers = int(tds[8].text)
-                except ValueError:
-                    leechers = 0
+            rawsize = tds[5].text
+            nsize = float(rawsize.split()[0])
+            usize = rawsize.split()[-1].upper()
+            size = get_bytes_size(nsize,usize)
+            try:
+                seeders = int(tds[7].text)
+            except ValueError:
+                seeders = 0
+            try:
+                leechers = int(tds[8].text)
+            except ValueError:
+                leechers = 0
 
-                torrent = Torrent(id, title)
-                torrent.url = self.format_url(downurl)
-                torrent.size = size
-                torrent.seeders = seeders
-                torrent.leechers = leechers
-                torrent.magnet = NotAvailable
-                torrent.description = NotLoaded
-                torrent.files = NotLoaded
-                torrent.filename = NotLoaded
-                yield torrent
+            torrent = Torrent(fullid, title)
+            torrent.url = downurl
+            torrent.size = size
+            torrent.seeders = seeders
+            torrent.leechers = leechers
+            torrent.magnet = NotAvailable
+            torrent.description = NotLoaded
+            torrent.files = NotLoaded
+            torrent.filename = NotLoaded
+            yield torrent
 
 
-class TorrentPage(BasePage):
+class TorrentPage(LoggedPage, HTMLPage):
     def get_torrent(self, id):
         seeders = 0
         leechers = 0
@@ -85,16 +78,24 @@ class TorrentPage(BasePage):
         files = []
         size = 0
 
-        divdesc = self.browser.parser.select(self.document.getroot(), 'div.description', 1)
-        desctxt = html2text(self.parser.tostring(divdesc))
-        strippedlines = '\n'.join([s.strip() for s in desctxt.split('\n') if re.search(r'\[[0-9]+\]', s) is None])
-        description = re.sub(r'\s\s+', '\n\n', strippedlines)
+        divdesc = self.doc.getroot().cssselect('div.description')[0]
+        #print(dir(self.doc.parser))
 
-        title = self.browser.parser.select(self.document.getroot(), 'div.torrentDetails h2 span', 1).text
+        # TODO clean that dirty field
+        description = divdesc.text_content()
+        #print(dir(divdesc))
+        #desctxt = html2text(divdesc.get('content'))
 
-        downurl = 'https://www.t411.in/torrents/download/?id=%s'%id
+        #divdesc = self.browser.parser.select(self.document.getroot(), 'div.description', 1)
+        #strippedlines = '\n'.join([s.strip() for s in desctxt.split('\n') if re.search(r'\[[0-9]+\]', s) is None])
+        #description = re.sub(r'\s\s+', '\n\n', strippedlines)
 
-        accor_lines = self.parser.select(self.document.getroot(), 'div.accordion tr')
+        title = self.doc.getroot().cssselect('div.torrentDetails h2 span')[0].text
+
+        fullid = self.doc.getroot().cssselect('input[id=torrent-id]')[0].attrib.get('value')
+        downurl = 'https://www.t411.in/torrents/download/?id=%s'%fullid
+
+        accor_lines = self.doc.getroot().cssselect('div.accordion tr')
         if len(accor_lines) > 0:
             for tr in accor_lines:
                 th = tr.findall('th')
@@ -108,22 +109,22 @@ class TorrentPage(BasePage):
                     elif th[0].text == 'Torrent':
                         filename = td[0].text_content().strip()
 
-        h3titles = self.parser.select(self.document.getroot(), 'div.accordion h3.title')
+        h3titles = self.doc.getroot().cssselect('div.accordion h3.title')
         for h3 in h3titles:
             if h3.text == 'Liste des Fichiers':
                 divfiles = h3.getnext()
-                dlines = self.parser.select(divfiles, 'tr')
+                dlines = divfiles.cssselect('tr')
                 for l in dlines[1:]:
                     files.append(re.sub('\s+', ' ', l.text_content().strip()))
 
-        seedtxt = self.browser.parser.select(self.document.getroot(), 'div.details td.up', 1).text_content()
+        seedtxt = self.doc.getroot().cssselect('div.details td.up')[0].text_content()
         seeders = int(seedtxt)
 
-        leecherstxt = self.browser.parser.select(self.document.getroot(), 'div.details td.down', 1).text_content()
+        leecherstxt = self.doc.getroot().cssselect('div.details td.down')[0].text_content()
         leechers = int(leecherstxt)
 
 
-        torrent = Torrent(id, title)
+        torrent = Torrent(fullid, title)
         torrent.name = title
         torrent.url = downurl
         torrent.magnet = NotAvailable

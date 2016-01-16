@@ -18,12 +18,18 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import BasePage
+#from .base import BasePage
+from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage
 
 
-class HomePage(BasePage):
+class HomePage(HTMLPage):
     def login(self, login, password):
-        self.browser.select_form(nr=0)
-        self.browser['login'] = login
-        self.browser['password'] = password
-        self.browser.submit(no_login=True)
+        form = self.get_form(xpath='//form[contains(@id, "loginform")]')
+        form['login'] = login
+        form['password'] = password
+        form.submit()
+
+
+    @property
+    def logged(self):
+        return self.doc.xpath('//a[@class="logout"]')

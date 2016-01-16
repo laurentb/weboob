@@ -18,7 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.browser.exceptions import BrowserHTTPNotFound
+from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser.profiles import Wget
 
 from .pages.index import HomePage
 from .pages.torrents import TorrentPage, SearchPage
@@ -27,47 +29,35 @@ from .pages.torrents import TorrentPage, SearchPage
 __all__ = ['T411Browser']
 
 
-class T411Browser(Browser):
-    PAGES = {'https?://www.t411.in/?':  HomePage,
-             'https?://www.t411.in/torrents/search/\?.*':    SearchPage,
-             'https?://www.t411.in/torrents/[^/]*': TorrentPage,
-            }
+class T411Browser(LoginBrowser):
+    PROFILE = Wget()
+    TIMEOUT = 30
 
-    def __init__(self, protocol, *args, **kwargs):
-        self.PROTOCOL = protocol
-        self.DOMAIN = 'www.t411.in'
-        Browser.__init__(self, *args, **kwargs)
+    BASEURL = 'https://www.t411.in/'
+    home = URL('$', HomePage)
+    search = URL('torrents/search/\?search=(?P<pattern>.*)&order=seeders&type=desc',
+                 SearchPage)
+    torrent = URL('/torrents/details/\?id=(?P<id>.*)&r=1',
+                  'torrents/[^&]*',
+                  TorrentPage)
 
-    def login(self):
-        if not self.is_on_page(HomePage):
-            self.location('%s://%s'%(self.PROTOCOL, self.DOMAIN), no_login=True)
-        self.page.login(self.username, self.password)
+    #def __init__(self, *args, **kwargs):
+    #    Browser.__init__(self, *args, **kwargs)
 
-        if not self.is_logged():
+    def do_login(self):
+        self.home.go()
+        if not self.page.logged:
+            self.page.login(self.username, self.password)
+        if not self.page.logged:
             raise BrowserIncorrectPassword()
 
-    def is_logged(self):
-        if not self.page:
-            return False
-        else:
-            return self.page.is_logged()
-
-    def home(self):
-        return self.location('%s://%s/' % (self.PROTOCOL, self.DOMAIN))
-
+    @need_login
     def iter_torrents(self, pattern):
-        self.location('%s://%s/torrents/search/?search=%s&order=seeders&type=desc'%(
-                                                            self.PROTOCOL,
-                                                            self.DOMAIN,
-                                                            pattern.encode('utf-8')))
-
-        assert self.is_on_page(SearchPage)
-        return self.page.iter_torrents()
+        return self.search.go(pattern=pattern).iter_torrents()
 
     def get_torrent(self, fullid):
-        self.location('%s://%s/t/%s'%(self.PROTOCOL,
-                                             self.DOMAIN,
-                                             fullid))
-
-        assert self.is_on_page(TorrentPage)
-        return self.page.get_torrent(fullid)
+        try:
+            torrent = self.torrent.go(id=fullid).get_torrent(id)
+            return torrent
+        except BrowserHTTPNotFound:
+            return
