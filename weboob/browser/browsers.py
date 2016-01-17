@@ -263,10 +263,10 @@ class Browser(object):
         Call this instead of location() if you do not want to "visit" the URL
         (for instance, you are downloading a file).
 
-        When `async` is True, open() returns a Future objet (see
+        When `is_async` is True, open() returns a Future object (see
         concurrent.futures for more details), which can be evaluated with its
         result() method. If any exception is raised while processing request,
-        it is catched and re-raised when calling result().
+        it is caught and re-raised when calling result().
 
         For example:
 
@@ -281,8 +281,8 @@ class Browser(object):
         :param referrer: Force referrer. False to disable sending it, None for guessing
         :type referrer: str or False or None
 
-        :param async: Process request in a non-blocking way
-        :type async: bool
+        :param is_async: Process request in a non-blocking way
+        :type is_async: bool
 
         :param callback: Callback to be called when request has finished,
                          with response as its first and only argument
@@ -315,7 +315,7 @@ class Browser(object):
             timeout = self.TIMEOUT
 
         # We define an inner_callback here in order to execute the same code
-        # regardless of async param.
+        # regardless of is_async param.
         def inner_callback(future, response):
             if allow_redirects:
                 response = self.handle_refresh(response)
@@ -646,7 +646,7 @@ class PagesBrowser(DomainBrowser):
         callback = kwargs.pop('callback', lambda response: response)
 
         # Have to define a callback to seamlessly process synchronous and
-        # asynchronous requests, see :meth:`Browser.open` and its `async`
+        # asynchronous requests, see :meth:`Browser.open` and its `is_async`
         # and `callback` params.
         def internal_callback(response):
             # Try to handle the response page with an URL instance.
