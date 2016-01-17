@@ -42,3 +42,7 @@ class ImgurBrowser(APIBrowser):
             res['id'] = json['data']['id']
             res['delete_url'] = 'https://api.imgur.com/3/image/%s' % json['data']['deletehash']
             return res
+
+    def get_gallery(self, id):
+        json = self.request('https://api.imgur.com/3/album/%s' % id)
+        return json['data']
