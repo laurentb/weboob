@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013      Vincent A
+# Copyright(C) 2016      Vincent A
 #
 # This file is part of weboob.
 #

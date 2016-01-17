@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013      Vincent A
+# Copyright(C) 2016      Vincent A
 #
 # This file is part of weboob.
 #
@@ -25,7 +25,7 @@ class ImgurTest(BackendTest):
     MODULE = 'imgur'
 
     # small gif file
-    DATA = 'R0lGODlhAQABAIAAAP///wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==\n'
+    DATA = 'R0lGODdhAQABAPAAAP///wAAACwAAAAAAQABAAACAkQBADs=\n'
 
     def test_imgur(self):
         assert self.backend.can_post(self.DATA, max_age=0)

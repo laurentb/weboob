@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013      Vincent A
+# Copyright(C) 2016      Vincent A
 #
 # This file is part of weboob.
 #
@@ -17,16 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 
 from weboob.tools.backend import Module
 from weboob.capabilities.paste import CapPaste, BasePaste
 from weboob.tools.capabilities.paste import image_mime
 from weboob.capabilities.base import StringField
-from weboob.deprecated.browser import StandardBrowser
-from weboob.deprecated.browser.decorators import check_url
-from urllib import urlencode
-import re
 
+from .browser import ImgurBrowser
 
 __all__ = ['ImgurModule']
 
@@ -36,12 +34,12 @@ class ImgPaste(BasePaste):
 
     @classmethod
     def id2url(cls, id):
-        return 'http://imgur.com/%s' % id
+        return 'https://imgur.com/%s' % id
 
     @property
     def raw_url(self):
         # TODO get the right extension
-        return 'http://i.imgur.com/%s.png' % self.id
+        return 'https://i.imgur.com/%s.png' % self.id
 
 
 class ImgurModule(Module, CapPaste):
@@ -52,24 +50,10 @@ class ImgurModule(Module, CapPaste):
     LICENSE = 'AGPLv3+'
     VERSION = '1.1'
 
-    CLIENT_ID = '87a8e692cb09382'
+    BROWSER = ImgurBrowser
 
-    #BROWSER = ImgurBrowser
-    BROWSER = StandardBrowser
-
-    def create_default_browser(self):
-        return self.create_browser(parser='json')
-
-    def do_get(self, url):
-        return self.do_request(url, None)
-
-    def do_post(self, url, data):
-        return self.do_request(url, data)
-
-    def do_request(self, url, data):
-        headers = {'Authorization': 'Client-ID %s' % self.CLIENT_ID}
-        request = self.browser.request_class(url, data, headers)
-        return self.browser.get_document(self.browser.openurl(request))
+    IMGURL = re.compile(r'https?://(?:[a-z]+\.)?imgur.com/([a-zA-Z0-9]+)(?:\.[a-z]+)?$')
+    ID = re.compile(r'[0-9a-zA-Z]+$')
 
     def new_paste(self, *a, **kw):
         return ImgPaste(*a, **kw)
@@ -85,15 +69,20 @@ class ImgurModule(Module, CapPaste):
             mime = image_mime(contents, ('gif', 'jpeg', 'png', 'tiff', 'xcf', 'pdf'))
             return 20 * int(mime is not None)
 
-    def post_paste(self, paste, max_age=None):
-        params = dict(image=paste.contents, title=paste.title, type='base64')
-        json = self.do_post('https://api.imgur.com/3/image', urlencode(params))
-        if json['success']:
-            paste.id = json['data']['id']
-            paste.delete_url = 'https://api.imgur.com/3/image/%s' % json['data']['deletehash']
-
-    @check_url('https?://(?:[a-z]+\.)?imgur.com/')
     def get_paste(self, id):
+        mtc = self.IMGURL.match(id)
+        if mtc:
+            id = mtc.group(1)
+        elif not self.ID.match(id):
+            return None
+
         paste = ImgPaste(id)
-        paste.contents = self.browser.readurl(paste.raw_url).encode('base64')
+        bin = self.browser.open_raw(paste.raw_url).content
+        paste.contents = bin.encode('base64')
+        return paste
+
+    def post_paste(self, paste, max_age=None):
+        res = self.browser.post_image(b64=paste.contents, title=paste.title)
+        paste.id = res['id']
+        paste.delete_url = res['delete_url']
         return paste
