@@ -50,10 +50,6 @@ class Torrent(BaseObject):
     description =   StringField('Description of torrent')
     filename =      StringField('Name of .torrent file')
 
-    def __init__(self, id, name):
-        BaseObject.__init__(self, id)
-        self.name = name
-
 
 class CapTorrent(Capability):
     """
