@@ -60,11 +60,7 @@ class T411Module(Module, CapTorrent):
 
     def fill_torrent(self, torrent, fields):
         if 'description' in fields or 'files' in fields:
-            tor = self.get_torrent(torrent.id)
-            torrent.description = tor.description
-            torrent.magnet = tor.magnet
-            torrent.files = tor.files
-            torrent.url = tor.url
+            torrent = self.browser.get_torrent(torrent.id, torrent)
         return torrent
 
     OBJECTS = {

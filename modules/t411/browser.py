@@ -19,7 +19,8 @@
 
 
 from weboob.browser.exceptions import BrowserHTTPNotFound
-from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser import LoginBrowser, need_login
+from weboob.browser.url import URL
 from weboob.browser.profiles import Wget
 
 from .pages.index import HomePage
@@ -55,9 +56,10 @@ class T411Browser(LoginBrowser):
     def iter_torrents(self, pattern):
         return self.search.go(pattern=pattern).iter_torrents()
 
-    def get_torrent(self, fullid):
+    def get_torrent(self, fullid, torrent=None):
         try:
-            torrent = self.torrent.go(id=fullid).get_torrent(id)
+            self.torrent.go(id=fullid)
+            torrent = self.page.get_torrent()
             return torrent
         except BrowserHTTPNotFound:
             return
