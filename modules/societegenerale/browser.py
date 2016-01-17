@@ -161,7 +161,7 @@ class SocieteGenerale(Browser):
 
         else:
             self.logger.warning('This account is not supported')
-            raise StopIteration()
+            return
 
         for invest in self.page.iter_investment():
             yield invest

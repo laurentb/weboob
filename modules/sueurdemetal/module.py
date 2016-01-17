@@ -56,7 +56,7 @@ class SueurDeMetalModule(Module, CapCalendarEvent):
 
     def search_events(self, query):
         if not self.has_matching_categories(query):
-            raise StopIteration()
+            return
 
         if query.city:
             city_id = self.find_city_id(query.city)

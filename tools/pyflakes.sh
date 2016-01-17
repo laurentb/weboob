@@ -10,6 +10,7 @@ grep -nE '^[[:space:]]+except [[:alnum:] ]+,[[:alnum:] ]+' ${PYFILES} && echo 'E
 grep -nE "^ *print " ${PYFILES} && echo 'Error: Use the print function' && exit 8
 grep -Fn ".has_key" ${PYFILES} && echo 'Error: Deprecated, use operator "in"' && exit 9
 grep -Fn "os.isatty" ${PYFILES} && echo 'Error: Use stream.isatty() instead of os.isatty(stream.fileno())' && exit 10
+grep -Fn "raise StopIteration" ${PYFILES} && echo 'Error: PEP 479' && exit 11
 MODULE_FILES=$(git ls-files|grep '^modules/.*\.py$'|tr '\n' ' ')
 grep -nE "^ *print(\(| )" ${MODULE_FILES} && echo 'Error: Use of print in modules is forbidden, use logger instead' && exit 20
 

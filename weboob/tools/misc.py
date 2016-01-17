@@ -110,7 +110,6 @@ def limit(iterator, lim):
     while count < lim:
         yield iterator.next()
         count += 1
-    raise StopIteration()
 
 
 def ratelimit(group, delay):

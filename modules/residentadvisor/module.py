@@ -133,7 +133,7 @@ class ResidentadvisorModule(Module, CapCalendarEvent):
         :rtype: iter[:class:`BaseCalendarEvent`]
         """
         if not self.has_matching_categories(query):
-            raise StopIteration()
+            return
 
         events = None
 
