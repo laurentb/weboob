@@ -228,7 +228,7 @@ class Browser(object):
 
         Other than that, has the exact same behavior of open().
         """
-        assert not kwargs.get('async'), "Please use open() instead of location() to make asynchronous requests."
+        assert not kwargs.get('is_async'), "Please use open() instead of location() to make asynchronous requests."
         response = self.open(url, **kwargs)
         self.response = response
         self.url = self.response.url
@@ -242,7 +242,7 @@ class Browser(object):
                    cert=None,
                    proxies=None,
                    data_encoding=None,
-                   async=False,
+                   is_async=False,
                    callback=lambda response: response,
                    **kwargs):
         """
@@ -270,7 +270,7 @@ class Browser(object):
 
         For example:
 
-        >>> Browser().open('http://google.com', async=True).result().text # doctest: +SKIP
+        >>> Browser().open('http://google.com', is_async=True).result().text # doctest: +SKIP
 
         :param url: URL
         :type url: str
@@ -290,6 +290,12 @@ class Browser(object):
 
         :rtype: :class:`requests.Response`
         """
+        if 'async' in kwargs:
+            import warnings
+            warnings.warn('Please use is_async instead of async.', DeprecationWarning)
+            is_async = kwargs['async']
+            del kwargs['async']
+
         req = self.build_request(url, referrer, data_encoding=data_encoding, **kwargs)
         preq = self.prepare_request(req)
 
@@ -326,16 +332,18 @@ class Browser(object):
                                      cert=cert,
                                      proxies=proxies,
                                      callback=inner_callback,
-                                     async=async)
+                                     is_async=is_async)
         return response
 
     def async_open(self, url, **kwargs):
         """
-        Shortcut to open(url, async=True).
+        Shortcut to open(url, is_async=True).
         """
         if 'async' in kwargs:
             del kwargs['async']
-        return self.open(url, async=True, **kwargs)
+        if 'is_async' in kwargs:
+            del kwargs['is_async']
+        return self.open(url, is_async=True, **kwargs)
 
     def raise_for_status(self, response):
         """

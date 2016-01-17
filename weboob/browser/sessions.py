@@ -131,21 +131,27 @@ class FuturesSession(WeboobSession):
 
         Used by :meth:`request` and thus all of the higher level methods
 
-        If the `async` param is True, the request is processed in a
+        If the `is_async` param is True, the request is processed in a
         thread. Otherwise, the request is processed as usual, in a blocking way.
 
         In all cases, it will call the `callback` parameter and return its
         result when the request has been processed.
         """
+        if 'async' in kwargs:
+            import warnings
+            warnings.warn('Please use is_async instead of async.', DeprecationWarning)
+            kwargs['is_async'] = kwargs['async']
+            del kwargs['async']
+
         sup = super(FuturesSession, self).send
 
         callback = kwargs.pop('callback', lambda future, response: response)
-        async = kwargs.pop('async', False)
+        is_async = kwargs.pop('is_async', False)
         def func(*args, **kwargs):
             resp = sup(*args, **kwargs)
             return callback(self, resp)
 
-        if async:
+        if is_async:
             if not self.executor:
                 raise ImportError('Please install python-concurrent.futures')
             return self.executor.submit(func, *args, **kwargs)
