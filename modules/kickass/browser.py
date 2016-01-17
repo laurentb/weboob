@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Julien Veyssier
+# Copyright(C) 2010-2016 Julien Veyssier
 #
 # This file is part of weboob.
 #
@@ -18,33 +18,37 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
+from weboob.browser.exceptions import BrowserHTTPNotFound
+from weboob.browser import PagesBrowser
+from weboob.browser.url import URL
+from weboob.browser.profiles import Firefox
 
-from .pages import TorrentsPage, TorrentPage
+from .pages import SearchPage, TorrentPage
 
 
 __all__ = ['KickassBrowser']
 
 
-class KickassBrowser(Browser):
-    DOMAIN = 'kat.cr'
-    PROTOCOL = 'https'
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['wget']
-    PAGES = {
-        'https://kat.cr/usearch/.*field=seeders&sorder=desc': TorrentsPage,
-        'https://kat.cr/.*.html': TorrentPage,
-    }
+class KickassBrowser(PagesBrowser):
+    PROFILE = Firefox()
+    TIMEOUT = 30
+
+    BASEURL = 'https://kat.cr/'
+    search = URL('usearch/(?P<pattern>.*)/\?field=seeders&sorder=desc',
+                 SearchPage)
+    torrent = URL('torrent-t(?P<id>.*).html',
+                  '.*-t[0-9]*\.html',
+                  TorrentPage)
 
     def iter_torrents(self, pattern):
-        self.location('https://kat.cr/usearch/%s/?field=seeders&sorder=desc' % pattern.encode('utf-8'))
-        assert self.is_on_page(TorrentsPage)
+        self.search.go(pattern=pattern)
+        #print( self.page.content)
         return self.page.iter_torrents()
 
-    def get_torrent(self, id):
+    def get_torrent(self, fullid):
         try:
-            self.location('https://kat.cr/%s.html' % id)
+            self.torrent.go(id=fullid)
+            torrent = self.page.get_torrent()
+            return torrent
         except BrowserHTTPNotFound:
             return
-        if self.is_on_page(TorrentPage):
-            return self.page.get_torrent(id)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Julien Veyssier
+# Copyright(C) 2010-2016 Julien Veyssier
 #
 # This file is part of weboob.
 #
@@ -23,8 +23,8 @@ from weboob.tools.backend import Module
 from .browser import KickassBrowser
 
 from urllib import quote_plus
-from contextlib import closing
-from gzip import GzipFile
+#from contextlib import closing
+#from gzip import GzipFile
 
 __all__ = ['KickassModule']
 
@@ -46,26 +46,21 @@ class KickassModule(Module, CapTorrent):
         if not torrent:
             return None
 
-        # decode gzip if needed
-        response = self.browser.openurl(torrent.url.encode('utf-8'))
-        headers = response.info()
-        if headers.get('Content-Encoding', '') == 'gzip':
-            with closing(GzipFile(fileobj=response, mode='rb')) as gz:
-                data = gz.read()
-        else:
-            data = response.read()
-        return data
+        resp = self.browser.open(torrent.url)
+        #headers = response.info()
+        #if headers.get('Content-Encoding', '') == 'gzip':
+        #    with closing(GzipFile(fileobj=response, mode='rb')) as gz:
+        #        data = gz.read()
+        #else:
+        #    data = response.read()
+        return resp.content
 
     def iter_torrents(self, pattern):
         return self.browser.iter_torrents(quote_plus(pattern.encode('utf-8')))
 
     def fill_torrent(self, torrent, fields):
         if 'description' in fields or 'files' in fields:
-            tor = self.get_torrent(torrent.id)
-            torrent.description = tor.description
-            torrent.magnet = tor.magnet
-            torrent.files = tor.files
-            torrent.url = tor.url
+            torrent = self.browser.get_torrent(torrent.id, torrent)
         return torrent
 
     OBJECTS = {

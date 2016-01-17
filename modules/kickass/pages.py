@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2012 Julien Veyssier, Laurent Bachelier
+# Copyright(C) 2010-2016 Julien Veyssier, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -18,124 +18,82 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from urlparse import parse_qs, urlsplit
-
 from weboob.capabilities.torrent import Torrent
-from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.deprecated.browser import Page
+from weboob.capabilities.base import NotLoaded, NotAvailable
 from weboob.tools.misc import get_bytes_size
 
-
-class TorrentsPage(Page):
-    def iter_torrents(self):
-        for tr in self.document.getiterator('tr'):
-            if tr.attrib.get('class', '') == 'odd' or tr.attrib.get('class', '') == ' even':
-                magnet = NotAvailable
-                url = NotAvailable
-                if 'id' not in tr.attrib:
-                    continue
-                title = self.parser.tocleanstring(tr.find('.//a[@class="cellMainLink"]'))
-                # WTF is that?
-                for red in tr.getchildren()[0].getchildren()[1].getchildren()[1].getchildren():
-                    title += red.text_content()
-                idt = tr.getchildren()[0].getchildren()[1].getchildren()[1].attrib.get('href', '').replace('/', '') \
-                    .replace('.html', '')
-
-                # look for url
-                for a in self.parser.select(tr, 'div.iaconbox a'):
-                    href = a.attrib.get('href', '')
-                    if href.startswith('magnet'):
-                        magnet = unicode(href)
-                    elif href.startswith('http'):
-                        url = unicode(href)
-                    elif href.startswith('//'):
-                        url = u'https:%s' % href
-
-                size = tr.getchildren()[1].text
-                u = tr.getchildren()[1].getchildren()[0].text
-                size = size = size.replace(',', '.')
-                size = float(size)
-                seed = tr.getchildren()[4].text
-                leech = tr.getchildren()[5].text
-
-                torrent = Torrent(idt, title)
-                torrent.url = url
-                torrent.magnet = magnet
-                torrent.description = NotLoaded
-                torrent.files = NotLoaded
-                torrent.filename = unicode(parse_qs(urlsplit(url).query).get('title', [None])[0])
-                torrent.size = get_bytes_size(size, u)
-                torrent.seeders = int(seed)
-                torrent.leechers = int(leech)
-                yield torrent
+from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.pages import HTMLPage
+from weboob.browser.filters.standard import Regexp, CleanText, Type
 
 
-class TorrentPage(Page):
-    def get_torrent(self, id):
-        seed = 0
-        leech = 0
-        description = NotAvailable
-        url = NotAvailable
-        magnet = NotAvailable
-        title = NotAvailable
-        for div in self.document.getiterator('div'):
-            if div.attrib.get('id', '') == 'desc':
-                try:
-                    description = unicode(div.text_content().strip())
-                except UnicodeDecodeError:
-                    description = 'Description with invalid UTF-8.'
-            elif div.attrib.get('class', '') == 'seedBlock':
-                if div.getchildren()[1].text is not None:
-                    seed = int(div.getchildren()[1].text)
-                else:
-                    seed = 0
-            elif div.attrib.get('class', '') == 'leechBlock':
-                if div.getchildren()[1].text is not None:
-                    leech = int(div.getchildren()[1].text)
-                else:
-                    leech = 0
+class SearchPage(HTMLPage):
 
-        title = self.parser.select(self.document.getroot(),
-                                   'h1.novertmarg span', 1)
-        title = unicode(title.text)
+    @method
+    class iter_torrents(ListElement):
+        item_xpath = '//table[has-class("data")]/tbody/tr[@class="odd" or @class="even"]'
 
-        for a in self.parser.select(self.document.getroot(),
-                                    'div.downloadButtonGroup a'):
-            href = a.attrib.get('href', '')
-            if href.startswith('magnet'):
-                magnet = unicode(href)
-            elif href.startswith('//'):
-                url = u'https:%s' % href
-            elif href.startswith('http'):
-                url = unicode(href)
+        class item(ItemElement):
+            klass = Torrent
+            obj_id = Regexp(CleanText('.//div[@class="torrentname"]//a[@class="cellMainLink"]/@href'),
+                    '.*([0-9])\.html')
+            obj_name = CleanText('.//a[@class="cellMainLink"]', default=NotAvailable)
+            obj_magnet = CleanText('.//div[has-class("iaconbox")]//a[starts-with(@href,"magnet")]/@href', default=NotAvailable)
+            obj_seeders = CleanText('.//td[has-class("green") and has-class("center")]', default=NotAvailable) & Type(type=int)
+            obj_leechers = CleanText('.//td[has-class("red") and has-class("center")]', default=NotAvailable) & Type(type=int)
 
-        size = 0
-        u = ''
-        for span in self.document.getiterator('span'):
-            # sometimes there are others span, this is not so sure but the size of the children list
-            # is enough to know if this is the right span
-            if (span.attrib.get('class', '') == 'folder'
-                or span.attrib.get('class', '') == 'folderopen') \
-                    and len(span.getchildren()) > 2:
-                size = span.getchildren()[1].tail
-                u = span.getchildren()[2].text
-                size = float(size.split(': ')[1].replace(',', '.'))
+            obj_description = NotLoaded
+            obj_files = NotLoaded
 
-        files = []
-        for td in self.document.getiterator('td'):
-            if td.attrib.get('class', '') == 'torFileName':
-                files.append(td.text)
+            def obj_url(self):
+                href = CleanText('.//div[has-class("iaconbox")]//a[starts-with(@href,"//")]/@href')(self)
+                return 'https:%s'%href
 
-        torrent = Torrent(id, title)
-        torrent.url = url
-        if torrent.url:
-            torrent.filename = parse_qs(urlsplit(url).query).get('title', [None])[0]
-        torrent.magnet = magnet
-        torrent.size = get_bytes_size(size, u)
-        torrent.seeders = int(seed)
-        torrent.leechers = int(leech)
-        if description == '':
-            description = NotAvailable
-        torrent.description = description
-        torrent.files = files
-        return torrent
+            def obj_size(self):
+                rawsize = CleanText('./td[2]')(self)
+                rawsize = rawsize.replace(',','.')
+                nsize = float(rawsize.split()[0])
+                usize = rawsize.split()[-1].upper()
+                size = get_bytes_size(nsize,usize)
+                return size
+
+            obj_filename = CleanText(Regexp(CleanText('.//div[has-class("iaconbox")]//a[starts-with(@href,"//")]/@href'),
+                    '.*title=(.*)'), default=NotAvailable)
+
+
+
+class TorrentPage(HTMLPage):
+    @method
+    class get_torrent(ItemElement):
+        klass = Torrent
+
+        obj_description = CleanText('//div[@id="desc"]', default=NotAvailable)
+        obj_seeders = CleanText('(//div[has-class("seedBlock")]/strong)[1]') & Type(type=int)
+        obj_leechers = CleanText('(//div[has-class("leechBlock")]/strong)[1]') & Type(type=int)
+        obj_name = CleanText('//h1[has-class("novertmarg")]//span', default=NotAvailable)
+        obj_magnet = CleanText('//div[has-class("downloadButtonGroup")]//a[starts-with(@href,"magnet")]/@href', default=NotAvailable)
+
+        obj_id = Regexp(CleanText('//h1[has-class("novertmarg")]/a/@href'),
+                        '.*-t([0-9]*)\.html')
+        def obj_url(self):
+            href = CleanText('//div[has-class("downloadButtonGroup")]//a[starts-with(@href,"//")]/@href')(self)
+            return u'https:%s'%href
+
+        def obj_size(self):
+            rawsize = CleanText('//span[has-class("folder") or has-class("folderopen")]')(self)
+            rawsize = rawsize.split(': ')[-1].split(')')[0].strip()
+            rawsize = rawsize.replace(',','.')
+            nsize = float(rawsize.split()[0])
+            usize = rawsize.split()[-1].upper()
+            size = get_bytes_size(nsize,usize)
+            return size
+
+        def obj_files(self):
+            res = []
+            for f in Type('//td[has-class("torFileName")]', type=list)(self):
+                res.append(CleanText(f)(self))
+            return res
+
+        obj_filename = CleanText(Regexp(CleanText('//div[has-class("downloadButtonGroup")]//a[starts-with(@href,"//")]/@href'),
+                        '.*title=(.*)'), default=NotAvailable)
+
