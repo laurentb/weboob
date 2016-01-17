@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2015 Julien Veyssier
+# Copyright(C) 2015-2016 Julien Veyssier
 #
 # This file is part of weboob.
 #
@@ -22,6 +22,7 @@ from weboob.browser.exceptions import BrowserHTTPNotFound
 from weboob.browser import LoginBrowser, need_login
 from weboob.browser.url import URL
 from weboob.browser.profiles import Wget
+from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages.index import HomePage
 from .pages.torrents import TorrentPage, SearchPage

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2015 Julien Veyssier
+# Copyright(C) 2015-2016 Julien Veyssier
 #
 # This file is part of weboob.
 #
@@ -21,13 +21,12 @@
 import re
 
 from weboob.tools.misc import get_bytes_size
-from weboob.tools.html import html2text
 from weboob.capabilities.torrent import Torrent
 from weboob.capabilities.base import NotLoaded, NotAvailable
 
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage
-from weboob.browser.filters.standard import Regexp, CleanText, Format, Env, Type
+from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.filters.standard import Regexp, CleanText, Type
 from weboob.browser.filters.html import CleanHTML
 
 
@@ -55,7 +54,7 @@ class SearchPage(LoggedPage, HTMLPage):
                 return downurl
 
             def obj_size(self):
-                rawsize = CleanText('(./td)[6]')(self)
+                rawsize = CleanText('./td[6]')(self)
                 nsize = float(rawsize.split()[0])
                 usize = rawsize.split()[-1].upper()
                 size = get_bytes_size(nsize,usize)
@@ -68,7 +67,7 @@ class TorrentPage(LoggedPage, HTMLPage):
         klass = Torrent
 
         def obj_description(self):
-            desctxt = CleanHTML('//div[contains(@class,"description")]/article')(self)
+            desctxt = CleanHTML('//div[has-class("description")]/article')(self)
             strippedlines = '\n'.join([s.strip() for s in desctxt.split('\n') if re.search(r'\[[0-9]+\]', s) is None])
             description = re.sub(r'\s\s+', '\n\n', strippedlines)
             return description

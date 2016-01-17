@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2015 Julien Veyssier
+# Copyright(C) 2015-2016 Julien Veyssier
 #
 # This file is part of weboob.
 #
@@ -19,7 +19,7 @@
 
 
 #from .base import BasePage
-from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage
+from weboob.browser.pages import HTMLPage
 
 
 class HomePage(HTMLPage):

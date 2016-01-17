@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2015 Julien Veyssier
+# Copyright(C) 2015-2016 Julien Veyssier
 #
 # This file is part of weboob.
 #
@@ -52,7 +52,7 @@ class T411Module(Module, CapTorrent):
         if not torrent:
             return None
 
-        resp = self.browser.open(torrent.url)
+        resp = self.browser.open(torrent.url.encode('utf-8'))
         return resp.content
 
     def iter_torrents(self, pattern):
