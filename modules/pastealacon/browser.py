@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
+from urlparse import urljoin
 
 from weboob.capabilities.paste import BasePaste, PasteNotFound
 from weboob.browser.filters.standard import CleanText, DateTime, Env, RawText, Regexp
@@ -37,11 +38,9 @@ class PastealaconPaste(BasePaste):
     # all pastes are public
     public = True
 
-    # TODO perhaps move this logic elsewhere, remove this and id2url from capability
-    # (page_url is required by pastoob)
     @property
     def page_url(self):
-        return '%s%s' % (PastealaconBrowser.BASEURL, self.id)
+        return urljoin(PastealaconBrowser.BASEURL, self.id)
 
 
 class PastePage(HTMLPage):
@@ -53,6 +52,9 @@ class PastePage(HTMLPage):
         obj_title = Regexp(CleanText('id("content")/h3'), r'Posted by (.+) on .+ \(')
         obj__date = DateTime(Regexp(CleanText('id("content")/h3'), r'Posted by .+ on (.+) \('))
         obj_contents = RawText('//textarea[@id="code"]')
+
+        def obj__baseurl(self):
+            return self.page.browser.BASEURL
 
         def parse(self, el):
             # there is no 404, try to detect if there really is a content
@@ -76,11 +78,16 @@ class PostPage(HTMLPage):
 
 class PastealaconBrowser(PagesBrowser):
     BASEURL = 'http://paste.alacon.org/'
+    VERIFY = False
 
-    paste = URL(r'(?P<id>\d+)', PastePage)
-    captcha = URL(r'%s' % re.escape('pastebin.php?captcha=1'), CaptchaPage)
-    raw = URL(r'%s(?P<id>\d+)' % re.escape('pastebin.php?dl='))
+    paste = URL(r'(?P<id>\d+)', r'\?show=(?P<id>[0-9a-z]+)', PastePage)
+    captcha = URL(r'pastebin\.php\?captcha=1', CaptchaPage)
+    raw = URL(r'pastebin\.php\?dl=(?P<id>\d+)', r'\?dl=(?P<id>[a-z0-9]+)')
     post = URL(r'$', PostPage)
+
+    def __init__(self, baseurl, *args, **kwargs):
+        self.BASEURL = baseurl
+        super(PastealaconBrowser, self).__init__(*args, **kwargs)
 
     @paste.id2url
     def get_paste(self, url):
@@ -94,6 +101,7 @@ class PastealaconBrowser(PagesBrowser):
         Get as much as information possible from the paste page
         """
         self.paste.stay_or_go(id=paste.id)
+        assert self.paste.is_here()
         return self.page.fill_paste(paste)
 
     def get_contents(self, _id):
@@ -108,7 +116,11 @@ class PastealaconBrowser(PagesBrowser):
             raise PasteNotFound()
 
     def post_paste(self, paste, expiration=None):
-        self.post.stay_or_go().post(paste, expiration=expiration)
+        self.post.stay_or_go()
+        import code; code.interact(local=locals())
+        assert self.post.is_here()
+        self.page.post(paste, expiration=expiration)
+        print self.page
         if self.captcha.is_here():
             raise Spam()
         self.page.fill_paste(paste)
