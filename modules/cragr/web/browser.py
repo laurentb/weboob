@@ -23,7 +23,7 @@ import urllib
 from urlparse import urlparse
 
 from weboob.capabilities.bank import Account
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.tools.date import LinearDateGuesser
 
 from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, \
@@ -80,15 +80,13 @@ class Cragr(Browser):
         self.code_caisse = None  # constant for a given website
         self.perimeters = None
         self.current_perimeter = None
+        self.broken_perimeters = list()
         Browser.__init__(self, *args, **kwargs)
 
     def home(self):
         self.login()
 
     def is_logged(self):
-        # This avoids infinite loop. I don't see a way to yield defaut perimeter datas when this crash occurs.
-        if self.is_on_page(ChgPerimeterPage) and self.page.get_error() is not None:
-            raise BrowserUnavailable()
         return self.page is not None and not self.is_on_page(HomePage) and self.page.get_error() is None
 
     def login(self):
@@ -174,7 +172,7 @@ class Cragr(Browser):
         self.savings_url  = re.sub('act=([^&=]+)', 'act=Synthepargnes', self.accounts_url, 1)
         self.loans_url  = re.sub('act=([^&=]+)', 'act=Synthcredits', self.accounts_url, 1)
 
-        if self.page.check_perimeters():
+        if self.page.check_perimeters() and not self.broken_perimeters:
             self.perimeter_url = re.sub('act=([^&=]+)', 'act=Perimetre', self.accounts_url, 1)
             self.chg_perimeter_url = '%s%s' % (re.sub('act=([^&=]+)', 'act=ChgPerim', self.accounts_url, 1), '&typeaction=ChgPerim')
             self.location(self.perimeter_url.format(self.sag))
@@ -190,12 +188,14 @@ class Cragr(Browser):
             perimeter_link = self.page.get_perimeter_link(perimeter)
             if perimeter_link:
                 self.location(perimeter_link)
-        self.location(self.chg_perimeter_url.format(self.sag))
+        self.location(self.chg_perimeter_url.format(self.sag), no_login=True)
+        if self.page.get_error() is not None:
+            self.broken_perimeters.append(perimeter)
 
     def get_accounts_list(self, no_move=False):
         l = list()
         if self.perimeters and not no_move:
-            for perimeter in self.perimeters:
+            for perimeter in [p for p in self.perimeters if p not in self.broken_perimeters]:
                 if self.current_perimeter != perimeter:
                     self.go_perimeter(perimeter)
                 for account in self.get_list():

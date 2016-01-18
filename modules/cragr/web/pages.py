@@ -219,6 +219,8 @@ class PerimeterPage(BasePage):
 
 class ChgPerimeterPage(PerimeterPage):
     def on_loaded(self):
+        if self.get_error() is not None:
+            return
         self.get_current()
         if not self.browser.current_perimeter.lower() in [' '.join(p.lower().split()) for p in self.browser.perimeters]:
             assert len(self.browser.perimeters) == 1
