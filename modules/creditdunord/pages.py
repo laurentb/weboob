@@ -73,7 +73,7 @@ class CDNVirtKeyboard(GridVirtKeyboard):
 class RedirectPage(Page):
     def on_loaded(self):
         for script in self.document.xpath('//script'):
-            self.browser.location(re.search(r'href="([^"]+)"', script.text).group(1))
+            self.browser.location(re.search(r'href="([^"]+)"', script.text).group(1), no_login=True)
 
 class LoginPage(Page):
     def login(self, username, password):
