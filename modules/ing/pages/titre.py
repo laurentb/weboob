@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
 from decimal import Decimal
 
 from weboob.capabilities.base import NotAvailable
@@ -58,6 +59,11 @@ class TitrePage(LoggedPage, RawPage):
             invest.code = unicode(_id)
             if ':' in invest.code:
                 invest.code = self.browser.titrevalue.open(val=invest.code,pl=_pl).get_isin()
+            # The code we got is not a real ISIN code.
+            if not re.match('^[A-Z]{2}[\d]{10}$|^[A-Z]{2}[\d]{5}[A-Z]{1}[\d]{4}$', invest.code):
+                m = re.search('\{([A-Z]{2}[\d]{10})\{|\{([A-Z]{2}[\d]{5}[A-Z]{1}[\d]{4})\{', line)
+                if m:
+                    invest.code = unicode(m.group(1) or m.group(2))
             quantity = FrenchTransaction.clean_amount(columns[1])
             if quantity != '':
                 invest.quantity = Decimal(quantity)
