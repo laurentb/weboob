@@ -128,7 +128,9 @@ class IndexPage(Page):
                      u'Mes comptes':                Account.TYPE_CHECKING,
                      u'Mon épargne':                Account.TYPE_SAVINGS,
                      u'Mes autres comptes':         Account.TYPE_SAVINGS,
-                     u'Compte Epargne et DAT':  Account.TYPE_SAVINGS,
+                     u'Compte Epargne et DAT':      Account.TYPE_SAVINGS,
+                     u'Plan et Contrat d\'Epargne': Account.TYPE_SAVINGS,
+                     u'Titres':                     Account.TYPE_MARKET,
                     }
 
     def on_loaded(self):
@@ -210,14 +212,21 @@ class IndexPage(Page):
             for tr in table.xpath('./tr'):
                 tds = tr.findall('td')
                 if tr.attrib.get('class', '') == 'DataGridHeader':
-                    account_type = self.ACCOUNT_TYPES.get(tds[1].text.strip()) or self.ACCOUNT_TYPES.get(tds[2].xpath('./a')[0].text.strip(), Account.TYPE_UNKNOWN)
+                    account_type = self.ACCOUNT_TYPES.get(tds[1].text.strip()) or self.ACCOUNT_TYPES.get(self.parser.tocleanstring(tds[2]), Account.TYPE_UNKNOWN)
                 else:
                     # On the same row, there are many accounts (for example a
                     # check accound and a card one).
-                    for i, a in enumerate(tds[2].xpath('./a')):
-                        label = self.parser.tocleanstring(a)
-                        balance = self.parser.tocleanstring(tds[-2].xpath('./a')[i])
-                        self._add_account(accounts, a, label, account_type, balance)
+                    if len(tds) > 4:
+                        for i, a in enumerate(tds[2].xpath('./a')):
+                            label = self.parser.tocleanstring(a)
+                            balance = self.parser.tocleanstring(tds[-2].xpath('./a')[i])
+                            self._add_account(accounts, a, label, account_type, balance)
+                    # Only 4 tds on banque de la reunion website.
+                    elif len(tds) == 4:
+                        for i, a in enumerate(tds[1].xpath('./a')):
+                            label = self.parser.tocleanstring(a)
+                            balance = self.parser.tocleanstring(tds[-1].xpath('./a')[i])
+                            self._add_account(accounts, a, label, account_type, balance)
 
         if len(accounts) == 0:
             # New website
