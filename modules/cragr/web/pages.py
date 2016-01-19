@@ -195,12 +195,18 @@ class _AccountsPage(BasePage):
 
 class PerimeterPage(BasePage):
     def get_current(self):
-        current_elem = self.document.xpath('//div[@id="libPerimetre"]/span[@class="texte"]')[0]
+        try:
+            current_elem = self.document.xpath('//div[@id="libPerimetre"]/span[@class="texte"]')[0]
+        except IndexError:
+            # The user need to validate CGU, can't do it for him.
+            return
         self.browser.current_perimeter = re.search(': (.*)$', self.parser.tocleanstring(current_elem)).group(1).lower()
 
     def check_multiple_perimeters(self):
         self.browser.perimeters = list()
         self.get_current()
+        if self.browser.current_perimeter is None:
+            return
         self.browser.perimeters.append(self.browser.current_perimeter)
         multiple = self.document.xpath(u'//p[span/a[contains(text(), "Accès")]]')
         if not multiple:
