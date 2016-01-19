@@ -113,6 +113,8 @@ class CreditMutuelBrowser(LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
+        if self.currentSubBank is None and not self.is_new_website:
+            self.getCurrentSubBank()
         accounts = []
         if not self.is_new_website:
             for a in self.accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts():
