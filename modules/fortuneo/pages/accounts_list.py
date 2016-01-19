@@ -227,7 +227,9 @@ class CardHistoryPage(Page):
 
 class AccountsList(Page):
     def on_loaded(self):
-        warn = self.document.xpath('//div[@id="message_renouvellement_mot_passe"] | //span[contains(text(), "Votre identifiant change")]')
+        warn = self.document.xpath('//div[@id="message_renouvellement_mot_passe"] | \
+                                    //span[contains(text(), "Votre identifiant change")] | \
+                                    //span[contains(text(), "Nouveau mot de passe")]')
         if len(warn) > 0:
             raise BrowserIncorrectPassword(warn[0].text)
 
