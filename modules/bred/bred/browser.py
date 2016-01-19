@@ -77,7 +77,7 @@ class BredBrowser(DomainBrowser):
         if not universes:
             # There is just the default univers here.
             universes.append('')
-            self.current_universes = ''
+            self.current_univers = ''
         else:
             # The following is needed to get the default univers in the list.
             self.move_to_univers(universes[0])
