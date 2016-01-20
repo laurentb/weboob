@@ -28,11 +28,12 @@ class EntreparticuliersTest(BackendTest):
     def test_entreparticuliers(self):
         query = Query()
         query.cities = []
-        for city in self.backend.search_city('paris'):
+        for city in self.backend.search_city('lille'):
             city.backend = self.backend.name
             query.cities.append(city)
 
         query.type = Query.TYPE_SALE
+        query.house_types = [Query.HOUSE_TYPES.HOUSE]
         results = list(itertools.islice(self.backend.search_housings(query), 0, 20))
         self.assertTrue(len(results) > 0)
 

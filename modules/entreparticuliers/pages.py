@@ -19,6 +19,7 @@
 
 from decimal import Decimal
 from datetime import datetime
+import re
 
 from weboob.browser.pages import JsonPage, HTMLPage
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
@@ -26,7 +27,6 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import CleanHTML
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, BrowserURL
 from weboob.capabilities.housing import Housing, HousingPhoto, City
-from weboob.capabilities.base import NotAvailable
 
 
 class CitiesPage(JsonPage):
@@ -46,7 +46,7 @@ class CitiesPage(JsonPage):
 class SearchPage(HTMLPage):
     @method
     class iter_housings(ListElement):
-        item_xpath = '//ul[@class="results rview"]/li'
+        item_xpath = '//li[@class="annonce"]'
 
         class item(ItemElement):
             klass = Housing
@@ -57,14 +57,14 @@ class SearchPage(HTMLPage):
             obj_id = Regexp(CleanText('./div/span[@class="infos"]/a[@class="titre"]/@href'),
                             '/(.*).html')
             obj_title = CleanText('./div/span[@class="infos"]/a[@class="titre"]')
-            obj_cost = CleanDecimal(Regexp(CleanText('./div/span[@class="infos"]/span[@id="prix"]'),
+            obj_cost = CleanDecimal(Regexp(CleanText('./div/span[@class="infos"]/span[@id="spanprix"]/text()'),
                                            '(.*) [%s%s%s].*' % (u'€', u'$', u'£'),
                                            default=''),
                                     replace_dots=(',', '.'),
                                     default=Decimal(0))
-            obj_currency = Regexp(CleanText('./div/span[@class="infos"]/span[@id="prix"]'),
+            obj_currency = Regexp(CleanText('./div/span[@class="infos"]/span[@id="spanprix"]'),
                                   '.*([%s%s%s]).*' % (u'€', u'$', u'£'), default=u'€')
-            obj_text = CleanText('./div/span[@class="infos"]')
+            obj_text = CleanText('./div/span[@class="infos"]/span[@id="spandescription"]/text()')
             obj_date = datetime.now
 
 
@@ -75,23 +75,36 @@ class HousingPage(HTMLPage):
 
         obj_id = Env('_id')
         obj_title = CleanText('//main/section/div/h1')
-        obj_cost = CleanDecimal('//span[@class="i prix"]', replace_dots=(',', '.'), default=Decimal(0))
 
-        obj_currency = Regexp(CleanText('//span[@class="i prix"]'),
-                              '.*([%s%s%s])' % (u'€', u'$', u'£'), default='')
+        def obj_cost(self):
+            for detail in self.el.xpath('//span[@class="i small"]|//span[@class="i prix"]'):
+                m = re.search('(.*) [%s%s%s].*' % (u'€', u'$', u'£'),
+                              CleanText('.')(detail))
+                if m:
+                    return Decimal(m.group(1).replace(' ', ''))
+
+        obj_currency = Regexp(CleanText('//span[@class="i small"]'),
+                              '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
         obj_text = CleanHTML('//article[@class="bloc description"]/p')
         obj_location = CleanText('//span[@class="i ville"]')
-        obj_area = CleanDecimal(Regexp(CleanText('//span[@class="i"]'), '.*/(.*) m.*', default=NotAvailable),
-                                default=NotAvailable)
+
+        def obj_area(self):
+            for detail in self.el.xpath('//span[@class="i"]'):
+                m = re.search('.*\/(.*) m.*',
+                              CleanText('.')(detail))
+                if m:
+                    return Decimal(m.group(1).replace(' ', ''))
+
         obj_url = BrowserURL('housing', _id=Env('_id'))
         obj_phone = CleanText('//input[@id="hftel"]/@value')
         obj_date = datetime.now
 
         def obj_details(self):
             details = {}
-            for detail in self.el.xpath('//span[@class="i small"]'):
+            for detail in self.el.xpath('//span[has-class("i")]'):
                 item = detail.text.split(':')
-                details[item[0]] = item[1]
+                if len(item) == 2:
+                    details[item[0]] = item[1]
             return details
 
         def obj_photos(self):
