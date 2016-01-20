@@ -20,13 +20,14 @@
 
 from weboob.browser import LoginBrowser, URL, need_login
 
-from .pages import LoginPage, AccountsPage, TransactionsPage
+from .pages import LoginPage, AccountsPage, TransactionsPage, PassModificationPage
 
 
 class SogecartesBrowser(LoginBrowser):
     BASEURL = 'https://www.sogecartenet.fr/'
 
     login = URL('/internationalisation/identification', LoginPage)
+    pass_modification = URL('/internationalisation/./modificationMotPasse.*', PassModificationPage)
     accounts = URL('/internationalisation/gestionParcCartes', AccountsPage)
     transactions = URL('/internationalisation/csv/operationsParCarte.*', TransactionsPage)
 
@@ -42,7 +43,7 @@ class SogecartesBrowser(LoginBrowser):
                 "LANGUE": "en",
                 "QUEFAIRE": "LOGIN",
                 }
-        self.login.open(data=data)
+        self.login.go(data=data)
 
     @need_login
     def iter_accounts(self):

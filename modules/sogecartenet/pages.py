@@ -20,7 +20,7 @@
 import requests
 
 from weboob.browser.pages import HTMLPage, CsvPage, pagination
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired
 from weboob.browser.elements import DictElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Env, TableCell
 from weboob.browser.filters.json import Dict
@@ -29,6 +29,10 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 __all__ = ['LoginPage', 'AccountsPage', 'TransactionsPage']
 
+
+class PassModificationPage(HTMLPage):
+    def on_load(self):
+        raise BrowserPasswordExpired('New pass needed')
 
 class LoginPage(HTMLPage):
     pass
