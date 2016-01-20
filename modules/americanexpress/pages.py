@@ -144,7 +144,7 @@ class TransactionsPage(Page):
         for tr in reversed(self.document.xpath('//div[@id="txnsSection"]//tr[@class="tableStandardText"]')):
             cols = tr.findall('td')
 
-            t = Transaction(tr.attrib['id'])
+            t = Transaction()
 
             day, month = self.parser.tocleanstring(cols[self.COL_DATE]).split(' ', 1)
             day = int(day)
