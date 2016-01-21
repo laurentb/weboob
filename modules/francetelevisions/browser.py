@@ -19,7 +19,7 @@
 
 
 from weboob.browser import PagesBrowser, URL
-from .pages import IndexPage, VideoPage, Programs, VideoListPage, LatestPage
+from .pages import IndexPage, VideoPage, Programs, VideoListPage, LatestPage, FrancetvinfoPage
 
 __all__ = ['PluzzBrowser']
 
@@ -30,11 +30,16 @@ class PluzzBrowser(PagesBrowser):
     BASEURL = 'http://pluzz.francetv.fr'
     PROGRAMS = None
 
-    latest = URL('http://pluzz.webservices.francetelevisions.fr/pluzz/liste/type/replay', LatestPage)
-    programs_page = URL('http://pluzz.webservices.francetelevisions.fr/pluzz/programme', Programs)
+    francetvinfo = URL(r'http://www.francetvinfo.fr/(?P<url>.*)', FrancetvinfoPage)
+    latest = URL(r'http://pluzz.webservices.francetelevisions.fr/pluzz/liste/type/replay', LatestPage)
+    programs_page = URL(r'http://pluzz.webservices.francetelevisions.fr/pluzz/programme', Programs)
     index_page = URL(r'recherche\?recherche=(?P<pattern>.*)', IndexPage)
-    video_page = URL(r'http://webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/\?idDiffusion=(?P<id>.*)&catalogue=Pluzz', VideoPage)
-    videos_list_page = URL('(?P<program>videos/.*)', VideoListPage)
+    video_page = URL(r'http://webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/\?idDiffusion=(?P<id>.*)&catalogue=Pluzz',
+                     VideoPage)
+    videos_list_page = URL(r'(?P<program>videos/.*)', VideoListPage)
+
+    def get_video_id_from_francetvinfo(self, url):
+        return self.francetvinfo.go(url=url).get_video_id_from_francetvinfo()
 
     def get_video_from_url(self, url):
         video = self.videos_list_page.go(program=url).get_last_video()

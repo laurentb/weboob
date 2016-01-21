@@ -42,6 +42,13 @@ class PluzzModule(Module, CapVideo, CapCollection):
         m = re.match('http://pluzz.francetv.fr/(videos/.*)', _id)
         if m:
             return self.browser.get_video_from_url(m.group(1))
+
+        m2 = re.match('http://www.francetvinfo.fr/(.*)', _id)
+        if m2:
+            _id = self.browser.get_video_id_from_francetvinfo(m2.group(1))
+            if not _id:
+                return
+
         return self.browser.get_video(_id)
 
     def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):

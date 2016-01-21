@@ -39,6 +39,13 @@ class DurationPluzz(Filter):
         return timedelta(hours=t[0], minutes=t[1])
 
 
+class FrancetvinfoPage(HTMLPage):
+    def get_video_id_from_francetvinfo(self):
+        return Regexp(CleanText('//a[@id="catchup"]/@href'),
+                      'http://info.francetelevisions.fr/\?id-video=(.*)@Info-web',
+                      default=None)(self.doc)
+
+
 class VideoListPage(HTMLPage):
     @method
     class get_last_video(ItemElement):
@@ -120,7 +127,7 @@ class VideoPage(JsonPage):
         obj_ext = u'm3u8'
 
         def obj_thumbnail(self):
-            url = Format('http://pluzz.francetv.fr%s', Dict['image'])(self)
+            url = Format('http://www.francetv.fr%s', Dict['image'])(self)
             thumbnail = BaseImage(url)
             thumbnail.url = thumbnail.id
             return thumbnail
