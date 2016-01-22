@@ -173,7 +173,8 @@ class LoginPage(HTMLPage):
         inputs = self.doc.xpath(u'//input[starts-with(@id, "keyrcc_password_first")]')
         split_pass = u''
         if len(password) != len(inputs):
-            raise BrowserIncorrectPassword('Your password must be %d chars long' % len(inputs))
+            # HSBC only use 6 first and last two from the password
+            password = password[:6] + password[-2:]
 
         for i, inpu in enumerate(inputs):
             # The good field are 1,2,3 and the bad one are 11,12,21,23,24,31 and so one
