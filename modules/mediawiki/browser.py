@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from urlparse import urlsplit, urljoin
-import urllib
 import datetime
 import re
 

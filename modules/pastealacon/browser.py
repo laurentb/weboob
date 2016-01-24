@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import re
 from urlparse import urljoin
 
 from weboob.capabilities.paste import BasePaste, PasteNotFound
@@ -120,7 +119,6 @@ class PastealaconBrowser(PagesBrowser):
         import code; code.interact(local=locals())
         assert self.post.is_here()
         self.page.post(paste, expiration=expiration)
-        print self.page
         if self.captcha.is_here():
             raise Spam()
         self.page.fill_paste(paste)
