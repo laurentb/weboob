@@ -22,8 +22,8 @@ import urllib
 import datetime
 import re
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
-from weboob.tools.json import json as simplejson
+from weboob.browser.browsers import DomainBrowser
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.content import Revision
 
 __all__ = ['MediawikiBrowser']
@@ -34,10 +34,10 @@ class APIError(Exception):
 
 
 # Browser
-class MediawikiBrowser(Browser):
+class MediawikiBrowser(DomainBrowser):
     ENCODING = 'utf-8'
 
-    def __init__(self, url, apiurl, *args, **kwargs):
+    def __init__(self, url, apiurl, username, password, *args, **kwargs):
         url_parsed = urlsplit(url)
         self.PROTOCOL = url_parsed.scheme
         self.DOMAIN = url_parsed.netloc
@@ -46,7 +46,9 @@ class MediawikiBrowser(Browser):
             self.BASEPATH = self.BASEPATH[:-1]
 
         self.apiurl = apiurl
-        Browser.__init__(self, *args, **kwargs)
+        self.username = username
+        self.password = password
+        DomainBrowser.__init__(self, *args, **kwargs)
 
     def url2page(self, page):
         baseurl = self.PROTOCOL + '://' + self.DOMAIN + self.BASEPATH
@@ -192,7 +194,7 @@ class MediawikiBrowser(Browser):
 
     def check_result(self, result):
         if 'error' in result:
-            raise APIError('%s' % result['error']['info'])
+            raise APIError(result['error']['info'])
 
     def API_get(self, data):
         """
@@ -200,7 +202,7 @@ class MediawikiBrowser(Browser):
         The JSON data is parsed and returned as a dictionary
         """
         data['format'] = 'json'
-        result = simplejson.loads(self.readurl(self.buildurl(self.apiurl, **data)), 'utf-8')
+        result = self.open(self.apiurl, params=data).json()
         self.check_result(result)
         return result
 
@@ -210,6 +212,6 @@ class MediawikiBrowser(Browser):
         The JSON data is parsed and returned as a dictionary
         """
         data['format'] = 'json'
-        result = simplejson.loads(self.readurl(self.apiurl, urllib.urlencode(data)), 'utf-8')
+        result = self.open(self.apiurl, data=data).json()
         self.check_result(result)
         return result

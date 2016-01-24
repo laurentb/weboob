@@ -48,7 +48,7 @@ class MediawikiModule(Module, CapContent):
         if len(username) > 0:
             password = self.config['password'].get()
         else:
-            password = None
+            password = ''
         return self.create_browser(self.config['url'].get(),
                                    self.config['apiurl'].get(),
                                    username, password)
@@ -58,8 +58,7 @@ class MediawikiModule(Module, CapContent):
         content = Content(_id)
         page = _id
         rev = revision.id if revision else None
-        with self.browser:
-            data = self.browser.get_wiki_source(page, rev)
+        data = self.browser.get_wiki_source(page, rev)
 
         content.content = data
         return content
