@@ -26,19 +26,20 @@ class MediawikiTest(BackendTest):
     MODULE = 'mediawiki'
 
     def test_get_content(self):
-        self.backend.get_content(u"Utilisateur:Clemux/Test")
+        obj = self.backend.get_content(u"Project:Sandbox")
+        assert len(obj.content) > 0
 
     def test_iter_revisions(self):
-        for rev in self.backend.iter_revisions(u"Utilisateur:Clemux/Test"):
+        for rev in zip(range(10), self.backend.iter_revisions(u"Project:Sandbox")):
             pass
 
     def test_push_content(self):
-        content = self.backend.get_content(u"Utilisateur:Clemux/Test")
+        content = self.backend.get_content(u"Project:Sandbox")
         content.content = "test "+str(datetime.now())
         self.backend.push_content(content, message="test weboob", minor=True)
-        new_content = self.backend.get_content(u"Utilisateur:Clemux/Test")
+        new_content = self.backend.get_content(u"Project:Sandbox")
         assert content.content == new_content.content
 
     def test_content_preview(self):
-        content = self.backend.get_content(u"Utilisateur:Clemux/Test")
+        content = self.backend.get_content(u"Project:Sandbox")
         self.backend.get_content_preview(content)
