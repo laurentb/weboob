@@ -28,7 +28,8 @@ from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    CBListPage, CBHistoryPage, ContractsPage, BoursePage, \
-                   AVPage, AVDetailPage, DiscPage, NoPermissionPage, RibPage
+                   AVPage, AVDetailPage, DiscPage, NoPermissionPage, RibPage, \
+                   HomePage
 
 
 __all__ = ['LCLBrowser','LCLProBrowser']
@@ -50,6 +51,7 @@ class LCLBrowser(LoginBrowser):
                     '/outil/UAUT/Contract/selectContracts.*',
                     '/outil/UAUT/Accueil/preRoutageLogin',
                     ContractsPage)
+    home = URL('/outil/UWHO/Accueil/', HomePage)
     accounts = URL('/outil/UWSP/Synthese', AccountsPage)
     history = URL('/outil/UWLM/ListeMouvements.*/accesListeMouvements.*',
                   '/outil/UWLM/DetailMouvement.*/accesDetailMouvement.*',
