@@ -255,7 +255,7 @@ class CardsPage(BasePage):
                 '_id': './/tr/td[@class="cel-texte"]',
                 'label1': './/tr[@class="ligne-impaire ligne-bleu"]/th',
                 'label2': './caption/span[@class="tdb-cartes-prop"]/b',
-                'balance': './/tr[last()-1]/td[@class="cel-num"]',
+                'balance': './/tr[last()-1]/td[@class="cel-num"] | .//tr[last()-2]/td[@class="cel-num"]',
                 'currency': '//table/caption//span/text()[starts-with(.,"Montants en ")]',
             }
             TABLE_XPATH = '(//table[@class="ca-table"])[1]'
