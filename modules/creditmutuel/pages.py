@@ -261,7 +261,7 @@ class OperationsPage(LoggedPage, HTMLPage):
         item_xpath = '//table[@class="liste"]//tbody/tr'
 
         class item(Transaction.TransactionElement):
-            condition = lambda self: len(self.el.xpath('./td')) >= 4 and len(self.el.xpath('./td[@class="i g" or @class="p g" or contains(@class, "_c1")]')) > 0
+            condition = lambda self: len(self.el.xpath('./td')) >= 3 and len(self.el.xpath('./td[@class="i g" or @class="p g" or contains(@class, "_c1")]')) > 0
 
             class OwnRaw(Filter):
                 def __call__(self, item):
