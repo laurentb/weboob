@@ -21,8 +21,7 @@
 import re
 
 from weboob.tools.capabilities.paste import BasePasteModule
-from weboob.tools.backend import BackendConfig, Module
-from weboob.tools.value import Value
+from weboob.tools.backend import Module
 from weboob.capabilities.base import NotLoaded
 
 from .browser import PastealaconBrowser, PastealaconPaste
@@ -37,16 +36,11 @@ class PastealaconModule(Module, BasePasteModule):
     LICENSE = 'AGPLv3+'
     BROWSER = PastealaconBrowser
 
-    CONFIG = BackendConfig(Value('baseurl', label='Base URL', default='http://paste.alacon.org/'))
-
     EXPIRATIONS = {
         24 * 3600: 'd',
         24 * 3600 * 30: 'm',
         False: 'f',
     }
-
-    def create_default_browser(self):
-        return self.create_browser(self.config['baseurl'].get())
 
     def new_paste(self, *args, **kwargs):
         return PastealaconPaste(*args, **kwargs)
