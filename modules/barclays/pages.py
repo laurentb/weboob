@@ -205,7 +205,7 @@ class TransactionsPage(HistoryBasePage):
             if len(tds) < 5:
                 continue
 
-            t = Transaction(tds[-1].findall('img')[-1].attrib.get('id', ''))
+            t = Transaction()
 
             date = u''.join([txt.strip() for txt in tds[0].itertext()])
             raw = u' '.join([txt.strip() for txt in tds[1].itertext()])
