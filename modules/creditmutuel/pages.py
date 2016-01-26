@@ -338,7 +338,7 @@ class CardPage(OperationsPage, LoggedPage):
                     return
                 label = re.findall('(\d+ [^ ]+ \d+)', label)[-1]
                 # use the trick of relativedelta to get the last day of month.
-                self.env['debit_date'] = parse_french_date(label) + relativedelta(day=31)
+                self.env['debit_date'] = (parse_french_date(label) + relativedelta(day=31)).date()
 
             class item(Transaction.TransactionElement):
                 condition = lambda self: len(self.el.xpath('./td')) >= 4

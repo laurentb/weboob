@@ -19,11 +19,11 @@
 
 
 try:
-    from urlparse import urlsplit, parse_qsl, urlparse
+    from urlparse import urlparse
 except ImportError:
-    from urllib.parse import urlsplit, parse_qsl, urlparse
+    from urllib.parse import urlparse
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from random import randint
 
 from weboob.tools.compat import basestring
@@ -164,25 +164,16 @@ class CreditMutuelBrowser(LoginBrowser):
             if not tr.raw.startswith('RELEVE CARTE'):
                 transactions.append(tr)
             elif last_debit is None:
-                last_debit = (tr.date - timedelta(days=10)).month
+                last_debit = tr.date
 
         coming_link = self.page.get_coming_link() if self.operations.is_here() else None
         if coming_link is not None:
             for tr in self.list_operations(coming_link):
                 transactions.append(tr)
 
-        month = 0
         for card_link in account._card_links:
-            v = urlsplit(card_link)
-            args = dict(parse_qsl(v.query))
-            # useful with 12 -> 1
-            if int(args['mois']) < month:
-                month = month + 1
-            else:
-                month = int(args['mois'])
-
             for tr in self.list_operations(card_link):
-                if month > last_debit:
+                if tr.date > last_debit:
                     tr._is_coming = True
                 transactions.append(tr)
 
