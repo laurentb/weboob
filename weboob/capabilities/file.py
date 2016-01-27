@@ -18,11 +18,24 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import Capability, BaseObject, NotAvailable, Field, StringField
+from .base import Capability, BaseObject, NotAvailable, Field, StringField, enum
 from .date import DateField
 
 
 __all__ = ['BaseFile', 'CapFile']
+
+
+LICENSES = enum(
+    OTHER=u'Other license',
+    PD=u'Public Domain',
+    COPYRIGHT=u'All rights reserved',
+    CCBY=u'Creative Commons BY',
+    CCBYSA=u'Creative Commons BY-SA',
+    CCBYNC=u'Creative Commons BY-NC',
+    CCBYND=u'Creative Commons BY-ND',
+    CCBYNCSA=u'Creative Commons BY-NC-SA',
+    CCBYNCND=u'Creative Commons BY-NC-ND',
+    GFDL=u'GNU Free Documentation License')
 
 
 class BaseFile(BaseObject):
@@ -37,6 +50,7 @@ class BaseFile(BaseObject):
     size =          Field('File size in bytes',int,long, default=NotAvailable)
     rating =        Field('Rating', int, long, float, default=NotAvailable)
     rating_max =    Field('Maximum rating', int, long, float, default=NotAvailable)
+    license =       StringField('License name')
 
     def __str__(self):
         return self.url or ''
