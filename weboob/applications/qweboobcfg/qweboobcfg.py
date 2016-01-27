@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.application.qt import BackendCfg, QtApplication
+from weboob.tools.application.qt5 import BackendCfg, QtApplication
 
 
 class QWeboobCfg(QtApplication):
