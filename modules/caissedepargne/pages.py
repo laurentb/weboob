@@ -131,6 +131,7 @@ class IndexPage(Page):
                      u'Compte Epargne et DAT':      Account.TYPE_SAVINGS,
                      u'Plan et Contrat d\'Epargne': Account.TYPE_SAVINGS,
                      u'Titres':                     Account.TYPE_MARKET,
+                     u'Compte titres':              Account.TYPE_MARKET,
                     }
 
     def on_loaded(self):
@@ -212,7 +213,9 @@ class IndexPage(Page):
             for tr in table.xpath('./tr'):
                 tds = tr.findall('td')
                 if tr.attrib.get('class', '') == 'DataGridHeader':
-                    account_type = self.ACCOUNT_TYPES.get(tds[1].text.strip()) or self.ACCOUNT_TYPES.get(self.parser.tocleanstring(tds[2]), Account.TYPE_UNKNOWN)
+                    account_type = self.ACCOUNT_TYPES.get(tds[1].text.strip()) or\
+                                   self.ACCOUNT_TYPES.get(self.parser.tocleanstring(tds[2])) or\
+                                   self.ACCOUNT_TYPES.get(self.parser.tocleanstring(tds[3]), Account.TYPE_UNKNOWN)
                 else:
                     # On the same row, there are many accounts (for example a
                     # check accound and a card one).
