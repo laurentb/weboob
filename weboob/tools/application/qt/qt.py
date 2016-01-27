@@ -24,7 +24,8 @@ import logging
 import re
 from threading import Event
 from copy import copy
-from PyQt4.QtCore import QTimer, SIGNAL, QObject, QString, QSize, QVariant, QMutex, Qt
+from PyQt4.QtCore import QTimer, QObject, QString, QSize, QVariant, QMutex, Qt
+from PyQt4.QtCore import pyqtSignal as Signal, pyqtSlot as Slot
 from PyQt4.QtGui import QMainWindow, QApplication, QStyledItemDelegate, \
                         QStyleOptionViewItemV4, QTextDocument, QStyle, \
                         QAbstractTextDocumentLayout, QPalette, QMessageBox, \
@@ -45,41 +46,41 @@ from ..base import Application, MoreResultsAvailable
 __all__ = ['QtApplication', 'QtMainWindow', 'QtDo', 'HTMLDelegate']
 
 
-class QtScheduler(IScheduler):
+class QtScheduler(QObject, IScheduler):
     def __init__(self, app):
+        QObject.__init__(self)
         self.app = app
-        self.count = 0
-        self.timers = {}
+        self.params = {}
 
     def schedule(self, interval, function, *args):
         timer = QTimer()
         timer.setInterval(interval * 1000)
         timer.setSingleShot(True)
 
-        count = self.count
-        self.count += 1
+        self.params[timer] = (None, function, args)
 
         timer.start()
-        self.app.connect(timer, SIGNAL("timeout()"), lambda: self.timeout(count, None, function, *args))
-        self.timers[count] = timer
+        timer.timeout.connect(self.timeout)
 
     def repeat(self, interval, function, *args):
         timer = QTimer()
         timer.setSingleShot(False)
 
-        count = self.count
-        self.count += 1
+        self.params[timer] = (interval, function, args)
 
         timer.start(0)
-        self.app.connect(timer, SIGNAL("timeout()"), lambda: self.timeout(count, interval, function, *args))
-        self.timers[count] = timer
+        timer.timeout.connect(self.timeout)
 
-    def timeout(self, _id, interval, function, *args):
+    @Slot()
+    def timeout(self):
+        timer = self.sender()
+        interval, function, args = self.params[timer]
+
         function(*args)
         if interval is None:
-            self.timers.pop(_id)
+            self.params.pop(timer)
         else:
-            self.timers[_id].setInterval(interval * 1000)
+            timer.setInterval(interval * 1000)
 
     def want_stop(self):
         self.app.quit()
@@ -111,19 +112,22 @@ class QCallbacksManager(QObject):
                                                 QLineEdit.Password)
             return password
 
+    new_request = Signal()
+
     def __init__(self, weboob, parent=None):
         QObject.__init__(self, parent)
         self.weboob = weboob
         self.weboob.callbacks['login'] = self.callback(self.LoginRequest)
         self.mutex = QMutex()
         self.requests = []
-        self.connect(self, SIGNAL('new_request'), self.do_request)
+        self.new_request.connect(self.do_request)
 
     def callback(self, klass):
         def cb(*args, **kwargs):
             return self.add_request(klass(*args, **kwargs))
         return cb
 
+    @Slot()
     def do_request(self):
         self.mutex.lock()
         request = self.requests.pop()
@@ -135,7 +139,7 @@ class QCallbacksManager(QObject):
         self.mutex.lock()
         self.requests.append(request)
         self.mutex.unlock()
-        self.emit(SIGNAL('new_request'))
+        self.new_request.emit()
         request.event.wait()
         return request.answer
 
@@ -185,6 +189,10 @@ class QtMainWindow(QMainWindow):
 
 
 class QtDo(QObject):
+    gotResponse = Signal(object)
+    gotError = Signal(object, object, object)
+    finished = Signal()
+
     def __init__(self, weboob, cb, eb=None, fb=None):
         QObject.__init__(self)
 
@@ -197,14 +205,15 @@ class QtDo(QObject):
         self.eb = eb
         self.fb = fb
 
-        self.connect(self, SIGNAL('cb'), self.local_cb)
-        self.connect(self, SIGNAL('eb'), self.local_eb)
-        self.connect(self, SIGNAL('fb'), self.local_fb)
+        self.gotResponse.connect(self.local_cb)
+        self.gotError.connect(self.local_eb)
+        self.finished.connect(self.local_fb)
 
     def do(self, *args, **kwargs):
         self.process = self.weboob.do(*args, **kwargs)
         self.process.callback_thread(self.thread_cb, self.thread_eb, self.thread_fb)
 
+    @Slot(object, object, object)
     def default_eb(self, backend, error, backtrace):
         if isinstance(error, MoreResultsAvailable):
             # This is not an error, ignore.
@@ -247,31 +256,34 @@ class QtDo(QObject):
         QMessageBox.critical(None, unicode(self.tr('Error with backend %s')) % backend.name,
                              msg, QMessageBox.Ok)
 
+    @Slot(object)
     def local_cb(self, data):
         if self.cb:
             self.cb(data)
 
+    @Slot(object, object, object)
     def local_eb(self, backend, error, backtrace):
         if self.eb:
             self.eb(backend, error, backtrace)
 
+    @Slot()
     def local_fb(self):
         if self.fb:
             self.fb()
 
-        self.disconnect(self, SIGNAL('cb'), self.local_cb)
-        self.disconnect(self, SIGNAL('eb'), self.local_eb)
-        self.disconnect(self, SIGNAL('fb'), self.local_fb)
+        self.gotResponse.disconnect(self.local_cb)
+        self.gotError.disconnect(self.local_eb)
+        self.finished.disconnect(self.local_fb)
         self.process = None
 
     def thread_cb(self, data):
-        self.emit(SIGNAL('cb'), data)
+        self.gotResponse.emit(data)
 
     def thread_eb(self, backend, error, backtrace):
-        self.emit(SIGNAL('eb'), backend, error, backtrace)
+        self.gotError.emit(backend, error, backtrace)
 
     def thread_fb(self):
-        self.emit(SIGNAL('fb'))
+        self.finished.emit()
 
 
 class HTMLDelegate(QStyledItemDelegate):

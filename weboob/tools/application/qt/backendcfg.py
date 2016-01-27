@@ -22,7 +22,8 @@ from PyQt4.QtGui import QDialog, QTreeWidgetItem, QLabel, QFormLayout, \
                         QMessageBox, QPixmap, QImage, QIcon, QHeaderView, \
                         QListWidgetItem, QTextDocument, QVBoxLayout, \
                         QDialogButtonBox, QProgressDialog
-from PyQt4.QtCore import SIGNAL, Qt, QVariant, QUrl, QThread
+from PyQt4.QtCore import Qt, QVariant, QUrl, QThread
+from PyQt4.QtCore import pyqtSignal as Signal, pyqtSlot as Slot
 
 import re
 import os
@@ -46,11 +47,12 @@ class RepositoriesDialog(QDialog):
         self.ui = Ui_RepositoriesDlg()
         self.ui.setupUi(self)
 
-        self.connect(self.ui.buttonBox, SIGNAL('accepted()'), self.save)
+        self.ui.buttonBox.accepted.connect(self.save)
 
         with open(self.filename, 'r') as fp:
             self.ui.reposEdit.setPlainText(fp.read())
 
+    @Slot()
     def save(self):
         with open(self.filename, 'w') as fp:
             fp.write(self.ui.reposEdit.toPlainText())
@@ -58,6 +60,8 @@ class RepositoriesDialog(QDialog):
 
 
 class IconFetcher(QThread):
+    retrieved = Signal()
+
     def __init__(self, weboob, item, minfo):
         QThread.__init__(self)
         self.weboob = weboob
@@ -66,7 +70,7 @@ class IconFetcher(QThread):
 
     def run(self):
         self.weboob.repositories.retrieve_icon(self.minfo)
-        self.emit(SIGNAL('retrieved'), self)
+        self.retrieved.emit()
 
 
 class ProgressDialog(IProgress, QProgressDialog):
@@ -117,19 +121,17 @@ class BackendCfg(QDialog):
         self.loadModules()
         self.loadBackendsList()
 
-        self.connect(self.ui.updateButton, SIGNAL('clicked()'), self.updateModules)
-        self.connect(self.ui.repositoriesButton, SIGNAL('clicked()'), self.editRepositories)
-        self.connect(self.ui.backendsList, SIGNAL('itemClicked(QTreeWidgetItem *, int)'),
-                     self.backendClicked)
-        self.connect(self.ui.backendsList, SIGNAL('itemChanged(QTreeWidgetItem *, int)'),
-                     self.backendEnabled)
-        self.connect(self.ui.modulesList, SIGNAL('itemSelectionChanged()'), self.moduleSelectionChanged)
-        self.connect(self.ui.proxyBox, SIGNAL('toggled(bool)'), self.proxyEditEnabled)
-        self.connect(self.ui.addButton, SIGNAL('clicked()'), self.addEvent)
-        self.connect(self.ui.removeButton, SIGNAL('clicked()'), self.removeEvent)
-        self.connect(self.ui.registerButton, SIGNAL('clicked()'), self.registerEvent)
-        self.connect(self.ui.configButtonBox, SIGNAL('accepted()'), self.acceptBackend)
-        self.connect(self.ui.configButtonBox, SIGNAL('rejected()'), self.rejectBackend)
+        self.ui.updateButton.clicked.connect(self.updateModules)
+        self.ui.repositoriesButton.clicked.connect(self.editRepositories)
+        self.ui.backendsList.itemClicked.connect(self.backendClicked)
+        self.ui.backendsList.itemChanged.connect(self.backendEnabled)
+        self.ui.modulesList.itemSelectionChanged.connect(self.moduleSelectionChanged)
+        self.ui.proxyBox.toggled.connect(self.proxyEditEnabled)
+        self.ui.addButton.clicked.connect(self.addEvent)
+        self.ui.removeButton.clicked.connect(self.removeEvent)
+        self.ui.registerButton.clicked.connect(self.registerEvent)
+        self.ui.configButtonBox.accepted.connect(self.acceptBackend)
+        self.ui.configButtonBox.rejected.connect(self.rejectBackend)
 
     def get_icon_cache(self, path):
         if path not in self.icon_cache:
@@ -146,12 +148,17 @@ class BackendCfg(QDialog):
                 self.icon_threads[minfo.name].items.append(item)
             else:
                 thread = IconFetcher(self.weboob, item, minfo)
-                self.connect(thread, SIGNAL('retrieved'), lambda t: self._set_icon(t.items, t.minfo))
+                thread.retrieved.connect(self._set_icon_slot)
                 self.icon_threads[minfo.name] = thread
                 thread.start()
             return
 
         self._set_icon([item], minfo)
+
+    @Slot()
+    def _set_icon_slot(self):
+        thread = self.sender()
+        self._set_icon(thread.items, thread.minfo)
 
     def _set_icon(self, items, minfo):
         icon_path = self.weboob.repositories.get_module_icon_path(minfo)
@@ -168,6 +175,7 @@ class BackendCfg(QDialog):
 
         self.icon_threads.pop(minfo.name, None)
 
+    @Slot()
     def updateModules(self):
         self.ui.configFrame.hide()
         pd = ProgressDialog('Update of modules', "Cancel", 0, 100, self)
@@ -183,6 +191,7 @@ class BackendCfg(QDialog):
         QMessageBox.information(self, self.tr('Update of modules'),
                                 self.tr('Modules updated!'), QMessageBox.Ok)
 
+    @Slot()
     def editRepositories(self):
         if RepositoriesDialog(self.weboob.repositories.sources_list).exec_():
             self.updateModules()
@@ -232,6 +241,7 @@ class BackendCfg(QDialog):
 
             self.ui.backendsList.addTopLevelItem(item)
 
+    @Slot(object, object)
     def backendEnabled(self, item, col):
         self.is_enabling += 1
 
@@ -250,6 +260,7 @@ class BackendCfg(QDialog):
 
         self.weboob.backends_config.edit_backend(backend_name, module_name, {'_enabled': enabled})
 
+    @Slot(object, object)
     def backendClicked(self, item, col):
         if self.is_enabling:
             self.is_enabling -= 1
@@ -259,9 +270,11 @@ class BackendCfg(QDialog):
 
         self.editBackend(backend_name)
 
+    @Slot()
     def addEvent(self):
         self.editBackend()
 
+    @Slot()
     def removeEvent(self):
         item = self.ui.backendsList.currentItem()
         if not item:
@@ -331,6 +344,7 @@ class BackendCfg(QDialog):
         self.ui.modulesList.setEnabled(True)
         self.ui.modulesList.setCurrentRow(-1)
 
+    @Slot()
     def moduleSelectionChanged(self):
         for key, (label, value) in self.config_widgets.iteritems():
             label.hide()
@@ -396,9 +410,11 @@ class BackendCfg(QDialog):
             self.ui.configLayout.addRow(label, qvalue)
             self.config_widgets[key] = (label, qvalue)
 
+    @Slot(object)
     def proxyEditEnabled(self, state):
         self.ui.proxyEdit.setEnabled(state)
 
+    @Slot()
     def acceptBackend(self):
         backend_name = unicode(self.ui.nameEdit.text())
         selection = self.ui.modulesList.selectedItems()
@@ -465,9 +481,11 @@ class BackendCfg(QDialog):
 
         self.loadBackendsList()
 
+    @Slot()
     def rejectBackend(self):
         self.ui.configFrame.hide()
 
+    @Slot()
     def registerEvent(self):
         selection = self.ui.modulesList.selectedItems()
         if not selection:
@@ -498,8 +516,8 @@ class BackendCfg(QDialog):
         vbox.addLayout(formlayout)
         buttonBox = QDialogButtonBox(dialog)
         buttonBox.setStandardButtons(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
-        self.connect(buttonBox, SIGNAL("accepted()"), dialog.accept)
-        self.connect(buttonBox, SIGNAL("rejected()"), dialog.reject)
+        buttonBox.accepted.connect(dialog.accept)
+        buttonBox.rejected.connect(dialog.reject)
         vbox.addWidget(buttonBox)
 
         end = False
