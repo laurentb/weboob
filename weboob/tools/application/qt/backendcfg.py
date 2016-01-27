@@ -32,8 +32,8 @@ from weboob.core.modules import ModuleLoadError
 from weboob.core.repositories import IProgress, ModuleInstallError
 from weboob.core.backendscfg import BackendAlreadyExists
 from weboob.capabilities.account import CapAccount, Account, AccountRegisterError
-from weboob.tools.application.qt.backendcfg_ui import Ui_BackendCfg
-from weboob.tools.application.qt.reposdlg_ui import Ui_RepositoriesDlg
+from .backendcfg_ui import Ui_BackendCfg
+from .reposdlg_ui import Ui_RepositoriesDlg
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.misc import to_unicode
 from .qt import QtValue
