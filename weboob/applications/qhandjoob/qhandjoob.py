@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.job import CapJob
-from weboob.tools.application.qt import QtApplication
+from weboob.tools.application.qt5 import QtApplication
 from weboob.tools.config.yamlconfig import YamlConfig
 
 from .main_window import MainWindow

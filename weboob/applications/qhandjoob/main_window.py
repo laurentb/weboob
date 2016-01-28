@@ -17,11 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt4.QtGui import QListWidgetItem, QApplication, QCompleter
-from PyQt4.QtCore import SIGNAL, Qt, QStringList
+from PyQt5.QtWidgets import QListWidgetItem, QApplication, QCompleter
+from PyQt5.QtCore import Qt, pyqtSlot as Slot
 
-from weboob.tools.application.qt import QtMainWindow, QtDo
-from weboob.tools.application.qt.backendcfg import BackendCfg
+from weboob.tools.application.qt5 import QtMainWindow, QtDo
+from weboob.tools.application.qt5.backendcfg import BackendCfg
 from weboob.capabilities.job import CapJob
 
 from .ui.main_window_ui import Ui_MainWindow
@@ -32,7 +32,7 @@ import codecs
 
 class JobListWidgetItem(QListWidgetItem):
     def __init__(self, job, *args, **kwargs):
-        QListWidgetItem.__init__(self, *args, **kwargs)
+        super(JobListWidgetItem, self).__init__(*args, **kwargs)
         self.job = job
 
     def __lt__(self, other):
@@ -48,7 +48,7 @@ class JobListWidgetItem(QListWidgetItem):
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, storage, weboob, parent=None):
-        QtMainWindow.__init__(self, parent)
+        super(MainWindow, self).__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -66,17 +66,17 @@ class MainWindow(QtMainWindow):
 
         self.ui.jobFrame.hide()
 
-        self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
+        self.ui.actionBackends.triggered.connect(self.backendsConfig)
 
-        self.connect(self.ui.searchEdit, SIGNAL('returnPressed()'), self.doSearch)
-        self.connect(self.ui.jobList, SIGNAL('currentItemChanged(QListWidgetItem*, QListWidgetItem*)'), self.jobSelected)
-        self.connect(self.ui.searchButton, SIGNAL('clicked()'), self.doSearch)
+        self.ui.searchEdit.returnPressed.connect(self.doSearch)
+        self.ui.jobList.currentItemChanged.connect(self.jobSelected)
+        self.ui.searchButton.clicked.connect(self.doSearch)
 
-        self.connect(self.ui.refreshButton, SIGNAL('clicked()'), self.doAdvancedSearch)
-        self.connect(self.ui.queriesTabWidget, SIGNAL('currentChanged(int)'), self.tabChange)
-        self.connect(self.ui.jobListAdvancedSearch, SIGNAL('currentItemChanged(QListWidgetItem*, QListWidgetItem*)'), self.jobSelected)
+        self.ui.refreshButton.clicked.connect(self.doAdvancedSearch)
+        self.ui.queriesTabWidget.currentChanged.connect(self.tabChange)
+        self.ui.jobListAdvancedSearch.currentItemChanged.connect(self.jobSelected)
 
-        self.connect(self.ui.idEdit, SIGNAL('returnPressed()'), self.openJob)
+        self.ui.idEdit.returnPressed.connect(self.openJob)
 
         if self.weboob.count_backends() == 0:
             self.backendsConfig()
@@ -104,10 +104,11 @@ class MainWindow(QtMainWindow):
             f.close()
 
     def updateCompletion(self):
-        qc = QCompleter(QStringList(self.search_history), self)
+        qc = QCompleter(self.search_history, self)
         qc.setCaseSensitivity(Qt.CaseInsensitive)
         self.ui.searchEdit.setCompleter(qc)
 
+    @Slot(object)
     def tabChange(self, index):
         if index == 1:
             self.doAdvancedSearch()
@@ -116,6 +117,7 @@ class MainWindow(QtMainWindow):
         self.process = None
         QApplication.restoreOverrideCursor()
 
+    @Slot()
     def doAdvancedSearch(self):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         self.ui.jobListAdvancedSearch.clear()
@@ -123,9 +125,10 @@ class MainWindow(QtMainWindow):
         self.process = QtDo(self.weboob, self.addJobAdvancedSearch, fb=self.searchFinished)
         self.process.do('advanced_search_job')
 
+    @Slot()
     def doSearch(self):
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        pattern = unicode(self.ui.searchEdit.text())
+        pattern = self.ui.searchEdit.text()
 
         # arbitrary max number of completion word
         if pattern:
@@ -161,11 +164,13 @@ class MainWindow(QtMainWindow):
         self.saveSearchHistory()
         QtMainWindow.closeEvent(self, event)
 
+    @Slot()
     def backendsConfig(self):
         bckndcfg = BackendCfg(self.weboob, (CapJob,), self)
         if bckndcfg.run():
             pass
 
+    @Slot(object, object)
     def jobSelected(self, item, prev):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         if item is not None:
@@ -183,9 +188,10 @@ class MainWindow(QtMainWindow):
         if prev:
             prev.setAttrs(self.storage)
 
+    @Slot()
     def openJob(self):
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        url = unicode(self.ui.idEdit.text())
+        url = self.ui.idEdit.text()
         if not url:
             return
 
