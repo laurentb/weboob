@@ -33,7 +33,7 @@ class BouyguesBrowser(LoginBrowser):
 
     bills = URL('http://www.bouyguestelecom.fr/mon-compte/mes-factures/historique\?no_reference=(?P<ref>)', BillsPage)
     profile = URL('https://api-mc.bouyguestelecom.fr/client/me/header.json', ProfilePage)
-    home = URL('http://www.bouyguestelecom.fr/mon-compte/', HomePage)
+    home = URL('https://www.bouyguestelecom.fr/mon-compte/', HomePage)
     login = URL('cas/login', LoginPage)
 
     sms_page = URL('http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/sendSMS.phtml',
