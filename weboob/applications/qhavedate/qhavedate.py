@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.dating import CapDating
-from weboob.tools.application.qt import QtApplication
+from weboob.tools.application.qt5 import QtApplication
 
 from .main_window import MainWindow
 

@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt4.QtGui import QWidget
-from PyQt4.QtCore import SIGNAL
+from PyQt5.QtWidgets import QWidget
+from PyQt5.QtCore import pyqtSlot as Slot
 
-from weboob.tools.application.qt import QtDo
+from weboob.tools.application.qt5 import QtDo
 
 from .ui.search_ui import Ui_Search
 from .contacts import ContactProfile
@@ -29,7 +29,7 @@ from .status import Account
 
 class SearchWidget(QWidget):
     def __init__(self, weboob, parent=None):
-        QWidget.__init__(self, parent)
+        super(SearchWidget, self).__init__(parent)
         self.ui = Ui_Search()
         self.ui.setupUi(self)
 
@@ -38,8 +38,8 @@ class SearchWidget(QWidget):
         self.accounts = []
         self.current = None
 
-        self.connect(self.ui.nextButton, SIGNAL('clicked()'), self.next)
-        self.connect(self.ui.queryButton, SIGNAL('clicked()'), self.sendQuery)
+        self.ui.nextButton.clicked.connect(self.next)
+        self.ui.queryButton.clicked.connect(self.sendQuery)
 
     def load(self):
         while self.ui.statusFrame.layout().count() > 0:
@@ -74,6 +74,7 @@ class SearchWidget(QWidget):
         if self.current is None:
             self.next()
 
+    @Slot()
     def next(self):
         try:
             contact = self.contacts.pop()
@@ -92,6 +93,7 @@ class SearchWidget(QWidget):
         else:
             self.ui.scrollArea.setWidget(None)
 
+    @Slot()
     def sendQuery(self):
         self.newprofiles_process = QtDo(self.weboob, None, fb=self.next)
         self.newprofiles_process.do('send_query', self.current.id, backends=[self.current.backend])

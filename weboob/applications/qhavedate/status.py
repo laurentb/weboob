@@ -18,16 +18,17 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from PyQt4.QtGui import QScrollArea, QWidget, QHBoxLayout, QVBoxLayout, QFrame, QLabel, QImage, QPixmap
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtWidgets import QScrollArea, QWidget, QHBoxLayout, QVBoxLayout, QFrame, QLabel
 
 from weboob.capabilities.account import CapAccount, StatusField
-from weboob.tools.application.qt import QtDo
+from weboob.tools.application.qt5 import QtDo
 from weboob.tools.misc import to_unicode
 
 
 class Account(QFrame):
     def __init__(self, weboob, backend, parent=None):
-        QFrame.__init__(self, parent)
+        super(Account, self).__init__(parent)
 
         self.setFrameShape(QFrame.StyledPanel)
         self.setFrameShadow(QFrame.Raised)
@@ -103,12 +104,12 @@ class Account(QFrame):
 
     def updateStats_eb(self, backend, err, backtrace):
         self.body.setText(u'<b>Unable to connect:</b> %s' % to_unicode(err))
-        self.title.setText(u'<font color=#ff0000>%s</font>' % unicode(self.title.text()))
+        self.title.setText(u'<font color=#ff0000>%s</font>' % self.title.text())
 
 
 class AccountsStatus(QScrollArea):
     def __init__(self, weboob, parent=None):
-        QScrollArea.__init__(self, parent)
+        super(AccountsStatus, self).__init__(parent)
 
         self.weboob = weboob
 

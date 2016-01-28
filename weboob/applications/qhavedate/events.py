@@ -19,18 +19,21 @@
 
 from __future__ import print_function
 
-from PyQt4.QtGui import QWidget, QTreeWidgetItem, QImage, QIcon, QPixmap
-from PyQt4.QtCore import SIGNAL, Qt
+from PyQt5.QtGui import QImage, QIcon, QPixmap
+from PyQt5.QtWidgets import QWidget, QTreeWidgetItem
+from PyQt5.QtCore import Qt, pyqtSignal as Signal, pyqtSlot as Slot
 
 from weboob.capabilities.base import NotLoaded
-from weboob.tools.application.qt import QtDo, HTMLDelegate
+from weboob.tools.application.qt5 import QtDo, HTMLDelegate
 
 from .ui.events_ui import Ui_Events
 
 
 class EventsWidget(QWidget):
+    display_contact = Signal(object)
+
     def __init__(self, weboob, parent=None):
-        QWidget.__init__(self, parent)
+        super(EventsWidget, self).__init__(parent)
         self.ui = Ui_Events()
         self.ui.setupUi(self)
 
@@ -38,9 +41,9 @@ class EventsWidget(QWidget):
         self.photo_processes = {}
         self.event_filter = None
 
-        self.connect(self.ui.eventsList, SIGNAL('itemDoubleClicked(QTreeWidgetItem*, int)'), self.eventDoubleClicked)
-        self.connect(self.ui.typeBox, SIGNAL('currentIndexChanged(int)'), self.typeChanged)
-        self.connect(self.ui.refreshButton, SIGNAL('clicked()'), self.refreshEventsList)
+        self.ui.eventsList.itemDoubleClicked.connect(self.eventDoubleClicked)
+        self.ui.typeBox.currentIndexChanged.connect(self.typeChanged)
+        self.ui.refreshButton.clicked.connect(self.refreshEventsList)
 
         self.ui.eventsList.setItemDelegate(HTMLDelegate())
         self.ui.eventsList.sortByColumn(1, Qt.DescendingOrder)
@@ -48,10 +51,12 @@ class EventsWidget(QWidget):
     def load(self):
         self.refreshEventsList()
 
+    @Slot(object)
     def typeChanged(self, i):
         if self.ui.refreshButton.isEnabled():
             self.refreshEventsList()
 
+    @Slot()
     def refreshEventsList(self):
         self.ui.eventsList.clear()
         self.ui.refreshButton.setEnabled(False)
@@ -156,6 +161,7 @@ class EventsWidget(QWidget):
         self.ui.eventsList.resizeColumnToContents(0)
         self.ui.eventsList.resizeColumnToContents(1)
 
+    @Slot(object, object)
     def eventDoubleClicked(self, item, col):
-        event = item.data(0, Qt.UserRole).toPyObject()
-        self.emit(SIGNAL('display_contact'), event.contact)
+        event = item.data(0, Qt.UserRole)
+        self.display_contact.emit(event.contact)

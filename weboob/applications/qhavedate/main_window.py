@@ -17,11 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt4.QtGui import QWidget
-from PyQt4.QtCore import SIGNAL
+from PyQt5.QtWidgets import QWidget
+from PyQt5.QtCore import pyqtSlot as Slot
 
-from weboob.tools.application.qt import QtMainWindow
-from weboob.tools.application.qt.backendcfg import BackendCfg
+from weboob.tools.application.qt5 import QtMainWindow
+from weboob.tools.application.qt5.backendcfg import BackendCfg
 from weboob.capabilities.dating import CapDating
 
 try:
@@ -39,7 +39,7 @@ from .search import SearchWidget
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, weboob, parent=None):
-        QtMainWindow.__init__(self, parent)
+        super(MainWindow, self).__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -48,8 +48,8 @@ class MainWindow(QtMainWindow):
 
         self.loaded_tabs = {}
 
-        self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
-        self.connect(self.ui.tabWidget, SIGNAL('currentChanged(int)'), self.tabChanged)
+        self.ui.actionBackends.triggered.connect(self.backendsConfig)
+        self.ui.tabWidget.currentChanged.connect(self.tabChanged)
 
         self.addTab(AccountsStatus(self.weboob), self.tr('Status'))
         self.addTab(MessagesManager(self.weboob) if HAVE_BOOBMSG else None, self.tr('Messages'))
@@ -62,6 +62,7 @@ class MainWindow(QtMainWindow):
         if self.weboob.count_backends() == 0:
             self.backendsConfig()
 
+    @Slot()
     def backendsConfig(self):
         bckndcfg = BackendCfg(self.weboob, (CapDating,), self)
         if bckndcfg.run():
@@ -71,12 +72,14 @@ class MainWindow(QtMainWindow):
 
     def addTab(self, widget, title):
         if widget:
-            self.connect(widget, SIGNAL('display_contact'), self.display_contact)
+            if getattr(widget, 'display_contact', None):
+                widget.display_contact.connect(self.display_contact)
             self.ui.tabWidget.addTab(widget, title)
         else:
             index = self.ui.tabWidget.addTab(QWidget(), title)
             self.ui.tabWidget.setTabEnabled(index, False)
 
+    @Slot(object)
     def tabChanged(self, i):
         widget = self.ui.tabWidget.currentWidget()
 
@@ -84,6 +87,7 @@ class MainWindow(QtMainWindow):
             widget.load()
             self.loaded_tabs[i] = True
 
+    @Slot(object)
     def display_contact(self, contact):
         self.ui.tabWidget.setCurrentIndex(2)
         widget = self.ui.tabWidget.currentWidget()

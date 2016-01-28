@@ -19,12 +19,13 @@
 
 import time
 import logging
-from PyQt4.QtGui import QWidget, QListWidgetItem, QImage, QIcon, QPixmap, \
-                        QFrame, QMessageBox, QTabWidget, QVBoxLayout, \
-                        QFormLayout, QLabel, QPushButton
-from PyQt4.QtCore import SIGNAL, Qt
+from PyQt5.QtGui import QImage, QIcon, QPixmap
+from PyQt5.QtWidgets import QWidget, QListWidgetItem, QFrame, \
+                            QMessageBox, QTabWidget, QVBoxLayout, \
+                            QFormLayout, QLabel, QPushButton
+from PyQt5.QtCore import Qt, pyqtSlot as Slot
 
-from weboob.tools.application.qt import QtDo, HTMLDelegate
+from weboob.tools.application.qt5 import QtDo, HTMLDelegate
 from weboob.tools.misc import to_unicode
 from weboob.capabilities.contact import CapContact, Contact
 from weboob.capabilities.chat import CapChat
@@ -44,7 +45,7 @@ class ThreadMessage(QFrame):
     """
 
     def __init__(self, message, parent=None):
-        QFrame.__init__(self, parent)
+        super(ThreadMessage, self).__init__(parent)
         self.ui = Ui_ThreadMessage()
         self.ui.setupUi(self)
 
@@ -78,7 +79,7 @@ class ContactThread(QWidget):
     """
 
     def __init__(self, weboob, contact, support_reply, parent=None):
-        QWidget.__init__(self, parent)
+        super(ContactThread, self).__init__(parent)
         self.ui = Ui_ContactThread()
         self.ui.setupUi(self)
 
@@ -87,15 +88,16 @@ class ContactThread(QWidget):
         self.thread = None
         self.messages = []
         self.process_msg = None
-        self.connect(self.ui.refreshButton, SIGNAL('clicked()'), self.refreshMessages)
+        self.ui.refreshButton.clicked.connect(self.refreshMessages)
 
         if support_reply:
-            self.connect(self.ui.sendButton, SIGNAL('clicked()'), self.postReply)
+            self.ui.sendButton.clicked.connect(self.postReply)
         else:
             self.ui.frame.hide()
 
         self.refreshMessages()
 
+    @Slot()
     def refreshMessages(self, fillobj=False):
         if self.process_msg:
             return
@@ -155,21 +157,24 @@ class ContactThread(QWidget):
 
     def _insert_load_button(self, pos):
         button = QPushButton(self.tr('More messages...'))
-        self.connect(button, SIGNAL('clicked()'), lambda: self._load_button_pressed(button))
+        button.clicked.connect(self._load_button_pressed)
         if pos >= 0:
             self.ui.scrollAreaContent.layout().insertWidget(pos, button)
         else:
             self.ui.scrollAreaContent.layout().addWidget(button)
 
-    def _load_button_pressed(self, button):
+    @Slot()
+    def _load_button_pressed(self):
+        button = self.sender()
         self.ui.scrollAreaContent.layout().removeWidget(button)
         button.hide()
         button.deleteLater()
 
         self.refreshMessages(fillobj=True)
 
+    @Slot()
     def postReply(self):
-        text = unicode(self.ui.textEdit.toPlainText())
+        text = self.ui.textEdit.toPlainText()
         self.ui.textEdit.setEnabled(False)
         self.ui.sendButton.setEnabled(False)
         m = Message(thread=self.thread,
@@ -190,7 +195,7 @@ class ContactThread(QWidget):
         self.process_reply = None
 
     def _postReply_eb(self, backend, error, backtrace):
-        content = unicode(self.tr('Unable to send message:\n%s\n')) % to_unicode(error)
+        content = self.tr('Unable to send message:\n%s\n') % to_unicode(error)
         if logging.root.level <= logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while posting reply'),
@@ -199,14 +204,13 @@ class ContactThread(QWidget):
 
 
 class ContactProfile(QWidget):
-
     def __init__(self, weboob, contact, parent=None):
-        QWidget.__init__(self, parent)
+        super(ContactProfile, self).__init__(parent)
         self.ui = Ui_Profile()
         self.ui.setupUi(self)
 
-        self.connect(self.ui.previousButton, SIGNAL('clicked()'), self.previousClicked)
-        self.connect(self.ui.nextButton, SIGNAL('clicked()'), self.nextClicked)
+        self.ui.previousButton.clicked.connect(self.previousClicked)
+        self.ui.nextButton.clicked.connect(self.nextClicked)
 
         self.weboob = weboob
         self.contact = contact
@@ -295,12 +299,14 @@ class ContactProfile(QWidget):
         else:
             logging.warning('Not supported widget: %r' % widget)
 
+    @Slot()
     def previousClicked(self):
         if len(self.contact.photos) == 0:
             return
         self.displayed_photo_idx = (self.displayed_photo_idx - 1) % len(self.contact.photos)
         self.display_photo()
 
+    @Slot()
     def nextClicked(self):
         if len(self.contact.photos) == 0:
             return
@@ -343,7 +349,7 @@ class ContactNotes(QWidget):
     """ Widget for storing notes about a contact """
 
     def __init__(self, weboob, contact, parent=None):
-        QWidget.__init__(self, parent)
+        super(ContactNotes, self).__init__(parent)
         self.ui = Ui_Notes()
         self.ui.setupUi(self)
 
@@ -361,7 +367,7 @@ class ContactNotes(QWidget):
         self.process = QtDo(self.weboob, self._getNotes_cb, self._getNotes_eb, finished)
         self.process.do('get_notes', self.contact.id, backends=(self.contact.backend,))
 
-        self.connect(self.ui.saveButton, SIGNAL('clicked()'), self.saveNotes)
+        self.ui.saveButton.clicked.connect(self.saveNotes)
 
     def _getNotes_cb(self, data):
         if data:
@@ -373,14 +379,15 @@ class ContactNotes(QWidget):
 
         self.ui.textEdit.setEnabled(True)
         self.ui.saveButton.setEnabled(True)
-        content = unicode(self.tr('Unable to load notes:\n%s\n')) % to_unicode(error)
+        content = self.tr('Unable to load notes:\n%s\n') % to_unicode(error)
         if logging.root.level <= logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
             QMessageBox.critical(self, self.tr('Error while loading notes'),
             content, QMessageBox.Ok)
 
+    @Slot()
     def saveNotes(self):
-        text = unicode(self.ui.textEdit.toPlainText())
+        text = self.ui.textEdit.toPlainText()
         self.ui.saveButton.setEnabled(False)
         self.ui.textEdit.setEnabled(False)
 
@@ -392,7 +399,7 @@ class ContactNotes(QWidget):
         self.ui.textEdit.setEnabled(True)
 
     def _saveNotes_eb(self, backend, error, backtrace):
-        content = unicode(self.tr('Unable to save notes:\n%s\n')) % to_unicode(error)
+        content = self.tr('Unable to save notes:\n%s\n') % to_unicode(error)
         if logging.root.level <= logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
             QMessageBox.critical(self, self.tr('Error while saving notes'),
@@ -433,7 +440,7 @@ class MetaGroup(IGroup):
 
 class ContactsWidget(QWidget):
     def __init__(self, weboob, parent=None):
-        QWidget.__init__(self, parent)
+        super(ContactsWidget, self).__init__(parent)
         self.ui = Ui_Contacts()
         self.ui.setupUi(self)
 
@@ -449,10 +456,10 @@ class ContactsWidget(QWidget):
         self.ui.groupBox.addItem('Offline', MetaGroup(self.weboob, 'offline', self.tr('Offline')))
         self.ui.groupBox.setCurrentIndex(1)
 
-        self.connect(self.ui.groupBox, SIGNAL('currentIndexChanged(int)'), self.groupChanged)
-        self.connect(self.ui.contactList, SIGNAL('itemClicked(QListWidgetItem*)'), self.contactChanged)
-        self.connect(self.ui.refreshButton, SIGNAL('clicked()'), self.refreshContactList)
-        self.connect(self.ui.urlButton, SIGNAL('clicked()'), self.urlClicked)
+        self.ui.groupBox.currentIndexChanged.connect(self.groupChanged)
+        self.ui.contactList.itemClicked.connect(self.contactChanged)
+        self.ui.refreshButton.clicked.connect(self.refreshContactList)
+        self.ui.urlButton.clicked.connect(self.urlClicked)
 
     def load(self):
         self.refreshContactList()
@@ -460,14 +467,16 @@ class ContactsWidget(QWidget):
         for backend in self.weboob.iter_backends():
             self.ui.backendsList.addItem(backend.name)
 
+    @Slot(object)
     def groupChanged(self, i):
         self.refreshContactList()
 
+    @Slot()
     def refreshContactList(self):
         self.ui.contactList.clear()
         self.ui.refreshButton.setEnabled(False)
         i = self.ui.groupBox.currentIndex()
-        group = self.ui.groupBox.itemData(i).toPyObject()
+        group = self.ui.groupBox.itemData(i)
         group.iter_contacts(self.addContact)
 
     def setPhoto(self, contact, item):
@@ -529,17 +538,18 @@ class ContactsWidget(QWidget):
                 self.photo_processes[contact.id] = process
 
         for i in xrange(self.ui.contactList.count()):
-            if self.ui.contactList.item(i).data(Qt.UserRole).toPyObject().status > contact.status:
+            if self.ui.contactList.item(i).data(Qt.UserRole).status > contact.status:
                 self.ui.contactList.insertItem(i, item)
                 return
 
         self.ui.contactList.addItem(item)
 
+    @Slot(object)
     def contactChanged(self, current):
         if not current:
             return
 
-        contact = current.data(Qt.UserRole).toPyObject()
+        contact = current.data(Qt.UserRole)
         self.setContact(contact)
 
     def setContact(self, contact):
@@ -563,15 +573,16 @@ class ContactsWidget(QWidget):
                                         False)
         self.ui.tabWidget.addTab(ContactNotes(self.weboob, self.contact), self.tr('Notes'))
 
+    @Slot()
     def urlClicked(self):
-        url = unicode(self.ui.urlEdit.text())
+        url = self.ui.urlEdit.text()
         if not url:
             return
 
         self.retrieveContact(url)
 
     def retrieveContact(self, url):
-        backend_name = unicode(self.ui.backendsList.currentText())
+        backend_name = self.ui.backendsList.currentText()
         self.ui.urlButton.setEnabled(False)
 
         def finished():
@@ -586,7 +597,7 @@ class ContactsWidget(QWidget):
         self.setContact(contact)
 
     def retrieveContact_eb(self, backend, error, backtrace):
-        content = unicode(self.tr('Unable to get contact:\n%s\n')) % to_unicode(error)
+        content = self.tr('Unable to get contact:\n%s\n') % to_unicode(error)
         if logging.root.level <= logging.DEBUG:
             content += u'\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while getting contact'),
