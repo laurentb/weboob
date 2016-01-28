@@ -22,6 +22,7 @@ from __future__ import print_function
 import sys
 import logging
 import re
+import gc
 from threading import Event
 from copy import copy
 from PyQt5.QtCore import QTimer, QObject, QSize, QVariant, QMutex, Qt
@@ -181,6 +182,9 @@ class QtApplication(QApplication, Application):
             QMessageBox.information(None, self.tr('Update of repositories'),
                                     self.tr('Repositories updated!'), QMessageBox.Ok)
 
+    def deinit(self):
+        super(QtApplication, self).deinit()
+        gc.collect()
 
 class QtMainWindow(QMainWindow):
     def __init__(self, parent=None):
