@@ -60,7 +60,7 @@ class KickassModule(Module, CapTorrent):
 
     def fill_torrent(self, torrent, fields):
         if 'description' in fields or 'files' in fields:
-            torrent = self.browser.get_torrent(torrent.id, torrent)
+            torrent = self.browser.get_torrent(torrent.id)
         return torrent
 
     OBJECTS = {

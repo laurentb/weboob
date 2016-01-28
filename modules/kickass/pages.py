@@ -31,12 +31,12 @@ class SearchPage(HTMLPage):
 
     @method
     class iter_torrents(ListElement):
-        item_xpath = '//table[has-class("data")]/tbody/tr[@class="odd" or @class="even"]'
+        item_xpath = '//table[has-class("data")]//tr[@class="odd" or @class="even"]'
 
         class item(ItemElement):
             klass = Torrent
             obj_id = Regexp(CleanText('.//div[@class="torrentname"]//a[@class="cellMainLink"]/@href'),
-                    '.*([0-9])\.html')
+                    '.*-t([0-9]*).html')
             obj_name = CleanText('.//a[@class="cellMainLink"]', default=NotAvailable)
             obj_magnet = CleanText('.//div[has-class("iaconbox")]//a[starts-with(@href,"magnet")]/@href', default=NotAvailable)
             obj_seeders = CleanText('.//td[has-class("green") and has-class("center")]', default=NotAvailable) & Type(type=int)
