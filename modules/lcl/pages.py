@@ -164,7 +164,7 @@ class LoginPage(HTMLPage):
 
     def is_error(self):
         errors = self.doc.xpath(u'//*[@class="erreur" or @class="messError"]')
-        return len(errors) > 0
+        return len(errors) > 0 and not self.doc.xpath('//a[@href="/outil/UWHO/Accueil/"]')
 
 
 class ContractsPage(LoginPage):
@@ -201,6 +201,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return '/outil/UWLM/ListeMouvement' in self.el.attrib['onclick']
 
             NATURE2TYPE = {'001': Account.TYPE_SAVINGS,
+                           '005': Account.TYPE_CHECKING,
                            '006': Account.TYPE_CHECKING,
                            '007': Account.TYPE_SAVINGS,
                            '012': Account.TYPE_SAVINGS,
