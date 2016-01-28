@@ -34,8 +34,8 @@ class GroupamaesBrowser(LoginBrowser):
     login = URL('/groupama-es/fr/index.html', LoginPage)
     login_error = URL('/groupama-es/fr/identification/default.cgi', LoginErrorPage)
     avoir = URL('/groupama-es/fr/espace/devbavoirs.aspx\?mode=net&menu=cpte(?P<page>.*)', AvoirPage)
-    operations_traitees = URL('/groupama-es/fr/espace/ListeOperations.asp\?TypeOperation=T', OperationsTraiteesPage)
-    operations_futures = URL('/groupama-es/fr/espace/ListeOperations.asp\?TypeOperation=E', OperationsFuturesPage)
+    operations_traitees = URL('/groupama-es/fr/espace/ListeOperations.asp\?TypeOperation_=T', OperationsTraiteesPage)
+    operations_futures = URL('/groupama-es/fr/espace/ListeOperations.asp\?TypeOperation_=E', OperationsFuturesPage)
 
     def do_login(self):
         self.login.stay_or_go()
