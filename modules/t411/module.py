@@ -52,7 +52,7 @@ class T411Module(Module, CapTorrent):
         if not torrent:
             return None
 
-        resp = self.browser.open(torrent.url.encode('utf-8'))
+        resp = self.browser.open(torrent.url)
         return resp.content
 
     def iter_torrents(self, pattern):

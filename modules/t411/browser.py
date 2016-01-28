@@ -57,6 +57,7 @@ class T411Browser(LoginBrowser):
     def iter_torrents(self, pattern):
         return self.search.go(pattern=pattern).iter_torrents()
 
+    @need_login
     def get_torrent(self, fullid, torrent=None):
         try:
             self.torrent.go(id=fullid)

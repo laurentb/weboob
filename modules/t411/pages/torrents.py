@@ -26,7 +26,7 @@ from weboob.capabilities.base import NotLoaded, NotAvailable
 
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.filters.standard import Regexp, CleanText, Type
+from weboob.browser.filters.standard import Regexp, CleanText, Type, Format
 from weboob.browser.filters.html import CleanHTML
 
 
@@ -45,7 +45,7 @@ class SearchPage(LoggedPage, HTMLPage):
             obj_leechers = CleanText('./td[9]') & Type(type=int)
             obj_description = NotLoaded
             obj_files = NotLoaded
-            obj_filename = NotLoaded
+            obj_filename = Format('%s.torrent',CleanText('./td[2]/a/@title'))
             obj_magnet = NotAvailable
 
             def obj_url(self):
@@ -72,7 +72,7 @@ class TorrentPage(LoggedPage, HTMLPage):
             description = re.sub(r'\s\s+', '\n\n', strippedlines)
             return description
 
-        obj_name = CleanText('//div[@class=torrentDetails]/h2/span')
+        obj_name = CleanText('//div[has-class("torrentDetails")]/h2/span/text()')
 
         obj_id = CleanText('//input[@id="torrent-id"][1]/@value')
 
@@ -81,7 +81,7 @@ class TorrentPage(LoggedPage, HTMLPage):
             downurl = 'https://www.t411.in/torrents/download/?id=%s'%fullid
             return downurl
 
-        obj_filename = CleanText('//div[@class="accordion"]/tr[th="Torrent"]/td')
+        obj_filename = CleanText('//div[@class="accordion"]//tr[th="Torrent"]/td')
         def obj_size(self):
             rawsize = CleanText('//div[@class="accordion"]//tr[th="Taille totale"]/td')(self)
             nsize = float(rawsize.split()[0])
