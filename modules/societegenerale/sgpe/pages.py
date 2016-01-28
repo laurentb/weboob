@@ -120,6 +120,7 @@ class LoginPage(SGPEPage):
 
 class AccountsPage(SGPEPage):
     TYPES = {u'COMPTE COURANT':       Account.TYPE_CHECKING,
+             u'COMPTE PERSONNEL':     Account.TYPE_CHECKING,
             }
 
     def get_list(self):
