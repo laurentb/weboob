@@ -75,11 +75,20 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             obj_label = Label(CleanText('./td[1]/a'))
             obj_coming = Env('coming')
-            obj_balance = CleanDecimal('./td[3]', replace_dots=True)
             obj_currency = FrenchTransaction.Currency('./td[3]')
             obj__link_id = Link('./td[1]/a')
             obj_type = Type(Field('label'))
             obj_coming = NotAvailable
+
+            @property
+            def obj_balance(self):
+                if self.el.xpath('./parent::*/tr/th') and self.el.xpath('./parent::*/tr/th')[0].text == 'Credits':
+                    balance = CleanDecimal(replace_dots=True).filter(self.el.xpath('./td[3]'))
+                    if balance < 0:
+                        return balance
+                    else:
+                        return -balance
+                return CleanDecimal(replace_dots=True).filter(self.el.xpath('./td[3]'))
 
             @property
             def obj_id(self):
