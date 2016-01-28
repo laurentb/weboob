@@ -17,17 +17,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt4.QtGui import QDialog, QListWidgetItem, QMessageBox
-from PyQt4.QtCore import SIGNAL, Qt
+from PyQt5.QtWidgets import QDialog, QListWidgetItem, QMessageBox
+from PyQt5.QtCore import Qt, pyqtSlot as Slot
 
-from weboob.tools.application.qt import QtDo, HTMLDelegate
+from weboob.tools.application.qt5 import QtDo, HTMLDelegate
 
 from .ui.query_ui import Ui_QueryDialog
 
 
 class QueryDialog(QDialog):
     def __init__(self, weboob, parent=None):
-        QDialog.__init__(self, parent)
+        super(QueryDialog, self).__init__(parent)
         self.ui = Ui_QueryDialog()
         self.ui.setupUi(self)
 
@@ -37,10 +37,10 @@ class QueryDialog(QDialog):
 
         self.search_process = None
 
-        self.connect(self.ui.cityEdit, SIGNAL('returnPressed()'), self.searchCity)
-        self.connect(self.ui.resultsList, SIGNAL('itemDoubleClicked(QListWidgetItem*)'), self.insertCity)
-        self.connect(self.ui.citiesList, SIGNAL('itemDoubleClicked(QListWidgetItem*)'), self.removeCity)
-        self.connect(self.ui.buttonBox, SIGNAL('accepted()'), self.okButton)
+        self.ui.cityEdit.returnPressed.connect(self.searchCity)
+        self.ui.resultsList.itemDoubleClicked.connect(self.insertCity)
+        self.ui.citiesList.itemDoubleClicked.connect(self.removeCity)
+        self.ui.buttonBox.accepted.connect(self.okButton)
 
         if hasattr(self.ui.cityEdit, "setPlaceholderText"):
             self.ui.cityEdit.setPlaceholderText("Press enter to search city")
@@ -57,8 +57,9 @@ class QueryDialog(QDialog):
                 box.setCurrentIndex(i)
                 break
 
+    @Slot()
     def searchCity(self):
-        pattern = unicode(self.ui.cityEdit.text())
+        pattern = self.ui.cityEdit.text()
         self.ui.resultsList.clear()
         self.ui.cityEdit.clear()
         self.ui.cityEdit.setEnabled(False)
@@ -83,15 +84,18 @@ class QueryDialog(QDialog):
         item.setData(Qt.UserRole, city)
         return item
 
+    @Slot(object)
     def insertCity(self, i):
         item = QListWidgetItem()
         item.setText(i.text())
         item.setData(Qt.UserRole, i.data(Qt.UserRole))
         self.ui.citiesList.addItem(item)
 
+    @Slot(object)
     def removeCity(self, item):
         self.ui.citiesList.removeItemWidget(item)
 
+    @Slot()
     def okButton(self):
         if not self.ui.nameEdit.text():
             QMessageBox.critical(self, self.tr('Error'), self.tr('Please enter a name to your query.'), QMessageBox.Ok)

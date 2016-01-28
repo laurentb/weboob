@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt4.QtCore import SIGNAL
+from PyQt5.QtCore import pyqtSlot as Slot
 
-from weboob.tools.application.qt import QtMainWindow
-from weboob.tools.application.qt.backendcfg import BackendCfg
+from weboob.tools.application.qt5 import QtMainWindow
+from weboob.tools.application.qt5.backendcfg import BackendCfg
 from weboob.capabilities.messages import CapMessages
 
 from .ui.main_window_ui import Ui_MainWindow
@@ -29,7 +29,7 @@ from .messages_manager import MessagesManager
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, weboob, parent=None):
-        QtMainWindow.__init__(self, parent)
+        super(MainWindow, self).__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -39,18 +39,20 @@ class MainWindow(QtMainWindow):
 
         self.setCentralWidget(self.manager)
 
-        self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
-        self.connect(self.ui.actionRefresh, SIGNAL("triggered()"), self.refresh)
+        self.ui.actionBackends.triggered.connect(self.backendsConfig)
+        self.ui.actionRefresh.triggered.connect(self.refresh)
 
         if self.weboob.count_backends() == 0:
             self.backendsConfig()
         else:
             self.centralWidget().load()
 
+    @Slot()
     def backendsConfig(self):
         bckndcfg = BackendCfg(self.weboob, (CapMessages,), self)
         if bckndcfg.run():
             self.centralWidget().load()
 
+    @Slot()
     def refresh(self):
         self.centralWidget().refreshThreads()

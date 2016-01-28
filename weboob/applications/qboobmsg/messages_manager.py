@@ -22,19 +22,22 @@ from __future__ import print_function
 import time
 import logging
 
-from PyQt4.QtGui import QWidget, QTreeWidgetItem, QListWidgetItem, QMessageBox, QBrush
-from PyQt4.QtCore import SIGNAL, Qt
+from PyQt5.QtWidgets import QWidget, QTreeWidgetItem, QListWidgetItem, QMessageBox
+from PyQt5.QtGui import QBrush
+from PyQt5.QtCore import Qt, pyqtSignal as Signal, pyqtSlot as Slot
 
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Message
-from weboob.tools.application.qt import QtDo
+from weboob.tools.application.qt5 import QtDo
 from weboob.tools.misc import to_unicode
 
 from .ui.messages_manager_ui import Ui_MessagesManager
 
 
 class MessagesManager(QWidget):
+    display_contact = Signal(object)
+
     def __init__(self, weboob, parent=None):
-        QWidget.__init__(self, parent)
+        super(MessagesManager, self).__init__(parent)
         self.ui = Ui_MessagesManager()
         self.ui.setupUi(self)
 
@@ -48,13 +51,13 @@ class MessagesManager(QWidget):
         self.ui.replyButton.setEnabled(False)
         self.ui.replyWidget.hide()
 
-        self.connect(self.ui.backendsList, SIGNAL('itemSelectionChanged()'), self._backendChanged)
-        self.connect(self.ui.threadsList,  SIGNAL('itemSelectionChanged()'), self._threadChanged)
-        self.connect(self.ui.messagesTree, SIGNAL('itemClicked(QTreeWidgetItem *, int)'), self._messageSelected)
-        self.connect(self.ui.messagesTree, SIGNAL('itemActivated(QTreeWidgetItem *, int)'), self._messageSelected)
-        self.connect(self.ui.profileButton, SIGNAL('clicked()'), self._profilePressed)
-        self.connect(self.ui.replyButton, SIGNAL('clicked()'), self._replyPressed)
-        self.connect(self.ui.sendButton, SIGNAL('clicked()'), self._sendPressed)
+        self.ui.backendsList.itemSelectionChanged.connect(self._backendChanged)
+        self.ui.threadsList.itemSelectionChanged.connect(self._threadChanged)
+        self.ui.messagesTree.itemClicked.connect(self._messageSelected)
+        self.ui.messagesTree.itemActivated.connect(self._messageSelected)
+        self.ui.profileButton.clicked.connect(self._profilePressed)
+        self.ui.replyButton.clicked.connect(self._replyPressed)
+        self.ui.sendButton.clicked.connect(self._sendPressed)
 
     def load(self):
         self.ui.backendsList.clear()
@@ -69,13 +72,14 @@ class MessagesManager(QWidget):
 
         self.refreshThreads()
 
+    @Slot()
     def _backendChanged(self):
         selection = self.ui.backendsList.selectedItems()
         if not selection:
             self.backend = None
             return
 
-        self.backend = selection[0].data(Qt.UserRole).toPyObject()
+        self.backend = selection[0].data(Qt.UserRole)
         self.refreshThreads()
 
     def refreshThreads(self):
@@ -101,13 +105,14 @@ class MessagesManager(QWidget):
         item.setData(Qt.UserRole, (thread.backend, thread.id))
         self.ui.threadsList.addItem(item)
 
+    @Slot()
     def _threadChanged(self):
         self.ui.messagesTree.clear()
         selection = self.ui.threadsList.selectedItems()
         if not selection:
             return
 
-        t = selection[0].data(Qt.UserRole).toPyObject()
+        t = selection[0].data(Qt.UserRole)
         self.refreshThreadMessages(*t)
 
     def refreshThreadMessages(self, backend, id):
@@ -159,8 +164,9 @@ class MessagesManager(QWidget):
             for child in message.children:
                 self._insert_message(child, top and item)
 
+    @Slot(object, object)
     def _messageSelected(self, item, column):
-        message = item.data(0, Qt.UserRole).toPyObject()
+        message = item.data(0, Qt.UserRole)
 
         self.showMessage(message, item)
 
@@ -207,9 +213,10 @@ class MessagesManager(QWidget):
         else:
             self.ui.profileButton.hide()
 
+    @Slot()
     def _profilePressed(self):
         print(self.thread.id)
-        self.emit(SIGNAL('display_contact'), self.thread.id)
+        self.display_contact.emit(self.thread.id)
 
     def displayReply(self):
         self.ui.replyButton.setText(self.tr('Cancel'))
@@ -221,18 +228,20 @@ class MessagesManager(QWidget):
         self.ui.replyEdit.clear()
         self.ui.titleEdit.clear()
 
+    @Slot()
     def _replyPressed(self):
         if self.ui.replyWidget.isVisible():
             self.hideReply()
         else:
             self.displayReply()
 
+    @Slot()
     def _sendPressed(self):
         if not self.ui.replyWidget.isVisible():
             return
 
-        text = unicode(self.ui.replyEdit.toPlainText())
-        title = unicode(self.ui.titleEdit.text())
+        text = self.ui.replyEdit.toPlainText()
+        title = self.ui.titleEdit.text()
 
         self.ui.backendsList.setEnabled(False)
         self.ui.threadsList.setEnabled(False)
@@ -267,7 +276,7 @@ class MessagesManager(QWidget):
         self.refreshThreadMessages(self.thread.backend, self.thread.id)
 
     def _postReply_eb(self, backend, error, backtrace):
-        content = unicode(self.tr('Unable to send message:\n%s\n')) % to_unicode(error)
+        content = self.tr('Unable to send message:\n%s\n') % to_unicode(error)
         if logging.root.level <= logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while posting reply'),

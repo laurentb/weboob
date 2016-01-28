@@ -17,13 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt4.QtGui import QListWidgetItem, QImage, QPixmap, QLabel, QIcon, QBrush, QColor
-from PyQt4.QtCore import SIGNAL, Qt
+from PyQt5.QtGui import QImage, QPixmap, QIcon, QBrush, QColor
+from PyQt5.QtWidgets import QLabel, QListWidgetItem
+from PyQt5.QtCore import Qt, pyqtSlot as Slot
 
 from decimal import Decimal
 
-from weboob.tools.application.qt import QtMainWindow, QtDo, HTMLDelegate
-from weboob.tools.application.qt.backendcfg import BackendCfg
+from weboob.tools.application.qt5 import QtMainWindow, QtDo, HTMLDelegate
+from weboob.tools.application.qt5.backendcfg import BackendCfg
 from weboob.capabilities.housing import CapHousing, Query, City
 from weboob.capabilities.base import NotLoaded, NotAvailable
 
@@ -33,7 +34,7 @@ from .query import QueryDialog
 
 class HousingListWidgetItem(QListWidgetItem):
     def __init__(self, housing, *args, **kwargs):
-        QListWidgetItem.__init__(self, *args, **kwargs)
+        super(HousingListWidgetItem, self).__init__(*args, **kwargs)
         self.housing = housing
         self.read = True
 
@@ -60,7 +61,7 @@ class HousingListWidgetItem(QListWidgetItem):
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, storage, weboob, app, parent=None):
-        QtMainWindow.__init__(self, parent)
+        super(MainWindow, self).__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -77,16 +78,16 @@ class MainWindow(QtMainWindow):
         self.ui.housingsList.setItemDelegate(HTMLDelegate())
         self.ui.housingFrame.hide()
 
-        self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
-        self.connect(self.ui.queriesList, SIGNAL('currentIndexChanged(int)'), self.queryChanged)
-        self.connect(self.ui.addQueryButton, SIGNAL('clicked()'), self.addQuery)
-        self.connect(self.ui.editQueryButton, SIGNAL('clicked()'), self.editQuery)
-        self.connect(self.ui.removeQueryButton, SIGNAL('clicked()'), self.removeQuery)
-        self.connect(self.ui.bookmarksButton, SIGNAL('clicked()'), self.displayBookmarks)
-        self.connect(self.ui.housingsList, SIGNAL('currentItemChanged(QListWidgetItem*, QListWidgetItem*)'), self.housingSelected)
-        self.connect(self.ui.previousButton, SIGNAL('clicked()'), self.previousClicked)
-        self.connect(self.ui.nextButton, SIGNAL('clicked()'), self.nextClicked)
-        self.connect(self.ui.bookmark, SIGNAL('stateChanged(int)'), self.bookmarkChanged)
+        self.ui.actionBackends.triggered.connect(self.backendsConfig)
+        self.ui.queriesList.currentIndexChanged.connect(self.queryChanged)
+        self.ui.addQueryButton.clicked.connect(self.addQuery)
+        self.ui.editQueryButton.clicked.connect(self.editQuery)
+        self.ui.removeQueryButton.clicked.connect(self.removeQuery)
+        self.ui.bookmarksButton.clicked.connect(self.displayBookmarks)
+        self.ui.housingsList.currentItemChanged.connect(self.housingSelected)
+        self.ui.previousButton.clicked.connect(self.previousClicked)
+        self.ui.nextButton.clicked.connect(self.nextClicked)
+        self.ui.bookmark.stateChanged.connect(self.bookmarkChanged)
 
         self.reloadQueriesList()
         self.refreshHousingsList()
@@ -101,25 +102,27 @@ class MainWindow(QtMainWindow):
         self.setHousing(None)
         QtMainWindow.closeEvent(self, event)
 
+    @Slot()
     def backendsConfig(self):
         bckndcfg = BackendCfg(self.weboob, (CapHousing,), self)
         if bckndcfg.run():
             pass
 
     def reloadQueriesList(self, select_name=None):
-        self.disconnect(self.ui.queriesList, SIGNAL('currentIndexChanged(int)'), self.queryChanged)
+        self.ui.queriesList.currentIndexChanged.disconnect(self.queryChanged)
         self.ui.queriesList.clear()
         for name in self.config.get('queries', default={}).iterkeys():
             self.ui.queriesList.addItem(name)
             if name == select_name:
                 self.ui.queriesList.setCurrentIndex(len(self.ui.queriesList)-1)
-        self.connect(self.ui.queriesList, SIGNAL('currentIndexChanged(int)'), self.queryChanged)
+        self.ui.queriesList.currentIndexChanged.connect(self.queryChanged)
 
         if select_name is not None:
             self.queryChanged()
 
+    @Slot()
     def removeQuery(self):
-        name = unicode(self.ui.queriesList.itemText(self.ui.queriesList.currentIndex()))
+        name = self.ui.queriesList.itemText(self.ui.queriesList.currentIndex())
         queries = self.config.get('queries')
         queries.pop(name, None)
         self.config.set('queries', queries)
@@ -128,10 +131,12 @@ class MainWindow(QtMainWindow):
         self.reloadQueriesList()
         self.queryChanged()
 
+    @Slot()
     def editQuery(self):
-        name = unicode(self.ui.queriesList.itemText(self.ui.queriesList.currentIndex()))
+        name = self.ui.queriesList.itemText(self.ui.queriesList.currentIndex())
         self.addQuery(name)
 
+    @Slot()
     def addQuery(self, name=None):
         querydlg = QueryDialog(self.weboob, self)
         if name is not None:
@@ -153,13 +158,13 @@ class MainWindow(QtMainWindow):
             querydlg.selectComboValue(querydlg.ui.nbRooms, query['nb_rooms'])
 
         if querydlg.exec_():
-            name = unicode(querydlg.ui.nameEdit.text())
+            name = querydlg.ui.nameEdit.text()
             query = {}
             query['type'] = querydlg.ui.typeBox.currentIndex()
             query['cities'] = []
             for i in xrange(len(querydlg.ui.citiesList)):
                 item = querydlg.ui.citiesList.item(i)
-                city = item.data(Qt.UserRole).toPyObject()
+                city = item.data(Qt.UserRole)
                 query['cities'].append({'id': city.id, 'backend': city.backend, 'name': city.name})
             query['area_min'] = querydlg.ui.areaMin.value()
             query['area_max'] = querydlg.ui.areaMax.value()
@@ -174,11 +179,12 @@ class MainWindow(QtMainWindow):
 
             self.reloadQueriesList(name)
 
+    @Slot(object)
     def queryChanged(self, i=None):
         self.refreshHousingsList()
 
     def refreshHousingsList(self):
-        name = unicode(self.ui.queriesList.itemText(self.ui.queriesList.currentIndex()))
+        name = self.ui.queriesList.itemText(self.ui.queriesList.currentIndex())
         q = self.config.get('queries', name)
 
         if q is None:
@@ -206,6 +212,7 @@ class MainWindow(QtMainWindow):
         self.process = QtDo(self.weboob, self.addHousing, fb=self.addHousingEnd)
         self.process.do(self.app._do_complete, 20, (), 'search_housings', query)
 
+    @Slot()
     def displayBookmarks(self):
         self.ui.housingsList.clear()
         self.ui.queriesList.setEnabled(False)
@@ -246,6 +253,7 @@ class MainWindow(QtMainWindow):
         if housing.fullid in self.process_bookmarks:
             self.process_bookmarks.pop(housing.fullid)
 
+    @Slot(object, object)
     def housingSelected(self, item, prev):
         if item is not None:
             housing = item.housing
@@ -338,6 +346,7 @@ class MainWindow(QtMainWindow):
         self.ui.queriesFrame.setEnabled(True)
         self.process = None
 
+    @Slot(object)
     def bookmarkChanged(self, state):
         bookmarks = set(self.storage.get('bookmarks'))
         if state == Qt.Checked:
@@ -350,19 +359,21 @@ class MainWindow(QtMainWindow):
     def saveNotes(self):
         if not self.housing:
             return
-        txt = unicode(self.ui.notesEdit.toPlainText()).strip()
+        txt = self.ui.notesEdit.toPlainText().strip()
         if len(txt) > 0:
             self.storage.set('notes', self.housing.fullid, txt)
         else:
             self.storage.delete('notes', self.housing.fullid)
         self.storage.save()
 
+    @Slot()
     def previousClicked(self):
         if not self.housing.photos or len(self.housing.photos) == 0:
             return
         self.displayed_photo_idx = (self.displayed_photo_idx - 1) % len(self.housing.photos)
         self.display_photo()
 
+    @Slot()
     def nextClicked(self):
         if not self.housing.photos or len(self.housing.photos) == 0:
             return
