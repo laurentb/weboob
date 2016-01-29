@@ -21,7 +21,7 @@
 from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.base import StringField
 from weboob.capabilities.gauge import CapGauge, GaugeSensor, Gauge, GaugeMeasure, SensorNotFound
-from weboob.tools.value import Value
+from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.ordereddict import OrderedDict
 
 from .browser import VelibBrowser
@@ -64,11 +64,17 @@ class jcvelauxModule(Module, CapGauge):
     STORAGE = {'boards': {}}
 
     CONFIG = BackendConfig(Value('city', label='City', default='Paris',
-                                 choices=CITIES + ("ALL",)))
+                                 choices=CITIES + ("ALL",)),
+                           ValueBackendPassword('api_key', label='Optional API key',
+                                                default='', noprompt=True))
 
     def __init__(self, *a, **kw):
         super(jcvelauxModule, self).__init__(*a, **kw)
         self.cities = None
+
+    def create_default_browser(self):
+        api_key = self.config['api_key'].get()
+        return self.create_browser(api_key)
 
     def _make_gauge(self, info):
         gauge = Gauge(info['id'])

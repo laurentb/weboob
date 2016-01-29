@@ -31,15 +31,16 @@ class VelibBrowser(Browser):
     API_KEY = '2282a34b49cf45d8129cdf93d88762914cece88b'
     BASE_URL = 'https://api.jcdecaux.com/vls/v1/'
 
-    def __init__(self, *a, **kw):
+    def __init__(self, api_key, *a, **kw):
         kw['parser'] = 'json'
         Browser.__init__(self, *a, **kw)
+        self.api_key = api_key or VelibBrowser.API_KEY
 
     def do_get(self, path, **query):
         qs = '&'.join('%s=%s' % kv for kv in query.items())
         if qs:
             qs = '&' + qs
-        url = '%s%s?apiKey=%s%s' % (self.BASE_URL, path, self.API_KEY, qs)
+        url = '%s%s?apiKey=%s%s' % (self.BASE_URL, path, self.api_key, qs)
         return self.get_document(self.openurl(url))
 
     def get_contracts_list(self):
