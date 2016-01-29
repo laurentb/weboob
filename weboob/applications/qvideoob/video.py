@@ -18,16 +18,16 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from PyQt4.QtCore import QUrl
-from PyQt4.QtGui import QDialog
-from PyQt4.phonon import Phonon
+from PyQt5.QtCore import QUrl, pyqtSlot as Slot
+from PyQt5.QtWidgets import QDialog
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 
 from weboob.applications.qvideoob.ui.video_ui import Ui_Video
 
 
 class Video(QDialog):
     def __init__(self, video, parent=None):
-        QDialog.__init__(self, parent)
+        super(Video, self).__init__(parent)
         self.ui = Ui_Video()
         self.ui.setupUi(self)
 
@@ -43,14 +43,32 @@ class Video(QDialog):
         else:
             self.ui.ratingLabel.setText('%s' % video.rating)
 
-        self.ui.seekSlider.setMediaObject(self.ui.videoPlayer.mediaObject())
-        self.ui.videoPlayer.load(Phonon.MediaSource(QUrl(video.url)))
-        self.ui.videoPlayer.play()
+        self.mediaPlayer = QMediaPlayer()
+
+        self.mediaPlayer.durationChanged.connect(self._setMax)
+        self.mediaPlayer.seekableChanged.connect(self.ui.seekSlider.setEnabled)
+        self.mediaPlayer.positionChanged.connect(self._slide)
+        self.ui.seekSlider.valueChanged.connect(self.mediaPlayer.setPosition)
+
+        mc = QMediaContent(QUrl(video.url))
+        self.mediaPlayer.setMedia(mc)
+        self.ui.videoPlayer.setMediaObject(self.mediaPlayer)
+        self.mediaPlayer.play()
+
+    @Slot(object)
+    def _slide(self, pos):
+        blocking = self.ui.seekSlider.blockSignals(True)
+        self.ui.seekSlider.setValue(pos)
+        self.ui.seekSlider.blockSignals(blocking)
+
+    @Slot(object)
+    def _setMax(self, duration):
+        self.ui.seekSlider.setMaximum(duration)
 
     def closeEvent(self, event):
-        self.ui.videoPlayer.stop()
+        self.mediaPlayer.stop()
         event.accept()
 
     def hideEvent(self, event):
-        self.ui.videoPlayer.stop()
+        self.mediaPlayer.stop()
         event.accept()

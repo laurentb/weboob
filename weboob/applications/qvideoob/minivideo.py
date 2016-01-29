@@ -18,16 +18,17 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from PyQt4.QtGui import QFrame, QImage, QPixmap
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtWidgets import QFrame
 
-from weboob.tools.application.qt import QtDo
+from weboob.tools.application.qt5 import QtDo
 from weboob.applications.qvideoob.ui.minivideo_ui import Ui_MiniVideo
 from .video import Video
 
 
 class MiniVideo(QFrame):
     def __init__(self, weboob, backend, video, parent=None):
-        QFrame.__init__(self, parent)
+        super(MiniVideo, self).__init__(parent)
         self.ui = Ui_MiniVideo()
         self.ui.setupUi(self)
 

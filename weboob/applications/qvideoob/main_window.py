@@ -18,11 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from PyQt4.QtCore import SIGNAL
+from PyQt5.QtCore import pyqtSlot as Slot
 
 from weboob.capabilities.video import CapVideo
-from weboob.tools.application.qt import QtMainWindow, QtDo
-from weboob.tools.application.qt.backendcfg import BackendCfg
+from weboob.tools.application.qt5 import QtMainWindow, QtDo
+from weboob.tools.application.qt5.backendcfg import BackendCfg
 
 from weboob.applications.qvideoob.ui.main_window_ui import Ui_MainWindow
 
@@ -32,7 +32,7 @@ from .minivideo import MiniVideo
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, weboob, app, parent=None):
-        QtMainWindow.__init__(self, parent)
+        super(MainWindow, self).__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -45,18 +45,19 @@ class MainWindow(QtMainWindow):
         self.ui.nsfwCheckBox.setChecked(int(self.config.get('settings', 'nsfw')))
         self.ui.sfwCheckBox.setChecked(int(self.config.get('settings', 'sfw')))
 
-        self.connect(self.ui.searchEdit, SIGNAL("returnPressed()"), self.search)
-        self.connect(self.ui.urlEdit, SIGNAL("returnPressed()"), self.openURL)
-        self.connect(self.ui.nsfwCheckBox, SIGNAL("stateChanged(int)"), self.nsfwChanged)
-        self.connect(self.ui.sfwCheckBox, SIGNAL("stateChanged(int)"), self.sfwChanged)
+        self.ui.searchEdit.returnPressed.connect(self.search)
+        self.ui.urlEdit.returnPressed.connect(self.openURL)
+        self.ui.nsfwCheckBox.stateChanged.connect(self.nsfwChanged)
+        self.ui.sfwCheckBox.stateChanged.connect(self.sfwChanged)
 
-        self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
+        self.ui.actionBackends.triggered.connect(self.backendsConfig)
 
         self.loadBackendsList()
 
         if self.ui.backendEdit.count() == 0:
             self.backendsConfig()
 
+    @Slot()
     def backendsConfig(self):
         bckndcfg = BackendCfg(self.weboob, (CapVideo,), self)
         if bckndcfg.run():
@@ -78,10 +79,12 @@ class MainWindow(QtMainWindow):
             self.ui.searchEdit.setEnabled(True)
             self.ui.urlEdit.setEnabled(True)
 
+    @Slot(object)
     def nsfwChanged(self, state):
         self.config.set('settings', 'nsfw', int(self.ui.nsfwCheckBox.isChecked()))
         self.updateVideosDisplay()
 
+    @Slot(object)
     def sfwChanged(self, state):
         self.config.set('settings', 'sfw', int(self.ui.sfwCheckBox.isChecked()))
         self.updateVideosDisplay()
@@ -94,8 +97,9 @@ class MainWindow(QtMainWindow):
             else:
                 minivideo.hide()
 
+    @Slot()
     def search(self):
-        pattern = unicode(self.ui.searchEdit.text())
+        pattern = self.ui.searchEdit.text()
         if not pattern:
             return
 
@@ -107,7 +111,7 @@ class MainWindow(QtMainWindow):
         self.minivideos = []
         self.ui.searchEdit.setEnabled(False)
 
-        backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
+        backend_name = self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex())
 
         def finished():
             self.ui.searchEdit.setEnabled(True)
@@ -124,8 +128,9 @@ class MainWindow(QtMainWindow):
                 not video.nsfw and not self.ui.sfwCheckBox.isChecked()):
             minivideo.hide()
 
+    @Slot()
     def openURL(self):
-        url = unicode(self.ui.urlEdit.text())
+        url = self.ui.urlEdit.text()
         if not url:
             return
 
@@ -138,7 +143,7 @@ class MainWindow(QtMainWindow):
         self.ui.urlEdit.clear()
 
     def closeEvent(self, ev):
-        self.config.set('settings', 'backend', str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString()))
+        self.config.set('settings', 'backend', self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()))
         self.config.set('settings', 'sortby', self.ui.sortbyEdit.currentIndex())
         self.config.save()
         ev.accept()
