@@ -19,8 +19,9 @@
 
 import urllib
 
-from PyQt4.QtGui import QFrame, QImage, QPixmap, QApplication
-from PyQt4.QtCore import Qt, SIGNAL
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtWidgets import QFrame, QApplication
+from PyQt5.QtCore import Qt, pyqtSlot as Slot
 
 from weboob.applications.qcookboob.ui.minirecipe_ui import Ui_MiniRecipe
 from weboob.capabilities.base import empty
@@ -28,7 +29,7 @@ from weboob.capabilities.base import empty
 
 class MiniRecipe(QFrame):
     def __init__(self, weboob, backend, recipe, parent=None):
-        QFrame.__init__(self, parent)
+        super(MiniRecipe, self).__init__(parent)
         self.parent = parent
         self.ui = Ui_MiniRecipe()
         self.ui.setupUi(self)
@@ -46,19 +47,21 @@ class MiniRecipe(QFrame):
             self.ui.shortDescLabel.setText('')
         self.ui.backendLabel.setText(backend.name)
 
-        self.connect(self.ui.newTabButton, SIGNAL("clicked()"), self.newTabPressed)
-        self.connect(self.ui.viewButton, SIGNAL("clicked()"), self.viewPressed)
-        self.connect(self.ui.viewThumbnailButton, SIGNAL("clicked()"), self.gotThumbnail)
+        self.ui.newTabButton.clicked.connect(self.newTabPressed)
+        self.ui.viewButton.clicked.connect(self.viewPressed)
+        self.ui.viewThumbnailButton.clicked.connect(self.gotThumbnail)
 
         if self.parent.parent.ui.showTCheck.isChecked():
             self.gotThumbnail()
 
+    @Slot()
     def gotThumbnail(self):
         if not empty(self.recipe.thumbnail_url):
             data = urllib.urlopen(self.recipe.thumbnail_url).read()
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToHeight(100,Qt.SmoothTransformation))
 
+    @Slot()
     def viewPressed(self):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         recipe = self.backend.get_recipe(self.recipe.id)
@@ -66,6 +69,7 @@ class MiniRecipe(QFrame):
             self.parent.doAction('Details of recipe "%s"' %
                                  recipe.title, self.parent.displayRecipe, [recipe, self.backend])
 
+    @Slot()
     def newTabPressed(self):
         recipe = self.backend.get_recipe(self.recipe.id)
         self.parent.parent.newTab(u'Details of recipe "%s"' %

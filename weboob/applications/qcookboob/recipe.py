@@ -22,8 +22,9 @@ from __future__ import print_function
 import urllib
 import codecs
 
-from PyQt4.QtCore import Qt, SIGNAL
-from PyQt4.QtGui import QFrame, QImage, QPixmap, QFileDialog
+from PyQt5.QtCore import Qt, pyqtSlot as Slot
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtWidgets import QFrame, QFileDialog
 
 from weboob.applications.qcookboob.ui.recipe_ui import Ui_Recipe
 from weboob.capabilities.base import empty
@@ -31,12 +32,12 @@ from weboob.capabilities.base import empty
 
 class Recipe(QFrame):
     def __init__(self, recipe, backend, parent=None):
-        QFrame.__init__(self, parent)
+        super(Recipe, self).__init__(parent)
         self.parent = parent
         self.ui = Ui_Recipe()
         self.ui.setupUi(self)
 
-        self.connect(self.ui.exportButton, SIGNAL("clicked()"), self.export)
+        self.ui.exportButton.clicked.connect(self.export)
 
         self.recipe = recipe
         self.backend = backend
@@ -90,6 +91,7 @@ class Recipe(QFrame):
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToWidth(250, Qt.SmoothTransformation))
 
+    @Slot()
     def export(self):
         fileDial = QFileDialog(self, 'Export "%s" recipe' %
                                self.recipe.title, '%s.kreml' % self.recipe.title.replace('/', ','), 'Krecipe file (*.kreml);;all files (*)')
@@ -101,7 +103,7 @@ class Recipe(QFrame):
             return
         result = fileDial.selectedFiles()
         if len(result) > 0:
-            dest = unicode(result[0])
+            dest = result[0]
             if not dest.endswith('.kreml'):
                 dest += '.kreml'
             data = self.recipe.toKrecipesXml(author=self.backend.name)

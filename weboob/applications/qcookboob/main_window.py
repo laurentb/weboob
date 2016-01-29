@@ -20,12 +20,13 @@
 import os
 import codecs
 
-from PyQt4.QtCore import SIGNAL, Qt, QStringList
-from PyQt4.QtGui import QApplication, QCompleter, QFrame, QShortcut, QKeySequence
+from PyQt5.QtCore import pyqtSlot as Slot, Qt
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import QApplication, QCompleter, QFrame, QShortcut
 
 from weboob.capabilities.recipe import CapRecipe
-from weboob.tools.application.qt import QtMainWindow, QtDo
-from weboob.tools.application.qt.backendcfg import BackendCfg
+from weboob.tools.application.qt5 import QtMainWindow, QtDo
+from weboob.tools.application.qt5.backendcfg import BackendCfg
 
 from weboob.applications.qcookboob.ui.main_window_ui import Ui_MainWindow
 from weboob.applications.qcookboob.ui.result_ui import Ui_Result
@@ -36,7 +37,7 @@ from .recipe import Recipe
 
 class Result(QFrame):
     def __init__(self, weboob, app, parent=None):
-        QFrame.__init__(self, parent)
+        super(Result, self).__init__(parent)
         self.ui = Ui_Result()
         self.ui.setupUi(self)
 
@@ -49,7 +50,7 @@ class Result(QFrame):
         # action history is composed by the last action and the action list
         # An action is a function, a list of arguments and a description string
         self.action_history = {'last_action': None, 'action_list': []}
-        self.connect(self.ui.backButton, SIGNAL("clicked()"), self.doBack)
+        self.ui.backButton.clicked.connect(self.doBack)
         self.ui.backButton.hide()
 
     def doAction(self, description, fun, args):
@@ -64,6 +65,7 @@ class Result(QFrame):
         self.action_history['last_action'] = {'function': fun, 'args': args, 'description': description}
         return fun(*args)
 
+    @Slot()
     def doBack(self):
         ''' Go back in action history
         Basically call previous function and update history
@@ -100,7 +102,7 @@ class Result(QFrame):
         self.parent.ui.searchEdit.setEnabled(False)
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
-        backend_name = str(self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex()).toString())
+        backend_name = self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex())
 
         self.process = QtDo(self.weboob, self.addRecipe, fb=self.processFinished)
         self.process.do(self.app._do_complete, self.parent.getCount(), ('title'), 'iter_recipes', pattern, backends=backend_name, caps=CapRecipe)
@@ -139,7 +141,7 @@ class Result(QFrame):
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, weboob, app, parent=None):
-        QtMainWindow.__init__(self, parent)
+        super(MainWindow, self).__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -153,38 +155,39 @@ class MainWindow(QtMainWindow):
         self.search_history = self.loadSearchHistory()
         self.updateCompletion()
 
-        self.connect(self.ui.searchEdit, SIGNAL("returnPressed()"), self.search)
-        self.connect(self.ui.idEdit, SIGNAL("returnPressed()"), self.searchId)
+        self.ui.searchEdit.returnPressed.connect(self.search)
+        self.ui.idEdit.returnPressed.connect(self.searchId)
 
         count = self.config.get('settings', 'maxresultsnumber')
         self.ui.countSpin.setValue(int(count))
         showT = self.config.get('settings', 'showthumbnails')
         self.ui.showTCheck.setChecked(showT == '1')
 
-        self.connect(self.ui.stopButton, SIGNAL("clicked()"), self.stopProcess)
+        self.ui.stopButton.clicked.connect(self.stopProcess)
         self.ui.stopButton.hide()
 
-        self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
+        self.ui.actionBackends.triggered.connect(self.backendsConfig)
         q = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_Q), self)
-        self.connect(q, SIGNAL("activated()"), self.close)
+        q.activated.connect(self.close)
         n = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_PageDown), self)
-        self.connect(n, SIGNAL("activated()"), self.nextTab)
+        n.activated.connect(self.nextTab)
         p = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_PageUp), self)
-        self.connect(p, SIGNAL("activated()"), self.prevTab)
+        p.activated.connect(self.prevTab)
         w = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_W), self)
-        self.connect(w, SIGNAL("activated()"), self.closeCurrentTab)
+        w.activated.connect(self.closeCurrentTab)
 
         l = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_L), self)
-        self.connect(l, SIGNAL("activated()"), self.ui.searchEdit.setFocus)
-        self.connect(l, SIGNAL("activated()"), self.ui.searchEdit.selectAll)
+        l.activated.connect(self.ui.searchEdit.setFocus)
+        l.activated.connect(self.ui.searchEdit.selectAll)
 
-        self.connect(self.ui.resultsTab, SIGNAL("tabCloseRequested(int)"), self.closeTab)
+        self.ui.resultsTab.tabCloseRequested.connect(self.closeTab)
 
         self.loadBackendsList()
 
         if self.ui.backendEdit.count() == 0:
             self.backendsConfig()
 
+    @Slot()
     def backendsConfig(self):
         bckndcfg = BackendCfg(self.weboob, (CapRecipe, ), self)
         if bckndcfg.run():
@@ -227,7 +230,7 @@ class MainWindow(QtMainWindow):
             f.close()
 
     def updateCompletion(self):
-        qc = QCompleter(QStringList(self.search_history), self)
+        qc = QCompleter(self.search_history, self)
         qc.setCaseSensitivity(Qt.CaseInsensitive)
         self.ui.searchEdit.setCompleter(qc)
 
@@ -238,24 +241,29 @@ class MainWindow(QtMainWindow):
         else:
             return num
 
+    @Slot()
     def stopProcess(self):
         self.process.process.finish_event.set()
 
+    @Slot(object)
     def closeTab(self, index):
         if self.ui.resultsTab.widget(index) != 0:
             tabToClose = self.ui.resultsTab.widget(index)
             self.ui.resultsTab.removeTab(index)
             del(tabToClose)
 
+    @Slot()
     def closeCurrentTab(self):
         self.closeTab(self.ui.resultsTab.currentIndex())
 
+    @Slot()
     def prevTab(self):
         index = self.ui.resultsTab.currentIndex() - 1
         size = self.ui.resultsTab.count()
         if size != 0:
             self.ui.resultsTab.setCurrentIndex(index % size)
 
+    @Slot()
     def nextTab(self):
         index = self.ui.resultsTab.currentIndex() + 1
         size = self.ui.resultsTab.count()
@@ -270,8 +278,9 @@ class MainWindow(QtMainWindow):
         self.ui.resultsTab.addTab(new_res, txt)
         new_res.searchId(id)
 
+    @Slot()
     def search(self):
-        pattern = unicode(self.ui.searchEdit.text())
+        pattern = self.ui.searchEdit.text()
         # arbitrary max number of completion word
         if len(self.search_history) > 50:
             self.search_history.pop(0)
@@ -284,8 +293,9 @@ class MainWindow(QtMainWindow):
         self.ui.resultsTab.setCurrentWidget(new_res)
         new_res.searchRecipe(pattern)
 
+    @Slot()
     def searchId(self):
-        id = unicode(self.ui.idEdit.text())
+        id = self.ui.idEdit.text()
         new_res = Result(self.weboob, self.app, self)
         self.ui.resultsTab.addTab(new_res, id)
         self.ui.resultsTab.setCurrentWidget(new_res)
@@ -293,8 +303,8 @@ class MainWindow(QtMainWindow):
 
 
     def closeEvent(self, ev):
-        self.config.set('settings', 'backend', str(self.ui.backendEdit.itemData(
-            self.ui.backendEdit.currentIndex()).toString()))
+        self.config.set('settings', 'backend', self.ui.backendEdit.itemData(
+            self.ui.backendEdit.currentIndex()))
         self.saveSearchHistory()
         self.config.set('settings', 'maxresultsnumber', self.ui.countSpin.value())
 
