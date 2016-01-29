@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.application.qt import QtApplication
+from weboob.tools.application.qt5 import QtApplication
 from weboob.capabilities.content import CapContent
 
 from .main_window import MainWindow

@@ -19,13 +19,13 @@
 
 import logging
 from copy import deepcopy
-from PyQt4.QtCore import SIGNAL
-from PyQt4.QtGui import QMessageBox, QTableWidgetItem
-from PyQt4.QtCore import Qt
+from PyQt5.QtCore import pyqtSlot as Slot
+from PyQt5.QtWidgets import QMessageBox, QTableWidgetItem
+from PyQt5.QtCore import Qt
 
 from weboob.tools.application.base import MoreResultsAvailable
-from weboob.tools.application.qt import QtMainWindow, QtDo
-from weboob.tools.application.qt.backendcfg import BackendCfg
+from weboob.tools.application.qt5 import QtMainWindow, QtDo
+from weboob.tools.application.qt5.backendcfg import BackendCfg
 from weboob.capabilities.content import CapContent
 from weboob.tools.misc import to_unicode
 
@@ -34,7 +34,7 @@ from .ui.main_window_ui import Ui_MainWindow
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, weboob, app, parent=None):
-        QtMainWindow.__init__(self, parent)
+        super(MainWindow, self).__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -43,27 +43,13 @@ class MainWindow(QtMainWindow):
         self.backend = None
         self.app = app
 
-        self.connect(self.ui.idEdit,
-                     SIGNAL("returnPressed()"),
-                     self.loadPage)
-        self.connect(self.ui.loadButton,
-                     SIGNAL("clicked()"),
-                     self.loadPage)
-        self.connect(self.ui.tabWidget,
-                     SIGNAL("currentChanged(int)"),
-                     self._currentTabChanged)
-        self.connect(self.ui.saveButton,
-                     SIGNAL("clicked()"),
-                     self.savePage)
-        self.connect(self.ui.actionBackends,
-                     SIGNAL("triggered()"),
-                     self.backendsConfig)
-        self.connect(self.ui.contentEdit,
-                     SIGNAL("textChanged()"),
-                     self._textChanged)
-        self.connect(self.ui.loadHistoryButton,
-                     SIGNAL("clicked()"),
-                     self.loadHistory)
+        self.ui.idEdit.returnPressed.connect(self.loadPage)
+        self.ui.loadButton.clicked.connect(self.loadPage)
+        self.ui.tabWidget.currentChanged.connect(self._currentTabChanged)
+        self.ui.saveButton.clicked.connect(self.savePage)
+        self.ui.actionBackends.triggered.connect(self.backendsConfig)
+        self.ui.contentEdit.textChanged.connect(self._textChanged)
+        self.ui.loadHistoryButton.clicked.connect(self.loadHistory)
 
         if hasattr(self.ui.descriptionEdit, "setPlaceholderText"):
             self.ui.descriptionEdit.setPlaceholderText("Edit summary")
@@ -73,6 +59,7 @@ class MainWindow(QtMainWindow):
         else:
             self.loadBackends()
 
+    @Slot()
     def backendsConfig(self):
         """ Opens backends configuration dialog when 'Backends' is clicked """
         bckndcfg = BackendCfg(self.weboob, (CapContent,), self)
@@ -85,6 +72,7 @@ class MainWindow(QtMainWindow):
         for backend in self.weboob.iter_backends():
             self.ui.backendBox.insertItem(0, backend.name)
 
+    @Slot()
     def _currentTabChanged(self):
         """ Loads history or preview when the corresponding tabs are shown """
         if self.ui.tabWidget.currentIndex() == 1:
@@ -94,15 +82,17 @@ class MainWindow(QtMainWindow):
             if self.backend is not None:
                 self.loadHistory()
 
+    @Slot()
     def _textChanged(self):
         """ The text in the content QPlainTextEdit has changed """
         if self.backend:
             self.ui.saveButton.setEnabled(True)
             self.ui.saveButton.setText('Save')
 
+    @Slot()
     def loadPage(self):
         """ Loads a page's source into the 'content' QPlainTextEdit """
-        _id = unicode(self.ui.idEdit.text())
+        _id = self.ui.idEdit.text()
         if not _id:
             return
 
@@ -110,7 +100,7 @@ class MainWindow(QtMainWindow):
         self.ui.loadButton.setText('Loading...')
         self.ui.contentEdit.setReadOnly(True)
 
-        backend = str(self.ui.backendBox.currentText())
+        backend = self.ui.backendBox.currentText()
 
         def finished():
             self.process = None
@@ -145,7 +135,7 @@ class MainWindow(QtMainWindow):
 
     def _errorLoadPage(self, backend, error, backtrace):
         """ Error callback for loadPage """
-        content = unicode(self.tr('Unable to load page:\n%s\n')) % to_unicode(error)
+        content = self.tr('Unable to load page:\n%s\n') % to_unicode(error)
         if logging.root.level <= logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while loading page'),
@@ -153,18 +143,19 @@ class MainWindow(QtMainWindow):
         self.ui.loadButton.setEnabled(True)
         self.ui.loadButton.setText("Load")
 
+    @Slot()
     def savePage(self):
         """ Saves the current page to the remote site """
         if self.backend is None:
             return
-        new_content = unicode(self.ui.contentEdit.toPlainText())
+        new_content = self.ui.contentEdit.toPlainText()
         minor = self.ui.minorBox.isChecked()
         if new_content != self.content.content:
             self.ui.saveButton.setEnabled(False)
             self.ui.saveButton.setText('Saving...')
             self.ui.contentEdit.setReadOnly(True)
             self.content.content = new_content
-            message = unicode(self.ui.descriptionEdit.text())
+            message = self.ui.descriptionEdit.text()
 
             def finished():
                 self.process = None
@@ -184,7 +175,7 @@ class MainWindow(QtMainWindow):
 
     def _errorSavePage(self, backend, error, backtrace):
         """ """
-        content = unicode(self.tr('Unable to save page:\n%s\n')) % to_unicode(error)
+        content = self.tr('Unable to save page:\n%s\n') % to_unicode(error)
         if logging.root.level <= logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while saving page'),
@@ -195,9 +186,10 @@ class MainWindow(QtMainWindow):
     def loadPreview(self):
         """ Loads the current page's preview into the preview QTextEdit """
         tmp_content = deepcopy(self.content)
-        tmp_content.content = unicode(self.ui.contentEdit.toPlainText())
+        tmp_content.content = self.ui.contentEdit.toPlainText()
         self.ui.previewEdit.setHtml(self.backend.get_content_preview(tmp_content))
 
+    @Slot()
     def loadHistory(self):
         """ Loads the page's log into the 'History' tab """
         if self.backend is None:
@@ -262,7 +254,7 @@ class MainWindow(QtMainWindow):
         if isinstance(error, MoreResultsAvailable):
             return
 
-        content = unicode(self.tr('Unable to load history:\n%s\n')) % to_unicode(error)
+        content = self.tr('Unable to load history:\n%s\n') % to_unicode(error)
         if logging.root.level <= logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while loading history'),
