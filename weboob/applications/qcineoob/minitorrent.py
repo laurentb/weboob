@@ -17,8 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt4.QtGui import QFrame
-from PyQt4.QtCore import SIGNAL
+from PyQt5.QtWidgets import QFrame
+from PyQt5.QtCore import pyqtSlot as Slot
 
 from weboob.applications.qcineoob.ui.minitorrent_ui import Ui_MiniTorrent
 from weboob.applications.weboorrents.weboorrents import sizeof_fmt
@@ -27,7 +27,7 @@ from weboob.capabilities.base import empty
 
 class MiniTorrent(QFrame):
     def __init__(self, weboob, backend, torrent, parent=None):
-        QFrame.__init__(self, parent)
+        super(MiniTorrent, self).__init__(parent)
         self.parent = parent
         self.ui = Ui_MiniTorrent()
         self.ui.setupUi(self)
@@ -42,15 +42,17 @@ class MiniTorrent(QFrame):
             self.ui.sizeLabel.setText(u'%s' % sizeof_fmt(torrent.size))
         self.ui.backendLabel.setText(backend.name)
 
-        self.connect(self.ui.newTabButton, SIGNAL("clicked()"), self.newTabPressed)
-        self.connect(self.ui.viewButton, SIGNAL("clicked()"), self.viewPressed)
+        self.ui.newTabButton.clicked.connect(self.newTabPressed)
+        self.ui.viewButton.clicked.connect(self.viewPressed)
 
+    @Slot()
     def viewPressed(self):
         torrent = self.backend.get_torrent(self.torrent.id)
         if torrent:
             self.parent.doAction('Details of torrent "%s"' %
                                  torrent.name, self.parent.displayTorrent, [torrent, self.backend])
 
+    @Slot()
     def newTabPressed(self):
         torrent = self.backend.get_torrent(self.torrent.id)
         self.parent.parent.newTab(u'Details of torrent "%s"' %

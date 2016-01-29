@@ -20,15 +20,16 @@
 import os
 import codecs
 
-from PyQt4.QtCore import SIGNAL, Qt, QStringList
-from PyQt4.QtGui import QApplication, QCompleter, QFrame, QShortcut, QKeySequence
+from PyQt5.QtCore import Qt, pyqtSlot as Slot
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import QApplication, QCompleter, QFrame, QShortcut
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.cinema import CapCinema
 from weboob.capabilities.torrent import CapTorrent
 from weboob.capabilities.subtitle import CapSubtitle
-from weboob.tools.application.qt import QtMainWindow, QtDo
-from weboob.tools.application.qt.backendcfg import BackendCfg
+from weboob.tools.application.qt5 import QtMainWindow, QtDo
+from weboob.tools.application.qt5.backendcfg import BackendCfg
 
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 from weboob.applications.qcineoob.ui.main_window_ui import Ui_MainWindow
@@ -46,7 +47,7 @@ from .subtitle import Subtitle
 
 class Result(QFrame):
     def __init__(self, weboob, app, parent=None):
-        QFrame.__init__(self, parent)
+        super(Result, self).__init__(parent)
         self.ui = Ui_Result()
         self.ui.setupUi(self)
 
@@ -59,7 +60,7 @@ class Result(QFrame):
         # action history is composed by the last action and the action list
         # An action is a function, a list of arguments and a description string
         self.action_history = {'last_action': None, 'action_list': []}
-        self.connect(self.ui.backButton, SIGNAL("clicked()"), self.doBack)
+        self.ui.backButton.clicked.connect(self.doBack)
         self.ui.backButton.hide()
 
     def doAction(self, description, fun, args):
@@ -74,6 +75,7 @@ class Result(QFrame):
         self.action_history['last_action'] = {'function': fun, 'args': args, 'description': description}
         return fun(*args)
 
+    @Slot()
     def doBack(self):
         ''' Go back in action history
         Basically call previous function and update history
@@ -228,7 +230,7 @@ class Result(QFrame):
         self.parent.ui.searchEdit.setEnabled(False)
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
-        backend_name = str(self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex()).toString())
+        backend_name = self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex())
 
         self.process = QtDo(self.weboob, self.addMovie, fb=self.processFinished)
         #self.process.do('iter_movies', pattern, backends=backend_name, caps=CapCinema)
@@ -270,7 +272,7 @@ class Result(QFrame):
         self.parent.ui.searchEdit.setEnabled(False)
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
-        backend_name = str(self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex()).toString())
+        backend_name = self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex())
 
         self.process = QtDo(self.weboob, self.addPerson, fb=self.processFinished)
         #self.process.do('iter_persons', pattern, backends=backend_name, caps=CapCinema)
@@ -309,7 +311,7 @@ class Result(QFrame):
         self.parent.ui.searchEdit.setEnabled(False)
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
-        backend_name = str(self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex()).toString())
+        backend_name = self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex())
 
         self.process = QtDo(self.weboob, self.addTorrent, fb=self.processFinished)
         #self.process.do('iter_torrents', pattern, backends=backend_name, caps=CapTorrent)
@@ -353,7 +355,7 @@ class Result(QFrame):
         self.parent.ui.searchEdit.setEnabled(False)
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
-        backend_name = str(self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex()).toString())
+        backend_name = self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex())
 
         self.process = QtDo(self.weboob, self.addSubtitle, fb=self.processFinished)
         #self.process.do('iter_subtitles', lang, pattern, backends=backend_name, caps=CapSubtitle)
@@ -404,7 +406,7 @@ class Result(QFrame):
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, weboob, app, parent=None):
-        QtMainWindow.__init__(self, parent)
+        super(MainWindow, self).__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -416,33 +418,33 @@ class MainWindow(QtMainWindow):
         self.search_history = self.loadSearchHistory()
         self.updateCompletion()
 
-        self.connect(self.ui.searchEdit, SIGNAL("returnPressed()"), self.search)
-        self.connect(self.ui.idEdit, SIGNAL("returnPressed()"), self.searchId)
-        self.connect(self.ui.typeCombo, SIGNAL("currentIndexChanged(QString)"), self.typeComboChanged)
+        self.ui.searchEdit.returnPressed.connect(self.search)
+        self.ui.idEdit.returnPressed.connect(self.searchId)
+        self.ui.typeCombo.currentIndexChanged[unicode].connect(self.typeComboChanged)
 
         count = self.config.get('settings', 'maxresultsnumber')
         self.ui.countSpin.setValue(int(count))
         showT = self.config.get('settings', 'showthumbnails')
         self.ui.showTCheck.setChecked(showT == '1')
 
-        self.connect(self.ui.stopButton, SIGNAL("clicked()"), self.stopProcess)
+        self.ui.stopButton.clicked.connect(self.stopProcess)
         self.ui.stopButton.hide()
 
-        self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
+        self.ui.actionBackends.triggered.connect(self.backendsConfig)
         q = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_Q), self)
-        self.connect(q, SIGNAL("activated()"), self.close)
+        q.activated.connect(self.close)
         n = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_PageDown), self)
-        self.connect(n, SIGNAL("activated()"), self.nextTab)
+        n.activated.connect(self.nextTab)
         p = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_PageUp), self)
-        self.connect(p, SIGNAL("activated()"), self.prevTab)
+        p.activated.connect(self.prevTab)
         w = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_W), self)
-        self.connect(w, SIGNAL("activated()"), self.closeCurrentTab)
+        w.activated.connect(self.closeCurrentTab)
 
         l = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_L), self)
-        self.connect(l, SIGNAL("activated()"), self.ui.searchEdit.setFocus)
-        self.connect(l, SIGNAL("activated()"), self.ui.searchEdit.selectAll)
+        l.activated.connect(self.ui.searchEdit.setFocus)
+        l.activated.connect(self.ui.searchEdit.selectAll)
 
-        self.connect(self.ui.resultsTab, SIGNAL("tabCloseRequested(int)"), self.closeTab)
+        self.ui.resultsTab.tabCloseRequested.connect(self.closeTab)
 
         self.loadBackendsList()
 
@@ -455,24 +457,29 @@ class MainWindow(QtMainWindow):
         self.ui.langCombo.hide()
         self.ui.langLabel.hide()
 
+    @Slot()
     def stopProcess(self):
         self.ui.resultsTab.currentWidget().stopProcess()
 
+    @Slot(object)
     def closeTab(self, index):
         if self.ui.resultsTab.widget(index) != 0:
             tabToClose = self.ui.resultsTab.widget(index)
             self.ui.resultsTab.removeTab(index)
             del(tabToClose)
 
+    @Slot()
     def closeCurrentTab(self):
         self.closeTab(self.ui.resultsTab.currentIndex())
 
+    @Slot()
     def prevTab(self):
         index = self.ui.resultsTab.currentIndex() - 1
         size = self.ui.resultsTab.count()
         if size != 0:
             self.ui.resultsTab.setCurrentIndex(index % size)
 
+    @Slot()
     def nextTab(self):
         index = self.ui.resultsTab.currentIndex() + 1
         size = self.ui.resultsTab.count()
@@ -497,8 +504,9 @@ class MainWindow(QtMainWindow):
         self.ui.resultsTab.addTab(new_res, txt)
         new_res.searchId(id, stype)
 
+    @Slot()
     def search(self):
-        pattern = unicode(self.ui.searchEdit.text())
+        pattern = self.ui.searchEdit.text()
         # arbitrary max number of completion word
         if len(self.search_history) > 50:
             self.search_history.pop(0)
@@ -506,21 +514,23 @@ class MainWindow(QtMainWindow):
             self.search_history.append(pattern)
             self.updateCompletion()
 
-        tosearch = unicode(self.ui.typeCombo.currentText())
-        lang = unicode(self.ui.langCombo.currentText())
+        tosearch = self.ui.typeCombo.currentText()
+        lang = self.ui.langCombo.currentText()
         new_res = Result(self.weboob, self.app, self)
         self.ui.resultsTab.addTab(new_res, pattern)
         self.ui.resultsTab.setCurrentWidget(new_res)
         new_res.search(tosearch, pattern, lang)
 
+    @Slot()
     def searchId(self):
-        id = unicode(self.ui.idEdit.text())
-        stype = unicode(self.ui.idTypeCombo.currentText())
+        id = self.ui.idEdit.text()
+        stype = self.ui.idTypeCombo.currentText()
         new_res = Result(self.weboob, self.app, self)
         self.ui.resultsTab.addTab(new_res, id)
         self.ui.resultsTab.setCurrentWidget(new_res)
         new_res.searchId(id, stype)
 
+    @Slot()
     def backendsConfig(self):
         bckndcfg = BackendCfg(self.weboob, (CapCinema, CapTorrent, CapSubtitle,), self)
         if bckndcfg.run():
@@ -563,12 +573,13 @@ class MainWindow(QtMainWindow):
             f.close()
 
     def updateCompletion(self):
-        qc = QCompleter(QStringList(self.search_history), self)
+        qc = QCompleter(self.search_history, self)
         qc.setCaseSensitivity(Qt.CaseInsensitive)
         self.ui.searchEdit.setCompleter(qc)
 
+    @Slot(object)
     def typeComboChanged(self, value):
-        if unicode(value) == 'subtitle':
+        if value == 'subtitle':
             self.ui.langCombo.show()
             self.ui.langLabel.show()
         else:
@@ -583,8 +594,8 @@ class MainWindow(QtMainWindow):
             return num
 
     def closeEvent(self, ev):
-        self.config.set('settings', 'backend', str(self.ui.backendEdit.itemData(
-            self.ui.backendEdit.currentIndex()).toString()))
+        self.config.set('settings', 'backend', self.ui.backendEdit.itemData(
+            self.ui.backendEdit.currentIndex()))
         self.saveSearchHistory()
         self.config.set('settings', 'maxresultsnumber', self.ui.countSpin.value())
         self.config.set('settings', 'showthumbnails', '1' if self.ui.showTCheck.isChecked() else '0')

@@ -21,7 +21,7 @@
 from weboob.capabilities.cinema import CapCinema
 from weboob.capabilities.torrent import CapTorrent
 from weboob.capabilities.subtitle import CapSubtitle
-from weboob.tools.application.qt import QtApplication
+from weboob.tools.application.qt5 import QtApplication
 
 from .main_window import MainWindow
 

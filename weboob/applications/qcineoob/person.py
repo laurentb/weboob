@@ -19,8 +19,9 @@
 
 import urllib
 
-from PyQt4.QtCore import SIGNAL, Qt
-from PyQt4.QtGui import QFrame, QImage, QPixmap, QApplication, QMessageBox
+from PyQt5.QtCore import pyqtSlot as Slot, Qt
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtWidgets import QFrame, QApplication, QMessageBox
 
 from weboob.applications.qcineoob.ui.person_ui import Ui_Person
 from weboob.capabilities.base import empty
@@ -28,14 +29,14 @@ from weboob.capabilities.base import empty
 
 class Person(QFrame):
     def __init__(self, person, backend, parent=None):
-        QFrame.__init__(self, parent)
+        super(Person, self).__init__(parent)
         self.parent = parent
         self.ui = Ui_Person()
         self.ui.setupUi(self)
 
-        self.connect(self.ui.filmographyButton, SIGNAL("clicked()"), self.filmography)
-        self.connect(self.ui.biographyButton, SIGNAL("clicked()"), self.biography)
-        self.connect(self.ui.moviesInCommonButton, SIGNAL("clicked()"), self.moviesInCommon)
+        self.ui.filmographyButton.clicked.connect(self.filmography)
+        self.ui.biographyButton.clicked.connect(self.biography)
+        self.ui.moviesInCommonButton.clicked.connect(self.moviesInCommon)
 
         self.person = person
         self.backend = backend
@@ -70,9 +71,10 @@ class Person(QFrame):
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToWidth(220,Qt.SmoothTransformation))
 
+    @Slot()
     def filmography(self):
         role = None
-        tosearch = unicode(self.ui.filmographyCombo.currentText())
+        tosearch = self.ui.filmographyCombo.currentText()
         role_desc = ''
         if tosearch != 'all':
             role = tosearch
@@ -80,6 +82,7 @@ class Person(QFrame):
         self.parent.doAction('Filmography of "%s"%s' % (self.person.name, role_desc),
                              self.parent.filmographyAction, [self.backend.name, self.person.id, role])
 
+    @Slot()
     def biography(self):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         self.backend.fill_person(self.person, 'biography')
@@ -89,18 +92,19 @@ class Person(QFrame):
         self.ui.biographyButton.hide()
         QApplication.restoreOverrideCursor()
 
+    @Slot()
     def moviesInCommon(self):
         my_id = self.person.id
         my_name = self.person.name
-        other_id = unicode(self.ui.moviesInCommonEdit.text()).split('@')[0]
+        other_id = self.ui.moviesInCommonEdit.text().split('@')[0]
         other_person = self.backend.get_person(other_id)
         if other_id == self.person.id:
             QMessageBox.critical(None, self.tr('"Moviess in common" error'),
-                                 unicode(self.tr('Nice try\nThe persons must be different')),
+                                 self.tr('Nice try\nThe persons must be different'),
                                  QMessageBox.Ok)
         elif not other_person:
             QMessageBox.critical(None, self.tr('"Movies in common" error'),
-                                 unicode(self.tr('Person not found: %s' % other_id)),
+                                 self.tr('Person not found: %s' % other_id),
                                  QMessageBox.Ok)
         else:
             other_name = other_person.name

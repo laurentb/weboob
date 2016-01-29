@@ -19,8 +19,9 @@
 
 import urllib
 
-from PyQt4.QtCore import Qt, SIGNAL
-from PyQt4.QtGui import QFrame, QImage, QPixmap, QMessageBox
+from PyQt5.QtCore import Qt, pyqtSlot as Slot
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtWidgets import QFrame, QMessageBox
 
 from weboob.applications.qcineoob.ui.movie_ui import Ui_Movie
 from weboob.capabilities.base import empty
@@ -29,7 +30,7 @@ from weboob.applications.suboob.suboob import LANGUAGE_CONV
 
 class Movie(QFrame):
     def __init__(self, movie, backend, parent=None):
-        QFrame.__init__(self, parent)
+        super(Movie, self).__init__(parent)
         self.parent = parent
         self.ui = Ui_Movie()
         self.ui.setupUi(self)
@@ -37,10 +38,10 @@ class Movie(QFrame):
         for lang in langs:
             self.ui.langCombo.addItem(lang)
 
-        self.connect(self.ui.castingButton, SIGNAL("clicked()"), self.casting)
-        self.connect(self.ui.torrentButton, SIGNAL("clicked()"), self.searchTorrent)
-        self.connect(self.ui.subtitleButton, SIGNAL("clicked()"), self.searchSubtitle)
-        self.connect(self.ui.personsInCommonButton, SIGNAL("clicked()"), self.personsInCommon)
+        self.ui.castingButton.clicked.connect(self.casting)
+        self.ui.torrentButton.clicked.connect(self.searchTorrent)
+        self.ui.subtitleButton.clicked.connect(self.searchSubtitle)
+        self.ui.personsInCommonButton.clicked.connect(self.personsInCommon)
 
         self.movie = movie
         self.backend = backend
@@ -101,12 +102,14 @@ class Movie(QFrame):
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToWidth(220,Qt.SmoothTransformation))
 
+    @Slot()
     def searchSubtitle(self):
         tosearch = unicode(self.movie.original_title)
-        lang = unicode(self.ui.langCombo.currentText())
+        lang = self.ui.langCombo.currentText()
         desc = 'Search subtitles for "%s" (lang:%s)' % (tosearch, lang)
         self.parent.doAction(desc, self.parent.searchSubtitleAction, [lang, tosearch])
 
+    @Slot()
     def searchTorrent(self):
         tosearch = self.movie.original_title
         if not empty(self.movie.release_date):
@@ -114,9 +117,10 @@ class Movie(QFrame):
         desc = 'Search torrents for "%s"' % tosearch
         self.parent.doAction(desc, self.parent.searchTorrentAction, [tosearch])
 
+    @Slot()
     def casting(self):
         role = None
-        tosearch = unicode(self.ui.castingCombo.currentText())
+        tosearch = self.ui.castingCombo.currentText()
         role_desc = ''
         if tosearch != 'all':
             role = tosearch
@@ -124,18 +128,19 @@ class Movie(QFrame):
         self.parent.doAction('Casting%s of movie "%s"' % (role_desc, self.movie.original_title),
                              self.parent.castingAction, [self.backend.name, self.movie.id, role])
 
+    @Slot()
     def personsInCommon(self):
         my_id = self.movie.id
         my_title = self.movie.original_title
-        other_id = unicode(self.ui.personsInCommonEdit.text()).split('@')[0]
+        other_id = self.ui.personsInCommonEdit.text().split('@')[0]
         other_movie = self.backend.get_movie(other_id)
         if other_id == self.movie.id:
             QMessageBox.critical(None, self.tr('"Persons in common" error'),
-                                 unicode(self.tr('Nice try\nThe movies must be different')),
+                                 self.tr('Nice try\nThe movies must be different'),
                                  QMessageBox.Ok)
         elif not other_movie:
             QMessageBox.critical(None, self.tr('"Persons in common" error'),
-                                 unicode(self.tr('Movie not found: %s' % other_id)),
+                                 self.tr('Movie not found: %s' % other_id),
                                  QMessageBox.Ok)
         else:
             other_title = other_movie.original_title

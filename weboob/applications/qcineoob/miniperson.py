@@ -19,8 +19,9 @@
 
 import urllib
 
-from PyQt4.QtGui import QFrame, QImage, QPixmap, QApplication
-from PyQt4.QtCore import Qt, SIGNAL
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtWidgets import QFrame, QApplication
+from PyQt5.QtCore import Qt, pyqtSlot as Slot
 
 from weboob.applications.qcineoob.ui.miniperson_ui import Ui_MiniPerson
 from weboob.capabilities.base import empty, NotAvailable
@@ -28,7 +29,7 @@ from weboob.capabilities.base import empty, NotAvailable
 
 class MiniPerson(QFrame):
     def __init__(self, weboob, backend, person, parent=None):
-        QFrame.__init__(self, parent)
+        super(MiniPerson, self).__init__(parent)
         self.parent = parent
         self.ui = Ui_MiniPerson()
         self.ui.setupUi(self)
@@ -38,7 +39,7 @@ class MiniPerson(QFrame):
         self.person = person
         self.ui.nameLabel.setText('%s' % person.name)
         if not empty(person.short_description):
-            if unicode(self.parent.ui.currentActionLabel.text()).startswith('Casting'):
+            if self.parent.ui.currentActionLabel.text().startswith('Casting'):
                 self.ui.shortDescTitleLabel.setText(u'Role')
             self.ui.shortDescLabel.setText('%s' % person.short_description)
         else:
@@ -46,13 +47,14 @@ class MiniPerson(QFrame):
             self.ui.shortDescLabel.hide()
         self.ui.backendLabel.setText(backend.name)
 
-        self.connect(self.ui.newTabButton, SIGNAL("clicked()"), self.newTabPressed)
-        self.connect(self.ui.viewButton, SIGNAL("clicked()"), self.viewPressed)
-        self.connect(self.ui.viewThumbnailButton, SIGNAL("clicked()"), self.gotThumbnail)
+        self.ui.newTabButton.clicked.connect(self.newTabPressed)
+        self.ui.viewButton.clicked.connect(self.viewPressed)
+        self.ui.viewThumbnailButton.clicked.connect(self.gotThumbnail)
 
         if self.parent.parent.ui.showTCheck.isChecked():
             self.gotThumbnail()
 
+    @Slot()
     def gotThumbnail(self):
         if empty(self.person.thumbnail_url) and self.person.thumbnail_url != NotAvailable:
             self.backend.fill_person(self.person, ('thumbnail_url'))
@@ -61,6 +63,7 @@ class MiniPerson(QFrame):
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToHeight(100,Qt.SmoothTransformation))
 
+    @Slot()
     def viewPressed(self):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         person = self.backend.get_person(self.person.id)
@@ -68,6 +71,7 @@ class MiniPerson(QFrame):
             self.parent.doAction(u'Details of person "%s"' %
                                  person.name, self.parent.displayPerson, [person, self.backend])
 
+    @Slot()
     def newTabPressed(self):
         person = self.backend.get_person(self.person.id)
         self.parent.parent.newTab(u'Details of person "%s"' %

@@ -19,8 +19,9 @@
 
 import urllib
 
-from PyQt4.QtGui import QFrame, QImage, QPixmap, QApplication
-from PyQt4.QtCore import Qt, SIGNAL
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtWidgets import QFrame, QApplication
+from PyQt5.QtCore import Qt, pyqtSlot as Slot
 
 from weboob.applications.qcineoob.ui.minimovie_ui import Ui_MiniMovie
 from weboob.capabilities.base import empty, NotAvailable
@@ -28,7 +29,7 @@ from weboob.capabilities.base import empty, NotAvailable
 
 class MiniMovie(QFrame):
     def __init__(self, weboob, backend, movie, parent=None):
-        QFrame.__init__(self, parent)
+        super(MiniMovie, self).__init__(parent)
         self.parent = parent
         self.ui = Ui_MiniMovie()
         self.ui.setupUi(self)
@@ -40,13 +41,14 @@ class MiniMovie(QFrame):
         self.ui.shortDescLabel.setText(movie.short_description)
         self.ui.backendLabel.setText(backend.name)
 
-        self.connect(self.ui.newTabButton, SIGNAL("clicked()"), self.newTabPressed)
-        self.connect(self.ui.viewButton, SIGNAL("clicked()"), self.viewPressed)
-        self.connect(self.ui.viewThumbnailButton, SIGNAL("clicked()"), self.gotThumbnail)
+        self.ui.newTabButton.clicked.connect(self.newTabPressed)
+        self.ui.viewButton.clicked.connect(self.viewPressed)
+        self.ui.viewThumbnailButton.clicked.connect(self.gotThumbnail)
 
         if self.parent.parent.ui.showTCheck.isChecked():
             self.gotThumbnail()
 
+    @Slot()
     def gotThumbnail(self):
         if empty(self.movie.thumbnail_url) and self.movie.thumbnail_url != NotAvailable:
             self.backend.fill_movie(self.movie, ('thumbnail_url'))
@@ -55,6 +57,7 @@ class MiniMovie(QFrame):
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToHeight(100,Qt.SmoothTransformation))
 
+    @Slot()
     def viewPressed(self):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         movie = self.backend.get_movie(self.movie.id)
@@ -62,6 +65,7 @@ class MiniMovie(QFrame):
             self.parent.doAction('Details of movie "%s"' %
                                  movie.original_title, self.parent.displayMovie, [movie, self.backend])
 
+    @Slot()
     def newTabPressed(self):
         movie = self.backend.get_movie(self.movie.id)
         self.parent.parent.newTab(u'Details of movie "%s"' %

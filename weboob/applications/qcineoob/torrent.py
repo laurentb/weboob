@@ -19,8 +19,8 @@
 
 from __future__ import print_function
 
-from PyQt4.QtCore import Qt, SIGNAL
-from PyQt4.QtGui import QFrame, QFileDialog
+from PyQt5.QtCore import Qt, pyqtSlot as Slot
+from PyQt5.QtWidgets import QFrame, QFileDialog
 
 from weboob.applications.qcineoob.ui.torrent_ui import Ui_Torrent
 from weboob.applications.weboorrents.weboorrents import sizeof_fmt
@@ -29,13 +29,13 @@ from weboob.capabilities.base import empty
 
 class Torrent(QFrame):
     def __init__(self, torrent, backend, parent=None):
-        QFrame.__init__(self, parent)
+        super(Torrent, self).__init__(parent)
         self.parent = parent
         self.backend = backend
         self.ui = Ui_Torrent()
         self.ui.setupUi(self)
 
-        self.connect(self.ui.downloadButton, SIGNAL("clicked()"), self.download)
+        self.ui.downloadButton.clicked.connect(self.download)
 
         self.torrent = torrent
         self.ui.idEdit.setText(u'%s@%s' % (torrent.id, backend.name))
@@ -70,6 +70,7 @@ class Torrent(QFrame):
 
         self.ui.verticalLayout.setAlignment(Qt.AlignTop)
 
+    @Slot()
     def download(self):
         fileDial = QFileDialog(self, 'Save "%s" torrent file' % self.torrent.name, '%s.torrent' %
                                self.torrent.name, 'Torrent file (*.torrent);;all files (*)')

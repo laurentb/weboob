@@ -19,8 +19,8 @@
 
 from __future__ import print_function
 
-from PyQt4.QtCore import Qt, SIGNAL
-from PyQt4.QtGui import QFrame, QFileDialog
+from PyQt5.QtCore import Qt, pyqtSlot as Slot
+from PyQt5.QtWidgets import QFrame, QFileDialog
 
 from weboob.applications.qcineoob.ui.subtitle_ui import Ui_Subtitle
 from weboob.capabilities.base import empty
@@ -28,13 +28,13 @@ from weboob.capabilities.base import empty
 
 class Subtitle(QFrame):
     def __init__(self, subtitle, backend, parent=None):
-        QFrame.__init__(self, parent)
+        super(Subtitle, self).__init__(parent)
         self.parent = parent
         self.backend = backend
         self.ui = Ui_Subtitle()
         self.ui.setupUi(self)
 
-        self.connect(self.ui.downloadButton, SIGNAL("clicked()"), self.download)
+        self.ui.downloadButton.clicked.connect(self.download)
 
         self.subtitle = subtitle
         self.ui.idEdit.setText(u'%s@%s' % (subtitle.id, backend.name))
@@ -59,6 +59,7 @@ class Subtitle(QFrame):
 
         self.ui.verticalLayout.setAlignment(Qt.AlignTop)
 
+    @Slot()
     def download(self):
         if not empty(self.subtitle.url):
             if self.subtitle.url.endswith('.rar'):

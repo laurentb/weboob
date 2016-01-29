@@ -17,8 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt4.QtGui import QFrame
-from PyQt4.QtCore import SIGNAL
+from PyQt5.QtWidgets import QFrame
+from PyQt5.QtCore import pyqtSlot as Slot
 
 from weboob.applications.qcineoob.ui.minisubtitle_ui import Ui_MiniSubtitle
 from weboob.capabilities.base import empty
@@ -26,7 +26,7 @@ from weboob.capabilities.base import empty
 
 class MiniSubtitle(QFrame):
     def __init__(self, weboob, backend, subtitle, parent=None):
-        QFrame.__init__(self, parent)
+        super(MiniSubtitle, self).__init__(parent)
         self.parent = parent
         self.ui = Ui_MiniSubtitle()
         self.ui.setupUi(self)
@@ -39,15 +39,17 @@ class MiniSubtitle(QFrame):
             self.ui.nbcdLabel.setText(u'%s' % subtitle.nb_cd)
         self.ui.backendLabel.setText(backend.name)
 
-        self.connect(self.ui.newTabButton, SIGNAL("clicked()"), self.newTabPressed)
-        self.connect(self.ui.viewButton, SIGNAL("clicked()"), self.viewPressed)
+        self.ui.newTabButton.clicked.connect(self.newTabPressed)
+        self.ui.viewButton.clicked.connect(self.viewPressed)
 
+    @Slot()
     def viewPressed(self):
         subtitle = self.backend.get_subtitle(self.subtitle.id)
         if subtitle:
             self.parent.doAction('Details of subtitle "%s"' %
                                  subtitle.name, self.parent.displaySubtitle, [subtitle, self.backend])
 
+    @Slot()
     def newTabPressed(self):
         subtitle = self.backend.get_subtitle(self.subtitle.id)
         self.parent.parent.newTab(u'Details of subtitle "%s"' %
