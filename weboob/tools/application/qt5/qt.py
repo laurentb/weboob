@@ -415,3 +415,11 @@ def QtValue(value):
         klass = _QtValueStr
 
     return klass(copy(value))
+
+
+# if the default excepthook is used, PyQt 5.5 *aborts* the app when an unhandled exception occurs
+# see http://pyqt.sourceforge.net/Docs/PyQt5/incompatibilities.html
+# as this behaviour is questionable, we restore the old one
+
+if sys.excepthook is sys.__excepthook__:
+    sys.excepthook = lambda *args: sys.__excepthook__(*args)
