@@ -17,17 +17,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt5.QtWidgets import QListWidgetItem, QApplication, QCompleter
+from PyQt5.QtWidgets import QListWidgetItem, QApplication
 from PyQt5.QtCore import Qt, pyqtSlot as Slot
 
 from weboob.tools.application.qt5 import QtMainWindow, QtDo
 from weboob.tools.application.qt5.backendcfg import BackendCfg
+from weboob.tools.application.qt5.search_history import HistoryCompleter
 from weboob.capabilities.job import CapJob
 
 from .ui.main_window_ui import Ui_MainWindow
 
 import os
-import codecs
 
 
 class JobListWidgetItem(QListWidgetItem):
@@ -61,8 +61,11 @@ class MainWindow(QtMainWindow):
         self.process_bookmarks = {}
 
         # search history is a list of patterns which have been searched
-        self.search_history = self.loadSearchHistory()
-        self.updateCompletion()
+        history_path = os.path.join(self.weboob.workdir, 'qhandjoob_history')
+        qc = HistoryCompleter(history_path, self)
+        qc.load()
+        qc.setCaseSensitivity(Qt.CaseInsensitive)
+        self.ui.searchEdit.setCompleter(qc)
 
         self.ui.jobFrame.hide()
 
@@ -80,33 +83,6 @@ class MainWindow(QtMainWindow):
 
         if self.weboob.count_backends() == 0:
             self.backendsConfig()
-
-    def loadSearchHistory(self):
-        ''' Return search string history list loaded from history file
-        '''
-        result = []
-        history_path = os.path.join(self.weboob.workdir, 'qhandjoob_history')
-        if os.path.exists(history_path):
-            f = codecs.open(history_path, 'r', 'utf-8')
-            conf_hist = f.read()
-            f.close()
-            if conf_hist is not None and conf_hist.strip() != '':
-                result = conf_hist.strip().split('\n')
-        return result
-
-    def saveSearchHistory(self):
-        ''' Save search history in history file
-        '''
-        if len(self.search_history) > 0:
-            history_path = os.path.join(self.weboob.workdir, 'qhandjoob_history')
-            f = codecs.open(history_path, 'w', 'utf-8')
-            f.write('\n'.join(self.search_history))
-            f.close()
-
-    def updateCompletion(self):
-        qc = QCompleter(self.search_history, self)
-        qc.setCaseSensitivity(Qt.CaseInsensitive)
-        self.ui.searchEdit.setCompleter(qc)
 
     @Slot(object)
     def tabChange(self, index):
@@ -130,13 +106,7 @@ class MainWindow(QtMainWindow):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         pattern = self.ui.searchEdit.text()
 
-        # arbitrary max number of completion word
-        if pattern:
-            if len(self.search_history) > 50:
-                self.search_history.pop(0)
-            if pattern not in self.search_history:
-                self.search_history.append(pattern)
-                self.updateCompletion()
+        self.ui.searchEdit.completer().addString(pattern)
 
         self.ui.jobList.clear()
         self.process = QtDo(self.weboob, self.addJobSearch, fb=self.searchFinished)
@@ -161,7 +131,7 @@ class MainWindow(QtMainWindow):
         return item
 
     def closeEvent(self, event):
-        self.saveSearchHistory()
+        self.ui.searchEdit.completer().save()
         QtMainWindow.closeEvent(self, event)
 
     @Slot()

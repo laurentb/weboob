@@ -18,11 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import codecs
 
 from PyQt5.QtCore import Qt, pyqtSlot as Slot
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QApplication, QCompleter, QFrame, QShortcut
+from PyQt5.QtWidgets import QApplication, QFrame, QShortcut
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.cinema import CapCinema
@@ -30,6 +29,7 @@ from weboob.capabilities.torrent import CapTorrent
 from weboob.capabilities.subtitle import CapSubtitle
 from weboob.tools.application.qt5 import QtMainWindow, QtDo
 from weboob.tools.application.qt5.backendcfg import BackendCfg
+from weboob.tools.application.qt5.search_history import HistoryCompleter
 
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 from weboob.applications.qcineoob.ui.main_window_ui import Ui_MainWindow
@@ -415,8 +415,11 @@ class MainWindow(QtMainWindow):
         self.app = app
 
         # search history is a list of patterns which have been searched
-        self.search_history = self.loadSearchHistory()
-        self.updateCompletion()
+        history_path = os.path.join(self.weboob.workdir, 'qcineoob_history')
+        qc = HistoryCompleter(history_path, self)
+        qc.load()
+        qc.setCaseSensitivity(Qt.CaseInsensitive)
+        self.ui.searchEdit.setCompleter(qc)
 
         self.ui.searchEdit.returnPressed.connect(self.search)
         self.ui.idEdit.returnPressed.connect(self.searchId)
@@ -507,12 +510,7 @@ class MainWindow(QtMainWindow):
     @Slot()
     def search(self):
         pattern = self.ui.searchEdit.text()
-        # arbitrary max number of completion word
-        if len(self.search_history) > 50:
-            self.search_history.pop(0)
-        if pattern not in self.search_history:
-            self.search_history.append(pattern)
-            self.updateCompletion()
+        self.ui.searchEdit.completer().addString(pattern)
 
         tosearch = self.ui.typeCombo.currentText()
         lang = self.ui.langCombo.currentText()
@@ -550,33 +548,6 @@ class MainWindow(QtMainWindow):
         else:
             self.ui.searchEdit.setEnabled(True)
 
-    def loadSearchHistory(self):
-        ''' Return search string history list loaded from history file
-        '''
-        result = []
-        history_path = os.path.join(self.weboob.workdir, 'qcineoob_history')
-        if os.path.exists(history_path):
-            f = codecs.open(history_path, 'r', 'utf-8')
-            conf_hist = f.read()
-            f.close()
-            if conf_hist is not None and conf_hist.strip() != '':
-                result = conf_hist.strip().split('\n')
-        return result
-
-    def saveSearchHistory(self):
-        ''' Save search history in history file
-        '''
-        if len(self.search_history) > 0:
-            history_path = os.path.join(self.weboob.workdir, 'qcineoob_history')
-            f = codecs.open(history_path, 'w', 'utf-8')
-            f.write('\n'.join(self.search_history))
-            f.close()
-
-    def updateCompletion(self):
-        qc = QCompleter(self.search_history, self)
-        qc.setCaseSensitivity(Qt.CaseInsensitive)
-        self.ui.searchEdit.setCompleter(qc)
-
     @Slot(object)
     def typeComboChanged(self, value):
         if value == 'subtitle':
@@ -596,7 +567,7 @@ class MainWindow(QtMainWindow):
     def closeEvent(self, ev):
         self.config.set('settings', 'backend', self.ui.backendEdit.itemData(
             self.ui.backendEdit.currentIndex()))
-        self.saveSearchHistory()
+        self.ui.searchEdit.completer().save()
         self.config.set('settings', 'maxresultsnumber', self.ui.countSpin.value())
         self.config.set('settings', 'showthumbnails', '1' if self.ui.showTCheck.isChecked() else '0')
 
