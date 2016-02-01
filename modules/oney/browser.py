@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.bank import Account
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
@@ -35,6 +34,7 @@ class OneyBrowser(LoginBrowser):
     index =      URL(r'/oney/client', IndexPage)
     login =      URL(r'/oney/client', LoginPage)
     operations = URL(r'/oney/client', OperationsPage)
+    card_page =  URL(r'/oney/client\?task=Synthese&process=SyntheseMultiCompte&indexSelectionne=(?P<acc_num>/d)')
 
     def do_login(self):
         assert isinstance(self.username, basestring)
@@ -48,16 +48,12 @@ class OneyBrowser(LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
-        balance = self.index.stay_or_go().get_balance()
-        account = Account()
-        account.id = self.username
-        account.label = u'Carte Oney'
-        account.balance = balance
-        account.currency = u'EUR'
-        return [account]
+        return self.index.stay_or_go().iter_accounts()
 
     @need_login
     def iter_history(self, account):
+        if account._num:
+            self.card_page.go(acc_num=account._num)
         post = {'task': 'Synthese', 'process': 'SyntheseCompte', 'taskid': 'Releve'}
         self.operations.go(data=post)
 
@@ -65,6 +61,8 @@ class OneyBrowser(LoginBrowser):
 
     @need_login
     def iter_coming(self, account):
+        if account._num:
+            self.card_page.go(acc_num=account._num)
         post = {'task': 'OperationRecente', 'process': 'OperationRecente', 'taskid': 'OperationRecente'}
         self.operations.go(data=post)
 
