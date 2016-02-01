@@ -173,7 +173,7 @@ class CreditMutuelBrowser(LoginBrowser):
 
         for card_link in account._card_links:
             for tr in self.list_operations(card_link):
-                if tr.date > last_debit:
+                if last_debit is None or tr.date > last_debit:
                     tr._is_coming = True
                 transactions.append(tr)
 
