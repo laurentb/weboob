@@ -42,7 +42,6 @@ class LCLBrowser(LoginBrowser):
 
     login = URL('/outil/UAUT/Authentication/authenticate',
                 '/outil/UAUT\?from=.*',
-                '.*outil/UAUT/Contract/routing',
                 '/outil/UWER/Accueil/majicER',
                 '/outil/UWER/Enregistrement/forwardAcc',
                 LoginPage)
@@ -50,6 +49,7 @@ class LCLBrowser(LoginBrowser):
                     '/outil/UAUT/Contract/getContract.*',
                     '/outil/UAUT/Contract/selectContracts.*',
                     '/outil/UAUT/Accueil/preRoutageLogin',
+                    '.*outil/UAUT/Contract/routing',
                     ContractsPage)
     home = URL('/outil/UWHO/Accueil/', HomePage)
     accounts = URL('/outil/UWSP/Synthese', AccountsPage)
