@@ -157,6 +157,7 @@ class OrderNewPage(OrderPage):
 
     def shipping(self):
         return self.amount(u'Free shipping', u'Free Shipping',
+                           u'Free Shipping Promo',
                            u'Prime Pantry Delivery',
                            u'Shipping & Handling')
 
