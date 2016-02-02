@@ -125,7 +125,7 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
         self.page.expand()
         for a in self.accounts:
             if a.id == account.id:
-                link = self.get_link(a.id)
+                link = self.get_link(a.number)
                 if link:
                     self.location(link)
                     assert self.transactions.is_here()
@@ -147,7 +147,7 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
         self.page.expand()
         for a in self.accounts:
             if a.id == account.id:
-                link = self.get_link(a.id)
+                link = self.get_link(a.number)
                 if link:
                     self.location(link)
                     assert self.transactions.is_here()

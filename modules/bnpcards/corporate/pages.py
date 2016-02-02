@@ -53,6 +53,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             klass = Account
 
             obj_id = Format('%s%s', CleanText('./td[2]', replace=[(' ', '')]), CleanText('./td[3]'))
+            obj_number = CleanText('./td[2]', replace=[(' ', '')])
             obj_label = CleanText('./td[1]')
             obj_type = Account.TYPE_CARD
 
