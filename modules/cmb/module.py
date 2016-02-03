@@ -108,6 +108,9 @@ class CmbModule(Module, CapBank):
         else:
             self.islogged=True
 
+            # Go on pro space when there is one.
+            self.browser.open("https://www.cmb.fr/domiweb/prive/espacesegment/selectionnerAbonnement/1-selectionnerAbonnement.act?espace=PR&indice=0")
+
     def iter_accounts(self):
         if not self.islogged:
             self.login()
