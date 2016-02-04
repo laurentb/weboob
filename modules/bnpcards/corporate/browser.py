@@ -133,7 +133,9 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
                     if self.page.is_not_sorted('up'):
                         self.page.sort('up')
 
-                    return [t for t in self.page.get_history() if t._coming]
+                    transactions = [t for t in self.page.get_history() if t._coming]
+                    transactions.sort(key=lambda transaction: transaction.date, reverse=True)
+                    return transactions
         return iter([])
 
 
@@ -155,5 +157,7 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
                     if self.page.is_not_sorted():
                         self.page.sort()
 
-                    return [t for t in self.page.get_history() if not t._coming]
+                    transactions = [t for t in self.page.get_history() if not t._coming]
+                    transactions.sort(key=lambda transaction: transaction.date, reverse=True)
+                    return transactions
         return iter([])
