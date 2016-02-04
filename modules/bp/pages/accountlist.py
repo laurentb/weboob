@@ -114,15 +114,15 @@ class AccountRIB(Page):
             self.logger.warning('Please install python-pdfminer to get IBANs')
         else:
             parser = PDFParser(StringIO(self.document))
-            if newapi:
-                doc = PDFDocument(parser)
-            else:
-                doc = PDFDocument()
-                parser.set_document(doc)
-                try:
+            try:
+                if newapi:
+                    doc = PDFDocument(parser)
+                else:
+                    doc = PDFDocument()
+                    parser.set_document(doc)
                     doc.set_parser(parser)
-                except PDFSyntaxError:
-                    return
+            except PDFSyntaxError:
+                return
 
             rsrcmgr = PDFResourceManager()
             out = StringIO()
