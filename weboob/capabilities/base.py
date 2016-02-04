@@ -496,6 +496,7 @@ class Currency(object):
                   u'SGD': u'SGD',
                   u'BRL': u'R$',
                   u'MXN': u'$',
+                  u'JPY': u'¥',
                  }
 
     EXTRACTOR = re.compile(r'[\d\s,\.\-]', re.UNICODE)
