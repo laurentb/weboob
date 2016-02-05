@@ -96,7 +96,7 @@ class CaisseEpargne(Browser):
         for account in accounts:
             if account.type == Account.TYPE_MARKET:
                 if not self.is_on_page(IndexPage):
-                    self.location(self.buildurl('/Portail.aspx'))
+                    self.location(self.buildurl('/Portail.aspx?tache=CPTSYNT0'))
 
                 self.page.go_history(account._info)
                 # Some users may not have access to this.
