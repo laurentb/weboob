@@ -109,16 +109,19 @@ class TransfertPage(LoggedPage, HTMLPage):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
-    TYPES = {'C/C':             Account.TYPE_CHECKING,
-             'Livret':          Account.TYPE_SAVINGS,
-             'Pret':            Account.TYPE_LOAN,
-             'Cic Immo':        Account.TYPE_LOAN,
+    TYPES = {'C/C':              Account.TYPE_CHECKING,
+             'Livret':           Account.TYPE_SAVINGS,
+             'Pret':             Account.TYPE_LOAN,
+             'Cic Immo':         Account.TYPE_LOAN,
              'Passeport Credit': Account.TYPE_LOAN,
-             'Compte Courant':  Account.TYPE_CHECKING,
-             'Compte Cheque':   Account.TYPE_CHECKING,
-             'Start':           Account.TYPE_CHECKING,
-             'Compte Epargne':  Account.TYPE_SAVINGS,
-             'Plan D\'Epargne': Account.TYPE_SAVINGS,
+             'Compte Courant':   Account.TYPE_CHECKING,
+             'Cpte Courant':     Account.TYPE_CHECKING,
+             'Compte Cheque':    Account.TYPE_CHECKING,
+             'Start':            Account.TYPE_CHECKING,
+             'Compte Epargne':   Account.TYPE_SAVINGS,
+             'Plan D\'Epargne':  Account.TYPE_SAVINGS,
+             'Ldd':              Account.TYPE_SAVINGS,
+             'Etalis':           Account.TYPE_SAVINGS,
             }
 
     @method
