@@ -112,6 +112,8 @@ class DownloadRib(Page):
 
 class RibPage(Page):
     def get_iban(self):
-        return CleanText()\
+        if self.document.xpath('//div[@class="blocbleu"][2]//table[@class="datalist"]'):
+            return CleanText()\
                 .filter(self.document.xpath('//div[@class="blocbleu"][2]//table[@class="datalist"]')[0])\
                 .replace(' ', '').strip()
+        return None
