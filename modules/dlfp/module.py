@@ -89,7 +89,7 @@ class DLFPModule(Module, CapMessages, CapMessagesPost, CapContent):
             for article in Newsfeed(what, rssid).iter_entries():
                 if article.datetime and (datetime.now() - article.datetime) > timedelta(days=60):
                     continue
-                thread = Thread(article.id)
+                thread = Thread(article.id, article.link)
                 thread.title = article.title
                 thread._rsscomment = article.rsscomment
                 if article.datetime:
@@ -126,6 +126,7 @@ class DLFPModule(Module, CapMessages, CapMessagesPost, CapContent):
 
         thread.root = Message(thread=thread,
                               id='0',  # root message
+                              url=self.browser.absurl(id2url(content.id)),
                               title=content.title,
                               sender=content.author or u'',
                               receivers=None,
@@ -153,6 +154,7 @@ class DLFPModule(Module, CapMessages, CapMessagesPost, CapContent):
             com.parse()
             message = Message(thread=parent.thread,
                               id=com.id,
+                              url=com.url,
                               title=com.title,
                               sender=com.author or u'',
                               receivers=None,
