@@ -104,7 +104,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
             return self.iter_lifeinsurance_history(account, coming)
         else:
             self.page = self.history.go(data=JSON({
-                "ibanCrypte": account._ibancrypte,
+                "ibanCrypte": account.id,
                 "pastOrPending": 1,
                 "triAV": 0,
                 "startDate": None,
@@ -115,12 +115,12 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     @need_login
     def iter_lifeinsurance_history(self, account, coming=False):
         self.page = self.lifeinsurances_history.go(data=JSON({
-            "ibanCrypte": account._ibancrypte,
+            "ibanCrypte": account.id,
         }))
 
         for tr in self.page.iter_history(coming):
             page = self.lifeinsurances_detail.go(data=JSON({
-                "ibanCrypte": account._ibancrypte,
+                "ibanCrypte": account.id,
                 "idMouvement": tr._op.get('idMouvement'),
                 "ordreMouvement": tr._op.get('ordreMouvement'),
                 "codeTypeMouvement": tr._op.get('codeTypeMouvement'),
@@ -136,7 +136,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     @need_login
     def iter_investment(self, account):
         self.page = self.lifeinsurances.go(data=JSON({
-            "ibanCrypte": account._ibancrypte,
+            "ibanCrypte": account.id,
         }))
         return self.page.iter_investments()
 
