@@ -32,8 +32,8 @@ class Temperature(BaseObject):
     value =      FloatField('Temperature value')
     unit =       StringField('Input unit')
 
-    def __init__(self, value=NotLoaded, unit = u''):
-        BaseObject.__init__(self, unicode(value))
+    def __init__(self, value=NotLoaded, unit = u'', url=None):
+        BaseObject.__init__(self, unicode(value), url)
         self.value = value
         if unit not in [u'C', u'F']:
             unit = u''
@@ -69,8 +69,8 @@ class Forecast(BaseObject):
     high =      Field('High temperature', Temperature)
     text =      StringField('Comment on forecast')
 
-    def __init__(self, date=NotLoaded, low=None, high=None, text=None, unit=None):
-        BaseObject.__init__(self, unicode(date))
+    def __init__(self, date=NotLoaded, low=None, high=None, text=None, unit=None, url=None):
+        BaseObject.__init__(self, unicode(date), url)
         self.date = date
         self.low = Temperature(low, unit)
         self.high = Temperature(high, unit)
@@ -85,8 +85,8 @@ class Current(BaseObject):
     text =      StringField('Comment about current weather')
     temp =      Field('Current temperature', Temperature)
 
-    def __init__(self, date=NotLoaded, temp=None, text=None, unit=None):
-        BaseObject.__init__(self, unicode(date))
+    def __init__(self, date=NotLoaded, temp=None, text=None, unit=None, url=None):
+        BaseObject.__init__(self, unicode(date), url)
         self.date = date
         self.text = text
         self.temp = Temperature(temp, unit)
@@ -98,8 +98,8 @@ class City(BaseObject):
     """
     name =      StringField('Name of city')
 
-    def __init__(self, id='', name=None):
-        BaseObject.__init__(self, id)
+    def __init__(self, id='', name=None, url=None):
+        BaseObject.__init__(self, id, url)
         self.name = name
 
 

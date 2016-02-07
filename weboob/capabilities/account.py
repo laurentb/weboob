@@ -38,8 +38,8 @@ class Account(BaseObject):
     password =      StringField('Password')
     properties =    Field('List of key/value properties', dict)
 
-    def __init__(self, id=None):
-        BaseObject.__init__(self, id)
+    def __init__(self, id=None, url=None):
+        BaseObject.__init__(self, id, url)
 
 
 class StatusField(BaseObject):
@@ -54,8 +54,8 @@ class StatusField(BaseObject):
     value =         StringField('Value')
     flags =         IntField('Flags')
 
-    def __init__(self, key, label, value, flags=0):
-        super(StatusField, self).__init__(key)
+    def __init__(self, key, label, value, flags=0, url=None):
+        super(StatusField, self).__init__(key, url)
         self.key = key
         self.label = label
         self.value = value

@@ -41,7 +41,6 @@ class BaseCalendarEvent(BaseObject):
     Represents a calendar event
     """
 
-    url = StringField('URL of the event')
     start_date = DateField('Start date of the event')
     end_date = DateField('End date of the event')
     timezone = StringField('Timezone of the event in order to convert to utc time', default='Etc/UCT')

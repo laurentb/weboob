@@ -30,7 +30,6 @@ class BaseFile(BaseObject):
     Represent a file.
     """
     title =         StringField('File title')
-    url =           StringField('File URL')
     ext =           StringField('File extension')
     author =        StringField('File author')
     description =   StringField('File description')

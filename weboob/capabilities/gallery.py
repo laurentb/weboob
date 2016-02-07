@@ -34,7 +34,6 @@ class BaseGallery(BaseObject):
     This object has to be inherited to specify how to calculate the URL of the gallery from its ID.
     """
     title =         StringField('Title of gallery')
-    url =           StringField('Direct URL to gallery')
     description =   StringField('Description of gallery')
     cardinality =   IntField('Cardinality of gallery')
     date =          DateField('Date of gallery')
@@ -44,10 +43,9 @@ class BaseGallery(BaseObject):
 
     def __init__(self, _id, title=NotLoaded, url=NotLoaded, cardinality=NotLoaded, date=NotLoaded,
                  rating=NotLoaded, rating_max=NotLoaded, thumbnail=NotLoaded, thumbnail_url=None, nsfw=False):
-        BaseObject.__init__(self, unicode(_id))
+        BaseObject.__init__(self, unicode(_id), url)
 
         self.title = title
-        self.url = url
         self.date = date
         self.rating = rating
         self.rating_max = rating_max
@@ -78,7 +76,6 @@ class BaseImage(BaseObject):
     """
     index =     IntField('Usually page number')
     thumbnail = Field('Thumbnail of the image', Thumbnail)
-    url =       StringField('Direct URL to image')
     ext =       StringField('Extension of image')
     data =      BytesField('Data of image')
     gallery =   Field('Reference to the Gallery object', BaseGallery)
@@ -86,11 +83,10 @@ class BaseImage(BaseObject):
     def __init__(self, _id, index=None, thumbnail=NotLoaded, url=NotLoaded,
             ext=NotLoaded, gallery=None):
 
-        BaseObject.__init__(self, unicode(_id))
+        BaseObject.__init__(self, unicode(_id), url)
 
         self.index = index
         self.thumbnail = thumbnail
-        self.url = url
         self.ext = ext
         self.gallery = gallery
 

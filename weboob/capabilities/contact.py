@@ -49,14 +49,13 @@ class ContactPhoto(BaseObject):
     Photo of a contact.
     """
     name =              StringField('Name of the photo')
-    url =               StringField('Direct URL to photo')
     data =              BytesField('Data of photo')
     thumbnail_url =     StringField('Direct URL to thumbnail')
     thumbnail_data =    BytesField('Data of thumbnail')
     hidden =            Field('True if the photo is hidden on website', bool)
 
-    def __init__(self, name):
-        BaseObject.__init__(self, name)
+    def __init__(self, name, url=None):
+        BaseObject.__init__(self, name, url)
         self.name = name
 
     def __iscomplete__(self):
@@ -82,14 +81,13 @@ class Contact(BaseObject):
 
     name =          StringField('Name of contact')
     status =        IntField('Status of contact (STATUS_* constants)')
-    url =           StringField('URL to the profile of contact')
     status_msg =    StringField('Message of status')
     summary =       StringField('Description of contact')
     photos =        Field('List of photos', dict, default=OrderedDict())
     profile =       Field('Contact profile', dict, default=OrderedDict())
 
-    def __init__(self, id, name, status):
-        BaseObject.__init__(self, id)
+    def __init__(self, id, name, status, url=None):
+        BaseObject.__init__(self, id, url)
         self.name = name
         self.status = status
 
@@ -160,8 +158,8 @@ class Query(BaseObject):
     """
     message =   StringField('Message received')
 
-    def __init__(self, id, message):
-        BaseObject.__init__(self, id)
+    def __init__(self, id, message, url=None):
+        BaseObject.__init__(self, id, url)
         self.message = message
 
 

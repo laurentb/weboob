@@ -63,8 +63,8 @@ class Recipe(BaseObject):
     instructions =      StringField('Instruction step list of the recipe')
     comments =          Field('User comments about the recipe', list)
 
-    def __init__(self, id='', title=u''):
-        BaseObject.__init__(self, id)
+    def __init__(self, id='', title=u'', url=None):
+        BaseObject.__init__(self, id, url)
         self.title = title
 
     def toKrecipesXml(self, author=None):

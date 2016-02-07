@@ -39,13 +39,12 @@ class Subtitle(BaseObject):
     """
     name =      StringField('Name of subtitle')
     ext =       StringField('Extension of file')
-    url =       StringField('Direct url to subtitle file')
     nb_cd =     IntField('Number of cd or files')
     language =  StringField('Language of the subtitle')
     description=StringField('Description of corresponding video')
 
-    def __init__(self, id, name):
-        BaseObject.__init__(self, id)
+    def __init__(self, id, name, url=None):
+        BaseObject.__init__(self, id, url)
         self.name = name
 
 

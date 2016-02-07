@@ -67,7 +67,6 @@ class Item(BaseObject):
     Purchased item within an order.
     """
     label = StringField('Item label')
-    url   = StringField('URL with item description')
     price = DecimalField('Item price')
 
     def __repr__(self):

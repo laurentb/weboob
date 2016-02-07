@@ -55,8 +55,8 @@ class Recipient(BaseObject, Currency):
     label =     StringField('Name')
     currency =  StringField('Currency', default=None)
 
-    def __init__(self):
-        BaseObject.__init__(self, 0)
+    def __init__(self, id=0, url=None):
+        BaseObject.__init__(self, id, url)
 
     @property
     def currency_text(self):

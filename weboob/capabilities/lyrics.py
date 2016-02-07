@@ -32,8 +32,8 @@ class SongLyrics(BaseObject):
     artist =       StringField('Artist of the song')
     content =    StringField('Lyrics of the song')
 
-    def __init__(self, id, title):
-        BaseObject.__init__(self, id)
+    def __init__(self, id, title, url=None):
+        BaseObject.__init__(self, id, url)
         self.title = title
 
 

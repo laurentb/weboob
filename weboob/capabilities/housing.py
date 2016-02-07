@@ -39,12 +39,10 @@ class HousingPhoto(BaseObject):
     """
     Photo of a housing.
     """
-    url =       StringField('Direct URL to photo')
     data =      BytesField('Data of photo')
 
     def __init__(self, url):
-        BaseObject.__init__(self, url.split('/')[-1])
-        self.url = url
+        BaseObject.__init__(self, url.split('/')[-1], url)
 
     def __iscomplete__(self):
         return self.data
@@ -71,7 +69,6 @@ class Housing(BaseObject):
     phone =         StringField('Phone number to contact')
     photos =        Field('List of photos', list)
     details =       Field('Key/values of details', dict)
-    url =           StringField('Url of the the advert')
 
 
 class Query(BaseObject):

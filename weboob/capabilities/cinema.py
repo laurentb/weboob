@@ -42,8 +42,8 @@ class Movie(BaseObject):
     roles            = Field('Lists of Persons related to the movie indexed by roles', dict)
     thumbnail_url    = StringField('Url of movie thumbnail')
 
-    def __init__(self, id, original_title):
-        BaseObject.__init__(self, id)
+    def __init__(self, id, original_title, url=None):
+        BaseObject.__init__(self, id, url)
         self.original_title = original_title
 
     def get_roles_by_person_name(self,name):
@@ -78,8 +78,8 @@ class Person(BaseObject):
     roles            = Field('Lists of movies related to the person indexed by roles',dict)
     thumbnail_url    = StringField('Url of person thumbnail')
 
-    def __init__(self, id, name):
-        BaseObject.__init__(self, id)
+    def __init__(self, id, name, url=None):
+        BaseObject.__init__(self, id, url)
         self.name = name
 
     def get_roles_by_movie_title(self,title):

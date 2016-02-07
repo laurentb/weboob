@@ -43,8 +43,8 @@ class BasePaste(BaseObject):
     public =        Field('Is this paste public?', bool)
 
     def __init__(self, _id, title=NotLoaded, language=NotLoaded, contents=NotLoaded,
-            public=NotLoaded):
-        BaseObject.__init__(self, unicode(_id))
+            public=NotLoaded, url=None):
+        BaseObject.__init__(self, unicode(_id), url)
 
         self.title = title
         self.language = language

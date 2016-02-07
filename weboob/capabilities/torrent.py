@@ -42,7 +42,6 @@ class Torrent(BaseObject):
     name =      StringField('Name of torrent')
     size =      FloatField('Size of torrent')
     date =      DateField('Date when torrent has been published')
-    url =       StringField('Direct url to .torrent file')
     magnet =    StringField('URI of magnet')
     seeders =   IntField('Number of seeders')
     leechers =  IntField('Number of leechers')

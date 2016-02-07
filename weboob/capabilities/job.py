@@ -27,7 +27,6 @@ class BaseJobAdvert(BaseObject):
     """
     Represents a job announce.
     """
-    url =              StringField('URL of the announce')
     publication_date = DateField('Date when the announce has been published')
     society_name =     StringField('Name of the society taht published the announce')
     place =            StringField('Place where the job take place')

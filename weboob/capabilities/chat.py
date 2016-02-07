@@ -42,8 +42,8 @@ class ChatMessage(BaseObject):
     message =       StringField('Content of message')
     date =          DateField('Date when the message has been sent')
 
-    def __init__(self, id_from, id_to, message, date=None):
-        BaseObject.__init__(self, '%s.%s' % (id_from, id_to))
+    def __init__(self, id_from, id_to, message, date=None, url=None):
+        BaseObject.__init__(self, '%s.%s' % (id_from, id_to), url)
         self.id_from = id_from
         self.id_to = id_to
         self.message = message

@@ -328,10 +328,12 @@ class BaseObject(object):
 
     id = None
     backend = None
+    url = None
     _fields = None
 
-    def __init__(self, id=u'', backend=None):
+    def __init__(self, id=u'', url=None, backend=None):
         self.id = to_unicode(id)
+        self.url = url
         self.backend = backend
         self._fields = deepcopy(self._fields)
 

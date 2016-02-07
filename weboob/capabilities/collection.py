@@ -40,8 +40,8 @@ class BaseCollection(BaseObject):
     However, this probably will not work properly for now.
     """
 
-    def __init__(self, split_path):
-        BaseObject.__init__(self, None)
+    def __init__(self, split_path, id=None, url=None):
+        BaseObject.__init__(self, id, url)
         self.split_path = split_path
 
     @property
@@ -83,9 +83,9 @@ class Collection(BaseCollection):
     title = StringField('Collection title')
     split_path = Field('Full collection path', list)
 
-    def __init__(self, split_path=None, title=None):
+    def __init__(self, split_path=None, title=None, id=None, url=None):
         self.title = title
-        BaseCollection.__init__(self, split_path)
+        BaseCollection.__init__(self, split_path, id, url)
 
     def __unicode__(self):
         if self.title and self.basename:

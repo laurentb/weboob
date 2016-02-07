@@ -48,9 +48,6 @@ class GaugeMeasure(BaseObject):
     date =      DateField('Date of measure')
     alarm =     StringField('Alarm level')
 
-    def __init__(self):
-        BaseObject.__init__(self)
-
     def __repr__(self):
         if empty(self.level):
             return "<GaugeMeasure is %s>" % self.level

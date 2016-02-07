@@ -45,8 +45,8 @@ class Project(BaseObject):
     statuses =      Field('Available statuses for issues', list)
     priorities =    Field('Available priorities for issues', list)
 
-    def __init__(self, id, name):
-        BaseObject.__init__(self, id)
+    def __init__(self, id, name, url=None):
+        BaseObject.__init__(self, id, url)
         self.name = unicode(name)
 
     def __repr__(self):
@@ -112,8 +112,8 @@ class User(BaseObject):
     """
     name =      StringField('Name of user')
 
-    def __init__(self, id, name):
-        BaseObject.__init__(self, id)
+    def __init__(self, id, name, url=None):
+        BaseObject.__init__(self, id, url)
         self.name = unicode(name)
 
     def __repr__(self):
@@ -126,8 +126,8 @@ class Version(BaseObject):
     """
     name =      StringField('Name of version')
 
-    def __init__(self, id, name):
-        BaseObject.__init__(self, id)
+    def __init__(self, id, name, url=None):
+        BaseObject.__init__(self, id, url)
         self.name = unicode(name)
 
     def __repr__(self):
@@ -149,8 +149,8 @@ class Status(BaseObject):
     name =      StringField('Name of status')
     value =     IntField('Value of status (constants VALUE_*)')
 
-    def __init__(self, id, name, value):
-        BaseObject.__init__(self, id)
+    def __init__(self, id, name, value, url=None):
+        BaseObject.__init__(self, id, url)
         self.name = unicode(name)
         self.value = value
 
@@ -163,7 +163,6 @@ class Attachment(BaseObject):
     Attachment of an issue.
     """
     filename =      StringField('Filename')
-    url =           StringField('Direct URL to attachment')
 
     def __repr__(self):
         return '<Attachment %r>' % self.filename
@@ -228,8 +227,8 @@ class Query(BaseObject):
     category =      StringField('Filter on categories')
     status =        StringField('Filter on statuses')
 
-    def __init__(self):
-        BaseObject.__init__(self, '')
+    def __init__(self, id='', url=None):
+        BaseObject.__init__(self, id, url)
 
 
 class CapBugTracker(Capability):

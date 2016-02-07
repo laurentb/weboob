@@ -62,8 +62,9 @@ class Message(BaseObject):
                        content=NotLoaded,
                        signature=NotLoaded,
                        children=NotLoaded,
-                       flags=0):
-        super(Message, self).__init__(id)
+                       flags=0,
+                       url=None):
+        super(Message, self).__init__(id, url)
         self.thread = thread
         self.title = title
         self.sender = sender
