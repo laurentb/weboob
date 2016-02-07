@@ -73,6 +73,7 @@ class ModuleInfo(object):
         self.urls = items['urls']
 
     def has_caps(self, caps):
+        """Return True if module implements at least one of the caps."""
         if not isinstance(caps, (list, tuple)):
             caps = [caps]
         for c in caps:

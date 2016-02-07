@@ -35,6 +35,13 @@ class BackendAlreadyExists(Exception):
 
 
 class BackendsConfig(object):
+    """
+    Config of backends.
+
+    A backend is an instance of a module with a config.
+    A module can thus have multiple instances.
+    """
+
     class WrongPermissions(Exception):
         pass
 
@@ -63,6 +70,13 @@ class BackendsConfig(object):
                         u'Weboob will not start as long as config file %s is readable by group or other users.' % confpath)
 
     def iter_backends(self):
+        """
+        Iterate on backends.
+
+        :returns: each tuple contains the backend name, module name and module options
+        :rtype: :class:`tuple`
+        """
+
         config = RawConfigParser()
         config.read(self.confpath)
         changed = False
@@ -94,6 +108,14 @@ class BackendsConfig(object):
         return name in config.sections()
 
     def add_backend(self, backend_name, module_name, params, edit=False):
+        """
+        Add a backend to config.
+
+        :param backend_name: name of the backend in config
+        :param module_name: name of the Python submodule to run
+        :param params: params to pass to the module
+        :type params: :class:`dict`
+        """
         if not backend_name:
             raise ValueError(u'Please give a name to the configured backend.')
         config = RawConfigParser()
@@ -112,9 +134,17 @@ class BackendsConfig(object):
             config.write(f)
 
     def edit_backend(self, backend_name, module_name, params):
+        """Edit a backend from config."""
         return self.add_backend(backend_name, module_name, params, True)
 
     def get_backend(self, backend_name):
+        """
+        Get options of backend.
+
+        :returns: a tuple with the module name and the module options dict
+        :rtype: tuple
+        """
+
         config = RawConfigParser()
         config.read(self.confpath)
         if not config.has_section(backend_name):
@@ -134,6 +164,8 @@ class BackendsConfig(object):
         return module_name, items
 
     def remove_backend(self, backend_name):
+        """Remove a backend from config."""
+
         config = RawConfigParser()
         config.read(self.confpath)
         if not config.remove_section(backend_name):

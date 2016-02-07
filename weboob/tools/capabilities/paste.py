@@ -49,6 +49,13 @@ class BasePasteModule(CapPaste):
 
 
 def image_mime(data_base64, supported_formats=('gif', 'jpeg', 'png')):
+    """
+    Return the MIME type of an image or None.
+
+    :param data_base64: data to detect, base64 encoded
+    :type data_base64: str
+    :param supported_formats: restrict list of formats to test
+    """
     try:
         beginning = data_base64[:24].decode('base64')
     except binascii.Error:

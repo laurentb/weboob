@@ -49,6 +49,11 @@ def get_backtrace(empty="Empty backtrace."):
 
 
 def get_bytes_size(size, unit_name):
+    r"""Converts a unit and a number into a number of bytes.
+
+    >>> get_bytes_size(2, 'KB')
+    2048
+    """
     unit_data = {
         'bytes': 1,
         'KB': 1024,
@@ -105,6 +110,7 @@ def guess_encoding(stdio):
 
 
 def limit(iterator, lim):
+    """Iterate on the lim first elements of iterator."""
     count = 0
     iterator = iter(iterator)
     while count < lim:

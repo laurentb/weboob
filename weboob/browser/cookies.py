@@ -67,6 +67,7 @@ class WeboobCookieJar(requests.cookies.RequestsCookieJar):
                 yield cookie
 
     def copy(self):
+        """Return an object copy of the cookie jar."""
         new_cj = type(self)()
         new_cj.update(self)
         return new_cj

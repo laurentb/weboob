@@ -135,6 +135,10 @@ class Android(Profile):
 
 
 class IPhone(Profile):
+    """
+    An iphone profile for mobile websites and some API websites
+    """
+
     def __init__(self, application):
         self.application = application
 

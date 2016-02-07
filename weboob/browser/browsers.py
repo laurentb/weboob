@@ -757,6 +757,11 @@ class LoginBrowser(PagesBrowser):
         raise NotImplementedError()
 
     def do_logout(self):
+        """
+        Logout from website.
+
+        By default, simply clears the cookies.
+        """
         self.session.cookies.clear()
 
 
@@ -799,7 +804,21 @@ class StatesMixin(object):
 
 
 class APIBrowser(DomainBrowser):
+    """
+    A browser for API websites.
+    """
+
     def open(self, *args, **kwargs):
+        """
+        Do a JSON request.
+
+        The "Content-Type" header is always set to "application/json".
+
+        :param data: if specified, format as JSON and send as request body
+        :type data: :class:`dict`
+        :param headers: if specified, add these headers to the request
+        :type headers: :class:`dict`
+        """
         if 'data' in kwargs:
             kwargs['data'] = json.dumps(kwargs['data'])
         if 'headers' not in kwargs:
@@ -809,4 +828,10 @@ class APIBrowser(DomainBrowser):
         return super(APIBrowser, self).open(*args, **kwargs)
 
     def request(self, *args, **kwargs):
+        """
+        Do a JSON request and parse the response.
+
+        :returns: a dict containing the parsed JSON server response
+        :rtype: :class:`dict`
+        """
         return self.open(*args, **kwargs).json()

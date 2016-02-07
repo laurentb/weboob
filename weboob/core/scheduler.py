@@ -34,19 +34,53 @@ __all__ = ['Scheduler']
 
 
 class IScheduler(object):
+    """Interface of a scheduler."""
+
     def schedule(self, interval, function, *args):
+        """
+        Schedule an event.
+
+        :param interval: delay before calling the function
+        :type interval: int
+        :param function: function to call
+        :type function: callabale
+        :param args: arguments to give to function
+        :returns: an event identificator
+        """
         raise NotImplementedError()
 
     def repeat(self, interval, function, *args):
+        """
+        Repeat a call to a function
+
+        :param interval: interval between two calls
+        :type interval: int
+        :param function: function to call
+        :type function: callable
+        :param args: arguments to give to function
+        :returns: an event identificator
+        """
         raise NotImplementedError()
 
     def cancel(self, ev):
+        """
+        Cancel an event
+
+        :param ev: the event identificator
+        """
+
         raise NotImplementedError()
 
     def run(self):
+        """
+        Run the scheduler loop
+        """
         raise NotImplementedError()
 
     def want_stop(self):
+        """
+        Plan to stop the scheduler.
+        """
         raise NotImplementedError()
 
 
@@ -63,6 +97,8 @@ class RepeatedTimer(Timer):
 
 
 class Scheduler(IScheduler):
+    """Scheduler using Python's :mod:`threading`."""
+
     def __init__(self):
         self.logger = getLogger('scheduler')
         self.mutex = RLock()

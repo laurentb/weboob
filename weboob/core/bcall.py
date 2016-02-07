@@ -65,6 +65,7 @@ class BackendsCall(object):
             self.tasks.put(backend)
 
     def store_result(self, backend, result):
+        """Store the result when a backend task finished."""
         if result is None:
             return
 
@@ -73,6 +74,11 @@ class BackendsCall(object):
         self.responses.put(result)
 
     def backend_process(self, function, args, kwargs):
+        """
+        Internal method to run a method of a backend.
+
+        As this method may be blocking, it should be run on its own thread.
+        """
         backend = self.tasks.get()
         with backend:
             try:
@@ -136,6 +142,7 @@ class BackendsCall(object):
         return thread
 
     def wait(self):
+        """Wait until all tasks are finished."""
         self.tasks.join()
 
         if self.errors:
