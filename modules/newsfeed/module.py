@@ -64,6 +64,7 @@ class NewsfeedModule(Module, CapMessages):
         thread.title = entry.title
         thread.root = Message(thread=thread,
                               id=0,
+                              url=entry.link,
                               title=entry.title,
                               sender=entry.author,
                               receivers=None,
