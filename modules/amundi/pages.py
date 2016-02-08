@@ -48,7 +48,7 @@ class AccountsPage(LoggedPage, JsonPage):
     def iter_accounts(self):
         for acc in self.doc['positionTotaleDispositifDto']:
             ac = Account()
-            ac.type = 5
+            ac.type = Account.TYPE_MARKET
             ac.id = ac.number = acc['codeDispositif']
             ac.label = acc['libelleDispositif']
             ac._entreprise = acc['libelleEntreprise']
@@ -101,14 +101,14 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                 tr.rdate = datetime.strptime(hist['dateComptabilisation'].split('T')[0], '%Y-%m-%d')
                 tr.date = tr.rdate
                 tr.label = hist['libelleOperation']
-                tr.type = 0
+                tr.type = Transaction.TYPE_UNKNOWN
                 tr.investments = []
                 for ins in hist['instructions']:
                     inv = Investment()
                     inv.code = NotAvailable
                     inv.label = ins['nomFonds']
                     inv.description = ' '.join([ins['type'], ins['nomDispositif']])
-                    inv.vdate = datetime.strptime(ins['dateVlReel'].split('T')[0], '%Y-%m-%d')
+                    inv.vdate = datetime.strptime(ins.get('dateVlReel', ins.get('dateVlExecution')).split('T')[0], '%Y-%m-%d')
                     inv.valuation = Decimal(ins['montantNet'])
                     inv.quantity = Decimal(ins['nombreDeParts'])
                     inv.unitprice = inv.unitvalue = Decimal(ins['vlReel'])
