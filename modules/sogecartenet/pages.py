@@ -103,12 +103,15 @@ class TransactionsPage(SogeLoggedPage, CsvPage):
             def condition(self):
                 return False
 
+            def has_data(self):
+                return not Dict().filter(self.el)['processing date'] == u'No data found'
+
             def check_debit(self):
                 return Dict().filter(self.el)['debit / credit'] == 'D'
 
         class credit(item):
             def condition(self):
-                return not self.check_debit()
+                return self.has_data() and not self.check_debit()
 
         class debit(item):
 
@@ -116,7 +119,7 @@ class TransactionsPage(SogeLoggedPage, CsvPage):
             obj_original_amount = FrenchTransaction.Amount(CleanText(Env('original_amount')), replace_dots=False)
 
             def condition(self):
-                if self.check_debit():
+                if self.has_data() and self.check_debit():
                     self.env['amount'] = "-" + self.el['charged amt']
                     self.env['original_amount'] = "-" + self.el['orig. currency gross amt']
                     return True
