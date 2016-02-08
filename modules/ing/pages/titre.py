@@ -38,7 +38,7 @@ class Transaction(FrenchTransaction):
 
 class TitreValuePage(LoggedPage, HTMLPage):
     def get_isin(self):
-        return self.doc.xpath('//div[@id="headFiche"]//span[@id="test3"]/text()')[0].split(' - ')[0].strip()
+        return unicode(self.doc.xpath('//div[@id="headFiche"]//span[@id="test3"]/text()')[0].split(' - ')[0].strip())
 
 
 class TitrePage(LoggedPage, RawPage):
@@ -83,7 +83,8 @@ class TitrePage(LoggedPage, RawPage):
             if valuation != '':
                 invest.valuation = Decimal(valuation)
             else:
-                invest.valuation = NotAvailable
+                # valuation is not nullable.
+                invest.valuation = Decimal('0')
             diff = FrenchTransaction.clean_amount(columns[5])
             if diff != '':
                 invest.diff = Decimal(diff)
