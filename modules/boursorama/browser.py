@@ -28,7 +28,7 @@ from weboob.capabilities.bank import Account
 
 from .pages import (LoginPage, ProfilIncomplete, AccountsList, AccountHistory, CardHistory,
                     UpdateInfoPage, AuthenticationPage, AccountLifeInsurance, AccountMarket,
-                    InvestmentDetail, LifeInsuranceHistory)
+                    InvestmentDetail, LifeInsuranceHistory, NewWebsitePage)
 
 
 __all__ = ['Boursorama']
@@ -58,6 +58,7 @@ class Boursorama(StateBrowser):
              r'.*/opcvm.phtml.*': InvestmentDetail,
              r'.*/bourse/trackers/etf.phtml.*': InvestmentDetail,
              r'.*/positions_engagements.phtml.*': AccountMarket,
+             r'https://clients.boursorama.com/': NewWebsitePage,
             }
 
     __states__ = ('auth_token',)

@@ -26,6 +26,13 @@ from weboob.deprecated.browser import Page, BrowserIncorrectPassword
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
 
 
+class NewWebsitePage(Page):
+    # New Website
+    def on_loaded(self):
+        self.browser.location('https://clients.boursorama.com/stop-essai')
+        self.browser.login()
+
+
 class VirtKeyboard(MappedVirtKeyboard):
     symbols={'0':'cb9af3f561915702fc7f8ebaed8d5024',
              '1':'6154d49517dce772aedb581db6587f12',

@@ -22,7 +22,7 @@
 from .account_history import AccountHistory
 from .card_history import CardHistory
 from .accounts_list import AccountsList
-from .login import LoginPage, ProfilIncomplete, UpdateInfoPage
+from .login import LoginPage, ProfilIncomplete, UpdateInfoPage, NewWebsitePage
 from .two_authentication import AuthenticationPage
 from .investment import AccountMarket, AccountLifeInsurance, InvestmentDetail
 from .lifeinsurance_history import LifeInsuranceHistory
@@ -42,4 +42,5 @@ __all__ = ['LoginPage',
            'AccountLifeInsurance',
            'InvestmentDetail',
            'LifeInsuranceHistory',
+           'NewWebsitePage',
           ]
