@@ -57,7 +57,7 @@ class LdlcModule(Module, CapBill):
         return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
 
     def get_bill(self, _id):
-        subid = _id.split('_')[0]
+        subid = _id.rsplit('_', 1)[0]
         subscription = self.get_subscription(subid)
 
         return find_object(self.iter_bills(subscription), id=_id, error=BillNotFound)
