@@ -32,6 +32,10 @@ from ..transaction import Transaction
 __all__ = ['LoginPage']
 
 
+class UselessPage(HTMLPage):
+    pass
+
+
 class ChoiceLinkPage(HTMLPage):
     def on_load(self):
         link_line = self.doc.xpath('//script')[-1].text
@@ -39,7 +43,7 @@ class ChoiceLinkPage(HTMLPage):
         if m:
             self.browser.location(m.group(1))
 
-class WebsiteChoosePage(HTMLPage):
+class SubscriptionPage(HTMLPage):
     def on_load(self):
         for div in self.doc.xpath('//div[@class="listeAbonnementsBox"]'):
             site_type = div.xpath('./div[1]')[0].text
