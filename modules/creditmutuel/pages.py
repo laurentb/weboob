@@ -334,6 +334,8 @@ class CardPage(OperationsPage, LoggedPage):
         class list_history(Transaction.TransactionsElement):
             head_xpath = '//table[@class="liste"]//thead/tr/th'
             item_xpath = '//table[@class="liste"]/tbody/tr'
+            col_commerce = u'Commerce'
+            col_ville = u'Ville'
 
             def parse(self, el):
                 label = CleanText('//div[contains(@class, "lister")]//p[@class="c"]')(el)
@@ -346,7 +348,7 @@ class CardPage(OperationsPage, LoggedPage):
             class item(Transaction.TransactionElement):
                 condition = lambda self: len(self.el.xpath('./td')) >= 4
 
-                obj_raw = Transaction.Raw('./td[last()-2] | ./td[last()-1]')
+                obj_raw = Transaction.Raw(Env('raw'))
                 obj_type = Transaction.TYPE_CARD
                 obj_date = Env('debit_date')
                 obj_rdate = Transaction.Date(TableCell('date'))
@@ -355,6 +357,11 @@ class CardPage(OperationsPage, LoggedPage):
                 obj_original_currency = Env('original_currency')
 
                 def parse(self, el):
+                    try:
+                        self.env['raw'] = "%s %s" % (CleanText().filter(TableCell('commerce')(self)[0].text), CleanText().filter(TableCell('ville')(self)[0].text))
+                    except ColumnNotFound:
+                        self.env['raw'] = "%s" % (CleanText().filter(TableCell('commerce')(self)[0].text))
+
                     self.env['amount'] = CleanDecimal(replace_dots=True).filter(TableCell('credit')(self)[0].text)
                     original_amount = TableCell('credit')(self)[0].xpath('./span')[0].text
                     if original_amount:
