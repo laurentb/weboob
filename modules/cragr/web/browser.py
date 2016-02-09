@@ -172,7 +172,7 @@ class Cragr(Browser):
         self.savings_url  = re.sub('act=([^&=]+)', 'act=Synthepargnes', self.accounts_url, 1)
         self.loans_url  = re.sub('act=([^&=]+)', 'act=Synthcredits', self.accounts_url, 1)
 
-        if self.page.check_perimeters() and not self.broken_perimeters and 1 == 2:
+        if self.page.check_perimeters() and not self.broken_perimeters:
             self.perimeter_url = re.sub('act=([^&=]+)', 'act=Perimetre', self.accounts_url, 1)
             self.chg_perimeter_url = '%s%s' % (re.sub('act=([^&=]+)', 'act=ChgPerim', self.accounts_url, 1), '&typeaction=ChgPerim')
             self.location(self.perimeter_url.format(self.sag))
