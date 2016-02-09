@@ -35,6 +35,13 @@ Julien Veyssier <julien.veyssier@aiur.fr>
 
 Christophe Benz <christophe.benz@gmail.com>
         * Bouygues, INA, SFR and Youtube modules maintainer.
+        * Ex-member of the core team.
+
+Vincent A. <dev@indigo.re>
+        * funmooc, github, guerrillamail, imgur, lutim, mailinator,
+          ovs, pariskiwi, pixtoilelibre, quvi, sueurdemetal, unsee
+          modules maintainer;
+        * Many patches on too many code parts.
 
 Roger Philibert <roger.philibert@gmail.com>
         * Ehentai, Izneo, JacquieEtMichel, OKC and Youjizz modules maintainer.
@@ -106,12 +113,15 @@ Arno Renevier <arno@renevier.net>
 
 Matthieu Weber <mweber+weboob@free.fr>
         * Unpronounceable modules maintainer.
+        * Fix on formatter encoding.
 
 Jocelyn Jaubert <jocelyn.jaubert@gmail.com>
         * SocieteGenerale module maintainer.
 
 Alexandre Morignot <erdnaxeli@cervoi.se>
         * residentadivsor module maintainer.
+        * Documentation to write a module with Browser2
+        * Adapt munin scripts to python3
 
 Johann Broudin <johann.broudin@6-8.fr>
         * CMB module maintainer.
@@ -121,9 +131,6 @@ Guilhem Bonnefille <guilhem.bonnefille@gmail.com>
 
 Cedric Defortis <cedric@aiur.fr>
         * MeteoFrance module maintainer.
-
-Vincent A. <dev@indigo.re>
-        * Quvi module maintainer.
 
 P4ncake <me@p4ncake.fr>
         * Vice module maintainer.
@@ -266,6 +273,7 @@ Romain Garbage <romain.garbage@gmail.com>
 
 Pierre-Louis Bonicoli <pierre-louis.bonicoli@gmx.fr>
         * Fix on bash completion script.
+        * Fixes on documentation
 
 Philippe Fremy <phil@freehackers.org>
         * Fixes for Windows.
@@ -299,7 +307,10 @@ Samuel Loury <samuel.loury@cosmo-platform.org>
         * Fix on the documentation
 
 Caram Dache <caramdache@gmail.com>
-		* Patch on boobank OFX export
+        * Patch on boobank OFX export
+
+Mickaël Thomas <mickael9@gmail.com>
+        * Patch to use gpg by default rather than gpg
 
 Edmond Van Overtveldt
 Julia Leven
