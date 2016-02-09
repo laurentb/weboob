@@ -312,6 +312,10 @@ Caram Dache <caramdache@gmail.com>
 Mickaël Thomas <mickael9@gmail.com>
         * Patch to use gpg by default rather than gpg
 
+James Galt <james.galt.bi@gmail.com.com>
+        * Patch to remove ids that might be non-unique
+        * Add Account.number attribute, and use it in BNP module
+
 Edmond Van Overtveldt
 Julia Leven
 Jérémy Bossut
