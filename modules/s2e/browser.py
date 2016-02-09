@@ -53,6 +53,7 @@ class S2eBrowser(LoginBrowser):
         self.sessionId = self.page.login(self.username, self.password)
         if self.sessionId is None:
             raise BrowserIncorrectPassword()
+        self.page.logged = True
 
     @need_login
     def get_accounts_list(self):
