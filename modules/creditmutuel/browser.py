@@ -31,12 +31,13 @@ from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.profiles import Wget
 from weboob.browser.url import URL
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.capabilities.bank import Transfer, TransferError
+from weboob.capabilities.bank import Transfer, TransferError, Account
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
                    OperationsPage, CardPage, ComingPage, NoOperationsPage, \
                    TransfertPage, ChangePasswordPage, VerifCodePage,       \
-                   EmptyPage, PorPage, IbanPage, NewHomePage, RedirectPage
+                   EmptyPage, PorPage, IbanPage, NewHomePage, RedirectPage, \
+                   LIAccountsPage
 
 
 __all__ = ['CreditMutuelBrowser']
@@ -78,6 +79,8 @@ class CreditMutuelBrowser(LoginBrowser):
     por =         URL('/(?P<subbank>.*)/fr/banque/POR_ValoToute.aspx',
                       '/(?P<subbank>.*)/fr/banque/POR_SyntheseLst.aspx',
                       PorPage)
+    li =          URL('/(?P<subbank>.*)/fr/assurances/profilass.aspx\?domaine=epargne',
+                      '/(?P<subbank>.*)/fr/assurances/consultation/WI_ASSAVI', LIAccountsPage)
     iban =        URL('/(?P<subbank>.*)/fr/banque/rib.cgi', IbanPage)
 
     new_home =    URL('/fr/banque/pageaccueil.html',
@@ -121,6 +124,8 @@ class CreditMutuelBrowser(LoginBrowser):
                 accounts.append(a)
             self.iban.go(subbank=self.currentSubBank).fill_iban(accounts)
             self.por.go(subbank=self.currentSubBank).add_por_accounts(accounts)
+            for acc in self.li.go(subbank=self.currentSubBank).iter_li_accounts():
+                accounts.append(acc)
         else:
             for a in self.new_accounts.stay_or_go().iter_accounts():
                 accounts.append(a)
@@ -147,6 +152,9 @@ class CreditMutuelBrowser(LoginBrowser):
             self.location('%s/%s/fr/banque/%s' % (self.BASEURL, self.currentSubBank, page_url))
         else:
             self.location('%s/fr/banque/%s' % (self.BASEURL, page_url))
+
+        if self.li.is_here():
+            return self.page.iter_history()
 
         if not self.operations.is_here():
             return iter([])
@@ -182,11 +190,14 @@ class CreditMutuelBrowser(LoginBrowser):
 
     def get_investment(self, account):
         if account._is_inv:
-            if not self.is_new_website:
-                self.por.go(subbank=self.currentSubBank)
-            else:
-                self.new_por.go()
-            self.page.send_form(account)
+            if account.type == Account.TYPE_MARKET:
+                if not self.is_new_website:
+                    self.por.go(subbank=self.currentSubBank)
+                else:
+                    self.new_por.go()
+                self.page.send_form(account)
+            elif account.type == Account.TYPE_LIFE_INSURANCE:
+                self.location(account._link_inv)
             return self.page.iter_investment()
         return iter([])
 

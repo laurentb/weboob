@@ -29,8 +29,8 @@ from dateutil.relativedelta import relativedelta
 
 from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, SkipItem, method
-from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, TableCell, Regexp
-from weboob.browser.filters.html import Link
+from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, TableCell, Regexp, Async, AsyncLoad, Date, ColumnNotFound
+from weboob.browser.filters.html import Link, Attr
 from weboob.exceptions import BrowserIncorrectPassword, ParseError
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
@@ -375,6 +375,58 @@ class CardPage(OperationsPage, LoggedPage):
 class NoOperationsPage(OperationsPage, LoggedPage):
     def get_history(self):
         return iter([])
+
+
+class LIAccountsPage(LoggedPage, HTMLPage):
+    @method
+    class iter_li_accounts(ListElement):
+        item_xpath = '//table[@class]/tbody/tr[count(td)>4]'
+
+        class item(ItemElement):
+            klass = Account
+
+            load_details = Attr('.//a', 'href') & AsyncLoad
+
+            obj__link_id = Async('details', Link('//li/a[contains(text(), "Mouvements")]'))
+            obj__link_inv = Link('./td[1]/a')
+            obj_id = CleanText('./td[2]', replace=[(' ', '')])
+            obj_label = CleanText('./td[1]')
+            obj_balance = CleanDecimal('./td[3]', replace_dots=True)
+            obj_currency = FrenchTransaction.Currency('./td[4]')
+            obj__card_links = []
+            obj_type = Account.TYPE_LIFE_INSURANCE
+            obj__is_inv = True
+
+    @method
+    class iter_history(ListElement):
+        item_xpath = '//table[@class="liste"]/tbody/tr'
+
+        class item(ItemElement):
+            klass = FrenchTransaction
+
+            obj_date = Date(CleanText('./td[1]'))
+            obj_raw = CleanText('./td[2]')
+            obj_amount  = CleanDecimal('./td[4]', replace_dots=True)
+            obj_original_currency = FrenchTransaction.Currency('./td[4]')
+            obj_type = Transaction.TYPE_BANK
+            obj__is_coming = False
+
+    @method
+    class iter_investment(ListElement):
+        item_xpath = '//table[@class="liste"]/tbody/tr[count(td)>7]'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText('./td[1]')
+            obj_unitprice = CleanDecimal('./td[4]', default=NotAvailable, replace_dots=True)
+            obj_vdate = Date(CleanText('./td[5]', replace=[('-', '')]), default=NotAvailable)
+            obj_unitvalue = CleanDecimal('./td[6]', default=NotAvailable, replace_dots=True)
+            obj_quantity = CleanDecimal('./td[7]', default=NotAvailable, replace_dots=True)
+            obj_valuation = CleanDecimal('./td[8]', default=Decimal(0), replace_dots=True)
+
+            def obj_code(self):
+                return CleanText('./td[2]', replace=[('-', '')])(self) or NotAvailable
 
 
 class PorPage(LoggedPage, HTMLPage):
