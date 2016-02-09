@@ -21,7 +21,7 @@ from __future__ import print_function
 
 from decimal import Decimal
 
-from weboob.capabilities.bill import CapBill, Detail, Subscription
+from weboob.capabilities.bill import CapDocument, Detail, Subscription
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import PrettyFormatter
 from weboob.tools.application.base import MoreResultsAvailable
@@ -43,9 +43,9 @@ class Boobill(ReplApplication):
     APPNAME = 'boobill'
     VERSION = '1.2'
     COPYRIGHT = 'Copyright(C) 2012-YEAR Florent Fourcot'
-    DESCRIPTION = 'Console application allowing to get and download bills.'
-    SHORT_DESCRIPTION = "get and download bills"
-    CAPS = CapBill
+    DESCRIPTION = 'Console application allowing to get/download documents and bills.'
+    SHORT_DESCRIPTION = "get/download documents and bills"
+    CAPS = CapDocument
     COLLECTION_OBJECTS = (Subscription, )
     EXTRA_FORMATTERS = {'subscriptions':   SubscriptionsFormatter,
                         }
@@ -153,6 +153,16 @@ class Boobill(ReplApplication):
         self.exec_method(id, 'iter_bills_history')
 
     @defaultcount(10)
+    def do_documents(self, id):
+        """
+        documents [ID]
+
+        Get the list of documents for subscriptions.
+        If no ID given, display documents of all backends
+        """
+        self.exec_method(id, 'iter_documents')
+
+    @defaultcount(10)
     def do_bills(self, id):
         """
         bills [ID]
@@ -168,25 +178,25 @@ class Boobill(ReplApplication):
 
         download ID [FILENAME]
 
-        download the bill
-        id is the identifier of the bill (hint: try bills command)
+        download the document
+        id is the identifier of the document (hint: try documents command)
         FILENAME is where to write the file. If FILENAME is '-',
         the file is written to stdout.
 
         download all [ID]
 
-        You can use special word "all" and download all bills of
+        You can use special word "all" and download all documents of
         subscription identified by ID.
-        If Id not given, download bills of all subscriptions.
+        If Id not given, download documents of all subscriptions.
         """
         id, dest = self.parse_command_args(line, 2, 1)
         id, backend_name = self.parse_id(id)
         if not id:
-            print('Error: please give a bill ID (hint: use bills command)', file=self.stderr)
+            print('Error: please give a document ID (hint: use documents command)', file=self.stderr)
             return 2
 
         names = (backend_name,) if backend_name is not None else None
-        # Special keywords, download all bills of all subscriptions
+        # Special keywords, download all documents of all subscriptions
         if id == "all":
             if dest is None:
                 for subscription in self.do('iter_subscription', backends=names):
@@ -197,10 +207,10 @@ class Boobill(ReplApplication):
                 return
 
         if dest is None:
-            for bill in self.do('get_bill', id, backends=names):
-                dest = id + "." + bill.format
+            for document in self.do('get_document', id, backends=names):
+                dest = id + "." + document.format
 
-        for buf in self.do('download_bill', id, backends=names):
+        for buf in self.do('download_document', id, backends=names):
             if buf:
                 if dest == "-":
                     print(buf)
@@ -209,15 +219,15 @@ class Boobill(ReplApplication):
                         with open(dest, 'wb') as f:
                             f.write(buf)
                     except IOError as e:
-                        print('Unable to write bill in "%s": %s' % (dest, e), file=self.stderr)
+                        print('Unable to write document in "%s": %s' % (dest, e), file=self.stderr)
                         return 1
                 return
 
     def download_all(self, id, names):
         id, backend_name = self.parse_id(id)
-        for bill in self.do('iter_bills', id, backends=names):
-            dest = bill.id + "." + bill.format
-            for buf in self.do('download_bill', bill.id, backends=names):
+        for document in self.do('iter_documents', id, backends=names):
+            dest = document.id + "." + document.format
+            for buf in self.do('download_document', document.id, backends=names):
                 if buf:
                     if dest == "-":
                         print(buf)

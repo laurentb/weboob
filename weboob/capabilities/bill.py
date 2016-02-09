@@ -23,7 +23,7 @@ from .date import DateField
 from .collection import CapCollection
 
 
-__all__ = ['SubscriptionNotFound', 'BillNotFound', 'Detail', 'Bill', 'Subscription', 'CapBill']
+__all__ = ['SubscriptionNotFound', 'DocumentNotFound', 'Detail', 'Document', 'Bill', 'Subscription', 'CapDocument']
 
 
 class SubscriptionNotFound(UserError):
@@ -35,12 +35,12 @@ class SubscriptionNotFound(UserError):
         UserError.__init__(self, msg)
 
 
-class BillNotFound(UserError):
+class DocumentNotFound(UserError):
     """
-    Raised when a bill is not found.
+    Raised when a document is not found.
     """
 
-    def __init__(self, msg='Bill not found'):
+    def __init__(self, msg='Document not found'):
         UserError.__init__(self, msg)
 
 
@@ -58,13 +58,20 @@ class Detail(BaseObject, Currency):
     unit =      StringField('Unit of the consumption')
 
 
-class Bill(BaseObject, Currency):
+class Document(BaseObject):
+    """
+    Document.
+    """
+    date =          DateField('The day the document has been sent to the subscriber')
+    format =        StringField('file format of the document')
+    label =         StringField('label of document')
+    type =          StringField('type of document')
+
+
+class Bill(Document, Currency):
     """
     Bill.
     """
-    date =          DateField('The day the bill has been sent to the subscriber')
-    format =        StringField('file format of the bill')
-    label =         StringField('label of bill')
     price =         DecimalField('Price to pay')
     currency =      StringField('Currency', default=None)
     vat =           DecimalField('VAT included in the price')
@@ -83,7 +90,7 @@ class Subscription(BaseObject):
     renewdate =     DateField('Reset date of consumption')
 
 
-class CapBill(CapCollection):
+class CapDocument(CapCollection):
     def iter_resources(self, objs, split_path):
         """
         Iter resources. Will return :func:`iter_subscriptions`.
@@ -110,6 +117,16 @@ class CapBill(CapCollection):
         """
         raise NotImplementedError()
 
+    def iter_documents_history(self, subscription):
+        """
+        Iter history of a subscription.
+
+        :param subscription: subscription to get history
+        :type subscription: :class:`Subscription`
+        :rtype: iter[:class:`Detail`]
+        """
+        raise NotImplementedError()
+
     def iter_bills_history(self, subscription):
         """
         Iter history of a subscription.
@@ -120,23 +137,33 @@ class CapBill(CapCollection):
         """
         raise NotImplementedError()
 
-    def get_bill(self, id):
+    def get_document(self, id):
         """
-        Get a bill.
+        Get a document.
 
-        :param id: ID of bill
-        :rtype: :class:`Bill`
-        :raises: :class:`BillNotFound`
+        :param id: ID of document
+        :rtype: :class:`Document`
+        :raises: :class:`DocumentNotFound`
         """
         raise NotImplementedError()
 
-    def download_bill(self, id):
+    def download_document(self, id):
         """
-        Download a bill.
+        Download a document.
 
-        :param id: ID of bill
+        :param id: ID of document
         :rtype: str
-        :raises: :class:`BillNotFound`
+        :raises: :class:`DocumentNotFound`
+        """
+        raise NotImplementedError()
+
+    def iter_documents(self, subscription):
+        """
+        Iter documents.
+
+        :param subscription: subscription to get documents
+        :type subscription: :class:`Subscription`
+        :rtype: iter[:class:`Document`]
         """
         raise NotImplementedError()
 
@@ -148,7 +175,8 @@ class CapBill(CapCollection):
         :type subscription: :class:`Subscription`
         :rtype: iter[:class:`Bill`]
         """
-        raise NotImplementedError()
+        documents = self.iter_documents(subscription)
+        return filter(lambda doc: doc.type == "bill", documents)
 
     def get_details(self, subscription):
         """
