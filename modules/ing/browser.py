@@ -62,9 +62,8 @@ class IngBrowser(LoginBrowser):
     titrehistory = URL('https://bourse.ingdirect.fr/priv/compte.php\?ong=3', TitreHistory)
     titrerealtime = URL('https://bourse.ingdirect.fr/streaming/compteTempsReelCK.php', TitrePage)
     titrevalue = URL('https://bourse.ingdirect.fr/priv/fiche-valeur.php\?val=(?P<val>.*)&pl=(?P<pl>.*)&popup=1', TitreValuePage)
-
     asv_history = URL('https://ingdirectvie.ingdirect.fr/b2b2c/epargne/CoeLisMvt', ASVHistory)
-    # CapBill
+    # CapDocument
     billpage = URL('/protected/pages/common/estatement/eStatement.jsf', BillsPage)
 
     __states__ = ['where']
@@ -306,14 +305,14 @@ class IngBrowser(LoginBrowser):
             self.location('https://secure.ingdirect.fr/')
         return iter(transactions)
 
-    ############# CapBill #############
+    ############# CapDocument #############
     @need_login
     @check_bourse
     def get_subscriptions(self):
         return self.billpage.go().iter_account()
 
     @need_login
-    def get_bills(self, subscription):
+    def get_documents(self, subscription):
         self.billpage.go()
         data = {"AJAXREQUEST": "_viewRoot",
                 "accountsel_form": "accountsel_form",
@@ -323,7 +322,7 @@ class IngBrowser(LoginBrowser):
                 "transfer_issuer_radio": subscription.id
                 }
         self.billpage.go(data=data)
-        return self.page.iter_bills(subid=subscription.id)
+        return self.page.iter_documents(subid=subscription.id)
 
     def predownload(self, bill):
         self.page.postpredown(bill._localid)

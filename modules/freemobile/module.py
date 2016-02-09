@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.bill import CapBill, Subscription, Bill, SubscriptionNotFound, BillNotFound
+from weboob.capabilities.bill import CapDocument, Subscription, Bill, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -28,7 +28,7 @@ from .browser import Freemobile
 __all__ = ['FreeMobileModule']
 
 
-class FreeMobileModule(Module, CapBill):
+class FreeMobileModule(Module, CapDocument):
     NAME = 'freemobile'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
@@ -54,28 +54,28 @@ class FreeMobileModule(Module, CapBill):
     def get_subscription(self, _id):
         return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
 
-    def iter_bills_history(self, subscription):
+    def iter_documents_history(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
         return self.browser.get_history(subscription)
 
-    def get_bill(self, _id):
+    def get_document(self, _id):
         subid = _id.split('.')[0]
         subscription = self.get_subscription(subid)
 
-        return find_object(self.iter_bills(subscription), id=_id, error=BillNotFound)
+        return find_object(self.iter_documents(subscription), id=_id, error=DocumentNotFound)
 
-    def iter_bills(self, subscription):
+    def iter_documents(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
-        return self.browser.iter_bills(subscription)
+        return self.browser.iter_documents(subscription)
 
     def get_details(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
         return self.browser.get_details(subscription)
 
-    def download_bill(self, bill):
+    def download_document(self, bill):
         if not isinstance(bill, Bill):
-            bill = self.get_bill(bill)
+            bill = self.get_document(bill)
         return self.browser.open(bill._url).content

@@ -124,12 +124,12 @@ class Leclercmobile(Browser):
             for detail in pdf.get_details():
                 yield detail
 
-    def iter_bills(self, parentid):
+    def iter_documents(self, parentid):
         if not self.is_on_page(HistoryPage):
             self.location(self.conso)
         return self.page.date_bills(parentid)
 
-    def get_bill(self, id):
+    def get_document(self, id):
         assert isinstance(id, basestring)
         if not self.is_on_page(HistoryPage):
             self.location(self.conso)

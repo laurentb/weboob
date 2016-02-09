@@ -119,6 +119,7 @@ class DetailsPage(LoggedPage, BadUTF8Page):
             obj_id = Format('%s.%s', Env('subid'), Field('label'))
             obj_date = FormatDate(Field('label'))
             obj_format = u"pdf"
+            obj_type = u"bill"
             obj_price = CleanDecimal('div[@class="montant"]', default=Decimal(0), replace_dots=False)
 
     def get_renew_date(self, subscription):

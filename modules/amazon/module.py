@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bill import CapBill, Subscription, Bill, SubscriptionNotFound, BillNotFound
+from weboob.capabilities.bill import CapDocument, Subscription, Bill, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.shop import CapShop, Order
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
@@ -31,7 +31,7 @@ from .fr.browser import AmazonFR
 __all__ = ['AmazonModule']
 
 
-class AmazonModule(Module, CapShop, CapBill):
+class AmazonModule(Module, CapShop, CapDocument):
     NAME = 'amazon'
     MAINTAINER = u'Oleg Plakhotniuk'
     EMAIL = 'olegus8@gmail.com'
@@ -92,19 +92,19 @@ class AmazonModule(Module, CapShop, CapBill):
     def get_subscription(self, _id):
         return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
 
-    def get_bill(self, _id):
+    def get_document(self, _id):
         subid = _id.split('.')[0]
         subscription = self.get_subscription(subid)
-        return find_object(self.iter_bills(subscription), id=_id, error=BillNotFound)
+        return find_object(self.iter_documents(subscription), id=_id, error=DocumentNotFound)
 
-    def iter_bills(self, subscription):
+    def iter_documents(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
-        return self.browser.iter_bills(subscription)
+        return self.browser.iter_documents(subscription)
 
-    def download_bill(self, bill):
+    def download_document(self, bill):
         if not isinstance(bill, Bill):
-            bill = self.get_bill(bill)
+            bill = self.get_document(bill)
         if bill._url:
             return self.browser.open(bill._url).content
         return None

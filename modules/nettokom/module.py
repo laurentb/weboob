@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bill import CapBill, Subscription, SubscriptionNotFound, Detail
+from weboob.capabilities.bill import CapDocument, Subscription, SubscriptionNotFound, Detail
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -28,7 +28,7 @@ from .browser import Nettokom
 __all__ = ['NettoKomModule']
 
 
-class NettoKomModule(Module, CapBill):
+class NettoKomModule(Module, CapDocument):
     NAME = 'nettokom'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
@@ -60,7 +60,7 @@ class NettoKomModule(Module, CapBill):
         else:
             raise SubscriptionNotFound()
 
-    def iter_bills_history(self, subscription):
+    def iter_documents_history(self, subscription):
         with self.browser:
             for history in self.browser.get_history():
                 yield history

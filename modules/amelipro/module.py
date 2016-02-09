@@ -17,14 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.bill import CapBill, SubscriptionNotFound, BillNotFound, Subscription, Bill
+from weboob.capabilities.bill import CapDocument, SubscriptionNotFound, DocumentNotFound, Subscription, Bill
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from .browser import AmeliProBrowser
 
 __all__ = ['AmeliProModule']
 
-class AmeliProModule(Module, CapBill):
+class AmeliProModule(Module, CapDocument):
     NAME = 'amelipro'
     DESCRIPTION = u'Ameli website: French Health Insurance for Professionals'
     MAINTAINER = u'Christophe Lampin'
@@ -57,7 +57,7 @@ class AmeliProModule(Module, CapBill):
         else:
             return subscription
 
-    def iter_bills_history(self, subscription):
+    def iter_documents_history(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
         return self.browser.iter_history(subscription)
@@ -67,19 +67,19 @@ class AmeliProModule(Module, CapBill):
             subscription = self.get_subscription(subscription)
         return self.browser.get_details(subscription)
 
-    def iter_bills(self, subscription):
+    def iter_documents(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
-        return self.browser.iter_bills()
+        return self.browser.iter_documents()
 
-    def get_bill(self, id):
-        bill = self.browser.get_bill(id)
+    def get_document(self, id):
+        bill = self.browser.get_document(id)
         if not bill:
-            raise BillNotFound()
+            raise DocumentNotFound()
         else:
             return bill
 
-    def download_bill(self, bill):
+    def download_document(self, bill):
         if not isinstance(bill, Bill):
-            bill = self.get_bill(bill)
-        return self.browser.download_bill(bill)
+            bill = self.get_document(bill)
+        return self.browser.download_document(bill)

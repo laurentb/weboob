@@ -51,7 +51,7 @@ class ApiAuthPage(JsonPage, LoggedPage):
 
 class BillsPage(JsonPage, LoggedPage):
     @method
-    class get_bills(DictElement):
+    class get_documents(DictElement):
         item_xpath = 'list/results'
 
         class item(ItemElement):
@@ -60,5 +60,6 @@ class BillsPage(JsonPage, LoggedPage):
             obj_id = Format('%s.%s', Env('subid'), Dict('orderId'))
             obj_date = Date(Dict('billingDate'))
             obj_format = u"pdf"
+            obj_type = u"bill"
             obj_price = CleanDecimal(Dict('priceWithTax/value'))
             obj__url = Dict('pdfUrl')

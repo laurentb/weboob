@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bill import CapBill, Subscription, Bill, SubscriptionNotFound, BillNotFound
+from weboob.capabilities.bill import CapDocument, Subscription, Bill, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.messages import CantSendMessage, CapMessages, CapMessagesPost
 from weboob.capabilities.base import find_object
 from weboob.capabilities.account import CapAccount, StatusField
@@ -32,7 +32,7 @@ from .bill.browser import OrangeBillBrowser
 __all__ = ['OrangeModule']
 
 # We need to have a switcher, CapMessages use a browser1 and
-# CapBill use a browser2
+# CapDocument use a browser2
 # This will be remove when CapMessages use a browser2
 def browser_switcher(b):
     def set_browser(func):
@@ -49,7 +49,7 @@ def browser_switcher(b):
         return func_wrapper
     return set_browser
 
-class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost, CapBill):
+class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost, CapDocument):
     NAME = 'orange'
     MAINTAINER = u'Lucas Nussbaum'
     EMAIL = 'lucas@lucas-nussbaum.net'
@@ -91,21 +91,21 @@ class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost, CapBill):
         return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
 
     @browser_switcher(OrangeBillBrowser)
-    def get_bill(self, _id):
+    def get_document(self, _id):
         subid = _id.split('.')[0]
         subscription = self.get_subscription(subid)
 
-        return find_object(self.iter_bills(subscription), id=_id, error=BillNotFound)
+        return find_object(self.iter_documents(subscription), id=_id, error=DocumentNotFound)
 
     @browser_switcher(OrangeBillBrowser)
-    def iter_bills(self, subscription):
+    def iter_documents(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
-        return self.browser.iter_bills(subscription)
+        return self.browser.iter_documents(subscription)
 
     @browser_switcher(OrangeBillBrowser)
-    def download_bill(self, bill):
+    def download_document(self, bill):
         if not isinstance(bill, Bill):
-            bill = self.get_bill(bill)
+            bill = self.get_document(bill)
         return self.browser.open(bill._url).content
 

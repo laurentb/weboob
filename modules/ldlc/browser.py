@@ -51,7 +51,7 @@ class LdlcBrowser(LoginBrowser):
         return self.home.stay_or_go().get_list()
 
     @need_login
-    def iter_bills(self, subscription):
+    def iter_documents(self, subscription):
         self.bills.stay_or_go()
         bills = list()
         for value in self.page.get_range():
@@ -62,6 +62,6 @@ class LdlcBrowser(LoginBrowser):
 
             self.bills.go(data={event: value, '__EVENTTARGET': 'ctl00$cphMainContent$ddlDate'})
 
-            for i in self.page.get_bills(subid=subscription.id):
+            for i in self.page.get_documents(subid=subscription.id):
                 bills.append(i)
         return bills

@@ -54,8 +54,8 @@ class INGTest(BackendTest):
         for sub in l:
             _id = self.backend.get_subscription(sub.id)
             self.assertTrue(_id.id == sub.id)
-            bills = list(self.backend.iter_bills(sub))
+            bills = list(self.backend.iter_documents(sub))
             self.assertTrue(len(bills) > 0)
-            _id = self.backend.get_bill(bills[0].id)
+            _id = self.backend.get_document(bills[0].id)
             self.assertTrue(_id.id == bills[0].id)
-            self.backend.download_bill(bills[0].id)
+            self.backend.download_document(bills[0].id)

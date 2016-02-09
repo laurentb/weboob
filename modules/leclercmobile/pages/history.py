@@ -176,5 +176,6 @@ class HistoryPage(Page):
             bill._url = link.attrib['href']
             bill.label = unicode(link.text)
             bill.format = u"pdf"
+            bill.type = u"bill"
             bill.id = parentid + bill.label.replace(' ', '')
             yield bill

@@ -87,20 +87,20 @@ class AmeliBrowser(LoginBrowser):
                 yield payment
 
     @need_login
-    def iter_bills(self, sub):
-        self.logger.debug('call Browser.iter_bills')
+    def iter_documents(self, sub):
+        self.logger.debug('call Browser.iter_documents')
         if not sub._id.isdigit():
             return []
         self.billsp.stay_or_go()
-        return self.page.iter_bills(sub)
+        return self.page.iter_documents(sub)
 
     @need_login
-    def get_bill(self, id):
-        self.logger.debug('call Browser.get_bill')
+    def get_document(self, id):
+        self.logger.debug('call Browser.get_document')
         assert isinstance(id, basestring)
         subs = self.iter_subscription_list()
         for sub in subs:
-            for b in self.iter_bills(sub):
+            for b in self.iter_documents(sub):
                 if id == b.id:
                     return b
         return False

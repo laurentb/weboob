@@ -41,7 +41,7 @@ class BillsPage(HTMLPage):
                 self.env['id'] = re.sub(r'[^\d\-\.]', '', el.xpath('(//li[@class="n1 menuUsage toHighlight"])[1]//a')[0].text)
 
     @method
-    class get_bills(ListElement):
+    class get_documents(ListElement):
         item_xpath = '//ul[@class="liste fe_clearfix factures"]/li'
 
         class item(ItemElement):
@@ -51,5 +51,6 @@ class BillsPage(HTMLPage):
             obj_id = Format('%s.%s', Env('subid'), CleanDecimal(CleanText('.//span[@class="date magic_gras magic_font13"]')))
             obj_date = Date(CleanText('.//span[@class="date magic_gras magic_font13"]'))
             obj_format = u"pdf"
+            obj_type = u"bill"
             obj_price = CleanDecimal('span[@class="montant"]', replace_dots=True)
 

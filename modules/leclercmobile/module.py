@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bill import CapBill, SubscriptionNotFound,\
-    BillNotFound, Subscription, Bill
+from weboob.capabilities.bill import CapDocument, SubscriptionNotFound,\
+    DocumentNotFound, Subscription, Bill
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -29,7 +29,7 @@ from .browser import Leclercmobile
 __all__ = ['LeclercMobileModule']
 
 
-class LeclercMobileModule(Module, CapBill):
+class LeclercMobileModule(Module, CapDocument):
     NAME = 'leclercmobile'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
@@ -63,26 +63,26 @@ class LeclercMobileModule(Module, CapBill):
         else:
             raise SubscriptionNotFound()
 
-    def iter_bills_history(self, subscription):
+    def iter_documents_history(self, subscription):
         with self.browser:
             for history in self.browser.get_history():
                 if history.label != "Votre solde":
                     yield history
 
-    def get_bill(self, id):
+    def get_document(self, id):
         with self.browser:
-            bill = self.browser.get_bill(id)
+            bill = self.browser.get_document(id)
         if bill:
             return bill
         else:
-            raise BillNotFound()
+            raise DocumentNotFound()
 
-    def iter_bills(self, subscription):
+    def iter_documents(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
 
         with self.browser:
-            for bill in self.browser.iter_bills(subscription.id):
+            for bill in self.browser.iter_documents(subscription.id):
                 yield bill
 
     # The subscription is actually useless, but maybe for the futur...
@@ -91,9 +91,9 @@ class LeclercMobileModule(Module, CapBill):
             for detail in self.browser.get_details():
                 yield detail
 
-    def download_bill(self, bill):
+    def download_document(self, bill):
         if not isinstance(bill, Bill):
-            bill = self.get_bill(bill)
+            bill = self.get_document(bill)
 
         with self.browser:
             return self.browser.readurl(bill._url)

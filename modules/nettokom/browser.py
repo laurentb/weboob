@@ -86,12 +86,12 @@ class Nettokom(Browser):
             self.location('/guthabenverbrauch.html')
         return self.page.get_details()
 
-    def iter_bills(self, parentid):
+    def iter_documents(self, parentid):
         if not self.is_on_page(BillsPage):
             self.location('/verbindungsnachweis.html')
         return self.page.date_bills()
 
-    def get_bill(self, id):
+    def get_document(self, id):
         assert isinstance(id, basestring)
 
         if not self.is_on_page(BillsPage):
@@ -102,7 +102,7 @@ class Nettokom(Browser):
                 return a
 
 # Todo : url depends of file format
-#    def download_bill(self, id):
+#    def download_document(self, id):
 #        assert isinstance(id, basestring)
 #        date = id.split('.')[1]
 #

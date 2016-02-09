@@ -122,7 +122,7 @@ class Amazon(LoginBrowser):
         yield sub
 
     @need_login
-    def iter_bills(self, subscription):
+    def iter_documents(self, subscription):
         orders = self.iter_orders()
         for o in orders:
             b = Bill()
@@ -131,6 +131,7 @@ class Amazon(LoginBrowser):
             b.date = o.date
             b.price = o.total
             b.format = o._bill['format']
+            b.type = u'bill'
             b.currency = b.get_currency(self.get_currency())
             b.vat = o.tax
             yield b

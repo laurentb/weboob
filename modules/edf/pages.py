@@ -85,7 +85,7 @@ class AccountPage(EdfBasePage):
 
 class BillsPage(EdfBasePage):
 
-    def iter_bills(self, sub):
+    def iter_documents(self, sub):
 
         #pdb.set_trace()
         years = [None] + self.document.xpath('//ul[@class="years"]/li/a')
@@ -118,10 +118,11 @@ class BillsPage(EdfBasePage):
                     bill.date = date
                     bill.label = self.parser.tocleanstring(list_tds[0])
                     bill.format = u'pdf'
+                    bill.type = u'bill'
                     bill._url = url
                     yield bill
 
-    def get_bill(self, bill):
+    def get_document(self, bill):
         self.location(bill._url)
 
 

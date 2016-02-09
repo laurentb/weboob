@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.bill import CapBill, SubscriptionNotFound, BillNotFound, Subscription, Bill
+from weboob.capabilities.bill import CapDocument, SubscriptionNotFound, DocumentNotFound, Subscription, Bill
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from .browser import AmeliBrowser
@@ -25,7 +25,7 @@ from .browser import AmeliBrowser
 __all__ = ['AmeliModule']
 
 
-class AmeliModule(Module, CapBill):
+class AmeliModule(Module, CapDocument):
     NAME = 'ameli'
     DESCRIPTION = u'Ameli website: French Health Insurance'
     MAINTAINER = u'Christophe Lampin'
@@ -55,26 +55,26 @@ class AmeliModule(Module, CapBill):
         else:
             return subscription
 
-    def iter_bills_history(self, subscription):
+    def iter_documents_history(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
         return self.browser.iter_history(subscription)
 
-    def iter_bills(self, subscription):
+    def iter_documents(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
-        return self.browser.iter_bills(subscription)
+        return self.browser.iter_documents(subscription)
 
-    def get_bill(self, id):
-        bill = self.browser.get_bill(id)
+    def get_document(self, id):
+        bill = self.browser.get_document(id)
         if not bill:
-            raise BillNotFound()
+            raise DocumentNotFound()
         else:
             return bill
 
-    def download_bill(self, bill):
+    def download_document(self, bill):
         if not isinstance(bill, Bill):
-            bill = self.get_bill(bill)
+            bill = self.get_document(bill)
         request = self.browser.open(bill._url, stream=True)
         assert(request.headers['content-type'] == "application/pdf")
         return request.content

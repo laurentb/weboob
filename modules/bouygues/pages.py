@@ -93,7 +93,7 @@ class SendSMSErrorPage(HTMLPage):
 
 class BillsPage(HTMLPage):
     @method
-    class get_bills(ListElement):
+    class get_documents(ListElement):
         item_xpath = '//div[@facture-id]'
 
         class item(ItemElement):
@@ -104,4 +104,5 @@ class BillsPage(HTMLPage):
             obj_label = CleanText('./text()')
             obj_price = CleanDecimal(CleanText('./span', replace=[(u' € ', '.')]))
             obj_format = u"pdf"
+            obj_type = u"bill"
             obj__url = Format('http://www.bouyguestelecom.fr/mon-compte/facture/download/index?id=%s', obj_id)

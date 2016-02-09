@@ -64,13 +64,14 @@ class HistoryPage(Page):
         bill._price = price
         bill._url = link
         bill.format = u'pdf'
+        bill.type = u'bill'
         bill.label = unicode(price)
         return bill
 
     def get_details(self):
         return self.details
 
-    def get_bills(self):
+    def get_documents(self):
         return self.bills
 
 

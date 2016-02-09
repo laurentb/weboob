@@ -19,8 +19,8 @@
 
 
 from weboob.capabilities.bank import CapBank, Account, Recipient
-from weboob.capabilities.bill import CapBill, Bill, Subscription,\
-    SubscriptionNotFound, BillNotFound
+from weboob.capabilities.bill import CapDocument, Bill, Subscription,\
+    SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.base import UserError, find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -30,7 +30,7 @@ from .browser import IngBrowser
 __all__ = ['INGModule']
 
 
-class INGModule(Module, CapBank, CapBill):
+class INGModule(Module, CapBank, CapDocument):
     NAME = 'ing'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
@@ -106,18 +106,18 @@ class INGModule(Module, CapBank, CapBill):
     def get_subscription(self, _id):
         return find_object(self.browser.get_subscriptions(), id=_id, error=SubscriptionNotFound)
 
-    def get_bill(self, _id):
+    def get_document(self, _id):
         subscription = self.get_subscription(_id.split('-')[0])
-        return find_object(self.browser.get_bills(subscription), id=_id, error=BillNotFound)
+        return find_object(self.browser.get_documents(subscription), id=_id, error=DocumentNotFound)
 
-    def iter_bills(self, subscription):
+    def iter_documents(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
-        return self.browser.get_bills(subscription)
+        return self.browser.get_documents(subscription)
 
-    def download_bill(self, bill):
+    def download_document(self, bill):
         if not isinstance(bill, Bill):
-            bill = self.get_bill(bill)
+            bill = self.get_document(bill)
         self.browser.predownload(bill)
         assert(self.browser.response.headers['content-type'] == "application/pdf")
         return self.browser.response.content

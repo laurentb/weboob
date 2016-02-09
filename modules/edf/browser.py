@@ -102,17 +102,17 @@ class EdfBrowser(Browser):
         det.price = Decimal('0.0')
         yield det
 
-    def iter_bills(self, sub):
+    def iter_documents(self, sub):
         if not sub._id.isdigit():
             return []
         if not self.is_on_page(BillsPage):
             self.location(self.billsp)
-            return self.page.iter_bills(sub)
+            return self.page.iter_documents(sub)
 
-    def get_bill(self, id):
+    def get_document(self, id):
         assert isinstance(id, basestring)
         subs = self.iter_subscription_list()
         for sub in subs:
-            for b in self.iter_bills(sub):
+            for b in self.iter_documents(sub):
                 if id == b.id:
                     return b

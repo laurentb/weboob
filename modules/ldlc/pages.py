@@ -42,7 +42,7 @@ class BillsPage(HTMLPage, LoggedPage):
             yield value
 
     @method
-    class get_bills(ListElement):
+    class get_documents(ListElement):
         item_xpath = '//table[@id="TopListing"]//tr'
 
         class item(ItemElement):
@@ -52,6 +52,7 @@ class BillsPage(HTMLPage, LoggedPage):
             obj__url = Attr('./td[@class="center" or @class="center pdf"]/a', 'href')
             obj_date = Env('date')
             obj_format = u"pdf"
+            obj_type = u"bill"
             obj_price = CleanDecimal('./td[@class="center montant"]/span', replace_dots=True)
 
             def parse(self, el):

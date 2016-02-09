@@ -41,12 +41,12 @@ class LeclercMobileTest(BackendTest):
         Iter all bills and try to download it.
         """
         for subscription in self.backend.iter_subscription():
-            for bill in self.backend.iter_bills(subscription.id):
-                self.backend.download_bill(bill.id)
+            for bill in self.backend.iter_documents(subscription.id):
+                self.backend.download_document(bill.id)
 
     def test_history(self):
         for subscription in self.backend.iter_subscription():
-            self.assertTrue(len(list(self.backend.iter_bills_history(subscription))) > 0)
+            self.assertTrue(len(list(self.backend.iter_documents_history(subscription))) > 0)
 
     def test_details(self):
         for subscription in self.backend.iter_subscription():

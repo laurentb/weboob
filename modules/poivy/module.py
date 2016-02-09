@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bill import CapBill, Subscription, SubscriptionNotFound, Detail
+from weboob.capabilities.bill import CapDocument, Subscription, SubscriptionNotFound, Detail
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -29,7 +29,7 @@ from .browser import PoivyBrowser
 __all__ = ['PoivyModule']
 
 
-class PoivyModule(Module, CapBill):
+class PoivyModule(Module, CapDocument):
     NAME = 'poivy'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
@@ -54,7 +54,7 @@ class PoivyModule(Module, CapBill):
     def get_subscription(self, _id):
         return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
 
-    def iter_bills_history(self, subscription):
+    def iter_documents_history(self, subscription):
         # Try if we have a real subscription before to load the history
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)

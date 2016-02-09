@@ -28,5 +28,5 @@ class GdfSuezTest(BackendTest):
     def test_gdfsuez(self):
         for subscription in self.backend.iter_subscription():
             list(self.backend.iter_history(subscription.id))
-            for bill in self.backend.iter_bills(subscription.id):
-                self.backend.download_bill(bill.id)
+            for bill in self.backend.iter_documents(subscription.id):
+                self.backend.download_document(bill.id)

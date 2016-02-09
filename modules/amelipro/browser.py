@@ -95,19 +95,19 @@ class AmeliProBrowser(LoginBrowser):
         return det
 
     @need_login
-    def iter_bills(self):
+    def iter_documents(self):
         self.billsp.stay_or_go()
-        return self.page.iter_bills()
+        return self.page.iter_documents()
 
     @need_login
-    def get_bill(self, id):
+    def get_document(self, id):
         assert isinstance(id, basestring)
-        for b in self.iter_bills():
+        for b in self.iter_documents():
             if id == b.id:
                 return b
         return None
 
     @need_login
-    def download_bill(self, bill):
+    def download_document(self, bill):
         request = self.open(bill._url, data=bill._data, stream=True)
         return request.content

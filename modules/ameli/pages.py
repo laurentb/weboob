@@ -174,7 +174,7 @@ class PaymentDetailsPage(AmeliBasePage):
 
 
 class BillsPage(AmeliBasePage):
-    def iter_bills(self, sub):
+    def iter_documents(self, sub):
         try:
             table = self.doc.xpath('//table[@id="relevesMensuels"]')[0].xpath('.//tr')
         # When no operations was done in the last month, there is no table. That is fine.
@@ -196,9 +196,10 @@ class BillsPage(AmeliBasePage):
             bil.date = date
             bil.price = Decimal('-'+amount.strip().replace(',','.'))
             bil.format = u'pdf'
+            bil.type = u'bill'
             bil.label = date.strftime("%Y%m%d")
             bil._url = '/PortailAS/PDFServletReleveMensuel.dopdf?PDF.moisRecherche='+date.strftime("%m%Y")
             yield bil
 
-    def get_bill(self, bill):
+    def get_document(self, bill):
         self.location(bill._url, urllib.urlencode(bill._args))

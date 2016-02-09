@@ -31,7 +31,7 @@ class NettokomTest(BackendTest):
 
     def test_history(self):
         for subscription in self.backend.iter_subscription():
-            self.assertTrue(len(list(self.backend.iter_bills_history(subscription))) > 0)
+            self.assertTrue(len(list(self.backend.iter_documents_history(subscription))) > 0)
 
     def test_list(self):
         """

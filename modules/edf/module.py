@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.bill import CapBill, SubscriptionNotFound, BillNotFound, Subscription, Bill
+from weboob.capabilities.bill import CapDocument, SubscriptionNotFound, DocumentNotFound, Subscription, Bill
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from .browser import EdfBrowser
@@ -25,7 +25,7 @@ from .browser import EdfBrowser
 __all__ = ['EdfModule']
 
 
-class EdfModule(Module, CapBill):
+class EdfModule(Module, CapDocument):
     NAME = 'edf'
     DESCRIPTION = u'Edf website: French power provider'
     MAINTAINER = u'Christophe Gouiran'
@@ -57,7 +57,7 @@ class EdfModule(Module, CapBill):
         else:
             return subscription
 
-    def iter_bills_history(self, subscription):
+    def iter_documents_history(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
         with self.browser:
@@ -69,22 +69,22 @@ class EdfModule(Module, CapBill):
         with self.browser:
             return self.browser.iter_details(subscription)
 
-    def iter_bills(self, subscription):
+    def iter_documents(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
         with self.browser:
-            return self.browser.iter_bills(subscription)
+            return self.browser.iter_documents(subscription)
 
-    def get_bill(self, id):
+    def get_document(self, id):
         with self.browser:
-            bill = self.browser.get_bill(id)
+            bill = self.browser.get_document(id)
         if not bill:
-            raise BillNotFound()
+            raise DocumentNotFound()
         else:
             return bill
 
-    def download_bill(self, bill):
+    def download_document(self, bill):
         if not isinstance(bill, Bill):
-            bill = self.get_bill(bill)
+            bill = self.get_document(bill)
         with self.browser:
             return self.browser.readurl(bill._url)

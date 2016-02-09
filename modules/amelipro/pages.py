@@ -88,7 +88,7 @@ class HistoryPage(HTMLPage):
 
 
 class BillsPage(HTMLPage):
-    def iter_bills(self):
+    def iter_documents(self):
         table = self.doc.xpath('//table[@id="releveCompteMensuel"]')[0].xpath('.//tr')
         for tr in table:
             list_tds = tr.xpath('.//td')
@@ -111,6 +111,7 @@ class BillsPage(HTMLPage):
                     bil.price = 0
                 bil.label = u''+date.strftime("%Y%m%d")
                 bil.format = u''+format
+                bil.type = u'bill'
                 filedate = date.strftime("%m%Y")
                 bil._url = '/PortailPS/fichier.do'
                 bil._data = {'FICHIER.type': format.lower()+'.releveCompteMensuel',

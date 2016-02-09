@@ -77,23 +77,23 @@ class GdfSuez(Browser):
         return self.page.get_history()
 
     def get_details(self, subscription):
-        bills = self.iter_bills()
+        bills = self.iter_documents()
         id = bills[0].id
         if not self.is_on_page(HistoryPage):
             self.location(self.historyp)
-        url = 'https://www.gdfsuez-dolcevita.fr/' + self.get_bill(id)._url
+        url = 'https://www.gdfsuez-dolcevita.fr/' + self.get_document(id)._url
         response = self.openurl(url)
         pdf = PdfPage(StringIO.StringIO(response.read()))
         for detail in pdf.get_details(subscription.label):
             yield detail
 
-    def iter_bills(self):
+    def iter_documents(self):
         if not self.is_on_page(HistoryPage):
             self.location(self.historyp)
-        return self.page.get_bills()
+        return self.page.get_documents()
 
-    def get_bill(self, id):
+    def get_document(self, id):
         assert isinstance(id, basestring)
-        for b in self.iter_bills():
+        for b in self.iter_documents():
             if b.id == id:
                 return b

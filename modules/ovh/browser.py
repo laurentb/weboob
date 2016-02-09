@@ -59,5 +59,5 @@ class OvhBrowser(LoginBrowser):
         return self.profile.stay_or_go().get_list()
 
     @need_login
-    def iter_bills(self, subscription):
-        return self.billspage.stay_or_go().get_bills(subid=subscription.id)
+    def iter_documents(self, subscription):
+        return self.billspage.stay_or_go().get_documents(subid=subscription.id)

@@ -90,5 +90,5 @@ class BouyguesBrowser(LoginBrowser):
             return self.home.stay_or_go().get_list()
 
     @need_login
-    def iter_bills(self, subscription):
-        return self.bills.stay_or_go(ref=subscription._contract).get_bills(subid=subscription.id)
+    def iter_documents(self, subscription):
+        return self.bills.stay_or_go(ref=subscription._contract).get_documents(subid=subscription.id)
