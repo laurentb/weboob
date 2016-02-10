@@ -39,7 +39,7 @@ class CICModule(Module, CapBank):
     VERSION = '1.1'
     DESCRIPTION = u'CIC'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', regexp='^\d{1,13}\w$', masked=False),
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Mot de passe'))
     BROWSER = CICBrowser
 
