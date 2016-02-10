@@ -41,7 +41,7 @@ class LoginPage(HTMLPage):
     def get_token_and_csrf(self, code):
         code1 = re.search('(function .*)\(function\(\)', code).group(1)
         # Another victory for the scrapper team # CommitStrip Data Wars
-        code1 = re.sub('return typeof document!="undefined"&&typeof document.createAttribute!="undefined"', '1==1', code1)
+        code1 = re.sub('return typeof document!="undefined"&&typeof document.createAttribute!="undefined"', 'return 1==1', code1)
         # now it checks if some browsers-only builtin variables are defined:
         # e+=function(e,t){return typeof navigator!="undefined"?e:t}
         js = Javascript('var navigator = {}; ' + code1)
