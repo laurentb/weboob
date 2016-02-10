@@ -24,10 +24,10 @@ from weboob.browser.pages import JsonPage, HTMLPage
 from weboob.browser.elements import TableElement, ItemElement, DictElement, method
 from weboob.capabilities.travel import Station, Departure, RoadStep
 from weboob.capabilities import NotAvailable
-from weboob.browser.filters.standard import CleanText, TableCell, Filter, DateTime, Env, Regexp, Duration
+from weboob.browser.filters.standard import CleanText, TableCell, Filter, Time, Env, Regexp, Duration,\
+    Format, Join, DateTime
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Link
-from weboob.tools.date import LinearDateGuesser
 
 
 class RoadMapDuration(Duration):
@@ -49,14 +49,27 @@ class Child(Filter):
 
 
 class RoadMapPage(HTMLPage):
-    def request_roadmap(self, station, arrival, arrival_date):
-        form = self.get_form('//form[@id="cRechercheItineraire"]')
-        form['depart'] = '%s' % station
-        form['arrivee'] = '%s' % arrival
+    def request_roadmap(self, station, arrival, departure_date, arrival_date):
+        form = self.get_form('//form[@id="form_rechercheitineraire"]')
+        form['depart'] = '%s' % station.name.replace(' ', '+')
+        form['coordDepart'] = station._coord
+        form['typeDepart'] = station._type_point
+        form['arrivee'] = '%s' % arrival.name.replace(' ', '+')
+        form['coordArrivee'] = arrival._coord
+        form['typeArrivee'] = arrival._type_point
+        if departure_date:
+            form['jour'] = departure_date.strftime('%d/%m/%Y')
+            form['horaire'] = departure_date.strftime('%H:%M')
+            form['sens'] = 1
+        elif arrival_date:
+            form['jour'] = arrival_date.strftime('%d/%m/%Y')
+            form['horaire'] = arrival_date.strftime('%H:%M')
+            form['sens'] = -1
+
         form.submit()
 
     def is_ambiguous(self):
-        return self.doc.xpath('//select[@id="gare_arrivee_ambigu"] | //select[@id="gare_depart_ambigu"]')
+        return self.doc.xpath('//span[has-class("errormsg")]')
 
     def fix_ambiguity(self):
         form = self.get_form('//form[@id="cRechercheItineraire"]')
@@ -69,18 +82,28 @@ class RoadMapPage(HTMLPage):
         form.submit()
 
     def get_roadmap(self):
-        for step in self.doc.xpath('//table[@class="trajet_etapes"]/tr[@class="etape"]'):
-            roadstep = RoadStep()
-            roadstep.line = '%s %s' % (DepartureTypeFilter(step.xpath('./td[@class="moyen"]'))(self),
-                                       CleanText('./td[@class="moyen"]')(step))
-            roadstep.start_time = DateTime(CleanText('./th/span[@class="depart"]'),
-                                           LinearDateGuesser())(step)
-            roadstep.end_time = DateTime(CleanText('./th/span[@class="depart"]/following-sibling::span'),
-                                         LinearDateGuesser())(step)
-            roadstep.departure = CleanText('./td[@class="arret"]/p/strong')(step)
-            roadstep.arrival = CleanText('./td[@class="arret"]/p/following-sibling::p/strong')(step)
-            roadstep.duration = RoadMapDuration(CleanText('./td[@class="time"]'))(step)
-            yield roadstep
+        roadstep = None
+        for step in self.doc.xpath('(//ol[@class="trajet_feuilleDeRoute transport"])[1]/li'):
+            if step.attrib and 'class' in step.attrib and step.attrib['class'] == 'odd':
+
+                if roadstep:
+                    roadstep.end_time = Time(CleanText('./div/div[has-class("temps")]'))(step)
+                    roadstep.arrival = CleanText('./div/div/div/div[@class="step_infos clearfix"]', default=None)(step)
+
+                    yield roadstep
+
+                roadstep = RoadStep()
+                roadstep.start_time = Time(CleanText('./div/div[has-class("temps")]'))(step)
+                roadstep.departure = CleanText('./div/div/div/div[@class="step_infos clearfix"]', default=None)(step)
+
+            if not step.attrib:
+                roadstep.line = CleanText('./div/div/div/div/div/div[@class="transport"]', default=None)(step) or\
+                                CleanText('./div/div/div/div[@class="step_infos clearfix"]', default=None)(step) or\
+                                Join('\n', './div/div/div/div/div/ul/li/text()')(step)
+
+                roadstep.duration = RoadMapDuration(CleanText('./div/div[has-class("temps")]'))(step)
+
+        del roadstep
 
 
 class HorairesPage(HTMLPage):
@@ -113,6 +136,10 @@ class StationsPage(JsonPage):
 
         class item(ItemElement):
             klass = Station
+            MapCategorieToTypePoint = {"StopArea": "STOP_AREA",
+                                       "City": "CITY",
+                                       "Site": "SITE_SEUL",
+                                       "Address": "ADRESSE"}
 
             def condition(self):
                 if self.env['only_station']:
@@ -121,6 +148,12 @@ class StationsPage(JsonPage):
 
             obj_name = CleanText(Dict('gare'))
             obj_id = CleanText(Dict('gare'), replace=[(' ', '-')])
+            obj__coord = Format('%s_%s', Dict('coordLambertX'), Dict('coordLambertY'))
+
+            def obj__type_point(self):
+                key = Dict('entryPointType', default=None)(self)
+                if key:
+                    return self.MapCategorieToTypePoint[key]
 
 
 class DeparturesPage2(HTMLPage):

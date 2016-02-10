@@ -43,3 +43,7 @@ class TransilienTest(BackendTest):
         filters.arrival_time = datetime.datetime.now() + datetime.timedelta(days=1)
         roadmap = list(self.backend.iter_roadmap('aul', u'bag', filters))
         self.assertTrue(len(roadmap) > 0)
+
+        filters.departure_time = datetime.datetime.now() + datetime.timedelta(days=1)
+        roadmap = list(self.backend.iter_roadmap('gare du nord', u'stade de boulogne', filters))
+        self.assertTrue(len(roadmap) > 0)

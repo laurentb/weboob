@@ -26,6 +26,7 @@ from .pages import StationsPage, DeparturesPage, DeparturesPage2, HorairesPage, 
 class Transilien(PagesBrowser):
 
     BASEURL = 'http://www.transilien.com'
+    TIMEOUT = 20
     stations_page = URL('aidesaisie/autocompletion\?saisie=(?P<pattern>.*)', StationsPage)
     departures_page = URL('gare/pagegare/chargerGare\?nomGare=(?P<station>.*)',
                           'gare/.*', DeparturesPage)
@@ -35,13 +36,12 @@ class Transilien(PagesBrowser):
     horaires_page = URL('fiche-horaire/(?P<station>.*)--(?P<arrival>.*)-(?P<station2>.*)-(?P<arrival2>)-(?P<date>)',
                         'fiche-horaire/.*', HorairesPage)
 
-    roadmap_page = URL('itineraire/rechercheitineraire/(?P<url>.*)',
-                       'itineraire/rechercheitineraire/.*', RoadMapPage)
+    roadmap_page = URL('itineraire/trajet', RoadMapPage)
 
     def get_roadmap(self, departure, arrival, filters):
-        dep = self.get_stations(departure, False).next().name
-        arr = self.get_stations(arrival, False).next().name
-        self.roadmap_page.go(url='init').request_roadmap(dep, arr, filters.arrival_time)
+        dep = self.get_stations(departure, False).next()
+        arr = self.get_stations(arrival, False).next()
+        self.roadmap_page.go().request_roadmap(dep, arr, filters.departure_time, filters.arrival_time)
         if self.page.is_ambiguous():
             self.page.fix_ambiguity()
         return self.page.get_roadmap()
