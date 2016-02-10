@@ -95,6 +95,9 @@ class Paypal(LoginBrowser):
 
     @need_login
     def get_accounts(self):
+        if self.account_type is None:
+            self.find_account_type()
+
         self.account.stay_or_go()
 
         return self.page.get_accounts()
