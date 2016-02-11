@@ -1,3 +1,1431 @@
+Weboob 1.1 (2016-02-11)
+
+	General
+	* Last release with python 2.6 support
+	* New CapShop capability (#1662)
+	* New shopoob application
+	* Add new 'weboob' script to find applications
+	* New APIBrowser class
+	* Add a contrib script to help forking weboob
+	* New WEBOOB_DATADIR environment variable
+
+	General: removed modules
+	* Removed grooveshark module: website is closed
+	* remove module hellobank, use bnporc instead
+
+	General: new modules
+	* New Amazon Store Card banking module (CapBank) (#1698)
+	* New bforbank module https://www.bforbank.com (CapBank)
+	* New kiwibank module https://www.kiwibank.co.nz (CapBank)
+	* New s2e (Employee Savings Plans) Support for Esalia, Capeasi, "BNP
+	  Paribas epargne & Retraite Entreprises" and "HSBC Epargne et Retraite en
+	  Entreprise" (CapBank)
+	* New Victoria's Secret store credit card module (CapBank) (#1732)
+	* New agendaculturel module http://www.agendaculturel.fr (CapCalendar)
+	* New residentadvisor module https://www.residentadvisor.net (CapCalendar)
+	* New happn module https://www.happn.com (CapDating)
+	* New freegeoip module https://freegeoip.net (CapGeolocIp)
+	* New ipapi module http://ip-api.com (CapGeolocIp)
+	* New entreparticuliers module http://www.entreparticuliers.com (CapHousing)
+	* New explorimmmo module http://www.explorimmo.com (CapHousing)
+	* New logicimmo module http://www.logic-immo.com (CapHousing)
+	* New virginradio module http://www.virginradio.fr (CapRadio)
+	* New Ideel module http://www.ideel.com (CapShop) (#1733)
+	* New MyHabit module https://www.myhabit.com (CapShop) (#1734)
+	* New Victoria's Secret module https://www.victoriassecret.com (CapShop) (#1731)
+	* New blablacar module https://www.blablacar.fr (CapTravel)
+	* New dhl module http://nolp.dhl.de (CapParcel)
+	* New dpd module https://tracking.dpd.de (CapParcel)
+	* New gls module https://gls-group.eu (CapParcel)
+	* New itella module http://www.itella.fi (CapParcel)
+	* New funmooc module https://www.france-universite-numerique-mooc.fr (CapVideo)
+	* New rmll module http://video.rmll.info (CapVideo)
+	* New vine module https://vine.co (CapVideo)
+	* New ilmatieteenlaitos module http://ilmatieteenlaitos.fi (CapWeather)
+	* New ldlc module https://secure.ldlc.com and https://secure.ldlc-pro.com (CapBill)
+	* New t411 module https://www.t411.in (CapTorrent)
+
+	Core
+	* Repositories update: display a message when all modules are up-to-date
+	* Log full backtrace on module build error
+	* Update windows installation (#1668)
+	* Better detection of gpgv.exe location
+	* Fix issues when using NamedTemporaryFile on windows
+	* Add a datadir option, handle WEBOOB_DATADIR
+	* Use gpg by default rather than gpgv for signature verification
+	* Create empty temporary GPG homedir
+	* Exclude backend using instance_name instead of module_name
+	* Try to be consistent in variable name between backends and modules
+	* Convert StopIteration for PEP 479
+
+	Doc
+	* Account() constructor does not take an id
+	* Fix symlink creation in setup.rst
+	* Use browser2 in module documentation
+	* Add few docstrings in core and browser
+
+	Filters
+	* Add Eval filter, for arithmetic expressions
+	* Add Slugify filter
+	* Add a JSValue filter to look for literals
+	* Add Decode filter, to decore urlencoded strings
+	* CleanText: add Unicode normalization
+	* Regexp: nth param can now be '*' to find all
+	* Attr: fix error message
+	* CleanText: fix paramter name "children"
+	* DateTime: handle TypeError exception raised by parse_date
+	* Duration: correct '_regexp' attribut name
+	* Dict: several improvements
+	* Join: improve it to work like join command
+	* Join: add ,ewMone, addBefpre, addAfter parameters
+	* Async: if AsyncLoad parameter is None, do not try to open it
+	* CleanDecimal: convert INT, float and long (and not only str)
+	* Attr: fix an error message
+	* Dict: handle TypeError in parsing
+	* Time: Update regexp to catch more values
+
+	Browser
+	* Add comments on Form class
+	* New unit tests
+	* New api for content, encoding, and document building
+	* Add ChecksumPage class
+	* Cleaner way to get rid of BOM for CsvPage
+	* Fix wrong encoding detection logic
+	* Detect XML encoding
+	* Enable passing the path to a CA file to Browser.VERIFY
+	* Add an asset method to get absolute path of module local files
+	* Browser.VERIFY can now be a module local file
+	* Fix compatibility with python 2.6 in HTMLPage (#1651)
+	* TableElement: fix count columns when there is an attribute "colspan"
+	* Do not display urllib3 warning if there is no TLS certificate verification
+	* Add an IPhone profile
+	* Add a GoogleBot profile
+	* Add method Browser.set_profile
+	* DomainBrowser: ability to give the baseurl in constructor
+	* Add LoginBrowser.do_logout() method
+	* Handle "Refresh" meta tag in HTMLPage, with a REFRESH_MAX option
+	* Add an absurl method to Page
+	* Fix crash when using HEAD on a page-matching URL
+	* Add BrowserQuestion exception (ask user to change config when raised)
+	* Add 'replace' xpatch function in HTMLPage
+	* Introduce new DictElement class
+	* Add some JSON helpers
+	* Strip data on CsvPage
+	* Better control of HTTP referrer
+	* Allow changing the Session class
+	* Pass async/sync callbacks in the same way
+	* Bump Firefox version to next ESR (38)
+	* Fix documentation: use HTMLPage instead of Page
+	* Add StatesMixin class to store state of a browser
+	* Change worker pool size after session init
+	* Allow to force method in URL.go (pass argument to location())
+	* Support using id in HTMLPage.get_form()
+	* Rename async parameter to is_async
+
+	Old Browser
+	* Do not use PROTOCOL_SSLv3 as it is deprecated, use bad named
+	  PROTOCOL_SSLv23 instead
+	* Add BaseBrowser.get_page method (don't change the location)
+	* Add a StateBrowser to store cookies in storage
+	* CSVParser: catch exceptions
+	* Disable lowsslcheck if there is a proxy, as ssl doesn't deal with it
+
+	Capabilities
+	* Add the possibility to define Field type argument as a string
+	* Create enum. Use it in calendar and housing (code factorization)
+	* Add a way to instantiate an object from a dict of its fields values
+	* Add russian ruble and XOF currencies
+	* Add SGD, BRL, JPY and MXN in currencies
+
+	Capabilities: Audio
+	* Move specific audio filters from capabilities/audio.py to tools/capabilities/audio/audio.py
+	* Add specific filters to create audio objects id
+	* Do not require an id in constructors
+
+	Capabilities: Bank
+	* Fix StatusField to be a BaseObject
+	* Change quantity type to decimal number
+	* Better explanation for Investment class
+	* Introduce new type Account.TYPE_LIKE_INSURANCE
+	* Add credit limit, payment due date and amount for credit card bank
+	  accounts (#1717)
+	* Add IBAN properties
+	* Add card number and commission in Transaction
+	* Add original_amount and original_currency in Transaction
+	* Add country in Transaction
+	* Add Transaction.investments and Investment.vdate attributes
+	* Add Account.valuation_diff attribute
+	* Add Account.number attribute
+
+	Capabilities: Bill
+	* Inherits Detail and Bill from Currency
+	* Remove Bill.idparent attribute
+	* Add Bill.vat attribute
+
+	Capabilities: Calendar
+	* Add timezone parameter to calendar event in order order do get the good date/hours in ical exports
+	* Add a field 'summary' to Query object
+	* Add ticket status in BaseCalendarEvent
+	* Add a ticket field to Query
+	* Add BaseCalendarEvent.timezone attribute
+	* Add new categories
+
+	Capabilities: Cinema
+	* A person may have now several roles in a movie
+
+	Capabilities: Collection
+	* Do not require an params in constructor
+
+	Capabilities: Contact
+	* Set default value of Contact.profile to OrderedDict()
+
+	Capabilities: Dating
+	* Fix API to store optimization name in object ID
+
+	Capabilities: Gallery
+	* Correct method name: s/search_gallery/search_galleries/
+
+	Capabilities: GeolocIp
+	* Add osmlink field
+
+	Capabilities: Housing
+	* Support new type SHARING
+
+	Capabilities: Messages
+	* Remove _Message and _Thread and use strings in Field instead
+
+	Capabilities: Recipe
+	* Do not force to use id in object constructor
+
+	Capabilities: Torrent
+	* Remove name mandatory parameter in constructor
+
+	Capabilities: Thumbnail
+	* Thumbnail now inherits of _BaseImage
+
+	Capabilities: Weather
+	* Do not require an id in constructor
+	* Fix default value for date
+	* Cosmetics in temperature formatting
+
+	Applications
+	* Backport check_output function for python 2.6
+	* Remove wconio dependency on win32 platform
+	* Allow ResultsCondition to compare timedelta
+	* Encode properly output in console.py (#1673)
+	* Fix BrowserSSLError catch in ConsoleApplication (#1702)
+	* Handle attribute error when stdout does not habe encoding attribute
+	* If backend name is already taken, suggest the first available one with
+	  the same base
+	* Formatters: use weboob.tools.misc.guess_encoding instead of utf-8
+	* Formatters: manage tty colummns while displaying text
+	* Use os.devnull and binary flag for windows compatibility
+
+	Applications: REPL
+	* Fix a crash when ReplApplication.do() is called with a function
+	* Create a message for 403 errors
+
+	Applications: boobank
+	* Format: ISIN is a 12 letter word
+	* Format integer for quantity
+	* Sometines the full code is not available. Display description instead
+	* Add a command 'Budgea' to export accounts and transactions
+	* Fix investment display when some fields are empty
+	* Identify credit card for each transaction in OFX export
+
+	Applications: boobill
+	* Use do_ls to cache objects in REPL
+	* Add binary mode for writing. Fix file downloading on windows
+
+	Applications: boobcoming
+	* Fix crash without end_date (#1667)
+	* Add search by summary
+	* Print ticket status
+	* Add search by ticket status
+	* Handle error correctly in do_attends
+	* Add a load command
+	* Improve ical export (end lines with '\r\n', as RFC says)
+	* Add timezone in ical export
+	* Display price as float
+	* Improve date display
+	* Do not crash during export of an unknown event
+
+	Applications: cineoob
+	* Give roles informations in persons_in_common and movies_in_common
+	* Support several roles in the same movie for an actor
+	* Movies in common are now sorted by release year
+	* Fix problem with stream parameter in request.get in python-requests v2.5
+	  (#1683)
+
+	Applications: flatboob
+	* Display backend in city choice
+
+	Applications: geolooc
+	* Fill OpenStreetMap link
+
+	Applications: havedate
+	* Store optimization name in object ID
+
+	Applications: parceloob
+	* Clean cached objects before getting new ones
+
+	Applications: qcineoob
+	* Add 'view' and 'view in new tab' buttons for all search results
+	* Add 'view thumbnail' for movie and person search results
+	* Factorisation of events in search results
+	* Persons in common implemented in movie page
+	* Movies in common implemented in person page
+	* Support several roles in the same movie for an actor
+	* Better display of search results, spaces added
+	* Increase biography field size
+	* Movies in common are now sorted by release year
+	* Better user input validation for same-person movies in common
+
+	Applications: qcookboob
+	* Implement tab navigation (#1290)
+	* Fix bug when thumbnail_url is empty
+
+	Applications: radioob
+	* Can now download full album
+	* Add file in search subcommand
+
+	Applications: videoob
+	* Fix the problem with streamed calls on requests (#1683)
+	* Display download subcommand in debug mode
+
+	Applications: weboorrent
+	* Fix formatter for info command
+
+	Applications: weboob-config
+	* Improve info command to allow json formatting
+	* Put all config details in a dictionnary
+	* Format capabilities as JSON array
+	* Add installation status in modules subcommand
+	* Prompt user to accept an untrusted keyring (#771)
+	* Add module_name param in add_backend to allow command line interaction
+	* Update help of "add" command
+
+	Tools
+	* Move guess_encoding into weboob.tools.misc
+	* Add a Javascript class
+	* Avoid crash on UnicodeDecodeError with retry decorator
+
+	Tools: bash-completion
+	* Hide error (#1671)
+
+	Tools: date
+	* Supporting french month abbreviation without dot
+	* Extend date_max_bump default value to 31 days in LinearDateGuesser and
+	  ChaoticDateGuesser
+	* Add some french translation
+	* Parse french date with DMY order by default
+
+	Tools: virtkeyboard
+	* Fix not logical arguments order
+	* Dump of tiles: save full image too
+	* Allow to receive a list in get_symbol_code() method
+	* Support pollution in coords attributes
+
+	Contrib
+	* Add a gtk appindicator for boobank
+	* Remove bashisms in report_accounts.sh
+	* weboob-generic: fix object listing when tomonitore is not set
+
+	Contrib: downloadboob
+	* Print link message only when needed
+	* Fix new file detection
+	* Support download of m3u8 files
+	* Allow passing config and section filter on command line
+	* Replace call to 'fill_video' by 'fillobj'
+
+	Modules: 750g
+	* 750g is now working using browser2 (#1706)
+	* Fix: Only select the first thumbnail image
+	* Fix: Site changed
+	* Improve instructions parsing
+
+	Modules: adecco
+	* Bump to browser2
+
+	Modules: agendadulibre
+	* Add missing favicons
+	* Adapt for timezone support
+	* Do not crash when json included in webpage is not valid
+	* Correctly retrieve start and end date
+
+	Modules: allocine
+	* Remove excessive quote_plus call on pattern to make multi-word search work again
+	* Adapt for more informations in persons_in_common and movies_in_common
+	* Fix: accents were causing problems in search
+	* Handle videos from allocine
+	* Handles showtimelist in allocine
+	* Fix: bug while playing videos from external url
+	* Fix: syntax error on allocine
+	* Adapt for timezone support
+	* Max rallocine rate is 5
+	* Fix unicode warning
+
+	Modules: allrecipes
+	* Adapt to new version of website
+	* bump to browser2
+
+	Modules: amazon
+	* Skip "In transit" orders. (#1684)
+	* New discount: "Lightning Deal" (#1684)
+	* Generate payment transaction if there aren't any (#1684)
+	* Order charges xpath fix (#1684)
+	* Amazon module: skip 'Not yet shipped' orders (#1699)
+	* Amazon module is updated according to the website change (#1715)
+	* Skip "On the way" orders at Amazon (#1716)
+	* Support new version of Amazon order details header (#1721)
+	* Retry Amazon requests after ReadTimeout exception
+	* handle Timeout exception as ReadTimeout has been introduced in recent versions of requests
+	* Add French Support and Shopoob compatibilities
+	* Add french translations
+	* Retry ConnectionError as well (#1742)
+	* pep8 fixes
+	* Support for a new payment layout and priceless items (#1764)
+	* Scrape the updated website (#1808)
+	* Update after site changes
+	* New status to ignore
+	* More shippings and discounts (#1853)
+	* Retry getting an order page (#1876)
+	* amazon bills
+	* Fix: work with iter_resource, and use ISO currency codes instead of symbols
+
+	Modules: ameli
+	* Update after sites changes, and upgrade to new browser
+	* Handle authentication errors
+	* PaymentDetailsPage: use a simpler URL
+	* Site was updated
+	* details isn't implemented: remove dummy code
+	* ameli: prevents crashes when no bills are available
+
+	Modules: amelipro
+	* Update after sites changes, and upgrade to new browser
+	* Fix decimal bug
+
+	Modules: americanexpress
+	* Handling no amount on account
+	* Add default date to beginning_debit_date
+	* Handle new americanexpress site but only if there is only one card
+	* Increase timedelta to guess real date
+	* Handle US account
+	* Amex is dumber and dumber ( increase time delta because amex have hard time to put the date in a good interval)
+	* Fix parsing of rdate
+	* Fixing card type
+	* Removing useless id
+
+	Modules: apec
+	* Use https instead of http
+	* Adapt to the new version of the website and use browser2
+
+	Modules: arretsurimages
+	* Fix: get videos titles in h1 (#1447)
+	* Fix: correctly implement search and add a test (#1691)
+
+	Modules: arte
+	* Fix bug id was not well filled in info command and title was not filled
+	* Adapt to browser2
+	* Fix display bug during newly install
+	* Default value must be key, not label
+	* Fix bug when urls are not found
+	* Fix bug when date is not available
+	* Handle special characters in search
+	* Fix arte concert (a fields has been removed fron json)
+	* Handle special cases in json parsing
+	* Do not raise 404 error while searching a video using an other site url
+	* Fix program menu management
+	* Fill id using a better value for arte cinema
+
+	Modules: audioaddict
+	* Fix description data removal from audioaddict API
+	* Rename SKY FM to Radio Tunes
+	* Add Fresca Radio
+
+	Modules: aum
+	* Search query string: replace %(lat)s and %(lng)s with position in my profile
+	* Fix parsing of geo position
+
+	Modules: axabanque
+	* New login pages on axabanques (#1709, #1711)
+	* account.id is now only paramNumCompte if there is not paramNumContrat
+	* Handle expired password
+	* Handling banned account
+	* Do not try to recover transaction from DAT account
+	* axabanque fix duplicate accounts id
+	* Handling duplicate id for account using Jsp Id
+	* Stop parsing history of investment accounts
+	* Fixing random number formating
+	* Add error page
+
+	Modules: banqueaccord
+	* Fix inconsistent history on loan accounts if there is no init date
+	* Labels of login fields changed
+
+	Modules: banquepopulaire
+	* Support new authentication on some region websites
+	* Fix login on new website (needs upper case login)
+	* Fix crash for new cards with no debited history
+	* Break the new protection
+	* Support full list of accounts (#1360)
+	* Fix crash in a particular case of navigation
+	* Supporting new account page
+	* Parsing last connection date correctly
+	* Fix navigation when passable unavailable page is displayed before login
+	* Support case where user may accept TERMS_OF_USE
+	* No history if account has no prev_balance
+	* Apply alsace and lorrainechampagne fusion in bpalc in banquepopulaire module
+	* Add Investment accounts
+	* Correctly return an iterator even if this isn't an investment account
+	* Fix crash on empty field banquepopulaire investment
+	* Add life insurance investment
+	* Skip message pages to get_investment on banquepopulaire
+	* Fix a crash on iter_accounts after an investment on banquepopulaire
+	* Remove stored 'token' attribute from browser and fix navigation on banquepopulaire website
+	* Correctly get token only when available
+	* Handle error page to avoid global crashes
+	* Fix to get token
+	* Adding support for IBAN
+	* Fix getting tokens on some pages
+	* Attempt to fix cgu validation
+	* Adding loan
+	* Add unavailable page
+	* Fixing useless id
+	* Ignore \0 bytes in documents
+
+	Modules: barclays
+	* Add AssurancePage on which we don't support get_history
+	* Fix barclays navigation
+	* Handle suspended accounts
+	* Fix bug when card is first account
+	* Support more account types
+	* Sorting transaction before returning
+	* Fixing page payement to foreign currency
+	* Remove print
+	* Remove bad transactions ids
+
+	Modules: biplan
+	* Site changed
+	* Detect invalid events
+	* Do not crash when no time can be found
+	* Add timezone / fix encoding and hours detection
+	* Fix parsing error on start date
+
+	Modules: bnporc
+	* Fix to get transactions when they are ordered by type
+	* Get IBAN of accounts
+	* Do not try to get IBAN for delegated accounts
+	* Add investments to bnporc module
+	* Handle corner case
+	* Move old code for old site in a new folder
+	* Add support for new bnp site
+	* Move new browser into pp/
+	* Parse transaction labels, and fix account's coming
+	* bnp history not supported on life insurance
+	* Investment not implemented for entreprise browser
+	* bnp investment fix
+	* Handle error message after login
+	* bnp type life insurance on capitalisation accounts
+	* Do not get investments from PEA EspÃ¨ces
+	* Handling account without history
+	* bnp history always return an iterator
+	* New bnp entreprise certhash
+	* Switch to new website and several fixes
+	* Correctly set IDs
+	* Raise BrowserIncorrectPassword when user should use hellobank instead
+	* Raise IncorrectPassword after 100 connections
+	* WIP on new company bnp website
+	* Adapt module to use Browser2
+	* Add company browser
+	* Fall back on old website for pro accounts
+	* Add iban field for company accounts
+	* New certificate
+	* Fix compatibility with python2.6
+	* Fix concerning banqueprivee subdomain
+	* Handle website unavailable for history
+	* Better handle of expired password
+	* rename pp folder to ppold
+	* Fix PEP8 E713
+	* Support lifeinsurances on new website
+	* Add authentification error code
+	* Skip transaction without date
+	* Adding support iban for some pro account
+	* Automatically update password to the same one when the 100 connections threshold is reached
+	* Type more accounts to get history and transactions investments on those
+	* Revert fall back on oldwebsite for pro accounts
+	* Add a page to renew password
+	* Support checking type
+	* Adding loan for crédit immobilier
+	* Calculate IBAN key if messing
+	* Add Hellobank support
+	* Use shorter id
+	* Revert "[bnporc] use shorter id"
+	* Handle investment and history on market accounts
+	* Fix crash if bnp throws 500 HTTP status code
+	* New connection threshold page url for hellobank
+	* Valution_diff on market accounts
+	* Add number to iter_accounts
+	* Fixing bad id for coming transaction
+	* Prevent us from crashing when bnp crashes
+
+	Modules: boursorama
+	* Add investment
+	* Support market investments
+	* Fix duplicate entry on card account
+	* Cleaner way to iterate
+	* Better explanation for Investment class
+	* Fix website changes (virtual keyboard, accounts list) (#1696)
+	* Ignore moneycenter accounts
+	* Minor fix
+	* Introduce new type Account.TYPE_LIKE_INSURANCE
+	* Use two_authentication with BrowserToBeContinued instead of raw_input
+	* Use StateBrowser, s/BrowserToBeContinued/BrowserQuestion/ and coding style fixes
+	* Remove text after card number if any
+	* Raising incorrecte password when profil is incomplete
+	* Fix CC history for boursorama
+	* Update hash of boursorama's certificate
+	* Fix duplicate accounts
+	* bourso new investment page and fix parsing
+	* Fix crash when there is more data in the cell
+	* Fix PEP8 E713
+	* Fix parsing of unit price
+	* Fix investment link parsing
+	* Ignore immediate debit cards
+	* Investments on lifeinsurance transactions
+	* Fix pagination of lifeinsurance history
+	* Ignore promotional fake accounts
+	* Fix parsing some special market accounts
+	* Valuation diff on lifeinsurance accounts
+	* Fixing bad id transactions
+	* Do not use useless id
+	* Fixing false id in transactions
+	* Fix parsing of investment label
+	* Fall back on old website if we are on the new one
+
+	Modules: bouygues
+	* Rewrite backend using browser2 (#1970 and #1978)
+	* Add support for bill on bouygues
+	* Avoid useless login
+	* Handle website modifications
+	* Home page uses https (#2510)
+
+	Modules: bp
+	* Support professional accounts
+	* Update upstream certificate hash (#1702)
+	* Handling when website have an error
+	* Fix parsing of virtual keyboard url
+	* Add a page to pro website
+	* Catch a no online banking service at login
+	* Set type of accounts on professional accounts
+	* Identify credit card for each transaction
+	* Update to new certificate
+	* Adding IBAN support for banque postal pro
+	* Add a regexp on withdrawal labels
+	* Parse IBAN for personal accounts
+	* Do not crash if there is no IBAN for an account
+	* Iban in unicode
+	* Fix for newer pdfminer versions
+	* Fixing bad account type on pro  website
+	* Sorting transactions before returning them
+	* Fix for new API
+	* Only call initialize if needed
+	* Fix get_pages usage for new API
+	* Fix newapi import
+	* Fixing fake id for transactions
+	* Fixing pdf parse with new api
+	* Fixing no RIB
+
+	Modules: bred
+	* Support new website of bred
+	* Fix compatibility with Decimal of python2.6 (#1685)
+	* The 'categorie' key isn't always in json
+	* Detection of disabled accounts
+	* Correctly strip currency code
+	* Correctly deal with cookies storage
+	* Add type Account.TYPE_DEPOSIT
+	* Catch technical error at login
+	* Fix duplicates accounts
+	* Fix PEP8 E713
+	* Get IBAN on accounts
+	* Dd certash
+	* Handle multiple universes
+	* Oops fix mistake
+
+	Modules: caissedepargne
+	* Fix getting card accounts on old website
+	* Set type on card transactions
+	* Support Banque BCP which uses same website than caissedepargne
+	* Do not force TLSv1 anymore as in some cases it doesn't work
+	* Investment on lifeinsurance and market account
+	* Add balance on NUANCE
+	* Fix IndexError related to investment feature
+	* Handling website error for market place
+	* Fixing index error when checking if we are on error page
+	* Fix BrowserUnavailable when browser is on market pages
+	* Iban on cassedepargne accounts
+	* Add new certhash
+	* Ignoring CB transaction aggregation
+	* Try to type more accounts
+	* Adding support for saving type
+	* Prevent crash on market
+	* Get more investments
+	* Valuation_diff on market accounts
+	* Fix crash if there are several market accounts
+	* Fix not authorized to read market accounts
+	* Fix accounts parsing on banquedelareunion
+	* Adding compte titre type
+	* Fixing leaving investment space
+
+	Modules: canalplus
+	* Correctly fix the problem with streamed calls on requests (#1683)
+
+	Modules: carrefourbanque
+	* Fix accounts parsing
+	* Fix 404 on history and now support "compte livret"
+	* Fix when account balance is negative
+
+	Modules: cci
+	* Update for Join filter changes
+	* Site changes
+
+	Modules: chronopost
+	* Status guessing
+
+	Modules: cic
+	* Handle new certificate
+	* Supporting mouvements.html and situation_financiere.html
+	* Fix list index out of range on iter_accounts
+	* Rewrite module to browser2 (based on creditmutuel)
+	* Cic can have letter in login
+	* Add IBAN on cic
+	* Fixing cic account with "Contre-valeur"
+
+	Modules: citelis
+	* Certificate hash change
+
+	Modules: citibank
+	* Do not wait for transactions if there's none. (#1661)
+	* Credit limit, payment due date and amount for Citibank. (#1719)
+	* Use V8 for login (#1743)
+	* Relogin when the website returns garbage instead of a PDF. (#1820)
+	* Site was updated. Closes (#1820)
+	* Parse thousands correctly in the statements. (#1984)
+	* Backport check_output for 2.6
+
+	Modules: cmb
+	* Fix detection of authentication fail
+	* Add deposit type in CMB module
+	* Fixing when login is obsolete
+	* Fixing cmb with some pro module
+	* Quick fix for multiple space.
+
+	Modules: cmso
+	* Add pro browser to cmso bank module
+	* Correctly raise instance of BrowserIncorrectPassword
+	* Correctly handle 500 error during login
+	* Fix parsing of market accounts and factorization of the Transaction class
+	* Fix website changes on auth page
+	* Go to subscription page before get accounts for some users
+	* Use a local instance of LinearDateGuesser instead of global one
+	* Support pagination of transactions
+	* Fix: coma are used as decimal separators
+	* Correctly handle expired sessions
+	* Fixing duplicate entry
+	* Handle double site type on the pro side
+	* Clean + blackbox compatibility on cmso pro
+
+	Modules: colisprive
+	* Rewrite for browser2
+	* Fix history parsing
+
+	Modules: cragr
+	* Fix parsing of labels with new crÃ©dit agricole website
+	* Fix parsing of raw transaction text
+	* Handle useless pages to prevent being redirected to mobile version
+	* Get IBAN on accounts
+	* Detect connection errors
+	* Add new labels to market type
+	* Fix account list parsing, skip irrelevant account
+	* Fix getting history for card accounts
+	* Fix import of Account
+	* Add tdbgestion page
+	* The type of PEL accounts is now SAVINGS instead of MARKET.
+	* Refactor
+	* Support life insurance accounts
+	* Handle sessionSAG parameter
+	* Support market accounts
+	* Handling bad investement parsing
+	* Handling bad value for investement
+	* Fix parsing on cragr investment
+	* Fix av investment parsing
+	* Do not return NotAvailable if value == 0.0
+	* Support loan accounts
+	* Fix double clean of investment amounts
+	* Add account types
+	* DAV PEA is a checking account
+	* Handle new login navigation on some sub websites
+	* Fix incorrect password on new login
+	* Add page to fix login access
+	* Fixing categorization
+	* Cragr perimeters
+	* Adding new saving account name
+	* Fix infinite loop when a crash occurs on perimters
+	* Fix when some perimeters are crashing
+	* Fix broken perimeters
+	* Fix in case of CGU poping when changing perimeters
+	* Fix card accounts balance parsing
+	* Fix mistake
+
+	Modules: creditcooperatif
+	* Update regexp to support SEPA transfers
+	* Fix exception in some cases
+	* Fix regexp for external transfer
+	* Handle investment
+	* Correctly return an iterator even if this isn't an investment account
+	* Add attribute _inv to pro accounts
+
+	Modules: creditdunord
+	* Handle the case when the creditdunord CB label is "OPERATION SUR CARTE" (#1712)
+	* Remove spaces from IDs
+	* Handling account with no history
+	* Handling no details for this account
+	* Fix crash on accounts which doesn't support history
+	* Handle duplicate accounts
+	* courtois: we now skip transactions without date even on pro accounts
+	* Fixing wrong id when no details for an account
+	* Trying to avoid duplicate accounts
+	* Fix courtois we now always return iter for investment
+	* Handle IBAN
+	* Fix auth fail url
+	* Add VirtualKeybord auth
+	* Change lifeinsurance accounts type
+	* Removing false id for transactions
+	* Fix life insurance accounts and add valuation_diff
+	* Raise BrowserIncorrectPassword is password isn't digits
+	* Fixing history for account
+	* Fixing pro account
+	* Fix assert for password
+	* Avoids infinite loop in case of fail login
+
+	Modules: creditmutuel
+	* Handle new useless pages
+	* Updat transfer method
+	* Save and load state of browser into storage
+	* Handle refresh on empty page
+	* Handling already logged
+	* Handling html page
+	* /cmmabn/fr/ is a valid login page
+	* If do_login() is called, force go on the login page
+	* Handle refresh on LoginPage too
+	* Handle disconnection
+	* Fix accounts parsing
+	* Fix parsing of 'soft' parts of account names
+	* Fix parsing of balances if accounts page has been configured by user to display balance in several currencies
+	* Clear cookies before to login
+	* Better form detection
+	* Increase timeout
+	* Clean transactions label
+	* Parse contactless payments ("PSC") transactions
+	* Handling orignal currency
+	* Using TableCell to handle dynamic transaction list
+	* Ignore ELEVE CARTE line
+	* Add account types patterns
+	* Add type pattern for young accounts
+	* Investment for market accounts
+	* Fix crash when trying to find reale amount of market accounts
+	* Fix portefeuille account parsing
+	* Add IBAN on creditmutuel accounts
+	* Fix parsing market accounts
+	* Fix parsing of unitprice
+	* Fix skipping market summary fake account
+	* Fix parsing valuation of a market account
+	* get more iban
+	* Fix parsing isin codes in special cases
+	* Handle new website
+	* Redirect page added
+	* Fix label
+	* Fix parsing label of accounts on old websites
+	* Fix wrong valuation on market accounts if several are present
+	* Valuation_diff on market accounts and new balance for PEA
+	* Account typing
+	* Fix blackbox compatibility
+	* Fetch more transactions
+	* Fix detection if transactions are coming or not
+	* Fix when last_debit is None
+	* New accounts type
+	* Life insurance on old website
+	* Fill the rdate field on life insurances history
+
+	Modules: cuisineaz
+	* Site changed / rewritten using browser 2
+
+	Modules: dailymotion
+	* Fix dailymotion "search" return bug message
+	* Fix to get video url
+
+	Modules: delubac
+	* Rewrite module with browser2 on new website
+	* Handle accounts and transactions
+	* Website require a digit password
+
+	Modules: ovh
+	* Adding bill for ovh
+
+	Modules: edf
+	* Correctly set amount and currency on bills
+
+	Modules: ehentai
+	* original_title does not exist anymore
+	* There is no more description available
+	* Update cardinality field name
+	* Use Thumbnail object
+
+	Modules: feedly
+	* Favicon transparency and remove JPEG artifacts
+	* Use new DictElement object
+	* Improve tests
+	* Iimprove login management
+	* Fix login
+	* Do not crash when there is no title in article
+
+	Modules: fortuneo
+	* Detection of accounts type
+	* Support investments detail
+	* Add page to browser: pea account type
+	* Introduce new type Account.TYPE_LIKE_INSURANCE
+	* Update changed certificate
+	* Fix fortuneo module now support "compte especes"
+	* Fix support of PEA accounts
+	* Fixing empty performance
+	* Fixing 2nd detail line who was considered like investment
+	* Fixing bad int values on investment
+	* Fetch history of life insurances
+	* compte-espaces is a AccountHistory page
+	* Correctly set type of market accounts
+	* Fix savings account type
+	* Fixing closed life insurance account on fortuneo
+	* Raise IncorrectPassword when there is new id
+	* Throwing error when an sms is required to access information
+	* Switching error to browser incorrect password
+	* Fixing listing account
+	* Fix crash when parsing accounts without balance
+	* Fix navigation
+	* Support deferred debit cards
+	* Set type of card transactions
+	* Fix new pass required detection
+
+	Modules: francetelevisions
+	* Fix "search" always return empty list
+	* Correctly fix the problem with streamed calls on requests (#1683)
+	* Remove "latest" feature
+	* Fix pluzz's search (1700)
+	* Add option to get video from an url
+	* Handle lastest replay videos
+	* Fix bug search date in bad balise
+	* Fix bug: we can only search one time
+	* Use new DictElement object
+	* Fix: site changed (#1855)
+	* Fix: site changed again (#1868)
+	* Update tests
+	* Fix bug while getting video from some url
+	* Fix error when video url is none
+	* Handle url from francetvinfo website
+
+	Modules: freemobile
+	* Correctly handle wrong credentials
+	* Fix parsing of bills urls
+	* Force UTF-8 encoding with the standard mechanism
+	* Enable bills filtering for multi-account
+	* Fix subscription date parsing for multi-account
+	* Fix forfait name parsing for multi-account
+
+	Modules: ganassurances
+	* Rewrite ganassurance with browser2 and fix auth and history
+	* Add missing date column title for cards history
+	* Fixing statefull website with account's link changing
+	* Fixing coming date with an other label
+	* Change AccountsPage xpath to only get personal finances accounts
+	* SSL is not supported anymore
+	* Add changing pass/id page
+
+	Modules: googletranslate
+	* Fix code used by Google Translate for Greek
+
+	Modules: groupamaes
+	* Use a local instance of LinearDateGuesser instead of global one
+	* Should now always find accounts
+	* Fix : site changed
+
+	Modules: hellobank
+	* Fix permissions, encoding and copyrights
+	* Do not try to get IBAN from life insurance accounts
+	* Do not try to get history of life insurance accounts
+	* Allow transaction parsing across multiple pages
+	* remove module, use bnporc instead
+
+	Modules: hsbc
+	* Handling when website is gone away
+	* Fixing shared accounts_list
+	* Fix new list of accounts and new URLs
+	* No history on loan accounts
+	* Handling duplicate account id (#2114)
+	* Submit two useless form to mimic browser
+	* Fix date parsing
+	* Add coming for cards
+	* Do not use fake id for transactions from hsbc
+	* Allow hsbc user to have more than 8 length password
+	* Fixing credit is positive on some account
+
+	Modules: hybride
+	* Fix: site changed
+	* Fix: Date parsing
+	* Fix: site changed again
+	* Fix bug when there is no end date
+	* Iimprove end_date management
+	* Update to support timezone
+	* Use Decode filter to get the good id
+	* Simplify id
+
+	Modules: imdb
+	* Fix: python datetime is locale-dependent
+	* Fix: 'N/A' value in movie release date
+
+	Modules: imgur
+	* Port to browser2
+	* Implement CapGallery
+
+	Modules: ina
+	* Bump to browser2
+	* Handle CapAudio
+	* Find video from url
+
+	Modules: ing
+	* Coding style
+	* Change selection of keyboard (more generic)
+	* Fix navigation after a transfer
+	* Remove hack to convert decimal to int
+	* Fix crash if there is no ':' in IDs
+	* Update regexp
+	* Allow birthday to be entered with separators
+	* Support of ASV accounts
+	* Fix switch between market and checking websites
+	* ASV accounts don't have history
+	* Fix detection of errors in page
+	* Get valuation information in several locations
+	* NotImplemented exception for history on asv and clean code
+	* As ING website sucks, re-login to retry getting investments list
+	* Introduce new type Account.TYPE_LIKE_INSURANCE
+	* Fix website change
+	* Be sure we are logout before login
+	* Store "where" in ing browser
+	* Fix bad login with cookie cache
+	* Fix parsing of euro founds
+	* Add a kind of life insurance account name
+	* Fix parsing of ISIN code for market accounts
+	* Fix switches between market and bank websites
+	* Euro funds have diff equal to 0
+	* Fixing not avalaible value
+	* Handling netissima page
+	* Fix set of Investment.unitprice for market accounts
+	* Correctly get subscriptions even if previous page was on market
+	* Fix finding jid on some pages
+	* Load ISIN code from details page if not available in the list
+	* Fixing empty page in some case in investment without pl in URL
+	* Prevent useless request since there is no history on asv accounts
+	* Handling +infinity (best investment ever)
+	* Fix ISIN code on asv
+	* Do not slugify investments without ISIN codes
+	* Fix ing bills
+	* Parse bills dates
+	* Skip summary bills
+	* Fix isin on US investment
+	* Fix when valuation is not available
+
+	Modules: inrocks
+	* Url changed
+	* Fix url matching
+	* Do not try to parse premium news pages
+
+	Modules: kickass
+	* New domain name
+	* Adaptation to new browser, iter_torrents mysteriously not working
+	* kickass now works with new browser
+
+	Modules: lcl
+	* Website change, rewrite with browser2
+	* Ignore summary lines in history tables
+	* Fix stop parsing not transactions lines
+	* Certificate updated
+	* Fetch detail of transactions and use it in Transaction.raw
+	* Change timeout to 30 seconds
+	* Call default Browser.deinit()
+	* Do not change Transaction.raw if there is no detail
+	* Adding pagination support for lcl
+	* Fix async bug with cards
+	* Fixing RC4 and cert for pp browser
+	* New certificate for LCL Espace Pro
+	* Browser doesn't inherit 'object', so 'super' doesn't work
+	* Handling account can't use online service when login
+	* Fixing bad login when session expire
+	* New transaction detail page
+	* New certificate for lcl entreprise
+	* Fix date parsing bug on transaction label 0/07/2015
+	* Wrongpass instead of BrowserUnavailable
+	* Fix PEP8 E713
+	* Fix contracts selection routing
+	* Remove validate method
+	* Handle one case of bad login/pass
+	* Handle investment
+	* Fix for clients with no market investment accounts
+	* Fix crash on asv accounts
+	* Fix parsing of life insurance accounts with special chars in owner name
+	* Fixing when we have some additional information
+	* Disconnecting from bourse portal before returning the account list
+	* Fix bugs on av accounts, double ids and disc from detail
+	* Fix mistake in disc page
+	* Fix life insurance accounts ids
+	* Fix parsing of market accounts
+	* Fix crash on enterprise websites
+	* Adding iban info when available
+	* Fix pro accounts iban
+	* No permission page to fix crash
+	* Fix crash in case life insurances are unavailables
+	* Support a new account type
+	* Fix parsing of some transactions on pro accounts
+	* Adding saving account
+	* Handling IBAN single account
+	* Adding checking account
+	* Fixing payement wording
+	* Adding SAVING type for account
+	* Handle home page so the module is blackbox compatible
+	* Adding account type
+	* Change page to handle specific behavior
+
+	Modules: leboncoin
+	* Add missing favicons
+	* Fix bug while parsing date
+	* Fix bug when area is unknown
+	* Add regions support
+	* Fix error when there is no price and improve description display
+	* Improve cities display in search
+	* Fix search city using zipcode
+	* Fix bug when user do not choose any city
+	* Do not crash if a select does not exist in the form
+	* Fix title parsing in search result
+	* Get main photo when there is no carousel
+	* Fix bug in costs retricton for rent type
+	* Fix bug due to other backends cities
+	* Fix site changed
+	* Fix regex in id detection
+
+	Modules: lutim
+	* Upgrade to Browser2
+
+	Modules: mailinator
+	* Fix module as the api changed
+
+	Modules: mareeinfo
+	* Add missing favicons
+
+	Modules: marmiton
+	* marmiton is now working using browser2 (#1706)
+	* Fix bugs in marmiton
+	* xpath change (#2117)
+
+	Modules: mediawiki
+	* Update tests to use "Project:Sandbox" page
+	* Port to browser2
+	* Remove useless stuff
+
+	Modules: meteofrance
+	* Adapt to browser2
+	* Use new DictElement object
+	* Allow to iter forecasts using town name in addition to city id
+	* Site changed
+
+	Modules: monster
+	* Fix and adapt to browser2
+	* Improve page parsing
+	* Adapt for new Join filter
+	* Handle adverts coming from partner websites
+
+	Modules: okc
+	* Correctly detect when login fails
+	* Handle logged page
+	* Make all attributes of optim start with an underscore
+	* Fix parsing of profiles
+	* Way used to vote has changed
+	* Fix encoding of urls
+	* Fix parsing of thread title
+	* Rewrite okc module with browser2 and less ugly code
+	* Skip empty essay fields
+	* Add status and orientation fields
+	* Do not remove old threads anymore
+	* Iter_unread_messages: do not visite read threads
+
+	Modules: oney
+	* Add new hashes for virtkeyboard
+	* Change get_balance xpath
+	* Adding hash for virtkeyboard
+	* Handle multiple cards
+
+	Modules: orange
+	* Adapt to website changes (#1828)
+	* Add https urls
+	* Update maintainer
+	* Supporting bill capability for orange
+
+	Modules: pap
+	* Adapt to new DictElement object
+	* Fix bug in parsing date
+	* Fix : site changed
+
+	Modules: pastealacon
+	* Fix: url changed
+	* Works with other pastebin sites
+	* Revert "pastealacon: work with other pastebin sites"
+
+	Modules: paypal
+	* Handling when user can't acces account balance on main account
+	* Supporting new paypal website
+	* Fixing using new account page version when we are already on old account page
+	* Handling when currency is not in right place
+	* Fixing primary account display twice
+	* Fixing wrong id on account
+	* Checking website version after login
+	* Fix crash on new accounts list (#1654)
+	* Fix selection of table containing last file requests to be less ambiguous
+	* When balance is zero, paypal add a class to the div
+	* Handling new website account for individual
+	* Paypal fix for KeyError: 'counterparty'
+	* We now ignore transactions with no 'displayAmount'
+	* Fix name of paypal accounts (display currency instead of balance)
+	* Take care of transaction's net amounts (#1694)
+	* Fix warning with adding a new home page
+	* Handling home page on new private website
+	* Fix paypal new activity URL
+	* Fix paypal
+	* Use locale.format to format amount
+	* Do not use locale.setlocale to parse amount
+	* Fix history on paypal, stop parsing suspended recurring payment
+	* Get converted amount for foreign currencies
+	* Fix crash IndexError: list index out of range (#1747)
+	* Remove unused code, fix timeout of history fetch
+	* We don't try to parse transactions without currencyCode anymore
+	* New cert + fix conversion warning
+	* Handling useless captcha page
+	* New paypal certificate
+	* Execute javascript convert() function on token
+	* Paypal handle bad login/password
+	* Add paypal new page to fix crash on history of some accounts
+	* Fix crash on old website and inform users
+	* Change detection of pro or perso account_type
+	* Increase DEFAULT_TIMEOUT for accounts with a lot of transactions with foreign currency
+	* Fix call of ads_token convert function
+	* Fix timeout on accounts with huge transactions number
+	* Fixing timeout for some accounts
+	* Handling timeout when fetching old history
+	* Fix transactions parsing
+	* Get real amount accounting paypal's commissions
+	* Fixing captcha
+	* Handling promo page for new paypal application
+	* Rewrite paypal with browser2 and fix login
+	* Add a way to detect login errors
+	* Pro accounts transactions amount is now returned without commission
+	* Ignoring refound offer for paypal
+	* Fixing paypal auth challenge
+	* Do not supply floats to Decimal constructor
+	* Fix login
+	* Detect a login error
+	* Fix parsing accounts without available balance
+	* All personal accounts seems to be on new api.
+	* Parse more transactions not in account currency
+	* Try to get the activity 3 times
+	* Discard another transaction type
+	* Fix regexp parsing converted amount of transactions
+	* Fix mistake of converted amount parsing
+	* Handling payement from another bank
+	* Fix parse_transaction return
+	* Using original wording for payement from another bank and setting type
+	* Check if there is a associated transaction for "Achat de"
+	* Fixing bad return
+	* Include archived transactions
+	* Fix pro accounts transactions amounts not in account currency
+	* Fix parsing converted amount from other currency
+	* Fixing paypal using different token for conversion
+	* Removing commande à from transaction list
+	* English key word to skip transactions
+	* Fcking paypal
+
+	Modules: piratebay
+	* Use new domain names
+
+	Modules: playme
+	* Add a profile walker to automatically send won challenges
+	* Implement get_account_status()
+	* Fix warnings
+	* Answer only to 5 questions
+	* Fix challenges with users who have already challenged you
+	* Fix crash when there is no contact
+	* Use Module.create_browser to correctly give all standard arguments (proxy, logger, etc.)
+
+	Modules: poivy
+	* Fix low balance listing
+
+	Modules: popolemploi
+	* Fix search and  upgrade to browser2
+	* Website uses https
+	* Site changed
+
+	Modules: presseurop
+	* Fix body selectors
+
+	Modules: radiofrance
+	* Site changed / backend rewritten using browser2
+	* Manage selection podcasts / improve testing
+	* Handle podcasts
+	* Fix indentation typo
+	* Minor fixes
+	* Cleanly display live in repl
+	* Handle new francebleu website, retrieve the good player url when default player is the video player
+	* Fix 404 errors in selection
+
+	Modules: razibus
+	* Increase timeout
+	* Support timezone
+
+	Modules: redmine
+	* Fix crash when parsing custom fields
+
+	Modules: regionsjob
+	* Fix: site changed
+	* Fix parsing when advert is a picture
+	* Update to new Join filter
+	* Do not crash while parsing an external advert
+
+	Modules: sachsen
+	* Fix parsing of flow level
+	* Improve test for sachsen module
+	* Partial fix of new website
+	* Fix history with new website
+
+	Modules: seloger
+	* Remove useless condition
+	* Fix bug on pagination
+	* Use new DictElement object
+	* Handle special characters (#1883)
+	* Fix json parsing
+
+	Modules: senscritique
+	* Skip test when StopIteration is raised
+	* Improve module code
+	* Fix date parsing
+	* Add Mangas missing channel
+	* Fix bug when end_date is asked and not found
+	* Use set_profile(Firefox()) instead of _setup_session(Firefox())
+	* Remove id lists
+	* Fix channels selection
+	* Site changed (we cannot choose channels packages anymore)
+
+	Modules: societegenerale
+	* Correctly detect when the website is unavailable
+	* Page parsing for saving accounts
+	* Update upstream certificate hash
+	* Update certificate hashes
+	* Credit card is no longer in coming
+	* Switch rdate/date and little fixes
+	* Update hash of soge enterprise certificate
+	* Fix duplicate accounts on cards accounts
+	* Adding IBAN support for pro and entreprise accounts
+	* Setting new certificat hash
+	* Fix greediness of a transaction pattern to avoid crash
+	* Update certificate
+	* Testing account true id for card
+	* Check ssl certificate after browser construction
+	* Support market account
+	* Support life insurance account (Investment)
+	* Refactor
+	* Support life insurance account (Transaction)
+	* Fix type of 'PEA Espèces' account
+	* Detect and log unknown type account
+	* Do not iterate over all available transaction
+	* Move set_date into LifeInsuranceHistory, and do not return to transactions list
+	* Do not store NotAvailable amounts
+	* Do not crash on pro account
+	* Fix investment valuation
+	* Fixing unsuported link account
+	* Adding PEA Especes to unsuported link
+	* Dd an url to the crashing ones
+	* New ssl certificate
+	* Add reinitpassword page to prevent crash.
+	* Fix parsing and pagination of market investments
+	* Try to type more accounts
+	* Adding iban number
+	* Try to fix weird crash
+	* Fix navigation without id transactions
+	* Fixing fake id for investment
+	* Fixing account type
+
+	Modules: tinder
+	* Fix warnings
+	* Fix crash when a contact has been removed
+	* Use APIBrowser
+	* Do not crash when the limitation rate is reached
+	* fix login on tinder: need to find the cookie in js
+	* Avoid aborting profiles walker when queue is empty
+	* Fix PEP8 E713
+	* use Module.create_browser to correctly give all standard arguments (proxy, logger, etc.)
+
+	Modules: transilien
+	* Fix _regexp name in RoadMapDuration filter
+	* Fix ambiguous departure/arrival in roadmap
+	* Use new DictElement object
+	* Fix incorrect roadmap duration parsing (#2089)
+
+	Modules: twitter
+	* Fix: site changed
+	* Exclude non-tweets
+	* Fix: trendy tweets (site changed)
+	* Fix search pagination
+	* Fix comments parsing
+	* Fix condition to correctly check if user is logged
+
+	Modules: vimeo
+	* There is no latest category on vimeo (#1692)
+	* Allow to browse categories and channels
+	* Bump to https and handle site changes
+	* isSafeForFamily field is not always filled + correctly handle its value
+
+	Modules: vlille
+	* Fix encoding error
+
+	Modules: wellsfargo
+	* Force TLS v1.0 for Wells Fargo module. (#1647)
+	* Credit limit, payment due date and amount for Wells Fargo bank (#1720)
+	* Scrape minimum credit card payment and due date (#1809)
+	* Update to new login security checks (#1999)
+	* backport check_output for 2.6
+
+	Modules: wordreference
+	* [wordreference] Adapt to browser2
+
+	Modules: youjizz
+	* Min pattern size for search is 3 characters
+	* Use UserError instead of ValueError
+	* Videos are now hosted on another domain
+
+	Modules: youporn
+	* 'a' and 'i' pattern are not supported (404 error)
+	* Rewrite with Browser 2
+	* Use UserError instead of ValueError
+	* get_video fill the id
+
+	Modules: youtube
+	* Fix parsing of js signature (#1695)
+	* Backported changes from youtube-dl
+	* Fix call to _extract_signature_function()
+
 Weboob 1.0 (2014-10-17)
 
 	General

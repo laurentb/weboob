@@ -1,113 +1,49 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH BOOBMSG 1 "11 February 2016" "boobmsg 1\&.1"
+.TH SHOPOOB 1 "11 February 2016" "shopoob 1\&.1"
 .SH NAME
-boobmsg \- send and receive message threads
+shopoob \- Obtain details and status of e-commerce orders
 .SH SYNOPSIS
-.B boobmsg
+.B shopoob
 [\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
-.B boobmsg
+.B shopoob
 [\-\-help] [\-\-version]
 
 .SH DESCRIPTION
 .LP
 
-Console application allowing to send messages on various websites and to display message threads and contents.
+Console application to obtain details and status of e\-commerce orders.
 
 .SS Supported websites:
-* aum ("Adopte un Mec" French dating website)
+* amazon (Amazon)
 .br
-* bnporc (BNP Paribas)
+* ideel (Ideel)
 .br
-* bouygues (Bouygues Télécom French mobile phone provider)
+* myhabit (MYHABIT)
 .br
-* dlfp (Da Linux French Page news website)
-.br
-* feedly (handle the popular RSS reading service Feedly)
-.br
-* fourchan (4chan image board)
-.br
-* guerrillamail (GuerrillaMail temp mailbox)
-.br
-* happn (Happn dating mobile application)
-.br
-* hds (Histoires de Sexe French erotic novels)
-.br
-* inrocks (Les Inrocks French news website)
-.br
-* lefigaro (Le Figaro French newspaper website)
-.br
-* liberation (Libération newspaper website)
-.br
-* mailinator (mailinator temp mailbox)
-.br
-* minutes20 (2 Minutes French newspaper website)
-.br
-* newsfeed (Loads RSS and Atom feeds from any website)
-.br
-* okc (OkCupid)
-.br
-* orange (Orange French mobile phone provider)
-.br
-* ovs (OnVaSortir website. Handles private messages only)
-.br
-* phpbb (phpBB forum)
-.br
-* playme (PlayMe dating mobile application)
-.br
-* presseurop (Presseurop website)
-.br
-* sfr (SFR French mobile phone provider)
-.br
-* taz (Taz newspaper website)
-.br
-* tinder (Tinder dating mobile application)
-.br
-* twitter (twitter website)
-.SH BOOBMSG COMMANDS
+* vicsec (Victoria's Secret)
+.SH SHOPOOB COMMANDS
 .TP
-\fBexport_all\fR
+\fBitems\fR [\fIID\fR]
 .br
-Export All threads
+Get items of orders.
 .TP
-\fBexport_thread\fR \fIID\fR
+\fBorders\fR [\fIBACKEND_NAME\fR]
 .br
-Export the thread identified by ID
-.TP
-\fBlist\fR
+Get orders of a backend.
 .br
-Display all threads.
+If no BACKEND_NAME given, display all orders of all backends.
 .br
 
 .br
 Default is limited to 10 results.
 .TP
-\fBphotos\fR \fIID\fR
+\fBpayments\fR [\fIID\fR]
 .br
-Display photos of a profile
-.TP
-\fBpost\fR \fIRECEIVER\fR@\fIBACKEND\fR[,\fIRECEIVER\fR@\fIBACKEND\fR[...]] [\fITEXT\fR]
+Get payments of orders.
 .br
-Post a message to the specified receivers.
-.br
-Multiple receivers are separated by a comma.
-.br
-
-.br
-If no text is supplied on command line, the content of message is read on stdin.
-.TP
-\fBprofile\fR \fIID\fR
-.br
-Display a profile
-.TP
-\fBshow\fR \fIMESSAGE\fR
-.br
-Read a message
-.TP
-\fBstatus\fR
-.br
-Display status information about a backend.
+If no ID given, display payment of all backends.
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -257,14 +193,6 @@ what backend(s) to exclude (comma separated)
 \fB\-I\fR, \fB\-\-insecure\fR
 do not validate SSL
 
-.SH BOOBMSG OPTIONS
-.TP
-\fB\-E\fR, \fB\-\-accept\-empty\fR
-Send messages with an empty body.
-.TP
-\fB\-t TITLE\fR, \fB\-\-title=TITLE\fR
-For the "post" command, set a title to message
-
 .SH LOGGING OPTIONS
 .TP
 \fB\-d\fR, \fB\-\-debug\fR
@@ -297,8 +225,8 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (atom, csv, htmltable, json, json_line, msg, msglist,
-multiline, profile, simple, table, webkit, xhtml)
+select output formatter (csv, htmltable, items, json, json_line, multiline,
+orders, payments, simple, table, webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
@@ -362,7 +290,7 @@ Get transactions betweens the 2th December and 8th December 2013.
 Get transactions after the 2th December in the last 10 transactions
 
 .SH COPYRIGHT
-Copyright(C) 2010-2016 Christophe Benz
+Copyright(C) 2015 Christophe Lampin
 .LP
 For full copyright information see the COPYING file in the weboob package.
 .LP
@@ -371,4 +299,4 @@ For full copyright information see the COPYING file in the weboob package.
 "~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/applications/boobmsg
+Home page: http://weboob.org/applications/shopoob

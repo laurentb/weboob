@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH BOOBILL 1 "17 October 2014" "boobill 1\&.0"
+.TH BOOBILL 1 "11 February 2016" "boobill 1\&.1"
 .SH NAME
 boobill \- get and download bills
 .SH SYNOPSIS
@@ -16,9 +16,13 @@ boobill \- get and download bills
 Console application allowing to get and download bills.
 
 .SS Supported websites:
+* amazon (Amazon)
+.br
 * ameli (Ameli website: French Health Insurance)
 .br
 * amelipro (Ameli website: French Health Insurance for Professionals)
+.br
+* bouygues (Bouygues Télécom French mobile phone provider)
 .br
 * edf (Edf website: French power provider)
 .br
@@ -28,9 +32,15 @@ Console application allowing to get and download bills.
 .br
 * ing (ING Direct)
 .br
+* ldlc (ldlc website)
+.br
 * leclercmobile (Leclerc Mobile website)
 .br
 * nettokom (Nettokom website)
+.br
+* orange (Orange French mobile phone provider)
+.br
+* ovh (ovh website)
 .br
 * poivy (Poivy website)
 .SH BOOBILL COMMANDS
@@ -290,7 +300,7 @@ do not display item keys
 file to export result
 
 .SH CONDITION
-The \-c and \-\-condition is a flexible way to filter and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY\-MM\-DD or YYYY\-MM\-DD HH:MM format.
+The \-c and \-\-condition is a flexible way to filter and get only interesting results. It supports conditions on numerical values, dates, durations and strings. Dates are given in YYYY\-MM\-DD or YYYY\-MM\-DD HH:MM format. Durations look like XhYmZs where X, Y and Z are integers. Any of them may be omitted. For instance, YmZs, XhZs or Ym are accepted.
 The syntax of one expression is "\fBfield operator value\fR". The field to test is always the left member of the expression.
 .LP
 The field is a member of the objects returned by the command. For example, a bank account has "balance", "coming" or "label" fields.
@@ -342,7 +352,7 @@ Get transactions betweens the 2th December and 8th December 2013.
 Get transactions after the 2th December in the last 10 transactions
 
 .SH COPYRIGHT
-Copyright(C) 2012 Florent Fourcot
+Copyright(C) 2012-2016 Florent Fourcot
 .LP
 For full copyright information see the COPYING file in the weboob package.
 .LP
