@@ -43,6 +43,14 @@ class Weboob(ConsoleApplication):
         capApplicationDict = self.init_CapApplicationDict()
 
         if len(sys.argv) >= 2:
+            try:
+                cmd = getattr(self, 'cmd_%s' % sys.argv[1])
+            except AttributeError:
+                pass
+            else:
+                cmd()
+                return
+
             cap = sys.argv.pop(1)
             if cap not in capApplicationDict:
                 print('Unknown capability, please choose one in the following list')
@@ -54,6 +62,9 @@ class Weboob(ConsoleApplication):
         applications = capApplicationDict[cap]
         application = applications[0] if len(applications) == 1 else self.choose_application(applications)
         application.run()
+
+    def cmd_update(self):
+        self.weboob.update()
 
     def update(self):
         for repository in self.weboob.repositories.repositories:
