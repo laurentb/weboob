@@ -70,7 +70,7 @@ class VideoPage(HTMLPage):
         obj_id = Env('_id')
         obj_title = CleanText(Dict('name'))
         obj_description = CleanHTML(Dict('description'))
-        obj_date = DateTime(Dict('datePublished'))
+        obj_date = DateTime(Dict('uploadDate'))
         obj_duration = VimeoDuration(Dict('duration'))
         obj_author = CleanText(Dict('author/name'))
 
