@@ -405,6 +405,7 @@ class LIAccountsPage(LoggedPage, HTMLPage):
             klass = FrenchTransaction
 
             obj_date = Date(CleanText('./td[1]'))
+            obj_rdate = Date(CleanText('./td[1]'))
             obj_raw = CleanText('./td[2]')
             obj_amount  = CleanDecimal('./td[4]', replace_dots=True)
             obj_original_currency = FrenchTransaction.Currency('./td[4]')
