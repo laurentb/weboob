@@ -316,6 +316,9 @@ James Galt <james.galt.bi@gmail.com.com>
         * Patch to remove ids that might be non-unique
         * Add Account.number attribute, and use it in BNP module
 
+Simon Lipp
+        * Add url attribute to BaseObject, and fill it
+
 Edmond Van Overtveldt
 Julia Leven
 Jérémy Bossut
