@@ -37,7 +37,7 @@ class Weboob(ConsoleApplication):
     UPDATE_DAYS_DELAY = 20
 
     def __init__(self):
-        ConsoleApplication.__init__(self)
+        super(Weboob, self).__init__()
         self.update()
 
         capApplicationDict = self.init_CapApplicationDict()
@@ -127,7 +127,7 @@ class Weboob(ConsoleApplication):
         return OrderedDict([(k, v) for k, v in sorted(capApplicationDict.iteritems())])
 
     def get_application_capabilities(self, application):
-        if 'CAPS' in dir(application) and application.CAPS:
+        if hasattr(application, 'CAPS') and application.CAPS:
             _capabilities = list(application.CAPS) if isinstance(application.CAPS, tuple) else [application.CAPS]
             return [os.path.splitext(os.path.basename(inspect.getfile(x)))[0] for x in _capabilities]
 
@@ -144,4 +144,7 @@ class Weboob(ConsoleApplication):
 
 
 if __name__ == '__main__':
-    Weboob()
+    try:
+        Weboob()
+    except KeyboardInterrupt:
+        print('')
