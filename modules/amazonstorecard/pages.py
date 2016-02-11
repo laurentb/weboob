@@ -19,7 +19,7 @@
 
 from weboob.capabilities.bank import Account, Transaction
 from weboob.browser.exceptions import ServerError
-from weboob.browser.pages import HTMLPage, RawPage, XMLPage
+from weboob.browser.pages import HTMLPage, RawPage
 from weboob.tools.capabilities.bank.transactions import \
     AmericanTransaction as AmTr
 from weboob.tools.date import closest_date

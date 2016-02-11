@@ -21,7 +21,6 @@ from weboob.capabilities.bank import Account, Transaction
 from weboob.tools.capabilities.bank.transactions import \
     AmericanTransaction as AmTr
 from weboob.browser.pages import HTMLPage, LoggedPage, RawPage
-from urllib import unquote
 from decimal import Decimal
 from requests.cookies import morsel_to_cookie
 from .parsers import StatementParser, clean_label
@@ -76,7 +75,7 @@ class SummaryPage(LoggedInPage):
         self.browser.location(href)
 
 
-class AccountPage:
+class AccountPage(object):
     def account_id(self, name=None):
         if name:
             return name[-4:] # Last 4 digits of "BLAH XXXXXXX1234"

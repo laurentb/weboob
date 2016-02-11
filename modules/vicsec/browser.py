@@ -23,7 +23,7 @@ from weboob.tools.capabilities.bank.transactions import \
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.pages import HTMLPage
 from weboob.capabilities.base import Currency
-from weboob.capabilities.shop import OrderNotFound, Order, Item, Payment
+from weboob.capabilities.shop import Order, Item, Payment
 from weboob.exceptions import BrowserIncorrectPassword
 
 from datetime import datetime
