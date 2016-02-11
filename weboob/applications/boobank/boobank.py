@@ -277,8 +277,7 @@ class RecipientListFormatter(PrettyFormatter):
 class AccountListFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'label', 'balance', 'coming')
 
-    tot_balance = Decimal(0)
-    tot_coming = Decimal(0)
+    totals = {}
 
     def start_format(self, **kwargs):
         self.output('               %s  Account                     Balance    Coming ' % ((' ' * 15) if not self.interactive else ''))
@@ -296,24 +295,32 @@ class AccountListFormatter(IFormatter):
 
         balance = obj.balance or Decimal('0')
         coming = obj.coming or Decimal('0')
+        currency = obj.currency or 'EUR'
         result = u'%s %s %s  %s' % (id,
                                     self.colored('%-25s' % obj.label[:25], 'yellow'),
                                     self.colored('%9.2f' % obj.balance, 'green' if balance >= 0 else 'red') if not empty(obj.balance) else ' ' * 9,
                                     self.colored('%9.2f' % obj.coming, 'green' if coming >= 0 else 'red') if not empty(obj.coming) else '')
 
-        self.tot_balance += balance
-        self.tot_coming += coming
+        currency_totals = self.totals.setdefault(currency, {})
+        currency_totals.setdefault('balance', Decimal(0))
+        currency_totals['balance'] += balance
+        currency_totals.setdefault('coming', Decimal(0))
+        currency_totals['coming'] += coming
         return result
 
     def flush(self):
         self.output(u'------------------------------------------%s+----------+----------' % (('-' * 15) if not self.interactive else ''))
-        self.output(u'%s                                    Total   %s   %s' % (
-                    (' ' * 15) if not self.interactive else '',
-                    self.colored('%8.2f' % self.tot_balance, 'green' if self.tot_balance >= 0 else 'red'),
-                    self.colored('%8.2f' % self.tot_coming, 'green' if self.tot_coming >= 0 else 'red'))
-                    )
-        self.tot_balance = Decimal(0)
-        self.tot_coming = Decimal(0)
+        for currency, currency_totals in sorted(self.totals.iteritems(), key=lambda (k,v): (v,k)):
+            balance = currency_totals['balance']
+            coming = currency_totals['coming']
+
+            self.output(u'%s                              Total (%s)   %s   %s' % (
+                        (' ' * 15) if not self.interactive else '',
+                        currency,
+                        self.colored('%8.2f' % balance, 'green' if balance >= 0 else 'red'),
+                        self.colored('%8.2f' % coming, 'green' if coming >= 0 else 'red'))
+                        )
+        self.totals = {}
 
 
 class Boobank(ReplApplication):
