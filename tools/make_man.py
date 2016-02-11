@@ -29,6 +29,7 @@ import sys
 import tempfile
 import time
 
+from datetime import datetime
 from weboob.tools.application.base import Application
 
 
@@ -226,7 +227,7 @@ For full copyright information see the COPYING file in the weboob package.
 .LP
 .RE
 .SH FILES
- "~/.config/weboob/backends" """ % application.COPYRIGHT
+ "~/.config/weboob/backends" """ % application.COPYRIGHT.replace('YEAR', '%d' % datetime.today().year)
     if len(app.CONFIG) > 0:
         footer += '\n\n "~/.config/weboob/%s"' % app.APPNAME
 
