@@ -36,7 +36,7 @@ class ArteModule(Module, CapVideo, CapCollection):
     NAME = 'arte'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
-    VERSION = '1.1'
+    VERSION = '1.2'
     DESCRIPTION = 'Arte French and German TV'
     LICENSE = 'AGPLv3+'
 

@@ -36,7 +36,7 @@ class CICModule(Module, CapBank):
     NAME = 'cic'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '1.1'
+    VERSION = '1.2'
     DESCRIPTION = u'CIC'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),

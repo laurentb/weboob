@@ -28,7 +28,7 @@ class TransilienModule(Module, CapTravel):
     NAME = 'transilien'
     MAINTAINER = u'Julien Hébert'
     EMAIL = 'juke@free.fr'
-    VERSION = '1.1'
+    VERSION = '1.2'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u"Public transportation in the Paris area"
     BROWSER = Transilien

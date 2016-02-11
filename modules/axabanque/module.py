@@ -32,7 +32,7 @@ class AXABanqueModule(Module, CapBank):
     NAME = 'axabanque'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.1'
+    VERSION = '1.2'
     DESCRIPTION = u'AXA Banque'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label=u'N° de client', regexp='\d+', masked=False),

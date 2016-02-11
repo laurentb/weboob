@@ -33,7 +33,7 @@ class KickassModule(Module, CapTorrent):
     NAME = 'kickass'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '1.1'
+    VERSION = '1.2'
     DESCRIPTION = 'Kickass Torrents BitTorrent tracker'
     LICENSE = 'AGPLv3+'
     BROWSER = KickassBrowser

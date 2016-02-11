@@ -35,7 +35,7 @@ class OvhModule(Module, CapBill):
     MAINTAINER = u'Vincent Paredes'
     EMAIL = 'vparedes@budget-insight.com'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.1'
+    VERSION = '1.2'
     CONFIG = BackendConfig(Value('login', label='Account ID'),
                                    ValueBackendPassword('password', label='Password'))
 

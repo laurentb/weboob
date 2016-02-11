@@ -31,7 +31,7 @@ class FreegeoipModule(Module, CapGeolocIp):
     NAME = 'freegeoip'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '1.1'
+    VERSION = '1.2'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'public API to search the geolocation of IP addresses'
     BROWSER = Browser

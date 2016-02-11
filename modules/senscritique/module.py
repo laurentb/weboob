@@ -32,7 +32,7 @@ class SenscritiqueModule(Module, CapCalendarEvent):
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.1'
+    VERSION = '1.2'
     ASSOCIATED_CATEGORIES = [CATEGORIES.TELE]
     BROWSER = SenscritiqueBrowser
 

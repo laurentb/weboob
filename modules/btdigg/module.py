@@ -13,7 +13,7 @@ class BTDiggModule(Module, CapTorrent):
     NAME = 'btdigg'
     MAINTAINER = u'Matthieu Rakotojaona'
     EMAIL = 'matthieu.rakotojaona@gmail.com'
-    VERSION = '1.1'
+    VERSION = '1.2'
     DESCRIPTION = 'The BitTorrent DHT search engine.'
     LICENSE = 'CC0'
     BROWSER = BTDiggBrowser

@@ -37,7 +37,7 @@ class NolifeTVModule(Module, CapVideo, CapCollection):
     NAME = 'nolifetv'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.1'
+    VERSION = '1.2'
     DESCRIPTION = 'NolifeTV French video streaming website'
     LICENSE = 'AGPLv3+'
     BROWSER = NolifeTVBrowser

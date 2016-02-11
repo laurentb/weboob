@@ -39,7 +39,7 @@ class CmbModule(Module, CapBank):
     NAME = 'cmb'
     MAINTAINER = u'Johann Broudin'
     EMAIL = 'Johann.Broudin@6-8.fr'
-    VERSION = '1.1'
+    VERSION = '1.2'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Crédit Mutuel de Bretagne'
     CONFIG = BackendConfig(

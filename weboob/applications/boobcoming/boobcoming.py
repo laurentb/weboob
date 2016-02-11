@@ -183,7 +183,7 @@ class UpcomingFormatter(IFormatter):
 
 class Boobcoming(ReplApplication):
     APPNAME = 'boobcoming'
-    VERSION = '1.1'
+    VERSION = '1.2'
     COPYRIGHT = 'Copyright(C) 2012-YEAR Bezleputh'
     DESCRIPTION = "Console application to see upcoming events."
     SHORT_DESCRIPTION = "see upcoming events"

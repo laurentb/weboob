@@ -34,7 +34,7 @@ class CitelisModule(Module, CapBank):
     MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.1'
+    VERSION = '1.2'
 
     BROWSER = CitelisBrowser
 

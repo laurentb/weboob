@@ -31,7 +31,7 @@ class TvsubtitlesModule(Module, CapSubtitle):
     NAME = 'tvsubtitles'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '1.1'
+    VERSION = '1.2'
     DESCRIPTION = 'Tvsubtitles subtitle website'
     LICENSE = 'AGPLv3+'
     BROWSER = TvsubtitlesBrowser

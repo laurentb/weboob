@@ -80,7 +80,7 @@ class HousingListFormatter(PrettyFormatter):
 
 class Flatboob(ReplApplication):
     APPNAME = 'flatboob'
-    VERSION = '1.1'
+    VERSION = '1.2'
     COPYRIGHT = 'Copyright(C) 2012-YEAR Romain Bignon'
     DESCRIPTION = "Console application to search for housing."
     SHORT_DESCRIPTION = "search for housing"

@@ -32,7 +32,7 @@ class NettoKomModule(Module, CapBill):
     NAME = 'nettokom'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '1.1'
+    VERSION = '1.2'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'Nettokom website'
     CONFIG = BackendConfig(ValueBackendPassword('login',

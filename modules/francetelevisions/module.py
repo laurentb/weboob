@@ -33,7 +33,7 @@ class PluzzModule(Module, CapVideo, CapCollection):
     NAME = 'francetelevisions'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.1'
+    VERSION = '1.2'
     DESCRIPTION = u'France Télévisions video website'
     LICENSE = 'AGPLv3+'
     BROWSER = PluzzBrowser

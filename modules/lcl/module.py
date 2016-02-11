@@ -34,7 +34,7 @@ class LCLModule(Module, CapBank):
     NAME = 'lcl'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.1'
+    VERSION = '1.2'
     DESCRIPTION = u'LCL'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),

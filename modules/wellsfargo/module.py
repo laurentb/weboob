@@ -32,7 +32,7 @@ class WellsFargoModule(Module, CapBank):
     NAME = 'wellsfargo'
     MAINTAINER = u'Oleg Plakhotniuk'
     EMAIL = 'olegus8@gmail.com'
-    VERSION = '1.1'
+    VERSION = '1.2'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Wells Fargo'
     CONFIG = BackendConfig(

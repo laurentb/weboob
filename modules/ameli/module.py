@@ -30,7 +30,7 @@ class AmeliModule(Module, CapBill):
     DESCRIPTION = u'Ameli website: French Health Insurance'
     MAINTAINER = u'Christophe Lampin'
     EMAIL = 'weboob@lampin.net'
-    VERSION = '1.1'
+    VERSION = '1.2'
     LICENSE = 'AGPLv3+'
     BROWSER = AmeliBrowser
     CONFIG = BackendConfig(ValueBackendPassword('login',

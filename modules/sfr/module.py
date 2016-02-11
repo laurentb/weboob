@@ -33,7 +33,7 @@ class SfrModule(Module, CapAccount, CapMessages, CapMessagesPost):
     NAME = 'sfr'
     MAINTAINER = u'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
-    VERSION = '1.1'
+    VERSION = '1.2'
     DESCRIPTION = 'SFR French mobile phone provider'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(Value('login', label='Login'),

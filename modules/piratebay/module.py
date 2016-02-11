@@ -32,7 +32,7 @@ class PiratebayModule(Module, CapTorrent):
     NAME = 'piratebay'
     MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
-    VERSION = '1.1'
+    VERSION = '1.2'
     DESCRIPTION = 'The Pirate Bay BitTorrent tracker'
     LICENSE = 'AGPLv3+'
     BROWSER = PiratebayBrowser

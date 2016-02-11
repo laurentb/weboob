@@ -32,7 +32,7 @@ class FortuneoModule(Module, CapBank):
     NAME = 'fortuneo'
     MAINTAINER = u'Gilles-Alexandre Quenot'
     EMAIL = 'gilles.quenot@gmail.com'
-    VERSION = '1.1'
+    VERSION = '1.2'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Fortuneo'
     CONFIG = BackendConfig(

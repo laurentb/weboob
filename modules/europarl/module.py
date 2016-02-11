@@ -34,7 +34,7 @@ class EuroparlModule(Module, CapVideo, CapCollection):
     NAME = 'europarl'
     MAINTAINER = u'François Revol'
     EMAIL = 'revol@free.fr'
-    VERSION = '1.1'
+    VERSION = '1.2'
     DESCRIPTION = 'Europarl parliamentary video streaming website'
     LICENSE = 'AGPLv3+'
     BROWSER = EuroparlBrowser

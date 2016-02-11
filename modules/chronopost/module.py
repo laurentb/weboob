@@ -32,7 +32,7 @@ class ChronopostModule(Module, CapParcel):
     DESCRIPTION = u'Chronopost website'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.1'
+    VERSION = '1.2'
 
     BROWSER = ChronopostBrowser
 

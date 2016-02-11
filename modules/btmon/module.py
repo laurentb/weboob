@@ -31,7 +31,7 @@ class BtmonModule(Module, CapTorrent):
     NAME = 'btmon'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '1.1'
+    VERSION = '1.2'
     DESCRIPTION = 'BTMon BitTorrent database'
     LICENSE = 'AGPLv3+'
     BROWSER = BtmonBrowser

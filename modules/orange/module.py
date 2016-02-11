@@ -53,7 +53,7 @@ class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost, CapBill):
     NAME = 'orange'
     MAINTAINER = u'Lucas Nussbaum'
     EMAIL = 'lucas@lucas-nussbaum.net'
-    VERSION = '1.1'
+    VERSION = '1.2'
     DESCRIPTION = 'Orange French mobile phone provider'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(Value('login', label='Login'),

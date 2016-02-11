@@ -32,7 +32,7 @@ class AlloRestoModule(Module, CapBank):
     NAME = 'alloresto'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.1'
+    VERSION = '1.2'
     DESCRIPTION = u'Allo Resto'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),

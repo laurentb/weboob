@@ -33,7 +33,7 @@ class S2eModule(Module, CapBank):
     NAME = 's2e'
     MAINTAINER = u'Christophe Lampin'
     EMAIL = 'weboob@lampin.net'
-    VERSION = '1.1'
+    VERSION = '1.2'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Esalia, Capeasi, BNP PERE, HSBC ERE'
 
