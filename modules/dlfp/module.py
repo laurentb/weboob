@@ -170,6 +170,7 @@ class DLFPModule(Module, CapMessages, CapMessagesPost, CapContent):
             message = Message(thread=parent.thread,
                               id=com.id,
                               children=[],
+                              parent=parent,
                               flags=flags)
         parent.children.append(message)
         for sub in com.comments:
