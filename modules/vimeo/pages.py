@@ -89,23 +89,41 @@ class VideoJsonPage(JsonPage):
     class fill_url(ItemElement):
         klass = BaseVideo
 
-        def obj_url(self):
-            quality = 'sd'
-            codec = None
-            data = self.el
-            if 'vp6' in data['request']['files']:
-                codec = 'vp6'
-            if 'vp8' in data['request']['files']:
-                codec = 'vp8'
-            if 'h264' in data['request']['files']:
-                codec = 'h264'
-            if not codec:
-                raise ParseError('Unable to detect available codec for id: %r' % int(Field('id')(self)))
-            if 'hd' in data['request']['files'][codec]:
-                quality = 'hd'
-            return data['request']['files'][codec][quality]['url']
+        obj_id = Env('_id')
 
-        obj_ext = Regexp(Field('url'), '.*\.(.*?)\?.*')
+        def obj_url(self):
+            # TODO: handle selecting prefered quality
+            quality = None
+            method = None
+            data = self.el
+
+            # we prefer progressive over hls
+            # don't know how to handle 'dash'
+            for m in ['progressive', 'hls']:
+                if m in data['request']['files']:
+                    method = m
+                    break
+            if not method:
+                raise ParseError('Unable to detect known stream method for id: %r (available: %s)' % (int(Field('id')(self)), data['request']['files'].keys()))
+
+            streams = data['request']['files'][method]
+
+            # stream is single for hls, just return the url
+            if method == 'hls':
+                return streams['url']
+
+            # ...but a list for progressive
+            # we assume the list is sorted by quality with best first
+            stream = None
+            for s in streams:
+                if not quality or s['quality'] == quality:
+                    stream = s
+                    break
+            if not stream:
+                raise ValueError('Requested quality %s not available for id: %r' % (quality, int(Field('id')(self))))
+            return stream['url']
+
+        obj_ext = Regexp(Field('url'), '.*\.(.*?)$')
 
 
 class CategoriesPage(HTMLPage):
