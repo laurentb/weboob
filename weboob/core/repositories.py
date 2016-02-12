@@ -72,10 +72,10 @@ class ModuleInfo(object):
         self.icon = items['icon'].strip() or None
         self.urls = items['urls']
 
-    def has_caps(self, caps):
+    def has_caps(self, *caps):
         """Return True if module implements at least one of the caps."""
-        if not isinstance(caps, (list, tuple)):
-            caps = [caps]
+        if len(caps) == 1 and isinstance(caps[0], (list, tuple)):
+            caps = caps[0]
         for c in caps:
             if type(c) == type:
                 c = c.__name__
