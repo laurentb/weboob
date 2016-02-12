@@ -278,9 +278,11 @@ class Monboob(ReplApplication):
         domain = self.config.get('domain')
         recipient = self.config.get('recipient')
 
-        reply_id = ''
-        if mail.parent:
-            reply_id = u'<%s.%s@%s>' % (backend_name, mail.parent.full_id, domain)
+        parent_message = mail.parent
+        references = []
+        while parent_message:
+            references.append(u'<%s.%s@%s>' % (backend_name, mail.parent.full_id, domain))
+            parent_message = parent_message.parent
         subject = mail.title
         sender = u'"%s" <%s@%s>' % (mail.sender.replace('"', '""') if mail.sender else '',
                                     backend_name, domain)
@@ -345,8 +347,9 @@ class Monboob(ReplApplication):
         msg['Subject'] = Header(unicode(subject), header_charset)
         msg['Message-Id'] = msg_id
         msg['Date'] = date
-        if reply_id:
-            msg['In-Reply-To'] = reply_id
+        if references:
+            msg['In-Reply-To'] = references[0]
+            msg['References'] = u" ".join(reversed(references))
 
         self.logger.info('Send mail from <%s> to <%s>' % (sender, recipient))
         if len(self.config.get('pipe')) > 0:
