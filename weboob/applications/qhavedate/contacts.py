@@ -26,6 +26,7 @@ from PyQt5.QtWidgets import QWidget, QListWidgetItem, QFrame, \
 from PyQt5.QtCore import Qt, pyqtSlot as Slot
 
 from weboob.tools.application.qt5 import QtDo, HTMLDelegate
+from weboob.tools.application.qt5.models import BackendListModel
 from weboob.tools.misc import to_unicode
 from weboob.capabilities.contact import CapContact, Contact
 from weboob.capabilities.chat import CapChat
@@ -463,9 +464,9 @@ class ContactsWidget(QWidget):
 
     def load(self):
         self.refreshContactList()
-        self.ui.backendsList.clear()
-        for backend in self.weboob.iter_backends():
-            self.ui.backendsList.addItem(backend.name)
+        model = BackendListModel(self.weboob)
+        model.addBackends(entry_all=False)
+        self.ui.backendsList.setModel(model)
 
     @Slot(object)
     def groupChanged(self, i):

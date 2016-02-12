@@ -26,6 +26,7 @@ from PyQt5.QtCore import Qt
 from weboob.tools.application.base import MoreResultsAvailable
 from weboob.tools.application.qt5 import QtMainWindow, QtDo
 from weboob.tools.application.qt5.backendcfg import BackendCfg
+from weboob.tools.application.qt5.models import BackendListModel
 from weboob.capabilities.content import CapContent
 from weboob.tools.misc import to_unicode
 
@@ -68,9 +69,9 @@ class MainWindow(QtMainWindow):
 
     def loadBackends(self):
         """ Fills the backends comboBox with available backends """
-        self.ui.backendBox.clear()
-        for backend in self.weboob.iter_backends():
-            self.ui.backendBox.insertItem(0, backend.name)
+        model = BackendListModel(self.weboob)
+        model.addBackends(entry_all=False)
+        self.ui.backendBox.setModel(model)
 
     @Slot()
     def _currentTabChanged(self):

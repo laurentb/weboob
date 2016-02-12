@@ -29,6 +29,7 @@ from weboob.capabilities.torrent import CapTorrent
 from weboob.capabilities.subtitle import CapSubtitle
 from weboob.tools.application.qt5 import QtMainWindow, QtDo
 from weboob.tools.application.qt5.backendcfg import BackendCfg
+from weboob.tools.application.qt5.models import BackendListModel
 from weboob.tools.application.qt5.search_history import HistoryCompleter
 
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
@@ -535,13 +536,14 @@ class MainWindow(QtMainWindow):
             self.loadBackendsList()
 
     def loadBackendsList(self):
-        self.ui.backendEdit.clear()
-        for i, backend in enumerate(self.weboob.iter_backends()):
-            if i == 0:
-                self.ui.backendEdit.addItem('All backends', '')
-            self.ui.backendEdit.addItem(backend.name, backend.name)
-            if backend.name == self.config.get('settings', 'backend'):
-                self.ui.backendEdit.setCurrentIndex(i+1)
+        model = BackendListModel(self.weboob)
+        model.addBackends()
+        self.ui.backendEdit.setModel(model)
+
+        current_backend = self.config.get('settings', 'backend')
+        idx = self.ui.backendEdit.findData(current_backend)
+        if idx >= 0:
+            self.ui.backendEdit.setCurrentIndex(idx)
 
         if self.ui.backendEdit.count() == 0:
             self.ui.searchEdit.setEnabled(False)
