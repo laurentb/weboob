@@ -71,7 +71,8 @@ class TwitterTest(BackendTest):
     def test_ls_trend(self):
         l = list(self.backend.iter_resources([BaseObject], ['trendy']))
         assert len(l)
-        l1 = list(itertools.islice(self.backend.iter_resources([BaseObject], ['trendy', u'%s' % l[0].split_path[0]]), 0, 20))
+        l1 = list(itertools.islice(self.backend.iter_resources([BaseObject],
+                                                               ['trendy', u'%s' % l[0].split_path[0]]), 0, 20))
         assert len(l1)
         thread = self.backend.get_thread(l1[0].id)
         assert len(thread.root.content)

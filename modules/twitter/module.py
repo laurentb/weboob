@@ -183,7 +183,8 @@ class TwitterModule(Module, CapMessages, CapMessagesPost, CapCollection):
     def validate_collection(self, objs, collection):
         if collection.path_level == 0:
             return
-        if collection.path_level == 1 and collection.split_path[0] in [u'profils', u'trendy', u'me', u'hashtags', u'search']:
+        if collection.path_level == 1 and collection.split_path[0] in \
+           [u'profils', u'trendy', u'me', u'hashtags', u'search']:
             return
         if collection.path_level == 2:
             return
