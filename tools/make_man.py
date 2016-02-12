@@ -68,13 +68,13 @@ class ManpageHelpFormatter(optparse.HelpFormatter):
         desc = u'.SH DESCRIPTION\n.LP\n\n%s\n' % description
         if hasattr(self.app, 'CAPS'):
             self.app.weboob.modules_loader.load_all()
-            backends = []
-            for name, backend in self.app.weboob.modules_loader.loaded.iteritems():
-                if backend.has_caps(self.app.CAPS):
-                    backends.append(u'* %s (%s)' % (name, backend.description))
-            if len(backends) > 0:
+            modules = []
+            for name, module in self.app.weboob.modules_loader.loaded.iteritems():
+                if module.has_caps(self.app.CAPS):
+                    modules.append(u'* %s (%s)' % (name, module.description))
+            if len(modules) > 0:
                 desc += u'\n.SS Supported websites:\n'
-                desc += u'\n.br\n'.join(sorted(backends))
+                desc += u'\n.br\n'.join(sorted(modules))
         return desc
 
     def format_commands(self, commands):
