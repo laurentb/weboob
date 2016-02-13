@@ -46,8 +46,8 @@ def find_executable(name, names):
 def build_qt():
     print('Building Qt applications...', file=sys.stderr)
     make = find_executable('make', ('gmake', 'make'))
-    pyuic4 = find_executable('pyuic4', ('python2-pyuic4', 'pyuic4-python2.7', 'pyuic4-python2.6', 'pyuic4'))
-    if not pyuic4 or not make:
+    pyuic5 = find_executable('pyuic5', ('python2-pyuic5', 'pyuic5-python2.7', 'pyuic5-python2.6', 'pyuic5'))
+    if not pyuic5 or not make:
         print('Install missing component(s) (see above) or disable Qt applications (with --no-qt).', file=sys.stderr)
         sys.exit(1)
 
@@ -56,7 +56,7 @@ def build_qt():
          '-f', 'build.mk',
          '-s', '-j2',
          'all',
-         'PYUIC=%s%s' % (pyuic4, ' WIN32=1' if sys.platform == 'win32' else '')])
+         'PYUIC=%s%s' % (pyuic5, ' WIN32=1' if sys.platform == 'win32' else '')])
 
 
 def install_weboob():
