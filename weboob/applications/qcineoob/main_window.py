@@ -468,9 +468,7 @@ class MainWindow(QtMainWindow):
     @Slot(object)
     def closeTab(self, index):
         if self.ui.resultsTab.widget(index) != 0:
-            tabToClose = self.ui.resultsTab.widget(index)
             self.ui.resultsTab.removeTab(index)
-            del(tabToClose)
 
     @Slot()
     def closeCurrentTab(self):
