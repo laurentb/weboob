@@ -74,7 +74,7 @@ class QtScheduler(QObject, IScheduler):
 
     @Slot()
     def timeout(self):
-        timer = QObject.sender()
+        timer = self.sender()
         interval, function, args = self.params[timer]
 
         function(*args)
