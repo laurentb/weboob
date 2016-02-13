@@ -1,4 +1,4 @@
-core := weboob/tools/application/qt
+core := weboob/tools/application/qt weboob/tools/application/qt5
 applications := qboobmsg qhavedate qwebcontentedit qflatboob qcineoob qcookboob qhandjoob
 ifeq ($(WIN32),)
 	applications += qvideoob
