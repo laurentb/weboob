@@ -58,7 +58,7 @@ class Boursorama(StateBrowser):
              r'.*/opcvm.phtml.*': InvestmentDetail,
              r'.*/bourse/trackers/etf.phtml.*': InvestmentDetail,
              r'.*/positions_engagements.phtml.*': AccountMarket,
-             r'https://clients.boursorama.com/': NewWebsitePage,
+             r'https://clients.boursorama.com/.*': NewWebsitePage,
             }
 
     __states__ = ('auth_token',)
