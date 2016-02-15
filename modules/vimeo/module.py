@@ -20,8 +20,11 @@
 
 
 from weboob.capabilities.video import CapVideo, BaseVideo
-from weboob.tools.backend import Module
 from weboob.capabilities.collection import CapCollection, CollectionNotFound, Collection
+from weboob.tools.backend import Module, BackendConfig
+from weboob.tools.ordereddict import OrderedDict
+from weboob.tools.value import Value
+
 
 from .browser import VimeoBrowser
 
@@ -40,6 +43,19 @@ class VimeoModule(Module, CapVideo, CapCollection):
     BROWSER = VimeoBrowser
 
     SORTBY = ['relevance', 'rating', 'views', 'time']
+
+    quality_choice = OrderedDict([(k, v) for k, v in sorted(
+        {u'0': u'hight', u'1': u'medium', u'2': u'low'}.iteritems())])
+
+    method_choice = [u'hls', u'progressive']
+
+    CONFIG = BackendConfig(Value('method', label='Choose a stream method', choices=method_choice),
+                           Value('quality', label='Choosen a quality',
+                                 choices=quality_choice))
+
+    def create_default_browser(self):
+        return self.create_browser(method=self.config['method'].get(),
+                                   quality=int(self.config['quality'].get()))
 
     def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         return self.browser.search_videos(pattern, self.SORTBY[sortby])

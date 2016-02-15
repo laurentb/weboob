@@ -18,12 +18,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 from weboob.browser import PagesBrowser, URL
 from weboob.browser.exceptions import HTTPNotFound
-from .pages import SearchPage, VideoPage, VideoJsonPage, CategoriesPage, ChannelsPage
+from weboob.capabilities.base import NotAvailable
+from .pages import SearchPage, VideoPage, VideoJsonPage, CategoriesPage, ChannelsPage, ListPage
 
 import urllib
+from urlparse import urljoin
 
 __all__ = ['VimeoBrowser']
 
@@ -33,9 +34,10 @@ class VimeoBrowser(PagesBrowser):
     BASEURL = 'https://vimeo.com'
 
     search_page = URL(r'search/page:(?P<page>.*)/sort:(?P<sortby>.*)/format:thumbnail\?type=videos&q=(?P<pattern>.*)',
-                      r'channels/(?P<channel>.*)/videos/.*?',
-                      r'categories/(?P<category>.*)/videos/.*?',
-                      SearchPage)
+                      r'search/.*', SearchPage)
+    list_page = URL(r'channels/(?P<channel>.*)/videos/.*?',
+                    r'categories/(?P<category>.*)/videos/.*?',
+                    ListPage)
 
     categories_page = URL('categories', CategoriesPage)
     channels_page = URL('channels', ChannelsPage)
@@ -43,12 +45,39 @@ class VimeoBrowser(PagesBrowser):
     video_url = URL(r'https://player.vimeo.com/video/(?P<_id>.*)/config', VideoJsonPage)
     video_page = URL('https://vimeo.com/(?P<_id>.*)', VideoPage)
 
+    def __init__(self, method, quality, *args, **kwargs):
+        self.method = method
+        self.quality = quality
+        PagesBrowser.__init__(self, *args, **kwargs)
+
     def get_video(self, _id, video=None):
         try:
             video = self.video_page.go(_id=_id).get_video(video)
-            return self.video_url.open(_id=_id).fill_url(obj=video)
+            video._quality = self.quality
+            video._method = self.method
+            video = self.video_url.open(_id=_id).fill_url(obj=video)
+            if self.method == u'hls':
+                streams = []
+                for item in self.read_url(video.url):
+                    if not item.startswith('#'):
+                        streams.append(item)
+                if streams:
+                    streams.reverse()
+                    url = streams[self.quality] if self.quality < len(streams) else streams[0]
+                    if url.startswith('..'):
+                        video.url = urljoin(video.url, url)
+                    else:
+                        video.url = url
+                else:
+                    video.url = NotAvailable
+            return video
         except HTTPNotFound:
             return None
+
+    def read_url(self, url):
+        r = self.open(url, stream=True)
+        buf = r.iter_lines()
+        return buf
 
     def search_videos(self, pattern, sortby):
         return self.search_page.go(pattern=urllib.quote_plus(pattern.encode('utf-8')),
@@ -62,7 +91,7 @@ class VimeoBrowser(PagesBrowser):
         return self.channels_page.go().iter_channels()
 
     def get_channel_videos(self, channel):
-        return self.search_page.go(channel=channel).iter_videos()
+        return self.list_page.go(channel=channel).iter_videos()
 
     def get_category_videos(self, category):
-        return self.search_page.go(category=category).iter_videos()
+        return self.list_page.go(category=category).iter_videos()

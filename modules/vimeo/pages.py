@@ -36,12 +36,11 @@ class VimeoDuration(Duration):
     _regexp = re.compile(r'PT(?P<hh>\d+)H(?P<mm>\d+)M(?P<ss>\d+)S')
 
 
-class SearchPage(HTMLPage):
+class ListPage(HTMLPage):
     @pagination
     @method
     class iter_videos(ListElement):
         item_xpath = '//div[@id="browse_content"]/ol/li'
-
         next_page = Link(u'//a[text()="Next"]')
 
         class item(ItemElement):
@@ -52,6 +51,26 @@ class SearchPage(HTMLPage):
 
             def obj_thumbnail(self):
                 thumbnail = BaseImage(self.xpath('./a/img')[0].attrib['src'])
+                thumbnail.url = thumbnail.id
+                return thumbnail
+
+
+class SearchPage(HTMLPage):
+    @pagination
+    @method
+    class iter_videos(ListElement):
+        item_xpath = '//ul[@class="small-block-grid-3"]/li/div[has-class("clip_thumbnail")]'
+
+        next_page = Link(u'//a[text()="Next"]')
+
+        class item(ItemElement):
+            klass = BaseVideo
+
+            obj_id = Attr('.', 'data-clip-id')
+            obj_title = Attr('./a/span', 'title')
+
+            def obj_thumbnail(self):
+                thumbnail = BaseImage(self.xpath('./a/div/img')[0].attrib['src'])
                 thumbnail.url = thumbnail.id
                 return thumbnail
 
@@ -68,7 +87,7 @@ class VideoPage(HTMLPage):
         klass = BaseVideo
 
         obj_id = Env('_id')
-        obj_title = CleanText(Dict('name'))
+        obj_title = CleanText(CleanHTML(Dict('name')))
         obj_description = CleanHTML(Dict('description'))
         obj_date = DateTime(Dict('uploadDate'))
         obj_duration = VimeoDuration(Dict('duration'))
@@ -89,41 +108,35 @@ class VideoJsonPage(JsonPage):
     class fill_url(ItemElement):
         klass = BaseVideo
 
-        obj_id = Env('_id')
-
         def obj_url(self):
-            # TODO: handle selecting prefered quality
-            quality = None
-            method = None
             data = self.el
 
-            # we prefer progressive over hls
-            # don't know how to handle 'dash'
-            for m in ['progressive', 'hls']:
-                if m in data['request']['files']:
-                    method = m
-                    break
-            if not method:
-                raise ParseError('Unable to detect known stream method for id: %r (available: %s)' % (int(Field('id')(self)), data['request']['files'].keys()))
+            if not data['request']['files']:
+                raise ParseError('Unable to detect any stream method for id: %r (available: %s)'
+                                 % (int(Field('id')(self)),
+                                    data['request']['files'].keys()))
+
+            # Choosen method is not available, we choose an other one
+            method = self.obj._method
+            if method not in data['request']['files']:
+                method = data['request']['files'].keys()[0]
 
             streams = data['request']['files'][method]
+            if not streams:
+                raise ValueError('There is no url available for id: %r' % (int(Field('id')(self))))
 
             # stream is single for hls, just return the url
-            if method == 'hls':
-                return streams['url']
+            stream = streams['url'] if method == 'hls' else None
 
             # ...but a list for progressive
             # we assume the list is sorted by quality with best first
-            stream = None
-            for s in streams:
-                if not quality or s['quality'] == quality:
-                    stream = s
-                    break
             if not stream:
-                raise ValueError('Requested quality %s not available for id: %r' % (quality, int(Field('id')(self))))
-            return stream['url']
+                quality = self.obj._quality
+                stream = streams[quality]['url'] if quality < len(streams) else streams[0]['url']
 
-        obj_ext = Regexp(Field('url'), '.*\.(.*?)$')
+            return stream.split('?')[0]
+
+        obj_ext = Regexp(Field('url'), '.*\.(.*)$', '\\1')
 
 
 class CategoriesPage(HTMLPage):
