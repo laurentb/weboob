@@ -22,7 +22,7 @@ from random import randint
 import requests
 
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, DateTime, Async, BrowserURL
+from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Date, Async, BrowserURL
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
@@ -52,7 +52,8 @@ class IndexPage(LoggedPage, HTMLPage):
 
             obj_id = CleanText('.//a')
             obj_label = CleanText('.//td[3]')
-            obj_balance = CleanDecimal('.//td[last()-2]', replace_dots=True)
+            obj_currency = u'EUR'
+            obj_balance = CleanDecimal('.//td[last()-3]', replace_dots=True)
             obj_type = Account.TYPE_LIFE_INSURANCE
 
 
@@ -75,7 +76,7 @@ class AccountDetailPage(LoggedPage, HTMLPage):
             obj_quantity = CleanDecimal('.//td[7]', replace_dots=True, default=NotAvailable)
             obj_unitvalue = CleanDecimal('.//td[5]', replace_dots=True, default=NotAvailable)
             obj_valuation = CleanDecimal('.//td[3]', replace_dots=True)
-            obj_vdate = DateTime(Regexp(CleanText('.//td[2]'), '(((0[1-9]|[12][0-9]|3[01])[- /.]'
+            obj_vdate = Date(Regexp(CleanText('.//td[2]'), '(((0[1-9]|[12][0-9]|3[01])[- /.]'
                                                                '(0[13578]|1[02])|(0[1-9]|[12][0-9]|30)[- /.](0[469]|11)|'
                                                                '(0[1-9]|1\d|2[0-8])[- /.]02)[- /.]\d{4}|29[- /.]02[- /.]'
                                                                '(\d{2}(0[48]|[2468][048]|[13579][26])|([02468][048]|'
@@ -128,7 +129,7 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                 return None
 
             klass = Transaction
-            obj_date = obj_rdate = obj_vdate = DateTime(CleanText('.//td[3]'))
+            obj_date = obj_rdate = obj_vdate = Date(CleanText('.//td[3]'))
             obj_label = CleanText('.//td[1]')
 
             def obj_amount(self):
