@@ -49,16 +49,19 @@ class TableFormatter(IFormatter):
         queue = [() for i in xrange(len(self.queue))]
         column_headers = []
         # Do not display columns when all values are NotLoaded or NotAvailable
+        maxrow = 0
         for i in xrange(len(self.keys)):
             available = False
             for line in self.queue:
-                if not empty(line[i]):
+                if len(line)> i and not empty(line[i]):
+                    maxrow += 1
                     available = True
                     break
             if available:
                 column_headers.append(self.keys[i].capitalize().replace('_', ' '))
                 for j in xrange(len(self.queue)):
-                    queue[j] += (self.queue[j][i],)
+                    if (len(self.queue[j]) > i):
+                        queue[j] += (self.queue[j][i],)
 
         s = ''
         if self.display_header and self.header:
@@ -77,6 +80,8 @@ class TableFormatter(IFormatter):
             except:
                 table.align[column_header] = 'l'
         for line in queue:
+            for _ in range(maxrow - len(line)):
+                line += ('',)
             table.add_row(line)
 
         if self.HTML:
