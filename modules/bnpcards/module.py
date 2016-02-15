@@ -53,9 +53,8 @@ class BnpcartesentrepriseModule(Module, CapBank):
         except BnpcartesentrepriseBrowser.CorporateCard:
             self.logger.debug('Switching on Corporate website.')
             self.BROWSER = BnpcartesentrepriseCorporateBrowser
-            return self.create_browser(self.config['type'].get(),
-                                    self.config['login'].get(),
-                                    self.config['password'].get())
+            return self.create_browser(self.config['login'].get(),
+                                       self.config['password'].get())
 
     def get_account(self, _id):
         return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)
@@ -66,7 +65,11 @@ class BnpcartesentrepriseModule(Module, CapBank):
             yield acc
 
     def iter_coming(self, account):
-        return self.browser.get_coming(account)
+        for tr in self.browser.get_transactions(account):
+            if tr._coming:
+                yield tr
 
     def iter_history(self, account):
-        return self.browser.get_history(account)
+        for tr in self.browser.get_transactions(account):
+            if not tr._coming:
+                yield tr

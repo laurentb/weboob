@@ -88,25 +88,19 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
         return self.page.iter_accounts()
 
     @need_login
-    def get_ti_transactions(self, account, coming=False):
+    def get_ti_transactions(self, account):
         self.ti_card.go()
         self.page.expand()
         for tr in self.page.get_history():
-            if coming and tr._coming:
-                yield tr
-            elif not coming and not tr._coming:
-                yield tr
+            yield tr
         self.ti_histo.stay_or_go()
         for period in self.page.get_periods():
             self.page.expand(period)
             for tr in self.page.get_history():
-                if coming and tr._coming:
-                    yield tr
-                elif not coming and not tr._coming:
-                    yield tr
+                yield tr
 
     @need_login
-    def get_transactions(self, account):
+    def get_ge_transactions(self, account):
         transactions = []
         self.accounts.go()
         self.page.expand()
@@ -132,14 +126,7 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
         return iter(transactions)
 
     @need_login
-    def get_coming(self, account):
-        if self.type == '1':
-            return self.get_ti_transactions(account, coming=True)
-        return [t for t in self.get_transactions(account) if t._coming]
-
-
-    @need_login
-    def get_history(self, account):
+    def get_transactions(self, account):
         if self.type == '1':
             return self.get_ti_transactions(account)
-        return [t for t in self.get_transactions(account) if not t._coming]
+        return self.get_ge_transactions(account)

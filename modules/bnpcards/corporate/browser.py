@@ -21,8 +21,7 @@
 from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired
 from weboob.browser import LoginBrowser, URL, need_login
 
-from .pages import LoginPage, ErrorPage, AccountsPage, TransactionsPage, \
-                   TiHomePage, TiCardPage, TiHistoPage
+from .pages import LoginPage, ErrorPage, AccountsPage, TransactionsPage
 
 
 __all__ = ['BnpcartesentrepriseCorporateBrowser']
@@ -37,7 +36,7 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
                 '/ce_internet_prive_ti/compteTituChgPWD.builder.do',
                 ErrorPage)
     acc_home = URL('/ce_internet_prive_ge/carteCorporateParc.builder.do', AccountsPage)
-    accounts = URL('/ce_internet_prive_ge/operationVotreParcAfficherCorporate.event.do',
+    accounts_page = URL('/ce_internet_prive_ge/operationVotreParcAfficherCorporate.event.do',
                    '/ce_internet_prive_ge/operationVotreParcAppliquerCorporate.event.do.*',
                    AccountsPage)
     com_home = URL('/ce_internet_prive_ge/operationCorporateEnCours.builder.do', AccountsPage)
@@ -54,60 +53,29 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
                        'ce_internet_prive_ge/operationDetail.*AppliquerCorporate.event.do.*',
                        TransactionsPage)
 
-    ti_home = URL('/ce_internet_prive_ti/accueilInternetTi.builder.do', TiHomePage)
-    ti_card = URL('/ce_internet_prive_ti/operationEnCoursDetail.builder.do',
-                  '/ce_internet_prive_ti/operationEnCoursDetail.event.do.*',
-                  '/ce_internet_prive_ti/pageOperationEnCoursDetail.event.do.*', TiCardPage)
-    ti_histo = URL('/ce_internet_prive_ti/operationHistoDetail.builder.do',
-                   '/ce_internet_prive_ti/operationHistoDetail.event.do.*',
-                   '/ce_internet_prive_ti/pageOperationHistoDetail.event.do.*', TiHistoPage)
     TIMEOUT = 60.0
 
-    def __init__(self, type, *args, **kwargs):
-        super(BnpcartesentrepriseCorporateBrowser, self).__init__(*args, **kwargs)
-        self.type = type
+    accounts = None
 
     def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
         self.login.stay_or_go()
         assert self.login.is_here()
-        self.page.login(self.type, self.username, self.password)
+        self.page.login(self.username, self.password)
         if self.error.is_here():
             raise BrowserIncorrectPassword()
 
     @need_login
     def iter_accounts(self):
-        if self.type == '1':
-            self.ti_card.go()
-        elif self.type == '2':
+        if self.accounts is None:
             self.acc_home.go()
-        if self.error.is_here():
-            raise BrowserPasswordExpired()
-        if self.type == '2':
+            if self.error.is_here():
+                raise BrowserPasswordExpired()
             self.page.expand()
-        self.accounts = [acc for acc in self.page.iter_accounts()]
+            self.accounts = [acc for acc in self.page.iter_accounts()]
         for acc in self.accounts:
             yield acc
-
-    @need_login
-    def get_ti_transactions(self, account, coming=False):
-        self.ti_card.go()
-        self.page.expand()
-        for tr in self.page.get_transactions():
-            if coming and tr._coming:
-                yield tr
-            elif not coming and not tr._coming:
-                yield tr
-        self.ti_histo.stay_or_go()
-        for period in self.page.get_periods():
-            self.page.expand(period)
-            for tr in self.page.get_transactions():
-                if coming and tr._coming:
-                    yield tr
-                elif not coming and not tr._coming:
-                    yield tr
-
 
     @need_login
     def get_link(self, id):
@@ -116,10 +84,8 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
             return links[0]
 
     @need_login
-    def get_coming(self, account):
-        if self.type == '1':
-            return self.get_ti_transactions(account, coming=True)
-        if not hasattr(self, 'accounts') or not self.accounts:
+    def get_transactions(self, account):
+        if self.accounts is None:
             self.iter_accounts()
         self.his_home.go()
         self.page.expand()
@@ -130,34 +96,13 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
                     self.location(link)
                     assert self.transactions.is_here()
 
-                    if self.page.is_not_sorted('up'):
-                        self.page.sort('up')
-
-                    transactions = [t for t in self.page.get_history() if t._coming]
-                    transactions.sort(key=lambda transaction: transaction.date, reverse=True)
-                    return transactions
-        return iter([])
-
-
-    @need_login
-    def get_history(self, account):
-        if self.type == '1':
-            return self.get_ti_transactions(account)
-        if not hasattr(self, 'accounts') or not self.accounts:
-            self.iter_accounts()
-        self.his_home.go()
-        self.page.expand()
-        for a in self.accounts:
-            if a.id == account.id:
-                link = self.get_link(a.number)
-                if link:
-                    self.location(link)
-                    assert self.transactions.is_here()
+                    # We might not be on first page.
+                    self.page.assert_first_page_or_go_there()
 
                     if self.page.is_not_sorted():
                         self.page.sort()
 
-                    transactions = [t for t in self.page.get_history() if not t._coming]
+                    transactions = list(self.page.get_history())
                     transactions.sort(key=lambda transaction: transaction.date, reverse=True)
                     return transactions
         return iter([])
