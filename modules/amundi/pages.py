@@ -77,19 +77,27 @@ class AccountDetailPage(LoggedPage, HTMLPage):
             klass = Investment
 
             def obj_label(self):
-                return CleanText(TableCell('sup'))(self).split('Valeur')[0]
+                try:
+                    return CleanText(TableCell('sup'))(self).split('Valeur')[0]
+                except IndexError:
+                    return CleanText(TableCell('sup'))(self)
 
             def obj_unitvalue(self):
-                return Decimal(CleanText(TableCell('sup'))(self).split('Valeur')[1].split(':')[1].strip()[:-2])
+                try:
+                    return Decimal(CleanText(TableCell('sup'))(self).split('Valeur')[1].split(':')[1].strip()[:-2])
+                except IndexError:
+                    return NotAvailable
 
-            obj_quantity = CleanDecimal(TableCell('nbp'))
+            obj_quantity = CleanDecimal(TableCell('nbp'), default=NotAvailable)
             obj_valuation = CleanDecimal(TableCell('mtb'), replace_dots=True)
 
             def obj_vdate(self):
-                return datetime.strptime(CleanText(TableCell('sup'))(self).split('au')[1].split(':')[0].strip(),
-                                         '%d/%m/%Y')
+                try:
+                    return datetime.strptime(CleanText(TableCell('sup'))(self).split('au')[1].split(':')[0].strip(), '%d/%m/%Y')
+                except IndexError:
+                    return NotAvailable
 
-            obj_description = obj_label
+            obj_code = NotAvailable
 
 
 class AccountHistoryPage(LoggedPage, JsonPage):
