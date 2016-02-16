@@ -212,7 +212,10 @@ class PerimeterPage(BasePage):
         if not multiple:
             assert self.document.xpath(u'//div[contains(text(), "Périmètre en cours de chargement. Merci de patienter quelques secondes.")]')
             # We change perimeter in this case to add the second one.
-            self.browser.location(self.browser.chg_perimeter_url.format(self.browser.sag))
+            self.browser.location(self.browser.chg_perimeter_url.format(self.browser.sag), no_login=True)
+            if self.browser.page.get_error() is not None:
+                self.browser.broken_perimeters.append('the other perimeter is broken')
+                self.browser.login()
         for p in multiple:
             self.browser.perimeters.append(' '.join(p.find('label').text.lower().split()))
 
