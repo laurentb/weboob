@@ -28,7 +28,7 @@ import re
 from dateutil.relativedelta import relativedelta
 
 from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage
-from weboob.browser.elements import ListElement, ItemElement, SkipItem, method
+from weboob.browser.elements import ListElement, ItemElement, SkipItem, method, TableElement
 from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, TableCell, Regexp, Async, AsyncLoad, Date, ColumnNotFound
 from weboob.browser.filters.html import Link, Attr
 from weboob.exceptions import BrowserIncorrectPassword, ParseError
@@ -407,27 +407,42 @@ class LIAccountsPage(LoggedPage, HTMLPage):
             obj_date = Date(CleanText('./td[1]'))
             obj_rdate = Date(CleanText('./td[1]'))
             obj_raw = CleanText('./td[2]')
-            obj_amount  = CleanDecimal('./td[4]', replace_dots=True)
+            obj_amount  = CleanDecimal('./td[4]', replace_dots=True, default=Decimal('0'))
             obj_original_currency = FrenchTransaction.Currency('./td[4]')
             obj_type = Transaction.TYPE_BANK
             obj__is_coming = False
 
+            def obj_commission(self):
+                gross_amount = CleanDecimal('./td[3]', replace_dots=True, default=NotAvailable)(self)
+                if gross_amount:
+                    return gross_amount - Field('amount')(self)
+                return NotAvailable
+
     @method
-    class iter_investment(ListElement):
+    class iter_investment(TableElement):
         item_xpath = '//table[@class="liste"]/tbody/tr[count(td)>7]'
+        head_xpath = '//table[@class="liste"]/thead/tr/th'
+
+        col_label = u'Support'
+        col_code = re.compile(r'^Code ISIN')
+        col_unitprice = re.compile(r'^Prix d\'achat moyen')
+        col_vdate = re.compile(r'Date de cotation')
+        col_unitvalue = u'Valeur de la part'
+        col_quantity = u'Nombre de parts'
+        col_valuation = u'Valeur atteinte'
 
         class item(ItemElement):
             klass = Investment
 
-            obj_label = CleanText('./td[1]')
-            obj_unitprice = CleanDecimal('./td[4]', default=NotAvailable, replace_dots=True)
-            obj_vdate = Date(CleanText('./td[5]', replace=[('-', '')]), default=NotAvailable)
-            obj_unitvalue = CleanDecimal('./td[6]', default=NotAvailable, replace_dots=True)
-            obj_quantity = CleanDecimal('./td[7]', default=NotAvailable, replace_dots=True)
-            obj_valuation = CleanDecimal('./td[8]', default=Decimal(0), replace_dots=True)
+            obj_label = CleanText(TableCell('label'))
+            obj_unitprice = CleanDecimal(TableCell('unitprice'), default=NotAvailable, replace_dots=True)
+            obj_vdate = Date(CleanText(TableCell('vdate'), replace=[('-', '')]), default=NotAvailable)
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), default=NotAvailable, replace_dots=True)
+            obj_quantity = CleanDecimal(TableCell('quantity'), default=NotAvailable, replace_dots=True)
+            obj_valuation = CleanDecimal(TableCell('valuation'), default=Decimal(0), replace_dots=True)
 
             def obj_code(self):
-                return CleanText('./td[2]', replace=[('-', '')])(self) or NotAvailable
+                return CleanText(TableCell('code'), replace=[('-', '')])(self) or NotAvailable
 
 
 class PorPage(LoggedPage, HTMLPage):
