@@ -642,6 +642,11 @@ class TransactionsPage(BasePage):
                 t.amount = -account._prev_balance
                 yield t
 
+        currency = Account.get_currency(self.document\
+                                        .xpath('//table[@id="TabFact"]/thead//th')[self.COL_CARD_AMOUNT]\
+                                        .text\
+                                        .replace('(', ' ')\
+                                        .replace(')', ' '))
         for i, tr in enumerate(self.document.xpath('//table[@id="TabFact"]/tbody/tr')):
             tds = tr.findall('td')
 
@@ -657,6 +662,7 @@ class TransactionsPage(BasePage):
             t.parse(debit_date, re.sub(r'[ ]+', ' ', label))
             t.set_amount(amount)
             t.rdate = t.parse_date(date)
+            t.original_currency = currency
             yield t
 
     def no_operations(self):
