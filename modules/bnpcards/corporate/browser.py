@@ -55,7 +55,10 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
 
     TIMEOUT = 60.0
 
-    accounts = None
+
+    def __init__(self, *args, **kwargs):
+        super(BnpcartesentrepriseCorporateBrowser, self).__init__(*args, **kwargs)
+        self.accounts = None
 
     def do_login(self):
         assert isinstance(self.username, basestring)
