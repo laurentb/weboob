@@ -292,13 +292,16 @@ class TableElement(ListElement):
                 cols = getattr(self, attrname)
                 if not isinstance(cols, (list,tuple)):
                     cols = [cols]
-                columns[m.group(1)] = [s.lower() for s in cols]
+                columns[m.group(1)] = [s.lower() if isinstance(s, (str, unicode)) else s for s in cols]
 
         colnum = 0
         for el in self.el.xpath(self.head_xpath):
-            title = self.cleaner.clean(el).lower()
+            title = self.cleaner.clean(el)
             for name, titles in columns.iteritems():
-                if title in titles and name not in self._cols:
+                if name in self._cols:
+                    continue
+                if title.lower() in [s for s in titles if isinstance(s, (str, unicode))] or \
+                   any(map(lambda x: x.match(title), [s for s in titles if isinstance(s, type(re.compile('')))])):
                     self._cols[name] = colnum
             try:
                 colnum += int(el.attrib.get('colspan', 1))
