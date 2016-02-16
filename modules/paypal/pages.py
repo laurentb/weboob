@@ -30,6 +30,10 @@ from weboob.tools.date import parse_french_date
 from weboob.tools.js import Javascript
 
 
+class OldWebsitePage(LoggedPage, HTMLPage):
+    def on_load(self):
+        raise BrowserUnavailable('Old Website is not supported anymore.')
+
 
 class PromoPage(LoggedPage, HTMLPage):
     def on_load(self):

@@ -26,7 +26,8 @@ from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.url import URL
 
-from .pages import PromoPage, LoginPage, AccountPage, UselessPage, HomePage, ProHistoryPage, PartHistoryPage, HistoryDetailsPage, HistoryPaybackPage, ErrorPage
+from .pages import PromoPage, LoginPage, AccountPage, UselessPage, HomePage, ProHistoryPage, \
+                   PartHistoryPage, HistoryDetailsPage, HistoryPaybackPage, ErrorPage, OldWebsitePage
 
 
 __all__ = ['Paypal']
@@ -59,6 +60,7 @@ class Paypal(LoginBrowser):
                       'https://\w+.paypal.com/businessexp/summary',
                       ProHistoryPage)
     part_history = URL('https://\w+.paypal.com/myaccount/activity/.*', PartHistoryPage)
+    old_website = URL('https://paypalmanager.paypal.com/login.do', OldWebsitePage)
 
     TIMEOUT = 180.0
 
