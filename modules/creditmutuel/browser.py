@@ -197,6 +197,8 @@ class CreditMutuelBrowser(LoginBrowser):
                     self.new_por.go()
                 self.page.send_form(account)
             elif account.type == Account.TYPE_LIFE_INSURANCE:
+                if not account._link_inv:
+                    return iter([])
                 self.location(account._link_inv)
             return self.page.iter_investment()
         return iter([])
