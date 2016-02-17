@@ -189,6 +189,12 @@ class AccountsList(LoggedPage, HTMLPage):
         span = self.doc.xpath('//span[@id="index:panelASV"]')
         return len(span) > 0
 
+    def go_on_asv_history(self):
+        data = {}
+        data['index:j_idcl'] = 'index:asvInclude:goToAsvPartner'
+        data['index'] = 'index'
+        self.browser.open('https://secure.ingdirect.fr/protected/pages/index.jsf', data=data, headers={'Content-Type':'application/x-www-form-urlencoded'})
+
     @method
     class iter_investments(ListElement):
         item_xpath = '//div[has-class("asv_fond")]'
@@ -237,4 +243,6 @@ class AccountsList(LoggedPage, HTMLPage):
 
 
 class TitreDetails(LoggedPage, HTMLPage):
-    pass
+    def submit(self):
+        form = self.get_form()
+        form.submit(verify=False)

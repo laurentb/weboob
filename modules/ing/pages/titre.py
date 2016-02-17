@@ -97,3 +97,16 @@ class TitreHistory(LoggedPage, HTMLPage):
             obj_raw = Transaction.Raw('td[4] | td[3]/a')
             obj_date = Date(CleanText('td[2]'), dayfirst=True)
             obj_amount = CleanDecimal('td[7]', replace_dots=True)
+
+
+class ASVHistory(LoggedPage, HTMLPage):
+    @method
+    class iter_history(ListElement):
+        item_xpath = '//table[@class="Tableau"]/tr[td[not(has-class("enteteTableau"))]]'
+
+        class item(ItemElement):
+            klass = Transaction
+
+            obj_date = Date(CleanText('./td[1]'), dayfirst=True)
+            obj_raw = Transaction.Raw('./td[2]')
+            obj_amount = CleanDecimal('./td[3]', replace_dots=True)

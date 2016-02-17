@@ -26,7 +26,7 @@ from weboob.capabilities.bank import Account, TransferError, AccountNotFound
 from weboob.capabilities.base import find_object
 
 from .pages import AccountsList, LoginPage, NetissimaPage, TitrePage, TitreHistory,\
-    TransferPage, TransferConfirmPage, BillsPage, StopPage, TitreDetails, TitreValuePage
+    TransferPage, TransferConfirmPage, BillsPage, StopPage, TitreDetails, TitreValuePage, ASVHistory
 
 
 __all__ = ['IngBrowser']
@@ -62,6 +62,8 @@ class IngBrowser(LoginBrowser):
     titrehistory = URL('https://bourse.ingdirect.fr/priv/compte.php\?ong=3', TitreHistory)
     titrerealtime = URL('https://bourse.ingdirect.fr/streaming/compteTempsReelCK.php', TitrePage)
     titrevalue = URL('https://bourse.ingdirect.fr/priv/fiche-valeur.php\?val=(?P<val>.*)&pl=(?P<pl>.*)&popup=1', TitreValuePage)
+
+    asv_history = URL('https://ingdirectvie.ingdirect.fr/b2b2c/epargne/CoeLisMvt', ASVHistory)
     # CapBill
     billpage = URL('/protected/pages/common/estatement/eStatement.jsf', BillsPage)
 
@@ -128,7 +130,7 @@ class IngBrowser(LoginBrowser):
     @need_login
     @check_bourse
     def get_history(self, account):
-        if account.type == Account.TYPE_MARKET:
+        if account.type == Account.TYPE_MARKET or account.type == Account.TYPE_LIFE_INSURANCE:
             for result in self.get_history_titre(account):
                 yield result
             return
@@ -225,6 +227,17 @@ class IngBrowser(LoginBrowser):
             raise TransferError('Recipient not found')
 
 
+    def go_on_asv_history(self, account):
+        account = self.get_account(account.id)
+        data = {"index": "index",
+                "autoScroll": "",
+                "javax.faces.ViewState": account._jid,
+                "index:j_idcl": "index:asvInclude:goToAsvPartner",
+               }
+        self.accountspage.go(data=data)
+        self.page.submit()
+        self.location('/b2b2c/epargne/CoeLisMvt')
+
     def go_investments(self, account):
         account = self.get_account(account.id)
         data = {"AJAX:EVENTS_COUNT": 1,
@@ -281,10 +294,14 @@ class IngBrowser(LoginBrowser):
 
         if self.where == u'titre':
             self.titrehistory.go()
-            return self.page.iter_history()
         else:
-            # No history for ASV accounts.
-            raise NotImplementedError()
+            self.go_on_asv_history(account)
+        transactions = list()
+        for tr in self.page.iter_history():
+            transactions.append(tr)
+        if self.asv_history.is_here():
+            self.location('https://secure.ingdirect.fr/')
+        return iter(transactions)
 
     ############# CapBill #############
     @need_login

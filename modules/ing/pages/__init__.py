@@ -22,7 +22,7 @@ from .accounts_list import AccountsList, TitreDetails
 from .login import LoginPage, StopPage
 from .transfer import TransferPage, TransferConfirmPage
 from .bills import BillsPage
-from .titre import NetissimaPage, TitrePage, TitreHistory, TitreValuePage
+from .titre import NetissimaPage, TitrePage, TitreHistory, TitreValuePage, ASVHistory
 
 
 class AccountPrelevement(AccountsList):
@@ -31,4 +31,4 @@ class AccountPrelevement(AccountsList):
 __all__ = ['AccountsList', 'LoginPage', 'NetissimaPage','TitreDetails',
            'AccountPrelevement', 'TransferPage', 'TransferConfirmPage',
            'BillsPage', 'StopPage', 'TitrePage', 'TitreHistory',
-           'TitreValuePage']
+           'TitreValuePage', 'ASVHistory']
