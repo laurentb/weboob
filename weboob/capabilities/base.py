@@ -199,7 +199,7 @@ class Field(object):
         self.doc = doc
 
         for arg in args:
-            if isinstance(arg, type) or isinstance(arg,str):
+            if isinstance(arg, type) or isinstance(arg, str):
                 self.types += (arg,)
             else:
                 raise TypeError('Arguments must be types or strings of type name')
@@ -293,7 +293,7 @@ class _BaseObjectMeta(type):
         if new_class.__doc__ is None:
             new_class.__doc__ = ''
         for name, field in fields:
-            doc = '(%s) %s' % (', '.join([':class:`%s`' % v.__name__ if isinstance(v,type) else v for v in field.types]), field.doc)
+            doc = '(%s) %s' % (', '.join([':class:`%s`' % v.__name__ if isinstance(v, type) else v for v in field.types]), field.doc)
             if field.value is not NotLoaded:
                 doc += ' (default: %s)' % field.value
             new_class.__doc__ += '\n:var %s: %s' % (name, doc)
@@ -328,10 +328,10 @@ class BaseObject(object):
 
     id = None
     backend = None
-    url = None
+    url = NotLoaded
     _fields = None
 
-    def __init__(self, id=u'', url=None, backend=None):
+    def __init__(self, id=u'', url=NotLoaded, backend=None):
         self.id = to_unicode(id)
         self.url = url
         self.backend = backend
@@ -389,6 +389,8 @@ class BaseObject(object):
 
         if hasattr(self, 'id') and self.id is not None:
             yield 'id', self.id
+        if hasattr(self, 'url') and self.url is not None:
+            yield 'url', self.url
         for name, field in self._fields.iteritems():
             yield name, field.value
 
@@ -430,16 +432,16 @@ class BaseObject(object):
                     # raise ValueError.
                     pass
             from collections import deque
-            actual_types=()
+            actual_types = ()
             for v in attr.types:
-                if isinstance(v,str):
+                if isinstance(v, str):
                     # the following is a (almost) copy/paste from
                     # https://stackoverflow.com/questions/11775460/lexical-cast-from-string-to-type
-                    q=deque([object])
+                    q = deque([object])
                     while q:
-                        t=q.popleft()
+                        t = q.popleft()
                         if t.__name__ == v:
-                            actual_types+=(t,)
+                            actual_types += (t,)
                         else:
                             try:
                                 # keep looking!
@@ -452,7 +454,7 @@ class BaseObject(object):
                                 else:
                                     raise
                 else:
-                    actual_types+=(v,)
+                    actual_types += (v,)
 
             if not isinstance(value, actual_types) and not empty(value):
                 raise ValueError(
@@ -498,8 +500,7 @@ class Currency(object):
                   u'SGD': u'SGD',
                   u'BRL': u'R$',
                   u'MXN': u'$',
-                  u'JPY': u'¥',
-                 }
+                  u'JPY': u'¥', }
 
     EXTRACTOR = re.compile(r'[\d\s,\.\-]', re.UNICODE)
 
