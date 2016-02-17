@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012      Gabriel Serme
-# Copyright(C) 2011      Gabriel Kerneis
-# Copyright(C) 2010-2011 Jocelyn Jaubert
+# Copyright(C) 2016       Baptiste Delpey
 #
 # This file is part of weboob.
 #
@@ -20,164 +18,132 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
-from collections import defaultdict
+from datetime import date
+from dateutil.relativedelta import relativedelta
 
-from weboob.deprecated.browser import StateBrowser, BrowserIncorrectPassword
+from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
+from weboob.browser.url import URL
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
-from .pages import (LoginPage, ProfilIncomplete, AccountsList, AccountHistory, CardHistory,
-                    UpdateInfoPage, AuthenticationPage, AccountLifeInsurance, AccountMarket,
-                    InvestmentDetail, LifeInsuranceHistory, NewWebsitePage)
+from .pages import LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, CardPage, HistoryPage, AccbisPage, AuthenticationPage, MarketPage
 
 
-__all__ = ['Boursorama']
+__all__ = ['BoursoramaBrowser']
 
 
 class BrowserIncorrectAuthenticationCode(BrowserIncorrectPassword):
     pass
 
 
-class Boursorama(StateBrowser):
-    DOMAIN = 'www.boursorama.com'
-    PROTOCOL = 'https'
-    CERTHASH = ['6bdf8b6dd177bd417ddcb1cfb818ede153288e44115eb269f2ddd458c8461039',
-                'b290ef629c88f0508e9cc6305421c173bd4291175e3ddedbee05ee666b34c20e',
-                '22418bc2676cac139aaf64cb36d14f4ad845ade64acbbd729463ef78cbe96b3e']
-    ENCODING = None  # refer to the HTML encoding
-    PAGES = {r'.*/connexion/securisation.*': AuthenticationPage,
-             r'.*connexion.phtml.*': LoginPage,
-             r'.*/connexion/profil-incomplet.phtml.*': ProfilIncomplete,
-             r'.*/comptes/synthese.phtml': AccountsList,
-             r'.*/comptes/banque/detail/mouvements.phtml.*': AccountHistory,
-             r'.*/comptes/banque/cartes/mouvements.phtml.*': CardHistory,
-             r'.*/comptes/assurancevie/mouvements.phtml.*': LifeInsuranceHistory,
-             r'.*/comptes/epargne/mouvements.phtml.*': AccountHistory,
-             r'.*/date_anniversaire.phtml.*':    UpdateInfoPage,
-             r'.*/detail.phtml.*': AccountLifeInsurance,
-             r'.*/opcvm.phtml.*': InvestmentDetail,
-             r'.*/bourse/trackers/etf.phtml.*': InvestmentDetail,
-             r'.*/positions_engagements.phtml.*': AccountMarket,
-             r'https://clients.boursorama.com/(?!securisation).*': NewWebsitePage,
-            }
+class BoursoramaBrowser(LoginBrowser, StatesMixin):
+    BASEURL = 'https://clients.boursorama.com'
+
+    keyboard = URL('/connexion/clavier-virtuel\?_hinclude=300000', VirtKeyboardPage)
+    login = URL('/connexion/\?clean=1', LoginPage)
+    accounts = URL('/dashboard/comptes\?_hinclude=300000', AccountsPage)
+    acc_tit = URL('/comptes/titulaire/(?P<webid>.*)\?_hinclude=1', AccbisPage)
+    acc_rep = URL('/comptes/representative/(?P<webid>.*)\?_hinclude=1', AccbisPage)
+    history = URL('/compte/(cav|epargne)/(?P<webid>.*)/mouvements.*', HistoryPage)
+    card_transactions = URL('budget/mouvements.*', HistoryPage)
+    budget_transactions = URL('/budget/compte/(?P<webid>.*)/mouvements.*', HistoryPage)
+    other_transactions = URL('/compte/cav/(?P<webid>.*)/mouvements.*', HistoryPage)
+    asv = URL('/compte/assurance-vie/.*', AsvPage)
+    market = URL('/compte/(?!assurance|cav|epargne).*/(positions|mouvements)', MarketPage)
+    cards = URL('/compte/cav/.*/limite.*', CardPage)
+    authentication = URL('/securisation', AuthenticationPage)
+
 
     __states__ = ('auth_token',)
 
     def __init__(self, config=None, *args, **kwargs):
         self.config = config
         self.auth_token = None
+        self.webid = None
         kwargs['username'] = self.config['login'].get()
         kwargs['password'] = self.config['password'].get()
-        StateBrowser.__init__(self, *args, **kwargs)
-
-    def home(self):
-        if not self.is_logged():
-            self.login()
-        else:
-            self.location('https://' + self.DOMAIN + '/comptes/synthese.phtml')
-
-    def is_logged(self):
-        return self.page is not None and not self.is_on_page(LoginPage)
+        super(BoursoramaBrowser, self).__init__(*args, **kwargs)
 
     def handle_authentication(self):
-        if self.is_on_page(AuthenticationPage):
+        if self.authentication.is_here():
             if self.config['enable_twofactors'].get():
-                self.page.send_sms()
+                self.page.sms_first_step()
+                self.page.sms_second_step()
             else:
                 raise BrowserIncorrectAuthenticationCode(
                     """Boursorama - activate the two factor authentication in boursorama config."""
                     """ You will receive SMS code but are limited in request per day (around 15)"""
                 )
 
-    def login(self):
+    def do_login(self):
         assert isinstance(self.config['device'].get(), basestring)
         assert isinstance(self.config['enable_twofactors'].get(), bool)
         assert self.password.isdigit()
 
         if self.auth_token and self.config['pin_code'].get():
-            AuthenticationPage.authenticate(self)
+            self.page.authenticate()
         else:
-            if not self.is_on_page(LoginPage):
-                self.location('https://' + self.DOMAIN + '/connexion.phtml', no_login=True)
-
+            self.login.stay_or_go()
             self.page.login(self.username, self.password)
 
-            if self.is_on_page(LoginPage):
+            if self.login.is_here():
                 raise BrowserIncorrectPassword()
 
-            #after login, we might be redirected to the two factor
-            #authentication page
+            # After login, we might be redirected to the two factor authentication page.
             self.handle_authentication()
 
-        self.location('/comptes/synthese.phtml', no_login=True)
-
-        #if the login was correct but authentication code failed,
-        #we need to verify if bourso redirect us to login page or authentication page
-        if self.is_on_page(LoginPage):
+        if self.login.is_here():
             raise BrowserIncorrectAuthenticationCode('Invalid PIN code')
 
-    def get_accounts_list(self):
-        if self.is_on_page(AuthenticationPage):
-            self.login()
-        if not self.is_on_page(AccountsList):
-            self.location('/comptes/synthese.phtml')
 
-        accounts = list(self.page.get_list())
-        for account in accounts:
-            if account.type == Account.TYPE_LIFE_INSURANCE:
-                self.location(account._detail_url)
-                self.page.get_valuation_diff(account)
+    @need_login
+    def get_accounts_list(self):
+        accounts = list()
+        cards_scrapped = None
+        for account in self.accounts.go().iter_accounts():
+            accounts.append(account)
+        for account in list(accounts):
+            if account._card and not cards_scrapped:
+                self.location(account._card)
+                for card in self.page.iter_accounts():
+                    accounts.append(card)
+                cards_scrapped = True
+        self.acc_tit.go(webid=self.webid).populate(list(accounts))
+        if not all([hasattr(acc, '_webid') for acc in accounts]):
+            self.acc_rep.go(webid=self.webid).populate(list(accounts))
         return iter(accounts)
 
+    @need_login
     def get_account(self, id):
         assert isinstance(id, basestring)
 
-        if not self.is_on_page(AccountsList):
-            self.location('/comptes/synthese.phtml')
-
-        l = self.page.get_list()
-        for a in l:
+        for a in self.page.get_list():
             if a.id == id:
                 return a
-
         return None
 
+    @need_login
     def get_history(self, account):
-        link = account._link_id
+        if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
+            self.location('%s/mouvements' % account._history_page)
+            for t in self.page.iter_history():
+                yield t
+        else:
+            # We look for 1 year of history.
+            params = {}
+            params['movementSearch[toDate]'] = (date.today() + relativedelta(days=40)).strftime('%d/%m/%Y')
+            params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=1)).strftime('%d/%m/%Y')
+            params['movementSearch[selectedAccounts][]'] = account._webid
+            if account.type != Account.TYPE_CARD:
+                account._history_page.go(webid=account._webid, params=params)
+            else:
+                self.card_transactions.go(params=params)
+            for t in self.page.iter_history():
+                yield t
 
-        while link is not None:
-            self.location(link)
-            if not self.is_on_page(AccountHistory) and not self.is_on_page(CardHistory) and not self.is_on_page(LifeInsuranceHistory):
-                raise NotImplementedError()
-
-            for tr in self.page.get_operations():
-                yield tr
-
-            link = self.page.get_next_url()
-
+    @need_login
     def get_investment(self, account):
-        if account.type not in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET) or not account._detail_url:
+        if not account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
             raise NotImplementedError()
-        self.location(account._detail_url)
-
-        seen = defaultdict(int)
-        def slugify(label):
-            label = label.upper().replace('FONDS EN EUROS (', '')[:12]
-            slug = re.sub(r'[^A-Za-z0-9]', ' ', label).strip()
-            slug = re.sub(r'\s+', '-', slug)
-            if label in seen:
-                counter = str(seen[label])
-                slug = slug[:-len(counter)] + counter
-            seen[label] += 1
-            return slug
-
-        for inv in self.page.get_investment():
-            if inv._detail_url:
-                self.location(inv._detail_url)
-                self.page.get_investment_detail(inv)
-            if not inv.id:
-                inv.id = inv.code = 'XX' + slugify(inv.label)
-            yield inv
-
-    def transfer(self, from_id, to_id, amount, reason=None):
-        raise NotImplementedError()
+        self.location(account._link)
+        return self.page.iter_investment()

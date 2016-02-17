@@ -24,7 +24,7 @@ from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, ValueBool, Value
 
-from .browser import Boursorama
+from .browser import BoursoramaBrowser
 
 
 __all__ = ['BoursoramaModule']
@@ -43,7 +43,7 @@ class BoursoramaModule(Module, CapBank):
                            Value('device',                    label='Device name', regexp='\w*', default=''),
                            Value('pin_code',                  label='Sms code', required=False),
                           )
-    BROWSER = Boursorama
+    BROWSER = BoursoramaBrowser
 
     def create_default_browser(self):
         return self.create_browser(self.config)
@@ -60,7 +60,14 @@ class BoursoramaModule(Module, CapBank):
             raise AccountNotFound()
 
     def iter_history(self, account):
-        return self.browser.get_history(account)
+        for tr in self.browser.get_history(account):
+            if not tr._is_coming:
+                yield tr
+
+    def iter_coming(self, account):
+        for tr in self.browser.get_history(account):
+            if tr._is_coming:
+                yield tr
 
     def iter_investment(self, account):
         return self.browser.get_investment(account)
