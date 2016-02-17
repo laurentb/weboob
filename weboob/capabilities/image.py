@@ -22,7 +22,7 @@ from weboob.tools.ordereddict import OrderedDict
 from .base import NotLoaded, Field, BytesField
 from .file import CapFile, BaseFile
 
-__all__ = ['BaseImage', 'CapImage']
+__all__ = ['BaseImage', 'Thumbnail', 'CapImage']
 
 
 class _BaseImage(BaseFile):
@@ -33,12 +33,30 @@ class _BaseImage(BaseFile):
     pass
 
 
+class Thumbnail(_BaseImage):
+    """
+    Thumbnail of an image.
+    """
+
+    data = BytesField('Data')
+
+    def __init__(self, url):
+        super(Thumbnail, self).__init__(url)
+        self.url = url.replace(u' ', u'%20')
+
+    def __str__(self):
+        return self.url
+
+    def __repr__(self):
+        return '<Thumbnail url="%s">' % self.url
+
+
 class BaseImage(_BaseImage):
     """
     Represents an image file.
     """
     nsfw =      Field('Is this Not Safe For Work', bool, default=False)
-    thumbnail = Field('Thumbnail of the image', _BaseImage)
+    thumbnail = Field('Thumbnail of the image', Thumbnail)
     data =      BytesField('Data of image')
 
     def __iscomplete__(self):

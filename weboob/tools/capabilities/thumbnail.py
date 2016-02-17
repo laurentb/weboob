@@ -18,28 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.base import NotLoaded, BytesField
-from weboob.capabilities.image import _BaseImage
-
+from weboob.capabilities.image import Thumbnail
 
 __all__ = ['Thumbnail']
-
-
-class Thumbnail(_BaseImage):
-    """
-    Thumbnail of an image.
-    """
-
-    data = BytesField('Data')
-
-    def __init__(self, url):
-        super(Thumbnail, self).__init__(url)
-        self.url = url.replace(u' ', u'%20')
-
-    def __str__(self):
-        return self.url
-
-    def __repr__(self):
-        return '<Thumbnail url="%s">' % self.url
-
-    def __iscomplete__(self):
-        return self.data is not NotLoaded

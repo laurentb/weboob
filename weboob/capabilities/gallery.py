@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.capabilities.thumbnail import Thumbnail
+from weboob.capabilities.image import BaseImage as CIBaseImage, Thumbnail
 from .base import Capability, BaseObject, NotLoaded, Field, StringField, \
                   BytesField, IntField, FloatField
 from .date import DateField
@@ -70,14 +70,11 @@ class BaseGallery(BaseObject):
         raise NotImplementedError()
 
 
-class BaseImage(BaseObject):
+class BaseImage(CIBaseImage):
     """
     Base class for images.
     """
     index =     IntField('Usually page number')
-    thumbnail = Field('Thumbnail of the image', Thumbnail)
-    ext =       StringField('Extension of image')
-    data =      BytesField('Data of image')
     gallery =   Field('Reference to the Gallery object', BaseGallery)
 
     def __init__(self, _id, index=None, thumbnail=NotLoaded, url=NotLoaded,
