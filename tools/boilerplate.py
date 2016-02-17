@@ -105,7 +105,7 @@ class BaseRecipe(Recipe):
 class CapRecipe(Recipe):
     NAME = 'cap'
 
-    LINES = {'def'    :  '    def %s(%s):',
+    LINES = {'def'    :  '    def %s%s:',
              'docbound': '        """',
              'docline':  '        %s',
              'body'   :  '        raise NotImplementedError()'
@@ -170,7 +170,7 @@ class CapRecipe(Recipe):
         for name, member in inspect.getmembers(klass):
             if inspect.ismethod(member):
                 argspec = inspect.getargspec(member)
-                args = ', '.join(argspec[0])
+                args = inspect.formatargspec(*argspec)
 
                 code = []
                 code.append(self.LINES['def'] % (name, args))
