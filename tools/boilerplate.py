@@ -76,6 +76,7 @@ class Recipe(object):
         self.author = args.author
         self.email = args.email
         self.version = VERSION
+        self.login = False
 
     def write(self, filename, contents):
         return write(os.path.join(MODULE_PATH, self.name, filename), contents)
@@ -87,6 +88,7 @@ class Recipe(object):
             .render(r=self,
                     # workaround, as it's also a mako directive
                     coding='# -*- coding: utf-8 -*-',
+                    login=self.login,
                     **kwargs)
 
     def generate(self):
@@ -107,19 +109,15 @@ class BaseRecipe(Recipe):
 class CapRecipe(Recipe):
     NAME = 'cap'
 
-    LINES = {'def'    :  '    def %s%s:',
-             'docbound': '        """',
-             'docline':  '        %s',
-             'body'   :  '        raise NotImplementedError()'
-             }
-
     def __init__(self, args):
         super(CapRecipe, self).__init__(args)
         self.capname = args.capname
+        self.login = args.login
 
     @classmethod
     def configure_subparser(cls, subparsers):
         subparser = super(CapRecipe, cls).configure_subparser(subparsers)
+        subparser.add_argument('--login', action='store_true', help='The site requires login')
         subparser.add_argument('capname', help='Capability name')
         return subparser
 
@@ -165,36 +163,20 @@ class CapRecipe(Recipe):
 
     def methods_code(self, klass):
         import inspect
-        import re
 
-        codes = []
+        methods = []
 
         for name, member in inspect.getmembers(klass):
             if inspect.ismethod(member):
-                argspec = inspect.getargspec(member)
-                args = inspect.formatargspec(*argspec)
+                lines, _ = inspect.getsourcelines(member)
+                methods.append(lines)
 
-                code = []
-                code.append(self.LINES['def'] % (name, args))
-                doc = inspect.getdoc(member)
-                if doc:
-                    code.append(self.LINES['docbound'])
-                    for line in doc.split('\n'):
-                        if line:
-                            line = re.sub('"""', '\\"\\"\\"', line)
-                            code.append(self.LINES['docline'] % line)
-                        else:
-                            code.append('')
-                    code.append(self.LINES['docbound'])
-                code.append(self.LINES['body'])
-                codes.append('\n'.join(code))
-
-        return '\n\n'.join(codes)
+        return methods
 
     def generate(self):
         cap = self.find_module_cap()
 
-        self.methods_code = self.methods_code(cap)
+        self.methods = self.methods_code(cap)
 
         self.write('__init__.py', self.template('init'))
         self.write('module.py', self.template('cap_module'))

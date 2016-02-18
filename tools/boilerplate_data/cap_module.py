@@ -1,5 +1,8 @@
 <%inherit file="layout.py"/>
-from weboob.tools.backend import Module
+from weboob.tools.backend import Module${', BackendConfig' if r.login else ''}
+% if login:
+from weboob.tools.value import Value, ValueBackendPassword
+% endif
 from ${r.capmodulename} import ${r.capname}
 
 from .browser import ${r.classname}Browser
@@ -17,5 +20,17 @@ class ${r.classname}Module(Module, ${r.capname}):
     VERSION = '${r.version}'
 
     BROWSER = ${r.classname}Browser
+% if login:
 
-${r.methods_code}
+    CONFIG = BackendConfig(
+        Value('username', help='Username'),
+        ValueBackendPassword('password', help='Password'),
+    )
+
+    def create_default_browser(self):
+        return self.create_browser(self.config['username'].get(), self.config['password'].get())
+% endif
+
+% for meth in r.methods:
+${''.join(meth)}
+% endfor

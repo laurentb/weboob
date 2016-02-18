@@ -1,15 +1,21 @@
 <%inherit file="layout.py"/>
-from weboob.browser import PagesBrowser, URL
+from weboob.browser import ${'LoginBrowser, need_login' if r.login else 'PagesBrowser'}, URL
 
 from .pages import Page1, Page2
 
 
-class ${r.classname}Browser(PagesBrowser):
+class ${r.classname}Browser(${'Login' if r.login else 'Pages'}Browser):
     BASEURL = 'http://www.${r.name}.com'
 
     page1 = URL('/page1\?id=(?P<id>.+)', Page1)
     page2 = URL('/page2', Page2)
 
+% if login:
+    def do_login(self):
+        pass
+
+    @need_login
+% endif
     def get_stuff(self, _id):
         self.page1.go(id=_id)
 
