@@ -26,15 +26,12 @@ from weboob.exceptions import BrowserIncorrectPassword
 
 class LoginPage(HTMLPage):
     def login(self, username, password):
-        params = {
-            "email": username,
-            "password": password,
-            "remember": "false"
-        }
-        req = Request("post", "/user_api/v1/account/login_session/", data = params)
-        req.headers.setdefault("Referer", self.url)
         try:
-            self.browser.open(req)
+            self.browser.login_result.open(data = {
+                "email": username,
+                "password": password,
+                "remember": "false"
+            })
         except ClientError as e:
             if e.response.status_code == 403:
                 raise BrowserIncorrectPassword()
@@ -59,7 +56,7 @@ class OpenEDXBrowser(LoginBrowser):
         token = self.session.cookies.get("csrftoken")
         if token:
             req.headers.setdefault("X-CSRFToken", token)
-        if 'ajax=1' in req.url: ## TODO: how to *cleanly* bind an header to a page ?
+        if self.threads.match(req.url) or self.messages.match(req.url):
             req.headers.setdefault("X-Requested-With", "XMLHttpRequest")
         return LoginBrowser.prepare_request(self, req)
 
