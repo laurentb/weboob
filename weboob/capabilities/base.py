@@ -328,14 +328,14 @@ class BaseObject(object):
 
     id = None
     backend = None
-    url = NotLoaded
+    url = StringField('url')
     _fields = None
 
     def __init__(self, id=u'', url=NotLoaded, backend=None):
         self.id = to_unicode(id)
-        self.url = url
         self.backend = backend
         self._fields = deepcopy(self._fields)
+        self.__setattr__('url', url)
 
     @property
     def fullid(self):
@@ -389,8 +389,6 @@ class BaseObject(object):
 
         if hasattr(self, 'id') and self.id is not None:
             yield 'id', self.id
-        if hasattr(self, 'url') and self.url is not None:
-            yield 'url', self.url
         for name, field in self._fields.iteritems():
             yield name, field.value
 
