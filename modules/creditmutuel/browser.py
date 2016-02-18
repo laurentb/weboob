@@ -24,6 +24,7 @@ except ImportError:
     from urllib.parse import urlparse
 
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from random import randint
 
 from weboob.tools.compat import basestring
@@ -172,7 +173,8 @@ class CreditMutuelBrowser(LoginBrowser):
             if not tr.raw.startswith('RELEVE CARTE'):
                 transactions.append(tr)
             elif last_debit is None:
-                last_debit = tr.date
+                # we set the debit date to last day of month so we need to do the same form last_debit
+                last_debit = (tr.date + relativedelta(day=31))
 
         coming_link = self.page.get_coming_link() if self.operations.is_here() else None
         if coming_link is not None:
