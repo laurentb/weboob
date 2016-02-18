@@ -119,7 +119,7 @@ class Page(object):
 
     logged = False
     """
-    If True, the page is in a restrected area of the wesite. Useful with
+    If True, the page is in a restricted area of the website. Useful with
     :class:`LoginBrowser` and the :func:`need_login` decorator.
     """
 
@@ -629,7 +629,7 @@ class LoggedPage(object):
     A page that only logged users can reach. If we did not get a redirection
     for this page, we are sure that the login is still active.
 
-    Do not use this class for page we mixed content (logged/anonymous) or for
+    Do not use this class for page with mixed content (logged/anonymous) or for
     pages with a login form.
     """
     logged = True

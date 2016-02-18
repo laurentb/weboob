@@ -979,7 +979,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         return results as soon as possible.
         Use -d option to display information about a collection (and to not
         display the content of it). It has the same behavior than the well
-        know UNIX "ls" command.
+        known UNIX "ls" command.
         """
         # TODO: real parsing of options
         path = line.strip()
