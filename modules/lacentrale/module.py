@@ -17,10 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import re
 from weboob.capabilities.pricecomparison import CapPriceComparison, Price
 from weboob.tools.backend import Module
-#from weboob.tools.value import Value
+from .product import LaCentraleProduct
 
 from .browser import LaCentraleBrowser
 
@@ -28,7 +27,6 @@ from .browser import LaCentraleBrowser
 __all__ = ['LaCentraleModule']
 
 
-# I implement capability
 class LaCentraleModule(Module, CapPriceComparison):
     NAME = 'lacentrale'
     MAINTAINER = u'Vicnet'
@@ -38,9 +36,7 @@ class LaCentraleModule(Module, CapPriceComparison):
     LICENSE = 'AGPLv3+'
     BROWSER = LaCentraleBrowser
 
-    # inherited from CapPriceComparison
     def search_products(self, patternString=None):
-        # convert pattern to criteria
         criteria = {}
         patterns = []
         if patternString:
@@ -48,38 +44,33 @@ class LaCentraleModule(Module, CapPriceComparison):
         for pattern in patterns:
             pattern = pattern.lower()
             if u'€' in pattern:
-                criteria['maxprice'] = pattern[:pattern.find(u'€')].strip()
+                criteria['prix_maxi'] = pattern[:pattern.find(u'€')].strip()
             if u'km' in pattern:
-                criteria['maxdist'] = pattern[:pattern.find(u'km')].strip()
+                criteria['km_maxi'] = pattern[:pattern.find(u'km')].strip()
             if u'p' in pattern[-1]:  # last char = p
                 criteria['nbdoors'] = pattern[:pattern.find(u'p')].strip()
             if u'cit' in pattern:
-                criteria['urban'] = 'citadine&SS_CATEGORIE=40'
+                criteria['Citadine'] = 'citadine&SS_CATEGORIE=40'
             if u'dep' in pattern:
-                criteria['dept'] = re.findall('\d+', pattern)[0]
+                criteria['dptCp'] = pattern.replace('dep', '')
             if u'pro' in pattern:
-                criteria['origin'] = 1
+                criteria['witchSearch'] = 1
             if u'part' in pattern:
-                criteria['origin'] = 0
-            #print criteria
-        # browse product
-        with self.browser:
-            for product in self.browser.iter_products(criteria):
-                yield product
+                criteria['witchSearch'] = 0
 
-    # inherited from CapPriceComparison
+        product = LaCentraleProduct()
+        product._criteria = criteria
+        yield product
+
     def iter_prices(self, product):
-        # inherited from CapPriceComparison
-        with self.browser:
-            return self.browser.iter_prices(product)
+        return self.browser.iter_prices(product)
 
-    # inherited from CapPriceComparison
-    def get_price(self, id):
-        # id is a url code part for one car page
-        with self.browser:
-            return self.browser.get_price(id)
+    def get_price(self, id, price=None):
+        return self.browser.get_price(id, None)
 
     def fill_price(self, price, fields):
-        return self.get_price(price.id)
+        if fields:
+            price = self.get_price(price.id, price)
+        return price
 
     OBJECTS = {Price: fill_price, }

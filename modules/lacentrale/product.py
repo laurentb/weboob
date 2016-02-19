@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2014 Vicnet
+# Copyright(C) 2010-2011 Christophe Benz
 #
 # This file is part of weboob.
 #
@@ -17,26 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-import urllib
-
-from weboob.browser import PagesBrowser, URL
-
-from .pages import ListingAutoPage, AdvertPage
-
-__all__ = ['LaCentraleBrowser']
+from weboob.capabilities.pricecomparison import Product
 
 
-class LaCentraleBrowser(PagesBrowser):
-    BASEURL = 'http://www.lacentrale.fr'
-
-    list_page = URL('/listing_auto.php\?(?P<_request>.*)',
-                    ListingAutoPage)
-    advert_page = URL('/auto-occasion-annonce-(?P<_id>.*).html', AdvertPage)
-
-    def iter_prices(self, product):
-        _request = urllib.urlencode(product._criteria)
-        return self.list_page.go(_request=_request).iter_prices()
-
-    def get_price(self, _id, obj):
-        return self.advert_page.go(_id=_id).get_price(obj=obj)
+class LaCentraleProduct(Product):
+    def __init__(self):
+        self.id = 1
+        self.name = unicode('Voiture')

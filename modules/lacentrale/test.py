@@ -19,15 +19,16 @@
 
 
 from weboob.tools.test import BackendTest
+import itertools
 
 
 class LaCentraleTest(BackendTest):
     MODULE = 'lacentrale'
 
     def test_lacentrale(self):
-        products = list(self.backend.search_products('1000€,pro'))
+        products = list(itertools.islice(self.backend.search_products(u'1000€,pro'), 0, 20))
         self.assertTrue(len(products) > 0)
 
         product = products[0]
-        prices = list(self.backend.iter_prices(product))
+        prices = list(itertools.islice(self.backend.iter_prices(product), 0, 20))
         self.assertTrue(len(prices) > 0)
