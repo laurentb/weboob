@@ -29,7 +29,9 @@ from weboob.capabilities.bank import Account, AccountNotFound
 from .accounthistory import Transaction, AccountHistory
 
 class RedirectPage(Page):
-    pass
+    def check_for_perso(self):
+        return self.document.xpath(u'//p[contains(text(), "L\'identifiant utilisé est celui d\'un compte de Particuliers")]')
+
 
 class HistoryParser(CsvParser):
     FMTPARAMS = {'delimiter': ';'}

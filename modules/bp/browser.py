@@ -94,6 +94,8 @@ class BPBrowser(Browser):
 
         self.page.login(self.username, self.password)
 
+        if self.is_on_page(RedirectPage) and self.page.check_for_perso():
+            raise BrowserIncorrectPassword()
         if self.is_on_page(BadLoginPage):
             raise BrowserIncorrectPassword()
         if self.is_on_page(AccountDesactivate):
