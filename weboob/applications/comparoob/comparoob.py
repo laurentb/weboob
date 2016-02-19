@@ -21,9 +21,10 @@ from __future__ import print_function
 
 from weboob.capabilities.pricecomparison import CapPriceComparison
 from weboob.tools.html import html2text
-from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
-
+from weboob.tools.application.base import MoreResultsAvailable
+from weboob.tools.application.console import ConsoleApplication
 
 __all__ = ['Comparoob']
 
@@ -87,6 +88,7 @@ class Comparoob(ReplApplication):
                           }
     CAPS = CapPriceComparison
 
+    @defaultcount(10)
     def do_prices(self, pattern):
         """
         prices [PATTERN]
@@ -122,12 +124,22 @@ class Comparoob(ReplApplication):
                 product = products[r-1]
 
         self.change_path([u'prices'])
-        self.start_format()
-        products = []
-        for price in self.do('iter_prices', product):
-            products.append(price)
-        for price in sorted(products, key=self._get_price):
-            self.cached_format(price)
+        products = self.get_object_list('iter_prices', product)
+        self._sort_display_products(products)
+
+    def _sort_display_products(self, products):
+        if products:
+            self.start_format()
+            for price in sorted(products, key=self._get_price):
+                self.cached_format(price)
+
+    def bcall_errors_handler(self, errors, debugmsg='Use --debug option to print backtraces', ignore=()):
+        for backend, error, backtrace in errors.errors:
+            if isinstance(error, MoreResultsAvailable):
+                products = self.get_object_list()
+                self._sort_display_products(products)
+
+        ConsoleApplication.bcall_errors_handler(self, errors, debugmsg, ignore)
 
     def _get_price(self, price):
         return price.cost
