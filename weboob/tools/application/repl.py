@@ -282,7 +282,7 @@ class ReplApplication(Cmd, ConsoleApplication):
             return self.objects
         elif method is not None:
             kwargs['backends'] = self.enabled_backends
-            for _object in self.weboob.do(self._do_complete, None, None, method, *args, **kwargs):
+            for _object in self.do(method, *args, **kwargs):
                 self.add_object(_object)
             return self.objects
         # XXX: what can we do without method?
