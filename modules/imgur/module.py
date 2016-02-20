@@ -21,10 +21,10 @@ import re
 
 from weboob.capabilities.base import StringField
 from weboob.capabilities.gallery import BaseGallery, BaseImage, CapGallery
+from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.paste import BasePaste, CapPaste
 from weboob.tools.backend import Module
 from weboob.tools.capabilities.paste import image_mime
-from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.tools.date import datetime
 
 from .browser import ImgurBrowser

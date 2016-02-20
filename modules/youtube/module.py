@@ -28,7 +28,7 @@ import re
 import urllib
 
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.image import BaseImage
+from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
 from weboob.tools.backend import Module, BackendConfig
@@ -69,7 +69,7 @@ class YoutubeModule(Module, CapVideo, CapCollection):
         video = YoutubeVideo(to_unicode(entry.id.text.split('/')[-1].strip()))
         video.title = to_unicode(entry.media.title.text.strip())
         video.duration = datetime.timedelta(seconds=int(entry.media.duration.seconds.strip()))
-        video.thumbnail = BaseImage(entry.media.thumbnail[0].url.strip())
+        video.thumbnail = Thumbnail(entry.media.thumbnail[0].url.strip())
         video.thumbnail.url = to_unicode(video.thumbnail.id)
 
         if entry.author[0].name.text:

@@ -19,7 +19,7 @@
 
 from datetime import timedelta
 
-from weboob.capabilities.image import BaseImage
+from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.base import BaseObject, NotAvailable
 from weboob.capabilities.collection import Collection
 
@@ -61,7 +61,7 @@ class ArteItemElement(ItemElement):
 
     def obj_thumbnail(self):
         url = Dict('VTU/IUR')(self)
-        thumbnail = BaseImage(url)
+        thumbnail = Thumbnail(url)
         thumbnail.url = thumbnail.id
         return thumbnail
 
@@ -99,7 +99,7 @@ class VideosListPage(HTMLPage):
 
             def obj_thumbnail(self):
                 url = CleanText('div/div/a/figure/span/span/@data-src')(self)
-                thumbnail = BaseImage(url)
+                thumbnail = Thumbnail(url)
                 thumbnail.url = thumbnail.id
                 return thumbnail
 
@@ -144,7 +144,7 @@ class VideosListPage(HTMLPage):
 
             def obj_thumbnail(self):
                 url = CleanText('.//div[@class="article-primary "]/div[has-class("field-thumbnail")]/span/noscript/img/@src')(self)
-                thumbnail = BaseImage(url)
+                thumbnail = Thumbnail(url)
                 thumbnail.url = thumbnail.id
                 return thumbnail
 

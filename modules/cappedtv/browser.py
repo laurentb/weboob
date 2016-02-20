@@ -17,7 +17,7 @@ from weboob.deprecated.browser import Page
 from weboob.deprecated.browser import BrokenPageError
 from weboob.deprecated.browser import Browser
 from weboob.deprecated.browser.decorators import id2url
-from weboob.capabilities.image import BaseImage
+from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.video import BaseVideo
 from weboob.tools.ordereddict import OrderedDict
 
@@ -57,7 +57,7 @@ class IndexPage(Page):
             video.author = to_unicode(self.parser.select(vidbackdrop, 'div.vidAuthor a', 1).text)
 
             thumbnail_url = 'http://cdn.capped.tv/pre/%s.png' % _id
-            video.thumbnail = BaseImage(thumbnail_url)
+            video.thumbnail = Thumbnail(thumbnail_url)
             video.thumbnail.url = to_unicode(video.thumbnail.id)
 
             #we get the description field

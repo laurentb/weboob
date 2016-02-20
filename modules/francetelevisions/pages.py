@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.image import BaseImage
+from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.video import BaseVideo
 from weboob.capabilities.base import BaseObject
 from datetime import timedelta
@@ -98,7 +98,7 @@ class IndexPage(HTMLPage):
 
             def obj_thumbnail(self):
                 url = Attr('a/img[@class="resultat-vignette"]', 'data-src')(self)
-                thumbnail = BaseImage(url)
+                thumbnail = Thumbnail(url)
                 thumbnail.url = thumbnail.id
                 return thumbnail
 
@@ -128,7 +128,7 @@ class VideoPage(JsonPage):
 
         def obj_thumbnail(self):
             url = Format('http://www.francetv.fr%s', Dict['image'])(self)
-            thumbnail = BaseImage(url)
+            thumbnail = Thumbnail(url)
             thumbnail.url = thumbnail.id
             return thumbnail
 

@@ -19,7 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.video import BaseVideo
-from weboob.capabilities.image import BaseImage
+from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.collection import Collection
 
 from weboob.exceptions import ParseError
@@ -50,7 +50,7 @@ class ListPage(HTMLPage):
             obj_title = Attr('./a', 'title')
 
             def obj_thumbnail(self):
-                thumbnail = BaseImage(self.xpath('./a/img')[0].attrib['src'])
+                thumbnail = Thumbnail(self.xpath('./a/img')[0].attrib['src'])
                 thumbnail.url = thumbnail.id
                 return thumbnail
 
@@ -70,7 +70,7 @@ class SearchPage(HTMLPage):
             obj_title = Attr('./a/span', 'title')
 
             def obj_thumbnail(self):
-                thumbnail = BaseImage(self.xpath('./a/div/img')[0].attrib['src'])
+                thumbnail = Thumbnail(self.xpath('./a/div/img')[0].attrib['src'])
                 thumbnail.url = thumbnail.id
                 return thumbnail
 
@@ -98,7 +98,7 @@ class VideoPage(HTMLPage):
             return _sfw != "True"
 
         def obj_thumbnail(self):
-            thumbnail = BaseImage(Dict('thumbnailUrl')(self.el))
+            thumbnail = Thumbnail(Dict('thumbnailUrl')(self.el))
             thumbnail.url = thumbnail.id
             return thumbnail
 

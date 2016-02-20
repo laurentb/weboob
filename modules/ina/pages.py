@@ -28,7 +28,7 @@ from weboob.browser.filters.standard import CleanText, Regexp, Duration, Date, B
 
 from weboob.capabilities.audio import BaseAudio
 from weboob.capabilities.video import BaseVideo
-from weboob.capabilities.image import BaseImage
+from weboob.capabilities.image import Thumbnail
 from weboob.tools.date import DATE_TRANSLATE_FR
 from weboob.tools.capabilities.audio.audio import BaseAudioIdFilter
 
@@ -78,7 +78,7 @@ class InaItemElement(ItemElement):
 
     def obj_thumbnail(self):
         url = CleanText('./a/img/@src')(self)
-        thumbnail = BaseImage(url)
+        thumbnail = Thumbnail(url)
         thumbnail.url = thumbnail.id
         return thumbnail
 
@@ -93,7 +93,7 @@ class InaMediaElement(ItemElement):
 
     def obj_thumbnail(self):
         url = CleanText('//meta[@property="og:image"]/@content')(self)
-        thumbnail = BaseImage(url)
+        thumbnail = Thumbnail(url)
         thumbnail.url = thumbnail.id
         return thumbnail
 

@@ -26,7 +26,7 @@ from weboob.browser.filters.html import Link, XPath, CleanHTML
 from weboob.browser.filters.json import Dict
 
 from weboob.capabilities import NotAvailable, NotLoaded
-from weboob.capabilities.image import BaseImage
+from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.collection import Collection
 
 from .video import RmllVideo
@@ -55,7 +55,7 @@ def create_video(metadata):
     video.date = DateTime(Dict('creation'), default=NotLoaded)(metadata)
     video.duration = RmllDuration(Dict('duration', default=''), default=NotLoaded)(metadata)
     thumbnail = NormalizeThumbnail(Dict('thumb'))(metadata)
-    video.thumbnail = BaseImage(thumbnail)
+    video.thumbnail = Thumbnail(thumbnail)
     video.thumbnail.url = video.thumbnail.id
     video.url = NotLoaded
 
@@ -73,7 +73,7 @@ class RmllVideoPage(HTMLPage):
         def obj_thumbnail(self):
             url = NormalizeThumbnail(CleanText('/html/head/meta[@property="og:image"]/@content'))(self)
             if url:
-                thumbnail = BaseImage(url)
+                thumbnail = Thumbnail(url)
                 thumbnail.url = thumbnail.id
                 return thumbnail
 
@@ -106,7 +106,7 @@ class RmllCollectionPage(HTMLPage):
             def obj_thumbnail(self):
                 thumbnail = NormalizeThumbnail(CleanText('a/span[@class="item-entry-preview"]/img/@src'))(self)
                 if thumbnail:
-                    thumbnail = BaseImage(thumbnail)
+                    thumbnail = Thumbnail(thumbnail)
                     thumbnail.url = thumbnail.id
                     return thumbnail
 

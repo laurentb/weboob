@@ -20,7 +20,7 @@
 from weboob.capabilities.calendar import BaseCalendarEvent, TRANSP, STATUS, CATEGORIES
 from weboob.capabilities.collection import Collection
 from weboob.capabilities.video import BaseVideo
-from weboob.capabilities.image import BaseImage
+from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.base import NotAvailable, NotLoaded, find_object
 from weboob.capabilities.cinema import Movie, Person
 from weboob.deprecated.browser import Browser
@@ -494,7 +494,7 @@ class AllocineBrowser(Browser):
         video._video_code = unicode(movie['trailer']['code'])
         video.ext = u'mp4'
         if 'poster' in movie:
-            video.thumbnail = BaseImage(movie['poster']['href'])
+            video.thumbnail = Thumbnail(movie['poster']['href'])
             video.thumbnail.url = unicode(movie['poster']['href'])
         tdate = movie['release']['releaseDate'].split('-')
         day = 1

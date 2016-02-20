@@ -19,7 +19,7 @@
 
 
 from weboob.deprecated.browser import Page
-from weboob.tools.capabilities.thumbnail import Thumbnail
+from weboob.capabilities.image import Thumbnail
 
 from datetime import datetime
 import re

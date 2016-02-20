@@ -23,7 +23,7 @@ import re
 from weboob.deprecated.browser import Page
 from weboob.capabilities.collection import Collection
 from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.capabilities.image import BaseImage
+from weboob.capabilities.image import Thumbnail
 
 from .video import CanalplusVideo
 
@@ -78,7 +78,7 @@ class VideoPage(Page):
         media = el.find('MEDIA')
         url = media.find('IMAGES').find('PETIT').text
         if url:
-            video.thumbnail = BaseImage(url)
+            video.thumbnail = Thumbnail(url)
             video.thumbnail.url = video.thumbnail.id
         else:
             video.thumbnail = NotAvailable

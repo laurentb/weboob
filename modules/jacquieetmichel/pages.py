@@ -21,7 +21,7 @@
 import re
 
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.image import BaseImage
+from weboob.capabilities.image import Thumbnail
 from weboob.deprecated.browser import Page, BrokenPageError
 from weboob.tools.misc import to_unicode
 
@@ -38,7 +38,7 @@ class ResultsPage(Page):
             video = JacquieEtMichelVideo(_id)
 
             url = span.find('.//img').attrib['src']
-            video.thumbnail = BaseImage(url)
+            video.thumbnail = Thumbnail(url)
             video.thumbnail.url = video.thumbnail.id
 
             title_el = self.parser.select(span, 'h2', 1)

@@ -25,7 +25,7 @@ import urlparse
 import mechanize
 
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.image import BaseImage
+from weboob.capabilities.image import Thumbnail
 from weboob.tools.html import html2text
 from weboob.deprecated.browser import Page, BrokenPageError
 
@@ -67,7 +67,7 @@ class IndexPage(Page):
             url = unicode(self.parser.select(div, 'img.preview', 1).attrib['data-src'])
             # remove the useless anti-caching
             url = re.sub('\?\d+', '', url)
-            video.thumbnail = BaseImage(url)
+            video.thumbnail = Thumbnail(url)
             video.thumbnail.url = video.thumbnail.id
 
             video.set_empty_fields(NotAvailable, ('url',))
@@ -108,7 +108,7 @@ class VideoPage(Page):
         url = unicode(self.parser.select(head, 'meta[property="og:image"]', 1).get("content")).strip()
         # remove the useless anti-caching
         url = re.sub('\?\d+', '', url)
-        video.thumbnail = BaseImage(url)
+        video.thumbnail = Thumbnail(url)
         video.thumbnail.url = video.thumbnail.id
 
         try:
@@ -208,7 +208,7 @@ class KidsVideoPage(VideoPage):
             video.title = unicode(params['videoTitle'])
             video.author = unicode(params['videoOwnerLogin'])
             video.description = unicode(params['videoDescription'])
-            video.thumbnail = BaseImage(params['videoPreviewURL'])
+            video.thumbnail = Thumbnail(params['videoPreviewURL'])
             video.thumbnail.url = unicode(params['videoPreviewURL'])
             video.duration = datetime.timedelta(seconds=params['mediaDuration'])
 

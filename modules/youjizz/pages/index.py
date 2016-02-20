@@ -23,7 +23,7 @@ from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, Duration, Regexp
 from weboob.browser.filters.html import Link, CSS
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.image import BaseImage
+from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.video import BaseVideo
 
 
@@ -44,6 +44,6 @@ class IndexPage(HTMLPage):
             obj_nsfw = True
 
             def obj_thumbnail(self):
-                thumbnail = BaseImage(self.xpath('.//img')[0].attrib['data-original'])
+                thumbnail = Thumbnail(self.xpath('.//img')[0].attrib['data-original'])
                 thumbnail.url = thumbnail.id
                 return thumbnail

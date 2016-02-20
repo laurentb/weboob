@@ -24,7 +24,7 @@ from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.html import Attr, CSS
 from weboob.browser.filters.standard import CleanText, Duration, Regexp, Type
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.image import BaseImage
+from weboob.capabilities.image import Thumbnail
 
 from ..video import YoupornVideo
 
@@ -39,7 +39,7 @@ class IndexPage(HTMLPage):
 
             def obj_thumbnail(self):
                 thumbnail_url = Attr('./img', 'src')(self)
-                thumbnail = BaseImage(thumbnail_url)
+                thumbnail = Thumbnail(thumbnail_url)
                 thumbnail.url = thumbnail.id
                 return thumbnail
 

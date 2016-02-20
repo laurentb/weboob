@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.collection import Collection
-from weboob.capabilities.image import BaseImage
+from weboob.capabilities.image import Thumbnail
 
 from weboob.deprecated.browser import Page
 
@@ -46,7 +46,7 @@ class VideoPage(Page):
 
             thumb = els[0].find('p/img')
             if thumb is not None and thumb.get('src'):
-                video.thumbnail = BaseImage(thumb.attrib['src'])
+                video.thumbnail = Thumbnail(thumb.attrib['src'])
                 video.thumbnail.url = video.thumbnail.id
 
             ps = els[0].findall('p')

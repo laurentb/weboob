@@ -23,7 +23,7 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import Format, CleanText, Join, Env, Regexp, Duration, Time
 from weboob.capabilities.audio import BaseAudio
 from weboob.tools.capabilities.audio.audio import BaseAudioIdFilter
-from weboob.capabilities.image import BaseImage
+from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.collection import Collection
 
 import time
@@ -57,7 +57,7 @@ class PodcastPage(XMLPage):
                 return Duration(CleanText('.'))(duration[0])
 
             def obj_thumbnail(self):
-                thumbnail = BaseImage(CleanText('//image[1]/url')(self))
+                thumbnail = Thumbnail(CleanText('//image[1]/url')(self))
                 thumbnail.url = thumbnail.id
                 return thumbnail
 
@@ -224,7 +224,7 @@ class JsonPage(JsonPage):
 
             def obj_thumbnail(self):
                 if 'path_img_emission' in self.el:
-                    thumbnail = BaseImage(Dict('path_img_emission')(self))
+                    thumbnail = Thumbnail(Dict('path_img_emission')(self))
                     thumbnail.url = thumbnail.id
                     return thumbnail
 
