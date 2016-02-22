@@ -29,6 +29,10 @@ from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
 class NewWebsitePage(Page):
     # New Website
     def on_loaded(self):
+        if len(self.document.xpath('//form[@name="BlockingPagesFirstVisiteType"]')):
+            self.browser.select_form(name='BlockingPagesFirstVisiteType')
+            self.browser.submit()
+            return
         self.browser.location('https://clients.boursorama.com/stop-essai')
         self.browser.login()
 
