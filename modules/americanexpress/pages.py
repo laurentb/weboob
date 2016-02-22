@@ -86,11 +86,6 @@ class AccountsPage(Page):
 
 
 class TransactionsPage(Page):
-    COL_ID = 0
-    COL_DATE = 1
-    COL_DEBIT_DATE = 2
-    COL_LABEL = 3
-    COL_VALUE = -1
 
     def is_last(self):
         current = False
