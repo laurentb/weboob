@@ -210,7 +210,8 @@ class PerimeterPage(BasePage):
         self.browser.perimeters.append(self.browser.current_perimeter)
         multiple = self.document.xpath(u'//p[span/a[contains(text(), "Accès")]]')
         if not multiple:
-            assert self.document.xpath(u'//div[contains(text(), "Périmètre en cours de chargement. Merci de patienter quelques secondes.")]')
+            if not len(self.document.xpath(u'//div[contains(text(), "Périmètre en cours de chargement. Merci de patienter quelques secondes.")]')):
+                self.logger.debug('Possible error on this page.')
             # We change perimeter in this case to add the second one.
             self.browser.location(self.browser.chg_perimeter_url.format(self.browser.sag), no_login=True)
             if self.browser.page.get_error() is not None:
