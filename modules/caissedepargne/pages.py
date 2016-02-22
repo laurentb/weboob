@@ -372,6 +372,10 @@ class IndexPage(Page):
             self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageMessagerie', type='image'))
         except ControlNotFoundError:
             pass
+        try:
+            self.browser.controls.remove(self.browser.find_control(name='MM$HISTORIQUE_COMPTE$btnCumul'))
+        except ControlNotFoundError:
+            pass
         self.browser.submit()
 
         return True
