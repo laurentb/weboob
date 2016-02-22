@@ -189,6 +189,11 @@ class AccountsList(LoggedPage, HTMLPage):
         span = self.doc.xpath('//span[@id="index:panelASV"]')
         return len(span) > 0
 
+    @property
+    def asv_has_transactions(self):
+        span = self.doc.xpath('//a[@id="index:asvInclude:goToAsvPartner"]')
+        return len(span) > 0
+
     def go_on_asv_history(self):
         data = {}
         data['index:j_idcl'] = 'index:asvInclude:goToAsvPartner'

@@ -271,6 +271,7 @@ class IngBrowser(LoginBrowser):
         else:
             self.logger.warning("Unable to get investments list...")
 
+
         if self.page.is_asv:
             return
 
@@ -294,8 +295,10 @@ class IngBrowser(LoginBrowser):
 
         if self.where == u'titre':
             self.titrehistory.go()
-        else:
+        elif self.page.asv_has_transactions:
             self.go_on_asv_history(account)
+        else:
+            return iter([])
         transactions = list()
         for tr in self.page.iter_history():
             transactions.append(tr)
