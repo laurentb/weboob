@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from mechanize import Cookie
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.deprecated.browser.parsers.jsonparser import JsonParser
@@ -62,6 +63,18 @@ class SGPEBrowser(Browser):
         if not self.is_on_page(LoginPage):
             self.location('https://' + self.DOMAIN + '/', no_login=True)
 
+        c = Cookie(0, 'PILOTE_OOBA', 'true',
+                      None, False,
+                      '.' + self.DOMAIN, True, True,
+                      '/', False,
+                      False,
+                      None,
+                      False,
+                      None,
+                      None,
+                      {})
+        cookiejar = self._ua_handlers["_cookies"].cookiejar
+        cookiejar.set_cookie(c)
         self.page.login(self.username, self.password)
 
         # force page change
