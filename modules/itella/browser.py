@@ -17,16 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-from weboob.browser import PagesBrowser, URL
+from weboob.browser.browsers import APIBrowser
 
 from .pages import SearchPage
 
 
-class ItellaBrowser(PagesBrowser):
-    BASEURL = 'http://www.itella.fi'
-
-    search_page = URL('/itemtracking/itella/search_by_shipment_id\?lang=en&ShipmentId=(?P<id>.+)', SearchPage)
+class ItellaBrowser(APIBrowser):
 
     def get_tracking_info(self, _id):
-        return self.search_page.go(id=_id).get_info(_id)
+        r = self.open('https://www.posti.fi/henkiloasiakkaat/seuranta/api/shipments',
+                      data={"trackingCodes": ["%s" % _id]})
+        return SearchPage(self, r).get_info(_id)

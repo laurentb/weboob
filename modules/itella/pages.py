@@ -19,22 +19,24 @@
 
 from dateutil.parser import parse as parse_date
 
-from weboob.browser.pages import HTMLPage
+from weboob.browser.pages import JsonPage
 from weboob.capabilities.parcel import Parcel, Event, ParcelNotFound
 
 
-class SearchPage(HTMLPage):
+class SearchPage(JsonPage):
     def get_info(self, _id):
-        result_id = self.doc.xpath('//table[@id="shipment-details-table"]//tr[position()=1]/td[@id="td-bold"]')
-        if not result_id:
+        shipments = self.doc["shipments"]
+        if not shipments:
             raise ParcelNotFound("No such ID: %s" % _id)
-        result_id = result_id[0].text
+        shipment = shipments[0]
+        result_id = shipment["trackingCode"]
         if result_id != _id:
             raise ParcelNotFound("ID mismatch: expecting %s, got %s" % (_id, result_id))
 
         p = Parcel(_id)
-        events = self.doc.xpath('//div[@id="shipment-event-table-cell"]')
-        p.history = [self.build_event(i, div) for i, div in enumerate(events)]
+        p.arrival = parse_date(shipment["estimatedDeliveryTime"], ignoretz=True)
+        events = shipment["events"]
+        p.history = [self.build_event(i, data) for i, data in enumerate(events)]
         most_recent = p.history[0]
         p.status, p.info = self.guess_status(p.history)
         p.info = most_recent.activity
@@ -43,7 +45,8 @@ class SearchPage(HTMLPage):
     def guess_status(self, events):
         for event in events:
             txt = event.activity
-            if txt == "Itella has received advance information of the item.":
+            if txt == "Itella has received advance information of the item." or \
+                    txt == "The item is not yet in Posti.":
                 return Parcel.STATUS_PLANNED, txt
             elif txt == "Item in sorting." or txt == "Item has been registered.":
                 return Parcel.STATUS_IN_TRANSIT, txt
@@ -53,11 +56,9 @@ class SearchPage(HTMLPage):
         else:
             return Parcel.STATUS_UNKNOWN, events[0].activity
 
-    def build_event(self, index, div):
+    def build_event(self, index, data):
         event = Event(index)
-        event.activity = unicode(div.xpath('div[@class="shipment-event-table-header"]')[0].text)
-        event.date = parse_date(div.xpath('.//span[@class="shipment-event-table-label" and text()="Registration:"]/'
-                                          'following-sibling::span')[0].text)
-        event.location = unicode(div.xpath('.//span[@class="shipment-event-table-label" and text()="Location:"]/'
-                                           'following-sibling::span')[0].text)
+        event.activity = data["description"]["en"]
+        event.date = parse_date(data["timestamp"], ignoretz=True)
+        event.location = data["locationName"]
         return event
