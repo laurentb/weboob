@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
+from urlparse import urlparse
 
 import requests
 import subprocess
@@ -102,11 +103,12 @@ class Videoob(ReplApplication):
             _dest, _ = os.path.splitext(dest)
             dest = u'%s.%s' % (_dest, 'mp4')
             content = tuple()
-            baseurl = video.url.rpartition('/')[0]
+            parsed_uri = urlparse(video.url)
+            baseurl = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)
             for line in self.read_url(video.url):
                 if not line.startswith('#'):
                     if not line.startswith('http'):
-                        line = u'%s/%s' % (baseurl, line)
+                        line = u'%s%s' % (baseurl, line)
                     content += (line,)
 
             args = ('wget', '-nv',) + content + ('-O', dest)
