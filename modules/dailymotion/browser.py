@@ -18,57 +18,76 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from urllib import quote_plus
+import re
 
-from weboob.deprecated.browser import Browser
-from weboob.deprecated.browser.decorators import id2url
-
-from .pages import IndexPage, VideoPage, KidsVideoPage
-from .video import DailymotionVideo
+from weboob.browser import PagesBrowser, URL
+from .pages import IndexPage, VideoPage
 
 
 __all__ = ['DailymotionBrowser']
 
 
-class DailymotionBrowser(Browser):
-    DOMAIN = 'www.dailymotion.com'
-    ENCODING = None
-    PAGES = {r'http://[w\.]*dailymotion\.com/1': IndexPage,
-             r'http://[w\.]*dailymotion\.com/[a-z\-]{2,5}/1': IndexPage,
-             r'http://[w\.]*dailymotion\.com/[a-z\-]{2,5}/(\w+/)?search/.*': IndexPage,
-             r'http://[w\.]*dailymotion\.com/video/(?P<id>.+)': VideoPage,
-             r'http://kids\.dailymotion\.com/(?P<from>[^\/#]+)#(.*&)?video=(?P<id>.+)': KidsVideoPage,
-             }
+class DailymotionBrowser(PagesBrowser):
+    BASEURL = 'http://www.dailymotion.com'
 
-    @id2url(DailymotionVideo.id2url)
-    def get_video(self, url, video=None):
-        # clear cookies.
-        # this is required in some weird cases, namely *interactive* videoob usage
-        # to avoid getting 403 errors when getting the video URL after a search.
-        #
-        # better control of this issue would be nice (especially if we support user login)
-        self._ua_handlers['_cookies'].cookiejar.clear()
+    video_page = URL(r'http://[w\.]*dailymotion\.com/video/(?P<_id>.*)',
+                     VideoPage)
 
-        # translate embed URLs
-        url = url.replace('dailymotion.com/swf/', 'dailymotion.com/video/')
-        self.location(url)
-        return self.page.get_video(video)
+    latest_page = URL(r'/1', IndexPage)
+    index_page = URL(r'http://[w\.]*dailymotion\.com/(?P<search>.*)',
+                     r'http://[w\.]*dailymotion\.com/1',
+                     r'http://[w\.]*dailymotion\.com/[a-z\-]{2,5}/1',
+                     r'http://[w\.]*dailymotion\.com/[a-z\-]{2,5}/(\w+/)?search/.*',
+                     IndexPage)
 
-    def home(self):
-        self.location('/1')
+    def __init__(self, resolution, format, *args, **kwargs):
+        self.resolution = resolution
+        self.format = format
+        PagesBrowser.__init__(self, *args, **kwargs)
+
+    def get_video(self, _id, video=None):
+        video = self.video_page.go(_id=_id).get_video(obj=video)
+
+        if video._formats and self.format in video._formats:
+            video.ext = self.format
+            if self.format == u'm3u8':
+                video.url = self.retrieve_m3u8_url(video._formats.get(self.format))
+            elif self.resolution in video._formats.get(self.format):
+                video.url = video._formats.get(self.format).get(self.resolution)
+            else:
+                video.url = video.video._formats.get(self.format).values()[-1]
+        return video
+
+    def retrieve_m3u8_url(self, urls):
+        if self.resolution in urls:
+            return urls.get(self.resolution)
+
+        return_next = False
+        for resolution, url in urls.items():
+            for item in self.read_url(url):
+                if return_next:
+                    return unicode(item.split('#')[0])
+
+                m = re.match('^#.*,NAME="%s"' % self.resolution, item)
+                if not m:
+                    continue
+
+                return_next = True
+        return unicode(item.split('#')[0])
+
+    def read_url(self, url):
+        r = self.open(url, stream=True)
+        buf = r.iter_lines()
+        return buf
 
     def search_videos(self, pattern, sortby):
         pattern = pattern.replace('/', '').encode('utf-8')
         if sortby is None:
-            url = '/en/search/%s/1' % quote_plus(pattern)
+            url = 'en/search/%s/1' % quote_plus(pattern)
         else:
-            url = '/en/%s/search/%s/1' % (sortby, quote_plus(pattern))
-        self.location(url)
+            url = 'en/%s/search/%s/1' % (sortby, quote_plus(pattern))
 
-        assert self.is_on_page(IndexPage)
-        return self.page.iter_videos()
+        return self.index_page.go(search=url).iter_videos()
 
     def latest_videos(self):
-        self.home()
-
-        assert self.is_on_page(IndexPage)
-        return self.page.iter_videos()
+        return self.latest_page.go().iter_videos()

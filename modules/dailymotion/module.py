@@ -19,10 +19,10 @@
 
 from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
-from weboob.tools.backend import Module
-
+from weboob.tools.backend import Module, BackendConfig
+from weboob.tools.value import Value
+from weboob.tools.ordereddict import OrderedDict
 from .browser import DailymotionBrowser
-from .video import DailymotionVideo
 
 
 __all__ = ['DailymotionModule']
@@ -37,25 +37,38 @@ class DailymotionModule(Module, CapVideo, CapCollection):
     LICENSE = 'AGPLv3+'
     BROWSER = DailymotionBrowser
 
-    def get_video(self, _id):
-        with self.browser:
-            return self.browser.get_video(_id)
+    resolution_choice = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
+        u'480': u'480p',
+        u'240': u'240p',
+        u'380': u'380p',
+        u'720': u'720p',
+        u'1080': u'1080p'
+    }.iteritems())])
+
+    format_choice = [u'm3u8', u'mp4']
+
+    CONFIG = BackendConfig(Value('resolution', label=u'Resolution', choices=resolution_choice),
+                           Value('format', label=u'Format', choices=format_choice))
 
     SORTBY = ['relevance', 'rated', 'visited', None]
 
+    def create_default_browser(self):
+        resolution = self.config['resolution'].get()
+        format = self.config['format'].get()
+        return self.create_browser(resolution=resolution, format=format)
+
+    def get_video(self, _id):
+        return self.browser.get_video(_id)
+
     def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
-        with self.browser:
-            return self.browser.search_videos(pattern, self.SORTBY[sortby])
+        return self.browser.search_videos(pattern, self.SORTBY[sortby])
 
     def fill_video(self, video, fields):
         if fields != ['thumbnail']:
             # if we don't want only the thumbnail, we probably want also every fields
-            with self.browser:
-                video = self.browser.get_video(video.id, video)
+            video = self.browser.get_video(video.id, video)
         if 'thumbnail' in fields and video.thumbnail:
-            with self.browser:
-                video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
-
+            video.thumbnail.data = self.browser.open(video.thumbnail.url)
         return video
 
     def iter_resources(self, objs, split_path):
@@ -75,4 +88,4 @@ class DailymotionModule(Module, CapVideo, CapCollection):
             return
         raise CollectionNotFound(collection.split_path)
 
-    OBJECTS = {DailymotionVideo: fill_video}
+    OBJECTS = {BaseVideo: fill_video}

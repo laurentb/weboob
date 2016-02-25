@@ -22,6 +22,7 @@ from weboob.tools.test import BackendTest
 from weboob.capabilities.video import BaseVideo
 
 from random import choice
+import itertools
 
 
 class DailymotionTest(BackendTest):
@@ -32,22 +33,21 @@ class DailymotionTest(BackendTest):
     KIDS_VIDEO_TITLE = 'Telmo et Tula'
 
     def test_search(self):
-        l = list(self.backend.search_videos('chirac'))
+        l = list(itertools.islice(self.backend.search_videos('chirac'), 0, 20))
         self.assertTrue(len(l) > 0)
         v = choice(l)
         self.backend.fillobj(v, ('url',))
         self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
-        self.backend.browser.openurl(v.url)
 
     def test_latest(self):
-        l = list(self.backend.iter_resources([BaseVideo], [u'latest']))
+        l = list(itertools.islice(self.backend.iter_resources([BaseVideo], [u'latest']), 0, 20))
         assert len(l)
         v = choice(l)
         self.backend.fillobj(v, ('url',))
         self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
 
     def test_kids_video(self):
-        l = list(self.backend.search_videos(DailymotionTest.KIDS_VIDEO_TITLE))
+        l = list(itertools.islice(self.backend.search_videos(DailymotionTest.KIDS_VIDEO_TITLE), 0, 20))
         self.assertTrue(len(l) > 0)
         for elt in l[:10]:
             video_id = elt.id
@@ -55,7 +55,7 @@ class DailymotionTest(BackendTest):
             self.assertIsNotNone(video.title)
             if DailymotionTest.KIDS_VIDEO_TITLE in video.title:
                 self.assertTrue(video.url and video.url.startswith('http://'), 'URL for video "%s" not found: %s' %
-                        (video.id, video.url))
+                                (video.id, video.url))
                 return
 
         self.fail("Can't find test video '%s' in kids.dailymotion.com video "
