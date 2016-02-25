@@ -22,16 +22,18 @@ from weboob.capabilities.recipe import Recipe, Comment
 from weboob.capabilities.base import NotAvailable
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import CleanText, Regexp, Env, Type, Filter
+from weboob.browser.filters.standard import CleanText, Regexp, Env, Filter, DateTime, CleanDecimal
 from weboob.browser.filters.html import CleanHTML
+
+from datetime import datetime, date, time
 
 
 class Time(Filter):
     def filter(self, el):
-        if el:
-            if 'h' in el:
-                return 60*int(el.split()[0])
-            return int(el.split()[0])
+        _time = DateTime(CleanText(el, replace=[('PT', '')]), default=None)(self)
+        if _time:
+            _time_ = _time - datetime.combine(date.today(), time(0))
+            return _time_.seconds // 60
 
 
 class ResultsPage(HTMLPage):
@@ -40,19 +42,23 @@ class ResultsPage(HTMLPage):
     @pagination
     @method
     class iter_recipes(ListElement):
-        item_xpath = '//li[@data-type="recette"]'
+        item_xpath = '//section[has-class("c-recipe-row")]'
 
         def next_page(self):
             return CleanText('//li[@class="suivante"]/a/@href')(self)
 
         class item(ItemElement):
             klass = Recipe
-            obj_id = Regexp(CleanText('./div[has-class("text")]/h2/a/@href'),
-                            '(.*).htm')
-            obj_title = CleanText('./div[has-class("text")]/h2/a')
-            obj_thumbnail_url = CleanText('./div[has-class("image")]/a/img[1]/@src')
-            obj_short_description = CleanText('./div[has-class("text")]/p')
-            obj_author = CleanText('./div[has-class("text")]/h3[@class="auteur"]/a', default=NotAvailable)
+
+            def condition(self):
+                return not CleanText('./div[@class="c-recipe-row__media"]/span[@class="c-recipe-row__video"]/@class',
+                                     default=None)(self)
+
+            obj_id = Regexp(CleanText('./div/h2/a/@href'),
+                            '/(.*).htm')
+            obj_title = CleanText('./div/h2/a')
+            obj_thumbnail_url = CleanText('./div/img/@src')
+            obj_short_description = CleanText('./div/p')
 
 
 class RecipePage(HTMLPage):
@@ -60,35 +66,41 @@ class RecipePage(HTMLPage):
     """
     @method
     class get_comments(ListElement):
-        item_xpath = '//section[@class="commentaires_liste"]/article'
+        item_xpath = '//div[has-class("c-comment__row")]'
 
         class item(ItemElement):
             klass = Comment
 
+            def validate(self, obj):
+                return obj.id
+
             obj_id = CleanText('./@data-id')
-            obj_author = CleanText('./div[@class="column"]/p[@class="commentaire_info"]/span')
-            obj_text = CleanText('./div[@class="column"]/p[1]')
+            obj_author = CleanText('./article/div/header/strong/span[@itemprop="author"]')
+            obj_text = CleanText('./article/div/div/p')
 
     @method
     class get_recipe(ItemElement):
         klass = Recipe
 
         obj_id = Env('id')
-        obj_title = CleanText('//h1[@class="fn"]')
+        obj_title = CleanText('//h1[has-class("fn")]')
 
         def obj_ingredients(self):
             ingredients = []
-            for el in self.page.doc.xpath('//section[has-class("recette_ingredients")]/ul/li'):
+            for el in self.page.doc.xpath('//li[@class="ingredient"]'):
                 ingredients.append(CleanText('.')(el))
             return ingredients
 
-        obj_cooking_time = Time(CleanText('//span[@class="cooktime"]'))
-        obj_preparation_time = Time(CleanText('//span[@class="preptime"]'))
+        obj_cooking_time = Time('//time[@class="cooktime"]/@datetime')
+        obj_preparation_time = Time('//time[@class="preptime"]/@datetime')
 
         def obj_nb_person(self):
-            return [Type(CleanText('//span[@class="yield"]'), type=int, default=0)(self)]
+            return [CleanDecimal('//span[@class="yield"]', default=0)(self)]
 
-        obj_instructions = CleanHTML('//article[@class="recette_etape"]/h3|//article[@class="recette_etape"]/div[@class="recette_etape_texte"]/*[not(self::article)]')
+        obj_instructions = CleanHTML('//div[has-class("c-recipe-steps__item")]')
 
-        obj_picture_url = CleanText('//section[has-class("recette_infos")]/div/img[@class="photo"]/@src')
-        obj_author = CleanText('//span[@class="author"]', default=NotAvailable)
+        obj_picture_url = CleanText('(//img[has-class("c-swiper__media")]/@src)[1]')
+        obj_author = Regexp(CleanText('//meta[@name="description"]/@content',
+                                      default=''),
+                            '.* par (.*)',
+                            default=NotAvailable)

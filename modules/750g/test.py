@@ -28,7 +28,7 @@ class SevenFiftyGramsTest(BackendTest):
         recipes = list(itertools.islice(self.backend.iter_recipes('fondue'), 0, 20))
         for recipe in recipes:
             full_recipe = self.backend.get_recipe(recipe.id)
-            assert full_recipe.instructions
-            assert full_recipe.ingredients
-            assert full_recipe.title
-            assert full_recipe.preparation_time
+            self.assertTrue(full_recipe.instructions, 'No instructions for %s' % recipe.id)
+            self.assertTrue(full_recipe.ingredients, 'No ingredients for %s' % recipe.id)
+            self.assertTrue(full_recipe.title, 'No title for %s' % recipe.id)
+            self.assertTrue(full_recipe.preparation_time, 'No preparation time for %s' % recipe.id)
