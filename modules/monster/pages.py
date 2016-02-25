@@ -23,7 +23,7 @@ from datetime import datetime, time, timedelta
 
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import CleanText, Regexp, Filter, Env, BrowserURL, Join, Date, Format
+from weboob.browser.filters.standard import CleanText, Regexp, Filter, Env, BrowserURL, Join, Date, Format, DateTime
 from weboob.browser.filters.html import Link, CleanHTML
 from weboob.capabilities.job import BaseJobAdvert
 from weboob.capabilities.base import NotAvailable
@@ -42,6 +42,38 @@ class MonsterDate(Filter):
                 return datetime.combine(date, time())
         else:
             return datetime.combine(now, time.min)
+
+
+class AdvSearchPage(HTMLPage):
+    @pagination
+    @method
+    class iter_job_adverts(ListElement):
+        item_xpath = '//article[@class="js_result_row"]'
+
+        def next_page(self):
+            page = Regexp(CleanText('//link[@rel="next"]/@href', default=''),
+                          '.*pg=(\d*)', default=None)(self)
+            return BrowserURL('adv_search', search=Env('search'), page=int(page))(self)
+
+        class item(ItemElement):
+
+            def condition(self):
+                return u'Désolé' not in CleanText('//h1')(self)
+
+            klass = BaseJobAdvert
+
+            obj_id = Regexp(CleanText('./div[@class="jobTitle"]/h2/a/@href'),
+                            'http://offre-(d?)emploi.monster.fr/(.*?)(.aspx|\?).*',
+                            '\\1#\\2')
+            obj_society_name = CleanText('./div[@class="company"]/span[@itemprop="name"]',
+                                         replace=[(u'Trouvée sur : ', u'')],
+                                         default=NotAvailable)
+            obj_title = CleanText('./div[@class="jobTitle"]/h2/a/span[@itemprop="title"]',
+                                  default=NotAvailable)
+            obj_publication_date = DateTime(CleanText('./div[@class="extras"]/div[@class="postedDate"]/time/@datetime'),
+                                            default=NotAvailable)
+            obj_place = CleanText('./div[@class="location"]/span[@itemprop="name"]',
+                                  default=NotAvailable)
 
 
 class SearchPage(HTMLPage):
