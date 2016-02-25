@@ -20,7 +20,7 @@
 from .pages import SearchPage, AdvertPage
 from weboob.browser import PagesBrowser, URL
 
-from urllib import quote_plus, quote
+from urllib import quote
 
 __all__ = ['PopolemploiBrowser']
 
@@ -30,8 +30,7 @@ class PopolemploiBrowser(PagesBrowser):
     BASEURL = 'https://candidat.pole-emploi.fr/'
 
     advert = URL('candidat/rechercheoffres/detail/(?P<id>.*)', AdvertPage)
-    search = URL('candidat/rechercheoffres/resultats/(?P<search>.*?)',
-                 'https://offre.pole-emploi.fr/resultat\?offresPartenaires=true&libMetier=(?P<pattern>.*?)', SearchPage)
+    search = URL('candidat/rechercheoffres/resultats/(?P<search>.*?)', SearchPage)
 
     decode_salary = {
         'FOURCHETTE1': u'|15000|A',
@@ -44,7 +43,9 @@ class PopolemploiBrowser(PagesBrowser):
     }
 
     def search_job(self, pattern=None):
-        return self.search.go(pattern=quote_plus(pattern)).iter_job_adverts()
+        search = "A_%s_____P__________INDIFFERENT_______________________" % \
+                 quote(pattern.encode('utf-8')).replace('%', '$00')
+        return self.search.go(search=search).iter_job_adverts()
 
     def advanced_search_job(self, metier='', place=None, contrat=None, salary=None,
                             qualification=None, limit_date=None, domain=None):
