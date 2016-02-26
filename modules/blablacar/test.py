@@ -26,5 +26,5 @@ class BlablacarTest(BackendTest):
     MODULE = 'blablacar'
 
     def test_blablacar(self):
-        departures = list(self.backend.iter_station_departures('lille', 'lens', datetime.now()))
+        departures = list(self.backend.iter_station_departures('lille', None, datetime.now()))
         self.assertTrue(len(departures) > 0)
