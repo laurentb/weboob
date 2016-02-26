@@ -23,6 +23,7 @@ from weboob.capabilities.job import CapJob
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
 from .browser import ApecBrowser
+from .job import APEC_CONTRATS, APEC_EXPERIENCE
 
 __all__ = ['ApecModule']
 
@@ -299,12 +300,7 @@ class ApecModule(Module, CapJob):
         '101779': u'Transports et logistique',
     }.iteritems())])
 
-    type_contrat_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
-        ' ': u'-- Indifférent --',
-        '101888': u'CDI',
-        '101887': u'CDD',
-        '101889': u'Interim',
-    }.iteritems())])
+    type_contrat_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted(APEC_CONTRATS.iteritems())])
 
     salary_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         ' ': u'-- Indifférent --',
@@ -323,11 +319,7 @@ class ApecModule(Module, CapJob):
         '101853': u'Toutes les offres',
     }.iteritems())])
 
-    level_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
-        '101882': u'Tous niveaux d\'expérience',
-        '101881': u'Débutant',
-        '101883': u'Expérimenté',
-    }.iteritems())])
+    level_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted(APEC_EXPERIENCE.iteritems())])
 
     CONFIG = BackendConfig(Value('place', label=u'Lieu', choices=places_choices, default=''),
                            Value('fonction', label=u'Fonction', choices=fonction_choices, default=''),

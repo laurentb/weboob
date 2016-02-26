@@ -18,9 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 import requests
 
+from .job import APEC_CONTRATS, APEC_EXPERIENCE
+
 from weboob.browser.elements import ItemElement, method, DictElement
 from weboob.browser.pages import JsonPage, pagination
-from weboob.browser.filters.standard import DateTime, Format, Regexp
+from weboob.browser.filters.standard import DateTime, Format, Regexp, CleanText
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import CleanHTML
 from weboob.capabilities.job import BaseJobAdvert
@@ -71,8 +73,16 @@ class OffrePage(JsonPage):
         obj_job_name = Dict('intitule')
         obj_publication_date = DateTime(Dict('datePublication'))
         obj_society_name = Dict('nomCommercialEtablissement', default=NotAvailable)
-        obj_contract_type = Dict('idNomTypeContrat')
+
+        def obj_contract_type(self):
+            ctr = '%s' % Dict('idNomTypeContrat')(self)
+            return APEC_CONTRATS.get(ctr) if ctr in APEC_CONTRATS else NotAvailable
+
         obj_place = Dict('lieuTexte')
         obj_pay = Dict('salaireTexte')
-        obj_experience = Dict('idNomNiveauExperience')
+
+        def obj_experience(self):
+            exp = u'%s' % Dict('idNomNiveauExperience')(self)
+            return APEC_EXPERIENCE.get(exp) if exp in APEC_EXPERIENCE else NotAvailable
+
         obj_url = Format('https://cadres.apec.fr/home/mes-offres/recherche-des-offres-demploi/liste-des-offres-demploi/detail-de-loffre-demploi.html?numIdOffre=%s', Dict('numeroOffre'))
