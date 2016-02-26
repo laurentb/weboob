@@ -98,7 +98,7 @@ class LoginPage(JsonPage):
     def build_doc(self, text):
         try:
             return super(LoginPage, self).build_doc(text)
-        except json.JSONDecodeError:
+        except ValueError:
             # XXX When login is successful, server sends HTML instead of JSON,
             #     we can ignore it.
             return {}
