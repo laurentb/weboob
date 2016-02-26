@@ -286,8 +286,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                 self.add_object(_object)
             return self.objects
         # XXX: what can we do without method?
-        else:
-            return tuple()
+        return tuple()
 
     def unload_backends(self, *args, **kwargs):
         self.objects = []
@@ -965,8 +964,8 @@ class ReplApplication(Cmd, ConsoleApplication):
                 return -1
         elif obj1.backend > obj2.backend:
             return 1
-        else:
-            return -1
+
+        return -1
 
 
     @defaultcount(40)
