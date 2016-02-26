@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013 Bezleputh
+# Copyright(C) 2016 Bezleputh
 #
 # This file is part of weboob.
 #
