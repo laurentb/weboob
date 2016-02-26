@@ -22,7 +22,7 @@ from .job import APEC_CONTRATS, APEC_EXPERIENCE
 
 from weboob.browser.elements import ItemElement, method, DictElement
 from weboob.browser.pages import JsonPage, pagination
-from weboob.browser.filters.standard import DateTime, Format, Regexp, CleanText
+from weboob.browser.filters.standard import DateTime, Format, Regexp
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import CleanHTML
 from weboob.capabilities.job import BaseJobAdvert
