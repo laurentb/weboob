@@ -20,7 +20,7 @@
 
 from weboob.capabilities.image import BaseImage as CIBaseImage, Thumbnail
 from .base import Capability, BaseObject, NotLoaded, Field, StringField, \
-                  BytesField, IntField, FloatField
+                  IntField, FloatField
 from .date import DateField
 
 

@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from requests import Request
-
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.pages import RawPage, JsonPage, HTMLPage
 from weboob.browser.exceptions import ClientError

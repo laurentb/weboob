@@ -22,9 +22,8 @@ import dateutil.parser
 from subprocess import Popen, PIPE
 
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import Value, ValueBool, ValueBackendPassword
+from weboob.tools.value import Value, ValueBackendPassword
 from weboob.capabilities.messages import CapMessages, Thread, Message
-from weboob.capabilities.base import StringField
 
 from .browser import OpenEDXBrowser
 
@@ -112,7 +111,7 @@ class OpenEDXModule(Module, CapMessages):
         # by iter_threads(). Only `children` in unfilled.
 
         if 'children' in fields and message.thread.root.id == message.id:
-            message.children = self.get_thread(thread.id).root.children
+            message.children = self.get_thread(message.id).root.children
 
         return message
 
