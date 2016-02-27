@@ -39,9 +39,6 @@ class IpLocation(BaseObject):
     tld =       StringField('Top Level Domain')
     isp =       StringField('Internet Service Provider')
 
-    def __init__(self, ipaddr, url=None):
-        BaseObject.__init__(self, ipaddr, url)
-
 
 class CapGeolocIp(Capability):
     """
