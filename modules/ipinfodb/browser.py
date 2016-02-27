@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Julien Veyssier
+# Copyright(C) 2015-2016 Julien Veyssier
 #
 # This file is part of weboob.
 #
@@ -18,22 +18,32 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.geolocip import CapGeolocIp
-from weboob.tools.backend import Module
-from browser import IpinfodbBrowser
+from weboob.browser import PagesBrowser
+from weboob.browser.exceptions import BrowserHTTPNotFound
+from weboob.browser.url import URL
+from weboob.browser.profiles import Firefox
+
+from .pages import HomePage, LocationPage
 
 
-__all__ = ['IpinfodbModule']
+__all__ = ['IpinfodbBrowser']
 
 
-class IpinfodbModule(Module, CapGeolocIp):
-    NAME = 'ipinfodb'
-    MAINTAINER = u'Julien Veyssier'
-    EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '1.2'
-    LICENSE = 'AGPLv3+'
-    DESCRIPTION = u"IPInfoDB IP addresses geolocation service"
-    BROWSER = IpinfodbBrowser
+class IpinfodbBrowser(PagesBrowser):
+    PROFILE = Firefox()
+    TIMEOUT = 30
+
+    BASEURL = 'https://ipinfodb.com/'
+    home = URL('$', HomePage)
+    search = URL('ip_locator.php',
+                 LocationPage)
 
     def get_location(self, ipaddr):
-        return self.browser.get_location(ipaddr)
+        try:
+            self.home.go()
+            self.page.search(ipaddr)
+            iploc = self.page.get_location()
+            return iploc
+        except BrowserHTTPNotFound:
+            return
+
