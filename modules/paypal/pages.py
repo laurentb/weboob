@@ -192,7 +192,10 @@ class PartHistoryPage(HistoryPage, JsonPage):
     def parse_transaction(self, transaction, account):
         t = FrenchTransaction(transaction['id'])
         if not transaction['isPrimaryCurrency']:
-            cc = self.browser.convert_amount(account, transaction, transaction['detailsLink'])
+            if 'conversionFrom' in transaction['amounts'] and account.currency == transaction['amounts']['conversionFrom']['currency']:
+                cc = self.format_amount(transaction['amounts']['conversionFrom']['value'], transaction['isCredit'])
+            else:
+                cc = self.browser.convert_amount(account, transaction, transaction['detailsLink'])
             if not cc:
                 return []
             t.original_amount = self.format_amount(transaction['amounts']['net']['value'], transaction["isCredit"])
