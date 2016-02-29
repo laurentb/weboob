@@ -53,7 +53,6 @@ class S2eBrowser(LoginBrowser):
         self.sessionId = self.page.login(self.username, self.password)
         if self.sessionId is None:
             raise BrowserIncorrectPassword()
-        self.page.logged = True
 
     @need_login
     def get_accounts_list(self):
@@ -62,7 +61,7 @@ class S2eBrowser(LoginBrowser):
                 'login': self.username,
                 'session': self.sessionId}
 
-        for dispositif in self.accountsp.open(data=data).get_list():
+        for dispositif in self.accountsp.go(data=data).get_list():
             if dispositif['montantBrutDispositif'] == 0:
                 continue
 
@@ -90,7 +89,7 @@ class S2eBrowser(LoginBrowser):
     @need_login
     def iter_history(self, account):
         # Load i18n for type translation
-        self.i18np.open(lang1=self.LANG, lang2=self.LANG).load_i18n()
+        self.i18np.go(lang1=self.LANG, lang2=self.LANG).load_i18n()
 
         # For now detail for each account is not available. History is global for all accounts and very simplist
         data = {'clang': self.LANG,
@@ -98,7 +97,7 @@ class S2eBrowser(LoginBrowser):
                 'login': self.username,
                 'session': self.sessionId}
 
-        for trans in self.historyp.open(data=data).get_transactions():
+        for trans in self.historyp.go(data=data).get_transactions():
             t = Transaction()
             t.id = trans["referenceOperationIndividuelle"]
             t.date = datetime.strptime(trans["dateHeureSaisie"], "%d/%m/%Y")
