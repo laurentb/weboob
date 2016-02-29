@@ -27,7 +27,7 @@ class ImgurTest(BackendTest):
     # small gif file
     DATA = 'R0lGODdhAQABAPAAAP///wAAACwAAAAAAQABAAACAkQBADs=\n'
 
-    def test_imgur(self):
+    def test_post(self):
         assert self.backend.can_post(self.DATA, max_age=0)
 
         post = self.backend.new_paste(None)
@@ -39,3 +39,12 @@ class ImgurTest(BackendTest):
         got = self.backend.get_paste(post.id)
         assert got
         assert got.contents.decode('base64') == self.DATA.decode('base64')
+
+    def test_search(self):
+        it = iter(self.backend.search_image('lol'))
+        img = next(it)
+        assert img
+
+        it = iter(self.backend.search_galleries('lol'))
+        gall = next(it)
+        assert gall
