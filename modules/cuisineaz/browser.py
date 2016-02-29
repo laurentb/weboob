@@ -40,4 +40,4 @@ class CuisineazBrowser(PagesBrowser):
         return self.recipe.go(_id=_id).get_recipe(obj=obj)
 
     def get_comments(self, _id):
-        return self.recipe.go(_id=_id).get_comments()
+        return self.recipe.stay_or_go(_id=_id).get_comments()

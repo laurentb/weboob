@@ -22,8 +22,8 @@ from weboob.capabilities.recipe import Recipe, Comment
 from weboob.capabilities.base import NotAvailable
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, method, ListElement
-from weboob.browser.filters.standard import CleanText, Regexp, Env, Time
-from weboob.browser.filters.html import XPath, CleanHTML
+from weboob.browser.filters.standard import CleanText, Regexp, Env, Time, Join
+from weboob.browser.filters.html import XPath
 
 import re
 import datetime
@@ -100,11 +100,12 @@ class RecipePage(HTMLPage):
                 ingredients.append(CleanText('.')(el))
             return ingredients
 
-        obj_instructions = CleanHTML('//div[@id="preparation"]/span[@class="instructions"]')
+        obj_instructions = Join('\n\n - ', '//div[@id="preparation"]/span/p/text()',
+                                addBefore=' - ')
 
     @method
     class get_comments(ListElement):
-        item_xpath = '//div[@class="comment pb15 row"]'
+        item_xpath = '//div[has-class("comment")]'
 
         class item(ItemElement):
             klass = Comment

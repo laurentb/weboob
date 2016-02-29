@@ -54,9 +54,6 @@ class CuisineazModule(Module, CapRecipe):
 
         if 'comments' in fields:
             recipe.comments = list(self.browser.get_comments(recipe.id))
-
         return recipe
 
-    OBJECTS = {
-        Recipe: fill_recipe,
-    }
+    OBJECTS = {Recipe: fill_recipe}
