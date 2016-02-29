@@ -53,7 +53,7 @@ class IndexPage(LoggedPage, HTMLPage):
             obj_id = CleanText('.//a')
             obj_label = CleanText('.//td[3]')
             obj_currency = u'EUR'
-            obj_balance = CleanDecimal('.//td[last()-3]', replace_dots=True)
+            obj_balance = CleanDecimal('.//td[7]', replace_dots=True)
             obj_type = Account.TYPE_LIFE_INSURANCE
 
 
