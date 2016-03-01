@@ -474,6 +474,12 @@ class CardsPage(BasePage):
         params = self.get_params()
 
         account = None
+        currency = None
+        for th in self.document.xpath('//table[@id="TabCtes"]//thead//th'):
+            m = re.match('.*\((\w+)\)$', th.text)
+            if m and currency is None:
+                currency = Account.get_currency(m.group(1))
+
         for tr in self.document.xpath('//table[@id="TabCtes"]/tbody/tr'):
             cols = tr.xpath('./td')
 
@@ -489,6 +495,7 @@ class CardsPage(BasePage):
                 account._prev_debit = datetime.date(2000,1,1)
                 account.label = u' '.join([self.parser.tocleanstring(cols[self.COL_TYPE]),
                                            self.parser.tocleanstring(cols[self.COL_LABEL])])
+                account.currency = currency
                 account._params = None
                 account._invest_params = None
                 account._coming_params = params.copy()
