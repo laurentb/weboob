@@ -18,9 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bill import CapDocument, Subscription, Bill, SubscriptionNotFound, DocumentNotFound
+from weboob.capabilities.bill import CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.messages import CantSendMessage, CapMessages, CapMessagesPost
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import find_object, NotAvailable
 from weboob.capabilities.account import CapAccount, StatusField
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
@@ -48,6 +48,7 @@ def browser_switcher(b):
             return func(*args, **kwargs)
         return func_wrapper
     return set_browser
+
 
 class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost, CapDocument):
     NAME = 'orange'
@@ -92,9 +93,8 @@ class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost, CapDocument
 
     @browser_switcher(OrangeBillBrowser)
     def get_document(self, _id):
-        subid = _id.split('.')[0]
+        subid = _id.rsplit('_', 1)[0]
         subscription = self.get_subscription(subid)
-
         return find_object(self.iter_documents(subscription), id=_id, error=DocumentNotFound)
 
     @browser_switcher(OrangeBillBrowser)
@@ -104,8 +104,9 @@ class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost, CapDocument
         return self.browser.iter_documents(subscription)
 
     @browser_switcher(OrangeBillBrowser)
-    def download_document(self, bill):
-        if not isinstance(bill, Bill):
-            bill = self.get_document(bill)
-        return self.browser.open(bill._url).content
-
+    def download_document(self, document):
+        if not isinstance(document, Document):
+            document = self.get_document(document)
+        if document._url is NotAvailable:
+            return
+        return self.browser.open(document._url).content

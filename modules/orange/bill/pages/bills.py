@@ -17,13 +17,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+
 import re
 
 from weboob.browser.pages import HTMLPage
 from weboob.capabilities.bill import Subscription
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Date
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Regexp, Date, Async, AsyncLoad, BrowserURL
 from weboob.browser.filters.html import Attr
+from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bill import Bill
 
 
@@ -33,8 +35,12 @@ class BillsPage(HTMLPage):
         class item(ItemElement):
             klass = Subscription
 
-            obj_label = CleanText('(//li[@class="n1 menuUsage toHighlight"])[1]')
-            obj_subscriber = CleanText('//div[@class="blocCompte blocPrincipal"]//h2/a')
+            load_details = BrowserURL('profilpage') & AsyncLoad
+
+            obj_subscriber = Async('details') & Format('%s %s',
+                                CleanText('//div[text() = "nom :"]/following-sibling::div'),
+                                CleanText(u'//div[contains(text(), "prénom")]/following-sibling::div'))
+            obj_label = Env('id')
             obj_id = Env('id')
 
             def parse(self, el):
@@ -47,10 +53,10 @@ class BillsPage(HTMLPage):
         class item(ItemElement):
             klass = Bill
 
-            obj__url = Attr('.//span[@class="telecharger pdf"]/a', 'href')
-            obj_id = Format('%s.%s', Env('subid'), CleanDecimal(CleanText('.//span[@class="date magic_gras magic_font13"]')))
+            obj_id = Format('%s_%s', Env('subid'), CleanDecimal(CleanText('.//span[@class="date magic_gras magic_font13"]')))
+            obj__url = Attr('.//span[@class="telecharger pdf"]/a', 'href', default=NotAvailable)
             obj_date = Date(CleanText('.//span[@class="date magic_gras magic_font13"]'))
             obj_format = u"pdf"
             obj_type = u"bill"
             obj_price = CleanDecimal('span[@class="montant"]', replace_dots=True)
-
+            obj_currency = Regexp(CleanText('span[@class="montant"]'), '([^\s\d,])')

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Vincent Paredes
+# Copyright(C) 2016      Edouard Lambert
 #
 # This file is part of weboob.
 #
@@ -17,8 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .login import LoginPage
-from .profil import ProfilPage
-from .bills import BillsPage
 
-__all__ = ['LoginPage', 'ProfilPage', 'BillsPage']
+from weboob.browser.pages import HTMLPage
+
+
+class ProfilPage(HTMLPage):
+    pass

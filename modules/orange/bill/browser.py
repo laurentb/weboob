@@ -17,17 +17,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
-from .pages import LoginPage, BillsPage
+from .pages import LoginPage, ProfilPage, BillsPage
 
 __all__ = ['OrangeBillBrowser']
 
 
 class OrangeBillBrowser(LoginBrowser):
     loginpage = URL('https://id.orange.fr/auth_user/bin/auth_user.cgi', LoginPage)
+    profilpage = URL('https://espaceclientv3.orange.fr/\?page=profil-infosPerso', ProfilPage)
     billspage = URL('https://m.espaceclientv3.orange.fr/\?page=factures-archives',
                     'https://.*.espaceclientv3.orange.fr/\?page=factures-archives',
+                    'https://espaceclientv3.orange.fr/\?page=factures-archives',
                      BillsPage)
 
     def do_login(self):

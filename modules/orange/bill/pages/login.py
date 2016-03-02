@@ -17,7 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+
 from weboob.browser.pages import HTMLPage
+
 
 class LoginPage(HTMLPage):
     def login(self, login, password):
@@ -25,4 +27,3 @@ class LoginPage(HTMLPage):
         form['credential'] = login
         form['password'] = password
         form.submit()
-
