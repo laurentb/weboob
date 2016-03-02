@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bill import CapDocument, Subscription, Bill, SubscriptionNotFound, DocumentNotFound
+from weboob.capabilities.bill import CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.messages import CantSendMessage, CapMessages, CapMessagesPost
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
@@ -56,17 +56,16 @@ class BouyguesModule(Module, CapMessages, CapMessagesPost, CapDocument):
         return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
 
     def get_document(self, _id):
-        subid, billid = _id.split('.')
+        subid = _id.rsplit('_', 1)[0]
         subscription = self.get_subscription(subid)
-
-        return find_object(self.iter_documents(subscription), id=billid, error=DocumentNotFound)
+        return find_object(self.iter_documents(subscription), id=_id, error=DocumentNotFound)
 
     def iter_documents(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
         return self.browser.iter_documents(subscription)
 
-    def download_document(self, bill):
-        if not isinstance(bill, Bill):
-            bill = self.get_document(bill)
-        return self.browser.open(bill._url).content
+    def download_document(self, document):
+        if not isinstance(document, Document):
+            document = self.get_document(document)
+        return self.browser.open(document._url).content

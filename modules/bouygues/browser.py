@@ -20,7 +20,7 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ServerError
 from weboob.exceptions import BrowserIncorrectPassword
-from .pages import BillsPage, HomePage, LoginPage, ProfilePage, SendSMSPage, SendSMSErrorPage
+from .pages import DocumentsPage, HomePage, LoginPage, ProfilePage, SendSMSPage, SendSMSErrorPage
 
 from weboob.capabilities.messages import CantSendMessage
 
@@ -31,17 +31,15 @@ class BouyguesBrowser(LoginBrowser):
     BASEURL = 'https://www.mon-compte.bouyguestelecom.fr/'
     TIMEOUT = 20
 
-    bills = URL('http://www.bouyguestelecom.fr/mon-compte/mes-factures/historique\?no_reference=(?P<ref>)', BillsPage)
-    profile = URL('https://api-mc.bouyguestelecom.fr/client/me/header.json', ProfilePage)
-    home = URL('https://www.bouyguestelecom.fr/mon-compte/', HomePage)
     login = URL('cas/login', LoginPage)
+    home = URL('https://www.bouyguestelecom.fr/mon-compte', HomePage)
+    profile = URL('https://api-mc.bouyguestelecom.fr/client/me/header.json', ProfilePage)
+    documents = URL('http://www.bouyguestelecom.fr/parcours/mes-factures/historique\?no_reference=(?P<ref>)', DocumentsPage)
 
     sms_page = URL('http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/sendSMS.phtml',
                    'http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/confirmSendSMS.phtml',
                    SendSMSPage)
-
     confirm = URL('http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/resultSendSMS.phtml')
-
     sms_error_page = URL('http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/SMS_erreur.phtml',
                          SendSMSErrorPage)
 
@@ -52,8 +50,10 @@ class BouyguesBrowser(LoginBrowser):
             return
 
         self.login.go()
+
         if self.home.is_here():
             return
+
         self.page.login(self.username, self.password)
 
         if not self.home.is_here():
@@ -82,13 +82,14 @@ class BouyguesBrowser(LoginBrowser):
         try:
             # Informations are available in the header.json file.
             # The only required field is the contract number
-            # which is available is the source of the homepage too.
+            # which is available in the source of the homepage too.
             # Possibly the json file contains more informations but
-            # he appears to be unavailable sometimes.
+            # it appears to be unavailable sometimes.
             return self.profile.stay_or_go().get_list()
         except ServerError:
             return self.home.stay_or_go().get_list()
 
     @need_login
     def iter_documents(self, subscription):
-        return self.bills.stay_or_go(ref=subscription._contract).get_documents(subid=subscription.id)
+        self.subid = subscription.id
+        return self.documents.stay_or_go(ref=subscription._contract).get_documents()

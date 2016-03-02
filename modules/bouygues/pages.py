@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+
 import re
 
 from weboob.capabilities.messages import CantSendMessage
@@ -25,6 +26,7 @@ from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Regexp
 from weboob.browser.elements import DictElement, ItemElement, ListElement, method
+from weboob.tools.date import parse_french_date
 
 
 class LoginPage(HTMLPage):
@@ -41,9 +43,9 @@ class HomePage(HTMLPage, LoggedPage):
         class item(ItemElement):
             klass = Subscription
 
-            obj_label = CleanText('//span[@class="ecconumteleule"]')
             obj_subscriber = CleanText('//span[@class="economligneaseule eccobold"]')
             obj_id = Env('id')
+            obj_label = CleanText('//span[@class="ecconumteleule"]')
             obj__contract = Env('contract')
 
             def parse(self, el):
@@ -91,7 +93,7 @@ class SendSMSErrorPage(HTMLPage):
         return CleanText('//span[@class="txt12-o"][1]')(self.doc)
 
 
-class BillsPage(HTMLPage):
+class DocumentsPage(HTMLPage):
     @method
     class get_documents(ListElement):
         item_xpath = '//div[@facture-id]'
@@ -100,9 +102,15 @@ class BillsPage(HTMLPage):
             klass = Bill
 
             obj__ref = CleanText('//input[@id="noref"]/@value')
-            obj_id = CleanText('./@facture-id')
-            obj_label = CleanText('./text()')
-            obj_price = CleanDecimal(CleanText('./span', replace=[(u' € ', '.')]))
+            obj_id = Format('%s_%s', Env('user'), CleanText('./@facture-id'))
+            obj__url = Format('http://www.bouyguestelecom.fr/parcours/facture/download/index?id=%s', CleanText('./@facture-id'))
+            obj_date = Env('date')
             obj_format = u"pdf"
+            obj_label = CleanText('./text()')
             obj_type = u"bill"
-            obj__url = Format('http://www.bouyguestelecom.fr/mon-compte/facture/download/index?id=%s', obj_id)
+            obj_price = CleanDecimal(CleanText('./span', replace=[(u' € ', '.')]))
+            obj_currency = u"€"
+
+            def parse(self, el):
+                self.env['user'] = self.page.browser.subid
+                self.env['date'] = parse_french_date(CleanText('./text()')(self)).date()
