@@ -72,7 +72,7 @@ class BackendListModel(QStandardItemModel):
             item = QStandardItem(backend.name)
             item.setData(backend.name, Qt.UserRole)
             item.setData(cap, Qt.UserRole + 1)
-            minfo = self.weboob.repositories.get_module_info(backend.name)
+            minfo = self.weboob.repositories.get_module_info(backend.NAME)
             icon_path = self.weboob.repositories.get_module_icon_path(minfo)
             if icon_path:
                 pixmap = QPixmapCache.find(icon_path)
