@@ -229,6 +229,10 @@ class TransactionsPage(BasePage):
                 link = a
                 break
 
+        form = self.document.xpath('//form')[-1]
+        if not form.attrib['action']:
+            return None
+
         if link is None:
             # this is a check account
             args = {'categorieMouvementSelectionnePagination': 'afficherTout',
@@ -263,8 +267,8 @@ class TransactionsPage(BasePage):
                     'paramNumCompte': '',
                    }
 
-        form = self.document.xpath('//form')[-1]
         self.browser.location(form.attrib['action'], urllib.urlencode(args))
+        return True
 
     def get_history(self):
         #DAT account can't have transaction

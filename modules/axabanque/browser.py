@@ -107,7 +107,8 @@ class AXABanque(Browser):
 
         assert self.is_on_page(TransactionsPage)
 
-        self.page.more_history()
+        if not self.page.more_history():
+            return iter([])
 
         assert self.is_on_page(TransactionsPage)
         return self.page.get_history()
