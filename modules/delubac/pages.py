@@ -21,11 +21,11 @@ import re
 from io import BytesIO
 
 from weboob.capabilities.bank import Account
-from weboob.browser.pages import HTMLPage, pagination
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.exceptions import ParseError
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Format, Date
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Format, Date, Filter
 from weboob.browser.filters.html import Link
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -61,7 +61,7 @@ class DelubacVirtKeyboard(GridVirtKeyboard):
                      '9e321e0d31a1e54510b51ae5c2e91749', 'fab5e1970f78c521a94d8aa52a88075a', 'b620c174da8d74d04139b0d334d064b5',
                      'd83eff07ba513c875dc42ec87a441989', '67b214138a7efe3f600adaea1d1cffbc', '014dc575b0a980b0037cf1e8f5ed9987',
                      '0994aab1f56f9427d1f5dbba27eb3266', 'bda8a78783bddfbb8a3bc6b03ba1c449', '1ddb303b52769096582095e70ef481a4',
-                     '344642e1a97750328f058e1dcb4cd6e9'),
+                     '344642e1a97750328f058e1dcb4cd6e9', '4250fbdcf8859e6b45fc065f1bbd3967'),
                '7': ('57b179554275be15562824284395c833', '687f5020c59bdde6edac72917cbbebc2', '6752eb433a0f72312f19b24f69ea6adb',
                      'ea6eec45008ddb61cd830bd690a3d55f'),
                '8': ('394752d62aea07c5c5f5650b3e404e88', 'dc72f59b61e18dd313e16d4ee0bb8207', '06297c98471f5a06a9c180dbb8b82305',
@@ -72,7 +72,8 @@ class DelubacVirtKeyboard(GridVirtKeyboard):
                      '3398b5e93b96c90557406ca461a55da0', '80cd1440a3b2a4b8f3480ee25e3e4c5d', 'b6429ded63ab3e6d62fb9542dc76a42d'),
                '9': ('d040ced0ae3a55365fe46b498316d734', '0f518491d0a16f91bd6e4df1f9db47b2', '59a08f18d72d52eed250cc6a88aebd40',
                      '0e474a38e1c330613e406bf738723f01', '4bfe94b095e8c4b391abf42c0a4a8dc6', '1810d4ce38929acaa8a788a35b9b5e5d',
-                     'e19ea6338bcbbcaf3e40017bea21c770', '2f2b034747480bdc583335a43b5cdcb7', '15497fc6422cd626d4d3639dbb01aa35')}
+                     'e19ea6338bcbbcaf3e40017bea21c770', '2f2b034747480bdc583335a43b5cdcb7', '15497fc6422cd626d4d3639dbb01aa35',
+                     '1bf0815fee3796e0b745207fbcc4e511',)}
 
     margin = 1
     color = (0xff,0xf7,0xff)
@@ -124,14 +125,12 @@ class LoginPage(HTMLPage):
         form['identifiantDlg'] = ''
         form.submit()
 
+    @property
+    def incorrect_auth(self):
+        return len(self.doc.xpath('//td[contains(text(), "Authentification incorrecte")]'))
 
-class LoginSuccessPage(HTMLPage):
-    logged = True
 
-
-class MenuPage(HTMLPage):
-    logged = True
-
+class MenuPage(LoggedPage, HTMLPage):
     def get_link(self, name):
         for script in self.doc.xpath('//script'):
             m = re.search(r"""\["%s",'([^']+)'""" % name, script.text or '', flags=re.MULTILINE)
@@ -145,8 +144,10 @@ class MenuPage(HTMLPage):
         return self.get_link(u'Comptes')
 
 
-class AccountsPage(HTMLPage):
-    logged = True
+class AccountsPage(LoggedPage, HTMLPage):
+    TYPES = {'COMPTE COURANT':    Account.TYPE_CHECKING,
+            }
+
     is_here = u'//title[text() = "Solde de chacun de vos comptes"]'
 
     @method
@@ -161,6 +162,13 @@ class AccountsPage(HTMLPage):
                     return False
                 return True
 
+            class Type(Filter):
+                def filter(self, label):
+                    for pattern, actype in AccountsPage.TYPES.iteritems():
+                        if pattern in label:
+                            return actype
+                    return Account.TYPE_UNKNOWN
+
             obj__title = CleanText('td[@id="idCompteIntitule"]')
             obj__nature = CleanText('td[@id="idCompteNature"]')
             obj_label = Format('%s %s', Field('_title'), Field('_nature'))
@@ -168,10 +176,10 @@ class AccountsPage(HTMLPage):
             obj_id = CleanText('td[@id="idCompteLibelle"]/a')
             obj_balance = CleanDecimal('td[@id="idCompteSolde"]', replace_dots=True)
             obj__link = Link('td[@id="idCompteLibelle"]/a')
+            obj_type = Type(Field('label'))
 
 
-class HistoryPage(HTMLPage):
-    logged = True
+class HistoryPage(LoggedPage, HTMLPage):
     is_here = u'//title[text() = "Liste des opérations sur un compte"]'
 
     @pagination

@@ -25,7 +25,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import AccountNotFound
 from weboob.capabilities.base import find_object
 
-from .pages import LoginPage, LoginSuccessPage, MenuPage, AccountsPage, HistoryPage
+from .pages import LoginPage, MenuPage, AccountsPage, HistoryPage
 
 
 __all__ = ['DelubacBrowser']
@@ -35,8 +35,8 @@ class DelubacBrowser(LoginBrowser):
     BASEURL = 'https://e.delubac.com'
 
     home = URL('/es@b/fr/esab.jsp')
-    login = URL('/es@b/fr/codeident.jsp', LoginPage)
-    login_success = URL('/es@b/servlet/internet0.ressourceWeb.servlet.Login', LoginSuccessPage)
+    login = URL('/es@b/fr/codeident.jsp',
+                '/es@b/servlet/internet0.ressourceWeb.servlet.Login', LoginPage)
     menu = URL('/es@b/fr/menuConnecte1.jsp\?c&deploye=false&pulseMenu=false&styleLien=false&dummyDate=(?P<date>.*)', MenuPage)
     accounts = URL('/es@b/servlet/internet0.ressourceWeb.servlet.EsabServlet.*', AccountsPage)
     history = URL('/es@b/servlet/internet0.ressourceWeb.servlet.ListeDesMouvementsServlet.*', HistoryPage)
@@ -47,7 +47,7 @@ class DelubacBrowser(LoginBrowser):
 
         self.page.login(self.username, self.password)
 
-        if self.login.is_here():
+        if self.page.incorrect_auth:
             raise BrowserIncorrectPassword()
 
     @need_login
