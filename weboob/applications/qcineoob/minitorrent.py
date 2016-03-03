@@ -19,6 +19,7 @@
 
 from PyQt5.QtWidgets import QFrame
 from PyQt5.QtCore import pyqtSlot as Slot
+from PyQt5.QtGui import QIcon, QImage, QPixmap, QPixmapCache
 
 from weboob.applications.qcineoob.ui.minitorrent_ui import Ui_MiniTorrent
 from weboob.applications.weboorrents.weboorrents import sizeof_fmt
@@ -40,10 +41,18 @@ class MiniTorrent(QFrame):
             self.ui.seedLeechLabel.setText('%s/%s' % (torrent.seeders, torrent.leechers))
         if not empty(torrent.size):
             self.ui.sizeLabel.setText(u'%s' % sizeof_fmt(torrent.size))
-        self.ui.backendLabel.setText(backend.name)
+        self.ui.backendButton.setText(backend.name)
+        minfo = self.weboob.repositories.get_module_info(backend.NAME)
+        icon_path = self.weboob.repositories.get_module_icon_path(minfo)
+        if icon_path:
+            pixmap = QPixmapCache.find(icon_path)
+            if not pixmap:
+                pixmap = QPixmap(QImage(icon_path))
+            self.ui.backendButton.setIcon(QIcon(pixmap))
 
         self.ui.newTabButton.clicked.connect(self.newTabPressed)
         self.ui.viewButton.clicked.connect(self.viewPressed)
+
 
     @Slot()
     def viewPressed(self):
