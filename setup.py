@@ -66,6 +66,7 @@ def install_weboob():
     hildon_scripts = set(('masstransit',))
     qt_scripts = set(('qboobmsg',
                       'qhavedate',
+                      'qgalleroob',
                       'qvideoob',
                       'weboob-config-qt',
                       'qwebcontentedit',
@@ -105,7 +106,9 @@ def install_weboob():
         'weboob.applications.qwebcontentedit',
         'weboob.applications.qwebcontentedit.ui'
         'weboob.applications.qflatboob',
-        'weboob.applications.qflatboob.ui'
+        'weboob.applications.qflatboob.ui',
+        'weboob.applications.qgalleroob',
+        'weboob.applications.qgalleroob.ui',
     ))
 
     if not options.hildon:

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=QGalleroob
+Comment=Search for galleries and images on many websites, and get info about them
+Exec=qgalleroob
+Icon=qgalleroob
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Graphics;Viewer;Qt;
+Keywords=image;gallery;view;
