@@ -327,8 +327,18 @@ class Result(QFrame):
 
     def addTorrent(self, torrent):
         minitorrent = MiniTorrent(self.weboob, self.weboob[torrent.backend], torrent, self)
-        self.ui.list_content.layout().insertWidget(self.ui.list_content.layout().count()-1,minitorrent)
-        self.minis.append(minitorrent)
+        positionToInsert = self.ui.list_content.layout().count()-1
+        # if possible, we insert the torrent keeping a sort by seed
+        if torrent.seeders != NotAvailable:
+            seeders = torrent.seeders
+            positionToInsert = 0
+            while positionToInsert < len(self.minis) and\
+            (self.minis[positionToInsert].torrent.seeders != NotAvailable and\
+                    seeders <= self.minis[positionToInsert].torrent.seeders):
+                positionToInsert += 1
+
+        self.ui.list_content.layout().insertWidget(positionToInsert, minitorrent)
+        self.minis.insert(positionToInsert, minitorrent)
 
     def displayTorrent(self, torrent, backend):
         self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
