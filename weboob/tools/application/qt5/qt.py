@@ -29,7 +29,7 @@ from PyQt5.QtCore import QTimer, QObject, QSize, QVariant, QMutex, Qt
 from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot
 from PyQt5.QtWidgets import QApplication, QCheckBox, QComboBox, QInputDialog, \
                             QLineEdit, QMainWindow, QMessageBox, QSpinBox, \
-                            QStyle, QStyledItemDelegate
+                            QStyle, QStyledItemDelegate, QStyleOptionViewItem
 from PyQt5.QtGui import QTextDocument, QAbstractTextDocumentLayout, QPalette
 
 from weboob.core.ouiboube import Weboob, VersionsMismatchError
@@ -291,6 +291,7 @@ class QtDo(QObject):
 
 class HTMLDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
+        option = QStyleOptionViewItem(option) # copy option
         self.initStyleOption(option, index)
 
         style = option.widget.style() if option.widget else QApplication.style()
