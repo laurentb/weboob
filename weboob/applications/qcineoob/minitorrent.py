@@ -58,13 +58,13 @@ class MiniTorrent(QFrame):
     def viewPressed(self):
         torrent = self.backend.get_torrent(self.torrent.id)
         if torrent:
-            self.parent.doAction('Details of torrent "%s"' %
+            self.parent.doAction('Torrent "%s"' %
                                  torrent.name, self.parent.displayTorrent, [torrent, self.backend])
 
     @Slot()
     def newTabPressed(self):
         torrent = self.backend.get_torrent(self.torrent.id)
-        self.parent.parent.newTab(u'Details of torrent "%s"' %
+        self.parent.parent.newTab(u'Torrent "%s"' %
              torrent.name, self.backend, torrent=torrent)
 
     def enterEvent(self, event):

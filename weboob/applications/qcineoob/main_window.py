@@ -45,6 +45,7 @@ from .person import Person
 from .torrent import Torrent
 from .subtitle import Subtitle
 
+MAX_TAB_TEXT_LENGTH=30
 
 class Result(QFrame):
     def __init__(self, weboob, app, parent=None):
@@ -513,7 +514,11 @@ class MainWindow(QtMainWindow):
             id = torrent.id
             stype = 'torrent'
         new_res = Result(self.weboob, self.app, self)
-        self.ui.resultsTab.addTab(new_res, txt)
+        tabtxt = txt
+        if len(tabtxt) > MAX_TAB_TEXT_LENGTH:
+            tabtxt = '%s...'%tabtxt[:MAX_TAB_TEXT_LENGTH]
+        index = self.ui.resultsTab.addTab(new_res, tabtxt)
+        self.ui.resultsTab.setTabToolTip(index, txt)
         new_res.searchId(id, stype)
 
     @Slot()
@@ -524,7 +529,14 @@ class MainWindow(QtMainWindow):
         tosearch = self.ui.typeCombo.currentText()
         lang = self.ui.langCombo.currentText()
         new_res = Result(self.weboob, self.app, self)
-        self.ui.resultsTab.addTab(new_res, pattern)
+
+        txt = 'search %s "%s"'%(tosearch, pattern)
+        tabtxt = txt
+        if len(tabtxt) > MAX_TAB_TEXT_LENGTH:
+            tabtxt = '%s...'%tabtxt[:MAX_TAB_TEXT_LENGTH]
+        index = self.ui.resultsTab.addTab(new_res, tabtxt)
+        self.ui.resultsTab.setTabToolTip(index, txt)
+
         self.ui.resultsTab.setCurrentWidget(new_res)
         new_res.search(tosearch, pattern, lang)
 

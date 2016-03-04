@@ -75,13 +75,13 @@ class MiniPerson(QFrame):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         person = self.backend.get_person(self.person.id)
         if person:
-            self.parent.doAction(u'Details of person "%s"' %
+            self.parent.doAction(u'Person "%s"' %
                                  person.name, self.parent.displayPerson, [person, self.backend])
 
     @Slot()
     def newTabPressed(self):
         person = self.backend.get_person(self.person.id)
-        self.parent.parent.newTab(u'Details of person "%s"' %
+        self.parent.parent.newTab(u'Person "%s"' %
              person.name, self.backend, person=person)
 
     def enterEvent(self, event):

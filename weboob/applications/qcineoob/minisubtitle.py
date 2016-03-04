@@ -54,13 +54,13 @@ class MiniSubtitle(QFrame):
     def viewPressed(self):
         subtitle = self.backend.get_subtitle(self.subtitle.id)
         if subtitle:
-            self.parent.doAction('Details of subtitle "%s"' %
+            self.parent.doAction('Subtitle "%s"' %
                                  subtitle.name, self.parent.displaySubtitle, [subtitle, self.backend])
 
     @Slot()
     def newTabPressed(self):
         subtitle = self.backend.get_subtitle(self.subtitle.id)
-        self.parent.parent.newTab(u'Details of subtitle "%s"' %
+        self.parent.parent.newTab(u'Subtitle "%s"' %
              subtitle.name, self.backend, subtitle=subtitle)
 
     def enterEvent(self, event):

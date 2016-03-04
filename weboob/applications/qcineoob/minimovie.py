@@ -69,13 +69,13 @@ class MiniMovie(QFrame):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         movie = self.backend.get_movie(self.movie.id)
         if movie:
-            self.parent.doAction('Details of movie "%s"' %
+            self.parent.doAction('Movie "%s"' %
                                  movie.original_title, self.parent.displayMovie, [movie, self.backend])
 
     @Slot()
     def newTabPressed(self):
         movie = self.backend.get_movie(self.movie.id)
-        self.parent.parent.newTab(u'Details of movie "%s"' %
+        self.parent.parent.newTab(u'Movie "%s"' %
              movie.original_title, self.backend, movie=movie)
 
     def enterEvent(self, event):
