@@ -73,13 +73,13 @@ class MiniRecipe(QFrame):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         recipe = self.backend.get_recipe(self.recipe.id)
         if recipe:
-            self.parent.doAction('Details of recipe "%s"' %
+            self.parent.doAction('Recipe "%s"' %
                                  recipe.title, self.parent.displayRecipe, [recipe, self.backend])
 
     @Slot()
     def newTabPressed(self):
         recipe = self.backend.get_recipe(self.recipe.id)
-        self.parent.parent.newTab(u'Details of recipe "%s"' %
+        self.parent.parent.newTab(u'Recipe "%s"' %
              recipe.title, self.backend, recipe=recipe)
 
     def enterEvent(self, event):
