@@ -45,7 +45,7 @@ class IndexPage(LoggedPage, HTMLPage):
 
     @method
     class iter_accounts(ListElement):
-        item_xpath = '//tr[td[1]//a[@class="adhesionLink"]]'
+        item_xpath = '//div[@id="adhesions"]/table//tr[td//a]'
 
         class item(ItemElement):
             klass = Account
@@ -53,7 +53,7 @@ class IndexPage(LoggedPage, HTMLPage):
             obj_id = CleanText('.//a')
             obj_label = CleanText('.//td[3]')
             obj_currency = u'EUR'
-            obj_balance = CleanDecimal('.//td[7]', replace_dots=True)
+            obj_balance = CleanDecimal('.//td[last()-2]', replace_dots=True)
             obj_type = Account.TYPE_LIFE_INSURANCE
 
 
