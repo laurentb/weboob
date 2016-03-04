@@ -19,7 +19,7 @@
 
 import urllib
 
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtGui import QIcon, QImage, QPixmap, QPixmapCache
 from PyQt5.QtWidgets import QFrame, QApplication
 from PyQt5.QtCore import Qt, pyqtSlot as Slot
 
@@ -39,7 +39,14 @@ class MiniMovie(QFrame):
         self.movie = movie
         self.ui.titleLabel.setText(movie.original_title)
         self.ui.shortDescLabel.setText(movie.short_description)
-        self.ui.backendLabel.setText(backend.name)
+        self.ui.backendButton.setText(backend.name)
+        minfo = self.weboob.repositories.get_module_info(backend.NAME)
+        icon_path = self.weboob.repositories.get_module_icon_path(minfo)
+        if icon_path:
+            pixmap = QPixmapCache.find(icon_path)
+            if not pixmap:
+                pixmap = QPixmap(QImage(icon_path))
+            self.ui.backendButton.setIcon(QIcon(pixmap))
 
         self.ui.newTabButton.clicked.connect(self.newTabPressed)
         self.ui.viewButton.clicked.connect(self.viewPressed)

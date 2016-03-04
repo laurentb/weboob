@@ -19,6 +19,7 @@
 
 from PyQt5.QtWidgets import QFrame
 from PyQt5.QtCore import pyqtSlot as Slot
+from PyQt5.QtGui import QIcon, QImage, QPixmap, QPixmapCache
 
 from weboob.applications.qcineoob.ui.minisubtitle_ui import Ui_MiniSubtitle
 from weboob.capabilities.base import empty
@@ -37,7 +38,14 @@ class MiniSubtitle(QFrame):
         self.ui.nameLabel.setText(subtitle.name)
         if not empty(subtitle.nb_cd):
             self.ui.nbcdLabel.setText(u'%s' % subtitle.nb_cd)
-        self.ui.backendLabel.setText(backend.name)
+        self.ui.backendButton.setText(backend.name)
+        minfo = self.weboob.repositories.get_module_info(backend.NAME)
+        icon_path = self.weboob.repositories.get_module_icon_path(minfo)
+        if icon_path:
+            pixmap = QPixmapCache.find(icon_path)
+            if not pixmap:
+                pixmap = QPixmap(QImage(icon_path))
+            self.ui.backendButton.setIcon(QIcon(pixmap))
 
         self.ui.newTabButton.clicked.connect(self.newTabPressed)
         self.ui.viewButton.clicked.connect(self.viewPressed)
