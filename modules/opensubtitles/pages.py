@@ -107,14 +107,14 @@ class SubtitlePage(Page):
 
     def get_subtitle(self):
         desc = NotAvailable
-        a = self.parser.select(self.document.getroot(), 'a#bt-dwl', 1)
-        id = a.attrib.get('rel', '').split('/')[-1]
+        a = self.parser.select(self.document.getroot(), 'a#bt-dwl-bt', 1)
+        id = a.attrib.get('data-product-id', '')
         m = re.match('Download \((\w+)\)', self.parser.tocleanstring(a))
         if m:
             ext = m.group(1)
         else:
             ext = u'zip'
-        url = unicode('http://www.opensubtitles.org/subtitleserve/sub/%s' % id)
+        url = unicode('http://www.opensubtitles.org/en/subtitleserve/sub/%s' % id)
         link = self.parser.select(self.document.getroot(), 'link[rel=bookmark]', 1)
         title = unicode(link.attrib.get('title', ''))
         nb_cd = int(title.lower().split('cd')[0].split()[-1])
