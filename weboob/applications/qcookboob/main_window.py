@@ -52,6 +52,7 @@ class Result(QFrame):
         # An action is a function, a list of arguments and a description string
         self.action_history = {'last_action': None, 'action_list': []}
         self.ui.backButton.clicked.connect(self.doBack)
+        self.ui.backButton.setShortcut(QKeySequence('Alt+Left'))
         self.ui.backButton.hide()
 
     def doAction(self, description, fun, args):
@@ -61,7 +62,7 @@ class Result(QFrame):
         self.ui.currentActionLabel.setText(description)
         if self.action_history['last_action'] is not None:
             self.action_history['action_list'].append(self.action_history['last_action'])
-            self.ui.backButton.setToolTip(self.action_history['last_action']['description'])
+            self.ui.backButton.setToolTip('%s (Alt+Left)'%self.action_history['last_action']['description'])
             self.ui.backButton.show()
         self.action_history['last_action'] = {'function': fun, 'args': args, 'description': description}
         return fun(*args)
