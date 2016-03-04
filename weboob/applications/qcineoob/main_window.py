@@ -76,6 +76,13 @@ class Result(QFrame):
             self.ui.backButton.setToolTip('%s (Alt+Left)'%self.action_history['last_action']['description'])
             self.ui.backButton.show()
         self.action_history['last_action'] = {'function': fun, 'args': args, 'description': description}
+        # manage tab text
+        mytabindex = self.parent.ui.resultsTab.indexOf(self)
+        tabtxt = description
+        if len(tabtxt) > MAX_TAB_TEXT_LENGTH:
+            tabtxt = '%s...'%tabtxt[:MAX_TAB_TEXT_LENGTH]
+        self.parent.ui.resultsTab.setTabText(mytabindex, tabtxt)
+        self.parent.ui.resultsTab.setTabToolTip(mytabindex, description)
         return fun(*args)
 
     @Slot()
@@ -91,6 +98,14 @@ class Result(QFrame):
                 self.ui.backButton.hide()
             else:
                 self.ui.backButton.setToolTip(self.action_history['action_list'][-1]['description'])
+            # manage tab text
+            mytabindex = self.parent.ui.resultsTab.indexOf(self)
+            tabtxt = todo['description']
+            if len(tabtxt) > MAX_TAB_TEXT_LENGTH:
+                tabtxt = '%s...'%tabtxt[:MAX_TAB_TEXT_LENGTH]
+            self.parent.ui.resultsTab.setTabText(mytabindex, tabtxt)
+            self.parent.ui.resultsTab.setTabToolTip(mytabindex, todo['description'])
+
             return todo['function'](*todo['args'])
 
     def castingAction(self, backend_name, id, role):
