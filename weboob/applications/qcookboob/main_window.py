@@ -269,7 +269,7 @@ class MainWindow(QtMainWindow):
             id = recipe.id
         new_res = Result(self.weboob, self.app, self)
         self.ui.resultsTab.addTab(new_res, txt)
-        new_res.searchId(id)
+        new_res.searchId('%s@%s'%(id,backend.NAME))
 
     @Slot()
     def search(self):
