@@ -159,7 +159,7 @@ class _AccountsPage(BasePage):
             account = Account()
             account.id = self.parser.tocleanstring(cols[self.COL_ID])
             account.label = self.parser.tocleanstring(cols[self.COL_LABEL])
-            account.type = account_type or self.TYPES.get(account.label, Account.TYPE_UNKNOWN)
+            account.type = self.TYPES.get(account.label, Account.TYPE_UNKNOWN) or account_type
             balance = self.parser.tocleanstring(cols[self.COL_VALUE])
             # we have to ignore those accounts, because using NotAvailable
             # makes boobank and probably many others crash
