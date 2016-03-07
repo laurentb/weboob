@@ -29,7 +29,7 @@ from weboob.tools.date import LinearDateGuesser
 from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, \
                    SavingsPage, TransactionsPage, UselessPage, CardsPage, \
                    LifeInsurancePage, MarketPage, LoansPage, PerimeterPage, \
-                   ChgPerimeterPage
+                   ChgPerimeterPage, MarketHomePage
 
 
 __all__ = ['Cragr']
@@ -56,6 +56,7 @@ class Cragr(Browser):
              'https?://[^/]+/stb/collecteNI\?.*fwkaction=Cartes.*':      CardsPage,
              'https?://[^/]+/stb/collecteNI\?.*fwkaction=Detail.*sessionAPP=Cartes.*': CardsPage,
              'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.WalletVal\?nump=.*': MarketPage,
+             'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis': MarketHomePage,
              'https://assurance-personnes.credit-agricole.fr:443/filiale/entreeBam\?identifiantBAM=.*': LifeInsurancePage,
 
              'https?://[^/]+/stb/entreeBam\?.*act=Perimetre':        PerimeterPage,
@@ -231,6 +232,16 @@ class Cragr(Browser):
             for account in self.page.get_list():
                 if account not in accounts_list:
                     accounts_list.append(account)
+
+        # update market accounts
+        for account in accounts_list:
+            if account.type == Account.TYPE_MARKET:
+                new_location = self.moveto_market_website(account, home=True)
+                self.location(new_location)
+                self.page.update(accounts_list)
+                self.quit_market_website()
+                break
+
         return accounts_list
 
     def get_account(self, id, no_move=False):
@@ -306,7 +317,7 @@ class Cragr(Browser):
         elif account.type == Account.TYPE_LIFE_INSURANCE:
             self.quit_insurance_website()
 
-    def moveto_market_website(self, account):
+    def moveto_market_website(self, account, home=False):
         response = self.openurl(account._link % self.sag).read()
         self._sag = None
         # https://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.navigation.AccueilBridge?TOKEN_ID=
@@ -318,6 +329,8 @@ class Cragr(Browser):
             raise self.WebsiteNotSupported()
 
         self.openurl(url)
+        if home:
+            return 'https://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis'
         parsed = urlparse(url)
         url = '%s://%s/netfinca-titres/servlet/com.netfinca.frontcr.account.WalletVal?nump=%s:%s'
         return url % (parsed.scheme, parsed.netloc, account.id, self.code_caisse)

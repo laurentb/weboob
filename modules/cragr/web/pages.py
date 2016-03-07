@@ -556,6 +556,20 @@ class MarketPage(BasePage):
         return Decimal(Transaction.clean_amount(value))
 
 
+class MarketHomePage(MarketPage):
+    COL_ID_LABEL = 1
+    COL_VALUATION = 5
+    def update(self, accounts):
+        for line in self.document.xpath('//table[contains(@class, "tableau_comptes_details")]/tbody/tr'):
+            cells = line.findall('td')
+
+            id  = cells[self.COL_ID_LABEL].find('div[2]').text.strip()
+            for account in accounts:
+                if account.id == id:
+                    account.label = unicode(cells[self.COL_ID_LABEL].find('div/b').text.strip())
+                    account.balance = self.parse_decimal(cells[self.COL_VALUATION].text)
+
+
 class LifeInsurancePage(MarketPage):
     COL_ID = 0
     COL_QUANTITY = 3
