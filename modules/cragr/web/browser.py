@@ -146,7 +146,7 @@ class Cragr(Browser):
         if not url.startswith('http'):
             raise BrowserIncorrectPassword(url)
 
-        self.location(url)
+        self.location(url.replace('Synthese', 'Synthcomptes'))
 
         if self.is_on_page(LoginErrorPage):
             raise BrowserIncorrectPassword()

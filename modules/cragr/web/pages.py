@@ -378,7 +378,8 @@ class SavingsPage(_AccountsPage):
     def set_link(self, account, cols):
         if not account._link:
             a = cols[0].xpath('descendant::a[contains(@href, "CATITRES")]')
-            if a:
+            # Sometimes there is no link.
+            if a or account.type == Account.TYPE_MARKET:
                 url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&site=CATITRES&typeaction=reroutage_aller'
                 account._link = url % self.browser.request.host
 
