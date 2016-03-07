@@ -25,16 +25,14 @@ from .pages import LoginPage, AccountsPage, AccountDetailPage, AccountHistoryPag
 
 
 class AmundiBrowser(LoginBrowser):
-    TIMEOUT = 60.0
+    TIMEOUT = 120.0
 
     BASEURL = 'https://www.amundi-ee.com'
 
     login = URL('/part/home_login', LoginPage)
-    accounts = URL('https://www.amundi-ee.com/part/home_ajax_noee\?api=/api/individu/positionTotale', AccountsPage)
+    accounts = URL('/part/home_ajax_noee\?api=/api/individu/positionTotale', AccountsPage)
     account_detail = URL('/part/home_priv_epa_encours', AccountDetailPage)
-    account_history = URL(
-        '/part/home_ajax_noee\?api=/api/individu/operations&valeurExterne=true&statut=CPTA&filtreStatutModeExclusion=false',
-        AccountHistoryPage)
+    account_history = URL('/part/home_ajax_noee\?api=/api/individu/operations', AccountHistoryPage)
 
     def do_login(self):
         """
@@ -60,5 +58,8 @@ class AmundiBrowser(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
-        self.account_history.go()
-        return self.page.iter_history(data={'acc': account})
+        self.account_history.go(params={'limit':1})
+        total=int(self.page.doc['nbOperationsIndividuelles'])
+        params={'valeurExterne':'false','statut':'CPTA','filtreStatutModeExclusion':'false','limit':100, 'offset':0}
+        self.account_history.go(params=params)
+        return self.page.iter_history(data={'acc': account, 'params':params, 'total':total})

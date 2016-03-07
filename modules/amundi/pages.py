@@ -17,15 +17,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 from datetime import datetime
 from decimal import Decimal
 
+import urlparse
+
 from weboob.browser.elements import ItemElement, method, TableElement
 from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell
-from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
+from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage, pagination
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
+from weboob.browser.pages import NextPage
 
 
 class FakePage(HTMLPage):
@@ -93,7 +95,8 @@ class AccountDetailPage(LoggedPage, HTMLPage):
 
             def obj_vdate(self):
                 try:
-                    return datetime.strptime(CleanText(TableCell('sup'))(self).split('au')[1].split(':')[0].strip(), '%d/%m/%Y')
+                    return datetime.strptime(CleanText(TableCell('sup'))(self).split('au')[1].split(':')[0].strip(),
+                                             '%d/%m/%Y')
                 except IndexError:
                     return NotAvailable
 
@@ -101,25 +104,36 @@ class AccountDetailPage(LoggedPage, HTMLPage):
 
 
 class AccountHistoryPage(LoggedPage, JsonPage):
+    @pagination
     def iter_history(self, data):
         for hist in self.doc['operationsIndividuelles']:
-            if hist['instructions'][0]['nomDispositif'] == data['acc'].label:
-                tr = Transaction()
-                tr.amount = Decimal(hist['montantNet']) + Decimal(hist['montantNetAbondement'])
-                tr.rdate = datetime.strptime(hist['dateComptabilisation'].split('T')[0], '%Y-%m-%d')
-                tr.date = tr.rdate
-                tr.label = hist['libelleOperation']
-                tr.type = Transaction.TYPE_UNKNOWN
-                tr.investments = []
-                for ins in hist['instructions']:
-                    inv = Investment()
-                    inv.code = NotAvailable
-                    inv.label = ins['nomFonds']
-                    inv.description = ' '.join([ins['type'], ins['nomDispositif']])
-                    inv.vdate = datetime.strptime(ins.get('dateVlReel', ins.get('dateVlExecution')).split('T')[0], '%Y-%m-%d')
-                    inv.valuation = Decimal(ins['montantNet'])
-                    inv.quantity = Decimal(ins['nombreDeParts'])
-                    inv.unitprice = inv.unitvalue = Decimal(ins['vlReel'])
-                    tr.investments.append(inv)
+            if len(hist['instructions']) > 0:
+                if hist['instructions'][0]['nomDispositif'] + hist['instructions'][0]['codeDispositif'] == data[
+                    'acc'].label + data['acc'].id:
+                    tr = Transaction()
+                    tr.amount = Decimal(hist['montantNet']) + Decimal(hist['montantNetAbondement'])
+                    tr.rdate = datetime.strptime(hist['dateComptabilisation'].split('T')[0], '%Y-%m-%d')
+                    tr.date = tr.rdate
+                    tr.label = hist['libelleOperation']
+                    tr.type = Transaction.TYPE_UNKNOWN
 
-                yield tr
+                    # Bypassed because we don't have the ISIN code
+                    # tr.investments = []
+                    # for ins in hist['instructions']:
+                    #     inv = Investment()
+                    #     inv.code = NotAvailable
+                    #     inv.label = ins['nomFonds']
+                    #     inv.description = ' '.join([ins['type'], ins['nomDispositif']])
+                    #     inv.vdate = datetime.strptime(ins.get('dateVlReel', ins.get('dateVlExecution')).split('T')[
+                    # 0], '%Y-%m-%d')
+                    #     inv.valuation = Decimal(ins['montantNet'])
+                    #     inv.quantity = Decimal(ins['nombreDeParts'])
+                    #     inv.unitprice = inv.unitvalue = Decimal(ins['vlReel'])
+                    #     tr.investments.append(inv)
+
+                    yield tr
+        if data['total'] > data['params']['limit'] * (data['params']['offset'] + 1):
+            offset=data['params']['offset']
+            self.url=self.url.replace('&offset='+str(offset),'&offset='+str(offset+1))
+            data['params']['offset'] += 1
+            raise NextPage(self.url)
