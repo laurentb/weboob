@@ -31,7 +31,7 @@ class AmazonFR(Amazon):
     BASEURL = 'https://www.amazon.fr'
     CURRENCY = u'€'
     home = URL(r'/$', r'.*/homepage\.html.*', HomePage)
-    login = URL(r'/ap/signin/.*$', LoginPage)
+    login = URL(r'/ap/signin.*$', LoginPage)
     history = URL(r'/gp/css/order-history.*$',
                   r'/gp/your-account/order-history.*$', HistoryPage)
     order_old = URL(r'/gp/css/summary.*$',
@@ -43,4 +43,4 @@ class AmazonFR(Amazon):
                     r'/gp/your-account/order-details.*$',
                     r'/gp/your-account/order-details\?orderID=%\(order_id\)s',
                     OrderNewPage)
-    unknown = URL(r'/.*$', AmazonPage)
+    unknown = URL(r'*', AmazonPage)

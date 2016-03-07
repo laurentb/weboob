@@ -37,7 +37,7 @@ class Amazon(LoginBrowser):
     MAX_RETRIES = 10
     CURRENCY = u'$'
     home = URL(r'/$', r'http://www.amazon.com/$', HomePage)
-    login = URL(r'/ap/signin/.*$', LoginPage)
+    login = URL(r'/ap/signin.*$', LoginPage)
     history = URL(r'/gp/css/order-history.*$',
                   r'/gp/your-account/order-history.*$', HistoryPage)
     order_old = URL(r'/gp/css/summary.*$',
@@ -49,7 +49,7 @@ class Amazon(LoginBrowser):
                     r'/gp/your-account/order-details.*$',
                     r'/gp/your-account/order-details\?orderID=%\(order_id\)s',
                     OrderNewPage)
-    unknown = URL(r'/.*$', AmazonPage)
+    unknown = URL(r'*', AmazonPage)
 
     def get_currency(self):
         return self.CURRENCY
@@ -135,81 +135,3 @@ class Amazon(LoginBrowser):
             b.currency = b.get_currency(self.get_currency())
             b.vat = o.tax
             yield b
-
-LOGIN_JS = u'''\
-var TIMEOUT = %(timeout)s*1000; // milliseconds
-var page = require('webpage').create();
-page.settings.userAgent = "%(agent)s";
-page.open('%(baseurl)s');
-
-var waitForForm = function() {
-  var hasForm1 = page.evaluate(function(){
-    return !!document.getElementById('ap_signin_form')
-  });
-  var hasForm2 = page.evaluate(function(){
-    return document.getElementsByName('signIn').length > 0;
-  });
-  if (hasForm1) {
-    page.evaluate(function(){
-      document.getElementById('ap_email').value = '%(username)s';
-      document.getElementById('ap_password').value = '%(password)s';
-      document.getElementById('ap_signin_form').submit();
-    });
-  } else if (hasForm2) {
-    page.evaluate(function(){
-      document.getElementById('ap_email').value = '%(username)s';
-      document.getElementById('ap_password').value = '%(password)s';
-      document.getElementsByName('signIn').item(0).submit();
-    });
-  } else {
-    setTimeout(waitForForm, 1000);
-  }
-}
-
-var waitForLink = function() {
-  var hasLink1 = page.evaluate(function(){
-    return !!document.getElementById('nav-link-yourAccount');
-  });
-  var hasLink2 = page.evaluate(function(){
-    return !!document.getElementById('nav-your-account');
-  });
-  var hasLink3 = page.evaluate(function(){
-    return !!document.getElementById('nav-signin-tooltip');
-  });
-  if (hasLink1) {
-    page.evaluate(function(){
-      var a = document.getElementById('nav-link-yourAccount');
-      window.location = a.getAttribute('href');
-    });
-  } else if (hasLink2) {
-    page.evaluate(function(){
-      var a = document.getElementById('nav-your-account');
-      window.location = a.getAttribute('href');
-    });
-  } else if (hasLink3) {
-    page.evaluate(function(){
-      var d = document.getElementById('nav-signin-tooltip');
-      var a = d.getElementsByClassName('nav-action-button')[0];
-      window.location = a.getAttribute('href');
-    });
-  } else {
-    setTimeout(waitForLink, 1000);
-  }
-}
-
-var waitForLogin = function() {
-  var hasSignOut = page.content.indexOf('Sign Out') != -1;
-  if (hasSignOut) {
-    var cookies = JSON.stringify(phantom.cookies);
-    require('fs').write('%(output)s', cookies, 'w');
-    phantom.exit();
-  } else {
-    setTimeout(waitForLogin, 2000);
-  }
-}
-
-waitForForm();
-waitForLink();
-waitForLogin();
-setTimeout(function(){phantom.exit(-1);}, TIMEOUT);
-'''
