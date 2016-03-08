@@ -52,7 +52,8 @@ class LoginPage(HTMLPage):
         func_name = re.search(r'function (\w+)\(\)', code1).group(1)
         token = str(js.call(func_name))
         csrf = re.search(r'csrf="\+encodeURIComponent\("(.*?)"\)', code).group(1)
-        return token, csrf
+        key, value = re.search(r'"/auth/verifychallenge",t,"([^"]+)","([^"]+)"', code).groups()
+        return token, csrf, key, value
 
     def login(self, login, password):
         #Paypal use this to check if we accept cookie

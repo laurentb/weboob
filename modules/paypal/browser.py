@@ -82,10 +82,11 @@ class Paypal(LoginBrowser):
             self.location('/signin/')
 
         response = self.open(self.page.get_script_url())
-        token, csrf = self.page.get_token_and_csrf(response.text)
+        token, csrf, key, value = self.page.get_token_and_csrf(response.text)
         data = {}
         data['ads_token_js'] = token
         data['_csrf'] = csrf
+        data[key] = value
         data = urllib.urlencode(data)
         self.open('/auth/verifychallenge', data=data)
         res = self.page.login(self.username, self.password)
