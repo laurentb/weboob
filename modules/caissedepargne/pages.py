@@ -441,6 +441,11 @@ class MarketPage(Page):
         valuation_diff = re.sub(r'\(.*\)', '', self.document.xpath(u'//td[contains(text(), "values latentes")]/following-sibling::*[1]')[0].text)
         account.valuation_diff = Decimal(FrenchTransaction.clean_amount(valuation_diff))
 
+    def is_on_right_portfolio(self, account):
+        return len(self.document.xpath('//form[@class="choixCompte"]//option[@selected and contains(text(), "%s")]' % account._info['id']))
+
+    def get_compte(self, account):
+        return self.document.xpath('//option[contains(text(), "%s")]/@value' % account._info['id'])[0]
 
 class LifeInsurance(MarketPage):
     def get_cons_repart(self):

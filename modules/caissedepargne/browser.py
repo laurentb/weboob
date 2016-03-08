@@ -40,7 +40,7 @@ class CaisseEpargne(Browser):
              'https://[^/]+/page_hs_dei_.*.aspx':                         UnavailablePage,
              'https://[^/]+/Pages/Bourse.*':                              MarketPage,
              'https://www.caisse-epargne.offrebourse.com/ReroutageSJR':   MarketPage,
-             'https://www.caisse-epargne.offrebourse.com/Portefeuille':   MarketPage,
+             'https://www.caisse-epargne.offrebourse.com/Portefeuille.*': MarketPage,
              'https://[^/]+/Assurance/Pages/Assurance.aspx':              LifeInsurance,
              'https://www.extranet2.caisse-epargne.fr.*':                 LifeInsurance,
              'https://www.caisse-epargne.offrebourse.com/DetailMessage\?refresh=O': GarbagePage,
@@ -167,6 +167,8 @@ class CaisseEpargne(Browser):
             if self.page.is_error():
                 return iter([])
             self.location('https://www.caisse-epargne.offrebourse.com/Portefeuille')
+            if not self.page.is_on_right_portfolio(account):
+                self.location('https://www.caisse-epargne.offrebourse.com/Portefeuille?compte=%s' % self.page.get_compte(account))
         elif account.type is Account.TYPE_LIFE_INSURANCE:
             try:
                 self.page.go_life_insurance(account)
