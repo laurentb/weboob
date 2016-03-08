@@ -22,7 +22,7 @@ import time
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import AccountNotFound
+from weboob.capabilities.bank import AccountNotFound, Account
 from weboob.tools.json import json
 from weboob.browser.exceptions import ServerError
 
@@ -103,7 +103,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
         self.market_syn.go(data=JSON({}))
         for account in accounts:
             for market_acc in self.page.get_list():
-                if account.label == market_acc['securityAccountName']:
+                if account.label == market_acc['securityAccountName'] and account.type == Account.TYPE_MARKET:
                     account.valuation_diff = market_acc['profitLoss']
                     break
             yield account

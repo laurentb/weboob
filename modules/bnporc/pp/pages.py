@@ -166,6 +166,10 @@ class AccountsPage(BNPPage):
         9: Account.TYPE_LOAN,
     }
 
+    LABEL_TO_TYPE = {
+        u'PEA Espèces':    Account.TYPE_SAVINGS,
+    }
+
     def iter_accounts(self, ibans):
         for f in self.path('data.infoUdc.familleCompte.*'):
             for a in f.get('compte'):
@@ -173,7 +177,7 @@ class AccountsPage(BNPPage):
                     'id': a.get('key'),
                     'label': a.get('libellePersoProduit') or a.get('libelleProduit'),
                     'currency': a.get('devise'),
-                    'type': self.FAMILY_TO_TYPE.get(f.get('idFamilleCompte')) or Account.TYPE_UNKNOWN,
+                    'type': self.LABEL_TO_TYPE.get(a.get('libelleProduit')) or self.FAMILY_TO_TYPE.get(f.get('idFamilleCompte')) or Account.TYPE_UNKNOWN,
                     'balance': a.get('soldeDispo'),
                     'coming': a.get('soldeAVenir'),
                     'iban': ibans.get(a.get('key')),
