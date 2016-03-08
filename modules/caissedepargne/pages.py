@@ -274,6 +274,10 @@ class IndexPage(Page):
             self.browser['m_ScriptManager'] = 'm_ScriptManager|Menu_AJAX'
 
         try:
+            self.browser.controls.remove(self.browser.find_control(name='MM$HISTORIQUE_COMPTE$btnCumul'))
+        except:
+            pass
+        try:
             self.browser.controls.remove(self.browser.find_control(name='Cartridge$imgbtnMessagerie', type='image'))
             self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageFondMessagerie', type='image'))
             self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageMessagerie', type='image'))
