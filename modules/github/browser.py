@@ -18,9 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser
-from weboob.tools.json import json as json_module
-from base64 import b64encode
+from weboob.browser.browsers import APIBrowser
+from weboob.browser.exceptions import ClientError
 import datetime
 import re
 import os
@@ -30,25 +29,21 @@ from urllib import quote_plus
 __all__ = ['GithubBrowser']
 
 
-class GithubBrowser(Browser):
-    PROTOCOL = 'https'
-    DOMAIN = 'api.github.com'
-    ENCODING = 'utf-8'
+class GithubBrowser(APIBrowser):
+    BASEURL = 'https://api.github.com'
 
-    def __init__(self, *a, **kw):
-        kw['parser'] = 'json'
-        Browser.__init__(self, *a, **kw)
+    def __init__(self, username, password, *a, **kw):
+        super(GithubBrowser, self).__init__(*a, **kw)
+        self.username = username
+        self.password = password
         self.fewer_requests = not bool(self.username)
 
-    def home(self):
-        pass
-
     def get_project(self, project_id):
-        json = self.do_get('https://api.github.com/repos/%s' % project_id)
+        json = self.request('https://api.github.com/repos/%s' % project_id)
         return {'name': json['name'], 'id': project_id}
 
     def get_issue(self, project_id, issue_number):
-        json = self.do_get('https://api.github.com/repos/%s/issues/%s' % (project_id, issue_number))
+        json = self.request('https://api.github.com/repos/%s/issues/%s' % (project_id, issue_number))
         return self._make_issue(project_id, issue_number, json)
 
     def iter_project_issues(self, project_id):
@@ -82,19 +77,19 @@ class GithubBrowser(Browser):
                 break
 
     def post_issue(self, issue):
-        base_data = self._issue_post_body(issue)
+        base_data = self._issue_post_data(issue)
         url = 'https://api.github.com/repos/%s/issues' % issue.project.id
-        json = self.do_post(url, base_data)
+        json = self.request(url, data=base_data)
         issue_number = json['id']
         return self._make_issue(issue.project.id, issue_number, json)
 
     def edit_issue(self, issue, issue_number):
-        base_data = self._issue_post_body(issue)
+        base_data = self._issue_post_data(issue)
         url = 'https://api.github.com/repos/%s/issues/%s' % (issue.project.id, issue_number)
-        self.do_patch(url, base_data)
+        self.open(url, data=base_data, method='PATCH')
         return issue
 
-    def _issue_post_body(self, issue):
+    def _issue_post_data(self, issue):
         data = {'title': issue.title, 'body': issue.body}
         if issue.assignee:
             data['assignee'] = issue.assignee.id
@@ -102,13 +97,13 @@ class GithubBrowser(Browser):
             data['milestone'] = issue.version.id
         if issue.status:
             data['state'] = issue.status.name # TODO improve if more statuses are implemented
-        return json_module.dumps(data)
+        return data
 
     def post_comment(self, issue_id, comment):
         project_id, issue_number = issue_id.rsplit('/', 1)
         url = 'https://api.github.com/repos/%s/issues/%s/comments' % (project_id, issue_number)
-        data = json_module.dumps({'body': comment})
-        self.do_post(url, data)
+        data = {'body': comment}
+        self.request(url, data=data)
 
     # helpers
     def _make_issue(self, project_id, issue_number, json):
@@ -129,11 +124,11 @@ class GithubBrowser(Browser):
         return d
 
     def iter_milestones(self, project_id):
-        for jmilestone in self.do_get('https://api.github.com/repos/%s/milestones' % project_id):
+        for jmilestone in self.request('https://api.github.com/repos/%s/milestones' % project_id):
             yield {'id': jmilestone['number'], 'name': jmilestone['title']}
 
     def iter_comments(self, project_id, issue_number):
-        json = self.do_get('https://api.github.com/repos/%s/issues/%s/comments' % (project_id, issue_number))
+        json = self.request('https://api.github.com/repos/%s/issues/%s/comments' % (project_id, issue_number))
         for jcomment in json:
             d = {'id': jcomment['id'], 'message': jcomment['body'], 'author': jcomment['user']['login'], 'date': parse_date(jcomment['created_at'])}
             d['attachments'] = list(self._extract_attachments(d['message']))
@@ -150,11 +145,11 @@ class GithubBrowser(Browser):
                 page_url = '%s&per_page=100&page=%s' % (url, start_at)
             else:
                 page_url = '%s?per_page=100&page=%s' % (url, start_at)
-            yield self.do_get(page_url)
+            yield self.request(page_url)
             start_at += 1
 
     def get_user(self, _id):
-        json = self.do_get('https://api.github.com/users/%s' % _id)
+        json = self.request('https://api.github.com/users/%s' % _id)
         if 'name' in json:
             name = json['name']
         else:
@@ -168,35 +163,41 @@ class GithubBrowser(Browser):
             if len(json) < 100:
                 break
 
-    def do_get(self, url):
-        headers = self.auth_headers()
-        headers.update({'Accept': 'application/vnd.github.preview'})
-        req = self.request_class(url, None, headers=headers)
-        return self.get_document(self.openurl(req))
+    def get_rate_limit(self):
+        return self.request('/rate_limit')
 
-    def do_post(self, url, data):
-        headers = self.auth_headers()
-        headers.update({'Accept': 'application/vnd.github.preview'})
-        req = self.request_class(url, data, headers=headers)
-        return self.get_document(self.openurl(req))
+    def _extract_rate_info(self, headers):
+        left = headers.get('X-RateLimit-Remaining')
+        total = headers.get('X-RateLimit-Limit')
+        end = headers.get('X-RateLimit-Reset')
+        return left, total, end
 
-    def do_patch(self, url, data):
-        class PatchRequest(self.request_class):
-            def get_method(self):
-                return 'PATCH'
-        headers = self.auth_headers()
-        headers.update({'Accept': 'application/vnd.github.preview'})
-        req = PatchRequest(url, data, headers=headers)
-        return self.get_document(self.openurl(req))
+    def open(self, *args, **kwargs):
+        if 'headers' not in kwargs:
+            kwargs['headers'] = {}
+        kwargs['headers']['Accept'] = 'application/vnd.github.v3+json'
+        kwargs.update(**self.auth_headers())
+
+        left = total = end = None
+        try:
+            ret = super(GithubBrowser, self).open(*args, **kwargs)
+        except ClientError as err:
+            left, total, end = self._extract_rate_info(err.response.headers)
+            raise
+        else:
+            left, total, end = self._extract_rate_info(ret.headers)
+        finally:
+            self.logger.debug('github API request quota: %s/%s (end at %s)',
+                              left, total, end)
+        return ret
 
     def auth_headers(self):
         if self.username:
-            return {'Authorization': 'Basic %s' % b64encode('%s:%s' % (self.username, self.password))}
+            return {'auth': (self.username, self.password)}
         else:
             return {}
 
 # TODO use a cache for objects and/or pages?
-# TODO use an api-key?
 
 
 def parse_date(s):
