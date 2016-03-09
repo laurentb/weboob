@@ -222,10 +222,11 @@ class ValueBackendPassword(Value):
 
         # Prompt user to enter password by hand.
         if not self.noprompt and 'login' in self._callbacks:
-            self._value = to_unicode(self._callbacks['login'](self._domain, self))
+            self._value = self._callbacks['login'](self._domain, self)
             if self._value is None:
                 self._value = ''
             else:
+                self._value = to_unicode(self._value)
                 self._stored = False
         return self._value
 
