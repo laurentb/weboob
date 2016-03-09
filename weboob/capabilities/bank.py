@@ -87,6 +87,12 @@ class Account(Recipient):
     "Card account"
     TYPE_LIFE_INSURANCE   = 8
     "Life insurances"
+    TYPE_PEE              = 9
+    "Employee savings PEE"
+    TYPE_PERCO            = 10
+    "Employee savings PERCO"
+    TYPE_ARTICLE_83       = 11
+    "Article 83"
 
     type =      IntField('Type of account', default=TYPE_UNKNOWN)
     balance =   DecimalField('Balance on this bank account')
