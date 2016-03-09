@@ -19,56 +19,52 @@
 
 
 from urlparse import urlsplit, parse_qsl
+from urllib import urlencode
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword
+from weboob.browser.browsers import LoginBrowser, need_login
+from weboob.browser.url import URL
 
-from .pages import LoginPage, AccountsPage, TransactionsPage, NewAccountsPage
+from .pages import LoginPage, AccountsPage, TransactionsPage, NewAccountsPage, WrongLoginPage
 
 
 __all__ = ['AmericanExpressBrowser']
 
 
-class AmericanExpressBrowser(Browser):
-    DOMAIN = 'global.americanexpress.com'
-    PROTOCOL = 'https'
-    ENCODING = 'ISO-8859-1'
-    PAGES = {'https://global.americanexpress.com/myca/logon/.*':            LoginPage,
-             'https://global.americanexpress.com/myca/intl/acctsumm/.*':    AccountsPage,
-             'https://global.americanexpress.com/myca/intl/isummary/.*':    NewAccountsPage,
-             'https://global.americanexpress.com/myca/intl/estatement/.*':  TransactionsPage,
-            }
+class AmericanExpressBrowser(LoginBrowser):
+    BASEURL = 'https://global.americanexpress.com'
 
-    def is_logged(self):
-        return self.page is not None and not self.is_on_page(LoginPage)
+    login = URL('/myca/logon/.*', LoginPage)
+    wrong_login = URL('/myca/fuidfyp/emea/.*', WrongLoginPage)
+    accounts = URL('/myca/intl/acctsumm/.*', AccountsPage)
+    new_accounts = URL('/myca/intl/isummary/.*', NewAccountsPage)
+    transactions = URL('/myca/intl/estatement/.*', TransactionsPage)
 
-    def home(self):
-        if self.is_logged():
-            self.location(self.buildurl('/myca/intl/acctsumm/emea/accountSummary.do'))
-        else:
-            self.login()
 
-    def login(self):
+    def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
-        if not self.is_on_page(LoginPage):
-            self.location(self.absurl('/myca/logon/emea/action?request_type=LogonHandler&DestPage=https%3A%2F%2Fglobal.americanexpress.com%2Fmyca%2Fintl%2Facctsumm%2Femea%2FaccountSummary.do%3Frequest_type%3D%26Face%3Dfr_FR%26intlink%3Dtopnavvotrecompteneligne-HPmyca&Face=fr_FR&Info=CUExpired'), no_login=True)
+        if not self.login.is_here():
+            self.location('/myca/logon/emea/action?request_type=LogonHandler&DestPage=https%3A%2F%2Fglobal.americanexpress.com%2Fmyca%2Fintl%2Facctsumm%2Femea%2FaccountSummary.do%3Frequest_type%3D%26Face%3Dfr_FR%26intlink%3Dtopnavvotrecompteneligne-HPmyca&Face=fr_FR&Info=CUExpired')
 
         self.page.login(self.username, self.password)
-
-        if not self.is_logged():
+        if self.wrong_login.is_here() or self.login.is_here():
             raise BrowserIncorrectPassword()
 
+    @need_login
     def go_on_accounts_list(self):
-        self.select_form(name='leftnav')
-        self.form.action = self.absurl('/myca/intl/acctsumm/emea/accountSummary.do')
-        self.submit()
+        form = self.page.get_form(name='leftnav')
+        form.url = '/myca/intl/acctsumm/emea/accountSummary.do'
+        form.submit()
 
+    @need_login
     def get_accounts_list(self):
-        if not self.is_on_page(AccountsPage) and not self.is_on_page(NewAccountsPage):
+        if not self.accounts.is_here() and not self.new_accounts.is_here():
             self.go_on_accounts_list()
         return self.page.get_list()
 
+    @need_login
     def get_account(self, id):
         assert isinstance(id, basestring)
 
@@ -76,11 +72,11 @@ class AmericanExpressBrowser(Browser):
         for a in l:
             if a.id == id:
                 return a
-
         return None
 
+    @need_login
     def get_history(self, account):
-        if not self.is_on_page(AccountsPage) and not self.is_on_page(NewAccountsPage):
+        if not self.accounts.is_here() and not self.new_accounts.is_here():
             self.go_on_accounts_list()
 
         url = account._link
@@ -88,14 +84,14 @@ class AmericanExpressBrowser(Browser):
             return
 
         while url is not None:
-            if self.is_on_page(NewAccountsPage):
+            if self.new_accounts.is_here():
                 self.location(url)
             else:
-                self.select_form(name='leftnav')
-                self.form.action = self.absurl(url)
-                self.submit()
+                form = self.page.get_form(name='leftnav')
+                form.url = url
+                form.submit()
 
-            assert self.is_on_page(TransactionsPage)
+            assert self.transactions.is_here()
 
             for tr in self.page.get_history(account.currency):
                 yield tr
@@ -106,4 +102,4 @@ class AmericanExpressBrowser(Browser):
                 v = urlsplit(url)
                 args = dict(parse_qsl(v.query))
                 args['BPIndex'] = int(args['BPIndex']) + 1
-                url = self.buildurl(v.path, **args)
+                url = '%s?%s' % (v.path, urlencode(args))

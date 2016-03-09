@@ -21,35 +21,37 @@
 import datetime
 import re
 
-from weboob.deprecated.browser import Page, BrokenPageError
+from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.filters.standard import CleanText, CleanDecimal
 from weboob.capabilities.bank import Account
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.date import ChaoticDateGuesser
 
-from weboob.browser.filters.standard import CleanDecimal
+
+class WrongLoginPage(HTMLPage):
+    pass
 
 
-class LoginPage(Page):
+class LoginPage(HTMLPage):
     def login(self, username, password):
-        self.browser.select_form(name='ssoform')
-        self.browser.set_all_readonly(False)
-        self.browser['UserID'] = username.encode(self.browser.ENCODING)
-        self.browser['USERID'] = username.encode(self.browser.ENCODING)
-        self.browser['Password'] = password.encode(self.browser.ENCODING)
-        self.browser['PWD'] = password.encode(self.browser.ENCODING)
-        self.browser.submit(nologin=True)
+        form = self.get_form(name='ssoform')
+        form['UserID'] = username
+        form['USERID'] = username
+        form['Password'] = password
+        form['PWD'] = password
+        form.submit()
 
 
-class NewAccountsPage(Page):
+class NewAccountsPage(LoggedPage, HTMLPage):
     def get_list(self):
-        for div in self.document.xpath('.//div[@id="card-details"]'):
+        for div in self.doc.xpath('.//div[@id="card-details"]'):
             a = Account()
-            a.id = self.parser.tocleanstring(div.xpath('.//span[@class="acc-num"]')[0])
-            a.label =self.parser.tocleanstring( div.xpath('.//span[@class="card-desc"]')[0])
+            a.id = CleanText().filter(div.xpath('.//span[@class="acc-num"]'))
+            a.label = CleanText().filter(div.xpath('.//span[@class="card-desc"]'))
             if "carte" in a.label.lower():
                 a.type = Account.TYPE_CARD
-            balance = self.parser.tocleanstring(div.xpath('.//span[@class="balance-data"]')[0])
+            balance = CleanText().filter(div.xpath('.//span[@class="balance-data"]'))
             if balance in (u'Indisponible', u'Indisponible Facturation en cours', ''):
                 a.balance = NotAvailable
             else:
@@ -57,7 +59,7 @@ class NewAccountsPage(Page):
                 a.balance = - abs(CleanDecimal(replace_dots=a.currency == 'EUR').filter(balance))
 
             # Cancel card don't have a link to watch history
-            link = self.document.xpath('.//div[@class="wide-bar"]/h3/a')
+            link = self.doc.xpath('.//div[@class="wide-bar"]/h3/a')
             if len(link) == 1:
                 a._link = link[0].attrib['href']
             else:
@@ -66,15 +68,15 @@ class NewAccountsPage(Page):
             yield a
 
 
-class AccountsPage(Page):
+class AccountsPage(LoggedPage, HTMLPage):
     def get_list(self):
-        for box in self.document.getroot().cssselect('div.roundedBox div.contentBox'):
+        for box in self.doc.getroot().cssselect('div.roundedBox div.contentBox'):
             a = Account()
-            a.id = self.parser.tocleanstring(box.xpath('.//tr[@id="summaryImageHeaderRow"]//div[@class="summaryTitles"]')[0])
-            a.label = self.parser.tocleanstring(box.xpath('.//span[@class="cardTitle"]')[0])
+            a.id = CleanText().filter(box.xpath('.//tr[@id="summaryImageHeaderRow"]//div[@class="summaryTitles"]'))
+            a.label = CleanText().filter(box.xpath('.//span[@class="cardTitle"]'))
             if "carte" in a.label.lower():
                 a.type = Account.TYPE_CARD
-            balance = self.parser.tocleanstring(self.parser.select(box, 'td#colOSBalance div.summaryValues', 1))
+            balance = CleanText().filter(self.parser.select(box, 'td#colOSBalance div.summaryValues', 1))
             if balance in (u'Indisponible', u'Indisponible Facturation en cours', ''):
                 a.balance = NotAvailable
             else:
@@ -85,11 +87,10 @@ class AccountsPage(Page):
             yield a
 
 
-class TransactionsPage(Page):
-
+class TransactionsPage(LoggedPage, HTMLPage):
     def is_last(self):
         current = False
-        for option in self.document.xpath('//select[@id="viewPeriod"]/option'):
+        for option in self.doc.xpath('//select[@id="viewPeriod"]/option'):
             if 'selected' in option.attrib:
                 current = True
             elif current:
@@ -98,7 +99,7 @@ class TransactionsPage(Page):
         return True
 
     def get_end_debit_date(self):
-        for option in self.document.xpath('//select[@id="viewPeriod"]/option'):
+        for option in self.doc.xpath('//select[@id="viewPeriod"]/option'):
             if 'selected' in option.attrib:
                 m = re.search('(\d+) ([\w\.]+) (\d{4})$', option.text.strip(), re.UNICODE)
                 if m:
@@ -107,7 +108,7 @@ class TransactionsPage(Page):
                                          int(m.group(1)))
 
     def get_beginning_debit_date(self):
-        for option in self.document.xpath('//select[@id="viewPeriod"]/option'):
+        for option in self.doc.xpath('//select[@id="viewPeriod"]/option'):
             if 'selected' in option.attrib:
                 m = re.search('^(\d+) ([\w\.]+) (\d{4})', option.text.strip(), re.UNICODE)
                 if m:
@@ -127,7 +128,7 @@ class TransactionsPage(Page):
     def get_history(self, currency):
         self.MONTHS = self.FR_MONTHS if currency == 'EUR' else self.US_MONTHS
         #checking if the card is still valid
-        if self.document.xpath('//div[@id="errorbox"]'):
+        if self.doc.xpath('//div[@id="errorbox"]'):
             return
 
         #adding a time delta because amex have hard time to put the date in a good interval
@@ -136,20 +137,20 @@ class TransactionsPage(Page):
 
         guesser = ChaoticDateGuesser(beginning_date, end_date)
 
-        for tr in reversed(self.document.xpath('//div[@id="txnsSection"]//tr[@class="tableStandardText"]')):
+        for tr in reversed(self.doc.xpath('//div[@id="txnsSection"]//tr[@class="tableStandardText"]')):
             cols = tr.findall('td')
 
             t = Transaction()
 
-            day, month = self.parser.tocleanstring(cols[self.COL_DATE]).split(' ', 1)
+            day, month = CleanText().filter(cols[self.COL_DATE]).split(' ', 1)
             day = int(day)
             month = self.MONTHS.index(month.rstrip('.')) + 1
             date = guesser.guess_date(day, month)
 
             rdate = None
             try:
-                detail = self.parser.select(cols[self.COL_TEXT], 'div.hiddenROC', 1)
-            except BrokenPageError:
+                detail = cols[self.COL_TEXT].xpath('./div[has-class("hiddenROC")]')[0]
+            except IndexError:
                 pass
             else:
                 m = re.search(r' (\d{2} \D{3,4})', (' '.join([txt.strip() for txt in detail.itertext()])).strip())
@@ -161,8 +162,8 @@ class TransactionsPage(Page):
                 detail.drop_tree()
 
             raw = (' '.join([txt.strip() for txt in cols[self.COL_TEXT].itertext()])).strip()
-            credit = self.parser.tocleanstring(cols[self.COL_CREDIT])
-            debit = self.parser.tocleanstring(cols[self.COL_DEBIT])
+            credit = CleanText().filter(cols[self.COL_CREDIT])
+            debit = CleanText().filter(cols[self.COL_DEBIT])
 
             t.date = date
             t.rdate = rdate or date
