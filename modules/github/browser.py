@@ -107,7 +107,15 @@ class GithubBrowser(APIBrowser):
 
     # helpers
     def _make_issue(self, project_id, issue_number, json):
-        d = {'number': issue_number, 'title': json['title'], 'body': json['body'], 'creation': parse_date(json['created_at']), 'updated': parse_date(json['updated_at']), 'author': json['user']['login'], 'status': json['state']}
+        d = {}
+        d['number'] = issue_number
+        d['title'] = json['title']
+        d['body'] = json['body'].strip()
+        d['creation'] = parse_date(json['created_at'])
+        d['updated'] = parse_date(json['updated_at'])
+        d['author'] = json['user']['login']
+        d['status'] = json['state']
+        d['url'] = 'https://github.com/%s/issues/%s' % (project_id, issue_number)
 
         if json['assignee']:
             d['assignee'] = json['assignee']['login']
@@ -124,13 +132,18 @@ class GithubBrowser(APIBrowser):
         return d
 
     def iter_milestones(self, project_id):
-        for jmilestone in self.request('https://api.github.com/repos/%s/milestones' % project_id):
+        url = 'https://api.github.com/repos/%s/milestones' % project_id
+        for jmilestone in self.request(url):
             yield {'id': jmilestone['number'], 'name': jmilestone['title']}
 
     def iter_comments(self, project_id, issue_number):
-        json = self.request('https://api.github.com/repos/%s/issues/%s/comments' % (project_id, issue_number))
-        for jcomment in json:
-            d = {'id': jcomment['id'], 'message': jcomment['body'], 'author': jcomment['user']['login'], 'date': parse_date(jcomment['created_at'])}
+        url = 'https://api.github.com/repos/%s/issues/%s/comments' % (project_id, issue_number)
+        for jcomment in self.request(url):
+            d = {}
+            d['id'] = jcomment['id']
+            d['message'] = jcomment['body']
+            d['author'] = jcomment['user']['login']
+            d['date'] = parse_date(jcomment['created_at'])
             d['attachments'] = list(self._extract_attachments(d['message']))
             yield d
 
@@ -157,7 +170,8 @@ class GithubBrowser(APIBrowser):
         return {'id': _id, 'name': name}
 
     def iter_members(self, project_id):
-        for json in self._paginated('https://api.github.com/repos/%s/assignees' % project_id):
+        url = 'https://api.github.com/repos/%s/assignees' % project_id
+        for json in self._paginated(url):
             for jmember in json:
                 yield {'id': jmember['login'], 'name': jmember['login']}
             if len(json) < 100:

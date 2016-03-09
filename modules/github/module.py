@@ -118,6 +118,7 @@ class GithubModule(Module, CapBugTracker):
     def _make_issue(self, d, project):
         _id = self._build_issue_id(project.id, d['number'])
         issue = Issue(_id)
+        issue.url = d['url']
         issue.project = project
         issue.title = d['title']
         issue.body = d['body']
