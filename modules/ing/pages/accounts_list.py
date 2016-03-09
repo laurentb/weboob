@@ -89,17 +89,17 @@ class INGDate(Date):
 
     def filter(self, txt):
         if txt == 'hier':
-            return (date.today() - timedelta(days=1))
+            return date.today() - timedelta(days=1)
         elif txt == "aujourd'hui":
             return date.today()
         elif txt == 'demain':
-            return (date.today() + timedelta(days=1))
-        else:
-            frenchmonth = txt.split(' ')[1]
-            month = self.monthvalue[frenchmonth]
-            txt = txt.replace(' ', '')
-            txt = txt.replace(frenchmonth, '/%s/' % month)
-            return super(INGDate, self).filter(txt)
+            return date.today() + timedelta(days=1)
+
+        frenchmonth = txt.split(' ')[1]
+        month = self.monthvalue[frenchmonth]
+        txt = txt.replace(' ', '')
+        txt = txt.replace(frenchmonth, '/%s/' % month)
+        return super(INGDate, self).filter(txt)
 
 
 class INGCategory(Filter):
@@ -182,7 +182,7 @@ class AccountsList(LoggedPage, HTMLPage):
             return True
 
         nomore = self.doc.getroot().cssselect('.no-more-transactions')
-        return (len(nomore) > 0)
+        return len(nomore) > 0
 
     @property
     def is_asv(self):
