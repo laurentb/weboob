@@ -25,7 +25,7 @@ from weboob.browser.profiles import Wget
 from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages.index import HomePage
-from .pages.torrents import TorrentPage, SearchPage
+from .pages.torrents import TorrentPage, SearchPage, DownloadPage
 
 
 __all__ = ['T411Browser']
@@ -39,12 +39,13 @@ class T411Browser(LoginBrowser):
     home = URL('$', HomePage)
     search = URL('torrents/search/\?search=(?P<pattern>.*)&order=seeders&type=desc',
                  SearchPage)
+    # Order matters here: 'torrents/[^&]*' would match '/torrents/download/\?id...' and
+    # TorrentPage would crash on the bencode data, so DownloadPage must be listed before
+    # TorrentPage
+    download = URL('/torrents/download/\?id=(?P<id>.*)', DownloadPage)
     torrent = URL('/torrents/details/\?id=(?P<id>.*)&r=1',
                   'torrents/[^&]*',
                   TorrentPage)
-
-    #def __init__(self, *args, **kwargs):
-    #    Browser.__init__(self, *args, **kwargs)
 
     def do_login(self):
         self.home.go()

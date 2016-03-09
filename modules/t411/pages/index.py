@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-#from .base import BasePage
 from weboob.browser.pages import HTMLPage
 
 
@@ -28,7 +27,6 @@ class HomePage(HTMLPage):
         form['login'] = login
         form['password'] = password
         form.submit()
-
 
     @property
     def logged(self):

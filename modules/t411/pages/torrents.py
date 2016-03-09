@@ -25,7 +25,7 @@ from weboob.capabilities.torrent import Torrent
 from weboob.capabilities.base import NotLoaded, NotAvailable
 
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.pages import HTMLPage, LoggedPage, RawPage
 from weboob.browser.filters.standard import Regexp, CleanText, Type, Format
 from weboob.browser.filters.html import CleanHTML
 
@@ -45,19 +45,19 @@ class SearchPage(LoggedPage, HTMLPage):
             obj_leechers = CleanText('./td[9]') & Type(type=int)
             obj_description = NotLoaded
             obj_files = NotLoaded
-            obj_filename = Format('%s.torrent',CleanText('./td[2]/a/@title'))
+            obj_filename = Format('%s.torrent', CleanText('./td[2]/a/@title'))
             obj_magnet = NotAvailable
 
             def obj_url(self):
-                fullid = Regexp(CleanText('./td[3]/a/@href'),'/torrents/nfo/\?id=(.*)')(self)
-                downurl = 'https://www.t411.ch/torrents/download/?id=%s'%fullid
+                fullid = Regexp(CleanText('./td[3]/a/@href'), '/torrents/nfo/\?id=(.*)')(self)
+                downurl = 'https://www.t411.ch/torrents/download/?id=%s' % fullid
                 return downurl
 
             def obj_size(self):
                 rawsize = CleanText('./td[6]')(self)
                 nsize = float(rawsize.split()[0])
                 usize = rawsize.split()[-1].upper()
-                size = get_bytes_size(nsize,usize)
+                size = get_bytes_size(nsize, usize)
                 return size
 
 
@@ -78,15 +78,16 @@ class TorrentPage(LoggedPage, HTMLPage):
 
         def obj_url(self):
             fullid = CleanText('//input[@id="torrent-id"][1]/@value')(self)
-            downurl = 'https://www.t411.ch/torrents/download/?id=%s'%fullid
+            downurl = 'https://www.t411.ch/torrents/download/?id=%s' % fullid
             return downurl
 
         obj_filename = CleanText('//div[@class="accordion"]//tr[th="Torrent"]/td')
+
         def obj_size(self):
             rawsize = CleanText('//div[@class="accordion"]//tr[th="Taille totale"]/td')(self)
             nsize = float(rawsize.split()[0])
             usize = rawsize.split()[-1].upper()
-            size = get_bytes_size(nsize,usize)
+            size = get_bytes_size(nsize, usize)
             return size
 
         def obj_files(self):
@@ -99,3 +100,7 @@ class TorrentPage(LoggedPage, HTMLPage):
         obj_seeders = CleanText('//div[@class="details"]//td[@class="up"]') & Type(type=int)
         obj_leechers = CleanText('//div[@class="details"]//td[@class="down"]') & Type(type=int)
         obj_magnet = NotAvailable
+
+
+class DownloadPage(LoggedPage, RawPage):
+    pass
