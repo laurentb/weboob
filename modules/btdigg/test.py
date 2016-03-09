@@ -15,7 +15,6 @@ class BTDiggTest(BackendTest):
         self.assertTrue(len(l) == 10)
         for torrent in l:
             assert torrent.name
-            assert torrent.url
             assert torrent.size
             assert torrent.magnet
             assert torrent.date
@@ -32,11 +31,10 @@ class BTDiggTest(BackendTest):
             assert e.magnet == full_torrent.magnet
 
     def test_get_special_torrent(self):
-        torrent = self.backend.get_torrent("c2e018a16bf28520687e400580be08934d00373a")
-        assert torrent.name == u'Ubuntu Linux Toolbox - 1000+ Commands for Ubuntu and Debian Power Users~tqw~_darksiderg'
+        torrent = self.backend.get_torrent("abd1d2648c97958789d62f6a6a1f5d33f4eff5be")
+        assert torrent.name == u'Ubuntu Linux Toolbox - 1000+ Commands for Ubuntu and Debian Power Users'
         assert len(torrent.files) == 3
-        assert torrent.size == float(3376414.72)
-        assert torrent.url == "https://btdigg.org/search?info_hash=c2e018a16bf28520687e400580be08934d00373a"
+        assert torrent.size == float(7004487.68)
         dt = torrent.date
-        assert dt.year == 2011
-        assert dt.month == 2
+        assert dt.year == 2013
+        assert dt.month == 12

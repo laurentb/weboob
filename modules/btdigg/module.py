@@ -29,11 +29,3 @@ class BTDiggModule(Module, CapTorrent):
 
     def iter_torrents(self, pattern):
         return self.browser.iter_torrents(pattern.replace(' ', '+'))
-
-    #def fill_torrent(self, torrent, fields):
-    #    if 'description' in fields or fields == None:
-    #        return self.get_torrent(torrent.id)
-
-    #OBJECTS = {
-    #    Torrent:fill_torrent
-    #}

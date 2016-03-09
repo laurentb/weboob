@@ -1,93 +1,58 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime, timedelta
-from urlparse import urlparse, parse_qs
 
 from weboob.tools.misc import get_bytes_size
-from weboob.deprecated.browser import Page,BrokenPageError
+from weboob.browser.pages import HTMLPage
+from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.capabilities.torrent import Torrent, MagnetOnly
-from weboob.capabilities.base import NotAvailable
+from weboob.browser.filters.standard import CleanText, Regexp
 
 
-class TorrentsPage(Page):
+class TorrentsPage(HTMLPage):
+    @method
+    class iter_torrents(ListElement):
+        item_xpath = '//div[@id="search_res"]/table/tr'
 
-    def iter_torrents(self):
-        try:
-            table = self.document.getroot().cssselect('table.torrent_name_tbl')
-        except BrokenPageError:
-            return
-        for i in range(0, len(table), 2):
-            # Title
-            title = table[i].cssselect('td.torrent_name a')[0]
-            name = unicode(title.text)
-            url = unicode(title.attrib['href'])
+        class item(ItemElement):
+            klass = Torrent
 
-            # Other elems
-            elems = table[i+1].cssselect('td')
+            obj_id = Regexp(CleanText('./td/table/tr/td[@class="torrent_name"]/a/@href'),
+                            r'info_hash=([0-9a-f]+)', '\\1')
+            obj_name = CleanText('./td/table/tr/td[@class="torrent_name"]')
+            obj_magnet = CleanText('./td/table/tr/td[@class="ttth"]/a/@href')
 
-            magnet = unicode(elems[0].cssselect('a')[0].attrib['href'])
+            def obj_date(self):
+                valueago, valueunit, _ = CleanText('./td/table/tr/td[5]/span[@class="attr_val"]')(self).split()
+                delta = timedelta(**{valueunit: float(valueago)})
+                return datetime.now() - delta
 
-            query = urlparse(magnet).query # xt=urn:btih:<...>&dn=<...>
-            btih = parse_qs(query)['xt'][0] # urn:btih:<...>
-            ih = btih.split(':')[-1]
+            def obj_size(self):
+                value, unit = CleanText('./td/table/tr/td[2]/span[@class="attr_val"]')(self).split()
+                return get_bytes_size(float(value), unit)
 
-            value, unit = elems[2].cssselect('span.attr_val')[0].text.split()
 
-            valueago, valueunit, _ = elems[5].cssselect('span.attr_val')[0].text.split()
+class TorrentPage(HTMLPage):
+    @method
+    class get_torrent(ItemElement):
+        klass = Torrent
+        ROOT = '//table[@class="torrent_info_tbl"]'
+
+        obj_id = Regexp(CleanText(ROOT + '/tr[3]/td[2]/a/@href'),  r'urn:btih:([0-9a-f]+)', '\\1')
+        obj_name = CleanText(ROOT + '/tr[4]/td[2]')
+        obj_magnet = CleanText(ROOT + '/tr[3]/td[2]/a/@href')
+
+        def obj_files(self):
+            return [_.text for _ in self.xpath(self.ROOT + '/tr[position() > 15]/td[2]')]
+
+        def obj_date(self):
+            valueago, valueunit, _ = CleanText(self.ROOT + '/tr[7]/td[2]')(self).split()
             delta = timedelta(**{valueunit: float(valueago)})
-            date = datetime.now() - delta
+            return datetime.now() - delta
 
-            url = unicode('https://btdigg.org/search?info_hash=%s' % ih)
+        def obj_size(self):
+            value, unit = CleanText(self.ROOT + '/tr[6]/td[2]')(self).split()
+            return get_bytes_size(float(value), unit)
 
-            torrent = Torrent(ih, name)
-            torrent.url = url
-            torrent.size = get_bytes_size(float(value), unit)
-            torrent.magnet = magnet
-            torrent.seeders = NotAvailable
-            torrent.leechers = NotAvailable
-            torrent.description = NotAvailable
-            torrent.files = NotAvailable
-            torrent.date = date
-            yield torrent
-
-
-class TorrentPage(Page):
-    def get_torrent(self, id):
-        trs = self.document.getroot().cssselect('table.torrent_info_tbl tr')
-
-        # magnet
-        download = trs[2].cssselect('td a')[0]
-        if download.attrib['href'].startswith('magnet:'):
-            magnet = unicode(download.attrib['href'])
-
-            query = urlparse(magnet).query # xt=urn:btih:<...>&dn=<...>
-            btih = parse_qs(query)['xt'][0] # urn:btih:<...>
-            ih = btih.split(':')[-1]
-
-        name = unicode(trs[3].cssselect('td')[1].text)
-
-        value, unit  = trs[5].cssselect('td')[1].text.split()
-
-        valueago, valueunit, _ = trs[6].cssselect('td')[1].text.split()
-        delta = timedelta(**{valueunit: float(valueago)})
-        date = datetime.now() - delta
-
-        files = []
-        for tr in trs[15:]:
-            files.append(unicode(tr.cssselect('td')[1].text))
-
-        torrent = Torrent(ih, name)
-        torrent.url = unicode(self.url)
-        torrent.size = get_bytes_size(float(value), unit)
-        torrent.magnet = magnet
-        torrent.seeders = NotAvailable
-        torrent.leechers = NotAvailable
-        torrent.description = NotAvailable
-        torrent.files = files
-        torrent.filename = NotAvailable
-        torrent.date = date
-
-        return torrent
-
-    def get_torrent_file(self, id):
-        raise MagnetOnly(self.get_torrent(id).magnet)
+    def get_torrent_file(self):
+        raise MagnetOnly(self.get_torrent().magnet)

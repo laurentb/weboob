@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import urllib
-
-from weboob.deprecated.browser import Browser
+from weboob.browser import PagesBrowser, URL
 
 from .pages.index import IndexPage
 from .pages.torrents import TorrentsPage, TorrentPage
@@ -11,33 +9,24 @@ from .pages.torrents import TorrentsPage, TorrentPage
 __all__ = ['BTDiggBrowser']
 
 
-class BTDiggBrowser(Browser):
-    DOMAIN = 'btdigg.org'
-    PROTOCOL = 'https'
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['wget']
-    PAGES = {'https://btdigg.org/': IndexPage,
-             'https://btdigg.org/search?.*q=[^?]*': TorrentsPage,
-             'https://btdigg.org/search?.*info_hash=[^?]*': TorrentPage,
-             }
+class BTDiggBrowser(PagesBrowser):
+    BASEURL = 'https://btdigg.org'
+
+    index_page = URL('/$', IndexPage)
+    torrents_page = URL('/search\?.*q=(?P<query>.+)', TorrentsPage)
+    torrent_page = URL('/search\?.*info_hash=(?P<hash>.+)', TorrentPage)
 
     def home(self):
-        return self.location('https://btdigg.org')
+        return self.index_page.go()
 
     def iter_torrents(self, pattern):
-        self.location('https://btdigg.org/search?q=%s' % urllib.quote_plus(pattern.encode('utf-8')))
-
-        assert self.is_on_page(TorrentsPage)
+        self.torrents_page.go(query=pattern)
         return self.page.iter_torrents()
 
     def get_torrent(self, id):
-        self.location('https://btdigg.org/search?info_hash=%s' % id)
-
-        assert self.is_on_page(TorrentPage)
-        return self.page.get_torrent(id)
+        self.torrent_page.go(hash=id)
+        return self.page.get_torrent()
 
     def get_torrent_file(self, id):
-        self.location('https://btdigg.org/search?info_hash=%s' % id)
-
-        assert self.is_on_page(TorrentPage)
-        return self.page.get_torrent_file(id)
+        self.torrent_page.go(hash=id)
+        return self.page.get_torrent_file()

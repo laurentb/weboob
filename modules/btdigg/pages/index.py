@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import HTMLPage
 
 
-class IndexPage(Page):
+class IndexPage(HTMLPage):
     pass
