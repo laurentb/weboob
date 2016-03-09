@@ -64,32 +64,22 @@ class TitrePage(LoggedPage, RawPage):
                 m = re.search('\{([A-Z]{2}[\d]{10})\{|\{([A-Z]{2}[\d]{5}[A-Z]{1}[\d]{4})\{', line)
                 if m:
                     invest.code = unicode(m.group(1) or m.group(2))
+
             quantity = FrenchTransaction.clean_amount(columns[1])
-            if quantity != '':
-                invest.quantity = Decimal(quantity)
-            else:
-                invest.quantity = NotAvailable
+            invest.quantity = CleanDecimal(default=NotAvailable).filter(quantity)
+
             unitprice = FrenchTransaction.clean_amount(columns[2])
-            if unitprice != '':
-                invest.unitprice = Decimal(unitprice)
-            else:
-                invest.unitprice = NotAvailable
+            invest.unitprice = CleanDecimal(default=NotAvailable).filter(unitprice)
+
             unitvalue = FrenchTransaction.clean_amount(columns[3])
-            if unitvalue != '':
-                invest.unitvalue = Decimal(unitvalue)
-            else:
-                invest.unitvalue = NotAvailable
+            invest.unitvalue = CleanDecimal(default=NotAvailable).filter(unitvalue)
+
             valuation = FrenchTransaction.clean_amount(columns[4])
-            if valuation != '':
-                invest.valuation = Decimal(valuation)
-            else:
-                # valuation is not nullable.
-                invest.valuation = Decimal('0')
+            # valuation is not nullable, use 0 as default value
+            invest.valuation = CleanDecimal(default=Decimal('0')).filter(valuation)
+
             diff = FrenchTransaction.clean_amount(columns[5])
-            if diff != '':
-                invest.diff = Decimal(diff)
-            else:
-                invest.diff = NotAvailable
+            invest.diff = CleanDecimal(default=NotAvailable).filter(diff)
 
             yield invest
 
