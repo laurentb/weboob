@@ -24,7 +24,7 @@ from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable, Currency
 from weboob.exceptions import BrowserUnavailable
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
-from weboob.browser.filters.standard import CleanText
+from weboob.browser.filters.standard import CleanText, CleanDecimal
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_french_date
 from weboob.tools.js import Javascript
@@ -89,23 +89,36 @@ class AccountPage(LoggedPage, HTMLPage):
         accounts = {}
         content = self.doc.xpath('//div[@id="moneyPage"]')[0]
 
-        # Primary currency account
-        primary_account = Account()
-        primary_account.type = Account.TYPE_CHECKING
-        try:
-            balance = CleanText('.')(content.xpath('//div[contains(@class, "col-md-6")][contains(@class, "available")]')[0])
-        except IndexError:
-            primary_account.id = 'EUR'
-            primary_account.currency = u'EUR'
-            primary_account.balance = NotAvailable
-            primary_account.label = u'%s' % (self.browser.username)
-        else:
-            primary_account.currency = Account.get_currency(balance)
-            primary_account.id = unicode(primary_account.currency)
-            primary_account.balance = Decimal(FrenchTransaction.clean_amount(balance))
-            primary_account.label = u'%s %s*' % (self.browser.username, primary_account.currency)
+        # Multiple accounts
+        lines = content.xpath('//div[@class="col-md-8 multi-currency"]/ul/li')
+        for li in lines:
+            account = Account()
+            account.type = Account.TYPE_CHECKING
+            account.id = CleanText().filter(li.xpath('./span[@class="currencyUnit"]/span'))
+            account.currency = CleanText().filter(li.xpath('./span[@class="currencyUnit"]/span'))
+            account.balance = CleanDecimal(replace_dots=True).filter(li.xpath('./span[@class="amount"]/text()'))
+            account.label = u'%s %s*' % (self.browser.username, account.currency)
+            accounts[account.id] = account
+            self.browser.account_currencies.append(account.currency)
 
-        accounts[primary_account.id] = primary_account
+        if not accounts:
+        # Primary currency account
+            primary_account = Account()
+            primary_account.type = Account.TYPE_CHECKING
+            try:
+                balance = CleanText('.')(content.xpath('//div[contains(@class, "col-md-6")][contains(@class, "available")]')[0])
+            except IndexError:
+                primary_account.id = 'EUR'
+                primary_account.currency = u'EUR'
+                primary_account.balance = NotAvailable
+                primary_account.label = u'%s' % (self.browser.username)
+            else:
+                primary_account.currency = Account.get_currency(balance)
+                primary_account.id = unicode(primary_account.currency)
+                primary_account.balance = Decimal(FrenchTransaction.clean_amount(balance))
+                primary_account.label = u'%s %s*' % (self.browser.username, primary_account.currency)
+
+            accounts[primary_account.id] = primary_account
 
         return accounts
 
@@ -157,12 +170,15 @@ class ProHistoryPage(HistoryPage, JsonPage):
         if transaction['transactionDescription'].startswith(u'Offre de remboursement') or transaction['transactionDescription'].startswith(u'Commande à'):
             return []
         t = FrenchTransaction(transaction['transactionId'])
-        if not transaction['transactionAmount']['currencyCode'] == account.currency:
+        original_currency = unicode(transaction['transactionAmount']['currencyCode'])
+        if not original_currency == account.currency:
+            if original_currency in self.browser.account_currencies:
+                return []
             cc = self.browser.convert_amount(account, transaction, 'https://www.paypal.com/cgi-bin/webscr?cmd=_history-details-from-hub&id=' + transaction['transactionId'])
             if not cc:
                 return []
             t.original_amount = Decimal('%.2f' % transaction['transactionAmount']['currencyDoubleValue'])
-            t.original_currency = u'' + transaction['transactionAmount']['currencyCode']
+            t.original_currency = original_currency
             t.amount = abs(cc) if not transaction['debit'] else -abs(cc)
         else:
             t.amount = Decimal('%.2f' % transaction['net']['currencyDoubleValue'])
@@ -193,6 +209,9 @@ class PartHistoryPage(HistoryPage, JsonPage):
     def parse_transaction(self, transaction, account):
         t = FrenchTransaction(transaction['id'])
         if not transaction['isPrimaryCurrency']:
+            original_currency = unicode(transaction['amounts']['txnCurrency'])
+            if original_currency in self.browser.account_currencies:
+                return []
             if 'conversionFrom' in transaction['amounts'] and account.currency == transaction['amounts']['conversionFrom']['currency']:
                 cc = self.format_amount(transaction['amounts']['conversionFrom']['value'], transaction['isCredit'])
             else:
@@ -200,7 +219,7 @@ class PartHistoryPage(HistoryPage, JsonPage):
             if not cc:
                 return []
             t.original_amount = self.format_amount(transaction['amounts']['net']['value'], transaction["isCredit"])
-            t.original_currency = u'' + transaction['amounts']['txnCurrency']
+            t.original_currency = original_currency
             t.amount = self.format_amount(cc, transaction['isCredit'])
         else:
             t.amount = self.format_amount(transaction['amounts']['net']['value'], transaction['isCredit'])

@@ -64,8 +64,12 @@ class Paypal(LoginBrowser):
 
     TIMEOUT = 180.0
 
-    BEGINNING = datetime.date.today() - relativedelta(months=24)
-    account_type = None
+
+    def __init__(self, *args, **kwargs):
+        self.BEGINNING = datetime.date.today() - relativedelta(months=24)
+        self.account_type = None
+        self.account_currencies = list()
+        super(Paypal, self).__init__(*args, **kwargs)
 
     def find_account_type(self):
         try:
