@@ -187,6 +187,50 @@ class MediawikiBrowser(DomainBrowser):
                     last_id = rev_content.id
                     results += 1
 
+    def _common_file_request(self):
+        return {'action':       'query',
+                'prop':         'info|pageimages|imageinfo',
+                'piprop':       'thumbnail|name|original',
+                'inprop':       'url',
+                'iiprop':       'extmetadata|size'
+               }
+
+    def _common_parse_file(self, info):
+        res = {'canonicalurl': info['canonicalurl'],
+               'title':        info['title'],
+               'size':         info['imageinfo'][0]['size'],
+              }
+        if 'thumbnail' in info:
+            res['original'] = info['thumbnail']['original']
+            res['thumbnail'] = info['thumbnail']['source']
+        return res
+
+    def search_file(self, pattern):
+        data = self._common_file_request()
+        data['generator'] = 'search'
+        data['gsrnamespace'] = 6 # File: namespace
+        data['gsrsearch'] = pattern
+
+        while True:
+            response = self.API_get(data)
+            for fdict in response['query']['pages'].values():
+                yield self._common_parse_file(fdict)
+
+            if 'query-continue' in response:
+                data.update(response['query-continue']['search'])
+            else:
+                break
+
+    def get_image(self, page):
+        page = self.url2page(page)
+        data = self._common_file_request()
+        data['titles'] = page
+
+        response = self.API_get(data)
+        pageid = response['query']['pages'].keys()[0]
+        info = response['query']['pages'][pageid]
+        return self._common_parse_file(info)
+
     def home(self):
         # We don't need to change location, we're using the JSON API here.
         pass

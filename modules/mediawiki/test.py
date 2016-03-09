@@ -43,3 +43,14 @@ class MediawikiTest(BackendTest):
     def test_content_preview(self):
         content = self.backend.get_content(u"Project:Sandbox")
         self.backend.get_content_preview(content)
+
+    def test_search_image(self):
+        it = iter(self.backend.search_file('logo'))
+        for _, img in zip(xrange(3), it):
+            assert img
+            assert img.page_url
+            assert img.size
+            if not img.url:
+                img = self.backend.fillobj(img, ['url'])
+            assert img.url
+            assert img.thumbnail.url
