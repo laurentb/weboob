@@ -46,8 +46,10 @@ class AccountsList(BasePage):
              u'Compte Sur Livret':   Account.TYPE_SAVINGS,
              u'Compte Titres':       Account.TYPE_MARKET,
              u'Crédit':              Account.TYPE_LOAN,
+             u'Ldd':                 Account.TYPE_SAVINGS,
              u'Livret':              Account.TYPE_SAVINGS,
              u'PEA':                 Account.TYPE_SAVINGS,
+             u'PEL':                 Account.TYPE_SAVINGS,
              u'Plan Epargne':        Account.TYPE_SAVINGS,
              u'Prêt':                Account.TYPE_LOAN,
             }

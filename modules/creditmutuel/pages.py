@@ -109,19 +109,23 @@ class TransfertPage(LoggedPage, HTMLPage):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
-    TYPES = {'C/C':              Account.TYPE_CHECKING,
-             'Livret':           Account.TYPE_SAVINGS,
-             'Pret':             Account.TYPE_LOAN,
-             'Cic Immo':         Account.TYPE_LOAN,
-             'Passeport Credit': Account.TYPE_LOAN,
-             'Compte Courant':   Account.TYPE_CHECKING,
-             'Cpte Courant':     Account.TYPE_CHECKING,
-             'Compte Cheque':    Account.TYPE_CHECKING,
-             'Start':            Account.TYPE_CHECKING,
-             'Compte Epargne':   Account.TYPE_SAVINGS,
-             'Plan D\'Epargne':  Account.TYPE_SAVINGS,
-             'Ldd':              Account.TYPE_SAVINGS,
-             'Etalis':           Account.TYPE_SAVINGS,
+    TYPES = {u'C/C':               Account.TYPE_CHECKING,
+             u'Livret':            Account.TYPE_SAVINGS,
+             u'Nouveau Prêt':      Account.TYPE_LOAN,
+             u'Pret':              Account.TYPE_LOAN,
+             u'Cic Immo':          Account.TYPE_LOAN,
+             u'Passeport Credit':  Account.TYPE_LOAN,
+             u'Credit En Reserve': Account.TYPE_LOAN,
+             u'Compte Courant':    Account.TYPE_CHECKING,
+             u'Cpte Courant':      Account.TYPE_CHECKING,
+             u'Compte Cheque':     Account.TYPE_CHECKING,
+             u'Start':             Account.TYPE_CHECKING,
+             u'Compte Epargne':    Account.TYPE_SAVINGS,
+             u'Plan D\'Epargne':   Account.TYPE_SAVINGS,
+             u'P.E.A':             Account.TYPE_SAVINGS,
+             u'Tonic Croissance':  Account.TYPE_SAVINGS,
+             u'Ldd':               Account.TYPE_SAVINGS,
+             u'Etalis':            Account.TYPE_SAVINGS,
             }
 
     @method

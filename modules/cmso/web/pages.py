@@ -23,7 +23,7 @@ import datetime
 
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, DateGuesser, Env
+from weboob.browser.filters.standard import CleanText, CleanDecimal, DateGuesser, Env, Field, Filter, Regexp
 from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account
 
@@ -76,15 +76,26 @@ class CmsoListElement(ListElement):
 
 
 class AccountsPage(CMSOPage):
+    TYPES = {u'COMPTE CHEQUES':               Account.TYPE_CHECKING,
+            }
+
     @method
     class iter_accounts(CmsoListElement):
         class item(ItemElement):
             klass = Account
 
+            class Type(Filter):
+                def filter(self, label):
+                    for pattern, actype in AccountsPage.TYPES.iteritems():
+                        if label.startswith(pattern):
+                            return actype
+                    return Account.TYPE_UNKNOWN
+
             obj__history_url = Link('./td[1]/a')
             obj_label = CleanText('./td[1]')
             obj_id = obj__history_url & Regexp(pattern="indCptSelectionne=(\d+)") | None
             obj_balance = CleanDecimal('./td[2]', replace_dots=True)
+            obj_type = Type(Field('label'))
 
             def validate(self, obj):
                 if obj.id is None:
