@@ -115,6 +115,7 @@ Arno Renevier <arno@renevier.net>
 Matthieu Weber <mweber+weboob@free.fr>
         * Unpronounceable modules maintainer.
         * Fix on formatter encoding.
+        * Fixes on t411, btdigg, and more
 
 Jocelyn Jaubert <jocelyn.jaubert@gmail.com>
         * SocieteGenerale module maintainer.
