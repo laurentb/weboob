@@ -22,7 +22,7 @@ import re
 
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.QtGui import QPixmap, QImage, QKeySequence
-from PyQt5.QtCore import Qt, pyqtSlot as Slot
+from PyQt5.QtCore import Qt, pyqtSlot as Slot, pyqtSignal as Signal
 
 from weboob.tools.application.qt5 import QtMainWindow, QtDo
 from weboob.tools.application.qt5.models import ResultModel
@@ -35,6 +35,9 @@ ZOOM_FACTOR, ZOOM_FIT = range(2)
 
 
 class Viewer(QtMainWindow):
+    jobAdded = Signal()
+    jobFinished = Signal()
+
     def __init__(self, weboob, parent=None):
         super(Viewer, self).__init__(parent)
         self.ui = Ui_Viewer()
@@ -97,7 +100,8 @@ class Viewer(QtMainWindow):
 
         if obj.data is NotLoaded:
             qidx = self.current
-            process = QtDo(self.weboob, lambda r: self._gotData(r, qidx))
+            process = QtDo(self.weboob, lambda r: self._gotData(r, qidx), fb=self.jobFinished.emit)
+            self.jobAdded.emit()
             process.do('fillobj', obj, ['data'])
         elif obj.data:
             pixmap = QPixmap(QImage.fromData(obj.data))

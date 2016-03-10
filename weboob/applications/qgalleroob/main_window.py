@@ -19,7 +19,9 @@
 
 import os
 
-from PyQt5.QtCore import QModelIndex, pyqtSlot as Slot
+from PyQt5.QtCore import Qt, QModelIndex, pyqtSlot as Slot
+from PyQt5.QtGui import QCursor
+from PyQt5.QtWidgets import QApplication
 
 from weboob.tools.application.qt5 import QtMainWindow
 from weboob.tools.application.qt5.backendcfg import BackendCfg
@@ -53,6 +55,8 @@ class MainWindow(QtMainWindow):
 
         self.mdl = ResultModel(weboob)
         self.mdl.setColumnFields([['name', 'title'],['url']])
+        self.mdl.jobAdded.connect(self._jobAdded)
+        self.mdl.jobFinished.connect(self._jobFinished)
         self.proxy_mdl = FilterTypeModel()
         self.proxy_mdl.setAcceptedTypes([BaseCollection])
         self.proxy_mdl.setSourceModel(self.mdl)
@@ -175,6 +179,8 @@ class MainWindow(QtMainWindow):
     @Slot(QModelIndex)
     def openImage(self, qidx):
         viewer = Viewer(self.weboob, self)
+        viewer.jobAdded.connect(self._jobAdded)
+        viewer.jobFinished.connect(self._jobFinished)
         viewer.setData(self.mdl, qidx)
         viewer.show()
 
@@ -218,3 +224,11 @@ class MainWindow(QtMainWindow):
 
         backends = self._collectionBackends()
         self.mdl.addRootDo('iter_resources', [res_class], [], backends=backends)
+
+    @Slot()
+    def _jobAdded(self):
+        QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
+
+    @Slot()
+    def _jobFinished(self):
+        QApplication.restoreOverrideCursor()
