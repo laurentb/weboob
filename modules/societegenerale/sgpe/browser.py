@@ -64,15 +64,9 @@ class SGPEBrowser(Browser):
             self.location('https://' + self.DOMAIN + '/', no_login=True)
 
         c = Cookie(0, 'PILOTE_OOBA', 'true',
-                      None, False,
-                      '.' + self.DOMAIN, True, True,
-                      '/', False,
-                      False,
-                      None,
-                      False,
-                      None,
-                      None,
-                      {})
+                   None, False,
+                   '.' + self.DOMAIN, True, True,
+                   '/', False, False, None, False, None, None, {})
         cookiejar = self._ua_handlers["_cookies"].cookiejar
         cookiejar.set_cookie(c)
         self.page.login(self.username, self.password)
