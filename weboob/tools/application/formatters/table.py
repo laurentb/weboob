@@ -60,7 +60,7 @@ class TableFormatter(IFormatter):
             if available:
                 column_headers.append(self.keys[i].capitalize().replace('_', ' '))
                 for j in xrange(len(self.queue)):
-                    if (len(self.queue[j]) > i):
+                    if len(self.queue[j]) > i:
                         queue[j] += (self.queue[j][i],)
 
         s = ''
