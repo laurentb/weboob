@@ -210,7 +210,9 @@ class Boobill(ReplApplication):
             for document in self.do('get_document', id, backends=names):
                 dest = id + "." + document.format
 
-        for buf in self.do('download_document', id, backends=names):
+        if 'document' not in locals():
+            document = id
+        for buf in self.do('download_document', document, backends=names):
             if buf:
                 if dest == "-":
                     print(buf)
@@ -227,7 +229,7 @@ class Boobill(ReplApplication):
         id, backend_name = self.parse_id(id)
         for document in self.do('iter_documents', id, backends=names):
             dest = document.id + "." + document.format
-            for buf in self.do('download_document', document.id, backends=names):
+            for buf in self.do('download_document', document, backends=names):
                 if buf:
                     if dest == "-":
                         print(buf)
