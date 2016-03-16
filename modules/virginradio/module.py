@@ -89,9 +89,13 @@ class VirginRadioModule(Module, CapRadio, CapCollection):
             a = s.split("=")
             if a[0] == "StreamTitle":
                 stream.title = to_unicode(a[1].split("'")[1])
-                res = a[1].split("'")[1].split(" - ")
+                res = stream.title.split(" - ")
                 current.who = to_unicode(res[0])
-                current.what = to_unicode(res[1])
+                if(len(res) == 1):
+                    current.what = ""
+                else:
+                    current.what = to_unicode(res[1])
+
         stream.format=u'mp3'
         stream.url = url
         return [stream], current
