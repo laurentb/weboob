@@ -193,9 +193,9 @@ class Cragr(Browser):
         if self.page.get_error() is not None:
             self.broken_perimeters.append(perimeter)
 
-    def get_accounts_list(self, no_move=False):
+    def get_accounts_list(self):
         l = list()
-        if self.perimeters and not no_move:
+        if self.perimeters:
             for perimeter in [p for p in self.perimeters if p not in self.broken_perimeters]:
                 if self.current_perimeter != perimeter:
                     self.go_perimeter(perimeter)
@@ -206,6 +206,18 @@ class Cragr(Browser):
             l = self.get_list()
         return l
 
+    def get_cards(self):
+        accounts = []
+        if not self.is_on_page(AccountsPage):
+            self.location(self.accounts_url.format(self.sag))
+
+        for cards_page in self.page.cards_pages():
+            self.location(cards_page)
+            assert self.is_on_page(CardsPage)
+            accounts.extend(self.page.get_list())
+
+        return accounts
+
     def get_list(self):
         accounts_list = []
         # regular accounts
@@ -214,10 +226,7 @@ class Cragr(Browser):
         accounts_list.extend(self.page.get_list())
 
         # credit cards
-        for cards_page in self.page.cards_pages():
-            self.location(cards_page)
-            assert self.is_on_page(CardsPage)
-            accounts_list.extend(self.page.get_list())
+        accounts_list.extend(self.get_cards())
 
         # loan accounts
         self.location(self.loans_url.format(self.sag))
@@ -244,10 +253,10 @@ class Cragr(Browser):
 
         return accounts_list
 
-    def get_account(self, id, no_move=False):
+    def get_account(self, id):
         assert isinstance(id, basestring)
 
-        l = self.get_accounts_list(no_move)
+        l = self.get_accounts_list()
         for a in l:
             if a.id == ('%s' % id):
                 return a
@@ -270,7 +279,9 @@ class Cragr(Browser):
 
         # card accounts need to get an updated link
         if account.type == Account.TYPE_CARD:
-            account = self.get_account(account.id, no_move=True)
+            accounts = [acc for acc in self.get_cards() if acc.id == account.id]
+            assert len(accounts) == 1
+            account = accounts[0]
 
         date_guesser = LinearDateGuesser()
         self.location(account._link.format(self.sag))
