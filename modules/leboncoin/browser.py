@@ -19,7 +19,7 @@
 
 from weboob.browser import PagesBrowser, URL
 from weboob.capabilities.housing import Query, TypeNotSupported
-from .pages import CityListPage, HousingListPage, HousingPage
+from .pages import CityListPage, HousingListPage, HousingPage, PhonePage
 
 
 class LeboncoinBrowser(PagesBrowser):
@@ -29,6 +29,7 @@ class LeboncoinBrowser(PagesBrowser):
                  '(?P<_type>.*)/offres/(?P<_region>.*)/occasions.*?',
                  HousingListPage)
     housing = URL('ventes_immobilieres/(?P<_id>.*).htm', HousingPage)
+    phone = URL('https://api.leboncoin.fr/api/utils/phonenumber.json', PhonePage)
 
     TYPES = {Query.TYPE_RENT: 'locations',
              Query.TYPE_SALE: 'ventes_immobilieres',
@@ -55,7 +56,6 @@ class LeboncoinBrowser(PagesBrowser):
         return self.city.go(city=city, zip=zip_code).get_cities()
 
     def search_housings(self, query, advert_type, module_name):
-
         if query.type not in self.TYPES:
             return TypeNotSupported()
 
@@ -77,7 +77,17 @@ class LeboncoinBrowser(PagesBrowser):
                               ret=ret).get_housing_list()
 
     def get_housing(self, _id, obj=None):
-        return self.housing.go(_id=_id).get_housing(obj=obj)
+        housing = self.housing.go(_id=_id).get_housing(obj=obj)
+        housing.phone = self.get_phone(_id)
+        return housing
+
+    def get_phone(self, _id):
+        api_key = self.housing.stay_or_go(_id=_id).get_api_key()
+        data = {'list_id': _id,
+                'app_id': 'leboncoin_web_utils',
+                'key': api_key,
+                'text': 1, }
+        return self.phone.go(data=data).get_phone()
 
     def decode_query(self, query, module_name):
         cities = [c.name for c in query.cities if c.backend == module_name]

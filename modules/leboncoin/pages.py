@@ -16,15 +16,19 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-from decimal import Decimal
-from weboob.browser.pages import HTMLPage, pagination
+from weboob.browser.pages import HTMLPage, pagination, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env, DateTime, BrowserURL, Format
-from weboob.browser.filters.html import Attr, Link, CleanHTML
+from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env, DateTime, BrowserURL, Format, Join
+from weboob.browser.filters.javascript import JSVar
+from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.json import Dict
 from weboob.capabilities.housing import City, Housing, HousingPhoto, Query
 from weboob.capabilities.base import NotAvailable
-from datetime import date, timedelta
 from weboob.tools.date import DATE_TRANSLATE_FR, LinearDateGuesser
+
+from decimal import Decimal
+from datetime import date, timedelta
+import re
 
 
 class CityListPage(HTMLPage):
@@ -45,6 +49,9 @@ class CityListPage(HTMLPage):
 
 
 class HousingListPage(HTMLPage):
+
+    ENCODING = 'iso-8859-1'
+
     def get_area_min(self, asked_area):
         return self.find_select_value(asked_area, '//select[@id="sqs"]/option')
 
@@ -82,28 +89,36 @@ class HousingListPage(HTMLPage):
     @pagination
     @method
     class get_housing_list(ListElement):
-        item_xpath = '//div[@class="list-lbc"]/a'
+        item_xpath = '//a[has-class("list_item")]'
 
-        def next_page(self):
-            return Link('//li[@class="page"]/a[contains(text(),"Page suivante")]')(self)
+        next_page = Link('//a[@id="next"]')
 
         class item(ItemElement):
             klass = Housing
 
-            obj_id = Regexp(Link('.'), '//www.leboncoin.fr/(ventes_immobilieres|locations|colocations)/(.*).htm.*',
-                            '\\2')
-            obj_title = CleanText('./div[@class="lbc"]/div/h2[@class="title"]')
-            obj_cost = CleanDecimal('./div[@class="lbc"]/div/div[@class="price"]',
+            def validate(self, obj):
+                return obj.id is not None
+
+            obj_id = Regexp(Link('.'),
+                            '//www.leboncoin.fr/(ventes_immobilieres|locations|colocations)/(.*).htm.*',
+                            '\\2', default=None)
+
+            obj_title = CleanText('./@title|./section/p[@class="item_title"]')
+            obj_cost = CleanDecimal('./section[@class="item_infos"]/*[@class="item_price"]',
                                     replace_dots=(',', '.'),
                                     default=Decimal(0))
-            obj_currency = Regexp(CleanText('./div[@class="lbc"]/div/div[@class="price"]'),
+            obj_currency = Regexp(CleanText('./section[@class="item_infos"]/*[@class="item_price"]'),
                                   '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
-            obj_text = CleanText('./div[@class="lbc"]/div[@class="detail"]')
+            obj_text = Join(' - ', './/p[@class="item_supp"]')
 
             def obj_date(self):
-                _date = CleanText('./div[@class="lbc"]/div[@class="date"]',
+                _date = CleanText('./section[@class="item_infos"]/aside/p[@class="item_supp"]/text()',
                                   replace=[('Aujourd\'hui', str(date.today())),
                                            ('Hier', str((date.today() - timedelta(1))))])(self)
+
+                if not _date:
+                    return NotAvailable
+
                 for fr, en in DATE_TRANSLATE_FR:
                     _date = fr.sub(en, _date)
 
@@ -112,55 +127,57 @@ class HousingListPage(HTMLPage):
 
             def obj_photos(self):
                 photos = []
-                url = Attr('./div[@class="lbc"]/div[@class="image"]/div/img', 'src', default=None)(self)
+                url = Attr('./div[@class="item_image"]/span/span/img', 'src', default=None)(self)
                 if url:
                     photos.append(HousingPhoto(url))
                 return photos
 
 
 class HousingPage(HTMLPage):
+
+    ENCODING = 'iso-8859-1'
+
+    def get_api_key(self):
+        return JSVar(CleanText('//script'),
+                     var='apiKey',
+                     default=None)(self.doc)
+
     @method
     class get_housing(ItemElement):
         klass = Housing
 
         def parse(self, el):
             details = dict()
-            self.env['location'] = NotAvailable
-            for tr in el.xpath('//div[@class="floatLeft"]/table/tbody/tr'):
-                if 'Ville' in CleanText('./th')(tr):
-                    self.env['location'] = CleanText('./td')(tr)
-                else:
-                    details['%s' % CleanText('./th', replace=[(':', '')])(tr)] = CleanText('./td')(tr)
-
             self.env['area'] = NotAvailable
-            for tr in el.xpath('//div[@class="lbcParams criterias"]/table/tr'):
-                if 'Surface' in CleanText('./th')(tr):
-                    self.env['area'] = CleanDecimal(Regexp(CleanText('./td'), '(.*)m.*'),
-                                                    replace_dots=(',', '.'))(tr)
+            for item in el.xpath('//div[@class="line"]/h2'):
+                if 'Surface' in CleanText('./span[@class="property"]')(item):
+                    self.env['area'] = CleanDecimal(Regexp(CleanText('./span[@class="value"]'), '(.*)m.*'),
+                                                    replace_dots=(',', '.'))(item)
+
                 else:
-                    key = '%s' % CleanText('./th', replace=[(':', '')])(tr)
+                    key = '%s' % CleanText('./span[@class="property"]')(item)
                     if 'GES' in key or 'Classe' in key:
-                        details[key] = CleanText('./td/noscript/a')(tr)
+                        details[key] = CleanText('./span[@class="value"]/noscript/a')(item)
                     else:
-                        details[key] = CleanText('./td')(tr)
+                        details[key] = CleanText('./span[@class="value"]')(item)
 
             self.env['details'] = details
 
         obj_id = Env('_id')
-        obj_title = CleanText('//h1[@id="ad_subject"]')
-        obj_cost = CleanDecimal('//span[@class="price"]', replace_dots=(',', '.'), default=Decimal(0))
+        obj_title = CleanText('//title')
+        obj_cost = CleanDecimal('//h2[@itemprop="price"]/@content', default=Decimal(0))
 
-        obj_currency = Regexp(CleanText('//span[@class="price"]'),
+        obj_currency = Regexp(CleanText('//h2[@itemprop="price"]/span[@class="value"]'),
                               '.*([%s%s%s])' % (u'€', u'$', u'£'), default='')
-        obj_text = CleanHTML('//div[@class="content"]')
-        obj_location = Env('location')
+        obj_text = CleanText('//meta[@name="description"]/@content')
+        obj_location = CleanText('//span[@itemprop="address"]')
         obj_details = Env('details')
         obj_area = Env('area')
         obj_url = BrowserURL('housing', _id=Env('_id'))
 
         def obj_date(self):
-            _date = Regexp(CleanText('//div[@class="upload_by"]', replace=[(u'à', '')]),
-                           '.*- Mise en ligne le (.*).')(self)
+            _date = Regexp(CleanText('//p[has-class("line")]', replace=[(u'à', '')]),
+                           '.*Mise en ligne le (.*)')(self)
 
             for fr, en in DATE_TRANSLATE_FR:
                 _date = fr.sub(en, _date)
@@ -169,19 +186,20 @@ class HousingPage(HTMLPage):
             return DateTime(Env('tmp'), LinearDateGuesser())(self)
 
         def obj_photos(self):
-            photos = []
-            for img in self.el.xpath('//div[@id="thumbs_carousel"]/a/span'):
-                url = CleanText(Regexp(Attr('.', 'style',
-                                            default=''),
-                                       "background-image: url\('(.*)'\);",
-                                       default=''),
-                                replace=[('thumbs', 'images')],
-                                default='')(img)
-                if url:
-                    photos.append(HousingPhoto(url))
-
+            items = re.findall(r'images\[\d\]\s*=\s*"([\w/\.]*\.jpg)";',
+                               CleanText('//script')(self))
+            photos = [HousingPhoto(u'http:%s' % item) for item in items]
             if not photos:
-                img = self.el.xpath('//div[@class="lbcImages"]/meta/@content')
+                img = CleanText('//meta[@itemprop="image"]/@content',
+                                default=None)(self)
                 if img:
-                    photos.append(HousingPhoto(img[0]))
+                    photos.append(HousingPhoto(img))
+
             return photos
+
+
+class PhonePage(JsonPage):
+    def get_phone(self):
+        if Dict('utils/status')(self.doc) == u'OK':
+            return Dict('utils/phonenumber')(self.doc)
+        return NotAvailable

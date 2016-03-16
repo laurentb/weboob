@@ -35,6 +35,5 @@ class LeboncoinTest(BackendTest):
 
         results = list(itertools.islice(self.backend.search_housings(query), 0, 20))
         self.assertTrue(len(results) > 0)
-
         obj = self.backend.fillobj(results[0])
-        self.assertTrue(obj.area is not None, 'Area for "%s"' % (obj.id))
+        self.assertTrue(obj.url is not None, 'Missing url for "%s"' % (obj.id))
