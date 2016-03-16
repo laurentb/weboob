@@ -54,7 +54,7 @@ class DeparturesPage(JsonPage):
             def obj_time(self):
                 _date = CleanText('./article/div/h3[@itemprop="startDate"]/@content')(self).split('-')
                 _time = Regexp(CleanText('./article/div/h3[@itemprop="startDate"]'),
-                               u'.* à|~ (\d+h\d*)')(self).split('h')
+                               u'.* à|~ (\d+:\d*)')(self).split(':')
                 return datetime(int(_date[0]), int(_date[1]),
                                 int(_date[2]), int(_time[0]),
                                 0 if len(_time) < 2 or len(_time) == 2 and not _time[1] else int(_time[1]))
