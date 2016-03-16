@@ -39,7 +39,8 @@ class HousingFormatter(IFormatter):
             result += 'URL: %s\n' % obj.url
 
         result += 'Cost: %s%s\n' % (obj.cost, obj.currency)
-        result += u'Area: %sm²\n' % (obj.area)
+        area = u'%sm²' % (obj.area) if obj.area else u'%s' % obj.area
+        result += u'Area: %s\n' % area
         if obj.date:
             result += 'Date: %s\n' % obj.date.strftime('%Y-%m-%d')
         result += 'Phone: %s\n' % obj.phone
