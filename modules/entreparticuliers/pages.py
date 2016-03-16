@@ -19,7 +19,6 @@
 
 from decimal import Decimal
 from datetime import datetime
-import re
 
 from weboob.browser.pages import JsonPage, HTMLPage
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
@@ -64,7 +63,7 @@ class SearchPage(HTMLPage):
                                     default=Decimal(0))
             obj_currency = Regexp(CleanText('./div/span[@class="infos"]/span[@id="spanprix"]'),
                                   '.*([%s%s%s]).*' % (u'€', u'$', u'£'), default=u'€')
-            obj_text = CleanText('./div/span[@class="infos"]/span[@id="spandescription"]/text()')
+            obj_text = CleanText('./div/span[@class="infos"]/span[@id="tbienbienetc"]')
             obj_date = datetime.now
 
 
@@ -74,37 +73,26 @@ class HousingPage(HTMLPage):
         klass = Housing
 
         obj_id = Env('_id')
-        obj_title = CleanText('//main/section/div/h1')
+        obj_title = CleanText('//h1[@id="DetailAnnonceTitre"]')
+        obj_cost = CleanDecimal('//li[@id="detailprix"]/text()')
+        obj_currency = Regexp(CleanText('//li[@id="detailprix"]/text()'),
+                              '.*([%s%s%s])' % (u'€', u'$', u'£'),
+                              default=u'€')
+        obj_text = CleanHTML('//span[@id="DetailDescription"]')
+        obj_location = CleanText('//li[@id="detaillocalisation"]')
 
-        def obj_cost(self):
-            for detail in self.el.xpath('//span[@class="i small"]|//span[@class="i prix"]'):
-                m = re.search('(.*) [%s%s%s].*' % (u'€', u'$', u'£'),
-                              CleanText('.')(detail))
-                if m:
-                    return Decimal(m.group(1).replace(' ', ''))
-
-        obj_currency = Regexp(CleanText('//span[@class="i small"]'),
-                              '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
-        obj_text = CleanHTML('//article[@class="bloc description"]/p')
-        obj_location = CleanText('//span[@class="i ville"]')
-
-        def obj_area(self):
-            for detail in self.el.xpath('//span[@class="i"]'):
-                m = re.search('.*\/(.*) m.*',
-                              CleanText('.')(detail))
-                if m:
-                    return Decimal(m.group(1).replace(' ', ''))
-
+        obj_area = CleanDecimal('//li[@id="surfacebien"]/text()')
         obj_url = BrowserURL('housing', _id=Env('_id'))
         obj_phone = CleanText('//input[@id="hftel"]/@value')
         obj_date = datetime.now
 
         def obj_details(self):
             details = {}
-            for detail in self.el.xpath('//span[has-class("i")]'):
-                item = detail.text.split(':')
-                if len(item) == 2:
-                    details[item[0]] = item[1]
+            for detail in self.el.xpath('//ul[@class="infos"]/li'):
+                key = CleanText('./@id')(detail)
+                value = CleanText('.', default=None)(detail)
+                if value:
+                    details[key] = value
             return details
 
         def obj_photos(self):
