@@ -807,7 +807,8 @@ class StatesMixin(object):
 
     def dump_state(self):
         state = {}
-        state['url'] = self.page.url
+        if self.page:
+            state['url'] = self.page.url
         state['cookies'] = base64.b64encode(zlib.compress(pickle.dumps(self.session.cookies, -1)))
         for attrname in self.__states__:
             state[attrname] = getattr(self, attrname)
