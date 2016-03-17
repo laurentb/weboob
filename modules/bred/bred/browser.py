@@ -36,7 +36,9 @@ class BredBrowser(DomainBrowser):
     def __init__(self, accnum, login, password, *args, **kwargs):
         super(BredBrowser, self).__init__(*args, **kwargs)
         self.login = login
-        self.password = password
+        # Bred only use first 8 char (even if the password is set to be bigger)
+        # The js login form remove after 8th char. No comment.
+        self.password = password[:8]
         self.accnum = accnum
         self.universes = None
         self.current_univers = None
