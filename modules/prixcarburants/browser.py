@@ -17,40 +17,28 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-import urllib
-
-from weboob.deprecated.browser import Browser
-
+from weboob.browser import PagesBrowser, URL
+from weboob.capabilities.base import UserError
 from .pages import IndexPage, ComparisonResultsPage, ShopInfoPage
 
 
 __all__ = ['PrixCarburantsBrowser']
 
 
-class PrixCarburantsBrowser(Browser):
+class PrixCarburantsBrowser(PagesBrowser):
+    BASEURL = 'http://www.prix-carburants.economie.gouv.fr'
+
     TOKEN = None
-    PROTOCOL = 'http'
-    DOMAIN = 'www.prix-carburants.economie.gouv.fr'
-    ENCODING = 'iso-8859-15'
-    PAGES = {
-        'http://www.prix-carburants.economie.gouv.fr': IndexPage,
-        'http://www.prix-carburants.economie.gouv.fr/recherche/': ComparisonResultsPage,
-        'http://www.prix-carburants.economie.gouv.fr/itineraire/infos/\d+': ShopInfoPage, }
+
+    result_page = URL('/recherche/', ComparisonResultsPage)
+    shop_page = URL('/itineraire/infos/(?P<_id>\d+)', ShopInfoPage)
+    index_page = URL('/', IndexPage)
 
     def iter_products(self):
-        if not self.is_on_page(IndexPage):
-            self.location("%s://%s" % (self.PROTOCOL, self.DOMAIN))
-
-        assert self.is_on_page(IndexPage)
-        return self.page.iter_products()
+        return self.index_page.go().iter_products()
 
     def get_token(self):
-        if not self.is_on_page(IndexPage):
-            self.location("%s://%s" % (self.PROTOCOL, self.DOMAIN))
-
-        assert self.is_on_page(IndexPage)
-        self.TOKEN = self.page.get_token()
+        self.TOKEN = self.index_page.stay_or_go().get_token()
 
     def iter_prices(self, zipcode, product):
         if self.TOKEN is None:
@@ -61,11 +49,15 @@ class PrixCarburantsBrowser(Browser):
             '_recherche_recherchertype[choix_carbu]': '%s' % product.id,
             '_recherche_recherchertype[_token]': '%s' % self.TOKEN, }
 
-        self.location('%s://%s' % (self.PROTOCOL, self.DOMAIN), urllib.urlencode(data))
-        assert self.is_on_page(ComparisonResultsPage)
-        return self.page.iter_results(product)
+        self.index_page.go(data=data)
+
+        if not self.result_page.is_here():
+            raise UserError('Bad zip or product')
+
+        if not product.name:
+            product.name = self.page.get_product_name()
+
+        return self.page.iter_results(product=product)
 
     def get_shop_info(self, id):
-        self.location('%s://%s/itineraire/infos/%s' % (self.PROTOCOL, self.DOMAIN, id))
-        assert self.is_on_page(ShopInfoPage)
-        return self.page.get_info()
+        return self.shop_page.go(_id=id).get_info()
