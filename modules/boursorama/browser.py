@@ -117,7 +117,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     def get_account(self, id):
         assert isinstance(id, basestring)
 
-        for a in self.page.get_list():
+        for a in self.get_accounts_list():
             if a.id == id:
                 return a
         return None
