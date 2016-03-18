@@ -19,10 +19,19 @@
 
 
 from .base import Capability, BaseObject, Field, DecimalField, \
-                  StringField
+                  StringField, UserError
 from .date import DateField
 
 __all__ = ['Shop', 'Price', 'Product', 'CapPriceComparison']
+
+
+class PriceNotFound(UserError):
+    """
+    Raised when a price is not found
+    """
+
+    def __init__(self, msg='Price not found'):
+        UserError.__init__(self, msg)
 
 
 class Product(BaseObject):
