@@ -68,7 +68,7 @@ class DailymotionModule(Module, CapVideo, CapCollection):
             # if we don't want only the thumbnail, we probably want also every fields
             video = self.browser.get_video(video.id, video)
         if 'thumbnail' in fields and video.thumbnail:
-            video.thumbnail.data = self.browser.open(video.thumbnail.url)
+            video.thumbnail.data = self.browser.open(video.thumbnail.url).content
         return video
 
     def iter_resources(self, objs, split_path):
