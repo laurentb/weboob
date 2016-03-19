@@ -52,14 +52,18 @@ def get_bytes_size(size, unit_name):
     r"""Converts a unit and a number into a number of bytes.
 
     >>> get_bytes_size(2, 'KB')
-    2048
+    2048.0
     """
     unit_data = {
         'bytes': 1,
         'KB': 1024,
+        'KiB': 1024,
         'MB': 1024 * 1024,
+        'MiB': 1024 * 1024,
         'GB': 1024 * 1024 * 1024,
+        'GiB': 1024 * 1024 * 1024,
         'TB': 1024 * 1024 * 1024 * 1024,
+        'TiB': 1024 * 1024 * 1024 * 1024,
         }
     return float(size * unit_data.get(unit_name, 1))
 
