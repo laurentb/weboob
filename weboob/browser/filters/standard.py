@@ -309,15 +309,26 @@ class TableCell(_Filter):
 
 
 class RawText(Filter):
+    def __init__(self, selector=None, children=False, default=_NO_DEFAULT):
+        super(RawText, self).__init__(selector, default=default)
+        self.children = children
+
     @debug()
     def filter(self, el):
         if isinstance(el, (tuple, list)):
             return u' '.join([self.filter(e) for e in el])
 
-        if el.text is None:
-            return self.default
+        if self.children:
+            text = el.text_content()
         else:
-            return unicode(el.text)
+            text = el.text
+
+        if text is None:
+            result = self.default
+        else:
+            result = unicode(text)
+
+        return result
 
 
 class CleanText(Filter):
