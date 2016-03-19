@@ -34,7 +34,7 @@ class RawTextTest(TestCase):
         self.assertEqual("blah: ", RawText('//p', default="foo")(e))
 
     # - the content of <p> starts with a sub-element, we retrieve the default value
-    def test_first_node_is_element(self):
+    def test_first_node_has_no_recursion(self):
         e = fromstring('<html><body><p><span>229,90</span> EUR</p></body></html>')
         self.assertEqual("foo", RawText('//p', default="foo")(e))
 
