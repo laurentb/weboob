@@ -34,7 +34,7 @@ class CreditDuNordModule(Module, CapBank):
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '1.2'
-    DESCRIPTION = u'Crédit du Nord, Banque Courtois, Kolb, Tarneaud'
+    DESCRIPTION = u'Crédit du Nord, Banque Courtois, Kolb, Tarneaud, Société Marseillaise de Crédit'
     LICENSE = 'AGPLv3+'
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'www.credit-du-nord.fr':     u'Crédit du Nord',
@@ -42,6 +42,7 @@ class CreditDuNordModule(Module, CapBank):
         'www.banque-kolb.fr':        u'Banque Kolb',
         'www.banque-rhone-alpes.fr': u'Banque Rhône-Alpes',
         'www.tarneaud.fr':           u'Tarneaud',
+        'www.smc.fr':                u'Société Marseillaise de Crédit',
         }.iteritems(), key=lambda k_v: (k_v[1], k_v[0]))])
     CONFIG = BackendConfig(Value('website',  label='Banque', choices=website_choices, default='www.credit-du-nord.fr'),
                            ValueBackendPassword('login',    label='Identifiant', masked=False),
