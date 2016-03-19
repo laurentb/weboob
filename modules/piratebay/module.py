@@ -51,7 +51,7 @@ class PiratebayModule(Module, CapTorrent):
 
         if torrent.url is NotAvailable and torrent.magnet:
             raise MagnetOnly(torrent.magnet)
-        return self.browser.openurl(torrent.url.encode('utf-8')).read()
+        return self.browser.open(torrent.url).content
 
     def iter_torrents(self, pattern):
         return self.browser.iter_torrents(pattern.replace(' ', '+'))

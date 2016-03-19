@@ -18,9 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import HTMLPage
 
 
-class IndexPage(Page):
+class IndexPage(HTMLPage):
     def is_logged(self):
         return 'id' in self.document.find('body').attrib

@@ -18,48 +18,30 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import random
-import urllib
-from urlparse import urlsplit
-
-from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
+from weboob.browser import PagesBrowser, URL
 
 from .pages.index import IndexPage
-from .pages.torrents import TorrentPage, TorrentsPage
+from .pages.torrents import TorrentPage, TorrentsPage, FilesPage
 
 __all__ = ['PiratebayBrowser']
 
 
-class PiratebayBrowser(Browser):
-    ENCODING = 'utf-8'
-    DOMAINS = ['thepiratebay.se']
+class PiratebayBrowser(PagesBrowser):
+    BASEURL = 'https://thepiratebay.se'
 
-    def __init__(self, url, *args, **kwargs):
-        url = url or 'https://%s/' % random.choice(self.DOMAINS)
-        url_parsed = urlsplit(url)
-        self.PROTOCOL = url_parsed.scheme
-        self.DOMAIN = url_parsed.netloc
-        self.PAGES = {
-            '%s://%s/' % (self.PROTOCOL, self.DOMAIN): IndexPage,
-            '%s://%s/search/.*/0/7/0' % (self.PROTOCOL, self.DOMAIN): TorrentsPage,
-            '%s://%s/torrent/.*' % (self.PROTOCOL, self.DOMAIN): TorrentPage
-        }
-        Browser.__init__(self, *args, **kwargs)
+    index_page = URL('/$', IndexPage)
+    torrents_page = URL('/search/(?P<query>.+)/0/7/0', TorrentsPage)
+    torrent_page = URL('/torrent/(?P<id>.+)', TorrentPage)
+    files_page = URL('/ajax_details_filelist.php\?id=(?P<id>.+)', FilesPage)
 
     def iter_torrents(self, pattern):
-        self.location('%s://%s/search/%s/0/7/0' % (self.PROTOCOL,
-                                                   self.DOMAIN,
-                                                   urllib.quote_plus(pattern.encode('utf-8'))))
-
-        assert self.is_on_page(TorrentsPage)
+        self.torrents_page.go(query=pattern)
         return self.page.iter_torrents()
 
     def get_torrent(self, _id):
-        try:
-            self.location('%s://%s/torrent/%s/' % (self.PROTOCOL,
-                                                   self.DOMAIN,
-                                                   _id))
-        except BrowserHTTPNotFound:
-            return
-        if self.is_on_page(TorrentPage):
-            return self.page.get_torrent(_id)
+        self.torrent_page.go(id=_id)
+        torrent = self.page.get_torrent()
+        self.files_page.go(id=_id)
+        files = self.page.get_files()
+        torrent.files = files
+        return torrent

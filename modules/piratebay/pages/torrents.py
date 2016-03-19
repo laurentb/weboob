@@ -17,104 +17,58 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-from weboob.deprecated.browser import Page,BrokenPageError
+from weboob.tools.misc import get_bytes_size
+from weboob.browser.pages import HTMLPage
+from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.capabilities.torrent import Torrent
-from weboob.capabilities.base import NotAvailable, NotLoaded
-
-from html2text import unescape
-
-
-class TorrentsPage(Page):
-    def unit(self, n, u):
-        m = {'B': 1,
-                'KB': 1024,
-                'MB': 1024 * 1024,
-                'GB': 1024 * 1024 * 1024,
-                'TB': 1024 * 1024 * 1024 * 1024,
-                }
-        return float(n * m[u])
-
-    def iter_torrents(self):
-        try:
-            table = self.parser.select(self.document.getroot(), 'table#searchResult', 1)
-        except BrokenPageError:
-            return
-        first = True
-        for tr in table.getiterator('tr'):
-            if first:
-                first = False
-                continue
-            if tr.get('class', '') != "header":
-                td = tr.getchildren()[1]
-                div = td.getchildren()[0]
-                link = div.find('a').attrib['href']
-                title = unicode(unescape(div.find('a').text))
-                idt = link.split('/')[2]
-
-                a = td.getchildren()[1]
-                url = unicode(a.attrib['href'])
-
-                size = td.find('font').text.split(',')[1].strip()
-                u = size.split(' ')[1].split(u'\xa0')[1].replace('i', '')
-                size = size.split(' ')[1].split(u'\xa0')[0]
-
-                seed = tr.getchildren()[2].text
-                leech = tr.getchildren()[3].text
-
-                torrent = Torrent(idt, title)
-                torrent.url = url
-                torrent.size = self.unit(float(size), u)
-                torrent.seeders = int(seed)
-                torrent.leechers = int(leech)
-                torrent.description = NotLoaded
-                torrent.files = NotLoaded
-                torrent.magnet = NotLoaded
-                yield torrent
+from weboob.capabilities.base import NotAvailable
+from weboob.browser.filters.standard import RawText, CleanText, Regexp, Date, Type
 
 
-class TorrentPage(Page):
-    def get_torrent(self, id):
-        url = NotAvailable
-        magnet = NotAvailable
-        for div in self.document.getiterator('div'):
-            if div.attrib.get('id', '') == 'title':
-                title = unicode(unescape(div.text.strip()))
-            elif div.attrib.get('class', '') == 'download':
-                for link in self.parser.select(div, 'a'):
-                    href = link.attrib.get('href', '')
-                    # https fails on the download server, so strip it
-                    if href.startswith('https://'):
-                        href = href.replace('https://', 'http://', 1)
-                    if href.startswith('magnet:'):
-                        magnet = unicode(href)
-                    elif len(href):
-                        url = unicode(href)
-            elif div.attrib.get('id', '') == 'details':
-                size = float(div.getchildren()[0].getchildren()[5].text.split('(')[1].split('Bytes')[0])
-                if len(div.getchildren()) > 1 \
-                and div.getchildren()[1].attrib.get('class', '') == 'col2':
-                    child_to_explore = div.getchildren()[1]
-                else:
-                    child_to_explore = div.getchildren()[0]
-                prev_child_txt = "none"
-                seed = "-1"
-                leech = "-1"
-                for ch in child_to_explore.getchildren():
-                    if prev_child_txt == "Seeders:":
-                        seed = ch.text
-                    if prev_child_txt == "Leechers:":
-                        leech = ch.text
-                    prev_child_txt = ch.text
-            elif div.attrib.get('class', '') == 'nfo':
-                description = unicode(div.getchildren()[0].text_content().strip())
-        torrent = Torrent(id, title)
-        torrent.url = url or NotAvailable
-        torrent.magnet = magnet
-        torrent.size = size
-        torrent.seeders = int(seed)
-        torrent.leechers = int(leech)
-        torrent.description = description
-        torrent.files = NotAvailable
+class TorrentsPage(HTMLPage):
+    @method
+    class iter_torrents(ListElement):
+        item_xpath = '//table[@id="searchResult"]/tr'
 
-        return torrent
+        class item(ItemElement):
+            klass = Torrent
+
+            obj_id = Regexp(CleanText('./td[2]/div/a[@class="detLink"]/@href'),
+                            r'^/torrent/(\d+)/', '\\1')
+            obj_name = Regexp(CleanText('./td[2]/div/a[@class="detLink"]/@title'),
+                              r'Details for (.*)$', '\\1')
+            obj_magnet = CleanText('./td[2]/a[title="Download this torrent using magnet"]/@href')
+            obj_date = Date(Regexp(CleanText('./td[2]/font'), r'Uploaded (\d{2}-\d{2} \d{4})', '\\1'))
+            obj_seeders = Type(CleanText('./td[3]'), type=int)
+            obj_leechers = Type(CleanText('./td[4]'), type=int)
+
+            def obj_size(self):
+                value, unit = Regexp(CleanText('./td[2]/font'), r'Size ([\d\.]+ [^,]+),', '\\1')(self).split(' ')
+                return get_bytes_size(float(value), unit)
+
+
+class TorrentPage(HTMLPage):
+    @method
+    class get_torrent(ItemElement):
+        klass = Torrent
+
+        def obj_id(self):
+            return self.page.url.split('/')[-1]
+
+        def obj_url(self):
+            return NotAvailable
+
+        obj_name = CleanText('//div[@id="title"]')
+        obj_magnet = CleanText('//div[@class="download"]/a[starts-with(@href, "magnet:")]/@href')
+        obj_date = Date(CleanText('//div[@id="details"]//dt[.="Uploaded:"]/following-sibling::dd[1]'))
+        obj_size = Type(Regexp(CleanText('//div[@id="details"]//dt[.="Size:"]/following-sibling::dd[1]'),
+                        r'\((\d+) Bytes\)', '\\1'), type=float)
+        obj_seeders = Type(CleanText('//div[@id="details"]//dt[.="Seeders:"]/following-sibling::dd[1]'), type=int)
+        obj_leechers = Type(CleanText('//div[@id="details"]//dt[.="Leechers:"]/following-sibling::dd[1]'), type=int)
+        obj_description = RawText('//div[@class="nfo"]/pre', children=True)
+
+
+class FilesPage(HTMLPage):
+    def get_files(self):
+        return [" ".join([td.text for td in tr.xpath('./td')])
+                for tr in self.doc.xpath('//table/tr')]
