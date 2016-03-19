@@ -135,7 +135,7 @@ class CapDocument(CapCollection):
         :type subscription: :class:`Subscription`
         :rtype: iter[:class:`Detail`]
         """
-        raise NotImplementedError()
+        return self.iter_documents_history(subscription)
 
     def get_document(self, id):
         """
