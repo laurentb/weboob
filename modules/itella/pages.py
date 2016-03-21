@@ -34,7 +34,8 @@ class SearchPage(JsonPage):
             raise ParcelNotFound("ID mismatch: expecting %s, got %s" % (_id, result_id))
 
         p = Parcel(_id)
-        p.arrival = parse_date(shipment["estimatedDeliveryTime"], ignoretz=True)
+        if shipment["estimatedDeliveryTime"]:
+            p.arrival = parse_date(shipment["estimatedDeliveryTime"], ignoretz=True)
         events = shipment["events"]
         p.history = [self.build_event(i, data) for i, data in enumerate(events)]
         most_recent = p.history[0]
