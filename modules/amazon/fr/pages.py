@@ -248,7 +248,12 @@ class OrderOldPage(OrderPage):
             order.discount = Decimal(self.discount()) if not empty(self.discount()) else Decimal(0.00)
             order.shipping = Decimal(self.shipping()) if not empty(self.shipping()) else Decimal(0.00)
             order.total = Decimal(self.grand_total()) if not empty(self.grand_total()) else Decimal(0.00)
+            order._bill = self.bill()
             return order
+
+    def bill(self):
+        html = self.doc.xpath(u'//img[contains(@src, "print-invoice")]/parent::a')
+        return {'url': html[0].attrib['href'], 'format': u'html'}
 
     def order_date(self):
         date_str = self.doc.xpath(u'//b[contains(text(),"Commande numérique")]')[0].text
@@ -393,4 +398,4 @@ class OrderOldPage(OrderPage):
 
     def grand_total(self):
         return self.decimal_amount(self.doc.xpath(
-            u'//td[contains(b,"Total pour cette commande")]')[0].text)
+            u'//td[contains(b,"Total pour cette commande")]/b')[0].text)
