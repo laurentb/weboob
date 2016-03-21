@@ -249,6 +249,7 @@ class Cragr(Browser):
                     new_location = self.moveto_market_website(account, home=True)
                 except self.WebsiteNotSupported:
                     account._link = None
+                    self.update_sag()
                 else:
                     self.location(new_location)
                     self.page.update(accounts_list)
@@ -270,7 +271,7 @@ class Cragr(Browser):
     def get_history(self, account):
         if account.type in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE):
             self.logger.warning('This account is not supported')
-            return
+            raise NotImplementedError()
 
         # some accounts may exist without a link to any history page
         if account._link is None:

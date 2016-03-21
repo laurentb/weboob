@@ -28,6 +28,17 @@ from weboob.tools.date import parse_french_date
 
 
 class BasePage(Page):
+    def on_loaded(self):
+        self.get_current()
+
+    def get_current(self):
+        try:
+            current_elem = self.document.xpath('//div[@id="libPerimetre"]/span[@class="texte"]')[0]
+        except IndexError:
+            self.logger.debug('Can\'t update current perimeter on this page.')
+            return
+        self.browser.current_perimeter = re.search(': (.*)$', self.parser.tocleanstring(current_elem)).group(1).lower()
+
     def get_error(self):
         try:
             error = self.document.xpath('//h1[@class="h1-erreur"]')[0]
@@ -194,14 +205,6 @@ class _AccountsPage(BasePage):
         return len(self.document.xpath('//a[@title="Espace Autres Comptes"]'))
 
 class PerimeterPage(BasePage):
-    def get_current(self):
-        try:
-            current_elem = self.document.xpath('//div[@id="libPerimetre"]/span[@class="texte"]')[0]
-        except IndexError:
-            # The user need to validate CGU, can't do it for him.
-            return
-        self.browser.current_perimeter = re.search(': (.*)$', self.parser.tocleanstring(current_elem)).group(1).lower()
-
     def check_multiple_perimeters(self):
         self.browser.perimeters = list()
         self.get_current()
@@ -230,6 +233,7 @@ class PerimeterPage(BasePage):
 class ChgPerimeterPage(PerimeterPage):
     def on_loaded(self):
         if self.get_error() is not None:
+            self.logger.debug('Error on ChgPerimeterPage')
             return
         self.get_current()
         if not self.browser.current_perimeter.lower() in [' '.join(p.lower().split()) for p in self.browser.perimeters]:
