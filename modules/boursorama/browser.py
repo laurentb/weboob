@@ -26,7 +26,8 @@ from weboob.browser.url import URL
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
-from .pages import LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, CardPage, HistoryPage, AccbisPage, AuthenticationPage, MarketPage
+from .pages import LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, CardPage, HistoryPage, AccbisPage, AuthenticationPage,\
+                   MarketPage, LoanPage
 
 
 __all__ = ['BoursoramaBrowser']
@@ -51,6 +52,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     asv = URL('/compte/assurance-vie/.*', AsvPage)
     market = URL('/compte/(?!assurance|cav|epargne).*/(positions|mouvements)', MarketPage)
     cards = URL('/compte/cav/.*/limite.*', CardPage)
+    loans = URL('/credit/immobilier/.*/informations', LoanPage)
     authentication = URL('/securisation', AuthenticationPage)
 
 
@@ -124,6 +126,8 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_history(self, account):
+        if not account._history_page:
+            return
         if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
             self.location('%s/mouvements' % account._history_page)
             for t in self.page.iter_history():

@@ -115,6 +115,13 @@ class LoginPage(HTMLPage):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
+    ACCOUNT_TYPES = {u'Comptes courants':      Account.TYPE_CHECKING,
+                        u'Comptes épargne':       Account.TYPE_SAVINGS,
+                        u'Comptes bourse':        Account.TYPE_MARKET,
+                        u'Assurances Vie':        Account.TYPE_LIFE_INSURANCE,
+                        u'Mes crédits':           Account.TYPE_LOAN,
+                    }
+
     @method
     class iter_accounts(ListElement):
         item_xpath = '//table[@class="table table--accounts"]/tr[has-class("table__line--account") and count(descendant::td) > 1]'
@@ -135,12 +142,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj__holder = None
 
             def obj_type(self):
-                ACCOUNT_TYPES = {u'Comptes courants':      Account.TYPE_CHECKING,
-                                 u'Comptes épargne':       Account.TYPE_SAVINGS,
-                                 u'Comptes bourse':        Account.TYPE_MARKET,
-                                 u'Assurances Vie':        Account.TYPE_LIFE_INSURANCE,
-                                }
-                return ACCOUNT_TYPES.get(CleanText('./preceding-sibling::tr[has-class("list--accounts--master")]//h4')(self), Account.TYPE_UNKNOWN)
+                return self.page.ACCOUNT_TYPES.get(CleanText('./preceding-sibling::tr[has-class("list--accounts--master")]//h4')(self), Account.TYPE_UNKNOWN)
 
             def obj__link(self):
                 link = Attr('.//a[@class="account--name"]', 'href', default=NotAvailable)(self)
@@ -260,19 +262,28 @@ class AsvPage(MarketPage):
 class AccbisPage(LoggedPage, HTMLPage):
     def populate(self, accounts):
         for account in accounts:
-            for a in self.doc.xpath('//li/a'):
-                label = CleanText().filter(a.xpath('./span[@class="nav-category__name"]'))
-                if account._holder and account._holder in label:
-                    balance = a.xpath('./span[@class="nav-category__value"]')
-                    account.balance = CleanDecimal(replace_dots=True).filter(balance)
-                    account.currency = FrenchTransaction.Currency().filter(balance)
-                    account._link = Link().filter(a.xpath('.'))
-                    account._webid = Regexp(pattern='([^=]+)$').filter(Link().filter(a.xpath('.')))
-                elif account.label == label:
-                    if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
-                        account._history_page = re.sub('/$', '', Link().filter(a.xpath('.')))
-                    elif 'titulaire' in self.url:
-                        account._history_page = self.browser.budget_transactions
-                    else:
-                        account._history_page = self.browser.other_transactions
-                    account._webid = Attr(None, 'data-account-label').filter(a.xpath('./span[@class="nav-category__name"]'))
+            for li in  self.doc.xpath('//li[@class="nav-category"]'):
+                title = CleanText().filter(li.xpath('./h3'))
+                for a in li.xpath('./ul/li/a'):
+                    label = CleanText().filter(a.xpath('./span[@class="nav-category__name"]'))
+                    if account._holder and account._holder in label:
+                        balance = a.xpath('./span[@class="nav-category__value"]')
+                        account.balance = CleanDecimal(replace_dots=True).filter(balance)
+                        account.currency = FrenchTransaction.Currency().filter(balance)
+                        account._link = Link().filter(a.xpath('.'))
+                        account._webid = Regexp(pattern='([^=]+)$').filter(Link().filter(a.xpath('.')))
+                    elif account.label == label:
+                        if not account.type:
+                            account.type = AccountsPage.ACCOUNT_TYPES.get(title, Account.TYPE_UNKNOWN)
+                        if account.type == Account.TYPE_LOAN:
+                            account._history_page = None
+                        elif account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
+                            account._history_page = re.sub('/$', '', Link().filter(a.xpath('.')))
+                        elif 'titulaire' in self.url:
+                            account._history_page = self.browser.budget_transactions
+                        else:
+                            account._history_page = self.browser.other_transactions
+                        account._webid = Attr(None, 'data-account-label').filter(a.xpath('./span[@class="nav-category__name"]'))
+
+class LoanPage(LoggedPage, HTMLPage):
+    pass
