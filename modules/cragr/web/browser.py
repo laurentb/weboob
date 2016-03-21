@@ -245,11 +245,15 @@ class Cragr(Browser):
         # update market accounts
         for account in accounts_list:
             if account.type == Account.TYPE_MARKET:
-                new_location = self.moveto_market_website(account, home=True)
-                self.location(new_location)
-                self.page.update(accounts_list)
-                self.quit_market_website()
-                break
+                try:
+                    new_location = self.moveto_market_website(account, home=True)
+                except self.WebsiteNotSupported:
+                    account._link = None
+                else:
+                    self.location(new_location)
+                    self.page.update(accounts_list)
+                    self.quit_market_website()
+                    break
 
         return accounts_list
 
@@ -307,7 +311,6 @@ class Cragr(Browser):
 
     def iter_investment(self, account):
         if not account._link or account.type not in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE):
-            self.logger.warning('This account is not supported')
             return
 
         if account._perimeter != self.current_perimeter:
