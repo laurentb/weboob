@@ -162,7 +162,7 @@ class HistoryPage(LoggedPage, HTMLPage):
             klass = Transaction
 
             obj_id = Attr('.', 'data-id')
-            obj_raw = Transaction.Raw(CleanText('.//div[contains(@class, "label")]'))
+            obj_raw = Transaction.Raw(CleanText('.//div[contains(@class, "label__effect")]'))
             obj_date = Date(Attr('.//time', 'datetime'))
             obj_amount = CleanDecimal('.//div[contains(@class, "amount")]', replace_dots=True)
             obj_category = CleanText('.//div[contains(@class, "desc")]')
