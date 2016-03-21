@@ -55,7 +55,7 @@ class DailymotionBrowser(PagesBrowser):
             elif self.resolution in video._formats.get(self.format):
                 video.url = video._formats.get(self.format).get(self.resolution)
             else:
-                video.url = video.video._formats.get(self.format).values()[-1]
+                video.url = video._formats.get(self.format).values()[-1]
         return video
 
     def retrieve_m3u8_url(self, urls):
