@@ -754,6 +754,11 @@ ssl.wrap_socketold = ssl.wrap_socket
 ssl.wrap_socket = mywrap_socket
 
 
+# XXX MONKEY PATCHING TO DISABLE SSL CERTIFICATE VERIFICATION
+if hasattr(ssl, '_create_unverified_context'):
+    ssl._create_default_https_context = ssl._create_unverified_context
+
+
 class DNSTimeoutException(Exception):
     pass
 
