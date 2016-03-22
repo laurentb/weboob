@@ -43,7 +43,7 @@ class LoginPage(HTMLPage):
         form.submit()
 
 
-class NewAccountsPage(LoggedPage, HTMLPage):
+class AccountsPage(LoggedPage, HTMLPage):
     def get_list(self):
         for div in self.doc.xpath('.//div[@id="card-details"]'):
             a = Account()
@@ -64,25 +64,6 @@ class NewAccountsPage(LoggedPage, HTMLPage):
                 a._link = link[0].attrib['href']
             else:
                 a._link = None
-
-            yield a
-
-
-class AccountsPage(LoggedPage, HTMLPage):
-    def get_list(self):
-        for box in self.doc.getroot().cssselect('div.roundedBox div.contentBox'):
-            a = Account()
-            a.id = CleanText().filter(box.xpath('.//tr[@id="summaryImageHeaderRow"]//div[@class="summaryTitles"]'))
-            a.label = CleanText().filter(box.xpath('.//span[@class="cardTitle"]'))
-            if "carte" in a.label.lower():
-                a.type = Account.TYPE_CARD
-            balance = CleanText().filter(self.parser.select(box, 'td#colOSBalance div.summaryValues', 1))
-            if balance in (u'Indisponible', u'Indisponible Facturation en cours', ''):
-                a.balance = NotAvailable
-            else:
-                a.currency = a.get_currency(balance)
-                a.balance =  - abs(CleanDecimal(replace_dots=a.currency == 'EUR').filter(balance))
-            a._link = self.parser.select(box, 'div.summaryTitles a.summaryLink', 1).attrib['href']
 
             yield a
 

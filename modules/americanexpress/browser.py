@@ -25,7 +25,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.url import URL
 
-from .pages import LoginPage, AccountsPage, TransactionsPage, NewAccountsPage, WrongLoginPage
+from .pages import LoginPage, AccountsPage, TransactionsPage, WrongLoginPage
 
 
 __all__ = ['AmericanExpressBrowser']
@@ -36,8 +36,7 @@ class AmericanExpressBrowser(LoginBrowser):
 
     login = URL('/myca/logon/.*', LoginPage)
     wrong_login = URL('/myca/fuidfyp/emea/.*', WrongLoginPage)
-    accounts = URL('/myca/intl/acctsumm/.*', AccountsPage)
-    new_accounts = URL('/myca/intl/isummary/.*', NewAccountsPage)
+    accounts = URL('/myca/intl/isummary/.*', AccountsPage)
     transactions = URL('/myca/intl/estatement/.*', TransactionsPage)
 
 
@@ -60,7 +59,7 @@ class AmericanExpressBrowser(LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
-        if not self.accounts.is_here() and not self.new_accounts.is_here():
+        if not self.accounts.is_here():
             self.go_on_accounts_list()
         return self.page.get_list()
 
@@ -76,7 +75,7 @@ class AmericanExpressBrowser(LoginBrowser):
 
     @need_login
     def get_history(self, account):
-        if not self.accounts.is_here() and not self.new_accounts.is_here():
+        if not self.accounts.is_here():
             self.go_on_accounts_list()
 
         url = account._link
@@ -84,7 +83,7 @@ class AmericanExpressBrowser(LoginBrowser):
             return
 
         while url is not None:
-            if self.new_accounts.is_here():
+            if self.accounts.is_here():
                 self.location(url)
             else:
                 form = self.page.get_form(name='leftnav')
