@@ -38,7 +38,7 @@ class TorrentsPage(HTMLPage):
             obj_name = Regexp(CleanText('./td[2]/div/a[@class="detLink"]/@title'),
                               r'Details for (.*)$', '\\1')
             obj_magnet = CleanText('./td[2]/a[title="Download this torrent using magnet"]/@href')
-            obj_date = Date(Regexp(CleanText('./td[2]/font'), r'Uploaded (\d{2}-\d{2} \d{4})', '\\1'))
+            obj_date = Date(Regexp(CleanText('./td[2]/font'), r'Uploaded ([^,]+),', '\\1'), fuzzy=True)
             obj_seeders = Type(CleanText('./td[3]'), type=int)
             obj_leechers = Type(CleanText('./td[4]'), type=int)
 
