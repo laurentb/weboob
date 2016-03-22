@@ -30,7 +30,7 @@ from weboob.capabilities.housing import Housing, HousingPhoto, City
 class CitiesPage(JsonPage):
     @method
     class iter_cities(DictElement):
-        item_xpath = '0/values'
+        item_xpath = '1/values'
 
         class item(ItemElement):
             klass = City
