@@ -62,4 +62,3 @@ class AferBrowser(LoginBrowser):
         data = {'cdeAdh': account.id, 'al': al, 'page': 1, 'form': 'F'}
         self.account_history.go(data={'cdeAdh': account.id, 'al': al, 'page': 1, 'form': 'F'})
         return self.page.iter_history(data=data)
-        pass
