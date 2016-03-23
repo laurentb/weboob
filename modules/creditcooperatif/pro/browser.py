@@ -34,6 +34,7 @@ class CreditCooperatif(Browser):
              'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkReleveAction=X&numeroExterne=.*': TransactionsPage,
              'https://www.coopanet.com/banque/cpt/cpt/relevecompte.do\?tri_page=.*': TransactionsPage,
              'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkOpCB=X&numeroExterne=.*': CardTransactionsPage,
+             'https://www.coopanet.com/banque/cpt/cpt/operationscartebancaire.do\?.*': CardTransactionsPage,
              'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkOpEC=X&numeroExterne=.*': ComingTransactionsPage,
              'https://www.coopanet.com/banque/cpt/cpt/operationEnCours.do.*': ComingTransactionsPage,
             }
