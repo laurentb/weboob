@@ -17,11 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from mechanize import Cookie
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
-from weboob.deprecated.browser.parsers.jsonparser import JsonParser
-from weboob.tools.ordereddict import OrderedDict
+from weboob.browser.browsers import LoginBrowser, need_login
+from weboob.browser.url import URL
+from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import LoginPage, ErrorPage, AccountsPage, CardsPage, HistoryPage, CardHistoryPage, OrderPage
 
@@ -29,141 +28,128 @@ from .pages import LoginPage, ErrorPage, AccountsPage, CardsPage, HistoryPage, C
 __all__ = ['SGProfessionalBrowser', 'SGEnterpriseBrowser']
 
 
-class SGPEBrowser(Browser):
-    PROTOCOL = 'https'
-    ENCODING = 'ISO-8859-1'
-
-    def __init__(self, *args, **kwargs):
-        self.PAGES = OrderedDict((
-            ('%s://%s/Pgn/.+PageID=SoldeV3&.+' % (self.PROTOCOL, self.DOMAIN), AccountsPage),
-            ('%s://%s/Pgn/.+PageID=Cartes&.+' % (self.PROTOCOL, self.DOMAIN), CardsPage),
-            ('%s://%s/Pgn/.+PageID=ReleveCompteV3&.+' % (self.PROTOCOL, self.DOMAIN), HistoryPage),
-            ('%s://%s/Pgn/.+PageID=ReleveCarte&.+' % (self.PROTOCOL, self.DOMAIN), CardHistoryPage),
-            ('%s://%s/ord-web/ord//ord-liste-compte-emetteur.json' % (self.PROTOCOL, self.DOMAIN), (OrderPage, JsonParser())),
-            ('%s://%s/authent\.html' % (self.PROTOCOL, self.DOMAIN), ErrorPage),
-            ('%s://%s/' % (self.PROTOCOL, self.DOMAIN), LoginPage),
-        ))
-        Browser.__init__(self, *args, **kwargs)
+class SGPEBrowser(LoginBrowser):
+    login = URL('$', LoginPage)
+    accounts = URL('/Pgn/.+PageID=SoldeV3&.+', AccountsPage)
+    history = URL('/.+PageID=ReleveCompteV3&.+',
+                  '/.+PageID=ReleveEcritureIntraday&.+', HistoryPage)
+    cards = URL('/Pgn/.+PageID=Cartes&.+', CardsPage)
+    cards_history = URL('/Pgn/.+PageID=ReleveCarte&.+', CardHistoryPage)
+    order = URL('/ord-web/ord//ord-liste-compte-emetteur.json', OrderPage)
+    error = URL('/authent\.html', ErrorPage)
 
     def is_logged(self):
-        if not self.page or self.is_on_page(LoginPage):
+        if not self.page or self.login.is_here():
             return False
 
         error = self.page.get_error()
         if error is None:
             return True
-
         return False
 
-    def login(self):
+    def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
         assert self.password.isdigit()
 
-        if not self.is_on_page(LoginPage):
-            self.location('https://' + self.DOMAIN + '/', no_login=True)
-
-        c = Cookie(0, 'PILOTE_OOBA', 'true',
-                   None, False,
-                   '.' + self.DOMAIN, True, True,
-                   '/', False, False, None, False, None, None, {})
-        cookiejar = self._ua_handlers["_cookies"].cookiejar
-        cookiejar.set_cookie(c)
+        self.login.stay_or_go()
+        self.session.cookies.set('PILOTE_OOBA', 'true')
         self.page.login(self.username, self.password)
 
         # force page change
-        if not self.is_on_page(AccountsPage):
-            self.accounts(no_login=True)
+        if not self.accounts.is_here():
+            self.go_accounts()
         if not self.is_logged():
             raise BrowserIncorrectPassword()
 
-    def accounts(self, no_login=False):
-        self.location('/Pgn/NavigationServlet?PageID=SoldeV3&MenuID=%sCPT&Classeur=1&NumeroPage=1' % self.MENUID, no_login=no_login)
+    def go_accounts(self):
+        self.location('/Pgn/NavigationServlet?PageID=SoldeV3&MenuID=%sCPT&Classeur=1&NumeroPage=1' % self.MENUID)
 
-    def cards(self):
-        doc = self.get_document(self.openurl('/Pgn/NavigationServlet?PageID=CartesFutures&MenuID=%sOPF&Classeur=1&NumeroPage=1&PageDetail=1' % self.MENUID))
-        try:
-            url = doc.xpath('//iframe[@name="cartes"]')[0].attrib['src']
-        except IndexError:
-            return False
-        else:
-            self.location(url)
-            return True
-
-    def history(self, _id, page=1):
-        if page > 1:
-            pgadd = '&page_numero_page_courante=%s' % page
-        else:
-            pgadd = ''
-        self.location('/Pgn/NavigationServlet?PageID=ReleveCompteV3&MenuID=%sCPT&Classeur=1&Rib=%s&NumeroPage=1%s' % (self.MENUID, _id, pgadd))
-
-    def card_history(self, rib, _id, date, currency, page=1):
-        self.location('/Pgn/NavigationServlet?PageID=ReleveCarte&MenuID=%sOPF&Classeur=1&Rib=%s&Carte=%s&Date=%s&PageDetail=%s&Devise=%s' % (self.MENUID, rib, _id, date, page, currency))
-
+    @need_login
     def get_accounts_list(self):
-        if not self.is_on_page(AccountsPage):
-            self.accounts()
+        if not self.accounts.is_here():
+            self.go_accounts()
+        assert self.accounts.is_here()
 
-        assert self.is_on_page(AccountsPage)
-        accounts = []
+        accounts_list = []
         for acc in self.page.get_list():
-            accounts.append(acc)
+            accounts_list.append(acc)
 
-        if self.cards():
-            assert self.is_on_page(CardsPage)
-            for acc in self.page.get_list():
-                accounts.append(acc)
-
-        self.location('/ord-web/ord//ord-liste-compte-emetteur.json')
-        for acc in accounts:
+        self.order.go()
+        for acc in accounts_list:
             acc.iban = self.page.get_iban(acc.id)
-            yield acc
+        return iter(accounts_list)
 
     def get_account(self, _id):
         for a in self.get_accounts_list():
             if a.id == _id:
                 yield a
 
+    def go_history(self, _id, page=1):
+        pgadd = '&page_numero_page_courante=%s' % page if page > 1 else ''
+        self.location('/Pgn/NavigationServlet?PageID=ReleveCompteV3&MenuID=%sCPT&Classeur=1&Rib=%s&NumeroPage=1%s' % (self.MENUID, _id, pgadd))
+
+    def go_today(self, _id, page=1):
+        pgadd = '&page_numero_page_courante=%s' % page if page > 1 else ''
+        self.location('/Pgn/NavigationServlet?MenuID=%sOPJ&PageID=ReleveEcritureIntraday&Classeur=1&Rib=%s&NumeroPage=1%s' % (self.MENUID, _id, pgadd))
+
+    @need_login
     def iter_history(self, account):
-        if account._is_card:
-            for history_link in [account.id, account._link]:
-                page = 1
-                while page:
-                    self.card_history(account._link_rib, history_link, account._link_date, account._link_currency, page)
-                    assert self.is_on_page(CardHistoryPage)
-                    for tr in self.page.iter_transactions():
-                        yield tr
-                    if self.page.has_next():
-                        page += 1
-                    else:
-                        page = False
-        else:
-            page = 1
-            basecount = 0
-            while page:
-                self.history(account.id, page)
-                assert self.is_on_page(HistoryPage)
-                for transaction in self.page.iter_transactions(account, basecount):
-                    basecount = int(transaction._index) + 1
-                    yield transaction
-                if self.page.has_next():
-                    page += 1
-                else:
-                    page = False
+        # Daily Transactions.
+        page = 1
+        while page:
+            self.go_today(account.id, page)
+            assert self.history.is_here()
+            for transaction in self.page.iter_transactions():
+                yield transaction
+            if self.page.has_next():
+                page += 1
+            else:
+                page = False
+        page = 1
+        # Other Transactions
+        while page:
+            self.go_history(account.id, page)
+            assert self.history.is_here()
+            for transaction in self.page.iter_transactions():
+                yield transaction
+            if self.page.has_next():
+                page += 1
+            else:
+                page = False
+
+    def card_history(self, account, coming):
+        page = 1
+        while page:
+            self.location('/Pgn/NavigationServlet?PageID=ReleveCarte&MenuID=%sOPF&Classeur=1&Rib=%s&Carte=%s&Date=%s&PageDetail=%s&Devise=%s' % \
+                            (self.MENUID, account.id, coming['carte'], coming['date'], page, account.currency))
+            for transaction in self.page.iter_transactions(date=coming['date']):
+                yield transaction
+            if self.page.has_next():
+                page += 1
+            else:
+                page = False
+
+    @need_login
+    def get_cb_operations(self, account):
+        self.location('/Pgn/NavigationServlet?PageID=Cartes&MenuID=%sOPF&Classeur=1&NumeroPage=1&Rib=%s&Devise=%s' % (self.MENUID, account.id, account.currency))
+        for coming in self.page.get_coming_list():
+            for tr in self.card_history(account, coming):
+                yield tr
 
     def iter_investment(self, account):
         raise NotImplementedError()
 
 
 class SGProfessionalBrowser(SGPEBrowser):
-    DOMAIN = 'professionnels.secure.societegenerale.fr'
+    BASEURL = 'https://professionnels.secure.societegenerale.fr'
     LOGIN_FORM = 'auth_reco'
     MENUID = 'SBOREL'
     CERTHASH = '9f5232c9b2283814976608bfd5bba9d8030247f44c8493d8d205e574ea75148e'
 
 
 class SGEnterpriseBrowser(SGPEBrowser):
-    DOMAIN = 'entreprises.secure.societegenerale.fr'
+    BASEURL = 'https://entreprises.secure.societegenerale.fr'
     LOGIN_FORM = 'auth'
     MENUID = 'BANREL'
     CERTHASH = '2231d5ddb97d2950d5e6fc4d986c23be4cd231c31ad530942343a8fdcc44bb99'

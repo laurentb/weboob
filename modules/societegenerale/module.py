@@ -22,6 +22,7 @@
 from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
+from weboob.capabilities.base import find_object
 
 from .browser import SocieteGenerale
 from .sgpe.browser import SGEnterpriseBrowser, SGProfessionalBrowser
@@ -51,29 +52,34 @@ class SocieteGeneraleModule(Module, CapBank):
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():
+            account._bisoftcap = {'cb': {'softcap_day':178,'day_for_softcap':2}}
             yield account
 
     def get_account(self, _id):
-        with self.browser:
-            account = self.browser.get_account(_id)
-        if account:
-            return account
-        else:
-            raise AccountNotFound()
+        return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
 
-    def iter_history(self, account):
-        with self.browser:
-            for tr in self.browser.iter_history(account):
-                if not tr._coming:
-                    yield tr
+    def key(self, tr):
+        # Can't compare datetime and date, so cast them.
+        try:
+            return tr.rdate.date()
+        except AttributeError:
+            return tr.rdate
 
     def iter_coming(self, account):
-        with self.browser:
-            for tr in self.browser.iter_history(account):
-                if tr._coming:
-                    yield tr
+        if hasattr(self.browser, 'get_cb_operations'):
+            transactions = list(self.browser.get_cb_operations(account))
+        else:
+            transactions = [tr for tr in self.browser.iter_history(account) if tr._coming]
+        transactions.sort(key=self.key, reverse=True)
+        return transactions
+
+    def iter_history(self, account):
+        if hasattr(self.browser, 'get_cb_operations'):
+            transactions = list(self.browser.iter_history(account))
+        else:
+            transactions = [tr for tr in self.browser.iter_history(account) if not tr._coming]
+        transactions.sort(key=self.key, reverse=True)
+        return transactions
 
     def iter_investment(self, account):
-        with self.browser:
-            for inv in self.browser.iter_investment(account):
-                yield inv
+        return self.browser.iter_investment(account)

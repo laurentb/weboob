@@ -17,20 +17,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
 from logging import error
 import re
-from decimal import Decimal
-from datetime import datetime
+from cStringIO import StringIO
 
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
+from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Date, Env
+from weboob.browser.filters.html import Attr
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+
 from weboob.tools.json import json
-from weboob.deprecated.mech import ClientForm
-from weboob.tools.misc import to_unicode
 
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 from ..captcha import Captcha, TileError
 
@@ -42,9 +42,13 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile(r'^CARTE \w+ REMBT (?P<dd>\d{2})/(?P<mm>\d{2})( A (?P<HH>\d+)H(?P<MM>\d+))? (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_PAYBACK),
+                (re.compile(r'^DEBIT MENSUEL CARTE.*'),
+                                                            FrenchTransaction.TYPE_CARD_SUMMARY),
                 (re.compile(r'^(?P<category>CARTE) \w+ (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile(r'^(?P<dd>\d{2})(?P<mm>\d{2})/(?P<text>.*?)/?(-[\d,]+)?$'),
+                                                            FrenchTransaction.TYPE_CARD),
+                (re.compile(r'^REMISE CB /(?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*?)/?(-[\d,]+)?$'),
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile(r'^(?P<category>(COTISATION|PRELEVEMENT|TELEREGLEMENT|TIP)) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_ORDER),
@@ -64,12 +68,12 @@ class Transaction(FrenchTransaction):
     _coming = False
 
 
-class SGPEPage(Page):
+class SGPEPage(HTMLPage):
     def get_error(self):
-        err = self.document.getroot().cssselect('div.ngo_mire_reco_message') \
-            or self.document.getroot().cssselect('#nge_zone_centre .nge_cadre_message_utilisateur') \
-            or self.document.xpath(u'//div[contains(text(), "Echec de connexion à l\'espace Entreprises")]') \
-            or self.document.xpath(u'//div[contains(@class, "waitAuthJetonMsg")]')
+        err = self.doc.getroot().cssselect('div.ngo_mire_reco_message') \
+            or self.doc.getroot().cssselect('#nge_zone_centre .nge_cadre_message_utilisateur') \
+            or self.doc.xpath(u'//div[contains(text(), "Echec de connexion à l\'espace Entreprises")]') \
+            or self.doc.xpath(u'//div[contains(@class, "waitAuthJetonMsg")]')
         if err:
             return err[0].text.strip()
 
@@ -81,24 +85,12 @@ class ErrorPage(SGPEPage):
 
 class LoginPage(SGPEPage):
     def login(self, login, password):
-        DOMAIN = self.browser.DOMAIN
-
-        url_login = 'https://' + DOMAIN + '/'
-
-        base_url = 'https://' + DOMAIN
-        url = base_url + '//sec/vk/gen_crypto?estSession=0'
-        headers = {'Referer': url_login}
-        request = self.browser.request_class(url, None, headers)
-        infos_data = self.browser.readurl(request)
-
+        infos_data = self.browser.open('/sec/vk/gen_crypto?estSession=0').content
         infos_data = re.match('^_vkCallback\((.*)\);$', infos_data).group(1)
-
         infos = json.loads(infos_data.replace("'", '"'))
 
-        url = base_url + '//sec/vk/gen_ui?modeClavier=0&cryptogramme=' + infos["crypto"]
-
-        self.browser.readurl(url)
-        img = Captcha(self.browser.openurl(url), infos)
+        url = '/sec/vk/gen_ui?modeClavier=0&cryptogramme=' + infos["crypto"]
+        img = Captcha(StringIO(self.browser.open(url).content), infos)
 
         try:
             img.build_tiles()
@@ -107,20 +99,20 @@ class LoginPage(SGPEPage):
             if err.tile:
                 err.tile.display()
 
-        self.browser.select_form(self.browser.LOGIN_FORM)
-        self.browser.controls.append(ClientForm.TextControl('text', 'codsec', {'value': ''}))
-        self.browser.controls.append(ClientForm.TextControl('text', 'cryptocvcs', {'value': ''}))
-        self.browser.controls.append(ClientForm.TextControl('text', 'vk_op', {'value': 'auth'}))
-        self.browser.set_all_readonly(False)
+        form = self.get_form(name=self.browser.LOGIN_FORM)
+        form['user_id'] = login
+        form['codsec'] = img.get_codes(password[:6])
+        form['cryptocvcs'] = infos['crypto']
+        form['vk_op'] = 'auth'
+        form.url = '/authent.html'
+        try:
+            form.pop('button')
+        except KeyError:
+            pass
+        form.submit()
 
-        self.browser['user_id'] = login.encode(self.browser.ENCODING)
-        self.browser['codsec'] = img.get_codes(password[:6])
-        self.browser['cryptocvcs'] = infos["crypto"]
-        self.browser.form.action = base_url + '/authent.html'
-        self.browser.submit(nologin=True)
 
-
-class AccountsPage(SGPEPage):
+class AccountsPage(LoggedPage, SGPEPage):
     TYPES = {u'COMPTE COURANT':      Account.TYPE_CHECKING,
              u'COMPTE PERSONNEL':    Account.TYPE_CHECKING,
              u'CPTE PRO':            Account.TYPE_CHECKING,
@@ -135,145 +127,86 @@ class AccountsPage(SGPEPage):
              u'Prêt':                Account.TYPE_LOAN,
             }
 
-    def get_list(self):
-        table = self.parser.select(self.document.getroot(), '#tab-corps', 1)
-        for tr in self.parser.select(table, 'tr', 'many'):
-            tdname, tdid, tdagency, tdbalance = [td.text_content().strip()
-                                                 for td
-                                                 in self.parser.select(tr, 'td', 4)]
-            # it has empty rows - ignore those without the necessary info
-            if all((tdname, tdid, tdbalance)):
-                account = Account()
-                account.label = to_unicode(tdname)
-                for wording, acc_type in self.TYPES.iteritems():
-                    if wording in account.label:
-                        account.type = acc_type
-                account.id = to_unicode(tdid.replace(u'\xa0', '').replace(' ', ''))
-                account._agency = to_unicode(tdagency)
-                account._is_card = False
-                account.balance = Decimal(Transaction.clean_amount(tdbalance))
-                account.currency = account.get_currency(tdbalance)
-                yield account
+    @method
+    class get_list(ListElement):
+        item_xpath = '//table[@id="tab-corps"]//tr'
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_label = CleanText('./td[1]')
+            obj_id = CleanText('./td[2]', replace=[(' ', '')])
+            obj__agency = CleanText('./td[3]')
+            obj_balance = CleanDecimal('./td[4]', replace_dots=True)
+            obj_currency = FrenchTransaction.Currency('./td[4]')
+
+            def obj_type(self):
+                for wording, acc_type in self.page.TYPES.iteritems():
+                    if wording in Field('label')(self):
+                        return acc_type
+                return Account.TYPE_UNKNOWN
+
+            def condition(self):
+                return Field('label')(self)
 
 
-class CardsPage(SGPEPage):
-    COL_ID = 0
-    COL_LABEL = 1
-    COL_BALANCE = 2
+class HistoryPage(LoggedPage, SGPEPage):
+    @method
+    class iter_transactions(ListElement):
+        item_xpath = '//table[@id="tab-corps"]//tr'
 
-    def get_list(self):
-        rib = None
-        currency = None
-        for script in self.document.xpath('//script'):
-            if script.text is None:
-                continue
+        class item(ItemElement):
+            klass = Transaction
 
-            m = re.search('var rib = "(\d+)"', script.text)
-            if m:
-                rib = m.group(1)
-            m = re.search("var devise='(\w+)'", script.text)
-            if m:
-                currency = m.group(1)
+            obj_date = Date(CleanText('./td[1]'), dayfirst=True)
+            obj_raw = Transaction.Raw(CleanText('./td[2]'))
+            obj_vdate = Date(CleanText('./td[5]'))
+            obj_amount = CleanDecimal('./td[3] | ./td[4]', replace_dots=True)
 
-            if all((rib, currency)):
-                break
+            def obj_deleted(self):
+                return self.obj.type == FrenchTransaction.TYPE_CARD_SUMMARY
 
-        if not all((rib, currency)):
-            self.logger.error('Unable to find rib or currency')
-
-        for tr in self.document.xpath('//table[@id="tab-corps"]//tr'):
-            tds = tr.findall('td')
-
-            if len(tds) != 3:
-                continue
-
-            account = Account()
-            account.type = Account.TYPE_CARD
-            account.label = self.parser.tocleanstring(tds[self.COL_LABEL])
-            if len(account.label) == 0:
-                continue
-
-            link = tds[self.COL_ID].xpath('.//a')[0]
-            m = re.match(r"changeCarte\('(\d+)','(\d+)','([^']+)'\);.*", link.attrib['onclick'])
-            if not m:
-                self.logger.error('Unable to parse link %r' % link.attrib['onclick'])
-                continue
-            account._link_num = m.group(1) #useless
-            account._link = m.group(2)
-            account.id = m.group(2) + account._link_num
-            account._link_date = urllib.quote(m.group(3))
-            account._link_rib = rib
-            account._link_currency = currency
-            account._is_card = True
-            tdbalance = self.parser.tocleanstring(tds[self.COL_BALANCE])
-            account.balance = - Decimal(Transaction.clean_amount(tdbalance))
-            account.currency = account.get_currency(tdbalance)
-            yield account
-
-
-class HistoryPage(SGPEPage):
-    def iter_transactions(self, account, basecount):
-        table = self.parser.select(self.document.getroot(), '#tab-corps', 1)
-        for i, tr in enumerate(self.parser.select(table, 'tr', 'many'), basecount):
-            # td colspan=5
-            if len(self.parser.select(tr, 'td')) == 1:
-                continue
-            tddate, tdlabel, tddebit, tdcredit, tdval, tdbal = [td.text_content().strip()
-                                                                for td
-                                                                in self.parser.select(tr, 'td', 6)]
-            tdamount = tddebit or tdcredit
-            # not sure it has empty rows like AccountsPage, but check anyway
-            if all((tddate, tdlabel, tdamount)):
-                t = Transaction()
-                t._index = i
-                t.set_amount(tdamount)
-                date = datetime.strptime(tddate, '%d/%m/%Y')
-                val = datetime.strptime(tdval, '%d/%m/%Y')
-                # so that first line is separated by parse()
-                # also clean up tabs, spaces, etc.
-                l1, _, l2 = tdlabel.partition('\n')
-                l1 = ' '.join(l1.split())
-                l2 = ' '.join(l2.split())
-                t.parse(date, l1 + '  ' + l2)
-                t.vdate = val
-                yield t
+            def condition(self):
+                return CleanText('./td[2]')(self)
 
     def has_next(self):
-        for n in self.parser.select(self.document.getroot(), '#numPageBloc'):
-            cur = int(self.parser.select(n, '#numPage', 1).value)
-            for end in self.parser.select(n, '.contenu3-lien'):
-                return end.text != '/' and int(end.text.replace('/', '')) > cur
-        return False
+        current = Attr('//input[@id="numPage"]', 'value', default='')(self.doc)
+        end = CleanText('//td[@id="numPageBloc"]/b[@class="contenu3-lien"]', replace=[('/', '')])(self.doc)
+        return end and current and int(end) > int(current)
 
 
-class CardHistoryPage(SGPEPage):
-    COL_DATE = 0
-    COL_LABEL = 1
-    COL_AMOUNT = -1
+class CardsPage(LoggedPage, SGPEPage):
+    def get_coming_list(self):
+        coming_list = []
+        for a in self.doc.xpath('//a[contains(@onclick, "changeCarte")]'):
+            m = re.findall("'([^']+)'", Attr(a.xpath('.'), 'onclick')(self))
+            params = {}
+            params['carte'] = m[1]
+            params['date'] = m[2]
+            coming_list.append(params)
+        return coming_list
 
-    def iter_transactions(self):
-        table = self.parser.select(self.document.getroot(), '#tab-corps', 1)
-        for i, tr in enumerate(self.parser.select(table, 'tr', 'many')):
 
-            tds = tr.findall('td')
+class CardHistoryPage(LoggedPage, SGPEPage):
+    @method
+    class iter_transactions(ListElement):
+        item_xpath = '//table[@id="tab-corps"]//tr'
 
-            date = self.parser.tocleanstring(tds[self.COL_DATE])
-            raw = self.parser.tocleanstring(tds[self.COL_LABEL])
-            amount = self.parser.tocleanstring(tds[self.COL_AMOUNT])
+        class item(ItemElement):
+            klass = Transaction
 
-            if len(date) == 0:
-                continue
-
-            t = Transaction()
-            t._index = i
-            t.parse(date, raw)
-            t.set_amount(amount)
-            yield t
+            obj_rdate = Date(CleanText('./td[1]'), dayfirst=True)
+            obj_date = Date(Env('date'), dayfirst=True)
+            obj_raw = Transaction.Raw(CleanText('./td[2]'))
+            obj_amount = CleanDecimal('./td[3]', replace_dots=True)
+            obj_type = Transaction.TYPE_DEFERRED_CARD
+            obj__coming = True
+            obj_nopurge = True
 
     def has_next(self):
         current = None
         total = None
-        for script in self.document.xpath('//script'):
+        for script in self.doc.xpath('//script'):
             if script.text is None:
                 continue
 
@@ -290,9 +223,9 @@ class CardHistoryPage(SGPEPage):
         return False
 
 
-class OrderPage(Page):
+class OrderPage(LoggedPage, JsonPage):
     def get_iban(self, acc_id):
-        for acc in self.document['donnees']:
+        for acc in self.doc['donnees']:
             if acc_id in acc['ibanCompte']:
                 return unicode(acc['ibanCompte'])
 

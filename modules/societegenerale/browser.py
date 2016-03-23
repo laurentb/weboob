@@ -155,13 +155,6 @@ class SocieteGenerale(Browser):
         else:
             self.logger.warning('This account is not supported')
 
-        def key(tr):
-            # Can't compare datetime and date, so cast them.
-            try:
-                return tr.rdate.date()
-            except AttributeError:
-                return tr.rdate
-
     def iter_investment(self, account):
         if account.type == Account.TYPE_MARKET:
             self.location(account._link_id)
