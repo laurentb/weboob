@@ -271,6 +271,7 @@ class AccbisPage(LoggedPage, HTMLPage):
                         account.balance = CleanDecimal(replace_dots=True).filter(balance)
                         account.currency = FrenchTransaction.Currency().filter(balance)
                         account._link = Link().filter(a.xpath('.'))
+                        account._history_page = account._link
                         account._webid = Regexp(pattern='([^=]+)$').filter(Link().filter(a.xpath('.')))
                     elif account.label == label:
                         if not account.type:
