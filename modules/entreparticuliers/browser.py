@@ -28,10 +28,10 @@ class EntreparticuliersBrowser(PagesBrowser):
     BASEURL = 'http://www.entreparticuliers.com'
 
     cities = URL('/HTTPHandlers/LocalisationsAutocompleteHandler.ashx\?q=(?P<pattern>.*)', CitiesPage)
-    search = URL('/Default.aspx/CreateSearchParams')
     form_item = URL('/Default.aspx/GetElementsMoteur')
-    search_result = URL('/annonces-immobilieres/vente/resultats-de-recherche-ergo', SearchPage)
-    housing = URL('/(?P<_id>.*).html', HousingPage)
+    search = URL('/default.aspx/CreateSearchParams')
+    search_result = URL('/default.aspx/GetAnnonces', SearchPage)
+    housing = URL('/default.aspx/GetAnnonceDetail', HousingPage)
 
     def search_city(self, pattern):
         return self.cities.open(pattern=pattern).iter_cities()
@@ -57,12 +57,7 @@ class EntreparticuliersBrowser(PagesBrowser):
         if type not in self.TYPES:
             raise TypeNotSupported
 
-        referer = "http://www.entreparticuliers.com/annonces-immobilieres/vente/resultats-de-recherche-ergo"
-        self.session.headers.update({"X-Requested-With": "XMLHttpRequest",
-                                     "Referer": referer,
-                                     "Content-Type": "application/json; charset=utf-8",
-                                     "Accept": "application/json, text/javascript, */*; q=0.01"})
-
+        self.update_header()
         result = self.form_item.open(data="{'rubrique': '%s'}" % self.TYPES.get(type))
         biens = json.loads(json.loads(result.content)['d'])
 
@@ -94,7 +89,7 @@ class EntreparticuliersBrowser(PagesBrowser):
 
             data['lstNbChambres'] = None
             data['surface_min'] = area_min if area_min else None
-            # var modes = { "all": -1, "ville": 5, "region": 2, "departement": 4, "pays": 1, "regionUsuelle": 3 };
+            # var localisationType = { "all": -1, "ville": 5, "region": 2, "departement": 4, "pays": 1, "regionUsuelle": 3 };
             data['localisationType'] = 5
             data['reference'] = ''
             data['rayon'] = 0
@@ -113,8 +108,17 @@ class EntreparticuliersBrowser(PagesBrowser):
 
             self.search.go(data="{'p_SearchParams':'%s', 'forcealerte':'0'}" % json.dumps(data))
 
-            for item in self.search_result.go().iter_housings():
+            data = '{pageIndex: 1,source:"undefined"}'
+            for item in self.search_result.go(data=data).iter_housings():
                 yield item
 
     def get_housing(self, _id, obj=None):
-        return self.housing.go(_id=_id).get_housing(obj=obj)
+        self.update_header()
+        splitted_id = _id.split('#')
+        data = '{idannonce: %s,source:"undefined",rubrique:%s}' % (splitted_id[0], splitted_id[1])
+        return self.housing.go(data=data).get_housing(obj=obj)
+
+    def update_header(self):
+        self.session.headers.update({"X-Requested-With": "XMLHttpRequest",
+                                     "Content-Type": "application/json; charset=utf-8",
+                                     "Accept": "application/json, text/javascript, */*; q=0.01"})
