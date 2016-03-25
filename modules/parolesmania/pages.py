@@ -54,7 +54,7 @@ class ArtistSongsPage(Page):
 
 class SongResultsPage(Page):
     def iter_lyrics(self):
-        for link in self.parser.select(self.document.getroot(), 'div#albums a'):
+        for link in self.parser.select(self.document.getroot(), 'div.elenco div.col-left li a'):
             artist = NotAvailable
             title = unicode(link.text.split(' - ')[0])
             href = link.attrib.get('href', '')
@@ -73,7 +73,7 @@ class SonglyricsPage(Page):
         content = NotAvailable
         artist = NotAvailable
         title = NotAvailable
-        lyrdiv = self.parser.select(self.document.getroot(), 'div#songlyrics_h')
+        lyrdiv = self.parser.select(self.document.getroot(), 'div.lyrics-body')
         if len(lyrdiv) > 0:
             content = unicode(lyrdiv[0].text_content().strip())
         infos = self.parser.select(self.document.getroot(), 'head > title', 1).text
