@@ -72,6 +72,7 @@ def install_weboob():
                       'qflatboob',
                       'qcineoob',
                       'qcookboob',
+                      'qbooblyrics',
                       'qhandjoob'))
 
     if not options.hildon:
@@ -91,6 +92,8 @@ def install_weboob():
         'weboob.applications.qcineoob.ui',
         'weboob.applications.qcookboob',
         'weboob.applications.qcookboob.ui',
+        'weboob.applications.qbooblyrics',
+        'weboob.applications.qbooblyrics.ui',
         'weboob.applications.qhandjoob',
         'weboob.applications.qhandjoob.ui',
         'weboob.applications.qhavedate',
