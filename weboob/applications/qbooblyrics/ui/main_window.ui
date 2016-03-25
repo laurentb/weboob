@@ -60,6 +60,9 @@
         </widget>
        </item>
        <item>
+        <widget class="QComboBox" name="typeCombo"/>
+       </item>
+       <item>
         <widget class="QComboBox" name="backendEdit"/>
        </item>
        <item>

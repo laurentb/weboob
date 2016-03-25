@@ -123,7 +123,8 @@ class Result(QFrame):
         backend_name = self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex())
 
         self.process = QtDo(self.weboob, self.addSonglyrics, fb=self.processFinished)
-        self.process.do(self.app._do_complete, self.parent.getCount(), ('title'), 'iter_lyrics', 'song', pattern, backends=backend_name, caps=CapLyrics)
+        self.process.do(self.app._do_complete, self.parent.getCount(), ('title'), 'iter_lyrics',
+                self.parent.ui.typeCombo.currentText(), pattern, backends=backend_name, caps=CapLyrics)
         self.parent.ui.stopButton.show()
 
     def addSonglyrics(self, songlyrics):
@@ -175,6 +176,9 @@ class MainWindow(QtMainWindow):
         qc.load()
         qc.setCaseSensitivity(Qt.CaseInsensitive)
         self.ui.searchEdit.setCompleter(qc)
+
+        self.ui.typeCombo.addItem('song')
+        self.ui.typeCombo.addItem('artist')
 
         self.ui.searchEdit.returnPressed.connect(self.search)
         self.ui.idEdit.returnPressed.connect(self.searchId)
