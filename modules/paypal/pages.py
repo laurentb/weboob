@@ -65,6 +65,11 @@ class LoginPage(HTMLPage):
         return form.submit(headers={'X-Requested-With': 'XMLHttpRequest'})
 
     def get_script_url(self):
+        body = self.doc.xpath('//body')[0]
+        if 'data-ads-challenge-url' in body.attrib:
+            return 'https://www.paypal.com%s' % body.attrib['data-ads-challenge-url']
+
+        # Paypal still use old method sometimes
         list1 = self.doc.xpath('//script')
         for s in list1:
             if 'src' in s.attrib and 'challenge' in s.attrib['src']:
