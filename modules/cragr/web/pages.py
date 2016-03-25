@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from decimal import Decimal
+from urlparse import urlparse
 import re
 
 from weboob.capabilities import NotAvailable
@@ -380,19 +381,20 @@ class SavingsPage(_AccountsPage):
     COL_ID = 1
 
     def set_link(self, account, cols):
+        origin = urlparse(self.url)
         if not account._link:
             a = cols[0].xpath('descendant::a[contains(@href, "CATITRES")]')
             # Sometimes there is no link.
             if a or account.type == Account.TYPE_MARKET:
                 url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&site=CATITRES&typeaction=reroutage_aller'
-                account._link = url % self.browser.request.host
+                account._link = url % origin.netloc
 
             a = cols[0].xpath("descendant::a[contains(@href, \"'PREDICA','CONTRAT'\")]")
             if a:
                 account.type = Account.TYPE_LIFE_INSURANCE
                 url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&site=PREDICA&' \
                       'typeaction=reroutage_aller&sdt=CONTRAT&parampartenaire=%s'
-                account._link = url % (self.browser.request.host, account.id)
+                account._link = url % (origin.netloc, account.id)
 
 
 class TransactionsPage(BasePage):
