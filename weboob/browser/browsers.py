@@ -24,9 +24,9 @@ import pickle
 import base64
 import zlib
 try:
-    import urllib3
-except ImportError:
     from requests.packages import urllib3
+except ImportError:
+    import urllib3
 try:
     from urllib.parse import urlparse, urljoin
 except ImportError:
