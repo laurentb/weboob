@@ -30,7 +30,6 @@ from weboob.capabilities.dating import CapDating, Optimization
 from weboob.capabilities.contact import CapContact, Contact, ProfileNode
 from weboob.exceptions import BrowserHTTPError
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.date import local2utc
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.log import getLogger
@@ -211,7 +210,7 @@ class HappnModule(Module, CapMessages, CapMessagesPost, CapDating, CapContact):
             for user in thread['participants']:
                 if user['user']['id'] != self.browser.my_id:
                     t.title = u'Discussion with %s' % user['user']['display_name']
-            t.date = local2utc(parse_date(thread['modification_date']))
+            t.date = parse_date(thread['modification_date'])
             yield t
 
     def get_thread(self, thread):
@@ -228,13 +227,13 @@ class HappnModule(Module, CapMessages, CapMessagesPost, CapDating, CapContact):
 
         thread.title = u'Discussion with %s' % other.name
 
-        contact = self.storage.get('contacts', thread.id, default={'lastmsg': 0})
+        contact = self.storage.get('contacts', thread.id, default={'lastmsg_date': '1970-01-01T01:01:01+00:00'})
 
         child = None
 
         for msg in info['messages']:
             flags = 0
-            if int(contact['lastmsg']) < int(msg['id']):
+            if parse_date(contact['lastmsg_date']) < parse_date(msg['creation_date']):
                 flags = Message.IS_UNREAD
 
             if msg['sender']['id'] == me.id:
@@ -249,7 +248,7 @@ class HappnModule(Module, CapMessages, CapMessagesPost, CapDating, CapContact):
                           title=thread.title,
                           sender=sender.name,
                           receivers=[receiver.name],
-                          date=local2utc(parse_date(msg['creation_date'])),
+                          date=parse_date(msg['creation_date']),
                           content=msg['message'],
                           children=[],
                           parent=None,
@@ -272,9 +271,9 @@ class HappnModule(Module, CapMessages, CapMessagesPost, CapDating, CapContact):
                     yield message
 
     def set_message_read(self, message):
-        contact = self.storage.get('contacts', message.thread.id, default={'lastmsg': 0})
-        if int(contact['lastmsg']) < int(message.id):
-            contact['lastmsg'] = int(message.id)
+        contact = self.storage.get('contacts', message.thread.id, default={'lastmsg_date': '1970-01-01T01:01:01+00:00'})
+        if parse_date(contact['lastmsg_date']) < message.date:
+            contact['lastmsg_date'] = str(message.date)
             self.storage.set('contacts', message.thread.id, contact)
             self.storage.save()
 
