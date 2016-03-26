@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
-
 from PyQt5.QtGui import QIcon, QImage, QPixmap, QPixmapCache
 from PyQt5.QtWidgets import QFrame, QApplication
 from PyQt5.QtCore import Qt, pyqtSlot as Slot

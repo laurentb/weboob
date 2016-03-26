@@ -19,12 +19,8 @@
 
 from __future__ import print_function
 
-import urllib
-import codecs
-
-from PyQt5.QtCore import Qt, pyqtSlot as Slot
-from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtWidgets import QFrame, QFileDialog
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QFrame
 
 from weboob.applications.qbooblyrics.ui.songlyrics_ui import Ui_Songlyrics
 from weboob.capabilities.base import empty
