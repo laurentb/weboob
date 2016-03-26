@@ -34,9 +34,12 @@ class Id(Filter):
 
 class SearchCitiesPage(JsonPage):
     @method
-    class iter_cities(DictElement):
-        item_xpath = '.'
+    class iter_cities(ListElement):
         ignore_duplicate = True
+
+        def find_elements(self):
+            for el in self.el:
+                yield el
 
         class item(ItemElement):
             klass = City
@@ -66,7 +69,7 @@ class WeatherPage(HTMLPage):
                 offset = int(CleanText('string(sum(./preceding-sibling::td/@colspan))')(self))
                 length = int(CleanText('@colspan')(self))
                 temps = CleanText('../../../tbody/tr[@class="meteogram-temperatures"]/td[position() > %d '
-                                  'and position() <= %d]/span' % (offset, offset+length))(self)
+                                  'and position() <= %d]/div' % (offset, offset+length))(self)
                 return [float(_.strip(u'\xb0')) for _ in temps.split()]
 
             def obj_low(self):
@@ -99,23 +102,25 @@ class WeatherPage(HTMLPage):
                             return CleanText(value % offset)(self).replace(u'edeltävän tunnin ', u'')
                         return ("klo %s: " % hour) + ", ".join(ifilter(bool, imap(info_for_value, values)))
 
-                return u'\n' + u'\n'.join(ifilter(bool, imap(descriptive_text_for_hour, ["02", "14"])))
+                return u'\n' + u'\n'.join(ifilter(bool, imap(descriptive_text_for_hour, ["02", "03", "14", "15"])))
 
-    @method
-    class get_current(ItemElement):
-        klass = Current
+    def get_station_id(self):
+        return CleanText(u'//select[@id="observation-station-menu"]/option[@selected="selected"]/@value')(self.doc)
 
-        obj_id = date.today()
-        obj_date = Date(Regexp(CleanText('//table[@class="observation-text"]//span[@class="time-stamp"]'),
-                               r'^(\d+\.\d+.\d+)'))
-        obj_text = Format(u'%s, %s, %s',
-                          CleanText(u'(//table[@class="observation-text"])//tr[2]/td[2]'),
-                          CleanText(u'(//table[@class="observation-text"])//tr[5]/td[1]'),
-                          CleanText(u'(//table[@class="observation-text"])//tr[4]/td[2]'))
 
-        def obj_temp(self):
-            path = u'//table[@class="observation-text"]//span[@class="parameter-name" and text() = "Lämpötila"]' + \
-                   u'/../span[@class="parameter-value"]'
-            temp = CleanDecimal(Regexp(CleanText(path), r'^([^ \xa0]+)'), replace_dots=True)(self)
-            unit = Regexp(CleanText(path), r'\xb0(\w)')(self)
-            return Temperature(float(temp), unit)
+class ObservationsPage(JsonPage):
+    WINDS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+             'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW']
+
+    def get_current(self):
+        obj = Current()
+        obj.id = date.today()
+        obj.date = date.fromtimestamp(self.doc['latestObservationTime']/1000)
+        obj.temp = Temperature(max(self.doc['t2m'])[1], u'C')
+        last_hour_precipitations = int(max(self.doc['Precipitation1h'])[1])
+        nebulosity = int(max(self.doc['TotalCloudCover'])[1])
+        wind_speed = int(max(self.doc['WindSpeedMS'])[1])
+        wind_direction = self.WINDS[int(max(self.doc['WindDirection'])[1] / 22.5)]
+        obj.text = u'1h precipitations %d mm, wind %d m/s (%s), nebulosity %d/8' % (
+            last_hour_precipitations, wind_speed, wind_direction, nebulosity)
+        return obj

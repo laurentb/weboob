@@ -19,7 +19,7 @@
 
 from weboob.browser.browsers import PagesBrowser
 from weboob.browser.url import URL
-from .pages import WeatherPage, SearchCitiesPage
+from .pages import WeatherPage, SearchCitiesPage, ObservationsPage
 
 __all__ = ['IlmatieteenlaitosBrowser']
 
@@ -32,6 +32,7 @@ class IlmatieteenlaitosBrowser(PagesBrowser):
                         'p_p_state=normal&p_p_mode=view&_locationmenuportlet_WAR_fmiwwwweatherportlets_action='
                         'changelocation')
     weather = URL('/saa/(?P<city_url>.*)', WeatherPage)
+    observations = URL('/observation-data\?station=(?P<station_id>.*)', ObservationsPage)
 
     def iter_city_search(self, pattern):
         return self.cities.go(pattern=pattern).iter_cities()
@@ -40,4 +41,5 @@ class IlmatieteenlaitosBrowser(PagesBrowser):
         return self.weather_query.go(data={"place": city.name, "forecast": "short"}).iter_forecast()
 
     def get_current(self, city):
-        return self.weather_query.go(data={"place": city.name, "forecast": "short"}).get_current()
+        station_id = self.weather_query.go(data={"place": city.name, "forecast": "short"}).get_station_id()
+        return self.observations.go(station_id=station_id).get_current()
