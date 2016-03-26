@@ -38,7 +38,6 @@ __all__ = ['LCLBrowser','LCLProBrowser']
 # Browser
 class LCLBrowser(LoginBrowser):
     BASEURL = 'https://particuliers.secure.lcl.fr'
-    VERIFY = False
 
     login = URL('/outil/UAUT/Authentication/authenticate',
                 '/outil/UAUT\?from=.*',
@@ -77,13 +76,6 @@ class LCLBrowser(LoginBrowser):
                    '/outil/UWVI/Routage', AVDetailPage)
 
     TIMEOUT = 30.0
-
-    def __init__(self, *args, **kwargs):
-        if hasattr(requests.packages.urllib3.contrib, 'pyopenssl') \
-           and ':RC4' not in requests.packages.urllib3.contrib.pyopenssl.DEFAULT_SSL_CIPHER_LIST:
-            requests.packages.urllib3.contrib.pyopenssl.DEFAULT_SSL_CIPHER_LIST += ':RC4'
-
-        super(LCLBrowser, self).__init__(*args, **kwargs)
 
     def do_login(self):
         assert isinstance(self.username, basestring)
