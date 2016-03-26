@@ -785,7 +785,7 @@ socket.getaddrinfo = my_getaddrinfo
 
 class HTTPSConnection2(httplib.HTTPSConnection):
     _HOSTS = {}
-    _PROTOCOLS = [ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_SSLv23]
+    _PROTOCOLS = [getattr(ssl, pn) for pn in ['PROTOCOL_TLSv1_2', 'PROTOCOL_TLSv1_1', 'PROTOCOL_TLSv1', 'PROTOCOL_SSLv23'] if hasattr(ssl, pn)]
 
     def _my_create_connection(self):
         sock = socket.create_connection((self.host, self.port), self.timeout)
