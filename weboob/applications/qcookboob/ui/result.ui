@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Result</class>
+  <class>Result</class>
  <widget class="QFrame" name="Result">
   <property name="geometry">
    <rect>

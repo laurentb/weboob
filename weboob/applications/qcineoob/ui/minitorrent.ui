@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MiniTorrent</class>
+  <class>MiniTorrent</class>
  <widget class="QFrame" name="MiniTorrent">
   <property name="geometry">
    <rect>

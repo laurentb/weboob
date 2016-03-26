@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Notes</class>
+  <class>Notes</class>
  <widget class="QWidget" name="Notes">
   <property name="geometry">
    <rect>

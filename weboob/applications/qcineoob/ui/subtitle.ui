@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Subtitle</class>
+  <class>Subtitle</class>
  <widget class="QFrame" name="Subtitle">
   <property name="geometry">
    <rect>

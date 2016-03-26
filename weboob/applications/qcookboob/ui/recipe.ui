@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Recipe</class>
+  <class>Recipe</class>
  <widget class="QFrame" name="Recipe">
   <property name="geometry">
    <rect>

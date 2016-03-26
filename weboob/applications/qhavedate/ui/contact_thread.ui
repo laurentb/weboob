@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ContactThread</class>
+  <class>ContactThread</class>
  <widget class="QWidget" name="ContactThread">
   <property name="geometry">
    <rect>
