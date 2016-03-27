@@ -19,7 +19,7 @@
 
 
 from copy import copy
-from threading import Thread
+from threading import Thread, Event
 try:
     import Queue
 except ImportError:
@@ -59,9 +59,13 @@ class BackendsCall(object):
         self.responses = Queue.Queue()
         self.errors = []
         self.tasks = Queue.Queue()
+        self.stop_event = Event()
+        self.threads = []
 
         for backend in backends:
-            Thread(target=self.backend_process, args=(function, args, kwargs)).start()
+            t = Thread(target=self.backend_process, args=(function, args, kwargs))
+            t.start()
+            self.threads.append(t)
             self.tasks.put(backend)
 
     def store_result(self, backend, result):
@@ -100,6 +104,8 @@ class BackendsCall(object):
                         try:
                             for subresult in result:
                                 self.store_result(backend, subresult)
+                                if self.stop_event.is_set():
+                                    break
                         except Exception as error:
                             self.errors.append((backend, error, get_backtrace(error)))
                     else:
@@ -108,13 +114,14 @@ class BackendsCall(object):
                 self.tasks.task_done()
 
     def _callback_thread_run(self, callback, errback, finishback):
-        while self.tasks.unfinished_tasks or not self.responses.empty():
+        while not self.stop_event.is_set() and (self.tasks.unfinished_tasks or not self.responses.empty()):
             try:
                 response = self.responses.get(timeout=0.1)
-                if callback:
-                    callback(response)
             except Queue.Empty:
                 continue
+            else:
+                if callback:
+                    callback(response)
 
         # Raise errors
         while errback and self.errors:
@@ -143,17 +150,35 @@ class BackendsCall(object):
 
     def wait(self):
         """Wait until all tasks are finished."""
-        self.tasks.join()
+        for thread in self.threads:
+            thread.join()
 
         if self.errors:
             raise CallErrors(self.errors)
 
+    def stop(self, wait=False):
+        """
+        Stop all tasks.
+
+        :param wait: If True, wait until all tasks stopped.
+        :type wait: bool
+        """
+
+        self.stop_event.set()
+
+        if wait:
+            self.wait()
+
     def __iter__(self):
-        while self.tasks.unfinished_tasks or not self.responses.empty():
-            try:
-                yield self.responses.get(timeout=0.1)
-            except Queue.Empty:
-                continue
+        try:
+            while not self.stop_event.is_set() and (self.tasks.unfinished_tasks or not self.responses.empty()):
+                try:
+                    yield self.responses.get(timeout=0.1)
+                except Queue.Empty:
+                    continue
+        except:
+            self.stop()
+            raise
 
         if self.errors:
             raise CallErrors(self.errors)
