@@ -216,9 +216,9 @@ class QtDo(QObject):
         self.process = self.weboob.do(*args, **kwargs)
         self.process.callback_thread(self.thread_cb, self.thread_eb, self.thread_fb)
 
-    def stop(self):
+    def stop(self, wait=False):
         if self.process is not None:
-            self.process.stop()
+            self.process.stop(wait)
 
     @Slot(object, object, object)
     def default_eb(self, backend, error, backtrace):

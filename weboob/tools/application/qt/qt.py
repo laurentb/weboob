@@ -209,6 +209,10 @@ class QtDo(QObject):
         self.gotError.connect(self.local_eb)
         self.finished.connect(self.local_fb)
 
+    def stop(self, wait=False):
+        if self.process is not None:
+            self.process.stop(wait)
+
     def do(self, *args, **kwargs):
         self.process = self.weboob.do(*args, **kwargs)
         self.process.callback_thread(self.thread_cb, self.thread_eb, self.thread_fb)
