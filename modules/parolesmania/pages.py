@@ -25,7 +25,7 @@ from weboob.deprecated.browser import Page
 
 class ArtistResultsPage(Page):
     def iter_lyrics(self):
-        for link in self.parser.select(self.document.getroot(), 'div#albums > h1 a'):
+        for link in self.parser.select(self.document.getroot(), 'div.elenco div li a'):
             artist = unicode(link.text_content())
             href = link.attrib.get('href', '')
             if href.startswith('/paroles'):
@@ -39,7 +39,7 @@ class ArtistSongsPage(Page):
     def iter_lyrics(self, artist=None):
         if artist is None:
             artist = self.parser.select(self.document.getroot(), 'head > title', 1).text.replace('Paroles ', '')
-        for link in self.parser.select(self.document.getroot(), 'div#albums a'):
+        for link in self.parser.select(self.document.getroot(), 'div.album ul li a'):
             href = link.attrib.get('href', '')
             titleattrib = link.attrib.get('title', '')
             if href.startswith('/paroles') and not href.endswith('alpha.html') and titleattrib.startswith('Paroles '):
