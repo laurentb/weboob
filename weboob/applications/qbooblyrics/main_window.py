@@ -104,6 +104,11 @@ class Result(QFrame):
         self.process = None
         self.parent.ui.stopButton.hide()
 
+    @Slot()
+    def stopProcess(self):
+        if self.process is not None:
+            self.process.stop()
+
     def searchSonglyrics(self,pattern):
         if not pattern:
             return
@@ -188,7 +193,6 @@ class MainWindow(QtMainWindow):
         showT = self.config.get('settings', 'showthumbnails')
         self.ui.showTCheck.setChecked(showT == '1')
 
-        self.ui.stopButton.clicked.connect(self.stopProcess)
         self.ui.stopButton.hide()
 
         self.ui.actionBackends.triggered.connect(self.backendsConfig)
@@ -240,10 +244,6 @@ class MainWindow(QtMainWindow):
         else:
             return num
 
-    @Slot()
-    def stopProcess(self):
-        self.process.process.finish_event.set()
-
     @Slot(object)
     def closeTab(self, index):
         if self.ui.resultsTab.widget(index) != 0:
@@ -274,6 +274,7 @@ class MainWindow(QtMainWindow):
         new_res = Result(self.weboob, self.app, self)
         self.ui.resultsTab.addTab(new_res, txt)
         new_res.searchId('%s@%s'%(id,backend.NAME))
+        self.ui.stopButton.clicked.connect(new_res.stopProcess)
 
     @Slot()
     def search(self):

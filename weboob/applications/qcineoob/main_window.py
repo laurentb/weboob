@@ -255,9 +255,6 @@ class Result(QFrame):
         self.process.do(self.app._do_complete, self.parent.getCount(), ('original_title'), 'iter_movies', pattern, backends=backend_name, caps=CapCinema)
         self.parent.ui.stopButton.show()
 
-    def stopProcess(self):
-        self.process.process.finish_event.set()
-
     def addMovie(self, movie):
         minimovie = MiniMovie(self.weboob, self.weboob[movie.backend], movie, self)
         self.ui.list_content.layout().insertWidget(self.ui.list_content.layout().count()-1,minimovie)
@@ -341,6 +338,11 @@ class Result(QFrame):
         QApplication.restoreOverrideCursor()
         self.process = None
         self.parent.ui.stopButton.hide()
+
+    @Slot()
+    def stopProcess(self):
+        if self.process is not None:
+            self.process.stop()
 
     def addTorrent(self, torrent):
         minitorrent = MiniTorrent(self.weboob, self.weboob[torrent.backend], torrent, self)
@@ -458,7 +460,6 @@ class MainWindow(QtMainWindow):
         showT = self.config.get('settings', 'showthumbnails')
         self.ui.showTCheck.setChecked(showT == '1')
 
-        self.ui.stopButton.clicked.connect(self.stopProcess)
         self.ui.stopButton.hide()
 
         self.ui.actionBackends.triggered.connect(self.backendsConfig)
@@ -487,10 +488,6 @@ class MainWindow(QtMainWindow):
             self.ui.langCombo.addItem(lang)
         self.ui.langCombo.hide()
         self.ui.langLabel.hide()
-
-    @Slot()
-    def stopProcess(self):
-        self.ui.resultsTab.currentWidget().stopProcess()
 
     @Slot(object)
     def closeTab(self, index):
@@ -530,6 +527,7 @@ class MainWindow(QtMainWindow):
             id = torrent.id
             stype = 'torrent'
         new_res = Result(self.weboob, self.app, self)
+        self.ui.stopButton.clicked.connect(new_res.stopProcess)
         tabtxt = txt
         if len(tabtxt) > MAX_TAB_TEXT_LENGTH:
             tabtxt = '%s...'%tabtxt[:MAX_TAB_TEXT_LENGTH]

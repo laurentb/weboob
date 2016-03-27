@@ -104,6 +104,11 @@ class Result(QFrame):
         self.process = None
         self.parent.ui.stopButton.hide()
 
+    @Slot()
+    def stopProcess(self):
+        if self.process is not None:
+            self.process.stop()
+
     def searchRecipe(self,pattern):
         if not pattern:
             return
@@ -184,7 +189,6 @@ class MainWindow(QtMainWindow):
         showT = self.config.get('settings', 'showthumbnails')
         self.ui.showTCheck.setChecked(showT == '1')
 
-        self.ui.stopButton.clicked.connect(self.stopProcess)
         self.ui.stopButton.hide()
 
         self.ui.actionBackends.triggered.connect(self.backendsConfig)
@@ -236,10 +240,6 @@ class MainWindow(QtMainWindow):
         else:
             return num
 
-    @Slot()
-    def stopProcess(self):
-        self.process.process.finish_event.set()
-
     @Slot(object)
     def closeTab(self, index):
         if self.ui.resultsTab.widget(index) != 0:
@@ -280,6 +280,7 @@ class MainWindow(QtMainWindow):
         self.ui.resultsTab.addTab(new_res, pattern)
         self.ui.resultsTab.setCurrentWidget(new_res)
         new_res.searchRecipe(pattern)
+        self.ui.stopButton.clicked.connect(new_res.stopProcess)
 
     @Slot()
     def searchId(self):
