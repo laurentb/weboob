@@ -20,8 +20,6 @@
 from datetime import datetime
 from decimal import Decimal
 
-import urlparse
-
 from weboob.browser.elements import ItemElement, method, TableElement
 from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage, pagination
