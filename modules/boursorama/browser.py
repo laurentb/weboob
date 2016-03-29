@@ -52,7 +52,8 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     asv = URL('/compte/assurance-vie/.*', AsvPage)
     market = URL('/compte/(?!assurance|cav|epargne).*/(positions|mouvements)', MarketPage)
     cards = URL('/compte/cav/.*/limite.*', CardPage)
-    loans = URL('/credit/immobilier/.*/informations', LoanPage)
+    loans = URL('/credit/immobilier/.*/informations',
+                '/credit/consommation/.*/informations', LoanPage)
     authentication = URL('/securisation', AuthenticationPage)
 
 
