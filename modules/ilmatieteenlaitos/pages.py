@@ -21,10 +21,10 @@ from datetime import date
 from itertools import imap, ifilter
 
 from weboob.browser.pages import JsonPage, HTMLPage
-from weboob.browser.elements import ItemElement, ListElement, DictElement, method
+from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.capabilities.weather import Forecast, Current, City, Temperature
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.standard import Filter, CleanText, CleanDecimal, Regexp, Format, Date
+from weboob.browser.filters.standard import Filter, CleanText
 
 
 class Id(Filter):
