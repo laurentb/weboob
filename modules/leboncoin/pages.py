@@ -91,7 +91,7 @@ class HousingListPage(HTMLPage):
     class get_housing_list(ListElement):
         item_xpath = '//a[has-class("list_item")]'
 
-        next_page = Link('//a[@id="next"]')
+        next_page = Format(u'http:%s', Link('//a[@id="next"]'))
 
         class item(ItemElement):
             klass = Housing
@@ -155,7 +155,7 @@ class HousingPage(HTMLPage):
                                                     replace_dots=(',', '.'))(item)
 
                 else:
-                    key = '%s' % CleanText('./span[@class="property"]')(item)
+                    key = u'%s' % CleanText('./span[@class="property"]')(item)
                     if 'GES' in key or 'Classe' in key:
                         details[key] = CleanText('./span[@class="value"]/noscript/a')(item)
                     else:
@@ -168,7 +168,7 @@ class HousingPage(HTMLPage):
         obj_cost = CleanDecimal('//h2[@itemprop="price"]/@content', default=Decimal(0))
 
         obj_currency = Regexp(CleanText('//h2[@itemprop="price"]/span[@class="value"]'),
-                              '.*([%s%s%s])' % (u'€', u'$', u'£'), default='')
+                              '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
         obj_text = CleanText('//meta[@name="description"]/@content')
         obj_location = CleanText('//span[@itemprop="address"]')
         obj_details = Env('details')
