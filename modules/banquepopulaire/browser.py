@@ -26,7 +26,7 @@ from weboob.deprecated.browser.parsers.iparser import RawParser
 from .pages import LoginPage, IndexPage, AccountsPage, AccountsFullPage, CardsPage, TransactionsPage, \
                    UnavailablePage, RedirectPage, HomePage, Login2Page, ErrorPage, \
                    LineboursePage, NatixisPage, InvestmentNatixisPage, InvestmentLineboursePage, MessagePage, \
-                   DocumentsPage, PostDocument, ExtractPdf
+                   DocumentsPage, PostDocument, ExtractPdf, NatixisErrorPage
 
 
 __all__ = ['BanquePopulaire']
@@ -66,6 +66,7 @@ class BanquePopulaire(Browser):
              'https://www.linebourse.fr/Portefeuille':                                          InvestmentLineboursePage,
              'https://www.assurances.natixis.fr/espaceinternet-bp/views/common.*':              NatixisPage,
              'https://www.assurances.natixis.fr/espaceinternet-bp/views/contrat.*':             InvestmentNatixisPage,
+             'https://www.assurances.natixis.fr/espaceinternet-bp/error-redirect.*':            NatixisErrorPage,
             }
 
     def __init__(self, website, *args, **kwargs):
@@ -253,6 +254,8 @@ class BanquePopulaire(Browser):
                     self.location('https://www.linebourse.fr/Portefeuille')
             elif self.is_on_page(NatixisPage):
                 self.page.submit_form()
+            if self.is_on_page(NatixisErrorPage):
+                return iter([])
             return self.page.get_investments()
 
         return iter([])

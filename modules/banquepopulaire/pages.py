@@ -733,6 +733,10 @@ class NatixisPage(_BasePage):
         self.browser.submit(nologin=True)
 
 
+class NatixisErrorPage(_BasePage):
+    pass
+
+
 class InvestmentNatixisPage(_BasePage):
     COL_LABEL = 0
     COL_QUANTITY = 2
