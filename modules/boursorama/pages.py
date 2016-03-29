@@ -268,7 +268,7 @@ class AccbisPage(LoggedPage, HTMLPage):
                 title = CleanText().filter(li.xpath('./h3'))
                 for a in li.xpath('./ul/li/a'):
                     label = CleanText().filter(a.xpath('./span[@class="nav-category__name"]'))
-                    if account._holder and account._holder in label:
+                    if account._holder and account._holder in label and 'CARTE' in label:
                         balance = a.xpath('./span[@class="nav-category__value"]')
                         account.balance = CleanDecimal(replace_dots=True).filter(balance)
                         account.currency = FrenchTransaction.Currency().filter(balance)
