@@ -23,7 +23,8 @@ from datetime import datetime
 from weboob.browser.pages import JsonPage, XMLPage
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Format
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Format, Regexp
+from weboob.browser.filters.html import CleanHTML
 from weboob.capabilities.housing import Housing, HousingPhoto, City
 
 
@@ -58,9 +59,10 @@ class SearchPage(EntreParticuliersXMLPage):
         class item(ItemElement):
             klass = Housing
 
-            obj_id = Format('%s#%s',
+            obj_id = Format('%s#%s#%s',
                             CleanText('./Idannonce'),
-                            CleanText('./Rubrique'))
+                            CleanText('./Rubrique'),
+                            CleanText('./Source'))
             obj_title = CleanText('./Titre')
             obj_cost = CleanDecimal('./Prix', default=Decimal(0))
             obj_currency = u'€'
@@ -75,36 +77,48 @@ class HousingPage(EntreParticuliersXMLPage):
     class get_housing(ItemElement):
         klass = Housing
 
-        obj_id = Format('%s#%s',
-                        CleanText('//InfosEpc/IdAnnonce'),
-                        CleanText('//Rubrique'))
         obj_title = CleanText('//Titre')
-        obj_cost = CleanDecimal(Regexp(CleanText('//Prix'), '(.*)\&euro;.*'))
+
+        def obj_cost(self):
+            cost = CleanDecimal(Regexp(CleanText('//Prix'),
+                                       u'(.*)\&euro;.*',
+                                       default=None),
+                                default=None)(self)
+            return cost if cost else CleanDecimal(Regexp(CleanText('//Prix'),
+                                                         u'(.*)€'))(self)
         obj_currency = u'€'
 
         obj_text = CleanText('//Description')
-        obj_location = Format('%s (%s)',
-                              CleanText('//Ville'),
-                              CleanText('//Codepostal'))
+        obj_location = CleanHTML(CleanText('//Localisation'))
 
-        obj_area = CleanDecimal('//SurfaceBien')
+        obj_area = CleanDecimal('//SurfaceBien', replace_dots=True)
         obj_phone = CleanText('//Telephone')
         obj_date = datetime.now
 
         def obj_details(self):
             details = {}
             details[u'Type de bien'] = CleanText('//Tbien')(self)
-            details[u'Reference'] = CleanText('//InfosEpc/Reference')(self)
+            details[u'Reference'] = CleanText('(//Reference)[1]')(self)
             details[u'Nb pièces'] = CleanText('//Nbpieces')(self)
-            details[u'Energie'] = CleanText('//Energie')(self)
-            details[u'Latitude'] = CleanText('//Latitude')(self)
-            details[u'Longitude'] = CleanText('//Longitude')(self)
+
+            _ener = CleanText('//Energie')(self)
+            if _ener:
+                details[u'Energie'] = _ener
+
+            _lat = CleanText('//Latitude')(self)
+            if _lat:
+                details[u'Latitude'] = _lat
+
+            _long = CleanText('//Longitude')(self)
+            if _long:
+                details[u'Longitude'] = _long
+
             return details
 
         def obj_photos(self):
             photos = []
             for i in range(1, CleanDecimal('//NbPhotos')(self) + 1):
                 img = CleanText('//LienImage%s' % i, replace=[(u'w=69&h=52', u'w=786&h=481')])(self)
-                url = u'http://www.entreparticuliers.com%s' % img
+                url = img if img.startswith('http') else u'http://www.entreparticuliers.com%s' % img
                 photos.append(HousingPhoto(url))
             return photos

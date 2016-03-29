@@ -115,8 +115,10 @@ class EntreparticuliersBrowser(PagesBrowser):
     def get_housing(self, _id, obj=None):
         self.update_header()
         splitted_id = _id.split('#')
-        data = '{idannonce: %s,source:"undefined",rubrique:%s}' % (splitted_id[0], splitted_id[1])
-        return self.housing.go(data=data).get_housing(obj=obj)
+        data = '{idannonce: %s,source:"%s",rubrique:%s}' % (splitted_id[0], splitted_id[2], splitted_id[1])
+        obj = self.housing.go(data=data).get_housing(obj=obj)
+        obj.id = _id
+        return obj
 
     def update_header(self):
         self.session.headers.update({"X-Requested-With": "XMLHttpRequest",
