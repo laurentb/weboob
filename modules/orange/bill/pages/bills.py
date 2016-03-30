@@ -44,7 +44,7 @@ class BillsPage(HTMLPage):
             obj_id = Env('id')
 
             def parse(self, el):
-                self.env['id'] = re.sub(r'[^\d\-\.]', '', el.xpath('(//li[@class="n1 menuUsage toHighlight"])[1]//a')[0].text)
+                self.env['id'] = self.page.browser.username
 
     @method
     class get_documents(ListElement):

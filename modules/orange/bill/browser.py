@@ -31,6 +31,7 @@ class OrangeBillBrowser(LoginBrowser):
     billspage = URL('https://m.espaceclientv3.orange.fr/\?page=factures-archives',
                     'https://.*.espaceclientv3.orange.fr/\?page=factures-archives',
                     'https://espaceclientv3.orange.fr/\?page=factures-archives',
+                    'https://espaceclientv3.orange.fr/\?page=facture-telecharger',
                      BillsPage)
 
     def do_login(self):
