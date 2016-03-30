@@ -95,7 +95,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
             # After login, we might be redirected to the two factor authentication page.
             self.handle_authentication()
 
-        if self.login.is_here():
+        if self.authentication.is_here():
             raise BrowserIncorrectAuthenticationCode('Invalid PIN code')
 
 
