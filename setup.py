@@ -130,6 +130,7 @@ def install_weboob():
         'python-dateutil',
         'PyYAML',
         'prettytable',
+        'google-api-python-client',
     ]
     try:
         import Image
@@ -143,7 +144,6 @@ def install_weboob():
             requirements.append('PIL')
 
     if sys.version_info < (3, 0):
-        requirements.append('gdata')
         requirements.append('mechanize')
 
     if sys.version_info < (3, 2):

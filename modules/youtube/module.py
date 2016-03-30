@@ -18,11 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-try:
-    import gdata.youtube.service
-except ImportError:
-    raise ImportError("Please install python-gdata")
-
 import datetime
 import re
 import urllib
@@ -38,6 +33,12 @@ from weboob.tools.value import ValueBackendPassword, Value
 from .browser import YoutubeBrowser
 from .video import YoutubeVideo
 
+try:
+    # weboob modifies HTTPSConnection, which conflicts with apiclient
+    # so apiclient must be imported after
+    from apiclient.discovery import build as ytbuild
+except ImportError:
+    raise ImportError("Please install python-googleapi")
 
 __all__ = ['YoutubeModule']
 
@@ -64,18 +65,14 @@ class YoutubeModule(Module, CapVideo, CapCollection):
 
     def _entry2video(self, entry):
         """
-        Parse an entry returned by gdata and return a Video object.
+        Parse an entry returned by googleapi and return a Video object.
         """
-        video = YoutubeVideo(to_unicode(entry.id.text.split('/')[-1].strip()))
-        video.title = to_unicode(entry.media.title.text.strip())
-        video.duration = datetime.timedelta(seconds=int(entry.media.duration.seconds.strip()))
-        video.thumbnail = Thumbnail(entry.media.thumbnail[0].url.strip())
-        video.thumbnail.url = to_unicode(video.thumbnail.id)
-
-        if entry.author[0].name.text:
-            video.author = to_unicode(entry.author[0].name.text.strip())
-        if entry.media.name:
-            video.author = to_unicode(entry.media.name.text.strip())
+        snippet = entry['snippet']
+        video = YoutubeVideo(to_unicode(entry['id']['videoId']))
+        video.title = to_unicode(snippet['title'].strip())
+        # duration does not seem to be available with api
+        video.thumbnail = Thumbnail(snippet['thumbnails']['default']['url'])
+        video.author = to_unicode(snippet['channelTitle'].strip())
         return video
 
     def _set_video_url(self, video):
@@ -100,16 +97,15 @@ class YoutubeModule(Module, CapVideo, CapCollection):
         if m:
             _id = m.group(1)
 
-        yt_service = gdata.youtube.service.YouTubeService()
-        yt_service.ssl = True
-        try:
-            entry = yt_service.GetYouTubeVideoEntry(video_id=_id)
-        except gdata.service.Error as e:
-            if e.args[0]['status'] == 400:
-                return None
-            raise
+        params = {'id': _id, 'part': 'id,snippet'}
 
-        video = self._entry2video(entry)
+        youtube = self._build_yt()
+        response = youtube.videos().list(**params).execute()
+        items = response.get('items', [])
+        if not items:
+            return None
+
+        video = self._entry2video(items[0])
         self._set_video_url(video)
 
         video.set_empty_fields(NotAvailable)
@@ -120,34 +116,41 @@ class YoutubeModule(Module, CapVideo, CapCollection):
 
         return video
 
+    def _build_yt(self):
+        DEVELOPER_KEY = "AIzaSyApVVeZ03XkKDYHX8T5uOn8Eizfe9CMDbs"
+        YOUTUBE_API_SERVICE_NAME = "youtube"
+        YOUTUBE_API_VERSION = "v3"
+
+        return ytbuild(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
+            developerKey=DEVELOPER_KEY)
+
     def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         YOUTUBE_MAX_RESULTS = 50
         YOUTUBE_MAX_START_INDEX = 500
-        yt_service = gdata.youtube.service.YouTubeService()
-        yt_service.ssl = True
 
-        start_index = 1
+        youtube = self._build_yt()
+
+        params = {'part': 'id,snippet', 'maxResults': YOUTUBE_MAX_RESULTS}
+        if pattern is not None:
+            if isinstance(pattern, unicode):
+                pattern = pattern.encode('utf-8')
+            params['q'] = pattern
+        params['safeSearch'] = 'none' if nsfw else 'strict' # or 'moderate'
+        params['order'] = ('relevance', 'rating', 'viewCount', 'date')[sortby]
+
         nb_yielded = 0
         while True:
-            query = gdata.youtube.service.YouTubeVideoQuery()
-            if pattern is not None:
-                if isinstance(pattern, unicode):
-                    pattern = pattern.encode('utf-8')
-                query.vq = pattern
-            query.orderby = ('relevance', 'rating', 'viewCount', 'published')[sortby]
-            query.racy = 'include' if nsfw else 'exclude'
-
-            query.max_results = YOUTUBE_MAX_RESULTS
-            if start_index >= YOUTUBE_MAX_START_INDEX:
-                return
-            query.start_index = start_index
-            start_index += YOUTUBE_MAX_RESULTS
-
-            feed = yt_service.YouTubeQuery(query)
-            for entry in feed.entry:
+            search_response = youtube.search().list(**params).execute()
+            items = search_response.get('items', [])
+            for entry in items:
+                if entry["id"]["kind"] != "youtube#video":
+                    continue
                 yield self._entry2video(entry)
                 nb_yielded += 1
 
+            params['pageToken'] = search_response.get('nextPageToken')
+            if not params['pageToken']:
+                return
             if nb_yielded < YOUTUBE_MAX_RESULTS:
                 return
 

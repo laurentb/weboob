@@ -145,8 +145,8 @@ echo.
 echo -- mechanize
 %PythonPath%Scripts\easy_install.exe mechanize || goto :InstallFailed
 echo.
-echo -- gdata
-%PythonPath%Scripts\easy_install.exe gdata || goto :InstallFailed
+echo -- google-api-python-client
+%PythonPath%Scripts\easy_install.exe google-api-python-client || goto :InstallFailed
 echo.
 echo -- feedparser
 %PythonPath%Scripts\easy_install.exe feedparser || goto :InstallFailed
