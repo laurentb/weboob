@@ -113,4 +113,4 @@ class DocumentsPage(HTMLPage):
 
             def parse(self, el):
                 self.env['user'] = self.page.browser.subid
-                self.env['date'] = parse_french_date(CleanText('./text()')(self)).date()
+                self.env['date'] = parse_french_date('01 %s' % CleanText('./text()')(self)).date()
