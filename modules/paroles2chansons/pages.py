@@ -26,6 +26,8 @@ from weboob.browser.pages import HTMLPage
 from weboob.browser.filters.standard import Regexp, CleanText
 from weboob.browser.filters.html import CleanHTML
 
+import itertools
+
 class HomePage(HTMLPage):
     def search_lyrics(self, pattern):
         form = self.get_form(xpath='//form[@class="search-block"]')
@@ -55,14 +57,17 @@ class SearchPage(HTMLPage):
 
     def iter_artist_lyrics(self):
         artists_href = self.doc.xpath('//p[text()="Artistes" and has-class("pull-left")]/../..//li[has-class("item")]//a[has-class("link")]/@href')
-        for href in artists_href:
+        it = []
+        # we just take the 3 first artists to avoid too many page loadings
+        for href in artists_href[:3]:
             aid = href.split('/')[-1].replace('paroles-','')
-            return self.browser.artist.go(artistid=aid).iter_lyrics()
+            it = itertools.chain(it, self.browser.artist.go(artistid=aid).iter_lyrics())
+        return it
 
 class ArtistPage(HTMLPage):
     @method
     class iter_lyrics(ListElement):
-        item_xpath = '//li[has-class("item") and has-class("clearfix")]'
+        item_xpath = '//p/text()[starts-with(.,"Toutes les")]/../../..//li[has-class("item") and has-class("clearfix")]'
 
         class item(ItemElement):
             klass = SongLyrics
@@ -88,7 +93,7 @@ class LyricsPage(HTMLPage):
             subid = self.page.url.replace('.html','').replace('paroles-','').split('/')[-2:]
             id = '%s|%s'%(subid[0], subid[1])
             return id
-        obj_content = CleanHTML('//div[has-class("top-listing")]//div[has-class("text-center")]', default=NotAvailable)
+        obj_content = CleanText(CleanHTML('//div[has-class("top-listing")]//div[has-class("text-center")]', default=NotAvailable), newlines=False)
         obj_title = Regexp(CleanText('//title', default=NotAvailable), 'Paroles (.*) - .*')
         obj_artist = Regexp(CleanText('//title', default=NotAvailable), 'Paroles .* - (.*) \(tra.*')
 
