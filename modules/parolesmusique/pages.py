@@ -53,8 +53,9 @@ class ArtistSongsPage(Page):
             if href.startswith('./paroles'):
                 title = unicode(link.text)
                 id = href.replace('./paroles-', '')
-                songlyrics = SongLyrics(id, title)
+                songlyrics = SongLyrics(id)
                 songlyrics.artist = artist
+                songlyrics.title = title
                 songlyrics.content = NotLoaded
                 yield songlyrics
 
@@ -72,8 +73,9 @@ class SongResultsPage(Page):
             id = links[0].attrib.get('href', '').replace('/paroles-', '')
             links = self.parser.select(tr, 'a.matchA')
             artist = unicode(links[0].text)
-            songlyrics = SongLyrics(id, title)
+            songlyrics = SongLyrics(id)
             songlyrics.artist = artist
+            songlyrics.title = title
             songlyrics.content = NotLoaded
             yield songlyrics
 
@@ -86,7 +88,8 @@ class SonglyricsPage(Page):
         infos = self.parser.select(self.document.getroot(), 'table.tbl_cont tr.cont_a td')[1]
         artist = unicode(infos[0].tail.strip())
         title = unicode(infos[1].tail.strip())
-        songlyrics = SongLyrics(id, title)
+        songlyrics = SongLyrics(id)
         songlyrics.artist = artist
+        songlyrics.title = title
         songlyrics.content = content
         return songlyrics

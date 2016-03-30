@@ -52,7 +52,8 @@ class ResultsPage(Page):
                     artist = unicode(self.parser.select(link.getparent().getparent().getparent(), 'td.song-artist > p', 1).text.strip())
                     title = unicode(link.text)
                     id = unicode(link.attrib.get('href', '').replace('http://www.paroles.net/',''))
-                    lyr = SongLyrics(id, title)
+                    lyr = SongLyrics(id)
+                    lyr.title = title
                     lyr.artist = artist
                     yield lyr
 
@@ -64,8 +65,9 @@ class ArtistSongsPage(Page):
             href = unicode(link.attrib.get('href', ''))
             title = unicode(link.text)
             id = href.replace('http://www.paroles.net/', '')
-            songlyrics = SongLyrics(id, title)
+            songlyrics = SongLyrics(id)
             songlyrics.artist = artist
+            songlyrics.title = title
             songlyrics.content = NotLoaded
             yield songlyrics
 
@@ -77,7 +79,8 @@ class SonglyricsPage(Page):
         content = unicode(self.parser.select(self.document.getroot(), 'div.song-text', 1).text_content().strip())
         artist = unicode(self.parser.select(self.document.getroot(), 'span[property$=artist]', 1).text)
         title = unicode(self.parser.select(self.document.getroot(), 'span[property$=name]', 1).text)
-        songlyrics = SongLyrics(id, title)
+        songlyrics = SongLyrics(id)
         songlyrics.artist = artist
+        songlyrics.title = title
         songlyrics.content = content
         return songlyrics

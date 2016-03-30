@@ -46,8 +46,10 @@ class ArtistSongsPage(Page):
                 title = unicode(link.text)
                 ids = href.replace('/', '').replace('.html', '').split('paroles_')
                 id = '%s|%s' % (ids[1], ids[2])
-                songlyrics = SongLyrics(id, title)
+                songlyrics = SongLyrics(id)
                 songlyrics.artist = artist
+                songlyrics.title = title
+                songlyrics.id = id
                 songlyrics.content = NotLoaded
                 yield songlyrics
 
@@ -65,6 +67,8 @@ class SongResultsPage(Page):
                 songlyrics = SongLyrics(id, title)
                 songlyrics.artist = artist
                 songlyrics.content = NotLoaded
+                songlyrics.title = title
+                songlyrics.id = id
                 yield songlyrics
 
 
