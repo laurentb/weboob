@@ -144,6 +144,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_coming = Async('details') & CleanDecimal(u'//li[h4[text()="Mouvements à venir"]]/h3', replace_dots=True, default=NotAvailable)
             obj__card = Async('details') & Attr('//a[@data-modal-behavior="credit_card-modal-trigger"]', 'href', default=NotAvailable)
             obj__holder = None
+            obj__webid = None
 
             def obj_type(self):
                 return self.page.ACCOUNT_TYPES.get(CleanText('./preceding-sibling::tr[has-class("list--accounts--master")]//h4')(self), Account.TYPE_UNKNOWN)
@@ -185,25 +186,6 @@ class HistoryPage(LoggedPage, HTMLPage):
             def obj__is_coming(self):
                 return len(self.xpath(u'.//span[@title="Mouvement à débit différé"]'))
 
-
-class CardPage(LoggedPage, HTMLPage):
-    @method
-    class iter_accounts(ListElement):
-        item_xpath = '//select/option[not(@disabled)]'
-
-        class item(ItemElement):
-            klass = Account
-
-            # These ids are the same card accounts had with the old website. We could get better ones without this constraint.
-            obj_id = Regexp(Attr('.', 'href'), 'limite/[^/]+/([^$]+)$')
-            obj_label = Regexp(CleanText('.'), '^(.*) ')
-            obj__holder = Regexp(CleanText('.'), '- (.*) ')
-            obj_number = Regexp(CleanText('.'), '([^ ]+)$')
-            obj_type = Account.TYPE_CARD
-
-            def condition(self):
-                # We do not yield immediat debit card.
-                return 'DIFFERE' in Field('label')(self)
 
 class Myiter_investment(TableElement):
     item_xpath = '//table[contains(@class, "operations")]/tbody/tr'
@@ -313,18 +295,24 @@ class AsvPage(MarketPage):
 
 class AccbisPage(LoggedPage, HTMLPage):
     def populate(self, accounts):
+        cards = []
         for account in accounts:
             for li in  self.doc.xpath('//li[@class="nav-category"]'):
                 title = CleanText().filter(li.xpath('./h3'))
                 for a in li.xpath('./ul/li//a'):
                     label = CleanText().filter(a.xpath('.//span[@class="nav-category__name"]'))
-                    if account._holder and account._holder in label and 'CARTE' in label:
-                        balance = a.xpath('.//span[@class="nav-category__value"]')
-                        account.balance = CleanDecimal(replace_dots=True).filter(balance)
-                        account.currency = FrenchTransaction.Currency().filter(balance)
-                        account._link = Link().filter(a.xpath('.'))
-                        account._history_page = account._link
-                        account._webid = Regexp(pattern='([^=]+)$').filter(Link().filter(a.xpath('.')))
+                    balance = a.xpath('.//span[@class="nav-category__value"]')
+                    if 'CARTE' in label and balance:
+                        acc = Account()
+                        acc.balance = CleanDecimal(replace_dots=True, default=NotAvailable).filter(balance)
+                        acc.label = label
+                        acc.currency = FrenchTransaction.Currency().filter(balance)
+                        acc._link = Link().filter(a.xpath('.'))
+                        acc._history_page = acc._link
+                        acc.id = acc._webid = Regexp(pattern='([^=]+)$').filter(Link().filter(a.xpath('.')))
+                        acc.type = Account.TYPE_CARD
+                        if not acc in cards:
+                            cards.append(acc)
                     elif account.label == label:
                         if not account.type:
                             account.type = AccountsPage.ACCOUNT_TYPES.get(title, Account.TYPE_UNKNOWN)
@@ -337,6 +325,7 @@ class AccbisPage(LoggedPage, HTMLPage):
                         else:
                             account._history_page = self.browser.other_transactions
                         account._webid = Attr(None, 'data-account-label').filter(a.xpath('.//span[@class="nav-category__name"]'))
+        accounts.extend(cards)
 
 class LoanPage(LoggedPage, HTMLPage):
     pass

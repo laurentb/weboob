@@ -26,7 +26,7 @@ from weboob.browser.url import URL
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
-from .pages import LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, CardPage, HistoryPage, AccbisPage, AuthenticationPage,\
+from .pages import LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,\
                    MarketPage, LoanPage, SavingMarketPage
 
 
@@ -104,18 +104,11 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     @need_login
     def get_accounts_list(self):
         accounts = list()
-        cards_scrapped = None
         for account in self.accounts.go().iter_accounts():
             accounts.append(account)
-        for account in list(accounts):
-            if account._card and not cards_scrapped:
-                self.location(account._card)
-                for card in self.page.iter_accounts():
-                    accounts.append(card)
-                cards_scrapped = True
-        self.acc_tit.go(webid=self.webid).populate(list(accounts))
-        if not all([hasattr(acc, '_webid') for acc in accounts]):
-            self.acc_rep.go(webid=self.webid).populate(list(accounts))
+        self.acc_tit.go(webid=self.webid).populate(accounts)
+        if not all([acc._webid for acc in accounts]):
+            self.acc_rep.go(webid=self.webid).populate(accounts)
         return iter(accounts)
 
     @need_login
