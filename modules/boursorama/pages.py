@@ -19,7 +19,7 @@
 
 import re
 
-from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, TableCell, Regexp, Date, AsyncLoad, Async
 from weboob.browser.filters.html import Attr, Link
@@ -27,6 +27,7 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.value import Value
+from weboob.tools.date import parse_french_date
 from weboob.exceptions import BrowserQuestion, BrowserIncorrectPassword
 
 
@@ -132,7 +133,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             load_details = Field('_link') & AsyncLoad
 
             obj_id = Async('details') & Regexp(CleanText('//h3[has-class("account-number")]'), r'(\d+)')
-            obj_label = CleanText('.//a[@class="account--name"]')
+            obj_label = CleanText('.//a[@class="account--name"] | .//div[@class="account--name"]')
             obj_balance = CleanDecimal('.//a[has-class("account--balance")]', replace_dots=True)
             obj_currency = FrenchTransaction.Currency('.//a[has-class("account--balance")]')
             obj_valuation_diff = Async('details') & CleanDecimal('//li[h4[text()="Total des +/- values"]]/h3 |\
@@ -145,7 +146,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return self.page.ACCOUNT_TYPES.get(CleanText('./preceding-sibling::tr[has-class("list--accounts--master")]//h4')(self), Account.TYPE_UNKNOWN)
 
             def obj__link(self):
-                link = Attr('.//a[@class="account--name"]', 'href', default=NotAvailable)(self)
+                link = Attr('.//a[@class="account--name"] | .//a[2]', 'href', default=NotAvailable)(self)
                 if not self.page.browser.webid:
                     self.page.browser.webid = re.search('\/([^\/|?|$]{32})(\/|\?|$)', link).group(1)
                 return '%smouvements' % link if link.startswith('/budget') else link
@@ -218,7 +219,7 @@ class Myitem(ItemElement):
     obj_quantity = CleanDecimal(TableCell('quantity'))
     obj_unitprice = CleanDecimal(TableCell('unitprice'), replace_dots=True, default=NotAvailable)
     obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True)
-    obj_valuation = CleanDecimal(TableCell('valuation'))
+    obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
     obj_diff = CleanDecimal(TableCell('diff'), replace_dots=True)
 
     def obj_label(self):
@@ -251,6 +252,52 @@ class MarketPage(LoggedPage, HTMLPage):
             def obj_unitvalue(self):
                 return CleanDecimal(replace_dots=True, default=NotAvailable).filter((TableCell('unitvalue')(self)[0]).xpath('./span[not(@class)]'))
 
+class SavingMarketPage(LoggedPage, HTMLPage):
+    @pagination
+    @method
+    class iter_history(TableElement):
+        item_xpath = '//table/tbody/tr'
+        head_xpath = '//table/thead/tr/th'
+
+        col_label = u'Opération'
+        col_amount = u'Montant'
+        col_date = u'Date opération'
+        col_vdate = u'Date Val'
+
+        next_page = Link('//li[@class="pagination__next"]/a')
+
+        class item(ItemElement):
+            klass = FrenchTransaction
+
+            obj_label = CleanText(TableCell('label'))
+            obj_amount = CleanDecimal(TableCell('amount'), replace_dots=True)
+            obj__is_coming = False
+
+            def obj_date(self):
+                return parse_french_date(CleanText(TableCell('date'))(self))
+
+            def obj_vdate(self):
+                return parse_french_date(CleanText(TableCell('vdate'))(self))
+
+    @method
+    class iter_investment(TableElement):
+        item_xpath = '//table/tbody/tr[count(descendant::td) > 4]'
+        head_xpath = '//table/thead/tr[count(descendant::th) > 4]/th'
+
+        col_label = u'Fonds'
+        col_code = u'Code Isin'
+        col_unitvalue = u'Valeur de la part'
+        col_quantity = u'Nombre de parts'
+        col_vdate = u'Date VL'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText(TableCell('label'))
+            obj_code = CleanText(TableCell('code'))
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True)
+            obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True)
+            obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
 
 class AsvPage(MarketPage):
     @method
