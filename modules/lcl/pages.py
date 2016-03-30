@@ -237,6 +237,22 @@ class AccountsPage(LoggedPage, HTMLPage):
                 account._coming_links.append(link)
                 raise SkipItem()
 
+class LoansPage(LoggedPage, HTMLPage):
+
+    @method
+    class get_list(ListElement):
+        item_xpath = '//th[contains(text(), "Emprunteur")]/../../../tbody/tr'
+        flush_at_end = True
+        class account(ItemElement):
+            klass = Account
+
+            obj_id = Format('%s%s' ,Regexp(CleanText('./td[1]'), r'.*\s(\w+)\s-\s(\w+)',r'\1\2'), CleanText('./td[2]', replace=[(' ','')]))
+            obj_label = CleanText('./td[2]')
+            obj_balance = CleanDecimal('./td[4]', replace_dots=True, sign=lambda x: -1)
+            obj_currency = FrenchTransaction.Currency('./td[4]')
+            obj_type = Account.TYPE_LOAN
+
+
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^(?P<category>CB) (?P<text>RETRAIT) DU (?P<dd>\d+)/(?P<mm>\d+)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),

@@ -28,7 +28,7 @@ from weboob.capabilities.bank import Account
 from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    CBListPage, CBHistoryPage, ContractsPage, BoursePage, \
                    AVPage, AVDetailPage, DiscPage, NoPermissionPage, RibPage, \
-                   HomePage
+                   HomePage, LoansPage
 
 
 __all__ = ['LCLBrowser','LCLProBrowser']
@@ -73,6 +73,8 @@ class LCLBrowser(LoginBrowser):
     avdetail = URL('https://ASSURANCE-VIE-et-prevoyance.secure.lcl.fr.*',
                    'https://assurance-vie-et-prevoyance.secure.lcl.fr.*',
                    '/outil/UWVI/Routage', AVDetailPage)
+
+    loans = URL('/outil/UWCR/SynthesePar/', LoansPage)
 
     TIMEOUT = 30.0
 
@@ -133,9 +135,13 @@ class LCLBrowser(LoginBrowser):
             for a in accounts:
                 yield a
 
+        self.loans.stay_or_go()
+        for acc in self.page.get_list():
+            yield acc
+
     @need_login
     def get_history(self, account):
-        if not account._link_id:
+        if not hasattr(account, '_link_id') or not account._link_id:
             return
         self.location(account._link_id)
         for tr in self.page.get_operations():
@@ -152,6 +158,9 @@ class LCLBrowser(LoginBrowser):
         * month=0 : current operations (non debited)
         * month=1 : previous month operations (debited)
         """
+        if not hasattr(account, '_coming_links'):
+            return
+
         for link in account._coming_links:
             v = urlsplit(self.absurl(link))
             args = dict(parse_qsl(v.query))
@@ -182,7 +191,7 @@ class LCLBrowser(LoginBrowser):
             for inv in self.page.iter_investment():
                 yield inv
             self.disc_from_AV_investment_detail()
-        elif account._market_link:
+        elif hasattr(account, '_market_link') and account._market_link:
             self.connexion_bourse()
             self.location(account._market_link)
             for inv in self.page.iter_investment():
