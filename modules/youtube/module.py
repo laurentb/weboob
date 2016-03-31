@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import datetime
 import re
 import urllib
 
@@ -126,7 +125,6 @@ class YoutubeModule(Module, CapVideo, CapCollection):
 
     def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         YOUTUBE_MAX_RESULTS = 50
-        YOUTUBE_MAX_START_INDEX = 500
 
         youtube = self._build_yt()
 

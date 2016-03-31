@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import requests
 import urllib
 from urlparse import urlsplit, parse_qsl
 
