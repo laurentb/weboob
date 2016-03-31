@@ -18,80 +18,75 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser.pages import HTMLPage, pagination
-from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.pages import HTMLPage, JsonPage, pagination
+from weboob.browser.elements import ItemElement, DictElement, method
 from weboob.capabilities.recipe import Recipe, Comment
 from weboob.capabilities.base import NotAvailable
-from weboob.browser.filters.standard import Regexp, CleanText, Env, Duration
-from weboob.browser.filters.html import CleanHTML
-
-import re
+from weboob.browser.filters.standard import Env, Format, Join
+from weboob.browser.filters.json import Dict
 
 
-class CookingDuration(Duration):
-    _regexp = re.compile(r'PT((?P<hh>\d+)H)?((?P<mm>\d+)M)?((?P<ss>\d+)S)?')
+class HomePage(HTMLPage):
+    pass
 
 
-class ResultsPage(HTMLPage):
+class ResultsPage(JsonPage):
     @pagination
     @method
-    class iter_recipes(ListElement):
-        item_xpath = '//article[@class="grid-col--fixed-tiles"]'
+    class iter_recipes(DictElement):
+
+        item_xpath = 'recipes'
 
         def next_page(self):
-            return CleanText('//button[@id="btnMoreResults"]/@href')(self)
+            return Dict('links/next/href', default=None)(self.page.doc)
 
         class item(ItemElement):
             klass = Recipe
 
-            obj_id = Regexp(CleanText('./a[1]/@href'),
-                            '/recipe/(.*)/')
-            obj_title = CleanText('./a/h3')
-            obj_short_description = CleanText('./a/div/div[@class="rec-card__description"]')
+            obj_id = Dict('recipeID')
+            obj_title = Dict('title')
+            obj_short_description = Dict('description')
 
 
-class RecipePage(HTMLPage):
+class RecipePage(JsonPage):
     @method
     class get_recipe(ItemElement):
         klass = Recipe
 
         obj_id = Env('_id')
-        obj_title = CleanText('//h1[@itemprop="name"]')
-
-        def obj_preparation_time(self):
-            dt = CookingDuration(CleanText('//time[@itemprop="prepTime"]/@datetime'))(self)
-            return int(dt.total_seconds() / 60)
-
-        def obj_cooking_time(self):
-            dt = CookingDuration(CleanText('//time[@itemprop="cookTime"]/@datetime'))(self)
-            return int(dt.total_seconds() / 60)
+        obj_title = Dict('title')
+        obj_short_description = Dict('description')
+        obj_preparation_time = Dict('prepMinutes')
+        obj_cooking_time = Dict('cookMinutes')
 
         def obj_nb_person(self):
-            nb_pers = CleanText('//meta[@id="metaRecipeServings"]/@content')(self)
+            nb_pers = u'%s' % Dict('servings', default='')(self)
             return [nb_pers] if nb_pers else NotAvailable
 
         def obj_ingredients(self):
             ingredients = []
-            for el in self.el.xpath('//ul[has-class("checklist")]/li/label/span[@itemprop="ingredients"]'):
-                ing = CleanText('.')(el)
-                if ing:
-                    ingredients.append(ing)
+            for el in Dict('ingredients')(self):
+                ing = Format('%s (%s gramm)',
+                             Dict('displayValue'),
+                             Dict('grams'))(el)
+                ingredients.append(ing)
             return ingredients
 
-        obj_instructions = CleanHTML('//ol[@itemprop="recipeInstructions"]')
-        obj_thumbnail_url = CleanText('//section[has-class("hero-photo")]/span/a/img/@src')
+        def obj_instructions(self):
+            ins = [Dict('displayValue')(el) for el in Dict('directions')(self)]
+            return Join('\n * ', ins, addBefore=' * ', addAfter='\n')(self)
 
-        obj_picture_url = CleanText('//section[has-class("hero-photo")]/span/a/img/@src')
+        obj_thumbnail_url = Dict('photo/photoDetailUrl')
+        obj_picture_url = Dict('photo/photoDetailUrl')
 
     @method
-    class get_comments(ListElement):
-        item_xpath = '//div[@itemprop="review"]'
-        ignore_duplicate = True
+    class get_comments(DictElement):
+        item_xpath = 'topReviews'
 
         class item(ItemElement):
             klass = Comment
 
-            obj_author = CleanText('./article/a/div/a/ul/li/h4[@itemprop="author"]')
-            obj_rate = CleanText('./article/div/div[@class="rating-stars"]/@data-ratingstars')
-            obj_text = CleanText('./p[@itemprop="reviewBody"]')
-            obj_id = CleanText('./article/a/@href')
+            obj_author = Dict('submitter/name')
+            obj_rate = Dict('rating')
+            obj_text = Dict('text')
+            obj_id = Dict('reviewID')
