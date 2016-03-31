@@ -24,6 +24,7 @@ from weboob.tools.value import Value
 from weboob.tools.ordereddict import OrderedDict
 from .browser import DailymotionBrowser
 
+import re
 
 __all__ = ['DailymotionModule']
 
@@ -58,7 +59,12 @@ class DailymotionModule(Module, CapVideo, CapCollection):
         return self.create_browser(resolution=resolution, format=format)
 
     def get_video(self, _id):
-        return self.browser.get_video(_id)
+        m = re.match('http://[w\.]*dailymotion\.com/video/(.*)', _id)
+        if m:
+            _id = m.group(1)
+
+        if not _id.startswith('http'):
+            return self.browser.get_video(_id)
 
     def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         return self.browser.search_videos(pattern, self.SORTBY[sortby])
