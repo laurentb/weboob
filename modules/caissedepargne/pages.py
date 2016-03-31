@@ -132,6 +132,9 @@ class IndexPage(Page):
                      u'Plan et Contrat d\'Epargne': Account.TYPE_SAVINGS,
                      u'Titres':                     Account.TYPE_MARKET,
                      u'Compte titres':              Account.TYPE_MARKET,
+                     u'Mes crédits immobiliers':    Account.TYPE_LOAN,
+                     u'Mes crédits renouvelables':  Account.TYPE_LOAN,
+                     u'Mes crédits consommation':   Account.TYPE_LOAN,
                     }
 
     def on_loaded(self):
@@ -255,6 +258,32 @@ class IndexPage(Page):
 
         return accounts.itervalues()
 
+    def get_loan_list(self):
+        accounts = OrderedDict()
+        # New website
+        for table in self.document.xpath('//div[@class="panel"]'):
+            title = table.getprevious()
+            if title is None:
+                continue
+            account_type = self.ACCOUNT_TYPES.get(self.parser.tocleanstring(title), Account.TYPE_UNKNOWN)
+            for tr in table.xpath('./table/tbody/tr'):
+                tds = tr.findall('td')
+                if len(tds) == 0 :
+                    continue
+                for i in tds[0].xpath('.//a/strong'):
+                    label = i.text.strip()
+                    break
+                balance = Decimal(FrenchTransaction.clean_amount(self.parser.tocleanstring(tds[-1])))
+                account = Account()
+                account.id = label.split(' ')[-1]
+                account.label = unicode(label)
+                account.type = account_type
+                account.balance = -abs(balance)
+                account.currency = account.get_currency(self.parser.tocleanstring(tds[-1]))
+                account._card_links = []
+                accounts[account.id] = account
+        return accounts.itervalues()
+
     def go_list(self):
         self.browser.select_form(name='main')
         self.browser.set_all_readonly(False)
@@ -284,6 +313,35 @@ class IndexPage(Page):
         except ControlNotFoundError:
             pass
         self.browser.submit()
+
+    def go_loan_list(self):
+        self.browser.select_form(name='main')
+        self.browser.set_all_readonly(False)
+        self.browser['__EVENTARGUMENT'] = 'CRESYNT0'
+        self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
+
+        # Ugly check to determine if we are on the new or old website.
+        try:
+            self.browser['MM$m_CH$IsMsgInit']
+        except ControlNotFoundError:
+            self.logger.debug('New website')
+            self.browser['__EVENTTARGET'] = 'MM$m_PostBack'
+            self.browser['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$m_PostBack'
+        else:
+            pass
+        try:
+            self.browser.controls.remove(self.browser.find_control(name='MM$SYNTHESE_CREDITS$btnCumul'))
+        except:
+            pass
+        try:
+            self.browser.controls.remove(self.browser.find_control(name='Cartridge$imgbtnMessagerie', type='image'))
+            self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageFondMessagerie', type='image'))
+            self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageMessagerie', type='image'))
+        except ControlNotFoundError:
+            pass
+        self.browser.submit()
+
+
 
     def go_history(self, info):
         self.browser.select_form(name='main')

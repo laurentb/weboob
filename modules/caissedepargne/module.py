@@ -54,7 +54,10 @@ class CaisseEpargneModule(Module, CapBank):
 
     def iter_accounts(self):
         with self.browser:
-            return self.browser.get_accounts_list()
+            for account in self.browser.get_accounts_list():
+                yield account
+            for account in self.browser.get_loans_list():
+                yield account
 
     def get_account(self, _id):
         with self.browser:
@@ -66,10 +69,14 @@ class CaisseEpargneModule(Module, CapBank):
             raise AccountNotFound()
 
     def iter_history(self, account):
+        if not hasattr(account, '_info'):
+            return NotImplementedError()
         with self.browser:
             return self.browser.get_history(account)
 
     def iter_coming(self, account):
+        if not hasattr(account, '_info'):
+            return NotImplementedError()
         with self.browser:
             return self.browser.get_coming(account)
 

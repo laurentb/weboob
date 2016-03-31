@@ -111,6 +111,12 @@ class CaisseEpargne(Browser):
                 self.page.get_valuation_diff(account)
         return iter(accounts)
 
+    def get_loans_list(self):
+        self.location(self.buildurl('/Portail.aspx?tache=CRESYNT0'))
+        self.page.go_loan_list()
+        loan_accounts = list(self.page.get_loan_list())
+        return iter(loan_accounts)
+
 
     def get_account(self, id):
         assert isinstance(id, basestring)
