@@ -83,8 +83,13 @@ class ArteModule(Module, CapVideo, CapCollection):
         if not _id.startswith('http'):
             return 'videos', _id
 
+        return None, None
+
     def get_video(self, _id):
         site, _id = self.parse_id(_id)
+
+        if not (site and _id):
+            return None
 
         if site in [value.get('id') for value in SITE.values]:
             _site = (value for value in SITE.values if value.get('id') == site).next()
