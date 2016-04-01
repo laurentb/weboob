@@ -161,7 +161,7 @@ class Citibank(LoginBrowser):
     Contributions are welcome!
     """
 
-    BASEURL = 'https://online.citibank.com'
+    BASEURL = 'https://online.citi.com'
     MAX_RETRIES = 10
     TIMEOUT = 30.0
     index = URL(r'/US/JPS/portal/Index.do', IndexPage)
