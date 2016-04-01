@@ -18,35 +18,48 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
+from weboob.browser.exceptions import BrowserHTTPNotFound
+from weboob.browser import PagesBrowser
+from weboob.browser.url import URL
+from weboob.browser.profiles import Firefox
 
-from .pages import ResultsPage, SonglyricsPage, ArtistSongsPage, HomePage
+from .pages import ResultsPage, SongLyricsPage, HomePage, ArtistSongsPage
 
 
 __all__ = ['ParolesnetBrowser']
 
 
-class ParolesnetBrowser(Browser):
-    DOMAIN = 'www.paroles.net'
-    PROTOCOL = 'http'
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['wget']
-    PAGES = {
-        'http://www.paroles.net': HomePage,
-        'http://www.paroles.net/search': ResultsPage,
-        'http://www.paroles.net/.*/paroles-.*': SonglyricsPage,
-        'http://www.paroles.net/[a-z\-]*': ArtistSongsPage
-    }
+class ParolesnetBrowser(PagesBrowser):
+    PROFILE = Firefox()
+    TIMEOUT = 30
+
+    BASEURL = 'http://www.paroles.net/'
+    home = URL('$',
+                 HomePage)
+    results = URL('search',
+                 ResultsPage)
+    lyrics = URL('(?P<artistid>[^/]*)/paroles-(?P<songid>[^/]*)',
+                  SongLyricsPage)
+    artist = URL('(?P<artistid>[^/]*)$',
+                  ArtistSongsPage)
+
 
     def iter_lyrics(self, criteria, pattern):
-        self.location('http://www.paroles.net')
-        assert self.is_on_page(HomePage)
-        return self.page.iter_lyrics(criteria, pattern)
+        self.home.stay_or_go()
+        assert self.home.is_here()
+        self.page.search_lyrics(pattern)
+        assert self.results.is_here()
+        if criteria == 'song':
+            return self.page.iter_song_lyrics()
+        else:
+            return self.page.iter_artist_lyrics()
 
     def get_lyrics(self, id):
+        ids = id.split('|')
         try:
-            self.location('http://www.paroles.net/%s' % id)
+            self.lyrics.go(artistid=ids[0], songid=ids[1])
+            songlyrics = self.page.get_lyrics()
+            return songlyrics
         except BrowserHTTPNotFound:
             return
-        if self.is_on_page(SonglyricsPage):
-            return self.page.get_lyrics(id)
+

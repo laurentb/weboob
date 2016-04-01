@@ -19,68 +19,86 @@
 
 
 from weboob.capabilities.lyrics import SongLyrics
-from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.deprecated.browser import Page
+from weboob.capabilities.base import NotLoaded, NotAvailable
+
+from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.pages import HTMLPage
+from weboob.browser.filters.standard import Regexp, CleanText
+from weboob.browser.filters.html import CleanHTML
+
+import itertools
 
 
-class HomePage(Page):
-    def iter_lyrics(self, criteria, pattern):
-        self.browser.select_form(nr=0)
-        self.browser['search'] = pattern
-        self.browser.submit()
-        assert self.browser.is_on_page(ResultsPage)
-        for lyr in self.browser.page.iter_lyrics(criteria):
-            yield lyr
+class HomePage(HTMLPage):
+    def search_lyrics(self, pattern):
+        form = self.get_form(xpath='//form[@id="search-form-round"]')
+        form['search'] = pattern
+        form.submit()
 
 
-class ResultsPage(Page):
-    def iter_lyrics(self, criteria):
-        for link in self.parser.select(self.document.getroot(), 'div.box-content td.song-name a'):
-            href = link.attrib.get('href','')
-            if criteria == 'artist':
-                if len(href.split('/')) != 4:
-                    continue
-                else:
-                    self.browser.location('%s' % href)
-                    assert self.browser.is_on_page(ArtistSongsPage) or self.browser.is_on_page(SonglyricsPage)
-                    for lyr in self.browser.page.iter_lyrics():
-                        yield lyr
-            else:
-                if len(href.split('/')) != 5:
-                    continue
-                else:
-                    artist = unicode(self.parser.select(link.getparent().getparent().getparent(), 'td.song-artist > p', 1).text.strip())
-                    title = unicode(link.text)
-                    id = unicode(link.attrib.get('href', '').replace('http://www.paroles.net/',''))
-                    lyr = SongLyrics(id)
-                    lyr.title = title
-                    lyr.artist = artist
-                    yield lyr
+class ResultsPage(HTMLPage):
+    @method
+    class iter_song_lyrics(ListElement):
+        item_xpath = '//h2[text()="Chansons"]/following-sibling::div[position() <= 2]//tr'
+
+        class item(ItemElement):
+            klass = SongLyrics
+
+            def obj_id(self):
+                href = CleanText('.//td[has-class("song-name")]//a/@href')(self)
+                aid = href.split('/')[-2]
+                sid = href.split('/')[-1].replace('paroles-','')
+                id = '%s|%s'%(aid, sid)
+                return id
+
+            obj_title = CleanText('.//td[has-class("song-name")]',
+                    default=NotAvailable)
+            obj_artist = CleanText('.//td[has-class("song-artist")]',
+                    default=NotAvailable)
+            obj_content = NotLoaded
+
+    def iter_artist_lyrics(self):
+        artists_href = self.doc.xpath('//h2[text()="Artiste"]/following-sibling::div[position() <= 2]//tr//a/@href')
+        it = []
+        # we just take the 3 first artists to avoid too many page loadings
+        for href in artists_href[:3]:
+            aid = href.split('/')[-1]
+            it = itertools.chain(it, self.browser.artist.go(artistid=aid).iter_lyrics())
+        return it
 
 
-class ArtistSongsPage(Page):
-    def iter_lyrics(self):
-        artist = unicode(self.parser.select(self.document.getroot(), 'span[itemprop=name]', 1).text)
-        for link in self.parser.select(self.document.getroot(), 'td.song-name > p[itemprop=name] > a[itemprop=url]'):
-            href = unicode(link.attrib.get('href', ''))
-            title = unicode(link.text)
-            id = href.replace('http://www.paroles.net/', '')
-            songlyrics = SongLyrics(id)
-            songlyrics.artist = artist
-            songlyrics.title = title
-            songlyrics.content = NotLoaded
-            yield songlyrics
+
+class ArtistSongsPage(HTMLPage):
+    @method
+    class iter_lyrics(ListElement):
+        item_xpath = '//div[@id="main"]//td[has-class("song-name")]//a'
+
+        class item(ItemElement):
+            klass = SongLyrics
+
+            obj_title = CleanText('.',
+                    default=NotAvailable)
+            obj_artist = Regexp(CleanText('//div[has-class("breadcrumb")]//span[has-class("breadcrumb-current")]'),
+                    'Paroles (.*)')
+            obj_content = NotLoaded
+            def obj_id(self):
+                href = CleanText('./@href')(self)
+                aid = href.split('/')[-2]
+                sid = href.split('/')[-1].replace('paroles-','')
+                id = '%s|%s'%(aid, sid)
+                return id
 
 
-class SonglyricsPage(Page):
-    def get_lyrics(self, id):
-        artist = NotAvailable
-        title = NotAvailable
-        content = unicode(self.parser.select(self.document.getroot(), 'div.song-text', 1).text_content().strip())
-        artist = unicode(self.parser.select(self.document.getroot(), 'span[property$=artist]', 1).text)
-        title = unicode(self.parser.select(self.document.getroot(), 'span[property$=name]', 1).text)
-        songlyrics = SongLyrics(id)
-        songlyrics.artist = artist
-        songlyrics.title = title
-        songlyrics.content = content
-        return songlyrics
+class SongLyricsPage(HTMLPage):
+    @method
+    class get_lyrics(ItemElement):
+        klass = SongLyrics
+
+        def obj_id(self):
+            subid = self.page.url.replace('paroles-','').split('/')[-2:]
+            id = '%s|%s'%(subid[0], subid[1])
+            return id
+        obj_content = CleanText(CleanHTML('//div[has-class("song-text")]', default=NotAvailable), newlines=False)
+        obj_title = CleanText('//span[@property="v:name"]', default=NotAvailable)
+        obj_artist = CleanText('//span[@property="v:artist"]', default=NotAvailable)
+
