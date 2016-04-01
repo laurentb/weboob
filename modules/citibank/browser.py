@@ -24,15 +24,12 @@ from weboob.capabilities.bank import Account, AccountNotFound, Transaction
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import \
     AmericanTransaction as AmTr
+from weboob.tools.js import Javascript
 
 from .parser import StatementParser, clean_label
 
 import re
-import os
 from datetime import datetime
-from tempfile import mkstemp
-from subprocess import STDOUT
-from weboob.tools.compat import check_output
 
 from time import sleep
 
@@ -57,12 +54,9 @@ class IndexPage(SomePage):
         script = re.sub(APPEND, lambda m: 'return %s;' % m.group(1), script)
         script = re.sub(r'jQuery\(document\)[^\n]+\n', '', script)
         for x in re.findall('function ([^(]+)\(', script):
-            script += '\nvar x = %s(); if (x) print(x);' % x
-        scriptFd, scriptName = mkstemp('.js')
-        os.write(scriptFd, script)
-        os.close(scriptFd)
-        html = check_output(["d8", scriptName], stderr=STDOUT)
-        os.remove(scriptName)
+            script += '\nvar x = %s(); if (x) return x;' % x
+        js = Javascript("function run(){%s}" % script)
+        html = js.call("run")
         return re.findall(r'name=([^ ]+) value=([^>]+)>', html)
 
 
