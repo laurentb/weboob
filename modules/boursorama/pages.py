@@ -47,6 +47,7 @@ class AuthenticationPage(HTMLPage):
         form['otp_confirm[otpCode]'] = self.browser.config['pin_code'].get()
         form['flow_secureForm_instance'] = self.browser.auth_token
         form['otp_confirm[validate]'] = ''
+        form['flow_secureForm_step'] = 2
         form.submit()
 
         self.browser.auth_token = None
