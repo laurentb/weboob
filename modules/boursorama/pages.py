@@ -36,9 +36,6 @@ class BrowserAuthenticationCodeMaxLimit(BrowserIncorrectPassword):
 
 
 class AuthenticationPage(HTMLPage):
-    MAX_LIMIT = r"vous avez atteint le nombre maximum "\
-        "d'utilisation de l'authentification forte."
-
     def authenticate(self):
         self.logger.info('Using the PIN Code %s to login', self.browser.config['pin_code'].get())
         self.logger.info('Using the auth_token %s to login', self.browser.auth_token)
@@ -63,6 +60,11 @@ class AuthenticationPage(HTMLPage):
         form.submit()
 
     def sms_second_step(self):
+        # <div class="form-errors"><ul><li>Vous avez atteint le nombre maximal de demandes pour aujourd&#039;hui</li></ul></div>
+        error = CleanText('//div[has-class("form-errors")]')(self)
+        if len(error) > 0:
+            raise BrowserIncorrectPassword(error)
+
         form = self.get_form()
         self.browser.auth_token = form['flow_secureForm_instance']
         form['otp_prepare[receiveCode]'] = ''
