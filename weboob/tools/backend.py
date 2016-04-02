@@ -163,7 +163,7 @@ class BackendConfig(ValuesDict):
 
             field = copy(field)
             try:
-                field.load(cfg.instname, value, cfg.weboob.callbacks)
+                field.load(cfg.instname, value, cfg.weboob.requests)
             except ValueError as v:
                 if not nofail:
                     raise Module.ConfigError(

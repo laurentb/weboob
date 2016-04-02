@@ -102,15 +102,15 @@ class Value(object):
             raise ValueError('Value "%s" is not in list: %s' % (
                 self.show_value(v), ', '.join(unicode(s) for s in self.choices)))
 
-    def load(self, domain, v, callbacks):
+    def load(self, domain, v, requests):
         """
         Load value.
 
         :param domain: what is the domain of this value
         :type domain: str
         :param v: value to load
-        :param callbacks: list of weboob callbacks
-        :type callbacks: dict
+        :param requests: list of weboob requests
+        :type requests: weboob.core.requests.Requests
         """
         return self.set(v)
 
@@ -145,7 +145,7 @@ class Value(object):
 
 class ValueBackendPassword(Value):
     _domain = None
-    _callbacks = {}
+    _requests = None
     _stored = True
 
     def __init__(self, *args, **kwargs):
@@ -153,7 +153,7 @@ class ValueBackendPassword(Value):
         self.noprompt = kwargs.pop('noprompt', False)
         Value.__init__(self, *args, **kwargs)
 
-    def load(self, domain, password, callbacks):
+    def load(self, domain, password, requests):
         if self.is_command(password):
             cmd = password[1:-1]
             try:
@@ -165,7 +165,7 @@ class ValueBackendPassword(Value):
         self.check_valid(password)
         self._domain = domain
         self._value = to_unicode(password)
-        self._callbacks = callbacks
+        self._requests = requests
 
     def check_valid(self, passwd):
         if passwd == '':
@@ -221,8 +221,8 @@ class ValueBackendPassword(Value):
             return to_unicode(passwd)
 
         # Prompt user to enter password by hand.
-        if not self.noprompt and 'login' in self._callbacks:
-            self._value = self._callbacks['login'](self._domain, self)
+        if not self.noprompt and self._requests:
+            self._value = self._requests.request('login', self._domain, self)
             if self._value is None:
                 self._value = ''
             else:

@@ -23,6 +23,7 @@ import os
 from weboob.core.bcall import BackendsCall
 from weboob.core.modules import ModulesLoader, RepositoryModulesLoader, ModuleLoadError
 from weboob.core.backendscfg import BackendsConfig
+from weboob.core.requests import RequestsManager
 from weboob.core.repositories import Repositories, PrintProgress
 from weboob.core.scheduler import Scheduler
 from weboob.tools.backend import Module
@@ -56,9 +57,7 @@ class WebNip(object):
     def __init__(self, modules_path=None, storage=None, scheduler=None):
         self.logger = getLogger('weboob')
         self.backend_instances = {}
-        self.callbacks = {'login':   lambda backend_name, value: None,
-                          'captcha': lambda backend_name, image: None,
-                         }
+        self.requests = RequestsManager()
 
         if modules_path is None:
             import pkg_resources

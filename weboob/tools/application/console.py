@@ -90,7 +90,7 @@ class ConsoleApplication(Application):
 
     def __init__(self, option_parser=None):
         Application.__init__(self, option_parser)
-        self.weboob.callbacks['login'] = self.login_cb
+        self.weboob.requests.register('login', self.login_cb)
         self.enabled_backends = set()
 
     def login_cb(self, backend_name, value):

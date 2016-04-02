@@ -117,7 +117,7 @@ class QCallbacksManager(QObject):
     def __init__(self, weboob, parent=None):
         QObject.__init__(self, parent)
         self.weboob = weboob
-        self.weboob.callbacks['login'] = self.callback(self.LoginRequest)
+        self.weboob.requests.register('login', self.callback(self.LoginRequest))
         self.mutex = QMutex()
         self.requests = []
         self.new_request.connect(self.do_request)
