@@ -77,7 +77,7 @@ class EdfModule(Module, CapDocument):
 
     def get_document(self, id):
         with self.browser:
-            bill = self.browser.get_document(id)
+            bill = self.browser.get_edf_document(id)
         if not bill:
             raise DocumentNotFound()
         else:
@@ -85,6 +85,6 @@ class EdfModule(Module, CapDocument):
 
     def download_document(self, bill):
         if not isinstance(bill, Bill):
-            bill = self.get_document(bill)
+            bill = self.get_edf_document(bill)
         with self.browser:
             return self.browser.readurl(bill._url)

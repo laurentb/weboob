@@ -109,7 +109,7 @@ class EdfBrowser(Browser):
             self.location(self.billsp)
             return self.page.iter_documents(sub)
 
-    def get_document(self, id):
+    def get_edf_document(self, id):
         assert isinstance(id, basestring)
         subs = self.iter_subscription_list()
         for sub in subs:
