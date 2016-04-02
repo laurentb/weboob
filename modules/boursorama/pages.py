@@ -61,7 +61,7 @@ class AuthenticationPage(HTMLPage):
 
     def sms_second_step(self):
         # <div class="form-errors"><ul><li>Vous avez atteint le nombre maximal de demandes pour aujourd&#039;hui</li></ul></div>
-        error = CleanText('//div[has-class("form-errors")]')(self)
+        error = CleanText('//div[has-class("form-errors")]')(self.doc)
         if len(error) > 0:
             raise BrowserIncorrectPassword(error)
 
