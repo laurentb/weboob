@@ -25,7 +25,7 @@ from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.deprecated.browser import Page, BrokenPageError, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
-from weboob.tools.date import parse_french_date
+from weboob.tools.date import parse_french_date, LinearDateGuesser
 
 
 class BasePage(Page):
@@ -538,7 +538,7 @@ class MarketPage(BasePage):
     COL_DIFF = 6
 
     def iter_investment(self):
-        for line in self.document.xpath('//table[contains(@class, "ca-data-table")]/descendant::tr[count(td)=8]'):
+        for line in self.document.xpath('//table[contains(@class, "ca-data-table")]/descendant::tr[count(td)>=7]'):
             cells = line.findall('td')
 
             inv = Investment()
@@ -553,6 +553,10 @@ class MarketPage(BasePage):
             else:
                 inv.unitprice = self.parse_decimal(cells[self.COL_UNITPRICE].text)
                 inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE].text)
+            date = cells[self.COL_UNITVALUE].find('span').text
+            day, month = map(int, date.split('/', 1))
+            date_guesser = LinearDateGuesser()
+            inv.vdate = date_guesser.guess_date(day, month)
 
             yield inv
 
