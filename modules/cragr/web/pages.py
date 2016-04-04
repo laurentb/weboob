@@ -132,6 +132,7 @@ class _AccountsPage(BasePage):
              u'TIWI':       Account.TYPE_SAVINGS,
              u'CSL LSO':    Account.TYPE_SAVINGS,
              u'CSL CSP':    Account.TYPE_SAVINGS,
+             u'ESPE INTEG': Account.TYPE_SAVINGS,
              u'PRET PERSO': Account.TYPE_LOAN,
              u'P. HABITAT': Account.TYPE_LOAN,
              u'PRET 0%':    Account.TYPE_LOAN,
@@ -395,6 +396,10 @@ class SavingsPage(_AccountsPage):
                 url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&site=PREDICA&' \
                       'typeaction=reroutage_aller&sdt=CONTRAT&parampartenaire=%s'
                 account._link = url % (origin.netloc, account.id)
+            a = cols[0].xpath('descendant::a[not(contains(@href, "javascript"))]')
+            if len(a) == 1 and not account._link:
+                account._link = a[0].attrib['href'].replace(' ', '%20')
+                account._link = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', account._link)
 
 
 class TransactionsPage(BasePage):
