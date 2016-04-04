@@ -67,7 +67,7 @@ class ComparisonResultsPage(HTMLPage):
                 shop.location = CleanText('(./td)[3]')(self)
                 return shop
 
-            obj_date = Date(CleanText('(./td)[7]'))
+            obj_date = Date(CleanText('(./td)[7]'), dayfirst=True)
             obj_currency = u'€'
             obj_cost = CleanDecimal('(./td)[6]')
 
