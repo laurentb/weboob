@@ -316,10 +316,10 @@ class AccbisPage(LoggedPage, HTMLPage):
         for account in accounts:
             for li in  self.doc.xpath('//li[@class="nav-category"]'):
                 title = CleanText().filter(li.xpath('./h3'))
-                for a in li.xpath('./ul/li/a'):
-                    label = CleanText().filter(a.xpath('./span[@class="nav-category__name"]'))
+                for a in li.xpath('./ul/li//a'):
+                    label = CleanText().filter(a.xpath('.//span[@class="nav-category__name"]'))
                     if account._holder and account._holder in label and 'CARTE' in label:
-                        balance = a.xpath('./span[@class="nav-category__value"]')
+                        balance = a.xpath('.//span[@class="nav-category__value"]')
                         account.balance = CleanDecimal(replace_dots=True).filter(balance)
                         account.currency = FrenchTransaction.Currency().filter(balance)
                         account._link = Link().filter(a.xpath('.'))
@@ -336,7 +336,7 @@ class AccbisPage(LoggedPage, HTMLPage):
                             account._history_page = self.browser.budget_transactions
                         else:
                             account._history_page = self.browser.other_transactions
-                        account._webid = Attr(None, 'data-account-label').filter(a.xpath('./span[@class="nav-category__name"]'))
+                        account._webid = Attr(None, 'data-account-label').filter(a.xpath('.//span[@class="nav-category__name"]'))
 
 class LoanPage(LoggedPage, HTMLPage):
     pass
