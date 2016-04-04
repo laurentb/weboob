@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013 Julien Veyssier
+# Copyright(C) 2016 Julien Veyssier
 #
 # This file is part of weboob.
 #
@@ -18,7 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
+from weboob.browser.exceptions import BrowserHTTPNotFound
+from weboob.browser import PagesBrowser
+from weboob.browser.url import URL
+from weboob.browser.profiles import Firefox
 
 from .pages import SongResultsPage, SonglyricsPage, ArtistResultsPage, ArtistSongsPage, HomePage
 
@@ -26,28 +29,36 @@ from .pages import SongResultsPage, SonglyricsPage, ArtistResultsPage, ArtistSon
 __all__ = ['ParolesmusiqueBrowser']
 
 
-class ParolesmusiqueBrowser(Browser):
-    DOMAIN = 'www.paroles-musique.com'
-    PROTOCOL = 'http'
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['wget']
-    PAGES = {
-        'http://www.paroles-musique.com': HomePage,
-        'http://www.paroles-musique.com/lyrics-paroles-0-.*,0.php': SongResultsPage,
-        'http://www.paroles-musique.com/lyrics-paroles-.*-0,0.php': ArtistResultsPage,
-        'http://www.paroles-musique.com/paroles-.*p[0-9]*': SonglyricsPage,
-        'http://www.paroles-musique.com/paroles-.*-lyrics,a[0-9]*': ArtistSongsPage,
-    }
+class ParolesmusiqueBrowser(PagesBrowser):
+    PROFILE = Firefox()
+    TIMEOUT = 30
+
+    BASEURL = 'http://www.paroles-musique.com/'
+    home = URL('$',
+                 HomePage)
+    songResults = URL('lyrics-paroles-0-.*,0.php',
+                 SongResultsPage)
+    artistResults = URL('lyrics-paroles-.*-0,0.php',
+                  ArtistResultsPage)
+    songLyrics = URL('paroles-(?P<songid>.*,p[0-9]*)',
+                  SonglyricsPage)
+    artistSongs = URL('paroles-(?P<artistid>.*,a[0-9]*)',
+                  ArtistSongsPage)
+
 
     def iter_lyrics(self, criteria, pattern):
-        self.location('http://www.paroles-musique.com')
-        assert self.is_on_page(HomePage)
-        return self.page.iter_lyrics(criteria, pattern)
+        self.home.stay_or_go()
+        assert self.home.is_here()
+        self.page.search_lyrics(criteria, pattern)
+        assert self.songResults.is_here() or self.artistResults.is_here()
+        return self.page.iter_lyrics()
+
 
     def get_lyrics(self, id):
         try:
-            self.location('http://www.paroles-musique.com/paroles-%s' % id)
+            self.songLyrics.go(songid=id)
+            songlyrics = self.page.get_lyrics()
+            return songlyrics
         except BrowserHTTPNotFound:
             return
-        if self.is_on_page(SonglyricsPage):
-            return self.page.get_lyrics(id)
+

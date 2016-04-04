@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013 Julien Veyssier
+# Copyright(C) 2016 Julien Veyssier
 #
 # This file is part of weboob.
 #
@@ -19,77 +19,81 @@
 
 
 from weboob.capabilities.lyrics import SongLyrics
-from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.deprecated.browser import Page
+from weboob.capabilities.base import NotLoaded, NotAvailable
+
+from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.pages import HTMLPage
+from weboob.browser.filters.standard import Regexp, CleanText, Format
+from weboob.browser.filters.html import CleanHTML
+
+import itertools, random
 
 
-class HomePage(Page):
-    def iter_lyrics(self, criteria, pattern):
-        self.browser.select_form(name='rechercher')
+class HomePage(HTMLPage):
+    def search_lyrics(self, criteria, pattern):
+        form = self.get_form(xpath='//form[@name="rechercher"]')
+        form['query'] = pattern
         if criteria == 'artist':
-            self.browser['termes_a'] = pattern
+            form['termes_a'] = pattern
         else:
-            self.browser['termes_t'] = pattern
-        self.browser.submit()
-        assert self.browser.is_on_page(SongResultsPage) or self.browser.is_on_page(ArtistResultsPage)
-        for lyr in self.browser.page.iter_lyrics():
-            yield lyr
+            form['termes_t'] = pattern
+        form.submit()
 
 
-class ArtistResultsPage(Page):
+class ArtistResultsPage(HTMLPage):
     def iter_lyrics(self):
-        for link in self.parser.select(self.document.getroot(), 'a.matchA'):
-            artist = unicode(link.text_content())
-            self.browser.location('http://www.paroles-musique.com%s' % link.attrib.get('href', ''))
-            assert self.browser.is_on_page(ArtistSongsPage)
-            for lyr in self.browser.page.iter_lyrics(artist):
-                yield lyr
+        artists_href = self.doc.xpath('//div[has-class("cont_cat")]//a[has-class("matchA")]/@href')
+        it = []
+        # we just take the 3 first artists to avoid too many page loadings
+        for href in artists_href[:3]:
+            aid = href.split('/')[-1].replace('paroles-','')
+            it = itertools.chain(it, self.browser.artistSongs.go(artistid=aid).iter_lyrics())
+        return it
 
 
-class ArtistSongsPage(Page):
-    def iter_lyrics(self, artist):
-        for link in self.parser.select(self.document.getroot(), 'td.art_titr a'):
-            href = link.attrib.get('href', '')
-            if href.startswith('./paroles'):
-                title = unicode(link.text)
-                id = href.replace('./paroles-', '')
-                songlyrics = SongLyrics(id)
-                songlyrics.artist = artist
-                songlyrics.title = title
-                songlyrics.content = NotLoaded
-                yield songlyrics
+class ArtistSongsPage(HTMLPage):
+    @method
+    class iter_lyrics(ListElement):
+        item_xpath = '//td[has-class("art_titr")]//a'
+
+        class item(ItemElement):
+            klass = SongLyrics
+
+            obj_title = CleanText('.', default=NotAvailable)
+            obj_artist = CleanText('//h1[@id="art_title"]', default=NotAvailable)
+            # little trick because the damn site potentially shows identical songs in results
+            # the dummy added prefix number does not annoy the module
+            # it seems this part of the URL is not red anyway
+            def obj_id(self):
+                res = Format('%s%s',
+                        int(random.random()*100000),
+                        Regexp(CleanText('./@href', default=NotAvailable), 'paroles-(.*)'))(self)
+                return res
+            obj_content = NotLoaded
 
 
-class SongResultsPage(Page):
-    def iter_lyrics(self):
-        first = True
-        for tr in self.parser.select(self.document.getroot(), 'div.cont_cat table tr'):
-            if first:
-                first = False
-                continue
-            artist = NotAvailable
-            links = self.parser.select(tr, 'a.matchT')
-            title = unicode(links[0].text)
-            id = links[0].attrib.get('href', '').replace('/paroles-', '')
-            links = self.parser.select(tr, 'a.matchA')
-            artist = unicode(links[0].text)
-            songlyrics = SongLyrics(id)
-            songlyrics.artist = artist
-            songlyrics.title = title
-            songlyrics.content = NotLoaded
-            yield songlyrics
+class SongResultsPage(HTMLPage):
+    @method
+    class iter_lyrics(ListElement):
+        item_xpath = '//div[has-class("cont_cat")]//table//tr[position() > 1]'
+
+        class item(ItemElement):
+            klass = SongLyrics
+
+            obj_title = CleanText('.//a[has-class("matchT")]', default=NotAvailable)
+            obj_id = Regexp(CleanText('.//a[has-class("matchT")]/@href', default=NotAvailable), 'paroles-(.*)')
+            obj_artist = CleanText('.//a[has-class("matchA")]', default=NotAvailable)
+            obj_content = NotLoaded
 
 
-class SonglyricsPage(Page):
-    def get_lyrics(self, id):
-        artist = NotAvailable
-        title = NotAvailable
-        content = unicode(self.parser.select(self.document.getroot(), 'div#lyr_scroll', 1).text_content().strip())
-        infos = self.parser.select(self.document.getroot(), 'table.tbl_cont tr.cont_a td')[1]
-        artist = unicode(infos[0].tail.strip())
-        title = unicode(infos[1].tail.strip())
-        songlyrics = SongLyrics(id)
-        songlyrics.artist = artist
-        songlyrics.title = title
-        songlyrics.content = content
-        return songlyrics
+class SonglyricsPage(HTMLPage):
+    @method
+    class get_lyrics(ItemElement):
+        klass = SongLyrics
+
+        obj_content = CleanText(CleanHTML('//div[@id="lyr_scroll"]', default=NotAvailable), newlines=False)
+        obj_title = CleanText('//div[@id="main_ct"]//ul[has-class("semiopaquemenu")]//li[position()=3]', default=NotAvailable)
+        obj_artist = CleanText('//div[@id="main_ct"]//ul[has-class("semiopaquemenu")]//li[position()=2]', default=NotAvailable)
+        obj_id = Regexp(CleanText('//div[@id="main_ct"]//ul[has-class("semiopaquemenu")]//li[position()=3]//a/@href', default=NotAvailable),
+                 'paroles-(.*)')
+
