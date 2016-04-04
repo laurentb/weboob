@@ -19,71 +19,72 @@
 
 
 from weboob.capabilities.lyrics import SongLyrics
-from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.deprecated.browser import Page
+from weboob.capabilities.base import NotLoaded, NotAvailable
+
+from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.pages import HTMLPage
+from weboob.browser.filters.standard import Regexp, CleanText
+from weboob.browser.filters.html import CleanHTML
+
+import itertools
 
 
-class ArtistResultsPage(Page):
+class SearchSongPage(HTMLPage):
+    @method
+    class iter_lyrics(ListElement):
+        item_xpath = '//div[has-class("elenco")]//div[has-class("col-left")]//li//a[starts-with(@href, "/paroles") and not(contains(@href, "alpha.html"))]'
+
+        class item(ItemElement):
+            klass = SongLyrics
+
+            def obj_id(self):
+                href = CleanText('./@href')(self)
+                subid = href.replace('.html','').replace('paroles_','').split('/')[-2:]
+                id = '%s|%s'%(subid[0], subid[1])
+                return id
+            obj_title = Regexp(CleanText('.', default=NotAvailable), '(.*) - .*')
+            obj_artist = Regexp(CleanText('.', default=NotAvailable), '.* - (.*)')
+            obj_content = NotLoaded
+
+
+class SearchArtistPage(HTMLPage):
     def iter_lyrics(self):
-        for link in self.parser.select(self.document.getroot(), 'div.elenco div li a'):
-            artist = unicode(link.text_content())
-            href = link.attrib.get('href', '')
-            if href.startswith('/paroles'):
-                self.browser.location('http://www.parolesmania.com%s' % href)
-                assert self.browser.is_on_page(ArtistSongsPage)
-                for lyr in self.browser.page.iter_lyrics(artist):
-                    yield lyr
+        artists_href = self.doc.xpath('//div[has-class("elenco")]//div[has-class("col-left")]//li//a/@href')
+        it = []
+        # we just take the 3 first artists to avoid too many page loadings
+        for href in artists_href[:3]:
+            aid = href.split('/')[-1].replace('paroles_', '').replace('.html', '')
+            it = itertools.chain(it, self.browser.artistSongs.go(artistid=aid).iter_lyrics())
+        return it
 
 
-class ArtistSongsPage(Page):
-    def iter_lyrics(self, artist=None):
-        if artist is None:
-            artist = self.parser.select(self.document.getroot(), 'head > title', 1).text.replace('Paroles ', '')
-        for link in self.parser.select(self.document.getroot(), 'div.album ul li a'):
-            href = link.attrib.get('href', '')
-            titleattrib = link.attrib.get('title', '')
-            if href.startswith('/paroles') and not href.endswith('alpha.html') and titleattrib.startswith('Paroles '):
-                title = unicode(link.text)
-                ids = href.replace('/', '').replace('.html', '').split('paroles_')
-                id = '%s|%s' % (ids[1], ids[2])
-                songlyrics = SongLyrics(id)
-                songlyrics.artist = artist
-                songlyrics.title = title
-                songlyrics.id = id
-                songlyrics.content = NotLoaded
-                yield songlyrics
+class ArtistSongsPage(HTMLPage):
+    @method
+    class iter_lyrics(ListElement):
+        item_xpath = '//div[has-class("album")]//ul//li//a[starts-with(@href, "/paroles") and not(contains(@href, "alpha.html"))]'
+
+        class item(ItemElement):
+            klass = SongLyrics
+
+            obj_title = CleanText('.', default=NotAvailable)
+            obj_artist = Regexp(CleanText('//head/title'), 'Paroles (.*)')
+            obj_content = NotLoaded
+            def obj_id(self):
+                href = CleanText('./@href')(self)
+                subid = href.replace('.html','').replace('paroles_','').split('/')[-2:]
+                id = '%s|%s'%(subid[0], subid[1])
+                return id
 
 
-class SongResultsPage(Page):
-    def iter_lyrics(self):
-        for link in self.parser.select(self.document.getroot(), 'div.elenco div.col-left li a'):
-            artist = NotAvailable
-            title = unicode(link.text.split(' - ')[0])
-            href = link.attrib.get('href', '')
-            if href.startswith('/paroles') and not href.endswith('alpha.html'):
-                ids = href.replace('/', '').replace('.html', '').split('paroles_')
-                id = '%s|%s' % (ids[1], ids[2])
-                artist = unicode(link.text.split(' - ')[1])
-                songlyrics = SongLyrics(id, title)
-                songlyrics.artist = artist
-                songlyrics.content = NotLoaded
-                songlyrics.title = title
-                songlyrics.id = id
-                yield songlyrics
+class LyricsPage(HTMLPage):
+    @method
+    class get_lyrics(ItemElement):
+        klass = SongLyrics
 
-
-class SonglyricsPage(Page):
-    def get_lyrics(self, id):
-        content = NotAvailable
-        artist = NotAvailable
-        title = NotAvailable
-        lyrdiv = self.parser.select(self.document.getroot(), 'div.lyrics-body')
-        if len(lyrdiv) > 0:
-            content = unicode(lyrdiv[0].text_content().strip())
-        infos = self.parser.select(self.document.getroot(), 'head > title', 1).text
-        artist = unicode(infos.split(' - ')[1])
-        title = unicode(infos.split(' - ')[0].replace('Paroles ', ''))
-        songlyrics = SongLyrics(id, title)
-        songlyrics.artist = artist
-        songlyrics.content = content
-        return songlyrics
+        def obj_id(self):
+            subid = self.page.url.replace('.html','').replace('paroles_','').split('/')[-2:]
+            id = '%s|%s'%(subid[0], subid[1])
+            return id
+        obj_content = CleanText(CleanHTML('//div[has-class("lyrics-body")]/*[not(contains(@id, "video"))]', default=NotAvailable), newlines=False)
+        obj_title = Regexp(CleanText('//title', default=NotAvailable), 'Paroles (.*) - .*')
+        obj_artist = Regexp(CleanText('//title', default=NotAvailable), 'Paroles .* - (.*)')

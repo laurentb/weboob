@@ -18,41 +18,45 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
+from weboob.browser.exceptions import BrowserHTTPNotFound
+from weboob.browser import PagesBrowser
+from weboob.browser.url import URL
+from weboob.browser.profiles import Firefox
 
-from .pages import SongResultsPage, SonglyricsPage, ArtistResultsPage, ArtistSongsPage
+from .pages import SearchSongPage, LyricsPage, SearchArtistPage, ArtistSongsPage
+
 
 
 __all__ = ['ParolesmaniaBrowser']
 
 
-class ParolesmaniaBrowser(Browser):
-    DOMAIN = 'www.parolesmania.com'
-    PROTOCOL = 'http'
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['wget']
-    PAGES = {
-        'http://www.parolesmania.com/recherche.php\?c=title.*': SongResultsPage,
-        'http://www.parolesmania.com/recherche.php\?c=artist.*': ArtistResultsPage,
-        'http://www.parolesmania.com/paroles.*[0-9]*/paroles.*': SonglyricsPage,
-        'http://www.parolesmania.com/paroles[^/]*.html': ArtistSongsPage,
-    }
+class ParolesmaniaBrowser(PagesBrowser):
+    PROFILE = Firefox()
+    TIMEOUT = 30
+
+    BASEURL = 'http://www.parolesmania.com/'
+    searchSong = URL('recherche.php\?c=title&k=(?P<pattern>[^/]*).*',
+                 SearchSongPage)
+    searchArtist = URL('recherche.php\?c=artist&k=(?P<pattern>[^/]*).*',
+                  SearchArtistPage)
+    songLyrics = URL('paroles_(?P<artistid>[^/]*)/paroles_(?P<songid>[^/]*)\.html',
+                  LyricsPage)
+    artistSongs = URL('paroles_(?P<artistid>[^/]*)\.html',
+                  ArtistSongsPage)
+
 
     def iter_lyrics(self, criteria, pattern):
-        crit = 'artist'
-        if criteria != 'artist':
-            crit = 'title'
-        self.location('http://www.parolesmania.com/recherche.php?c=%s&k=%s' % (crit, pattern))
-        assert self.is_on_page(SongResultsPage) or self.is_on_page(ArtistResultsPage)\
-            or self.is_on_page(ArtistSongsPage)
-        for lyr in self.page.iter_lyrics():
-            yield lyr
+        if criteria == 'artist':
+            return self.searchArtist.go(pattern=pattern).iter_lyrics()
+        elif criteria == 'song':
+            return self.searchSong.go(pattern=pattern).iter_lyrics()
 
     def get_lyrics(self, id):
         ids = id.split('|')
         try:
-            self.location('http://www.parolesmania.com/paroles_%s/paroles_%s.html' % (ids[0], ids[1]))
+            self.songLyrics.go(artistid=ids[0], songid=ids[1])
+            songlyrics = self.page.get_lyrics()
+            return songlyrics
         except BrowserHTTPNotFound:
             return
-        if self.is_on_page(SonglyricsPage):
-            return self.page.get_lyrics(id)
+

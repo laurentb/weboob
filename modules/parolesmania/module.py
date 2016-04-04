@@ -30,7 +30,7 @@ __all__ = ['ParolesmaniaModule']
 class ParolesmaniaModule(Module, CapLyrics):
     NAME = 'parolesmania'
     MAINTAINER = u'Julien Veyssier'
-    EMAIL = 'julien.veyssier@aiur.fr'
+    EMAIL = 'eneiluj@gmx.fr'
     VERSION = '1.2'
     DESCRIPTION = 'Paroles Mania lyrics website'
     LICENSE = 'AGPLv3+'
