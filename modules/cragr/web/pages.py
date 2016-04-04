@@ -346,6 +346,9 @@ class CardsPage(BasePage):
 
             yield t
 
+    def is_on_detail(self):
+        return len(self.document.xpath(u'//h1[contains(text(), "Cartes - détail")]'))
+
 
 class AccountsPage(_AccountsPage):
     def set_link(self, account, cols):

@@ -289,12 +289,13 @@ class Cragr(Browser):
             account = accounts[0]
 
         date_guesser = LinearDateGuesser()
-        self.location(account._link.format(self.sag))
+        if account.type != Account.TYPE_CARD or not self.page.is_on_detail():
+            self.location(account._link.format(self.sag))
 
         if self.is_on_page(CardsPage):
             for tr in self.page.get_history(date_guesser):
                 yield tr
-        else:
+        elif self.page:
             url = self.page.get_order_by_date_url()
 
             while url:
