@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import mechanize
 from urlparse import urlsplit
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
@@ -113,9 +114,19 @@ class CaisseEpargne(Browser):
 
     def get_loans_list(self):
         self.location(self.buildurl('/Portail.aspx?tache=CRESYNT0'))
-        self.page.go_loan_list()
-        loan_accounts = list(self.page.get_loan_list())
-        return iter(loan_accounts)
+        if self.is_on_page(IndexPage):
+            self.page.go_loan_list()
+            loan_accounts = list(self.page.get_loan_list())
+            return iter(loan_accounts)
+        for _ in range(3):
+            try:
+                self.location(self.buildurl('/Portail.aspx'))
+                self.page.go_list()
+            except mechanize.BrowserStateError:
+                pass
+            else:
+                break
+        return([])
 
 
     def get_account(self, id):
