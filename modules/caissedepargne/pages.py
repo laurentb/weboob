@@ -266,7 +266,7 @@ class IndexPage(Page):
             if title is None:
                 continue
             account_type = self.ACCOUNT_TYPES.get(self.parser.tocleanstring(title), Account.TYPE_UNKNOWN)
-            for tr in table.xpath('./table/tbody/tr'):
+            for tr in table.xpath('./table/tbody/tr[contains(@id,"MM_SYNTHESE_CREDITS") and contains(@id,"IdTrGlobal")]'):
                 tds = tr.findall('td')
                 if len(tds) == 0 :
                     continue

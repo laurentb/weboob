@@ -45,6 +45,7 @@ class CaisseEpargne(Browser):
              'https://[^/]+/Assurance/Pages/Assurance.aspx':              LifeInsurance,
              'https://www.extranet2.caisse-epargne.fr.*':                 LifeInsurance,
              'https://www.caisse-epargne.offrebourse.com/DetailMessage\?refresh=O': GarbagePage,
+             'https://www.caisse-epargne.fr/particuliers/.*/emprunter.aspx': GarbagePage,
             }
 
     def __init__(self, nuser, *args, **kwargs):
