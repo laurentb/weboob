@@ -246,7 +246,7 @@ class LoansPage(LoggedPage, HTMLPage):
         class account(ItemElement):
             klass = Account
 
-            obj_id = Format('%s%s' ,Regexp(CleanText('./td[1]'), r'.*\s(\w+)\s-\s(\w+)',r'\1\2'), CleanText('./td[2]', replace=[(' ','')]))
+            obj_id = Format('%s%s%s' ,Regexp(CleanText('./td[1]'), r'.*\s(\w+)\s-\s(\w+)',r'\1\2'), CleanText('./td[2]', replace=[(' ','')]), CleanText('./td[3]', replace=[(' ',''),(',','')]))
             obj_label = CleanText('./td[2]')
             obj_balance = CleanDecimal('./td[4]', replace_dots=True, sign=lambda x: -1)
             obj_currency = FrenchTransaction.Currency('./td[4]')
