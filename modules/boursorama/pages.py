@@ -219,11 +219,11 @@ class Myiter_investment(TableElement):
 class Myitem(ItemElement):
     klass = Investment
 
-    obj_quantity = CleanDecimal(TableCell('quantity'))
+    obj_quantity = CleanDecimal(TableCell('quantity'), default=NotAvailable)
     obj_unitprice = CleanDecimal(TableCell('unitprice'), replace_dots=True, default=NotAvailable)
-    obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True)
-    obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
-    obj_diff = CleanDecimal(TableCell('diff'), replace_dots=True)
+    obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True, default=NotAvailable)
+    obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True, default=NotAvailable)
+    obj_diff = CleanDecimal(TableCell('diff'), replace_dots=True, default=NotAvailable)
 
     def obj_label(self):
         return CleanText().filter((TableCell('value')(self)[0]).xpath('.//a'))
