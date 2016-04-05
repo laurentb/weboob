@@ -27,7 +27,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,\
-                   MarketPage, LoanPage, SavingMarketPage
+                   MarketPage, LoanPage, SavingMarketPage, BlockedPage
 
 
 __all__ = ['BoursoramaBrowser']
@@ -42,6 +42,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
 
     keyboard = URL('/connexion/clavier-virtuel\?_hinclude=300000', VirtKeyboardPage)
     login = URL('/connexion/\?clean=1', LoginPage)
+    blocked = URL('/connexion/compte-verrouille', BlockedPage)
     accounts = URL('/dashboard/comptes\?_hinclude=300000', AccountsPage)
     acc_tit = URL('/comptes/titulaire/(?P<webid>.*)\?_hinclude=1', AccbisPage)
     acc_rep = URL('/comptes/representative/(?P<webid>.*)\?_hinclude=1', AccbisPage)
@@ -90,7 +91,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
             self.login.stay_or_go()
             self.page.login(self.username, self.password)
 
-            if self.login.is_here():
+            if self.login.is_here() or self.blocked.is_here():
                 raise BrowserIncorrectPassword()
 
             # After login, we might be redirected to the two factor authentication page.
