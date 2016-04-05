@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013      Christophe Gouiran
+# Copyright(C) 2016      Edouard Lambert
 #
 # This file is part of weboob.
 #
@@ -25,7 +25,4 @@ class EdfTest(BackendTest):
     MODULE = 'edf'
 
     def test_edf(self):
-        for subscription in self.backend.iter_subscription():
-            list(self.backend.iter_documents_history(subscription.id))
-            for bill in self.backend.iter_documents(subscription.id):
-                self.backend.download_document(bill.id)
+        raise NotImplementedError()

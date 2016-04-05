@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013      Christophe Gouiran
+# Copyright(C) 2016      Edouard Lambert
 #
 # This file is part of weboob.
 #

@@ -1,6 +1,6 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
-# Copyright(C) 2013      Christophe Gouiran
+# Copyright(C) 2016      Edouard Lambert
 #
 # This file is part of weboob.
 #
@@ -18,154 +18,64 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import datetime
 import re
-import urllib
-from decimal import Decimal
 
-from weboob.deprecated.browser import Page
-from weboob.capabilities.bill import Subscription, Detail, Bill
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage, pagination
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Env, Format, TableCell, Regexp, Date
+from weboob.browser.elements import ItemElement, DictElement, TableElement, method
+from weboob.browser.filters.html import Attr
+from weboob.browser.filters.json import Dict
+from weboob.capabilities.bill import Bill, Subscription
+from weboob.capabilities.base import NotAvailable
 
-base_url = "http://particuliers.edf.com/"
 
-
-class EdfBasePage(Page):
+class LoginPage(JsonPage):
     def is_logged(self):
-        return (u'Me déconnecter' in self.document.xpath('//a/text()')) \
-            or (self.document.xpath('//table[contains(@summary, "Informations sur mon")]'))
+        if "200" in Dict().filter(self.doc)['errorCode']:
+            return True
+        return False
 
 
-class LoginPage(EdfBasePage):
-    def login(self, login, password):
-        self.browser.select_form("identification")
-        self.browser["login"] = str(login)
-        self.browser["pswd"] = str(password)
-        self.browser.submit()
+class ProfilPage(LoggedPage, JsonPage):
+    @method
+    class get_list(DictElement):
+        item_xpath = 'customerAccordContracts'
+
+        class item(ItemElement):
+            klass = Subscription
+
+            obj_subscriber = Format('%s %s', Dict('bp/identity/firstName'), Dict('bp/identity/lastName'))
+            obj_id = Dict('number')
+            obj_label = obj_id
 
 
-class HomePage(EdfBasePage):
-    def on_loaded(self):
-        pass
+class DocumentsPage(LoggedPage, HTMLPage):
+    @pagination
+    @method
+    class get_documents(TableElement):
+        item_xpath = '//div[@class="factures"]//table/tbody/tr'
+        head_xpath = '//div[@class="factures"]//table/thead/tr/th'
 
+        col_date = u'Consulter ma facture détaillée'
+        col_price = u'Montant (TTC)'
 
-class FirstRedirectionPage(EdfBasePage):
-    def on_loaded(self):
-        self.browser.select_form("form1")
-        self.browser.submit()
+        def next_page(self):
+            next_page = Attr('//ul[@class="years"]//span/../following-sibling::li/a', 'href')(self)
+            if next_page:
+                return next_page
 
+        class item(ItemElement):
+            klass = Bill
 
-class SecondRedirectionPage(EdfBasePage):
-    def on_loaded(self):
-        self.browser.select_form("redirectForm")
-        self.browser.submit()
+            obj_id = Format('%s_%s', Env('subid'), Env('docid'))
+            obj__url = Env('url')
+            obj_date = Date(Regexp(CleanText(TableCell('date')), ' ([\d\/]+)'))
+            obj_format = u"pdf"
+            obj_label = Format('Facture %s', Env('docid'))
+            obj_type = u"bill"
+            obj_price = CleanDecimal(TableCell('price'), replace_dots=True, default=NotAvailable)
+            obj_currency = u"€"
 
-
-class OtherPage(EdfBasePage):
-    def on_loaded(self):
-        self.browser.open(base_url)
-
-
-class AccountPage(EdfBasePage):
-
-    def iter_subscription_list(self):
-        boxHeader = self.document.xpath('//div[@class="boxHeader"]')[0]
-        subscriber = self.parser.tocleanstring(boxHeader.xpath('.//p')[0])
-        contract = self.parser.tocleanstring(boxHeader.xpath('.//p[@class="folderNumber"]')[0])
-        if not re.search('^Contrat n\xb0\s*', contract):
-            return
-        contract = re.sub('Contrat n\xb0\s*', '', contract)
-        number = re.sub('[^\d]', '', contract)
-        sub = Subscription(number)
-        sub._id = number
-        sub.label = subscriber
-        sub.subscriber = subscriber
-        yield sub
-
-
-class BillsPage(EdfBasePage):
-
-    def iter_documents(self, sub):
-
-        #pdb.set_trace()
-        years = [None] + self.document.xpath('//ul[@class="years"]/li/a')
-
-        for year in years:
-            #pdb.set_trace()
-            if year is not None and year.attrib['href']:
-                self.browser.location(year.attrib['href'])
-
-            tables = self.browser.page.document.xpath('//table[contains(@summary, "factures")]')
-            for table in tables:
-                for tr in table.xpath('.//tr'):
-                    list_tds = tr.xpath('.//td')
-                    if len(list_tds) == 0:
-                        continue
-                    url = re.sub('[\r\n\t]', '', list_tds[0].xpath('.//a')[0].attrib['href'])
-                    date_search = re.search('dateFactureQE=(\d+/\d+/\d+)', url)
-                    if not date_search:
-                        continue
-
-                    date = datetime.strptime(date_search.group(1), "%d/%m/%Y").date()
-                    amount = self.parser.tocleanstring(list_tds[2])
-                    if amount is None:
-                        continue
-
-                    bill = Bill()
-                    bill.id = sub._id + "." + date.strftime("%Y%m%d")
-                    bill.price = Decimal(FrenchTransaction.clean_amount(amount))
-                    bill.currency = bill.get_currency(amount)
-                    bill.date = date
-                    bill.label = self.parser.tocleanstring(list_tds[0])
-                    bill.format = u'pdf'
-                    bill.type = u'bill'
-                    bill._url = url
-                    yield bill
-
-    def get_document(self, bill):
-        self.location(bill._url)
-
-
-class LastPaymentsPage(EdfBasePage):
-
-    def on_loaded(self):
-
-        # Here we simulate ajax request to following URL:
-        # https://monagencepart.edf.fr/ASPFront/appmanager/ASPFront/front/portlet_echeancier_2?_nfpb=true&_portlet.contentOnly=true&_portlet.instanceLabel=portlet_echeancier_2&_portlet.contentMode=FRAGMENT&_portlet.async=true&_portlet.pageLabel=page_mon_paiement&_portlet.lafUniqueId=aspDefinitionLabel&_portlet.portalUrl=%2FASPFront%2Fappmanager%2FASPFront%2Ffront&_portlet.portalId=ASPFront%09front&_portlet.contentType=text%2Fhtml%3B+charset%3DUTF-8&_portlet.asyncMode=compat_9_2&_portlet.title=CalendrierpaiementController&_nfsp=true
-        params = {
-            '_nfpb': 'true',
-            '_portlet.async': 'true',
-            '_portlet.portalId': 'ASPFront\tfront',
-            '_portlet.contentOnly': 'true',
-            '_portlet.title': 'CalendrierpaiementController',
-            '_portlet.pageLabel': 'page_mon_paiement',
-            '_portlet.asyncMode': 'compat_9_2',
-            '_portlet.lafUniqueId': 'aspDefinitionLabel',
-            '_portlet.contentMode': 'FRAGMENT',
-            '_portlet.instanceLabel': 'portlet_echeancier_2',
-            '_portlet.contentType': 'text/html; charset=UTF-8',
-            '_portlet.portalUrl': '/ASPFront/appmanager/ASPFront/front',
-            '_nfsp': 'true'
-        }
-
-        self.browser.location('/ASPFront/appmanager/ASPFront/front/portlet_echeancier_2?%s' % urllib.urlencode(params))
-
-
-class LastPaymentsPage2(EdfBasePage):
-    def iter_payments(self, sub):
-
-        table = self.browser.page.document.xpath('//table[contains(@summary, "Informations sur mon")]')[0]
-        for tr in table.xpath('.//tr'):
-            list_tds = tr.xpath('.//td')
-            if len(list_tds) == 0:
-                continue
-            date = datetime.strptime(self.parser.tocleanstring(list_tds[0]), "%d/%m/%Y").date()
-            amount = self.parser.tocleanstring(list_tds[1])
-            if amount is None:
-                continue
-            det = Detail()
-            det.id = sub._id + "." + date.strftime("%Y%m%d")
-            det.price = Decimal(re.sub('[^\d,-]+', '', amount).replace(',', '.'))
-            det.datetime = date
-            det.label = unicode(self.parser.tocleanstring(list_tds[2]))
-            yield det
+            def parse(self, el):
+                self.env['docid'] = Regexp(Attr('./td/a[@class="pdf"]', 'title'), '([\d]+)')(self)
+                self.env['url'] = re.sub('[\t\r\n]', '', Attr('./td/a[@class="pdf"]', 'href')(self))

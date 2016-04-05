@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013      Christophe Gouiran
+# Copyright(C) 2016      Edouard Lambert
 #
 # This file is part of weboob.
 #
@@ -17,74 +17,53 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.bill import CapDocument, SubscriptionNotFound, DocumentNotFound, Subscription, Bill
+
+from weboob.capabilities.bill import CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
+from weboob.capabilities.base import find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.value import ValueBackendPassword, Value
+
 from .browser import EdfBrowser
+
 
 __all__ = ['EdfModule']
 
 
 class EdfModule(Module, CapDocument):
     NAME = 'edf'
-    DESCRIPTION = u'Edf website: French power provider'
-    MAINTAINER = u'Christophe Gouiran'
-    EMAIL = 'bechris13250@gmail.com'
-    VERSION = '1.2'
+    DESCRIPTION = u'EDF'
+    MAINTAINER = u'Edouard Lambert'
+    EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'AGPLv3+'
-    BROWSER = EdfBrowser
-    CONFIG = BackendConfig(ValueBackendPassword('login',
-                                                label='Identifiant',
-                                                masked=False),
-                           ValueBackendPassword('password',
-                                                label='Password',
-                                                masked=True)
-                           )
+    VERSION = '1.2'
+    CONFIG = BackendConfig(Value('login', label='Adresse e-mail'),
+                       ValueBackendPassword('password', label='Mot de passe'))
+
     BROWSER = EdfBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get())
+        return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
     def iter_subscription(self):
-        return self.browser.iter_subscription_list()
+        return self.browser.get_subscription_list()
 
     def get_subscription(self, _id):
-        with self.browser:
-            subscription = self.browser.get_subscription(_id)
-        if not subscription:
-            raise SubscriptionNotFound()
-        else:
-            return subscription
+        return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
 
-    def iter_documents_history(self, subscription):
-        if not isinstance(subscription, Subscription):
-            subscription = self.get_subscription(subscription)
-        with self.browser:
-            return self.browser.iter_history(subscription)
+    def get_document(self, _id):
+        subid = _id.rsplit('_', 1)[0]
+        subscription = self.get_subscription(subid)
 
-    def get_details(self, subscription):
-        if not isinstance(subscription, Subscription):
-            subscription = self.get_subscription(subscription)
-        with self.browser:
-            return self.browser.iter_details(subscription)
+        return find_object(self.iter_documents(subscription), id=_id, error=DocumentNotFound)
 
     def iter_documents(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
-        with self.browser:
-            return self.browser.iter_documents(subscription)
+        return self.browser.iter_documents(subscription)
 
-    def get_document(self, id):
-        with self.browser:
-            bill = self.browser.get_edf_document(id)
-        if not bill:
-            raise DocumentNotFound()
-        else:
-            return bill
-
-    def download_document(self, bill):
-        if not isinstance(bill, Bill):
-            bill = self.get_edf_document(bill)
-        with self.browser:
-            return self.browser.readurl(bill._url)
+    def download_document(self, document):
+        if not isinstance(document, Document):
+            document = self.get_document(document)
+        if document._url is NotAvailable:
+            return
+        return self.browser.open(document._url).content
