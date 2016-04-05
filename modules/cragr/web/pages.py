@@ -26,6 +26,7 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.deprecated.browser import Page, BrokenPageError, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.date import parse_french_date, LinearDateGuesser
+from weboob.browser.filters.standard import Date
 
 
 class BasePage(Page):
@@ -487,6 +488,10 @@ class TransactionsPage(BasePage):
             if tr.find('th') is not None or len(cols) < 3:
                 continue
 
+            # On PEL, skip summary.
+            if len(cols[0].findall('span')) == 6:
+                continue
+
             t = Transaction()
 
             col_text = cols[self.COL_TEXT]
@@ -501,8 +506,11 @@ class TransactionsPage(BasePage):
             else:
                 debit = ''
 
-            day, month = map(int, date.split('/', 1))
-            t.date = date_guesser.guess_date(day, month)
+            if date.count('/') == 1:
+                day, month = map(int, date.split('/', 1))
+                t.date = date_guesser.guess_date(day, month)
+            elif date.count('/') == 2:
+                t.date = Date(dayfirst=True).filter(date)
             t.rdate = t.date
             t.raw = raw
 
