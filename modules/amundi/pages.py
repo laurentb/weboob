@@ -112,7 +112,7 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                     tr.amount = Decimal(hist['montantNet']) + Decimal(hist['montantNetAbondement'])
                     tr.rdate = datetime.strptime(hist['dateComptabilisation'].split('T')[0], '%Y-%m-%d')
                     tr.date = tr.rdate
-                    tr.label = hist['libelleOperation']
+                    tr.label = hist['libelleOperation'] if 'libelleOperation' in hist else hist['libelleCommunication']
                     tr.type = Transaction.TYPE_UNKNOWN
 
                     # Bypassed because we don't have the ISIN code
