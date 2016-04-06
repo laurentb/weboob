@@ -21,9 +21,10 @@
 from weboob.capabilities.bank import CapBank, Account, Recipient
 from weboob.capabilities.bill import CapDocument, Bill, Subscription,\
     SubscriptionNotFound, DocumentNotFound
-from weboob.capabilities.base import UserError, find_object
+from weboob.capabilities.base import UserError, find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
+from weboob.browser.exceptions import ServerError
 
 from .browser import IngBrowser
 
@@ -118,6 +119,10 @@ class INGModule(Module, CapBank, CapDocument):
     def download_document(self, bill):
         if not isinstance(bill, Bill):
             bill = self.get_document(bill)
-        self.browser.predownload(bill)
+        self.get_document(bill.id)
+        try:
+            self.browser.predownload(bill)
+        except ServerError:
+            return NotAvailable
         assert(self.browser.response.headers['content-type'] == "application/pdf")
         return self.browser.response.content
