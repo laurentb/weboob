@@ -330,5 +330,5 @@ class AccbisPage(LoggedPage, HTMLPage):
 class LoanPage(LoggedPage, HTMLPage):
     pass
 
-class BlockedPage(HTMLPage):
+class ErrorPage(HTMLPage):
     pass
