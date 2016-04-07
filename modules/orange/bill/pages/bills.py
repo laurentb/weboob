@@ -18,8 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
-
 from weboob.browser.pages import HTMLPage
 from weboob.capabilities.bill import Subscription
 from weboob.browser.elements import ListElement, ItemElement, method
