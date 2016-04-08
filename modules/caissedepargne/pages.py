@@ -35,6 +35,12 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 class GarbagePage(Page):
     pass
 
+class MessagePage(GarbagePage):
+    def submit(self):
+        self.browser.select_form(name='leForm')
+        self.browser['signature1'] = ["on"]
+        self.browser.submit()
+
 
 class _LogoutPage(Page):
     def on_loaded(self):

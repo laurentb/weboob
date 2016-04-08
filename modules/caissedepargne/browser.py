@@ -24,7 +24,7 @@ from urlparse import urlsplit
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
-from .pages import LoginPage, IndexPage, ErrorPage, UnavailablePage, MarketPage, LifeInsurance, GarbagePage
+from .pages import LoginPage, IndexPage, ErrorPage, UnavailablePage, MarketPage, LifeInsurance, GarbagePage, MessagePage
 
 
 __all__ = ['CaisseEpargne']
@@ -101,6 +101,9 @@ class CaisseEpargne(Browser):
                     self.location(self.buildurl('/Portail.aspx?tache=CPTSYNT0'))
 
                 self.page.go_history(account._info)
+                if self.is_on_page(MessagePage):
+                    self.page.submit()
+                    self.page.go_history(account._info)
                 # Some users may not have access to this.
                 if not self.is_on_page(MarketPage):
                     continue
