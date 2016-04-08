@@ -96,36 +96,38 @@ class Comparoob(ReplApplication):
         Display prices for a product. If a pattern is supplied, do not prompt
         what product to compare.
         """
-        products = []
+        products = {}
         for product in self.do('search_products', pattern):
             double = False
-            for prod in products:
-                if product.name == prod.name:
+            for prod in products.keys():
+                if product.name == prod:
                     double = True
+                    products[product.name].append(product)
                     break
             if not double:
-                products.append(product)
+                products[product.name] = [product]
 
-        product = None
-        if len(products) == 0:
+        products_type = None
+        products_names = products.keys()
+        if len(products_names) == 0:
             print('Error: no product found with this pattern', file=self.stderr)
             return 1
-        elif len(products) == 1:
-            product = products[0]
+        elif len(products_names) == 1:
+            products_type = products.keys()[0]
         else:
             print('What product do you want to compare?')
-            for i, p in enumerate(products):
-                print('  %s%2d)%s %s' % (self.BOLD, i+1, self.NC, p.name))
+            for i, p in enumerate(products_names):
+                print('  %s%2d)%s %s' % (self.BOLD, i+1, self.NC, p))
             r = int(self.ask('  Select a product', regexp='\d+'))
-            while product is None:
+            while products_type is None:
                 if r <= 0 or r > len(products):
                     print('Error: Please enter a valid ID')
                     continue
-                product = products[r-1]
+                products_type = products_names[r-1]
 
         self.change_path([u'prices'])
-        products = self.get_object_list('iter_prices', product)
-        self._sort_display_products(products)
+        _products = self.get_object_list('iter_prices', products.get(products_type))
+        self._sort_display_products(_products)
 
     def _sort_display_products(self, products):
         if products:

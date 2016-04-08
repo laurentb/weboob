@@ -43,13 +43,16 @@ class PrixCarburantsModule(Module, CapPriceComparison):
             if pattern is None or pattern.lower() in product.name.lower():
                 yield product
 
-    def iter_prices(self, product):
-        return self.browser.iter_prices(self.config['zipcode'].get(), product)
+    def iter_prices(self, products):
+        product = [product for product in products if product.backend == self.name]
+        if product:
+            return self.browser.iter_prices(self.config['zipcode'].get(), product[0])
 
     def get_price(self, id, price=None):
         product = Product(id.split('.')[0])
-        price = find_object(self.iter_prices(product), id=id, error=PriceNotFound)
+        product.backend = self.name
 
+        price = find_object(self.iter_prices([product]), id=id, error=PriceNotFound)
         price.shop.info = self.browser.get_shop_info(price.id.split('.', 2)[-1])
         return price
 

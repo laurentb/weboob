@@ -77,7 +77,7 @@ class CapPriceComparison(Capability):
         """
         raise NotImplementedError()
 
-    def iter_prices(self, product):
+    def iter_prices(self, products):
         """
         Iter prices for a product.
 

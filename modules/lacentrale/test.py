@@ -26,9 +26,9 @@ class LaCentraleTest(BackendTest):
     MODULE = 'lacentrale'
 
     def test_lacentrale(self):
-        products = list(itertools.islice(self.backend.search_products(u'1000€,pro'), 0, 20))
+        products = list(itertools.islice(self.backend.search_products(u'10000€,pro'), 0, 20))
         self.assertTrue(len(products) > 0)
-
         product = products[0]
-        prices = list(itertools.islice(self.backend.iter_prices(product), 0, 20))
+        product.backend = self.backend.name
+        prices = list(itertools.islice(self.backend.iter_prices([product]), 0, 20))
         self.assertTrue(len(prices) > 0)

@@ -19,7 +19,7 @@
 
 
 from weboob.tools.test import BackendTest
-
+import itertools
 
 class PrixCarburantsTest(BackendTest):
     MODULE = 'prixcarburants'
@@ -28,5 +28,7 @@ class PrixCarburantsTest(BackendTest):
         products = list(self.backend.search_products('gpl'))
         self.assertTrue(len(products) == 1)
 
-        prices = list(self.backend.iter_prices(products[0]))
+        product = products[0]
+        product.backend = self.backend.name
+        prices = list(itertools.islice(self.backend.iter_prices([product]), 0, 20))
         self.backend.fillobj(prices[0])
