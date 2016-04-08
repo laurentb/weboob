@@ -30,7 +30,7 @@ from weboob.tools.ordereddict import OrderedDict
 
 __all__ = ['UserError', 'FieldNotFound', 'NotAvailable',
            'NotLoaded', 'Capability', 'Field', 'IntField', 'DecimalField',
-           'FloatField', 'StringField', 'BytesField',
+           'FloatField', 'StringField', 'BytesField', 'BoolField',
            'empty', 'BaseObject']
 
 
@@ -224,6 +224,18 @@ class IntField(Field):
 
     def convert(self, value):
         return int(value)
+
+
+class BoolField(Field):
+    """
+    A field which accepts only :class:`bool` type.
+    """
+
+    def __init__(self, doc, **kwargs):
+        Field.__init__(self, doc, bool, **kwargs)
+
+    def convert(self, value):
+        return bool(value)
 
 
 class DecimalField(Field):
