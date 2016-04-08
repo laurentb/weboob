@@ -23,7 +23,7 @@ from .pages import CityListPage, HousingListPage, HousingPage, PhonePage
 
 
 class LeboncoinBrowser(PagesBrowser):
-    BASEURL = 'http://www.leboncoin.fr/'
+    BASEURL = 'https://www.leboncoin.fr/'
     city = URL('ajax/location_list.html\?city=(?P<city>.*)&zipcode=(?P<zip>.*)', CityListPage)
     search = URL('(?P<type>.*)/offres/(?P<region>.*)/occasions/\?(?P<_ps>ps|mrs)=(?P<ps>.*)&(?P<_pe>pe|mre)=(?P<pe>.*)&ros=(?P<ros>.*)&location=(?P<location>.*)&sqs=(?P<sqs>.*)&sqe=(?P<sqe>.*)&ret=(?P<ret>.*)&f=(?P<advert_type>.*)',
                  '(?P<_type>.*)/offres/(?P<_region>.*)/occasions.*?',
