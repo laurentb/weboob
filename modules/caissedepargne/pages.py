@@ -478,6 +478,8 @@ class MarketPage(Page):
             return self.document.xpath('//caption')[0].text == "Erreur"
         except IndexError:
             return False
+        except AssertionError:
+            return True
 
 
     def parse_decimal(self, td):
