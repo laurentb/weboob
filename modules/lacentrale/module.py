@@ -58,9 +58,10 @@ class LaCentraleModule(Module, CapPriceComparison):
             if u'part' in pattern:
                 criteria['witchSearch'] = 0
 
-        product = LaCentraleProduct()
-        product._criteria = criteria
-        yield product
+        if criteria:
+            product = LaCentraleProduct()
+            product._criteria = criteria
+            yield product
 
     def iter_prices(self, product):
         return self.browser.iter_prices(product)
