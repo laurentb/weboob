@@ -69,14 +69,10 @@ class CaisseEpargneModule(Module, CapBank):
             raise AccountNotFound()
 
     def iter_history(self, account):
-        if not hasattr(account, '_info'):
-            return NotImplementedError()
         with self.browser:
             return self.browser.get_history(account)
 
     def iter_coming(self, account):
-        if not hasattr(account, '_info'):
-            return NotImplementedError()
         with self.browser:
             return self.browser.get_coming(account)
 

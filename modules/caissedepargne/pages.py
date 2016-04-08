@@ -27,6 +27,7 @@ import re
 from weboob.deprecated.mech import ClientForm
 from weboob.tools.ordereddict import OrderedDict
 from weboob.deprecated.browser import Page, BrokenPageError, BrowserUnavailable, BrowserIncorrectPassword
+from weboob.browser.filters.standard import Date
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -123,6 +124,8 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_DEPOSIT),
                 (re.compile('^(?P<text>.*)( \d+)? QUITTANCE .*', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_ORDER),
+                (re.compile('^CB [\d\*]+ TOT DIF .*', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_CARD_SUMMARY),
                 (re.compile('^CB [\d\*]+ (?P<text>.*)', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_CARD),
                ]
@@ -404,8 +407,17 @@ class IndexPage(Page):
             credit = u''.join([txt.strip() for txt in tds[-1].itertext()])
 
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
-            if t.date is NotAvailable or 'Tot Dif' in t.raw:
+
+            card_debit_date = self.document.xpath('//span[@id="MM_HISTORIQUE_CB_m_TableTitle3_lblTitle"]')
+            if card_debit_date:
+                t.rdate = Date(dayfirst=True).filter(date)
+                m = re.search('(\d{2}\/\d{2}\/\d{4})', card_debit_date[0].text)
+                assert m
+                t.date = Date(dayfirst=True).filter(m.group(1))
+            if t.date is NotAvailable:
                 continue
+            if 'tot dif' in t.raw.lower():
+                t.deleted = True
             t.set_amount(credit, debit)
             yield t
 

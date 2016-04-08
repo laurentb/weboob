@@ -164,12 +164,17 @@ class CaisseEpargne(Browser):
                 return
 
     def get_history(self, account):
+        if not hasattr(account, '_info'):
+            raise NotImplementedError()
         return self._get_history(account._info)
 
     def get_coming(self, account):
+        if not hasattr(account, '_info'):
+            raise NotImplementedError()
         for info in account._card_links:
             for tr in self._get_history(info):
-                tr.type = tr.TYPE_CARD
+                tr.type = tr.TYPE_DEFERRED_CARD
+                tr.nopurge = True
                 yield tr
 
     def get_investment(self, account):
