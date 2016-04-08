@@ -124,6 +124,10 @@ class LCLBrowser(LoginBrowser):
                 acc.iban = self.page.get_iban()
             accounts.append(acc)
 
+        self.loans.stay_or_go()
+        for acc in self.page.get_list():
+            yield acc
+
         if self.connexion_bourse():
             acc = list(self.page.populate(accounts))
             self.deconnexion_bourse()
@@ -135,9 +139,6 @@ class LCLBrowser(LoginBrowser):
             for a in accounts:
                 yield a
 
-        self.loans.stay_or_go()
-        for acc in self.page.get_list():
-            yield acc
 
     @need_login
     def get_history(self, account):
