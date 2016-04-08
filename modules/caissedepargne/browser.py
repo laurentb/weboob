@@ -44,7 +44,7 @@ class CaisseEpargne(Browser):
              'https://www.caisse-epargne.offrebourse.com/Portefeuille.*': MarketPage,
              'https://[^/]+/Assurance/Pages/Assurance.aspx':              LifeInsurance,
              'https://www.extranet2.caisse-epargne.fr.*':                 LifeInsurance,
-             'https://www.caisse-epargne.offrebourse.com/DetailMessage\?refresh=O': GarbagePage,
+             'https://www.caisse-epargne.offrebourse.com/DetailMessage\?refresh=O': MessagePage,
              'https://www.caisse-epargne.fr/particuliers/.*/emprunter.aspx': GarbagePage,
             }
 
@@ -122,7 +122,8 @@ class CaisseEpargne(Browser):
         for _ in range(3):
             try:
                 self.location(self.buildurl('/Portail.aspx'))
-                self.page.go_list()
+                if self.is_on_page(IndexPage):
+                    self.page.go_list()
             except mechanize.BrowserStateError:
                 pass
             else:
