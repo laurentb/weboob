@@ -289,7 +289,7 @@ class Cragr(Browser):
             account = accounts[0]
 
         date_guesser = LinearDateGuesser()
-        if account.type != Account.TYPE_CARD or not self.page.is_on_detail():
+        if account.type != Account.TYPE_CARD or not self.page.is_on_right_detail(account):
             self.location(account._link.format(self.sag))
 
         if self.is_on_page(CardsPage):

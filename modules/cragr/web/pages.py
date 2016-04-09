@@ -347,8 +347,9 @@ class CardsPage(BasePage):
 
             yield t
 
-    def is_on_detail(self):
-        return len(self.document.xpath(u'//h1[contains(text(), "Cartes - détail")]'))
+    def is_on_right_detail(self, account):
+        return len(self.document.xpath(u'//h1[contains(text(), "Cartes - détail")]')) and\
+               len(self.document.xpath(u'//td[contains(text(), "%s")]' % account.id))
 
 
 class AccountsPage(_AccountsPage):
