@@ -41,7 +41,9 @@ class LyricsdotcomBrowser(PagesBrowser):
 
 
     def iter_lyrics(self, criteria, pattern):
-        return self.search.go(pattern=pattern).iter_lyrics()
+        self.search.go(pattern=pattern)
+        assert self.search.is_here()
+        return self.page.iter_lyrics()
 
     def get_lyrics(self, id):
         real_id = id.split('|')[0]
