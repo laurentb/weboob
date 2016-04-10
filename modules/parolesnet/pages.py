@@ -64,7 +64,7 @@ class ResultsPage(HTMLPage):
 class ArtistSongsPage(HTMLPage):
     @method
     class iter_lyrics(ListElement):
-        item_xpath = '//div[@id="main"]//td[has-class("song-name")]//a'
+        item_xpath = '//div[@id="main"]//div[has-class("song-listing-extra")]//td[has-class("song-name")]//a'
 
         class item(ItemElement):
             klass = SongLyrics
