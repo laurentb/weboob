@@ -25,6 +25,7 @@ from weboob.browser.profiles import Firefox
 
 from .pages import SearchSongPage, LyricsPage, SearchArtistPage, ArtistSongsPage
 
+import itertools
 
 
 __all__ = ['ParolesmaniaBrowser']
@@ -47,7 +48,12 @@ class ParolesmaniaBrowser(PagesBrowser):
 
     def iter_lyrics(self, criteria, pattern):
         if criteria == 'artist':
-            return self.searchArtist.go(pattern=pattern).iter_lyrics()
+            artist_ids = self.searchArtist.go(pattern=pattern).get_artist_ids()
+            it = []
+            # we just take the 3 first artists to avoid too many page loadings
+            for aid in artist_ids[:3]:
+                it = itertools.chain(it, self.artistSongs.go(artistid=aid).iter_lyrics())
+            return it
         elif criteria == 'song':
             return self.searchSong.go(pattern=pattern).iter_lyrics()
 
