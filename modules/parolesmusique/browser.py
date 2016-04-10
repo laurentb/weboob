@@ -25,6 +25,8 @@ from weboob.browser.profiles import Firefox
 
 from .pages import SongResultsPage, SonglyricsPage, ArtistResultsPage, ArtistSongsPage, HomePage
 
+import itertools
+
 
 __all__ = ['ParolesmusiqueBrowser']
 
@@ -50,8 +52,17 @@ class ParolesmusiqueBrowser(PagesBrowser):
         self.home.stay_or_go()
         assert self.home.is_here()
         self.page.search_lyrics(criteria, pattern)
-        assert self.songResults.is_here() or self.artistResults.is_here()
-        return self.page.iter_lyrics()
+        if criteria == 'song':
+            assert self.songResults.is_here()
+            return self.page.iter_lyrics()
+        elif criteria == 'artist':
+            assert self.artistResults.is_here()
+            artist_ids = self.page.get_artist_ids()
+            it = []
+            # we just take the 3 first artists to avoid too many page loadings
+            for aid in artist_ids[:3]:
+                it = itertools.chain(it, self.artistSongs.go(artistid=aid).iter_lyrics())
+            return it
 
 
     def get_lyrics(self, id):

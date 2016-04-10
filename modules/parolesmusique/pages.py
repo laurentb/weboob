@@ -26,7 +26,7 @@ from weboob.browser.pages import HTMLPage
 from weboob.browser.filters.standard import Regexp, CleanText, Format
 from weboob.browser.filters.html import CleanHTML
 
-import itertools, random
+import random
 
 
 class HomePage(HTMLPage):
@@ -41,14 +41,10 @@ class HomePage(HTMLPage):
 
 
 class ArtistResultsPage(HTMLPage):
-    def iter_lyrics(self):
+    def get_artist_ids(self):
         artists_href = self.doc.xpath('//div[has-class("cont_cat")]//a[has-class("matchA")]/@href')
-        it = []
-        # we just take the 3 first artists to avoid too many page loadings
-        for href in artists_href[:3]:
-            aid = href.split('/')[-1].replace('paroles-','')
-            it = itertools.chain(it, self.browser.artistSongs.go(artistid=aid).iter_lyrics())
-        return it
+        aids = [href.split('/')[-1].replace('paroles-','') for href in artists_href]
+        return aids
 
 
 class ArtistSongsPage(HTMLPage):
