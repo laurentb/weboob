@@ -63,8 +63,8 @@ class ArtistPage(HTMLPage):
             klass = SongLyrics
 
             obj_id = Regexp(CleanText('./@href', default=NotAvailable), 'id=(.*)$')
-            obj_title = Regexp(CleanText('.', default=NotAvailable), '(.*) - .*')
-            obj_artist = Regexp(CleanText('.', default=NotAvailable), '.* - (.*)')
+            obj_artist = Regexp(CleanText('.', default=NotAvailable), '(.*) - .*')
+            obj_title = Regexp(CleanText('.', default=NotAvailable), '.* - (.*)')
             obj_content = NotLoaded
 
 
