@@ -25,6 +25,8 @@ from weboob.browser.profiles import Firefox
 
 from .pages import SearchPage, LyricsPage, HomePage, ArtistPage
 
+import itertools
+
 
 __all__ = ['Paroles2chansonsBrowser']
 
@@ -50,8 +52,13 @@ class Paroles2chansonsBrowser(PagesBrowser):
         assert self.search.is_here()
         if criteria == 'song':
             return self.page.iter_song_lyrics()
-        else:
-            return self.page.iter_artist_lyrics()
+        elif criteria == 'artist':
+            artist_ids = self.page.get_artist_ids()
+            it = []
+            # we just take the 3 first artists to avoid too many page loadings
+            for aid in artist_ids[:3]:
+                it = itertools.chain(it, self.artist.go(artistid=aid).iter_lyrics())
+            return it
 
     def get_lyrics(self, id):
         ids = id.split('|')
