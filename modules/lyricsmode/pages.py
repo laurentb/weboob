@@ -30,7 +30,7 @@ from weboob.browser.filters.html import CleanHTML
 class SearchPage(HTMLPage):
     @method
     class iter_lyrics(ListElement):
-        item_xpath = '//table[has-class("songs_list")]//tr'
+        item_xpath = '//table[has-class("songs_list")]//tr[count(td) = 2]'
 
         class item(ItemElement):
             klass = SongLyrics
