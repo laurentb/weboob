@@ -39,5 +39,11 @@ class CSVFormatter(IFormatter):
             result += self.field_separator.join(item.iterkeys()) + '\n'
             self.started = True
 
-        result += self.field_separator.join(unicode(v) for v in item.itervalues())
+        _els = []
+        for el in item.itervalues():
+            if isinstance(el, list):
+                el = [obj.url for obj in el]
+            _els.append(el)
+
+        result += self.field_separator.join(unicode('"%s"' % _el) for _el in _els)
         return result
