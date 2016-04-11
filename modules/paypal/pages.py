@@ -23,6 +23,7 @@ import re
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable, Currency
 from weboob.exceptions import BrowserUnavailable
+from weboob.browser.exceptions import ServerError
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.filters.standard import CleanText, CleanDecimal
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -220,7 +221,11 @@ class PartHistoryPage(HistoryPage, JsonPage):
             if 'conversionFrom' in transaction['amounts'] and account.currency == transaction['amounts']['conversionFrom']['currency']:
                 cc = self.format_amount(transaction['amounts']['conversionFrom']['value'], transaction['isCredit'])
             else:
-                cc = self.browser.convert_amount(account, transaction, transaction['detailsLink'])
+                try:
+                    cc = self.browser.convert_amount(account, transaction, transaction['detailsLink'])
+                except ServerError:
+                    self.logger.warning('Unable to go on detail, transaction skipped.')
+                    return []
             if not cc:
                 return []
             t.original_amount = self.format_amount(transaction['amounts']['net']['value'], transaction["isCredit"])
