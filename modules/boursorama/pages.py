@@ -168,7 +168,7 @@ class HistoryPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_id = Attr('.', 'data-id')
+            obj_id = Attr('.', 'data-id', default=NotAvailable) or Attr('.', 'data-custom-id')
             obj_raw = Transaction.Raw(CleanText('.//div[contains(@class, "label__name")]'))
             obj_date = Date(Attr('.//time', 'datetime'))
             obj_amount = CleanDecimal('.//div[contains(@class, "amount")]', replace_dots=True)
