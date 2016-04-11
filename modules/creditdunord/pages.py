@@ -367,9 +367,9 @@ class Transaction(FrenchTransaction):
 
 class TransactionsPage(CDNBasePage):
     COL_ID = 0
-    COL_DATE = 1
-    COL_DEBIT_DATE = 2
-    COL_LABEL = 3
+    COL_DATE = -5
+    COL_DEBIT_DATE = -4
+    COL_LABEL = -3
     COL_VALUE = -1
 
     is_coming = None
@@ -407,7 +407,7 @@ class TransactionsPage(CDNBasePage):
         return False
 
     def get_history(self):
-        txt = self.get_from_js('ListeMvts_data = new Array(', ');')
+        txt = self.get_from_js('ListeMvts_data = new Array(', ');\n')
 
         if txt is None:
             no_trans = self.get_from_js('js_noMvts = new Ext.Panel(', ')')
