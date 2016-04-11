@@ -98,6 +98,8 @@ class S2eBrowser(LoginBrowser):
                 'session': self.sessionId}
 
         for trans in self.historyp.go(data=data).get_transactions():
+            if not int(trans['codeEntreprise']) == int(account.id):
+                continue
             t = Transaction()
             t.id = trans["referenceOperationIndividuelle"]
             t.date = datetime.strptime(trans["dateHeureSaisie"], "%d/%m/%Y")
