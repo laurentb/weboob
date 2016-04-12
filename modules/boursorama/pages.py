@@ -178,9 +178,10 @@ class HistoryPage(LoggedPage, HTMLPage):
                 return Attr('.', 'data-id', default=None)(self) is not None
 
             def obj_rdate(self):
-                s = Regexp(Field('raw'), ' (\d{6}) ', default=NotAvailable)(self)
+                s = Regexp(Field('raw'), ' (\d{2}/\d{2}/\d{2}) | (?!NUM) (\d{6}) ', default=NotAvailable)(self)
                 if not s:
                     return Field('date')(self)
+                s = s.replace('/', '')
                 return Date(dayfirst=True).filter('%s%s%s%s%s' % (s[:2], '-', s[2:4], '-', s[4:]))
 
             def obj__is_coming(self):
