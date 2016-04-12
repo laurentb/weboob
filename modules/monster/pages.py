@@ -24,7 +24,7 @@ from datetime import datetime, time, timedelta
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import CleanText, Regexp, Filter, Env, BrowserURL, Join, Date, Format, DateTime
-from weboob.browser.filters.html import Link, CleanHTML
+from weboob.browser.filters.html import CleanHTML
 from weboob.capabilities.job import BaseJobAdvert
 from weboob.capabilities.base import NotAvailable
 
@@ -52,8 +52,9 @@ class AdvSearchPage(HTMLPage):
 
         def next_page(self):
             page = Regexp(CleanText('//link[@rel="next"]/@href', default=''),
-                          '.*pg=(\d*)', default=None)(self)
-            return BrowserURL('adv_search', search=Env('search'), page=int(page))(self)
+                          '.*page=(\d*)', default=None)(self)
+            if page:
+                return BrowserURL('adv_search', search=Env('search'), page=int(page))(self)
 
         class item(ItemElement):
 
@@ -74,27 +75,6 @@ class AdvSearchPage(HTMLPage):
                                             default=NotAvailable)
             obj_place = CleanText('./div[@class="location"]/span[@itemprop="name"]',
                                   default=NotAvailable)
-
-
-class SearchPage(HTMLPage):
-    @pagination
-    @method
-    class iter_job_adverts(ListElement):
-        item_xpath = '//table[@class="listingsTable"]/tbody/tr[@class="odd"] | //table[@class="listingsTable"]/tbody/tr[@class="even"]'
-
-        def next_page(self):
-            return Link('//a[@title="Suivant"]', default=None)(self)
-
-        class item(ItemElement):
-            klass = BaseJobAdvert
-
-            obj_id = Regexp(Link('./td/div/div[@class="jobTitleContainer"]/a'),
-                            'http://offre-(d?)emploi.monster.fr:80/(.*?)(.aspx|\?).*',
-                            '\\1#\\2')
-            obj_society_name = CleanText('./td/div/div[@class="companyContainer"]/div/a')
-            obj_title = CleanText('./td/div/div[@class="jobTitleContainer"]/a')
-            obj_publication_date = MonsterDate(CleanText('td/div/div[@class="fnt20"]'))
-            obj_place = CleanText('./td/div/div[@class="jobLocationSingleLine"]/a/@title', default=NotAvailable)
 
 
 class AdvertPage(HTMLPage):

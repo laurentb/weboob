@@ -20,28 +20,26 @@ import urllib
 
 from weboob.browser import PagesBrowser, URL
 
-from .pages import SearchPage, AdvertPage, AdvertPage2, AdvSearchPage
+from .pages import AdvertPage, AdvertPage2, AdvSearchPage
 
 __all__ = ['MonsterBrowser']
 
 
 class MonsterBrowser(PagesBrowser):
+    BASEURL = 'http://www.monster.fr'
 
-    BASEURL = 'http://offres.monster.fr/'
     advert = URL('http://offre-emploi.monster.fr/(?P<_id>.*).aspx', AdvertPage)
     advert2 = URL('http://offre-demploi.monster.fr/(?P<_id>.*)', AdvertPage2)
 
-    adv_search = URL('http://emploi.monster.fr/recherche/(?P<search>.*)&page=(?P<page>\d*)', AdvSearchPage)
-    search = URL('rechercher\?q=(?P<pattern>.*)',
-                 'rechercher?/.*',
-                 SearchPage)
+    adv_search = URL('/emploi/recherche/(?P<search>.*)&page=(?P<page>\d*)',
+                     AdvSearchPage)
 
     def search_job(self, pattern=None):
-        return self.search.go(pattern=urllib.quote_plus(pattern)).iter_job_adverts()
+        return self.adv_search.go(search='?q=%s' % urllib.quote_plus(pattern), page=1).iter_job_adverts()
 
     def advanced_search_job(self, job_name, place, contract, limit_date):
         search = '' if not contract else contract
-        query = {'q': job_name,
+        query = {'q': urllib.quote_plus(job_name),
                  'where': place,
                  'tm': limit_date}
         return self.adv_search.go(search='%s?%s' % (search, urllib.urlencode(query)), page=1).iter_job_adverts()
