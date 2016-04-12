@@ -51,7 +51,7 @@ class HousingPhoto(BaseObject):
         return self.url
 
     def __repr__(self):
-        return u'<HousingPhoto "%s" data=%do>' % (self.id, len(self.data) if self.data else 0)
+        return u'<HousingPhoto "%s" data=%do url=%s>' % (self.id, len(self.data) if self.data else 0, self.url)
 
 
 class Housing(BaseObject):
