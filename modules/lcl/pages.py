@@ -32,7 +32,7 @@ from weboob.exceptions import ParseError
 from weboob.browser.pages import LoggedPage, HTMLPage, FormNotFound, pagination
 from weboob.browser.filters.html import Attr
 from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, Date, \
-                                            CleanDecimal, Map, AsyncLoad, Async
+                                            CleanDecimal, Map, AsyncLoad, Async, Env
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
@@ -241,16 +241,26 @@ class LoansPage(LoggedPage, HTMLPage):
 
     @method
     class get_list(ListElement):
-        item_xpath = '//th[contains(text(), "Emprunteur")]/../../../tbody/tr'
+        item_xpath = '//th[contains(text(), "Emprunteur")]/../th[contains(text(),"Type")]/../../../tbody/tr'
         flush_at_end = True
+
         class account(ItemElement):
             klass = Account
 
-            obj_id = Format('%s%s%s' ,Regexp(CleanText('./td[1]'), r'(\w+)\s-\s(\w+)',r'\1\2'), CleanText('./td[2]', replace=[(' ','')]), CleanText('./td[3]', replace=[(' ',''),(',','')]))
             obj_label = CleanText('./td[2]')
             obj_balance = CleanDecimal('./td[4]', replace_dots=True, sign=lambda x: -1)
             obj_currency = FrenchTransaction.Currency('./td[4]')
             obj_type = Account.TYPE_LOAN
+            obj_id = Env('id')
+
+            def parse(self, el):
+                obj_label = CleanText('./td[2]')(el)
+                xpath = self.xpath('//td[contains(text(), "%s")]/../../tr' % obj_label)
+                for i in range(len(xpath)):
+                    if el == xpath[i]:
+                        self.env['id'] = Format('%s%s%s' ,Regexp(CleanText('./td[1]'), r'(\w+)\s-\s(\w+)',r'\1\2'), CleanText('./td[2]', replace=[(' ','')]),i)(self)
+
+
 
 
 class Transaction(FrenchTransaction):
