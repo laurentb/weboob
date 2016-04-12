@@ -33,9 +33,9 @@ STATUSES = {
 
 class SearchPage(JsonPage):
     def get_info(self, _id):
-        if self.doc.has_key(u'errors'):
+        if u'errors' in self.doc:
             raise ParcelNotFound("No such ID: %s" % _id)
-        elif self.doc.has_key(u'results'):
+        elif u'results' in self.doc:
             result = self.doc[u'results'][0]
             p = Parcel(_id)
             p.history = [self.build_event(e) for e in result[u'checkpoints']]
