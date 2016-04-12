@@ -301,12 +301,13 @@ class AccbisPage(LoggedPage, HTMLPage):
                 title = CleanText().filter(li.xpath('./h3'))
                 for a in li.xpath('./ul/li//a'):
                     label = CleanText().filter(a.xpath('.//span[@class="nav-category__name"]'))
-                    balance = CleanDecimal(replace_dots=True, default=NotAvailable).filter(a.xpath('.//span[@class="nav-category__value"]'))
+                    balance_el = a.xpath('.//span[@class="nav-category__value"]')
+                    balance = CleanDecimal(replace_dots=True, default=NotAvailable).filter(balance_el)
                     if 'CARTE' in label and balance:
                         acc = Account()
                         acc.balance = balance
                         acc.label = label
-                        acc.currency = FrenchTransaction.Currency().filter(balance)
+                        acc.currency = FrenchTransaction.Currency().filter(balance_el)
                         acc._link = Link().filter(a.xpath('.'))
                         acc._history_page = acc._link
                         acc.id = acc._webid = Regexp(pattern='([^=]+)$').filter(Link().filter(a.xpath('.')))
