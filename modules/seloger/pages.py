@@ -30,7 +30,8 @@ from weboob.capabilities.housing import Housing, HousingPhoto, City
 class CitiesPage(JsonPage):
     @method
     class iter_cities(DictElement):
-        item_xpath = '1/values'
+        item_xpath = '*/values'
+        ignore_duplicate = True
 
         class item(ItemElement):
             klass = City
@@ -50,7 +51,7 @@ class SeLogerItem(ItemElement):
     obj_date = DateTime(CleanText('dtFraicheur'))
     obj_cost = CleanDecimal('prix')
     obj_currency = CleanText('prixUnite')
-    obj_area = CleanDecimal('surface')
+    obj_area = CleanDecimal('surface', default=NotAvailable)
     obj_text = CleanText('descriptif')
     obj_location = CleanText('ville')
     obj_station = CleanText('proximite', default=NotAvailable)
@@ -72,8 +73,8 @@ class SearchResultsPage(XMLPage):
             def obj_photos(self):
                 photos = []
 
-                for photo in XPath('./photos/photo/stdurl')(self):
-                    photos.append(HousingPhoto(photo))
+                for photo in XPath('./photos/photo/stdUrl')(self):
+                    photos.append(HousingPhoto(CleanText('.')(photo)))
 
                 return photos
 
