@@ -53,8 +53,10 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     budget_transactions = URL('/budget/compte/(?P<webid>.*)/mouvements.*', HistoryPage)
     other_transactions = URL('/compte/cav/(?P<webid>.*)/mouvements.*', HistoryPage)
     asv = URL('/compte/assurance-vie/.*', AsvPage)
-    saving_history = URL('/compte/cefp/.*/(positions|mouvements)', SavingMarketPage)
-    market = URL('/compte/(?!assurance|cav|epargne).*/(positions|mouvements)', MarketPage)
+    saving_history = URL('/compte/cefp/.*/(positions|mouvements)',
+                         '/compte/ord/.*/mouvements', SavingMarketPage)
+    market = URL('/compte/(?!assurance|cav|epargne).*/(positions|mouvements)',
+                 '/compte/ord/.*/positions', MarketPage)
     loans = URL('/credit/immobilier/.*/informations',
                 '/credit/consommation/.*/informations',
                 '/credit/lombard/.*/caracteristiques', LoanPage)
