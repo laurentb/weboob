@@ -17,9 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+import csv
+import sys
 
 from .iformatter import IFormatter
-
 
 __all__ = ['CSVFormatter']
 
@@ -29,21 +31,14 @@ class CSVFormatter(IFormatter):
         IFormatter.__init__(self)
         self.field_separator = field_separator
         self.started = False
+        self.writer = csv.writer(sys.stderr)
 
     def flush(self):
         self.started = False
 
     def format_dict(self, item):
-        result = u''
         if not self.started:
-            result += self.field_separator.join(item.iterkeys()) + '\n'
+            self.writer.writerow([unicode(v).encode('utf-8') for v in item.keys()])
             self.started = True
 
-        _els = []
-        for el in item.itervalues():
-            if isinstance(el, list):
-                el = [obj.url for obj in el]
-            _els.append(el)
-
-        result += self.field_separator.join(unicode('"%s"' % _el) for _el in _els)
-        return result
+        self.writer.writerow([unicode(v).encode('utf-8') for v in item.itervalues()])
