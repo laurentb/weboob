@@ -323,9 +323,23 @@ class DictElement(ListElement):
         else:
             selector = self.item_xpath
 
+        _subdict = False
         for el in selector:
             if isinstance(self.el, list):
-                el = int(el)
+                if _subdict:
+                    subdicts = []
+                    for i in range (0, len(self.el)):
+                        _el = int(el) if isinstance(self.el[i], list) else el
+                        subdicts += self.el[i][_el]
+                    self.el = subdicts
+                    _subdict = False
+                    continue
+
+                if el == '*':
+                    _subdict = True
+                    continue
+                elif el.isdigit():
+                    el = int(el) if int(el) < len(self.el) else 0
 
             self.el = self.el[el]
 
