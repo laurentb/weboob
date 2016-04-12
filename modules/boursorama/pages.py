@@ -301,10 +301,10 @@ class AccbisPage(LoggedPage, HTMLPage):
                 title = CleanText().filter(li.xpath('./h3'))
                 for a in li.xpath('./ul/li//a'):
                     label = CleanText().filter(a.xpath('.//span[@class="nav-category__name"]'))
-                    balance = a.xpath('.//span[@class="nav-category__value"]')
+                    balance = CleanDecimal(replace_dots=True, default=NotAvailable).filter(a.xpath('.//span[@class="nav-category__value"]'))
                     if 'CARTE' in label and balance:
                         acc = Account()
-                        acc.balance = CleanDecimal(replace_dots=True, default=NotAvailable).filter(balance)
+                        acc.balance = balance
                         acc.label = label
                         acc.currency = FrenchTransaction.Currency().filter(balance)
                         acc._link = Link().filter(a.xpath('.'))
@@ -313,7 +313,7 @@ class AccbisPage(LoggedPage, HTMLPage):
                         acc.type = Account.TYPE_CARD
                         if not acc in cards:
                             cards.append(acc)
-                    elif account.label == label:
+                    elif account.label == label and account.balance == balance:
                         if not account.type:
                             account.type = AccountsPage.ACCOUNT_TYPES.get(title, Account.TYPE_UNKNOWN)
                         if account.type == Account.TYPE_LOAN:
