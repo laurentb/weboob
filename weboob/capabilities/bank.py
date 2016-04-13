@@ -135,6 +135,7 @@ class Transaction(BaseObject):
     TYPE_LOAN_PAYMENT = 8
     TYPE_BANK         = 9
     TYPE_CASH_DEPOSIT = 10
+    TYPE_CARD_SUMMARY = 11
 
     date =      DateField('Debit date on the bank statement')
     rdate =     DateField('Real date, when the payment has been made; usually extracted from the label or from credit card info')
