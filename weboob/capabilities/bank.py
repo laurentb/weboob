@@ -124,18 +124,19 @@ class Transaction(BaseObject):
     """
     Bank transaction.
     """
-    TYPE_UNKNOWN      = 0
-    TYPE_TRANSFER     = 1
-    TYPE_ORDER        = 2
-    TYPE_CHECK        = 3
-    TYPE_DEPOSIT      = 4
-    TYPE_PAYBACK      = 5
-    TYPE_WITHDRAWAL   = 6
-    TYPE_CARD         = 7
-    TYPE_LOAN_PAYMENT = 8
-    TYPE_BANK         = 9
-    TYPE_CASH_DEPOSIT = 10
-    TYPE_CARD_SUMMARY = 11
+    TYPE_UNKNOWN       = 0
+    TYPE_TRANSFER      = 1
+    TYPE_ORDER         = 2
+    TYPE_CHECK         = 3
+    TYPE_DEPOSIT       = 4
+    TYPE_PAYBACK       = 5
+    TYPE_WITHDRAWAL    = 6
+    TYPE_CARD          = 7
+    TYPE_LOAN_PAYMENT  = 8
+    TYPE_BANK          = 9
+    TYPE_CASH_DEPOSIT  = 10
+    TYPE_CARD_SUMMARY  = 11
+    TYPE_DEFERRED_CARD = 12
 
     date =      DateField('Debit date on the bank statement')
     rdate =     DateField('Real date, when the payment has been made; usually extracted from the label or from credit card info')
