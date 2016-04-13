@@ -111,7 +111,7 @@ class Account(Recipient):
         return self.iban[4:]
 
     def __repr__(self):
-        return u"<Account id=%r label=%r>" % (self.id, self.label)
+        return "<Account id=%r label=%r>" % (self.id, self.label)
 
 
 class Transaction(BaseObject):

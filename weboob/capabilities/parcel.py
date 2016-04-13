@@ -28,7 +28,7 @@ class Event(BaseObject):
     location = StringField('Location')
 
     def __repr__(self):
-        return u'<Event date=%r activity=%r location=%r>' % (self.date, self.activity, self.location)
+        return '<Event date=%r activity=%r location=%r>' % (self.date, self.activity, self.location)
 
 
 class Parcel(BaseObject):

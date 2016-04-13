@@ -46,7 +46,7 @@ class Order(BaseObject):
     total    = DecimalField('Total')
 
     def __repr__(self):
-        return u"<Order id=%r date=%r>" % (self.id, self.date)
+        return "<Order id=%r date=%r>" % (self.id, self.date)
 
 
 class Payment(BaseObject):
@@ -58,7 +58,7 @@ class Payment(BaseObject):
     amount = DecimalField('Payment amount')
 
     def __repr__(self):
-        return u"<Payment date=%r method=%r amount=%r>" % \
+        return "<Payment date=%r method=%r amount=%r>" % \
             (self.date, self.method, self.amount)
 
 
@@ -70,7 +70,7 @@ class Item(BaseObject):
     price = DecimalField('Item price')
 
     def __repr__(self):
-        return u"<Item label=%r price=%r>" % (self.label, self.price)
+        return "<Item label=%r price=%r>" % (self.label, self.price)
 
 
 class CapShop(CapCollection):

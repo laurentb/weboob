@@ -65,9 +65,9 @@ class ContactPhoto(BaseObject):
         return self.url
 
     def __repr__(self):
-        return u'<ContactPhoto "%s" data=%do tndata=%do>' % (self.id,
-                                                             len(self.data) if self.data else 0,
-                                                             len(self.thumbnail_data) if self.thumbnail_data else 0)
+        return '<ContactPhoto %r data=%do tndata=%do>' % (self.id,
+                                                          len(self.data) if self.data else 0,
+                                                          len(self.thumbnail_data) if self.thumbnail_data else 0)
 
 
 class Contact(BaseObject):

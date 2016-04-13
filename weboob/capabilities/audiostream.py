@@ -37,7 +37,7 @@ class BaseAudioStream(BaseAudio):
         return u'%s (%s)' % (self.title, self.url)
 
     def __repr__(self):
-        return self.__unicode__()
+        return '%r (%r)' % (self.title, self.url)
 
 
 class CapAudioStream(CapAudio):

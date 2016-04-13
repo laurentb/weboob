@@ -37,7 +37,7 @@ class Comment():
         self.text = text
 
     def __str__(self):
-        result = u''
+        result = ''
         if self.author:
             result += 'author: %s, ' % self.author
         if self.rate:

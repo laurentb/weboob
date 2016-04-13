@@ -62,7 +62,7 @@ class Departure(BaseObject):
         self.time = _time
 
     def __repr__(self):
-        return u"<Departure id=%r type=%r time=%r departure=%r arrival=%r>" % (
+        return "<Departure id=%r type=%r time=%r departure=%r arrival=%r>" % (
             self.id, self.type, self.time.strftime('%H:%M'), self.departure_station, self.arrival_station)
 
 

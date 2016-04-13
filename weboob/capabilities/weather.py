@@ -57,7 +57,8 @@ class Temperature(BaseObject):
 
     def __repr__(self):
         if self.value is not None and self.unit:
-            return u'%s %s' % (self.value, self.unit)
+            return '%r %r' % (self.value, self.unit)
+        return ''
 
 
 class Forecast(BaseObject):

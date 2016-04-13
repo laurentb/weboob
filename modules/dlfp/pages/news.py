@@ -106,7 +106,7 @@ class Comment(Content):
                 yield c
 
     def __repr__(self):
-        return u"<Comment id=%r author=%r title=%r>" % (self.id, self.author, self.title)
+        return "<Comment id=%r author=%r title=%r>" % (self.id, self.author, self.title)
 
 
 class Article(Content):

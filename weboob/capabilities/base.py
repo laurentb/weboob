@@ -122,7 +122,7 @@ class NotAvailableType(object):
     """
 
     def __str__(self):
-        return unicode(self).decode('utf-8')
+        return unicode(self).encode('utf-8')
 
     def __copy__(self):
         return self
@@ -151,7 +151,7 @@ class NotLoadedType(object):
     """
 
     def __str__(self):
-        return unicode(self).decode('utf-8')
+        return unicode(self).encode('utf-8')
 
     def __copy__(self):
         return self
@@ -160,7 +160,7 @@ class NotLoadedType(object):
         return self
 
     def __repr__(self):
-        return u'NotLoaded'
+        return 'NotLoaded'
 
     def __unicode__(self):
         return u'Not loaded'

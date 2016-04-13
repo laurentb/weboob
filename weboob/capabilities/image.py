@@ -48,7 +48,7 @@ class Thumbnail(_BaseImage):
         return self.url
 
     def __repr__(self):
-        return '<Thumbnail url="%s">' % self.url
+        return '<Thumbnail url="%r">' % self.url
 
 
 class BaseImage(_BaseImage):
