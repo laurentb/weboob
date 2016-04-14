@@ -271,6 +271,27 @@ DATE_TRANSLATE_FR = [(re.compile(ur'janvier', re.I),   ur'january'),
                      (re.compile(ur'dimanche', re.I),  ur'sunday')]
 
 
+DATE_TRANSLATE_IT = [(re.compile(ur'gennaio', re.I),   ur'january'),
+                     (re.compile(ur'febbraio', re.I),   ur'february'),
+                     (re.compile(ur'marzo', re.I),      ur'march'),
+                     (re.compile(ur'aprile', re.I),     ur'april'),
+                     (re.compile(ur'maggio', re.I),       ur'may'),
+                     (re.compile(ur'giugno', re.I),      ur'june'),
+                     (re.compile(ur'luglio', re.I),   ur'july'),
+                     (re.compile(ur'agosto', re.I),      ur'august'),
+                     (re.compile(ur'settembre', re.I), ur'september'),
+                     (re.compile(ur'ottobre', re.I),   ur'october'),
+                     (re.compile(ur'novembre', re.I),  ur'november'),
+                     (re.compile(ur'dicembre', re.I),  ur'december'),
+                     (re.compile(ur'luned[iì]', re.I),     ur'monday'),
+                     (re.compile(ur'marted[iì]', re.I),     ur'tuesday'),
+                     (re.compile(ur'mercoled[iì]', re.I),  ur'wednesday'),
+                     (re.compile(ur'gioved[iì]', re.I),     ur'thursday'),
+                     (re.compile(ur'venerd[iì]', re.I),  ur'friday'),
+                     (re.compile(ur'sabato', re.I),    ur'saturday'),
+                     (re.compile(ur'domenica', re.I),  ur'sunday')]
+
+
 def parse_french_date(date, **kwargs):
     for fr, en in DATE_TRANSLATE_FR:
         date = fr.sub(en, date)
