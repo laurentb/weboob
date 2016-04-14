@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import BaseObject, StringField, DecimalField, UserError, Currency
+from .base import BaseObject, StringField, DecimalField, BoolField, UserError, Currency
 from .date import DateField
 from .collection import CapCollection
 
@@ -78,6 +78,7 @@ class Bill(Document, Currency):
     duedate =       DateField('The day the bill must be paid')
     startdate =     DateField('The first day the bill applies to')
     finishdate =    DateField('The last day the bill applies to')
+    incomes =       BoolField('Boolean to set if bill is income or invoice', default=False)
 
 
 class Subscription(BaseObject):
