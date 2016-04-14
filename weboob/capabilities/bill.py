@@ -78,7 +78,7 @@ class Bill(Document, Currency):
     duedate =       DateField('The day the bill must be paid')
     startdate =     DateField('The first day the bill applies to')
     finishdate =    DateField('The last day the bill applies to')
-    incomes =       BoolField('Boolean to set if bill is income or invoice', default=False)
+    income =       BoolField('Boolean to set if bill is income or invoice', default=False)
 
 
 class Subscription(BaseObject):
