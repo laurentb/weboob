@@ -300,7 +300,17 @@ class CardsPage(BasePage):
             account._perimeter = self.browser.current_perimeter
             yield account
 
-    def get_history(self, date_guesser):
+    def get_next_url(self):
+        links = self.document.xpath('//font[@class="btnsuiteliste"]')
+        if len(links) < 1:
+            return None
+
+        a = links[-1].find('a')
+        if a.attrib.get('class', '') == 'liennavigationcorpspage':
+            return a.attrib['href']
+
+        return None
+    def get_history(self, date_guesser, state=None):
         seen = set()
         lines = self.document.xpath('(//table[@class="ca-table"])[2]/tr')
         debit_date = None
@@ -321,8 +331,10 @@ class CardsPage(BasePage):
                 m = re.search('(\d+ [^ ]+ \d+)', label)
                 if not m:
                     raise BrokenPageError('Unable to read card balance in history: %r' % label)
-
-                debit_date = parse_french_date(m.group(1))
+                if state is None:
+                    debit_date = parse_french_date(m.group(1))
+                else:
+                    debit_date = state
 
                 # Skip the first line because it is balance
                 if i == 0:
@@ -332,6 +344,7 @@ class CardsPage(BasePage):
 
                 # Consider the second one as a positive amount to reset balance to 0.
                 t.amount = -t.amount
+                state = t.date
             else:
                 day, month = map(int, date.split('/', 1))
                 t.rdate = date_guesser.guess_date(day, month)
@@ -345,7 +358,7 @@ class CardsPage(BasePage):
                 self.logger.debug(t.label)
                 raise
 
-            yield t
+            yield state, t
 
     def is_on_right_detail(self, account):
         return len(self.document.xpath(u'//h1[contains(text(), "Cartes - détail")]')) and\

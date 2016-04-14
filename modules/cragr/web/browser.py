@@ -54,6 +54,7 @@ class Cragr(Browser):
              'https?://[^/]+/stb/.*/erreur/.*':                          LoginErrorPage,
              'https?://[^/]+/stb/entreeBam\?.*act=Messagesprioritaires': UselessPage,
              'https?://[^/]+/stb/collecteNI\?.*fwkaction=Cartes.*':      CardsPage,
+             'https?://[^/]+/stb/collecteNI\?.*sessionAPP=Cartes.*':      CardsPage,
              'https?://[^/]+/stb/collecteNI\?.*fwkaction=Detail.*sessionAPP=Cartes.*': CardsPage,
              'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.WalletVal\?nump=.*': MarketPage,
              'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis': MarketHomePage,
@@ -293,11 +294,18 @@ class Cragr(Browser):
             self.location(account._link.format(self.sag))
 
         if self.is_on_page(CardsPage):
-            for tr in self.page.get_history(date_guesser):
-                yield tr
+            url = self.page.url
+            state = None
+            while url:
+                self.location(url)
+                assert self.is_on_page(CardsPage)
+                for state, tr in self.page.get_history(date_guesser, state):
+                    yield tr
+
+                url = self.page.get_next_url()
+
         elif self.page:
             url = self.page.get_order_by_date_url()
-
             while url:
                 self.location(url)
                 assert self.is_on_page(TransactionsPage)
