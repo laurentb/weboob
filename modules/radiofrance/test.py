@@ -75,7 +75,7 @@ class RadioFranceTest(BackendTest):
         self.assertTrue(len(l[0].streams) > 0)
 
     def test_search_get_audio(self):
-        l = list(self.backend.search_audio('journal'))
+        l = list(self.backend.search_audio('jou'))
         self.assertTrue(len(l) > 0)
 
         a = self.backend.get_audio(l[0].id)

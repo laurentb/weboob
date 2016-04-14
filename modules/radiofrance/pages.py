@@ -20,6 +20,7 @@
 from weboob.browser.elements import ItemElement, DictElement, ListElement, method
 from weboob.browser.pages import HTMLPage, JsonPage, XMLPage
 from weboob.browser.filters.json import Dict
+from weboob.browser.filters.html import XPath
 from weboob.browser.filters.standard import Format, CleanText, Join, Env, Regexp, Duration, Time
 from weboob.capabilities.audio import BaseAudio
 from weboob.tools.capabilities.audio.audio import BaseAudioIdFilter
@@ -43,6 +44,8 @@ class PodcastPage(XMLPage):
                                                      'http://media.radiofrance-podcast.net/podcast09/(.*).mp3')))
             obj_title = CleanText('title')
             obj_format = u'mp3'
+            obj_ext = u'mp3'
+
             obj_url = CleanText('enclosure/@url')
             obj_description = CleanText('description')
 
@@ -69,28 +72,37 @@ class RadioPage(HTMLPage):
             url = CleanText('//a[@id="player"][1]/@href')(self.doc)
         return url
 
-    def get_france_culture_podcasts_url(self):
-        return Regexp(CleanText('//a[@class="lien-rss"][1]/@href'),
-                      'http://radiofrance-podcast.net/podcast09/rss_(.*).xml')(self.doc)
-
     @method
-    class get_france_culture_podcast_emissions(ListElement):
-        item_xpath = '//li/h3/a'
-        ignore_duplicate = True
+    class get_france_culture_selection(ListElement):
+        item_xpath = '//div[@id="sidebar"]/div[has-class("expression")]/div'
 
         class item(ItemElement):
-            klass = Collection
+            klass = BaseAudio
 
-            def condition(self):
-                return u'/podcast/' in CleanText('./@href')(self)
+            obj_id = BaseAudioIdFilter(Format(u'%s.%s', Env('radio_id'),
+                                              Regexp(CleanText('./div/div/a/@href'),
+                                                     'http://media.radiofrance-podcast.net/podcast09/(.*).mp3')))
+            obj_ext = u'mp3'
+            obj_format = u'mp3'
+            obj_url = CleanText('./div/div/a/@href')
+            obj_title = Format(u'%s : %s',
+                               CleanText('./a/div[@class="subtitle"]'),
+                               CleanText('./a/div[@class="title"]'))
+            obj_description = CleanText('./div/div/a/@data-asset-xtname')
 
-            def obj_split_path(self):
-                _id = Regexp(CleanText('./@href'), '/podcast/(.*)')(self)
-                self.env['split_path'].append(_id)
-                return self.env['split_path']
+            def obj_duration(self):
+                _d = CleanText('./div/div/a/@data-duration')(self)
+                return timedelta(seconds=int(_d))
 
-            obj_id = Regexp(CleanText('./@href'), '/podcast/(.*)')
-            obj_title = CleanText('.')
+    def get_france_culture_podcasts_url(self):
+        for a in XPath('//a[@class="podcast"]')(self.doc):
+            emission_id = Regexp(CleanText('./@href'),
+                                 'http://radiofrance-podcast.net/podcast09/rss_(.*).xml', default=None)(a)
+            if emission_id:
+                return emission_id
+
+    def get_france_culture_url(self):
+        return CleanText('//a[@id="lecteur-commun"]/@href')(self.doc)
 
     @method
     class get_france_info_podcast_emissions(ListElement):
@@ -196,6 +208,31 @@ class RadioPage(HTMLPage):
 
 class JsonPage(JsonPage):
     @method
+    class get_france_culture_podcast_emissions(DictElement):
+        class item(ItemElement):
+            klass = Collection
+
+            def obj_split_path(self):
+                _id = Regexp(Dict('href'), 'emissions/(.*)')(self)
+                self.env['split_path'].append(_id)
+                return self.env['split_path']
+
+            obj_id = Regexp(Dict('href'), 'emissions/(.*)')
+            obj_title = Format('%s (%s)', Dict('name'), Dict('production'))
+
+    def get_france_culture_current(self):
+        for item in self.doc:
+            now = int(time.time())
+            for item in self.doc:
+                if int(item['start']) < now and int(item['end']) > now:
+                    emission = item['surtitle']
+                    title = item['title']
+                    if emission:
+                        title = u'%s: %s' % (title, emission)
+                    return u'', title
+        return u'', u''
+
+    @method
     class get_selection(DictElement):
 
         def __init__(self, *args, **kwargs):
@@ -214,6 +251,8 @@ class JsonPage(JsonPage):
 
             obj_id = BaseAudioIdFilter(Format(u'%s.%s', Env('radio_id'), Dict('nid')))
             obj_format = u'mp3'
+            obj_ext = u'mp3'
+
             obj_title = Format(u'%s : %s',
                                Dict('title_emission'),
                                Dict('title_diff'))
