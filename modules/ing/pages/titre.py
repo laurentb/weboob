@@ -50,6 +50,7 @@ class TitrePage(LoggedPage, RawPage):
         # [...]
         lines = self.doc.split("popup=2")
         lines.pop(0)
+        invests = []
         for line in lines:
             columns = line.split('#')
             _pl = columns[0].split('{')[1]
@@ -81,6 +82,21 @@ class TitrePage(LoggedPage, RawPage):
             diff = FrenchTransaction.clean_amount(columns[5])
             invest.diff = CleanDecimal(default=NotAvailable).filter(diff)
 
+            # On some case we have a multine investment with a total column
+            # for now we have only see this on 2 lines, we will need to adapt it when o
+            if columns[9] == u'|Total' and _id == 'fichevaleur':
+                prev_inv = invest
+                invest = invests.pop(-1)
+                if prev_inv.quantity:
+                    invest.quantity = invest.quantity + prev_inv.quantity
+                if prev_inv.valuation:
+                    invest.valuation = invest.valuation + prev_inv.valuation
+                if prev_inv.diff:
+                    invest.diff = invest.diff + prev_inv.diff
+
+            invests.append(invest)
+
+        for invest in invests:
             yield invest
 
 
