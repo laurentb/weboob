@@ -101,7 +101,6 @@ class S2eBrowser(LoginBrowser):
             if not int(trans['codeEntreprise']) == int(account.id):
                 continue
             t = Transaction()
-            t.id = trans["referenceOperationIndividuelle"]
             t.date = datetime.strptime(trans["dateHeureSaisie"], "%d/%m/%Y")
             t.rdate = datetime.strptime(trans["dateHeureSaisie"], "%d/%m/%Y")
             t.type = Transaction.TYPE_DEPOSIT if trans["montantNetEuro"] > 0 else Transaction.TYPE_PAYBACK
