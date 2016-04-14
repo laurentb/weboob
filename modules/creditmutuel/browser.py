@@ -101,6 +101,7 @@ class CreditMutuelBrowser(LoginBrowser):
     __states__ = ['currentSubBank']
 
     def do_login(self):
+        self.fleet_pages = {}
         # Clear cookies.
         self.do_logout()
 
@@ -132,6 +133,11 @@ class CreditMutuelBrowser(LoginBrowser):
                 accounts.append(a)
             self.new_iban.go().fill_iban(accounts)
             self.new_por.go().add_por_accounts(accounts)
+        for id, pages_list in self.fleet_pages.iteritems():
+            for page in pages_list:
+                for a in page.get_cards(accounts=accounts):
+                    if a not in accounts:
+                        accounts.append(a)
         return accounts
 
     def get_account(self, id):

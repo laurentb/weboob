@@ -29,7 +29,7 @@ from dateutil.relativedelta import relativedelta
 
 from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, SkipItem, method, TableElement
-from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, TableCell, Regexp, Async, AsyncLoad, Date, ColumnNotFound
+from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, TableCell, Regexp, Async, AsyncLoad, Date, ColumnNotFound, Format
 from weboob.browser.filters.html import Link, Attr
 from weboob.exceptions import BrowserIncorrectPassword, ParseError
 from weboob.capabilities import NotAvailable
@@ -196,19 +196,25 @@ class AccountsPage(LoggedPage, HTMLPage):
                         id = p['webid'][0]
                         self.env['_is_webid'] = True
 
+                page = self.page.browser.open(link).page
+
                 # Handle cards
                 if id in self.parent.objects:
-                    account = self.parent.objects[id]
-                    if not account.coming:
-                        account.coming = Decimal('0.0')
-                    account.coming += balance
-                    account._card_links.append(link)
+                    if page.is_fleet() or id in self.page.browser.fleet_pages:
+                        if not id in self.page.browser.fleet_pages:
+                            self.page.browser.fleet_pages[id] = []
+                        self.page.browser.fleet_pages[id].append(page)
+                    else:
+                        account = self.parent.objects[id]
+                        if not account.coming:
+                            account.coming = Decimal('0.0')
+                        account.coming += balance
+                        account._card_links.append(link)
                     raise SkipItem()
 
                 self.env['id'] = id
 
                 # Handle real balances
-                page = self.page.browser.open(link).page
                 coming = page.find_amount(u"Opérations à venir") if page else None
                 accounting = page.find_amount(u"Solde comptable") if page else None
 
@@ -321,6 +327,33 @@ class ComingPage(OperationsPage, LoggedPage):
 
 
 class CardPage(OperationsPage, LoggedPage):
+    def is_fleet(self):
+        return len(self.doc.xpath('//table[@class="liste"]/tbody/tr/td/a')) >= 5
+
+    @method
+    class get_cards(Pagination, ListElement):
+        item_xpath = '//table[@class="liste"]/tbody/tr'
+
+        class item(ItemElement):
+            klass = Account
+
+            obj__owner = Regexp(CleanText('./td[1]/text()', replace=[(' ', '')]), 'Titulaire:(.*)')
+            obj_id = Format('%s%s', Regexp(CleanText('./td[1]/a', replace=[(' ', '')]), '([\d]+)'), Field('_owner'))
+            obj_label = Field('_owner')
+            obj_balance = NotAvailable
+            obj_currency = FrenchTransaction.Currency('./td[2]')
+            obj__link_id = Link('./td[1]/a')
+            obj_type = Account.TYPE_CARD
+            obj__card_links = []
+            obj__is_inv = False
+            obj__is_webid = False
+
+            def parse(self, el):
+                account = [acc for acc in self.env['accounts'] if acc.id == Field('id')(self)]
+                if account:
+                    account[0]._card_links.append(Field('_link_id')(self))
+                    raise SkipItem()
+
     @method
     class get_history(Pagination, ListElement):
         class list_cards(ListElement):
