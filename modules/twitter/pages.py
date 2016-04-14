@@ -159,7 +159,7 @@ class TimelineListElement(ListElement):
         obj_title = Format('%s \n\t %s',
                            CleanText('./div/div[@class="stream-item-header"]/a|./div/div[@class="ProfileTweet-authorDetails"]/a',
                                      replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')]),
-                           CleanText('./div/p',
+                           CleanText('./div/div/p',
                                      replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')]))
         obj_date = DatetimeFromTimestamp(Attr('./div/div[@class="stream-item-header"]/small/a/span | ./div/div[@class="ProfileTweet-authorDetails"]/span/a/span', 'data-time'))
 

@@ -126,7 +126,7 @@ class TwitterBrowser(LoginBrowser):
 
     def get_tweets_from_search(self, path):
         min_position = self.search_page.go(pattern=path).get_min_position()
-        params = {'q': "%s" % path,
+        params = {'q': "%s" % path.encode('utf-8'),
                   'src': 'sprv'}
 
         return self.search.go(params=params).iter_threads(params=params, min_position=min_position)
