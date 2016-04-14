@@ -21,7 +21,7 @@ import re
 
 from datetime import timedelta
 
-from .image import BaseImage
+from .image import Thumbnail
 from .base import Field, StringField, IntField, BaseObject
 from .file import CapFile, BaseFile
 
@@ -51,7 +51,7 @@ class Album(BaseObject):
     title = StringField('album name')
     author = StringField('artist name')
     year = IntField('release year')
-    thumbnail = Field('Image associated to the album', BaseImage)
+    thumbnail = Field('Image associated to the album', Thumbnail)
     tracks_list = Field('list of tracks', list)
 
     @classmethod
@@ -86,7 +86,7 @@ class BaseAudio(BaseFile):
     duration =  Field('file duration', int, long, timedelta)
     bitrate =   Field('file bit rate in Kbps', int)
     format =    StringField('file format')
-    thumbnail = Field('Image associated to the file', BaseImage)
+    thumbnail = Field('Image associated to the file', Thumbnail)
 
     @classmethod
     def decode_id(cls, _id):
