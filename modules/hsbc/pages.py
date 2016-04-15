@@ -40,6 +40,7 @@ class Transaction(FrenchTransaction):
                 (re.compile(r'^CHEQUE$'),                  FrenchTransaction.TYPE_CHECK),
                 (re.compile(r'^COTIS\.? (?P<text>.*)'),    FrenchTransaction.TYPE_BANK),
                 (re.compile(r'^REMISE (?P<text>.*)'),      FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(r'^FACTURES CB (?P<text>.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
                ]
 
 
@@ -187,6 +188,7 @@ class CPTOperationPage(LoggedPage, HTMLPage):
                 op.parse(date=m.group(3), raw=re.sub(u'[ ]+', u' ', m.group(4).replace(u'\n', u' ')))
                 op.set_amount(m.group(5))
                 op._coming = (re.match(r'\d+/\d+/\d+', m.group(2)) is None)
+                op.deleted = True if op.type == Transaction.TYPE_CARD_SUMMARY else False
                 yield op
 
 
