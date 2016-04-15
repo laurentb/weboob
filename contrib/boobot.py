@@ -21,6 +21,7 @@
 from __future__ import print_function
 
 from datetime import datetime, timedelta
+from dateutil.parser import parse as parse_date
 import logging
 import re
 import os
@@ -140,6 +141,13 @@ class BoobotBrowser(Browser):
         return '0 B'
 
 
+class Task(object):
+    def __init__(self, datetime, message, channel=None):
+        self.datetime = datetime
+        self.message = message
+        self.channel = channel
+
+
 class MyThread(Thread):
     daemon = True
 
@@ -154,6 +162,7 @@ class MyThread(Thread):
         for ev in self.bot.joined.itervalues():
             ev.wait()
 
+        self.weboob.repeat(5, self.check_tasks)
         self.weboob.repeat(300, self.check_board)
         self.weboob.repeat(600, self.check_dlfp)
         self.weboob.repeat(600, self.check_twitter)
@@ -212,6 +221,12 @@ class MyThread(Thread):
                 message = msg.message.replace(word, '\002%s\002' % word)
                 self.bot.send_message('[DLFP] <%s> %s' % (msg.login, message))
 
+    def check_tasks(self):
+        for task in list(self.bot.tasks_queue):
+            if task.datetime < datetime.now():
+                self.bot.send_message(task.message, task.channel)
+                self.bot.tasks_queue.remove(task)
+
     def stop(self):
         self.weboob.want_stop()
         self.weboob.deinit()
@@ -230,6 +245,8 @@ class Boobot(SingleServerIRCBot):
             self.joined[channel] = Event()
         self.weboob = None
         self.storage = None
+
+        self.tasks_queue = []
 
     def set_weboob(self, weboob):
         self.weboob = weboob
@@ -250,7 +267,8 @@ class Boobot(SingleServerIRCBot):
 
     def send_message(self, msg, channel=None):
         for m in msg.splitlines():
-            self.connection.privmsg(to_unicode(channel or self.mainchannel), to_unicode(m)[:450])
+            msg = to_unicode(m).encode('utf-8')[:450].decode('utf-8')
+            self.connection.privmsg(to_unicode(channel or self.mainchannel), msg)
 
     def on_pubmsg(self, c, event):
         # irclib 5.0 compatibility
@@ -275,6 +293,21 @@ class Boobot(SingleServerIRCBot):
         m = re.match('^%(?P<cmd>\w+)(?P<args>.*)$', text)
         if m and hasattr(self, 'cmd_%s' % m.groupdict()['cmd']):
             getattr(self, 'cmd_%s' %  m.groupdict()['cmd'])(nick, channel, m.groupdict()['args'].strip())
+
+    def cmd_at(self, nick, channel, text):
+        try:
+            datetime, message = text.split(' ', 1)
+        except ValueError:
+            self.send_message('Syntax: %at [YYYY-MM-DDT]HH:MM[:SS] message', channel)
+            return
+
+        try:
+            datetime = parse_date(datetime)
+        except ValueError:
+            self.send_message('Unable to read date %r' % datetime)
+            return
+
+        self.tasks_queue.append(Task(datetime, message, channel))
 
     def cmd_addquote(self, nick, channel, text):
         quotes = self.storage.get(channel, 'quotes', default=[])
