@@ -160,7 +160,7 @@ class HistoryPage(LoggedPage, SGPEPage):
 
             obj_date = Date(CleanText('./td[1]'), dayfirst=True)
             obj_raw = Transaction.Raw(CleanText('./td[2]'))
-            obj_vdate = Date(CleanText('./td[5]'))
+            obj_vdate = Date(CleanText('./td[5]'), dayfirst=True)
             obj_amount = CleanDecimal('./td[3] | ./td[4]', replace_dots=True)
 
             def obj_deleted(self):
@@ -202,6 +202,9 @@ class CardHistoryPage(LoggedPage, SGPEPage):
             obj_type = Transaction.TYPE_DEFERRED_CARD
             obj__coming = True
             obj_nopurge = True
+
+            def condition(self):
+                return CleanText('./td[2]')(self)
 
     def has_next(self):
         current = None
