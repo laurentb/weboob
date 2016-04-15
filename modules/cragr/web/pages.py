@@ -571,7 +571,7 @@ class MarketPage(BasePage):
         for line in self.document.xpath('//table[contains(@class, "ca-data-table")]/descendant::tr[count(td)>=7]'):
             cells = line.findall('td')
 
-            if not cells[self.COL_ID].find('div/a'):
+            if cells[self.COL_ID].find('div/a') is None:
                 continue
             inv = Investment()
             inv.label = unicode(cells[self.COL_ID].find('div/a').text.strip())
