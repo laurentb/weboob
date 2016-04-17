@@ -191,8 +191,16 @@ class StatementParser(object):
 
     @formatted
     def read_date(self, pos):
-        return self._tok.simple_read('date', pos,
-            lambda v: datetime.datetime.strptime(v, '%m/%d'))
+        def parse_date(v):
+            for year in [1900, 1904]: # try leap and non-leap years
+                fullstr = '%s/%i' % (v, year)
+                try:
+                    return datetime.datetime.strptime(fullstr, '%m/%d/%Y')
+                except ValueError as e:
+                    pass
+            raise e
+
+        return self._tok.simple_read('date', pos, parse_date)
 
     @formatted
     def read_amount(self, pos):
