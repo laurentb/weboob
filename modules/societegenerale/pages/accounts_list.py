@@ -367,6 +367,7 @@ class LifeInsuranceHistory(LifeInsurance):
         date_xpath = '//td[@class="net2g_asv_suiviOperation_element1"]/following-sibling::td'
         vdate_xpath = '//td[@class="net2g_asv_tableau_cell_date"]'
         trans.date = self.parse_date(doc, trans, date_xpath, 1)
+        trans.rdate = trans.date
         trans.vdate = self.parse_date(doc, trans, vdate_xpath, 0)
 
     @staticmethod
