@@ -322,10 +322,10 @@ class AccbisPage(LoggedPage, HTMLPage):
                             account._history_page = None
                         elif account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
                             account._history_page = re.sub('/$', '', Link().filter(a.xpath('.')))
-                        elif 'titulaire' in self.url:
-                            account._history_page = self.browser.budget_transactions
-                        else:
+                        elif '/compte/cav' in a.attrib['href'] or not 'titulaire' in self.url:
                             account._history_page = self.browser.other_transactions
+                        else:
+                            account._history_page = self.browser.budget_transactions
                         account._webid = Attr(None, 'data-account-label').filter(a.xpath('.//span[@class="nav-category__name"]'))
         accounts.extend(cards)
 
