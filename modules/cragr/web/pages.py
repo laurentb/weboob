@@ -278,6 +278,7 @@ class CardsPage(BasePage):
             account = Account()
             account.type = account.TYPE_CARD
             account.id = ''.join(get('_id').split()[1:])
+            account._id = ' '.join(get('_id').split()[1:])
             account.label = '%s - %s' % (get('label1'),
                                          re.sub('\s*-\s*$', '', get('label2')))
             try:
@@ -362,7 +363,7 @@ class CardsPage(BasePage):
 
     def is_on_right_detail(self, account):
         return len(self.document.xpath(u'//h1[contains(text(), "Cartes - détail")]')) and\
-               len(self.document.xpath(u'//td[contains(text(), "%s")]' % account.id))
+               len(self.document.xpath(u'//td[contains(text(), "%s")] | //td[contains(text(), "%s")] ' % (account.id, account._id)))
 
 
 class AccountsPage(_AccountsPage):

@@ -296,8 +296,12 @@ class Cragr(Browser):
         if self.is_on_page(CardsPage):
             url = self.page.url
             state = None
+            notfirst = False
             while url:
-                self.location(url)
+                if notfirst:
+                    self.location(url)
+                else:
+                    notfirst = True
                 assert self.is_on_page(CardsPage)
                 for state, tr in self.page.get_history(date_guesser, state):
                     yield tr
