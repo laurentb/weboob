@@ -161,7 +161,7 @@ class Cragr(Browser):
             self.location(new_url)
 
         if not self.is_on_page(AccountsPage):
-            raise self.WebsiteNotSupported()
+            raise BrowserIncorrectPassword()
 
         if self.code_caisse is None:
             scripts = self.page.document.xpath('//script[contains(., " codeCaisse")]')
