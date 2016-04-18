@@ -108,7 +108,7 @@ class FeedlyModule(Module, CapMessages, CapCollection):
         if username:
             password = self.config['password'].get()
             login_browser = GoogleBrowser(username, password,
-                                          'https://feedly.com/v3/auth/callback&scope=profile+email&state=Amm-1gV7ImkiOiJmZWVkbHkiLCJycCI6IndlbGNvbWUiLCJyIjoiaHR0cDovL2ZlZWRseS5jb20vZmVlZGx5Lmh0bWwiLCJwIjoiR29vZ2xlUGx1cyIsImMiOiJmZWVkbHkuZGVza3RvcCAyOC4wLjk1NSJ9')
+                                          'https://feedly.com/v3/auth/callback&scope=profile+email&state=A8duE2XpzvtgcHt-q29qyBBK2fkpTefgqfzy7SY4GWUOPl3BgrSt4DRS-qKm9MRi_mXJRem8QW7RmNjpc_BIlkWc0JJvpay3UyzIErNvtaZLcsrUy94Ays3gTyispb8R0doguiky8gGxuCFNvJ9iXIB_SlwNhWABm7ut3nIgoMg3wodRgYOPFothhkErchrv076tBwXQA4Z8OIRyrQ')
         else:
             password = None
             login_browser = None
