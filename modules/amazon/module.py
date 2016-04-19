@@ -27,6 +27,7 @@ from weboob.tools.ordereddict import OrderedDict
 
 from .browser import Amazon
 from .fr.browser import AmazonFR
+from .de.browser import AmazonDE
 
 __all__ = ['AmazonModule']
 
@@ -42,11 +43,13 @@ class AmazonModule(Module, CapShop, CapDocument):
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'www.amazon.com': u'Amazon.com',
         'www.amazon.fr': u'Amazon France',
+        'www.amazon.de': u'Amazon.de',
         }.iteritems())])
 
     BROWSERS = {
         'www.amazon.com': Amazon,
         'www.amazon.fr': AmazonFR,
+        'www.amazon.de': AmazonDE,
         }
 
     CONFIG = BackendConfig(

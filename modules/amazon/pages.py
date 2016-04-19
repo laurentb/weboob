@@ -28,6 +28,15 @@ import re
 
 
 class AmazonPage(HTMLPage):
+    def to_switchlanguage(self):
+        url = self.doc.xpath('//a[contains(@href, "switchlang")]/@href')
+        if not url:
+            return
+        m = re.search('language=([\w_]+)', url[0])
+        if m:
+            url = url[0].replace(m.group(1), 'en_GB')
+        self.browser.location(url)
+
     @property
     def logged(self):
         return bool(self.doc.xpath(u'//*[contains(text(),"Sign Out")]'))
@@ -97,7 +106,13 @@ class OrderNewPage(OrderPage):
             order.tax = self.tax()
             order.discount = self.discount()
             order.shipping = self.shipping()
+            order.total = self.grand_total()
+            order._bill = self.bill()
             return order
+
+    def bill(self):
+        html = self.doc.xpath(u'//a[contains(text(), "Printable Order Summary")]')
+        return {'url': html[0].attrib['href'], 'format': u'html'}
 
     def order_date(self):
         return datetime.strptime(
@@ -106,7 +121,7 @@ class OrderNewPage(OrderPage):
             '%B %d, %Y')
 
     def order_number(self):
-        m = re.match('.*Order# +([^ ]+) .*', self.date_num())
+        m = re.match('.*Order[^#]+# +([^ ]+) .*', self.date_num())
         if m:
             return m.group(1)
 
@@ -153,7 +168,11 @@ class OrderNewPage(OrderPage):
             '//*[contains(text(),"Ordered on")]/text()')).replace('\n', '')
 
     def tax(self):
-        return self.amount(u'Estimated tax to be collected')
+        tax = self.amount(u'Estimated tax to be collected')
+        if not tax:
+            return self.amount(u'  VAT')
+        return tax
+
 
     def shipping(self):
         return self.amount(u'Free shipping', u'Free Shipping',
