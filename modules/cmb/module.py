@@ -108,6 +108,8 @@ class CmbModule(Module, CapBank):
         else:
             self.islogged=True
 
+            # Go on agricultor space when there is one.
+            self.browser.open("https://www.cmb.fr/domiweb/prive/espacesegment/selectionnerAbonnement/1-selectionnerAbonnement.act?espace=AG&indice=0")
             # Go on pro space when there is one.
             self.browser.open("https://www.cmb.fr/domiweb/prive/espacesegment/selectionnerAbonnement/1-selectionnerAbonnement.act?espace=PR&indice=0")
 
