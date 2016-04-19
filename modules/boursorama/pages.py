@@ -21,7 +21,7 @@ import re
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, TableCell, Regexp, Date, AsyncLoad, Async
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, TableCell, Regexp, Date, AsyncLoad, Async, Eval
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
@@ -283,6 +283,7 @@ class SavingMarketPage(LoggedPage, HTMLPage):
             obj_code = CleanText(TableCell('code'))
             obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True)
             obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True)
+            obj_valuation = Eval(lambda x, y: x * y, Field('quantity'), Field('unitvalue'))
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
 
 class AsvPage(MarketPage):

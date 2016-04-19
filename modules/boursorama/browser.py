@@ -54,7 +54,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     other_transactions = URL('/compte/cav/(?P<webid>.*)/mouvements.*', HistoryPage)
     asv = URL('/compte/assurance-vie/.*', AsvPage)
     saving_history = URL('/compte/cefp/.*/(positions|mouvements)',
-                         '/compte/ord/.*/mouvements',
+                         '/compte/.*ord/.*/mouvements',
                          '/compte/pea/.*/mouvements', SavingMarketPage)
     market = URL('/compte/(?!assurance|cav|epargne).*/(positions|mouvements)',
                  '/compte/ord/.*/positions', MarketPage)
