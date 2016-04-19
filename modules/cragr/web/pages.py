@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from datetime import date as ddate
 from decimal import Decimal
 from urlparse import urlparse
 import re
@@ -570,6 +571,8 @@ class MarketPage(BasePage):
 
     def iter_investment(self):
         for line in self.document.xpath('//table[contains(@class, "ca-data-table")]/descendant::tr[count(td)>=7]'):
+            for sub in line.xpath('./td[@class="info-produit"]'):
+                sub.drop_tree()
             cells = line.findall('td')
 
             if cells[self.COL_ID].find('div/a') is None:
@@ -587,9 +590,12 @@ class MarketPage(BasePage):
                 inv.unitprice = self.parse_decimal(cells[self.COL_UNITPRICE].text)
                 inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE].text)
             date = cells[self.COL_UNITVALUE].find('span').text
-            day, month = map(int, date.split('/', 1))
-            date_guesser = LinearDateGuesser()
-            inv.vdate = date_guesser.guess_date(day, month)
+            if ':' in date:
+                inv.vdate = ddate.today()
+            else:
+                day, month = map(int, date.split('/', 1))
+                date_guesser = LinearDateGuesser()
+                inv.vdate = date_guesser.guess_date(day, month)
 
             yield inv
 
