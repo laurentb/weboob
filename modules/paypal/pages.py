@@ -100,8 +100,9 @@ class AccountPage(LoggedPage, HTMLPage):
         for li in lines:
             account = Account()
             account.type = Account.TYPE_CHECKING
-            account.id = CleanText().filter(li.xpath('./span[@class="currencyUnit"]/span | ./span[1]'))
-            account.currency = CleanText().filter(li.xpath('./span[@class="currencyUnit"]/span | ./span[1]'))
+            currency = Currency.get_currency(CleanText().filter(li.xpath('./span[@class="currencyUnit"]/span | ./span[1]')[0]))
+            account.id = currency
+            account.currency = currency
             account.balance = CleanDecimal(replace_dots=True).filter(li.xpath('./span[@class="amount"]/text()'))
             account.label = u'%s %s*' % (self.browser.username, account.currency)
             accounts[account.id] = account
