@@ -20,7 +20,7 @@
 import re
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
-from weboob.browser.elements import ListElement, ItemElement, method, TableElement
+from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, TableCell, Regexp, Date, AsyncLoad, Async, Eval
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment
@@ -199,6 +199,7 @@ class Myiter_investment(TableElement):
     col_valuation = u'Montant'
     col_diff = u'+/- latentes'
 
+
 class Myitem(ItemElement):
     klass = Investment
 
@@ -214,7 +215,9 @@ class Myitem(ItemElement):
     def obj_code(self):
         return CleanText().filter((TableCell('value')(self)[0]).xpath('./span')) or NotAvailable
 
+
 class MarketPage(LoggedPage, HTMLPage):
+    @pagination
     @method
     class iter_history(TableElement):
         item_xpath = '//table/tbody/tr'
@@ -224,19 +227,54 @@ class MarketPage(LoggedPage, HTMLPage):
         col_amount = 'Montant'
         col_date = 'Date d\'effet'
 
+        next_page = Link('//li[@class="pagination__next"]/a')
+
         class item(ItemElement):
-            klass = FrenchTransaction
+            klass = Transaction
 
             obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
-            obj_label = CleanText(TableCell('label'))
+            obj_raw = Transaction.Raw(CleanText(TableCell('label')))
             obj_amount = CleanDecimal(TableCell('amount'), replace_dots=True, default=NotAvailable)
             obj__is_coming = False
+
+            def parse(self, el):
+                m = re.search('(\d+)', el.xpath('./td[2]/a')[0].get('data-modal-alert-behavior', ''))
+                if m:
+                    self.env['account']._history_pages.append((Field('raw')(self),\
+                                                               self.page.browser.open('%s%s%s' % (self.page.url.split('mouvements')[0], 'mouvement/', m.group(1))).page))
+                    raise SkipItem()
 
     @method
     class iter_investment(Myiter_investment):
         class item (Myitem):
             def obj_unitvalue(self):
                 return CleanDecimal(replace_dots=True, default=NotAvailable).filter((TableCell('unitvalue')(self)[0]).xpath('./span[not(@class)]'))
+
+    def get_transactions_from_detail(self, account):
+        for label, page in account._history_pages:
+            amounts = page.doc.xpath('//span[contains(text(), "Montant")]/following-sibling::span')
+            if len(amounts) == 3:
+                amounts.pop(0)
+            for table in page.doc.xpath('//table'):
+                t = Transaction()
+
+                t.date = Date(CleanText(page.doc.xpath('//span[contains(text(), "Date d\'effet")]/following-sibling::span')), dayfirst=True)(page)
+                t.label  = label
+                t.amount = CleanDecimal(replace_dots=True).filter(amounts[0])
+                amounts.pop(0)
+                t._is_coming = False
+                t.investments = []
+                for tr in table.xpath('./tbody/tr'):
+                    i = Investment()
+                    i.label = CleanText().filter(tr.xpath('./td[1]'))
+                    i.vdate = Date(CleanText(tr.xpath('./td[2]')), dayfirst=True)(tr)
+                    i.unitvalue = CleanDecimal(replace_dots=True).filter(tr.xpath('./td[3]'))
+                    i.quantity = CleanDecimal(replace_dots=True).filter(tr.xpath('./td[4]'))
+                    i.valuation = CleanDecimal(replace_dots=True).filter(tr.xpath('./td[5]'))
+                    t.investments.append(i)
+
+                yield t
+
 
 class SavingMarketPage(LoggedPage, HTMLPage):
     @pagination
@@ -253,7 +291,7 @@ class SavingMarketPage(LoggedPage, HTMLPage):
         next_page = Link('//li[@class="pagination__next"]/a')
 
         class item(ItemElement):
-            klass = FrenchTransaction
+            klass = Transaction
 
             obj_label = CleanText(TableCell('label'))
             obj_amount = CleanDecimal(TableCell('amount'), replace_dots=True)
@@ -285,6 +323,7 @@ class SavingMarketPage(LoggedPage, HTMLPage):
             obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True)
             obj_valuation = Eval(lambda x, y: x * y, Field('quantity'), Field('unitvalue'))
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
+
 
 class AsvPage(MarketPage):
     @method
@@ -330,8 +369,10 @@ class AccbisPage(LoggedPage, HTMLPage):
                         account._webid = Attr(None, 'data-account-label').filter(a.xpath('.//span[@class="nav-category__name"]'))
         accounts.extend(cards)
 
+
 class LoanPage(LoggedPage, HTMLPage):
     pass
+
 
 class ErrorPage(HTMLPage):
     pass

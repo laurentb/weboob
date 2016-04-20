@@ -130,8 +130,14 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         if not account._history_page:
             return
         if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
+            transactions = []
             self.location('%s/mouvements' % account._history_page)
-            for t in self.page.iter_history():
+            account._history_pages = []
+            for t in self.page.iter_history(account=account):
+                transactions.append(t)
+            for t in self.page.get_transactions_from_detail(account):
+                transactions.append(t)
+            for t in sorted(transactions, key=lambda tr: tr.date, reverse=True):
                 yield t
         else:
             # We look for 1 year of history.
