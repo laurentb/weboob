@@ -44,10 +44,10 @@ _NO_DEFAULT = NoDefault()
 
 __all__ = ['FilterError', 'ColumnNotFound', 'RegexpError', 'ItemNotFound',
            'Filter', 'Base', 'Env', 'TableCell', 'RawText',
-           'CleanText', 'Lower', 'CleanDecimal', 'Field', 'Regexp', 'Map',
-           'DateTime', 'Date', 'Time', 'DateGuesser', 'Duration',
-           'MultiFilter', 'CombineDate', 'Format', 'Join', 'Type', 'Eval',
-           'BrowserURL', 'Async', 'AsyncLoad']
+           'CleanText', 'Lower', 'Upper', 'Capitalize', 'CleanDecimal',
+           'Field', 'Regexp', 'Map', 'DateTime', 'Date', 'Time', 'DateGuesser',
+           'Duration', 'MultiFilter', 'CombineDate', 'Format', 'Join', 'Type',
+           'Eval', 'BrowserURL', 'Async', 'AsyncLoad']
 
 
 class FilterError(ParseError):
@@ -412,6 +412,20 @@ class Lower(CleanText):
     def filter(self, txt):
         txt = super(Lower, self).filter(txt)
         return txt.lower()
+
+
+class Upper(CleanText):
+    @debug()
+    def filter(self, txt):
+        txt = super(Upper, self).filter(txt)
+        return txt.upper()
+
+
+class Capitalize(CleanText):
+    @debug()
+    def filter(self, txt):
+        txt = super(Capitalize, self).filter(txt)
+        return txt.title()
 
 
 class CleanDecimal(CleanText):
