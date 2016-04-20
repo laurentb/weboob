@@ -18,13 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.base import find_object
+from modules.amundi.tc.browser import AmundiTCBrowser
+from modules.amundi.ee.browser import AmundiEEBrowser
 from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword
-
-from .browser import AmundiBrowser
-
+from weboob.tools.value import ValueBackendPassword, Value
 
 __all__ = ['AmundiModule']
 
@@ -37,12 +36,16 @@ class AmundiModule(Module, CapBank):
     LICENSE = 'AGPLv3+'
     VERSION = '1.1'
 
-    BROWSER = AmundiBrowser
 
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', regexp='\d+', masked=False),
-                           ValueBackendPassword('password', label=u"Mot de passe", regexp='\d+'))
+                           ValueBackendPassword('password', label=u"Mot de passe", regexp='\d+'),
+                           Value('website', label='Type de compte', default='pp',
+                                choices={'ee': 'Amundi Epargne Entreprise',
+                                        'tc': 'Amundi Tenue de Compte'}))
 
     def create_default_browser(self):
+        b = {'ee': AmundiEEBrowser, 'tc': AmundiTCBrowser}
+        self.BROWSER = b[self.config['website'].get()]
         return self.create_browser(self.config['login'].get(),
                                    self.config['password'].get())
 

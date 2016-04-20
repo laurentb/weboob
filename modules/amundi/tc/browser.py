@@ -18,21 +18,20 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from modules.amundi.tc.pages import LoginPage, AccountsPage, AccountDetailPage, AccountHistoryPage
 from weboob.browser import URL, LoginBrowser, need_login
 from weboob.exceptions import BrowserIncorrectPassword
+from datetime import date
 
-from .pages import LoginPage, AccountsPage, AccountDetailPage, AccountHistoryPage
-
-
-class AmundiBrowser(LoginBrowser):
+class AmundiTCBrowser(LoginBrowser):
     TIMEOUT = 120.0
 
-    BASEURL = 'https://www.amundi-ee.com'
+    BASEURL = 'https://epargnants.amundi-tc.com'
 
-    login = URL('/part/home_login', LoginPage)
-    accounts = URL('/part/home_ajax_noee\?api=/api/individu/positionTotale', AccountsPage)
-    account_detail = URL('/part/home_priv_epa_encours', AccountDetailPage)
-    account_history = URL('/part/home_ajax_noee\?api=/api/individu/operations', AccountHistoryPage)
+    login = URL('/home', LoginPage)
+    accounts = URL('/home_ajax_noee\?api=/api/individu/positionTotale', AccountsPage)
+    account_detail = URL('/home_ajax_noee\?api=/api/individu/positionFonds', AccountDetailPage)
+    account_history = URL('/home_ajax_noee\?api=/api/individu/operations', AccountHistoryPage)
 
     def do_login(self):
         """
@@ -53,7 +52,9 @@ class AmundiBrowser(LoginBrowser):
 
     @need_login
     def iter_investments(self, account):
-        self.account_detail.go()
+        # self.account_detail.go()
+        params = '&idEnt=%s&date=%s&flagUrlFicheFonds=true' % (account._ident, date.today().strftime('%d/%m/%Y'))
+        self.account_detail.go(params=params)
         return self.page.iter_investments(data={'acc': account})
 
     @need_login

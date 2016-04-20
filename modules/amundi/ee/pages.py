@@ -46,13 +46,19 @@ class LoginPage(HTMLPage):
 
 class AccountsPage(LoggedPage, JsonPage):
     def iter_accounts(self):
+        t={'PEE':Account.TYPE_PEE, 'PEG':Account.TYPE_PEE, 'PERCO':Account.TYPE_PERCO}
         for acc in self.doc['positionTotaleDispositifDto']:
             ac = Account()
-            ac.type = Account.TYPE_MARKET
+            ac.type = Account.TYPE_LIFE_INSURANCE
             ac.id = ac.number = acc['codeDispositif']
             ac.label = acc['libelleDispositif']
             ac._entreprise = acc['libelleEntreprise']
             ac.balance = Decimal(acc['mtBrut'])
+            ac._ident = acc['idEnt']
+            for k, v in t.items():
+                if k in ac.label:
+                    ac.type = v
+                    break
             yield ac
 
 
