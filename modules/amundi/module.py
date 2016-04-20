@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from modules.amundi.tc.browser import AmundiTCBrowser
-from modules.amundi.ee.browser import AmundiEEBrowser
+from .tc.browser import AmundiTCBrowser
+from .ee.browser import AmundiEEBrowser
 from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig

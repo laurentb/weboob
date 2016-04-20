@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from modules.amundi.tc.pages import LoginPage, AccountsPage, AccountDetailPage, AccountHistoryPage
+from .pages import LoginPage, AccountsPage, AccountDetailPage, AccountHistoryPage
 from weboob.browser import URL, LoginBrowser, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from datetime import date
