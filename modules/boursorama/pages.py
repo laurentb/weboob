@@ -34,6 +34,8 @@ from weboob.exceptions import BrowserQuestion, BrowserIncorrectPassword
 class BrowserAuthenticationCodeMaxLimit(BrowserIncorrectPassword):
     pass
 
+class IncidentPage(HTMLPage):
+    pass
 
 class AuthenticationPage(HTMLPage):
     def authenticate(self):

@@ -27,7 +27,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,\
-                   MarketPage, LoanPage, SavingMarketPage, ErrorPage
+                   MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage
 
 
 __all__ = ['BoursoramaBrowser']
@@ -52,6 +52,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     card_transactions = URL('budget/mouvements.*', HistoryPage)
     budget_transactions = URL('/budget/compte/(?P<webid>.*)/mouvements.*', HistoryPage)
     other_transactions = URL('/compte/cav/(?P<webid>.*)/mouvements.*', HistoryPage)
+    incident = URL('/compte/cav/(?P<webid>.*)/mes-incidents.*', IncidentPage)
     asv = URL('/compte/assurance-vie/.*', AsvPage)
     saving_history = URL('/compte/cefp/.*/(positions|mouvements)',
                          '/compte/.*ord/.*/mouvements',
