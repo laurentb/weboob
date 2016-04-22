@@ -511,6 +511,8 @@ class Currency(object):
                   u'HKD': u'HK$',
                   u'QAR': u'QR',
                   u'MAD': u'MAD',
+                  u'CAD': u'C$',
+                  u'BGN': u'BGN',
                  }
 
     EXTRACTOR = re.compile(r'[\d\s,\.\-]', re.UNICODE)
