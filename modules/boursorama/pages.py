@@ -278,7 +278,7 @@ class MarketPage(LoggedPage, HTMLPage):
                 yield t
 
 
-class SavingMarketPage(LoggedPage, HTMLPage):
+class SavingMarketPage(MarketPage):
     @pagination
     @method
     class iter_history(TableElement):
