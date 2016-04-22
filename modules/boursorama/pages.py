@@ -240,11 +240,12 @@ class MarketPage(LoggedPage, HTMLPage):
             obj__is_coming = False
 
             def parse(self, el):
-                m = re.search('(\d+)', el.xpath('./td[2]/a')[0].get('data-modal-alert-behavior', ''))
-                if m:
-                    self.env['account']._history_pages.append((Field('raw')(self),\
-                                                               self.page.browser.open('%s%s%s' % (self.page.url.split('mouvements')[0], 'mouvement/', m.group(1))).page))
-                    raise SkipItem()
+                if el.xpath('./td[2]/a'):
+                    m = re.search('(\d+)', el.xpath('./td[2]/a')[0].get('data-modal-alert-behavior', ''))
+                    if m:
+                        self.env['account']._history_pages.append((Field('raw')(self),\
+                                                                self.page.browser.open('%s%s%s' % (self.page.url.split('mouvements')[0], 'mouvement/', m.group(1))).page))
+                        raise SkipItem()
 
     @method
     class iter_investment(Myiter_investment):
