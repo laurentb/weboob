@@ -210,7 +210,7 @@ class MainWindow(QtMainWindow):
         query.nb_rooms = int(q['nb_rooms']) or None
 
         self.process = QtDo(self.weboob, self.addHousing, fb=self.addHousingEnd)
-        self.process.do(self.app._do_complete, 20, (), 'search_housings', query)
+        self.process.do(self.app._do_complete, 20, None, 'search_housings', query)
 
     @Slot()
     def displayBookmarks(self):
@@ -322,11 +322,10 @@ class MainWindow(QtMainWindow):
         self.ui.phoneLabel.setText(housing.phone or nottext)
         self.ui.locationLabel.setText(housing.location or nottext)
         self.ui.stationLabel.setText(housing.station or nottext)
+        self.ui.urlLabel.setText('<a href="%s">%s</a>' % (housing.url or nottext, housing.url or nottext))
 
-        if housing.text:
-            self.ui.descriptionEdit.setText(housing.text.replace('\n', '<br/>'))
-        else:
-            self.ui.descriptionEdit.setText(nottext)
+        text = housing.text.replace('\n', '<br/>') if housing.text else nottext
+        self.ui.descriptionEdit.setText(text)
 
         self.ui.notesEdit.setText(self.storage.get('notes', housing.fullid, default=''))
 

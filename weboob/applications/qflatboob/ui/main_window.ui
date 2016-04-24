@@ -243,6 +243,19 @@
                    </property>
                   </widget>
                  </item>
+                 <item row="6" column="0">
+                  <widget class="QLabel" name="label_8">
+                   <property name="font">
+                    <font>
+                     <weight>75</weight>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>URL</string>
+                   </property>
+                  </widget>
+                 </item>
                  <item row="1" column="1">
                   <widget class="QLabel" name="areaLabel">
                    <property name="text">
@@ -285,6 +298,16 @@
                  </item>
                  <item row="5" column="1">
                   <widget class="QLabel" name="stationLabel">
+                   <property name="text">
+                    <string>Loading...</string>
+                   </property>
+                   <property name="textInteractionFlags">
+                    <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="6" column="1">
+                  <widget class="QLabel" name="urlLabel">
                    <property name="text">
                     <string>Loading...</string>
                    </property>
