@@ -196,7 +196,7 @@ class CardHistoryPage(LoggedPage, SGPEPage):
             klass = Transaction
 
             obj_rdate = Date(CleanText('./td[1]'), dayfirst=True)
-            obj_date = Date(Env('date'), dayfirst=True)
+            obj_date = Date(Env('date'), dayfirst=True, default=NotAvailable)
             obj_raw = Transaction.Raw(CleanText('./td[2]'))
             obj_amount = CleanDecimal('./td[3]', replace_dots=True, default=NotAvailable) or CleanDecimal('./td[2]', replace_dots=True)
             obj_type = Transaction.TYPE_DEFERRED_CARD
