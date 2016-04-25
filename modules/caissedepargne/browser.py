@@ -38,6 +38,7 @@ class CaisseEpargne(Browser):
              'https://[^/]+/Portail.aspx.*':                              IndexPage,
              'https://[^/]+/login.aspx':                                  ErrorPage,
              'https://[^/]+/Pages/logout.aspx.*':                         ErrorPage,
+             'https://[^/]+/particuliers/Page_erreur_technique.aspx.*':                         ErrorPage,
              'https://[^/]+/page_hs_dei_.*.aspx':                         UnavailablePage,
              'https://[^/]+/Pages/Bourse.*':                              MarketPage,
              'https://www.caisse-epargne.offrebourse.com/ReroutageSJR':   MarketPage,
@@ -80,7 +81,8 @@ class CaisseEpargne(Browser):
         self.page.login(self.username)
         if not self.page.login2(self.nuser, self.password):
             # perso
-            self.page.login3(self.password)
+            if not self.is_on_page(ErrorPage):
+                self.page.login3(self.password)
 
         if not self.is_logged():
             raise BrowserIncorrectPassword()
