@@ -144,6 +144,9 @@ class ListElement(AbstractElement):
                 attr = getattr(self, attrname)
                 if isinstance(attr, type) and issubclass(attr, AbstractElement) and attr != type(self):
                     item = attr(self.page, self, el)
+                    if item.condition is not None and not item.condition():
+                        continue
+
                     item.handle_loaders()
                     items.append(item)
 
