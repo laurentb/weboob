@@ -84,8 +84,8 @@ class AccountHistoryPage(LoggedPage, JsonPage):
     def iter_history(self, data):
         for hist in self.doc['operationsIndividuelles']:
             if len(hist['instructions']) > 0:
-                if hist['instructions'][0]['nomDispositif'] + hist['instructions'][0]['codeDispositif'] == data[
-                    'acc'].label + data['acc'].id:
+                if 'nomDispositif' in hist['instructions'][0] and \
+                   hist['instructions'][0]['nomDispositif'] + hist['instructions'][0]['codeDispositif'] == data['acc'].label + data['acc'].id:
                     tr = Transaction()
                     tr.amount = Decimal(hist['montantNet']) + Decimal(hist['montantNetAbondement'])
                     tr.rdate = datetime.strptime(hist['dateComptabilisation'].split('T')[0], '%Y-%m-%d')
