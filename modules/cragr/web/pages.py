@@ -38,7 +38,7 @@ class BasePage(Page):
         try:
             current_elem = self.document.xpath('//div[@id="libPerimetre"]/span[@class="texte"]')[0]
         except IndexError:
-            self.logger.debug('Can\'t update current perimeter on this page.')
+            self.logger.debug('Can\'t update current perimeter on this page (%s).', type(self).__name__)
             return
         self.browser.current_perimeter = re.search(': (.*)$', self.parser.tocleanstring(current_elem)).group(1).lower()
 
@@ -110,6 +110,11 @@ class UselessPage(BasePage):
 
 class LoginErrorPage(BasePage):
     pass
+
+
+class FirstVisitPage(BasePage):
+    def on_loaded(self):
+        raise BrowserIncorrectPassword(u'Veuillez vous connecter au site du Crédit Agricole pour valider vos données personnelles, et réessayer ensuite.')
 
 
 class _AccountsPage(BasePage):

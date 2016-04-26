@@ -29,7 +29,7 @@ from weboob.tools.date import LinearDateGuesser
 from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, \
                    SavingsPage, TransactionsPage, UselessPage, CardsPage, \
                    LifeInsurancePage, MarketPage, LoansPage, PerimeterPage, \
-                   ChgPerimeterPage, MarketHomePage
+                   ChgPerimeterPage, MarketHomePage, FirstVisitPage
 
 
 __all__ = ['Cragr']
@@ -43,7 +43,7 @@ class Cragr(Browser):
              'https?://[^/]+/particuliers.html':                         HomePage,
              'https?://[^/]+/stb/entreeBam':                             LoginPage,
              'https?://[^/]+/stb/entreeBam\?.*typeAuthentification=CLIC_ALLER.*': LoginPage,
-             'https?://[^/]+/stb/entreeBam\?.*pagePremVisite.*':         UselessPage,
+             'https?://[^/]+/stb/entreeBam\?.*pagePremVisite.*':         FirstVisitPage,
              'https?://[^/]+/stb/entreeBam\?.*Interstitielle.*':         UselessPage,
              'https?://[^/]+/stb/entreeBam\?.*act=Tdbgestion':           UselessPage,
              'https?://[^/]+/stb/entreeBam\?.*act=Synthcomptes':         AccountsPage,
