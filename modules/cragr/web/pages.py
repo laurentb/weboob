@@ -39,8 +39,9 @@ class BasePage(Page):
             current_elem = self.document.xpath('//div[@id="libPerimetre"]/span[@class="texte"]')[0]
         except IndexError:
             self.logger.debug('Can\'t update current perimeter on this page (%s).', type(self).__name__)
-            return
+            return False
         self.browser.current_perimeter = re.search(': (.*)$', self.parser.tocleanstring(current_elem)).group(1).lower()
+        return True
 
     def get_error(self):
         try:
