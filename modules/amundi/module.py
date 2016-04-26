@@ -39,7 +39,7 @@ class AmundiModule(Module, CapBank):
 
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', regexp='\d+', masked=False),
                            ValueBackendPassword('password', label=u"Mot de passe", regexp='\d+'),
-                           Value('website', label='Type de compte', default='pp',
+                           Value('website', label='Type de compte', default='ee',
                                 choices={'ee': 'Amundi Epargne Entreprise',
                                         'tc': 'Amundi Tenue de Compte'}))
 
