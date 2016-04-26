@@ -158,7 +158,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return '%smouvements' % link if link.startswith('/budget') else link
 
             # We do not yield other banks accounts for the moment.
-            def condition(self):
+            def validate(self, obj):
                 return not Async('details', CleanText(u'//h4[contains(text(), "Établissement bancaire")]'))(self)
 
 
