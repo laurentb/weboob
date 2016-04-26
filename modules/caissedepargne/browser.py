@@ -33,7 +33,8 @@ __all__ = ['CaisseEpargne']
 class CaisseEpargne(Browser):
     DOMAIN = 'www.caisse-epargne.fr'
     PROTOCOL = 'https'
-    CERTHASH = ['9a5af08c31a22a0dbc2724cec14ce9b1f8e297571c046c2210a16fa3a9f8fc2e', '0e0fa585a8901c206c4ebbc7ee33e00e17809d7086f224e1b226c46165a4b5ac']
+    CERTHASH = ['9a5af08c31a22a0dbc2724cec14ce9b1f8e297571c046c2210a16fa3a9f8fc2e', '0e0fa585a8901c206c4ebbc7ee33e00e17809d7086f224e1b226c46165a4b5ac',
+                '8f8b9e1de4b3ae16128105cb0759a1afeaaedbd18957afa390738390fec3c30d']
     PAGES = {'https://[^/]+/particuliers/ind_pauthpopup.aspx.*':          LoginPage,
              'https://[^/]+/Portail.aspx.*':                              IndexPage,
              'https://[^/]+/login.aspx':                                  ErrorPage,
