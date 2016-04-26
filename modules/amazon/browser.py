@@ -133,5 +133,6 @@ class Amazon(LoginBrowser):
             b.format = o._bill['format']
             b.type = u'bill'
             b.currency = b.get_currency(self.get_currency())
+            b.label = '%s %s' % (subscription.label, o.date)
             b.vat = o.tax
             yield b
