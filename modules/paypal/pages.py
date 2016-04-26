@@ -96,11 +96,11 @@ class AccountPage(LoggedPage, HTMLPage):
         content = self.doc.xpath('//div[@id="moneyPage"]')[0]
 
         # Multiple accounts
-        lines = content.xpath('//div[@class="col-md-8 multi-currency"]/ul/li')
+        lines = content.xpath('(//div[@class="col-md-8 multi-currency"])[1]/ul/li')
         for li in lines:
             account = Account()
             account.type = Account.TYPE_CHECKING
-            currency = Currency.get_currency(CleanText().filter(li.xpath('./span[@class="currencyUnit"]/span | ./span[1]')[0]))
+            currency = Currency.get_currency(CleanText().filter((li.xpath('./span[@class="currencyUnit"]/span') or li.xpath('./span[1]'))[0]))
             account.id = currency
             account.currency = currency
             account.balance = CleanDecimal(replace_dots=True).filter(li.xpath('./span[@class="amount"]/text()'))
