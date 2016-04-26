@@ -27,7 +27,7 @@ import re
 
 
 class FunmoocBrowser(LoginBrowser):
-    BASEURL = 'https://www.france-universite-numerique-mooc.fr'
+    BASEURL = 'https://www.fun-mooc.fr'
 
     login = URL('/accounts/login', PageLogin)
     dashboard = URL('/dashboard', PageDashboard)
