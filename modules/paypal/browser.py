@@ -107,6 +107,9 @@ class Paypal(LoginBrowser):
 
         self.account.stay_or_go()
 
+        if self.login.is_here():
+            raise BrowserIncorrectPassword(u'La connexion nécessite une étape de sécurisation supplémentaire.')
+
         return self.page.get_accounts()
 
     @need_login
