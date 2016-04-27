@@ -128,4 +128,5 @@ class LCLEnterpriseBrowser(Browser):
 
 class LCLEspaceProBrowser(LCLEnterpriseBrowser):
     BASEURL = 'https://espacepro.secure.lcl.fr'
-    CERTHASH = 'fa57ae1f3ea27af8a78e8e7d8eb40fc15eb7a5665af27a861fd28f259cae7d57'
+    CERTHASH = ['fa57ae1f3ea27af8a78e8e7d8eb40fc15eb7a5665af27a861fd28f259cae7d57',
+                '0f4cbb92d0116b178e512d51abaa7dc977c68c8df19c6d64f43c1af0dc30edce']
