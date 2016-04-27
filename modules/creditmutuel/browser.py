@@ -101,7 +101,6 @@ class CreditMutuelBrowser(LoginBrowser):
     __states__ = ['currentSubBank']
 
     def do_login(self):
-        self.fleet_pages = {}
         # Clear cookies.
         self.do_logout()
 
@@ -118,6 +117,7 @@ class CreditMutuelBrowser(LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
+        self.fleet_pages = {}
         if self.currentSubBank is None and not self.is_new_website:
             self.getCurrentSubBank()
         accounts = []
