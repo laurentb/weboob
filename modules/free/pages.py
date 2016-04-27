@@ -19,7 +19,7 @@
 
 
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Regexp, Async, AsyncLoad
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Regexp
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.html import Attr
 from weboob.capabilities.bill import Bill, Subscription
@@ -41,23 +41,26 @@ class HomePage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Subscription
 
-            load_details = Attr('//div[@id="abonnenav"]//a[contains(text(), "Modifier mes informations")]', 'href') & AsyncLoad
-
-            obj_subscriber = CleanText('//div[@class="infos_abonne"]/ul/li[1]')
-            obj_id = Env('email')
-            obj_label = Env('email')
+            obj_subscriber = Env('subscriber')
+            obj_id = Env('subid')
+            obj_label = obj_id
 
             def parse(self, el):
-                self.env['email'] = Async('details', Attr('//input[@name="email"]', 'value'))(self)
-                self.page.browser.email = self.env['email']
+                username = self.page.browser.username
+                try:
+                    subscriber = CleanText(u'//div[@class="infos_abonne"]/ul/li[1]')(self)
+                except UnicodeDecodeError:
+                    subscriber = username
+                self.env['subscriber'] = subscriber
+                self.env['subid'] = username
 
 
 class DocumentsPage(LoggedPage, HTMLPage):
     def get_list(self):
         sub = Subscription()
         sub.subscriber = self.browser.username
-        sub.id = self.browser.username
-        sub.label = self.browser.username
+        sub.id = sub.subscriber
+        sub.label = sub.subscriber
         yield sub
 
     @method
@@ -67,15 +70,14 @@ class DocumentsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Bill
 
-            obj_id = Format('%s_%s', Env('email'), Regexp(Attr('./span[3]/a', 'href'), '(?<=.facture=)([^*]+)'))
+            obj_id = Format('%s_%s', Env('subid'), Regexp(Attr('./span[3]/a', 'href'), '(?<=.facture=)([^*]+)'))
             obj__url = Attr('./span[3]/a', 'href', default=NotAvailable)
             obj_date = Env('date')
             obj_format = u"pdf"
-            obj_label = Format('Facture - %s', CleanText('./span[1]/strong'))
+            obj_label = Format('Facture %s', CleanText('./span[1]/strong'))
             obj_type = u"bill"
             obj_price = CleanDecimal(CleanText('./span[2]/strong'))
             obj_currency = u"€"
 
             def parse(self, el):
-                self.env['email'] = self.page.browser.email
                 self.env['date'] = parse_french_date(CleanText('./span[1]/strong')(self)).date()

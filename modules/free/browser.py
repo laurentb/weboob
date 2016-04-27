@@ -34,7 +34,6 @@ class FreeBrowser(LoginBrowser):
 
     def __init__(self, *args, **kwargs):
         LoginBrowser.__init__(self, *args, **kwargs)
-        self.email = None
         self.urlid = None
         self.status = "active"
 
