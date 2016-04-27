@@ -50,6 +50,7 @@ def method(klass):
 
 class AbstractElement(object):
     _creation_counter = 0
+    condition = None
 
     def __init__(self, page, parent=None, el=None):
         self.page = page
@@ -225,7 +226,6 @@ class ItemElement(AbstractElement):
     _attrs = None
     _loaders = None
     klass = None
-    condition = None
     validate = None
 
     class Index(object):
