@@ -76,6 +76,7 @@ class LoginPage(BasePage):
             raise BrowserIncorrectPassword()
 
     def login(self, username, password):
+        password = password[:6]
         imgmap = {}
         for td in self.document.xpath('//table[@id="pave-saisie-code"]/tr/td'):
             a = td.find('a')
