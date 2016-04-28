@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from decimal import Decimal
-
 from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.filters.json import Dict
@@ -51,8 +49,9 @@ class HousingPage(HTMLPage):
         obj_id = Env('_id')
         obj_title = CleanText(CleanHTML('//meta[@itemprop="name"]/@content'))
         obj_area = CleanDecimal(Regexp(CleanText(CleanHTML('//meta[@itemprop="name"]/@content')),
-                                       '(.*?)(\d*) m\xb2(.*?)', '\\2'), default=NotAvailable)
-        obj_cost = CleanDecimal('//*[@itemprop="price"]')
+                                       '(.*?)(\d*) m\xb2(.*?)', '\\2', default=NotAvailable),
+                                default=0)
+        obj_cost = CleanDecimal('//*[@itemprop="price"]', default=0)
         obj_currency = Regexp(CleanText('//*[@itemprop="price"]'),
                               '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
         obj_date = Date(Regexp(CleanText('//p[@class="offer-description-notes"]|//p[has-class("darkergrey")]'),
@@ -122,7 +121,7 @@ class SearchPage(HTMLPage):
             obj_area = CleanDecimal('./div/header/section/p[@class="offer-attributes"]/a/span[@class="offer-area-number"]',
                                     default=0)
 
-            obj_cost = CleanDecimal('./div/header/section/p[@class="price"]')
+            obj_cost = CleanDecimal('./div/header/section/p[@class="price"]', default=0)
             obj_currency = Regexp(CleanText('./div/header/section/p[@class="price"]',
                                             default=NotAvailable),
                                   '.* ([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
@@ -144,12 +143,13 @@ class SearchPage(HTMLPage):
             obj_id = Format('%s-%s', Regexp(Env('type'), '(.*)-.*'),
                             CleanText('./@id', replace=[('header-offer-', '')]))
             obj_title = CleanText('./div/div/div[@class="offer-details-wrapper"]/div/div/p[@class="offer-type"]/span/@title')
-            obj_area = CleanDecimal(CleanText('./div/div/div[@class="offer-details-wrapper"]/div/div/div/div/h3/a/span[@class="offer-area-number"]',
-                                              default=NotAvailable))
+            obj_area = CleanDecimal('./div/div/div[@class="offer-details-wrapper"]/div/div/div/div/h3/a/span[@class="offer-area-number"]',
+                                    default=0)
             obj_cost = CleanDecimal(Regexp(CleanText('./div/div/div[@class="offer-details-wrapper"]/div/div/p[@class="offer-price"]/span',
                                                      default=NotAvailable),
                                            '(.*) [%s%s%s]' % (u'€', u'$', u'£'),
-                                           default=NotAvailable), default=Decimal(0))
+                                           default=NotAvailable),
+                                    default=0)
             obj_currency = Regexp(CleanText('./div/div/div[@class="offer-details-wrapper"]/div/div/p[@class="offer-price"]/span',
                                             default=NotAvailable),
                                   '.* ([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
