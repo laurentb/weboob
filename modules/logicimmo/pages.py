@@ -64,7 +64,7 @@ class HousingPage(HTMLPage):
         def obj_photos(self):
             photos = []
             for img in XPath('//div[@class="carousel-content"]/ul/li/a/img/@src|//div[@class="carousel"]/ul/li/a/img/@src')(self):
-                photos.append(HousingPhoto(u'%s' % img))
+                photos.append(HousingPhoto(u'%s' % img.replace('75x75','800x600')))
             return photos
 
         def obj_details(self):
