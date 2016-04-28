@@ -165,7 +165,9 @@ class AccountsPage(LoggedPage, HTMLPage):
 class HistoryPage(LoggedPage, HTMLPage):
     @method
     class iter_history(ListElement):
-        item_xpath = '//ul[has-class("list__movement")]/li[div and not(contains(@class, "summary"))]'
+        item_xpath = '//ul[has-class("list__movement")]/li[div and not(contains(@class, "summary")) \
+                                                               and not(contains(@class, "graph")) \
+                                                               and not (contains(@class, "separator"))]'
 
         class item(ItemElement):
             klass = Transaction
