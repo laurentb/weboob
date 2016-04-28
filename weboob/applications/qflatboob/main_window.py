@@ -26,7 +26,7 @@ from decimal import Decimal
 from weboob.tools.application.qt5 import QtMainWindow, QtDo, HTMLDelegate
 from weboob.tools.application.qt5.backendcfg import BackendCfg
 from weboob.capabilities.housing import CapHousing, Query, City
-from weboob.capabilities.base import NotLoaded, NotAvailable
+from weboob.capabilities.base import NotLoaded, NotAvailable, empty
 
 from .ui.main_window_ui import Ui_MainWindow
 from .query import QueryDialog
@@ -44,8 +44,10 @@ class HousingListWidgetItem(QListWidgetItem):
 
     def setAttrs(self, storage):
         text =  u'<h2>%s</h2>' % self.housing.title
-        text += u'<i>%s — %sm² — %s%s (%s)</i>' % (self.housing.date.strftime('%Y-%m-%d') if self.housing.date else 'Unknown',
-                                                   self.housing.area, self.housing.cost, self.housing.currency, self.housing.backend)
+        text += u'<i>%s — %sm² — %s%s — %.0f %s/m2 (%s)</i>' % (self.housing.date.strftime('%Y-%m-%d') if self.housing.date else 'Unknown',
+                                                              self.housing.area, self.housing.cost, self.housing.currency,
+                                                              Decimal(self.housing.cost or 0) / Decimal(self.housing.area or 1),
+                                                              self.housing.currency, self.housing.backend)
         text += u'<br />%s' % self.housing.text.strip()
         text += u'<br /><font color="#008800">%s</font>' % storage.get('notes', self.housing.fullid, default='').strip().replace('\n', '<br />')
         self.setText(text)
@@ -336,6 +338,8 @@ class MainWindow(QtMainWindow):
 
         if housing.details:
             for key, value in housing.details.iteritems():
+                if empty(value):
+                    continue
                 label = QLabel(value)
                 label.setTextInteractionFlags(Qt.TextSelectableByMouse|Qt.LinksAccessibleByMouse)
                 self.ui.detailsFrame.layout().addRow('<b>%s:</b>' % key, label)
