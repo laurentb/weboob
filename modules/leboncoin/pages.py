@@ -169,7 +169,7 @@ class HousingPage(HTMLPage):
 
         obj_currency = Regexp(CleanText('//h2[@itemprop="price"]/span[@class="value"]'),
                               '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
-        obj_text = CleanText('//meta[@name="description"]/@content')
+        obj_text = CleanText('//p[@itemprop="description"]')
         obj_location = CleanText('//span[@itemprop="address"]')
         obj_details = Env('details')
         obj_area = Env('area')
