@@ -181,7 +181,7 @@ class MainWindow(QtMainWindow):
 
             self.reloadQueriesList(name)
 
-    @Slot(object)
+    @Slot(int)
     def queryChanged(self, i=None):
         self.refreshHousingsList()
 
@@ -255,7 +255,7 @@ class MainWindow(QtMainWindow):
         if housing.fullid in self.process_bookmarks:
             self.process_bookmarks.pop(housing.fullid)
 
-    @Slot(object, object)
+    @Slot(QListWidgetItem, QListWidgetItem)
     def housingSelected(self, item, prev):
         if item is not None:
             housing = item.housing
@@ -349,7 +349,7 @@ class MainWindow(QtMainWindow):
         self.ui.queriesFrame.setEnabled(True)
         self.process = None
 
-    @Slot(object)
+    @Slot(int)
     def bookmarkChanged(self, state):
         bookmarks = set(self.storage.get('bookmarks'))
         if state == Qt.Checked:

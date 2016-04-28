@@ -84,7 +84,7 @@ class MainWindow(QtMainWindow):
         if self.weboob.count_backends() == 0:
             self.backendsConfig()
 
-    @Slot(object)
+    @Slot(int)
     def tabChange(self, index):
         if index == 1:
             self.doAdvancedSearch()
@@ -140,7 +140,7 @@ class MainWindow(QtMainWindow):
         if bckndcfg.run():
             pass
 
-    @Slot(object, object)
+    @Slot(QListWidgetItem, QListWidgetItem)
     def jobSelected(self, item, prev):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         if item is not None:

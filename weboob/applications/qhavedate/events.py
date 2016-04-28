@@ -51,7 +51,7 @@ class EventsWidget(QWidget):
     def load(self):
         self.refreshEventsList()
 
-    @Slot(object)
+    @Slot(int)
     def typeChanged(self, i):
         if self.ui.refreshButton.isEnabled():
             self.refreshEventsList()
@@ -161,7 +161,7 @@ class EventsWidget(QWidget):
         self.ui.eventsList.resizeColumnToContents(0)
         self.ui.eventsList.resizeColumnToContents(1)
 
-    @Slot(object, object)
+    @Slot(QTreeWidgetItem, int)
     def eventDoubleClicked(self, item, col):
         event = item.data(0, Qt.UserRole)
         self.display_contact.emit(event.contact)

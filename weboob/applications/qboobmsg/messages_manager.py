@@ -164,7 +164,7 @@ class MessagesManager(QWidget):
             for child in message.children:
                 self._insert_message(child, top and item)
 
-    @Slot(object, object)
+    @Slot(QTreeWidgetItem, int)
     def _messageSelected(self, item, column):
         message = item.data(0, Qt.UserRole)
 

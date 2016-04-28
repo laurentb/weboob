@@ -468,8 +468,8 @@ class ContactsWidget(QWidget):
         model.addBackends(entry_all=False)
         self.ui.backendsList.setModel(model)
 
-    @Slot(object)
-    def groupChanged(self, i):
+    @Slot()
+    def groupChanged(self):
         self.refreshContactList()
 
     @Slot()
@@ -545,7 +545,7 @@ class ContactsWidget(QWidget):
 
         self.ui.contactList.addItem(item)
 
-    @Slot(object)
+    @Slot(QListWidgetItem)
     def contactChanged(self, current):
         if not current:
             return

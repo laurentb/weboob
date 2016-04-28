@@ -489,7 +489,7 @@ class MainWindow(QtMainWindow):
         self.ui.langCombo.hide()
         self.ui.langLabel.hide()
 
-    @Slot(object)
+    @Slot(int)
     def closeTab(self, index):
         if self.ui.resultsTab.widget(index) != 0:
             self.ui.resultsTab.removeTab(index)
@@ -584,7 +584,7 @@ class MainWindow(QtMainWindow):
         else:
             self.ui.searchEdit.setEnabled(True)
 
-    @Slot(object)
+    @Slot(unicode)
     def typeComboChanged(self, value):
         if value == 'subtitle':
             self.ui.langCombo.show()

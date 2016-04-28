@@ -84,14 +84,14 @@ class QueryDialog(QDialog):
         item.setData(Qt.UserRole, city)
         return item
 
-    @Slot(object)
+    @Slot(QListWidgetItem)
     def insertCity(self, i):
         item = QListWidgetItem()
         item.setText(i.text())
         item.setData(Qt.UserRole, i.data(Qt.UserRole))
         self.ui.citiesList.addItem(item)
 
-    @Slot(object)
+    @Slot(QListWidgetItem)
     def removeCity(self, item):
         self.ui.citiesList.removeItemWidget(item)
 

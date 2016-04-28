@@ -242,7 +242,7 @@ class BackendCfg(QDialog):
 
             self.ui.backendsList.addTopLevelItem(item)
 
-    @Slot(object, object)
+    @Slot(QTreeWidgetItem, int)
     def backendEnabled(self, item, col):
         self.is_enabling += 1
 
@@ -261,7 +261,7 @@ class BackendCfg(QDialog):
 
         self.weboob.backends_config.edit_backend(backend_name, module_name, {'_enabled': enabled})
 
-    @Slot(object, object)
+    @Slot(QTreeWidgetItem, int)
     def backendClicked(self, item, col):
         if self.is_enabling:
             self.is_enabling -= 1
@@ -411,7 +411,7 @@ class BackendCfg(QDialog):
             self.ui.configLayout.addRow(label, qvalue)
             self.config_widgets[key] = (label, qvalue)
 
-    @Slot(object)
+    @Slot(bool)
     def proxyEditEnabled(self, state):
         self.ui.proxyEdit.setEnabled(state)
 

@@ -81,12 +81,12 @@ class MainWindow(QtMainWindow):
             self.ui.searchEdit.setEnabled(True)
             self.ui.urlEdit.setEnabled(True)
 
-    @Slot(object)
+    @Slot(int)
     def nsfwChanged(self, state):
         self.config.set('settings', 'nsfw', int(self.ui.nsfwCheckBox.isChecked()))
         self.updateVideosDisplay()
 
-    @Slot(object)
+    @Slot(int)
     def sfwChanged(self, state):
         self.config.set('settings', 'sfw', int(self.ui.sfwCheckBox.isChecked()))
         self.updateVideosDisplay()

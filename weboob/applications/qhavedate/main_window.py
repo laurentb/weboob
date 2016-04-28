@@ -79,7 +79,7 @@ class MainWindow(QtMainWindow):
             index = self.ui.tabWidget.addTab(QWidget(), title)
             self.ui.tabWidget.setTabEnabled(index, False)
 
-    @Slot(object)
+    @Slot(int)
     def tabChanged(self, i):
         widget = self.ui.tabWidget.currentWidget()
 

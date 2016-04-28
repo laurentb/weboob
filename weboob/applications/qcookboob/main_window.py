@@ -240,7 +240,7 @@ class MainWindow(QtMainWindow):
         else:
             return num
 
-    @Slot(object)
+    @Slot(int)
     def closeTab(self, index):
         if self.ui.resultsTab.widget(index) != 0:
             self.ui.resultsTab.removeTab(index)

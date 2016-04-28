@@ -55,13 +55,13 @@ class Video(QDialog):
         self.ui.videoPlayer.setMediaObject(self.mediaPlayer)
         self.mediaPlayer.play()
 
-    @Slot(object)
+    @Slot('qint64')
     def _slide(self, pos):
         blocking = self.ui.seekSlider.blockSignals(True)
         self.ui.seekSlider.setValue(pos)
         self.ui.seekSlider.blockSignals(blocking)
 
-    @Slot(object)
+    @Slot('qint64')
     def _setMax(self, duration):
         self.ui.seekSlider.setMaximum(duration)
 
