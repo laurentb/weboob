@@ -92,7 +92,7 @@ class ResultsCondition(IResultsCondition):
                     l, r = _and.split(operator)
                 except ValueError:
                     raise ResultsConditionError(u'Syntax error in the condition expression, please check documentation')
-                and_list.append(Condition(l, operator, r))
+                and_list.append(Condition(l.strip(), operator, r.strip()))
             or_list.append(and_list)
         self.condition = or_list
         self.condition_str = condition_str
