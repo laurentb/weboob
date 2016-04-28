@@ -27,7 +27,7 @@ import re
 from weboob.deprecated.mech import ClientForm
 from weboob.tools.ordereddict import OrderedDict
 from weboob.deprecated.browser import Page, BrokenPageError, BrowserUnavailable, BrowserIncorrectPassword
-from weboob.browser.filters.standard import Date
+from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -520,8 +520,8 @@ class MarketPage(Page):
             yield inv
 
     def get_valuation_diff(self, account):
-        valuation_diff = re.sub(r'\(.*\)', '', self.document.xpath(u'//td[contains(text(), "values latentes")]/following-sibling::*[1]')[0].text)
-        account.valuation_diff = Decimal(FrenchTransaction.clean_amount(valuation_diff))
+        val = CleanText(self.document.xpath(u'//td[contains(text(), "values latentes")]/following-sibling::*[1]'))
+        account.valuation_diff = CleanDecimal(Regexp(val, '([^\(\)]+)'), replace_dots=True)(self)
 
     def is_on_right_portfolio(self, account):
         return len(self.document.xpath('//form[@class="choixCompte"]//option[@selected and contains(text(), "%s")]' % account._info['id']))
