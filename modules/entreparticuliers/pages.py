@@ -69,7 +69,12 @@ class SearchPage(EntreParticuliersXMLPage):
             obj_text = Format('%s / %s', CleanText('Localisation'),
                               CleanText('./MiniINfos'))
             obj_date = datetime.now
-            obj_url = CleanText('./LienDetail')
+
+            def obj_url(self):
+                url = CleanText('./LienDetail')(self)
+                if not url.startswith('http'):
+                    url = u'http://www.entreparticuliers.com%s' % url
+                return url
 
 
 class HousingPage(EntreParticuliersXMLPage):
