@@ -20,13 +20,22 @@
 
 from weboob.browser import PagesBrowser, URL
 
-from .pages import SearchPage
+from .pages import DHLExpressSearchPage, DeutschePostDHLSearchPage
 
 
-class DHLBrowser(PagesBrowser):
+class DHLExpressBrowser(PagesBrowser):
     BASEURL = 'http://www.dhl.com'
 
-    search_page = URL('/shipmentTracking\?AWB=(?P<id>.+)', SearchPage)
+    search_page = URL('/shipmentTracking\?AWB=(?P<id>.+)', DHLExpressSearchPage)
+
+    def get_tracking_info(self, _id):
+        return self.search_page.go(id=_id).get_info(_id)
+
+
+class DeutschePostDHLBrowser(PagesBrowser):
+    BASEURL = 'https://nolp.dhl.de'
+
+    search_page = URL('/nextt-online-public/set_identcodes.do\?lang=en&idc=(?P<id>.+)', DeutschePostDHLSearchPage)
 
     def get_tracking_info(self, _id):
         return self.search_page.go(id=_id).get_info(_id)

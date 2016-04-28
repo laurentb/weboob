@@ -19,9 +19,9 @@
 
 
 from weboob.tools.backend import Module
-from weboob.capabilities.parcel import CapParcel
+from weboob.capabilities.parcel import CapParcel, ParcelNotFound
 
-from .browser import DHLBrowser
+from .browser import DHLExpressBrowser, DeutschePostDHLBrowser
 
 
 __all__ = ['DHLModule']
@@ -35,8 +35,6 @@ class DHLModule(Module, CapParcel):
     LICENSE = 'AGPLv3+'
     VERSION = '1.2'
 
-    BROWSER = DHLBrowser
-
     def get_parcel_tracking(self, id):
         """
         Get information abouut a parcel.
@@ -46,4 +44,12 @@ class DHLModule(Module, CapParcel):
         :rtype: :class:`Parcel`
         :raises: :class:`ParcelNotFound`
         """
+        self._browser = None
+        if len(id) == 10 or len(id) == 20:
+            self.BROWSER = DHLExpressBrowser
+        elif len(id) == 12 or len(id) == 16:
+            self.BROWSER = DeutschePostDHLBrowser
+        else:
+            ParcelNotFound("Wrong length for ID: %s" % id)
+
         return self.browser.get_tracking_info(id)
