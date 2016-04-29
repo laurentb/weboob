@@ -86,6 +86,6 @@ class DeutschePostDHLSearchPage(HTMLPage):
     def build_event(self, index, tr):
         event = Event(index)
         event.date = parse_date(tr.xpath('./td[1]')[0].text.strip(), dayfirst=True, fuzzy=True)
-        event.location = unicode(tr.xpath('./td[2]')[0].text.strip())
-        event.activity = unicode(tr.xpath('./td[3]')[0].text.strip())
+        event.location = unicode(tr.xpath('./td[2]')[0].text_content().strip())
+        event.activity = unicode(tr.xpath('./td[3]')[0].text_content().strip())
         return event
