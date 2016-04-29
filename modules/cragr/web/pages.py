@@ -586,7 +586,7 @@ class MarketPage(BasePage):
                 continue
             inv = Investment()
             inv.label = unicode(cells[self.COL_ID].find('div/a').text.strip())
-            inv.code = cells[self.COL_ID].find('div/br').tail.strip()
+            inv.code = cells[self.COL_ID].find('div/br').tail.strip().split('\xc2\xa0')[0]
             inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY].find('span').text)
             inv.valuation = self.parse_decimal(cells[self.COL_VALUATION].text)
             inv.diff = self.parse_decimal(cells[self.COL_DIFF].text_content())
