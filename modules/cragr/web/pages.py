@@ -40,7 +40,7 @@ class BasePage(Page):
         except IndexError:
             self.logger.debug('Can\'t update current perimeter on this page (%s).', type(self).__name__)
             return False
-        self.browser.current_perimeter = re.search(': (.*)$', self.parser.tocleanstring(current_elem)).group(1).lower()
+        self.browser.current_perimeter = re.search('(.*)$', self.parser.tocleanstring(current_elem)).group(1).lower()
         return True
 
     def get_error(self):
@@ -231,14 +231,20 @@ class PerimeterPage(BasePage):
             if self.browser.page.get_error() is not None:
                 self.browser.broken_perimeters.append('the other perimeter is broken')
                 self.browser.login()
-        for p in multiple:
-            self.browser.perimeters.append(' '.join(p.find('label').text.lower().split()))
+        for table in self.document.xpath('//table[@class]'):
+            space = ' '.join(table.find('caption').text.lower().split())
+            for perim in table.xpath('.//label'):
+                self.browser.perimeters.append(u'%s : %s' % (space, ' '.join(perim.text.lower().split())))
 
     def get_perimeter_link(self, perimeter):
-        for p in self.document.xpath(u'//p[span/a[contains(text(), "Accès")]]'):
-            if perimeter in ' '.join(p.find('label').text.lower().split()):
-                link = p.xpath('./span/a')[0].attrib['href']
-                return link
+        caption = perimeter.split(' : ')[0].title()
+        perim = perimeter.split(' : ')[1].title()
+        link = self.document.xpath(u'//table[@class and caption[contains(text(), "%s")]]//p[label[contains(text(), "%s")]]//a' % (caption, perim))
+        if not link:
+            for p in perim.split():
+                link = self.document.xpath(u'//table[@class and caption[contains(text(), "%s")]]//p[label[contains(text(), "%s")]]//a' % (caption, p))
+                assert len(link) == 1
+        return link[0].attrib['href']
 
 
 class ChgPerimeterPage(PerimeterPage):
