@@ -155,7 +155,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 link = Attr('.//a[@class="account--name"] | .//a[2]', 'href', default=NotAvailable)(self)
                 if not self.page.browser.webid:
                     self.page.browser.webid = re.search('\/([^\/|?|$]{32})(\/|\?|$)', link).group(1)
-                return '%smouvements' % link if link.startswith('/budget') else link
+                return link
 
             # We do not yield other banks accounts for the moment.
             def validate(self, obj):
