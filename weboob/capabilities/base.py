@@ -487,34 +487,30 @@ class BaseObject(object):
 
 
 class Currency(object):
-    CURRENCIES = {u'EUR': u'€',
-                  u'CHF': u'CHF',
-                  u'USD': u'$',
-                  u'GBP': u'£',
-                  u'LBP': u'ل.ل',
-                  u'AED': u'AED',
-                  u'XOF': u'XOF',
-                  u'RUB': u'руб',
-                  u'SGD': u'SGD',
-                  u'BRL': u'R$',
-                  u'MXN': u'$',
-                  u'JPY': u'¥',
-                  u'TRY': u'₺',
-                  u'RON': u'lei',
-                  u'COP': u'$',
-                  u'NOK': u'kr',
-                  u'CNY': u'¥',
-                  u'RSD': u'din',
-                  u'ZAR': u'rand',
-                  u'MYR': u'RM',
-                  u'HUF': u'Ft',
-                  u'HKD': u'HK$',
-                  u'QAR': u'QR',
-                  u'MAD': u'MAD',
-                  u'CAD': u'C$',
-                  u'BGN': u'BGN',
-                  u'AUD': u'$',
-                  u'CAD': u'$',
+    CURRENCIES = {u'EUR': (u'€', u'EURO'),
+                  u'CHF': (u'CHF',),
+                  u'USD': (u'$',),
+                  u'GBP': (u'£',),
+                  u'LBP': (u'ل.ل',),
+                  u'AED': (u'AED',),
+                  u'XOF': (u'XOF',),
+                  u'RUB': (u'руб',),
+                  u'SGD': (u'SGD',),
+                  u'BRL': (u'R$',),
+                  u'MXN': (u'$',),
+                  u'JPY': (u'¥',),
+                  u'TRY': (u'₺',),
+                  u'RON': (u'lei',),
+                  u'COP': (u'$',),
+                  u'NOK': (u'kr',),
+                  u'CNY': (u'¥',),
+                  u'RSD': (u'din',),
+                  u'ZAR': (u'rand',),
+                  u'MYR': (u'RM',),
+                  u'HUF': (u'Ft',),
+                  u'HKD': (u'HK$',),
+                  u'QAR': (u'QR',),
+                  u'MAD': (u'MAD',),
                  }
 
     EXTRACTOR = re.compile(r'[\d\s,\.\-]', re.UNICODE)
@@ -539,9 +535,12 @@ class Currency(object):
         """
         curtexts = klass.EXTRACTOR.sub(' ', text.upper()).split()
         for curtext in curtexts:
-            for currency, symbol in klass.CURRENCIES.iteritems():
-                if curtext in (currency, symbol) or symbol in curtext:
+            for currency, symbols in klass.CURRENCIES.iteritems():
+                if curtext in currency:
                     return currency
+                for symbol in symbols:
+                    if curtext in symbol or symbol in curtext:
+                        return currency
         return None
 
     @classmethod
