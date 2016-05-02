@@ -127,10 +127,12 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         return None
 
     @need_login
-    def get_history(self, account):
+    def get_history(self, account, coming=False):
         if not account._history_page:
             return
         if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
+            if coming:
+                return
             transactions = []
             self.location('%s/mouvements' % account._history_page)
             account._history_pages = []

@@ -64,7 +64,7 @@ class BoursoramaModule(Module, CapBank):
                 yield tr
 
     def iter_coming(self, account):
-        for tr in self.browser.get_history(account):
+        for tr in self.browser.get_history(account, coming=True):
             if tr._is_coming:
                 yield tr
 
