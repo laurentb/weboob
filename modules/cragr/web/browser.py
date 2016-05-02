@@ -198,7 +198,7 @@ class Cragr(Browser):
         l = list()
         if self.perimeters:
             for perimeter in [p for p in self.perimeters if p not in self.broken_perimeters]:
-                if not self.page.get_current() or self.current_perimeter != perimeter:
+                if (self.page and not self.page.get_current()) or self.current_perimeter != perimeter:
                     self.go_perimeter(perimeter)
                 for account in self.get_list():
                     if not account in l:
