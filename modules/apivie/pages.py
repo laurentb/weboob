@@ -68,7 +68,7 @@ class OperationsPage(Page):
         for line in self.document.xpath('//table[@role="treegrid"]/tbody/tr'):
             tds = line.findall('td')
 
-            operation = Transaction(int(line.attrib['data-rk']))
+            operation = Transaction()
 
             date = self.parser.tocleanstring(tds[self.COL_DATE])
             label = self.parser.tocleanstring(tds[self.COL_LABEL])
