@@ -238,13 +238,12 @@ class PerimeterPage(BasePage):
 
     def get_perimeter_link(self, perimeter):
         caption = perimeter.split(' : ')[0].title()
-        perim = perimeter.split(' : ')[1].title()
-        link = self.document.xpath(u'//table[@class and caption[contains(text(), "%s")]]//p[label[contains(text(), "%s")]]//a' % (caption, perim))
-        if not link:
-            for p in perim.split():
-                link = self.document.xpath(u'//table[@class and caption[contains(text(), "%s")]]//p[label[contains(text(), "%s")]]//a' % (caption, p))
-                assert len(link) == 1
-        return link[0].attrib['href']
+        perim = perimeter.split(' : ')[1]
+        for table in self.document.xpath('//table[@class and caption[contains(text(), "%s")]]' % caption):
+            for p in table.xpath(u'.//p[span/a[contains(text(), "Accès")]]'):
+                if perim in ' '.join(p.find('label').text.lower().split()):
+                    link = p.xpath('./span/a')[0].attrib['href']
+                    return link
 
 
 class ChgPerimeterPage(PerimeterPage):
