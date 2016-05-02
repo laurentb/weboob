@@ -264,6 +264,7 @@ class CardsPage(BasePage):
 
         cards_tables = self.document.xpath(TABLE_XPATH)
 
+        currency = self.document.xpath('//table/caption//span/text()[starts-with(.,"Montants en ")]')[0].replace("Montants en ", "") or None
         if cards_tables:
             self.logger.debug('There are several cards')
             xpaths = {
@@ -286,6 +287,7 @@ class CardsPage(BasePage):
             TABLE_XPATH = '(//table[@class="ca-table"])[1]'
             cards_tables = self.document.xpath(TABLE_XPATH)
 
+
         for table in cards_tables:
             get = lambda name: self.parser.tocleanstring(table.xpath(xpaths[name])[0])
 
@@ -299,6 +301,8 @@ class CardsPage(BasePage):
                 account.balance = Decimal(Transaction.clean_amount(table.xpath(xpaths['balance'])[-1].text))
                 account.currency = account.get_currency(self.document
                         .xpath(xpaths['currency'])[0].replace("Montants en ", ""))
+                if not account.currency and currency:
+                    account.currency = Account.get_currency(currency)
             except IndexError:
                 account.balance = Decimal('0.0')
 
