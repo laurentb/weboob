@@ -231,10 +231,11 @@ class PerimeterPage(BasePage):
             if self.browser.page.get_error() is not None:
                 self.browser.broken_perimeters.append('the other perimeter is broken')
                 self.browser.login()
-        for table in self.document.xpath('//table[@class]'):
-            space = ' '.join(table.find('caption').text.lower().split())
-            for perim in table.xpath('.//label'):
-                self.browser.perimeters.append(u'%s : %s' % (space, ' '.join(perim.text.lower().split())))
+        else:
+            for table in self.document.xpath('//table[@class]'):
+                space = ' '.join(table.find('caption').text.lower().split())
+                for perim in table.xpath('.//label'):
+                    self.browser.perimeters.append(u'%s : %s' % (space, ' '.join(perim.text.lower().split())))
 
     def get_perimeter_link(self, perimeter):
         caption = perimeter.split(' : ')[0].title()
