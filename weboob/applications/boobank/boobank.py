@@ -533,7 +533,7 @@ class Boobank(ReplApplication):
             r = client.request('auth/token', data={'username': username, 'password': password, 'application': 'weboob'})
         except BrowserHTTPError as r:
             error = r.response.json()
-            print('Error: %s' % (error['message'] or error['code']), file=self.stderr)
+            print('Error: {}'.format(error.get('message', error['code'])), file=self.stderr)
             return 1
 
         client.session.headers['Authorization'] = 'Bearer %s' % r['token']
