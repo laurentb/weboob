@@ -320,7 +320,7 @@ class AccountListFormatter(IFormatter):
                         self.colored('%8.2f' % balance, 'green' if balance >= 0 else 'red'),
                         self.colored('%8.2f' % coming, 'green' if coming >= 0 else 'red'))
                         )
-        self.totals = {}
+        self.totals.clear()
 
 
 class Boobank(ReplApplication):
