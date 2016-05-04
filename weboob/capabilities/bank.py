@@ -97,6 +97,7 @@ class Account(Recipient):
     type =      IntField('Type of account', default=TYPE_UNKNOWN)
     balance =   DecimalField('Balance on this bank account')
     coming =    DecimalField('Sum of coming movements')
+    valuation = DecimalField('Sum of investments valuation')
 
     # card attributes
     paydate =   DateField('For credit cards. When next payment is due.')
