@@ -178,8 +178,6 @@ class HistoryPage(LoggedPage, HTMLPage):
             obj_amount = CleanDecimal('.//div[contains(@class, "amount")]', replace_dots=True)
             obj_category = CleanText('.//div[contains(@class, "desc")]')
 
-            def condition(self):
-                return Attr('.', 'data-id', default=None)(self) is not None
 
             def obj_rdate(self):
                 s = Regexp(Field('raw'), ' (\d{2}/\d{2}/\d{2}) | (?!NUM) (\d{6}) ', default=NotAvailable)(self)
