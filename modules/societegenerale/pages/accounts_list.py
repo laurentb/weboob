@@ -351,6 +351,9 @@ class LifeInsuranceHistory(LifeInsurance):
 
             self.set_date(trans)
 
+            if u'Annulé' in cells[self.COL_STATUS].text.strip():
+                continue
+
             yield trans
 
     def set_date(self, trans):
