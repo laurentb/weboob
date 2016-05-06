@@ -118,7 +118,7 @@ class Cragr(Browser):
                 raise self.WebsiteNotSupported()
 
             # First, post account number to get the password prompt.
-            data = {'CCPTE':                self.username.encode(self.ENCODING),
+            data = {'CCPTE':                self.username[:11].encode(self.ENCODING),
                     'canal':                'WEB',
                     'hauteur_ecran':        768,
                     'largeur_ecran':        1024,
