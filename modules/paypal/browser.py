@@ -205,7 +205,7 @@ class Paypal(LoginBrowser):
         raise NotImplementedError()
 
     def convert_amount(self, account, trans, link):
-        self.location('%s%s' % (self.BASEURL, link))
+        self.location('%s%s' % (self.BASEURL, link.replace(self.BASEURL, '')))
         if self.history_details.is_here():
             cc = self.page.get_converted_amount(account)
             return cc
