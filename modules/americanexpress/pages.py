@@ -136,7 +136,7 @@ class TransactionsPage(LoggedPage, HTMLPage):
             else:
                 m = re.search(r' (\d{2} \D{3,4})', (' '.join([txt.strip() for txt in detail.itertext()])).strip())
                 if m:
-                    rday, rmonth = m.group(1).split(' ')
+                    rday, rmonth = m.group(1).strip().split(' ')
                     rday = int(rday)
                     rmonth = self.MONTHS.index(rmonth.rstrip('.')) + 1
                     rdate = guesser.guess_date(rday, rmonth)
