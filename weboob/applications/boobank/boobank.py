@@ -529,6 +529,7 @@ class Boobank(ReplApplication):
 
         client = APIBrowser(baseurl='https://budgea.biapi.pro/2.0/')
         client.set_profile(Weboob(self.VERSION))
+        client.TIMEOUT = 60
         try:
             r = client.request('auth/token', data={'username': username, 'password': password, 'application': 'weboob'})
         except BrowserHTTPError as r:
