@@ -18,6 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import time
 
 from weboob.browser import LoginBrowser, URL, need_login
@@ -135,8 +137,8 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
                 "ibanCrypte": account.id,
                 "pastOrPending": 1,
                 "triAV": 0,
-                "startDate": None,
-                "endDate": None
+                "startDate": (datetime.now() - relativedelta(years=2)).strftime('%d%m%Y'),
+                "endDate": datetime.now().strftime('%d%m%Y')
             }))
         return self.page.iter_coming() if coming else self.page.iter_history()
 
