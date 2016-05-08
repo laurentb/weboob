@@ -25,14 +25,15 @@ import ssl
 import json
 import os
 from tempfile import mkstemp
-from subprocess import STDOUT
+from subprocess import STDOUT, CalledProcessError
 from weboob.tools.compat import check_output
 from urllib import unquote
 
 from .pages import LoginProceedPage, LoginRedirectPage, \
                    SummaryPage, ActivityCashPage, ActivityCardPage, \
                    DocumentsPage, StatementPage, StatementsPage, \
-                   LoggedInPage
+                   StatementsEmbeddedPage, LoggedInPage, CodeRequestPage, \
+                   CodeSubmitPage
 
 
 __all__ = ['WellsFargo']
@@ -48,14 +49,21 @@ class WellsFargo(LoginBrowser):
     login_redirect = URL('/das/cgi-bin/session.cgi\?screenid=SIGNON.*$',
                          '/login\?ERROR_CODE=.*LOB=CONS&$',
                          LoginRedirectPage)
+    code_request = URL('https://oam.wellsfargo.com/oam/access'
+                       '/twoFAAARDisplay\?OAM_TKN=.+$', CodeRequestPage)
+    code_submit = URL('https://oam.wellsfargo.com/oam/access'
+                      '/twoFAAARDisplay\?OAM_TKN=.+$',
+                      'https://oam.wellsfargo.com/oam/access'
+                      '/twoFAAARSubmitCode\?OAM_TKN=.+$', CodeSubmitPage)
     summary = URL('/das/channel/accountSummary$', SummaryPage)
     activity_cash = URL('/das/cgi-bin/session.cgi\?sessargs=.+$',
                         ActivityCashPage)
     activity_card = URL('/das/cgi-bin/session.cgi\?sessargs=.+$',
                         ActivityCardPage)
     documents = URL('https://connect.secure.wellsfargo.com'
-                    '/accounts/start\?.+$',
-                    DocumentsPage)
+                    '/accounts/start\?.+$', DocumentsPage)
+    statements_embedded = URL('https://connect.secure.wellsfargo.com'
+                    '/accounts/start\?.+$', StatementsEmbeddedPage)
     statements = URL('https://connect.secure.wellsfargo.com'
                      '/accounts/documents/statement/list.+$',
                      StatementsPage)
@@ -65,7 +73,7 @@ class WellsFargo(LoginBrowser):
     unknown = URL('/.*$', LoggedInPage) # E.g. random advertisement pages.
 
     def __init__(self, question1, answer1, question2, answer2,
-                 question3, answer3, *args, **kwargs):
+                 question3, answer3, phone_last4, code_file, *args, **kwargs):
         super(WellsFargo, self).__init__(*args, **kwargs)
         self.question1 = question1
         self.answer1 = answer1
@@ -73,6 +81,8 @@ class WellsFargo(LoginBrowser):
         self.answer2 = answer2
         self.question3 = question3
         self.answer3 = answer3
+        self.phone_last4 = phone_last4
+        self.code_file = code_file
 
     def do_login(self):
         '''
@@ -84,7 +94,8 @@ class WellsFargo(LoginBrowser):
             scrf, scrn = mkstemp('.js')
             cookf, cookn = mkstemp('.json')
             os.write(scrf, LOGIN_JS % {
-                'timeout': self.TIMEOUT,
+                'scriptTimeout': self.TIMEOUT*2,
+                'resourceTimeout': self.TIMEOUT,
                 'username': self.username,
                 'password': self.password,
                 'output': cookn,
@@ -96,11 +107,15 @@ class WellsFargo(LoginBrowser):
                 'answer3': self.answer3})
             os.close(scrf)
             os.close(cookf)
-            check_output(["phantomjs", scrn], stderr=STDOUT)
-            with open(cookn) as cookf:
-                cookies = json.loads(cookf.read())
-            os.remove(scrn)
-            os.remove(cookn)
+            try:
+                check_output(["phantomjs", scrn], stderr=STDOUT)
+                with open(cookn) as cookf:
+                    cookies = json.loads(cookf.read())
+            except CalledProcessError:
+                continue
+            finally:
+                os.remove(scrn)
+                os.remove(cookn)
             self.session.cookies.clear()
             for c in cookies:
               for k in ['expiry', 'expires', 'httponly']:
@@ -123,6 +138,10 @@ class WellsFargo(LoginBrowser):
             return self.page.proceed()
         elif self.login_redirect.is_here():
             return self.page.redirect()
+        elif self.code_request.is_here():
+            return self.page.request_code()
+        elif self.code_submit.is_here():
+            return self.page.submit_code()
         else:
             return r
 
@@ -170,20 +189,23 @@ class WellsFargo(LoginBrowser):
 
     @need_login
     def to_statements(self, id_=None, year=None):
-        if not self.statements.is_here():
+        if not self.statements.is_here() \
+        and not self.statements_embedded.is_here():
             self.to_summary()
             self.page.to_documents()
-            assert self.documents.is_here()
-            self.page.to_statements()
+            if self.documents.is_here():
+                self.page.to_statements()
+                assert self.statements.is_here()
+            else:
+                assert self.statements_embedded.is_here()
+        if id_ and self.page.parser().account_id() != id_:
+            self.page.parser().to_account(id_)
             assert self.statements.is_here()
-        if id_ and self.page.account_id() != id_:
-            self.page.to_account(id_)
+            assert self.page.parser().account_id() == id_
+        if year and self.page.parser().year() != year:
+            self.page.parser().to_year(year)
             assert self.statements.is_here()
-            assert self.page.account_id() == id_
-        if year and self.page.year() != year:
-            self.page.to_year(year)
-            assert self.statements.is_here()
-            assert self.page.year() == year
+            assert self.page.parser().year() == year
 
     @need_login
     def to_statement(self, uri):
@@ -213,17 +235,17 @@ class WellsFargo(LoginBrowser):
                     break
 
         self.to_statements(account.id)
-        for year in self.page.years():
+        for year in self.page.parser().years():
             self.to_statements(account.id, year)
-            for stmt in self.page.statements():
+            for stmt in self.page.parser().statements():
                 self.to_statement(stmt)
                 for trans in self.page.iter_transactions():
                     yield trans
 
 LOGIN_JS = u'''\
-var TIMEOUT = %(timeout)s*1000; // milliseconds
 var page = require('webpage').create();
 
+page.settings.resourceTimeout = %(resourceTimeout)s*1000;
 page.open('https://www.wellsfargo.com/');
 
 var waitForForm = function() {
@@ -276,5 +298,5 @@ var waitForLogin = function() {
 waitForForm();
 waitForQuestions();
 waitForLogin();
-setTimeout(function(){phantom.exit(-1);}, TIMEOUT);
+setTimeout(function(){phantom.exit(-1);}, %(scriptTimeout)s*1000);
 '''

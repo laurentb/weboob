@@ -261,9 +261,16 @@ class StatementParser(object):
             return startPos, None
 
     def read_date(self, pos):
-        t = self._tok.tok(pos)
-        return (pos+1, datetime.datetime.strptime(t.value(), '%m/%d')) \
-            if t.is_date() else (pos, None)
+        def parse_date(v):
+            for year in [1900, 1904]: # try leap and non-leap years
+                fullstr = '%s/%i' % (v, year)
+                try:
+                    return datetime.datetime.strptime(fullstr, '%m/%d/%Y')
+                except ValueError as e:
+                    pass
+            raise e
+
+        return self._tok.simple_read('date', pos, parse_date)
 
     def read_text(self, pos):
         t = self._tok.tok(pos)

@@ -24,9 +24,11 @@ from weboob.browser.pages import HTMLPage, LoggedPage, RawPage
 from decimal import Decimal
 from requests.cookies import morsel_to_cookie
 from .parsers import StatementParser, clean_label
+from time import sleep
 import itertools
 import json
 import re
+import os
 import datetime
 import Cookie
 
@@ -59,7 +61,49 @@ class LoggedInPage(HTMLPage):
     @property
     def logged(self):
         return bool(self.doc.xpath(u'//a[text()="Sign Off"]')) \
-            or bool(self.doc.xpath(u'//title[text()="Splash Page"]'))
+            or bool(self.doc.xpath(u'//title[text()="Splash Page"]')) \
+            or bool(self.doc.xpath(u'//title[contains(text(),'
+                                   u'"Advanced Access Required")]'))
+
+
+class CodeRequestPage(LoggedInPage):
+    is_here = u'contains(//label/text(),"Send Code to")'
+
+    def request_code(self):
+        phone = self.browser.page.doc.xpath(
+            '//select[@name="telephone"]/option[contains(text(),"%s")]/@value'
+            % self.browser.phone_last4)[0]
+        form = self.get_form(name='otp')
+        form['telephone'] = [phone]
+        form['deliveryMode'] = ['sms']
+        form['sendcode'] = ['Request Code']
+        del form['cancelBtn']
+        del form['sendcode2']
+        return form.submit()
+
+
+class CodeSubmitPage(LoggedInPage):
+    is_here = u'contains(//title/text(),"Enter and Submit Advanced Access Code")'
+
+    def submit_code(self):
+        self.browser.logger.warning(
+            'The code has been sent to the phone number ending with %s. '
+            'Please write this code into the file %s'
+            % (self.browser.phone_last4, self.browser.code_file))
+        while True:
+            try:
+                with open(self.browser.code_file) as f:
+                    code = f.read().strip()
+                break
+            except IOError:
+                sleep(1)
+        os.remove(self.browser.code_file)
+        self.browser.logger.info('The code %s has been successfully read'%code)
+        form = self.get_form(name='otp')
+        form['passcode'] = [code]
+        del form['cancelBtn']
+        del form['btnSubmit']
+        return form.submit()
 
 
 class SummaryPage(LoggedInPage):
@@ -195,8 +239,8 @@ class ActivityCashPage(ActivityPage):
                                   '"postedHeader dateHeader"]/..'):
             date = row.xpath('th[@headers="postedHeader '
                              'dateHeader"]/text()')[0]
-            desc = row.xpath('td[@headers="postedHeader '
-                             'descriptionHeader"]/span/text()')[0]
+            desc = row.xpath('td[@headers="postedHeader descriptionHeader"]'
+                             '//span[@class="OneLinkNoTx"]/text()')[0]
             deposit = row.xpath('td[@headers="postedHeader '
                                 'depositsConsumerHeader"]/span/text()')[0]
             withdraw = row.xpath('td[@headers="postedHeader '
@@ -323,12 +367,35 @@ class ActivityCardPage(ActivityPage):
 
 
 class DocumentsPage(LoggedInPage):
-    is_here = u'//h1[contains(text(),"Statements and Documents")]'
+    HEADER_XPATH = u'//h1[contains(text(),"Statements and Documents")]'
+    LINK_XPATH = u'//a[@data-async-load-template="stmtdisc.html"]' \
+                 u'/@data-async-load-url'
+
+    def is_here(self):
+        return self.doc.xpath(self.HEADER_XPATH) \
+           and self.doc.xpath(self.LINK_XPATH)
 
     def to_statements(self):
-        url = self.doc.xpath(u'//a[@data-async-load-template="stmtdisc.html"]'
-                             u'/@data-async-load-url')[0]
+        url = self.doc.xpath(self.LINK_XPATH)[0]
         self.browser.location(url)
+
+
+class StatementsEmbeddedPage(LoggedInPage):
+    HEADER_XPATH = u'//h1[contains(text(),"Statements and Documents")]'
+    SCRIPT_XPATH = '//script[contains(text(),"stmtdisc.html")]/text()'
+
+    def is_here(self):
+        return self.doc.xpath(self.HEADER_XPATH) \
+           and self.doc.xpath(self.SCRIPT_XPATH)
+
+    def get_embedded_data(self):
+        scr = self.doc.xpath(self.SCRIPT_XPATH)[0]
+        data = json.loads('\n'.join(scr.split('\n')[2:-2]).replace(
+            "'appendTo'",'"appendTo"'))
+        return json.loads(data['data'])
+
+    def parser(self):
+        return StatementsPageParser(self.get_embedded_data(), self.browser)
 
 
 class WfJsonPage(LoggedPage, RawPage):
@@ -339,7 +406,16 @@ class WfJsonPage(LoggedPage, RawPage):
         self.doc = json.loads(clean)
 
 
-class StatementsPage(AccountPage, WfJsonPage):
+class StatementsPage(WfJsonPage):
+    def parser(self):
+        return StatementsPageParser(self.doc, self.browser)
+
+
+class StatementsPageParser(AccountPage):
+    def __init__(self, doc, browser):
+        self.doc = doc
+        self.browser = browser
+
     def account_name(self):
         for account in self.accounts():
             if account['selected']:

@@ -43,7 +43,9 @@ class WellsFargoModule(Module, CapBank):
         ValueBackendPassword('question2',  label='Question 2', masked=False),
         ValueBackendPassword('answer2',    label='Answer 2', masked=False),
         ValueBackendPassword('question3',  label='Question 3', masked=False),
-        ValueBackendPassword('answer3',    label='Answer 3', masked=False))
+        ValueBackendPassword('answer3',    label='Answer 3', masked=False),
+        ValueBackendPassword('phone_last4', label='Last 4 digits of phone number to request access code to', masked=False),
+        ValueBackendPassword('code_file', label='File to read access code from', masked=False))
     BROWSER = WellsFargo
 
     def create_default_browser(self):
@@ -55,7 +57,9 @@ class WellsFargoModule(Module, CapBank):
             question2 = self.config['question2'].get(),
             answer2 = self.config['answer2'].get(),
             question3 = self.config['question3'].get(),
-            answer3 = self.config['answer3'].get())
+            answer3 = self.config['answer3'].get(),
+            phone_last4 = self.config['phone_last4'].get(),
+            code_file = self.config['code_file'].get())
 
     def iter_accounts(self):
         return self.browser.iter_accounts()
