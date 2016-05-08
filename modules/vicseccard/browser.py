@@ -52,7 +52,7 @@ class LoginPage(SomePage):
 class HomePage(SomePage):
     def account(self):
         id_ = self.doc.xpath(u'//strong[contains(text(),'
-            '"credit card account ending in")]/text()')[0].strip()[-4:]
+            '"Credit Card account ending in")]/text()')[0].strip()[-4:]
         balance = self.doc.xpath(u'//span[@class="description" and text()="Current Balance"]/../span[@class="total"]/text()')[0].strip()
         cardlimit = self.doc.xpath(u'//span[contains(text(),"Credit limit")]'
                                     '/text()')[0].split()[-1]
