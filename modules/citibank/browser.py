@@ -83,8 +83,13 @@ class AccDetailsPage(JsonPage):
         for bal in details['accountBalances']:
             label, value = bal['label'], (bal['value'] or ['0'])[0]
             if label == u'Current Balance:':
+                if value[0] == '(' and value[-1] == ')':
+                    value = value[1:-1]
+                    sign = 1
+                else:
+                    sign = -1
                 account.currency = Account.get_currency(value)
-                account.balance = -AmTr.decimal_amount(value)
+                account.balance = sign * AmTr.decimal_amount(value)
             elif label == u'Total Revolving Credit Line:':
                 account.cardlimit = AmTr.decimal_amount(value)
             elif label.startswith(u'Minimum Payment Due'):
