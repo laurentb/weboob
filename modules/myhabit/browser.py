@@ -35,6 +35,10 @@ from decimal import Decimal
 __all__ = ['MyHabit']
 
 
+def cleanup(s):
+    return u' '.join(unicode(s).split())
+
+
 class MyHabitPage(HTMLPage):
     @property
     def logged(self):
@@ -81,10 +85,10 @@ class OrderPage(MyHabitPage):
         return order
 
     def payments(self):
-        method = self.doc.xpath('//div[@class="creditCard"]/text()')[0].strip()
+        method = self.doc.xpath('//div[@class="creditCard"]/text()')[0]
         pmt = Payment()
         pmt.date = self.order_date()
-        pmt.method = unicode(method)
+        pmt.method = cleanup(method)
         pmt.amount = self.total()
         yield pmt
 
@@ -98,7 +102,7 @@ class OrderPage(MyHabitPage):
             price = Decimal(qty)*AmTr.decimal_amount(price)
             item = Item()
             item.url = unicode(url)
-            item.label = unicode(label)
+            item.label = cleanup(label)
             item.price = price
             yield item
 
@@ -108,7 +112,7 @@ class OrderPage(MyHabitPage):
         return datetime.strptime(date, '%b %d, %Y')
 
     def order_number(self):
-        return self.doc.xpath(u'//span[text()="MYHABIT Order Number:"]'
+        return self.doc.xpath(u'//span[text()="MyHabit Order Number:"]'
                                '/following-sibling::span[1]/text()')[0].strip()
 
     def order_amount(self, which):
