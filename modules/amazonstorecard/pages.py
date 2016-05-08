@@ -114,8 +114,8 @@ class StatementsPage(SomePage):
 
 class StatementPage(RawPage):
     LEX = [
-        ('charge_amount', r'^\(\$([0-9\.]+)\) Tj$'),
-        ('payment_amount', r'^\(\\\(\$([0-9\.]+)\\\)\) Tj$'),
+        ('charge_amount', r'^\(\$(\d+(,\d{3})*\.\d{2})\) Tj$'),
+        ('payment_amount', r'^\(\\\(\$(\d+(,\d{3})*\.\d{2})\\\)\) Tj$'),
         ('date', r'^\((\d+/\d+)\) Tj$'),
         ('full_date', r'^\((\d+/\d+/\d+)\) Tj$'),
         ('layout_td', r'^([-0-9]+ [-0-9]+) Td$'),
@@ -184,14 +184,12 @@ class StatementPage(RawPage):
         return self.read_charge_amount(pos)
 
     def read_charge_amount(self, pos):
-        t = self._tok.tok(pos)
-        return (pos+1, -AmTr.decimal_amount(t.value())) \
-            if t.is_charge_amount() else (pos, None)
+        return self._tok.simple_read('charge_amount', pos,
+                                     lambda xs: -AmTr.decimal_amount(xs[0]))
 
     def read_payment_amount(self, pos):
-        t = self._tok.tok(pos)
-        return (pos+1, AmTr.decimal_amount(t.value())) \
-            if t.is_payment_amount() else (pos, None)
+        return self._tok.simple_read('payment_amount', pos,
+                                     lambda xs: AmTr.decimal_amount(xs[0]))
 
     def read_closing_date(self):
         pos = 0
@@ -208,7 +206,8 @@ class StatementPage(RawPage):
 
     def read_text(self, pos):
         t = self._tok.tok(pos)
-        return (pos+1, unicode(t.value())) \
+        #TODO: handle PDF encodings properly.
+        return (pos+1, unicode(t.value(), errors='ignore')) \
             if t.is_text() else (pos, None)
 
     def read_full_date(self, pos):

@@ -37,7 +37,7 @@ __all__ = ['AmazonStoreCard']
 class AmazonStoreCard(LoginBrowser):
     BASEURL = 'https://www.synchronycredit.com'
     MAX_RETRIES = 10
-    TIMEOUT = 60.0
+    TIMEOUT = 120.0
     stmts = URL('/eService/EBill/eBillAction.action$', StatementsPage)
     statement = URL('eService/EBill/eBillViewPDFAction.action.*$',
                     StatementPage)
