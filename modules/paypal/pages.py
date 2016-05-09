@@ -253,9 +253,10 @@ class HistoryDetailsPage(LoggedPage, HTMLPage):
         find_td = self.doc.xpath('//td[contains(text(),"' + account.currency + '")] | //dd[contains(text(),"' + account.currency + '")]')
         if len(find_td) > 0 :
             # In case text is "12,34 EUR = 56.78 USD" or "-£115,62 GBP soit -€163,64 EUR"
-            for text in re.split('=|soit|equals', CleanText().filter(find_td[0])):
-                if account.currency in text:
-                    return Decimal(FrenchTransaction.clean_amount(text.split(account.currency)[0]))
+            for f in find_td:
+                for text in re.split('=|soit|equals', CleanText().filter(f)):
+                    if ' %s' % account.currency in text:
+                        return Decimal(FrenchTransaction.clean_amount(text.split(account.currency)[0]))
         return False
 
     def get_payback_url(self):
