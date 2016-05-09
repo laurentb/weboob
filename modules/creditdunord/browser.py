@@ -107,7 +107,7 @@ class CreditDuNordBrowser(Browser):
 
         return None
 
-    def iter_transactions(self, link, args, is_coming=None):
+    def iter_transactions(self, link, args, acc_type):
         if args is None:
             return
 
@@ -116,25 +116,16 @@ class CreditDuNordBrowser(Browser):
 
             assert self.is_on_page(TransactionsPage)
 
-            self.page.is_coming = is_coming
-
-            for tr in self.page.get_history():
+            for tr in self.page.get_history(acc_type):
                 yield tr
 
-            is_coming = self.page.is_coming
             args = self.page.get_next_args(args)
 
-    def get_history(self, account):
-        for tr in self.iter_transactions(account._link, account._args):
+    def get_history(self, account, coming=False):
+        if coming and account.type is not Account.TYPE_CARD:
+            return
+        for tr in self.iter_transactions(account._link, account._args, account.type):
             yield tr
-
-        for tr in self.get_card_operations(account):
-            yield tr
-
-    def get_card_operations(self, account):
-        for link_args in account._card_ids:
-            for tr in self.iter_transactions(account._link, link_args, True):
-                yield tr
 
     def get_investment(self, account):
         if not account._inv:

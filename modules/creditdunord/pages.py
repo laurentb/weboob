@@ -23,6 +23,7 @@ from decimal import Decimal
 import re
 from cStringIO import StringIO
 from io import BytesIO
+from datetime import date as da
 
 from weboob.deprecated.browser import Page, BrokenPageError, BrowserIncorrectPassword
 from weboob.tools.json import json
@@ -163,14 +164,15 @@ class AccountsPage(CDNBasePage):
     COL_LABEL = 5
     COL_BALANCE = -1
 
-    TYPES = {'CARTE':               Account.TYPE_CARD,
-             'COMPTE COURANT':      Account.TYPE_CHECKING,
-             'COMPTE EPARGNE':      Account.TYPE_SAVINGS,
-             'COMPTE SUR LIVRET':   Account.TYPE_SAVINGS,
-             'LIVRET':              Account.TYPE_SAVINGS,
-             'P.E.A.':              Account.TYPE_MARKET,
-             'PEA':                 Account.TYPE_MARKET,
-             'TITRES':              Account.TYPE_MARKET,
+    TYPES = {u'CARTE':               Account.TYPE_CARD,
+             u'COMPTE COURANT':      Account.TYPE_CHECKING,
+             u'COMPTE EPARGNE':      Account.TYPE_SAVINGS,
+             u'COMPTE SUR LIVRET':   Account.TYPE_SAVINGS,
+             u'LIVRET':              Account.TYPE_SAVINGS,
+             u'P.E.A.':              Account.TYPE_MARKET,
+             u'PEA':                 Account.TYPE_MARKET,
+             u'TITRES':              Account.TYPE_MARKET,
+             u'ÉTOILE AVANCE':       Account.TYPE_LOAN,
             }
 
     def get_account_type(self, label):
@@ -226,14 +228,10 @@ class AccountsPage(CDNBasePage):
                           }
                 a._link = self.document.xpath('//form[@name="changePageForm"]')[0].attrib['action']
 
-            if a.id.find('_CarteVisa') >= 0:
-                accounts[-1]._card_ids.append(a._args)
-                if not accounts[-1].coming:
-                    accounts[-1].coming = Decimal('0.0')
-                accounts[-1].coming += a.balance
-                continue
+            if a.type is Account.TYPE_CARD:
+                a.coming = a.balance
+                a.balance = Decimal('0.0')
 
-            a._card_ids = []
             accounts.append(a)
 
         return accounts
@@ -276,7 +274,6 @@ class AVPage(CDNBasePage):
             a._link, a._args = self.get_params(cols[self.COL_LABEL].find('span/a').attrib['href'])
             a.id = '%s%s' % (a._args['IndiceSupport'], a._args['NumPolice'])
             a._acc_nb = None
-            a._card_ids = []
             a._inv = True
             yield a
 
@@ -330,7 +327,10 @@ class ProAccountsPage(AccountsPage):
             else:
                 a.id = a._acc_nb
 
-            a._card_ids = []
+            if a.type is Account.TYPE_CARD:
+                a.coming = a.balance
+                a.balance = Decimal('0.0')
+
             a._inv = False
 
             yield a
@@ -362,6 +362,8 @@ class Transaction(FrenchTransaction):
                 (re.compile(r'^REM(ISE)?\.?( CHQ\.)? .*'),  FrenchTransaction.TYPE_DEPOSIT),
                 (re.compile(r'^(?P<text>.*?)( \d{2}.*)? LE (?P<dd>\d{2})\.?(?P<mm>\d{2})$'),
                                                             FrenchTransaction.TYPE_CARD),
+                (re.compile(r'^(?P<text>.*?) LE (?P<dd>\d{2}) (?P<mm>\d{2}) (?P<yy>\d{2})$'),
+                                                            FrenchTransaction.TYPE_CARD),
                ]
 
 
@@ -371,8 +373,6 @@ class TransactionsPage(CDNBasePage):
     COL_DEBIT_DATE = -4
     COL_LABEL = -3
     COL_VALUE = -1
-
-    is_coming = None
 
     def get_next_args(self, args):
         if self.is_last():
@@ -394,19 +394,17 @@ class TransactionsPage(CDNBasePage):
 
         return True
 
-    def set_coming(self, t):
-        if self.is_coming is not None and t.raw.startswith('TOTAL DES') and t.amount > 0:
-            # ignore card credit and next transactions are already debited
-            self.is_coming = False
-            return True
-        if self.is_coming is None and t.raw.startswith('ACHATS CARTE'):
-            # Ignore card debit
+    def condition(self, t):
+        if t.date is NotAvailable:
             return True
 
-        t._is_coming = bool(self.is_coming)
+        t._is_coming = t.date > da.today()
+
+        if t.raw.startswith('TOTAL DES') or t.raw.startswith('ACHATS CARTE'):
+            t.type = t.TYPE_CARD_SUMMARY
         return False
 
-    def get_history(self):
+    def get_history(self, acc_type):
         txt = self.get_from_js('ListeMvts_data = new Array(', ');\n')
 
         if txt is None:
@@ -423,20 +421,18 @@ class TransactionsPage(CDNBasePage):
         for line in data:
             t = Transaction()
 
-            if self.is_coming is not None:
-                t.type = t.TYPE_CARD
-                date = self.parser.strip(line[self.COL_DEBIT_DATE])
+            if acc_type is Account.TYPE_CARD:
+                t.type = t.TYPE_DEFERRED_CARD
+                date = vdate = self.parser.strip(line[self.COL_DEBIT_DATE])
             else:
                 date = self.parser.strip(line[self.COL_DATE])
+                vdate = self.parser.strip(line[self.COL_DEBIT_DATE])
             raw = self.parser.strip(line[self.COL_LABEL])
 
-            t.parse(date, raw)
+            t.parse(date, raw, vdate=vdate)
             t.set_amount(line[self.COL_VALUE])
 
-            if t.date is NotAvailable:
-                continue
-
-            if self.set_coming(t):
+            if self.condition(t):
                 continue
 
             yield t
@@ -517,18 +513,20 @@ class ProTransactionsPage(TransactionsPage):
 
         return transactions.iteritems()
 
-    def get_history(self):
+    def get_history(self, acc_type):
         for i, tr in self.parse_transactions():
             t = Transaction()
-            date = tr['date']
+            if acc_type is Account.TYPE_CARD:
+                t.type = t.TYPE_DEFERRED_CARD
+                date = vdate = tr['dateval']
+            else:
+                date = tr['date']
+                vdate = tr['dateval'] or date
             raw = self.parser.strip('<p>%s</p>' % (' '.join([tr['typeope'], tr['LibComp']])))
-            t.parse(date, raw)
+            t.parse(date, raw, vdate)
             t.set_amount(tr['mont'])
 
-            if t.date is NotAvailable:
-                continue
-
-            if self.set_coming(t):
+            if self.condition(t):
                 continue
 
             yield t

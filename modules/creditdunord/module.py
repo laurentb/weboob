@@ -78,7 +78,7 @@ class CreditDuNordModule(Module, CapBank):
     def iter_coming(self, account):
         with self.browser:
             account = self.browser.get_account(account.id)
-            transactions = list(self.browser.get_card_operations(account))
+            transactions = list(self.browser.get_history(account, coming=True))
             transactions.sort(key=lambda tr: tr.rdate, reverse=True)
             return [tr for tr in transactions if tr._is_coming]
 
