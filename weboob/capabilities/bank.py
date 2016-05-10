@@ -198,15 +198,16 @@ class Investment(BaseObject):
     Investment in a financial market.
     """
 
-    label =       StringField('Label of stocks')
-    code =        StringField('Identifier of the stock (ISIN code)')
-    description = StringField('Short description of the stock')
-    quantity =    DecimalField('Quantity of stocks')
-    unitprice =   DecimalField('Buy price of one stock')
-    unitvalue =   DecimalField('Current value of one stock')
-    valuation =   DecimalField('Total current valuation of the Investment')
-    vdate     =   DateField('Value date of the valuation amount')
-    diff =        DecimalField('Difference between the buy cost and the current valuation')
+    label =              StringField('Label of stocks')
+    code =               StringField('Identifier of the stock (ISIN code)')
+    description =        StringField('Short description of the stock')
+    quantity =           DecimalField('Quantity of stocks')
+    unitprice =          DecimalField('Buy price of one stock')
+    unitvalue =          DecimalField('Current value of one stock')
+    valuation =          DecimalField('Total current valuation of the Investment')
+    vdate     =          DateField('Value date of the valuation amount')
+    diff =               DecimalField('Difference between the buy cost and the current valuation')
+    portfolio_share =    DecimalField('Percentage of the current amount relative to the total')
 
 
 class Transfer(BaseObject):
