@@ -78,6 +78,8 @@ class ComparisonResultsPage(HTMLPage):
 
 class ShopInfoPage(HTMLPage):
     def get_info(self):
-        return Format('%s\n\r%s',
+        return Format('%s / %s / %s: %s',
                       CleanText('(//div[@class="infos"]/p)[1]/text()'),
-                      CleanText('(//div[@class="infos"]/p)[2]'))(self.doc)
+                      CleanText('(//div[@class="infos"]/p)[2]'),
+                      CleanText('(//div[@class="infos"]/p)[3]'),
+                      CleanText('(//div[@class="infos"]/p)[3]/img/@alt'))(self.doc)

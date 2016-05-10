@@ -60,4 +60,5 @@ class PrixCarburantsBrowser(PagesBrowser):
         return self.page.iter_results(product=product)
 
     def get_shop_info(self, id):
+        self.session.headers.update({"X-Requested-With": "XMLHttpRequest"})
         return self.shop_page.go(_id=id).get_info()

@@ -21,6 +21,7 @@
 from weboob.tools.test import BackendTest
 import itertools
 
+
 class PrixCarburantsTest(BackendTest):
     MODULE = 'prixcarburants'
 
