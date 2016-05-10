@@ -114,9 +114,9 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
             self.accounts_list = list()
             for account in self.accounts.go().iter_accounts():
                 self.accounts_list.append(account)
-                self.acc_tit.go(webid=self.webid).populate(self.accounts_list)
-                if not all([acc._webid for acc in self.accounts_list]):
-                    self.acc_rep.go(webid=self.webid).populate(self.accounts_list)
+            self.acc_tit.go(webid=self.webid).populate(self.accounts_list)
+            if not all([acc._webid for acc in self.accounts_list]):
+                self.acc_rep.go(webid=self.webid).populate(self.accounts_list)
         return iter(self.accounts_list)
 
     @need_login
