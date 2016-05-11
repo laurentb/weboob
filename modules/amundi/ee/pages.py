@@ -108,14 +108,28 @@ class AccountDetailPage(LoggedPage, HTMLPage):
 
 
 class AccountHistoryPage(LoggedPage, JsonPage):
+    def belongs(self, instructions, data):
+        for ins in instructions:
+            if 'nomDispositif' in ins and 'codeDispositif' in ins and '%s%s' % (ins['nomDispositif'], ins['codeDispositif']) == \
+               '%s%s' % (data['acc'].label, data['acc'].id):
+                return True
+        return False
+
+    def get_amount(self, instructions, data):
+        amount = 0
+        for ins in instructions:
+            if 'nomDispositif' in ins and 'montantNet' in ins and 'codeDispositif' in ins and '%s%s' % (ins['nomDispositif'], ins['codeDispositif']) == \
+               '%s%s' % (data['acc'].label, data['acc'].id):
+                amount += ins['montantNet']
+        return Decimal(amount)
+
     @pagination
     def iter_history(self, data):
         for hist in self.doc['operationsIndividuelles']:
             if len(hist['instructions']) > 0:
-                if hist['instructions'][0]['nomDispositif'] + hist['instructions'][0]['codeDispositif'] == data[
-                    'acc'].label + data['acc'].id:
+                if self.belongs(hist['instructions'], data):
                     tr = Transaction()
-                    tr.amount = Decimal(hist['montantNet']) + Decimal(hist['montantNetAbondement'])
+                    tr.amount = self.get_amount(hist['instructions'], data)
                     tr.rdate = datetime.strptime(hist['dateComptabilisation'].split('T')[0], '%Y-%m-%d')
                     tr.date = tr.rdate
                     tr.label = hist['libelleOperation'] if 'libelleOperation' in hist else hist['libelleCommunication']
