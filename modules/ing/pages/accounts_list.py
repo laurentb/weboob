@@ -28,7 +28,7 @@ from weboob.capabilities.base import NotAvailable
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Filter, Field, MultiFilter, \
-                                            Date, Lower, Regexp, Async, AsyncLoad
+                                            Date, Lower, Regexp, Async, AsyncLoad, Format
 from weboob.browser.filters.html import Attr
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -144,12 +144,14 @@ class AccountsList(LoggedPage, HTMLPage):
 
             obj_id = None  # will be overwrited by the browser
             # we use lower for compatibility with the old website
-            obj_raw = Transaction.Raw(Lower('.//td[@class="lbl"]'))
             obj_amount = CleanDecimal('.//td[starts-with(@class, "amount")]', replace_dots=True)
             obj_date = INGDate(CleanText('.//td[@class="date"]'), dayfirst=True)
             obj_rdate = Field('date')
             obj__hash = PreHashmd5(Field('date'), Field('raw'), Field('amount'))
             obj_category = INGCategory(Attr('.//td[@class="picto"]/span', 'class'))
+
+            def obj_raw(self):
+                return Transaction.Raw(Lower('.//td[@class="lbl"]'))(self) or Format('%s %s', Field('date'), Field('amount'))(self)
 
             def condition(self):
                 if self.el.find('.//td[@class="date"]') is None:
