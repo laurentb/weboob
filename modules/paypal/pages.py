@@ -227,7 +227,7 @@ class PartHistoryPage(HistoryPage, JsonPage):
             original_currency = unicode(transaction['amounts']['txnCurrency'])
             if original_currency in self.browser.account_currencies:
                 return []
-            if 'conversionFrom' in transaction['amounts'] and account.currency == transaction['amounts']['conversionFrom']['currency']:
+            if 'conversionFrom' in transaction['amounts'] and 'value' in transaction['amounts']['conversionFrom'] and account.currency == transaction['amounts']['conversionFrom']['currency']:
                 cc = self.format_amount(transaction['amounts']['conversionFrom']['value'], transaction['isCredit'])
             else:
                 try:
