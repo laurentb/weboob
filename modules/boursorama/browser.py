@@ -131,13 +131,13 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_history(self, account, coming=False):
-        if not account._history_page:
+        if account.type is Account.TYPE_LOAN:
             return
         if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
             if coming:
                 return
             transactions = []
-            self.location('%s/mouvements' % account._history_page)
+            self.location('%s/mouvements' % account._link.rstrip('/'))
             account._history_pages = []
             for t in self.page.iter_history(account=account):
                 transactions.append(t)
@@ -152,7 +152,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
             params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=1)).strftime('%d/%m/%Y')
             params['movementSearch[selectedAccounts][]'] = account._webid
             if account.type != Account.TYPE_CARD:
-                account._history_page.go(webid=account._webid, params=params)
+                self.location('%s/mouvements' % account._link.rstrip('/'), params=params)
             else:
                 self.card_transactions.go(params=params)
             for t in self.page.iter_history():
