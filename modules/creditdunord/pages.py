@@ -394,7 +394,7 @@ class TransactionsPage(CDNBasePage):
 
         return True
 
-    def condition(self, t):
+    def condition(self, t, acc_type):
         if t.date is NotAvailable:
             return True
 
@@ -402,6 +402,8 @@ class TransactionsPage(CDNBasePage):
 
         if t.raw.startswith('TOTAL DES') or t.raw.startswith('ACHATS CARTE'):
             t.type = t.TYPE_CARD_SUMMARY
+        elif acc_type is Account.TYPE_CARD:
+            t.type = t.TYPE_DEFERRED_CARD
         return False
 
     def get_history(self, acc_type):
@@ -422,7 +424,6 @@ class TransactionsPage(CDNBasePage):
             t = Transaction()
 
             if acc_type is Account.TYPE_CARD:
-                t.type = t.TYPE_DEFERRED_CARD
                 date = vdate = self.parser.strip(line[self.COL_DEBIT_DATE])
             else:
                 date = self.parser.strip(line[self.COL_DATE])
@@ -432,7 +433,7 @@ class TransactionsPage(CDNBasePage):
             t.parse(date, raw, vdate=vdate)
             t.set_amount(line[self.COL_VALUE])
 
-            if self.condition(t):
+            if self.condition(t, acc_type):
                 continue
 
             yield t
@@ -517,7 +518,6 @@ class ProTransactionsPage(TransactionsPage):
         for i, tr in self.parse_transactions():
             t = Transaction()
             if acc_type is Account.TYPE_CARD:
-                t.type = t.TYPE_DEFERRED_CARD
                 date = vdate = tr['dateval']
             else:
                 date = tr['date']
@@ -526,7 +526,7 @@ class ProTransactionsPage(TransactionsPage):
             t.parse(date, raw, vdate)
             t.set_amount(tr['mont'])
 
-            if self.condition(t):
+            if self.condition(t, acc_type):
                 continue
 
             yield t
