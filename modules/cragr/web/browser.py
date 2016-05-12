@@ -22,6 +22,8 @@ import re
 import urllib
 from urlparse import urlparse
 
+from mechanize import FormNotFoundError
+
 from weboob.capabilities.bank import Account
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.tools.date import LinearDateGuesser
@@ -131,12 +133,15 @@ class Cragr(Browser):
                     'vitrine':              0,
                 }
 
-            self.location(url, urllib.urlencode(data))
+            self.location(url, urllib.urlencode(data), no_login=True)
 
         assert self.is_on_page(LoginPage)
 
         # Then, post the password.
-        self.page.login(self.username, self.password)
+        try:
+            self.page.login(self.username, self.password)
+        except FormNotFoundError:
+            raise BrowserIncorrectPassword()
 
         if self.new_login:
             url = self.page.get_accounts_url()
