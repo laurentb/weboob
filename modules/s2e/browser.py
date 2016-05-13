@@ -98,8 +98,6 @@ class S2eBrowser(LoginBrowser):
                 'session': self.sessionId}
 
         for trans in self.historyp.go(data=data).get_transactions():
-            if not int(trans['codeEntreprise']) == int(account.id):
-                continue
             t = Transaction()
             t.date = datetime.strptime(trans["dateHeureSaisie"], "%d/%m/%Y")
             t.rdate = datetime.strptime(trans["dateHeureSaisie"], "%d/%m/%Y")
@@ -121,7 +119,7 @@ class Esalia(S2eBrowser):
 
 class Capeasi(S2eBrowser):
     CTCC = "AXA"
-    loginp = URL('/AXA/$', LoginPage)
+    loginp = URL('/$', LoginPage)
     i18np = URL('/AXA/(?P<lang1>.*)/LANG/(?P<lang2>.*).json', I18nPage)
 
 
