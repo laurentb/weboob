@@ -81,7 +81,9 @@ class LCLBrowser(LoginBrowser):
     def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
-        assert self.password.isdigit()
+
+        if not self.password.isdigit():
+            raise BrowserIncorrectPassword()
 
         # we force the browser to go to login page so it's work even
         # if the session expire
