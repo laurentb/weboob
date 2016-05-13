@@ -25,6 +25,7 @@ from weboob.capabilities.bill import Bill, Subscription
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Regexp
+from weboob.browser.filters.html import Link
 from weboob.browser.elements import DictElement, ItemElement, ListElement, method
 from weboob.tools.date import parse_french_date
 
@@ -38,19 +39,7 @@ class LoginPage(HTMLPage):
 
 
 class HomePage(HTMLPage, LoggedPage):
-    @method
-    class get_list(ListElement):
-        class item(ItemElement):
-            klass = Subscription
-
-            obj_subscriber = CleanText('//span[@class="economligneaseule eccobold"]')
-            obj_id = Env('id')
-            obj_label = CleanText('//span[@class="ecconumteleule"]')
-            obj__contract = Env('contract')
-
-            def parse(self, el):
-                self.env['id'] = re.sub(r'[^\d\-\.]', '', el.xpath('//span[@class="ecconumteleule"]')[0].text)
-                self.env['contract'] = re.search("tc_vars\[\"ID_contrat\"\] = '([0-9]+)'", self.page.data).group(1)
+    pass
 
 
 class ProfilePage(JsonPage, LoggedPage):
@@ -66,13 +55,11 @@ class ProfilePage(JsonPage, LoggedPage):
             obj_label = Env('label')
             obj_subscriber = Format("%s %s %s", CleanText(Dict('civilite')),
                                     CleanText(Dict('prenom')), CleanText(Dict('nom')))
-            obj__contract = Env('contract')
 
             def parse(self, el):
                 # add spaces
                 number = iter(self.obj_id(el))
                 self.env['label'] = ' '.join(a+b for a, b in zip(number, number))
-                self.env['contract'] = re.search('\\"user_id\\":\\"([0-9]+)\\"', self.page.get('data.tag')).group(1)
 
 
 class SendSMSPage(HTMLPage):
@@ -94,6 +81,17 @@ class SendSMSErrorPage(HTMLPage):
 
 
 class DocumentsPage(HTMLPage):
+    def get_ref(self, label):
+        options = self.doc.xpath('//select[@id="factureMois"]/option[position() > 1]/@value')
+        for option in options:
+            ref = self.doc.xpath('//span[contains(text(), "%s")]/ \
+                ancestor::div[has-class("etape-content")]//a[@id="btnAnciennesFactures"]' % label)
+            if ref:
+                # Get ref and return it
+                return re.search('reference=([\d]+)', Link().filter(ref)).group(1)
+            self.doc = self.browser.open('%s?mois=%s' % (self.browser.url, option)).page.doc
+        return None
+
     @method
     class get_documents(ListElement):
         item_xpath = '//div[@facture-id]'
@@ -102,7 +100,7 @@ class DocumentsPage(HTMLPage):
             klass = Bill
 
             obj__ref = CleanText('//input[@id="noref"]/@value')
-            obj_id = Format('%s_%s', Env('user'), CleanText('./@facture-id'))
+            obj_id = Format('%s_%s', Env('subid'), CleanText('./@facture-id'))
             obj__url = Format('http://www.bouyguestelecom.fr/parcours/facture/download/index?id=%s', CleanText('./@facture-id'))
             obj_date = Env('date')
             obj_format = u"pdf"
@@ -112,5 +110,4 @@ class DocumentsPage(HTMLPage):
             obj_currency = u"€"
 
             def parse(self, el):
-                self.env['user'] = self.page.browser.subid
                 self.env['date'] = parse_french_date('01 %s' % CleanText('./text()')(self)).date()

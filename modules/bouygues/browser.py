@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.browser.exceptions import ServerError
 from weboob.exceptions import BrowserIncorrectPassword
 from .pages import DocumentsPage, HomePage, LoginPage, ProfilePage, SendSMSPage, SendSMSErrorPage
 
@@ -34,7 +33,8 @@ class BouyguesBrowser(LoginBrowser):
     login = URL('cas/login', LoginPage)
     home = URL('https://www.bouyguestelecom.fr/mon-compte', HomePage)
     profile = URL('https://api-mc.bouyguestelecom.fr/client/me/header.json', ProfilePage)
-    documents = URL('http://www.bouyguestelecom.fr/parcours/mes-factures/historique\?no_reference=(?P<ref>)', DocumentsPage)
+    documents = URL('http://www.bouyguestelecom.fr/parcours/mes-factures',
+                    'http://www.bouyguestelecom.fr/parcours/mes-factures/historique\?no_reference=(?P<ref>)', DocumentsPage)
 
     sms_page = URL('http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/sendSMS.phtml',
                    'http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/confirmSendSMS.phtml',
@@ -79,17 +79,11 @@ class BouyguesBrowser(LoginBrowser):
 
     @need_login
     def get_subscription_list(self):
-        try:
-            # Informations are available in the header.json file.
-            # The only required field is the contract number
-            # which is available in the source of the homepage too.
-            # Possibly the json file contains more informations but
-            # it appears to be unavailable sometimes.
-            return self.profile.stay_or_go().get_list()
-        except ServerError:
-            return self.home.stay_or_go().get_list()
+        return self.profile.stay_or_go().get_list()
 
     @need_login
     def iter_documents(self, subscription):
-        self.subid = subscription.id
-        return self.documents.stay_or_go(ref=subscription._contract).get_documents()
+        ref = self.documents.go().get_ref(subscription.label)
+        if not ref:
+            return
+        return self.documents.go(ref=ref).get_documents(subid=subscription.id)
