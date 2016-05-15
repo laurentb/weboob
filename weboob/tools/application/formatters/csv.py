@@ -19,7 +19,6 @@
 
 from __future__ import absolute_import
 import csv
-import sys
 
 from .iformatter import IFormatter
 
@@ -27,18 +26,18 @@ __all__ = ['CSVFormatter']
 
 
 class CSVFormatter(IFormatter):
-    def __init__(self, field_separator=u';'):
-        IFormatter.__init__(self)
-        self.field_separator = field_separator
+    def __init__(self):
+        super(CSVFormatter, self).__init__()
         self.started = False
-        self.writer = csv.writer(sys.stderr)
 
     def flush(self):
         self.started = False
 
     def format_dict(self, item):
-        if not self.started:
-            self.writer.writerow([unicode(v).encode('utf-8') for v in item.keys()])
-            self.started = True
+        with open(self.outfile, "a+") as outfile:
+            writer = csv.writer(outfile)
+            if not self.started:
+                writer.writerow([unicode(v).encode('utf-8') for v in item.keys()])
+                self.started = True
 
-        self.writer.writerow([unicode(v).encode('utf-8') for v in item.itervalues()])
+            writer.writerow([unicode(v).encode('utf-8') for v in item.itervalues()])
