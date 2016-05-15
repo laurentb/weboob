@@ -34,10 +34,16 @@ class CSVFormatter(IFormatter):
         self.started = False
 
     def format_dict(self, item):
-        with open(self.outfile, "a+") as outfile:
-            writer = csv.writer(outfile)
-            if not self.started:
-                writer.writerow([unicode(v).encode('utf-8') for v in item.keys()])
-                self.started = True
+        if not isinstance(self.outfile, basestring):
+            return self.write_dict(item, self.outfile)
 
-            writer.writerow([unicode(v).encode('utf-8') for v in item.itervalues()])
+        with open(self.outfile, "a+") as fp:
+            return self.write_dict(item, fp)
+
+    def write_dict(self, item, fp):
+        writer = csv.writer(fp)
+        if not self.started:
+            writer.writerow([unicode(v).encode('utf-8') for v in item.keys()])
+            self.started = True
+
+        writer.writerow([unicode(v).encode('utf-8') for v in item.itervalues()])
