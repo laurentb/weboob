@@ -212,15 +212,21 @@ class Cragr(Browser):
             l = self.get_list()
         return l
 
-    def get_cards(self):
+    def get_cards_or_card(self, account_id=None):
         accounts = []
         if not self.is_on_page(AccountsPage):
             self.location(self.accounts_url.format(self.sag))
 
-        for cards_page in self.page.cards_pages():
-            self.location(cards_page)
+        for idelco in self.page.cards_idelco_or_link():
+            if not self.is_on_page(AccountsPage):
+                self.location(self.accounts_url.format(self.sag))
+            self.location(self.page.cards_idelco_or_link(idelco))
             assert self.is_on_page(CardsPage)
-            accounts.extend(self.page.get_list())
+            for account in self.page.get_list():
+                if account_id and account.id == account_id:
+                    return account
+                else:
+                    accounts.append(account)
 
         return accounts
 
@@ -232,7 +238,7 @@ class Cragr(Browser):
         accounts_list.extend(self.page.get_list())
 
         # credit cards
-        accounts_list.extend(self.get_cards())
+        accounts_list.extend(self.get_cards_or_card())
 
         # loan accounts
         self.location(self.loans_url.format(self.sag))
@@ -283,19 +289,15 @@ class Cragr(Browser):
         if account._link is None:
             return
 
-        did_move = False
         if account._perimeter != self.current_perimeter:
             self.go_perimeter(account._perimeter)
-            did_move = True
 
         # card accounts need to get an updated link
         if account.type == Account.TYPE_CARD:
-            accounts = [acc for acc in self.get_cards() if acc.id == account.id]
-            assert len(accounts) == 1
-            account = accounts[0]
+            self.get_cards_or_card(account.id)
 
         date_guesser = LinearDateGuesser()
-        if account.type != Account.TYPE_CARD or not self.page.is_on_right_detail(account):
+        if account.type != Account.TYPE_CARD:
             self.location(account._link.format(self.sag))
 
         if self.is_on_page(CardsPage):
@@ -323,10 +325,6 @@ class Cragr(Browser):
                     yield tr
 
                 url = self.page.get_next_url()
-
-        # Ugly hack needed for for following card accounts history
-        if did_move:
-            self.get_accounts_list()
 
     def iter_investment(self, account):
         if not account._link or account.type not in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE):

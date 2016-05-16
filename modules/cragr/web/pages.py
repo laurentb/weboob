@@ -200,9 +200,9 @@ class _AccountsPage(BasePage):
     def set_link(self, account, cols):
         raise NotImplementedError()
 
-    def cards_pages(self):
+    def cards_idelco_or_link(self, account_idelco=None):
         # Use a set because it is possible to see several times the same link.
-        links = set()
+        idelcos = set()
         for line in self.document.xpath('//table[@class="ca-table"]/tr[@class="ligne-connexe"]'):
             try:
                 link = line.xpath('.//a/@href')[0]
@@ -210,8 +210,12 @@ class _AccountsPage(BasePage):
                 pass
             else:
                 if not link.startswith('javascript:'):
-                    links.add(link)
-        return links
+                    if account_idelco and 'IDELCO=%s&' % account_idelco in link:
+                        return link
+                    m = re.search('IDELCO=(\d+)&', link)
+                    if m:
+                        idelcos.add(m.group(1))
+        return idelcos
 
     def check_perimeters(self):
         return len(self.document.xpath('//a[@title="Espace Autres Comptes"]'))
@@ -316,7 +320,7 @@ class CardsPage(BasePage):
                     account._link = re.sub('[\n\r\t]+', '', account._link)
             else:
                 account._link = self.url
-
+            account._idelco = re.search('IDELCO=(\d+)&', self.url).group(1)
             account._perimeter = self.browser.current_perimeter
             yield account
 
