@@ -22,6 +22,7 @@ import time
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, ParseError
+from weboob.browser.exceptions import ServerError
 from weboob.capabilities.bank import Account, TransferError, AccountNotFound
 from weboob.capabilities.base import find_object
 
@@ -36,7 +37,13 @@ def check_bourse(f):
     def wrapper(*args):
         browser = args[0]
         if browser.where == u"titre":
-            browser.location("https://bourse.ingdirect.fr/priv/redirectIng.php?pageIng=COMPTE")
+            for i in xrange(3):
+                try:
+                    browser.location("https://bourse.ingdirect.fr/priv/redirectIng.php?pageIng=COMPTE")
+                except ServerError:
+                    pass
+                else:
+                    break
             browser.where = u"start"
         return f(*args)
     return wrapper
