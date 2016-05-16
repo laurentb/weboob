@@ -198,7 +198,7 @@ class CaisseEpargne(Browser):
                 return iter([])
             self.location('https://www.caisse-epargne.offrebourse.com/Portefeuille')
             if self.is_on_page(MessagePage):
-                raise BrowserIncorrectPassword('Nouvelle version de Service Bourse.')
+                return iter([])
             if not self.page.is_on_right_portfolio(account):
                 self.location('https://www.caisse-epargne.offrebourse.com/Portefeuille?compte=%s' % self.page.get_compte(account))
         elif account.type is Account.TYPE_LIFE_INSURANCE:
