@@ -625,6 +625,7 @@ class TransactionsPage(BasePage):
 
             # Strip the balance displayed in transaction labels
             t.label = re.sub('solde en valeur : .*', '', t.label)
+            t.raw = re.sub('solde en valeur : .*', '', t.raw)
 
             # XXX Fucking hack to include the check number not displayed in the full label.
             if re.match("^CHEQUE ", t.label):
