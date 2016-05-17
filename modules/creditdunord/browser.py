@@ -51,7 +51,8 @@ class CreditDuNordBrowser(Browser):
         Browser.__init__(self, *args, **kwargs)
 
     def is_logged(self):
-        return self.page is not None and not self.is_on_page(LoginPage)
+        return self.page is not None and not self.is_on_page(LoginPage) and \
+            not self.page.document.xpath(u'//b[contains(text(), "vous devez modifier votre code confidentiel")]')
 
     def home(self):
         if self.is_logged():
