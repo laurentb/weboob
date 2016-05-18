@@ -29,6 +29,7 @@ from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.iban import rib2iban, rebuild_rib
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.json import json
 from weboob.tools.date import parse_french_date as Date
@@ -180,7 +181,7 @@ class AccountsPage(BNPPage):
                     'type': self.LABEL_TO_TYPE.get(a.get('libelleProduit')) or self.FAMILY_TO_TYPE.get(f.get('idFamilleCompte')) or Account.TYPE_UNKNOWN,
                     'balance': a.get('soldeDispo'),
                     'coming': a.get('soldeAVenir'),
-                    'iban': ibans.get(a.get('key')),
+                    'iban': rib2iban(rebuild_rib(ibans[a['key']])) if a.get('key') in ibans else None,
                     'number': a.get('value')
                 })
 
