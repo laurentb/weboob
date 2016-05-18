@@ -67,7 +67,7 @@ def find_iban_checksum(iban):
     return 98-checksum
 
 def rebuild_iban(iban):
-    return iban[:2] + ('%02d' % find_iban_checksum(iban)) + iban[4:]
+    return unicode(iban[:2] + ('%02d' % find_iban_checksum(iban)) + iban[4:])
 
 def rib2iban(rib):
     return rebuild_iban('FR00' + rib)
@@ -79,11 +79,17 @@ def find_rib_checksum(bank, counter, account):
     rest = (89*int(bank) + 15*int(counter) + 3*int(account)) % 97
     return 97 - rest
 
+def is_rib_valid(rib):
+    if len(rib) != 23:
+        return False
+
+    return find_rib_checksum(rib[:5], rib[5:10], rib[10:21]) == int(rib[21:23])
+
 def rebuild_rib(rib):
     rib = clean(rib)
     assert len(rib) >= 21
     key = find_rib_checksum(rib[:5], rib[5:10], rib[10:21])
-    return rib[:21] + ('%02d' % key)
+    return unicode(rib[:21] + ('%02d' % key))
 
 if __name__ == '__main__':
     print rebuild_iban('FR0013048379405300290000355')
