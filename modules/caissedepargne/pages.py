@@ -31,6 +31,7 @@ from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanTex
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban
 
 
 class GarbagePage(Page):
@@ -185,7 +186,8 @@ class IndexPage(Page):
 
         account = Account()
         account.id = info['id']
-        account.iban = u'FR76' + info['id']
+        if is_rib_valid(info['id']):
+            account.iban = rib2iban(info['id'])
         account._info = info
         account.label = label
         account.type = info['acc_type'] if 'acc_type' in info else account_type
