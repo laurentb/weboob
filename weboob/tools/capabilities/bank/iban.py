@@ -83,7 +83,7 @@ def rebuild_rib(rib):
     rib = clean(rib)
     assert len(rib) >= 21
     key = find_rib_checksum(rib[:5], rib[5:10], rib[10:21])
-    return rib[:21] + str(key)
+    return rib[:21] + ('%02d' % key)
 
 if __name__ == '__main__':
     print rebuild_iban('FR0013048379405300290000355')
