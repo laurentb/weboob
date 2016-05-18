@@ -100,7 +100,11 @@ class AccountPage(LoggedPage, HTMLPage):
         for li in lines:
             account = Account()
             account.type = Account.TYPE_CHECKING
-            currency = Currency.get_currency(CleanText().filter((li.xpath('./span[@class="currencyUnit"]/span') or li.xpath('./span[1]'))[0]))
+            currency_code = CleanText().filter((li.xpath('./span[@class="currencyUnit"]/span') or li.xpath('./span[1]'))[0])
+            currency = Currency.get_currency(currency_code)
+            if not currency:
+                self.logger.warning('Unable to find currency %r', currency_code)
+                continue
             account.id = currency
             account.currency = currency
             account.balance = CleanDecimal(replace_dots=True).filter(li.xpath('./span[@class="amount"]/text()'))
