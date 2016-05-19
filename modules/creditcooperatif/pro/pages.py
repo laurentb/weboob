@@ -64,8 +64,7 @@ class AccountsPage(Page):
 
             account.id = tds[self.CPT_ROW_ID].text.strip()
             account.label = unicode(tds[self.CPT_ROW_NAME].text.strip())
-
-            account_type_str = "".join([td.text for td in tds[self.CPT_ROW_NATURE].xpath('.//td[@class="txt"]')]).strip()
+            account_type_str = "".join([td.text for td in tds[self.CPT_ROW_NATURE].xpath('.//td[@class="txt" and @width="99%"]')]).strip()
 
             account.type = self.ACCOUNT_TYPES.get(account_type_str,  Account.TYPE_UNKNOWN)
 
