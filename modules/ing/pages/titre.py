@@ -28,7 +28,6 @@ from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Date
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
-
 class NetissimaPage(HTMLPage):
     pass
 
@@ -48,13 +47,17 @@ class TitrePage(LoggedPage, RawPage):
         # popup=2{6{E:ALO{PAR{{reel{695{380{ALSTOM REGROUPT#XX#YY,YY &euro;#YY,YY &euro;#1 YYY,YY &euro;#-YYY,YY &euro;#-42,42%#-0,98 %#42,42 %#|1|AXA#cotationValeur.php?val=E:CS&amp;pl=6&amp;nc=1&amp;
         # popup=2{6{E:CS{PAR{{reel{695{380{AXA#XX#YY,YY &euro;#YY,YYY &euro;#YYY,YY &euro;#YY,YY &euro;#3,70%#42,42 %#42,42 %#|1|blablablab #cotationValeur.php?val=P:CODE&amp;pl=6&amp;nc=1&amp;
         # [...]
-        lines = self.doc.split("popup=2")
-        lines.pop(0)
+        lines = self.doc.split("|1|")
+        if len(lines) > 1:
+            lines[0] = lines[0].split("|")[1]
+        else:
+            lines.pop(0)
         invests = []
         for line in lines:
             columns = line.split('#')
-            _pl = columns[0].split('{')[1]
-            _id = columns[0].split('{')[2]
+            if columns[1] != '':
+                _pl = columns[1].split('{')[1]
+                _id = columns[1].split('{')[2]
             invest = Investment(_id)
             invest.label = unicode(columns[0].split('{')[-1])
             invest.code = unicode(_id)
@@ -66,25 +69,25 @@ class TitrePage(LoggedPage, RawPage):
                 if m:
                     invest.code = unicode(m.group(1) or m.group(2))
 
-            quantity = FrenchTransaction.clean_amount(columns[1])
+            quantity = FrenchTransaction.clean_amount(columns[2])
             invest.quantity = CleanDecimal(default=NotAvailable).filter(quantity)
 
-            unitprice = FrenchTransaction.clean_amount(columns[2])
+            unitprice = FrenchTransaction.clean_amount(columns[3])
             invest.unitprice = CleanDecimal(default=NotAvailable).filter(unitprice)
 
-            unitvalue = FrenchTransaction.clean_amount(columns[3])
+            unitvalue = FrenchTransaction.clean_amount(columns[4])
             invest.unitvalue = CleanDecimal(default=NotAvailable).filter(unitvalue)
 
-            valuation = FrenchTransaction.clean_amount(columns[4])
+            valuation = FrenchTransaction.clean_amount(columns[5])
             # valuation is not nullable, use 0 as default value
             invest.valuation = CleanDecimal(default=Decimal('0')).filter(valuation)
 
-            diff = FrenchTransaction.clean_amount(columns[5])
+            diff = FrenchTransaction.clean_amount(columns[6])
             invest.diff = CleanDecimal(default=NotAvailable).filter(diff)
 
             # On some case we have a multine investment with a total column
             # for now we have only see this on 2 lines, we will need to adapt it when o
-            if columns[9] == u'|Total' and _id == 'fichevaleur':
+            if columns[0] == u'|Total' and _id == 'fichevaleur':
                 prev_inv = invest
                 invest = invests.pop(-1)
                 if prev_inv.quantity:
