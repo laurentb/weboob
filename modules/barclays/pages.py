@@ -80,22 +80,17 @@ class AccountsPage(Page):
                 link = tr.cssselect('span.accountLabel a')[0]
                 balance = Decimal(FrenchTransaction.clean_amount(tr.cssselect('span.accountTotal')[0].text))
 
-                if id.endswith('CRT'):
-                    account = accounts[-1]
-                    account._card_links.append(link.attrib['href'])
-                    if not account.coming:
-                        account.coming = Decimal('0.0')
-                    account.coming += balance
-                    continue
-
                 account = Account()
+                account._attached_acc = None
                 account.id = id
                 account.label = unicode(link.text.strip())
                 account.type = account_type
                 account.balance = balance
                 account.currency = account.get_currency(tr.cssselect('span.accountDev')[0].text)
                 account._link = link.attrib['href']
-                account._card_links = []
+                if id.endswith('CRT'):
+                    self.populate_cards(account)
+
                 accounts.append(account)
 
         if len(accounts) == 0:
@@ -108,7 +103,6 @@ class AccountsPage(Page):
                     continue
 
                 account = None
-                card_account = None
                 attribs = {}
                 account_type = Account.TYPE_UNKNOWN
                 for line in text.split('\n'):
@@ -130,39 +124,33 @@ class AccountsPage(Page):
                             account.balance = Decimal(FrenchTransaction.clean_amount(attribs['soldeDateOpeValeurFormatted']))
                             account.currency = account.get_currency(attribs['codeDevise'])
                             account._link = 'tbord.do?id=%s&%s' % (attribs['id'], self.browser.SESSION_PARAM)
-                            account._card_links = []
+                            account._attached_acc = None
 
                             if account.id.endswith('CRT'):
-                                if not len(accounts):
-                                    card_account = account
-                                else:
-                                    a = accounts[-1]
-                                    a._card_links.append(account._link)
-                                    if not a.coming:
-                                        a.coming = Decimal('0.0')
-                                    a.coming += account.balance
-                            else:
-                                if 'COURANT' in account.label:
-                                    account.type = account.TYPE_CHECKING
-                                elif account.id.endswith('TTR'):
-                                    account.type = account.TYPE_MARKET
-                                elif re.match('^\d+C$', account.id):
-                                    account.type = account.TYPE_LIFE_INSURANCE
-                                elif re.match('^\d+PRT$', account.id):
-                                    account.type = account.TYPE_LOAN
-                                elif not account.type:
-                                    account.type = account.TYPE_SAVINGS
+                                self.populate_cards(account)
+                            elif any([word in account.label for word in ['COURANT', 'joint', 'perso']]):
+                                account.type = account.TYPE_CHECKING
+                            elif account.id.endswith('TTR'):
+                                account.type = account.TYPE_MARKET
+                            elif re.match('^\d+C$', account.id):
+                                account.type = account.TYPE_LIFE_INSURANCE
+                            elif re.match('^\d+PRT$', account.id):
+                                account.type = account.TYPE_LOAN
+                            elif not account.type:
+                                account.type = account.TYPE_SAVINGS
 
-                                if card_account:
-                                    account._card_links.append(card_account._link)
-                                    if not account.coming:
-                                        account.coming = Decimal('0.0')
-                                    account.coming += card_account.balance
-                                    card_account = None
-                                accounts.append(account)
+                            accounts.append(account)
                             account = None
 
         return accounts
+
+    def populate_cards(self, account):
+        account.type = account.TYPE_CARD
+        account.coming = account.balance
+        account.balance = Decimal('0.0')
+        doc = self.browser.get_document(self.browser.openurl(account._link))
+        self.browser.openurl(self.url)
+        account._attached_acc = ''.join(re.findall('\d', doc.xpath(u'//td[contains(text(), "Carte rattachée")]')[0].text))
 
 
 class Transaction(FrenchTransaction):
@@ -200,6 +188,11 @@ class HistoryBasePage(Page):
         self.logger.warning('Do not support history on account of type %s' % type(self).__name__)
         return iter([])
 
+    def get_next_page(self):
+        link = self.document.xpath('//a[span[contains(text(), "Suiv.")]]')
+        if link:
+            return link[0].attrib['href']
+
 
 class TransactionsPage(HistoryBasePage):
     def get_history(self):
@@ -219,8 +212,8 @@ class TransactionsPage(HistoryBasePage):
             t.set_amount(credit, debit)
             t._coming = False
 
-            if t.raw.startswith('ACHAT CARTE -DEBIT DIFFERE'):
-                continue
+            if t.raw.startswith('ACHAT CARTE -DEBIT DIFFERE') or 'ACHAT-DEBIT DIFFERE' in t.raw:
+                t.type = t.TYPE_CARD_SUMMARY
 
             yield t
 
@@ -250,7 +243,7 @@ class CardPage(HistoryBasePage):
             if debit_date is not None:
                 t.date = debit_date
             t.label = unicode(tds[1].find('span').text.strip())
-            t.type = t.TYPE_CARD
+            t.type = t.TYPE_DEFERRED_CARD
             t._coming = coming
             t.set_amount(amount)
             yield t

@@ -118,35 +118,40 @@ class Barclays(Browser):
 
         return None
 
+    def get_related_account(self, related_accid):
+        l = []
+        for a in self.get_accounts_list():
+            if related_accid in a.id and a.type == a.TYPE_CHECKING:
+                l.append(a)
+        assert len(l) == 1
+        return l[0]
+
     def get_history(self, account):
         if not self.is_on_page(AccountsPage):
             self.home()
 
         self.location(account._link)
 
-        assert self.is_on_page((TransactionsPage, ValuationPage, LoanPage, MarketPage, AssurancePage))
+        assert self.is_on_page((TransactionsPage, ValuationPage, LoanPage, MarketPage, AssurancePage, CardPage))
 
         transactions = list()
-        for tr in self.page.get_history():
-            transactions.append(tr)
+        while True:
+            for tr in self.page.get_history():
+                transactions.append(tr)
+            next_page = self.page.get_next_page()
+            if next_page:
+                self.location(next_page)
+            else:
+                break
 
-        for tr in self.get_card_operations(account):
-            transactions.append(tr)
+        if account._attached_acc is not None:
+            for tr in self.get_history(self.get_related_account(account._attached_acc)):
+                if (tr.raw.startswith('ACHAT CARTE -DEBIT DIFFERE') or 'ACHAT-DEBIT DIFFERE' in tr.raw) and account.id[:6] in tr.raw and account.id[:4] in tr.raw:
+                    tr.amount *= -1
+                    transactions.append(tr)
 
         for tr in sorted(transactions, key=lambda t: t.rdate, reverse=True) :
             yield tr
-
-    def get_card_operations(self, account):
-        for card in account._card_links:
-            if not self.is_on_page(AccountsPage):
-                self.home()
-
-            self.location(card)
-
-            assert self.is_on_page(CardPage)
-
-            for tr in self.page.get_history():
-                yield tr
 
     def iter_investments(self, account):
         if account.type not in (account.TYPE_MARKET, account.TYPE_LIFE_INSURANCE):

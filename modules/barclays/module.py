@@ -64,7 +64,7 @@ class BarclaysModule(Module, CapBank):
                 yield tr
 
     def iter_coming(self, account):
-        for tr in self.browser.get_card_operations(account):
+        for tr in self.browser.get_history(account):
             if tr._coming:
                 yield tr
 
