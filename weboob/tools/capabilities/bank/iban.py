@@ -92,6 +92,6 @@ def rebuild_rib(rib):
     return unicode(rib[:21] + ('%02d' % key))
 
 if __name__ == '__main__':
-    print rebuild_iban('FR0013048379405300290000355')
-    print rebuild_iban('GB87BARC20658244971655')
-    print rebuild_rib('30003021990005077567600')
+    print(rebuild_iban('FR0013048379405300290000355'))
+    print(rebuild_iban('GB87BARC20658244971655'))
+    print(rebuild_rib('30003021990005077567600'))
