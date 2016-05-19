@@ -213,14 +213,14 @@ class ProHistoryPage(HistoryPage, JsonPage):
                 t_payback.type = FrenchTransaction.TYPE_TRANSFER
                 t_payback.parse(date=date, raw=u'Prélèvement pour %s' % raw)
                 trans.append(t_payback)
-        if raw.startswith(u'Remboursement') or raw.startswith(u'Refund'):
-            t_counterpart = FrenchTransaction()
-            t_counterpart.amount = -t.amount
-            if t.original_currency:
-                t_counterpart.original_currency = t.original_currency
-                t_counterpart.original_amount = -t.original_amount
-            t_counterpart.parse(date=date, raw=u'Contrepartie - %s' % raw)
-            trans.append(t_counterpart)
+        #if raw.startswith(u'Remboursement') or raw.startswith(u'Refund'):
+        #    t_counterpart = FrenchTransaction()
+        #    t_counterpart.amount = -t.amount
+        #    if t.original_currency:
+        #        t_counterpart.original_currency = t.original_currency
+        #        t_counterpart.original_amount = -t.original_amount
+        #    t_counterpart.parse(date=date, raw=u'Contrepartie - %s' % raw)
+        #    trans.append(t_counterpart)
         t.commission = Decimal('%.2f' % transaction['fee']['currencyDoubleValue'])
         t.parse(date=date, raw=raw)
         trans.append(t)
