@@ -39,6 +39,7 @@ class BrowserIncorrectAuthenticationCode(BrowserIncorrectPassword):
 
 class BoursoramaBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://clients.boursorama.com'
+    TIMEOUT = 60.0
 
     keyboard = URL('/connexion/clavier-virtuel\?_hinclude=300000', VirtKeyboardPage)
     login = URL('/connexion/\?clean=1', LoginPage)
