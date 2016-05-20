@@ -45,6 +45,7 @@ class MyMockBrowser(PagesBrowser):
     # URL used by method build
     urlValue = URL("http://test.com/(?P<id>\d+)")
     urlParams = URL("http://test.com\?id=(?P<id>\d+)&name=(?P<name>.+)")
+    urlSameParams = URL("http://test.com/(?P<id>\d+)", "http://test.com\?id=(?P<id>\d+)&name=(?P<name>.+)")
 
     # URL used by method is_here
     urlIsHere = URL('http://weboob.org/(?P<param>)', MyMockPage)
@@ -108,6 +109,13 @@ class URLTest(TestCase):
     # identifiers and values of some parameters
     def test_build_urlParams_OK(self):
         res = self.myBrowser.urlParams.build(id=2, name="weboob")
+        self.assertEquals(res, "http://test.com?id=2&name=weboob")
+
+    # Checks that build returns the right url when it needs to add
+    # identifiers and values of some parameters.
+    # The same parameters can be in multiple patterns.
+    def test_build_urlSameParams_OK(self):
+        res = self.myBrowser.urlSameParams.build(id=2, name="weboob")
         self.assertEquals(res, "http://test.com?id=2&name=weboob")
 
     # Checks that an exception is raised when a parameter is missing
