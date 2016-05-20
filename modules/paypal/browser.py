@@ -43,11 +43,12 @@ class Paypal(LoginBrowser):
                   '/cgi-bin/webscr\?cmd=_account.*$',
                   '/cgi-bin/webscr\?cmd=_login-done.+$',
                   UselessPage)
-    home = URL('/cgi-bin/webscr\?cmd=_home&country_lang.x=true$',
+    home = URL('.*/cgi-bin/webscr\?cmd=_home&country_lang.x=true$',
                'https://\w+.paypal.com/webapps/business/\?country_lang.x=true',
                'https://\w+.paypal.com/myaccount/\?nav=0.0',
                'https://\w+.paypal.com/webapps/business/\?nav=0.0',
                'https://\w+.paypal.com/myaccount/$',
+               '/businessexp/summary\?country_lang.x=true',
                HomePage)
     error = URL('/auth/validatecaptcha$', ErrorPage)
     history_details = URL('https://\w+.paypal.com/cgi-bin/webscr\?cmd=_history-details-from-hub&id=[\-A-Z0-9]+$',
@@ -71,13 +72,6 @@ class Paypal(LoginBrowser):
         self.account_currencies = list()
         super(Paypal, self).__init__(*args, **kwargs)
 
-    def find_account_type(self):
-        try:
-            self.location('https://www.paypal.com/myaccount/')
-            self.account_type = "perso"
-        except:
-            self.account_type = "pro"
-
     def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
@@ -98,18 +92,15 @@ class Paypal(LoginBrowser):
         if 'LoginFailed' in res.content or 'Sorry, we can\'t log you in' in res.content or self.login.is_here() or self.error.is_here():
             raise BrowserIncorrectPassword()
 
-        self.find_account_type()
-
-    @need_login
-    def get_accounts(self):
-        if self.account_type is None:
-            self.find_account_type()
-
-        self.account.stay_or_go()
-
+        self.location('')
         if self.login.is_here():
             raise BrowserIncorrectPassword(u'La connexion nécessite une étape de sécurisation supplémentaire.')
 
+        self.page.detect_account_type()
+
+    @need_login
+    def get_accounts(self):
+        self.account.stay_or_go()
         return self.page.get_accounts()
 
     @need_login

@@ -84,7 +84,11 @@ class UselessPage(LoggedPage, HTMLPage):
 
 
 class HomePage(LoggedPage, HTMLPage):
-    pass
+    def detect_account_type(self):
+        if self.doc.xpath('//a[contains(@href, "businessexp")] | //script[contains(text(), "business")]'):
+            self.browser.account_type = "pro"
+        elif self.doc.xpath('//a[contains(@href, "myaccount")]'):
+            self.browser.account_type = "perso"
 
 
 class AccountPage(LoggedPage, HTMLPage):
