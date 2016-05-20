@@ -317,6 +317,15 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                     obj.type = Transaction.TYPE_CARD_SUMMARY
                     obj.deleted = True
 
+                raw = Async('details', CleanText(u'//td[contains(text(), "Libellé")]/following-sibling::*[1]|//td[contains(text(), "Nom du donneur")]/following-sibling::*[1]', default=obj.raw))(self)
+                if raw:
+                    if obj.raw in raw or raw in obj.raw:
+                        obj.raw = raw
+                        obj.label = raw
+                    else:
+                        obj.raw = '%s %s' % (obj.raw, raw)
+                        obj.label = '%s %s' % (obj.raw, raw)
+                        print obj.raw
                 if not obj.date:
                     obj.date = Async('details', Date(CleanText(u'//td[contains(text(), "Date de l\'opération")]/following-sibling::*[1]', default=u''), default=NotAvailable))(self)
                     obj.rdate = obj.date
