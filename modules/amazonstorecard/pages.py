@@ -51,8 +51,10 @@ class SummaryPage(SomePage):
             # distant future, so that we always have a valid date.
             paydate = datetime.now() + timedelta(days=999)
         else:
-            #TODO: parse it
-            paydate = None
+            rawtext = self.doc.xpath(
+                u'//li[contains(text(),"Due Date")]')[0].text_content()
+            datetext = re.match('.*(\d\d/\d\d/\d\d\d\d).*', rawtext).group(1)
+            paydate = datetime.strptime(datetext, '%m/%d/%Y')
         a = Account()
         a.id = label[-4:]
         a.label = label
@@ -78,7 +80,7 @@ class ActivityPage(SomePage):
         recent = [x for x in records if x['PDF_LOC'] is None]
         for rec in sorted(recent, ActivityPage.cmp_records, reverse=True):
             desc = u' '.join(rec['TRANS_DESC'].split())
-            trans = Transaction(rec['REF_NUM'].strip())
+            trans = Transaction((rec['REF_NUM'] or u'').strip())
             trans.date = ActivityPage.parse_date(rec['TRANS_DATE'])
             trans.rdate = ActivityPage.parse_date(rec['POST_DATE'])
             trans.type = Transaction.TYPE_UNKNOWN
