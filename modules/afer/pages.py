@@ -53,7 +53,14 @@ class IndexPage(LoggedPage, HTMLPage):
             obj_id = CleanText('.//a')
             obj_label = CleanText('.//td[3]')
             obj_currency = u'EUR'
-            obj_balance = CleanDecimal('.//td[last()-2]', replace_dots=True)
+            def obj_balance(self):
+                if not '%' in CleanText('.//td[last()-2]')(self):
+                    return CleanDecimal('.//td[last()-2]', replace_dots=True)(self)
+                elif not '%' in CleanText('.//td[last()-3]')(self):
+                    return CleanDecimal('.//td[last()-3]', replace_dots=True)(self)
+                else:
+                    return NotAvailable
+
             obj_type = Account.TYPE_LIFE_INSURANCE
 
 
