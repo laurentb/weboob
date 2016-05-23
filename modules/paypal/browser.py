@@ -49,13 +49,15 @@ class Paypal(LoginBrowser):
                'https://\w+.paypal.com/webapps/business/\?nav=0.0',
                'https://\w+.paypal.com/myaccount/$',
                '/businessexp/summary\?country_lang.x=true',
+               '/myaccount/?\?country_lang.x=true',
                HomePage)
     error = URL('/auth/validatecaptcha$', ErrorPage)
     history_details = URL('https://\w+.paypal.com/cgi-bin/webscr\?cmd=_history-details-from-hub&id=[\-A-Z0-9]+$',
                           'https://\w+.paypal.com/myaccount/transaction/details/[\-A-Z0-9]+$',
                           HistoryDetailsPage)
     history_payback = URL('https://history.paypal.com/fr/cgi-bin/webscr\?cmd=_history-details.*', HistoryPaybackPage)
-    promo = URL('https://www.paypal.com/fr/webapps/mpp/clickthru/paypal-app-promo-2.*', PromoPage)
+    promo = URL('https://www.paypal.com/fr/webapps/mpp/clickthru/paypal-app-promo-2.*',
+                '/fr/webapps/mpp/clickthru.*', PromoPage)
     account = URL('https://www.paypal.com/businessexp/money', AccountPage)
     pro_history = URL('https://\w+.paypal.com/webapps/business/activity\?.*',
                       'https://\w+.paypal.com/businessexp/summary',
