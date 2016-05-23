@@ -128,7 +128,7 @@ class AccountsPage(Page):
 
                             if account.id.endswith('CRT'):
                                 self.populate_cards(account)
-                            elif any([word in account.label for word in ['COURANT', 'joint', 'perso']]):
+                            elif any([word in account.label.lower() for word in ['courant', 'joint', 'perso']]):
                                 account.type = account.TYPE_CHECKING
                             elif account.id.endswith('TTR'):
                                 account.type = account.TYPE_MARKET
