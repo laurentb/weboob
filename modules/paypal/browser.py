@@ -94,14 +94,18 @@ class Paypal(LoginBrowser):
         if 'LoginFailed' in res.content or 'Sorry, we can\'t log you in' in res.content or self.login.is_here() or self.error.is_here():
             raise BrowserIncorrectPassword()
 
-        self.location('')
+        self.detect_account_type()
+
+    def detect_account_type(self):
+        self.location('/')
         if self.login.is_here():
             raise BrowserIncorrectPassword(u'La connexion nécessite une étape de sécurisation supplémentaire.')
-
         self.page.detect_account_type()
 
     @need_login
     def get_accounts(self):
+        if self.account_type is None:
+            self.detect_account_type()
         self.account.stay_or_go()
         return self.page.get_accounts()
 
