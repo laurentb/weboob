@@ -66,7 +66,7 @@ class InvestmentPage(LoggedPage, HTMLPage):
             obj_quantity = CleanDecimal('./td[position() = (last()-1)]')
             obj_unitvalue = MyDecimal('./preceding-sibling::tr[td[6]][1]/td[3]')
             obj_valuation = MyDecimal('./td[position() = last()]')
-            obj_vdate = Date(Regexp(CleanText(u'//p[contains(text(), "financière au ")]'), 'au[\s]+(.*)'))
+            obj_vdate = Date(Regexp(CleanText(u'//p[contains(text(), "financière au ")]'), 'au[\s]+(.*)'),dayfirst=True)
 
 
 class HistoryPage(LoggedPage, HTMLPage):
@@ -88,7 +88,7 @@ class HistoryPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_date = Date(CleanText(TableCell('date')))
+            obj_date = Date(CleanText(TableCell('date')),dayfirst=True)
             obj_type = Transaction.TYPE_BANK
             obj_label = Env('label')
             obj_amount = Env('amount')
@@ -118,7 +118,7 @@ class HistoryPage(LoggedPage, HTMLPage):
                     i.quantity = MyDecimal().filter(tr.xpath('./td[5]'))
                     i.unitvalue = MyDecimal().filter(tr.xpath('./td[4]'))
                     i.valuation = MyDecimal().filter(tr.xpath('./td[6]'))
-                    i.vdate = Date(Regexp(CleanText(u'//p[contains(text(), " du ")]'), 'du[\s]+(.*)'))(doc)
+                    i.vdate = Date(Regexp(CleanText(u'//p[contains(text(), " du ")]'), 'du[\s]+(.*)'),dayfirst=True)(doc)
                     investments.append(i)
                 self.env['investments'] = investments
 
@@ -126,7 +126,7 @@ class HistoryPage(LoggedPage, HTMLPage):
         for doc in self.browser.skipped:
             for tr in doc.xpath('//table/tbody/tr'):
                 t = Transaction()
-                t.date = Date(Regexp(CleanText(u'//p[contains(text(), " du ")]'), 'du[\s]+(.*)'))(doc)
+                t.date = Date(Regexp(CleanText(u'//p[contains(text(), " du ")]'), 'du[\s]+(.*)'),dayfirst=True)(doc)
                 t.type = Transaction.TYPE_BANK
                 t.label = CleanText().filter(tr.xpath('./td[1]'))
                 t.amount = MyDecimal().filter(tr.xpath('./td[6]'))
@@ -139,7 +139,7 @@ class HistoryPage(LoggedPage, HTMLPage):
                 i.quantity = MyDecimal().filter(tr.xpath('./td[5]'))
                 i.unitvalue = MyDecimal().filter(tr.xpath('./td[4]'))
                 i.valuation = MyDecimal().filter(tr.xpath('./td[6]'))
-                i.vdate = Date(Regexp(CleanText(u'//p[contains(text(), " du ")]'), 'du[\s]+(.*)'))(doc)
+                i.vdate = Date(Regexp(CleanText(u'//p[contains(text(), " du ")]'), 'du[\s]+(.*)'),dayfirst=True)(doc)
                 t.investments = [i]
 
                 yield t
