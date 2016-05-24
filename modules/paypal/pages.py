@@ -277,7 +277,7 @@ class HistoryDetailsPage(LoggedPage, HTMLPage):
         return False
 
     def get_payback_url(self):
-        if not self.doc.xpath(u'//td[contains(text(), "Transaction associée")]'):
+        if not self.doc.xpath(u'//td[contains(text(), "Transaction associée")]') and not self.doc.xpath(u'//td[contains(text(), "Transactions associées")]'):
             return None
         url = self.doc.xpath(u'//tr[td[contains(text(),"Approvisionnement à")]]//a[contains(text(), "Détails")]/@href')
         if len(url) == 1:
@@ -287,7 +287,7 @@ class HistoryDetailsPage(LoggedPage, HTMLPage):
 
 class HistoryPaybackPage(LoggedPage, HTMLPage):
     def get_payback(self):
-        if not self.doc.xpath(u'//td[contains(text(), "Transaction associée")]'):
+        if not self.doc.xpath(u'//td[contains(text(), "Transaction associée")]') and not self.doc.xpath(u'//td[contains(text(), "Transactions associées")]'):
             return None, None, None, None
         tr = self.doc.xpath(u'//tr[td[contains(text(),"Approvisionnement à")]]')
         td_id = self.doc.xpath(u'//td[span[contains(text(),"Approvisionnement à")]]')
