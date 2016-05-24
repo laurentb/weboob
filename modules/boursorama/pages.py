@@ -19,7 +19,7 @@
 
 import re
 
-from weboob.browser.pages import HTMLPage, LoggedPage, pagination
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, TableCell, Regexp, Date, AsyncLoad, Async, Eval
 from weboob.browser.filters.html import Attr, Link
@@ -28,7 +28,7 @@ from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.value import Value
 from weboob.tools.date import parse_french_date
-from weboob.exceptions import BrowserQuestion, BrowserIncorrectPassword
+from weboob.exceptions import BrowserQuestion, BrowserIncorrectPassword, BrowserHTTPNotFound
 
 
 class BrowserAuthenticationCodeMaxLimit(BrowserIncorrectPassword):
@@ -220,8 +220,26 @@ class Myitem(ItemElement):
         return CleanText().filter((TableCell('value')(self)[0]).xpath('./span')) or NotAvailable
 
 
+def my_pagination(func):
+    def inner(page, *args, **kwargs):
+        while True:
+            try:
+                for r in func(page, *args, **kwargs):
+                    yield r
+            except NextPage as e:
+                try:
+                    result = page.browser.location(e.request)
+                    page = result.page
+                except BrowserHTTPNotFound as e:
+                    page.logger.warning(e)
+                    return
+            else:
+                return
+    return inner
+
+
 class MarketPage(LoggedPage, HTMLPage):
-    @pagination
+    @my_pagination
     @method
     class iter_history(TableElement):
         item_xpath = '//table/tbody/tr'
