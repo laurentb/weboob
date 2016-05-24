@@ -19,6 +19,8 @@
 
 from decimal import Decimal
 from datetime import date
+import re
+
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, TableElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell, Date, Env, Field, Regexp
@@ -104,7 +106,7 @@ class OperationsFuturesPage(LoggedPage, HTMLPage):
         col_date = u'Date'
         col_operation = u'Opération'
         col_etat = u'Etat'
-        col_montant = u'Montant net en'
+        col_montant = [u'Montant net en', re.compile(u'Montant en')]
         col_action = u'Action'
 
         class item(ItemElement):
