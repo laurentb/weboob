@@ -517,6 +517,7 @@ class Currency(object):
                   u'NZD': (u'NZD',),
                   u'BHD': (u'BHD',),
                   u'SEK': (u'SEK',),
+                  u'DKK': (u'DKK',),
                  }
 
     EXTRACTOR = re.compile(r'[\d\s,\.\-]', re.UNICODE)
