@@ -51,6 +51,7 @@ def check_bourse(f):
 
 class IngBrowser(LoginBrowser):
     BASEURL = 'https://secure.ingdirect.fr'
+    TIMEOUT = 60.0
 
     # Login and error
     loginpage = URL('/public/displayLogin.jsf.*', LoginPage)
