@@ -81,6 +81,7 @@ class IndexPage(HTMLPage):
     @method
     class iter_videos(ListElement):
         item_xpath = '//div[@class="panel-resultat panel-separateur"]'
+        ignore_duplicate = True
 
         class item(ItemElement):
             klass = BaseVideo
