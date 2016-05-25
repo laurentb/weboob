@@ -134,7 +134,7 @@ class CmbModule(Module, CapBank):
                 if len(table) == 0:
                     raise ParseError()
             else:
-                raise ParseError()
+                return
 
         for tr in tree.xpath('/html/body//table[contains(@class, "Tb")]/tr'):
             if tr.get('class', None) not in ('LnTit', 'LnTot', 'LnMnTiers', None):
