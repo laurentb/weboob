@@ -75,7 +75,7 @@ class SocieteGenerale(Browser):
     def login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
-        if not self.password.isdigit():
+        if not self.password.isdigit() or len(self.password) != 6:
             raise BrowserIncorrectPassword()
 
         if not self.is_on_page(LoginPage):
