@@ -49,7 +49,7 @@ class Paypal(LoginBrowser):
                'https://\w+.paypal.com/myaccount/\?nav=0.0',
                'https://\w+.paypal.com/webapps/business/\?nav=0.0',
                'https://\w+.paypal.com/myaccount/$',
-               '/businessexp/summary\?country_lang.x=true',
+               '/businessexp/summary.*',
                '/myaccount/?\?country_lang.x=true',
                HomePage)
     error = URL('/auth/validatecaptcha$', ErrorPage)
@@ -61,7 +61,6 @@ class Paypal(LoginBrowser):
                 '/fr/webapps/mpp/clickthru.*', PromoPage)
     account = URL('https://www.paypal.com/businessexp/money', AccountPage)
     pro_history = URL('https://\w+.paypal.com/webapps/business/activity\?.*',
-                      'https://\w+.paypal.com/businessexp/summary',
                       ProHistoryPage)
     part_history = URL('https://\w+.paypal.com/myaccount/activity/.*', PartHistoryPage)
     old_website = URL('https://paypalmanager.paypal.com/login.do', OldWebsitePage)
