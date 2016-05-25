@@ -78,7 +78,7 @@ class OffrePage(JsonPage):
             ctr = '%s' % Dict('idNomTypeContrat')(self)
             return APEC_CONTRATS.get(ctr) if ctr in APEC_CONTRATS else NotAvailable
 
-        obj_place = Dict('lieuTexte')
+        obj_place = Dict('lieux/0/libelleLieu')
         obj_pay = Dict('salaireTexte')
 
         def obj_experience(self):
