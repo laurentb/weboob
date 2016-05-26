@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import json
 import mechanize
 from urlparse import urlsplit
 
@@ -36,6 +37,7 @@ class CaisseEpargne(Browser):
     CERTHASH = ['9a5af08c31a22a0dbc2724cec14ce9b1f8e297571c046c2210a16fa3a9f8fc2e', '0e0fa585a8901c206c4ebbc7ee33e00e17809d7086f224e1b226c46165a4b5ac',
                 '8f8b9e1de4b3ae16128105cb0759a1afeaaedbd18957afa390738390fec3c30d']
     PAGES = {'https://[^/]+/particuliers/ind_pauthpopup.aspx.*':          LoginPage,
+             'https://[^/]+/login.aspx.+':                                LoginPage,
              'https://[^/]+/Portail.aspx.*':                              IndexPage,
              'https://[^/]+/login.aspx':                                  ErrorPage,
              'https://[^/]+/Pages/logout.aspx.*':                         ErrorPage,
@@ -75,21 +77,21 @@ class CaisseEpargne(Browser):
         if self.is_logged():
             return
 
-        self._ua_handlers['_cookies'].cookiejar.clear()
-        if not self.is_on_page(LoginPage):
-            self.location(self.buildurl('/particuliers/ind_pauthpopup.aspx?mar=101&reg=&fctpopup=auth&cv=0'), no_login=True)
-
-        self.page.login(self.username)
-        if not self.page.login2(self.nuser, self.password):
-            # perso
-            if not self.is_on_page(ErrorPage):
-                self.page.login3(self.password)
+        response = self.openurl('/authentification/manage?step=identification&identifiant=%s' % self.username)
+        self.location(self.buildurl((json.loads(response.get_data())['url']),
+                                   ('auth_mode', 'ajax'),
+                                   ('nuusager', self.nuser),
+                                   ('codconf', self.password),
+                                   ('nuabbd', self.username)), no_login=True)
+        error = json.loads(self.page.document.xpath('//p')[0].text)['error']
+        if error is not None:
+            raise BrowserIncorrectPassword(error)
+        v = urlsplit(self.page.url)
+        self.DOMAIN = v.netloc
+        self.location('/Portail.aspx')
 
         if not self.is_logged():
             raise BrowserIncorrectPassword()
-
-        v = urlsplit(self.page.url)
-        self.DOMAIN = v.netloc
 
     def get_accounts_list(self):
         if self.is_on_page(IndexPage):
