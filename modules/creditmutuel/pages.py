@@ -233,7 +233,8 @@ class AccountsPage(LoggedPage, HTMLPage):
         link = Link(u'//a[contains(text(), "Activité cartes")]', default=None)(self.doc)
         if link:
             self.browser.location(link)
-            return self.browser.page.companies_link()
+            if self.browser.cards_activity.is_here():
+                return self.browser.page.companies_link()
         return []
 
 
