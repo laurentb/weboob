@@ -130,13 +130,15 @@ class AccountsList(LoggedPage, HTMLPage):
             klass = Account
 
             obj_currency = u'EUR'
-            obj__id = CleanText('span[@class="account-number"]')
             obj_label = CleanText('span[@class="title"]')
             obj_id = AddPref(Field('_id'), Field('label'))
             obj_type = AddType(Field('label'))
             obj_balance = CleanDecimal('span[@class="solde"]/label', replace_dots=True)
             obj_coming = NotAvailable
             obj__jid = Attr('//input[@name="javax.faces.ViewState"]', 'value')
+
+            def obj_id(self):
+                return CleanText('span[@class="account-number"]')(self) or CleanText('span[@class="life-insurance-application"]')(self)
 
     class generic_transactions(ListElement):
         class item(ItemElement):
