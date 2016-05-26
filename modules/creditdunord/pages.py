@@ -326,6 +326,9 @@ class ProAccountsPage(AccountsPage):
                 a.id = '%s%s%s' % (a._acc_nb, a._args['IndiceCompte'], a._args['Indiceclassement'])
             else:
                 a.id = a._acc_nb
+            # This account can be multiple life insurance accounts
+            if a.label == 'ASS.VIE-BONS CAPI-SCPI-DIVERS (*)':
+                continue
 
             if a.type is Account.TYPE_CARD:
                 a.coming = a.balance
