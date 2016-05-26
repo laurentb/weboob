@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import requests
 
 try:
     from urlparse import urlparse, parse_qs
@@ -26,8 +27,9 @@ except ImportError:
 from decimal import Decimal, InvalidOperation
 import re
 from dateutil.relativedelta import relativedelta
+from datetime import date
 
-from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage
+from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, SkipItem, method, TableElement
 from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, TableCell, Regexp, Async, AsyncLoad, Date, ColumnNotFound, Format
 from weboob.browser.filters.html import Link, Attr
@@ -227,6 +229,82 @@ class AccountsPage(LoggedPage, HTMLPage):
                 self.env['balance'] = balance
                 self.env['coming'] = coming or NotAvailable
 
+    def company_fleet(self):
+        link = Link(u'//a[contains(text(), "Activité cartes")]', default=None)(self.doc)
+        if link:
+            self.browser.location(link)
+            return self.browser.page.companies_link()
+        return []
+
+
+class CardsActivityPage(LoggedPage, HTMLPage):
+    def companies_link(self):
+        companies_link = []
+        for tr in self.doc.xpath('//table[@summary="Liste des titulaires de contrats cartes"]//tr'):
+            companies_link.append(Link(tr.xpath('.//a'))(self))
+        return companies_link
+
+
+class Pagination(object):
+    def next_page(self):
+        try:
+            form = self.page.get_form('//form[@id="paginationForm"]')
+        except FormNotFound:
+            return self.next_month()
+
+        text = CleanText.clean(form.el)
+        m = re.search(u'(\d+) / (\d+)', text or '', flags=re.MULTILINE)
+        if not m:
+            return self.next_month()
+
+        cur = int(m.group(1))
+        last = int(m.group(2))
+
+        if cur == last:
+            return self.next_month()
+
+        form['page'] = str(cur + 1)
+        return form.request
+
+    def next_month(self):
+        try:
+            self.page.get_form('//form[@id="frmStarcLstOpe"]')
+        except FormNotFound:
+            return
+
+        try:
+            current_month = self.page.doc.xpath('//select[@id="moi"]/option[@selected]/following-sibling::option')[0].attrib['value']
+        except IndexError:
+            return
+        return requests.Request('POST', data={'moi': current_month})
+
+
+class CardsListPage(LoggedPage, HTMLPage):
+    @pagination
+    @method
+    class iter_cards(Pagination, TableElement):
+        item_xpath = '//table[@class="liste"]/tbody/tr'
+        head_xpath = '//table[@class="liste"]/thead//tr/th'
+
+        col_owner = 'Porteur'
+        col_card = 'Carte'
+
+        class item(ItemElement):
+            klass = Account
+
+            obj__owner = TableCell('owner') & CleanText
+            obj__link_id = Format('pro/%s', Link('./td[2]/a'))
+            obj_id = Field('_link_id') & Regexp(pattern='ctr=(\d+)')
+            obj_label = Format('%s %s', CleanText(TableCell('card')), Field('_owner'))
+            obj_balance = NotAvailable
+            obj_currency = FrenchTransaction.Currency('./td[3]')
+            obj_type = Account.TYPE_CARD
+            obj__card_links = []
+            obj__is_inv = False
+            obj__is_webid = False
+
+            def obj__pre_link(self):
+                return self.page.url
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
@@ -243,28 +321,6 @@ class Transaction(FrenchTransaction):
                ]
 
     _is_coming = False
-
-
-class Pagination(object):
-    def next_page(self):
-        try:
-            form = self.page.get_form('//form[@id="paginationForm"]')
-        except FormNotFound:
-            return
-
-        text = CleanText.clean(form.el)
-        m = re.search(u'(\d+) / (\d+)', text or '', flags=re.MULTILINE)
-        if not m:
-            return
-
-        cur = int(m.group(1))
-        last = int(m.group(2))
-
-        if cur == last:
-            return
-
-        form['page'] = str(cur + 1)
-        return form.request
 
 
 class OperationsPage(LoggedPage, HTMLPage):
@@ -312,6 +368,32 @@ class OperationsPage(LoggedPage, HTMLPage):
             return None
         else:
             return a.attrib['href']
+
+
+class CardsOpePage(OperationsPage):
+    @method
+    class get_history(Pagination, Transaction.TransactionsElement):
+        head_xpath = '//table[@class="liste"]//thead//tr/th'
+        item_xpath = '//table[@class="liste"]/tr'
+
+        col_city = u'Ville'
+        col_original_amount = u'Montant d\'origine'
+
+        class item(Transaction.TransactionElement):
+            condition = lambda self: len(self.el.xpath('./td')) >= 5
+
+            obj_raw = Format('%s %s', TableCell('raw') & CleanText, TableCell('city') & CleanText)
+            obj_original_amount = CleanDecimal(TableCell('original_amount'), default=NotAvailable)
+            obj_type = Transaction.TYPE_DEFERRED_CARD
+            obj_rdate = Transaction.Date(TableCell('date'))
+            obj_date = obj_vdate = Env('date')
+            obj__is_coming = Env('_is_coming')
+
+            def parse(self, el):
+                self.env['date'] = Date(Regexp(CleanText(u'//td[contains(text(), "Total prélevé")]'), ' (\d{2}/\d{2}/\d{4})', \
+                                               default=NotAvailable), default=NotAvailable)(self) \
+                or (parse_french_date(CleanText(u'//select[@id="moi"]/option[@selected]')(self)) + relativedelta(day=31)).date()
+                self.env['_is_coming'] = date.today() < self.env['date']
 
 
 class ComingPage(OperationsPage, LoggedPage):

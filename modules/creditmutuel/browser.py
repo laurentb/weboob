@@ -38,7 +38,8 @@ from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
                    OperationsPage, CardPage, ComingPage, NoOperationsPage, \
                    TransfertPage, ChangePasswordPage, VerifCodePage,       \
                    EmptyPage, PorPage, IbanPage, NewHomePage, RedirectPage, \
-                   LIAccountsPage
+                   LIAccountsPage, CardsActivityPage, CardsListPage,       \
+                   CardsOpePage
 
 
 __all__ = ['CreditMutuelBrowser']
@@ -95,6 +96,10 @@ class CreditMutuelBrowser(LoginBrowser):
 
     redirect = URL('/fr/banque/paci_engine/static_content_manager.aspx', RedirectPage)
 
+    cards_activity = URL('/(?P<subbank>.*)/fr/banque/pro/ENC_liste_tiers.aspx', CardsActivityPage)
+    cards_list = URL('/(?P<subbank>.*)/fr/banque/pro/ENC_liste_ctr.*', CardsListPage)
+    cards_ope = URL('/(?P<subbank>.*)/fr/banque/pro/ENC_liste_oper', CardsOpePage)
+
     currentSubBank = None
     is_new_website = False
 
@@ -124,6 +129,10 @@ class CreditMutuelBrowser(LoginBrowser):
         if not self.is_new_website:
             for a in self.accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts():
                 accounts.append(a)
+            for company in self.page.company_fleet():
+                self.location(company)
+                for a in self.page.iter_cards():
+                    accounts.append(a)
             self.iban.go(subbank=self.currentSubBank).fill_iban(accounts)
             self.por.go(subbank=self.currentSubBank).add_por_accounts(accounts)
             for acc in self.li.go(subbank=self.currentSubBank).iter_li_accounts():
@@ -173,6 +182,9 @@ class CreditMutuelBrowser(LoginBrowser):
         last_debit = None
         if not account._link_id:
             return iter([])
+        # need to refresh the months select
+        if account._link_id.startswith('pro'):
+            self.location(account._pre_link)
         for tr in self.list_operations(account._link_id):
             # to prevent redundancy with card transactions, we do not
             # store 'RELEVE CARTE' transaction.
