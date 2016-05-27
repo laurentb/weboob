@@ -36,13 +36,10 @@ class CaisseEpargne(Browser):
     PROTOCOL = 'https'
     CERTHASH = ['9a5af08c31a22a0dbc2724cec14ce9b1f8e297571c046c2210a16fa3a9f8fc2e', '0e0fa585a8901c206c4ebbc7ee33e00e17809d7086f224e1b226c46165a4b5ac',
                 '8f8b9e1de4b3ae16128105cb0759a1afeaaedbd18957afa390738390fec3c30d']
-    PAGES = {'https://[^/]+/particuliers/ind_pauthpopup.aspx.*':          LoginPage,
-             'https://[^/]+/login.aspx.+':                                LoginPage,
-             'https://[^/]+/authentification/manage.+':                   LoginPage,
-             'https://[^/]+/Portail.aspx.*':                              IndexPage,
+    PAGES = {'https://[^/]+/Portail.aspx.*':                              IndexPage,
              'https://[^/]+/login.aspx':                                  ErrorPage,
              'https://[^/]+/Pages/logout.aspx.*':                         ErrorPage,
-             'https://[^/]+/particuliers/Page_erreur_technique.aspx.*':                         ErrorPage,
+             'https://[^/]+/particuliers/Page_erreur_technique.aspx.*':   ErrorPage,
              'https://[^/]+/page_hs_dei_.*.aspx':                         UnavailablePage,
              'https://[^/]+/Pages/Bourse.*':                              MarketPage,
              'https://www.caisse-epargne.offrebourse.com/ReroutageSJR':   MarketPage,
@@ -60,7 +57,7 @@ class CaisseEpargne(Browser):
         Browser.__init__(self, *args, **kwargs)
 
     def is_logged(self):
-        return self.page is not None and not self.is_on_page((LoginPage,ErrorPage))
+        return self.page is not None and not self.is_on_page(ErrorPage)
 
     def home(self):
         if self.is_logged():
@@ -90,17 +87,17 @@ class CaisseEpargne(Browser):
             data = json.loads(response.get_data())
 
         typeAccount = data['account'][0]
-        self.location(self.buildurl(data['url'],
-                                   ('auth_mode', 'ajax'),
-                                   ('nuusager', self.nuser.encode('utf-8')),
-                                   ('codconf', self.password),
-                                   ('typeAccount', typeAccount),
-                                   ('step', 'authentification'),
-                                   ('nuabbd', self.username)), no_login=True)
-        error = json.loads(self.page.document.xpath('//p')[0].text)['error']
+        response = self.openurl(self.buildurl(data['url'],
+                                              ('auth_mode', 'ajax'),
+                                              ('nuusager', self.nuser.encode('utf-8')),
+                                              ('codconf', self.password),
+                                              ('typeAccount', typeAccount),
+                                              ('step', 'authentification'),
+                                              ('nuabbd', self.username)))
+        error = json.loads(response.get_data())['error']
         if error is not None:
             raise BrowserIncorrectPassword(error)
-        v = urlsplit(self.page.url)
+        v = urlsplit(response.geturl())
         self.DOMAIN = v.netloc
         self.location('/Portail.aspx')
 
