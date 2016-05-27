@@ -81,7 +81,7 @@ class CaisseEpargne(Browser):
         response = self.openurl('/authentification/manage?step=identification&identifiant=%s' % self.username)
         self.location(self.buildurl((json.loads(response.get_data())['url']),
                                    ('auth_mode', 'ajax'),
-                                   ('nuusager', self.nuser),
+                                   ('nuusager', self.nuser.encode('utf-8')),
                                    ('codconf', self.password),
                                    ('nuabbd', self.username)), no_login=True)
         error = json.loads(self.page.document.xpath('//p')[0].text)['error']
