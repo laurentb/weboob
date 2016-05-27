@@ -208,6 +208,12 @@ class Investment(BaseObject):
     diff =               DecimalField('Difference between the buy cost and the current valuation')
     portfolio_share =    DecimalField('Percentage of the current amount relative to the total')
 
+    # International
+    original_currency = StringField('Currency of the original amount')
+    original_valuation = DecimalField('Original valuation (in another currency)')
+    original_unitvalue = DecimalField('Original unitvalue (in another currency)')
+    original_unitprice = DecimalField('Original unitprice (in another currency)')
+    original_diff = DecimalField('Original diff (in another currency)')
 
 class Transfer(BaseObject):
     """
