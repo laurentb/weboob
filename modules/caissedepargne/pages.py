@@ -52,45 +52,8 @@ class _LogoutPage(Page):
             pass
 
 
-class LoginPage(_LogoutPage):
-    def login(self, login):
-        self.browser.select_form(name='Main')
-        self.browser.set_all_readonly(False)
-        self.browser['ctl01$CC_ind_pauthpopup$ctl01$CC_ind_ident$ctl01$CC_ind_inputuserid_sup$txnuabbd'] = login.encode('utf-8')
-        self.browser['__EVENTTARGET'] = 'ctl01$CC_ind_pauthpopup$ctl01$CC_ind_ident$ctl01$CC_ind_inputuserid_sup$btnValider'
-        self.browser.submit(nologin=True)
-
-    def login2(self, nuser, passwd):
-        self.browser.select_form(name='Main')
-        self.browser.set_all_readonly(False)
-        self.browser['__EVENTARGUMENT'] = 'idsrv=WE'
-
-        m = None
-        try:
-            a = self.document.xpath('//a[@title="Valider"]')[0]
-        except IndexError:
-            pass
-        else:
-            m = re.match("javascript:RedirectToDeiPro\('([^']+)', \d+\);", a.attrib['href'])
-
-        if m:
-            self.browser['nuusager'] = nuser.encode('utf-8')
-            self.browser['codconf'] = passwd.encode('utf-8')
-            self.browser.form.action = m.group(1)
-
-        self.browser.submit(nologin=True)
-
-        return m is not None
-
-    def login3(self, passwd):
-        self.browser.select_form(name='Main')
-        self.browser['codconf'] = passwd.encode('utf-8')
-        a = self.document.xpath('//a[@title="Valider"]')[0]
-        m = re.match("javascript:RedirectToDeiPart\('([^']+)'\);", a.attrib['href'])
-        if not m:
-            raise BrokenPageError('Unable to find validate URL')
-        self.browser.form.action = m.group(1)
-        self.browser.submit(nologin=True)
+class LoginPage(Page):
+    pass
 
 
 class ErrorPage(_LogoutPage):
