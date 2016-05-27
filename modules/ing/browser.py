@@ -25,9 +25,12 @@ from weboob.exceptions import BrowserIncorrectPassword, ParseError
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.bank import Account, TransferError, AccountNotFound
 from weboob.capabilities.base import find_object
+from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.standard import CleanText
 
 from .pages import AccountsList, LoginPage, NetissimaPage, TitrePage, TitreHistory,\
-    TransferPage, TransferConfirmPage, BillsPage, StopPage, TitreDetails, TitreValuePage, ASVHistory
+    TransferPage, TransferConfirmPage, BillsPage, StopPage, TitreDetails, TitreValuePage, ASVHistory,\
+    LifeInsurancePage, DetailFondsPage
 
 
 __all__ = ['IngBrowser']
@@ -71,6 +74,8 @@ class IngBrowser(LoginBrowser):
     titrerealtime = URL('https://bourse.ingdirect.fr/streaming/compteTempsReelCK.php', TitrePage)
     titrevalue = URL('https://bourse.ingdirect.fr/priv/fiche-valeur.php\?val=(?P<val>.*)&pl=(?P<pl>.*)&popup=1', TitreValuePage)
     asv_history = URL('https://ingdirectvie.ingdirect.fr/b2b2c/epargne/CoeLisMvt', ASVHistory)
+    lifeinsurence = URL('https://ingdirectvie.ingdirect.fr/b2b2c/epargne/CoeDetCon',LifeInsurancePage)
+    detailfonds = URL('https://ingdirectvie.ingdirect.fr/b2b2c/fonds/PerDesFac\?codeFonds=(.*)', DetailFondsPage)
     # CapDocument
     billpage = URL('/protected/pages/common/estatement/eStatement.jsf', BillsPage)
 
@@ -137,10 +142,17 @@ class IngBrowser(LoginBrowser):
     @need_login
     @check_bourse
     def get_history(self, account):
-        if account.type == Account.TYPE_MARKET or account.type == Account.TYPE_LIFE_INSURANCE:
+        if account.type == Account.TYPE_MARKET:
             for result in self.get_history_titre(account):
                 yield result
             return
+        elif account.type == Account.TYPE_LIFE_INSURANCE:
+            self.go_investments(account)
+            self.asv_history.go()
+            for ele in self.page.iter_history():
+                yield ele
+            return
+
         elif account.type != Account.TYPE_CHECKING and\
                 account.type != Account.TYPE_SAVINGS:
             raise NotImplementedError()
@@ -272,6 +284,7 @@ class IngBrowser(LoginBrowser):
 
             self.accountspage.go(data=data)
 
+
             if not self.page.has_error():
                 break
 
@@ -280,6 +293,19 @@ class IngBrowser(LoginBrowser):
 
 
         if self.page.is_asv:
+            url='https://secure.ingdirect.fr/protected/pages/index.jsf'
+            self.session.cookies.__delitem__("produitsoffres")
+            self.session.cookies.set("produitsoffres","comptes")
+            data1 = {
+                    "autoScroll": "",
+                    "index": "index",
+                    "index:j_idcl":"index:asvInclude:goToAsvPartner",
+                    "javax.faces.ViewState": "j_id3",
+                    }
+            self.location(url,data=data1)
+            self.location("https://secure.ingdirect.fr/general?command=goToAccount&asvPartenerLink=null")
+            self.page.submit()
+            self.lifeinsurence.go()
             return
 
         self.starttitre.go()
