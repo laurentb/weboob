@@ -137,7 +137,7 @@ class AccountsList(LoggedPage, HTMLPage):
             obj_coming = NotAvailable
             obj__jid = Attr('//input[@name="javax.faces.ViewState"]', 'value')
 
-            def obj_id(self):
+            def obj__id(self):
                 return CleanText('span[@class="account-number"]')(self) or CleanText('span[@class="life-insurance-application"]')(self)
 
     class generic_transactions(ListElement):
