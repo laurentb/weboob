@@ -50,6 +50,7 @@ class CaisseEpargne(Browser):
              'https://www.extranet2.caisse-epargne.fr.*':                 LifeInsurance,
              'https://www.caisse-epargne.offrebourse.com/DetailMessage\?refresh=O': MessagePage,
              'https://www.caisse-epargne.fr/particuliers/.*/emprunter.aspx': GarbagePage,
+             'https://.*/particuliers/emprunter.*':                       GarbagePage,
             }
 
     def __init__(self, nuser, *args, **kwargs):
@@ -129,7 +130,7 @@ class CaisseEpargne(Browser):
             return iter(loan_accounts)
         for _ in range(3):
             try:
-                self.location(self.buildurl('/Portail.aspx'))
+                self.location(self.absurl('/Portail.aspx'))
                 if self.is_on_page(IndexPage):
                     self.page.go_list()
             except mechanize.BrowserStateError:
