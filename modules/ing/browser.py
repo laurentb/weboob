@@ -25,8 +25,6 @@ from weboob.exceptions import BrowserIncorrectPassword, ParseError
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.bank import Account, TransferError, AccountNotFound
 from weboob.capabilities.base import find_object
-from weboob.browser.filters.html import Attr, Link
-from weboob.browser.filters.standard import CleanText
 
 from .pages import AccountsList, LoginPage, NetissimaPage, TitrePage, TitreHistory,\
     TransferPage, TransferConfirmPage, BillsPage, StopPage, TitreDetails, TitreValuePage, ASVHistory,\
@@ -39,7 +37,7 @@ __all__ = ['IngBrowser']
 def check_bourse(f):
     def wrapper(*args):
         browser = args[0]
-        if browser.where == u"titre":
+        if browser.where != u"start":
             for i in xrange(3):
                 try:
                     browser.location("https://bourse.ingdirect.fr/priv/redirectIng.php?pageIng=COMPTE")
@@ -305,6 +303,7 @@ class IngBrowser(LoginBrowser):
             self.location(url,data=data1)
             self.location("https://secure.ingdirect.fr/general?command=goToAccount&asvPartenerLink=null")
             self.page.submit()
+            self.where = u"asv"
             self.lifeinsurence.go()
             return
 
