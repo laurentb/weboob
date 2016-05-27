@@ -86,6 +86,7 @@ class CreditMutuelBrowser(LoginBrowser):
     iban =        URL('/(?P<subbank>.*)/fr/banque/rib.cgi', IbanPage)
 
     new_home =    URL('/fr/banque/pageaccueil.html',
+                      '/fr/banque/DELG_Gestion.*',
                       '/fr/banque/welcome_pack.html', NewHomePage)
     new_accounts = URL('/fr/banque/comptes-et-contrats.html', AccountsPage)
     new_operations = URL('/fr/banque/mouvements.cgi',
