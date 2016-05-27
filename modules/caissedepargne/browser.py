@@ -38,6 +38,7 @@ class CaisseEpargne(Browser):
                 '8f8b9e1de4b3ae16128105cb0759a1afeaaedbd18957afa390738390fec3c30d']
     PAGES = {'https://[^/]+/particuliers/ind_pauthpopup.aspx.*':          LoginPage,
              'https://[^/]+/login.aspx.+':                                LoginPage,
+             'https://[^/]+/authentification/manage.+':                   LoginPage,
              'https://[^/]+/Portail.aspx.*':                              IndexPage,
              'https://[^/]+/login.aspx':                                  ErrorPage,
              'https://[^/]+/Pages/logout.aspx.*':                         ErrorPage,
@@ -79,10 +80,22 @@ class CaisseEpargne(Browser):
             return
 
         response = self.openurl('/authentification/manage?step=identification&identifiant=%s' % self.username)
-        self.location(self.buildurl((json.loads(response.get_data())['url']),
+        data = json.loads(response.get_data())
+
+        # In case there are multiple spaces, currently choose by default the
+        # personal one.
+        if len(data['account']) > 1:
+            typeAccount = 'WE'
+            response = self.openurl('/authentification/manage?step=account&identifiant=%s&account=WE' % self.username)
+            data = json.loads(response.get_data())
+
+        typeAccount = data['account'][0]
+        self.location(self.buildurl(data['url'],
                                    ('auth_mode', 'ajax'),
                                    ('nuusager', self.nuser.encode('utf-8')),
                                    ('codconf', self.password),
+                                   ('typeAccount', typeAccount),
+                                   ('step', 'authentification'),
                                    ('nuabbd', self.username)), no_login=True)
         error = json.loads(self.page.document.xpath('//p')[0].text)['error']
         if error is not None:
