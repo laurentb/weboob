@@ -117,8 +117,7 @@ class IngBrowser(LoginBrowser):
         if account.type != Account.TYPE_CHECKING and\
                 account.type != Account.TYPE_SAVINGS:
             raise NotImplementedError()
-        if self.where != "start":
-            account = self.get_account(account.id)
+        account = self.get_account(account.id)
         data = {"AJAX:EVENTS_COUNT": 1,
                 "AJAXREQUEST": "_viewRoot",
                 "ajaxSingle": "index:setAccount",
@@ -155,8 +154,7 @@ class IngBrowser(LoginBrowser):
                 account.type != Account.TYPE_SAVINGS:
             raise NotImplementedError()
 
-        if self.where != "start":
-            account = self.get_account(account.id)
+        account = self.get_account(account.id)
         data = {"AJAX:EVENTS_COUNT": 1,
                 "AJAXREQUEST": "_viewRoot",
                 "ajaxSingle": "index:setAccount",
