@@ -113,7 +113,7 @@ class TransactionsPage(LoggedPage, HTMLPage):
             return
 
         #adding a time delta because amex have hard time to put the date in a good interval
-        beginning_date = self.get_beginning_debit_date() - datetime.timedelta(days=300)
+        beginning_date = self.get_beginning_debit_date() - datetime.timedelta(days=360)
         end_date = self.get_end_debit_date()
 
         guesser = ChaoticDateGuesser(beginning_date, end_date)
