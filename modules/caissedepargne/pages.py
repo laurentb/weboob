@@ -276,16 +276,12 @@ class IndexPage(Page):
             self.browser['__EVENTTARGET'] = 'Menu_AJAX'
             self.browser['m_ScriptManager'] = 'm_ScriptManager|Menu_AJAX'
 
-        try:
-            self.browser.controls.remove(self.browser.find_control(name='MM$HISTORIQUE_COMPTE$btnCumul'))
-        except:
-            pass
-        try:
-            self.browser.controls.remove(self.browser.find_control(name='Cartridge$imgbtnMessagerie', type='image'))
-            self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageFondMessagerie', type='image'))
-            self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageMessagerie', type='image'))
-        except ControlNotFoundError:
-            pass
+        for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
+        'MM$m_CH$ButtonImageMessagerie']:
+            try:
+                self.browser.controls.remove(self.browser.find_control(name=name))
+            except ControlNotFoundError:
+                pass
         self.browser.submit()
 
     def go_loan_list(self):
@@ -303,16 +299,12 @@ class IndexPage(Page):
             self.browser['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$m_PostBack'
         else:
             pass
-        try:
-            self.browser.controls.remove(self.browser.find_control(name='MM$SYNTHESE_CREDITS$btnCumul'))
-        except:
-            pass
-        try:
-            self.browser.controls.remove(self.browser.find_control(name='Cartridge$imgbtnMessagerie', type='image'))
-            self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageFondMessagerie', type='image'))
-            self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageMessagerie', type='image'))
-        except ControlNotFoundError:
-            pass
+        for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
+        'MM$m_CH$ButtonImageMessagerie']:
+            try:
+                self.browser.controls.remove(self.browser.find_control(name=name))
+            except ControlNotFoundError:
+                pass
         self.browser.submit()
 
 
@@ -329,12 +321,12 @@ class IndexPage(Page):
             pass
         self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
         self.browser['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$SYNTHESE'
-        try:
-            self.browser.controls.remove(self.browser.find_control(name='Cartridge$imgbtnMessagerie', type='image'))
-            self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageFondMessagerie', type='image'))
-            self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageMessagerie', type='image'))
-        except ControlNotFoundError:
-            pass
+        for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
+        'MM$m_CH$ButtonImageMessagerie']:
+            try:
+                self.browser.controls.remove(self.browser.find_control(name=name))
+            except ControlNotFoundError:
+                pass
         self.browser.submit()
 
     def get_history(self):
@@ -411,16 +403,12 @@ class IndexPage(Page):
             pass
         self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
         self.browser['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$HISTORIQUE_COMPTE$lnkSuivante'
-        try:
-            self.browser.controls.remove(self.browser.find_control(name='Cartridge$imgbtnMessagerie', type='image'))
-            self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageFondMessagerie', type='image'))
-            self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageMessagerie', type='image'))
-        except ControlNotFoundError:
-            pass
-        try:
-            self.browser.controls.remove(self.browser.find_control(name='MM$HISTORIQUE_COMPTE$btnCumul'))
-        except ControlNotFoundError:
-            pass
+        for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
+        'MM$m_CH$ButtonImageMessagerie']:
+            try:
+                self.browser.controls.remove(self.browser.find_control(name=name))
+            except ControlNotFoundError:
+                pass
         self.browser.submit()
 
         return True
@@ -440,12 +428,12 @@ class IndexPage(Page):
                 pass
             self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
             self.browser['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$SYNTHESE'
-            try:
-                self.browser.controls.remove(self.browser.find_control(name='Cartridge$imgbtnMessagerie', type='image'))
-                self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageFondMessagerie', type='image'))
-                self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageMessagerie', type='image'))
-            except ControlNotFoundError:
-                pass
+            for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
+            'MM$m_CH$ButtonImageMessagerie']:
+                try:
+                    self.browser.controls.remove(self.browser.find_control(name=name))
+                except ControlNotFoundError:
+                    pass
             self.browser.submit()
 
 
