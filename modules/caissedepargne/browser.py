@@ -77,7 +77,10 @@ class CaisseEpargne(Browser):
             return
 
         response = self.openurl('/authentification/manage?step=identification&identifiant=%s' % self.username)
-        data = json.loads(response.get_data())
+        try:
+            data = json.loads(response.get_data())
+        except ValueError:
+            raise BrowserIncorrectPassword()
 
         # In case there are multiple spaces, currently choose by default the
         # personal one.
@@ -94,9 +97,14 @@ class CaisseEpargne(Browser):
                                               ('typeAccount', typeAccount),
                                               ('step', 'authentification'),
                                               ('nuabbd', self.username)))
-        error = json.loads(response.get_data())['error']
-        if error is not None:
-            raise BrowserIncorrectPassword(error)
+        try:
+            error = json.loads(response.get_data())['codeError']
+            if error is not None:
+                raise BrowserIncorrectPassword(error)
+        except ValueError:
+            raise BrowserIncorrectPassword()
+        except KeyError:
+            pass
         v = urlsplit(response.geturl())
         self.DOMAIN = v.netloc
         self.location('/Portail.aspx')
