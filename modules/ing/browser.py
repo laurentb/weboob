@@ -28,7 +28,7 @@ from weboob.capabilities.base import find_object
 
 from .pages import AccountsList, LoginPage, NetissimaPage, TitrePage, TitreHistory,\
     TransferPage, TransferConfirmPage, BillsPage, StopPage, TitreDetails, TitreValuePage, ASVHistory,\
-    LifeInsurancePage, DetailFondsPage
+    ASVInvest, DetailFondsPage
 
 
 __all__ = ['IngBrowser']
@@ -72,7 +72,7 @@ class IngBrowser(LoginBrowser):
     titrerealtime = URL('https://bourse.ingdirect.fr/streaming/compteTempsReelCK.php', TitrePage)
     titrevalue = URL('https://bourse.ingdirect.fr/priv/fiche-valeur.php\?val=(?P<val>.*)&pl=(?P<pl>.*)&popup=1', TitreValuePage)
     asv_history = URL('https://ingdirectvie.ingdirect.fr/b2b2c/epargne/CoeLisMvt', ASVHistory)
-    lifeinsurence = URL('https://ingdirectvie.ingdirect.fr/b2b2c/epargne/CoeDetCon',LifeInsurancePage)
+    asv_invest = URL('https://ingdirectvie.ingdirect.fr/b2b2c/epargne/CoeDetCon', ASVInvest)
     detailfonds = URL('https://ingdirectvie.ingdirect.fr/b2b2c/fonds/PerDesFac\?codeFonds=(.*)', DetailFondsPage)
     # CapDocument
     billpage = URL('/protected/pages/common/estatement/eStatement.jsf', BillsPage)
@@ -139,15 +139,9 @@ class IngBrowser(LoginBrowser):
     @need_login
     @check_bourse
     def get_history(self, account):
-        if account.type == Account.TYPE_MARKET:
+        if account.type == Account.TYPE_MARKET or account.type == Account.TYPE_LIFE_INSURANCE:
             for result in self.get_history_titre(account):
                 yield result
-            return
-        elif account.type == Account.TYPE_LIFE_INSURANCE:
-            self.go_investments(account)
-            self.asv_history.go()
-            for ele in self.page.iter_history():
-                yield ele
             return
 
         elif account.type != Account.TYPE_CHECKING and\
@@ -242,7 +236,7 @@ class IngBrowser(LoginBrowser):
             raise TransferError('Recipient not found')
 
 
-    def go_on_asv_history(self, account):
+    def go_on_asv_detail(self, account, link):
         account = self.get_account(account.id)
         data = {"index": "index",
                 "autoScroll": "",
@@ -251,7 +245,7 @@ class IngBrowser(LoginBrowser):
                }
         self.accountspage.go(data=data)
         self.page.submit()
-        self.location('/b2b2c/epargne/CoeLisMvt')
+        self.location(link)
 
     def go_investments(self, account):
         account = self.get_account(account.id)
@@ -287,22 +281,7 @@ class IngBrowser(LoginBrowser):
         else:
             self.logger.warning("Unable to get investments list...")
 
-
         if self.page.is_asv:
-            url='https://secure.ingdirect.fr/protected/pages/index.jsf'
-            self.session.cookies.__delitem__("produitsoffres")
-            self.session.cookies.set("produitsoffres","comptes")
-            data1 = {
-                    "autoScroll": "",
-                    "index": "index",
-                    "index:j_idcl":"index:asvInclude:goToAsvPartner",
-                    "javax.faces.ViewState": "j_id3",
-                    }
-            self.location(url,data=data1)
-            self.location("https://secure.ingdirect.fr/general?command=goToAccount&asvPartenerLink=null")
-            self.page.submit()
-            self.where = u"asv"
-            self.lifeinsurence.go()
             return
 
         self.starttitre.go()
@@ -318,6 +297,11 @@ class IngBrowser(LoginBrowser):
 
         if self.where == u'titre':
             self.titrerealtime.go()
+        elif self.page.asv_has_detail:
+            self.go_on_asv_detail(account, '/b2b2c/epargne/CoeDetCon')
+            self.where = u"asv"
+        else:
+            return iter([])
         return self.page.iter_investments()
 
     def get_history_titre(self, account):
@@ -325,8 +309,8 @@ class IngBrowser(LoginBrowser):
 
         if self.where == u'titre':
             self.titrehistory.go()
-        elif self.page.asv_has_transactions:
-            self.go_on_asv_history(account)
+        elif self.page.asv_has_detail:
+            self.go_on_asv_detail(account, '/b2b2c/epargne/CoeLisMvt')
         else:
             return iter([])
         transactions = list()

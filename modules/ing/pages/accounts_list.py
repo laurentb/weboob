@@ -194,7 +194,7 @@ class AccountsList(LoggedPage, HTMLPage):
         return len(span) > 0
 
     @property
-    def asv_has_transactions(self):
+    def asv_has_detail(self):
         span = self.doc.xpath('//a[@id="index:asvInclude:goToAsvPartner"]')
         return len(span) > 0
 
@@ -215,7 +215,7 @@ class TitreDetails(LoggedPage, HTMLPage):
         form.submit()
 
 
-class LifeInsurancePage(LoggedPage,HTMLPage):
+class ASVInvest(LoggedPage, HTMLPage):
     @method
     class iter_investments(ListElement):
         item_xpath = '//table[@class="Tableau"]//tr[position()>2]'
@@ -237,11 +237,6 @@ class LifeInsurancePage(LoggedPage,HTMLPage):
             obj_valuation = CleanDecimal('.//td[5]',replace_dots=True)
             obj_unitprice = CleanDecimal('.//td[6]',replace_dots=True,default=NotAvailable)
             obj_diff = CleanDecimal('.//td[7]',replace_dots=True,default=NotAvailable)
-    @property
-    def asv_has_transactions(self):
-        span = self.doc.xpath('//a[contains(.,"Liste des mouvement")]')
-        return len(span) > 0
-
 
 
 class DetailFondsPage(LoggedPage,HTMLPage):
