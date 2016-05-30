@@ -27,6 +27,7 @@ from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import AccountNotFound, Account
 from weboob.tools.json import json
 from weboob.browser.exceptions import ServerError
+from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, TransferInitPage, \
                    ConnectionThresholdPage, LifeInsurancesPage, LifeInsurancesHistoryPage, \
@@ -92,6 +93,8 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     market_history = URL('/pe-war/rpc/turnOverHistory/get', MarketHistoryPage)
 
     def do_login(self):
+        if not (self.username.isdigit() and self.password.isdigit()):
+            raise BrowserIncorrectPassword()
         timestamp = lambda: int(time.time() * 1e3)
         self.login.go(timestamp=timestamp())
         if self.login.is_here():
