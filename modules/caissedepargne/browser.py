@@ -148,7 +148,7 @@ class CaisseEpargne(Browser):
             loan_accounts = list(self.page.get_loan_list())
         for _ in range(3):
             try:
-                self.location(self.absurl('/Portail.aspx'))
+                self.location(self.absurl('/Portail.aspx?tache=CPTSYNT0'))
                 if self.is_on_page(IndexPage):
                     self.page.go_list()
             except mechanize.BrowserStateError:
