@@ -20,7 +20,6 @@
 
 from datetime import date, timedelta
 import datetime
-from decimal import Decimal
 import re
 
 from weboob.capabilities.bank import Account, Investment
@@ -28,7 +27,7 @@ from weboob.capabilities.base import NotAvailable
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Filter, Field, MultiFilter, \
-                                            Date, Lower, Regexp, Async, AsyncLoad, Format
+                                            Date, Lower, Async, AsyncLoad, Format
 from weboob.browser.filters.html import Attr, Link
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 

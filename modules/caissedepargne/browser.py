@@ -25,7 +25,7 @@ from urlparse import urlsplit
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
-from .pages import LoginPage, IndexPage, ErrorPage, UnavailablePage, MarketPage, LifeInsurance, GarbagePage, MessagePage
+from .pages import IndexPage, ErrorPage, UnavailablePage, MarketPage, LifeInsurance, GarbagePage, MessagePage
 
 
 __all__ = ['CaisseEpargne']
