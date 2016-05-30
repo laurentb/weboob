@@ -142,10 +142,10 @@ class CaisseEpargne(Browser):
 
     def get_loans_list(self):
         self.location(self.buildurl('/Portail.aspx?tache=CRESYNT0'))
+        loan_accounts = list()
         if self.is_on_page(IndexPage):
             self.page.go_loan_list()
             loan_accounts = list(self.page.get_loan_list())
-            return iter(loan_accounts)
         for _ in range(3):
             try:
                 self.location(self.absurl('/Portail.aspx'))
@@ -155,7 +155,7 @@ class CaisseEpargne(Browser):
                 pass
             else:
                 break
-        return([])
+        return(loan_accounts)
 
 
     def get_account(self, id):
