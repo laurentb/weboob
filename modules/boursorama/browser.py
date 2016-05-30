@@ -114,6 +114,9 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     def get_accounts_list(self):
         if not self.accounts_list:
             self.accounts_list = list()
+            # Accounts balances might need to be updated.
+            self.accounts.go()
+            self.acc_tit.go(webid=self.webid)
             for account in self.accounts.go().iter_accounts():
                 self.accounts_list.append(account)
             self.acc_tit.go(webid=self.webid).populate(self.accounts_list)
