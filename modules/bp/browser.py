@@ -69,6 +69,7 @@ class BPBrowser(Browser):
 
              r'.*ost/messages\.CVS\.html\?param=0x132120c8.*'                            : BadLoginPage,
              r'.*ost/messages\.CVS\.html\?param=0x132120cb.*'                            : AccountDesactivate,
+             r'.*/message\.html\?param=0x132120c.*'                                     : AccountDesactivate,
              r'https?://.*.labanquepostale.fr/delestage.html'                            : UnavailablePage,
              r'.*/voscomptes/rib/init-rib.ea'                                            : DownloadRib,
              r'.*/voscomptes/rib/preparerRIB-rib.*'                                      : RibPage,
