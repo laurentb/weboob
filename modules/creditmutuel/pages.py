@@ -186,7 +186,10 @@ class AccountsPage(LoggedPage, HTMLPage):
                     else:
                         break
                 else:
-                    raise ParseError('Unable to find balance for account %s' % CleanText('./td[1]/a')(el))
+                    if 'lien_inter_sites' in link:
+                        raise SkipItem()
+                    else:
+                        raise ParseError('Unable to find balance for account %s' % CleanText('./td[1]/a')(el))
 
                 self.env['_is_webid'] = False
                 if self.page.browser.is_new_website:
