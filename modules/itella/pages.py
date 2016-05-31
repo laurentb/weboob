@@ -24,6 +24,12 @@ from weboob.capabilities.parcel import Parcel, Event, ParcelNotFound
 
 
 class SearchPage(JsonPage):
+    STATUSES = {
+            "WAITING": Parcel.STATUS_PLANNED,
+            "IN_TRANSPORT": Parcel.STATUS_IN_TRANSIT,
+            "READY_FOR_PICKUP": Parcel.STATUS_ARRIVED,
+            "DELIVERED": Parcel.STATUS_ARRIVED,
+            }
     def get_info(self, _id):
         shipments = self.doc["shipments"]
         if not shipments:
@@ -38,24 +44,10 @@ class SearchPage(JsonPage):
             p.arrival = parse_date(shipment["estimatedDeliveryTime"], ignoretz=True)
         events = shipment["events"]
         p.history = [self.build_event(i, data) for i, data in enumerate(events)]
+        p.status = self.STATUSES.get(shipment["phase"], Parcel.STATUS_UNKNOWN)
         most_recent = p.history[0]
-        p.status, p.info = self.guess_status(p.history)
         p.info = most_recent.activity
         return p
-
-    def guess_status(self, events):
-        for event in events:
-            txt = event.activity
-            if txt == "Itella has received advance information of the item." or \
-                    txt == "The item is not yet in Posti.":
-                return Parcel.STATUS_PLANNED, txt
-            elif txt == "Item in sorting." or txt == "Item has been registered.":
-                return Parcel.STATUS_IN_TRANSIT, txt
-            elif txt.startswith("Item ready for pick up") or \
-                    txt.startswith("A notice of arrival has been sent to the recipient"):
-                return Parcel.STATUS_ARRIVED, txt
-        else:
-            return Parcel.STATUS_UNKNOWN, events[0].activity
 
     def build_event(self, index, data):
         event = Event(index)
