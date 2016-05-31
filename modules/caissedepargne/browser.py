@@ -24,6 +24,7 @@ from urlparse import urlsplit
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
+from weboob.browser.exceptions import BrowserHTTPNotFound
 
 from .pages import IndexPage, ErrorPage, UnavailablePage, MarketPage, LifeInsurance, GarbagePage, MessagePage
 
@@ -81,7 +82,6 @@ class CaisseEpargne(Browser):
             data = json.loads(response.get_data())
         except ValueError:
             raise BrowserIncorrectPassword()
-
         # In case there are multiple spaces, currently choose by default the
         # personal one.
         if len(data['account']) > 1:
@@ -107,7 +107,10 @@ class CaisseEpargne(Browser):
             pass
         v = urlsplit(response.geturl())
         self.DOMAIN = v.netloc
-        self.location('/Portail.aspx')
+        try:
+            self.location('/Portail.aspx')
+        except BrowserHTTPNotFound:
+            raise BrowserIncorrectPassword()
 
         if not self.is_logged():
             raise BrowserIncorrectPassword()
