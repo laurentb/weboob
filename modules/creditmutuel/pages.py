@@ -393,7 +393,7 @@ class CardsOpePage(OperationsPage):
             def parse(self, el):
                 self.env['date'] = Date(Regexp(CleanText(u'//td[contains(text(), "Total prélevé")]'), ' (\d{2}/\d{2}/\d{4})', \
                                                default=NotAvailable), default=NotAvailable)(self) \
-                or (parse_french_date(CleanText(u'//select[@id="moi"]/option[@selected]')(self)) + relativedelta(day=31)).date()
+                or (parse_french_date('%s %s' % ('1', CleanText(u'//select[@id="moi"]/option[@selected]')(self))) + relativedelta(day=31)).date()
                 self.env['_is_coming'] = date.today() < self.env['date']
 
 
