@@ -23,10 +23,17 @@ from decimal import Decimal
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage, pagination
 from weboob.browser.pages import NextPage
 from weboob.capabilities.bank import Account, Investment, Transaction
+from weboob.exceptions import BrowserIncorrectPassword
+from weboob.browser.filters.standard import CleanText
 
 
 class FakePage(HTMLPage):
     pass
+
+
+class RedirectPage(HTMLPage):
+    def on_load(self):
+        raise BrowserIncorrectPassword(CleanText('//div[has-class("alert-warning")]/p')(self.doc))
 
 
 class LoginPage(HTMLPage):

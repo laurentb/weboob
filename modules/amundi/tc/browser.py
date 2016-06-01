@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .pages import LoginPage, AccountsPage, AccountDetailPage, AccountHistoryPage
+from .pages import LoginPage, AccountsPage, AccountDetailPage, AccountHistoryPage, RedirectPage
 from weboob.browser import URL, LoginBrowser, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from datetime import date
@@ -29,6 +29,7 @@ class AmundiTCBrowser(LoginBrowser):
     BASEURL = 'https://epargnants.amundi-tc.com'
 
     login = URL('/home', LoginPage)
+    redirect = URL('/home_indispo_redirect', RedirectPage)
     accounts = URL('/home_ajax_noee\?api=/api/individu/positionTotale', AccountsPage)
     account_detail = URL('/home_ajax_noee\?api=/api/individu/positionFonds', AccountDetailPage)
     account_history = URL('/home_ajax_noee\?api=/api/individu/operations', AccountHistoryPage)
