@@ -319,7 +319,7 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
 
                 raw = Async('details', CleanText(u'//td[contains(text(), "Libellé")]/following-sibling::*[1]|//td[contains(text(), "Nom du donneur")]/following-sibling::*[1]', default=obj.raw))(self)
                 if raw:
-                    if obj.raw in raw or raw in obj.raw:
+                    if obj.raw in raw or raw in obj.raw or ' ' not in obj.raw:
                         obj.raw = raw
                         obj.label = raw
                     else:
