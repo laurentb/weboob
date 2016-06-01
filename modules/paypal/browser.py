@@ -52,6 +52,7 @@ class Paypal(LoginBrowser):
                '/businessexp/summary.*',
                '/myaccount/?\?country_lang.x=true',
                '/$',
+               '/businessexp/fees/interchange-fees',
                HomePage)
     error = URL('/auth/validatecaptcha$', ErrorPage)
     history_details = URL('https://\w+.paypal.com/cgi-bin/webscr\?cmd=_history-details-from-hub&id=[\-A-Z0-9]+$',
