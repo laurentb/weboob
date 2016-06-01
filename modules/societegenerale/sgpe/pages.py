@@ -112,6 +112,10 @@ class LoginPage(SGPEPage):
         form.submit()
 
 
+class AccountsListPage(LoggedPage, SGPEPage):
+    def get_binder_number(self):
+        return len(self.doc.xpath("//div[@id='ngo_centre']//table[@id='tab-onglet']//td[@class]"))
+
 class AccountsPage(LoggedPage, SGPEPage):
     TYPES = {u'COMPTE COURANT':      Account.TYPE_CHECKING,
              u'COMPTE PERSONNEL':    Account.TYPE_CHECKING,

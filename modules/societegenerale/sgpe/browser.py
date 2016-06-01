@@ -22,7 +22,7 @@ from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.url import URL
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, ErrorPage, AccountsPage, CardsPage, HistoryPage, CardHistoryPage, OrderPage
+from .pages import LoginPage, ErrorPage, AccountsPage, CardsPage, HistoryPage, CardHistoryPage, OrderPage, AccountsListPage
 
 
 __all__ = ['SGProfessionalBrowser', 'SGEnterpriseBrowser']
@@ -31,6 +31,7 @@ __all__ = ['SGProfessionalBrowser', 'SGEnterpriseBrowser']
 class SGPEBrowser(LoginBrowser):
     login = URL('$', LoginPage)
     accounts = URL('/Pgn/.+PageID=SoldeV3&.+', AccountsPage)
+    accounts_list = URL('/Pgn/.+PageID=Compte&.+', AccountsListPage)
     history = URL('/.+PageID=ReleveCompteV3&.+',
                   '/.+PageID=ReleveEcritureIntraday&.+', HistoryPage)
     cards = URL('/Pgn/.+PageID=Cartes&.+', CardsPage)
@@ -62,18 +63,21 @@ class SGPEBrowser(LoginBrowser):
         if not self.is_logged():
             raise BrowserIncorrectPassword()
 
-    def go_accounts(self):
-        self.location('/Pgn/NavigationServlet?PageID=SoldeV3&MenuID=%sCPT&Classeur=1&NumeroPage=1' % self.MENUID)
+    def go_accounts(self, page=1):
+        self.location('/Pgn/NavigationServlet?PageID=SoldeV3&MenuID=%sCPT&Classeur=%s&NumeroPage=1' % (self.MENUID, page))
 
     @need_login
     def get_accounts_list(self):
-        if not self.accounts.is_here():
-            self.go_accounts()
-        assert self.accounts.is_here()
-
+        self.location('/Pgn/NavigationServlet?MenuID=SBORELCPT&PageID=Compte&Classeur=1&NumeroPage=1&Origine=Menu')
+        binder = range(1, self.page.get_binder_number() + 1)
         accounts_list = []
-        for acc in self.page.get_list():
-            accounts_list.append(acc)
+        for p in binder:
+            self.go_accounts(p)
+            assert self.accounts.is_here()
+
+            for acc in self.page.get_list():
+                acc._binder = p
+                accounts_list.append(acc)
 
         self.order.go()
         for acc in accounts_list:
@@ -85,20 +89,20 @@ class SGPEBrowser(LoginBrowser):
             if a.id == _id:
                 yield a
 
-    def go_history(self, _id, page=1):
+    def go_history(self, _id, page=1, binder=1):
         pgadd = '&page_numero_page_courante=%s' % page if page > 1 else ''
-        self.location('/Pgn/NavigationServlet?PageID=ReleveCompteV3&MenuID=%sCPT&Classeur=1&Rib=%s&NumeroPage=1%s' % (self.MENUID, _id, pgadd))
+        self.location('/Pgn/NavigationServlet?PageID=ReleveCompteV3&MenuID=%sCPT&Classeur=%s&Rib=%s&NumeroPage=1%s' % (self.MENUID, binder, _id, pgadd))
 
-    def go_today(self, _id, page=1):
+    def go_today(self, _id, page=1, binder=1):
         pgadd = '&page_numero_page_courante=%s' % page if page > 1 else ''
-        self.location('/Pgn/NavigationServlet?MenuID=%sOPJ&PageID=ReleveEcritureIntraday&Classeur=1&Rib=%s&NumeroPage=1%s' % (self.MENUID, _id, pgadd))
+        self.location('/Pgn/NavigationServlet?MenuID=%sOPJ&PageID=ReleveEcritureIntraday&Classeur=%s&Rib=%s&NumeroPage=1%s' % (self.MENUID, binder, _id, pgadd))
 
     @need_login
     def iter_history(self, account):
         # Daily Transactions.
         page = 1
         while page:
-            self.go_today(account.id, page)
+            self.go_today(account.id, page, account._binder)
             assert self.history.is_here()
             for transaction in self.page.iter_transactions():
                 yield transaction
@@ -109,7 +113,7 @@ class SGPEBrowser(LoginBrowser):
         page = 1
         # Other Transactions
         while page:
-            self.go_history(account.id, page)
+            self.go_history(account.id, page, account._binder)
             assert self.history.is_here()
             for transaction in self.page.iter_transactions():
                 yield transaction
