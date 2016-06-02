@@ -23,7 +23,7 @@ from dateutil.relativedelta import relativedelta
 
 from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, ParseError
 from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,\
@@ -112,16 +112,19 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_accounts_list(self):
-        if not self.accounts_list:
+        for x in range(3) :
+            if self.accounts_list is not None:
+                break
             self.accounts_list = list()
-            # Accounts balances might need to be updated.
-            self.accounts.go()
-            self.acc_tit.go(webid=self.webid)
             for account in self.accounts.go().iter_accounts():
                 self.accounts_list.append(account)
             self.acc_tit.go(webid=self.webid).populate(self.accounts_list)
-            if not all([acc._webid for acc in self.accounts_list]):
-                self.acc_rep.go(webid=self.webid).populate(self.accounts_list)
+            try:
+                if not all([acc._webid for acc in self.accounts_list]):
+                    self.acc_rep.go(webid=self.webid).populate(self.accounts_list)
+            except ParseError:
+                self.accounts_list = None
+                continue
         return iter(self.accounts_list)
 
     @need_login
