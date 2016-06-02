@@ -142,7 +142,7 @@ class DetailsPage(LoggedPage, HTMLPage):
     def get_investments(self, el, xpath='.'):
         # Get all positions of th
         positions = {}
-        keys = {'isin': 'code', 'support': 'label', 'nombre de parts': 'quantity', 'valeur de part': \
+        keys = {'isin': 'code', 'support': 'label', 'supports': 'label', 'nombre de parts': 'quantity', 'valeur de part': \
                 'unitvalue', 'montant brut': 'valuation', 'date de valeur': 'vdate', '%': 'portfolio_share'}
         for position, th in enumerate(el.xpath("%s//thead//th" % xpath)):
             key = CleanText().filter(th.xpath('.')).lower()
@@ -154,8 +154,7 @@ class DetailsPage(LoggedPage, HTMLPage):
             i = Investment()
             i.label = CleanText().filter(tr.xpath('./td[%s]' % positions['label'])) \
                 if "label"  in positions else NotAvailable
-            i.code = CleanText().filter(tr.xpath('./td[%s]' % positions['code']))
-            i.code = NotAvailable if len(i.code) != 12 else i.code
+            i.code = Regexp(CleanText('./td[%s]' % positions['code']), pattern='([A-Z]{2}\d{10})', default=NotAvailable)(tr)
             i.quantity = MyDecimal().filter(tr.xpath('./td[%s]' % positions['quantity'])) \
                 if "quantity"  in positions else NotAvailable
             i.unitvalue = MyDecimal().filter(tr.xpath('./td[%s]' % positions['unitvalue'])) \
