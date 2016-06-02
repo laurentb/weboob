@@ -194,6 +194,9 @@ class ProHistoryPage(HistoryPage, JsonPage):
             if transaction['transactionDescription'].startswith(pattern):
                 return []
         t = FrenchTransaction(transaction['transactionId'])
+        # Those are not really transactions.
+        if not 'currencyCode' in transaction['transactionAmount']:
+            return []
         original_currency = unicode(transaction['transactionAmount']['currencyCode'])
         if not original_currency == account.currency:
             if original_currency in self.browser.account_currencies:
