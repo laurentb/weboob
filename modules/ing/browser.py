@@ -321,8 +321,8 @@ class IngBrowser(LoginBrowser):
         return iter(transactions)
 
     ############# CapDocument #############
-    @need_login
     @check_bourse
+    @need_login
     def get_subscriptions(self):
         return self.billpage.go().iter_account()
 
