@@ -31,14 +31,13 @@ __all__ = ['OvhModule']
 
 class OvhModule(Module, CapDocument):
     NAME = 'ovh'
-    DESCRIPTION = u'ovh website'
+    DESCRIPTION = u'Ovh'
     MAINTAINER = u'Vincent Paredes'
     EMAIL = 'vparedes@budget-insight.com'
     LICENSE = 'AGPLv3+'
     VERSION = '1.2'
     CONFIG = BackendConfig(Value('login', label='Account ID'),
                                    ValueBackendPassword('password', label='Password'))
-
 
     BROWSER = OvhBrowser
 

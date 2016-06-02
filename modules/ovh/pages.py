@@ -17,23 +17,27 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+
 from weboob.capabilities.bill import Bill, Subscription
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Date
+from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
 from weboob.browser.elements import ListElement, ItemElement, method, DictElement
 
 
 class LoginPage(HTMLPage):
+    def is_logged(self):
+        return self.doc.xpath('//button[@value="disconnect"]')
+
     def login(self, login, password):
         form = self.get_form('//form[@class="pagination-centered"]')
-        form[self.doc.xpath('//input[@placeholder="Account ID"]/@id')[0]] = login
-        form[self.doc.xpath('//input[@placeholder="Password"]/@id')[0]] = password
+        user = Attr(None, 'name').filter(self.doc.xpath('//input[contains(@placeholder, "Account ID")]'))
+        pwd = Attr(None, 'name').filter(self.doc.xpath('//input[@placeholder="Password"]'))
+        form[user] = login
+        form[pwd] = password
         form.submit()
 
-
-class HomePage(HTMLPage, LoggedPage):
-    pass
 
 class ProfilePage(JsonPage, LoggedPage):
     @method
@@ -45,9 +49,11 @@ class ProfilePage(JsonPage, LoggedPage):
             obj_subscriber = Format("%s %s", CleanText(Dict('firstname')), CleanText(Dict('name')))
             obj_id = CleanText(Dict('nichandle'))
 
+
 class ApiAuthPage(JsonPage, LoggedPage):
     def get_csid(self):
         return self.doc['csid']
+
 
 class BillsPage(JsonPage, LoggedPage):
     @method

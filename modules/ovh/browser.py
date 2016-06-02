@@ -21,14 +21,13 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, HomePage, ApiAuthPage, ProfilePage, BillsPage
+from .pages import LoginPage, ApiAuthPage, ProfilePage, BillsPage
 
 
 class OvhBrowser(LoginBrowser):
     BASEURL = 'https://www.ovh.com'
 
     login = URL('/manager/web/login/', LoginPage)
-    home = URL('/manager/web/index.html.*', HomePage)
     api_auth = URL('/manager/dedicated/api/auth/loginSessionidV6', ApiAuthPage)
     profile = URL('/manager/dedicated/api/proxypass/me', ProfilePage)
     billspage = URL('/manager/web/api/billing/bills', BillsPage)
@@ -45,13 +44,15 @@ class OvhBrowser(LoginBrowser):
         return super(OvhBrowser, self).open(*args, **kwargs)
 
     def do_login(self):
-        self.login.go()
+        if self.login.go().is_logged():
+            return
+
         self.page.login(self.username, self.password)
 
-        if not self.home.is_here():
+        if not self.page.is_logged():
             raise BrowserIncorrectPassword
 
-        self.location('https://www.ovh.com/manager/dedicated/api/auth/loginSessionidV6', method="POST")
+        self.location('/manager/dedicated/api/auth/loginSessionidV6', method="POST")
         self.csid = self.page.get_csid()
 
     @need_login
