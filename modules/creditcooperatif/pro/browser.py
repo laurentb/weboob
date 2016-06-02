@@ -18,8 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.exceptions import BrowserUnavailable
 
-from .pages import LoginPage, AccountsPage, ITransactionsPage, TransactionsPage, ComingTransactionsPage, CardTransactionsPage
+from .pages import LoginPage, AccountsPage, ITransactionsPage, TransactionsPage, ComingTransactionsPage, CardTransactionsPage, \
+                   TechnicalErrorPage
 
 
 __all__ = ['CreditCooperatif']
@@ -37,6 +39,7 @@ class CreditCooperatif(Browser):
              'https://www.coopanet.com/banque/cpt/cpt/operationscartebancaire.do\?.*': CardTransactionsPage,
              'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkOpEC=X&numeroExterne=.*': ComingTransactionsPage,
              'https://www.coopanet.com/banque/cpt/cpt/operationEnCours.do.*': ComingTransactionsPage,
+             'http://www.coopanet.com/PbTechniqueCoopanet.htm': TechnicalErrorPage,
             }
 
     def __init__(self, *args, **kwargs):
@@ -45,7 +48,8 @@ class CreditCooperatif(Browser):
 
     def home(self):
         self.location("/banque/sso/")
-
+        if self.is_on_page(TechnicalErrorPage):
+            raise BrowserUnavailable()
         assert self.is_on_page(LoginPage)
 
     def is_logged(self):

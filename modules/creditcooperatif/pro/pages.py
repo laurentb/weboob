@@ -26,6 +26,9 @@ from weboob.deprecated.browser import Page
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
+class TechnicalErrorPage(Page):
+    pass
+
 
 class LoginPage(Page):
     def login(self, login, pin, strong_auth):
