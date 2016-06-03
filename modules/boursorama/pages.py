@@ -138,7 +138,6 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             load_details = Field('_link') & AsyncLoad
 
-            obj_id = Async('details') & Regexp(CleanText('//h3[has-class("account-number")]'), r'(\d+)')
             obj_label = CleanText('.//a[@class="account--name"] | .//div[@class="account--name"]')
             obj_balance = CleanDecimal('.//a[has-class("account--balance")]', replace_dots=True)
             obj_currency = FrenchTransaction.Currency('.//a[has-class("account--balance")]')
@@ -148,6 +147,12 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj__card = Async('details') & Attr('//a[@data-modal-behavior="credit_card-modal-trigger"]', 'href', default=NotAvailable)
             obj__holder = None
             obj__webid = None
+
+            def obj_id(self):
+                id = Async('details', Regexp(CleanText('//h3[has-class("account-number")]'), r'(\d+)', default=NotAvailable))(self)
+                if not id:
+                    raise SkipItem()
+                return id
 
             def obj_type(self):
                 return self.page.ACCOUNT_TYPES.get(CleanText('./preceding-sibling::tr[has-class("list--accounts--master")]//h4')(self), Account.TYPE_UNKNOWN) \
