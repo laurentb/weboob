@@ -275,7 +275,7 @@ class RecipientListFormatter(PrettyFormatter):
 
 
 class AccountListFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'label', 'balance', 'coming')
+    MANDATORY_FIELDS = ('id', 'label', 'balance', 'coming', 'type')
 
     totals = {}
 
@@ -297,15 +297,17 @@ class AccountListFormatter(IFormatter):
         coming = obj.coming or Decimal('0')
         currency = obj.currency or 'EUR'
         result = u'%s %s %s  %s' % (id,
-                                    self.colored('%-25s' % obj.label[:25], 'yellow'),
+                                    self.colored('%-25s' % obj.label[:25], 'yellow' if obj.type != Account.TYPE_LOAN else 'blue'),
                                     self.colored('%9.2f' % obj.balance, 'green' if balance >= 0 else 'red') if not empty(obj.balance) else ' ' * 9,
                                     self.colored('%9.2f' % obj.coming, 'green' if coming >= 0 else 'red') if not empty(obj.coming) else '')
 
         currency_totals = self.totals.setdefault(currency, {})
         currency_totals.setdefault('balance', Decimal(0))
-        currency_totals['balance'] += balance
         currency_totals.setdefault('coming', Decimal(0))
-        currency_totals['coming'] += coming
+
+        if obj.type != Account.TYPE_LOAN:
+            currency_totals['balance'] += balance
+            currency_totals['coming'] += coming
         return result
 
     def flush(self):
