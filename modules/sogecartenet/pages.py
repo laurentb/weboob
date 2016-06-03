@@ -85,6 +85,7 @@ class AccountsPage(SogeLoggedPage, HTMLPage):
                  return self.el.xpath('./td[@bgcolor="#FFFFFF"]')
 
 class TransactionsPage(SogeLoggedPage, CsvPage):
+    ENCODING = 'iso_8859_1'
     HEADER = 1
     FMTPARAMS = {'delimiter':';'}
     @method
