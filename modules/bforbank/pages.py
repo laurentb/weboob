@@ -21,9 +21,10 @@ import re
 from StringIO import StringIO
 from PIL import Image
 
-from weboob.browser.pages import LoggedPage, HTMLPage
+from weboob.browser.pages import LoggedPage, HTMLPage, pagination
 from weboob.browser.elements import method, ListElement, ItemElement
 from weboob.capabilities.bank import Account
+from weboob.browser.filters.html import Link
 from weboob.browser.filters.standard import CleanText, Regexp, Field, Map, CleanDecimal
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -146,9 +147,11 @@ class LoanHistoryPage(LoggedPage, HTMLPage):
 
 
 class HistoryPage(LoggedPage, HTMLPage):
+    @pagination
     @method
     class get_operations(ListElement):
         item_xpath = '//table[has-class("style-operations")]/tbody//tr'
+        next_page = Link('//div[@class="m-table-paginator full-width-xs"]//a[@id="next-page"]')
 
         class item(ItemElement):
             klass = Transaction
