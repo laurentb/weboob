@@ -151,7 +151,7 @@ class AccountsPage(LoggedPage, SGPEPage):
                 return Account.TYPE_UNKNOWN
 
             def condition(self):
-                return Field('label')(self)
+                return Field('label')(self) and len(self.el.xpath('./td')) > 1
 
 
 class HistoryPage(LoggedPage, SGPEPage):
