@@ -23,6 +23,7 @@ from weboob.browser.url import URL
 from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import LoginPage, ErrorPage, AccountsPage, CardsPage, HistoryPage, CardHistoryPage, OrderPage, AccountsListPage
+from .json_pages import AccountsJsonPage, BalancesJsonPage, HistoryJsonPage
 
 
 __all__ = ['SGProfessionalBrowser', 'SGEnterpriseBrowser']
@@ -30,14 +31,8 @@ __all__ = ['SGProfessionalBrowser', 'SGEnterpriseBrowser']
 
 class SGPEBrowser(LoginBrowser):
     login = URL('$', LoginPage)
-    accounts = URL('/Pgn/.+PageID=SoldeV3&.+', AccountsPage)
-    accounts_list = URL('/Pgn/.+PageID=Compte&.+', AccountsListPage)
-    history = URL('/.+PageID=ReleveCompteV3&.+',
-                  '/.+PageID=ReleveEcritureIntraday&.+', HistoryPage)
     cards = URL('/Pgn/.+PageID=Cartes&.+', CardsPage)
     cards_history = URL('/Pgn/.+PageID=ReleveCarte&.+', CardHistoryPage)
-    order = URL('/ord-web/ord//ord-liste-compte-emetteur.json', OrderPage)
-    error = URL('/authent\.html', ErrorPage)
 
     def is_logged(self):
         if not self.page or self.login.is_here():
@@ -62,6 +57,42 @@ class SGPEBrowser(LoginBrowser):
             self.go_accounts()
         if not self.is_logged():
             raise BrowserIncorrectPassword()
+
+    def card_history(self, account, coming):
+        page = 1
+        while page:
+            self.location('/Pgn/NavigationServlet?PageID=ReleveCarte&MenuID=%sOPF&Classeur=1&Rib=%s&Carte=%s&Date=%s&PageDetail=%s&Devise=%s' % \
+                            (self.MENUID, account.id, coming['carte'], coming['date'], page, account.currency))
+            for transaction in self.page.iter_transactions(date=coming['date']):
+                yield transaction
+            if self.page.has_next():
+                page += 1
+            else:
+                page = False
+
+    @need_login
+    def get_cb_operations(self, account):
+        self.location('/Pgn/NavigationServlet?PageID=Cartes&MenuID=%sOPF&Classeur=1&NumeroPage=1&Rib=%s&Devise=%s' % (self.MENUID, account.id, account.currency))
+        for coming in self.page.get_coming_list():
+            for tr in self.card_history(account, coming):
+                yield tr
+
+    def iter_investment(self, account):
+        raise NotImplementedError()
+
+
+class SGProfessionalBrowser(SGPEBrowser):
+    BASEURL = 'https://professionnels.secure.societegenerale.fr'
+    LOGIN_FORM = 'auth_reco'
+    MENUID = 'SBOREL'
+    CERTHASH = '9f5232c9b2283814976608bfd5bba9d8030247f44c8493d8d205e574ea75148e'
+
+    accounts = URL('/Pgn/.+PageID=SoldeV3&.+', AccountsPage)
+    accounts_list = URL('/Pgn/.+PageID=Compte&.+', AccountsListPage)
+    history = URL('/.+PageID=ReleveCompteV3&.+',
+                  '/.+PageID=ReleveEcritureIntraday&.+', HistoryPage)
+    order = URL('/ord-web/ord//ord-liste-compte-emetteur.json', OrderPage)
+    error = URL('/authent\.html', ErrorPage)
 
     def go_accounts(self, page=1):
         self.location('/Pgn/NavigationServlet?PageID=SoldeV3&MenuID=%sCPT&Classeur=%s&NumeroPage=1' % (self.MENUID, page))
@@ -122,38 +153,30 @@ class SGPEBrowser(LoginBrowser):
             else:
                 page = False
 
-    def card_history(self, account, coming):
-        page = 1
-        while page:
-            self.location('/Pgn/NavigationServlet?PageID=ReleveCarte&MenuID=%sOPF&Classeur=1&Rib=%s&Carte=%s&Date=%s&PageDetail=%s&Devise=%s' % \
-                            (self.MENUID, account.id, coming['carte'], coming['date'], page, account.currency))
-            for transaction in self.page.iter_transactions(date=coming['date']):
-                yield transaction
-            if self.page.has_next():
-                page += 1
-            else:
-                page = False
-
-    @need_login
-    def get_cb_operations(self, account):
-        self.location('/Pgn/NavigationServlet?PageID=Cartes&MenuID=%sOPF&Classeur=1&NumeroPage=1&Rib=%s&Devise=%s' % (self.MENUID, account.id, account.currency))
-        for coming in self.page.get_coming_list():
-            for tr in self.card_history(account, coming):
-                yield tr
-
-    def iter_investment(self, account):
-        raise NotImplementedError()
-
-
-class SGProfessionalBrowser(SGPEBrowser):
-    BASEURL = 'https://professionnels.secure.societegenerale.fr'
-    LOGIN_FORM = 'auth_reco'
-    MENUID = 'SBOREL'
-    CERTHASH = '9f5232c9b2283814976608bfd5bba9d8030247f44c8493d8d205e574ea75148e'
-
 
 class SGEnterpriseBrowser(SGPEBrowser):
     BASEURL = 'https://entreprises.secure.societegenerale.fr'
     LOGIN_FORM = 'auth'
     MENUID = 'BANREL'
     CERTHASH = '2231d5ddb97d2950d5e6fc4d986c23be4cd231c31ad530942343a8fdcc44bb99'
+
+    accounts = URL('/icd/syd-front/data/syd-comptes-accederDepuisMenu.json', AccountsJsonPage)
+    balances = URL('/icd/syd-front/data/syd-comptes-chargerSoldes.json', BalancesJsonPage)
+    history = URL('/icd/syd-front/data/syd-comptes-chargerReleve.json',
+                  '/icd/syd-front/data/syd-intraday-chargerDetail.json', HistoryJsonPage)
+
+    def go_accounts(self):
+        self.accounts.go()
+
+    @need_login
+    def get_accounts_list(self):
+        accounts = []
+        accounts.extend(self.accounts.stay_or_go().iter_accounts())
+        return self.balances.go().populate_balances(accounts)
+
+    @need_login
+    def iter_history(self, account):
+        transactions = []
+        transactions.extend(self.history.go(data={'cl500_compte': account._id, 'cl200_typeReleve': 'valeur'}).iter_history())
+        transactions.extend(self.location('/icd/syd-front/data/syd-intraday-chargerDetail.json', data={'cl500_compte': account._id}).page.iter_history())
+        return iter(transactions)
