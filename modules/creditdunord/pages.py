@@ -327,7 +327,7 @@ class ProAccountsPage(AccountsPage):
             else:
                 a.id = a._acc_nb
             # This account can be multiple life insurance accounts
-            if a.label in ['ASS.VIE-BONS CAPI-SCPI-DIVERS (*)', 'BONS CAPI-SCPI-DIVERS (*)'] or \
+            if any(a.label.startswith(lab) for lab in ['ASS.VIE-BONS CAPI-SCPI-DIVERS', 'BONS CAPI-SCPI-DIVERS']) or \
                u'Aucun d\\351tail correspondant pour ce compte' in tr.xpath('.//a/@href')[0]:
                 continue
 
