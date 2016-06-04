@@ -12,7 +12,7 @@ setup(name='boobank_indicator',
       author_email='bezleputh@gmail.com',
       packages=find_packages(),
       package_data={
-          'boobank_indicator.data': ['indicator-boobank.png', 'green_light.png', 'red_light.png']
+          'boobank_indicator.data': ['indicator-boobank.png', 'green_light.png', 'red_light.png', 'personal-loan.png']
       },
       entry_points={
           'console_scripts': ['boobank_indicator = boobank_indicator.boobank_indicator:main'],

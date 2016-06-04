@@ -11,7 +11,7 @@ from gi.repository import Gtk, GObject, Notify
 from gi.repository import AppIndicator3 as appindicator
 
 from weboob.core import Weboob, CallErrors
-from weboob.capabilities.bank import CapBank
+from weboob.capabilities.bank import CapBank, Account
 from weboob.capabilities import UserError
 from weboob.tools.application.base import MoreResultsAvailable
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden, BrowserSSLError
@@ -42,7 +42,7 @@ class BoobankTransactionsChecker(Thread):
         account_history_menu = Gtk.Menu()
 
         for tr in self.weboob.do('iter_history', self.account, backends=self.account.backend):
-            label = "%s - %s: %s%s" % (tr.date, tr.label, tr.amount, self.account.currency_text)
+            label = u'%s - %s: %s%s' % (tr.date, tr.label, tr.amount, self.account.currency_text)
             image = "green_light.png" if tr.amount > 0 else "red_light.png"
             transaction_item = create_image_menu_item(label, image)
             account_history_menu.append(transaction_item)
@@ -91,11 +91,14 @@ class BoobankChecker():
                 if account.coming:
                     balance += account.coming
 
-                total += balance
-                currency = account.currency_text
+                if account.type != Account.TYPE_LOAN:
+                    total += balance
+                    image = "green_light.png" if balance > 0 else "red_light.png"
+                else:
+                    image = "personal-loan.png"
 
+                currency = account.currency_text
                 label = "%s: %s%s" % (account.label, balance, account.currency_text)
-                image = "green_light.png" if balance > 0 else "red_light.png"
                 account_item = create_image_menu_item(label, image)
                 thread = BoobankTransactionsChecker(self.weboob, account_item, account)
                 thread.start()

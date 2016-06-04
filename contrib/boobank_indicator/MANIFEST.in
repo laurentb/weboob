@@ -1,4 +1,6 @@
 include boobank-indicator/data/indicator-boobank.png
 include boobank-indicator/data/green_light.png
 include boobank-indicator/data/red_light.png
+include boobank-indicator/data/red_light.png
+include boobank-indicator/data/personal-loan.png
 exclude screenshot.png
