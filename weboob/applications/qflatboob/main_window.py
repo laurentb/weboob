@@ -21,8 +21,6 @@ from PyQt5.QtGui import QImage, QPixmap, QIcon, QBrush, QColor
 from PyQt5.QtWidgets import QLabel, QListWidgetItem
 from PyQt5.QtCore import Qt, pyqtSlot as Slot
 
-from decimal import Decimal
-
 from weboob.tools.application.qt5 import QtMainWindow, QtDo, HTMLDelegate
 from weboob.tools.application.qt5.backendcfg import BackendCfg
 from weboob.capabilities.housing import CapHousing, Query, City
@@ -39,15 +37,22 @@ class HousingListWidgetItem(QListWidgetItem):
         self.read = True
 
     def __lt__(self, other):
-        return '%s%s' % (self.read, Decimal(self.housing.cost or 0) / Decimal(self.housing.area or 1)) < \
-               '%s%s' % (other.read, Decimal(other.housing.cost or 0) / Decimal(other.housing.area or 1))
+        return '%s%s' % (self.read, self.housing.price_per_meter) < \
+               '%s%s' % (other.read, other.housing.price_per_meter)
 
     def setAttrs(self, storage):
-        text =  u'<h2>%s</h2>' % self.housing.title
-        text += u'<i>%s — %sm² — %s%s — %.0f %s/m2 (%s)</i>' % (self.housing.date.strftime('%Y-%m-%d') if self.housing.date else 'Unknown',
-                                                              self.housing.area, self.housing.cost, self.housing.currency,
-                                                              Decimal(self.housing.cost or 0) / Decimal(self.housing.area or 1),
-                                                              self.housing.currency, self.housing.backend)
+        text = u'<h2>%s</h2>' % self.housing.title
+
+        _area = u'%.0fm²' % self.housing.area if self.housing.area else self.housing.area
+
+        text += u'<i>%s — %s — %s%s — %.0f %s/m2 (%s)</i>' % (
+            self.housing.date.strftime('%Y-%m-%d') if self.housing.date else 'Unknown',
+            _area,
+            self.housing.cost,
+            self.housing.currency,
+            self.housing.price_per_meter,
+            self.housing.currency,
+            self.housing.backend)
         text += u'<br />%s' % self.housing.text.strip()
         text += u'<br /><font color="#008800">%s</font>' % storage.get('notes', self.housing.fullid, default='').strip().replace('\n', '<br />')
         self.setText(text)
@@ -57,7 +62,7 @@ class HousingListWidgetItem(QListWidgetItem):
             self.read = False
         elif self.housing.fullid in storage.get('bookmarks'):
             self.setBackground(QBrush(QColor(255, 200, 200)))
-        elif self.background().color() != QColor(0,0,0):
+        elif self.background().color() != QColor(0, 0, 0):
             self.setBackground(QBrush())
 
 
@@ -318,8 +323,10 @@ class MainWindow(QtMainWindow):
         self.ui.bookmark.setChecked(housing.fullid in self.storage.get('bookmarks'))
 
         self.ui.titleLabel.setText('<h1>%s</h1>' % housing.title)
-        self.ui.areaLabel.setText(u'%s m²' % housing.area)
+        _area = u'%.2f m²' % housing.area if housing.area else housing.area
+        self.ui.areaLabel.setText(u'%s' % _area)
         self.ui.costLabel.setText(u'%s %s' % (housing.cost, housing.currency))
+        self.ui.pricePerMeterLabel.setText(u'%.2f %s/m²' % (housing.price_per_meter, housing.currency))
         self.ui.dateLabel.setText(housing.date.strftime('%Y-%m-%d') if housing.date else nottext)
         self.ui.phoneLabel.setText(housing.phone or nottext)
         self.ui.locationLabel.setText(housing.location or nottext)
@@ -341,7 +348,7 @@ class MainWindow(QtMainWindow):
                 if empty(value):
                     continue
                 label = QLabel(value)
-                label.setTextInteractionFlags(Qt.TextSelectableByMouse|Qt.LinksAccessibleByMouse)
+                label.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.LinksAccessibleByMouse)
                 self.ui.detailsFrame.layout().addRow('<b>%s:</b>' % key, label)
 
     def gotHousing(self, housing):

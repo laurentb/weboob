@@ -26,6 +26,7 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Format, Regexp
 from weboob.browser.filters.html import CleanHTML
 from weboob.capabilities.housing import Housing, HousingPhoto, City
+from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
 
 class CitiesPage(JsonPage):
@@ -97,6 +98,7 @@ class HousingPage(EntreParticuliersXMLPage):
         obj_location = CleanHTML(CleanText('//Localisation'))
 
         obj_area = CleanDecimal('//SurfaceBien', replace_dots=True)
+        obj_price_per_meter = PricePerMeterFilter()
         obj_phone = CleanText('//Telephone')
         obj_date = datetime.now
 

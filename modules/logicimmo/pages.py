@@ -24,6 +24,7 @@ from weboob.browser.filters.standard import Format, CleanText, Regexp, CleanDeci
 from weboob.browser.filters.html import XPath, CleanHTML
 from weboob.capabilities.housing import Housing, HousingPhoto, City
 from weboob.capabilities.base import NotAvailable
+from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
 
 class CitiesPage(JsonPage):
@@ -54,6 +55,7 @@ class HousingPage(HTMLPage):
         obj_cost = CleanDecimal('//*[@itemprop="price"]', default=0)
         obj_currency = Regexp(CleanText('//*[@itemprop="price"]'),
                               '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+        obj_price_per_meter = PricePerMeterFilter()
         obj_date = Date(Regexp(CleanText('//p[@class="offer-description-notes"]|//p[has-class("darkergrey")]'),
                                u'.* Mis à jour : (\d{2}/\d{2}/\d{4}).*'))
         obj_text = CleanHTML('//div[@class="offer-description-text"]|//div[has-class("offer-description")]')
@@ -63,7 +65,7 @@ class HousingPage(HTMLPage):
         def obj_photos(self):
             photos = []
             for img in XPath('//div[@class="carousel-content"]/ul/li/a/img/@src|//div[@class="carousel"]/ul/li/a/img/@src')(self):
-                photos.append(HousingPhoto(u'%s' % img.replace('75x75','800x600')))
+                photos.append(HousingPhoto(u'%s' % img.replace('75x75', '800x600')))
             return photos
 
         def obj_details(self):

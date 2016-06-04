@@ -27,6 +27,7 @@ from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env
 from weboob.browser.filters.html import CleanHTML, XPath
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.housing import Housing, HousingPhoto, City
+from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
 
 class CitiesPage(JsonPage):
@@ -70,6 +71,7 @@ class SearchPage(HTMLPage):
             obj_area = CleanDecimal(Regexp(CleanText('./div/h2[@itemprop="name"]/a'),
                                            '(.*?)(\d*) m2(.*?)', '\\2', default=None),
                                     default=NotAvailable)
+            obj_price_per_meter = PricePerMeterFilter()
 
             def obj_phone(self):
                 phone = CleanText('./div/div/ul/li/span[@class="js-clickphone"]',
@@ -115,6 +117,7 @@ class HousingPage2(JsonPage):
         obj_url = BrowserURL('housing_html', _id=Env('_id'))
         obj_area = TypeDecimal(Dict('characteristics/area'))
         obj_date = FromTimestamp(Dict('characteristics/date'))
+        obj_price_per_meter = PricePerMeterFilter()
 
         def obj_photos(self):
             photos = []
@@ -156,6 +159,7 @@ class HousingPage(HTMLPage):
         obj_url = BrowserURL('housing', _id=Env('_id'))
         obj_area = CleanDecimal(Regexp(CleanText('//h1[@itemprop="name"]'),
                                        '(.*?)(\d*) m2(.*?)', '\\2'), default=NotAvailable)
+        obj_price_per_meter = PricePerMeterFilter()
 
         def obj_photos(self):
             photos = []

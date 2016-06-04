@@ -20,6 +20,7 @@
 from __future__ import print_function
 
 from weboob.capabilities.housing import CapHousing, Query
+from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.tools.config.yamlconfig import YamlConfig
@@ -39,8 +40,10 @@ class HousingFormatter(IFormatter):
             result += 'URL: %s\n' % obj.url
 
         result += 'Cost: %s%s\n' % (obj.cost, obj.currency)
-        area = u'%sm²' % (obj.area) if obj.area else u'%s' % obj.area
+        area = u'%.2fm²' % (obj.area) if obj.area else u'%s' % obj.area
         result += u'Area: %s\n' % area
+        if hasattr(obj, 'price_per_meter') and not empty(obj.price_per_meter):
+            result += u'Price per square meter: %.2f %s/m²\n' % (obj.price_per_meter, obj.currency)
         if obj.date:
             result += 'Date: %s\n' % obj.date.strftime('%Y-%m-%d')
         result += 'Phone: %s\n' % obj.phone

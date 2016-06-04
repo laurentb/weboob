@@ -28,6 +28,7 @@ from weboob.browser.filters.html import Link, XPath, CleanHTML
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import Housing, City, HousingPhoto
+from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
 
 class CitiesPage(JsonPage):
@@ -94,6 +95,7 @@ class HousingPage(HTMLPage):
                               '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
         obj_area = CleanDecimal(Regexp(CleanText('//h1[@class="desc clearfix"]/span[@class="title"]'),
                                 '(.*?)(\d*) m\xb2(.*?)', '\\2'), default=NotAvailable)
+        obj_price_per_meter = PricePerMeterFilter()
         obj_location = CleanText('//div[@class="text-annonce"]/h2')
         obj_text = CleanText(CleanHTML('//div[@class="text-annonce-container"]/p'))
         obj_station = CleanText('//div[@class="metro"]')

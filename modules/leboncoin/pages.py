@@ -24,6 +24,7 @@ from weboob.browser.filters.html import Attr, Link
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.housing import City, Housing, HousingPhoto, Query
 from weboob.capabilities.base import NotAvailable
+from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 from weboob.tools.date import DATE_TRANSLATE_FR, LinearDateGuesser
 
 from decimal import Decimal
@@ -173,6 +174,7 @@ class HousingPage(HTMLPage):
         obj_location = CleanText('//span[@itemprop="address"]')
         obj_details = Env('details')
         obj_area = Env('area')
+        obj_price_per_meter = PricePerMeterFilter()
         obj_url = BrowserURL('housing', _id=Env('_id'))
 
         def obj_date(self):
