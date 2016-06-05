@@ -17,11 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.parcel import CapParcel, Parcel, Event, ParcelNotFound
+from weboob.capabilities.parcel import CapParcel, ParcelNotFound, Parcel
 from weboob.tools.backend import Module
 
 from .browser import ColissimoBrowser
-from datetime import date
 
 __all__ = ['ColissimoModule']
 
@@ -40,23 +39,19 @@ class ColissimoModule(Module, CapParcel):
         # 13 is the magic length of colissimo tracking ids
         if len(_id) != 13:
             raise ParcelNotFound(u"Colissimo ID's must have 13 print character")
-        data = self.browser.get_tracking_info(_id)
+
+        events = self.browser.get_tracking_info(_id)
         p = Parcel(_id)
-        label = data['message']
-        if data['error']:
-            raise ParcelNotFound(label + u" (id = %s@%s)" % (_id, self.name))
-        p.info = label
-        # TODO, need to know the delivery message
-        if u"remis au gardien ou" in label or u"Votre colis est livré" in label:
+        p.history = events
+
+        first = events[0]
+        p.info = first.activity
+
+        if u"remis au gardien ou" in p.info or u"Votre colis est livré" in p.info:
             p.status = p.STATUS_ARRIVED
-        elif u"pas encore pris en charge par La Poste" in label:
+        elif u"pas encore pris en charge par La Poste" in p.info:
             p.status = p.STATUS_PLANNED
         else:
             p.status = p.STATUS_IN_TRANSIT
-
-        ev = Event(0)
-        ev.activity = label
-        ev.date = date(*reversed([int(x) for x in data['date'].split("/")]))
-        p.history = [ev]
 
         return p

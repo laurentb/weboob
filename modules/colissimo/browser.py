@@ -17,23 +17,45 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.json import json
-from weboob.browser import DomainBrowser
-from weboob.exceptions import BrowserBanned
-from weboob.browser.profiles import Android
+from weboob.capabilities.parcel import Event, ParcelNotFound
+from weboob.browser import PagesBrowser, URL
+from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.filters.standard import CleanText, Date
+from weboob.browser.pages import HTMLPage
+from weboob.browser.profiles import Firefox
 
 
 __all__ = ['ColissimoBrowser']
 
 
-class ColissimoBrowser(DomainBrowser):
-    BASEURL = 'http://www.laposte.fr'
-    PROFILE = Android()
+class TrackingPage(HTMLPage):
+    ENCODING = 'iso-8859-15'
 
-    api_key = '6b252eb30d3afb15c47cf3fccee3dc17352dc2d6'
+    @method
+    class iter_infos(ListElement):
+        item_xpath = '//table[@class="dataArray"]/tbody/tr'
+
+        class item(ItemElement):
+            klass = Event
+
+            obj_date = Date(CleanText('td[@headers="Date"]'))
+            obj_activity = CleanText('td[@headers="Libelle"]')
+            obj_location = CleanText('td[@headers="site"]')
+
+    def get_error(self):
+        return CleanText("//div[@class='error']")(self.doc)
+
+
+class ColissimoBrowser(PagesBrowser):
+    BASEURL = 'http://www.colissimo.fr'
+    PROFILE = Firefox()
+
+    tracking_url = URL('/portail_colissimo/suivre.do\?colispart=(?P<_id>.*)', TrackingPage)
 
     def get_tracking_info(self, _id):
-        json_data = self.open('/outilsuivi/web/suiviInterMetiers.php?key=%s&method=json&code=%s' % (self.api_key, _id)).text
-        if json_data is None:
-            raise BrowserBanned('You are banned of the colissimo API (too many requests from your IP)')
-        return json.loads(json_data)
+        self.tracking_url.stay_or_go(_id=_id)
+        events = list(self.page.iter_infos())
+        if len(events) == 0:
+            error = self.page.get_error()
+            raise ParcelNotFound(u"Parcel not found: {}".format(error))
+        return events
