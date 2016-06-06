@@ -209,12 +209,15 @@ class Async(_Filter):
         return self
 
     def __call__(self, item):
+        return self.selector(self.loaded_page(item).doc)
+
+    def loaded_page(self, item):
         if item.loaders[self.name] is None:
             return None
 
         result = item.loaders[self.name].result()
         assert result.page is not None, 'The loaded url %s hasn\'t been matched by an URL object' % result.url
-        return self.selector(result.page.doc)
+        return result.page
 
 
 class Base(Filter):
