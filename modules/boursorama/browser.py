@@ -20,10 +20,11 @@
 
 from datetime import date
 from dateutil.relativedelta import relativedelta
+from lxml.etree import XMLSyntaxError
 
 from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
-from weboob.exceptions import BrowserIncorrectPassword, ParseError
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,\
@@ -122,7 +123,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
             try:
                 if not all([acc._webid for acc in self.accounts_list]):
                     self.acc_rep.go(webid=self.webid).populate(self.accounts_list)
-            except ParseError:
+            except XMLSyntaxError:
                 self.accounts_list = None
                 continue
         return iter(self.accounts_list)
