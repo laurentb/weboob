@@ -125,18 +125,17 @@ class VideosListPage(HTMLPage):
 
     @method
     class get_arte_cinema_videos(ListElement):
-        item_xpath = '//article'
+        item_xpath = '//article[@id]'
 
         class item(ItemElement):
             klass = ArteSiteVideo
 
             def condition(self):
-                return len(XPath('.//div[@class="article-secondary "]')(self)) == 1 and\
-                    len(XPath('.//article')(self)) == 0
+                return len(XPath('.//div[@class="article-secondary "]')(self)) == 1
 
             obj__site = SITE.CINEMA.get('id')
             obj_id = Format('%s.%s', Field('_site'),
-                            Regexp(CleanText('./div/a/@href'),
+                            Regexp(CleanText('./div/div/a/@href|./div/a/@href'),
                                    '(http://.*\.arte\.tv)?/(.*)',
                                    '\\2'))
             obj_title = Join(u' - ',
