@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from decimal import Decimal
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import TableElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell, Date, Env
@@ -48,11 +48,14 @@ class AvoirPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
+            def condition(self):
+                return u'Vous n\'avez pas d\'avoirs.' not in CleanText(TableCell('name'))(self)
+
             obj_id = CleanText(TableCell('name'))
             obj_label = CleanText(TableCell('name'))
-            obj_balance = CleanDecimal(TableCell('value'), replace_dots=True)
+            obj_balance = CleanDecimal(TableCell('value'), replace_dots=True, default=Decimal(0))
             obj_currency = CleanText(u'//table[@summary="Liste des échéances"]/thead/tr/th/small/text()')
-            obj_type = Account.TYPE_UNKNOWN
+            obj_type = Account.TYPE_PEE
 
 
 class OperationsFuturesPage(LoggedPage, HTMLPage):
