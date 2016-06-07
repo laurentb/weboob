@@ -294,10 +294,10 @@ class Cragr(Browser):
 
         # card accounts need to get an updated link
         if account.type == Account.TYPE_CARD:
-            self.get_cards_or_card(account.id)
+            account = self.get_cards_or_card(account.id)
 
         date_guesser = LinearDateGuesser()
-        if account.type != Account.TYPE_CARD:
+        if account.type != Account.TYPE_CARD or not self.page.is_on_right_detail(account):
             self.location(account._link.format(self.sag))
 
         if self.is_on_page(CardsPage):
