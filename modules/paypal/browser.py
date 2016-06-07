@@ -39,6 +39,7 @@ class Paypal(LoginBrowser):
     login = URL('https://\w+.paypal.com/signin/.*',
                 '/cgi-bin/webscr\?cmd=_login-submit.+$',
                 '/fr/webapps/mpp/home',
+                '/home',
                 LoginPage)
     useless = URL('/cgi-bin/webscr\?cmd=_login-processing.+$',
                   '/cgi-bin/webscr\?cmd=_account.*$',
