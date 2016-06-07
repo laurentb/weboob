@@ -137,6 +137,9 @@ class ListElement(AbstractElement):
             yield self.el
 
     def __iter__(self):
+        if self.condition is not None and not self.condition():
+            return
+
         self.parse(self.el)
 
         items = []
