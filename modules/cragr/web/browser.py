@@ -316,15 +316,16 @@ class Cragr(Browser):
                 url = self.page.get_next_url()
 
         elif self.page:
-            url = self.page.get_order_by_date_url()
-            while url:
-                self.location(url)
+            while True:
                 assert self.is_on_page(TransactionsPage)
 
                 for tr in self.page.get_history(date_guesser):
                     yield tr
 
                 url = self.page.get_next_url()
+                if url is None:
+                    break
+                self.location(url)
 
     def iter_investment(self, account):
         if not account._link or account.type not in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE):
