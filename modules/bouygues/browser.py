@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from time import sleep
+
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from .pages import DocumentsPage, HomePage, LoginPage, ProfilePage, SendSMSPage, SendSMSErrorPage
@@ -44,6 +46,10 @@ class BouyguesBrowser(LoginBrowser):
                          SendSMSErrorPage)
 
     logged = False
+
+    def deinit(self):
+        sleep(10)
+        super(BouyguesBrowser, self).deinit()
 
     def do_login(self):
         if self.logged:
