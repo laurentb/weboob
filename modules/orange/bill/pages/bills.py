@@ -54,6 +54,7 @@ class BillsPage(HTMLPage):
             obj_id = Format('%s_%s', Env('subid'), CleanDecimal(CleanText('.//span[@class="date magic_gras magic_font13"]')))
             obj__url = Attr('.//span[@class="telecharger pdf"]/a', 'href', default=NotAvailable)
             obj_date = Date(CleanText('.//span[@class="date magic_gras magic_font13"]'))
+            obj_label = CleanText('.//span[@class="date magic_gras magic_font13"]')
             obj_format = u"pdf"
             obj_type = u"bill"
             obj_price = CleanDecimal('span[@class="montant"]', replace_dots=True)
