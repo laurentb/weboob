@@ -46,7 +46,9 @@ class AmundiModule(Module, CapBank):
     def create_default_browser(self):
         b = {'ee': AmundiEEBrowser, 'tc': AmundiTCBrowser}
         self.BROWSER = b[self.config['website'].get()]
-        return self.create_browser(self.config['login'].get(),
+        w = {'ee': 'https://www.amundi-ee.com', 'tc': 'https://epargnants.amundi-tc.com'}
+        return self.create_browser(w[self.config['website'].get()],
+                                   self.config['login'].get(),
                                    self.config['password'].get())
 
     def get_account(self, id):

@@ -26,12 +26,14 @@ from weboob.exceptions import BrowserIncorrectPassword
 class AmundiEEBrowser(LoginBrowser):
     TIMEOUT = 120.0
 
-    BASEURL = 'https://www.amundi-ee.com'
-
     login = URL('/part/home_login', LoginPage)
     accounts = URL('/part/home_ajax_noee\?api=/api/individu/positionTotale', AccountsPage)
     account_detail = URL('/part/home_priv_epa_encours', AccountDetailPage)
     account_history = URL('/part/home_ajax_noee\?api=/api/individu/operations', AccountHistoryPage)
+
+    def __init__(self, website, *args, **kwargs):
+        super(AmundiEEBrowser, self).__init__(*args, **kwargs)
+        self.BASEURL = website
 
     def do_login(self):
         """

@@ -26,13 +26,15 @@ from datetime import date
 class AmundiTCBrowser(LoginBrowser):
     TIMEOUT = 120.0
 
-    BASEURL = 'https://epargnants.amundi-tc.com'
-
     login = URL('/home', LoginPage)
     redirect = URL('/home_indispo_redirect', RedirectPage)
     accounts = URL('/home_ajax_noee\?api=/api/individu/positionTotale', AccountsPage)
     account_detail = URL('/home_ajax_noee\?api=/api/individu/positionFonds', AccountDetailPage)
     account_history = URL('/home_ajax_noee\?api=/api/individu/operations', AccountHistoryPage)
+
+    def __init__(self, website, *args, **kwargs):
+        super(AmundiTCBrowser, self).__init__(*args, **kwargs)
+        self.BASEURL = website
 
     def do_login(self):
         """
