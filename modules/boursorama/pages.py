@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
+from StringIO import StringIO
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem
@@ -28,6 +29,7 @@ from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.value import Value
 from weboob.tools.date import parse_french_date
+from weboob.tools.captcha.virtkeyboard import VirtKeyboard
 from weboob.exceptions import BrowserQuestion, BrowserIncorrectPassword, BrowserHTTPNotFound
 
 
@@ -90,30 +92,50 @@ class Transaction(FrenchTransaction):
 
 
 class VirtKeyboardPage(HTMLPage):
-    symbols = {'0': 'gGCQotikafNwAAASxJREFUWMPtlrtKxEAUhicGJYVoYSMsRFNoYS9YipWNhWDpW/gCW1go+AqWVr6AIGi7nYWkiiBEUCxW2Q',
-               '1': 'gGCQsrej4LQwAAAJRJREFUWMPt07ENAjEMhWE7do+EYANoKGhuBZZgTyp0DESBRJs4sWmYABLpTnrfANYvWyYCAPiZmU3u/o',
-               '2': 'gGCQUMQbeTpgAAAlhJREFUWMPtl79rFEEUx++SE3+E+Au0NhYG/wQRUgha2YqFhZg0ghDQQgTBOoWRdEYbU0SLVRFB7JQN4g',
-               '3': 'gGCQY6pSBV/AAAAh1JREFUWMPtlz2IE0EUx98bEy4fch6IMSpXiWDhB1ZqZ2FpaSmIYOF1lndWQUG46rAR7OwELTwUwTKVaJ',
-               '4': 'sCBjU5C9zLzAAAAaVJREFUWMPtlzFLAzEYhpOgVKsgjoI4Skf/hZubs9V/oD9BXARB/QW1g0sXBx3EQRQEN8WhYHGSaimlQi',
-               '5': 'gGCQgI83Qp8gAAAflJREFUWMPtmM9rE1EQx+fFbEhIoJQiUtCLKdKDCN71IBavPRXBs4L1D/DgyVuv/gNiD4ISrCB6KPiDtO',
-               '6': 'gGCQgltqt1hwAAAqRJREFUWMPtl71rFEEYh+fUg8MYTUDwA22MQWwM2FgKKlgogpUW+gdooQkIRgs9EBu19A/wAwQLEQxKDA',
-               '7': 'gGCQkLc2ZJCQAAAptJREFUWMPtlz9oFEEUxnfPRENE0ymIYCUWohYKkl4LCyFaWAi2NkFI0ErQXCE2URREFKsoKhIQ/INgLP',
-               '8': 'gGCQkzW2TxlwAAAj9JREFUWMPtmD9oFEEUxuf2EA4haKOIRtHSItqKYCGCksJGEEyhWIudiO2VksZGG60uaOE1Aa8wXUwjQq',
-               '9': 'gGCQobRfwKrgAAAzBJREFUWMPtl02oFEcQx8f18yASBE00qAcTgmDQQyAaPAgSCXqLAQkSJJCDYoKXQPArvPhxUhH14i05GD',}
+    pass
+
+class BoursoramaVirtKeyboard(VirtKeyboard):
+    symbols = {'0': (17, 7, 24, 17),
+               '1': (18, 6, 21, 18),
+               '2': (9, 7, 32, 34),
+               '3': (10, 7, 31, 34),
+               '4': (11, 6, 29, 34),
+               '5': (14, 6, 28, 34),
+               '6': (7, 7, 34, 34),
+               '7': (5, 6, 36, 34),
+               '8': (8, 7, 32, 34),
+               '9': (4, 7, 38, 34)}
+
+    color = (255,255,255)
+    md5 = {}
+
+    def __init__(self, page):
+        for span in page.doc.xpath('//span'):
+            c = span.attrib['data-matrix-key']
+            img = StringIO(span.xpath('./img/@src')[0].replace('data:image/png;base64,', '').decode('base64'))
+            self.load_image(img, self.color, convert='RGB')
+            self.load_symbols((0,0,42,42), c)
+
+    def load_symbols(self, coords, c):
+        coord = self.get_symbol_coords(coords)
+        if coord == (-1, -1, -1, -1):
+            return
+        self.md5[coord] = c
 
     def get_code(self, password):
         code = ''
         for i, d in enumerate(password):
             if i > 0:
                 code += '|'
-            code += Attr(self.doc.xpath('//span[img[contains(@src, "%s")]]' % self.symbols[d]), 'data-matrix-key')(self)
+            code += self.md5[self.symbols[d]]
         return code
 
 
 class LoginPage(HTMLPage):
     def login(self, login, password):
         form = self.get_form()
-        code = self.browser.keyboard.open().get_code(password)
+        vk = BoursoramaVirtKeyboard(self.browser.keyboard.open())
+        code = vk.get_code(password)
         form['form[login]'] = login
         form['form[fakePassword]'] = len(password) * '•'
         form['form[password]'] = code
