@@ -300,8 +300,6 @@ class IngBrowser(LoginBrowser):
         elif self.page.asv_has_detail:
             self.go_on_asv_detail(account, '/b2b2c/epargne/CoeDetCon')
             self.where = u"asv"
-        else:
-            return iter([])
         return self.page.iter_investments()
 
     def get_history_titre(self, account):

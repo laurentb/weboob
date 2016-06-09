@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from decimal import Decimal
 from datetime import date, timedelta
 import datetime
 import re
@@ -27,7 +28,7 @@ from weboob.capabilities.base import NotAvailable
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Filter, Field, MultiFilter, \
-                                            Date, Lower, Async, AsyncLoad, Format
+                                            Date, Lower, Async, AsyncLoad, Format, Regexp
 from weboob.browser.filters.html import Attr, Link
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -206,6 +207,52 @@ class AccountsList(LoggedPage, HTMLPage):
     def submit(self):
         form = self.get_form()
         form.submit()
+
+    @method
+    class iter_investments(ListElement):
+        item_xpath = '//div[has-class("asv_fond")]'
+
+        class item(ItemElement):
+            klass = Investment
+
+            # ASV.popup('/general?command=displayAVEuroEpargne')
+            load_details = Attr('.//div[has-class("asv_fond_view")]//a', 'onclick') & Regexp(pattern="'(.*)'") & AsyncLoad
+
+            obj_label = CleanText('.//span[has-class("asv_cat_lbl")]')
+            obj_code = Async('details') & CleanText('//li[contains(text(), "Code ISIN")]/span[1]')
+            obj_id = obj_code
+            obj_description = Async('details') & CleanText('//h5')
+            obj_quantity = CleanDecimal('.//dl[contains(dt/text(), "Nombre de parts")]/dd', replace_dots=True)
+            obj_unitvalue = CleanDecimal('.//dl[contains(dt/text(), "Valeur de part")]/dd', replace_dots=True)
+
+            # There are two kind of lists:
+            # - Header contains percent and valuation is in a specific row ("ligne-montant")
+            # - Header contains valuation, there is no "ligne-montant" row, and percent is in a specific row
+            obj_valuation = CleanDecimal('.//dl[has-class("ligne-montant")]/dd | .//dd[@data-show="header" and not(contains(text(), "%"))]', replace_dots=True)
+
+            def obj_unitprice(self):
+                if 'eurossima' in self.el.get('class') or \
+                   'fondsEuro' in self.el.get('class'):
+                    # in this case, the content of field is:
+                    # <span data-sort="pm_value" class="pmvalue positive">NOT_A_NUMBER</span>
+                    return self.obj.unitvalue
+
+                if self.el.xpath('.//span[has-class("pmvalue")]')[0].text == u'+∞ %':
+                    percent = NotAvailable
+                    return NotAvailable
+                else:
+                    percent = CleanDecimal('.//span[has-class("pmvalue")]', replace_dots=True)(self)
+                return (self.obj.unitvalue / (1 + percent/Decimal('100.0'))).quantize(Decimal('1.00'))
+
+            def obj_diff(self):
+                if not self.obj.quantity:
+                    # Quantity of euro funds is null.
+                    return Decimal('0.00')
+
+                if not self.obj.unitprice:
+                    return NotAvailable
+
+                return (self.obj.valuation - (self.obj.quantity * self.obj.unitprice)).quantize(Decimal('1.00'))
 
 
 class TitreDetails(LoggedPage, HTMLPage):
