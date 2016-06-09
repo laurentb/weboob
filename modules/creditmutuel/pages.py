@@ -382,22 +382,29 @@ class CardsOpePage(OperationsPage):
 
         col_city = u'Ville'
         col_original_amount = u'Montant d\'origine'
+        col_amount = u'Montant'
 
         class item(Transaction.TransactionElement):
             condition = lambda self: len(self.el.xpath('./td')) >= 5
 
             obj_raw = Format('%s %s', TableCell('raw') & CleanText, TableCell('city') & CleanText)
-            obj_original_amount = CleanDecimal(TableCell('original_amount'), default=NotAvailable)
+            obj_original_amount = CleanDecimal(TableCell('original_amount'), default=NotAvailable, replace_dots=True)
+            obj_original_currency = FrenchTransaction.Currency(TableCell('original_amount'))
             obj_type = Transaction.TYPE_DEFERRED_CARD
             obj_rdate = Transaction.Date(TableCell('date'))
             obj_date = obj_vdate = Env('date')
             obj__is_coming = Env('_is_coming')
+            obj_amount = CleanDecimal(Env('amount'), replace_dots=True)
+            obj_commission = CleanDecimal(Env('commission'), replace_dots=True, default=NotAvailable)
 
             def parse(self, el):
                 self.env['date'] = Date(Regexp(CleanText(u'//td[contains(text(), "Total prélevé")]'), ' (\d{2}/\d{2}/\d{4})', \
                                                default=NotAvailable), default=NotAvailable)(self) \
                 or (parse_french_date('%s %s' % ('1', CleanText(u'//select[@id="moi"]/option[@selected]')(self))) + relativedelta(day=31)).date()
                 self.env['_is_coming'] = date.today() < self.env['date']
+                amount = CleanText(TableCell('amount'))(self).split('dont frais')
+                self.env['amount'] = amount[0]
+                self.env['commission'] = amount[1] if len(amount) > 1 else NotAvailable
 
 
 class ComingPage(OperationsPage, LoggedPage):
