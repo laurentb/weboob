@@ -59,7 +59,8 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     asv = URL('/compte/assurance-vie/.*', AsvPage)
     saving_history = URL('/compte/cefp/.*/(positions|mouvements)',
                          '/compte/.*ord/.*/mouvements',
-                         '/compte/pea/.*/mouvements', SavingMarketPage)
+                         '/compte/pea/.*/mouvements',
+                         '/compte/pea-pme/.*/mouvements', SavingMarketPage)
     market = URL('/compte/(?!assurance|cav|epargne).*/(positions|mouvements)',
                  '/compte/ord/.*/positions', MarketPage)
     loans = URL('/credit/immobilier/.*/informations',
