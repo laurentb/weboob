@@ -19,10 +19,12 @@
 
 
 from decimal import Decimal
-import re
+import re, requests
 
-from weboob.browser.pages import HTMLPage
+from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import method
+from weboob.browser.filters.standard import Env
+from weboob.browser.filters.html import Attr
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -92,6 +94,7 @@ class Transaction(FrenchTransaction):
 class TransactionsPage(HTMLPage):
     logged = True
 
+    @pagination
     @method
     class get_history(Transaction.TransactionsElement):
         head_xpath = '//table[@id="releve_operation"]//tr/th'
@@ -99,6 +102,14 @@ class TransactionsPage(HTMLPage):
 
         col_date =       [u'Date opé', 'Date', u'Date d\'opé']
         col_vdate =      [u'Date valeur']
+
+        def next_page(self):
+            url = Attr('//a[contains(text(), "Page suivante")]', 'onclick', default=None)(self)
+            if url:
+                m = re.search('\'([^\']+).*([\d]+)', url)
+                return requests.Request("POST", m.group(1), data={'numCompte': Env('accid')(self), \
+                                        'vue': "ReleveOperations", 'tri': "DateOperation", 'sens': \
+                                        "DESC", 'page': m.group(2), 'nb_element': "25"})
 
         class item(Transaction.TransactionElement):
             def condition(self):

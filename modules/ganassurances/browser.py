@@ -74,7 +74,7 @@ class GanAssurances(LoginBrowser):
             if a.id == account.id:
                 self.location(a._link)
                 assert self.transactions.is_here()
-                return self.page.get_history()
+                return self.page.get_history(accid=account.id)
 
         return iter([])
 
