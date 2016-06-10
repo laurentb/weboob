@@ -19,11 +19,12 @@
 
 
 try:
-    from urlparse import urlsplit, parse_qsl, urlparse
+    from urlparse import urlparse
 except ImportError:
-    from urllib.parse import urlsplit, parse_qsl, urlparse
+    from urllib.parse import urlparse
 
-from datetime import datetime, timedelta
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from random import randint
 
 from weboob.tools.compat import basestring
@@ -31,11 +32,14 @@ from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.profiles import Wget
 from weboob.browser.url import URL
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.capabilities.bank import Transfer, TransferError
+from weboob.capabilities.bank import Transfer, TransferError, Account
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
                    OperationsPage, CardPage, ComingPage, NoOperationsPage, \
-                   TransfertPage, ChangePasswordPage, VerifCodePage, EmptyPage
+                   TransfertPage, ChangePasswordPage, VerifCodePage,       \
+                   EmptyPage, PorPage, IbanPage, NewHomePage, RedirectPage, \
+                   LIAccountsPage, CardsActivityPage, CardsListPage,       \
+                   CardsOpePage
 
 
 __all__ = ['CICBrowser']
@@ -43,6 +47,7 @@ __all__ = ['CICBrowser']
 
 class CICBrowser(LoginBrowser):
     PROFILE = Wget()
+    TIMEOUT = 30
     BASEURL = 'https://www.cic.fr'
 
     login =       URL('/sb/fr/banques/particuliers/index.html',
@@ -73,12 +78,38 @@ class CICBrowser(LoginBrowser):
                       '/(?P<subbank>.*)/fr/banque/paci_engine/static_content_manager.aspx',
                       '/(?P<subbank>.*)/fr/banque/DELG_Gestion.*',
                       EmptyPage)
+    por =         URL('/(?P<subbank>.*)/fr/banque/POR_ValoToute.aspx',
+                      '/(?P<subbank>.*)/fr/banque/POR_SyntheseLst.aspx',
+                      PorPage)
+    li =          URL('/(?P<subbank>.*)/fr/assurances/profilass.aspx\?domaine=epargne',
+                      '/(?P<subbank>.*)/fr/assurances/consultation/WI_ASSAVI', LIAccountsPage)
+    iban =        URL('/(?P<subbank>.*)/fr/banque/rib.cgi', IbanPage)
+
+    new_home =    URL('/fr/banque/pageaccueil.html',
+                      '/fr/banque/DELG_Gestion.*',
+                      '/fr/banque/welcome_pack.html', NewHomePage)
+    new_accounts = URL('/fr/banque/comptes-et-contrats.html', AccountsPage)
+    new_operations = URL('/fr/banque/mouvements.cgi',
+                         '/fr/banque/mouvements.html', OperationsPage)
+    new_por = URL('/fr/banque/POR_ValoToute.aspx',
+                  '/fr/banque/POR_SyntheseLst.aspx', PorPage)
+    new_iban = URL('/fr/banque/rib.cgi', IbanPage)
+
+    redirect = URL('/fr/banque/paci_engine/static_content_manager.aspx', RedirectPage)
+
+    cards_activity = URL('/(?P<subbank>.*)/fr/banque/pro/ENC_liste_tiers.aspx', CardsActivityPage)
+    cards_list = URL('/(?P<subbank>.*)/fr/banque/pro/ENC_liste_ctr.*', CardsListPage)
+    cards_ope = URL('/(?P<subbank>.*)/fr/banque/pro/ENC_liste_oper', CardsOpePage)
 
     currentSubBank = None
+    is_new_website = False
 
     __states__ = ['currentSubBank']
 
     def do_login(self):
+        # Clear cookies.
+        self.do_logout()
+
         self.login.go()
 
         if not self.page.logged:
@@ -87,12 +118,37 @@ class CICBrowser(LoginBrowser):
             if not self.page.logged or self.login_error.is_here():
                 raise BrowserIncorrectPassword()
 
-
-        self.getCurrentSubBank()
+        if not self.is_new_website:
+            self.getCurrentSubBank()
 
     @need_login
     def get_accounts_list(self):
-        return self.accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts()
+        self.fleet_pages = {}
+        if self.currentSubBank is None and not self.is_new_website:
+            self.getCurrentSubBank()
+        accounts = []
+        if not self.is_new_website:
+            for a in self.accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts():
+                accounts.append(a)
+            for company in self.page.company_fleet():
+                self.location(company)
+                for a in self.page.iter_cards():
+                    accounts.append(a)
+            self.iban.go(subbank=self.currentSubBank).fill_iban(accounts)
+            self.por.go(subbank=self.currentSubBank).add_por_accounts(accounts)
+            for acc in self.li.go(subbank=self.currentSubBank).iter_li_accounts():
+                accounts.append(acc)
+        else:
+            for a in self.new_accounts.stay_or_go().iter_accounts():
+                accounts.append(a)
+            self.new_iban.go().fill_iban(accounts)
+            self.new_por.go().add_por_accounts(accounts)
+        for id, pages_list in self.fleet_pages.iteritems():
+            for page in pages_list:
+                for a in page.get_cards(accounts=accounts):
+                    if a not in accounts:
+                        accounts.append(a)
+        return accounts
 
     def get_account(self, id):
         assert isinstance(id, basestring)
@@ -109,8 +165,13 @@ class CICBrowser(LoginBrowser):
     def list_operations(self, page_url):
         if page_url.startswith('/') or page_url.startswith('https'):
             self.location(page_url)
-        else:
+        elif not self.is_new_website:
             self.location('%s/%s/fr/banque/%s' % (self.BASEURL, self.currentSubBank, page_url))
+        else:
+            self.location('%s/fr/banque/%s' % (self.BASEURL, page_url))
+
+        if self.li.is_here():
+            return self.page.iter_history()
 
         if not self.operations.is_here():
             return iter([])
@@ -120,38 +181,52 @@ class CICBrowser(LoginBrowser):
     def get_history(self, account):
         transactions = []
         last_debit = None
+        if not account._link_id:
+            return iter([])
+        # need to refresh the months select
+        if account._link_id.startswith('pro'):
+            self.location(account._pre_link)
         for tr in self.list_operations(account._link_id):
             # to prevent redundancy with card transactions, we do not
             # store 'RELEVE CARTE' transaction.
-            if tr.raw != 'RELEVE CARTE':
+            if not tr.raw.startswith('RELEVE CARTE'):
                 transactions.append(tr)
             elif last_debit is None:
-                last_debit = (tr.date - timedelta(days=10)).month
+                # we set the debit date to last day of month so we need to do the same form last_debit
+                last_debit = (tr.date + relativedelta(day=31))
 
         coming_link = self.page.get_coming_link() if self.operations.is_here() else None
         if coming_link is not None:
             for tr in self.list_operations(coming_link):
                 transactions.append(tr)
 
-        month = 0
         for card_link in account._card_links:
-            v = urlsplit(card_link)
-            args = dict(parse_qsl(v.query))
-            # useful with 12 -> 1
-            if int(args['mois']) < month:
-                month = month + 1
-            else:
-                month = int(args['mois'])
-
             for tr in self.list_operations(card_link):
-                if month > last_debit:
+                if last_debit is None or tr.date > last_debit:
                     tr._is_coming = True
                 transactions.append(tr)
 
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions
 
+    def get_investment(self, account):
+        if account._is_inv:
+            if account.type == Account.TYPE_MARKET:
+                if not self.is_new_website:
+                    self.por.go(subbank=self.currentSubBank)
+                else:
+                    self.new_por.go()
+                self.page.send_form(account)
+            elif account.type == Account.TYPE_LIFE_INSURANCE:
+                if not account._link_inv:
+                    return iter([])
+                self.location(account._link_inv)
+            return self.page.iter_investment()
+        return iter([])
+
     def transfer(self, account, to, amount, reason=None):
+        if self.is_new_website:
+            raise NotImplementedError()
         # access the transfer page
         self.transfert.go(subbank=self.currentSubBank)
 
