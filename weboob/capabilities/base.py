@@ -520,6 +520,7 @@ class Currency(object):
                   u'DKK': (u'DKK',),
                   u'LUF': (u'F', u'fr.', u'LUF',),
                   u'KZT': (u'KZT',),
+                  u'PLN': (u'PLN',),
                  }
 
     EXTRACTOR = re.compile(r'[\d\s,\.\-]', re.UNICODE)
