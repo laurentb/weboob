@@ -61,8 +61,10 @@ class SpiricaBrowser(LoginBrowser):
         form = self.location(account._link).page.get_historytab_form()
         # Get form to show all transactions
         form = self.location(form.url, data=dict(form)).page.get_historyallpages_form()
+        if form:
+            self.location(form.url, data=dict(form))
         # Get forms to expand details of all transactions
-        for form in self.location(form.url, data=dict(form)).page.get_historyexpandall_form():
+        for form in self.page.get_historyexpandall_form():
             self.location(form.url, data=dict(form))
         # Get all transactions
         self.skipped = []

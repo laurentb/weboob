@@ -125,10 +125,13 @@ class DetailsPage(LoggedPage, HTMLPage):
         return form
 
     def get_historyallpages_form(self):
-        form = self.get_form('//form[contains(@id, "j_idt")]')
-        idt = re.search('{[^\w]+([\w\d:]+)', self.doc.xpath('//a[contains(text(), "Tout")]/@onclick')[0]).group(1)
-        form[idt] = idt
-        return form
+        onclick = self.doc.xpath('//a[contains(text(), "Tout")]/@onclick')
+        if onclick:
+            idt = re.search('{[^\w]+([\w\d:]+)', onclick[0]).group(1)
+            form = self.get_form('//form[contains(@id, "j_idt")]')
+            form[idt] = idt
+            return form
+        return False
 
     def get_historyexpandall_form(self):
         form = self.get_form('//form[contains(@id, "j_idt")]')
