@@ -36,7 +36,7 @@ class BasePage(Page):
 
     def get_current(self):
         try:
-            current_elem = self.document.xpath('//div[@id="libPerimetre"]/span[@class="texte"]')[0]
+            current_elem = self.document.xpath('//div[@id="libPerimetre_2"]/span[@class="textePerimetre_2"]')[0]
         except IndexError:
             self.logger.debug('Can\'t update current perimeter on this page (%s).', type(self).__name__)
             return False
