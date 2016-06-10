@@ -381,7 +381,7 @@ class AsvPage(MarketPage):
         col_vdate = u'Date de Valeur'
 
         class item(Myitem):
-            obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
+            obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
 
 
 class AccbisPage(LoggedPage, HTMLPage):
