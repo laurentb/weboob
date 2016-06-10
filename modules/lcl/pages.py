@@ -386,16 +386,13 @@ class BoursePage(LoggedPage, HTMLPage):
 
             def obj_unitvalue(self):
                 if "%" in CleanText('.//td[4]')(self) and "%" in CleanText('.//td[6]')(self):
-                    return self.obj_valuation(self) / self.obj_quantity(self)
-                else:
-                    return MyDecimal('.//td[4]')(self)
+                    return NotAvailable
+                return MyDecimal('.//td[4]')(self)
 
             def obj_unitprice(self):
                 if "%" in CleanText('.//td[4]')(self) and "%" in CleanText('.//td[6]')(self):
-                    return self.obj_valuation(self) / self.obj_quantity(self)
-                    return (self.obj_valuation(self) - self.obj_diff(self)) / self.obj_quantity(self)
-                else:
-                    return MyDecimal('.//td[6]')(self)
+                    return NotAvailable
+                return MyDecimal('.//td[6]')(self)
 
 class DiscPage(LoggedPage, HTMLPage):
     def come_back(self):
