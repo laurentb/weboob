@@ -631,6 +631,10 @@ class TransactionsPage(BasePage):
             if re.match("^CHEQUE ", t.label):
                 t.label = 'CHEQUE No: %s' % self.parser.tocleanstring(tds[self.COL_REF])
 
+            # In rare cases, label is empty ..
+            if not t.label:
+                t.label = self.parser.tocleanstring(tds[self.COL_REF])
+
             yield t
 
     COL_CARD_DATE = 0
