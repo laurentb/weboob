@@ -21,6 +21,7 @@
 import re
 import datetime
 
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, DateGuesser, Env, Field, Filter, Regexp
@@ -45,6 +46,9 @@ class ChoiceLinkPage(HTMLPage):
 
 class SubscriptionPage(HTMLPage):
     def on_load(self):
+        if u"Vous ne disposez d'aucun contrat sur cet accès." in CleanText(u'.')(self.doc):
+            raise BrowserIncorrectPassword()
+
         for div in self.doc.xpath('//div[@class="listeAbonnementsBox"]'):
             site_type = div.xpath('./div[1]')[0].text
             if site_type == 'Professionnel':
