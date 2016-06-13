@@ -31,11 +31,11 @@ class Description(Filter):
     def filter(self, el):
         header = "//div[@class='pvi-hero-product']"
         section = "//section[@class='pvi-productDetails']"
-        return Format(u'%s %s\n\n%s%s\n\n',
-                      CleanText("%s/div[@class='d-rubric-inner']/h1" % header),
-                      CleanText("%s/div[@class='d-rubric-inner']/small" % header),
-                      Join(u'- ', "%s/ul[@class='pvi-product-specs']/li" % header, newline=True),
-                      Join(u'- ', "%s/ul/li" % section, newline=True, addBefore='- '))(el[0])
+        return Format(u'\n%s\n\n%s%s\n',
+                      CleanText("(%s/div[@class='d-rubric-inner']/h1)[1]" % header),
+                      Join(u'- ', "%s/ul/li" % section, newline=True, addBefore='- '),
+                      Join(u'- Avec ', "%s/div[@class='pvi-productDetails-workers']/a" % section,
+                           newline=True, addBefore='- Avec '))(el[0])
 
 
 class FormatDate(Filter):
