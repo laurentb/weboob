@@ -83,9 +83,14 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
             self.accounts.go()
         if self.error.is_here():
             raise BrowserPasswordExpired()
+        if self.type == '1':
+            for account in self.page.iter_accounts(rib=None):
+                yield account
         if self.type == '2':
-            self.page.expand()
-        return self.page.iter_accounts()
+            for rib in self.page.get_rib_list():
+                self.page.expand(rib=rib)
+                for account in self.page.iter_accounts(rib=rib):
+                    yield account
 
     @need_login
     def get_ti_transactions(self, account):
@@ -102,27 +107,20 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
     @need_login
     def get_ge_transactions(self, account):
         transactions = []
-        self.accounts.go()
-        self.page.expand()
-        accounts = list(self.page.iter_accounts())
         self.coming.go()
-        self.page.expand()
-        for a in accounts:
-            if a.id == account.id:
-                link = self.page.get_link(a.id)
-                if link:
-                    self.location(link)
-                    transactions += self.page.get_history()
+        self.page.expand(rib=account._rib)
+        link = self.page.get_link(account.id)
+        if link:
+            self.location(link)
+            transactions += self.page.get_history()
         self.history.go()
         for period in self.page.get_periods():
-            self.page.expand(period)
-            for a in accounts:
-                if a.id == account.id:
-                    link = self.page.get_link(a.id)
-                    if link:
-                        self.location(link)
-                        transactions += self.page.get_history()
-                        self.history.go()
+            self.page.expand(period, rib=account._rib)
+            link = self.page.get_link(account.id)
+            if link:
+                self.location(link)
+                transactions += self.page.get_history()
+                self.history.go()
         return iter(transactions)
 
     @need_login

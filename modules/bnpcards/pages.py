@@ -22,7 +22,7 @@ from datetime import date
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Field
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Env
 from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -30,13 +30,10 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 class HomePage(LoggedPage, HTMLPage):
     def is_corporate(self):
-        el = self.doc.xpath('//div[@class="marges5"]/h5/a[contains(text(), "CORPORATE")]')
-        if el:
-            return True
+        return bool(self.doc.xpath('//div[@class="marges5"]/h5/a[contains(text(), "CORPORATE")]'))
 
     def is_error(self):
-        if self.doc.xpath('//h1[contains(text(), "Change your password")]'):
-            return True
+        return bool(self.doc.xpath('//h1[contains(text(), "Change your password")]'))
 
 
 class LoginPage(HTMLPage):
@@ -50,9 +47,14 @@ class LoginPage(HTMLPage):
 
 
 class ExpandablePage(LoggedPage, HTMLPage):
-    def expand(self):
+    def expand(self, rib=None):
         form = self.get_form()
+        if rib is not None:
+            form['ribSaisi'] = rib
         form.submit()
+
+    def get_rib_list(self):
+        return self.doc.xpath('//select[@name="ribSaisi"]/option/@value')
 
 
 class GetableLinksPage(LoggedPage, HTMLPage):
@@ -70,11 +72,13 @@ class PeriodsPage(LoggedPage, HTMLPage):
             periods.append(period)
         return periods
 
-    def expand(self, period):
+    def expand(self, period, rib=None):
         form = self.get_form(submit='//input[@value="Display"]')
         form['bouton'] = 'rechercher'
         form['periodeSaisie'] = period
         form['periodeSaisieCache'] = period
+        if rib is not None:
+            form['ribSaisi'] = rib
         form.submit()
 
 
@@ -92,6 +96,7 @@ class AccountsPage(ExpandablePage, GetableLinksPage):
             obj_id = CleanText('./td[2]')
             obj_label = CleanText('./td[1]')
             obj_type = Account.TYPE_CARD
+            obj__rib = Env('rib')
 
 
 class ComingPage(ExpandablePage):
