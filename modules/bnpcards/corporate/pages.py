@@ -57,6 +57,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_number = CleanText('./td[2]', replace=[(' ', '')])
             obj_label = CleanText('./td[1]')
             obj_type = Account.TYPE_CARD
+            obj__status = CleanText('./td[5]')
 
     @pagination
     def get_link(self, account_id):
@@ -76,6 +77,7 @@ class AccountsPage(LoggedPage, HTMLPage):
         form['tree_idtreeviewNodeChecked'] = node_checked
         form['tree_idtreeviewNodeId'] = "0"
         form['fldParam_datas'] = "1"
+        form['statutSelectionne'] = "100"
         if 'Histo' in self.url:
             form['periodeDeb'] = (date.today() - relativedelta(months=6)).strftime("%d/%m/%Y")
             form['periodeFin'] = (date.today() + relativedelta(months=4)).strftime("%d/%m/%Y")
