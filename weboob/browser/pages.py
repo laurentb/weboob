@@ -429,6 +429,51 @@ class JsonPage(Page):
         return json.loads(text)
 
 
+class XLSPage(Page):
+    """
+    XLS Page.
+    """
+
+    HEADER = None
+    """
+    If not None, will consider the line represented by this index as a header.
+    """
+
+    SHEET_INDEX = 0
+    """
+    Specify the index of the worksheet to use.
+    """
+
+    def build_doc(self, content):
+        return self.parse(content)
+
+    def parse(self, data):
+        """
+        Method called by the constructor of :class:`XLSPage` to parse the document.
+        """
+        import xlrd
+        wb = xlrd.open_workbook(file_contents=data)
+        sh = wb.sheet_by_index(self.SHEET_INDEX)
+
+        header = None
+        drows = []
+        rows = []
+        for i in range(sh.nrows - 1):
+            if self.HEADER and i + 1 < self.HEADER:
+                continue
+            row = sh.row_values(i)
+            if header is None and self.HEADER:
+                header = map(lambda s: s.replace('/', ''), row)
+            else:
+                rows.append(row)
+                if header:
+                    drow = {}
+                    for i, cell in enumerate(sh.row_values(i)):
+                        drow[header[i]] = cell
+                    drows.append(drow)
+        return drows if header is not None else rows
+
+
 class XMLPage(Page):
     """
     XML Page.
