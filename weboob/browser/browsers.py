@@ -532,15 +532,18 @@ class DomainBrowser(Browser):
 
     def absurl(self, uri, base=None):
         """
-        Get the absolute URL, relative to the base URL.
-        If BASEURL is None, it will try to use the current URL.
+        Get the absolute URL, relative to a base URL.
+        If base is None, it will try to use the current URL.
+        If there is no current URL, it will try to use BASEURL.
+
         If base is False, it will always try to use the current URL.
+        If base is True, it will always try to use BASEURL.
 
         :param uri: URI to make absolute. It can be already absolute.
         :type uri: str
 
         :param base: Base absolute URL.
-        :type base: str or None or False
+        :type base: str or None or False or True
 
         :rtype: str
         """
