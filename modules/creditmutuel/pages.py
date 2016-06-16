@@ -343,11 +343,8 @@ class OperationsPage(LoggedPage, HTMLPage):
                     # Remove hidden parts of labels:
                     # hideifscript: Date de valeur XX/XX/XXXX
                     # fd: Avis d'opéré
-                    for sub in el.xpath('.//*[has-class("hideifscript") or has-class("fd")]'):
-                        sub.drop_tree()
-
-                    parts = [txt.strip() for txt in el.itertext() if len(txt.strip()) > 0]
-
+                    # survey to add other regx
+                    parts = [re.sub(u'Détail|Date de valeur\s+:\s+\d{2}/\d{2}(/\d{4})?', '',txt.strip()) for txt in el.itertext() if len(txt.strip()) > 0]
                     # To simplify categorization of CB, reverse order of parts to separate
                     # location and institution.
                     if parts[0].startswith('PAIEMENT CB'):
