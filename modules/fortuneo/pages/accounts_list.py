@@ -275,6 +275,7 @@ class AccountsList(Page):
                      'mes-comptes/compte-titres':                      Account.TYPE_MARKET,
                     }
     def get_list(self):
+        accounts = []
         account = None
 
         for cpt in self.document.xpath('//a[@class="synthese_id_compte" or @class="synthese_carte_differe"]'):
@@ -310,7 +311,10 @@ class AccountsList(Page):
                 if pattern in account._link_id:
                     account.type = type
 
-            yield account
+            if (account.label, account.id, account.balance) not in [(a.label, a.id, a.balance) for a in accounts]:
+                accounts.append(account)
+
+        return iter(accounts)
 
 
 class GlobalAccountsList(Page):
