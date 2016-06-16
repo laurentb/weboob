@@ -46,7 +46,8 @@ class SGPEBrowser(LoginBrowser):
     def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
-        assert self.password.isdigit()
+        if not self.password.isdigit():
+            raise BrowserIncorrectPassword('Password must be 6 digits long.')
 
         self.login.stay_or_go()
         self.session.cookies.set('PILOTE_OOBA', 'true')
