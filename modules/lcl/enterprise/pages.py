@@ -57,7 +57,7 @@ class MovementsPage(Page):
 
         account = Account()
 
-        account.id = 0
+        account.id = self.document.xpath(LABEL_XPATH)[0].text_content().strip().replace(' ', '').split('-')[0]
         account.label = self.document.xpath(LABEL_XPATH)[0] \
             .text_content().strip()
         balance_txt = self.document.xpath(BALANCE_XPATH)[0] \
