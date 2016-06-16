@@ -31,6 +31,9 @@ from weboob.tools.date import parse_french_date
 from weboob.tools.js import Javascript
 
 
+class LandingPage(HTMLPage):
+    pass
+
 class OldWebsitePage(LoggedPage, HTMLPage):
     def on_load(self):
         raise BrowserUnavailable('Old Website is not supported anymore.')
@@ -57,9 +60,6 @@ class LoginPage(HTMLPage):
         return token, csrf, key, value
 
     def login(self, login, password):
-        #Paypal use this to check if we accept cookie
-        self.browser.session.cookies.set('cookie_check', 'yes')
-
         form = self.get_form(name='login')
         form['login_email'] = login
         form['login_password'] = password

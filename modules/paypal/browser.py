@@ -27,7 +27,8 @@ from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.url import URL
 
 from .pages import PromoPage, LoginPage, AccountPage, UselessPage, HomePage, ProHistoryPage, \
-                   PartHistoryPage, HistoryDetailsPage, HistoryPaybackPage, ErrorPage, OldWebsitePage
+                   PartHistoryPage, HistoryDetailsPage, HistoryPaybackPage, ErrorPage, OldWebsitePage, \
+                   LandingPage
 
 
 __all__ = ['Paypal']
@@ -38,9 +39,8 @@ class Paypal(LoginBrowser):
 
     login = URL('https://\w+.paypal.com/signin/.*',
                 '/cgi-bin/webscr\?cmd=_login-submit.+$',
-                '/fr/webapps/mpp/home',
-                '/home',
-                LoginPage)
+                '/fr/webapps/mpp/home', LoginPage)
+    landing = URL('/home', LandingPage)
     useless = URL('/cgi-bin/webscr\?cmd=_login-processing.+$',
                   '/cgi-bin/webscr\?cmd=_account.*$',
                   '/cgi-bin/webscr\?cmd=_login-done.+$',
@@ -75,11 +75,17 @@ class Paypal(LoginBrowser):
         self.BEGINNING = datetime.date.today() - relativedelta(months=24)
         self.account_type = None
         self.account_currencies = list()
+        self.remaining_login_attempts = 5
         super(Paypal, self).__init__(*args, **kwargs)
 
     def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
+
+        if self.remaining_login_attempts == 0:
+            raise BrowserIncorrectPassword(u'La connexion nécessite une étape de sécurisation supplémentaire.')
+        else:
+            self.remaining_login_attempts -= 1
 
         if not self.login.is_here():
             self.location('/signin/')
@@ -97,12 +103,11 @@ class Paypal(LoginBrowser):
         if 'LoginFailed' in res.content or 'Sorry, we can\'t log you in' in res.content or self.login.is_here() or self.error.is_here():
             raise BrowserIncorrectPassword()
 
+        self.location('/')
         self.detect_account_type()
 
+    @need_login
     def detect_account_type(self):
-        self.location('/')
-        if self.login.is_here():
-            raise BrowserIncorrectPassword(u'La connexion nécessite une étape de sécurisation supplémentaire.')
         self.page.detect_account_type()
 
     @need_login
