@@ -31,7 +31,7 @@ class SenscritiqueBrowser(PagesBrowser):
 
     films_page = URL('/everymovie/programme-tv/cette-semaine', FilmsPage)
     event_page = URL('/film/(?P<_id>.*)', EventPage)
-    json_page = URL('/sc/product/storyline/(?P<_id>.*).json', JsonResumePage)
+    json_page = URL('/sc2/product/storyline/(?P<_id>.*).json', JsonResumePage)
 
     def set_json_header(self):
         self.session.headers.update({"User-Agent": "Mozilla/5.0 (Windows; U; Windows "
@@ -62,4 +62,4 @@ class SenscritiqueBrowser(PagesBrowser):
         _id = film_id.split('/')[-1]
         resume = self.json_page.go(_id=_id).get_resume()
         self.set_profile(Firefox())
-        return resume
+        return resume if resume else ''
