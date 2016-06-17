@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 import datetime
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal
@@ -59,7 +60,8 @@ class ProAccountsList(Page):
 
                 a = Account()
                 a.type = account_type
-                a.id, a.label = map(unicode, link.attrib['title'].split(' ', 1))
+                a.id = unicode(re.search('([A-Z\d]{4}\*{3}[A-Z\d]{4})', link.attrib['title']).group(1))
+                a.label = unicode(link.attrib['title'].replace('%s ' % a.id, ''))
                 tmp_balance = self.parser.tocleanstring(cols[1])
                 a.currency = a.get_currency(tmp_balance)
                 a.balance = Decimal(Transaction.clean_amount(tmp_balance))
