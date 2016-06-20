@@ -52,7 +52,7 @@ class ConnectionThresholdPage(HTMLPage):
 
     def on_load(self):
         new_pass = ''.join([str((int(l) + 1) % 10) for l in self.browser.password])
-        self.logger.warning('Password expired. Renewing it...')
+        self.logger.warning('Password expired. Renewing it. Temporary password is %s', new_pass)
         self.change_pass(self.browser.password, new_pass)
         self.change_pass(new_pass, self.browser.password)
 
