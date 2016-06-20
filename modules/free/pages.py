@@ -56,6 +56,8 @@ class HomePage(LoggedPage, HTMLPage):
 
 
 class DocumentsPage(LoggedPage, HTMLPage):
+    ENCODING = "LATIN-1"
+
     def get_list(self):
         sub = Subscription()
         sub.subscriber = self.browser.username
@@ -76,8 +78,8 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_format = u"pdf"
             obj_label = Format('Facture %s', CleanText('./span[1]/strong'))
             obj_type = u"bill"
-            obj_price = CleanDecimal(CleanText('./span[2]/strong'))
+            obj_price = CleanDecimal(CleanText('./span[2]/strong'), replace_dots=True)
             obj_currency = u"€"
 
             def parse(self, el):
-                self.env['date'] = parse_french_date(CleanText('./span[1]/strong')(self)).date()
+                self.env['date'] = parse_french_date(u"01 %s" % CleanText('./span[1]/strong')(self)).date()
