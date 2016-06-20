@@ -72,11 +72,11 @@ class AccountDetailPage(LoggedPage, JsonPage):
 
     def iter_investments(self,data):
         acc=data['acc']
-        inv=Investment()
         for disp in self.doc['positionsSalarieDispositifDto']:
             if disp['codeDispositif']==acc.id:
                 for ele in disp['positionsSalarieFondsDto']:
                     if ele['mtBrut']:
+                        inv=Investment()
                         inv.label=ele['libelleFonds']
                         inv.code=ele['codeIsin']
                         inv.description=inv.label
