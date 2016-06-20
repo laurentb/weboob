@@ -134,6 +134,7 @@ class BoursoramaVirtKeyboard(VirtKeyboard):
 class LoginPage(HTMLPage):
     def login(self, login, password):
         form = self.get_form()
+        self.browser.session.cookies.clear()
         vk = BoursoramaVirtKeyboard(self.browser.keyboard.open())
         code = vk.get_code(password)
         form['form[login]'] = login
