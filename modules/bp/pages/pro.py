@@ -60,7 +60,7 @@ class ProAccountsList(Page):
 
                 a = Account()
                 a.type = account_type
-                a.id = unicode(re.search('([A-Z\d]{4}\*{3}[A-Z\d]{4})', link.attrib['title']).group(1))
+                a.id = unicode(re.search('([A-Z\d]{4}[A-Z\d\*]{3}[A-Z\d]{4})', link.attrib['title']).group(1))
                 a.label = unicode(link.attrib['title'].replace('%s ' % a.id, ''))
                 tmp_balance = self.parser.tocleanstring(cols[1])
                 a.currency = a.get_currency(tmp_balance)
