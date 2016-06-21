@@ -103,7 +103,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     @need_login
     def get_accounts_list(self):
         ibans = self.ibans.go().get_ibans_dict()
-        ibans.update(self.transfer_init.go(data=JSON({'restitutionVF': 1, 'type': 'TOUS'})).get_ibans_dict())
+        ibans.update(self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict())
 
         accounts = self.accounts.go().iter_accounts(ibans)
         self.market_syn.go(data=JSON({}))
