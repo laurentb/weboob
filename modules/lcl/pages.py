@@ -358,6 +358,7 @@ class CBListPage(CBHistoryPage):
 
 
 class BoursePage(LoggedPage, HTMLPage):
+    ENCODING='latin-1'
     def get_next(self):
         return re.search('"(.*?)"', self.doc.xpath('.//body')[0].attrib['onload']).group(1)
 
@@ -379,7 +380,8 @@ class BoursePage(LoggedPage, HTMLPage):
             klass = Investment
 
             obj_label = CleanText('.//td[2]/div/a')
-            obj_code = CleanText('.//td[2]/div/br/following-sibling::text()')
+            def obj_code(self):
+                return CleanText('.//td[2]/div/br/following-sibling::text()')(self).split(' ')[0]
             obj_quantity = MyDecimal('.//td[3]/span')
             obj_diff = MyDecimal('.//td[7]/span')
             obj_valuation = MyDecimal('.//td[5]')
