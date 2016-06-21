@@ -133,7 +133,7 @@ class IndexPage(Page):
                 id = re.search("([\d]+)", a.attrib.get('title'))
                 info['type'] = link
                 info['id'] = id.group(1)
-            if info['type'] == 'SYNTHESE_ASSURANCE_CNP':
+            if info['type'] in ('SYNTHESE_ASSURANCE_CNP','SYNTHESE_EPARGNE'):
                 info['acc_type'] = Account.TYPE_LIFE_INSURANCE
             if info['type'] in ('BOURSE', 'COMPTE_TITRE'):
                 info['acc_type'] = Account.TYPE_MARKET
@@ -172,7 +172,7 @@ class IndexPage(Page):
         if not account.type == Account.TYPE_LIFE_INSURANCE:
             return NotAvailable
         self.go_history(account._info)
-        balance = self.browser.page.document.xpath('.//tr[td[contains(text(), ' + account.id + ')]]/td[contains(@class, "somme")]')
+        balance = self.browser.page.document.xpath('.//tr[td[contains(., ' + account.id + ')]]/td[contains(@class, "somme")]')
         if len(balance) > 0:
             balance = self.parser.tocleanstring(balance[0])
             balance = Decimal(FrenchTransaction.clean_amount(balance)) if balance != u'' else NotAvailable
@@ -414,12 +414,12 @@ class IndexPage(Page):
         return True
 
     def go_life_insurance(self, account):
-        link = self.document.xpath('//table[@summary="Mes contrats d\'assurance vie"]/tbody/tr[td[contains(text(), ' + account.id + ') ]]//a')[0]
-        m = re.search("PostBack(Options)?\([\"'][^\"']+[\"'],\s*['\"](REDIR_ASS_VIE[\d\w&]+)?['\"]", link.attrib.get('href', ''))
+        link = self.document.xpath('//tr[td[contains(., ' + account.id + ') ]]//a')[0]
+        m = re.search("PostBackOptions?\([\"']([^\"']+)[\"'],\s*['\"](REDIR_ASS_VIE[\d\w&]+)?['\"]", link.attrib.get('href', ''))
         if m is not None:
             self.browser.select_form(name='main')
             self.browser.set_all_readonly(False)
-            self.browser['__EVENTTARGET'] = 'MM$SYNTHESE_ASSURANCE_CNP'
+            self.browser['__EVENTTARGET'] = m.group(1)
             self.browser['__EVENTARGUMENT'] = m.group(2)
             try:
                 self.browser['MM$m_CH$IsMsgInit'] = '0'
