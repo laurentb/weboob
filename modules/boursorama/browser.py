@@ -51,7 +51,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     acc_tit = URL('/comptes/titulaire/(?P<webid>.*)\?_hinclude=1', AccbisPage)
     acc_rep = URL('/comptes/representative/(?P<webid>.*)\?_hinclude=1', AccbisPage)
     history = URL('/compte/(cav|epargne)/(?P<webid>.*)/mouvements.*', HistoryPage)
-    card_transactions = URL('budget/mouvements.*', HistoryPage)
+    card_transactions = URL('/compte/cav/(?P<webid>.*)/carte/.*', HistoryPage)
     budget_transactions = URL('/budget/compte/(?P<webid>.*)/mouvements.*', HistoryPage)
     other_transactions = URL('/compte/cav/(?P<webid>.*)/mouvements.*', HistoryPage)
     saving_transactions = URL('/compte/epargne/csl/(?P<webid>.*)/mouvements.*', HistoryPage)
@@ -163,7 +163,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
             if account.type != Account.TYPE_CARD:
                 self.location('%s/mouvements' % account._link.rstrip('/'), params=params)
             else:
-                self.card_transactions.go(params=params)
+                self.location('%s' % account._link)
             for t in self.page.iter_history():
                 yield t
 
