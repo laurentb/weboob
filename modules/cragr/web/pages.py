@@ -472,7 +472,7 @@ class TransactionsPage(BasePage):
         return None
 
     COL_DATE  = 0
-    COL_TEXT  = 2
+    COL_TEXT  = 1
     COL_DEBIT = None
     COL_CREDIT = -1
 
@@ -492,7 +492,12 @@ class TransactionsPage(BasePage):
             }
 
     def get_history(self, date_guesser):
-        for tr in self.document.xpath('//table[@class="ca-table" and @summary]//tr'):
+        trs = self.document.xpath('//table[@class="ca-table" and @summary]//tr')
+        if trs:
+            self.COL_TEXT += 1
+        else:
+            trs = self.document.xpath('//table[@class="ca-table"]//tr')
+        for tr in trs:
             parent = tr.getparent()
             while parent is not None and parent.tag != 'table':
                 parent = parent.getparent()
