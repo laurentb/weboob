@@ -600,7 +600,7 @@ class MarketPage(BasePage):
                 continue
             inv = Investment()
             inv.label = unicode(cells[self.COL_ID].find('div/a').text.strip())
-            inv.code = cells[self.COL_ID].find('div/br').tail.strip().split(u'\xa0')[0]
+            inv.code = cells[self.COL_ID].find('div/br').tail.strip().split(' ')[0].split(u'\xa0')[0].split(u'\xc2\xa0')[0]
             inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY].find('span').text)
             inv.valuation = self.parse_decimal(cells[self.COL_VALUATION].text)
             inv.diff = self.parse_decimal(cells[self.COL_DIFF].text_content())
@@ -659,7 +659,7 @@ class LifeInsurancePage(MarketPage):
             a = cells[self.COL_ID].find('a')
             if a is not None:
                 try:
-                    inv.code = a.attrib['id']
+                    inv.code = a.attrib['id'].split(' ')[0].split(u'\xa0')[0].split(u'\xc2\xa0')[0]
                 except KeyError:
                     #For "Mandat d'arbitrage" which is a recapitulatif of more investement
                     continue
