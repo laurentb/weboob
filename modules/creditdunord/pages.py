@@ -459,7 +459,7 @@ class TransactionsPage(CDNBasePage):
                     delta = 1
 
                 inv = Investment()
-                inv.code = self.parser.tocleanstring(cols[COL_LABEL + delta].xpath('.//span')[1])
+                inv.code = self.parser.tocleanstring(cols[COL_LABEL + delta].xpath('.//span')[1]).split(' ')[0].split(u'\xa0')[0]
                 inv.label = self.parser.tocleanstring(cols[COL_LABEL + delta].xpath('.//span')[0])
                 inv.quantity = self.parse_decimal(cols[COL_QUANTITY + delta])
                 inv.unitprice = self.parse_decimal(cols[COL_UNITPRICE + delta])
@@ -479,7 +479,7 @@ class TransactionsPage(CDNBasePage):
 
             inv = Investment()
             inv.label = self.parser.tocleanstring(cols[COL_LABEL].xpath('.//a')[0])
-            inv.code = self.parser.tocleanstring(cols[COL_LABEL]).replace(inv.label, "")
+            inv.code = self.parser.tocleanstring(cols[COL_LABEL]).replace(inv.label, "").split(' ')[0].split(u'\xa0')[0]
             inv.quantity = self.parse_decimal(cols[COL_QUANTITY])
             inv.unitvalue = self.parse_decimal(cols[COL_UNITVALUE])
             inv.valuation = self.parse_decimal(cols[COL_VALUATION])
