@@ -188,7 +188,8 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             # We do not yield other banks accounts for the moment.
             def validate(self, obj):
-                return not Async('details', CleanText(u'//h4[contains(text(), "Établissement bancaire")]'))(self)
+                return not Async('details', CleanText(u'//h4[contains(text(), "Établissement bancaire")]'))(self) and not \
+                    Async('details', CleanText(u'//h4/div[contains(text(), "Établissement bancaire")]'))(self)
 
 
 class HistoryPage(LoggedPage, HTMLPage):
