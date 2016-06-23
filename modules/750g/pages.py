@@ -91,8 +91,8 @@ class RecipePage(HTMLPage):
                 ingredients.append(CleanText('.')(el))
             return ingredients
 
-        obj_cooking_time = Time('//time[@class="cooktime"]/@datetime')
-        obj_preparation_time = Time('//time[@class="preptime"]/@datetime')
+        obj_cooking_time = Time('//time[@itemprop="cookTime"]/@datetime')
+        obj_preparation_time = Time('//time[@itemprop="prepTime"]/@datetime')
 
         def obj_nb_person(self):
             return [CleanDecimal('//span[@class="yield"]', default=0)(self)]
