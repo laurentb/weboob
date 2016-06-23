@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2013  Romain Bignon, Pierre Mazière, Noé Rubinstein
+# Copyright(C) 2016      Edouard Lambert
 #
 # This file is part of weboob.
 #
@@ -17,107 +17,49 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from urllib import urlencode
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.browser import LoginBrowser, URL, need_login
+from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import HomePage, MessagesPage, LogoutPage, LogoutOkPage, \
-    AlreadyConnectedPage, ExpiredPage, MovementsPage, RootPage
-
-
-__all__ = ['LCLEnterpriseBrowser']
+from .pages import LoginPage, MovementsPage
 
 
-class LCLEnterpriseBrowser(Browser):
+class LCLEnterpriseBrowser(LoginBrowser):
     BASEURL = 'https://entreprises.secure.lcl.fr'
-    CERTHASH = ['04e3509c20ac8bdbdb3d0ed37bc34db2dde5ed4bc4c30a3605f63403413099a9',
-                '5fcf4a9ceeec25e406a04dffe0c6eacbdf72d11d394cd049701bfbaba3d853d9',
-                '774ac6f1c419083541a27d95672a87a5edf5c82d948368008eab2764e65866f9',
-                '736ead61d4347035622500a2ed0f251317fa8dfa3e8c5832b2093bb6d269e00e',
-                '3db256edfeb7ba255625724b7e62d4dab229557226336ba87b9753006721f16f']
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['wget']
+
+    login = URL('/indexcle.html',
+                '/outil/IQEN/Authentication/(?P<page>.*)', LoginPage)
+    movements = URL('/outil/IQMT/mvt.Synthese/syntheseMouvementPerso',
+                    '/outil/IQMT/mvt.Synthese', MovementsPage)
 
     def __init__(self, *args, **kwargs):
-        BASEURL = self.BASEURL.rstrip('/')
-
-        self.PROTOCOL, self.DOMAIN = BASEURL.split('://', 2)
-        self.PAGES_REV = {
-            LogoutPage: BASEURL + '/outil/IQEN/Authentication/logout',
-            LogoutOkPage: BASEURL + '/outil/IQEN/Authentication/logoutOk',
-            HomePage: BASEURL + '/indexcle.html',
-            MessagesPage: BASEURL + '/outil/IQEN/Bureau/mesMessages',
-            MovementsPage: BASEURL + '/outil/IQMT/mvt.Synthese/syntheseMouvementPerso',
-        }
-        self.PAGES = {
-            self.PAGES_REV[HomePage]: HomePage,
-            self.PAGES_REV[LogoutPage]: LogoutPage,
-            self.PAGES_REV[LogoutOkPage]: LogoutOkPage,
-            self.PAGES_REV[MessagesPage]: MessagesPage,
-            self.PAGES_REV[MovementsPage]: MovementsPage,
-            BASEURL + '/outil/IQMT/mvt.Synthese/paginerReleve': MovementsPage,
-            BASEURL + '/': RootPage,
-            BASEURL + '/outil/IQEN/Authentication/dejaConnecte': AlreadyConnectedPage,
-            BASEURL + '/outil/IQEN/Authentication/sessionExpiree': ExpiredPage,
-        }
-
-        Browser.__init__(self, *args, **kwargs)
-        self._logged = False
+        super(LCLEnterpriseBrowser, self).__init__(*args, **kwargs)
+        self.accounts = None
 
     def deinit(self):
-        if self._logged:
-            self.logout()
+        if self.page.logged:
+            self.login.go(page="logout")
+            self.login.go(page="logoutOk")
+            assert self.login.is_here(page="logoutOk")
+        super(LCLEnterpriseBrowser, self).deinit()
 
-    def is_logged(self):
-        if self.page:
-            ID_XPATH = '//div[@id="headerIdentite"]'
-            self._logged = bool(self.page.document.xpath(ID_XPATH))
-            return self._logged
-        return False
+    def do_login(self):
+        self.login.go().login(self.username, self.password)
 
-    def login(self):
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
+        error = self.page.get_error() if self.login.is_here() else False
 
-        if not self.is_on_page(HomePage):
-            self.location('/indexcle.html', no_login=True)
+        if error:
+            raise BrowserIncorrectPassword(error)
 
-        self.page.login(self.username, self.password)
-
-        if self.is_on_page(AlreadyConnectedPage):
-            raise BrowserIncorrectPassword("Another session is already open. Please try again later.")
-        if not self.is_logged():
-            raise BrowserIncorrectPassword(
-                "Invalid login/password.\n"
-                "If you did not change anything, be sure to check for password renewal request\n"
-                "on the original website.\n"
-                "Automatic renewal will be implemented later.")
-
-    def logout(self):
-        self.location(self.PAGES_REV[LogoutPage], no_login=True)
-        self.location(self.PAGES_REV[LogoutOkPage], no_login=True)
-        assert self.is_on_page(LogoutOkPage)
-
+    @need_login
     def get_accounts_list(self):
-        return [self.get_account()]
+        if not self.accounts:
+            self.accounts = list(self.movements.go().iter_accounts())
+        return self.accounts
 
-    def get_account(self, id=None):
-        if not self.is_on_page(MovementsPage):
-            self.location(self.PAGES_REV[MovementsPage])
-
-        return self.page.get_account()
-
+    @need_login
     def get_history(self, account):
-        if not self.is_on_page(MovementsPage):
-            self.location(self.PAGES_REV[MovementsPage])
-
-        for n in range(1, self.page.nb_pages()):
-            self.location('/outil/IQMT/mvt.Synthese/paginerReleve',
-                          urlencode({'numPage': str(n)}),
-                          no_login=True)
-
-            for tr in self.page.get_operations():
-                yield tr
+        return account._page.iter_history()
 
     def get_cb_operations(self, account):
         raise NotImplementedError()
@@ -128,5 +70,3 @@ class LCLEnterpriseBrowser(Browser):
 
 class LCLEspaceProBrowser(LCLEnterpriseBrowser):
     BASEURL = 'https://espacepro.secure.lcl.fr'
-    CERTHASH = ['fa57ae1f3ea27af8a78e8e7d8eb40fc15eb7a5665af27a861fd28f259cae7d57',
-                '0f4cbb92d0116b178e512d51abaa7dc977c68c8df19c6d64f43c1af0dc30edce']

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2013  Romain Bignon, Pierre Mazière, Noé Rubinstein
+# Copyright(C) 2016      Edouard Lambert
 #
 # This file is part of weboob.
 #
@@ -17,79 +17,95 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from decimal import Decimal
 
+import re, requests
+
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination
+from weboob.browser.elements import ListElement, ItemElement, TableElement, method
+from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Env, TableCell
+from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account
-from weboob.deprecated.browser import Page
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.capabilities.base import NotAvailable
 
 from ..pages import Transaction
 
 
-class RootPage(Page):
-    pass
+def MyDecimal(*args, **kwargs):
+    kwargs.update(replace_dots=True, default=NotAvailable)
+    return CleanDecimal(*args, **kwargs)
 
 
-class LogoutPage(Page):
-    pass
+class LoginPage(HTMLPage):
+    def get_error(self):
+        return CleanText(default=False).filter(self.doc.xpath('//li[contains(@class, "erreur")]'))
+
+    def login(self, login, password):
+        form = self.get_form(id="form_autoComplete")
+        form['Ident_identifiant_'] = login
+        form['Ident_password_'] = password
+        form.submit()
 
 
-class LogoutOkPage(Page):
-    pass
+class MovementsPage(LoggedPage, HTMLPage):
+    def get_changecompte(self, link):
+        form = self.get_form('//form[contains(@action, "changeCompte")]')
+        m = re.search('\'(\d+).*\'(\d+)', link)
+        form['perimetreMandatParentData'] = m.group(1)
+        form['perimetreMandatEnfantData'] = m.group(2)
+        # Can't do multi with async because of inconsistency...
+        return self.browser.open(form.url, data=dict(form)).page
+
+    @method
+    class iter_accounts(ListElement):
+        def parse(self, el):
+            multi_xpath = '//form[contains(@action, "changeCompte")]//ul[@class="listeEnfants"]/li/a'
+            self.page.multi = True if self.page.doc.xpath(multi_xpath) else False
+            self.item_xpath = multi_xpath if self.page.multi else '//*[@id="perimetreMandatEnfantLib"]'
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_id = Env('accid')
+            obj_label = Env('label')
+            obj_type = Account.TYPE_CHECKING
+            obj_balance = Env('balance')
+            obj_currency = Env('currency')
+            obj__page = Env('page')
+
+            def parse(self, el):
+                page = self.page.get_changecompte(Link('.')(self)) if self.page.multi else self.page
+                self.env['accid'] = CleanText('.')(self).strip().replace(' ', '').split('-')[0]
+                self.env['label'] = CleanText('.')(self).split("-")[-1].strip()
+                balance_xpath = '//div[contains(text(),"Solde")]/strong'
+                self.env['balance'] = MyDecimal().filter(page.doc.xpath(balance_xpath))
+                self.env['currency'] = Account.get_currency(CleanText().filter(page.doc.xpath(balance_xpath)))
+                self.env['page'] = page
 
 
-class MessagesPage(Page):
-    pass
+    @pagination
+    @method
+    class iter_history(TableElement):
+        item_xpath = '//table[@id="listeOperations" or @id="listeEffets"]/tbody/tr[td[5]]'
+        head_xpath = '//table[@id="listeOperations"]/thead/tr/th'
 
+        col_raw = re.compile(u'Libellé')
+        col_debit = re.compile(u'Débit')
+        col_credit = re.compile(u'Crédit')
 
-class AlreadyConnectedPage(Page):
-    pass
+        def next_page(self):
+            url = Link('//a[contains(text(), "Page suivante")]', default=None)(self)
+            if url:
+                m = re.search('\s+\'([^\']+).*\'(\d+)', url)
+                return requests.Request("POST", m.group(1), data={'numPage': m.group(2)})
 
+        class item(ItemElement):
+            klass = Transaction
 
-class ExpiredPage(Page):
-    pass
+            obj_raw = Transaction.Raw(TableCell('raw'))
+            obj_date = Date(CleanText('./td[1]'), dayfirst=True)
+            obj_vdate = Date(CleanText('./td[2]'), dayfirst=True)
 
-
-class MovementsPage(Page):
-    def get_account(self):
-        LABEL_XPATH = '//*[@id="perimetreMandatEnfantLib"]'
-        BALANCE_XPATH = '//div[contains(text(),"Solde comptable :")]/strong'
-
-        account = Account()
-
-        account.id = self.document.xpath(LABEL_XPATH)[0].text_content().strip().replace(' ', '').split('-')[0]
-        account.label = self.document.xpath(LABEL_XPATH)[0] \
-            .text_content().strip()
-        balance_txt = self.document.xpath(BALANCE_XPATH)[0] \
-            .text_content().strip()
-        account.balance = Decimal(FrenchTransaction.clean_amount(balance_txt))
-        account.currency = Account.get_currency(balance_txt)
-
-        return account
-
-    def nb_pages(self):
-        return int(self.document.xpath('//input[@name="nbPages"]/@value')[0])
-
-    def get_operations(self):
-        LINE_XPATH = '//table[@id="listeEffets"]/tbody/tr'
-
-        for line in self.document.xpath(LINE_XPATH):
-            _id = line.xpath('./@id')[0]
-            tds = line.xpath('./td')
-
-            [date, vdate, raw, debit, credit] = [td.text_content() for td in tds]
-
-            operation = Transaction(_id)
-            operation.parse(date=date, raw=raw)
-            operation.set_amount(credit, debit)
-
-            yield operation
-
-
-class HomePage(Page):
-    def login(self, login, passwd):
-        p = lambda f: f.attrs.get('id') == "form_autoComplete"
-        self.browser.select_form(predicate=p)
-        self.browser["Ident_identifiant_"] = login.encode('utf-8')
-        self.browser["Ident_password_"] = passwd.encode('utf-8')
-        self.browser.submit(nologin=True)
+            def obj_amount(self):
+                credit = MyDecimal(TableCell('credit'))(self)
+                debit = MyDecimal(TableCell('debit'))(self)
+                return credit if credit else -debit
