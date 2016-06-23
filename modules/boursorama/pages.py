@@ -143,6 +143,9 @@ class LoginPage(HTMLPage):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
+    def is_here(self):
+        return not self.doc.xpath('//div[contains(@id, "alert-random")]')
+
     ACCOUNT_TYPES = {u'Comptes courants':      Account.TYPE_CHECKING,
                      u'Comptes épargne':       Account.TYPE_SAVINGS,
                      u'Comptes bourse':        Account.TYPE_MARKET,
