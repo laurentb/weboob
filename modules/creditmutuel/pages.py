@@ -551,7 +551,6 @@ class LIAccountsPage(LoggedPage, HTMLPage):
         head_xpath = '//table[@class="liste"]/thead/tr/th'
 
         col_label = u'Support'
-        col_code = re.compile(r'^Code ISIN')
         col_unitprice = re.compile(r'^Prix d\'achat moyen')
         col_vdate = re.compile(r'Date de cotation')
         col_unitvalue = u'Valeur de la part'
@@ -569,7 +568,11 @@ class LIAccountsPage(LoggedPage, HTMLPage):
             obj_valuation = CleanDecimal(TableCell('valuation'), default=Decimal(0), replace_dots=True)
 
             def obj_code(self):
-                return CleanText(TableCell('code'), replace=[('-', '')])(self) or NotAvailable
+                link = Link(TableCell('label')(self)[0].xpath('./a'), default=NotAvailable)(self)
+                if not link:
+                    return NotAvailable
+                return Regexp(pattern='isin=([A-Z\d]+)&?', default=NotAvailable).filter(link)
+
 
 
 class PorPage(LoggedPage, HTMLPage):
