@@ -405,7 +405,7 @@ class AccbisPage(LoggedPage, HTMLPage):
                         acc.currency = FrenchTransaction.Currency().filter(balance_el)
                         acc._link = Link().filter(a.xpath('.'))
                         acc._history_page = acc._link
-                        acc.id = acc._webid = Regexp(pattern='([^=]+)$').filter(Link().filter(a.xpath('.')))
+                        acc.id = acc._webid = Regexp(pattern='carte/(.*)$').filter(Link().filter(a.xpath('.')))
                         acc.type = Account.TYPE_CARD
                         if not acc in cards:
                             cards.append(acc)
