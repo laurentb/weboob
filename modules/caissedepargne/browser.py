@@ -230,7 +230,8 @@ class CaisseEpargne(Browser):
                 self.page.go_life_insurance(account)
                 self.page.submit()
                 self.location('https://www.extranet2.caisse-epargne.fr%s' % self.page.get_cons_repart())
-            except IndexError:
+            except (IndexError, AttributeError) as e:
+                self.logger.error(e)
                 return iter([])
         if self.is_on_page(GarbagePage):
             return iter([])
