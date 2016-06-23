@@ -60,3 +60,7 @@ class GroupamaesBrowser(LoginBrowser):
         transactions = list(self.operations_futures.go().get_list(date_guesser=LinearDateGuesser()))
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions
+
+    @need_login
+    def iter_investment(self):
+        return self.avoir.go(page='&_pid=SituationGlobaleParFond').iter_investment()

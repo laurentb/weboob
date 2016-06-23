@@ -18,10 +18,24 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from decimal import Decimal
+from datetime import date
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.elements import TableElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell, Date, Env
-from weboob.capabilities.bank import Account, Transaction
+from weboob.browser.elements import ListElement, TableElement, ItemElement, method
+from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell, Date, Env, Field, Regexp
+from weboob.capabilities.bank import Account, Transaction, Investment
+
+
+class InvestmentTableElement(ListElement):
+    def __init__(self, *args, **kwargs):
+        super(InvestmentTableElement, self).__init__(*args, **kwargs)
+
+        self._cols = {'label': 0,
+                      'unitvalue': 2,
+                      'valuation': 5,
+                      'quantity': 4}
+
+    def get_colnum(self, name):
+        return self._cols.get(name, None)
 
 
 class LoginPage(HTMLPage):
@@ -56,6 +70,29 @@ class AvoirPage(LoggedPage, HTMLPage):
             obj_balance = CleanDecimal(TableCell('value'), replace_dots=True, default=Decimal(0))
             obj_currency = CleanText(u'//table[@summary="Liste des échéances"]/thead/tr/th/small/text()')
             obj_type = Account.TYPE_PEE
+
+    @method
+    class iter_investment(InvestmentTableElement):
+        item_xpath = u'(//table[@summary="Liste des échéances"]/tbody/tr)[position() < last()]'
+
+        def parse(self, el):
+            item = el.xpath(u'//table[@summary="Liste des échéances"]/tfoot/tr/td[@class="tot _c1 d _c1"]')[0]
+            self.env['total'] = CleanDecimal(Regexp(CleanText('.'),
+                                                    '(.*) .*'),
+                                             default=1,
+                                             replace_dots=True)(item)
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText(TableCell('label'))
+            obj_vdate = date.today()  # * En réalité derniere date de valorisation connue
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True)
+            obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
+            obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True)
+
+            def obj_portfolio_share(self):
+                return Field('valuation')(self) / Env('total')(self) * 100
 
 
 class OperationsFuturesPage(LoggedPage, HTMLPage):

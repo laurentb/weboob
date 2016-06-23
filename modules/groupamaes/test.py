@@ -30,3 +30,4 @@ class GroupamaesTest(BackendTest):
             a = l[0]
             self.assertTrue(self.backend.get_account(l[0].id) is not None)
             list(self.backend.iter_history(a))
+            list(self.backend.iter_investment(a))
