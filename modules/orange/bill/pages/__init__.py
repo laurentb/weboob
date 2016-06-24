@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from .login import LoginPage
-from .profil import ProfilPage
-from .bills import BillsPage
+from .bills import ProfilPage, BillsPage
 
 __all__ = ['LoginPage', 'ProfilPage', 'BillsPage']

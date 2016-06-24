@@ -27,11 +27,15 @@ __all__ = ['OrangeBillBrowser']
 
 class OrangeBillBrowser(LoginBrowser):
     loginpage = URL('https://id.orange.fr/auth_user/bin/auth_user.cgi', LoginPage)
-    profilpage = URL('https://espaceclientv3.orange.fr/\?page=profil-infosPerso', ProfilPage)
-    billspage = URL('https://m.espaceclientv3.orange.fr/\?page=factures-archives',
+    profilpage = URL('https://espaceclientv3.orange.fr/\?page=profil-infosPerso',
+                     'https://espaceclientv3.orange.fr/ajax.php', ProfilPage)
+    billspage = URL('https://espaceclientv3.orange.fr/\?cont=ECO',
+                    'https://m.espaceclientv3.orange.fr/\?page=factures-archives',
                     'https://.*.espaceclientv3.orange.fr/\?page=factures-archives',
                     'https://espaceclientv3.orange.fr/\?page=factures-archives',
                     'https://espaceclientv3.orange.fr/\?page=facture-telecharger',
+                    'https://espaceclientv3.orange.fr/maf.php',
+                    'https://espaceclientv3.orange.fr/\?idContrat=(?P<subid>.*)&page=factures-archives',
                      BillsPage)
 
     def do_login(self):
@@ -52,8 +56,10 @@ class OrangeBillBrowser(LoginBrowser):
 
     @need_login
     def get_subscription_list(self):
-        return self.billspage.stay_or_go().get_list()
+        return self.billspage.go().get_list()
 
     @need_login
     def iter_documents(self, subscription):
-        return self.billspage.stay_or_go().get_documents(subid=subscription.id)
+        # Only if muti accounts
+        subid = subscription.id if subscription._multi else ""
+        return self.billspage.go(subid=subid).get_documents(subid=subscription.id)
