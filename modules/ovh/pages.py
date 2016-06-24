@@ -39,7 +39,7 @@ class LoginPage(HTMLPage):
         form.submit()
 
 
-class ProfilePage(JsonPage, LoggedPage):
+class ProfilePage(LoggedPage, JsonPage):
     @method
     class get_list(ListElement):
         class item(ItemElement):
@@ -50,12 +50,7 @@ class ProfilePage(JsonPage, LoggedPage):
             obj_id = CleanText(Dict('nichandle'))
 
 
-class ApiAuthPage(JsonPage, LoggedPage):
-    def get_csid(self):
-        return self.doc['csid']
-
-
-class BillsPage(JsonPage, LoggedPage):
+class BillsPage(LoggedPage, JsonPage):
     @method
     class get_documents(DictElement):
         item_xpath = 'list/results'
