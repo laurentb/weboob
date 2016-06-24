@@ -123,6 +123,12 @@ class PostLoginPage(BasePage):
 
 class AccountsPage(BasePage):
     ACCOUNT_TYPES = {'courant-titre':      Account.TYPE_CHECKING,
+                     'courant':      Account.TYPE_CHECKING,
+                     'courant-oligo':      Account.TYPE_CHECKING,
+                     'LivretA':      Account.TYPE_SAVINGS,
+                     'livret':      Account.TYPE_SAVINGS,
+                     'LDD':      Account.TYPE_SAVINGS,
+                     'PEA':      Account.TYPE_MARKET,
                     }
 
     def js2args(self, s):
@@ -177,7 +183,9 @@ class AccountsPage(BasePage):
 
                 except KeyError:
                     account.id = args['paramNumCompte']
-                account_type_str = table.attrib['class'].split(' ')[-1][len('tableaux-comptes-'):]
+                for l in table.attrib['class'].split(' '):
+                    if 'tableaux-comptes-' in l:
+                        account_type_str =  l[len('tableaux-comptes-'):]
                 account.type = self.ACCOUNT_TYPES.get(account_type_str, Account.TYPE_UNKNOWN)
 
                 currency_title = table.xpath('./thead//th[@class="montant"]')[0].text.strip()
