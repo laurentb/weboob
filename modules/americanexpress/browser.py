@@ -25,7 +25,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.url import URL
 
-from .pages import LoginPage, AccountsPage, TransactionsPage, WrongLoginPage
+from .pages import LoginPage, AccountsPage, TransactionsPage, WrongLoginPage, AccountSuspendedPage
 
 
 __all__ = ['AmericanExpressBrowser']
@@ -36,6 +36,7 @@ class AmericanExpressBrowser(LoginBrowser):
 
     login = URL('/myca/logon/.*', LoginPage)
     wrong_login = URL('/myca/fuidfyp/emea/.*', WrongLoginPage)
+    account_suspended = URL('/myca/onlinepayments/', AccountSuspendedPage)
     accounts = URL('/myca/intl/isummary/.*', AccountsPage)
     transactions = URL('/myca/intl/estatement/.*', TransactionsPage)
 
@@ -48,7 +49,7 @@ class AmericanExpressBrowser(LoginBrowser):
             self.location('/myca/logon/emea/action?request_type=LogonHandler&DestPage=https%3A%2F%2Fglobal.americanexpress.com%2Fmyca%2Fintl%2Facctsumm%2Femea%2FaccountSummary.do%3Frequest_type%3D%26Face%3Dfr_FR%26intlink%3Dtopnavvotrecompteneligne-HPmyca&Face=fr_FR&Info=CUExpired')
 
         self.page.login(self.username, self.password)
-        if self.wrong_login.is_here() or self.login.is_here():
+        if self.wrong_login.is_here() or self.login.is_here() or self.account_suspended.is_here():
             raise BrowserIncorrectPassword()
 
     @need_login

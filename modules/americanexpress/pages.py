@@ -33,6 +33,10 @@ class WrongLoginPage(HTMLPage):
     pass
 
 
+class AccountSuspendedPage(HTMLPage):
+    pass
+
+
 class LoginPage(HTMLPage):
     def login(self, username, password):
         form = self.get_form(name='ssoform')
