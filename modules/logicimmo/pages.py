@@ -30,8 +30,13 @@ from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 class CitiesPage(JsonPage):
     @method
     class get_cities(DictElement):
+        item_xpath = '*/children'
+
         class item(ItemElement):
             klass = City
+
+            def condition(self):
+                return Dict('lct_parent_id')(self) != '0'
 
             obj_id = Format('%s_%s', Dict('lct_id'), Dict('lct_level'))
             obj_name = Format('%s %s', Dict('lct_name'), Dict('lct_post_code'))
