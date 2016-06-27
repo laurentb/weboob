@@ -31,6 +31,9 @@ from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
 
 class CitiesPage(JsonPage):
+
+    ENCODING = u'UTF-8'
+
     @method
     class get_cities(DictElement):
         item_xpath = '0/locations'

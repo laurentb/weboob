@@ -55,7 +55,7 @@ class ExplorimmoBrowser(PagesBrowser):
             if house_type in self.RET:
                 ret.append(self.RET.get(house_type))
 
-        data = {'location': ','.join(cities),
+        data = {'location': ','.join(cities).encode('iso 8859-1'),
                 'areaMin': area_min or '',
                 'areaMax': area_max or '',
                 'priceMin': cost_min or '',
@@ -65,10 +65,9 @@ class ExplorimmoBrowser(PagesBrowser):
                 'mode': '',
                 'proximity': '0',
                 'roomMin': nb_rooms or '',
-                'page': '1'
-                }
+                'page': '1'}
 
-        query = '%s%s%s' % (urllib.urlencode(data), '&type=', '&type='.join(ret))
+        query = u'%s%s%s' % (urllib.urlencode(data), '&type=', '&type='.join(ret))
 
         return self.search.go(query=query).iter_housings()
 
