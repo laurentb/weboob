@@ -188,6 +188,7 @@ class ProHistoryPage(HistoryPage, JsonPage):
                                                                                        u'Rejeté',
                                                                                        u'Expiré',
                                                                                        u'Created',
+                                                                                       u'Brouillon',
                                                                                        u'Canceled']:
             return []
         for pattern in [u'Commande à', u'Offre de remboursement', u'Bill to']:
