@@ -460,7 +460,6 @@ class MarketPage(Page):
 
     def iter_investment(self):
         for tbody in self.document.xpath(u'//table[@summary="Contenu du portefeuille valorisé"]/tbody'):
-
             inv = Investment()
             inv.label = self.parser.tocleanstring(tbody.xpath('./tr[1]/td[1]/a/span')[0])
             inv.code = self.parser.tocleanstring(tbody.xpath('./tr[1]/td[1]/a')[0]).split(' - ')[1]
@@ -486,6 +485,19 @@ class LifeInsurance(MarketPage):
     def get_cons_repart(self):
         return self.document.xpath('//tr[@id="sousMenuConsultation3"]/td/div/a')[0].attrib['href']
 
+    def get_cons_histo(self):
+        return self.document.xpath('//tr[@id="sousMenuConsultation4"]/td/div/a')[0].attrib['href']
+
+    def iter_history(self):
+        for tr in self.document.xpath(u'//table[@class="boursedetail"]/tbody/tr[td]'):
+            t = Transaction()
+
+            t.label = self.parser.tocleanstring(tr.xpath('./td[2]')[0])
+            t.date = Date(dayfirst=True).filter(self.parser.tocleanstring(tr.xpath('./td[1]')[0]))
+            t.amount = self.parse_decimal(tr.xpath('./td[3]')[0])
+
+            yield t
+
     def iter_investment(self):
         for tr in self.document.xpath(u'//table[@class="boursedetail"]/tr[@class and not(@class="total")]'):
 
@@ -495,6 +507,7 @@ class LifeInsurance(MarketPage):
             diff = self.parse_decimal(tr.xpath('./td[6]')[0])
             inv.quantity = self.parse_decimal(tr.xpath('./td[2]')[0])
             inv.unitvalue = self.parse_decimal(tr.xpath('./td[3]')[0])
+            inv.vdate = Date(dayfirst=True).filter(self.parser.tocleanstring(tr.xpath('./td[4]')[0]))
             inv.unitprice = self.calc(inv.unitvalue, diff)
             inv.valuation = self.parse_decimal(tr.xpath('./td[5]')[0])
             inv.diff = self.get_diff(inv.valuation, self.calc(inv.valuation, diff))

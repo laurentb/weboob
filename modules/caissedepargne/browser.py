@@ -190,9 +190,28 @@ class CaisseEpargne(Browser):
             if not self.page.go_next():
                 return
 
+    def _get_history_invests(self, account):
+        if self.is_on_page(IndexPage):
+            self.page.go_list()
+        else:
+            self.location(self.buildurl('/Portail.aspx'))
+
+        self.page.go_history(account._info)
+
+        try:
+            self.page.go_life_insurance(account)
+            self.page.submit()
+            self.location('https://www.extranet2.caisse-epargne.fr%s' % self.page.get_cons_histo())
+        except (IndexError, AttributeError) as e:
+            self.logger.error(e)
+            return iter([])
+        return self.page.iter_history()
+
     def get_history(self, account):
         if not hasattr(account, '_info'):
             raise NotImplementedError()
+        if account.type is Account.TYPE_LIFE_INSURANCE:
+            return self._get_history_invests(account)
         return self._get_history(account._info)
 
     def get_coming(self, account):
