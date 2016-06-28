@@ -802,7 +802,7 @@ class StatesMixin(object):
         if 'url' in state:
             try:
                 self.location(state['url'])
-            except requests.exceptions.HTTPError:
+            except (requests.exceptions.HTTPError, requests.exceptions.TooManyRedirects):
                 pass
 
     def dump_state(self):
