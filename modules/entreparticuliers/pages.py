@@ -48,8 +48,8 @@ class EntreParticuliersXMLPage(XMLPage):
 
     def build_doc(self, content):
         from weboob.tools.json import json
-        json_content = json.loads(content)
-        return super(EntreParticuliersXMLPage, self).build_doc(json_content.get('d').encode(self.ENCODING))
+        json_content = json.loads(content).get('d') or u'<Annonce></Annonce>'
+        return super(EntreParticuliersXMLPage, self).build_doc(json_content.encode(self.ENCODING))
 
 
 class SearchPage(EntreParticuliersXMLPage):

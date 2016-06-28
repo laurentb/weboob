@@ -92,7 +92,11 @@ class EntreparticuliersBrowser(PagesBrowser):
             # var localisationType = { "all": -1, "ville": 5, "region": 2, "departement": 4, "pays": 1, "regionUsuelle": 3 };
             data['localisationType'] = 5
             data['reference'] = ''
-            data['rayon'] = 0
+            """
+            Avec un rayon a 0, on remonte en priorité les resultats les plus proches, puis de plus en plus eloignes sans limite aucune.
+            On choisit donc arbitrairement de limiter a 100km autour de la ville choisie
+            """
+            data['rayon'] = 100
             data['localisation_id_rayon'] = None
             data['lstLocalisationId'] = ','.join(cities)
             data['photos'] = 0
