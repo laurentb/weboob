@@ -128,7 +128,6 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
                 continue
         return iter(self.accounts_list)
 
-    @need_login
     def get_account(self, id):
         assert isinstance(id, basestring)
 
