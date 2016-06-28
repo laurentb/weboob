@@ -443,6 +443,13 @@ class SavingsPage(_AccountsPage):
             if len(a) == 1 and not account._link:
                 account._link = a[0].attrib['href'].replace(' ', '%20')
                 account._link = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', account._link)
+            a = cols[0].xpath('descendant::a[(contains(@href, "javascript"))]')
+            # This aims to handle bgpi-gestionprivee.
+            if len(a) == 1 and not account._link:
+                m = re.findall("'([^']*)'", a[0].attrib['href'])
+                if len(m) == 3:
+                    url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&typeaction=reroutage_aller&site=%s&sdt=%s&parampartenaire=%s'
+                    account._link = url % (origin.netloc, m[0], m[1], m[2])
 
 
 class TransactionsPage(BasePage):
@@ -622,7 +629,7 @@ class MarketPage(BasePage):
 
     def parse_decimal(self, value):
         v = value.strip()
-        if v == '-' or v == '':
+        if v == '-' or v == '' or v == '_':
             return NotAvailable
         return Decimal(Transaction.clean_amount(value))
 
@@ -672,3 +679,45 @@ class LifeInsurancePage(MarketPage):
             inv.diff = NotAvailable
 
             yield inv
+
+
+class BGPIPage(MarketPage):
+    COL_ID = 0
+    COL_QUANTITY = 1
+    COL_UNITPRICE = 2
+    COL_UNITVALUE = 3
+    COL_VALUATION = 4
+    COL_PORTFOLIO = 5
+    COL_DIFF = 6
+
+    def iter_investment(self):
+        for line in self.document.xpath('//table[contains(@class, "PuTableauLarge")]/tr[contains(@class, "PuLigne")]'):
+            cells = line.findall('td')
+            inv = Investment()
+
+            inv.label = unicode(cells[self.COL_ID].find('span').text_content().strip())
+            a = cells[self.COL_ID].find('a')
+            if a is not None:
+                inv.code = unicode(a.text_content().strip())
+            else:
+                inv.code = NotAvailable
+            inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY].text_content())
+            inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE].text_content())
+            inv.valuation = self.parse_decimal(cells[self.COL_VALUATION].text_content())
+            inv.unitprice = self.parse_decimal(cells[self.COL_UNITPRICE].text_content())
+            inv.diff = self.parse_decimal(cells[self.COL_DIFF].text_content())
+            inv.portfolio_share = self.parse_decimal(cells[self.COL_PORTFOLIO].text_content())
+
+            yield inv
+
+    def go_on(self, link):
+        origin = urlparse(self.url)
+        self.browser.location('https://%s%s' % (origin.netloc, link))
+
+    def go_detail(self):
+        self.go_on(self.document.xpath(u'.//a[contains(text(), "Détail")]')[0].attrib['href'])
+
+    def go_back(self):
+        self.go_on(self.document.xpath(u'.//a[contains(text(), "Retour à mes comptes")]')[0].attrib['href'])
+        self.browser.select_form('formulaire')
+        self.browser.submit()

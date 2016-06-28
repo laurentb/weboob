@@ -31,7 +31,7 @@ from weboob.tools.date import LinearDateGuesser
 from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, \
                    SavingsPage, TransactionsPage, UselessPage, CardsPage, \
                    LifeInsurancePage, MarketPage, LoansPage, PerimeterPage, \
-                   ChgPerimeterPage, MarketHomePage, FirstVisitPage
+                   ChgPerimeterPage, MarketHomePage, FirstVisitPage, BGPIPage
 
 
 __all__ = ['Cragr']
@@ -61,6 +61,7 @@ class Cragr(Browser):
              'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.WalletVal\?nump=.*': MarketPage,
              'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis': MarketHomePage,
              'https://assurance-personnes.credit-agricole.fr:443/filiale/entreeBam\?identifiantBAM=.*': LifeInsurancePage,
+             'https://bgpi-gestionprivee.credit-agricole.fr/bgpi/.*': BGPIPage,
 
              'https?://[^/]+/stb/entreeBam\?.*act=Perimetre':        PerimeterPage,
              'https?://[^/]+/stb/entreeBam\?.*act=ChgPerim.*':       ChgPerimeterPage,
@@ -340,6 +341,8 @@ class Cragr(Browser):
         elif account.type == Account.TYPE_LIFE_INSURANCE:
             new_location = self.moveto_insurance_website(account)
             self.location(new_location, urllib.urlencode({}))
+            if self.is_on_page(BGPIPage):
+                self.page.go_detail()
 
         for inv in self.page.iter_investment():
             yield inv
@@ -383,6 +386,9 @@ class Cragr(Browser):
         self._sag = None
         # POST to https://assurance-personnes.credit-agricole.fr/filiale/ServletReroutageCookie
         form = doc.find('//form[@name="formulaire"]')
+        # bgpi-gestionprivee.
+        if not form:
+            return re.search('location="([^"]+)"', self.openurl(account._link % self.sag).read(), flags=re.MULTILINE).group(1)
         data = {
             'page': form.inputs['page'].attrib['value'],
             'cMaxAge': '-1',
@@ -402,6 +408,8 @@ class Cragr(Browser):
         return form.attrib['action']
 
     def quit_insurance_website(self):
+        if self.is_on_page(BGPIPage):
+            return self.page.go_back()
         exit_url = 'https://assurance-personnes.credit-agricole.fr/filiale/entreeBam?actCrt=Synthcomptes&sessionSAG=%s&stbpg=pagePU&act=&typeaction=reroutage_retour&site=BAMG2&stbzn=bnc'
         doc = self.get_document(self.openurl(exit_url % self.sag), encoding='utf-8')
         form = doc.find('//form[@name="formulaire"]')
