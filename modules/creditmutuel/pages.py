@@ -630,6 +630,8 @@ class PorPage(LoggedPage, HTMLPage):
 
 class IbanPage(LoggedPage, HTMLPage):
     def fill_iban(self, accounts):
+
+        # Old website
         for ele in self.doc.xpath('//table[@class="liste"]/tr[@class]/td[1]'):
             for a in accounts:
                 if a._is_webid:
@@ -641,3 +643,9 @@ class IbanPage(LoggedPage, HTMLPage):
                 else:
                     if a.id[:-3] in CleanText('.//div[5]/em', replace=[(' ','')])(ele).title():
                         a.iban = CleanText('.//div[5]/em', replace=[(' ', '')])(ele)
+
+        # New website
+        for ele in self.doc.xpath('//table[@class="liste"]//tr[not(@class)]/td[1]'):
+            for a in accounts:
+                if a.label.capitalize() in CleanText('.')(ele).capitalize():
+                    a.iban = CleanText('.//em[2]', replace=[(' ', '')])(ele)
