@@ -162,7 +162,7 @@ class HistoryPage(LoggedPage):
         It tries to guess what is the decimal separator (, or .).
         """
         if not isinstance(amount, Decimal):
-            m = re.search(r"\D", amount[::-1])
+            m = re.search(r"\D", amount.strip(u'€').strip(u'\xa0')[::-1])
             amount = Decimal(re.sub(r'[^\d]', '', amount))/Decimal((10 ** m.start()))
 
         if is_credit:
