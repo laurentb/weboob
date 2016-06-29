@@ -91,7 +91,7 @@ class HomePage(LoggedPage, HTMLPage):
             self.browser.account_type = "perso"
 
 
-class AccountPage(LoggedPage, HTMLPage):
+class AccountPage(HomePage):
     def get_account(self, _id):
         return self.get_accounts().get(_id)
 

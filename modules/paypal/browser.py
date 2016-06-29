@@ -37,7 +37,7 @@ __all__ = ['Paypal']
 class Paypal(LoginBrowser):
     BASEURL = 'https://www.paypal.com'
 
-    login = URL('https://\w+.paypal.com/signin/.*',
+    login = URL('https://\w+.paypal.com/signin.*',
                 '/cgi-bin/webscr\?cmd=_login-submit.+$',
                 '/fr/webapps/mpp/home', LoginPage)
     landing = URL('/home', LandingPage)
