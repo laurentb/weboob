@@ -19,39 +19,52 @@
 
 from weboob.browser import PagesBrowser, URL
 
-from .pages import SearchPage, AdvertPage
+from .pages import SearchPage, AdvertPage, AdvertsJsonPage
 
 import urllib
+from datetime import date, timedelta
 
 __all__ = ['AdeccoBrowser']
 
 
 class AdeccoBrowser(PagesBrowser):
+    BASEURL = 'http://www.adecco.fr'
+    TIMEOUT = 30
 
-    BASEURL = 'http://www.adecco.fr/'
-
-    search_page = URL('trouver-un-emploi/Pages/Offres-d-emploi.aspx\?(?P<query>.*)', SearchPage)
-    advert_page = URL('trouver-un-emploi/Pages/Details-de-l-Offre/(?P<part1>.*)/(?P<part2>.*).aspx\?IOF=(?P<part3>.*)',
+    search_page = URL('/resultats-offres-emploi/\?k=(?P<job>.*)&l=(?P<town>.*)&pageNum=1&display=50', SearchPage)
+    json_page = URL('/AdeccoGroup.Global/api/Job/AsynchronousJobSearch/', AdvertsJsonPage)
+    advert_page = URL('/offres-d-emploi/\?ID=(?P<_id>.*)',
+                      '/offres-d-emploi/.*',
                       AdvertPage)
 
-    def search_job(self, pattern=None):
-        query = {'keywords': urllib.quote_plus(pattern)}
-        return self.search_page.go(query=urllib.urlencode(query)).iter_job_adverts()
+    def call_json(self, params, date_min=None):
+        self.session.headers.update({"Accept": "application/json, text/javascript, */*; q=0.01",
+                                     "X-Requested-With": "XMLHttpRequest"})
+        return self.json_page.go(data=params).iter_job_adverts(data=params, date_min=date_min)
 
-    def advanced_search_job(self, publication_date=None, contract_type=None, conty=None, region=None, job_category=None,
-                            activity_domain=None):
-        data = {
-            'publicationDate': publication_date,
-            'department': conty,
-            'region': region,
-            'jobCategory': job_category,
-            'activityDomain': activity_domain,
-            'contractTypes': contract_type,
-        }
-        return self.search_page.go(query=urllib.urlencode(data)).iter_job_adverts()
+    def search_job(self, pattern=None):
+        if pattern:
+            return self.advanced_search_job(job=pattern)
+        return []
+
+    def advanced_search_job(self, publication_date=0, contract_type=None, conty=None, activity_domain=None,
+                            job='', town=''):
+
+        params = self.search_page.go(job=urllib.quote_plus(job.encode('utf-8')),
+                                     town=urllib.quote_plus(town.encode('utf-8'))).get_post_params()
+
+        if contract_type:
+            self.page.url += '&employmenttype=%s' % contract_type
+
+        if conty:
+            self.page.url += '&countrysubdivisionfacet=%s' % conty
+
+        if activity_domain:
+            self.page.url += '&industryfacet=%s' % activity_domain
+
+        date_min = date.today() - timedelta(days=publication_date) if publication_date > 0 else None
+        params['filterUrl'] = self.page.url
+        return self.call_json(params, date_min=date_min)
 
     def get_job_advert(self, _id, advert):
-        splitted_id = _id.split('/')
-        return self.advert_page.go(part1=splitted_id[0],
-                                   part2=splitted_id[1],
-                                   part3=splitted_id[2]).get_job_advert(obj=advert)
+        return self.advert_page.go(_id=_id).get_job_advert(obj=advert)
