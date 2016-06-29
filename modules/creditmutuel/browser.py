@@ -70,7 +70,8 @@ class CreditMutuelBrowser(LoginBrowser):
     info =        URL('/(?P<subbank>.*)/fr/banque/BAD.*',                    EmptyPage)
     transfert =   URL('/(?P<subbank>.*)/fr/banque/virements/vplw_vi.html',   EmptyPage)
     transfert_2 = URL('/(?P<subbank>.*)/fr/banque/virements/vplw_cmweb.aspx.*', TransfertPage)
-    change_pass = URL('/(?P<subbank>.*)/fr/validation/change_password.cgi',  ChangePasswordPage)
+    change_pass = URL('/(?P<subbank>.*)/fr/validation/change_password.cgi',
+                      '/fr/services/change_password.html', ChangePasswordPage)
     verify_pass = URL('/(?P<subbank>.*)/fr/validation/verif_code.cgi.*',     VerifCodePage)
     empty =       URL('/(?P<subbank>.*)/fr/banques/index.html',
                       '/(?P<subbank>.*)/fr/banque/paci_beware_of_phishing.*',
