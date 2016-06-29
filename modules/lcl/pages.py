@@ -380,7 +380,7 @@ class BoursePage(LoggedPage, HTMLPage):
             klass = Investment
 
             obj_label = CleanText('.//td[2]/div/a')
-            obj_code=(CleanText('.//td[2]/div/br/following-sibling::text()') & Regexp(pattern='^([^ ]+).*'))
+            obj_code= CleanText('.//td[2]/div/br/following-sibling::text()') & Regexp(pattern='^([^ ]+).*', default=NotAvailable)
             obj_quantity = MyDecimal('.//td[3]/span')
             obj_diff = MyDecimal('.//td[7]/span')
             obj_valuation = MyDecimal('.//td[5]')
@@ -463,7 +463,7 @@ class AVDetailPage(LoggedPage, LCLBasePage):
             klass = Investment
 
             obj_label = CleanText('.//td[1]/a | .//td[1]/span ')
-            obj_code=(CleanText('.//td[1]/a/@id')& Regexp(pattern='^([^ ]+).*'))
+            obj_code= CleanText('.//td[1]/a/@id') & Regexp(pattern='^([^ ]+).*', default=NotAvailable)
             obj_quantity = MyDecimal('.//td[4]/span')
             obj_unitvalue = MyDecimal('.//td[2]/span')
             obj_valuation = MyDecimal('.//td[5]/span')
