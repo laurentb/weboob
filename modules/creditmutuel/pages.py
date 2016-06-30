@@ -531,8 +531,7 @@ class LIAccountsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = FrenchTransaction
 
-            obj_date = Date(CleanText('./td[1]'))
-            obj_rdate = Date(CleanText('./td[1]'))
+            obj_date = obj_rdate = Transaction.Date(CleanText('./td[1]'))
             obj_raw = CleanText('./td[2]')
             obj_amount  = CleanDecimal('./td[4]', replace_dots=True, default=Decimal('0'))
             obj_original_currency = FrenchTransaction.Currency('./td[4]')
