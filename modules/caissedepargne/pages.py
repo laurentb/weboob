@@ -35,7 +35,12 @@ from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban
 
 
 class GarbagePage(Page):
-    pass
+    def on_loaded(self):
+        go_back_link = self.document.xpath('//a[@class="btn"]/@href')
+        if go_back_link:
+            assert len(go_back_link) == 1
+            go_back_link = re.search('\(~deibaseurl\)(.*)$', go_back_link[0]).group(1)
+        self.browser.location('https://%s%s' % (self.browser.DOMAIN, go_back_link))
 
 class MessagePage(GarbagePage):
     def submit(self):

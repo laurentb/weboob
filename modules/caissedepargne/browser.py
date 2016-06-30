@@ -50,6 +50,7 @@ class CaisseEpargne(Browser):
              'https://www.caisse-epargne.offrebourse.com/DetailMessage\?refresh=O': MessagePage,
              'https://www.caisse-epargne.fr/particuliers/.*/emprunter.aspx': GarbagePage,
              'https://.*/particuliers/emprunter.*':                       GarbagePage,
+             'https://.*/particuliers/epargner.*':                        GarbagePage,
             }
 
     def __init__(self, nuser, *args, **kwargs):
