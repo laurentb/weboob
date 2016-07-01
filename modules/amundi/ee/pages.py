@@ -20,11 +20,11 @@
 from datetime import datetime
 from decimal import Decimal
 
-from weboob.browser.elements import ItemElement, method, TableElement
-from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell
+from weboob.browser.elements import ItemElement, method, DictElement
+from weboob.browser.filters.standard import CleanDecimal, Date
+from weboob.browser.filters.json import Dict
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage, pagination
 from weboob.capabilities.bank import Account, Investment, Transaction
-from weboob.capabilities.base import NotAvailable
 from weboob.browser.pages import NextPage
 
 
@@ -62,49 +62,28 @@ class AccountsPage(LoggedPage, JsonPage):
             yield ac
 
 
-class AccountDetailPage(LoggedPage, HTMLPage):
+class AccountDetailPage(LoggedPage, JsonPage):
     def is_here(self):
-        return bool(self.doc.xpath('//a[contains(.,"Consultation")]'))
+        return 'positionsSalarieDispositifDto' in self.doc
 
     @method
-    class iter_investments(TableElement):
-        item_xpath = '//div[@class="table-responsive"]//tbody/tr'
-        head_xpath = '//div[@class="table-responsive"]//thead/tr//th'
-        col_sup = u'Support de placement'
-        col_nbp = u'Nombre de parts'
-        col_mtb = u'Montant brut'
+    class iter_investments(DictElement):
+        def find_elements(self):
+            for dispositif in self.page.doc['positionsSalarieDispositifDto']:
+                if self.env['account_id'] == dispositif['codeDispositif']:
+                    return dispositif['positionsSalarieFondsDto']
+            return {}
 
         class item(ItemElement):
-            def condition(self):
-                acc = self.env['data']['acc']
-                return CleanText().filter(self.el.xpath('./../../../preceding-sibling::h3')[-1]) == \
-                       "%s [%s]" % (acc.label, acc._entreprise)
-
             klass = Investment
 
-            def obj_label(self):
-                try:
-                    return CleanText(TableCell('sup'))(self).split('Valeur')[0]
-                except IndexError:
-                    return CleanText(TableCell('sup'))(self)
-
-            def obj_unitvalue(self):
-                try:
-                    return Decimal(CleanText(TableCell('sup'))(self).split('Valeur')[1].split(':')[1].strip()[:-2])
-                except IndexError:
-                    return NotAvailable
-
-            obj_quantity = CleanDecimal(TableCell('nbp'), default=NotAvailable)
-            obj_valuation = CleanDecimal(TableCell('mtb'), replace_dots=True)
-
-            def obj_vdate(self):
-                try:
-                    return datetime.strptime(CleanText(TableCell('sup'))(self).split('au')[1].split(':')[0].strip(),
-                                             '%d/%m/%Y')
-                except IndexError:
-                    return NotAvailable
-
-            obj_code = NotAvailable
+            obj_label = Dict('libelleFonds')
+            obj_unitvalue = Dict('vl') & CleanDecimal
+            obj_quantity = Dict('nbParts') & CleanDecimal
+            obj_valuation = Dict('mtBrut') & CleanDecimal
+            obj_code = Dict('codeIsin')
+            obj_vdate = Date(Dict('dtVl'))
+            obj_diff = Dict('mtPMV') & CleanDecimal
 
 
 class AccountHistoryPage(LoggedPage, JsonPage):

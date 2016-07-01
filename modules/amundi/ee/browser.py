@@ -28,7 +28,7 @@ class AmundiEEBrowser(LoginBrowser):
 
     login = URL('/part/home_login', LoginPage)
     accounts = URL('/part/home_ajax_noee\?api=/api/individu/positionTotale', AccountsPage)
-    account_detail = URL('/part/home_priv_epa_encours', AccountDetailPage)
+    account_detail = URL('/part/home_ajax_noee', AccountDetailPage)
     account_history = URL('/part/home_ajax_noee\?api=/api/individu/operations', AccountHistoryPage)
 
     def __init__(self, website, *args, **kwargs):
@@ -54,8 +54,8 @@ class AmundiEEBrowser(LoginBrowser):
 
     @need_login
     def iter_investments(self, account):
-        self.account_detail.go()
-        return self.page.iter_investments(data={'acc': account})
+        self.account_detail.go(params={'api':'/api/individu/positionFonds','flagUrlFicheFonds':'true','inclurePositionVide':'false'})
+        return self.page.iter_investments(account_id=account.id)
 
     @need_login
     def iter_history(self, account):

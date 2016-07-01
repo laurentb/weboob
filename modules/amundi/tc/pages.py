@@ -67,8 +67,8 @@ class AccountsPage(LoggedPage, JsonPage):
 
 
 class AccountDetailPage(LoggedPage, JsonPage):
-    # def is_here(self):
-    #     return bool(self.doc.xpath(u'//span[contains(.,"Votre Épargne Salariale et Retraite")]'))
+    def is_here(self):
+        return 'positionsSalarieDispositifDto' in self.doc
 
     def iter_investments(self,data):
         acc=data['acc']

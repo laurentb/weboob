@@ -29,7 +29,7 @@ class AmundiTCBrowser(LoginBrowser):
     login = URL('/home', LoginPage)
     redirect = URL('/home_indispo_redirect', RedirectPage)
     accounts = URL('/home_ajax_noee\?api=/api/individu/positionTotale', AccountsPage)
-    account_detail = URL('/home_ajax_noee\?api=/api/individu/positionFonds', AccountDetailPage)
+    account_detail = URL('/home_ajax_noee', AccountDetailPage)
     account_history = URL('/home_ajax_noee\?api=/api/individu/operations', AccountHistoryPage)
 
     def __init__(self, website, *args, **kwargs):
@@ -56,8 +56,7 @@ class AmundiTCBrowser(LoginBrowser):
     @need_login
     def iter_investments(self, account):
         # self.account_detail.go()
-        params = '&idEnt=%s&date=%s&flagUrlFicheFonds=true' % (account._ident, date.today().strftime('%d/%m/%Y'))
-        self.account_detail.go(params=params)
+        self.account_detail.go(params={'api':'/api/individu/positionFonds', 'idEnt':account._ident, 'date':date.today().strftime('%d/%m/%Y'), 'flagUrlFicheFonds':'true'})
         return self.page.iter_investments(data={'acc': account})
 
     @need_login
