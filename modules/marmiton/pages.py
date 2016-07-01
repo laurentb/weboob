@@ -55,7 +55,7 @@ class RecipePage(HTMLPage):
         klass = Recipe
 
         obj_id = Env('id')
-        obj_title = CleanText('//h1[@class="m_title"]')
+        obj_title = CleanText('//h1[has-class("m_title")]')
         obj_preparation_time = Type(CleanText('//span[@class="preptime"]'), type=int)
         obj_cooking_time = Type(CleanText('//span[@class="cooktime"]'), type=int)
 
@@ -65,7 +65,8 @@ class RecipePage(HTMLPage):
             return [nb_pers] if nb_pers else NotAvailable
 
         def obj_ingredients(self):
-            ingredients = CleanText('//div[@class="m_content_recette_ingredients m_avec_substitution"]', default='')(self).split('-')
+            ingredients = CleanText('//div[@class="m_content_recette_ingredients m_avec_substitution"]',
+                                    default='')(self).split('-')
             if len(ingredients) > 1:
                 return ingredients[1:]
             return []
