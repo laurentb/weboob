@@ -45,8 +45,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     keyboard = URL('/connexion/clavier-virtuel\?_hinclude=300000', VirtKeyboardPage)
     login = URL('/connexion/\?clean=1', LoginPage)
     error = URL('/connexion/compte-verrouille',
-                '/infos-profil/date-anniversaire/.*',
-                '/infos-profil/questions-secretes/.*', ErrorPage)
+                '/infos-profil', ErrorPage)
     accounts = URL('/dashboard/comptes\?_hinclude=300000', AccountsPage)
     acc_tit = URL('/comptes/titulaire/(?P<webid>.*)\?_hinclude=1', AccbisPage)
     acc_rep = URL('/comptes/representative/(?P<webid>.*)\?_hinclude=1', AccbisPage)
