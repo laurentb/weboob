@@ -27,8 +27,8 @@ from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, DateGuesser, Env, Field, Filter, Regexp
 from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
-from ..transaction import Transaction
 
 __all__ = ['LoginPage']
 
@@ -105,6 +105,26 @@ class AccountsPage(CMSOPage):
                 if obj.id is None:
                     obj.id = obj.label.replace(' ', '')
                 return True
+
+
+class Transaction(FrenchTransaction):
+    PATTERNS = [(re.compile('^RET DAB (?P<dd>\d{2})/?(?P<mm>\d{2})(/?(?P<yy>\d{2}))? (?P<text>.*)'),
+                                                              FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile('CARTE (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
+                                                              FrenchTransaction.TYPE_CARD),
+                (re.compile('^(?P<category>VIR(EMEN)?T? (SEPA)?(RECU|FAVEUR)?)( /FRM)?(?P<text>.*)'),
+                                                              FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^PRLV (?P<text>.*)( \d+)?$'),    FrenchTransaction.TYPE_ORDER),
+                (re.compile('^(CHQ|CHEQUE) .*$'),             FrenchTransaction.TYPE_CHECK),
+                (re.compile('^(AGIOS /|FRAIS) (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+                (re.compile('^(CONVENTION \d+ |F )?COTIS(ATION)? (?P<text>.*)'),
+                                                              FrenchTransaction.TYPE_BANK),
+                (re.compile('^REMISE (?P<text>.*)'),          FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile('^(?P<text>.*)( \d+)? QUITTANCE .*'),
+                                                              FrenchTransaction.TYPE_ORDER),
+                (re.compile('^.* LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})$'),
+                                                              FrenchTransaction.TYPE_UNKNOWN),
+               ]
 
 
 class CmsoTransactionElement(ItemElement):

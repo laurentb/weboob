@@ -30,14 +30,16 @@ from .pages import LoginPage, AccountsPage, HistoryPage, ChoiceLinkPage, Subscri
 
 
 class CmsoProBrowser(LoginBrowser):
-    BASEURL = 'https://www.cmso.com/'
-
     login = URL('/banque/assurance/credit-mutuel/pro/accueil\?espace=professionnels', LoginPage)
     choice_link = URL('/domiweb/accueil.jsp', ChoiceLinkPage)
     subscription = URL('/domiweb/prive/espacesegment/selectionnerAbonnement/0-selectionnerAbonnement.act', SubscriptionPage)
     accounts = URL('/domiweb/prive/professionnel/situationGlobaleProfessionnel/0-situationGlobaleProfessionnel.act', AccountsPage)
     history = URL('/domiweb/prive/professionnel/situationGlobaleProfessionnel/1-situationGlobaleProfessionnel.act', HistoryPage)
     useless = URL('/domiweb/prive/particulier/modificationMotDePasse/0-expirationMotDePasse.act', UselessPage)
+
+    def __init__(self, website, *args, **kwargs):
+        super(CmsoProBrowser, self).__init__(*args, **kwargs)
+        self.BASEURL = "https://www.%s" % website
 
     def do_login(self):
         self.login.stay_or_go()
@@ -53,12 +55,12 @@ class CmsoProBrowser(LoginBrowser):
             self.subscription.go()
 
     @need_login
-    def get_accounts_list(self):
+    def iter_accounts(self):
         self.accounts.go()
         return self.page.iter_accounts()
 
     @need_login
-    def get_history(self, account):
+    def iter_history(self, account):
         if account._history_url.startswith('javascript:'):
             raise NotImplementedError()
 
@@ -77,3 +79,11 @@ class CmsoProBrowser(LoginBrowser):
         date_guesser = LinearDateGuesser()
 
         return chain(first_page.iter_history(date_guesser=date_guesser), reversed(list(rest_page.iter_history(date_guesser=date_guesser))))
+
+    @need_login
+    def iter_coming(self, account):
+        raise NotImplementedError()
+
+    @need_login
+    def iter_investment(self, account):
+        raise NotImplementedError()

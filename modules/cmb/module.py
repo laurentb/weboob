@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012 Johann Broudin
+# Copyright(C) 2012-2013 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -17,19 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.capabilities.bank import Account, Transaction
-from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword
-from weboob.capabilities.base import NotAvailable
-from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPError, ParseError
-from weboob.browser import Browser
 
-from re import match, compile, sub
-from decimal import Decimal
-from lxml import etree
-from datetime import date
-from StringIO import StringIO
+from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.base import find_object
+from weboob.tools.backend import Module, BackendConfig
+from weboob.tools.value import Value, ValueBackendPassword
+
+from .par.browser import CmsoParBrowser
+from .pro.browser import CmsoProBrowser
 
 
 __all__ = ['CmbModule']
@@ -37,211 +32,36 @@ __all__ = ['CmbModule']
 
 class CmbModule(Module, CapBank):
     NAME = 'cmb'
-    MAINTAINER = u'Johann Broudin'
-    EMAIL = 'Johann.Broudin@6-8.fr'
+    MAINTAINER = u'Edouard Lambert'
+    EMAIL = 'elambert@budget-insight.com'
     VERSION = '1.2'
+    DESCRIPTION = u'Credit Mutuel de Bretagne'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = u'Crédit Mutuel de Bretagne'
-    CONFIG = BackendConfig(
-            ValueBackendPassword('login', label='Identifiant', masked=False),
-            ValueBackendPassword('password', label='Mot de passe', masked=True))
-    LABEL_PATTERNS = [
-            (   # card
-                compile('^CARTE (?P<text>.*)'),
-                Transaction.TYPE_CARD,
-                '%(text)s'
-            ),
-            (   # order
-                compile('^PRLV (?P<text>.*)'),
-                Transaction.TYPE_ORDER,
-                '%(text)s'
-            ),
-            (   # withdrawal
-                compile('^RET DAB (?P<text>.*)'),
-                Transaction.TYPE_WITHDRAWAL,
-                '%(text)s'
-            ),
-            (   # loan payment
-                compile('^ECH (?P<text>.*)'),
-                Transaction.TYPE_LOAN_PAYMENT,
-                '%(text)s'
-            ),
-            (   # transfer
-                compile('^VIR (?P<text>.*)'),
-                Transaction.TYPE_TRANSFER,
-                '%(text)s'
-            ),
-            (   # payback
-                compile('^ANN (?P<text>.*)'),
-                Transaction.TYPE_PAYBACK,
-                '%(text)s'
-            ),
-            (   # bank
-                compile('^F (?P<text>.*)'),
-                Transaction.TYPE_BANK,
-                '%(text)s'
-            ),
-            (   # deposit
-                compile('^VRST (?P<text>.*)'),
-                Transaction.TYPE_DEPOSIT,
-                '%(text)s'
-            )
-            ]
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
+                           ValueBackendPassword('password', label='Mot de passe'),
+                           Value('website', label='Type de compte', default='pro',
+                                 choices={'par': 'Particuliers', 'pro': 'Professionnels'}))
 
-    BROWSER = Browser
-    islogged = False
+    BROWSER = CmsoParBrowser
 
-    def login(self):
-        data = {
-            'codeEspace': 'NO',
-            'codeEFS': '01',
-            'codeSi': '001',
-            'noPersonne': self.config['login'].get(),
-            'motDePasse': self.config['password'].get()
-            }
-
-        try:
-            self.browser.open("https://www.cmb.fr/domiweb/servlet/Identification", data=data)
-            self.browser.open("https://www.cmb.fr/domiweb/prive/espacesegment/selectionnerAbonnement/0-selectionnerAbonnement.act")
-        except BrowserHTTPError:
-            raise BrowserIncorrectPassword()
-        else:
-            self.islogged=True
-
-            # Go on agricultor space when there is one.
-            self.browser.open("https://www.cmb.fr/domiweb/prive/espacesegment/selectionnerAbonnement/1-selectionnerAbonnement.act?espace=AG&indice=0")
-            # Go on pro space when there is one.
-            self.browser.open("https://www.cmb.fr/domiweb/prive/espacesegment/selectionnerAbonnement/1-selectionnerAbonnement.act?espace=PR&indice=0")
-
-    def iter_accounts(self):
-        if not self.islogged:
-            self.login()
-
-        data = self.browser.open("https://www.cmb.fr/domiweb/prive/particulier/releve/0-releve.act").content
-        parser = etree.HTMLParser()
-        tree = etree.parse(StringIO(data), parser)
-
-        table = tree.xpath('/html/body/table')
-        if len(table) == 0:
-            title = tree.xpath('/html/head/title')[0].text
-            if title == u"Utilisateur non identifié":
-                self.login()
-                data = self.browser.open("https://www.cmb.fr/domiweb/prive/particulier/releve/0-releve.act").content
-
-                parser = etree.HTMLParser()
-                tree = etree.parse(StringIO(data), parser)
-                table = tree.xpath('/html/body/table')
-                if len(table) == 0:
-                    raise ParseError()
-            else:
-                return
-
-        for tr in tree.xpath('/html/body//table[contains(@class, "Tb")]/tr'):
-            if tr.get('class', None) not in ('LnTit', 'LnTot', 'LnMnTiers', None):
-                account = Account()
-                td = tr.xpath('td')
-
-                a = td[1].xpath('a')
-                account.label = unicode(a[0].text).strip()
-                href = a[0].get('href')
-                m = match(r"javascript:releve\((.*),'(.*)','(.*)'\)",
-                             href)
-                if not m:
-                    continue
-                account.id = unicode(m.group(1) + m.group(2) + m.group(3))
-                account._cmbvaleur = m.group(1)
-                account._cmbvaleur2 = m.group(2)
-                account._cmbtype = m.group(3)
-
-                balance = u''.join([txt.strip() for txt in td[2].itertext()])
-                balance = balance.replace(',', '.').replace(u"\xa0", '')
-                account.balance = Decimal(balance)
-
-                span = td[4].xpath('a/span')
-                if len(span):
-                    coming = span[0].text.replace(' ', '').replace(',', '.')
-                    coming = coming.replace(u"\xa0", '')
-                    account.coming = Decimal(coming)
-                else:
-                    account.coming = NotAvailable
-
-                yield account
+    def create_default_browser(self):
+        b = {'par': CmsoParBrowser, 'pro': CmsoProBrowser}
+        self.BROWSER = b[self.config['website'].get()]
+        return self.create_browser("cmb.fr",
+                                   self.config['login'].get(),
+                                   self.config['password'].get())
 
     def get_account(self, _id):
-        for account in self.iter_accounts():
-            if account.id == _id:
-                return account
+        return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)
 
-        raise AccountNotFound()
+    def iter_accounts(self):
+        return self.browser.iter_accounts()
 
     def iter_history(self, account):
-        if not self.islogged:
-            self.login()
+        return self.browser.iter_history(account)
 
-        page = "https://www.cmb.fr/domiweb/prive/particulier/releve/"
-        if account._cmbtype == 'D':
-            page += "10-releve.act"
-        else:
-            page += "2-releve.act"
-        page +="?noPageReleve=1&indiceCompte="
-        page += account._cmbvaleur
-        page += "&typeCompte="
-        page += account._cmbvaleur2
-        page += "&deviseOrigineEcran=EUR"
+    def iter_coming(self, account):
+        return self.browser.iter_coming(account)
 
-        data = self.browser.open(page).content
-        parser = etree.HTMLParser()
-        tree = etree.parse(StringIO(data), parser)
-
-        tables = tree.xpath('/html/body/table')
-        if len(tables) == 0:
-            title = tree.xpath('/html/head/title')[0].text
-            if title == u"Utilisateur non identifié":
-                self.login()
-                data = self.browser.open(page).content
-
-                parser = etree.HTMLParser()
-                tree = etree.parse(StringIO(data), parser)
-                tables = tree.xpath('/html/body/table')
-                if len(tables) == 0:
-                    raise ParseError()
-            else:
-                raise ParseError()
-
-        i = 0
-
-        for table in tables:
-            if table.get('id') != "tableMouvements":
-                continue
-            for tr in table.getiterator('tr'):
-                if (tr.get('class') != 'LnTit' and
-                        tr.get('class') != 'LnTot'):
-                    operation = Transaction()
-                    td = tr.xpath('td')
-
-                    div = td[1].xpath('div')
-                    d = div[0].text.split('/')
-                    operation.date = date(*reversed([int(x) for x in d]))
-
-                    div = td[2].xpath('div')
-                    label = div[0].xpath('a')[0].text.replace('\n', '')
-                    operation.raw = unicode(' '.join(label.split()))
-                    for pattern, _type, _label in self.LABEL_PATTERNS:
-                        mm = pattern.match(operation.raw)
-                        if mm:
-                            operation.type = _type
-                            operation.label = sub('[ ]+', ' ',
-                                    _label % mm.groupdict()).strip()
-                            break
-
-                    amount = td[3].text
-                    if amount.count(',') != 1:
-                        amount = td[4].text
-                        amount = amount.replace(',', '.').replace(u'\xa0', '')
-                        operation.amount = Decimal(amount)
-                    else:
-                        amount = amount.replace(',', '.').replace(u'\xa0', '')
-                        operation.amount = - Decimal(amount)
-
-                    i += 1
-                    yield operation
+    def iter_investment(self, account):
+        return self.browser.iter_investment(account)
