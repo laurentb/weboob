@@ -40,32 +40,16 @@ class Transaction(FrenchTransaction):
 
 
 class VirtKeyboard(MappedVirtKeyboard):
-    # XXX it will be necessary to do something to fix that shit.
-    symbols={'0':('069f9dd5e75d8419476b18f1551e59ce','4d3d5662b2a85ab7f0dc33b234eeaa12','9dbc8f4af61329c68cb53f62570ab213',
-                  'c375d0349a6b097ac2708cc12736651a','15997d39cbdceecf8fc3050f86811ded','65cf69050c47fd044dc6866b0771665a',
-                  '53998518eef3c5be42290bca46288094', 'f152068e6057f5ef07ead676e8e1006f',),
-             '1':('ddc9036ea2ae1bdfbb15616a0e3a0d90',),
-             '2':('27638b6ebedf6a23149990495ef4c1c5','f602ee70136eb2331275a8ac8cd636de','ff1f44c05a5eab4569bef7bde84e5b66',
-                  '3b0795e3fc0af85c4838279847cb87f7','ac27be9df781cc8756f999d61f7a46f3', 'c5d2d4e03ca49cd698ffe971a286aa7c',),
-             '3':('45101362592c07bc94f8449a1f4479f1','b24990f89de3454038b7c7940bc1053f','bf0d6bd4f13ea9b57a72f76c6dad0b41',
-                  '743762655b13c97908b17ce7b36a1f5a','53f9b643c228e99723c384fe12390a0e','f206adf0be6f3c6613452c19a7b0babe',
-                  'f206adf0be6f3c6613452c19a7b0babe','f80d52e8776e0825954cc3477e3c4d95','4ed9ae4d6ed821da16156ed9c31c6609',
-                  '9b9a760b46320848ca48593f43dc22d7','e0896e80bea559f8d1ec02ba38489715','4452c4b1a1247462fbefdcb53903c401',
-                  '658158105933251a7960358b298ed79c','c2f37f9291e643f8ca3437da7dd29c94','802ab1c4b6514b894cc1057f658d26b6',),
-             '4':('9d5d871b405465218cc892dc015ea6d8','fed023bedd046b9f4d169c6ab12f6d4c','5069a391893fb107fbc39923a9d108ef',),
-             '5':('5ef102b78f5dc642ee98e9bdcf42a02e','496418730424d7f40d2b137d56bcbfe8','139186da206acf5344362ed86da42a7f',
-                  'e080cd4fbda1493034f1444eae484887','fa7679409453ed56b8e1d13f5c0987bc'),
-             '6':('ab1fff097099fb395fe73470f7afcae0','70c64ac427435d40d2713128e8735b4d','bbb6fc3d0f23fa5104e2ea602ecc2d18',
-                  '5d8c50960dd1f50457697fd8a8d5622e','96106ac2caa33e2a9025efcb21277a3c','780831d18940564f96e3ed6636038911'),
-             '7':('30f11190e1772dd0f93740190aaa7608','ef5477640cf97de373e49e13caef8f5c','05dfb006e2668d7dfd210b2fdf74fef8',
-                  '8efb472abef04ac9bcd1ba02b49ed6a5','30f11190e1772dd0f93740190aaa7608'),
-             '8':('8a8258f63f816888b550d704f4c6a068','69cade726c4d6c8e6a72e96df059c8c7','675972437c7733747146a0851bbb5727',
-                  '01ce8b70eb0761b7f4047c365faa9cf5','08e6113ad8ac2f74d104c156047819a8','c2278d5c10b9903aff14f1a6516a583b',
-                  'bbba856f115bf8a45ef944a5e41ee436','f365fa7628ef15f172d40f07e54c327a','ed9b97a0cf393832ea75263d9bdd8004',
-                  'ee281ac9d1c20a510fcaf4dc37d5450a'),
-             '9':('bf8e09357cd69275cbc6fdef42610ea0','212af59d8bc81dff176e02c0f001aa81','a3bc28250187c34a46757f2ab01e436b',
-                  '9c0ab75a491e6a64dca57543efe5012c','62bedc16830a5602e26d9a050b13d2df','2b79fff64f55c027d23895baa5d2c66b',
-                  '9d5d871b405465218cc892dc015ea6d8',),
+    symbols={'0':('8664b9cdfa66b4c3a1ec99c35a2bf64b','9eb80c6e99410eaac32905b2c77e65e5','37717277dc2471c8a7bf37e2068a8f01'),
+             '1':('1f36986f9d27dde54ce5b08e8e285476','9d0aa7a0a2bbab4f2c01ef1e820cb3f1'),
+             '2':('b560b0cce2ca74d3d499d73775152ab7',),
+             '3':('d16e426e71fc29b1b55d0fbded99a473',),
+             '4':('19c68066e414e08d17c86fc5c4acc949','c43354a7f7739508f76c538d5b3bce26'),
+             '5':('4b9abf98e30a1475997ec770cbe5e702','2059b4aa95c7b3156b171255fa10bbdd'),
+             '6':('804be4171d61f9cc10e9978c43b1d2a0','a41b091d4a11a318406a5a8bd3ed3837'),
+             '7':('8adf951f4eea5f446f714214e101d555',),
+             '8':('568135f3844213c30f2c7880be867d3d',),
+             '9':('a3750995c511ea1492ac244421109e77','eeb3a8ba804f19380dfe94a91a37595b'),
             }
 
     color=(0,0,0)
@@ -79,10 +63,15 @@ class VirtKeyboard(MappedVirtKeyboard):
 
     def check_color(self, pixel):
         for p in pixel:
-            if p >= 200:
+            if p >= 0xd5:
                 return False
 
         return True
+
+    def get_symbol_coords(self, coords):
+        # strip borders
+        x1, y1, x2, y2 = coords
+        return MappedVirtKeyboard.get_symbol_coords(self, (x1+10, y1+10, x2-10, y2-10))
 
     def get_symbol_code(self, md5sum_list):
         for md5sum in md5sum_list:
@@ -102,21 +91,14 @@ class VirtKeyboard(MappedVirtKeyboard):
 
 
 class LoginPage(HTMLPage):
-    is_here ="//form[@id='formulaire-login']"
-
     def login(self, login, password):
         vk = VirtKeyboard(self)
 
         form = self.get_form('//form[@id="formulaire-login"]')
         code = vk.get_string_code(password)
         assert len(code)==10, ParseError("Wrong number of character.")
-        form['identifiant'] = login
-        form['codePinpad'] = code
-        form['task'] = 'Login'
-        form['process'] = 'Login'
-        form['eventid'] = 'suivant'
-        form['modeCodeSecret'] = 'pinpad'
-        form['personneIdentifiee'] = 'N'
+        form['accordirect.identifiant'] = login
+        form['accordirect.code'] = code
         form.submit()
 
 

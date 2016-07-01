@@ -28,13 +28,13 @@ __all__ = ['BanqueAccordBrowser']
 
 
 class BanqueAccordBrowser(LoginBrowser):
-    BASEURL = 'https://www.banque-accord.fr/site/s/'
+    BASEURL = 'https://www.oney.fr'
     TIMEOUT = 30.0
 
-    login = URL('login/login.html', LoginPage)
-    index = URL('detailcompte/detailcompte.html', IndexPage)
-    accounts = URL('detailcompte/ongletdetailcompte.html', AccountsPage)
-    operations = URL('detailcompte/ongletdernieresoperations.html', OperationsPage)
+    login = URL('/site/s/login/login.html', LoginPage)
+    index = URL('/site/s/detailcompte/detailcompte.html', IndexPage)
+    accounts = URL('/site/s/detailcompte/ongletdetailcompte.html', AccountsPage)
+    operations = URL('/site/s/detailcompte/ongletdernieresoperations.html', OperationsPage)
 
     def do_login(self):
         """

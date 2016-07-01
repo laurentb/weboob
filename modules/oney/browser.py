@@ -32,7 +32,7 @@ class OneyBrowser(LoginBrowser):
     VERIFY = False
 
     index =      URL(r'/oney/client', IndexPage)
-    login =      URL(r'/oney/client', LoginPage)
+    login =      URL(r'/site/s/login/login.html', LoginPage)
     operations = URL(r'/oney/client', OperationsPage)
     card_page =  URL(r'/oney/client\?task=Synthese&process=SyntheseMultiCompte&indexSelectionne=(?P<acc_num>/d)')
 
