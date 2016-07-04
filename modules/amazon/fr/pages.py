@@ -19,7 +19,7 @@
 
 from weboob.capabilities.shop import Order, Payment, Item
 from weboob.browser.pages import HTMLPage, pagination, NextPage
-from weboob.capabilities.base import empty
+from weboob.capabilities.base import empty, NotAvailable
 
 from datetime import datetime
 from decimal import Decimal
@@ -186,9 +186,12 @@ class OrderNewPage(OrderPage):
         return self.amount(u'Gift Card Amount')
 
     def amount(self, *names):
-        return Decimal(sum(self.decimal_amount(amount.strip())
+        try:
+            return Decimal(sum(self.decimal_amount(amount.strip())
                        for n in names for amount in self.doc.xpath(
                        '(//span[contains(text(),"%s")]/../..//span)[2]/text()' % n)))
+        except TypeError:
+            return NotAvailable
 
     def transactions(self):
         for row in self.doc.xpath('//span[contains(text(),"Transactions")]'
