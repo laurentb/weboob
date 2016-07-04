@@ -646,5 +646,5 @@ class IbanPage(LoggedPage, HTMLPage):
         # New website
         for ele in self.doc.xpath('//table[@class="liste"]//tr[not(@class)]/td[1]'):
             for a in accounts:
-                if a.label.capitalize() in CleanText('.')(ele).capitalize():
+                if a.id.split('EUR')[0] in CleanText('.//em[2]', replace=[(' ', '')])(ele):
                     a.iban = CleanText('.//em[2]', replace=[(' ', '')])(ele)
