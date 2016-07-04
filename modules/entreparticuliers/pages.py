@@ -27,6 +27,7 @@ from weboob.browser.filters.standard import CleanText, CleanDecimal, Format, Reg
 from weboob.browser.filters.html import CleanHTML
 from weboob.capabilities.housing import Housing, HousingPhoto, City
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
+from weboob.capabilities.base import NotAvailable
 
 
 class CitiesPage(JsonPage):
@@ -97,7 +98,8 @@ class HousingPage(EntreParticuliersXMLPage):
         obj_text = CleanText('//Description')
         obj_location = CleanHTML(CleanText('//Localisation'))
 
-        obj_area = CleanDecimal('//SurfaceBien', replace_dots=True)
+        obj_area = CleanDecimal('//SurfaceBien', replace_dots=True,
+                                default=NotAvailable)
         obj_price_per_meter = PricePerMeterFilter()
         obj_phone = CleanText('//Telephone')
         obj_date = datetime.now
