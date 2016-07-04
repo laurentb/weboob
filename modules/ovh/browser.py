@@ -27,7 +27,8 @@ from .pages import LoginPage, ProfilePage, BillsPage
 class OvhBrowser(LoginBrowser):
     BASEURL = 'https://www.ovh.com'
 
-    login = URL('/auth/', LoginPage)
+    login = URL('/auth/',
+                '/manager/web/index.html', LoginPage)
     profile = URL('/manager/dedicated/api/proxypass/me', ProfilePage)
     billspage = URL('/manager/web/api/billing/bills', BillsPage)
 

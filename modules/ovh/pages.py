@@ -28,7 +28,7 @@ from weboob.browser.elements import ListElement, ItemElement, method, DictElemen
 
 class LoginPage(HTMLPage):
     def is_logged(self):
-        return self.doc.xpath('//button[@value="disconnect"]')
+        return not self.doc.xpath('//div[has-class("error")]')
 
     def login(self, login, password):
         form = self.get_form('//form[@class="pagination-centered"]')
