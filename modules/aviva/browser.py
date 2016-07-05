@@ -27,7 +27,8 @@ from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage
 class AvivaBrowser(LoginBrowser):
     BASEURL = 'https://www.aviva.fr/espaceclient/'
 
-    login = URL('MonCompte/Connexion', LoginPage)
+    login = URL('MonCompte/Connexion',
+                'conventions/acceptation', LoginPage)
     accounts = URL('Accueil/Synthese-Contrats', AccountsPage)
     investment = URL('contrat/epargne/', InvestmentPage)
     history = URL('contrat/getOperations', HistoryPage)
@@ -36,7 +37,9 @@ class AvivaBrowser(LoginBrowser):
         self.login.go().login(self.username, self.password)
 
         if self.login.is_here():
-            raise BrowserIncorrectPassword
+            error = u'Veuillez accepter les conditions générales d\'utilisation sur le site.' \
+                    if "acceptation" in self.url else 'L\'identifiant ou le mot de passe est incorrect.'
+            raise BrowserIncorrectPassword(error)
 
     @need_login
     def iter_accounts(self):
