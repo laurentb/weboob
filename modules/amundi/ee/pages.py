@@ -25,6 +25,7 @@ from weboob.browser.filters.standard import CleanDecimal, Date
 from weboob.browser.filters.json import Dict
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage, pagination
 from weboob.capabilities.bank import Account, Investment, Transaction
+from weboob.capabilities.base import NotAvailable
 from weboob.browser.pages import NextPage
 
 
@@ -81,7 +82,7 @@ class AccountDetailPage(LoggedPage, JsonPage):
             obj_unitvalue = Dict('vl') & CleanDecimal
             obj_quantity = Dict('nbParts') & CleanDecimal
             obj_valuation = Dict('mtBrut') & CleanDecimal
-            obj_code = Dict('codeIsin')
+            obj_code = Dict('codeIsin', default=NotAvailable)
             obj_vdate = Date(Dict('dtVl'))
             obj_diff = Dict('mtPMV') & CleanDecimal
 
