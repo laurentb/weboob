@@ -206,6 +206,7 @@ class Investment(BaseObject):
     valuation =          DecimalField('Total current valuation of the Investment')
     vdate     =          DateField('Value date of the valuation amount')
     diff =               DecimalField('Difference between the buy cost and the current valuation')
+    diff_percent =       DecimalField('Difference in percentage between the buy cost and the current valuation')
     portfolio_share =    DecimalField('Percentage of the current amount relative to the total')
 
     # International
