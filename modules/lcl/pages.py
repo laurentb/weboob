@@ -207,6 +207,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                            '012': Account.TYPE_SAVINGS,
                            '023': Account.TYPE_CHECKING,
                            '046': Account.TYPE_SAVINGS,
+                           '047': Account.TYPE_SAVINGS,
                            '049': Account.TYPE_SAVINGS,
                            '068': Account.TYPE_MARKET,
                            '069': Account.TYPE_SAVINGS,
