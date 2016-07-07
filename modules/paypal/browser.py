@@ -75,17 +75,11 @@ class Paypal(LoginBrowser):
         self.BEGINNING = datetime.date.today() - relativedelta(months=24)
         self.account_type = None
         self.account_currencies = list()
-        self.remaining_login_attempts = 5
         super(Paypal, self).__init__(*args, **kwargs)
 
     def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
-
-        if self.remaining_login_attempts == 0:
-            raise BrowserIncorrectPassword(u'La connexion nécessite une étape de sécurisation supplémentaire.')
-        else:
-            self.remaining_login_attempts -= 1
 
         if not self.login.is_here():
             self.location('/signin/')
@@ -104,6 +98,8 @@ class Paypal(LoginBrowser):
             raise BrowserIncorrectPassword()
 
         self.location('/')
+        if self.login.is_here():
+            raise BrowserIncorrectPassword('Impossible de se connecter, le compte nécessite une étape de vérification supplémentaire.')
         self.detect_account_type()
 
     @need_login
