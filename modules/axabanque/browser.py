@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013 Romain Bignon
+# Copyright(C) 2016      Edouard Lambert
 #
 # This file is part of weboob.
 #
@@ -18,97 +18,97 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import urllib
+import json
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
-from weboob.deprecated.browser.parsers.jsonparser import JsonParser
+from weboob.browser import LoginBrowser, URL, need_login
+from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, PostLoginPage, AccountsPage, TransactionsPage, CBTransactionsPage, UnavailablePage, PredisconnectedPage
+from .pages import KeyboardPage, LoginPage, PredisconnectedPage, BankAccountsPage, \
+                   InvestmentActivatePage, InvestmentCguPage, InvestmentPage, \
+                   CBTransactionsPage, TransactionsPage, UnavailablePage
 
 
-__all__ = ['AXABanque']
+class AXABanque(LoginBrowser):
+    BASEURL = 'https://www.axabanque.fr/'
 
+    # Login
+    keyboard = URL('https://www.axa.fr/.sendvirtualkeyboard.json', KeyboardPage)
+    login = URL('https://www.axa.fr/.loginAxa.json', LoginPage)
+    predisconnected = URL('https://www.axa.fr/axa-predisconnect.html', PredisconnectedPage)
+    # Bank
+    bank_accounts = URL('transactionnel/client/liste-comptes.html',
+                        'webapp/axabanque/client/sso/connexion\?token=(?P<token>.*)', BankAccountsPage)
+    cbttransactions = URL('webapp/axabanque/jsp/detailCarteBleu.*.faces', CBTransactionsPage)
+    transactions = URL('webapp/axabanque/jsp/panorama.faces',
+                       'webapp/axabanque/jsp/detail.*.faces', TransactionsPage)
+    unavailable = URL('login_errors/indisponibilite.*',
+                      '.*page-indisponible.html.*',
+                      '.*erreur/erreurBanque.faces', UnavailablePage)
+    # Investment
+    investment_activate = URL('https://client.axa.fr/_layouts/NOSI/MonitoringSedia.aspx', InvestmentActivatePage)
+    investment_cgu = URL('https://client.axa.fr/_layouts/nosi/CGUPage.aspx', InvestmentCguPage)
+    investment = URL('https://client.axa.fr/mes-comptes-et-contrats/Pages/(?P<page>.*)',
+                     'https://client.axa.fr/_layouts/NOSI/LoadProfile.aspx', InvestmentPage)
 
-class AXABanque(Browser):
-    PROTOCOL = 'https'
-    DOMAIN = 'www.axabanque.fr'
-    PAGES = {'https?://www.axa.fr/.sendvirtualkeyboard.json':                               (LoginPage, JsonParser()),
-             'https?://www.axa.fr/.loginAxa.json':                                          (PostLoginPage, JsonParser()),
-             'https?://www.axabanque.fr/login_errors/indisponibilite.*':                    UnavailablePage,
-             'https?://www.axabanque.fr/.*page-indisponible.html.*':                        UnavailablePage,
-             'https?://www.axabanque.fr/.*erreur/erreurBanque.faces':                       UnavailablePage,
-             'https?://www.axa.fr/axa-predisconnect.html':                                  PredisconnectedPage,
-             'https?://www.axabanque.fr/transactionnel/client/liste-comptes.html':          AccountsPage,
-             'https?://www.axabanque.fr/webapp/axabanque/jsp/panorama.faces':               TransactionsPage,
-             'https?://www.axabanque.fr/webapp/axabanque/jsp/detailCarteBleu.*.faces':      CBTransactionsPage,
-             'https?://www.axabanque.fr/webapp/axabanque/jsp/detail(?!CarteBleu).*.faces':  TransactionsPage,
-            }
+    def __init__(self, *args, **kwargs):
+        super(AXABanque, self).__init__(*args, **kwargs)
+        self.tokens = {}
 
-    def is_logged(self):
-        return self.page is not None and not self.is_on_page(LoginPage)
+    def do_login(self):
+        html = json.loads(self.keyboard.go(data={'login': self.username}).content)['html']
+        self.page.doc = self.page.build_doc(html.encode('utf-8'))
 
-    def home(self):
-        if self.is_logged():
-            self.location('/transactionnel/client/liste-comptes.html')
-        else:
-            self.login()
+        data = self.page.get_data(self.username, self.password)
+        error = self.login.go(data=data).check_error()
 
-    def login(self):
-        """
-        Attempt to log in.
-        Note: this method does nothing if we are already logged in.
-        """
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
+        if error:
+            raise BrowserIncorrectPassword(error)
 
-        if self.is_logged():
-            return
+        # Activate tokens if there has
+        if self.tokens['bank']:
+            self.bank_accounts.go(token=self.tokens['bank'])
+        if self.tokens['investment']:
+            self.investment_activate.go(data={'tokenmixte': self.tokens['investment']})
 
-        if not self.is_on_page(LoginPage):
-            self.location('https://www.axa.fr/.sendvirtualkeyboard.json', data=urllib.urlencode({'login': self.username}), no_login=True)
+    @need_login
+    def iter_accounts(self):
+        accounts = []
+        # Get bank accounts if there has
+        if self.tokens['bank']:
+            self.transactions.go()
+            for a in self.bank_accounts.go().get_list():
+                accounts.append(a)
+        # Get investment accounts if there has
+        if self.tokens['investment']:
+            self.investment_pages = []
+            self.investment.go(page="default.aspx").get_home()
+            self.investment.go(page="default.aspx")
+            # If user has cgu
+            if not self.investment_cgu.is_here:
+                for form in self.page.get_forms():
+                    for a in self.investment.go(page="PartialUpdatePanelLoader.ashx", \
+                            data=form).iter_accounts():
+                        accounts.append(a)
+        return iter(accounts)
 
-        self.page.login(self.username, self.password)
+    @need_login
+    def iter_investment(self, account):
+        if account._acctype is "investment":
+            return account._page.iter_investment()
+        return iter([])
 
-        if not self.is_on_page(PostLoginPage):
-            raise BrowserIncorrectPassword()
-
-        if not self.page.redirect():
-            raise BrowserIncorrectPassword()
-
-    def get_accounts_list(self):
-        if not self.is_on_page(AccountsPage):
-            self.location('/transactionnel/client/liste-comptes.html')
-
-        if self.page.is_password_expired():
-            raise BrowserIncorrectPassword()
-
-        return self.page.get_list()
-
-    def get_account(self, id):
-        assert isinstance(id, basestring)
-
-        l = self.get_accounts_list()
-        for a in l:
-            if a.id == id:
-                return a
-
-        return None
-
-    def get_history(self, account):
-        if not self.is_on_page(AccountsPage):
-            account = self.get_account(account.id)
-
-        if self.page.is_password_expired():
-            raise BrowserIncorrectPassword()
-
-        args = account._args
-        args['javax.faces.ViewState'] = self.page.get_view_state()
-        self.location('/webapp/axabanque/jsp/panorama.faces', urllib.urlencode(args))
-
-        assert self.is_on_page(TransactionsPage)
-
-        if not self.page.more_history():
-            return iter([])
-
-        assert self.is_on_page(TransactionsPage)
-        return self.page.get_history()
+    @need_login
+    def iter_history(self, account):
+        # Bank's history
+        if account._acctype is "bank":
+            self.bank_accounts.go()
+            args = account._args
+            args['javax.faces.ViewState'] = self.page.get_view_state()
+            self.transactions.go(data=args)
+            if not self.page.more_history():
+                return iter([])
+            return self.page.get_history()
+        # Investment's history
+        if account._acctype is "investment":
+            return account._page.iter_history()
+        return iter([])

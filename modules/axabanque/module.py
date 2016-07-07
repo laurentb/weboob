@@ -19,6 +19,7 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -40,22 +41,16 @@ class AXABanqueModule(Module, CapBank):
     BROWSER = AXABanque
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get())
-
-    def iter_accounts(self):
-        with self.browser:
-            return self.browser.get_accounts_list()
+        return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
     def get_account(self, _id):
-        with self.browser:
-            account = self.browser.get_account(_id)
+        return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)
 
-        if account:
-            return account
-        else:
-            raise AccountNotFound()
+    def iter_accounts(self):
+        return self.browser.iter_accounts()
 
     def iter_history(self, account):
-        with self.browser:
-            return self.browser.get_history(account)
+        return self.browser.iter_history(account)
+
+    def iter_investment(self, account):
+        return self.browser.iter_investment(account)
