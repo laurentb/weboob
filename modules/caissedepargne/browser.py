@@ -118,6 +118,8 @@ class CaisseEpargne(Browser):
 
     def get_accounts_list(self):
         if self.is_on_page(IndexPage):
+            if self.page.check_no_accounts():
+                return iter([])
             self.page.go_list()
         else:
             self.location(self.buildurl('/Portail.aspx'))
@@ -145,6 +147,9 @@ class CaisseEpargne(Browser):
         return iter(accounts)
 
     def get_loans_list(self):
+        if self.is_on_page(IndexPage):
+            if self.page.check_no_accounts():
+                return iter([])
         self.location(self.buildurl('/Portail.aspx?tache=CRESYNT0'))
         loan_accounts = list()
         if self.is_on_page(IndexPage):

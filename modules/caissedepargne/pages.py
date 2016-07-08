@@ -121,6 +121,10 @@ class IndexPage(Page):
         if len(bourse_link) == 1:
             self.browser.location(bourse_link[0].attrib['href'])
 
+    def check_no_accounts(self):
+        # Prevent infinite loop when no accouts on website.
+        return len(self.document.xpath(u'//span[@id="MM_LblMessagePopinError"]/p[contains(text(), "Aucun compte disponible")]')) == 1
+
     def _get_account_info(self, a):
         m = re.search("PostBack(Options)?\([\"'][^\"']+[\"'],\s*['\"]([HISTORIQUE_\w|SYNTHESE_ASSURANCE_CNP|BOURSE|COMPTE_TITRE][\d\w&]+)?['\"]", a.attrib.get('href', ''))
         if m is None:
