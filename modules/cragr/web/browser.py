@@ -60,7 +60,7 @@ class Cragr(Browser):
              'https?://[^/]+/stb/collecteNI\?.*fwkaction=Detail.*sessionAPP=Cartes.*': CardsPage,
              'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.WalletVal\?nump=.*': MarketPage,
              'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis': MarketHomePage,
-             'https://assurance-personnes.credit-agricole.fr:443/filiale/entreeBam\?identifiantBAM=.*': LifeInsurancePage,
+             'https://assurance-personnes.credit-agricole.fr(:443)?/filiale/.*': LifeInsurancePage,
              'https://bgpi-gestionprivee.credit-agricole.fr/bgpi/.*': BGPIPage,
 
              'https?://[^/]+/stb/entreeBam\?.*act=Perimetre':        PerimeterPage,
@@ -343,6 +343,8 @@ class Cragr(Browser):
             self.location(new_location, urllib.urlencode({}))
             if self.is_on_page(BGPIPage):
                 self.page.go_detail()
+            if self.is_on_page(LifeInsurancePage):
+                self.page.go_on_detail(account.id)
 
         for inv in self.page.iter_investment():
             yield inv

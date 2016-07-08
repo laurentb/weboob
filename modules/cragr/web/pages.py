@@ -654,6 +654,18 @@ class LifeInsurancePage(MarketPage):
     COL_UNITVALUE = 1
     COL_VALUATION = 4
 
+    def go_on_detail(self, account_id):
+        # Sometimes this page is a synthesis, so we need to go on detail.
+        if len(self.document.xpath(u'//h1[contains(text(), "Synthèse de vos contrats d\'assurance vie, de capitalisation et de prévoyance")]')) == 1:
+            self.browser.select_form('frm_fwk')
+            self.browser.set_all_readonly(False)
+            self.browser['ID_CNT_CAR'] = account_id
+            self.browser['fwkaction'] = 'Enchainer'
+            self.browser['fwkcodeaction'] = 'Executer'
+            self.browser['puCible'] = 'SEPPU'
+            self.browser.submit()
+            self.browser.location('https://assurance-personnes.credit-agricole.fr/filiale/entreeBam?sessionSAG=%s&stbpg=pagePU&act=SEPPU&stbzn=bnt&actCrt=SEPPU' % self.browser.sag)
+
     def iter_investment(self):
 
         for line in self.document.xpath('//table[@summary and count(descendant::td) > 1]/tbody/tr'):
