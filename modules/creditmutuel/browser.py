@@ -31,6 +31,7 @@ from weboob.tools.compat import basestring
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.profiles import Wget
 from weboob.browser.url import URL
+from weboob.browser.pages import FormNotFound
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Transfer, TransferError, Account
 
@@ -175,7 +176,7 @@ class CreditMutuelBrowser(LoginBrowser):
             try:
                 form = self.page.get_form('//*[@id="I1:fm"]', submit='//input[@name="_FID_DoLoadMoreTransactions"]')
                 form.submit()
-            except IndexError:
+            except (IndexError,FormNotFound):
                 break
 
         if self.li.is_here():
