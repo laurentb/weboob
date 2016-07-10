@@ -172,7 +172,7 @@ class CreditMutuelBrowser(LoginBrowser):
         else:
             self.location('%s/fr/banque/%s' % (self.BASEURL, page_url))
 
-        while 1:
+        while self.page:
             try:
                 form = self.page.get_form('//*[@id="I1:fm"]', submit='//input[@name="_FID_DoLoadMoreTransactions"]')
                 form.submit()
