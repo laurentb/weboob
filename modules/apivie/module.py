@@ -40,7 +40,8 @@ class ApivieModule(Module, CapBankWealth):
                            ValueBackendPassword('password', label='Mot de passe'))
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
+        return self.create_browser('www.apivie.fr',
+                                   self.config['login'].get(),
                                    self.config['password'].get())
 
     def iter_accounts(self):
@@ -50,6 +51,10 @@ class ApivieModule(Module, CapBankWealth):
     def get_account(self, _id):
         with self.browser:
             return self.browser.get_account(_id)
+
+    def iter_investment(self, account):
+        with self.browser:
+            return self.browser.iter_investment(account)
 
     def iter_history(self, account):
         with self.browser:

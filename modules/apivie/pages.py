@@ -20,9 +20,10 @@
 
 from decimal import Decimal
 
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
 from weboob.deprecated.browser import Page
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.browser.filters.standard import Date, CleanText
 
 
 class LoginPage(Page):
@@ -53,6 +54,27 @@ class AccountsPage(Page):
         account.balance = Decimal(FrenchTransaction.clean_amount(balance_str))
         account.currency = account.get_currency(balance_str)
         return account
+
+
+class InvestmentsPage(Page):
+    COL_LABEL = 0
+    COL_CODE = 1
+    COL_VALUATION = 2
+    COL_PORTFOLIO_SHARE = 3
+
+    def iter_investment(self):
+        for line in self.document.xpath('//div[@class="supportTable"]//table/tbody/tr'):
+            tds = line.findall('td')
+            inv = Investment()
+            inv.vdate = Date(dayfirst=True).filter(CleanText().filter(self.document.xpath( \
+                        '//div[@id="table-evolution-contrat"]//table/tbody/tr[1]/td[1]')))
+            inv.label = self.parser.tocleanstring(tds[self.COL_LABEL])
+            inv.code = self.parser.tocleanstring(tds[self.COL_CODE])
+            inv.valuation = Decimal(FrenchTransaction.clean_amount( \
+                            self.parser.tocleanstring(tds[self.COL_VALUATION])))
+            inv.portfolio_share = Decimal(FrenchTransaction.clean_amount( \
+                                  self.parser.tocleanstring(tds[self.COL_PORTFOLIO_SHARE])))
+            yield inv
 
 
 class Transaction(FrenchTransaction):

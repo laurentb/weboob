@@ -20,7 +20,7 @@
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountsPage, OperationsPage
+from .pages import LoginPage, AccountsPage, InvestmentsPage, OperationsPage
 
 
 __all__ = ['ApivieBrowser']
@@ -28,19 +28,23 @@ __all__ = ['ApivieBrowser']
 
 class ApivieBrowser(Browser):
     PROTOCOL = 'https'
-    DOMAIN = 'www.apivie.fr'
     ENCODING = None
 
     PAGES = {
-        'https?://www.apivie.fr/':                      LoginPage,
-        'https?://www.apivie.fr/accueil':               LoginPage,
-        'https?://www.apivie.fr/perte.*':               LoginPage,
-        'https?://www.apivie.fr/accueil-connect':       AccountsPage,
-        'https?://www.apivie.fr/historique-contrat.*':  OperationsPage,
+        'https?://[^/]+/':                      LoginPage,
+        'https?://[^/]+/accueil':               LoginPage,
+        'https?://[^/]+/perte.*':               LoginPage,
+        'https?://[^/]+/accueil-connect':       AccountsPage,
+        'https?://[^/]+/synthese-contrat.*':    InvestmentsPage,
+        'https?://[^/]+/historique-contrat.*':  OperationsPage,
     }
 
+    def __init__(self, website, *args, **kwargs):
+        self.DOMAIN = website
+        Browser.__init__(self, *args, **kwargs)
+
     def home(self):
-        self.location('https://www.apivie.fr/accueil-connect')
+        self.location('https://%s/accueil-connect' % self.DOMAIN)
 
     def login(self):
         assert isinstance(self.username, basestring)
@@ -66,6 +70,12 @@ class ApivieBrowser(Browser):
             return next(a for a in self.iter_accounts() if a.id == _id)
         except StopIteration:
             return None
+
+    def iter_investment(self, account):
+        self.location(self.buildurl('/synthese-contrat', contratId=account.id))
+
+        assert self.is_on_page(InvestmentsPage)
+        return self.page.iter_investment()
 
     def iter_history(self, account):
         self.location(self.buildurl('/historique-contrat', contratId=account.id))
