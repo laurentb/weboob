@@ -18,13 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import RawPage
+
+import re
 
 
-class TranslatePage(Page):
+class TranslatePage(RawPage):
     def get_translation(self):
-        boxes = self.parser.select(self.document.getroot(), 'span#result_box', 1).findall('span')
-        if len(boxes) == 0:
-            return None
-
-        return u''.join([unicode(box.text) for box in boxes])
+        m = re.search('\[\[\[\"(.*)\",\".*\",,,\d\]\],,".*"\]', self.doc)
+        if m:
+            return unicode(m.group(1))

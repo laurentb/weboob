@@ -18,42 +18,27 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import urllib
-
-from weboob.deprecated.browser import Browser
+from weboob.browser import PagesBrowser, URL
 
 from .pages import TranslatePage
-
+from .gtts_token import Token
 
 __all__ = ['GoogleTranslateBrowser']
 
 
-class GoogleTranslateBrowser(Browser):
-    DOMAIN = 'translate.google.com'
-    ENCODING = 'UTF-8'
-    USER_AGENT = Browser.USER_AGENTS['desktop_firefox']
-    PAGES = {
-        'https?://translate\.google\.com': TranslatePage
-        }
+class GoogleTranslateBrowser(PagesBrowser):
+    BASEURL = 'https://translate.google.fr'
 
-    def __init__(self, *args, **kwargs):
-        Browser.__init__(self, *args, **kwargs)
+    translate_page = URL('/translate_a/single\?client=t&sl=(?P<source>.*)&tl=(?P<to>.*)&dt=t&tk=(?P<token>.*)&q=(?P<text>.*)&ie=UTF-8&oe=UTF-8',
+                         TranslatePage)
 
     def translate(self, source, to, text):
         """
         translate 'text' from 'source' language to 'to' language
         """
-        d = {
-            'sl': source.encode('utf-8'),
-            'tl': to.encode('utf-8'),
-            'js': 'n',
-            'prev': '_t',
-            'hl': 'en',
-            'ie': 'UTF-8',
-            'layout': '2',
-            'eotf': '1',
-            'text': text.encode('utf-8'),
-            }
-        self.location('https://'+self.DOMAIN, urllib.urlencode(d))
-        translation = self.page.get_translation()
-        return translation
+        t = text.encode('utf-8')
+        tk = Token().calculate_token(t)
+        return self.translate_page.go(source=source.encode('utf-8'),
+                                      to=to.encode('utf-8'),
+                                      text=t,
+                                      token=tk).get_translation()

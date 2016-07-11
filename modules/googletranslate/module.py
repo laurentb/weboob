@@ -20,6 +20,7 @@
 
 
 from weboob.capabilities.translate import CapTranslate, Translation, TranslationFail, LanguageNotSupported
+from weboob.capabilities.base import empty
 from weboob.tools.backend import Module
 
 from .browser import GoogleTranslateBrowser
@@ -37,15 +38,70 @@ class GoogleTranslateModule(Module, CapTranslate):
     DESCRIPTION = u'Google translation web service'
     BROWSER = GoogleTranslateBrowser
     GOOGLELANGUAGE = {
-        'Arabic':'ar', 'Afrikaans':'af', 'Albanian':'sq', 'Armenian':'hy', 'Azerbaijani':'az', 'Basque':'eu', 'Belarusian':'be',
-        'Bengali':'bn', 'Bulgarian':'bg', 'Catalan':'ca', 'Chinese':'zh-CN', 'Croatian':'hr', 'Czech':'cs', 'Danish':'da',
-        'Dutch':'nl', 'English':'en', 'Esperanto':'eo', 'Estonian':'et', 'Filipino':'tl', 'Finnish':'fi', 'French':'fr',
-        'Galician':'gl', 'Georgian':'ka', 'German':'de', 'Greek':'el', 'Gujarati':'gu', 'Haitian':'ht', 'Hebrew':'iw',
-        'Hindi':'hi', 'Hungaric':'hu', 'Icelandic':'is', 'Indonesian':'id', 'Irish':'ga', 'Italian':'it', 'Japanese':'ja',
-        'Kannada':'kn', 'Korean':'ko', 'Latin':'la', 'Latvian':'lv', 'Lithuanian':'lt', 'Macedonian':'mk', 'Malay':'ms',
-        'Maltese':'mt', 'Norwegian':'no', 'Persian':'fa', 'Polish':'pl', 'Portuguese':'pt', 'Romanian':'ro', 'Russian':'ru',
-        'Serbian':'sr', 'Slovak':'sk', 'Slovenian':'sl', 'Spanish':'es', 'Swahili':'sw', 'Swedish':'sv', 'Tamil':'ta',
-        'Telugu':'te', 'Thai':'th', 'Turkish':'tr', 'Ukrainian':'uk', 'Urdu':'ur', 'Vietnamese':'vi', 'Welsh':'cy', 'Yiddish':'yi',
+        'Arabic': 'ar',
+        'Afrikaans': 'af',
+        'Albanian': 'sq',
+        'Armenian': 'hy',
+        'Azerbaijani': 'az',
+        'Basque': 'eu',
+        'Belarusian': 'be',
+        'Bengali': 'bn',
+        'Bulgarian': 'bg',
+        'Catalan': 'ca',
+        'Chinese': 'zh-CN',
+        'Croatian': 'hr',
+        'Czech': 'cs',
+        'Danish': 'da',
+        'Dutch': 'nl',
+        'English': 'en',
+        'Esperanto': 'eo',
+        'Estonian': 'et',
+        'Filipino': 'tl',
+        'Finnish': 'fi',
+        'French': 'fr',
+        'Galician': 'gl',
+        'Georgian': 'ka',
+        'German': 'de',
+        'Greek': 'el',
+        'Gujarati': 'gu',
+        'Haitian': 'ht',
+        'Hebrew': 'iw',
+        'Hindi': 'hi',
+        'Hungaric': 'hu',
+        'Icelandic': 'is',
+        'Indonesian': 'id',
+        'Irish': 'ga',
+        'Italian': 'it',
+        'Japanese': 'ja',
+        'Kannada': 'kn',
+        'Korean': 'ko',
+        'Latin': 'la',
+        'Latvian': 'lv',
+        'Lithuanian': 'lt',
+        'Macedonian': 'mk',
+        'Malay': 'ms',
+        'Maltese': 'mt',
+        'Norwegian': 'no',
+        'Persian': 'fa',
+        'Polish': 'pl',
+        'Portuguese': 'pt',
+        'Romanian': 'ro',
+        'Russian': 'ru',
+        'Serbian': 'sr',
+        'Slovak': 'sk',
+        'Slovenian': 'sl',
+        'Spanish': 'es',
+        'Swahili': 'sw',
+        'Swedish': 'sv',
+        'Tamil': 'ta',
+        'Telugu': 'te',
+        'Thai': 'th',
+        'Turkish': 'tr',
+        'Ukrainian': 'uk',
+        'Urdu': 'ur',
+        'Vietnamese': 'vi',
+        'Welsh': 'cy',
+        'Yiddish': 'yi',
         }
 
     def translate(self, lan_from, lan_to, text):
@@ -60,7 +116,7 @@ class GoogleTranslateModule(Module, CapTranslate):
         translation.lang_dst = unicode(self.GOOGLELANGUAGE[lan_to])
         translation.text = self.browser.translate(self.GOOGLELANGUAGE[lan_from], self.GOOGLELANGUAGE[lan_to], text)
 
-        if translation.text is None:
+        if empty(translation.text):
             raise TranslationFail()
 
         return translation
