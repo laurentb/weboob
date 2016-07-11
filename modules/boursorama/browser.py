@@ -98,7 +98,6 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         if self.auth_token and self.config['pin_code'].get():
             self.page.authenticate()
         else:
-            self.session.cookies.clear()
             self.login.go()
             self.page.login(self.username, self.password)
 
