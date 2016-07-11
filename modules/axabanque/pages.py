@@ -96,8 +96,10 @@ class LoginPage(JsonPage):
         label['bank'] = self.doc['statusBanque']['statusBanqueLibelle']
         label['investment'] = self.doc['statusAssurance']['statusAssuranceLibelle']
         # Get tokens
-        tokens['bank'] = self.doc['customerInfo']['tokenBanque']
-        tokens['investment'] = self.doc['customerInfo']['tokenAssurance']
+        tokens['bank'] = self.doc['customerInfo']['tokenBanque'] \
+                         if "customerInfo" in self.doc else None
+        tokens['investment'] = self.doc['customerInfo']['tokenAssurance'] \
+                               if "customerInfo" in self.doc else None
         # Check if tokens are available
         if not tokens['bank'] and not tokens['investment']:
             return label['bank'] if label['bank'] else label['investment']
