@@ -557,5 +557,5 @@ class Currency(object):
 
     @classmethod
     def currency2txt(klass, currency):
-        _currency = klass.CURRENCIES.get(currency, (u' '))
+        _currency = klass.CURRENCIES.get(currency, (u'',))
         return _currency[0]
