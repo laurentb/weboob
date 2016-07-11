@@ -103,7 +103,7 @@ class CmsoParBrowser(LoginBrowser):
             self.location(json.loads(self.market.go(data=json.dumps({"place": \
                           "SITUATION_PORTEFEUILLE"})).content)['urlSSO'])
             self.session.headers['Content-Type'] = 'application/x-www-form-urlencoded'
-            self.market.go(website=self.site, action="historique").get_list(account.label).page.get_full_list()
+            self.market.go(website=self.website, action="historique").get_list(account.label).page.get_full_list()
             # Display code ISIN
             history = self.location("%s?reload=oui&convertirCode=oui" % self.url).page.iter_history()
             self.session.headers['Content-Type'] = 'application/json'
@@ -131,5 +131,5 @@ class CmsoParBrowser(LoginBrowser):
         elif account.type == Account.TYPE_MARKET:
             self.location(json.loads(self.market.go(data=json.dumps({"place": \
                           "SITUATION_PORTEFEUILLE"})).content)['urlSSO'])
-            return self.market.go(website=self.site, action="situation").get_list(account.label).page.iter_investment()
+            return self.market.go(website=self.website, action="situation").get_list(account.label).page.iter_investment()
         raise NotImplementedError()
