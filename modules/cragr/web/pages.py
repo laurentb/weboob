@@ -198,6 +198,13 @@ class _AccountsPage(BasePage):
             account._perimeter = self.browser.current_perimeter
             yield account
 
+        # Checking pagination
+        next_link = self.document.xpath('//a[@class="btnsuiteliste"]/@href')
+        if next_link:
+            self.browser.location(next_link[0])
+            for account in self.browser.page.get_list():
+                yield account
+
     def set_link(self, account, cols):
         raise NotImplementedError()
 
