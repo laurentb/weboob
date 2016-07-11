@@ -128,6 +128,12 @@ class ModulesLoader(object):
                 # if path/name is not a directory
                 continue
 
+    def module_exists(self, name):
+        for existing_module_name in self.iter_existing_module_names():
+            if existing_module_name == name:
+                return True
+        return False
+
     def load_all(self):
         for existing_module_name in self.iter_existing_module_names():
             try:

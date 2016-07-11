@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 # Copyright(C) 2010-2011 Romain Bignon
 #
 # This file is part of weboob.
@@ -27,6 +26,7 @@ from weboob.capabilities.base import BaseObject, FieldNotFound, \
 from weboob.tools.misc import iter_fields
 from weboob.tools.log import getLogger
 from weboob.tools.value import ValuesDict
+from weboob.exceptions import ModuleInstallError
 
 
 __all__ = ['BackendStorage', 'BackendConfig', 'Module']
@@ -346,7 +346,6 @@ class Module(object):
             if tmpproxys is not None:
                 kwargs['proxy']['https'] = tmpproxys
 
-
         kwargs['logger'] = self.logger
 
         if self.logger.settings['responses_dirname']:
@@ -440,3 +439,27 @@ class Module(object):
             setattr(obj, field, NotAvailable)
 
         return obj
+
+
+class AbstractModuleMissingParentError(Exception):
+    pass
+
+
+class AbstractModule(Module):
+    PARENT = None
+
+    def __new__(cls, weboob, name, config=None, storage=None, logger=None):
+        if cls.PARENT is None:
+            raise AbstractModuleMissingParentError("PARENT is not defined for module %s" % cls.__name__)
+
+        if not weboob.modules_loader.module_exists(cls.PARENT):
+            try:
+                weboob.repositories.install(cls.PARENT)
+            except ModuleInstallError as err:
+                raise ModuleInstallError('The module %s depends on %s module but %s\'s installation failed with: %s' % (name, cls.PARENT, cls.PARENT, err))
+
+
+        parent = weboob.modules_loader.get_or_load_module(cls.PARENT).klass
+        return type(cls.__name__, tuple([parent] + list(cls.iter_caps())), dict(cls.__dict__))(weboob, name, config, storage, logger)
+
+

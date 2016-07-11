@@ -43,7 +43,7 @@ try:
 except ImportError:
     raise ImportError('Please install python-requests >= 2.0')
 
-from weboob.exceptions import BrowserHTTPSDowngrade
+from weboob.exceptions import BrowserHTTPSDowngrade, ModuleInstallError
 
 from weboob.tools.log import getLogger
 from weboob.tools.ordereddict import OrderedDict
@@ -848,3 +848,24 @@ class APIBrowser(DomainBrowser):
         :rtype: :class:`dict`
         """
         return self.open(*args, **kwargs).json()
+
+
+class AbstractBrowserMissingParentError(Exception):
+    pass
+
+
+class AbstractBrowser(Browser):
+    PARENT = None
+
+    def __new__(cls, weboob, *args, **kwargs):
+        if cls.PARENT is None:
+            raise AbstractBrowserMissingParentError("PARENT is not defined for browser %s" % cls)
+
+        if not weboob.modules_loader.module_exists(cls.PARENT):
+            try:
+                weboob.repositories.install(cls.PARENT)
+            except ModuleInstallError as err:
+                raise ModuleInstallError('This module depends on %s module but %s\'s installation failed with: %s' % (cls.PARENT, cls.PARENT, err))
+
+        parent = weboob.modules_loader.get_or_load_module(cls.PARENT).klass.BROWSER
+        return type(cls.__name__, (parent,), dict(cls.__dict__))(*args, **kwargs)
