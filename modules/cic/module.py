@@ -18,12 +18,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-from decimal import Decimal
-import string
-
-from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, Recipient, Account
-from weboob.tools.backend import Module, BackendConfig
+from weboob.capabilities.bank import CapBankTransfer
+from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import CICBrowser
@@ -32,7 +28,7 @@ from .browser import CICBrowser
 __all__ = ['CICModule']
 
 
-class CICModule(Module, CapBankTransfer):
+class CICModule(AbstractModule, CapBankTransfer):
     NAME = 'cic'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
@@ -42,49 +38,7 @@ class CICModule(Module, CapBankTransfer):
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Mot de passe'))
     BROWSER = CICBrowser
+    PARENT = 'creditmutuel'
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(), self.config['password'].get())
-
-    def iter_accounts(self):
-        for account in self.browser.get_accounts_list():
-            yield account
-
-    def get_account(self, _id):
-        account = self.browser.get_account(_id)
-        if account:
-            return account
-        else:
-            raise AccountNotFound()
-
-    def iter_coming(self, account):
-        for tr in self.browser.get_history(account):
-            if tr._is_coming:
-                yield tr
-
-    def iter_history(self, account):
-        for tr in self.browser.get_history(account):
-            if not tr._is_coming:
-                yield tr
-
-    def iter_transfer_recipients(self, ignored):
-        for account in self.browser.get_accounts_list():
-            recipient = Recipient()
-            recipient.id = account.id
-            recipient.label = account.label
-            yield recipient
-
-    def transfer(self, account, to, amount, reason=None):
-        if isinstance(account, Account):
-            account = account.id
-
-        account = str(account).strip(string.letters)
-        to = str(to).strip(string.letters)
-        try:
-            assert account.isdigit()
-            assert to.isdigit()
-            amount = Decimal(amount)
-        except (AssertionError, ValueError):
-            raise AccountNotFound()
-
-        return self.browser.transfer(account, to, amount, reason)
+        return self.create_browser(self.weboob, self.config['login'].get(), self.config['password'].get())
