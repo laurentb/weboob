@@ -99,7 +99,7 @@ class Paypal(LoginBrowser):
 
         self.location('/')
         if self.login.is_here() or self.landing.is_here():
-            raise BrowserIncorrectPassword('Impossible de se connecter, le compte nécessite une étape de vérification supplémentaire.')
+            raise BrowserIncorrectPassword(u'Impossible de se connecter, le compte nécessite une étape de vérification supplémentaire.')
         self.detect_account_type()
 
     @need_login
