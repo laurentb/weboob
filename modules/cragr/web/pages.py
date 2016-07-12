@@ -622,7 +622,7 @@ class MarketPage(BasePage):
                 inv.unitvalue = inv.valuation / inv.quantity
                 inv.unitprice = (inv.valuation - inv.diff) / inv.quantity
             else:
-                inv.unitprice = self.parse_decimal(cells[self.COL_UNITPRICE].text)
+                inv.unitprice = self.parse_decimal(re.search('([^(]+)', cells[self.COL_UNITPRICE].text).group(1))
                 inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE].text)
             date = cells[self.COL_UNITVALUE].find('span').text
             if ':' in date:
