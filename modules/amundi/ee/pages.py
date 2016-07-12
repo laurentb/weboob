@@ -53,7 +53,10 @@ class AccountsPage(LoggedPage, JsonPage):
             ac = Account()
             ac.type = types.get(acc['typeDispositif'], Account.TYPE_LIFE_INSURANCE)
             ac.id = ac.number = acc['codeDispositif']
-            ac.label = acc['libelleDispositif'].encode('latin1').decode('utf8')
+            try:
+                ac.label = acc['libelleDispositif'].encode('latin1').decode('utf8')
+            except UnicodeDecodeError:
+                ac.label = acc['libelleDispositif']
             ac._entreprise = acc['libelleEntreprise']
             ac.balance = Decimal(acc['mtBrut'])
             ac._ident = acc['idEnt']
