@@ -21,13 +21,18 @@
 import re
 from decimal import Decimal
 
-from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import Regexp, CleanText, CleanDecimal
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination
+from weboob.browser.elements import ListElement, TableElement, ItemElement, method
+from weboob.browser.filters.standard import Regexp, Field, TableCell, CleanText, CleanDecimal
 from weboob.browser.filters.html import Link
-
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+
+
+def MyDecimal(*args, **kwargs):
+    kwargs.update(replace_dots=True, default=NotAvailable)
+    return CleanDecimal(*args, **kwargs)
 
 
 class LoginPage(HTMLPage):
@@ -43,6 +48,8 @@ class LoginPage(HTMLPage):
 
 
 class HomePage(LoggedPage, HTMLPage):
+    TYPES = {'carte': Account.TYPE_CARD, 'assurance': Account.TYPE_LIFE_INSURANCE, 'epargne': Account.TYPE_SAVINGS}
+
     @method
     class get_list(ListElement):
         item_xpath = '//div[@class="three_contenu_table"]'
@@ -50,19 +57,19 @@ class HomePage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
-            def condition(self):
-                return len(self.el.xpath('.//div[@class="catre_col_two"]/h2')) > 0
-
             def obj_balance(self):
                 if len(self.el.xpath('.//div[@class="catre_col_one"]/h2')) > 0:
-                    return -CleanDecimal(CleanText('.//div[@class="catre_col_one"]/h2'), replace_dots=True)(self)
-                else:
-                    return Decimal('0')
+                    balance = CleanDecimal(CleanText('.//div[@class="catre_col_one"]/h2'), replace_dots=True)(self)
+                    return -balance if Field('type')(self) is Account.TYPE_CARD else balance
+                return Decimal('0')
+
+            def obj_type(self):
+                return self.page.TYPES.get(Regexp(Field('_link'), '\/([^-]+)')(self), Account.TYPE_UNKNOWN)
 
             obj_id = CleanText('.//div[@class="carte_col_leftcol"]/p') & Regexp(pattern=r'(\d+)')
             obj_label = CleanText('.//div[@class="carte_col_leftcol"]/h2')
-            obj_currency = FrenchTransaction.Currency('.//div[@class="catre_col_two"]/h2')
-            obj__link = Link('.//a[contains(@href, "solde-dernieres-operations")]')
+            obj_currency = FrenchTransaction.Currency('.//div[@class="catre_col_one"]/h2')
+            obj__link = Link('.//a[contains(@href, "-operations")]')
 
 
 class Transaction(FrenchTransaction):
@@ -71,10 +78,42 @@ class Transaction(FrenchTransaction):
 
 class TransactionsPage(LoggedPage, HTMLPage):
     @method
+    class get_investment(TableElement):
+        item_xpath = '//table[@id="assets"]/tbody/tr[position() > 1]'
+        head_xpath = '//table[@id="assets"]/tbody/tr[1]/td'
+
+        col_label = u'Fonds'
+        col_quantity = u'Nombre de parts'
+        col_unitvalue = u'Valeur part'
+        col_valuation = u'Total'
+        col_portfolio_share = u'Répartition'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText(TableCell('label'))
+            obj_quantity = MyDecimal(TableCell('quantity'))
+            obj_unitvalue = MyDecimal(TableCell('unitvalue'))
+            obj_valuation = MyDecimal(TableCell('valuation'))
+            obj_portfolio_share = MyDecimal(TableCell('portfolio_share'))
+
+
+    @pagination
+    @method
     class get_history(Transaction.TransactionsElement):
-        head_xpath = '//table[@id="creditHistory"]//thead/tr/th'
-        item_xpath = '//table[@id="creditHistory"]/tbody/tr'
+        head_xpath = u'//div[*[contains(text(), "opérations")]]/table//thead/tr/th'
+        item_xpath = u'//div[*[contains(text(), "opérations")]]/table/tbody/tr'
+
+        def next_page(self):
+            next_page = Link(u'//a[contains(text(), "précédentes")]', default=None)(self)
+            if next_page:
+                return "/%s" % next_page
 
         class item(Transaction.TransactionElement):
             obj_id = None
-            obj_type = Transaction.TYPE_CARD
+
+            def obj_type(self):
+                return Transaction.TYPE_CARD if len(self.el.xpath('./td')) > 3 else Transaction.TYPE_BANK
+
+            def condition(self):
+                return TableCell('raw')(self)

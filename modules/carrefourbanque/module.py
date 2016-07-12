@@ -52,3 +52,6 @@ class CarrefourBanqueModule(Module, CapBank):
 
     def iter_history(self, account):
         return self.browser.iter_history(account)
+
+    def iter_investment(self, account):
+        return self.browser.iter_investment(account)

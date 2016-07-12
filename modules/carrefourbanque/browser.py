@@ -20,6 +20,7 @@
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
+from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, HomePage, TransactionsPage
 
@@ -32,7 +33,7 @@ class CarrefourBanque(LoginBrowser):
 
     login = URL('/espace-client/connexion', LoginPage)
     home = URL('/espace-client$', HomePage)
-    transactions = URL('/espace-client/(?P<account>.*)/solde-dernieres-operations.*', TransactionsPage)
+    transactions = URL('/espace-client/(?P<account>.*)/.*-operations.*', TransactionsPage)
 
     def do_login(self):
         """
@@ -55,9 +56,17 @@ class CarrefourBanque(LoginBrowser):
         return self.page.get_list()
 
     @need_login
+    def iter_investment(self, account):
+        if account.type != Account.TYPE_LIFE_INSURANCE:
+            raise NotImplementedError()
+        self.home.stay_or_go()
+        self.location(account._link.replace('historique-des', 'solde-dernieres'))
+        assert self.transactions.is_here()
+        return self.page.get_investment(account)
+
+    @need_login
     def iter_history(self, account):
         self.home.stay_or_go()
         self.location(account._link)
-
         assert self.transactions.is_here()
         return self.page.get_history(account)
