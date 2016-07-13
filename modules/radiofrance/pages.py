@@ -170,26 +170,27 @@ class RadioPage(HTMLPage):
 
     @method
     class get_france_inter_podcast_emissions(ListElement):
-        item_xpath = '//div[has-class("item-list")]/ul/li/div/div'
         ignore_duplicate = True
+        item_xpath = '//article/div'
 
         class item(ItemElement):
             klass = Collection
 
             def condition(self):
-                return CleanText('./div/a[@class="podrss"]/@href')(self) and\
-                    Regexp(CleanText('./div/a[@class="podrss"]/@href'),
+                return CleanText('./div/footer/div[has-class("rss")]/a/@href')(self) and\
+                    Regexp(CleanText('./div/footer/div[has-class("rss")]/a/@href'),
                            'http://radiofrance-podcast.net/podcast09/rss_(.*).xml')(self)
 
             def obj_split_path(self):
-                _id = Regexp(CleanText('./div/a[@class="podrss"]/@href'),
+                _id = Regexp(CleanText('./div/footer/div[has-class("rss")]/a/@href'),
                              'http://radiofrance-podcast.net/podcast09/rss_(.*).xml')(self)
                 self.env['split_path'].append(_id)
                 return self.env['split_path']
 
-            obj_id = Regexp(CleanText('./div/a[@class="podrss"]/@href'),
+            obj_id = Regexp(CleanText('./div/footer/div[has-class("rss")]/a/@href'),
                             'http://radiofrance-podcast.net/podcast09/rss_(.*).xml')
-            obj_title = CleanText('./h2/a')
+
+            obj_title = CleanText('./div/div[@class="rich-section-list-item-content-show"]')
 
     def get_current(self):
         now = datetime.now()
@@ -220,13 +221,13 @@ class JsonPage(JsonPage):
             obj_id = Regexp(Dict('href'), 'emissions/(.*)')
             obj_title = Format('%s (%s)', Dict('name'), Dict('production'))
 
-    def get_france_culture_current(self):
+    def get_culture_inter_current(self):
         for item in self.doc:
             now = int(time.time())
             for item in self.doc:
                 if int(item['start']) < now and int(item['end']) > now:
-                    emission = item['surtitle']
-                    title = item['title']
+                    emission = item['surtitle'] if 'surtitle' in item else None
+                    title = item['title'] if 'title' in item else item['conceptTitle']
                     if emission:
                         title = u'%s: %s' % (title, emission)
                     return u'', title

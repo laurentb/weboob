@@ -34,25 +34,31 @@ class RadioFranceBrowser(PagesBrowser):
     radio_page = URL('(?P<page>.*)', RadioPage)
 
     def get_radio_url(self, radio, player):
+        self.fill_base_url(radio)
+
         if radio == 'francebleu':
-            self.BASEURL = 'https://www.%s.fr/' % radio
             return self.json_page.go(fbplayer=player).get_fburl()
 
-        self.BASEURL = 'http://www.%s.fr/' % radio
         if radio == 'franceculture':
             self.location('%s%s' % (self.BASEURL, player))
             return self.page.get_france_culture_url()
 
         return self.radio_page.go(page=player).get_url()
 
-    def get_current(self, radio, url):
-        if radio == 'francebleu':
+    def fill_base_url(self, radio):
+        if radio in ['franceinter', 'francebleu']:
             self.BASEURL = 'https://www.%s.fr/' % radio
+        else:
+            self.BASEURL = 'http://www.%s.fr/' % radio
+
+    def get_current(self, radio, url):
+        self.fill_base_url(radio)
+
+        if radio == 'francebleu':
             return self.radio_page.go(page=url).get_current()
 
-        self.BASEURL = 'http://www.%s.fr/' % radio
-        if radio == 'franceculture':
-            return self.json_page.go().get_france_culture_current()
+        if radio in ['franceculture', 'franceinter']:
+            return self.json_page.go().get_culture_inter_current()
 
         return self.json_page.go(json_url=url).get_current()
 
@@ -61,6 +67,7 @@ class RadioFranceBrowser(PagesBrowser):
         if radio_id == 'fipradio':
             return self.json_page.go(json_url_fip=json_url).get_selection(radio_id=radio_id)
         elif radio_id == 'franceculture':
+            self.fill_base_url(radio_id)
             return self.radio_page.go(page='').get_france_culture_selection(radio_id=radio_id)
 
         return self.json_page.go(json_url=json_url).get_selection(radio_id=radio_id)
@@ -77,7 +84,7 @@ class RadioFranceBrowser(PagesBrowser):
                 yield item
 
     def get_podcast_emissions(self, radio_url, podcast_url, split_path):
-        self.BASEURL = 'http://www.%s.fr/' % radio_url
+        self.fill_base_url(radio_url)
         if split_path[0] == 'franceinter':
             return self.radio_page.go(page=podcast_url).get_france_inter_podcast_emissions(split_path=split_path)
         elif split_path[0] == 'franceculture':

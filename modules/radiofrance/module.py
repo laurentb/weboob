@@ -46,10 +46,9 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
 
     _RADIOS = {
         'franceinter': {u'title': u'France Inter',
-                        u'player': u'player',
-                        u'live': u'lecteur_commun_json/timeline',
-                        u'podcast': u'podcasts',
-                        u'selection': u'lecteur_commun_json/reecoute-%s' % int(time.mktime(datetime.utcnow().replace(hour=14, minute=0, second=0).timetuple()))},
+                        u'player': u'',
+                        u'live': u'programmes?xmlHttpRequest=1',
+                        u'podcast': u'podcasts'},
         'franceculture': {u'title': u'France Culture',
                           u'player': u'',
                           u'live': u'programmes?xmlHttpRequest=1',
