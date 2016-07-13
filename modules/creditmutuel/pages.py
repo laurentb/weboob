@@ -213,7 +213,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                         account = self.parent.objects[id]
                         if not account.coming:
                             account.coming = Decimal('0.0')
-                        account.coming += balance
+                        account.coming = balance
                         account._card_links.append(link)
                     raise SkipItem()
 
