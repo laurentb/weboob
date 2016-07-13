@@ -725,7 +725,7 @@ class BGPIPage(MarketPage):
             inv.valuation = self.parse_decimal(cells[self.COL_VALUATION].text_content())
             inv.unitprice = self.parse_decimal(cells[self.COL_UNITPRICE].text_content())
             inv.diff = self.parse_decimal(cells[self.COL_DIFF].text_content())
-            inv.portfolio_share = self.parse_decimal(cells[self.COL_PORTFOLIO].text_content())
+            inv.portfolio_share = self.parse_decimal(cells[self.COL_PORTFOLIO].text_content())/100
 
             yield inv
 
