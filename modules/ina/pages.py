@@ -29,6 +29,7 @@ from weboob.browser.filters.standard import CleanText, Regexp, Duration, Date, B
 from weboob.capabilities.audio import BaseAudio
 from weboob.capabilities.video import BaseVideo
 from weboob.capabilities.image import Thumbnail
+from weboob.capabilities.base import NotAvailable
 from weboob.tools.date import DATE_TRANSLATE_FR
 from weboob.tools.capabilities.audio.audio import BaseAudioIdFilter
 
@@ -72,7 +73,15 @@ class InaItemElement(ItemElement):
     obj_title = CleanText('./div[@class="media-body"]/h3/a')
 
     obj_description = CleanText('./div[@class="media-body"]/div/p[@class="media-body__summary"]')
-    obj_duration = InaDuration(CleanText('./div[@class="media-body"]/div/span[@class="duration"]'))
+
+    def obj_duration(self):
+        duration = InaDuration(CleanText('./div[@class="media-body"]/div/span[@class="duration"]'),
+                               default=None)(self)
+        if duration is None:
+            duration = InaDuration2(CleanText('./div[@class="media-body"]/div/span[@class="duration"]'),
+                                    default=NotAvailable)(self)
+        return duration
+
     obj_author = u'Institut National de l’Audiovisuel'
     obj_date = Date(CleanText('./div[@class="media-body"]/div/span[@class="broadcast"]'))
 
@@ -86,7 +95,15 @@ class InaItemElement(ItemElement):
 class InaMediaElement(ItemElement):
     obj_title = CleanText('//meta[@property="og:title"]/@content')
     obj_description = CleanText('//div[@class="notice__description"]')
-    obj_duration = InaDuration2(CleanText('(//div[@class="block-infos"])[1]/span[@class="duration"]'))
+
+    def obj_duration(self):
+        duration = InaDuration(CleanText('(//div[@class="block-infos"])[1]/span[@class="duration"]'),
+                               default=None)(self)
+        if duration is None:
+            duration = InaDuration2(CleanText('(//div[@class="block-infos"])[1]/span[@class="duration"]'),
+                                    default=NotAvailable)(self)
+        return duration
+
     obj_date = Date(CleanText('(//div[@class="block-infos"])[1]/span[@class="broadcast"]'),
                     translations=DATE_TRANSLATE_FR)
     obj_author = u'Institut National de l’Audiovisuel'
