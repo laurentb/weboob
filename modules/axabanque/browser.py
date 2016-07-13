@@ -61,14 +61,15 @@ class AXABanque(LoginBrowser):
         data = self.page.get_data(self.username, self.password)
         error = self.login.go(data=data).check_error()
 
+        # Activate tokens if there has
+        if self.tokens['bank']:
+            error = self.bank_accounts.go(token=self.tokens['bank']).check_error()
+        if self.tokens['investment']:
+            self.investment_activate.go(data={'tokenmixte': self.tokens['investment']})
+
         if error:
             raise BrowserIncorrectPassword(error)
 
-        # Activate tokens if there has
-        if self.tokens['bank']:
-            self.bank_accounts.go(token=self.tokens['bank'])
-        if self.tokens['investment']:
-            self.investment_activate.go(data={'tokenmixte': self.tokens['investment']})
 
     @need_login
     def iter_accounts(self):

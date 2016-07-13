@@ -103,7 +103,10 @@ class LoginPage(JsonPage):
         # Check if tokens are available
         if not tokens['bank'] and not tokens['investment']:
             return label['bank'] if label['bank'] else label['investment']
-        # Almost one token ? So we update browser tokens
+        # Check insurance password status
+        if self.doc['assurancePasswordChangeRequired'] is True:
+            return "Veuillez modifier votre code confidentiel."
+        # At least one token ? So we update browser tokens
         self.browser.tokens = tokens
         return False
 
@@ -386,6 +389,10 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
     COL_TEXT = 1
     COL_DEBIT = 2
     COL_CREDIT = 3
+
+    def check_error(self):
+        error = CleanText(default="").filter(self.doc.xpath('//div[@id="titre_detail"]/h2'))
+        return error if "Modifier votre code" in error else None
 
     def more_history(self):
         link = None
