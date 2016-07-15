@@ -25,7 +25,7 @@ from cStringIO import StringIO
 from weboob.exceptions import BrowserBanned, BrowserUnavailable
 from weboob.browser.pages import HTMLPage, RawPage, JsonPage, LoggedPage, pagination
 from weboob.browser.elements import ItemElement, TableElement, SkipItem, method
-from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Env, BrowserURL, TableCell, Async, AsyncLoad
+from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Env, BrowserURL, TableCell, Async, AsyncLoad, Eval
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
@@ -218,7 +218,7 @@ class InvestmentPage(LoggedPage, HTMLPage):
             obj_unitvalue = MyDecimal(TableCell('unitvalue'))
             obj_valuation = MyDecimal(TableCell('valuation'))
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
-            obj_portfolio_share = MyDecimal(TableCell('portfolio_share'))
+            obj_portfolio_share = Eval(lambda x: x / 100, MyDecimal(TableCell('portfolio_share')))
 
             def condition(self):
                 return CleanText(TableCell('valuation'))(self)

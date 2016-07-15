@@ -85,7 +85,7 @@ class AXABanque(LoginBrowser):
             self.investment.go(page="default.aspx").get_home()
             self.investment.go(page="default.aspx")
             # If user has cgu
-            if not self.investment_cgu.is_here:
+            if not self.investment_cgu.is_here():
                 for form in self.page.get_forms():
                     for a in self.investment.go(page="PartialUpdatePanelLoader.ashx", \
                             data=form).iter_accounts():
