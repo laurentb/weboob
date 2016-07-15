@@ -77,19 +77,16 @@ class CmsoParBrowser(LoginBrowser):
 
     @need_login
     def iter_accounts(self):
-        accounts = []
         # First get all checking accounts...
         data = dict(self.infos.stay_or_go().get_typelist())
         self.accounts.go(data=json.dumps(data), type="comptes").check_response()
         for key in self.page.get_keys():
             for a in self.page.iter_accounts(key=key):
-                accounts.append(a)
+                yield a
         # Then, get saving accounts
-        self.accounts.go(data=json.dumps({}), type="epargne").check_response()
-        for key in self.page.get_keys():
+        for key in self.accounts.go(data=json.dumps({}), type="epargne").get_keys():
             for a in self.page.iter_products(key=key):
-                accounts.append(a)
-        return iter(accounts)
+                yield a
 
     @need_login
     def iter_history(self, account):

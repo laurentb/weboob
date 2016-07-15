@@ -55,7 +55,7 @@ class AccountsPage(LoggedPage, JsonPage):
             Account.TYPE_SAVINGS}
 
     def get_keys(self):
-        return [k for k, v in self.doc.items() if v and isinstance(v, (dict, list))]
+        return [k for k, v in self.doc.items() if v and isinstance(v, (dict, list)) and "exception" not in self.doc]
 
     def check_response(self):
         if "exception" in self.doc:
