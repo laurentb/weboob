@@ -91,7 +91,7 @@ class KeyboardPage(HTMLPage):
 
 class LoginPage(JsonPage):
     def check_error(self):
-        label, tokens = {}, {}
+        label, tokens, error = {}, {}, None
         # Get labels
         label['bank'] = self.doc['statusBanque']['statusBanqueLibelle']
         label['investment'] = self.doc['statusAssurance']['statusAssuranceLibelle']
@@ -102,13 +102,13 @@ class LoginPage(JsonPage):
                                if "customerInfo" in self.doc else None
         # Check if tokens are available
         if not tokens['bank'] and not tokens['investment']:
-            return label['bank'] if label['bank'] else label['investment']
+            error = label['bank'] if label['bank'] else label['investment']
         # Check insurance password status
         if self.doc['assurancePasswordChangeRequired'] is True:
-            return "Veuillez modifier votre code confidentiel."
+            error = "Veuillez modifier votre code confidentiel."
         # At least one token ? So we update browser tokens
         self.browser.tokens = tokens
-        return False
+        return error
 
 
 class PredisconnectedPage(HTMLPage):
