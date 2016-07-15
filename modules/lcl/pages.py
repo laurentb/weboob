@@ -17,22 +17,21 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import re
-import base64
+import re, requests, base64, math, random
 from decimal import Decimal
-import math
-import random
 from cStringIO import StringIO
 from urllib import urlencode
+from datetime import datetime, timedelta
 
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
-from weboob.browser.elements import method, ListElement, ItemElement, SkipItem
+from weboob.browser.elements import method, ListElement, TableElement, ItemElement, SkipItem
 from weboob.exceptions import ParseError
 from weboob.browser.pages import LoggedPage, HTMLPage, FormNotFound, pagination
-from weboob.browser.filters.html import Attr
+from weboob.browser.filters.html import Attr, Link
 from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, Date, \
-                                            CleanDecimal, Map, AsyncLoad, Async, Env
+                                            CleanDecimal, Map, AsyncLoad, Async, Env, \
+                                            TableCell, Eval
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
@@ -213,11 +212,11 @@ class AccountsPage(LoggedPage, HTMLPage):
                            '069': Account.TYPE_SAVINGS,
                           }
 
-            obj__link_id = Format('%s&mode=55', Regexp(CleanText('./@onclick'), "'(.*)'"))
+            obj__link_id = Format('%s&mode=190', Regexp(CleanText('./@onclick'), "'(.*)'"))
             obj_id = Regexp(Field('_link_id'), r'.*agence=(\w+).*compte=(\w+)', r'\1\2')
             obj__coming_links = []
             obj_label = CleanText('.//div[@class="libelleCompte"]')
-            obj_balance = CleanDecimal('.//td[has-class("right")]', replace_dots=True)
+            obj_balance = MyDecimal('.//td[has-class("right")]', replace_dots=True)
             obj_currency = FrenchTransaction.Currency('.//td[has-class("right")]')
             obj_type = Map(Regexp(Field('_link_id'), r'.*nature=(\w+)'), NATURE2TYPE, default=Account.TYPE_UNKNOWN)
             obj__market_link = None
@@ -238,30 +237,36 @@ class AccountsPage(LoggedPage, HTMLPage):
                 account._coming_links.append(link)
                 raise SkipItem()
 
-class LoansPage(LoggedPage, HTMLPage):
 
+class LoansPage(LoggedPage, HTMLPage):
     @method
-    class get_list(ListElement):
-        item_xpath = '//th[contains(text(), "Emprunteur")]/../th[contains(text(),"Type")]/../../../tbody/tr'
+    class get_list(TableElement):
+        item_xpath = '//table[.//th[contains(text(), "Emprunteur")]]/tbody/tr[td[3]]'
+        head_xpath = '//table[.//th[contains(text(), "Emprunteur")]]/thead/tr/th'
         flush_at_end = True
+
+        col_id = re.compile('Emprunteur')
+        col_balance = [u'Capital restant dû', re.compile('Sommes totales restant dues'), re.compile('Montant disponible')]
 
         class account(ItemElement):
             klass = Account
 
-            obj_label = CleanText('./td[2]')
-            obj_balance = CleanDecimal('./td[4]', replace_dots=True, sign=lambda x: -1)
-            obj_currency = FrenchTransaction.Currency('./td[4]')
+            obj_balance = CleanDecimal(TableCell('balance'), replace_dots=True, sign=lambda x: -1)
+            obj_currency = FrenchTransaction.Currency(TableCell('balance'))
             obj_type = Account.TYPE_LOAN
             obj_id = Env('id')
 
+            def obj_label(self):
+                has_type = CleanText('./ancestor::table[.//th[contains(text(), "Type")]]', default=None)(self)
+                return CleanText('./td[2]')(self) if has_type else CleanText('./ancestor::table/preceding-sibling::div[1]')(self).split(' - ')[0]
+
             def parse(self, el):
-                obj_label = CleanText('./td[2]')(el)
-                xpath = self.xpath('//td[contains(text(), "%s")]/../../tr' % obj_label)
-                for i in range(len(xpath)):
-                    if el == xpath[i]:
-                        self.env['id'] = Format('%s%s%s' ,Regexp(CleanText('./td[1]'), r'(\w+)\s-\s(\w+)',r'\1\2'), CleanText('./td[2]', replace=[(' ','')]),i)(self)
-
-
+                label = Field('label')(self)
+                trs = self.xpath('//td[contains(text(), "%s")]/ancestor::tr[1] | ./ancestor::table[1]/tbody/tr' % label)
+                i = [i for i in range(len(trs)) if el == trs[i]]
+                i = i[0] if i else 0
+                label = label.replace(' ', '')
+                self.env['id'] = "%s%s%s" % (Regexp(CleanText(TableCell('id')), r'(\w+)\s-\s(\w+)', r'\1\2')(self), label.replace(' ', ''), i)
 
 
 class Transaction(FrenchTransaction):
@@ -273,6 +278,7 @@ class Transaction(FrenchTransaction):
                 (re.compile('.*(AGIOS|ANNULATIONS|IMPAYES|CREDIT).*'), FrenchTransaction.TYPE_BANK),
                ]
 
+
 class Pagination(object):
     def next_page(self):
         links = self.page.doc.xpath('//div[@class="pagination"] /a')
@@ -282,6 +288,7 @@ class Pagination(object):
             if link.xpath('./span')[0].text == 'Page suivante':
                 return link.attrib.get('href')
         return
+
 
 class AccountHistoryPage(LoggedPage, HTMLPage):
     class _get_operations(Pagination, Transaction.TransactionsElement):
@@ -357,19 +364,42 @@ class CBListPage(CBHistoryPage):
 
 class BoursePage(LoggedPage, HTMLPage):
     ENCODING='latin-1'
+
     def get_next(self):
         return re.search('"(.*?)"', self.doc.xpath('.//body')[0].attrib['onload']).group(1)
 
-    def populate(self, accounts):
-        for a in accounts:
-            for tr in self.doc.xpath('.//table[contains(@class, "tableau_comptes_details")]//tr[td and not(parent::tfoot)]'):
-                ac_code = tr.xpath('.//td[2]/div/br | .//td[2]/div')[-1]
-                ac_code = ac_code.text or ac_code.tail
-                ac_code = ac_code.strip().split(' - ')
-                if a.id == '%s%s' % (ac_code[0], ac_code[1]):
-                    a._market_link = Regexp(CleanText('.//td[2]/@onclick'), "'(.*?)'")(tr)
-                    a._valuation = CleanDecimal('.//td[has-class("last")]', replace_dots=True)(tr)
-            yield a
+    def get_fullhistory(self):
+        form = self.get_form(id="historyFilter")
+        form['cashFilter'] = "ALL"
+        # We can't go above 2 years
+        form['beginDayfilter'] = (datetime.strptime(form['endDayfilter'], '%d/%m/%Y') - timedelta(days=730)).strftime('%d/%m/%Y')
+        form.submit()
+
+    @method
+    class get_list(TableElement):
+        item_xpath = '//table[has-class("tableau_comptes_details")]//tr[td and not(parent::tfoot)]'
+        head_xpath = '//table[has-class("tableau_comptes_details")]/thead/tr/th'
+
+        col_label = u'Comptes'
+        col_balance = re.compile('Valorisation')
+
+        class item(ItemElement):
+            klass = Account
+
+            load_details = Field('_market_link') & AsyncLoad
+
+            obj_type = Account.TYPE_MARKET
+            obj_balance = CleanDecimal(TableCell('balance'), replace_dots=True)
+            obj_valuation_diff = Async('details') &  CleanDecimal('//td[contains(text(), "value latente")]/ \
+                                                                  following-sibling::td[1]', replace_dots=True)
+            obj__market_link = Regexp(Attr(TableCell('label'), 'onclick'), "'(.*?)'")
+            obj__link_id = Async('details') & Link(u'//a[text()="Historique"]')
+
+            def obj_id(self):
+                return "%sbourse" % "".join(CleanText().filter((TableCell('label')(self)[0]).xpath('./div[not(b)]')).split(' - '))
+
+            def obj_label(self):
+                return "%s Bourse" % CleanText().filter((TableCell('label')(self)[0]).xpath('./div[b]'))
 
     @method
     class iter_investment(ListElement):
@@ -393,13 +423,56 @@ class BoursePage(LoggedPage, HTMLPage):
                     return NotAvailable
                 return MyDecimal('.//td[6]')(self)
 
+    @pagination
+    @method
+    class iter_history(TableElement):
+        item_xpath = '//table[@id="historyTable" and thead]/tbody/tr'
+        head_xpath = '//table[@id="historyTable" and thead]/thead/tr/th'
+
+        col_date = 'Date'
+        col_label = u'Opération'
+        col_quantity = u'Qté'
+        col_code = u'Libellé'
+        col_amount = 'Montant'
+
+        def next_page(self):
+            form = self.page.get_form(id="historyFilter")
+            form['PAGE'] = int(form['PAGE']) + 1
+            return requests.Request("POST", form.url, data=dict(form)) \
+                   if self.page.doc.xpath('//*[@data-page = "%s"]' % form['PAGE']) else None
+
+        class item(ItemElement):
+            klass = Transaction
+
+            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
+            obj_type = Transaction.TYPE_BANK
+            obj_amount = CleanDecimal(TableCell('amount'), replace_dots=True)
+            obj_investments = Env('investments')
+
+            def obj_label(self):
+                return TableCell('label')(self)[0].xpath('./text()')[0].strip()
+
+            def parse(self, el):
+                i = None
+                if CleanText(TableCell('code'))(self):
+                    i = Investment()
+                    i.label = Field('label')(self)
+                    i.code = unicode(TableCell('code')(self)[0].xpath('./text()[last()]')[0]).strip()
+                    i.quantity = MyDecimal(TableCell('quantity'))(self)
+                    i.valuation = Field('amount')(self)
+                    i.vdate = Field('date')(self)
+                self.env['investments'] = [i] if i else []
+
+
 class DiscPage(LoggedPage, HTMLPage):
     def come_back(self):
         form = self.get_form()
         form.submit()
 
+
 class NoPermissionPage(LoggedPage, HTMLPage):
     pass
+
 
 class AVPage(LoggedPage, HTMLPage):
     @method
@@ -441,7 +514,7 @@ class AVDetailPage(LoggedPage, LCLBasePage):
             form['cName'] = cName
             form['cValue'] = self.get_from_js('.cValue.value  = "', '";')
             form['cMaxAge'] = '-1'
-        form.submit()
+        return form.submit()
 
     def come_back(self):
         session = self.get_from_js('idSessionSag = "', '"')
@@ -452,24 +525,66 @@ class AVDetailPage(LoggedPage, LCLBasePage):
         params['typeaction'] = 'reroutage_retour'
         params['site'] = 'LCLI'
         params['stbzn'] = 'bnc'
-        self.browser.location('https://assurance-vie-et-prevoyance.secure.lcl.fr/filiale/entreeBam?%s' % urlencode(params))
+        return self.browser.location('https://assurance-vie-et-prevoyance.secure.lcl.fr/filiale/entreeBam?%s' % urlencode(params))
+
+    def get_details(self, account, act=None):
+        form = self.get_form(id="frm_fwk")
+        label = " ".join(account.label.split()[:-1]).upper()
+        decimal = str(account.balance).split('.')[1]
+        onclick = Attr(None, 'onclick').filter(self.doc.xpath('//tr[td[span[contains(text(), "%s")]] \
+                            and td[span[contains(text(), "%s")]]]//a' % (label, decimal)))
+        m = re.search('_CAR[^\']+.([^\']+).*Cible[^\']+.([^\']+)', onclick)
+        form['puCible'] = m.group(2)
+        form['ID_CNT_CAR'] = m.group(1)
+        form.submit()
+        self.browser.location("entreeBam?sessionSAG=%s&act=%s" % (form['sessionSAG'], form['puCible'] if not act else act))
 
     @method
     class iter_investment(ListElement):
-        item_xpath = '(//table[@class="table"])[1]/tbody/tr'
+        item_xpath = '(//table[@class="table" and td[6]])[1]/tbody/tr'
+
         class item(ItemElement):
             klass = Investment
 
             obj_label = CleanText('.//td[1]/a | .//td[1]/span ')
-            obj_code= CleanText('.//td[1]/a/@id') & Regexp(pattern='^([^ ]+).*', default=NotAvailable)
+            obj_code = CleanText('.//td[1]/a/@id') & Regexp(pattern='^([^ ]+).*', default=NotAvailable)
             obj_quantity = MyDecimal('.//td[4]/span')
             obj_unitvalue = MyDecimal('.//td[2]/span')
             obj_valuation = MyDecimal('.//td[5]/span')
+            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal('.//td[6]/span', replace_dots=True))
+
+    @pagination
+    @method
+    class iter_history(TableElement):
+        item_xpath = '//table[@class="table"]/tbody/tr'
+        head_xpath = '//table[@class="table"]/thead/tr/th'
+
+        col_date = 'Date d\'effet'
+        col_label = u'Opération(s)'
+        col_amount = 'Montant'
+
+        def next_page(self):
+            if Link('//a[@class="pictoSuivant"]', default=None)(self):
+                form = self.page.get_form(id="frm_fwk")
+                form['fwkaction'] = "precSuivDet"
+                form['fwkcodeaction'] = "Executer"
+                form['ACTION_CHOISIE'] = "suivant"
+                return requests.Request("POST", form.url, data=dict(form))
+
+        class item(ItemElement):
+            klass = Transaction
+
+            obj_label = CleanText(TableCell('label'))
+            obj_type = Transaction.TYPE_BANK
+            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
+            obj_amount = MyDecimal(TableCell('amount'))
+
 
 class RibPage(LoggedPage, LCLBasePage):
     def get_iban(self):
         if (self.doc.xpath('//div[contains(@class, "rib_cadre")]//div[contains(@class, "rib_internat")]')):
             return CleanText().filter(self.doc.xpath('//div[contains(@class, "rib_cadre")]//div[contains(@class, "rib_internat")]//p//strong')[0].text).replace(' ','')
+
 
 class HomePage(LoggedPage, HTMLPage):
     pass

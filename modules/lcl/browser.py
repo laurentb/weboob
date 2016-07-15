@@ -76,8 +76,6 @@ class LCLBrowser(LoginBrowser):
 
     loans = URL('/outil/UWCR/SynthesePar/', LoansPage)
 
-    TIMEOUT = 30.0
-
     def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
@@ -118,40 +116,44 @@ class LCLBrowser(LoginBrowser):
             for a in self.page.get_list():
                 yield a
         self.accounts.stay_or_go()
-        accounts = list()
-        for acc in self.page.get_list():
+        for a in self.page.get_list():
             self.location('/outil/UWRI/Accueil/')
-            self.rib.go(data={'compte': '%s/%s/%s' % (acc.id[0:5],acc.id[5:11],acc.id[11:])})
+            self.rib.go(data={'compte': '%s/%s/%s' % (a.id[0:5],a.id[5:11],a.id[11:])})
             if self.rib.is_here():
-                acc.iban = self.page.get_iban()
-            accounts.append(acc)
-
+                a.iban = self.page.get_iban()
+            yield a
         self.loans.stay_or_go()
-        for acc in self.page.get_list():
-            yield acc
-
+        for a in self.page.get_list():
+            yield a
         if self.connexion_bourse():
-            acc = list(self.page.populate(accounts))
+            for a in self.page.get_list():
+                yield a
             self.deconnexion_bourse()
             # Disconnecting from bourse portal before returning account list
             # to be sure that we are on the banque portal
-            for a in acc:
-                yield a
-        else:
-            for a in accounts:
-                yield a
-
 
     @need_login
     def get_history(self, account):
-        if not hasattr(account, '_link_id') or not account._link_id:
-            return
-        self.location(account._link_id)
-        for tr in self.page.get_operations():
-            yield tr
-
-        for tr in self.get_cb_operations(account, 1):
-            yield tr
+        if hasattr(account, '_market_link') and account._market_link:
+            self.connexion_bourse()
+            self.location(account._market_link)
+            self.location(account._link_id).page.get_fullhistory()
+            for tr in self.page.iter_history():
+                yield tr
+            self.deconnexion_bourse()
+        elif hasattr(account, '_link_id') and account._link_id:
+            self.location(account._link_id)
+            for tr in self.page.get_operations():
+                yield tr
+            for tr in self.get_cb_operations(account, 1):
+                yield tr
+        elif account.type == Account.TYPE_LIFE_INSURANCE and account._form:
+            self.assurancevie.stay_or_go()
+            account._form.submit()
+            self.page.sub().page.sub().page.get_details(account, "OHIPU")
+            for tr in self.page.iter_history():
+                yield tr
+            self.page.come_back().page.sub().page.come_back()
 
     @need_login
     def get_cb_operations(self, account, month=0):
@@ -179,25 +181,18 @@ class LCLBrowser(LoginBrowser):
                 for tr in self.page.get_operations():
                     yield tr
 
-    def disc_from_AV_investment_detail(self):
-        self.page.come_back()
-        self.page.sub()
-        self.page.come_back()
-
     @need_login
     def get_investment(self, account):
         if account.type == Account.TYPE_LIFE_INSURANCE and account._form:
             self.assurancevie.stay_or_go()
             account._form.submit()
-            self.page.sub()
-            self.page.sub()
+            self.page.sub().page.sub().page.get_details(account)
             for inv in self.page.iter_investment():
                 yield inv
-            self.disc_from_AV_investment_detail()
+            self.page.come_back().page.sub().page.come_back()
         elif hasattr(account, '_market_link') and account._market_link:
             self.connexion_bourse()
-            self.location(account._market_link)
-            for inv in self.page.iter_investment():
+            for inv in self.location(account._market_link).page.iter_investment():
                 yield inv
             self.deconnexion_bourse()
 
