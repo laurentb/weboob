@@ -93,6 +93,8 @@ class Account(Recipient):
     "Employee savings PERCO"
     TYPE_ARTICLE_83       = 11
     "Article 83"
+    TYPE_RSP              = 12
+    "Employee savings RSP"
 
     type =      IntField('Type of account', default=TYPE_UNKNOWN)
     balance =   DecimalField('Balance on this bank account')

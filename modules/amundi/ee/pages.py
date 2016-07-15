@@ -48,7 +48,7 @@ class LoginPage(HTMLPage):
 class AccountsPage(LoggedPage, JsonPage):
     def iter_accounts(self):
         types = {'PEE': Account.TYPE_PEE, 'PEG': Account.TYPE_PEE,
-                 'PERCO': Account.TYPE_PERCO, 'RSP': Account.TYPE_UNKNOWN}
+                 'PERCO': Account.TYPE_PERCO, 'RSP': Account.TYPE_RSP}
         for acc in self.doc['positionTotaleDispositifDto']:
             ac = Account()
             ac.type = types.get(acc['typeDispositif'], Account.TYPE_LIFE_INSURANCE)
