@@ -28,7 +28,7 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.browser.elements import method, ListElement, TableElement, ItemElement, SkipItem
 from weboob.exceptions import ParseError
 from weboob.browser.pages import LoggedPage, HTMLPage, FormNotFound, pagination
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.html import Attr, Link, XPathNotFound
 from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, Date, \
                                             CleanDecimal, Map, AsyncLoad, Async, Env, \
                                             TableCell, Eval
@@ -531,8 +531,13 @@ class AVDetailPage(LoggedPage, LCLBasePage):
         form = self.get_form(id="frm_fwk")
         label = " ".join(account.label.split()[:-1]).upper()
         decimal = str(account.balance).split('.')[1]
-        onclick = Attr(None, 'onclick').filter(self.doc.xpath('//tr[td[span[contains(text(), "%s")]] \
-                            and td[span[contains(text(), "%s")]]]//a' % (label, decimal)))
+        try:
+            onclick = Attr(None, 'onclick').filter(self.doc.xpath('//tr[td[span[contains(text(), "%s")]] \
+                                and td[span[contains(text(), "%s")]]]//a' % (label, decimal)))
+        except XPathNotFound:
+            tr = self.doc.xpath('//tr[td[span[contains(text(), "%s")]]]//a' % decimal)
+            assert len(tr) == 1
+            onclick = Attr(None, 'onclick').filter(tr)
         m = re.search('_CAR[^\']+.([^\']+).*Cible[^\']+.([^\']+)', onclick)
         form['puCible'] = m.group(2)
         form['ID_CNT_CAR'] = m.group(1)
