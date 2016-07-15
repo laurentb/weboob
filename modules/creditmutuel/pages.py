@@ -122,6 +122,7 @@ class AccountsPage(LoggedPage, HTMLPage):
              u'Cpte Courant':      Account.TYPE_CHECKING,
              u'Compte Cheque':     Account.TYPE_CHECKING,
              u'Start':             Account.TYPE_CHECKING,
+             u'Contrat Personnel': Account.TYPE_CHECKING,
              u'Compte Epargne':    Account.TYPE_SAVINGS,
              u'Plan D\'Epargne':   Account.TYPE_SAVINGS,
              u'P.E.A':             Account.TYPE_SAVINGS,
