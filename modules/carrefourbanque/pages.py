@@ -23,7 +23,7 @@ from decimal import Decimal
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, TableElement, ItemElement, method
-from weboob.browser.filters.standard import Regexp, Field, TableCell, CleanText, CleanDecimal
+from weboob.browser.filters.standard import Regexp, Field, TableCell, CleanText, CleanDecimal, Eval
 from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
@@ -95,7 +95,7 @@ class TransactionsPage(LoggedPage, HTMLPage):
             obj_quantity = MyDecimal(TableCell('quantity'))
             obj_unitvalue = MyDecimal(TableCell('unitvalue'))
             obj_valuation = MyDecimal(TableCell('valuation'))
-            obj_portfolio_share = MyDecimal(TableCell('portfolio_share'))
+            obj_portfolio_share = Eval(lambda x: x / 100, MyDecimal(TableCell('portfolio_share')))
 
 
     @pagination
