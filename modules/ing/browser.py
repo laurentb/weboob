@@ -59,7 +59,8 @@ class IngBrowser(LoginBrowser):
     errorpage = URL('.*displayCoordonneesCommand.*', StopPage)
 
     # CapBank
-    accountspage = URL('/protected/pages/index.jsf', AccountsList)
+    accountspage = URL('/protected/pages/index.jsf',
+                       '/protected/pages/asv/contract/(?P<asvpage>.*).jsf', AccountsList)
     transferpage = URL('/protected/pages/cc/transfer/transferManagement.jsf', TransferPage)
     dotransferpage = URL('/general\?command=DisplayDoTransferCommand', TransferPage)
     valtransferpage = URL('/protected/pages/cc/transfer/create/transferCreateValidation.jsf', TransferConfirmPage)
@@ -71,7 +72,8 @@ class IngBrowser(LoginBrowser):
     titrehistory = URL('https://bourse.ingdirect.fr/priv/compte.php\?ong=3', TitreHistory)
     titrerealtime = URL('https://bourse.ingdirect.fr/streaming/compteTempsReelCK.php', TitrePage)
     titrevalue = URL('https://bourse.ingdirect.fr/priv/fiche-valeur.php\?val=(?P<val>.*)&pl=(?P<pl>.*)&popup=1', TitreValuePage)
-    asv_history = URL('https://ingdirectvie.ingdirect.fr/b2b2c/epargne/CoeLisMvt', ASVHistory)
+    asv_history = URL('https://ingdirectvie.ingdirect.fr/b2b2c/epargne/CoeLisMvt',
+                      'https://ingdirectvie.ingdirect.fr/b2b2c/epargne/CoeDetMvt', ASVHistory)
     asv_invest = URL('https://ingdirectvie.ingdirect.fr/b2b2c/epargne/CoeDetCon', ASVInvest)
     detailfonds = URL('https://ingdirectvie.ingdirect.fr/b2b2c/fonds/PerDesFac\?codeFonds=(.*)', DetailFondsPage)
     # CapDocument
@@ -235,15 +237,9 @@ class IngBrowser(LoginBrowser):
         else:
             raise TransferError('Recipient not found')
 
-
     def go_on_asv_detail(self, account, link):
-        account = self.get_account(account.id)
-        data = {"index": "index",
-                "autoScroll": "",
-                "javax.faces.ViewState": account._jid,
-                "index:j_idcl": "index:asvInclude:goToAsvPartner",
-               }
-        self.accountspage.go(data=data)
+        self.accountspage.go(asvpage="manageASVContract")
+        self.page.submit()
         self.page.submit()
         self.location(link)
 
@@ -297,7 +293,7 @@ class IngBrowser(LoginBrowser):
 
         if self.where == u'titre':
             self.titrerealtime.go()
-        elif self.page.asv_has_detail:
+        elif self.page.asv_has_detail or account._jid:
             self.go_on_asv_detail(account, '/b2b2c/epargne/CoeDetCon')
             self.where = u"asv"
         return self.page.iter_investments()

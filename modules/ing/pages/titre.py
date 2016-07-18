@@ -23,9 +23,10 @@ from decimal import Decimal
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Investment
-from weboob.browser.pages import RawPage, HTMLPage, LoggedPage
-from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Date
+from weboob.browser.pages import RawPage, HTMLPage, LoggedPage, pagination
+from weboob.browser.elements import ListElement, TableElement, ItemElement, method
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, TableCell, Regexp, Env, Async, AsyncLoad
+from weboob.browser.filters.html import Link, Attr
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 class NetissimaPage(HTMLPage):
@@ -120,12 +121,53 @@ class TitreHistory(LoggedPage, HTMLPage):
 
 class ASVHistory(LoggedPage, HTMLPage):
     @method
-    class iter_history(ListElement):
+    class get_investments(TableElement):
         item_xpath = '//table[@class="Tableau"]/tr[td[not(has-class("enteteTableau"))]]'
+        head_xpath = '//table[@class="Tableau"]/tr[td[has-class("enteteTableau")]]/td'
+
+        col_label = u'Support(s)'
+        col_vdate = u'Date de valeur'
+        col_unitvalue = u'Valeur de part'
+        col_quantity = [u'(*) Nb de parts', u'Nb de parts']
+        col_valuation = [u'Montant', u'Montant versé']
+
+        class item(ItemElement):
+            klass = Investment
+
+            load_details = Regexp(Attr('./td/a', 'onclick', default=""), 'PageExterne\(\'([^\']+)', default=None) & AsyncLoad
+
+            obj_label = CleanText(TableCell('label'))
+            obj_code = Async('details') & CleanText('//td[contains(text(), "CodeISIN")]/b', default=NotAvailable)
+            obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True, default=NotAvailable)
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True, default=NotAvailable)
+            obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
+            obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
+
+    @pagination
+    @method
+    class iter_history(TableElement):
+        item_xpath = '//table[@class="Tableau"]/tr[td[not(has-class("enteteTableau"))]]'
+        head_xpath = '//table[@class="Tableau"]/tr[td[has-class("enteteTableau")]]/td'
+
+        col_date = u'Date d\'effet'
+        col_raw = u'Nature du mouvement'
+        col_amount = u'Montant brut'
+
+        next_page = Link('//a[contains(@href, "PageSuivante")]', default=None)
 
         class item(ItemElement):
             klass = Transaction
 
-            obj_date = Date(CleanText('./td[1]'), dayfirst=True)
-            obj_raw = Transaction.Raw('./td[2]')
-            obj_amount = CleanDecimal('./td[3]', replace_dots=True)
+            load_details = Link('./td/a', default=None) & AsyncLoad
+
+            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
+            obj_raw = Transaction.Raw(TableCell('raw'))
+            obj_amount = CleanDecimal(TableCell('amount'), replace_dots=True)
+            obj_investments = Env('investments')
+
+            def parse(self, el):
+                try:
+                    page = Async('details').loaded_page(self)
+                except AttributeError:
+                    page = None
+                self.env['investments'] = list(page.get_investments()) if page else []

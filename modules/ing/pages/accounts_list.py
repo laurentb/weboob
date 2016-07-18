@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from decimal import Decimal
 from datetime import date, timedelta
 import datetime
 import re
@@ -26,9 +25,9 @@ import re
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Filter, Field, MultiFilter, \
-                                            Date, Lower, Async, AsyncLoad, Format, Regexp
+from weboob.browser.elements import ListElement, TableElement, ItemElement, method
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Filter, Field, MultiFilter, Date, \
+                                            Lower, Async, AsyncLoad, Format, TableCell, Eval
 from weboob.browser.filters.html import Attr, Link
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -195,64 +194,13 @@ class AccountsList(LoggedPage, HTMLPage):
 
     @property
     def asv_has_detail(self):
-        span = self.doc.xpath('//a[@id="index:asvInclude:goToAsvPartner"]')
+        span = self.doc.xpath('//a[@id="index:asvInclude:goToAsvPartner"] | //p[contains(text(), "Gestion Libre")]')
         return len(span) > 0
 
-    def go_on_asv_history(self):
-        data = {}
-        data['index:j_idcl'] = 'index:asvInclude:goToAsvPartner'
-        data['index'] = 'index'
-        self.browser.open('https://secure.ingdirect.fr/protected/pages/index.jsf', data=data, headers={'Content-Type':'application/x-www-form-urlencoded'})
-
     def submit(self):
-        form = self.get_form()
+        form = self.get_form(name="follow_link")
+        form['follow_link:j_idcl'] = "follow_link:goToAsvPartner"
         form.submit()
-
-    @method
-    class iter_investments(ListElement):
-        item_xpath = '//div[has-class("asv_fond")]'
-
-        class item(ItemElement):
-            klass = Investment
-
-            # ASV.popup('/general?command=displayAVEuroEpargne')
-            load_details = Attr('.//div[has-class("asv_fond_view")]//a', 'onclick') & Regexp(pattern="'(.*)'") & AsyncLoad
-
-            obj_label = CleanText('.//span[has-class("asv_cat_lbl")]')
-            obj_code = Async('details') & CleanText('//li[contains(text(), "Code ISIN")]/span[1]')
-            obj_id = obj_code
-            obj_description = Async('details') & CleanText('//h5')
-            obj_quantity = CleanDecimal('.//dl[contains(dt/text(), "Nombre de parts")]/dd', replace_dots=True)
-            obj_unitvalue = CleanDecimal('.//dl[contains(dt/text(), "Valeur de part")]/dd', replace_dots=True)
-
-            # There are two kind of lists:
-            # - Header contains percent and valuation is in a specific row ("ligne-montant")
-            # - Header contains valuation, there is no "ligne-montant" row, and percent is in a specific row
-            obj_valuation = CleanDecimal('.//dl[has-class("ligne-montant")]/dd | .//dd[@data-show="header" and not(contains(text(), "%"))]', replace_dots=True)
-
-            def obj_unitprice(self):
-                if 'eurossima' in self.el.get('class') or \
-                   'fondsEuro' in self.el.get('class'):
-                    # in this case, the content of field is:
-                    # <span data-sort="pm_value" class="pmvalue positive">NOT_A_NUMBER</span>
-                    return self.obj.unitvalue
-
-                if self.el.xpath('.//span[has-class("pmvalue")]')[0].text == u'+∞ %':
-                    percent = NotAvailable
-                    return NotAvailable
-                else:
-                    percent = CleanDecimal('.//span[has-class("pmvalue")]', replace_dots=True)(self)
-                return (self.obj.unitvalue / (1 + percent/Decimal('100.0'))).quantize(Decimal('1.00'))
-
-            def obj_diff(self):
-                if not self.obj.quantity:
-                    # Quantity of euro funds is null.
-                    return Decimal('0.00')
-
-                if not self.obj.unitprice:
-                    return NotAvailable
-
-                return (self.obj.valuation - (self.obj.quantity * self.obj.unitprice)).quantize(Decimal('1.00'))
 
 
 class TitreDetails(LoggedPage, HTMLPage):
@@ -263,26 +211,38 @@ class TitreDetails(LoggedPage, HTMLPage):
 
 class ASVInvest(LoggedPage, HTMLPage):
     @method
-    class iter_investments(ListElement):
+    class iter_investments(TableElement):
         item_xpath = '//table[@class="Tableau"]//tr[position()>2]'
+        head_xpath = '//table[@class="Tableau"]//tr[position()=2]/td'
+
+        col_label = u'Support(s)'
+        col_vdate = re.compile('Date')
+        col_unitvalue = u'Valeur de part'
+        col_quantity = u'Nombre de parts'
+        col_valuation = u'Contre-valeur'
+        col_unitprice = u'Prix revient'
+        col_diff = u'Montant'
+        col_portfolio_share = u'%'
 
         class item(ItemElement):
             klass = Investment
             load_details = Link('.//td[1]//a')  & AsyncLoad
 
             def obj_code(self):
-                val=(Async('details') & CleanText('//td[@class="libelle-normal" and contains(.,"CodeISIN")]'))(self)
-                if val:
-                    return val.split('CodeISIN : ')[1]
-                return NotAvailable
+                val = Async('details', CleanText('//td[@class="libelle-normal" and contains(.,"CodeISIN")]', default=NotAvailable))(self)
+                return val.split('CodeISIN : ')[1] if val else val
 
-            obj_label = CleanText('.//td[1]')
-            obj_vdate = Date(CleanText('.//td[2]'),dayfirst=True)
-            obj_unitvalue = CleanDecimal('.//td[3]',replace_dots=True,default=NotAvailable)
-            obj_quantity = CleanDecimal('.//td[4]',replace_dots=True,default=NotAvailable)
-            obj_valuation = CleanDecimal('.//td[5]',replace_dots=True)
-            obj_unitprice = CleanDecimal('.//td[6]',replace_dots=True,default=NotAvailable)
-            obj_diff = CleanDecimal('.//td[7]',replace_dots=True,default=NotAvailable)
+            def obj_portfolio_share(self):
+                p = CleanDecimal(TableCell('portfolio_share'), replace_dots=True, default=NotAvailable)(self)
+                return Eval(lambda x: x / 100, p)(self) if p else p
+
+            obj_label = CleanText(TableCell('label'))
+            obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True, default=NotAvailable)
+            obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True, default=NotAvailable)
+            obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
+            obj_unitprice = CleanDecimal(TableCell('unitprice'), replace_dots=True, default=NotAvailable)
+            obj_diff = CleanDecimal(TableCell('diff'), replace_dots=True, default=NotAvailable)
 
 
 class DetailFondsPage(LoggedPage,HTMLPage):
