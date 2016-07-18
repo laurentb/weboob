@@ -170,4 +170,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         if not account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
             raise NotImplementedError()
         self.location(account._link)
+        # We might deconnect at this point.
+        if self.login.is_here():
+            return self.get_investment(account)
         return self.page.iter_investment()
