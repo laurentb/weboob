@@ -143,6 +143,10 @@ class CBOperationPage(LoggedPage, HTMLPage):
 
 class CPTOperationPage(LoggedPage, HTMLPage):
     def get_history(self):
+        if self.doc.xpath('//form[@name="FORM_SUITE"]'):
+            form = self.get_form(name="FORM_SUITE")
+            self.doc = self.browser.location("%s" % form.url, params=dict(form)).page.doc
+
         for script in self.doc.xpath('//script'):
             if script.text is None or script.text.find('\nCL(0') < 0:
                 continue
@@ -153,6 +157,7 @@ class CPTOperationPage(LoggedPage, HTMLPage):
                 op.set_amount(m.group(5))
                 op._coming = (re.match(r'\d+/\d+/\d+', m.group(2)) is None)
                 yield op
+
 
 class AppGonePage(HTMLPage):
     def on_load(self):
