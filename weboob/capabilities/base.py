@@ -522,6 +522,7 @@ class Currency(object):
                   u'KZT': (u'KZT',),
                   u'PLN': (u'PLN',),
                   u'ILS': (u'ILS',),
+                  u'THB': (u'THB',),
                  }
 
     EXTRACTOR = re.compile(r'[\d\s,\.\-]', re.UNICODE)
