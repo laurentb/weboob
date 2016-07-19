@@ -124,7 +124,9 @@ class SueurDeMetalModule(Module, CapCalendarEvent):
 
     def fill_concert(self, obj, fields):
         if set(fields) & set(('price', 'location', 'description')):
-            return self.get_event(obj.id)
+            new_obj = self.get_event(obj.id)
+            for field in fields:
+                setattr(obj, field, getattr(new_obj, field))
         return obj
 
     OBJECTS = {Concert: fill_concert}
