@@ -270,13 +270,35 @@ class LoansPage(LoggedPage, HTMLPage):
 
 
 class Transaction(FrenchTransaction):
-    NATURE_PATTERNS = [(re.compile('^VIREMENT.*'),FrenchTransaction.TYPE_TRANSFER),
-                (re.compile('.*(PRELEVEMENTS|PRELVT|TIP).*'),FrenchTransaction.TYPE_ORDER),
-                (re.compile('.*CHEQUE.*'), FrenchTransaction.TYPE_CHECK),
-                (re.compile('.*ESPECES.*'), FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile('.*(CARTE|CB).*'), FrenchTransaction.TYPE_CARD),
-                (re.compile('.*(AGIOS|ANNULATIONS|IMPAYES|CREDIT).*'), FrenchTransaction.TYPE_BANK),
-               ]
+    PATTERNS = [(re.compile('^(?P<category>CB) (?P<text>RETRAIT) DU (?P<dd>\d+)/(?P<mm>\d+)'),
+                                                        FrenchTransaction.TYPE_WITHDRAWAL),
+            (re.compile('^(?P<category>(PRLV|PE)( SEPA)?) (?P<text>.*)'),
+                                                        FrenchTransaction.TYPE_ORDER),
+            (re.compile('^(?P<category>CHQ\.) (?P<text>.*)'),
+                                                        FrenchTransaction.TYPE_CHECK),
+            (re.compile('^(?P<category>RELEVE CB) AU (\d+)/(\d+)/(\d+)'),
+                                                        FrenchTransaction.TYPE_CARD),
+            (re.compile('^(?P<category>CB) (?P<text>.*) (?P<dd>\d+)/(?P<mm>\d+)/(?P<yy>\d+)'),
+                                                        FrenchTransaction.TYPE_CARD),
+            (re.compile('^(?P<category>(PRELEVEMENT|TELEREGLEMENT|TIP)) (?P<text>.*)'),
+                                                        FrenchTransaction.TYPE_ORDER),
+            (re.compile('^(?P<category>(ECHEANCE\s*)?PRET)(?P<text>.*)'),   FrenchTransaction.TYPE_LOAN_PAYMENT),
+            (re.compile('^(?P<category>(EVI|VIR(EM(EN)?)?T?)(.PERMANENT)? ((RECU|FAVEUR) TIERS|SEPA RECU)?)( /FRM)?(?P<text>.*)'),
+                                                        FrenchTransaction.TYPE_TRANSFER),
+            (re.compile('^(?P<category>REMBOURST)(?P<text>.*)'),     FrenchTransaction.TYPE_PAYBACK),
+            (re.compile('^(?P<category>COM(MISSIONS?)?)(?P<text>.*)'),   FrenchTransaction.TYPE_BANK),
+            (re.compile('^(?P<text>(?P<category>REMUNERATION).*)'),   FrenchTransaction.TYPE_BANK),
+            (re.compile('^(?P<text>(?P<category>ABON.*?)\s*.*)'),   FrenchTransaction.TYPE_BANK),
+            (re.compile('^(?P<text>(?P<category>RESULTAT .*?)\s*.*)'),   FrenchTransaction.TYPE_BANK),
+            (re.compile('^(?P<text>(?P<category>TRAIT\..*?)\s*.*)'),   FrenchTransaction.TYPE_BANK),
+            (re.compile('^(?P<category>REM CHQ) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+            (re.compile('^VIREMENT.*'),FrenchTransaction.TYPE_TRANSFER),
+            (re.compile('.*(PRELEVEMENTS|PRELVT|TIP).*'),FrenchTransaction.TYPE_ORDER),
+            (re.compile('.*CHEQUE.*'), FrenchTransaction.TYPE_CHECK),
+            (re.compile('.*ESPECES.*'), FrenchTransaction.TYPE_DEPOSIT),
+            (re.compile('.*(CARTE|CB).*'), FrenchTransaction.TYPE_CARD),
+            (re.compile('.*(AGIOS|ANNULATIONS|IMPAYES|CREDIT).*'), FrenchTransaction.TYPE_BANK),
+    ]
 
 
 class Pagination(object):
@@ -304,7 +326,7 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                 type = Async('details', CleanText(u'//td[contains(text(), "Nature de l\'opération")]/following-sibling::*[1]'))(self)
                 if not type:
                     return Transaction.TYPE_UNKNOWN
-                for pattern, _type in Transaction.NATURE_PATTERNS:
+                for pattern, _type in Transaction.PATTERNS:
                     match = pattern.match(type)
                     if match:
                         return _type
