@@ -26,9 +26,10 @@ __all__ = ['CSVFormatter']
 
 
 class CSVFormatter(IFormatter):
-    def __init__(self):
+    def __init__(self, field_separator=";"):
         super(CSVFormatter, self).__init__()
         self.started = False
+        self.field_separator = field_separator
 
     def flush(self):
         self.started = False
@@ -41,7 +42,7 @@ class CSVFormatter(IFormatter):
             return self.write_dict(item, fp)
 
     def write_dict(self, item, fp):
-        writer = csv.writer(fp)
+        writer = csv.writer(fp, delimiter=self.field_separator)
         if not self.started:
             writer.writerow([unicode(v).encode('utf-8') for v in item.keys()])
             self.started = True
