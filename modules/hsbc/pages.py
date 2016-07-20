@@ -144,8 +144,10 @@ class CBOperationPage(LoggedPage, HTMLPage):
 class CPTOperationPage(LoggedPage, HTMLPage):
     def get_history(self):
         if self.doc.xpath('//form[@name="FORM_SUITE"]'):
-            form = self.get_form(name="FORM_SUITE")
-            self.doc = self.browser.location("%s" % form.url, params=dict(form)).page.doc
+            m = re.search('suite[\s]+=[\s]+([\w]+)', CleanText().filter(self.doc.xpath('//script[contains(text(), "var suite")]')))
+            if m and m.group(1) == "true":
+                form = self.get_form(name="FORM_SUITE")
+                self.doc = self.browser.location("%s" % form.url, params=dict(form)).page.doc
 
         for script in self.doc.xpath('//script'):
             if script.text is None or script.text.find('\nCL(0') < 0:
