@@ -106,6 +106,11 @@ class AccountsPage(CMSOPage):
                     obj.id = obj.label.replace(' ', '')
                 return True
 
+    def on_load(self):
+        if self.doc.xpath('//p[contains(text(), "incident technique")]'):
+            raise BrowserIncorrectPassword("Vous n'avez aucun compte sur cet espace. " \
+                                           "Veuillez choisir un autre type de compte.")
+
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^RET DAB (?P<dd>\d{2})/?(?P<mm>\d{2})(/?(?P<yy>\d{2}))? (?P<text>.*)'),
