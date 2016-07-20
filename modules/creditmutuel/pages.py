@@ -214,7 +214,9 @@ class AccountsPage(LoggedPage, HTMLPage):
                         account = self.parent.objects[id]
                         if not account.coming:
                             account.coming = Decimal('0.0')
-                        account.coming = balance
+                        if not hasattr(account, '_coming'):
+                            account._coming = account.coming
+                        account.coming = balance + account._coming
                         account._card_links.append(link)
                     raise SkipItem()
 
@@ -318,6 +320,7 @@ class Transaction(FrenchTransaction):
                                                           FrenchTransaction.TYPE_CARD),
                 (re.compile('^PAIEMENT PSC\s+(?P<dd>\d{2})(?P<mm>\d{2}) (?P<text>.*) CARTE \d+ ?(.*)$'),
                                                           FrenchTransaction.TYPE_CARD),
+                (re.compile('^(?P<text>RELEVE CARTE.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
                 (re.compile('^RETRAIT DAB (?P<dd>\d{2})(?P<mm>\d{2}) (?P<text>.*) CARTE [\*\d]+'),
                                                           FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('^CHEQUE( (?P<text>.*))?$'),  FrenchTransaction.TYPE_CHECK),
@@ -477,12 +480,13 @@ class CardPage(OperationsPage, LoggedPage):
                 condition = lambda self: len(self.el.xpath('./td')) >= 4
 
                 obj_raw = Transaction.Raw(Env('raw'))
-                obj_type = Transaction.TYPE_CARD
+                obj_type = Env('type')
                 obj_date = Env('debit_date')
                 obj_rdate = Transaction.Date(TableCell('date'))
                 obj_amount = Env('amount')
                 obj_original_amount = Env('original_amount')
                 obj_original_currency = Env('original_currency')
+                obj__differed_date = Env('differed_date')
 
                 def parse(self, el):
                     try:
@@ -490,14 +494,15 @@ class CardPage(OperationsPage, LoggedPage):
                     except ColumnNotFound:
                         self.env['raw'] = "%s" % (CleanText().filter(TableCell('commerce')(self)[0].text))
 
+                    self.env['type'] = Transaction.TYPE_DEFERRED_CARD \
+                                       if CleanText(u'//a[contains(text(), "Prélevé fin")]', default=None) else Transaction.TYPE_CARD
+                    self.env['differed_date'] = parse_french_date(Regexp(CleanText(u'//p[contains(text(), "Achats effectués sur")]'), 'au[\s]+(.*)')(self)).date()
                     self.env['amount'] = CleanDecimal(replace_dots=True).filter(TableCell('credit')(self)[0].text)
                     original_amount = TableCell('credit')(self)[0].xpath('./span')[0].text
-                    if original_amount:
-                        self.env['original_amount'] = CleanDecimal(replace_dots=True).filter(original_amount)
-                        self.env['original_currency'] =  Account.get_currency(original_amount[1:-1])
-                    else:
-                        self.env['original_amount'] = NotAvailable
-                        self.env['original_currency'] = NotAvailable
+                    self.env['original_amount'] = CleanDecimal(replace_dots=True).filter(original_amount) \
+                                                  if original_amount else NotAvailable
+                    self.env['original_currency'] = Account.get_currency(original_amount[1:-1]) \
+                                                  if original_amount else NotAvailable
 
 
 class NoOperationsPage(OperationsPage, LoggedPage):

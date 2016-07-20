@@ -28,6 +28,7 @@ from dateutil.relativedelta import relativedelta
 from random import randint
 
 from weboob.tools.compat import basestring
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.profiles import Wget
 from weboob.browser.url import URL
@@ -196,11 +197,8 @@ class CreditMutuelBrowser(LoginBrowser):
         if account._link_id.startswith('pro'):
             self.location(account._pre_link)
         for tr in self.list_operations(account._link_id):
-            # to prevent redundancy with card transactions, we do not
-            # store 'RELEVE CARTE' transaction.
-            if not tr.raw.startswith('RELEVE CARTE'):
-                transactions.append(tr)
-            elif last_debit is None:
+            transactions.append(tr)
+            if last_debit is None:
                 # we set the debit date to last day of month so we need to do the same form last_debit
                 last_debit = (tr.date + relativedelta(day=31))
 
@@ -209,11 +207,18 @@ class CreditMutuelBrowser(LoginBrowser):
             for tr in self.list_operations(coming_link):
                 transactions.append(tr)
 
+        differed_date = None
         for card_link in account._card_links:
             for tr in self.list_operations(card_link):
+                if not differed_date or tr._differed_date < differed_date:
+                    differed_date = tr._differed_date
                 if last_debit is None or tr.date > last_debit:
                     tr._is_coming = True
                 transactions.append(tr)
+
+        # set deleted for card_summary
+        for tr in transactions:
+            tr.deleted = True if tr.type == FrenchTransaction.TYPE_CARD_SUMMARY and differed_date.month <= tr.date.month else False
 
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions
