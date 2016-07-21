@@ -345,7 +345,8 @@ class Cragr(Browser):
             new_location = self.moveto_insurance_website(account)
             self.location(new_location, urllib.urlencode({}))
             if self.is_on_page(BGPIPage):
-                self.page.go_detail()
+                if not self.page.go_detail():
+                    return
             if self.is_on_page(LifeInsurancePage):
                 self.page.go_on_detail(account.id)
 

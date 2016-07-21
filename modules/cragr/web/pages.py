@@ -734,7 +734,8 @@ class BGPIPage(MarketPage):
         self.browser.location('https://%s%s' % (origin.netloc, link))
 
     def go_detail(self):
-        self.go_on(self.document.xpath(u'.//a[contains(text(), "Détail")]')[0].attrib['href'])
+        link = self.document.xpath(u'.//a[contains(text(), "Détail")]')
+        return self.go_on(link[0].attrib['href']) if link else False
 
     def go_back(self):
         self.go_on(self.document.xpath(u'.//a[contains(text(), "Retour à mes comptes")]')[0].attrib['href'])
