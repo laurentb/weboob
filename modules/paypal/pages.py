@@ -208,7 +208,7 @@ class ProHistoryPage(HistoryPage, JsonPage):
                 return []
             t.original_amount = Decimal(transaction['grossAmount']['amountUnformatted'])
             t.original_currency = original_currency
-            t.amount = abs(cc) if not transaction['negativeAmount'] else -abs(cc)
+            t.amount = abs(cc) if not transaction['grossAmount']['negativeAmount'] else -abs(cc)
         else:
             t.amount = Decimal(transaction['netAmount']['amountUnformatted'])
         date = parse_french_date(transaction['transactionTime'])
