@@ -49,13 +49,15 @@ class SubscriptionPage(HTMLPage):
         if u"Vous ne disposez d'aucun contrat sur cet accès." in CleanText(u'.')(self.doc):
             raise BrowserIncorrectPassword()
 
+        self.browser.areas = []
         for div in self.doc.xpath('//div[@class="listeAbonnementsBox"]'):
             site_type = div.xpath('./div[1]')[0].text
-            if site_type == 'Professionnel':
+            if site_type != 'Particulier':
                 link = div.xpath('./div[2]')[0].attrib['onclick']
                 m = re.search(r"href='(.*)'", link)
                 if m:
-                    self.browser.location(m.group(1))
+                    self.browser.areas.append(m.group(1))
+
 
 class LoginPage(HTMLPage):
     def login(self, username, password):

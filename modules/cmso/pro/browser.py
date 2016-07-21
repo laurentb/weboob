@@ -56,13 +56,23 @@ class CmsoProBrowser(LoginBrowser):
 
     @need_login
     def iter_accounts(self):
-        self.accounts.go()
-        return self.page.iter_accounts()
+        # Manage multiple areas
+        self.subscription.stay_or_go()
+        for area in self.areas:
+            self.location(area)
+            for a in self.accounts.go().iter_accounts():
+                a._area = area
+                yield a
 
     @need_login
     def iter_history(self, account):
         if account._history_url.startswith('javascript:'):
             raise NotImplementedError()
+
+        # Manage multiple areas
+        self.subscription.go()
+        self.location(account._area)
+        self.accounts.go()
 
         # Query history for 6 last months
         def format_date(d):
