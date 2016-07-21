@@ -63,7 +63,7 @@ class Paypal(LoginBrowser):
     promo = URL('https://www.paypal.com/fr/webapps/mpp/clickthru/paypal-app-promo-2.*',
                 '/fr/webapps/mpp/clickthru.*', PromoPage)
     account = URL('https://www.paypal.com/businessexp/money', AccountPage)
-    pro_history = URL('https://\w+.paypal.com/webapps/business/activity\?.*',
+    pro_history = URL('https://\w+.paypal.com/businessexp/transactions/activity\?.*',
                       ProHistoryPage)
     part_history = URL('https://\w+.paypal.com/myaccount/activity/.*', PartHistoryPage)
     old_website = URL('https://paypalmanager.paypal.com/login.do', OldWebsitePage)
@@ -195,11 +195,17 @@ class Paypal(LoginBrowser):
         However, it is not normalized, and sometimes the download is refused
         and sent later by mail.
         """
-        s = start.strftime('%d/%m/%Y')
-        e = end.strftime('%d/%m/%Y')
-        # Settings a big magic number so we hope to get all transactions for the period
-        LIMIT = '9999'
-        self.location('https://www.paypal.com/webapps/business/activity?fromdate=' + s + '&todate=' + e + '&transactiontype=ALL_TRANSACTIONS&currency=ALL_TRANSACTIONS_CURRENCY&limit=' + LIMIT + '&archive=true', headers={'X-Requested-With': 'XMLHttpRequest'})
+        p = {'transactiontype': "ALL_TRANSACTIONS",
+             'currency': "ALL_TRANSACTIONS_CURRENCY",
+             'limit': "",
+             'archive': "ACTIVE_TRANSACTIONS",
+             'fromdate_year': start.year,
+             'fromdate_month': start.month,
+             'fromdate_day': start.day,
+             'todate_year': end.year,
+             'todate_month': end.month,
+             'todate_day': end.day}
+        self.location('https://www.paypal.com/businessexp/transactions/activity', params=p)
         return self.page.transaction_left()
 
     def transfer(self, from_id, to_id, amount, reason=None):

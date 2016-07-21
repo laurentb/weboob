@@ -53,7 +53,7 @@ class LoginPage(HTMLPage):
         # now it checks if some browsers-only builtin variables are defined:
         # e+=function(e,t){return typeof navigator!="undefined"?e:t}
         js = Javascript('var navigator = {}; var document = {}; document.lastModified = 1; \
-        document.getElementsByTagName = 1; document.implementation = 1; document.createAttribute = 1;'+ code1)
+        document.getElementsByTagName = 1; document.implementation = 1; document.createAttribute = 1; document.getElementsByName = 1;'+ code1)
         func_name = re.search(r'function (\w+)\(\)', code1).group(1)
         token = str(js.call(func_name))
         csrf = re.search(r'csrf="\+encodeURIComponent\("(.*?)"\)', code).group(1)
@@ -173,7 +173,7 @@ class HistoryPage(LoggedPage):
 
 class ProHistoryPage(HistoryPage, JsonPage):
     def transaction_left(self):
-        return len(self.doc['data']['transactions']) > 0
+        return 'transactions' in self.doc['data'] and self.doc['data']['transactions']
 
     def get_transactions(self):
         return self.doc['data']['transactions']
@@ -193,26 +193,26 @@ class ProHistoryPage(HistoryPage, JsonPage):
                                                                                        u'Canceled']:
             return []
         for pattern in [u'Commande à', u'Offre de remboursement', u'Bill to']:
-            if transaction['transactionDescription'].startswith(pattern):
+            if transaction['transactionDescription']['description'].startswith(pattern):
                 return []
         t = FrenchTransaction(transaction['transactionId'])
         # Those are not really transactions.
-        if not 'currencyCode' in transaction['transactionAmount']:
+        if not 'currency' in transaction['grossAmount']:
             return []
-        original_currency = unicode(transaction['transactionAmount']['currencyCode'])
+        original_currency = unicode(transaction['grossAmount']['currency'])
         if not original_currency == account.currency:
             if original_currency in self.browser.account_currencies:
                 return []
             cc = self.browser.convert_amount(account, transaction, 'https://www.paypal.com/cgi-bin/webscr?cmd=_history-details-from-hub&id=' + transaction['transactionId'])
             if not cc:
                 return []
-            t.original_amount = Decimal('%.2f' % transaction['transactionAmount']['currencyDoubleValue'])
+            t.original_amount = Decimal(transaction['grossAmount']['amountUnformatted'])
             t.original_currency = original_currency
-            t.amount = abs(cc) if not transaction['debit'] else -abs(cc)
+            t.amount = abs(cc) if not transaction['negativeAmount'] else -abs(cc)
         else:
-            t.amount = Decimal('%.2f' % transaction['net']['currencyDoubleValue'])
+            t.amount = Decimal(transaction['netAmount']['amountUnformatted'])
         date = parse_french_date(transaction['transactionTime'])
-        raw = transaction['transactionDescription']
+        raw = "%s %s" % (transaction['transactionDescription']['description'], transaction['transactionDescription']['name'])
         if raw.startswith(u'Paiement \xe0') or raw.startswith('Achat de'):
             payback_id, payback_raw, payback_amount, payback_currency = self.browser.check_for_payback(transaction,  'https://www.paypal.com/cgi-bin/webscr?cmd=_history-details-from-hub&id=' + transaction['transactionId'])
             if payback_id and payback_raw and payback_amount and payback_currency:
@@ -230,7 +230,7 @@ class ProHistoryPage(HistoryPage, JsonPage):
         #        t_counterpart.original_amount = -t.original_amount
         #    t_counterpart.parse(date=date, raw=u'Contrepartie - %s' % raw)
         #    trans.append(t_counterpart)
-        t.commission = Decimal('%.2f' % transaction['fee']['currencyDoubleValue'])
+        t.commission = Decimal(transaction['feeAmount']['amountUnformatted'])
         t.parse(date=date, raw=raw)
         trans.append(t)
         return trans
