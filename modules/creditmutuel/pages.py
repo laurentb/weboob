@@ -145,7 +145,8 @@ class AccountsPage(LoggedPage, HTMLPage):
 
                 first_td = self.el.xpath('./td')[0]
                 return (("i" in first_td.attrib.get('class', '') or "p" in first_td.attrib.get('class', ''))
-                        and first_td.find('a') is not None)
+                        and (first_td.find('a') is not None or (first_td.find('.//span') is not None
+                        and "cartes" in first_td.findtext('.//span') and first_td.find('./div/a') is not None)))
 
             class Label(Filter):
                 def filter(self, text):
@@ -163,14 +164,14 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_coming = Env('coming')
             obj_balance = Env('balance')
             obj_currency = FrenchTransaction.Currency('./td[2] | ./td[3]')
-            obj__link_id = Link('./td[1]/a')
+            obj__link_id = Link('./td[1]//a')
             obj__card_links = []
             obj_type = Type(Field('label'))
             obj__is_inv = False
             obj__is_webid = Env('_is_webid')
 
             def parse(self, el):
-                link = el.xpath('./td[1]/a')[0].get('href', '')
+                link = el.xpath('./td[1]//a')[0].get('href', '')
                 if 'POR_SyntheseLst' in link:
                     raise SkipItem()
 
@@ -194,7 +195,9 @@ class AccountsPage(LoggedPage, HTMLPage):
 
                 self.env['_is_webid'] = False
                 if self.page.browser.is_new_website:
-                    id = CleanText('./td[1]/a/node()[contains(@class, "doux")]', replace=[(' ', '')])(el)
+                    id_xpath = '.%s/td[1]/a/node()[contains(@class, "doux")]' % \
+                                ("/preceding-sibling::tr[1]" if "cartes" in CleanText('./td[1]')(el) else "")
+                    id = CleanText(id_xpath, replace=[(' ', '')])(el)
                 else:
                     if 'rib' in p:
                         id = p['rib'][0]
@@ -312,6 +315,7 @@ class CardsListPage(LoggedPage, HTMLPage):
 
             def obj__pre_link(self):
                 return self.page.url
+
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
@@ -465,11 +469,12 @@ class CardPage(OperationsPage, LoggedPage):
         class list_history(Transaction.TransactionsElement):
             head_xpath = '//table[@class="liste"]//thead/tr/th'
             item_xpath = '//table[@class="liste"]/tbody/tr'
+
             col_commerce = u'Commerce'
             col_ville = u'Ville'
 
             def parse(self, el):
-                label = CleanText('//div[contains(@class, "lister")]//p[@class="c"]')(el)
+                label = CleanText(u'//*[contains(text(), "effectués sur la période")]')(el)
                 if not label:
                     return
                 label = re.findall('(\d+ [^ ]+ \d+)', label)[-1]
@@ -496,13 +501,16 @@ class CardPage(OperationsPage, LoggedPage):
 
                     self.env['type'] = Transaction.TYPE_DEFERRED_CARD \
                                        if CleanText(u'//a[contains(text(), "Prélevé fin")]', default=None) else Transaction.TYPE_CARD
-                    self.env['differed_date'] = parse_french_date(Regexp(CleanText(u'//p[contains(text(), "Achats effectués sur")]'), 'au[\s]+(.*)')(self)).date()
-                    self.env['amount'] = CleanDecimal(replace_dots=True).filter(TableCell('credit')(self)[0].text)
-                    original_amount = TableCell('credit')(self)[0].xpath('./span')[0].text
+                    self.env['differed_date'] = parse_french_date(Regexp(CleanText(u'//*[contains(text(), "effectués sur la période")]'), 'au[\s]+(.*)')(self)).date()
+                    amount = TableCell('credit')(self)[0]
+                    if self.page.browser.is_new_website:
+                        amount = amount.xpath('./div')[0] if len(amount.xpath('./div')) else TableCell('debit')(self)[0].xpath('./div')[0]
+                    self.env['amount'] = CleanDecimal(replace_dots=True).filter(amount.text)
+                    original_amount = None if self.page.browser.is_new_website else amount.xpath('./span')[0].text
                     self.env['original_amount'] = CleanDecimal(replace_dots=True).filter(original_amount) \
-                                                  if original_amount else NotAvailable
+                                                  if original_amount is not None else NotAvailable
                     self.env['original_currency'] = Account.get_currency(original_amount[1:-1]) \
-                                                  if original_amount else NotAvailable
+                                                  if original_amount is not None else NotAvailable
 
 
 class NoOperationsPage(OperationsPage, LoggedPage):

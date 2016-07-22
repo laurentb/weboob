@@ -67,7 +67,9 @@ class CreditMutuelBrowser(LoginBrowser):
                       '/(?P<subbank>.*)/fr/banque/nr/nr_devbooster.aspx.*',
                       OperationsPage)
     coming =      URL('/(?P<subbank>.*)/fr/banque/mvts_instance.cgi.*',      ComingPage)
-    card =        URL('/(?P<subbank>.*)/fr/banque/operations_carte.cgi.*',   CardPage)
+    card =        URL('/(?P<subbank>.*)/fr/banque/operations_carte.cgi.*',
+                      '/fr/banque/mouvements.html\?webid=.*cardmonth=\d+$',
+                      CardPage)
     noop =        URL('/(?P<subbank>.*)/fr/banque/CR/arrivee.asp.*',         NoOperationsPage)
     info =        URL('/(?P<subbank>.*)/fr/banque/BAD.*',                    EmptyPage)
     transfert =   URL('/(?P<subbank>.*)/fr/banque/virements/vplw_vi.html',   EmptyPage)
