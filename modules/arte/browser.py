@@ -25,7 +25,7 @@ from weboob.capabilities import NotAvailable
 
 from weboob.browser import PagesBrowser, URL
 from .pages import VideosListPage, ArteJsonPage
-from .video import VERSION_VIDEO, LANG, QUALITY, FORMATS, SITE
+from .video import VERSION_VIDEO, LANG, QUALITY, SITE
 
 
 __all__ = ['ArteBrowser']
@@ -73,9 +73,9 @@ class ArteBrowser(PagesBrowser):
         return video
 
     def get_url(self):
-        url = self.page.get_video_url(self.quality, self.format, self.version.get(self.lang.get('label')),
+        url = self.page.get_video_url(self.quality.get('label'), self.format, self.version.get(self.lang.get('label')),
                                       self.lang.get('version'))
-        if format == FORMATS.HLS:
+        if self.format == 'HLS':
             ext = u'm3u8'
             url = self.get_m3u8_link(url)
         else:
@@ -84,17 +84,17 @@ class ArteBrowser(PagesBrowser):
         return ext, url
 
     def get_m3u8_link(self, url):
-        r = self.openurl(url)
+        r = self.open(url).content.split('\n')
         baseurl = url.rpartition('/')[0]
 
         links_by_quality = []
-        for line in r.readlines():
+        for line in r:
             if not line.startswith('#'):
                 links_by_quality.append(u'%s/%s' % (baseurl, line.replace('\n', '')))
 
         if len(links_by_quality):
             try:
-                return links_by_quality[self.quality[1]]
+                return links_by_quality[self.quality.get('order')]
             except:
                 return links_by_quality[0]
         return NotAvailable

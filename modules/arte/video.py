@@ -32,7 +32,10 @@ SITE = enum(PROGRAM={u'id': u'program', u'label': u'Arte Programs', 1: 'get_arte
             CINEMA={u'id': u'cinema', u'label': u'Arte Cinema', 1: 'get_arte_cinema_categories',
                     2: 'get_arte_cinema_categories', 3: 'get_arte_cinema_videos', 'video': 'get_arte_cinema_video'})
 
-QUALITY = enum(HD=u'SQ', MD=u'EQ', SD=u'MQ', LD=u'LQ')
+QUALITY = enum(HD={'label': u'SQ', 'order': 3},
+               MD={'label': u'EQ', 'order': 2},
+               SD={'label': u'MQ', 'order': 1},
+               LD={'label': u'LQ', 'order': 0})
 
 VERSION_VIDEO = enum(VOSTA={u'label': u'Original version subtitled (German)', LANG.GERMAN.get('label'): u'3'},
                      VOSTF={u'label': u'Original version subtitled (French)', LANG.FRENCH.get('label'): u'3'},
