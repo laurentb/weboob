@@ -23,7 +23,10 @@ import warnings
 from io import BytesIO
 import codecs
 from cgi import parse_header
-import urlparse
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
 
 import requests
 
