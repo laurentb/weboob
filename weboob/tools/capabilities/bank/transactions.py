@@ -258,7 +258,7 @@ class FrenchTransaction(Transaction):
 
                         # Set date from information in raw label.
                         if inargs('dd') and inargs('mm'):
-                            dd = int(args['dd'])
+                            dd = int(args['dd']) if args['dd'] != '00' else 1
                             mm = int(args['mm'])
 
                             if inargs('yy'):
