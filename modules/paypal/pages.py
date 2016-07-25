@@ -175,6 +175,11 @@ class ProHistoryPage(HistoryPage, JsonPage):
     def transaction_left(self):
         return 'transactions' in self.doc['data'] and self.doc['data']['transactions']
 
+    def get_next_page_token(self):
+        if 'nextpageurl' in self.doc['data']:
+            return self.doc['data']['nextpageurl']
+        return None
+
     def get_transactions(self):
         return self.doc['data']['transactions']
 
@@ -195,41 +200,32 @@ class ProHistoryPage(HistoryPage, JsonPage):
         for pattern in [u'Commande à', u'Offre de remboursement', u'Bill to']:
             if transaction['transactionDescription']['description'].startswith(pattern):
                 return []
+
         t = FrenchTransaction(transaction['transactionId'])
         # Those are not really transactions.
-        if not 'currency' in transaction['grossAmount']:
+        if not 'currency' in transaction['grossAmount'] \
+                or transaction['transactionDescription']['description'].startswith("Conversion de devise"):
             return []
         original_currency = unicode(transaction['grossAmount']['currency'])
         if not original_currency == account.currency:
             if original_currency in self.browser.account_currencies:
                 return []
-            cc = self.browser.convert_amount(account, transaction, 'https://www.paypal.com/cgi-bin/webscr?cmd=_history-details-from-hub&id=' + transaction['transactionId'])
+            cc = None
+            for tr in transaction['secondaryTransactions']:
+                if account.currency == tr['grossAmount']['currency']:
+                    cc = tr['grossAmount']['amountUnformatted']
+                    break
             if not cc:
                 return []
             t.original_amount = Decimal(transaction['grossAmount']['amountUnformatted'])
             t.original_currency = original_currency
-            t.amount = abs(cc) if not transaction['grossAmount']['negativeAmount'] else -abs(cc)
+            t.amount = Decimal(cc)
         else:
             t.amount = Decimal(transaction['netAmount']['amountUnformatted'])
         date = parse_french_date(transaction['transactionTime'])
         raw = "%s %s" % (transaction['transactionDescription']['description'], transaction['transactionDescription']['name'])
-        if raw.startswith(u'Paiement \xe0') or raw.startswith('Achat de'):
-            payback_id, payback_raw, payback_amount, payback_currency = self.browser.check_for_payback(transaction,  'https://www.paypal.com/cgi-bin/webscr?cmd=_history-details-from-hub&id=' + transaction['transactionId'])
-            if payback_id and payback_raw and payback_amount and payback_currency:
-                t_payback = FrenchTransaction(payback_id)
-                t_payback.amount = payback_amount
-                t_payback.original_currency = payback_currency
-                t_payback.type = FrenchTransaction.TYPE_TRANSFER
-                t_payback.parse(date=date, raw=u'Prélèvement pour %s' % raw)
-                trans.append(t_payback)
-        #if raw.startswith(u'Remboursement') or raw.startswith(u'Refund'):
-        #    t_counterpart = FrenchTransaction()
-        #    t_counterpart.amount = -t.amount
-        #    if t.original_currency:
-        #        t_counterpart.original_currency = t.original_currency
-        #        t_counterpart.original_amount = -t.original_amount
-        #    t_counterpart.parse(date=date, raw=u'Contrepartie - %s' % raw)
-        #    trans.append(t_counterpart)
+        if raw == "Transfert de Compte bancaire":
+            t.type = FrenchTransaction.TYPE_TRANSFER
         t.commission = Decimal(transaction['feeAmount']['amountUnformatted'])
         t.parse(date=date, raw=raw)
         trans.append(t)
@@ -280,29 +276,3 @@ class HistoryDetailsPage(LoggedPage, HTMLPage):
                     if ' %s' % account.currency in text:
                         return Decimal(FrenchTransaction.clean_amount(text.split(account.currency)[0]))
         return False
-
-    def get_payback_url(self):
-        if not self.doc.xpath(u'//td[contains(text(), "Transaction associée")]') and not self.doc.xpath(u'//td[contains(text(), "Transactions associées")]'):
-            return None
-        url = self.doc.xpath(u'//tr[td[contains(text(),"Approvisionnement à")]]//a[contains(text(), "Détails")]/@href')
-        if len(url) == 1:
-            return url[0]
-        return None
-
-
-class HistoryPaybackPage(LoggedPage, HTMLPage):
-    def get_payback(self):
-        if not self.doc.xpath(u'//td[contains(text(), "Transaction associée")]') and not self.doc.xpath(u'//td[contains(text(), "Transactions associées")]'):
-            return None, None, None, None
-        tr = self.doc.xpath(u'//tr[td[contains(text(),"Approvisionnement à")]]')
-        td_id = self.doc.xpath(u'//td[span[contains(text(),"Approvisionnement à")]]')
-        if len(tr) > 0 and len(td_id)>0:
-            tr = tr[0]
-            m = re.search(u'Nº de transaction unique ([a-zA-Z0-9_]*)', CleanText().filter(td_id[0]))
-            if m:
-                id = m.group(1)
-                raw = CleanText().filter(tr.xpath('./td[2]')[0])
-                amount = Decimal(FrenchTransaction.clean_amount(CleanText().filter(tr.xpath('./td[5]')[0])))
-                currency = Currency.get_currency(CleanText().filter(tr.xpath('./td[5]')[0]))
-                return id, raw, amount, currency
-        return None, None, None, None

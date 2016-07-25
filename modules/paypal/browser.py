@@ -27,8 +27,7 @@ from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.url import URL
 
 from .pages import PromoPage, LoginPage, AccountPage, UselessPage, HomePage, ProHistoryPage, \
-                   PartHistoryPage, HistoryDetailsPage, HistoryPaybackPage, ErrorPage, OldWebsitePage, \
-                   LandingPage
+                   PartHistoryPage, HistoryDetailsPage, ErrorPage, OldWebsitePage, LandingPage
 
 
 __all__ = ['Paypal']
@@ -59,7 +58,6 @@ class Paypal(LoginBrowser):
     history_details = URL('https://\w+.paypal.com/cgi-bin/webscr\?cmd=_history-details-from-hub&id=[\-A-Z0-9]+$',
                           'https://\w+.paypal.com/myaccount/transaction/details/[\-A-Z0-9]+$',
                           HistoryDetailsPage)
-    history_payback = URL('https://history.paypal.com/fr/cgi-bin/webscr\?cmd=_history-details.*', HistoryPaybackPage)
     promo = URL('https://www.paypal.com/fr/webapps/mpp/clickthru/paypal-app-promo-2.*',
                 '/fr/webapps/mpp/clickthru.*', PromoPage)
     account = URL('https://www.paypal.com/businessexp/money', AccountPage)
@@ -152,9 +150,17 @@ class Paypal(LoginBrowser):
                 step_max = 180
 
             def fetch_fn(start, end):
-                if self.download_history(start, end):
-                    return self.page.iter_transactions(account)
-                return iter([])
+                p = self.download_history(start, end)
+                transactions = []
+                # Iter on each page
+                while self.location("https://www.paypal.com/businessexp/transactions/activity", \
+                                    params=p).page.transaction_left():
+                    p['next_page_token'] = self.page.get_next_page_token()
+                    for t in self.page.iter_transactions(account):
+                        transactions.append(t)
+                    if not p['next_page_token']:
+                        break
+                return transactions if len(transactions) else iter([])
 
             assert step_max <= 365*2  # PayPal limitations as of 2014-06-16
             try:
@@ -195,18 +201,18 @@ class Paypal(LoginBrowser):
         However, it is not normalized, and sometimes the download is refused
         and sent later by mail.
         """
-        p = {'transactiontype': "ALL_TRANSACTIONS",
-             'currency': "ALL_TRANSACTIONS_CURRENCY",
-             'limit': "",
-             'archive': "ACTIVE_TRANSACTIONS",
-             'fromdate_year': start.year,
-             'fromdate_month': start.month,
-             'fromdate_day': start.day,
-             'todate_year': end.year,
-             'todate_month': end.month,
-             'todate_day': end.day}
-        self.location('https://www.paypal.com/businessexp/transactions/activity', params=p)
-        return self.page.transaction_left()
+        params = {'transactiontype': "ALL_TRANSACTIONS",
+                  'currency': "ALL_TRANSACTIONS_CURRENCY",
+                  'limit': "",
+                  'archive': "ACTIVE_TRANSACTIONS",
+                  'fromdate_year': start.year,
+                  'fromdate_month': start.month,
+                  'fromdate_day': start.day,
+                  'todate_year': end.year,
+                  'todate_month': end.month,
+                  'todate_day': end.day
+                 }
+        return params
 
     def transfer(self, from_id, to_id, amount, reason=None):
         raise NotImplementedError()
@@ -216,13 +222,3 @@ class Paypal(LoginBrowser):
         if self.history_details.is_here():
             cc = self.page.get_converted_amount(account)
             return cc
-
-    def check_for_payback(self, trans, link):
-        self.location(link)
-        if self.history_details.is_here():
-            url = self.page.get_payback_url()
-            if url:
-                self.location(url)
-                if self.history_payback.is_here():
-                    return self.page.get_payback()
-        return None, None, None, None
