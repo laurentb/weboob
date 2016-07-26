@@ -210,23 +210,22 @@ class ProHistoryPage(HistoryPage, JsonPage):
         if not original_currency == account.currency:
             if original_currency in self.browser.account_currencies:
                 return []
-            cc = None
-            for tr in transaction['secondaryTransactions']:
-                if account.currency == tr['grossAmount']['currency']:
-                    cc = tr['grossAmount']['amountUnformatted']
-                    break
+            cc = [tr['grossAmount']['amountUnformatted'] for tr in transaction['secondaryTransactions'] \
+                 if account.currency == tr['grossAmount']['currency'] \
+                 and (tr['grossAmount']['amountUnformatted'] < 0) == (transaction['grossAmount']['amountUnformatted'] < 0)]
             if not cc:
                 return []
-            t.original_amount = Decimal(transaction['grossAmount']['amountUnformatted'])
+            assert len(cc) == 1
+            t.original_amount = Decimal(str(transaction['grossAmount']['amountUnformatted']))
             t.original_currency = original_currency
-            t.amount = Decimal(cc)
+            t.amount = Decimal(str(cc[0]))
         else:
-            t.amount = Decimal(transaction['netAmount']['amountUnformatted'])
+            t.amount = Decimal(str(transaction['netAmount']['amountUnformatted']))
         date = parse_french_date(transaction['transactionTime'])
         raw = "%s %s" % (transaction['transactionDescription']['description'], transaction['transactionDescription']['name'])
         if raw == "Transfert de Compte bancaire":
             t.type = FrenchTransaction.TYPE_TRANSFER
-        t.commission = Decimal(transaction['feeAmount']['amountUnformatted'])
+        t.commission = Decimal(str(transaction['feeAmount']['amountUnformatted']))
         t.parse(date=date, raw=raw)
         trans.append(t)
         return trans
