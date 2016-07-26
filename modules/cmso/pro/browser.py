@@ -58,6 +58,8 @@ class CmsoProBrowser(LoginBrowser):
     def iter_accounts(self):
         # Manage multiple areas
         self.subscription.stay_or_go()
+        if not self.areas:
+            raise BrowserIncorrectPassword("Vous n'avez pas de comptes sur l'espace professionnel de ce site.")
         for area in self.areas:
             self.location(area)
             for a in self.accounts.go().iter_accounts():

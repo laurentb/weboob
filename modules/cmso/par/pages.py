@@ -29,7 +29,7 @@ from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.exceptions import BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword
 
 
 def MyDecimal(*args, **kwargs):
@@ -59,7 +59,7 @@ class AccountsPage(LoggedPage, JsonPage):
 
     def check_response(self):
         if "exception" in self.doc:
-            raise BrowserUnavailable("Please use the right website.")
+            raise BrowserIncorrectPassword("Vous n'avez pas de comptes sur l'espace particulier de ce site.")
 
     @method
     class iter_accounts(DictElement):
