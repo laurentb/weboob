@@ -552,12 +552,13 @@ class AVDetailPage(LoggedPage, LCLBasePage):
     def get_details(self, account, act=None):
         form = self.get_form(id="frm_fwk")
         label = " ".join(account.label.split()[:-1]).upper()
+        unit = str(account.balance).split('.')[0][-3:]
         decimal = str(account.balance).split('.')[1]
         try:
             onclick = Attr(None, 'onclick').filter(self.doc.xpath('//tr[td[span[contains(text(), "%s")]] \
                                 and td[span[contains(text(), "%s")]]]//a' % (label, decimal)))
         except XPathNotFound:
-            tr = self.doc.xpath('//tr[td[span[contains(text(), "%s")]]]//a' % decimal)
+            tr = self.doc.xpath('//tr[td[span[contains(text(), "%s") and contains(text(), "%s")]]]//a' % (unit, decimal))
             assert len(tr) == 1
             onclick = Attr(None, 'onclick').filter(tr)
         m = re.search('_CAR[^\']+.([^\']+).*Cible[^\']+.([^\']+)', onclick)
