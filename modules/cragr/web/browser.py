@@ -242,6 +242,8 @@ class Cragr(Browser):
         accounts_list.extend(self.page.get_list())
 
         # credit cards
+        # reseting location in case of pagination
+        self.location(self.accounts_url.format(self.sag))
         accounts_list.extend(self.get_cards_or_card())
 
         # loan accounts
