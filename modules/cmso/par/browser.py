@@ -84,8 +84,9 @@ class CmsoParBrowser(LoginBrowser):
             for a in self.page.iter_accounts(key=key):
                 yield a
         # Then, get saving accounts
+        numbers = self.page.get_numbers()
         for key in self.accounts.go(data=json.dumps({}), type="epargne").get_keys():
-            for a in self.page.iter_products(key=key):
+            for a in self.page.iter_products(key=key, numbers=numbers):
                 yield a
 
     @need_login
@@ -93,19 +94,21 @@ class CmsoParBrowser(LoginBrowser):
         if account.type is Account.TYPE_LOAN:
             return iter([])
         if account.type == Account.TYPE_LIFE_INSURANCE:
-            url = json.loads(self.lifeinsurance.go(accid=account.id).content)['url']
+            url = json.loads(self.lifeinsurance.go(accid=account._index).content)['url']
             url = self.location(url).page.get_link(u"opérations")
             return self.location(url).page.iter_history()
         elif account.type == Account.TYPE_MARKET:
             self.location(json.loads(self.market.go(data=json.dumps({"place": \
                           "SITUATION_PORTEFEUILLE"})).content)['urlSSO'])
             self.session.headers['Content-Type'] = 'application/x-www-form-urlencoded'
-            self.market.go(website=self.website, action="historique").get_list(account.label).page.get_full_list()
+            if not self.market.go(website=self.website, action="historique").get_list(account.label):
+                return iter([])
+            self.page.get_full_list()
             # Display code ISIN
             history = self.location("%s?reload=oui&convertirCode=oui" % self.url).page.iter_history()
             self.session.headers['Content-Type'] = 'application/json'
             return history
-        return self.history.go(data=json.dumps({"index": account.id}), \
+        return self.history.go(data=json.dumps({"index": account._index}), \
                page="detailcompte").iter_history()
 
     @need_login
@@ -113,7 +116,7 @@ class CmsoParBrowser(LoginBrowser):
         if account.type is Account.TYPE_LOAN:
             return iter([])
         comings = []
-        self.history.go(data=json.dumps({"index": account.id}), page="pendingListOperations")
+        self.history.go(data=json.dumps({"index": account._index}), page="pendingListOperations")
         for key in self.page.get_keys():
             for a in self.page.iter_history(key=key):
                 comings.append(a)
@@ -122,11 +125,12 @@ class CmsoParBrowser(LoginBrowser):
     @need_login
     def iter_investment(self, account):
         if account.type == Account.TYPE_LIFE_INSURANCE:
-            url = json.loads(self.lifeinsurance.go(accid=account.id).content)['url']
+            url = json.loads(self.lifeinsurance.go(accid=account._index).content)['url']
             url = self.location(url).page.get_link("supports")
             return self.location(url).page.iter_investment()
         elif account.type == Account.TYPE_MARKET:
             self.location(json.loads(self.market.go(data=json.dumps({"place": \
                           "SITUATION_PORTEFEUILLE"})).content)['urlSSO'])
-            return self.market.go(website=self.website, action="situation").get_list(account.label).page.iter_investment()
+            return self.page.iter_investment() if self.market.go(website=self.website, \
+                        action="situation").get_list(account.label) else iter([])
         raise NotImplementedError()

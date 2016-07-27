@@ -23,7 +23,7 @@ from datetime import datetime as dt
 
 from weboob.browser.pages import HTMLPage, JsonPage, RawPage, LoggedPage, pagination
 from weboob.browser.elements import DictElement, ItemElement, TableElement, method
-from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, CleanDecimal, Env, TableCell, Field
+from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, Format, CleanDecimal, Env, Slugify, TableCell, Field
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment
@@ -61,6 +61,18 @@ class AccountsPage(LoggedPage, JsonPage):
         if "exception" in self.doc:
             raise BrowserIncorrectPassword("Vous n'avez pas de comptes sur l'espace particulier de ce site.")
 
+    def get_numbers(self):
+        keys = self.get_keys()
+        numbers = {}
+        for key in keys:
+            if isinstance(self.doc[key], dict):
+                keys = [k for k in self.doc[key] if isinstance(k, unicode)]
+                contracts = [v for v in self.doc[key][k] for k in keys]
+            else:
+                contracts = [v for v in self.doc[key]]
+            numbers.update({c['index']: c['numeroContratSouscrit'] for c in contracts})
+        return numbers
+
     @method
     class iter_accounts(DictElement):
         def parse(self, el):
@@ -80,12 +92,12 @@ class AccountsPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Account
 
-            obj_id = Dict('index')
+            obj_id = Dict('numeroContratSouscrit')
             obj_label = Upper(Dict('lib'))
             obj_balance = CleanDecimal(Dict('soldeEuro', default="0"))
-            obj_number = Dict('identifiantTechnique')
             obj_currency =  Dict('deviseCompteCode')
             obj_coming = CleanDecimal(Dict('AVenir', default=None), default=NotAvailable)
+            obj__index = Dict('index')
 
             def obj_type(self):
                 return self.page.TYPES.get(Dict('accountType', default=None)(self).lower(), Account.TYPE_UNKNOWN)
@@ -101,11 +113,17 @@ class AccountsPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Account
 
-            obj_id = Dict('index')
             obj_label = Upper(Dict('libelleContrat'))
             obj_balance = CleanDecimal(Dict('solde', default="0"))
-            obj_number = Dict('technicalIndex')
             obj_coming = CleanDecimal(Dict('AVenir', default=None), default=NotAvailable)
+            obj__index = Dict('index')
+
+            def obj_id(self):
+                try:
+                    return Env('numbers')(self)[Dict('index')(self)]
+                except KeyError:
+                    # index often changes, so we can't use it... and have to do something ugly
+                    return Slugify(Format('%s-%s', Dict('libelleContrat'), Dict('nomTitulaire')))(self)
 
             def obj_type(self):
                 for key in self.page.TYPES:
@@ -128,7 +146,7 @@ class Transaction(FrenchTransaction):
 
 class HistoryPage(LoggedPage, JsonPage):
     def get_keys(self):
-        return [k for k, v in self.doc.items() if v and isinstance(v, (dict, list))]
+        return [k for k, v in self.doc.items() if v and isinstance(v, (dict, list)) and "exception" not in self.doc]
 
     @method
     class iter_history(DictElement):
@@ -199,6 +217,9 @@ class LifeinsurancePage(LoggedPage, HTMLPage):
 
 class MarketPage(LoggedPage, HTMLPage):
     def get_list(self, acclabel):
+        # Check if history is present
+        if CleanText(default=None).filter(self.doc.xpath('//body/p[contains(text(), "indisponible pour le moment")]')):
+           return False
         for a in self.doc.xpath('//a[contains(@onclick, "indiceCompte")]'):
             if CleanText().filter(a.xpath('.')) == acclabel:
                 ids = re.search('indiceCompte[^\d]+(\d+).*idRacine[^\d]+(\d+)', \
