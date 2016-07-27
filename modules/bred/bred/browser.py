@@ -116,13 +116,16 @@ class BredBrowser(DomainBrowser):
             for poste in content['postes']:
                 a = Account()
                 a._number = content['numeroLong']
-                iban_response = self.api_open('/transactionnel/services/rest/Account/account/%s/iban' % a._number).json()
-                a.iban = iban_response['content']['iban'] if 'content' in iban_response else NotAvailable
                 a._nature = poste['codeNature']
                 a._consultable = poste['consultable']
                 a._univers = self.current_univers
                 a.id = '%s.%s' % (a._number, a._nature)
                 a.type = self.ACCOUNT_TYPES.get(poste['codeNature'], Account.TYPE_UNKNOWN)
+                if a.type == Account.TYPE_CHECKING:
+                    iban_response = self.api_open('/transactionnel/services/rest/Account/account/%s/iban' % a._number).json()
+                    a.iban = iban_response['content']['iban'] if 'content' in iban_response else NotAvailable
+                else:
+                    a.iban = NotAvailable
 
                 if 'numeroDossier' in poste and poste['numeroDossier']:
                     a._file_number = poste['numeroDossier']
