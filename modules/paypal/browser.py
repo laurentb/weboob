@@ -206,10 +206,10 @@ class Paypal(LoginBrowser):
                   'limit': "",
                   'archive': "ACTIVE_TRANSACTIONS",
                   'fromdate_year': start.year,
-                  'fromdate_month': start.month,
+                  'fromdate_month': start.month-1, # Months are from 0 to 11.
                   'fromdate_day': start.day,
                   'todate_year': end.year,
-                  'todate_month': end.month,
+                  'todate_month': end.month-1,
                   'todate_day': end.day
                  }
         return params

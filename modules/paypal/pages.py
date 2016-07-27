@@ -212,7 +212,8 @@ class ProHistoryPage(HistoryPage, JsonPage):
                 return []
             cc = [tr['grossAmount']['amountUnformatted'] for tr in transaction['secondaryTransactions'] \
                  if account.currency == tr['grossAmount']['currency'] \
-                 and (tr['grossAmount']['amountUnformatted'] < 0) == (transaction['grossAmount']['amountUnformatted'] < 0)]
+                  and (tr['grossAmount']['amountUnformatted'] < 0) == (transaction['grossAmount']['amountUnformatted'] < 0) \
+                  and tr['transactionDescription']['description'].startswith('Conversion de devise')]
             if not cc:
                 return []
             assert len(cc) == 1
