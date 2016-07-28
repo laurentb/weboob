@@ -238,8 +238,13 @@ class IngBrowser(LoginBrowser):
             raise TransferError('Recipient not found')
 
     def go_on_asv_detail(self, account, link):
-        self.accountspage.go(asvpage="manageASVContract")
-        self.page.submit()
+        if self.page.asv_has_detail:
+            jid = self.page.get_asv_jid()
+            data = {'index': "index", 'javax.faces.ViewState': jid, 'index:j_idcl': "index:asvInclude:goToAsvPartner"}
+            self.accountspage.go(data=data)
+        else:
+            self.accountspage.go(asvpage="manageASVContract")
+            self.page.submit()
         self.page.submit()
         self.location(link)
 
@@ -269,7 +274,6 @@ class IngBrowser(LoginBrowser):
                     data['javax.faces.ViewState'] = account._jid
 
             self.accountspage.go(data=data)
-
 
             if not self.page.has_error():
                 break
@@ -303,7 +307,7 @@ class IngBrowser(LoginBrowser):
 
         if self.where == u'titre':
             self.titrehistory.go()
-        elif self.page.asv_has_detail:
+        elif self.page.asv_has_detail or account._jid:
             self.go_on_asv_detail(account, '/b2b2c/epargne/CoeLisMvt')
         else:
             return iter([])

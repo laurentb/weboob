@@ -179,6 +179,9 @@ class AccountsList(LoggedPage, HTMLPage):
         jid = span.split(':')[1]
         return jid
 
+    def get_asv_jid(self):
+        return self.doc.xpath('//input[@id="javax.faces.ViewState"]/@value')[0]
+
     def islast(self):
         havemore = self.doc.getroot().cssselect('.show-more-transactions')
         if len(havemore) == 0:
