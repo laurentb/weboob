@@ -218,9 +218,10 @@ class CreditMutuelBrowser(LoginBrowser):
                     tr._is_coming = True
                 transactions.append(tr)
 
-        # set deleted for card_summary
-        for tr in transactions:
-            tr.deleted = True if tr.type == FrenchTransaction.TYPE_CARD_SUMMARY and differed_date.month <= tr.date.month else False
+        if differed_date is not None:
+            # set deleted for card_summary
+            for tr in transactions:
+                tr.deleted = True if tr.type == FrenchTransaction.TYPE_CARD_SUMMARY and differed_date.month <= tr.date.month else False
 
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions
