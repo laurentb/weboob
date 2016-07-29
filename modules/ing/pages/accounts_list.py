@@ -197,8 +197,13 @@ class AccountsList(LoggedPage, HTMLPage):
 
     @property
     def asv_has_detail(self):
-        span = self.doc.xpath('//a[@id="index:asvInclude:goToAsvPartner"] | //p[contains(text(), "Gestion Libre")]')
-        return len(span) > 0
+        ap = self.doc.xpath('//a[@id="index:asvInclude:goToAsvPartner"] | //p[contains(text(), "Gestion Libre")]')
+        return len(ap) > 0
+
+    @property
+    def asv_is_other(self):
+        a = self.doc.xpath('//a[@id="index:asvInclude:goToAsvPartner"]')
+        return len(a) > 0
 
     def submit(self):
         form = self.get_form(name="follow_link")

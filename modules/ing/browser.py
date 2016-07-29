@@ -238,7 +238,7 @@ class IngBrowser(LoginBrowser):
             raise TransferError('Recipient not found')
 
     def go_on_asv_detail(self, account, link):
-        if self.page.asv_has_detail:
+        if self.page.asv_is_other:
             jid = self.page.get_asv_jid()
             data = {'index': "index", 'javax.faces.ViewState': jid, 'index:j_idcl': "index:asvInclude:goToAsvPartner"}
             self.accountspage.go(data=data)
