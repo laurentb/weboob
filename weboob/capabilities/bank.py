@@ -95,6 +95,14 @@ class Account(Recipient):
     "Article 83"
     TYPE_RSP              = 12
     "Employee savings RSP"
+    TYPE_PEA              = 13
+    "Share savings"
+    TYPE_CAPITALISATION   = 14
+    "Life Insurance capitalisation"
+    TYPE_PERP             = 15
+    "Retirement savings"
+    TYPE_MADELIN          = 16
+    "Complementary retirement savings"
 
     type =      IntField('Type of account', default=TYPE_UNKNOWN)
     balance =   DecimalField('Balance on this bank account')
@@ -218,6 +226,7 @@ class Investment(BaseObject):
     original_unitprice = DecimalField('Original unitprice (in another currency)')
     original_diff = DecimalField('Original diff (in another currency)')
 
+
 class Transfer(BaseObject):
     """
     Transfer from an account to a recipient.
@@ -332,3 +341,9 @@ class CapBank(CapCollection):
         :raises: :class:`AccountNotFound`
         """
         raise NotImplementedError()
+
+
+class CapCgp(CapBank):
+    """
+    Capability of cgp website to see accounts and transactions.
+    """
