@@ -168,10 +168,16 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_currency = FrenchTransaction.Currency('.//a[has-class("account--balance")]')
             obj_valuation_diff = Async('details') & CleanDecimal('//li[h4[text()="Total des +/- values"]]/h3 |\
                         //li[span[text()="Total des +/- values latentes"]]/span[has-class("overview__value")]', replace_dots=True, default=NotAvailable)
-            obj_coming = Async('details') & CleanDecimal(u'//li[h4[text()="Mouvements à venir"]]/h3', replace_dots=True, default=NotAvailable)
             obj__card = Async('details') & Attr('//a[@data-modal-behavior="credit_card-modal-trigger"]', 'href', default=NotAvailable)
             obj__holder = None
             obj__webid = None
+
+            def obj_coming(self):
+                # Don't duplicate coming (card balance with account coming)
+                # TODO: fetch coming which is not card coming for account with cards.
+                if self.obj__card(self):
+                    return NotAvailable
+                return Async('details', CleanDecimal(u'//li[h4[text()="Mouvements à venir"]]/h3', replace_dots=True, default=NotAvailable))(self)
 
             def obj_id(self):
                 id = Async('details', Regexp(CleanText('//h3[has-class("account-number")]'), r'(\d+)', default=NotAvailable))(self)
