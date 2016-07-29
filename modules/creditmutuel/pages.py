@@ -496,7 +496,7 @@ class CardPage(OperationsPage, LoggedPage):
                 def parse(self, el):
                     try:
                         self.env['raw'] = "%s %s" % (CleanText().filter(TableCell('commerce')(self)[0].text), CleanText().filter(TableCell('ville')(self)[0].text))
-                    except ColumnNotFound:
+                    except (ColumnNotFound, AttributeError):
                         self.env['raw'] = "%s" % (CleanText().filter(TableCell('commerce')(self)[0].text))
 
                     self.env['type'] = Transaction.TYPE_DEFERRED_CARD \
