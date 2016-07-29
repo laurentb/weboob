@@ -474,7 +474,7 @@ class CardPage(OperationsPage, LoggedPage):
             col_ville = u'Ville'
 
             def parse(self, el):
-                label = CleanText(u'//*[contains(text(), "effectués sur la période")]')(el)
+                label = CleanText(u'//*[contains(text(), "Achats")]')(el)
                 if not label:
                     return
                 label = re.findall('(\d+ [^ ]+ \d+)', label)[-1]
@@ -501,7 +501,7 @@ class CardPage(OperationsPage, LoggedPage):
 
                     self.env['type'] = Transaction.TYPE_DEFERRED_CARD \
                                        if CleanText(u'//a[contains(text(), "Prélevé fin")]', default=None) else Transaction.TYPE_CARD
-                    self.env['differed_date'] = parse_french_date(Regexp(CleanText(u'//*[contains(text(), "effectués sur la période")]'), 'au[\s]+(.*)')(self)).date()
+                    self.env['differed_date'] = parse_french_date(Regexp(CleanText(u'//*[contains(text(), "Achats")]'), 'au[\s]+(.*)')(self)).date()
                     amount = TableCell('credit')(self)[0]
                     if self.page.browser.is_new_website:
                         amount = amount.xpath('./div')[0] if len(amount.xpath('./div')) else TableCell('debit')(self)[0].xpath('./div')[0]
