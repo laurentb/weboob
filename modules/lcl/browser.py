@@ -186,7 +186,7 @@ class LCLBrowser(LoginBrowser):
         if account.type == Account.TYPE_LIFE_INSURANCE and account._form:
             self.assurancevie.stay_or_go()
             account._form.submit()
-            self.page.sub().page.sub().page.get_details(account)
+            self.page.sub().page.sub()
             for inv in self.page.iter_investment():
                 yield inv
             self.page.come_back().page.sub().page.come_back()
