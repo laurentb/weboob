@@ -23,6 +23,8 @@ import urllib
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrokenPageError
 from weboob.deprecated.browser.parsers.iparser import RawParser
 
+from weboob.capabilities.base import NotAvailable
+
 from .pages import LoginPage, IndexPage, AccountsPage, AccountsFullPage, CardsPage, TransactionsPage, \
                    UnavailablePage, RedirectPage, HomePage, Login2Page, ErrorPage, \
                    LineboursePage, NatixisPage, InvestmentNatixisPage, InvestmentLineboursePage, MessagePage, \
@@ -173,17 +175,21 @@ class BanquePopulaire(Browser):
         self.location('/cyber/internet/StartTask.do?taskInfoOID=documentsDemat&token=%s' % self.page.build_token(self.token))
         token = self.page.build_token(self.token)
         #We need to get an extract document because we can find iban number on it
-        if self.is_on_page(DocumentsPage):
-            doc_id = self.page.get_account_extract(account.id)
-            if doc_id:
-                id = self.page.get_doc_id()
-                if id:
-                    self.location('/cyber/internet/DownloadDocument.do?documentId=%s' % id)
-                    if self.is_on_page(ExtractPdf):
-                        iban = self.page.get_iban()
-                        self.location('/cyber/internet/StartTask.do?taskInfoOID=documentsDemat&token=%s' % token)
-                        return iban
-        return None
+        assert self.is_on_page(DocumentsPage)
+
+        if self.page.is_service_unavailable():
+            self.logger.info('IBAN not available')
+            return NotAvailable
+
+        doc_id = self.page.get_account_extract(account.id)
+        if doc_id:
+            id = self.page.get_doc_id()
+            if id:
+                self.location('/cyber/internet/DownloadDocument.do?documentId=%s' % id)
+                if self.is_on_page(ExtractPdf):
+                    iban = self.page.get_iban()
+                    self.location('/cyber/internet/StartTask.do?taskInfoOID=documentsDemat&token=%s' % token)
+                    return iban
 
 
     def get_account(self, id):

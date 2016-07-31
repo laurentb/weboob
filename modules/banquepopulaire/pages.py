@@ -775,6 +775,9 @@ class MessagePage(_BasePage):
             self.browser.submit(nologin=True)
 
 class DocumentsPage(BasePage):
+    def is_service_unavailable(self):
+        return len(self.document.xpath(u'//span[contains(text(), "Vous ne disposez pas encore, à ce jour, de vos relevés de compte et autres documents au format électronique.")]')) > 0
+
     def get_account_extract(self, acc_id):
         for td in self.document.xpath('//tbody[@class="ts tms"]/tr'):
             if CleanText().filter(td.xpath('./td[1]')[0]) in acc_id and CleanText().filter(td.xpath('./td[4]')[0]) == "Extrait de compte":
@@ -819,4 +822,5 @@ class ExtractPdf(_BasePage):
         res = re.findall(self.iban_regexp, self._pdf)
         if res and len(res) == 1:
             return u''.join(res[0])
+        self.logger.warning('Unable to find IBAN')
         return None
