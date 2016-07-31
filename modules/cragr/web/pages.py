@@ -342,6 +342,7 @@ class CardsPage(BasePage):
             return a.attrib['href']
 
         return None
+
     def get_history(self, date_guesser, state=None):
         seen = set()
         lines = self.document.xpath('(//table[@class="ca-table"])[2]/tr')
@@ -461,7 +462,7 @@ class SavingsPage(_AccountsPage):
 
 class TransactionsPage(BasePage):
     def get_iban_url(self):
-        for link in self.document.xpath('//a[contains(text(), "IBAN")]'):
+        for link in self.document.xpath('//a[contains(text(), "RIB")] | //a[contains(text(), "IBAN")]'):
             m = re.search("\('([^']+)'", link.get('href', ''))
             if m:
                 return m.group(1)
