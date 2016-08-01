@@ -27,6 +27,7 @@ from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, DateGuesser, Env, Field, Filter, Regexp
 from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account
+from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -102,6 +103,8 @@ class AccountsPage(CMSOPage):
             obj_id = obj__history_url & Regexp(pattern="indCptSelectionne=(\d+)") | None
             obj_balance = CleanDecimal('./td[2]', replace_dots=True)
             obj_type = Type(Field('label'))
+            # Last numbers replaced with XX... or we have to send sms to get RIB.
+            obj_iban = NotAvailable
 
             def validate(self, obj):
                 if obj.id is None:
