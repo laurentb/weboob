@@ -102,7 +102,8 @@ class YomoniBrowser(APIBrowser):
     def iter_history(self, account):
         if account not in self.histories:
             histories = []
-            for activity in self.request('/user/%s/project/%s/activity' % (self.users['userId'], account.number))['activities']:
+            for activity in [acc for acc in self.request('/user/%s/project/%s/activity' % (self.users['userId'], account.number))['activities'] \
+                             if acc['details'] is not None]:
                 m = re.search(u'([\d\.]+)(?=[\s]+€|[\s]+euro)', activity['details'])
                 if "Souscription" not in activity['title'] and not m:
                     continue
