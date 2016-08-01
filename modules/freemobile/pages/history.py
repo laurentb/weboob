@@ -104,7 +104,7 @@ class DetailsPage(LoggedPage, BadUTF8Page):
 
     @method
     class date_bills(ListElement):
-        item_xpath = '//div[@class="factLigne hide "]'
+        item_xpath = '//div[has-class("factLigne")]'
 
         class item(ItemElement):
             klass = Bill
@@ -136,6 +136,8 @@ class DetailsPage(LoggedPage, BadUTF8Page):
                 mydate = mydate.replace(month=mydate.month + 1, day=lastday)
         return mydate
 
+    def get_login(self, phonenumber):
+        return Attr('.', 'login')(self.doc.xpath('//div[div[contains(text(), "%s")]]' % phonenumber)[0])
 
 class HistoryPage(LoggedPage, BadUTF8Page):
     @method

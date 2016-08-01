@@ -49,6 +49,7 @@ class Freemobile(LoginBrowser):
 
         self.detailspage.go()
         for subscription in subscriptions:
+            subscription._login = self.page.get_login(subscription.id)
             subscription._virtual = self.page.load_virtual(subscription.id)
             subscription.renewdate = self.page.get_renew_date(subscription)
             yield subscription
