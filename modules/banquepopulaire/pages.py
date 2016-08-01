@@ -27,13 +27,13 @@ from mechanize import Cookie, FormNotFoundError
 
 
 from weboob.browser.filters.standard import CleanText
+from weboob.browser.filters.html import Attr
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.deprecated.browser import Page as _BasePage, BrokenPageError
 from weboob.capabilities.bank import Account, Investment
-from weboob.capabilities import NotAvailable, UserError
+from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.json import json
-from weboob.tools.pdf import decompress_pdf
 
 
 class WikipediaARC4(object):
@@ -460,8 +460,10 @@ class AccountsPage(BasePage):
             _params.update(actions[btn.attrib['id']])
             self.browser.openurl('/cyber/internet/ContinueTask.do', urllib.urlencode(_params))
 
+
 class AccountsFullPage(AccountsPage):
     pass
+
 
 class CardsPage(BasePage):
     COL_ID = 0
@@ -765,6 +767,7 @@ class InvestmentNatixisPage(_BasePage):
             return NotAvailable
         return Decimal(Transaction.clean_amount(value))
 
+
 class MessagePage(_BasePage):
     def skip(self):
         try:
@@ -774,53 +777,31 @@ class MessagePage(_BasePage):
         else:
             self.browser.submit(nologin=True)
 
-class DocumentsPage(BasePage):
-    def is_service_unavailable(self):
-        return len(self.document.xpath(u'//span[contains(text(), "Vous ne disposez pas encore, à ce jour, de vos relevés de compte et autres documents au format électronique.")]')) > 0
 
-    def get_account_extract(self, acc_id):
-        for td in self.document.xpath('//tbody[@class="ts tms"]/tr'):
-            if CleanText().filter(td.xpath('./td[1]')[0]) in acc_id and CleanText().filter(td.xpath('./td[4]')[0]) == "Extrait de compte":
+class IbanPage(BasePage):
+    def need_to_go(self):
+        return len(self.document.xpath('//div[@class="grid"]/div/span[contains(text(), "IBAN")]')) == 0
+
+    def go_iban(self, account):
+        for tr in self.document.xpath('//table[@id]/tbody/tr'):
+            if account.type != Account.TYPE_LOAN and CleanText().filter(tr.xpath('./td[1]')) in account.id:
                 self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'myForm')
                 self.browser.set_all_readonly(False)
-                doc_id = self.browser['taskOID']
                 self.browser['token'] = self.build_token(self.browser['token'])
-                self.browser['attribute($SEL_ACTIVE$tbl2)'] = td.xpath('./@id')[0].split('_', 1)[1]
-                self.browser['dialogActionPerformed'] = "TELECHARGER"
-                self.browser['attribute($SEL_$lst1_hidden)'] = 'lst1$listeTypeDoc$listeTypeDocSelectionne$'
-                self.browser['attribute($SEL_$lst2_hidden)'] = 'lst2$listeCompteRecherche$listeCompteSelect$'
-                self.browser['dateDebut'] = '23/09/2014'
-                self.browser['dateFin'] = '23/09/2015'
-                self.browser['attribute($SEL_$tbl2_hidden)'] = 'tbl2$listeDocumentSelectionne$'
-                self.browser['attribute($SEL_ACTIVE$tbl2_hidden)'] = 'tbl2$documentSelectionne$'
+                self.browser['dialogActionPerformed'] = "DETAIL_IBAN_RIB"
+                tr_id = Attr(None, 'id').filter(tr.xpath('.')).split('_')
+                self.browser[u'attribute($SEL_$%s)' % tr_id[0]] = tr_id[1]
                 self.browser.submit()
-                return doc_id
+                return True
         return False
 
-class PostDocument(BasePage):
-    def get_doc_id(self):
-        for script in self.document.xpath('//script'):
-            if script.text is None:
-                continue
-
-            m = re.search("DocumentUtils\.download\('(.*)'\)", script.text)
-            if m:
-                return m.group(1)
-
-        return None
-
-class ExtractPdf(_BasePage):
-    iban_regexp= r'\(IBAN \) Tj(?:.*[\n\r]){5}\((\w{4})\)(?:.*[\n\r]){10}\((\d{4})\)(?:.*[\n\r]){10}\((\d{4})\)(?:.*[\n\r]){10}\((\d{4})\)(?:.*[\n\r]){10}\((\d{4})\)(?:.*[\n\r]){10}\((\d{4})\)(?:.*[\n\r]){10}\((\d{3})\)'
-    def __init__(self, *args, **kwargs):
-        _BasePage.__init__(self, *args, **kwargs)
-        try:
-            self._pdf = decompress_pdf(self.document)
-        except OSError as e:
-            raise UserError(u'Make sure mupdf-tools is installed (%s)' % e)
-
-    def get_iban(self):
-        res = re.findall(self.iban_regexp, self._pdf)
-        if res and len(res) == 1:
-            return u''.join(res[0])
-        self.logger.warning('Unable to find IBAN')
-        return None
+    def get_iban(self, acc_id):
+        iban_class = None
+        for div in self.document.xpath('//div[@class="grid"]/div'):
+            if not iban_class and "IBAN" in CleanText().filter(div.xpath('./span')):
+                iban_class = Attr(None, 'class').filter(div.xpath('.'))
+            elif iban_class is not None and iban_class == Attr(None, 'class').filter(div.xpath('.')):
+                iban = CleanText().filter(div.xpath('.')).replace(' ', '')
+                if re.sub('\D', '', acc_id) in iban:
+                    return iban
+        return NotAvailable

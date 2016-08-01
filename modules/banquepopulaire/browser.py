@@ -21,14 +21,13 @@
 import urllib
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrokenPageError
-from weboob.deprecated.browser.parsers.iparser import RawParser
 
 from weboob.capabilities.base import NotAvailable
 
 from .pages import LoginPage, IndexPage, AccountsPage, AccountsFullPage, CardsPage, TransactionsPage, \
                    UnavailablePage, RedirectPage, HomePage, Login2Page, ErrorPage, \
                    LineboursePage, NatixisPage, InvestmentNatixisPage, InvestmentLineboursePage, MessagePage, \
-                   DocumentsPage, PostDocument, ExtractPdf, NatixisErrorPage
+                   IbanPage, NatixisErrorPage
 
 
 __all__ = ['BanquePopulaire']
@@ -43,18 +42,17 @@ class BanquePopulaire(Browser):
              'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=maSyntheseGratuite.*':     AccountsPage,
              'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=accueilSynthese.*':        AccountsPage,
              'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=equipementComplet.*':      AccountsPage,
-             'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=documentsDemat.*':           DocumentsPage,
+             'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=cyberIBAN.*':              IbanPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=EQUIPEMENT_COMPLET.*': AccountsFullPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=VUE_COMPLETE.*': AccountsPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=ENCOURS_COMPTE.*': CardsPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SELECTION_ENCOURS_CARTE.*':   TransactionsPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SOLDE.*':   TransactionsPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=CONTRAT.*':   TransactionsPage,
-             'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=TELECHARGER.*':   PostDocument,
+             'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=DETAIL_IBAN_RIB.*':   IbanPage,
              'https://[^/]+/cyber/internet/Page.do\?.*':                                        TransactionsPage,
              'https://[^/]+/cyber/internet/Sort.do\?.*':                                        TransactionsPage,
              'https://[^/]+/cyber/internet/ContinueTask.do':                                    ErrorPage,
-             'https://[^/]+/cyber/internet/DownloadDocument.do\?documentId=.*':                 (ExtractPdf, RawParser()),
              'https://[^/]+/s3f-web/.*':                                                        UnavailablePage,
              'https://[^/]+/static/errors/nondispo.html':                                       UnavailablePage,
              'https://[^/]+/portailinternet/_layouts/Ibp.Cyi.Layouts/RedirectSegment.aspx.*':   RedirectPage,
@@ -164,33 +162,15 @@ class BanquePopulaire(Browser):
 
         if get_iban:
             for a in accounts:
-                iban = self.get_iban_number(a)
-                if iban:
-                    a.iban = iban
+                a.iban = self.get_iban_number(a)
                 yield a
 
-
-
     def get_iban_number(self, account):
-        self.location('/cyber/internet/StartTask.do?taskInfoOID=documentsDemat&token=%s' % self.page.build_token(self.token))
-        token = self.page.build_token(self.token)
-        #We need to get an extract document because we can find iban number on it
-        assert self.is_on_page(DocumentsPage)
-
-        if self.page.is_service_unavailable():
-            self.logger.info('IBAN not available')
+        self.location('/cyber/internet/StartTask.do?taskInfoOID=cyberIBAN&token=%s' % self.page.build_token(self.token))
+        # Sometimes we can't choose an account
+        if self.page.need_to_go() and not self.page.go_iban(account):
             return NotAvailable
-
-        doc_id = self.page.get_account_extract(account.id)
-        if doc_id:
-            id = self.page.get_doc_id()
-            if id:
-                self.location('/cyber/internet/DownloadDocument.do?documentId=%s' % id)
-                if self.is_on_page(ExtractPdf):
-                    iban = self.page.get_iban()
-                    self.location('/cyber/internet/StartTask.do?taskInfoOID=documentsDemat&token=%s' % token)
-                    return iban
-
+        return self.page.get_iban(account.id)
 
     def get_account(self, id):
         assert isinstance(id, basestring)
