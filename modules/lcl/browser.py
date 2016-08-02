@@ -23,6 +23,7 @@ from urlparse import urlsplit, parse_qsl
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
@@ -118,9 +119,10 @@ class LCLBrowser(LoginBrowser):
         self.accounts.stay_or_go()
         for a in self.page.get_list():
             self.location('/outil/UWRI/Accueil/')
-            self.rib.go(data={'compte': '%s/%s/%s' % (a.id[0:5],a.id[5:11],a.id[11:])})
+            self.rib.go(data={'compte': '%s/%s/%s' % (a.id[0:5], a.id[5:11], a.id[11:])})
             if self.rib.is_here():
-                a.iban = self.page.get_iban()
+                iban = self.page.get_iban()
+                a.iban = iban if a.id[11:] in iban else NotAvailable
             yield a
         self.loans.stay_or_go()
         for a in self.page.get_list():
