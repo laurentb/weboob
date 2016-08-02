@@ -20,8 +20,7 @@
 from .history import BadUTF8Page
 from weboob.capabilities.bill import Subscription
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, Field, Format, Filter
-from weboob.browser.filters.html import Attr
+from weboob.browser.filters.standard import CleanText, Field, Format
 
 
 class HomePage(BadUTF8Page):

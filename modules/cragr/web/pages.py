@@ -400,7 +400,6 @@ class CardsPage(BasePage):
 
 class AccountsPage(_AccountsPage):
     def set_link(self, account, cols):
-        iban = None
         a = cols[0].find('a')
         if a is not None:
             account._link = a.attrib['href'].replace(' ', '%20')
@@ -409,7 +408,7 @@ class AccountsPage(_AccountsPage):
             url = page.get_iban_url()
             if url:
                 page = self.browser.get_page(self.browser.openurl(url))
-                iban = account.iban = page.get_iban()
+                account.iban = page.get_iban()
 
 
 class LoansPage(_AccountsPage):
