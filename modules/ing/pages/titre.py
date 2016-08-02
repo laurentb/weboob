@@ -170,4 +170,4 @@ class ASVHistory(LoggedPage, HTMLPage):
                     page = Async('details').loaded_page(self)
                 except AttributeError:
                     page = None
-                self.env['investments'] = list(page.get_investments()) if page else []
+                self.env['investments'] = list(page.get_investments()) if page and 'numMvt' in page.url else []
