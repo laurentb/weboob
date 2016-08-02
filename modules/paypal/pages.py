@@ -198,7 +198,7 @@ class ProHistoryPage(HistoryPage, JsonPage):
                                                                                        u'Canceled']:
             return []
         for pattern in [u'Commande à', u'Offre de remboursement', u'Bill to']:
-            if transaction['transactionDescription']['description'].startswith(pattern):
+            if 'description' not in transaction['transactionDescription'] or transaction['transactionDescription']['description'].startswith(pattern):
                 return []
 
         t = FrenchTransaction(transaction['transactionId'])
