@@ -72,6 +72,7 @@ class AccountsPage(SogeLoggedPage, HTMLPage):
             obj_id = CleanText(TableCell('id'), replace=[(' ', ''), ('X','')])
             obj_label = CleanText(TableCell('label'))
             obj_type = Account.TYPE_CARD
+            obj_currency = u'EUR'
 
             @property
             def obj__url(self):
