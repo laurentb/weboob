@@ -39,6 +39,13 @@ class BrowserAuthenticationCodeMaxLimit(BrowserIncorrectPassword):
 class IncidentPage(HTMLPage):
     pass
 
+class IbanPage(LoggedPage, HTMLPage):
+    def get_iban(self):
+        if self.doc.xpath('//div[has-class("alert")]/p[contains(text(), "Une erreur est survenue")]') or \
+           self.doc.xpath('//div[has-class("alert")]/p[contains(text(), "Le compte est introuvable")]'):
+            return NotAvailable
+        return CleanText('//table[thead[tr[th[contains(text(), "Code I.B.A.N")]]]]/tbody/tr/td[2]', replace=[(' ', '')])(self.doc)
+
 class AuthenticationPage(HTMLPage):
     def authenticate(self):
         self.logger.info('Using the PIN Code %s to login', self.browser.config['pin_code'].get())

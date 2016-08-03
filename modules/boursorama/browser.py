@@ -28,7 +28,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,\
-                   MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage
+                   MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage
 
 
 __all__ = ['BoursoramaBrowser']
@@ -66,6 +66,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
                 '/credit/consommation/.*/informations',
                 '/credit/lombard/.*/caracteristiques', LoanPage)
     authentication = URL('/securisation', AuthenticationPage)
+    iban = URL('/compte/(?P<webid>.*)/rib', IbanPage)
 
 
     __states__ = ('auth_token',)
@@ -126,6 +127,8 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
             except XMLSyntaxError:
                 self.accounts_list = None
                 continue
+            for account in self.accounts_list:
+                account.iban = self.iban.go(webid=account._webid).get_iban()
         return iter(self.accounts_list)
 
     def get_account(self, id):
