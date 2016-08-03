@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .accounts_list import AccountsList, TitreDetails, ASVInvest, DetailFondsPage
+from .accounts_list import AccountsList, TitreDetails, ASVInvest, DetailFondsPage, \
+                           IbanPage
 from .login import LoginPage, StopPage
 from .transfer import TransferPage, TransferConfirmPage
 from .bills import BillsPage
@@ -30,5 +31,5 @@ class AccountPrelevement(AccountsList):
 
 __all__ = ['AccountsList', 'LoginPage', 'NetissimaPage','TitreDetails',
            'AccountPrelevement', 'TransferPage', 'TransferConfirmPage',
-           'BillsPage', 'StopPage', 'TitrePage', 'TitreHistory',
+           'BillsPage', 'StopPage', 'TitrePage', 'TitreHistory', 'IbanPage',
            'TitreValuePage', 'ASVHistory', 'ASVInvest','DetailFondsPage']

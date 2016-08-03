@@ -28,14 +28,14 @@ from weboob.capabilities.base import find_object
 
 from .pages import AccountsList, LoginPage, NetissimaPage, TitrePage, TitreHistory,\
     TransferPage, TransferConfirmPage, BillsPage, StopPage, TitreDetails, TitreValuePage, ASVHistory,\
-    ASVInvest, DetailFondsPage
+    ASVInvest, DetailFondsPage, IbanPage
 
 
 __all__ = ['IngBrowser']
 
 
 def check_bourse(f):
-    def wrapper(*args):
+    def wrapper(*args, **kwargs):
         browser = args[0]
         if browser.where != u"start":
             for i in xrange(3):
@@ -46,7 +46,7 @@ def check_bourse(f):
                 else:
                     break
             browser.where = u"start"
-        return f(*args)
+        return f(*args, **kwargs)
     return wrapper
 
 
@@ -65,6 +65,7 @@ class IngBrowser(LoginBrowser):
     dotransferpage = URL('/general\?command=DisplayDoTransferCommand', TransferPage)
     valtransferpage = URL('/protected/pages/cc/transfer/create/transferCreateValidation.jsf', TransferConfirmPage)
     titredetails = URL('/general\?command=display.*', TitreDetails)
+    ibanpage = URL('/protected/pages/common/rib/initialRib.jsf', IbanPage)
     # CapBank-Market
     netissima = URL('/data/asv/fiches-fonds/fonds-netissima.html', NetissimaPage)
     starttitre = URL('/general\?command=goToAccount&zone=COMPTE', TitrePage)
@@ -105,21 +106,19 @@ class IngBrowser(LoginBrowser):
 
     @need_login
     @check_bourse
-    def get_accounts_list(self):
+    def get_accounts_list(self, get_iban=True):
         self.accountspage.go()
         self.where = "start"
-        return self.page.get_list()
+        for acc in self.page.get_list():
+            if get_iban:
+                self.go_account_page(acc)
+                acc.iban = self.ibanpage.go().get_iban()
+            yield acc
 
     def get_account(self, _id):
-        return find_object(self.get_accounts_list(), id=_id, error=AccountNotFound)
+        return find_object(self.get_accounts_list(get_iban=False), id=_id, error=AccountNotFound)
 
-    @need_login
-    @check_bourse
-    def get_coming(self, account):
-        if account.type != Account.TYPE_CHECKING and\
-                account.type != Account.TYPE_SAVINGS:
-            raise NotImplementedError()
-        account = self.get_account(account.id)
+    def go_account_page(self, account):
         data = {"AJAX:EVENTS_COUNT": 1,
                 "AJAXREQUEST": "_viewRoot",
                 "ajaxSingle": "index:setAccount",
@@ -131,6 +130,15 @@ class IngBrowser(LoginBrowser):
                 }
         self.accountspage.go(data=data)
         self.where = "history"
+
+    @need_login
+    @check_bourse
+    def get_coming(self, account):
+        if account.type != Account.TYPE_CHECKING and\
+                account.type != Account.TYPE_SAVINGS:
+            raise NotImplementedError()
+        account = self.get_account(account.id)
+        self.go_account_page(account)
         jid = self.page.get_history_jid()
         if jid is None:
             self.logger.info('There is no history for this account')
@@ -151,17 +159,7 @@ class IngBrowser(LoginBrowser):
             raise NotImplementedError()
 
         account = self.get_account(account.id)
-        data = {"AJAX:EVENTS_COUNT": 1,
-                "AJAXREQUEST": "_viewRoot",
-                "ajaxSingle": "index:setAccount",
-                "autoScroll": "",
-                "index": "index",
-                "index:setAccount": "index:setAccount",
-                "javax.faces.ViewState": account._jid,
-                "cptnbr": account._id
-                }
-        self.accountspage.go(data=data)
-        self.where = "history"
+        self.go_account_page(account)
         jid = self.page.get_history_jid()
         if jid is None:
             self.logger.info('There is no history for this account')

@@ -211,6 +211,14 @@ class AccountsList(LoggedPage, HTMLPage):
         form.submit()
 
 
+class IbanPage(LoggedPage, HTMLPage):
+    def get_iban(self):
+        iban = CleanText('//tr[td[1]//text()="IBAN"]/td[2]')(self.doc).strip().replace(' ', '')
+        if not iban or 'null' in iban:
+            return NotAvailable
+        return iban
+
+
 class TitreDetails(LoggedPage, HTMLPage):
     def submit(self):
         form = self.get_form()
