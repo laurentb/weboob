@@ -122,7 +122,7 @@ class LCLBrowser(LoginBrowser):
             self.rib.go(data={'compte': '%s/%s/%s' % (a.id[0:5], a.id[5:11], a.id[11:])})
             if self.rib.is_here():
                 iban = self.page.get_iban()
-                a.iban = iban if a.id[11:] in iban else NotAvailable
+                a.iban = iban if iban and a.id[11:] in iban else NotAvailable
             yield a
         self.loans.stay_or_go()
         for a in self.page.get_list():
