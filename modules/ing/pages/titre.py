@@ -55,17 +55,18 @@ class TitrePage(LoggedPage, RawPage):
             lines.pop(0)
         invests = []
         for line in lines:
+            _id, _pl = None, None
             columns = line.split('#')
             if columns[1] != '':
                 _pl = columns[1].split('{')[1]
                 _id = columns[1].split('{')[2]
-            invest = Investment(_id)
+            invest = Investment()
             invest.label = unicode(columns[0].split('{')[-1])
-            invest.code = unicode(_id)
-            if ':' in invest.code:
+            invest.code = unicode(_id) if _id is not None else NotAvailable
+            if invest.code and ':' in invest.code:
                 invest.code = self.browser.titrevalue.open(val=invest.code,pl=_pl).get_isin()
             # The code we got is not a real ISIN code.
-            if not re.match('^[A-Z]{2}[\d]{10}$|^[A-Z]{2}[\d]{5}[A-Z]{1}[\d]{4}$', invest.code):
+            if invest.code and not re.match('^[A-Z]{2}[\d]{10}$|^[A-Z]{2}[\d]{5}[A-Z]{1}[\d]{4}$', invest.code):
                 m = re.search('\{([A-Z]{2}[\d]{10})\{|\{([A-Z]{2}[\d]{5}[A-Z]{1}[\d]{4})\{', line)
                 if m:
                     invest.code = unicode(m.group(1) or m.group(2))
@@ -114,7 +115,7 @@ class TitreHistory(LoggedPage, HTMLPage):
 
             condition = lambda self: len(self.el.xpath('td[@class="impaire"]')) > 0
 
-            obj_raw = Transaction.Raw('td[4] | td[3]/a')
+            obj_raw = Transaction.Raw('td[4] | td[3]')
             obj_date = Date(CleanText('td[2]'), dayfirst=True)
             obj_amount = CleanDecimal('td[7]', replace_dots=True)
 
