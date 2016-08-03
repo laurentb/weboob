@@ -58,6 +58,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_label = CleanText('./td[1]')
             obj_type = Account.TYPE_CARD
             obj__status = CleanText('./td[5]')
+            obj_currency = u'EUR'
 
     @pagination
     def get_link(self, account_id):

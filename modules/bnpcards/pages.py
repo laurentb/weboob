@@ -97,6 +97,7 @@ class AccountsPage(ExpandablePage, GetableLinksPage):
             obj_label = CleanText('./td[1]')
             obj_type = Account.TYPE_CARD
             obj__rib = Env('rib')
+            obj_currency = u'EUR'
 
 
 class ComingPage(ExpandablePage):
