@@ -291,7 +291,7 @@ class MarketPage(LoggedPage, HTMLPage):
 
         col_label = 'Nature'
         col_amount = 'Montant'
-        col_date = 'Date d\'effet'
+        col_date = ['Date d\'effet', 'Date']
 
         next_page = Link('//li[@class="pagination__next"]/a')
 
