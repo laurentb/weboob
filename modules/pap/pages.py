@@ -46,7 +46,7 @@ class SearchResultsPage(HTMLPage):
     @pagination
     @method
     class iter_housings(ListElement):
-        item_xpath = '//li[@class="annonce"]'
+        item_xpath = '//div[has-class("annonce")]'
 
         def next_page(self):
             return Link('//ul[@class="pagination"]/li[@class="next"]/a')(self)
@@ -55,29 +55,29 @@ class SearchResultsPage(HTMLPage):
             klass = Housing
 
             def condition(self):
-                return Regexp(Link('./div[@class="header-annonce"]/a'), '/annonces/(.*)', default=None)(self)
+                return Regexp(Link('./div[@class="box-header"]/a'), '/annonces/(.*)', default=None)(self)
 
-            obj_id = Regexp(Link('./div[@class="header-annonce"]/a'), '/annonces/(.*)')
-            obj_title = CleanText('./div[@class="header-annonce"]/a')
-            obj_area = CleanDecimal(Regexp(CleanText('./div[@class="header-annonce"]/a/span[@class="desc"]'),
+            obj_id = Regexp(Link('./div[@class="box-header"]/a'), '/annonces/(.*)')
+            obj_title = CleanText('./div[@class="box-header"]/a[@class="title-item"]')
+            obj_area = CleanDecimal(Regexp(CleanText('./div[@class="box-header"]/a/span[@class="h1"]'),
                                            '(.*?)(\d*) m\xb2(.*?)', '\\2'), default=NotAvailable)
-            obj_cost = CleanDecimal(CleanText('./div[@class="header-annonce"]/a/span[@class="prix"]'),
+            obj_cost = CleanDecimal(CleanText('./div[@class="box-header"]/a/span[@class="price"]'),
                                     replace_dots=True, default=Decimal(0))
-            obj_currency = Regexp(CleanText('./div[@class="header-annonce"]/a/span[@class="prix"]'),
+            obj_currency = Regexp(CleanText('./div[@class="box-header"]/a/span[@class="price"]'),
                                   '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
 
             def obj_date(self):
-                _date = Regexp(CleanText('./div[@class="header-annonce"]/span[@class="date"]'),
+                _date = Regexp(CleanText('./div[@class="box-header"]/p[@class="date"]'),
                                '.* / (.*)')(self)
                 return parse_french_date(_date)
 
             obj_station = CleanText('./div/div/div[@cladd=metro]', default=NotAvailable)
-            obj_location = CleanText('./div[@class="clearfix"]/div/a/span/img/@alt')
-            obj_text = CleanText('./div[@class="clearfix"]/div[@class="description clearfix"]/p')
+            obj_location = CleanText('./div[@class="box-body"]/div/div/p[@class="item-description"]/strong')
+            obj_text = CleanText('./div[@class="box-body"]/div/div/p[@class="item-description"]')
 
             def obj_photos(self):
                 photos = []
-                for img in XPath('//div[@class="vignette-annonce"]/a/span/img/@src')(self):
+                for img in XPath('./div[@class="box-body"]/div/div/a/img/@src')(self):
                     photos.append(HousingPhoto(u'%s' % img))
                 return photos
 
@@ -88,38 +88,38 @@ class HousingPage(HTMLPage):
         klass = Housing
 
         obj_id = Env('_id')
-        obj_title = CleanText('//h1[@class="desc clearfix"]/span[@class="title"]')
-        obj_cost = CleanDecimal('//h1[@class="desc clearfix"]/span[@class="prix"]',
+        obj_title = CleanText('//h1[@class="clearfix"]/span[@class="title"]')
+        obj_cost = CleanDecimal('//h1[@class="clearfix"]/span[@class="price"]',
                                 replace_dots=True)
-        obj_currency = Regexp(CleanText('//h1[@class="desc clearfix"]/span[@class="prix"]'),
+        obj_currency = Regexp(CleanText('//h1[@class="clearfix"]/span[@class="price"]'),
                               '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
-        obj_area = CleanDecimal(Regexp(CleanText('//h1[@class="desc clearfix"]/span[@class="title"]'),
+        obj_area = CleanDecimal(Regexp(CleanText('//h1[@class="clearfix"]/span[@class="title"]'),
                                 '(.*?)(\d*) m\xb2(.*?)', '\\2'), default=NotAvailable)
         obj_price_per_meter = PricePerMeterFilter()
-        obj_location = CleanText('//div[@class="text-annonce"]/h2')
-        obj_text = CleanText(CleanHTML('//div[@class="text-annonce-container"]/p'))
+        obj_location = CleanText('//div[@class="item-geoloc"]/h2')
+        obj_text = CleanText(CleanHTML('//p[@class="item-description"]'))
         obj_station = CleanText('//div[@class="metro"]')
-        obj_phone = CleanText('(//span[@class="telephone hide-tel"])[1]')
+        obj_phone = CleanHTML('(//div[has-class("tel-wrapper")])[1]')
         obj_url = BrowserURL('housing', _id=Env('_id'))
 
         def obj_details(self):
             details = dict()
-            for item in XPath('//div[@class="footer-descriptif"]/ul/li')(self):
-                key = CleanText('./span[@class="label"]')(item)
-                value = CleanText('.', replace=[(key, '')])(item)
+            for item in XPath('//ul[@class="item-summary"]/li')(self):
+                key = CleanText('.', children=False)(item)
+                value = CleanText('./strong')(item)
                 if value and key:
                     details[key] = value
 
-            key = CleanText('//div[@class="classe-energie-content"]/div/div/span')(self)
-            value = Format('%s(%s)', CleanText('//div[@class="classe-energie-content"]/div/div/p'),
-                           CleanText('//div[@class="classe-energie-content"]/div/@class',
-                                     replace=[('-', ' ')]))(self)
+            key = CleanText('//div[@class="box energy-box"]/div/div/p[@class="h3"]')(self)
+            value = Format('%s(%s)', CleanText('(//div[@class="box energy-box"]/div/div/p)[2]'),
+                           CleanText('//div[@class="box energy-box"]/div/div/@class',
+                                     replace=[('-', ''), ('rank', '')]))(self)
             if value and key:
                 details[key] = value
             return details
 
         def obj_photos(self):
             photos = []
-            for img in XPath('//div[@class="showcase-thumbnail"]/img/@src')(self):
+            for img in XPath('//div[has-class("showcase-thumbnail")]/img/@src')(self):
                 photos.append(HousingPhoto(u'%s' % img))
             return photos
