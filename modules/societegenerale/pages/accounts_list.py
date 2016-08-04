@@ -157,6 +157,12 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_DEPOSIT),
                 (re.compile(r'^CARTE RETRAIT (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile(r'^TOTAL DES FACTURES (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_CARD_SUMMARY),
+                (re.compile(r'^DEBIT MENSUEL CARTE (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_CARD_SUMMARY),
+                (re.compile(r'^CREDIT MENSUEL CARTE (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_CARD_SUMMARY),
                ]
 
 
@@ -179,6 +185,7 @@ class AccountHistory(BasePage):
             # There are no transactions in this kind of account
             return
 
+        is_deferred_card = bool(self.document.xpath(u'//div[contains(text(), "Différé")]'))
         while True:
             d = XML(self.browser.readurl(url))
             try:
@@ -191,6 +198,8 @@ class AccountHistory(BasePage):
             doc = self.browser.get_document(s)
 
             for tr in self._iter_transactions(doc):
+                if is_deferred_card and tr.type is Transaction.TYPE_CARD:
+                    tr.type = Transaction.TYPE_DEFERRED_CARD
                 yield tr
 
             el = d.xpath('//dataHeader')[0]
