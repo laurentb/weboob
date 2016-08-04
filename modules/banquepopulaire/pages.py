@@ -348,6 +348,9 @@ class AccountsPage(BasePage):
                      u'Synthèse':                      None,    # ignore this title
                     }
 
+    PATTERN = [(re.compile('.*Titres.*'),Account.TYPE_MARKET),
+               (re.compile('^Fructi Pulse.*'), Account.TYPE_MARKET),
+               ]
     def is_error(self):
         for script in self.document.xpath('//script'):
             if script.text is not None and \
@@ -417,7 +420,14 @@ class AccountsPage(BasePage):
                 account.id = args['identifiant'].replace(' ', '')
                 account.label = u' '.join([u''.join([txt.strip() for txt in tds[1].itertext()]),
                                            u''.join([txt.strip() for txt in tds[2].itertext()])]).strip()
-                account.type = account_type
+
+                for pattern, _type in self.PATTERN:
+                    match = pattern.match(account.label)
+                    if match:
+                        account.type = _type
+                        break
+                    else:
+                        account.type = account_type
 
                 balance = FrenchTransaction.clean_amount(u''.join([txt.strip() for txt in tds[3].itertext()]))
                 account.balance = Decimal(balance or '0.0')
@@ -784,7 +794,7 @@ class IbanPage(BasePage):
 
     def go_iban(self, account):
         for tr in self.document.xpath('//table[@id]/tbody/tr'):
-            if account.type != Account.TYPE_LOAN and CleanText().filter(tr.xpath('./td[1]')) in account.id:
+            if account.type not in (Account.TYPE_LOAN, Account.TYPE_MARKET) and CleanText().filter(tr.xpath('./td[1]')) in account.id:
                 self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'myForm')
                 self.browser.set_all_readonly(False)
                 self.browser['token'] = self.build_token(self.browser['token'])
