@@ -349,7 +349,7 @@ class AccountsPage(BasePage):
                     }
 
     PATTERN = [(re.compile('.*Titres.*'),Account.TYPE_MARKET),
-               (re.compile('^Fructi Selection Vie.*'),Account.TYPE_LIFE_INSURANCE),
+               (re.compile('.*Selection Vie.*'),Account.TYPE_LIFE_INSURANCE),
                (re.compile('^Fructi Pulse.*'), Account.TYPE_MARKET),
                ]
     def is_error(self):
