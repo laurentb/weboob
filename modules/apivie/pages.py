@@ -49,6 +49,8 @@ class AccountsPage(Page):
         account = Account()
         account.id = self.parser.tocleanstring(tds[self.COL_ID])
         account.label = self.parser.tocleanstring(tds[self.COL_LABEL])
+        # It's safe to assume that apivie does only life insurance
+        account.type = Account.TYPE_LIFE_INSURANCE
 
         balance_str = self.parser.tocleanstring(tds[self.COL_AMOUNT])
         account.balance = Decimal(FrenchTransaction.clean_amount(balance_str))
