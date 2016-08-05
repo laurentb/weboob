@@ -20,14 +20,14 @@
 
 from weboob.tools.newsfeed import Newsfeed
 from weboob.capabilities.messages import CapMessages, Thread
-from weboob.tools.capabilities.messages.GenericModule import GenericNewspaperModule
+from weboob.tools.backend import AbstractModule
 from weboob.tools.backend import BackendConfig
 from weboob.tools.value import Value
 from .browser import NewspaperLibeBrowser
 from .tools import rssid, url2id
 
 
-class NewspaperLibeModule(GenericNewspaperModule, CapMessages):
+class NewspaperLibeModule(AbstractModule, CapMessages):
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '1.2'
@@ -39,6 +39,7 @@ class NewspaperLibeModule(GenericNewspaperModule, CapMessages):
     RSSID = staticmethod(rssid)
     URL2ID = staticmethod(url2id)
     RSSSIZE = 30
+    PARENT = 'genericnewspaper'
     CONFIG = BackendConfig(Value('feed', label='RSS feed',
                            choices={'9': u'A la une sur Libération',
                                     '10': u'Monde',
@@ -52,11 +53,10 @@ class NewspaperLibeModule(GenericNewspaperModule, CapMessages):
                                     '53': u'Écrans',
                                     '54': u'Next',
                                     '58': u'Cinéma'
-                                    }
-                           ))
+                                    }))
 
     def __init__(self, *args, **kwargs):
-        GenericNewspaperModule.__init__(self, *args, **kwargs)
+        super(self.__class__, self).__init__(*args, **kwargs)
         self.RSS_FEED = "http://www.liberation.fr/rss/%s" % self.config['feed'].get()
 
     def iter_threads(self):
