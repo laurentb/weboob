@@ -18,30 +18,24 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage,\
-        try_drop_tree, clean_relativ_urls
+from weboob.browser.pages import AbstractPage
+from weboob.browser.filters.html import CSS, CleanHTML
 
 
-class ArticlePage(GenericNewsPage):
+class ArticlePage(AbstractPage):
     "ArticlePage object for taz"
+    _selector = CSS
+    PARENT = 'genericnewspaper'
+    PARENT_URL = 'generic_news_page'
 
     def on_loaded(self):
-        self.main_div = self.document.getroot()
+        self.main_div = self.doc.getroot()
         self.element_title_selector = "title"
-        self.element_author_selector = ".content-author>a"
+        self.element_author_selector = 'a[rel="author"]>h4'
 
     def get_body(self):
-        div = self.document.getroot().find('.//div[@class="sectbody"]')
-        try_drop_tree(self.parser, div, "div.anchor")
-        clean_relativ_urls(div, "http://taz.de")
-
-        return self.parser.tostring(div)
-
-    def get_title(self):
-        title = GenericNewsPage.get_title(self)
-        return title
-
-    def get_author(self):
-        author = self.document.getroot().xpath('//span[@class="author"]')
-        if author:
-            return author[0].text.replace('von ', '')
+        div = self.doc.getroot().find('.//div[@class="sectbody"]')
+        self.try_drop_tree(div, "div.anchor")
+        self.try_drop_tree(div, "script")
+        self.clean_relativ_urls(div, "http://taz.de")
+        return CleanHTML('.')(div)

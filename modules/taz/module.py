@@ -19,12 +19,12 @@
 "backend for http://www.taz.de"
 
 from weboob.capabilities.messages import CapMessages
-from weboob.tools.capabilities.messages.GenericModule import GenericNewspaperModule
+from weboob.tools.backend import AbstractModule
 from .browser import NewspaperTazBrowser
 from .tools import rssid, url2id
 
 
-class NewspaperTazModule(GenericNewspaperModule, CapMessages):
+class NewspaperTazModule(AbstractModule, CapMessages):
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '1.2'
@@ -37,3 +37,4 @@ class NewspaperTazModule(GenericNewspaperModule, CapMessages):
     URL2ID = staticmethod(url2id)
     RSSSIZE = 30
     RSS_FEED = "http://www.taz.de/!p3270;rss/"
+    PARENT = 'genericnewspaper'
