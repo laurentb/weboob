@@ -21,21 +21,9 @@
 import re
 
 
-def id2url(_id):
-    "return an url from an id"
-    regexp2 = re.compile("(\w+).([0-9]+).(.*$)")
-    match = regexp2.match(_id)
-    if match:
-        return 'http://www.20minutes.fr/%s/%s/%s' % (match.group(1),
-                                                     match.group(2),
-                                                     match.group(3))
-    else:
-        raise ValueError("id doesn't match")
-
-
 def url2id(url):
     "return an id from an url"
-    regexp = re.compile("http://www.20minutes.fr/(\w+)/([0-9]+)/(.*$)")
+    regexp = re.compile("http://www.20min.fr/(\w+)/([0-9]+)/(.*$)")
     match = regexp.match(url)
     return '%s.%d.%s' % (match.group(1), int(match.group(2)), match.group(3))
 

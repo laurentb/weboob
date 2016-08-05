@@ -18,37 +18,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .pages.article import ArticlePage
-from .pages.simple import SimplePage
-from weboob.deprecated.browser import Browser
-from .tools import id2url
+from .pages import ArticlePage
+from weboob.browser import AbstractBrowser, URL
 
 
-class Newspaper20minutesBrowser(Browser):
+class Newspaper20minutesBrowser(AbstractBrowser):
     "Newspaper20minutesBrowser class"
-    ENCODING = None
-    PAGES = {
-             'http://www.20minutes.fr/(?!preums|ledirect).+/?.*': ArticlePage,
-             'http://www.20minutes.fr/ledirect/?.*': SimplePage,
-             'http://www.20minutes.fr/preums/?.*': SimplePage
-            }
+    BASEURL = 'http://www.20minutes.fr'
+    PARENT = 'genericnewspaper'
 
-    def is_logged(self):
-        return False
+    article_page = URL('/.+/?.*', ArticlePage)
 
-    def login(self):
-        pass
-
-    def fillobj(self, obj, fields):
-        pass
-
-    def get_content(self, _id):
-        "return page article content"
-        try :
-            url = id2url(_id)
-        except ValueError:
-            url = _id
-        self.location(url)
-
-        if self.page is not None:
-            return self.page.get_article(_id)
+    def __init__(self, weboob, *args, **kwargs):
+        self.weboob = weboob
+        super(self.__class__, self).__init__(*args, **kwargs)

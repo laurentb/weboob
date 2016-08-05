@@ -19,19 +19,20 @@
 "backend for http://20minutes.fr"
 
 from weboob.capabilities.messages import CapMessages
-from weboob.tools.capabilities.messages.GenericModule import GenericNewspaperModule
+from weboob.tools.backend import AbstractModule
 from .browser import Newspaper20minutesBrowser
 from .tools import rssid
 
 
-class Newspaper20minutesModule(GenericNewspaperModule, CapMessages):
+class Newspaper20minutesModule(AbstractModule, CapMessages):
     MAINTAINER = u'Julien Hebert'
     EMAIL = 'juke@free.fr'
     VERSION = '1.2'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     NAME = 'minutes20'
-    DESCRIPTION = u'2 Minutes French newspaper website'
+    DESCRIPTION = u'20 Minutes French newspaper website'
     BROWSER = Newspaper20minutesBrowser
     RSS_FEED = 'http://www.20minutes.fr/rss/une.xml'
     RSSID = rssid
+    PARENT = 'genericnewspaper'
