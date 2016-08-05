@@ -19,34 +19,21 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import date, datetime, time
-from .pages.article import PresseuropPage, CartoonPage, DailySinglePage,\
-                           DailyTitlesPage
-from weboob.deprecated.browser import Browser
-from weboob.tools.ordereddict import OrderedDict
+from .pages import PresseuropPage
+from weboob.browser.browsers import AbstractBrowser
+from weboob.browser.url import URL
 
 
-class NewspaperPresseuropBrowser(Browser):
+class NewspaperPresseuropBrowser(AbstractBrowser):
     "NewspaperPresseuropBrowser class"
-    PAGES = OrderedDict((
-             ("http://www.voxeurop.eu/.*/news-brief/.*", DailySinglePage),
-             ("http://www.voxeurop.eu/.*/today/.*", DailyTitlesPage),
-             ("http://www.voxeurop.eu/.*/cartoon/.*", CartoonPage),
-             ("http://www.voxeurop.eu/.*", PresseuropPage),
-            ))
+    PARENT = 'genericnewspaper'
+    BASEURL = 'http://www.voxeurop.eu'
 
-    def is_logged(self):
-        return False
+    presseurop_page = URL("/.*", PresseuropPage)
 
-    def login(self):
-        pass
-
-    def fillobj(self, obj, fields):
-        pass
-
-    def get_content(self, _id):
-        "return page article content"
-        self.location(_id)
-        return self.page.get_article(_id)
+    def __init__(self, weboob, *args, **kwargs):
+        self.weboob = weboob
+        super(self.__class__, self).__init__(*args, **kwargs)
 
     def get_daily_date(self, _id):
         self.location(_id)
@@ -57,7 +44,7 @@ class NewspaperPresseuropBrowser(Browser):
         self.location(url)
         title = self.page.get_title()
         article_date = date(*[int(x)
-            for x in _id.split('-')])
+                              for x in _id.split('-')])
         article_time = time(0, 0, 0)
         article_datetime = datetime.combine(article_date, article_time)
         return url, title, article_datetime

@@ -19,7 +19,8 @@
 "backend for http://www.presseurop.eu"
 
 from weboob.capabilities.messages import CapMessages, Thread
-from weboob.tools.capabilities.messages.GenericModule import GenericNewspaperModule
+from weboob.tools.backend import AbstractModule
+
 from weboob.tools.backend import BackendConfig
 from weboob.tools.value import Value
 from .browser import NewspaperPresseuropBrowser
@@ -27,7 +28,7 @@ from .tools import rssid, url2id
 from weboob.tools.newsfeed import Newsfeed
 
 
-class NewspaperPresseuropModule(GenericNewspaperModule, CapMessages):
+class NewspaperPresseuropModule(AbstractModule, CapMessages):
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '1.2'
@@ -39,14 +40,15 @@ class NewspaperPresseuropModule(GenericNewspaperModule, CapMessages):
     RSSID = staticmethod(rssid)
     URL2ID = staticmethod(url2id)
     RSSSIZE = 300
+    PARENT = 'genericnewspaper'
     CONFIG = BackendConfig(Value('lang', label='Lang of articles',
                            choices={'fr': 'fr', 'de': 'de', 'en': 'en',
-                                'cs': 'cs', 'es': 'es', 'it': 'it', 'nl': 'nl',
-                                'pl': 'pl', 'pt': 'pt', 'ro': 'ro'},
+                                    'cs': 'cs', 'es': 'es', 'it': 'it', 'nl': 'nl',
+                                    'pl': 'pl', 'pt': 'pt', 'ro': 'ro'},
                            default='fr'))
 
     def __init__(self, *args, **kwargs):
-        GenericNewspaperModule.__init__(self, *args, **kwargs)
+        super(self.__class__, self).__init__(*args, **kwargs)
         self.RSS_FEED = 'http://www.voxeurop.eu/%s/rss.xml' % self.config['lang'].get()
 
     def iter_threads(self):
