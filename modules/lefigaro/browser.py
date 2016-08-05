@@ -18,39 +18,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .pages.article import ArticlePage, ActuPage
-from .pages.flashactu import FlashActuPage
-from weboob.deprecated.browser import Browser, Page
+from .pages import ArticlePage
+from weboob.browser.browsers import AbstractBrowser
+from weboob.browser.url import URL
 
 
-class IndexPage(Page):
-    pass
-
-
-class NewspaperFigaroBrowser(Browser):
+class NewspaperFigaroBrowser(AbstractBrowser):
     "NewspaperFigaroBrowser class"
-    ENCODING = "UTF-8"
-    PAGES = {"http://\w+.lefigaro.fr/flash-.*/(\d{4})/(\d{2})/(\d{2})/(.*$)": FlashActuPage,
-             "http://\w+.lefigaro.fr/bd/(\d{4})/(\d{2})/(\d{2})/(.*$)": FlashActuPage,
-             "http://\w+.lefigaro.fr/(?!flash-|bd|actualite).+/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
-             "http://\w+.lefigaro.fr/actualite/(\d{4})/(\d{2})/(\d{2})/(.*$)": ActuPage,
-             "http://\w+.lefigaro.fr/actualite-.*/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
-             "http://\w+.lefigaro.fr/": IndexPage,
-             "http://feeds.lefigaro.fr/c/32266/f/438190/s/\w+/sc/\d{2}/\d{1}/\w+/story01.htm": FlashActuPage,
-             }
+    PARENT = 'genericnewspaper'
+    BASEURL = ''
 
-    def is_logged(self):
-        return False
+    article_page = URL('http://lefigaro.fr/(.*)/(\d{4})/(\d{2})/(\d{2})/(.*$)',
+                       'http://\w+.lefigaro.fr/(.*)/(\d{4})/(\d{2})/(\d{2})/(.*$)',
+                       ArticlePage)
 
-    def login(self):
-        pass
-
-    def fillobj(self, obj, fields):
-        pass
-
-    def get_content(self, _id):
-        "return page article content"
-        self.location(_id)
-        if self.is_on_page(IndexPage):
-            return None
-        return self.page.get_article(_id)
+    def __init__(self, weboob, *args, **kwargs):
+        self.weboob = weboob
+        super(self.__class__, self).__init__(*args, **kwargs)
