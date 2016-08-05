@@ -18,30 +18,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .pages.article import ArticlePage
-from .pages.inrockstv import InrocksTvPage
-from weboob.deprecated.browser import Browser
+from .pages import ArticlePage
+from weboob.browser.browsers import AbstractBrowser
+from weboob.browser.url import URL
 
 
-class NewspaperInrocksBrowser(Browser):
+class NewspaperInrocksBrowser(AbstractBrowser):
     "NewspaperInrocksBrowser class"
-    PAGES = {
-             'http://www.lesinrocks.com/\?p=.+': ArticlePage,
-             'http://www.lesinrocks.com/\d{4}/\d{2}/\d{2}/actualite/.*': ArticlePage,
-             'http://www.lesinrocks.com/inrockstv/.*': InrocksTvPage,
-             'http://blogs.lesinrocks.com/.*': ArticlePage,
-            }
+    PARENT = 'genericnewspaper'
+    BASEURL = 'http://www.lesinrocks.com'
 
-    def is_logged(self):
-        return False
+    article = URL('/\?p=.+',
+                  '/\d{4}/\d{2}/\d{2}/actualite/.*',
+                  'http://blogs.lesinrocks.com/.*',
+                  '/.*',
+                  ArticlePage)
 
-    def login(self):
-        pass
-
-    def fillobj(self, obj, fields):
-        pass
-
-    def get_content(self, _id):
-        "return page article content"
-        self.location(_id)
-        return self.page.get_article(_id)
+    def __init__(self, weboob, *args, **kwargs):
+        self.weboob = weboob
+        super(self.__class__, self).__init__(*args, **kwargs)

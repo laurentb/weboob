@@ -18,13 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 "backend for http://www.lesinrocks.com"
 
+from weboob.tools.backend import AbstractModule
 from weboob.capabilities.messages import CapMessages
-from weboob.tools.capabilities.messages.GenericModule import GenericNewspaperModule
+
 from .browser import NewspaperInrocksBrowser
 from .tools import rssid
 
 
-class NewspaperInrocksModule(GenericNewspaperModule, CapMessages):
+class NewspaperInrocksModule(AbstractModule, CapMessages):
     MAINTAINER = u'Julien Hebert'
     EMAIL = 'juke@free.fr'
     VERSION = '1.2'
@@ -35,3 +36,4 @@ class NewspaperInrocksModule(GenericNewspaperModule, CapMessages):
     BROWSER = NewspaperInrocksBrowser
     RSS_FEED = 'http://www.lesinrocks.com/fileadmin/rss/actus.xml'
     RSSID = rssid
+    PARENT = 'genericnewspaper'

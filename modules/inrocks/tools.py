@@ -18,20 +18,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import re
-
-
-def id2url(_id):
-    "return an url from an id"
-    regexp2 = re.compile("(\w+).([0-9]+).(.*$)")
-    match = regexp2.match(_id)
-    if match:
-        return 'http://www.20minutes.fr/%s/%s/%s' % (match.group(1),
-                                                     match.group(2),
-                                                     match.group(3))
-    else:
-        raise ValueError("id doesn't match")
-
 
 def url2id(url):
     "return an id from an url"
