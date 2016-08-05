@@ -22,6 +22,7 @@ import urllib
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrokenPageError
 
+from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
 
 from .pages import LoginPage, IndexPage, AccountsPage, AccountsFullPage, CardsPage, TransactionsPage, \
@@ -168,7 +169,7 @@ class BanquePopulaire(Browser):
     def get_iban_number(self, account):
         self.location('/cyber/internet/StartTask.do?taskInfoOID=cyberIBAN&token=%s' % self.page.build_token(self.token))
         # Sometimes we can't choose an account
-        if self.page.need_to_go() and not self.page.go_iban(account):
+        if account.type in [Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET] or (self.page.need_to_go() and not self.page.go_iban(account)):
             return NotAvailable
         return self.page.get_iban(account.id)
 
