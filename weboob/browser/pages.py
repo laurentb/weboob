@@ -30,7 +30,7 @@ except ImportError:
 
 import requests
 
-from weboob.exceptions import ParseError
+from weboob.exceptions import ParseError, ModuleInstallError
 from weboob.tools.compat import basestring
 from weboob.tools.log import getLogger
 from weboob.tools.ordereddict import OrderedDict
@@ -758,3 +758,37 @@ class ChecksumPage(object):
     def build_doc(self, content):
         self.checksum = self.hashfunc(content).hexdigest()
         return super(ChecksumPage, self).build_doc(content)
+
+
+class AbstractPageError(Exception):
+    pass
+
+
+class AbstractPage(Page):
+    PARENT = None
+    PARENT_URL = None
+
+    def __new__(cls, browser, *args, **kwargs):
+        weboob = getattr(browser, 'weboob', None)
+        if not weboob:
+            raise AbstractPageError("weboob is not defined in %s" % browser)
+
+        if cls.PARENT is None:
+            raise AbstractPageError("PARENT is not defined for page %s" % cls.__name__)
+
+        if cls.PARENT_URL is None:
+            raise AbstractPageError("PARENT_URL is not defined for page %s" % cls.__name__)
+
+        if not weboob.modules_loader.module_exists(cls.PARENT):
+            try:
+                weboob.repositories.install(cls.PARENT)
+            except ModuleInstallError as err:
+                raise ModuleInstallError('This module depends on %s module but %s\'s installation failed with: %s' % (cls.PARENT, cls.PARENT, err))
+
+        parent_browser = weboob.modules_loader.get_or_load_module(cls.PARENT).klass.BROWSER
+
+        parent = parent_browser._urls.get(cls.PARENT_URL, None)
+        if parent is None:
+            raise AbstractPageError("cls.PARENT_URL is not defined in %s" % browser)
+
+        return type(cls.__name__, (parent.klass,), dict(cls.__dict__))(browser, *args, **kwargs)
