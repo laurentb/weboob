@@ -104,6 +104,7 @@ class AccountPage(HomePage):
         lines = content.xpath('(//div[@class="col-md-8 multi-currency"])[1]/ul/li')
         for li in lines:
             account = Account()
+            account.iban = NotAvailable
             account.type = Account.TYPE_CHECKING
             currency_code = CleanText().filter((li.xpath('./span[@class="currencyUnit"]/span') or li.xpath('./span[1]'))[0])
             currency = Currency.get_currency(currency_code)
@@ -120,6 +121,7 @@ class AccountPage(HomePage):
         if not accounts:
         # Primary currency account
             primary_account = Account()
+            primary_account.iban = NotAvailable
             primary_account.type = Account.TYPE_CHECKING
             try:
                 balance = CleanText('.')(content.xpath('//div[contains(@class, "col-md-6")][contains(@class, "available")]')[0])
