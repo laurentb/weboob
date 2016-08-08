@@ -91,5 +91,5 @@ class BouyguesBrowser(LoginBrowser):
     def iter_documents(self, subscription):
         ref = self.documents.go().get_ref(subscription.label)
         if not ref:
-            return
+            return iter([])
         return self.documents.go(ref=ref).get_documents(subid=subscription.id)
