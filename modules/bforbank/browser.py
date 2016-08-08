@@ -30,7 +30,8 @@ class BforbankBrowser(LoginBrowser):
 
     login = URL('/connexion-client/service/login\?urlBack=%2Fespace-client', LoginPage)
     error = URL('/connexion-client/service/auth', ErrorPage)
-    home = URL('/espace-client/$', AccountsPage)
+    home = URL('/espace-client/$',
+               '/espace-client/rib/(?P<id>\d+)', AccountsPage)
     loan_history = URL('/espace-client/livret/consultation.*', LoanHistoryPage)
     history = URL('/espace-client/consultation/operations/.*', HistoryPage)
 

@@ -24,8 +24,10 @@ from PIL import Image
 from weboob.browser.pages import LoggedPage, HTMLPage, pagination
 from weboob.browser.elements import method, ListElement, ItemElement
 from weboob.capabilities.bank import Account
+from weboob.capabilities.base import NotAvailable
 from weboob.browser.filters.html import Link
-from weboob.browser.filters.standard import CleanText, Regexp, Field, Map, CleanDecimal
+from weboob.browser.filters.standard import CleanText, Regexp, Field, Map, \
+                                            CleanDecimal, BrowserURL, Async, AsyncLoad
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -116,11 +118,14 @@ class AccountsPage(LoggedPage, HTMLPage):
                     'Assurance-vie': Account.TYPE_MARKET,
                    }
 
+            load_iban = BrowserURL('home', id=Field('id')) & AsyncLoad
+
             obj_id = CleanText('./td//div[contains(@class, "-synthese-title") or contains(@class, "-synthese-text")]') & Regexp(pattern=r'(\d+)')
             obj_label = CleanText('./td//div[contains(@class, "-synthese-title")]')
             obj_balance = MyDecimal('./td//div[contains(@class, "-synthese-num")]', replace_dots=True)
             obj_currency = FrenchTransaction.Currency('./td//div[contains(@class, "-synthese-num")]')
             obj_type = Map(Regexp(Field('label'), r'^([^ ]*)'), TYPE, default=Account.TYPE_UNKNOWN)
+            obj_iban = Async('iban') & CleanText('//td[contains(text(), "IBAN")]/following-sibling::td[1]', replace=[(' ', '')], default=NotAvailable)
             obj__link = CleanText('./@data-href')
 
             def condition(self):
