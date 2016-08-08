@@ -51,7 +51,6 @@ class AccountsPage(Page):
         account.label = self.parser.tocleanstring(tds[self.COL_LABEL])
         # It's safe to assume that apivie does only life insurance
         account.type = Account.TYPE_LIFE_INSURANCE
-
         balance_str = self.parser.tocleanstring(tds[self.COL_AMOUNT])
         account.balance = Decimal(FrenchTransaction.clean_amount(balance_str))
         account.currency = account.get_currency(balance_str)
@@ -75,7 +74,7 @@ class InvestmentsPage(Page):
             inv.valuation = Decimal(FrenchTransaction.clean_amount( \
                             self.parser.tocleanstring(tds[self.COL_VALUATION])))
             inv.portfolio_share = Decimal(FrenchTransaction.clean_amount( \
-                                  self.parser.tocleanstring(tds[self.COL_PORTFOLIO_SHARE])))
+                                  self.parser.tocleanstring(tds[self.COL_PORTFOLIO_SHARE]))) / 100
             yield inv
 
 
