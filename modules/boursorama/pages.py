@@ -177,7 +177,6 @@ class AccountsPage(LoggedPage, HTMLPage):
                         //li[span[text()="Total des +/- values latentes"]]/span[has-class("overview__value")]', replace_dots=True, default=NotAvailable)
             obj__card = Async('details') & Attr('//a[@data-modal-behavior="credit_card-modal-trigger"]', 'href', default=NotAvailable)
             obj__holder = None
-            obj__webid = None
 
             def obj_coming(self):
                 # Don't duplicate coming (card balance with account coming)
@@ -201,6 +200,12 @@ class AccountsPage(LoggedPage, HTMLPage):
                 if not self.page.browser.webid:
                     self.page.browser.webid = re.search('\/([^\/|?|$]{32})(\/|\?|$)', link).group(1)
                 return link
+
+            def obj__webid(self):
+                m = re.search('([a-z\d]{32})', self.obj__link())
+                if m:
+                    return m.group(1)
+                return None
 
             # We do not yield other banks accounts for the moment.
             def validate(self, obj):
