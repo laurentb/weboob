@@ -24,7 +24,7 @@ from datetime import timedelta, date
 from weboob.tools.date import LinearDateGuesser
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
-from .pages import AccountsPage, CBOperationPage, CPTOperationPage, LoginPage, AppGonePage
+from .pages import AccountsPage, CBOperationPage, CPTOperationPage, LoginPage, AppGonePage, RibPage
 
 
 __all__ = ['HSBC']
@@ -47,6 +47,7 @@ class HSBC(LoginBrowser):
     appGone =     URL(r'/.*_absente.html',
                       r'/pm_absent_inter.html',
                         AppGonePage)
+    rib =             URL(r'/cgi-bin/emcgi', RibPage)
     accounts =        URL(r'/cgi-bin/emcgi', AccountsPage)
 
     def __init__(self, username, password, secret, *args, **kwargs):
@@ -86,8 +87,9 @@ class HSBC(LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
-        self.update_accounts_list()
-        for i,a in self.accounts_list.items():
+        if not self.accounts_list:
+            self.update_accounts_list()
+        for i, a in self.accounts_list.items():
             yield a
 
     @need_login
@@ -97,6 +99,8 @@ class HSBC(LoginBrowser):
                 self.accounts_list[a.id]._link_id = a._link_id
             except KeyError:
                 self.accounts_list[a.id] = a
+        self.location('%s%s' % (self.page.url, '&debr=COMPTES_RIB'))
+        self.page.get_rib(self.accounts_list)
 
     @need_login
     def get_history(self, account, coming=False):

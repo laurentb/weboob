@@ -109,6 +109,27 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return CleanText(replace=[('.', ''), (' ', '')]).filter(self.el.xpath('./td[2]'))
 
 
+class RibPage(LoggedPage, HTMLPage):
+    def is_here(self):
+        return bool(self.doc.xpath('//h1[contains(text(), "RIB/IBAN")]'))
+
+    def link_rib(self, accounts):
+        for id, acc in accounts.items():
+            if acc.iban or not acc.type is Account.TYPE_CHECKING:
+                continue
+            digit_id = ''.join(re.findall('\d', id))
+            if digit_id in CleanText('//div[strong[contains(text(), "Account number")]]')(self.doc):
+                acc.iban = re.search('(FR\d{25})', CleanText('//div[strong[contains(text(), "IBAN")]]', replace=[(' ', '')])(self.doc)).group(1)
+
+    def get_rib(self, accounts):
+        self.link_rib(accounts)
+        for nb in range(len(self.doc.xpath('//select/option')) -1):
+            form = self.get_form()
+            form['index_rib'] = str(nb+1)
+            form.submit()
+            self.browser.page.link_rib(accounts)
+
+
 class Pagination(object):
     def next_page(self):
         links = self.page.doc.xpath('//a[@class="fleche"]')
