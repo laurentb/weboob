@@ -71,3 +71,6 @@ class FormFieldConversionWarning(UserWarning):
     """
     A value has been set to a form's field and has been implicitly converted.
     """
+
+class NoAccountsException(Exception):
+    pass
