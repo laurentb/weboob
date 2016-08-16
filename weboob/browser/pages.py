@@ -672,6 +672,55 @@ class HTMLPage(Page):
         raise FormNotFound()
 
 
+class GWTPage(Page):
+    """
+    GWT page where the "doc" attribute is a list
+
+    More info about GWT protcol here : https://goo.gl/GP5dv9
+    """
+
+    def build_doc(self, content):
+        """
+        Reponse starts with "//" followed by "OK" or "EX".
+        2 last elements in list are protocol and flag.
+        We need to read the list in reversed order.
+        """
+
+        assert content[2:4] == "OK"
+        doc, array = [], []
+        from ast import literal_eval
+        for el in reversed(literal_eval(content[4:])[:-2]):
+            # If we find an array, args after are indices or date
+            if not array and isinstance(el, list):
+                array = el
+            elif array and isinstance(el, int) and len(array) >= el >= 1:
+                doc.append(array[el - 1])
+            elif array and isinstance(el, basestring):
+                doc.append(self.get_date(el))
+        return doc
+
+    def get_date(self, data):
+        """
+        Get date from string
+        """
+
+        base = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_$"
+        timestamp = sum(base.index(data[el]) * (len(base) ** (len(data) - el - 1)) for el in range(len(data)))
+        from datetime import datetime
+        return datetime.fromtimestamp(int(str(timestamp)[:10])).strftime('%d/%m/%Y')
+
+    def get_elements(self, type="String"):
+        """
+        Get elements of specified type
+        """
+
+        strings = []
+        for i, el in enumerate(self.doc):
+            if i > 0 and ".%s" % type in self.doc[i - 1]:
+                strings.append(el)
+        return [string for string in strings if "java." not in string]
+
+
 class LoggedPage(object):
     """
     A page that only logged users can reach. If we did not get a redirection
