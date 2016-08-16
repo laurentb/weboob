@@ -56,7 +56,7 @@ class BforbankBrowser(LoginBrowser):
 
     @need_login
     def get_history(self, account):
-        if account.type == Account.TYPE_MARKET:
+        if account.type == Account.TYPE_MARKET or account.type == Account.TYPE_LIFE_INSURANCE:
             raise NotImplementedError()
         self.location(account._link.replace('tableauDeBord', 'operations'))
         return self.page.get_operations()

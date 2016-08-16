@@ -103,6 +103,12 @@ class MyDecimal(CleanDecimal):
         return super(MyDecimal, self).filter(text)
 
 class AccountsPage(LoggedPage, HTMLPage):
+    RIB_AVAILABLE = True
+
+    def on_load(self):
+        if not self.doc.xpath('//span[@class="title" and contains(text(), "RIB")]'):
+            self.RIB_AVAILABLE = False
+
     @method
     class iter_accounts(ListElement):
         item_xpath = '//table/tbody/tr'
@@ -115,7 +121,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                     'PEA':           Account.TYPE_MARKET,
                     'Compte-titres': Account.TYPE_MARKET,
                     'PEA-PME':       Account.TYPE_MARKET,
-                    'Assurance-vie': Account.TYPE_MARKET,
+                    'Assurance-vie': Account.TYPE_LIFE_INSURANCE,
                    }
 
             load_iban = BrowserURL('home', id=Field('id')) & AsyncLoad
@@ -125,8 +131,12 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_balance = MyDecimal('./td//div[contains(@class, "-synthese-num")]', replace_dots=True)
             obj_currency = FrenchTransaction.Currency('./td//div[contains(@class, "-synthese-num")]')
             obj_type = Map(Regexp(Field('label'), r'^([^ ]*)'), TYPE, default=Account.TYPE_UNKNOWN)
-            obj_iban = Async('iban') & CleanText('//td[contains(text(), "IBAN")]/following-sibling::td[1]', replace=[(' ', '')], default=NotAvailable)
             obj__link = CleanText('./@data-href')
+
+            def obj_iban(self):
+                if not self.page.RIB_AVAILABLE:
+                    return NotAvailable
+                return Async('iban', CleanText('//td[contains(text(), "IBAN")]/following-sibling::td[1]', replace=[(' ', '')], default=NotAvailable))(self)
 
             def condition(self):
                 return not len(self.el.xpath('./td[@class="chart"]'))
