@@ -378,7 +378,6 @@ class Application(object):
             import tempfile
             responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
             print('Debug data will be saved in this directory: %s' % responses_dirname, file=self.stderr)
-            log_settings['save_responses'] = True
             log_settings['responses_dirname'] = responses_dirname
             handlers.append(self.create_logging_file_handler(os.path.join(responses_dirname, 'debug.log')))
 

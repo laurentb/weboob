@@ -175,6 +175,9 @@ class StandardBrowser(mechanize.Browser):
     def __init__(self, firefox_cookies=None, parser=None, history=NoHistory(), proxy=None, logger=None, factory=None, responses_dirname=None):
         mechanize.Browser.__init__(self, history=history, factory=factory)
         self.logger = getLogger('browser', logger)
+        self.responses_dirname = responses_dirname
+        self.save_responses = responses_dirname is not None
+        self.responses_count = 0
 
         self.addheaders = [
                 ['User-agent', self.USER_AGENT]
@@ -215,9 +218,6 @@ class StandardBrowser(mechanize.Browser):
             self.set_debug_redirects(True)
             mech_logger = logging.getLogger("mechanize")
             mech_logger.setLevel(logging.INFO)
-
-        self.responses_dirname = responses_dirname
-        self.responses_count = 0
 
     def __enter__(self):
         self.lock.acquire()
@@ -273,7 +273,7 @@ class StandardBrowser(mechanize.Browser):
         result = self.openurl(url, *args, **kwargs)
 
         if result:
-            if self.logger.settings['save_responses']:
+            if self.save_responses:
                 self.save_response(result)
             return result.read()
         else:
@@ -667,7 +667,7 @@ class Browser(StandardBrowser):
         self.logger.debug('[user_id=%s] Went on %s', self.username, result.geturl())
         self.last_update = time.time()
 
-        if self.logger.settings['save_responses']:
+        if self.save_responses:
             self.save_response(result)
 
         document = self.get_document(result, parser, encoding=pageCls.ENCODING)

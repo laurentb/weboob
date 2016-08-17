@@ -109,13 +109,13 @@ class Browser(object):
 
     def __init__(self, logger=None, proxy=None, responses_dirname=None):
         self.logger = getLogger('browser', logger)
+        self.responses_dirname = responses_dirname
+        self.responses_count = 1
+
         self.PROXIES = proxy
         self._setup_session(self.PROFILE)
         self.url = None
         self.response = None
-
-        self.responses_dirname = responses_dirname
-        self.responses_count = 1
 
         if isinstance(self.VERIFY, basestring):
             self.VERIFY = self.asset(self.VERIFY)
@@ -213,7 +213,7 @@ class Browser(object):
 
         profile.setup_session(session)
 
-        if self.logger.settings['save_responses']:
+        if self.responses_dirname is not None:
             session.hooks['response'].append(self.save_response)
 
         self.session = session
