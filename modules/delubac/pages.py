@@ -28,6 +28,7 @@ from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Format, Date, Filter
 from weboob.browser.filters.html import Link
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.capabilities.base import NotAvailable
 
 
 class Transaction(FrenchTransaction):
@@ -208,3 +209,14 @@ class HistoryPage(LoggedPage, HTMLPage):
             obj_amount = CleanDecimal('.//td[4] | .//td[5]', replace_dots=True)
             obj_date = Date(CleanText('.//td[1]'), dayfirst=True)
             obj_vdate = Date(CleanText('.//td[3]'), dayfirst=True)
+
+    def get_iban(self):
+        iban_link = Link('//a[contains(@href, "rib")]', default=NotAvailable)(self.doc)
+        if not iban_link:
+            return NotAvailable
+        self.browser.location(iban_link)
+        return self.browser.page.get_iban()
+
+class IbanPage(LoggedPage, HTMLPage):
+    def get_iban(self):
+        return CleanText('//td[contains(text(), "IBAN") and @class="ColonneCode"]', replace=[('IBAN', ''), (' ', '')])(self.doc)

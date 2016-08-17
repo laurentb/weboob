@@ -25,7 +25,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import AccountNotFound
 from weboob.capabilities.base import find_object
 
-from .pages import LoginPage, MenuPage, AccountsPage, HistoryPage
+from .pages import LoginPage, MenuPage, AccountsPage, HistoryPage, IbanPage
 
 
 __all__ = ['DelubacBrowser']
@@ -40,6 +40,7 @@ class DelubacBrowser(LoginBrowser):
     menu = URL('/es@b/fr/menuConnecte1.jsp\?c&deploye=false&pulseMenu=false&styleLien=false&dummyDate=(?P<date>.*)', MenuPage)
     accounts = URL('/es@b/servlet/internet0.ressourceWeb.servlet.EsabServlet.*', AccountsPage)
     history = URL('/es@b/servlet/internet0.ressourceWeb.servlet.ListeDesMouvementsServlet.*', HistoryPage)
+    iban = URL('/es@b/fr/rib.jsp', IbanPage)
 
     def do_login(self):
         self.home.go()
@@ -55,7 +56,10 @@ class DelubacBrowser(LoginBrowser):
         self.menu.go(date=int(time.time()*1000))
 
         self.location(self.page.accounts_url)
-        return self.page.get_list()
+        for account in self.page.get_list():
+            self.location(account._link)
+            account.iban = self.page.get_iban()
+            yield account
 
     @need_login
     def get_account(self, _id):
