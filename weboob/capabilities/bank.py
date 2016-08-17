@@ -23,6 +23,7 @@ from binascii import crc32
 import re
 
 from weboob.tools.compat import basestring, long
+from weboob.capabilities.base import empty
 
 from .base import BaseObject, Field, StringField, DecimalField, IntField, UserError, Currency, NotAvailable
 from .date import DateField
@@ -188,7 +189,12 @@ class Transaction(BaseObject):
         """
         crc = crc32(str(self.date))
         crc = crc32(str(self.amount), crc)
-        crc = crc32(re.sub('[ ]+', ' ', self.raw.encode("utf-8")), crc)
+        if not empty(self.raw):
+            label = self.raw
+        else:
+            label = self.label
+
+        crc = crc32(re.sub('[ ]+', ' ', label.encode("utf-8")), crc)
 
         if account_id is not None:
             crc = crc32(str(account_id), crc)
