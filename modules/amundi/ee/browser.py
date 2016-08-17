@@ -59,8 +59,7 @@ class AmundiEEBrowser(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
-        self.account_history.go(params={'limit':1})
-        total=int(self.page.doc['nbOperationsIndividuelles'])
         params={'valeurExterne':'false','statut':'CPTA','filtreStatutModeExclusion':'false','limit':100, 'offset':0}
         self.account_history.go(params=params)
+        total=int(self.page.doc['nbOperationsIndividuelles'])
         return self.page.iter_history(data={'acc': account, 'params':params, 'total':total})
