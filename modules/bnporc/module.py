@@ -21,7 +21,7 @@
 from decimal import Decimal
 from datetime import datetime, timedelta
 
-from weboob.capabilities.bank import CapBank, AccountNotFound, Account, Recipient
+from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, Account, Recipient
 from weboob.capabilities.messages import CapMessages, Thread
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
@@ -35,7 +35,7 @@ from .pp.browser import BNPPartPro, HelloBank
 __all__ = ['BNPorcModule']
 
 
-class BNPorcModule(Module, CapBank, CapMessages):
+class BNPorcModule(Module, CapBankTransfer, CapMessages):
     NAME = 'bnporc'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

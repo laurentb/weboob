@@ -309,6 +309,24 @@ class CapBank(CapCollection):
         """
         raise NotImplementedError()
 
+    def iter_investment(self, account):
+        """
+        Iter investment of a market account
+
+        :param account: account to get investments
+        :type account: :class:`Account`
+        :rtype: iter[:class:`Investment`]
+        :raises: :class:`AccountNotFound`
+        """
+        raise NotImplementedError()
+
+
+class CapCgp(CapBank):
+    """
+    Capability of cgp website to see accounts and transactions.
+    """
+
+class CapBankTransfer(CapBank):
     def iter_transfer_recipients(self, account):
         """
         Iter recipients availables for a transfer from a specific account.
@@ -336,20 +354,3 @@ class CapBank(CapCollection):
         :raises: :class:`AccountNotFound`, :class:`TransferError`
         """
         raise NotImplementedError()
-
-    def iter_investment(self, account):
-        """
-        Iter investment of a market account
-
-        :param account: account to get investments
-        :type account: :class:`Account`
-        :rtype: iter[:class:`Investment`]
-        :raises: :class:`AccountNotFound`
-        """
-        raise NotImplementedError()
-
-
-class CapCgp(CapBank):
-    """
-    Capability of cgp website to see accounts and transactions.
-    """

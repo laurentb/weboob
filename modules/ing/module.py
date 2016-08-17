@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import CapBank, Account, Recipient
+from weboob.capabilities.bank import CapBankTransfer, Account, Recipient
 from weboob.capabilities.bill import CapDocument, Bill, Subscription,\
     SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.base import UserError, find_object, NotAvailable
@@ -31,7 +31,7 @@ from .browser import IngBrowser
 __all__ = ['INGModule']
 
 
-class INGModule(Module, CapBank, CapDocument):
+class INGModule(Module, CapBankTransfer, CapDocument):
     NAME = 'ing'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
