@@ -47,54 +47,17 @@ class AferModule(Module, CapBankWealth):
 
 
     def get_account(self, id):
-        """
-        Get an account from its ID.
-
-        :param id: ID of the account
-        :type id: :class:`str`
-        :rtype: :class:`Account`
-        :raises: :class:`AccountNotFound`
-        """
         return find_object(self.iter_accounts(), id=id, error=AccountNotFound)
 
 
     def iter_accounts(self):
-        """
-        Iter accounts.
-
-        :rtype: iter[:class:`Account`]
-        """
         return self.browser.iter_accounts()
 
     def iter_coming(self, account):
-        """
-        Iter coming transactions on a specific account.
-
-        :param account: account to get coming transactions
-        :type account: :class:`Account`
-        :rtype: iter[:class:`Transaction`]
-        :raises: :class:`AccountNotFound`
-        """
         raise NotImplementedError()
 
     def iter_history(self, account):
-        """
-        Iter history of transactions on a specific account.
-
-        :param account: account to get history
-        :type account: :class:`Account`
-        :rtype: iter[:class:`Transaction`]
-        :raises: :class:`AccountNotFound`
-        """
         return self.browser.iter_history(account)
 
     def iter_investment(self, account):
-        """
-        Iter investment of a market account
-
-        :param account: account to get investments
-        :type account: :class:`Account`
-        :rtype: iter[:class:`Investment`]
-        :raises: :class:`AccountNotFound`
-        """
         return self.browser.iter_investments(account)
