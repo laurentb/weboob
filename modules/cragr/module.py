@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import AccountNotFound, CapBank
+from weboob.capabilities.bank import AccountNotFound, CapBankTransfer
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import ValueBackendPassword, Value
@@ -30,7 +30,7 @@ from .mobile.browser import CragrMobile
 __all__ = ['CragrModule']
 
 
-class CragrModule(Module, CapBank):
+class CragrModule(Module, CapBankTransfer):
     NAME = 'cragr'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
