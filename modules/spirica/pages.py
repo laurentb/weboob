@@ -26,11 +26,17 @@ from weboob.browser.filters.standard import CleanText, Date, Regexp, CleanDecima
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
+from weboob.exceptions import BrowserUnavailable
 
 
 def MyDecimal(*args, **kwargs):
     kwargs.update(replace_dots=True, default=NotAvailable)
     return CleanDecimal(*args, **kwargs)
+
+
+class MaintenancePage(HTMLPage):
+   def on_load(self):
+        raise BrowserUnavailable(CleanText().filter(self.doc.xpath('//p')))
 
 
 class LoginPage(HTMLPage):

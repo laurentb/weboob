@@ -21,7 +21,7 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountsPage, DetailsPage
+from .pages import LoginPage, AccountsPage, DetailsPage, MaintenancePage
 
 
 class SpiricaBrowser(LoginBrowser):
@@ -29,6 +29,7 @@ class SpiricaBrowser(LoginBrowser):
     login = URL('/securite/login.xhtml', LoginPage)
     accounts = URL('/sylvea/client/synthese.xhtml', AccountsPage)
     details = URL('/sylvea/contrat/consultationContratEpargne.xhtml', DetailsPage)
+    maintenance = URL('/maintenance.html', MaintenancePage)
 
     def __init__(self, website, username, password, *args, **kwargs):
         super(LoginBrowser, self).__init__(*args, **kwargs)
