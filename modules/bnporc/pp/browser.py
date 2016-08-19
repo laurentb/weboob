@@ -34,7 +34,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 from .pages import LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, TransferInitPage, \
                    ConnectionThresholdPage, LifeInsurancesPage, LifeInsurancesHistoryPage, \
                    LifeInsurancesDetailPage, MarketListPage, MarketPage, MarketHistoryPage, \
-                   MarketSynPage
+                   MarketSynPage, RecipientsPage
 
 
 __all__ = ['BNPPartPro', 'HelloBank']
@@ -94,6 +94,8 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     market = URL('pe-war/rpc/portfolioDetails/get', MarketPage)
     market_history = URL('/pe-war/rpc/turnOverHistory/get', MarketHistoryPage)
 
+    recipients = URL('/virement-wspl/rest/listerBeneficiaire', RecipientsPage)
+
     @retry(ConnectionError, tries=3)
     def open(self, *args, **kwargs):
         return super(BNPParibasBrowser, self).open(*args, **kwargs)
@@ -109,7 +111,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     @need_login
     def get_accounts_list(self):
         ibans = self.ibans.go().get_ibans_dict()
-        ibans.update(self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict())
+        ibans.update(self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict('Crediteur'))
 
         accounts = self.accounts.go().iter_accounts(ibans)
         self.market_syn.go(data=JSON({}))
@@ -199,8 +201,14 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
         return iter([])
 
     @need_login
-    def get_transfer_accounts(self):
-        raise NotImplementedError()
+    def iter_recipients(self, ignored):
+        if not ignored in self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict('Debiteur'):
+            raise NotImplementedError()
+        for recipient in self.page.transferable_on(ignored_ibancrypte=ignored):
+            yield recipient
+        if self.page.can_transfer_to_recipients(ignored):
+            for recipient in self.recipients.go(data=JSON({'type': 'TOUS'})).iter_recipients():
+                yield recipient
 
     @need_login
     def transfer(self, account, to, amount, reason):

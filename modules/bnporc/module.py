@@ -21,7 +21,7 @@
 from decimal import Decimal
 from datetime import datetime, timedelta
 
-from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, Account, Recipient
+from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, Account
 from weboob.capabilities.messages import CapMessages, Thread
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
@@ -91,14 +91,9 @@ class BNPorcModule(Module, CapBankTransfer, CapMessages):
         return self.browser.iter_investment(account)
 
     def iter_transfer_recipients(self, ignored):
-        if self.config['website'].get() != 'ppold':
+        if self.config['website'].get() != 'pp':
             raise NotImplementedError()
-
-        for account in self.browser.get_transfer_accounts().itervalues():
-            recipient = Recipient()
-            recipient.id = account.id
-            recipient.label = account.label
-            yield recipient
+        return self.browser.iter_recipients(ignored)
 
     def transfer(self, account, to, amount, reason=None):
         if self.config['website'].get() != 'ppold':

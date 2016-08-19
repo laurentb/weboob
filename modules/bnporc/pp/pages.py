@@ -25,8 +25,10 @@ from decimal import Decimal
 from datetime import datetime
 
 from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
+from weboob.browser.elements import DictElement, ItemElement, method
+from weboob.browser.filters.json import Dict
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
-from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.bank import Account, Investment, Recipient
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import rib2iban, rebuild_rib, is_iban_valid
@@ -194,10 +196,55 @@ class AccountsIBANPage(BNPPage):
     def get_ibans_dict(self):
         return dict([(a['ibanCrypte'], a['iban']) for a in self.path('data.listeRib.*.infoCompte')])
 
+class MyRecipient(ItemElement):
+    klass = Recipient
+
+    obj_currency = Dict('devise')
+
+    def obj_enabled_at(self):
+        return datetime.now().replace(microsecond=0)
+
+    def validate(self, el):
+        assert is_iban_valid(el.iban)
+        return True
 
 class TransferInitPage(BNPPage):
-    def get_ibans_dict(self):
-        return dict([(a['ibanCrypte'], a['iban']) for a in self.path('data.infoVirement.listeComptesCrediteur.*')])
+    def get_ibans_dict(self, account_type):
+        return dict([(a['ibanCrypte'], a['iban']) for a in self.path('data.infoVirement.listeComptes%s.*' % account_type)])
+
+    def can_transfer_to_recipients(self, ignored_id):
+        return next(a['eligibleVersBenef'] for a in self.path('data.infoVirement.listeComptesDebiteur.*') if a['ibanCrypte'] == ignored_id) == '1'
+
+    @method
+    class transferable_on(DictElement):
+        item_xpath = 'data/infoVirement/listeComptesCrediteur'
+
+        class item(MyRecipient):
+            condition = lambda self: Dict('ibanCrypte')(self.el) != self.env['ignored_ibancrypte']
+
+            obj_id = Dict('ibanCrypte')
+            obj_label = Dict('nomTitulaireCompte')
+            obj_iban = Dict('iban')
+
+            def obj_bank_name(self):
+                return u'BNP PARIBAS'
+
+
+class RecipientsPage(BNPPage):
+    @method
+    class iter_recipients(DictElement):
+        item_xpath = 'data/infoBeneficiaire/listeBeneficiaire'
+
+        class item(MyRecipient):
+            # For the moment, only yield ready to transfer on recipients.
+            condition = lambda self: Dict('libelleStatut')(self.el) == u'Activé'
+
+            obj_id = Dict('idBeneficiaire')
+            obj_label = Dict('nomBeneficiaire')
+            obj_iban = Dict('ibanNumCompte')
+
+            def obj_bank_name(self):
+                return Dict('nomBanque')(self) or NotAvailable
 
 
 class Transaction(FrenchTransaction):
