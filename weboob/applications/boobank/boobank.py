@@ -29,7 +29,7 @@ from weboob.browser.browsers import APIBrowser
 from weboob.browser.profiles import Weboob
 from weboob.exceptions import BrowserHTTPError
 from weboob.capabilities.base import empty
-from weboob.capabilities.bank import CapBank, Account, Transaction
+from weboob.capabilities.bank import CapBank, Account, Transaction, CapBankTransfer
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
@@ -329,7 +329,7 @@ class Boobank(ReplApplication):
     APPNAME = 'boobank'
     VERSION = '1.2'
     COPYRIGHT = 'Copyright(C) 2010-YEAR Romain Bignon, Christophe Benz'
-    CAPS = CapBank
+    CAPS = CapBank, CapBankTransfer
     DESCRIPTION = "Console application allowing to list your bank accounts and get their balance, " \
                   "display accounts history and coming bank operations, and transfer money from an account to " \
                   "another (if available)."
@@ -463,7 +463,7 @@ class Boobank(ReplApplication):
             self.set_formatter_header(u'Available recipients')
 
             self.start_format()
-            for recipient in self.do('iter_transfer_recipients', account.id, backends=account.backend):
+            for recipient in self.do('iter_transfer_recipients', account.id, backends=account.backend, caps=CapBankTransfer):
                 self.cached_format(recipient)
             return 0
 
@@ -484,7 +484,7 @@ class Boobank(ReplApplication):
             # recipients list, for example for banks which allow transfers to
             # arbitrary recipients.
             to = id_to
-            for recipient in self.do('iter_transfer_recipients', account.id, backends=account.backend):
+            for recipient in self.do('iter_transfer_recipients', account.id, backends=account.backend, caps=CapBankTransfer):
                 if recipient.id == id_to:
                     to = recipient.label
                     break

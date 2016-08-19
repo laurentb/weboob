@@ -48,13 +48,15 @@ class TransferError(UserError):
     """
 
 
-class Recipient(BaseObject, Currency):
+class BaseAccount(BaseObject, Currency):
     """
-    Recipient of a transfer.
+    Generic class aiming to be parent of :class:`Recipient` and
+    :class:`Account`.
     """
-
-    label =     StringField('Name')
-    currency =  StringField('Currency', default=None)
+    label =          StringField('Pretty label')
+    currency =       StringField('Currency', default=None)
+    iban =           StringField('International Bank Account Number')
+    bank_name =      StringField('Bank Name')
 
     def __init__(self, id=0, url=None):
         BaseObject.__init__(self, id, url)
@@ -64,12 +66,16 @@ class Recipient(BaseObject, Currency):
         return Currency.currency2txt(self.currency)
 
 
-class Account(Recipient):
+class Recipient(BaseAccount):
+    """
+    Recipient of a transfer.
+    """
+    enabled_at =     DateField('Date of availability')
+
+
+class Account(BaseAccount):
     """
     Bank account.
-
-    It is a child class of :class:`Recipient`, because an account can be
-    a recipient of a transfer.
     """
     TYPE_UNKNOWN          = 0
     TYPE_CHECKING         = 1
@@ -113,8 +119,6 @@ class Account(Recipient):
     paydate =   DateField('For credit cards. When next payment is due.')
     paymin =    DecimalField('For credit cards. Minimal payment due.')
     cardlimit = DecimalField('For credit cards. Credit limit.')
-
-    iban =      StringField('International Bank Account Number')
 
     number =    StringField('Shown by the bank to identify your account ie ****7489')
     # market and lifeinssurance accounts
