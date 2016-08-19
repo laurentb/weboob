@@ -22,7 +22,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.bank import Account
 
-from .pages import LoginPage, ErrorPage, AccountsPage, HistoryPage, LoanHistoryPage
+from .pages import LoginPage, ErrorPage, AccountsPage, HistoryPage, LoanHistoryPage, RibPage
 
 
 class BforbankBrowser(LoginBrowser):
@@ -30,14 +30,16 @@ class BforbankBrowser(LoginBrowser):
 
     login = URL('/connexion-client/service/login\?urlBack=%2Fespace-client', LoginPage)
     error = URL('/connexion-client/service/auth', ErrorPage)
-    home = URL('/espace-client/$',
-               '/espace-client/rib/(?P<id>\d+)', AccountsPage)
+    home = URL('/espace-client/$', AccountsPage)
+    rib = URL('/espace-client/rib',
+              '/espace-client/rib/(?P<id>\d+)', RibPage)
     loan_history = URL('/espace-client/livret/consultation.*', LoanHistoryPage)
     history = URL('/espace-client/consultation/operations/.*', HistoryPage)
 
     def __init__(self, birthdate, *args, **kwargs):
         super(BforbankBrowser, self).__init__(*args, **kwargs)
         self.birthdate = birthdate
+        self.accounts = None
 
     def do_login(self):
         assert isinstance(self.username, basestring)
@@ -51,8 +53,12 @@ class BforbankBrowser(LoginBrowser):
 
     @need_login
     def iter_accounts(self):
-        self.home.stay_or_go()
-        return self.page.iter_accounts()
+        if self.accounts is None:
+            self.home.stay_or_go()
+            self.accounts = list(self.page.iter_accounts())
+            if self.page.RIB_AVAILABLE:
+                self.rib.go().populate_rib(self.accounts)
+        return iter(self.accounts)
 
     @need_login
     def get_history(self, account):

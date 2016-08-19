@@ -24,10 +24,9 @@ from PIL import Image
 from weboob.browser.pages import LoggedPage, HTMLPage, pagination
 from weboob.browser.elements import method, ListElement, ItemElement
 from weboob.capabilities.bank import Account
-from weboob.capabilities.base import NotAvailable
-from weboob.browser.filters.html import Link
+from weboob.browser.filters.html import Link, Attr
 from weboob.browser.filters.standard import CleanText, Regexp, Field, Map, \
-                                            CleanDecimal, BrowserURL, Async, AsyncLoad
+                                            CleanDecimal
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -102,6 +101,21 @@ class MyDecimal(CleanDecimal):
         text = re.sub(r',(?!(\d+$))', '', text)
         return super(MyDecimal, self).filter(text)
 
+
+class RibPage(LoggedPage, HTMLPage):
+    def populate_rib(self, accounts):
+        for option in self.doc.xpath('//select[@id="compte-select"]/option'):
+            if 'selected' in option.attrib:
+                self.get_iban(accounts)
+            else:
+                self.browser.rib.go(id=re.sub('[^\d]', '', Attr('.', 'value')(option))).get_iban(accounts)
+
+    def get_iban(self, accounts):
+        for account in accounts:
+            if self.doc.xpath('//option[@selected and contains(@value, "%s")]' % account.id):
+                account.iban = CleanText('//td[contains(text(), "IBAN")]/following-sibling::td[1]', replace=[(' ', '')])(self.doc)
+
+
 class AccountsPage(LoggedPage, HTMLPage):
     RIB_AVAILABLE = True
 
@@ -124,19 +138,12 @@ class AccountsPage(LoggedPage, HTMLPage):
                     'Assurance-vie': Account.TYPE_LIFE_INSURANCE,
                    }
 
-            load_iban = BrowserURL('home', id=Field('id')) & AsyncLoad
-
             obj_id = CleanText('./td//div[contains(@class, "-synthese-title") or contains(@class, "-synthese-text")]') & Regexp(pattern=r'(\d+)')
             obj_label = CleanText('./td//div[contains(@class, "-synthese-title")]')
             obj_balance = MyDecimal('./td//div[contains(@class, "-synthese-num")]', replace_dots=True)
             obj_currency = FrenchTransaction.Currency('./td//div[contains(@class, "-synthese-num")]')
             obj_type = Map(Regexp(Field('label'), r'^([^ ]*)'), TYPE, default=Account.TYPE_UNKNOWN)
             obj__link = CleanText('./@data-href')
-
-            def obj_iban(self):
-                if not self.page.RIB_AVAILABLE:
-                    return NotAvailable
-                return Async('iban', CleanText('//td[contains(text(), "IBAN")]/following-sibling::td[1]', replace=[(' ', '')], default=NotAvailable))(self)
 
             def condition(self):
                 return not len(self.el.xpath('./td[@class="chart"]'))
