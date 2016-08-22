@@ -25,7 +25,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import KeyboardPage, LoginPage, PredisconnectedPage, BankAccountsPage, \
                    InvestmentActivatePage, InvestmentCguPage, InvestmentPage, \
-                   CBTransactionsPage, TransactionsPage, UnavailablePage
+                   CBTransactionsPage, TransactionsPage, UnavailablePage, IbanPage
 
 
 class AXABanque(LoginBrowser):
@@ -38,6 +38,7 @@ class AXABanque(LoginBrowser):
     # Bank
     bank_accounts = URL('transactionnel/client/liste-comptes.html',
                         'webapp/axabanque/client/sso/connexion\?token=(?P<token>.*)', BankAccountsPage)
+    iban_pdf = URL('http://www.axabanque.fr/webapp/axabanque/formulaire_AXA_Banque/.*\.pdf.*', IbanPage)
     cbttransactions = URL('webapp/axabanque/jsp/detailCarteBleu.*.faces', CBTransactionsPage)
     transactions = URL('webapp/axabanque/jsp/panorama.faces',
                        'webapp/axabanque/jsp/detail.*.faces', TransactionsPage)
@@ -79,7 +80,18 @@ class AXABanque(LoginBrowser):
         if self.tokens['bank']:
             self.transactions.go()
             for a in self.bank_accounts.go().get_list():
+                args = a._args
+                if a.type == a.TYPE_CHECKING and 'paramCodeFamille' in args:
+                    iban_params = {'action': 'RIBCC',
+                                   'numCompte': args['paramNumCompte'],
+                                   'codeFamille': args['paramCodeFamille'],
+                                   'codeProduit': args['paramCodeProduit'],
+                                   'codeSousProduit': args['paramCodeSousProduit'],
+                                  }
+                    r = self.open('https://www.axabanque.fr/webapp/axabanque/popupPDF', params=iban_params)
+                    a.iban = r.page.get_iban()
                 accounts.append(a)
+
         # Get investment accounts if there has
         if self.tokens['investment']:
             self.investment_pages = []

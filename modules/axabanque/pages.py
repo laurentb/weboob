@@ -18,12 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re, urllib, requests
+import re
+import urllib
 from decimal import Decimal, InvalidOperation
 from cStringIO import StringIO
+import requests
 
 from weboob.exceptions import BrowserBanned, BrowserUnavailable
-from weboob.browser.pages import HTMLPage, RawPage, JsonPage, LoggedPage, pagination
+from weboob.browser.pages import HTMLPage, RawPage, JsonPage, PDFPage, LoggedPage, pagination
 from weboob.browser.elements import ItemElement, TableElement, SkipItem, method
 from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Env, BrowserURL, TableCell, Async, AsyncLoad, Eval
 from weboob.browser.filters.html import Attr, Link
@@ -31,6 +33,7 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
+from weboob.tools.ordereddict import OrderedDict
 
 
 def MyDecimal(*args, **kwargs):
@@ -179,6 +182,7 @@ class InvestmentPage(LoggedPage, HTMLPage):
             obj_label = CleanText(TableCell('label'))
             obj_balance = MyDecimal(TableCell('balance'))
             obj_type = Env('type')
+            obj_iban = NotAvailable
             obj_valuation_diff = Async('details') & MyDecimal('//th[span[contains(text(), \
                                  "Performance")]]/following-sibling::td[1]')
             obj__page = Env('page')
@@ -273,14 +277,16 @@ class MyHTMLPage(HTMLPage):
 
 
 class BankAccountsPage(LoggedPage, MyHTMLPage):
-    ACCOUNT_TYPES = {'courant-titre':      Account.TYPE_CHECKING,
-                     'courant':            Account.TYPE_CHECKING,
-                     'livret':             Account.TYPE_SAVINGS,
-                     'Livret':             Account.TYPE_SAVINGS,
-                     'LDD':                Account.TYPE_SAVINGS,
-                     'PEA':                Account.TYPE_MARKET,
-                     'Titres':             Account.TYPE_MARKET,
-                    }
+    ACCOUNT_TYPES = OrderedDict((
+        ('Visa',               Account.TYPE_CARD),
+        ('courant-titre',      Account.TYPE_CHECKING),
+        ('courant',            Account.TYPE_CHECKING),
+        ('livret',             Account.TYPE_SAVINGS),
+        ('Livret',             Account.TYPE_SAVINGS),
+        ('LDD',                Account.TYPE_SAVINGS),
+        ('PEA',                Account.TYPE_MARKET),
+        ('Titres',             Account.TYPE_MARKET),
+    ))
 
     def js2args(self, s):
         args = {}
@@ -334,14 +340,16 @@ class BankAccountsPage(LoggedPage, MyHTMLPage):
 
                 except KeyError:
                     account.id = args['paramNumCompte']
+
                 for l in table.attrib['class'].split(' '):
                     if 'tableaux-comptes-' in l:
                         account_type_str =  l[len('tableaux-comptes-'):]
                         break
                 else:
-                    account_type_str = account.label
+                    account_type_str = ''
+
                 for pattern, type in self.ACCOUNT_TYPES.iteritems():
-                    if pattern in account_type_str:
+                    if pattern in account_type_str or pattern in account.label:
                         account.type = type
                         break
                 else:
@@ -362,6 +370,14 @@ class BankAccountsPage(LoggedPage, MyHTMLPage):
                 account._args = args
                 account._acctype = "bank"
                 yield account
+
+
+class IbanPage(PDFPage):
+    def get_iban(self):
+        iban = u''
+        for part in re.findall(r'0 -273.46 Td /F\d 10 Tf \((\d+|\w\w\d\d)\)', self.doc, flags=re.MULTILINE):
+            iban += part
+        return iban[:len(iban)/2]
 
 
 class BankTransaction(FrenchTransaction):
