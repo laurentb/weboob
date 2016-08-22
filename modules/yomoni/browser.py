@@ -25,6 +25,7 @@ from weboob.browser.exceptions import ClientError
 from weboob.browser.filters.standard import CleanDecimal, Date
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account, Investment, Transaction
+from weboob.capabilities.base import NotAvailable
 
 
 class YomoniBrowser(APIBrowser):
@@ -62,9 +63,11 @@ class YomoniBrowser(APIBrowser):
             a = Account()
             a.id = "".join(me['numeroContrat'].split())
             a.label = " ".join(me['supportEpargne'].split("_"))
-            a.type = Account.TYPE_LIFE_INSURANCE if "assurance vie" in a.label.lower() else Account.TYPE_UNKNOWN
+            a.type = Account.TYPE_LIFE_INSURANCE if "assurance vie" in a.label.lower() else \
+                     Account.TYPE_MARKET if "compte titre" in a.label.lower() else \
+                     Account.TYPE_UNKNOWN
             a.balance = CleanDecimal().filter(me['solde'])
-            a.iban = me['ibanexterne']
+            a.iban = me['ibancompteTitre'] if me['ibancompteTitre'] else NotAvailable
             a.number = project['projectId']
             a.valuation_diff = CleanDecimal().filter(me['performanceEuro'])
             a._startbalance = me['montantDepart']
