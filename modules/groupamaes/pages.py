@@ -75,7 +75,7 @@ class AvoirPage(LoggedPage, HTMLPage):
 
     @method
     class iter_investment(InvestmentTableElement):
-        item_xpath = u'(//table[@summary="Liste des échéances"]/tbody/tr)[position() < last()]'
+        item_xpath = u'(//table[@summary="Liste des échéances"]/tbody/tr)[position() < last() and not(contains(./td[1]/@class, "tittot")) and count(./td) > 3]'
 
         def parse(self, el):
             item = el.xpath(u'//table[@summary="Liste des échéances"]/tfoot/tr/td[@class="tot _c1 d _c1"]')[0]
