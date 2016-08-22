@@ -97,6 +97,8 @@ class AccountsPage(LoggedPage, JsonPage):
             obj_balance = CleanDecimal(Dict('soldeEuro', default="0"))
             obj_currency =  Dict('deviseCompteCode')
             obj_coming = CleanDecimal(Dict('AVenir', default=None), default=NotAvailable)
+            # Iban is available without last 5 numbers, or by sms
+            obj_iban = NotAvailable
             obj__index = Dict('index')
 
             def obj_type(self):
