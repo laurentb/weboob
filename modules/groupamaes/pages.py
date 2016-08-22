@@ -94,7 +94,7 @@ class AvoirPage(LoggedPage, HTMLPage):
             obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True)
 
             def obj_portfolio_share(self):
-                return Field('valuation')(self) / Env('total')(self) * 100
+                return Field('valuation')(self) / Env('total')(self)
 
 
 class OperationsFuturesPage(LoggedPage, HTMLPage):
