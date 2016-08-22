@@ -22,7 +22,8 @@ import re
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ItemElement, TableElement, SkipItem, method
-from weboob.browser.filters.standard import CleanText, Date, Regexp, CleanDecimal, Env, TableCell, Field, Async, AsyncLoad
+from weboob.browser.filters.standard import CleanText, Date, Regexp, CleanDecimal, \
+                                            Env, TableCell, Field, Async, AsyncLoad, Eval
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
@@ -109,7 +110,7 @@ class DetailsPage(LoggedPage, HTMLPage):
             obj_unitvalue = MyDecimal(TableCell('unitvalue'))
             obj_valuation = MyDecimal(TableCell('valuation'))
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
-            obj_portfolio_share = MyDecimal(TableCell('portfolio_share'))
+            obj_portfolio_share = Eval(lambda x: x / 100, MyDecimal(TableCell('portfolio_share')))
 
             def obj_unitprice(self):
                 return MyDecimal('//div[contains(@id, "PRIX_REVIENT")]//a[contains(text(), \
@@ -172,7 +173,7 @@ class DetailsPage(LoggedPage, HTMLPage):
                 if "valuation"  in positions else NotAvailable
             i.vdate = Date(CleanText('./td[%s]' % positions['vdate']), dayfirst=True, default=NotAvailable)(tr) \
                 if "vdate"  in positions else NotAvailable
-            i.portfolio_share = MyDecimal().filter(tr.xpath('./td[%s]' % positions['portfolio_share'])) \
+            i.portfolio_share = Eval(lambda x: x / 100).filter([MyDecimal().filter(tr.xpath('./td[%s]' % positions['portfolio_share']))]) \
                 if "portfolio_share"  in positions else NotAvailable
             investments.append(i)
 
