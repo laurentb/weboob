@@ -30,10 +30,11 @@ except ImportError:
 
 import requests
 
-from weboob.tools.ordereddict import OrderedDict
+from weboob.exceptions import ParseError
 from weboob.tools.compat import basestring
-
 from weboob.tools.log import getLogger
+from weboob.tools.ordereddict import OrderedDict
+from weboob.tools.pdf import decompress_pdf
 
 
 def pagination(func):
@@ -719,6 +720,19 @@ class GWTPage(Page):
             if i > 0 and ".%s" % type in self.doc[i - 1]:
                 strings.append(el)
         return [string for string in strings if "java." not in string]
+
+
+class PDFPage(Page):
+    """
+    Parse a PDF and write raw data in the "doc" attribute as a string.
+    """
+    def build_doc(self, content):
+        try:
+            doc = decompress_pdf(content)
+        except OSError as e:
+            raise ParseError(u'Make sure mupdf-tools is installed (%s)' % e)
+
+        return doc
 
 
 class LoggedPage(object):
