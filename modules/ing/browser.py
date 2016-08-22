@@ -110,7 +110,7 @@ class IngBrowser(LoginBrowser):
         self.accountspage.go()
         self.where = "start"
         for acc in self.page.get_list():
-            if get_iban:
+            if get_iban and acc.type in [Account.TYPE_CHECKING, Account.TYPE_SAVINGS]:
                 self.go_account_page(acc)
                 acc.iban = self.ibanpage.go().get_iban()
             yield acc
