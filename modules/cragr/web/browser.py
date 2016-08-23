@@ -292,7 +292,7 @@ class Cragr(Browser):
             raise NotImplementedError()
 
         # some accounts may exist without a link to any history page
-        if account._link is None:
+        if account._link is None or 'CATITRES' in account._link:
             return
 
         if account._perimeter != self.current_perimeter:
