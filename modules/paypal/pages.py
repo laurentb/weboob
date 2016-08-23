@@ -244,6 +244,8 @@ class PartHistoryPage(HistoryPage, JsonPage):
             return self.doc['data']['activity']['transactions']
 
     def parse_transaction(self, transaction, account):
+        if 'id' not in transaction or not transaction['date']:
+            return []
         t = FrenchTransaction(transaction['id'])
         if not transaction['isPrimaryCurrency']:
             original_currency = unicode(transaction['amounts']['txnCurrency'])
