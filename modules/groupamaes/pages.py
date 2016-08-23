@@ -22,22 +22,9 @@ from datetime import date
 import re
 
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.elements import ListElement, TableElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell, Date, Env, Field, Regexp
+from weboob.browser.elements import TableElement, ItemElement, method
+from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell, Date, Env, Regexp
 from weboob.capabilities.bank import Account, Transaction, Investment
-
-
-class InvestmentTableElement(ListElement):
-    def __init__(self, *args, **kwargs):
-        super(InvestmentTableElement, self).__init__(*args, **kwargs)
-
-        self._cols = {'label': 0,
-                      'unitvalue': 2,
-                      'valuation': 5,
-                      'quantity': 4}
-
-    def get_colnum(self, name):
-        return self._cols.get(name, None)
 
 
 class LoginPage(HTMLPage):
@@ -73,28 +60,35 @@ class AvoirPage(LoggedPage, HTMLPage):
             obj_currency = CleanText(u'//table[@summary="Liste des échéances"]/thead/tr/th/small/text()')
             obj_type = Account.TYPE_PEE
 
-    @method
-    class iter_investment(InvestmentTableElement):
-        item_xpath = u'(//table[@summary="Liste des échéances"]/tbody/tr)[position() < last() and not(contains(./td[1]/@class, "tittot")) and count(./td) > 3]'
+    def iter_investment(self):
+        item = self.doc.xpath(u'//table[@summary="Liste des échéances"]/tfoot/tr/td[@class="tot _c1 d _c1"]')[0]
+        total = CleanDecimal(Regexp(CleanText('.'), '(.*) .*'),
+                             default=1, replace_dots=True)(item)
 
-        def parse(self, el):
-            item = el.xpath(u'//table[@summary="Liste des échéances"]/tfoot/tr/td[@class="tot _c1 d _c1"]')[0]
-            self.env['total'] = CleanDecimal(Regexp(CleanText('.'),
-                                                    '(.*) .*'),
-                                             default=1,
-                                             replace_dots=True)(item)
+        item_xpath = u'(//table[@summary="Liste des échéances"]/tbody/tr)[position() < last() and not(contains(./td[1]/@class, "tittot"))]'
 
-        class item(ItemElement):
-            klass = Investment
+        obj = None
+        for tr in self.doc.xpath(item_xpath):
+            tds = tr.xpath('./td')
+            if len(tds) > 3:
+                if obj is not None:
+                    obj.portfolio_share = obj.valuation / total
+                    yield obj
 
-            obj_label = CleanText(TableCell('label'))
-            obj_vdate = date.today()  # * En réalité derniere date de valorisation connue
-            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True)
-            obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
-            obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True)
+                obj = Investment()
+                obj.label = CleanText('.')(tds[0])
+                obj.vdate = date.today()  # * En réalité derniere date de valorisation connue
+                obj.unitvalue = CleanDecimal('.', replace_dots=True)(tds[2])
+                obj.valuation = CleanDecimal('.', replace_dots=True)(tds[5])
+                obj.quantity = CleanDecimal('.', replace_dots=True)(tds[4])
 
-            def obj_portfolio_share(self):
-                return Field('valuation')(self) / Env('total')(self)
+            elif obj is not None:
+                obj.quantity += CleanDecimal('.', replace_dots=True)(tds[1])
+                obj.valuation += CleanDecimal('.', replace_dots=True)(tds[2])
+
+        if obj is not None:
+            obj.portfolio_share = obj.valuation / total
+            yield obj
 
 
 class OperationsFuturesPage(LoggedPage, HTMLPage):
