@@ -27,6 +27,7 @@ from mechanize import FormNotFoundError
 from weboob.capabilities.bank import Account
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.tools.date import LinearDateGuesser
+from weboob.exceptions import BrowserHTTPError
 
 from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, \
                    SavingsPage, TransactionsPage, UselessPage, CardsPage, \
@@ -342,7 +343,11 @@ class Cragr(Browser):
 
         if account.type == Account.TYPE_MARKET:
             new_location = self.moveto_market_website(account)
-            self.location(new_location)
+            # Detail unavailable
+            try:
+                self.location(new_location)
+            except BrowserHTTPError:
+                return
         elif account.type == Account.TYPE_LIFE_INSURANCE:
             new_location = self.moveto_insurance_website(account)
             self.location(new_location, urllib.urlencode({}))
