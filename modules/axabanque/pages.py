@@ -306,7 +306,7 @@ class BankAccountsPage(LoggedPage, MyHTMLPage):
             if len(tds) < 3:
                 continue
 
-            boxes = table.xpath('./tbody//tr')
+            boxes = table.xpath('./tbody//tr[not(.//strong[contains(text(), "Total")])]')
             foot = table.xpath('./tfoot//tr')
 
             for box in boxes:
@@ -355,6 +355,10 @@ class BankAccountsPage(LoggedPage, MyHTMLPage):
                 else:
                     account.type = Account.TYPE_UNKNOWN
 
+                account.type = Account.TYPE_MARKET if "Valorisation" in account.label else \
+                               Account.TYPE_CARD if "Visa" in account.label else \
+                               account.type
+
                 currency_title = table.xpath('./thead//th[@class="montant"]')[0].text.strip()
                 m = re.match('Montant \((\w+)\)', currency_title)
                 if not m:
@@ -369,6 +373,7 @@ class BankAccountsPage(LoggedPage, MyHTMLPage):
                     pass
                 account._args = args
                 account._acctype = "bank"
+                account._hasinv = True if "Valorisation" in account.label else False
                 yield account
 
 
@@ -409,6 +414,36 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
     def check_error(self):
         error = CleanText(default="").filter(self.doc.xpath('//div[@id="titre_detail"]/h2'))
         return error if "Modifier votre code" in error else None
+
+    @method
+    class iter_investment(TableElement):
+        item_xpath = '//table[contains(@id, "titres")]/tbody/tr'
+        head_xpath = '//table[contains(@id, "titres")]/thead/tr/th[not(caption)]'
+
+        col_label = u'Intitulé'
+        col_quantity = u'NB'
+        col_unitprice = re.compile(u'Prix de revient')
+        col_unitvalue = u'Dernier cours'
+        col_diff = re.compile(u'\+/\- Values latentes')
+        col_valuation = re.compile(u'Montant')
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText(TableCell('label'))
+            obj_quantity = CleanDecimal(TableCell('quantity'))
+            obj_unitprice = CleanDecimal(TableCell('unitprice'))
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'))
+            obj_valuation = CleanDecimal(TableCell('valuation'))
+            obj_diff = CleanDecimal(TableCell('diff'))
+
+            def obj_code(self):
+                onclick = Attr(None, 'onclick').filter((TableCell('label')(self)[0]).xpath('.//a'))
+                m = re.search(',\s+\'([^\'_]+)', onclick)
+                return NotAvailable if not m else m.group(1)
+
+            def condition(self):
+                return CleanText(TableCell('valuation'))(self)
 
     def more_history(self):
         link = None

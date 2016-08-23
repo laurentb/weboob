@@ -55,6 +55,7 @@ class AXABanque(LoginBrowser):
     def __init__(self, *args, **kwargs):
         super(AXABanque, self).__init__(*args, **kwargs)
         self.tokens = {}
+        self.account_pages = {}
 
     def do_login(self):
         html = json.loads(self.keyboard.go(data={'login': self.username}).content)['html']
@@ -105,20 +106,30 @@ class AXABanque(LoginBrowser):
                         accounts.append(a)
         return iter(accounts)
 
+    def go_account_pages(self, account):
+        if account.id in self.account_pages:
+            self.page = self.account_pages[account.id]
+        else:
+            self.bank_accounts.go()
+            args = account._args
+            args['javax.faces.ViewState'] = self.page.get_view_state()
+            self.transactions.go(data=args)
+            self.account_pages[account.id] = self.page
+
     @need_login
     def iter_investment(self, account):
         if account._acctype is "investment":
             return account._page.iter_investment()
+        if account._acctype is "bank" and account._hasinv:
+            self.go_account_pages(account)
+            return self.page.iter_investment()
         return iter([])
 
     @need_login
     def iter_history(self, account):
         # Bank's history
-        if account._acctype is "bank":
-            self.bank_accounts.go()
-            args = account._args
-            args['javax.faces.ViewState'] = self.page.get_view_state()
-            self.transactions.go(data=args)
+        if account._acctype is "bank" and not account._hasinv:
+            self.go_account_pages(account)
             if not self.page.more_history():
                 return iter([])
             return self.page.get_history()
