@@ -82,7 +82,7 @@ class AvoirPage(LoggedPage, HTMLPage):
                                    default=0,
                                    replace_dots=True)
         obj_currency = Regexp(CleanText('//div[@id="pbGp_3f1d2af7_2ddd41_2d45d2_2dbb9d_2d8f27b33a375f_j_id1:j_idt1:form:j_idt2:j_idt14:j_idt23:0:j_idt65:j_idt47_body"]'),
-                              '.*(.)$')
+                              '.*(.)$', default=u'€')
         obj_type = Account.TYPE_PEE
 
     @method
