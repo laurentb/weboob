@@ -23,7 +23,7 @@ import re
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import TableElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell, Date, Env, Regexp
+from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell, Date, Env, Regexp, Field
 from weboob.capabilities.bank import Account, Transaction, Investment
 
 
@@ -134,4 +134,9 @@ class OperationsTraiteesPage(LoggedPage, HTMLPage):
             obj_date = Date(CleanText(TableCell('date')), Env('date_guesser'))
             obj_type = Transaction.TYPE_UNKNOWN
             obj_label = CleanText(TableCell('operation'))
-            obj_amount = CleanDecimal(TableCell('montant'), replace_dots=True)
+
+            def obj_amount(self):
+                amount = CleanDecimal(TableCell('montant'), replace_dots=True)(self)
+                if Field('label')(self).startswith('Retrait'):
+                    amount = -amount
+                return amount
