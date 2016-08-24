@@ -35,7 +35,6 @@ class TorrentzTest(BackendTest):
             assert e.magnet == full_torrent.magnet
 
     def test_get_special_torrent(self):
-        #import pdb; pdb.set_trace()
         torrent = self.backend.get_torrent("abd1d2648c97958789d62f6a6a1f5d33f4eff5be")
         assert torrent.name == u'Ubuntu Linux Toolbox - 1000+ Commands for Ubuntu and Debian Power Users'
         assert len(torrent.files) == 4

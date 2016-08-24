@@ -10,10 +10,10 @@ __all__ = ['TorrentzBrowser']
 
 
 class TorrentzBrowser(PagesBrowser):
-    BASEURL = 'https://torrentz.eu/'
+    BASEURL = 'https://torrentz2.eu/'
 
     index_page = URL('/$', IndexPage)
-    torrents_page = URL('/search\?q=(?P<query>.+)', TorrentsPage)
+    torrents_page = URL('/search\?f=(?P<query>.+)', TorrentsPage)
     torrent_page = URL('/(?P<hash>[0-9a-f]+)', TorrentPage)
 
     def home(self):
