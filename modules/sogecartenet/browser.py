@@ -38,7 +38,7 @@ class SogecartesBrowser(LoginBrowser):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
         data = {"USER": self.username,
-                "PWD": self.password,
+                "PWD": self.password[:10],
                 "ACCES": "PE",
                 "LANGUE": "en",
                 "QUEFAIRE": "LOGIN",
