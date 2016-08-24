@@ -194,11 +194,10 @@ class AccountsPage(LoggedPage, HTMLPage):
                         raise ParseError('Unable to find balance for account %s' % CleanText('./td[1]/a')(el))
 
                 self.env['_is_webid'] = False
-                if self.page.browser.is_new_website:
-                    id_xpath = '.%s/td[1]/a/node()[contains(@class, "doux")]' % \
-                                ("/preceding-sibling::tr[1]" if "cartes" in CleanText('./td[1]')(el) else "")
-                    id = CleanText(id_xpath, replace=[(' ', '')])(el)
-                else:
+                id_xpath = '.%s/td[1]/a/node()[contains(@class, "doux")]' % \
+                            ("/preceding-sibling::tr[1]" if "cartes" in CleanText('./td[1]')(el) else "")
+                id = CleanText(id_xpath, replace=[(' ', '')])(el)
+                if not id:
                     if 'rib' in p:
                         id = p['rib'][0]
                     else:
