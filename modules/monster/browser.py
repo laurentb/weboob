@@ -20,7 +20,7 @@ import urllib
 
 from weboob.browser import PagesBrowser, URL
 
-from .pages import AdvertPage, AdvertPage2, AdvSearchPage
+from .pages import AdvertPage, AdvSearchPage, ExpiredAdvert
 
 __all__ = ['MonsterBrowser']
 
@@ -28,9 +28,8 @@ __all__ = ['MonsterBrowser']
 class MonsterBrowser(PagesBrowser):
     BASEURL = 'http://www.monster.fr'
 
-    advert = URL('http://offre-emploi.monster.fr/(?P<_id>.*).aspx', AdvertPage)
-    advert2 = URL('http://offre-demploi.monster.fr/(?P<_id>.*)', AdvertPage2)
-
+    advert = URL('http://offre-emploi.monster.fr/v2/job/View\?JobID=(?P<_id>.*)', AdvertPage)
+    expired_advert = URL('http://offre-emploi.monster.fr/v2/job/Expired\?JobId=(?P<_id>.*)', ExpiredAdvert)
     adv_search = URL('/emploi/recherche/(?P<search>.*)&page=(?P<page>\d*)',
                      AdvSearchPage)
 
@@ -45,6 +44,4 @@ class MonsterBrowser(PagesBrowser):
         return self.adv_search.go(search='%s?%s' % (search, urllib.urlencode(query)), page=1).iter_job_adverts()
 
     def get_job_advert(self, _id, advert):
-        splitted_id = _id.split('#')
-        _page = self.advert2 if splitted_id[0] else self.advert
-        return _page.go(_id=splitted_id[1]).get_job_advert(obj=advert)
+        return self.advert.go(_id=_id).get_job_advert(obj=advert)
