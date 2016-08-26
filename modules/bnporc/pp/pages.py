@@ -212,15 +212,15 @@ class TransferInitPage(BNPPage):
     def get_ibans_dict(self, account_type):
         return dict([(a['ibanCrypte'], a['iban']) for a in self.path('data.infoVirement.listeComptes%s.*' % account_type)])
 
-    def can_transfer_to_recipients(self, ignored_id):
-        return next(a['eligibleVersBenef'] for a in self.path('data.infoVirement.listeComptesDebiteur.*') if a['ibanCrypte'] == ignored_id) == '1'
+    def can_transfer_to_recipients(self, origin_account_id):
+        return next(a['eligibleVersBenef'] for a in self.path('data.infoVirement.listeComptesDebiteur.*') if a['ibanCrypte'] == origin_account_id) == '1'
 
     @method
     class transferable_on(DictElement):
         item_xpath = 'data/infoVirement/listeComptesCrediteur'
 
         class item(MyRecipient):
-            condition = lambda self: Dict('ibanCrypte')(self.el) != self.env['ignored_ibancrypte']
+            condition = lambda self: Dict('ibanCrypte')(self.el) != self.env['origin_account_ibancrypte']
 
             obj_id = Dict('ibanCrypte')
             obj_label = Dict('nomTitulaireCompte')

@@ -90,10 +90,10 @@ class BNPorcModule(Module, CapBankTransfer, CapMessages):
     def iter_investment(self, account):
         return self.browser.iter_investment(account)
 
-    def iter_transfer_recipients(self, ignored):
+    def iter_transfer_recipients(self, origin_account):
         if self.config['website'].get() != 'pp':
             raise NotImplementedError()
-        return self.browser.iter_recipients(ignored)
+        return self.browser.iter_recipients(origin_account)
 
     def transfer(self, account, to, amount, reason=None):
         if self.config['website'].get() != 'ppold':

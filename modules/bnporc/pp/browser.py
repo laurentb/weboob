@@ -201,12 +201,12 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
         return iter([])
 
     @need_login
-    def iter_recipients(self, ignored):
-        if not ignored in self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict('Debiteur'):
+    def iter_recipients(self, origin_account):
+        if not origin_account in self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict('Debiteur'):
             raise NotImplementedError()
-        for recipient in self.page.transferable_on(ignored_ibancrypte=ignored):
+        for recipient in self.page.transferable_on(origin_account_ibancrypte=origin_account):
             yield recipient
-        if self.page.can_transfer_to_recipients(ignored):
+        if self.page.can_transfer_to_recipients(origin_account):
             for recipient in self.recipients.go(data=JSON({'type': 'TOUS'})).iter_recipients():
                 yield recipient
 
