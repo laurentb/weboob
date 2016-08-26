@@ -35,7 +35,8 @@ SITE = enum(PROGRAM={u'id': u'program', u'label': u'Arte Programs', 1: 'get_arte
 QUALITY = enum(HD={'label': u'SQ', 'order': 3},
                MD={'label': u'EQ', 'order': 2},
                SD={'label': u'MQ', 'order': 1},
-               LD={'label': u'LQ', 'order': 0})
+               LD={'label': u'LQ', 'order': 0},
+               XD={'label': u'XQ', 'order': 4},)
 
 VERSION_VIDEO = enum(VOSTA={u'label': u'Original version subtitled (German)', LANG.GERMAN.get('label'): u'3'},
                      VOSTF={u'label': u'Original version subtitled (French)', LANG.FRENCH.get('label'): u'3'},
@@ -53,3 +54,8 @@ class ArteVideo(BaseVideo):
 
 class ArteSiteVideo(BaseVideo):
     pass
+
+
+class ArteEmptyVideo(BaseVideo):
+    def __init__(self):
+        self.description = 'There is no video on this page'

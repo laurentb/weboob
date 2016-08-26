@@ -24,6 +24,7 @@ from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound, Collection
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value
+from weboob.exceptions import BrowserHTTPSDowngrade
 
 from .browser import ArteBrowser
 from .video import ArteVideo, ArteSiteVideo, VERSION_VIDEO, FORMATS, LANG, QUALITY, SITE
@@ -119,8 +120,10 @@ class ArteModule(Module, CapVideo, CapCollection):
                     break
 
         if 'thumbnail' in fields and video and video.thumbnail:
-            video.thumbnail.data = self.browser.open(video.thumbnail.url).content
-
+            try:
+                video.thumbnail.data = self.browser.open(video.thumbnail.url).content
+            except BrowserHTTPSDowngrade:
+                pass
         return video
 
     def iter_resources(self, objs, split_path):

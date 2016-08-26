@@ -25,7 +25,7 @@ from weboob.capabilities import NotAvailable
 
 from weboob.browser import PagesBrowser, URL
 from .pages import VideosListPage, ArteJsonPage
-from .video import VERSION_VIDEO, LANG, QUALITY, SITE
+from .video import VERSION_VIDEO, LANG, QUALITY, SITE, ArteEmptyVideo
 
 
 __all__ = ['ArteBrowser']
@@ -73,9 +73,10 @@ class ArteBrowser(PagesBrowser):
         return video
 
     def get_url(self):
-        url = self.page.get_video_url(self.quality.get('label'), self.format, self.version.get(self.lang.get('label')),
-                                      self.lang.get('version'))
-        if self.format == 'HLS':
+        url, found_format = self.page.get_video_url(self.quality.get('label'), self.format,
+                                                    self.version.get(self.lang.get('label')),
+                                                    self.lang.get('version'))
+        if found_format.startswith('HLS'):
             ext = u'm3u8'
             url = self.get_m3u8_link(url)
         else:
@@ -90,7 +91,11 @@ class ArteBrowser(PagesBrowser):
         links_by_quality = []
         for line in r:
             if not line.startswith('#'):
-                links_by_quality.append(u'%s/%s' % (baseurl, line.replace('\n', '')))
+                if baseurl not in line:
+                    link = u'%s/%s' % (baseurl, line.replace('\n', ''))
+                else:
+                    link = unicode(line.replace('\n', ''))
+                links_by_quality.append(link)
 
         if len(links_by_quality):
             try:
@@ -107,6 +112,13 @@ class ArteBrowser(PagesBrowser):
                                    parameters=parameters).get_program_video()
         if video:
             return self.get_video(video.id, video)
+        else:
+            video = self.webservice.go(__lang=self.lang.get('site'),
+                                       vid=_id, ___site='ARTEPLUS7').get_program_video()
+            video.ext, video.url = self.get_url()
+            # buggy URLs
+            video.url = video.url.replace('%255B', '%5B').replace('%255D', '%5D')
+            return video
 
     def latest_videos(self):
         class_name = 'videos'
@@ -196,3 +208,4 @@ class ArteBrowser(PagesBrowser):
             video.ext, video.url = self.get_url()
             video.id = id
             return video
+        return ArteEmptyVideo()
