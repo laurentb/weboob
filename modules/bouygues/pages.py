@@ -111,3 +111,7 @@ class DocumentsPage(HTMLPage):
 
             def parse(self, el):
                 self.env['date'] = parse_french_date('01 %s' % CleanText('./text()')(self)).date()
+
+            def condition(self):
+                # XXX ugly fix to avoid duplicate bills
+                return CleanText('./@facture-id')(self.el) != CleanText('./following-sibling::div[1]/@facture-id')(self.el)
