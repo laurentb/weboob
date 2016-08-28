@@ -16,14 +16,14 @@ grep -nE "^ *print(\(| )" ${MODULE_FILES} && echo 'Error: Use of print in module
 
 FLAKE8=""
 if which flake8 >/dev/null 2>&1; then
-    FLAKE8=flake8
+    FLAKE8=$(which flake8)
 fi
 if which flake8-python2 >/dev/null 2>&1; then
-    FLAKE8=flake8-python2
+    FLAKE8=$(which flake8-python2)
 fi
 
 if [ -n "${FLAKE8}" ]; then
-    exec ${FLAKE8} --select=E9,F *.py $PYFILES
+    exec env python2 ${FLAKE8} --select=E9,F *.py $PYFILES
 else
     PYFLAKES=""
     if which pyflakes >/dev/null 2>&1; then
