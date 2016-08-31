@@ -20,7 +20,8 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 
-from .pages import LoginPage, CreditLoggedPage, AccountsPage, TransactionsPage, TransactionsJSONPage, ComingTransactionsPage
+from .pages import LoginPage, CreditLoggedPage, AccountsPage, TransactionsPage, \
+                   TransactionsJSONPage, ComingTransactionsPage, IbanPage
 
 
 __all__ = ['CreditCooperatif']
@@ -35,6 +36,7 @@ class CreditCooperatif(LoginBrowser):
     transactionpage = URL('/portail/particuliers/mescomptes/relevedesoperations.do', TransactionsPage)
     transactjsonpage = URL('/portail/particuliers/mescomptes/relevedesoperationsjson.do', TransactionsJSONPage)
     comingpage = URL('/portail/particuliers/mescomptes/synthese/operationsencourslien.do', ComingTransactionsPage)
+    iban = URL('/portail/particuliers/mesoperations/ribiban/telechargementribajax.do\?accountExternalNumber=(?P<account_id>.*)', IbanPage)
 
     def do_login(self):
         """

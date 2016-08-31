@@ -24,7 +24,8 @@ from weboob.tools.json import json
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
-from weboob.browser.filters.standard import Filter, Format, CleanText, CleanDecimal
+from weboob.browser.filters.standard import Filter, Format, CleanText, CleanDecimal, \
+                                            BrowserURL, Field, Async, AsyncLoad
 from weboob.browser.elements import ListElement, ItemElement, method
 
 
@@ -49,7 +50,8 @@ class CreditLoggedPage(HTMLPage):
 class AddType(Filter):
     types = {u'COMPTE NEF': Account.TYPE_CHECKING,
              u'CPTE A VUE': Account.TYPE_CHECKING,
-             u'LIVRET AGIR': Account.TYPE_SAVINGS}
+             u'LIVRET AGIR': Account.TYPE_SAVINGS,
+             u'LIVRET A PART': Account.TYPE_SAVINGS}
 
     def filter(self, str_type):
         for key, acc_type in self.types.items():
@@ -66,11 +68,18 @@ class AccountsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
+            load_details = BrowserURL('iban', account_id=Field('id')) & AsyncLoad
+
             obj_label = Format('%s %s', CleanText('.//h2[@class="tt_compte"][1]'), CleanText('.//ul[@class="nClient"]/li[1]'))
             obj_id = CleanText('.//ul[@class="nClient"]/li[last()]', symbols=u'N°')
             obj_type = AddType(CleanText('.//h2[@class="tt_compte"][1]'))
             obj_balance = CleanDecimal('.//td[@class="sum_solde"]//span[last()]', replace_dots=True)
             obj_currency = u'EUR'
+            obj_iban = Async('details') & CleanText('(.//div[@class="iban"]/p)[1]', replace=[(' ', '')])
+
+
+class IbanPage(LoggedPage, HTMLPage):
+    pass
 
 
 class Transaction(FrenchTransaction):
