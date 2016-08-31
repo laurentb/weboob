@@ -18,16 +18,20 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
+
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
-from weboob.browser.elements import ListElement, ItemElement, SkipItem, method, TableElement
-from weboob.browser.filters.standard import CleanText, Upper, Capitalize, Date, Regexp, CleanDecimal, Env, TableCell
-from weboob.browser.filters.html import Attr
-from weboob.capabilities.bank import Account, Investment, Transaction
-from weboob.capabilities.base import NotLoaded
+from weboob.browser.elements import ListElement, ItemElement, method, TableElement
+from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, Field, \
+                                            CleanDecimal, Env, TableCell, Async, AsyncLoad
+from weboob.browser.filters.html import Link
+from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.base import NotAvailable
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
 def MyDecimal(*args, **kwargs):
-    kwargs.update(replace_dots=True, default=NotLoaded)
+    kwargs.update(replace_dots=True, default=NotAvailable)
     return CleanDecimal(*args, **kwargs)
 
 
@@ -41,36 +45,68 @@ class LoginPage(HTMLPage):
 
 class AccountsPage(LoggedPage, HTMLPage):
     def get_investment_link(self):
-        return Attr(None, 'href').filter(self.doc.xpath('//a[contains(text(), "fonds")]'))
+        return Link().filter(self.doc.xpath('//a[contains(text(), "fonds")]'))
 
     @method
     class iter_accounts(ListElement):
         class item(ItemElement):
             klass = Account
 
-            obj_id = Regexp(Upper('//table[@class="fiche"]//td'), '[\s]+([^\s]+)[\s]+([^\s]+).*:[\s]+([^\s]+)', '\\1\\2\\3')
+            obj_id = Regexp(Upper(Field('label')), '[\s]+([^\s]+)[\s]+([^\s]+).*:[\s]+([^\s]+)', '\\1\\2\\3')
             obj_type = Account.TYPE_PEE
-            obj_label = Regexp(Capitalize('//h1'), 'Compte[\s]+(.*)', default=u"Épargne Salariale")
+            obj_label = CleanText('//table[@class="fiche"]//td')
             obj_balance = MyDecimal('//td[em[contains(text(), "Total")]]/following-sibling::td')
 
 
 class InvestmentPage(LoggedPage, HTMLPage):
     @method
     class iter_investment(ListElement):
-        item_xpath = '//table[@class="liste"]/tbody//tr[td[contains(text(), "total")]]'
+        item_xpath = '//tr[td[contains(text(), "total")]]'
 
         class item(ItemElement):
             klass = Investment
 
             obj_label = CleanText('./preceding-sibling::tr[td[6]][1]/td[1]')
-            obj_quantity = CleanDecimal('./td[position() = (last()-1)]')
+            obj_quantity = CleanDecimal('./td[last() - 1]')
             obj_unitvalue = MyDecimal('./preceding-sibling::tr[td[6]][1]/td[3]')
-            obj_valuation = MyDecimal('./td[position() = last()]')
+            obj_valuation = MyDecimal('./td[last()]')
             obj_vdate = Date(Regexp(CleanText(u'//p[contains(text(), "financière au ")]'), 'au[\s]+(.*)'),dayfirst=True)
 
 
+class Transaction(FrenchTransaction):
+    PATTERNS = [(re.compile(u'^(?P<text>Versement.*)'),  FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(u'^(?P<text>(Arbitrage|Prélèvements.*))'), FrenchTransaction.TYPE_ORDER),
+                (re.compile(u'^(?P<text>Retrait.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile(u'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+               ]
+
+
 class HistoryPage(LoggedPage, HTMLPage):
-    DEBIT_WORDS = ['retrait', 'sortant', 'frais']
+    DEBIT_WORDS = ['sortant', 'paiement', 'retrait', 'frais']
+
+    @method
+    class get_investments(TableElement):
+        item_xpath = '//table/tbody/tr'
+        head_xpath = '//table/thead/tr/th'
+
+        col_label = u'Support'
+        col_unitvalue = u'Valeur'
+        col_quantity = u'Nombre de parts'
+        col_valuation = [u'Transfert demandé', u'Versement souhaité', \
+                         u'Arbitrage demandé', u'Paiement demandé', u'Montant net']
+
+        class item(ItemElement):
+            klass = Investment
+
+            condition = lambda self: len(self.el.xpath('./td')) == 9
+
+            obj_label = CleanText(TableCell('label'))
+            obj_quantity = MyDecimal(TableCell('quantity'))
+            obj_unitvalue = MyDecimal(TableCell('unitvalue'))
+            obj_valuation = MyDecimal(TableCell('valuation'))
+
+            def obj_vdate(self):
+                return Date(Regexp(CleanText(u'//p[contains(text(), " du ")]'), 'du[\s]+(.*)'), dayfirst=True)(self)
 
     @pagination
     @method
@@ -78,68 +114,37 @@ class HistoryPage(LoggedPage, HTMLPage):
         item_xpath = '//table[@class="liste"]/tbody/tr'
         head_xpath = '//table[@class="liste"]/thead/tr/th'
 
-        col_date = 'Date'
+        col_date = u'Date'
+        col_label = u'Opération'
+        col_amount = re.compile(u'Montant')
 
-        def next_page(self):
-            next_page = self.el.xpath('//a[contains(@href, "Suiv")]/@href')
-            if next_page:
-                return next_page[0]
+        next_page = Link('//a[contains(@href, "Suiv")]', default=None)
 
         class item(ItemElement):
             klass = Transaction
 
-            obj_date = Date(CleanText(TableCell('date')),dayfirst=True)
-            obj_type = Transaction.TYPE_BANK
-            obj_label = Env('label')
+            load_details = Link('.//a[1]', default=None) & AsyncLoad
+
+            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
+            obj_raw = Transaction.Raw(Env('label'))
             obj_amount = Env('amount')
             obj_investments = Env('investments')
 
             def parse(self, el):
-                link = el.xpath('.//a[1]')[0].get('href', '')
-                doc = self.page.browser.open(link).page.doc
+                page = Async('details').loaded_page(self)
+                label = CleanText(TableCell('label')(self)[0].xpath('./a[1]'))(self)
 
-                if not CleanText('//table/tbody/tr[not(td[9])]')(doc):
-                    self.page.browser.skipped.append(doc)
-                    raise SkipItem()
+                # Try to get gross amount
+                amount = None
+                for td in page.doc.xpath('//td[em[1][contains(text(), "Total")]]/following-sibling::td'):
+                    amount = MyDecimal('.', default=None)(td)
+                    if amount:
+                        break
 
-                label = CleanText('.//a[1]')(self)
-                amount = MyDecimal('//table/tbody/tr[not(td[9])]/td[4]')(doc)
-
+                amount = amount if amount else MyDecimal(TableCell('amount'))(self)
                 if any(word in label.lower() for word in self.page.DEBIT_WORDS):
                     amount = -amount
 
                 self.env['label'] = label
                 self.env['amount'] = amount
-
-                investments = []
-                for tr in doc.xpath('//table/tbody/tr[td[9]]'):
-                    i = Investment()
-                    i.label = CleanText().filter(tr.xpath('./td[3]'))
-                    i.quantity = MyDecimal().filter(tr.xpath('./td[5]'))
-                    i.unitvalue = MyDecimal().filter(tr.xpath('./td[4]'))
-                    i.valuation = MyDecimal().filter(tr.xpath('./td[6]'))
-                    i.vdate = Date(Regexp(CleanText(u'//p[contains(text(), " du ")]'), 'du[\s]+(.*)'),dayfirst=True)(doc)
-                    investments.append(i)
-                self.env['investments'] = investments
-
-    def iter_history_skipped(self):
-        for doc in self.browser.skipped:
-            for tr in doc.xpath('//table/tbody/tr'):
-                t = Transaction()
-                t.date = Date(Regexp(CleanText(u'//p[contains(text(), " du ")]'), 'du[\s]+(.*)'),dayfirst=True)(doc)
-                t.type = Transaction.TYPE_BANK
-                t.label = CleanText().filter(tr.xpath('./td[1]'))
-                t.amount = MyDecimal().filter(tr.xpath('./td[6]'))
-
-                if any(word in t.label.lower() for word in self.DEBIT_WORDS):
-                    t.amount = -t.amount
-
-                i = Investment()
-                i.label = CleanText().filter(tr.xpath('./td[3]'))
-                i.quantity = MyDecimal().filter(tr.xpath('./td[5]'))
-                i.unitvalue = MyDecimal().filter(tr.xpath('./td[4]'))
-                i.valuation = MyDecimal().filter(tr.xpath('./td[6]'))
-                i.vdate = Date(Regexp(CleanText(u'//p[contains(text(), " du ")]'), 'du[\s]+(.*)'),dayfirst=True)(doc)
-                t.investments = [i]
-
-                yield t
+                self.env['investments'] = list(page.get_investments())

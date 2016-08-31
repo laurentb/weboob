@@ -38,9 +38,7 @@ class CmesBrowser(LoginBrowser):
         self.password = password
 
     def do_login(self):
-        self.login.go()
-
-        self.page.login(self.username, self.password)
+        self.login.go().login(self.username, self.password)
 
         if self.login.is_here():
             raise BrowserIncorrectPassword
@@ -56,10 +54,4 @@ class CmesBrowser(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
-        self.skipped = []
-        transactions = []
-        for t in self.history.stay_or_go().iter_history():
-            transactions.append(t)
-        for t in self.history.stay_or_go().iter_history_skipped():
-            transactions.append(t)
-        return iter(sorted(transactions, key=lambda t: t.date, reverse=True))
+        return self.history.stay_or_go().iter_history()
