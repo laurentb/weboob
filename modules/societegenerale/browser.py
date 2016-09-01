@@ -77,6 +77,7 @@ class SocieteGenerale(Browser):
         assert isinstance(self.password, basestring)
         if not self.password.isdigit() or len(self.password) != 6:
             raise BrowserIncorrectPassword()
+        self.username = self.username[:8]
 
         if not self.is_on_page(LoginPage):
             self.location('https://' + self.DOMAIN_LOGIN + '/index.html', no_login=True)
