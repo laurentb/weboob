@@ -41,6 +41,7 @@ class BanquePopulaireModule(Module, CapBank):
         'www.ibps.alsace.banquepopulaire.fr': u'Alsace',
         'www.ibps.bpaca.banquepopulaire.fr': u'Aquitaine Centre atlantique',
         'www.ibps.atlantique.banquepopulaire.fr': u'Atlantique',
+        'www.ibps.banquedesavoie.banquepopulaire.fr': u'Banque de Savoie',
         'www.ibps.bpbfc.banquepopulaire.fr': u'Bourgogne-Franche Comté',
         'www.ibps.bretagnenormandie.cmm.groupe.banquepopulaire.fr': u'Crédit Maritime Bretagne Normandie',
         'www.ibps.atlantique.creditmaritime.groupe.banquepopulaire.fr': u'Crédit Maritime Atlantique',
