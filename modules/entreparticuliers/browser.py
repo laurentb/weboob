@@ -112,7 +112,7 @@ class EntreparticuliersBrowser(PagesBrowser):
 
             self.search.go(data="{'p_SearchParams':'%s', 'forcealerte':'0'}" % json.dumps(data))
 
-            data = '{pageIndex: 1,source:"undefined",latmin:"0",latmax:"0",lngmin:"0",lngmax:"0"}'
+            data = '{pageIndex: 1,source:"undefined",latmin:"0",latmax:"0",lngmin:"0",lngmax:"0", frommoteur:"true"}'
             for item in self.search_result.go(data=data).iter_housings():
                 yield item
 
