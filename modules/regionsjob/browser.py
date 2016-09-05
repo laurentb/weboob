@@ -16,7 +16,6 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-import urllib
 
 from weboob.browser import PagesBrowser, URL
 
@@ -37,7 +36,7 @@ class RegionsjobBrowser(PagesBrowser):
     def search_job(self, pattern='', fonction='', secteur='', contract='',
                    experience='', qualification='', enterprise_type=''):
 
-        params = {'k': urllib.quote_plus(pattern.encode('utf-8'))}
+        params = {'k': pattern.encode('utf-8')}
 
         if fonction:
             params['f'] = fonction

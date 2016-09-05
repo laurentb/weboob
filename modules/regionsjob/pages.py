@@ -19,7 +19,7 @@
 
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import CleanText, Regexp, Format, Env, Date, BrowserURL, Join
+from weboob.browser.filters.standard import CleanText, Regexp, Env, Date, BrowserURL, Join
 from weboob.browser.filters.html import CleanHTML, Link
 from weboob.capabilities.job import BaseJobAdvert
 from weboob.exceptions import ParseError
@@ -44,9 +44,15 @@ class SearchPage(HTMLPage):
                               '/emplois/(.*)\.html',
                               default=None)(self)
 
-            obj_id = Format(u'%s#%s',
-                            Regexp(Env('domain'), 'http://www\.(.*)\.com'),
-                            Regexp(CleanText('h1/a[@class="lien-annonce"]/@href'), '/emplois/(.*)\.html'))
+            def obj_id(self):
+                site = Regexp(CleanText('h1/a[@class="lien-annonce"]/@href'),
+                              'http://www\.(.*)\.com', default=None)(self)
+                if site is None:
+                    site = Regexp(Env('domain'), 'http://www\.(.*)\.com')(self)
+
+                _id = Regexp(CleanText('h1/a[@class="lien-annonce"]/@href'), '/emplois/(.*)\.html')(self)
+                return u'%s#%s' % (site, _id)
+
             obj_title = CleanText('h1/a[2]')
             obj_society_name = CleanText('figure/span[@itemprop="name"]')
             obj_place = CleanText('p[@class="inlineblock max-width-75"]')
