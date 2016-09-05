@@ -59,6 +59,9 @@ class YomoniBrowser(APIBrowser):
 
         for project in self.users['projects']:
             me = self.request('/user/%s/project/%s/' % (self.users['userId'], project['projectId']))
+            # Check project in progress
+            if not me['numeroContrat']:
+                continue
 
             a = Account()
             a.id = "".join(me['numeroContrat'].split())
@@ -67,7 +70,7 @@ class YomoniBrowser(APIBrowser):
                      Account.TYPE_MARKET if "compte titre" in a.label.lower() else \
                      Account.TYPE_UNKNOWN
             a.balance = CleanDecimal().filter(me['solde'])
-            a.iban = me['ibancompteTitre'] if me['ibancompteTitre'] else NotAvailable
+            a.iban = me['ibancompteTitre'] or NotAvailable
             a.number = project['projectId']
             a.valuation_diff = CleanDecimal().filter(me['performanceEuro'])
             a._startbalance = me['montantDepart']
