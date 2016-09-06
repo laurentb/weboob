@@ -18,16 +18,15 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
-import urllib
+import re, urllib, requests
 from decimal import Decimal, InvalidOperation
 from cStringIO import StringIO
-import requests
 
 from weboob.exceptions import BrowserBanned, BrowserUnavailable
 from weboob.browser.pages import HTMLPage, RawPage, JsonPage, PDFPage, LoggedPage, pagination
-from weboob.browser.elements import ItemElement, TableElement, SkipItem, method
-from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Env, BrowserURL, TableCell, Async, AsyncLoad, Eval
+from weboob.browser.elements import ItemElement, ListElement, TableElement, SkipItem, method
+from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Field, Env, \
+                                            BrowserURL, TableCell, Async, AsyncLoad, Eval
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
@@ -135,8 +134,35 @@ class InvestmentTransaction(FrenchTransaction):
                ]
 
 
+class TableInvestments(TableElement):
+    col_label = [re.compile('Support'), u'Libellé']
+    col_code = 'Code ISIN'
+    col_valuation = re.compile(u'Montant')
+    col_quantity = [u'Nombre d\'unités', u'Nb d\'unités de compte']
+    col_unitvalue = [u'Valeur Unité de Compte', re.compile(u'Valeur de l\'unité de compte')]
+    col_portfolio_share = [u'Répartition en %', u'% dans contrat']
+    col_vdate = u'Date de valeur'
+
+    class item(ItemElement):
+        klass = Investment
+
+        obj_label = CleanText(TableCell('label'))
+        obj_quantity = MyDecimal(TableCell('quantity'))
+        obj_unitvalue = MyDecimal(TableCell('unitvalue'))
+        obj_valuation = MyDecimal(TableCell('valuation'))
+        obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
+        obj_portfolio_share = Eval(lambda x: x / 100, MyDecimal(TableCell('portfolio_share')))
+
+        def obj_code(self):
+            code = CleanText(TableCell('code'), replace=[('-', '')], default=NotAvailable)(self)
+            return NotAvailable if not code else code
+
+        def condition(self):
+            return CleanText(TableCell('valuation'))(self)
+
+
 class InvestmentPage(LoggedPage, HTMLPage):
-    TYPES = {'assurance vie': Account.TYPE_LIFE_INSURANCE}
+    TYPES = {'vie': Account.TYPE_LIFE_INSURANCE, 'mad': Account.TYPE_MADELIN, 'prp': Account.TYPE_PERP}
 
     def get_home(self):
         form = self.get_form('//form')
@@ -144,13 +170,13 @@ class InvestmentPage(LoggedPage, HTMLPage):
         form['__CALLBACKPARAM'] = "on load"
         form.submit()
 
-    def get_forms(self):
-        m = re.findall('create\(([^\)]+)', CleanText().filter(self.doc.xpath( \
+    def get_forms(self, filter=False):
+        m = re.findall('create(.+?)(?=\);)', CleanText().filter(self.doc.xpath( \
                        '//script[contains(text(), "Application.add")]')))
-        posts = [el for el in m if "CategorieId" in el]
+        posts = m if not filter else [el for el in m if filter in el]
         forms = []
         for post in posts:
-            m = re.search(('Parameters[^[]+([^]]+.).*Info[^{]+.([^}]+.)'
+            m = re.search(('Parameters":(.*)(?=,.+Info).*Info[^{]+.([^}]+.)'
                            '.*Path[^\w]+([^"]+).*\$get[^\w]+([^"]+)'), post)
             form = {}
             form['__USERCONTROLPATH'] = urllib.unquote(urllib.unquote( \
@@ -159,73 +185,72 @@ class InvestmentPage(LoggedPage, HTMLPage):
                                           '},{"Name":'.join('"Value":'.join(m.group(2).split(':')) \
                                           .split(',')).replace('""', '","')).decode('utf8')).decode('utf8')
             form['__CONTROLCLIENTID'] = m.group(4)
-            form['__PARAMETERS'] = m.group(1)
+            form['__PARAMETERS'] = "[]" if m.group(1) == "null" else m.group(1)
             form['__ENCRYPTED'] = 'true'
             forms.append(form)
         return forms
 
     @method
     class iter_accounts(TableElement):
-        item_xpath = '//table//tr[td]'
-        head_xpath = '//table//tr/th'
+        item_xpath = '//table//tr[td[4]]'
+        head_xpath = '//table//tr[th[4]]/th'
 
-        col_id = u'Référence'
         col_label = u'Contrat'
+        col_id = u'Référence'
         col_balance = u'Montant'
 
         class item(ItemElement):
             klass = Account
 
-            load_details = Link(u'//td[2]/a') & AsyncLoad
+            load_details = Field('_url') & AsyncLoad
 
             obj_id = CleanText(TableCell('id'))
-            obj_label = CleanText(TableCell('label'))
             obj_balance = MyDecimal(TableCell('balance'))
             obj_type = Env('type')
             obj_iban = NotAvailable
             obj_valuation_diff = Async('details') & MyDecimal('//th[span[contains(text(), \
                                  "Performance")]]/following-sibling::td[1]')
             obj__page = Env('page')
+            obj__accform = Env('accform')
             obj__acctype = "investment"
 
+            def obj_label(self):
+                return CleanText(TableCell('label')(self)[0].xpath('./a'))(self)
+
+            def obj__url(self):
+                return Link(TableCell('id')(self)[0].xpath('./a'))(self)
+
             def condition(self):
-                return CleanText(TableCell('balance'))(self)
+                return CleanText(TableCell('balance', default=""))(self)
 
             def parse(self, el):
                 page = Async('details').loaded_page(self)
-                type = CleanText().filter(page.doc.xpath('//th[contains(text(), \
-                        "Cadre fiscal")]/following-sibling::td[1]'))
+                accform = page.get_form('//form')
+                type_xpath = '//th[contains(text(), "Cadre fiscal")]/following-sibling::td[1]'
+                type = CleanText().filter(page.doc.xpath(type_xpath))
+                if not type:
+                    for form in page.get_forms():
+                        page.browser.session.headers['Referer'] = Field('_url')(self)
+                        page = page.browser.investment.go(page="PartialUpdatePanelLoader.ashx", data=form)
+                        type = CleanText().filter(page.doc.xpath(type_xpath))
+                        if type:
+                            accform = form
+                            break
                 if not type:
                     raise SkipItem()
-                self.env['type'] = self.page.TYPES.get(type.lower(), Account.TYPE_UNKNOWN)
+                self.env['type'] = page.TYPES.get(type.lower().split()[-1], Account.TYPE_UNKNOWN)
                 self.env['page'] = page
+                self.env['accform'] = accform
 
     @method
-    class iter_investment(TableElement):
-        item_xpath = '//div[@id="axaPopupdetailEpargne"]//table/tbody/tr[contains(@id, "ctl")]'
-        head_xpath = '//div[@id="axaPopupdetailEpargne"]//table/thead/tr/th'
+    class iter_investment(ListElement):
+        class list_epargne(TableInvestments):
+            item_xpath = '//div[@id="axaPopupdetailEpargne"]//table/tbody/tr[contains(@id, "ctl")]'
+            head_xpath = '//div[@id="axaPopupdetailEpargne"]//table/thead/tr/th'
 
-        col_label = re.compile('Support')
-        col_code = 'Code ISIN'
-        col_valuation = u'Montant de l\'épargne'
-        col_quantity = u'Nombre d\'unités'
-        col_unitvalue = u'Valeur Unité de Compte'
-        col_portfolio_share = u'Répartition en %'
-        col_vdate = u'Date de valeur'
-
-        class item(ItemElement):
-            klass = Investment
-
-            obj_label = CleanText(TableCell('label'))
-            obj_code = CleanText(TableCell('code'), default=NotAvailable)
-            obj_quantity = MyDecimal(TableCell('quantity'))
-            obj_unitvalue = MyDecimal(TableCell('unitvalue'))
-            obj_valuation = MyDecimal(TableCell('valuation'))
-            obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
-            obj_portfolio_share = Eval(lambda x: x / 100, MyDecimal(TableCell('portfolio_share')))
-
-            def condition(self):
-                return CleanText(TableCell('valuation'))(self)
+        class list_distribution(TableInvestments):
+            item_xpath = '//div[contains(@id, "PopupDistribution")]//td/table/tr[contains(@class, "white")]'
+            head_xpath = '//div[contains(@id, "PopupDistribution")]//div/table/tr/th'
 
     @pagination
     @method
@@ -240,10 +265,15 @@ class InvestmentPage(LoggedPage, HTMLPage):
         def next_page(self):
             link = Link('//a[@title="Page suivante" and @href]', default=None)(self)
             if link:
-                form = self.page.get_form('//form')
-                form['__EVENTTARGET'] = re.search('PostBackOptions[^\w]+([^"]+)', link).group(1)
-                return requests.Request("POST", BrowserURL('investment', \
-                       page=None)(self).replace('None', form.url), data=dict(form))
+                form = self.page.browser.accform
+                if isinstance(form, dict):
+                    input = self.page.doc.xpath('//input[contains(@name, "ViewState")]')[0]
+                    form['__VIEWSTATE'] = urllib.unquote(Attr('.', 'value')(input)).decode('utf8')
+                    form['__CONTROLCLIENTID'] = re.findall('(.*)_', Attr('.', 'name')(input))[0]
+                form['__EVENTTARGET'] = re.findall('PostBack[^\'"]+.([^\'"]+)', link)[0]
+                url = self.page.browser.url if isinstance(form, dict) else \
+                      BrowserURL('investment', page=None)(self).replace('None', form.url)
+                return requests.Request("POST", url, data=dict(form))
 
         class item(ItemElement):
             klass = InvestmentTransaction
@@ -275,19 +305,6 @@ class MyHTMLPage(HTMLPage):
             return number.replace(',', ' ').replace('.', ',')
         return number
 
-
-class BankAccountsPage(LoggedPage, MyHTMLPage):
-    ACCOUNT_TYPES = OrderedDict((
-        ('Visa',               Account.TYPE_CARD),
-        ('courant-titre',      Account.TYPE_CHECKING),
-        ('courant',            Account.TYPE_CHECKING),
-        ('livret',             Account.TYPE_SAVINGS),
-        ('Livret',             Account.TYPE_SAVINGS),
-        ('LDD',                Account.TYPE_SAVINGS),
-        ('PEA',                Account.TYPE_MARKET),
-        ('Titres',             Account.TYPE_MARKET),
-    ))
-
     def js2args(self, s):
         args = {}
         # For example:
@@ -295,13 +312,54 @@ class BankAccountsPage(LoggedPage, MyHTMLPage):
         for sub in re.findall("\['([^']+)','([^']+)'\]", s):
             args[sub[0]] = sub[1]
 
-        args['idPanorama:_idcl'] = re.search("'(idPanorama:[^']+)'", s).group(1)
-        args['idPanorama_SUBMIT'] = 1
+        sub = re.search('oamSubmitForm.+?,\'([^:]+).([^\']+)', s)
+        args['%s:_idcl' % sub.group(1)] = "%s:%s" % (sub.group(1), sub.group(2))
+        args['%s_SUBMIT' % sub.group(1)] = 1
 
         return args
 
+
+class BankAccountsPage(LoggedPage, MyHTMLPage):
+    ACCOUNT_TYPES = OrderedDict((
+        ('visa',               Account.TYPE_CARD),
+        ('courant-titre',      Account.TYPE_CHECKING),
+        ('courant',            Account.TYPE_CHECKING),
+        ('livret',             Account.TYPE_SAVINGS),
+        ('ldd',                Account.TYPE_SAVINGS),
+        ('pea',                Account.TYPE_MARKET),
+        ('titres',             Account.TYPE_MARKET),
+    ))
+
+    def get_tabs(self):
+        links = self.doc.xpath('//strong[text()="Mes Comptes"]/following-sibling::ul//a/@href')
+        links.insert(0, "-comptes")
+        return list(set([re.findall('-([a-z]+)', x)[0] for x in links]))
+
+    def has_accounts(self):
+        return self.doc.xpath('//table[not(@id) and contains(@class, "table-produit")]')
+
+    def get_pages(self, tab):
+        pages = []
+        pages_args = []
+        if len(self.has_accounts()) == 0:
+            table_xpath = '//table[contains(@id, "%s")]' % tab
+            links = self.doc.xpath('%s//td[1]/a[@onclick and contains(@onclick, "noDoubleClic")]' % table_xpath)
+            if len(links) > 0:
+                form_xpath = '%s/ancestor::form[1]' % table_xpath
+                form = self.get_form(form_xpath, submit='%s//input[1]' % form_xpath)
+                data = {k: v for k, v in dict(form).items() if v}
+                for link in links:
+                    d = self.js2args(link.attrib['onclick'])
+                    d.update(data)
+                    pages.append(self.browser.location(form.url, data=d).page)
+                    pages_args.append(d)
+        else:
+            pages.append(self)
+            pages_args.append(None)
+        return zip(pages, pages_args)
+
     def get_list(self):
-        for table in self.doc.getroot().cssselect('div#table-panorama table.table-produit'):
+        for table in self.has_accounts():
             tds = table.xpath('./tbody/tr')[0].findall('td')
             if len(tds) < 3:
                 continue
@@ -336,20 +394,20 @@ class BankAccountsPage(LoggedPage, MyHTMLPage):
                         if card_id:
                             account.id += card_id.group(1)
                     if 'Valorisation' in account.label or u'Liquidités' in account.label:
-                        account.id += args['idPanorama:_idcl'].split('Jsp')[-1]
+                        account.id += args[next(k for k in args.keys() if "_idcl" in k)].split('Jsp')[-1]
 
                 except KeyError:
                     account.id = args['paramNumCompte']
 
                 for l in table.attrib['class'].split(' '):
                     if 'tableaux-comptes-' in l:
-                        account_type_str =  l[len('tableaux-comptes-'):]
+                        account_type_str =  l[len('tableaux-comptes-'):].lower()
                         break
                 else:
                     account_type_str = ''
 
                 for pattern, type in self.ACCOUNT_TYPES.iteritems():
-                    if pattern in account_type_str or pattern in account.label:
+                    if pattern in account_type_str or pattern in account.label.lower():
                         account.type = type
                         break
                 else:
@@ -374,6 +432,7 @@ class BankAccountsPage(LoggedPage, MyHTMLPage):
                 account._args = args
                 account._acctype = "bank"
                 account._hasinv = True if "Valorisation" in account.label else False
+                account._url = self.doc.xpath('//form[contains(@action, "panorama")]/@action')[0]
                 yield account
 
 
@@ -412,13 +471,23 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
     COL_CREDIT = 3
 
     def check_error(self):
-        error = CleanText(default="").filter(self.doc.xpath('//div[@id="titre_detail"]/h2'))
-        return error if "Modifier votre code" in error else None
+        error = CleanText(default="").filter(self.doc.xpath('//p[@class="question"]'))
+        return error if u"a expiré" in error else None
+
+    def go_action(self, action):
+        names = {'investment': "Portefeuille", 'history': "Mouvements"}
+        for li in self.doc.xpath('//div[@class="onglets"]/ul/li[not(script)]'):
+            if not Attr('.', 'class', default=None)(li) and names[action] in CleanText('.')(li):
+                url = Attr('./ancestor::form[1]', 'action')(li)
+                args = self.js2args(Attr('./a', 'onclick')(li))
+                args['javax.faces.ViewState'] = self.get_view_state()
+                self.browser.location(url, data=args)
+                break
 
     @method
     class iter_investment(TableElement):
-        item_xpath = '//table[contains(@id, "titres")]/tbody/tr'
-        head_xpath = '//table[contains(@id, "titres")]/thead/tr/th[not(caption)]'
+        item_xpath = '//table[contains(@id, "titres") or contains(@id, "OPCVM")]/tbody/tr'
+        head_xpath = '//table[contains(@id, "titres") or contains(@id, "OPCVM")]/thead/tr/th[not(caption)]'
 
         col_label = u'Intitulé'
         col_quantity = u'NB'
