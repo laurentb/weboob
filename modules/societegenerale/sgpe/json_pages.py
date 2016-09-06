@@ -17,10 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import requests
 
-from weboob.browser.pages import LoggedPage, JsonPage
+from weboob.browser.pages import LoggedPage, JsonPage, pagination
 from weboob.browser.elements import ItemElement, method, DictElement
-from weboob.browser.filters.standard import CleanDecimal, Date, Format
+from weboob.browser.filters.standard import CleanDecimal, Date, Format, BrowserURL
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import Currency
 from weboob.capabilities import NotAvailable
@@ -60,12 +61,30 @@ class BalancesJsonPage(LoggedPage, JsonPage):
 
 
 class HistoryJsonPage(LoggedPage, JsonPage):
+    @pagination
     @method
     class iter_history(DictElement):
-        item_xpath = 'donnees/compte/operations'
+        def __init__(self, *args, **kwargs):
+            super(DictElement, self).__init__(*args, **kwargs)
+            self.item_xpath = 'donnees/compte/operations' if not 'Prochain' in self.page.url else 'donnees/ecritures'
 
         def condition(self):
             return 'donnees' in self.page.doc
+
+        def next_page(self):
+            d = self.page.doc['donnees']['compte'] if not 'Prochain' in self.page.url else self.page.doc['donnees']
+            if 'ecrituresRestantes' in d:
+                next_ope = d['ecrituresRestantes']
+                next_data = d['sceauEcriture']
+            else:
+                next_ope = d['operationsRestantes']
+                next_data = d['sceauOperation']
+            if next_ope:
+                data = {}
+                data['b64e4000_sceauEcriture'] = next_data
+                if not 'intraday' in self.page.url:
+                    data['cl200_typeReleve'] = 'valeur'
+                return requests.Request("POST", BrowserURL('history_next')(self), data=data)
 
         class item(ItemElement):
             klass = Transaction
@@ -73,7 +92,7 @@ class HistoryJsonPage(LoggedPage, JsonPage):
             # This is 'Date de valeur'
             obj_date = Date(Dict('dVl'), dayfirst=True)
             obj__date = Date(Dict('date', default=None), dayfirst=True, default=NotAvailable)
-            obj_coming = False
+            obj__coming = False
             obj_raw = Transaction.Raw(Format('%s %s %s', Dict('l1'), Dict('l2'), Dict('l3')))
             # We have l4 and l5 too most of the time, but it seems to be unimportant and would make label too long.
             #tr.label = ' '.join([' '.join(transaction[l].strip().split()) for l in ['l1', 'l2', 'l3']])

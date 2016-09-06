@@ -165,6 +165,7 @@ class SGEnterpriseBrowser(SGPEBrowser):
     balances = URL('/icd/syd-front/data/syd-comptes-chargerSoldes.json', BalancesJsonPage)
     history = URL('/icd/syd-front/data/syd-comptes-chargerReleve.json',
                   '/icd/syd-front/data/syd-intraday-chargerDetail.json', HistoryJsonPage)
+    history_next = URL('/icd/syd-front/data/syd-comptes-chargerProchainLotEcriture.json', HistoryJsonPage)
 
     def go_accounts(self):
         self.accounts.go()
