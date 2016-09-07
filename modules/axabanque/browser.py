@@ -122,7 +122,7 @@ class AXABanque(LoginBrowser):
                         for a in self.investment.go(page="PartialUpdatePanelLoader.ashx", \
                                 data=form).iter_accounts():
                             accounts.append(a)
-                self.account_list = accounts
+            self.account_list = accounts
         return iter(self.account_list)
 
     @need_login
