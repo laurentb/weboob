@@ -620,7 +620,7 @@ class MarketPage(BasePage):
             if ':' in date:
                 inv.vdate = ddate.today()
             else:
-                day, month = map(int, date.split('/', 1))
+                day, month = map(int, date.split('/'))[:2]
                 date_guesser = LinearDateGuesser()
                 inv.vdate = date_guesser.guess_date(day, month)
 
