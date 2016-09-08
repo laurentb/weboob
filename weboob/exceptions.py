@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
 class BrowserIncorrectPassword(Exception):
     pass
 
@@ -72,5 +71,10 @@ class FormFieldConversionWarning(UserWarning):
     A value has been set to a form's field and has been implicitly converted.
     """
 
+
 class NoAccountsException(Exception):
+    pass
+
+
+class ModuleInstallError(Exception):
     pass

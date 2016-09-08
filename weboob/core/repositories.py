@@ -32,7 +32,7 @@ from contextlib import closing
 from compileall import compile_dir
 from io import BytesIO
 
-from weboob.exceptions import BrowserHTTPError, BrowserHTTPNotFound
+from weboob.exceptions import BrowserHTTPError, BrowserHTTPNotFound, ModuleInstallError
 from .modules import LoadedModule
 from weboob.tools.log import getLogger
 from weboob.tools.misc import get_backtrace, to_unicode, find_exe
@@ -399,10 +399,6 @@ class PrintProgress(IProgress):
     def prompt(self, message):
         print('%s (Y/n): *** ASSUMING YES ***' % message)
         return True
-
-
-class ModuleInstallError(Exception):
-    pass
 
 
 DEFAULT_SOURCES_LIST = \
