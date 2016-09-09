@@ -351,6 +351,8 @@ class Module(object):
         if self.logger.settings['responses_dirname']:
             kwargs.setdefault('responses_dirname', os.path.join(self.logger.settings['responses_dirname'],
                                                                 self._private_config.get('_debug_dir', self.name)))
+        elif os.path.isabs(self._private_config.get('_debug_dir', '')):
+            kwargs.setdefault('responses_dirname', self._private_config['_debug_dir'])
 
         browser = self.BROWSER(*args, **kwargs)
 
