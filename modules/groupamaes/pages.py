@@ -116,6 +116,9 @@ class OperationsFuturesPage(LoggedPage, HTMLPage):
 
 
 class OperationsTraiteesPage(LoggedPage, HTMLPage):
+
+    NEGATIVE_AMOUNT_LABELS = [u'Retrait', u'Transfert sortant']
+
     @method
     class get_history(TableElement):
         head_xpath = u'//table[@summary="Liste des opérations en attente"]/thead/tr/th/text()'
@@ -137,6 +140,7 @@ class OperationsTraiteesPage(LoggedPage, HTMLPage):
 
             def obj_amount(self):
                 amount = CleanDecimal(TableCell('montant'), replace_dots=True)(self)
-                if Field('label')(self).startswith('Retrait'):
-                    amount = -amount
+                for pattern in OperationsTraiteesPage.NEGATIVE_AMOUNT_LABELS:
+                    if Field('label')(self).startswith(pattern):
+                        amount = -amount
                 return amount
