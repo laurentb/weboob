@@ -82,8 +82,8 @@ class YomoniBrowser(APIBrowser):
             yield a
 
     def iter_investment(self, account, invs=None):
-        if account not in self.investments and invs:
-            investments = []
+        if account not in self.investments and invs is not None:
+            self.investments[account] = []
             for inv in invs:
                 i = Investment()
                 i.label = "%s - %s" % (inv['classification'], inv['description'])
@@ -95,9 +95,7 @@ class YomoniBrowser(APIBrowser):
                 i.vdate = Date().filter(inv['datePosition'])
                 i.diff = CleanDecimal().filter(inv['performanceEuro'])
 
-                investments.append(i)
-
-            self.investments[account] = investments
+                self.investments[account].append(i)
         return self.investments[account]
 
     def iter_history(self, account):
