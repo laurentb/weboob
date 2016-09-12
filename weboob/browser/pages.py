@@ -366,6 +366,9 @@ class CsvPage(Page):
             encoding = 'utf-8'
         if self.NEWLINES_HACK:
             content = content.replace('\r\n', '\n').replace('\r', '\n')
+        if encoding == 'latin-1':
+            encoding = 'latin1'
+        encoding = encoding.replace('ISO8859_', 'ISO8859-')
         return self.parse(BytesIO(content), encoding)
 
     def parse(self, data, encoding=None):
