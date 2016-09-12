@@ -248,6 +248,8 @@ class PartHistoryPage(HistoryPage, JsonPage):
             return []
         t = FrenchTransaction(transaction['id'])
         if not transaction['isPrimaryCurrency']:
+            if not 'txnCurrency' in transaction['amounts']:
+                return []
             original_currency = unicode(transaction['amounts']['txnCurrency'])
             if original_currency in self.browser.account_currencies:
                 return []
