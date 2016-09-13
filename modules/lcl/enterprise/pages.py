@@ -26,6 +26,7 @@ from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Env, 
 from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
+from weboob.exceptions import BrowserPasswordExpired
 
 from ..pages import Transaction
 
@@ -109,3 +110,8 @@ class MovementsPage(LoggedPage, HTMLPage):
                 credit = MyDecimal(TableCell('credit'))(self)
                 debit = MyDecimal(TableCell('debit'))(self)
                 return credit if credit else -debit
+
+
+class PassExpiredPage(HTMLPage):
+    def on_load(self):
+        raise BrowserPasswordExpired("Renouvellement de mot de passe requis.")

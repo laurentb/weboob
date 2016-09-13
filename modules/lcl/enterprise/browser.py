@@ -21,12 +21,13 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, MovementsPage
+from .pages import LoginPage, MovementsPage, PassExpiredPage
 
 
 class LCLEnterpriseBrowser(LoginBrowser):
     BASEURL = 'https://entreprises.secure.lcl.fr'
 
+    pass_expired = URL('/outil/IQEN/Authentication/forcerChangePassword', PassExpiredPage)
     login = URL('/indexcle.html',
                 '/outil/IQEN/Authentication/(?P<page>.*)', LoginPage)
     movements = URL('/outil/IQMT/mvt.Synthese/syntheseMouvementPerso',
