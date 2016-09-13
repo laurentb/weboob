@@ -209,3 +209,23 @@ class ArteBrowser(PagesBrowser):
             video.id = id
             return video
         return ArteEmptyVideo()
+
+    def get_arte_creative_categories(self):
+        return self.videos_list.go(site=SITE.CREATIVE.get('id'), lang=self.lang.get('site'),
+                                   cat='').iter_arte_creative_categories()
+
+    def get_arte_creative_videos(self, cat):
+        _cat = cat[-1].replace('^', '/') if cat[-1] != u'accueil' else ''
+        return self.videos_list.go(site=SITE.CREATIVE.get('id'), lang=self.lang.get('site'),
+                                   cat='/%s' % _cat).iter_arte_creative_videos(cat=cat[-1])
+
+    def get_arte_creative_video(self, id, video=None):
+        json_url = self.videos_list.go(_site=SITE.CREATIVE.get('id'), id=id).get_json_url()
+        m = re.search('https://api.arte.tv/api/player/v1/config/(\w{2})/(.*)\?vector=(.*)\&.*', json_url)
+        if m:
+            video = self.webservice.go(__lang=m.group(1),
+                                       vid=m.group(2), ___site=m.group(3)).get_arte_cinema_video(obj=video)
+            video.ext, video.url = self.get_url()
+            video.id = id
+            return video
+        return ArteEmptyVideo()

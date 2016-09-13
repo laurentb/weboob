@@ -111,6 +111,38 @@ class VideosListPage(HTMLPage):
                 return thumbnail
 
     @method
+    class iter_arte_creative_categories(ListElement):
+        item_xpath = '//ul[@class="menu"]/li/a[not(@target)]'
+
+        class item(ItemElement):
+            klass = Collection
+
+            obj_title = CleanText('.', default=u'Accueil')
+            obj_id = CleanText('./@href')
+
+            def obj_split_path(self):
+                _id = Regexp(CleanText('./@href'), '/\w{2}/(.*)', default=u'accueil')(self)
+                return [SITE.CREATIVE.get('id')] + [_id.replace('/', '^')]
+
+    @method
+    class iter_arte_creative_videos(ListElement):
+        item_xpath = '//div[div/i]'
+
+        class item(ItemElement):
+            klass = ArteSiteVideo
+
+            obj__site = SITE.CREATIVE.get('id')
+            obj_id = Format('%s.%s', Field('_site'),
+                            CleanText('./div/h3/a/@href|./div/h1/a/@href'))
+            obj_title = CleanText('./div/h3/a|./div/h1/a')
+
+            def obj_thumbnail(self):
+                url = CleanText('./div/a/img/@src')(self)
+                thumbnail = Thumbnail(url)
+                thumbnail.url = thumbnail.id
+                return thumbnail
+
+    @method
     class iter_arte_cinema_categories(ListElement):
         item_xpath = '//li[has-class("leaf")]'
 
