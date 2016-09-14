@@ -69,18 +69,26 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             class Type(Filter):
                 def filter(self, label):
-                    invest  = ['invest', 'ldd', 'livret a']
+                    invest  = ['invest']
+                    saving = ['ldd', 'livret']
                     account = ['compte', 'account']
                     loan    = ['pret', 'account']
+                    life = ['vie']
                     for inv in invest:
                         if inv in label.lower():
                             return Account.TYPE_MARKET
+                    for acc in saving:
+                        if acc in label.lower():
+                            return Account.TYPE_SAVINGS
                     for acc in account:
                         if acc in label.lower():
                             return Account.TYPE_CHECKING
                     for l in loan:
                         if l in label.lower():
                             return Account.TYPE_LOAN
+                    for l in life:
+                        if l in label.lower():
+                            return Account.TYPE_LIFE_INSURANCE
                     return Account.TYPE_UNKNOWN
 
             obj_label = Label(CleanText('./td[1]/a'))
