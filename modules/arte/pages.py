@@ -127,6 +127,7 @@ class VideosListPage(HTMLPage):
     @method
     class iter_arte_creative_videos(ListElement):
         item_xpath = '//div[div/i]'
+        ignore_duplicate = True
 
         class item(ItemElement):
             klass = ArteSiteVideo
