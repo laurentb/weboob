@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2015 Christophe Lampin
-
+# Copyright(C) 2016      Edouard Lambert
+#
 # This file is part of weboob.
 #
 # weboob is free software: you can redistribute it and/or modify
@@ -17,13 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import CapBank, AccountNotFound
+
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
-from weboob.tools.ordereddict import OrderedDict
+from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.base import find_object
 
-from .browser import Esalia, Capeasi, EREHSBC, BNPPERE
+from .browser import EsaliaBrowser, CapeasiBrowser, ErehsbcBrowser, BnppereBrowser
 
 
 __all__ = ['S2eModule']
@@ -31,46 +31,42 @@ __all__ = ['S2eModule']
 
 class S2eModule(Module, CapBank):
     NAME = 's2e'
-    MAINTAINER = u'Christophe Lampin'
-    EMAIL = 'weboob@lampin.net'
-    VERSION = '1.2'
+    DESCRIPTION = u'Épargne Salariale'
+    MAINTAINER = u'Edouard Lambert'
+    EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = u'Esalia, Capeasi, BNP PERE, HSBC ERE'
+    VERSION = '1.2'
 
-    website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
-        'm.esalia.com':             u'Esalia',                  # Good Url. Tested
-        'mobile.capeasi.com':       u'Capeasi',                 # Good Url. Not fully tested
-        'mobi.ere.hsbc.fr':         u'ERE HSBC',                # Good Url. Tested
-        'smartphone.s2e-net.com':   u'BNPP ERE',                # Good Url. Tested
-        # 'smartphone.s2e-net.com':   u'Groupe Crédit du Nord',  # Mobile version not available yet.
-    }.iteritems(), key=lambda k_v: (k_v[1], k_v[0]))])
+    CONFIG = BackendConfig(
+             ValueBackendPassword('login',    label='Identifiant', masked=False),
+             ValueBackendPassword('password',   label='Code secret', regexp='^(\d{6}|)$'),
+             ValueBackendPassword('secret', label=u'Réponse secrète (optionnel)', default=''),
+             Value('website', label='Banque', default='', choices={'esalia': u'Esalia',
+                                                                   'capeasi': u'Capeasi',
+                                                                   'erehsbc': u'ERE HSBC',
+                                                                   'bnppere': u'BNPP ERE'}))
 
     BROWSERS = {
-        'm.esalia.com':             Esalia,
-        'mobile.capeasi.com':       Capeasi,
-        'mobi.ere.hsbc.fr':         EREHSBC,
-        'smartphone.s2e-net.com':   BNPPERE,
-        # 'smartphone.s2e-net.com':  CreditNord,  # Mobile version not available yet.
+        'esalia':  EsaliaBrowser,
+        'capeasi': CapeasiBrowser,
+        'erehsbc': ErehsbcBrowser,
+        'bnppere': BnppereBrowser,
     }
-
-    CONFIG = BackendConfig(Value('website',  label='Banque', choices=website_choices, default='smartphone.s2e-net.com'),
-                           ValueBackendPassword('login',      label='Identifiant', masked=False),
-                           ValueBackendPassword('password',   label='Code secret', regexp='^(\d{6}|)$'))
 
     def create_default_browser(self):
         self.BROWSER = self.BROWSERS[self.config['website'].get()]
-        return self.create_browser(self.config['website'].get(),
-                                   self.config['login'].get(),
-                                   self.config['password'].get())
-
-    def iter_accounts(self):
-        return self.browser.get_accounts_list()
+        return self.create_browser(self.config['login'].get(),
+                                   self.config['password'].get(),
+                                   secret=self.config['secret'].get())
 
     def get_account(self, _id):
-        return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
+        return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)
 
-    def iter_investment(self, account):
-        return account._investments
+    def iter_accounts(self):
+        return self.browser.iter_accounts()
 
     def iter_history(self, account):
         return self.browser.iter_history(account)
+
+    def iter_investment(self, account):
+        return self.browser.iter_investment(account)

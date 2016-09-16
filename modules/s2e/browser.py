@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2015 Christophe Lampin
+# Copyright(C) 2016      Edouard Lambert
 #
 # This file is part of weboob.
 #
@@ -17,127 +17,87 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime
-from decimal import Decimal
-from dateutil.parser import parse as parse_date
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.browser.profiles import Android
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.capabilities.bank import Account, Transaction, Investment
 
-from .pages import LoginPage, CalcPage, ProfilPage, AccountsPage, HistoryPage, I18nPage
+from .pages import LoginPage, AccountsPage, HistoryPage
 
 
 class S2eBrowser(LoginBrowser):
-    PROFILE = Android()
-    CTCC = ""
-    LANG = "FR"
+    login = URL('/portal/salarie-(?P<slug>\w+)/authentification',
+                '/portal/j_security_check', LoginPage)
+    accounts = URL('/portal/salarie-(?P<slug>\w+)/monepargne/mesavoirs\?language=(?P<lang>)',
+                   '/portal/salarie-(?P<slug>\w+)/monepargne/mesavoirs', AccountsPage)
+    history = URL('/portal/salarie-(?P<slug>\w+)/operations/consulteroperations', HistoryPage)
 
-    sessionId = None
-
-    loginp = URL('/$', LoginPage)
-    calcp = URL('/s2e_services/restServices/calculetteService/grillemdp\?uuid=(?P<uuid>)', CalcPage)
-    profilp = URL('/s2e_services/restServices/authentification/loginS', ProfilPage)
-    accountsp = URL('/s2e_services/restServices/situationCompte', AccountsPage)
-    historyp = URL('/s2e_services/restServices/listeOperation', HistoryPage)
-    i18np = URL('/(?P<lang1>.*)/LANG/(?P<lang2>.*).json', I18nPage)
-
-    def __init__(self, url, username, password, *args, **kwargs):
-        super(S2eBrowser, self).__init__(username, password, *args, **kwargs)
-        self.BASEURL = "https://" + url
+    def __init__(self, *args, **kwargs):
+        self.secret = None
+        if 'secret' in kwargs:
+            self.secret = kwargs['secret']
+            del kwargs['secret']
+        super(S2eBrowser, self).__init__(*args, **kwargs)
+        self.cache = {}
+        self.cache['invs'] = {}
+        self.cache['trs'] = {}
+        self.cache['details'] = {}
 
     def do_login(self):
-        self.logger.debug('call Browser.do_login')
-        self.loginp.stay_or_go()
-        self.sessionId = self.page.login(self.username, self.password)
-        if self.sessionId is None:
-            raise BrowserIncorrectPassword()
+        self.login.go(slug=self.SLUG).login(self.username, self.password, self.secret)
+
+        if self.login.is_here():
+            error = self.page.get_error()
+            raise BrowserIncorrectPassword(error)
 
     @need_login
-    def get_accounts_list(self):
-        data = {'clang': self.LANG,
-                'ctcc': self.CTCC,
-                'login': self.username,
-                'session': self.sessionId}
+    def iter_accounts(self):
+        if 'accs' not in self.cache.keys():
+            self.accounts.stay_or_go(slug=self.SLUG, lang=self.LANG)
+            self.cache['accs'] = [a for a in self.page.iter_accounts()]
+        return self.cache['accs']
 
-        for dispositif in self.accountsp.go(data=data).get_list():
-            if dispositif['montantBrutDispositif'] == 0:
-                continue
-
-            a = Account()
-            a.id = dispositif['codeDispositif']
-            a.type = Account.TYPE_MARKET
-            a.balance = Decimal(dispositif["montantBrutDispositif"]).quantize(Decimal('.01'))
-            a.label = dispositif['titreDispositif']
-            a.currency = u"EUR"  # Don't find any possbility to get that from configuration.
-            a._investments = []
-            for fund in dispositif['listeFonds']:
-                if fund['montantValeurEuro'] == 0:
-                    continue
-
-                i = Investment()
-                i.id = i.code = dispositif['codeEntreprise'] + dispositif["codeDispositif"] + fund["codeSupport"]
-                i.label = fund['libelleSupport']
-                i.unitvalue = Decimal(fund["montantValeur"]).quantize(Decimal('.01'))
-                i.valuation = Decimal(fund["montantValeurEuro"]).quantize(Decimal('.01'))
-                i.quantity = i.valuation / i.unitvalue
-                i.vdate = parse_date(fund['dateValeur'], dayfirst=True)
-                a._investments.append(i)
-            yield a
+    @need_login
+    def iter_investment(self, account):
+        if account.id not in self.cache['invs']:
+            self.accounts.stay_or_go(slug=self.SLUG)
+            # Select account
+            self.page.get_investment_pages(account.id)
+            invs = [i for i in self.page.iter_investment()]
+            # Get page with quantity
+            self.page.get_investment_pages(account.id, False)
+            self.cache['invs'][account.id] = self.page.update_quantity(invs)
+        return self.cache['invs'][account.id]
 
     @need_login
     def iter_history(self, account):
-        # Load i18n for type translation
-        self.i18np.go(lang1=self.LANG, lang2=self.LANG).load_i18n()
-
-        # For now detail for each account is not available. History is global for all accounts and very simplist
-        data = {'clang': self.LANG,
-                'ctcc': self.CTCC,
-                'login': self.username,
-                'session': self.sessionId}
-
-        for trans in self.historyp.go(data=data).get_transactions():
-            t = Transaction()
-            t.date = datetime.strptime(trans["dateHeureSaisie"], "%d/%m/%Y")
-            t.rdate = datetime.strptime(trans["dateHeureSaisie"], "%d/%m/%Y")
-            t.type = Transaction.TYPE_DEPOSIT if trans["montantNetEuro"] > 0 else Transaction.TYPE_PAYBACK
-            t.raw = trans["typeOperation"]
-            try:
-                t.label = self.i18n["OPERATION_TYPE_" + trans["casDeGestion"]]
-            except KeyError:
-                t.label = self.i18n["OPERATION_TYPE_TOTAL_" + trans["casDeGestion"]]
-            t.amount = Decimal(trans["montantNetEuro"]).quantize(Decimal('.01'))
-            yield t
+        if account.id not in self.cache['trs']:
+            self.history.stay_or_go(slug=self.SLUG).show_more("50")
+            trs = [t for t in self.page.iter_history(accid=account.id)]
+            self.cache['trs'][account.id] = trs
+            # Go back to first page
+            self.page.go_start()
+        return self.cache['trs'][account.id]
 
 
-class Esalia(S2eBrowser):
-    CTCC = "SG"
-    loginp = URL('/Esalia/$', LoginPage)
-    i18np = URL('/Esalia/SG/(?P<lang1>.*)/LANG/(?P<lang2>.*).json', I18nPage)
+class EsaliaBrowser(S2eBrowser):
+    BASEURL = 'https://salaries.esalia.com'
+    SLUG = 'sg'
+    LANG = 'fr' # ['fr', 'en']
 
 
-class Capeasi(S2eBrowser):
-    CTCC = "AXA"
-    loginp = URL('/$', LoginPage)
-    i18np = URL('/AXA/(?P<lang1>.*)/LANG/(?P<lang2>.*).json', I18nPage)
+class CapeasiBrowser(S2eBrowser):
+    BASEURL = 'https://www.capeasi.com'
+    SLUG = 'axa'
+    LANG = 'fr' # ['fr', 'en']
 
 
-class EREHSBC(S2eBrowser):
-    CTCC = "HSBC"
-    loginp = URL('/ERE-HSBC/$', LoginPage)
-    i18np = URL('/ERE-HSBC/HSBC/(?P<lang1>.*)/LANG/(?P<lang2>.*).json', I18nPage)
+class ErehsbcBrowser(S2eBrowser):
+    BASEURL = 'https://epargnant.ere.hsbc.fr'
+    SLUG = 'hsbc'
+    LANG = 'fr' # ['fr', 'en']
 
 
-class CreditNord(S2eBrowser):
-    CTCC = ""   # FIXME : Not Available Yet
-    loginp = URL('//$', LoginPage)
-    # Hack : Lang.json of BNPERE is only available in app. Get it from Esalia
-    i18np = URL('https://m.esalia.com/Esalia/SG/(?P<lang1>.*)/LANG/(?P<lang2>.*).json', I18nPage)
-
-
-class BNPPERE(S2eBrowser):
-    CTCC = "BNP"
-    loginp = URL('/$', LoginPage)
-    # Hack : Lang.json of BNPERE is only available in app. Get it from Esalia
-    i18np = URL('https://m.esalia.com/Esalia/SG/(?P<lang1>.*)/LANG/(?P<lang2>.*).json', I18nPage)
+class BnppereBrowser(S2eBrowser):
+    BASEURL = 'https://personeo.epargne-retraite-entreprises.bnpparibas.com'
+    SLUG = 'bnp'
+    LANG = 'fr' # ['fr', 'en']
