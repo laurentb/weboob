@@ -44,7 +44,7 @@ class CmsoParBrowser(LoginBrowser):
         self.BASEURL = "https://mon.%s" % website
         self.name = website.split('.')[0]
         self.website = website
-        arkea = {'cmso.com': "03", 'cmb.fr': "01"}
+        arkea = {'cmso.com': "03", 'cmb.fr': "01", 'cmmc.fr': '02'}
         self.arkea = arkea[website]
         self.logged = False
 
