@@ -49,10 +49,14 @@ class InfosPage(LoggedPage, HTMLPage):
 
 
 class AccountsPage(LoggedPage, JsonPage):
-    TYPES = {'courant': Account.TYPE_CHECKING, 'preference': Account.TYPE_LOAN, 'vie': \
-            Account.TYPE_LIFE_INSURANCE, 'actions': Account.TYPE_MARKET, 'titres': \
-            Account.TYPE_MARKET, 'livret': Account.TYPE_SAVINGS, 'epargne logement': \
-            Account.TYPE_SAVINGS}
+    TYPES = {'courant':             Account.TYPE_CHECKING,
+             'preference':          Account.TYPE_LOAN,
+             'vie':                 Account.TYPE_LIFE_INSURANCE,
+             'actions':             Account.TYPE_MARKET,
+             'titres':              Account.TYPE_MARKET,
+             'livret':              Account.TYPE_SAVINGS,
+             'epargne logement':    Account.TYPE_SAVINGS
+            }
 
     def get_keys(self):
         return [k for k, v in self.doc.items() if v and isinstance(v, (dict, list)) and "exception" not in self.doc]
@@ -117,6 +121,7 @@ class AccountsPage(LoggedPage, JsonPage):
 
             obj_label = Upper(Dict('libelleContrat'))
             obj_balance = CleanDecimal(Dict('solde', default="0"))
+            obj_currency = u'EUR'
             obj_coming = CleanDecimal(Dict('AVenir', default=None), default=NotAvailable)
             obj__index = Dict('index')
 
@@ -132,6 +137,20 @@ class AccountsPage(LoggedPage, JsonPage):
                     if key in Dict('libelleContrat')(self).lower():
                         return self.page.TYPES[key]
                 return Account.TYPE_UNKNOWN
+
+    @method
+    class iter_loans(DictElement):
+        def parse(self, el):
+            self.item_xpath = "%s/*/lstPret/*" % Env('key')(self)
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_id = Dict('identifiantTechnique')
+            obj_label = Dict('libelle')
+            obj_balance = CleanDecimal(Format("-%s", Dict('montantRestant')))
+            obj_currency = u'EUR'
+            obj_type = Account.TYPE_LOAN
 
 
 class Transaction(FrenchTransaction):

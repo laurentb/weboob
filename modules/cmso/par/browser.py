@@ -33,6 +33,7 @@ class CmsoParBrowser(LoginBrowser):
     infos = URL('/comptes/', InfosPage)
     accounts = URL('/domiapi/oauth/json/accounts/synthese(?P<type>.*)', AccountsPage)
     history = URL('/domiapi/oauth/json/accounts/(?P<page>.*)', HistoryPage)
+    loans = URL('/creditapi/rest/oauth/v1/synthese', AccountsPage)
     lifeinsurance = URL('/assuranceapi/v1/oauth/sso/suravenir/DETAIL_ASSURANCE_VIE/(?P<accid>.*)',
                         'https://domiweb.suravenir.fr/', LifeinsurancePage)
     market = URL('/domiapi/oauth/json/ssoDomifronttitre',
@@ -83,10 +84,15 @@ class CmsoParBrowser(LoginBrowser):
         for key in self.page.get_keys():
             for a in self.page.iter_accounts(key=key):
                 yield a
-        # Then, get saving accounts
+        # Next, get saving accounts
         numbers = self.page.get_numbers()
         for key in self.accounts.go(data=json.dumps({}), type="epargne").get_keys():
             for a in self.page.iter_products(key=key, numbers=numbers):
+                yield a
+
+        # Then, get loans
+        for key in self.loans.go().get_keys():
+            for a in self.page.iter_loans(key=key):
                 yield a
 
     @need_login
