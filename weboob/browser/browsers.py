@@ -555,7 +555,7 @@ class DomainBrowser(Browser):
 
     def open(self, req, *args, **kwargs):
         """
-        Like :meth:`Browser.open` but hanldes urls without domains, using
+        Like :meth:`Browser.open` but handles urls without domains, using
         the :attr:`BASEURL` attribute.
         """
         uri = req.url if isinstance(req, requests.Request) else req
