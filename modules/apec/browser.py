@@ -55,7 +55,7 @@ class ApecBrowser(PagesBrowser):
         return '{"activeFiltre":true,"motsCles":"%s","fonctions":%s,"lieux":%s,"pointGeolocDeReference":{},"secteursActivite":%s,"typesContrat":%s,"typesConvention":%s,"niveauxExperience":%s%s%s%s,"sorts":[{"type":"SCORE","direction":"DESCENDING"}],"pagination":{"startIndex":%s,"range":%s},"typeClient":"CADRE"}' % (pattern, fonctions, lieux, secteursActivite, typesContrat, typesConvention, niveauxExperience, salaire_min, salaire_max, date_publication, start, range)
 
     def search_job(self, pattern=None):
-        data = self.create_parameters(pattern=pattern)
+        data = self.create_parameters(pattern=pattern).encode('utf-8')
         return self.get_job_adverts(data, pattern=pattern)
 
     def get_job_adverts(self, data, pattern='', lieux='', fonctions='', secteursActivite='', salaire_min='',
