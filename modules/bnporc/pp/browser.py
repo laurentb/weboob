@@ -77,6 +77,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
                         '/fr/connexion/mot-de-passe-expire',
                         '/fr/espace-prive/100-connexions.*',
                         '/fr/espace-pro/100-connexions-pro.*',
+                        '/fr/espace-pro/changer-son-mot-de-passe',
                         '/fr/espace-client/100-connexions',
                         '/fr/espace-prive/mot-de-passe-expire',
                         '/fr/systeme/page-indisponible', ConnectionThresholdPage)
