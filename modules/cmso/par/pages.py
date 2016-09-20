@@ -141,17 +141,21 @@ class AccountsPage(LoggedPage, JsonPage):
     @method
     class iter_loans(DictElement):
         def parse(self, el):
-            self.item_xpath = "%s/*/lstPret/*" % Env('key')(self)
+            self.item_xpath = "%s/*" % Env('key')(self)
+            if "Pret" in Env('key')(self):
+                self.item_xpath = "%s/lstPret/*" % self.item_xpath
 
         class item(ItemElement):
             klass = Account
 
             obj_id = Dict('identifiantTechnique')
             obj_label = Dict('libelle')
-            obj_balance = CleanDecimal(Format("-%s", Dict('montantRestant')))
             obj_currency = u'EUR'
             obj_type = Account.TYPE_LOAN
 
+            def obj_balance(self):
+                return CleanDecimal().filter("-%s" % \
+                    (Dict('montantRestant', default=None)(self) or Dict('montantDisponible')(self)))
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(u'^(?P<text>CARTE.*)'),  FrenchTransaction.TYPE_CARD),
