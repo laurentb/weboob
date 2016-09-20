@@ -29,8 +29,7 @@ class OrangeBillBrowser(LoginBrowser):
     loginpage = URL('https://id.orange.fr/auth_user/bin/auth_user.cgi', LoginPage)
     profilpage = URL('https://espaceclientv3.orange.fr/\?page=profil-infosPerso',
                      'https://espaceclientv3.orange.fr/ajax.php', ProfilPage)
-    billspage = URL('https://espaceclientv3.orange.fr/\?cont=ECO',
-                    'https://m.espaceclientv3.orange.fr/\?page=factures-archives',
+    billspage = URL('https://m.espaceclientv3.orange.fr/\?page=factures-archives',
                     'https://.*.espaceclientv3.orange.fr/\?page=factures-archives',
                     'https://espaceclientv3.orange.fr/\?page=factures-archives',
                     'https://espaceclientv3.orange.fr/\?page=facture-telecharger',
