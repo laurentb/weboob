@@ -132,7 +132,7 @@ class RibPage(LoggedPage, HTMLPage):
     def get_rib(self, accounts):
         self.link_rib(accounts)
         for nb in range(len(self.doc.xpath('//select/option')) -1):
-            form = self.get_form()
+            form = self.get_form(name="FORM_RIB")
             form['index_rib'] = str(nb+1)
             form.submit()
             self.browser.page.link_rib(accounts)
