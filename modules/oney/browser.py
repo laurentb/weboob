@@ -29,7 +29,6 @@ __all__ = ['OneyBrowser']
 
 class OneyBrowser(LoginBrowser):
     BASEURL = 'https://www.oney.fr'
-    VERIFY = False
 
     index =      URL(r'/oney/client', IndexPage)
     login =      URL(r'/site/s/login/login.html', LoginPage)
