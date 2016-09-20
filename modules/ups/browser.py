@@ -28,12 +28,12 @@ __all__ = ['UpsBrowser']
 
 
 class UpsBrowser(Browser):
-    PROTOCOL = 'http'
+    PROTOCOL = 'https'
     DOMAIN = 'wwwapps.ups.com'
     ENCODING = None
 
     PAGES = {
-        'http://wwwapps.ups.com/WebTracking/track':  TrackPage,
+        'https://wwwapps.ups.com/WebTracking/track':  TrackPage,
     }
 
     def get_tracking_info(self, _id):
@@ -43,7 +43,7 @@ class UpsBrowser(Browser):
                 'track.x':              'Track',
                 'trackNums':            _id.encode('utf-8'),
                }
-        self.location('http://wwwapps.ups.com/WebTracking/track', urllib.urlencode(data))
+        self.location('https://wwwapps.ups.com/WebTracking/track', urllib.urlencode(data))
         assert self.is_on_page(TrackPage)
 
         return self.page.get_info(_id)
