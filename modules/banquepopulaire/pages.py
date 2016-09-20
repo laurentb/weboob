@@ -641,7 +641,7 @@ class TransactionsPage(BasePage):
             t.raw = re.sub('solde en valeur : .*', '', t.raw)
 
             # XXX Fucking hack to include the check number not displayed in the full label.
-            if re.match("^CHEQUE ", t.label):
+            if re.match("^CHEQUE |^CHQ VOTRE CHEQUE", t.label):
                 t.raw = '%s No: %s' % (t.raw, self.parser.tocleanstring(tds[self.COL_REF]))
 
             # In rare cases, label is empty ..
