@@ -56,7 +56,7 @@ class AXABanque(LoginBrowser):
     investment_cgu = URL('https://client.axa.fr/_layouts/nosi/CGUPage.aspx', InvestmentCguPage)
     investment = URL('https://client.axa.fr/mes-comptes-et-contrats/Pages/(?P<page>.*)',
                      'https://client.axa.fr/_layouts/NOSI/LoadProfile.aspx',
-                     'https://consultations.agipi.com', InvestmentPage)
+                     'https://connexion.adis-assurances.com', InvestmentPage)
 
     def __init__(self, *args, **kwargs):
         super(AXABanque, self).__init__(*args, **kwargs)
