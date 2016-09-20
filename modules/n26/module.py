@@ -29,7 +29,7 @@ __all__ = ['Number26Module']
 
 class Number26Module(Module, CapBank):
     NAME = 'n26'
-    DESCRIPTION = u'German online bank N26'
+    DESCRIPTION = u'Bank N26'
     MAINTAINER = u'Benjamin Bouvier'
     EMAIL = 'public+weboob@benj.me'
     LICENSE = 'AGPLv3+'
@@ -54,61 +54,13 @@ class Number26Module(Module, CapBank):
     def create_default_browser(self):
         return Number26Browser(self.config['login'].get(), self.config['password'].get())
 
-    def iter_accounts(self):
-        """
-        Iter accounts.
-
-        :rtype: iter[:class:`Account`]
-        """
-        return self.browser.get_accounts()
-
-    def _restrict_level(self, split_path, lmax=0):
-        pass
-
-    def get_account(self, _id):
-        """
-        Get an account from its ID.
-
-        :param id: ID of the account
-        :type id: :class:`str`
-        :rtype: :class:`Account`
-        :raises: :class:`AccountNotFound`
-        """
-        return self.browser.get_account(_id)
-
-    def iter_coming(self, account):
-        """
-        Iter coming transactions on a specific account.
-
-        :param account: account to get coming transactions
-        :type account: :class:`Account`
-        :rtype: iter[:class:`Transaction`]
-        :raises: :class:`AccountNotFound`
-        """
-
-        categories = self.get_categories()
-        return self.browser.get_coming(categories)
+    def get_account(self, id):
+        return self.browser.get_account(id)
 
     def iter_history(self, account):
-        """
-        Iter history of transactions on a specific account.
-
-        :param account: account to get history
-        :type account: :class:`Account`
-        :rtype: iter[:class:`Transaction`]
-        :raises: :class:`AccountNotFound`
-        """
-
         categories = self.get_categories()
         return self.browser.get_transactions(categories)
 
-    def iter_investment(self, account):
-        """
-        Iter investment of a market account
-
-        :param account: account to get investments
-        :type account: :class:`Account`
-        :rtype: iter[:class:`Investment`]
-        :raises: :class:`AccountNotFound`
-        """
-        raise NotImplementedError()
+    def iter_coming(self, account):
+        categories = self.get_categories()
+        return self.browser.get_coming(categories)
