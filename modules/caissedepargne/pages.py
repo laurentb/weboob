@@ -26,7 +26,7 @@ import re
 
 from weboob.deprecated.mech import ClientForm
 from weboob.tools.ordereddict import OrderedDict
-from weboob.deprecated.browser import Page, BrokenPageError, BrowserUnavailable, BrowserIncorrectPassword
+from weboob.deprecated.browser import Page, BrokenPageError, BrowserUnavailable
 from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
@@ -52,7 +52,7 @@ class MessagePage(GarbagePage):
 class _LogoutPage(Page):
     def on_loaded(self):
         try:
-            raise BrowserIncorrectPassword(self.parser.tocleanstring(self.parser.select(self.document.getroot(), '.messErreur', 1)))
+            raise BrowserUnavailable(self.parser.tocleanstring(self.parser.select(self.document.getroot(), '.messErreur', 1)))
         except BrokenPageError:
             pass
 

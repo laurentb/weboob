@@ -22,7 +22,7 @@ import json
 import mechanize
 from urlparse import urlsplit
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account
 from weboob.browser.exceptions import BrowserHTTPNotFound
 
@@ -82,7 +82,7 @@ class CaisseEpargne(Browser):
         try:
             data = json.loads(response.get_data())
         except ValueError:
-            raise BrowserIncorrectPassword()
+            raise BrowserIncorrectPassword('Mot de passe incorrect')
         # In case there are multiple spaces, currently choose by default the
         # personal one.
         if len(data['account']) > 1:
@@ -101,9 +101,9 @@ class CaisseEpargne(Browser):
         try:
             error = json.loads(response.get_data())['codeError']
             if error is not None:
-                raise BrowserIncorrectPassword(error)
+                raise BrowserUnavailable(error)
         except ValueError:
-            raise BrowserIncorrectPassword()
+            raise BrowserUnavailable()
         except KeyError:
             pass
         v = urlsplit(response.geturl())
@@ -111,10 +111,10 @@ class CaisseEpargne(Browser):
         try:
             self.location('/Portail.aspx')
         except BrowserHTTPNotFound:
-            raise BrowserIncorrectPassword()
+            raise BrowserIncorrectPassword('Identifiant incorrect')
 
         if not self.is_logged():
-            raise BrowserIncorrectPassword()
+            raise BrowserUnavailable()
 
     def get_accounts_list(self):
         if self.is_on_page(IndexPage):
