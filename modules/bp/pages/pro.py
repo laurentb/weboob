@@ -64,6 +64,8 @@ class ProAccountsList(Page):
                 a.label = unicode(link.attrib['title'].replace('%s ' % a.id, ''))
                 tmp_balance = self.parser.tocleanstring(cols[1])
                 a.currency = a.get_currency(tmp_balance)
+                if not a.currency:
+                    a.currency = u'EUR'
                 a.balance = Decimal(Transaction.clean_amount(tmp_balance))
                 a._card_links = []
                 a._link_id = link.attrib['href']

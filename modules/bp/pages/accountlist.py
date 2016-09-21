@@ -69,6 +69,8 @@ class AccountList(Page):
 
             account.id = tmp_id
             account.currency = account.get_currency(tmp_balance)
+            if not account.currency:
+                account.currency = u'EUR'
             account.balance = Decimal(FrenchTransaction.clean_amount(tmp_balance))
 
             if account.id in self.accounts:
