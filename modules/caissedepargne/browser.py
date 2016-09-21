@@ -54,6 +54,8 @@ class CaisseEpargne(Browser):
             }
 
     def __init__(self, nuser, *args, **kwargs):
+        self.multi_type = False
+        self.typeAccount = 'WE'
         self.nuser = nuser
         self.DOMAIN = kwargs.pop('domain', self.DOMAIN)
         Browser.__init__(self, *args, **kwargs)
@@ -78,6 +80,11 @@ class CaisseEpargne(Browser):
         if self.is_logged():
             return
 
+        # Reset domain to log on pro website if first login attempt failed on personal website.
+        if self.multi_type:
+            self.DOMAIN = 'www.caisse-epargne.fr'
+            self.typeAccount = 'WP'
+
         response = self.openurl('/authentification/manage?step=identification&identifiant=%s' % self.username)
         try:
             data = json.loads(response.get_data())
@@ -86,8 +93,8 @@ class CaisseEpargne(Browser):
         # In case there are multiple spaces, currently choose by default the
         # personal one.
         if len(data['account']) > 1:
-            typeAccount = 'WE'
-            response = self.openurl('/authentification/manage?step=account&identifiant=%s&account=WE' % self.username)
+            self.multi_type = True
+            response = self.openurl('/authentification/manage?step=account&identifiant=%s&account=%s' % (self.username, self.typeAccount))
             data = json.loads(response.get_data())
 
         typeAccount = data['account'][0]
@@ -109,7 +116,7 @@ class CaisseEpargne(Browser):
         v = urlsplit(response.geturl())
         self.DOMAIN = v.netloc
         try:
-            self.location('/Portail.aspx')
+            self.location('/Portail.aspx', nologin=self.multi_type)
         except BrowserHTTPNotFound:
             raise BrowserIncorrectPassword('Identifiant incorrect')
 
