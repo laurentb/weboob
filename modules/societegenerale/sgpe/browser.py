@@ -20,6 +20,7 @@
 
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.url import URL
+from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import LoginPage, ErrorPage, AccountsPage, CardsPage, HistoryPage, CardHistoryPage, OrderPage, AccountsListPage
@@ -51,7 +52,10 @@ class SGPEBrowser(LoginBrowser):
 
         self.login.stay_or_go()
         self.session.cookies.set('PILOTE_OOBA', 'true')
-        self.page.login(self.username, self.password)
+        try:
+            self.page.login(self.username, self.password)
+        except ClientError:
+            raise BrowserIncorrectPassword()
 
         # force page change
         if not self.accounts.is_here():
