@@ -221,7 +221,7 @@ class HistoryPage(LoggedPage, HTMLPage):
         col_scheme = [u'Scheme', u'Dispositif']
         col_label = [re.compile(u'Investment'), re.compile(u'Support')]
         col_quantity = [re.compile(u'Quantity'), re.compile(u'Quantité')]
-        col_valuation = [u'Gross amount', u'Net amount', u'Montant brut', u'Montant Net']
+        col_valuation = [u'Gross amount', u'Net amount', re.compile(u'Montant brut'), u'Montant Net']
 
         class item(ItemInvestment):
             def obj_quantity(self):
