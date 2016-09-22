@@ -52,7 +52,7 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
         'franceculture': {u'title': u'France Culture',
                           u'player': u'',
                           u'live': u'programmes?xmlHttpRequest=1',
-                          u'podcast': u'autocomplete/emissions.json',
+                          u'podcast': u'programmes?xmlHttpRequest=1',
                           u'selection': u''},
         'franceinfo': {u'title': u'France Info',
                        u'player': u'player',

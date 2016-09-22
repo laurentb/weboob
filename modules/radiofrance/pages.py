@@ -213,13 +213,16 @@ class JsonPage(JsonPage):
         class item(ItemElement):
             klass = Collection
 
+            def condition(self):
+                return Dict('conceptLink')(self) != ''
+
             def obj_split_path(self):
-                _id = Regexp(Dict('href'), 'emissions/(.*)')(self)
+                _id = Regexp(Dict('conceptLink'), '/emissions/(.*)')(self)
                 self.env['split_path'].append(_id)
                 return self.env['split_path']
 
-            obj_id = Regexp(Dict('href'), 'emissions/(.*)')
-            obj_title = Format('%s (%s)', Dict('name'), Dict('production'))
+            obj_id = Regexp(Dict('conceptLink'), '/emissions/(.*)')
+            obj_title = Dict('conceptTitle')
 
     def get_culture_inter_current(self):
         for item in self.doc:
