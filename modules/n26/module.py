@@ -65,7 +65,7 @@ class Number26Module(Module, CapBank):
     def _restrict_level(self, split_path, lmax=0):
         pass
 
-    def get_account(self, id):
+    def get_account(self, _id):
         """
         Get an account from its ID.
 
@@ -85,8 +85,9 @@ class Number26Module(Module, CapBank):
         :rtype: iter[:class:`Transaction`]
         :raises: :class:`AccountNotFound`
         """
-        print "ITER_COMING"
-        raise NotImplementedError()
+
+        categories = self.get_categories()
+        return self.browser.get_coming(categories)
 
     def iter_history(self, account):
         """
@@ -99,9 +100,7 @@ class Number26Module(Module, CapBank):
         """
 
         categories = self.get_categories()
-        transactions = self.browser.get_transactions(categories)
-
-        return transactions
+        return self.browser.get_transactions(categories)
 
     def iter_investment(self, account):
         """
@@ -112,5 +111,4 @@ class Number26Module(Module, CapBank):
         :rtype: iter[:class:`Investment`]
         :raises: :class:`AccountNotFound`
         """
-        print "ITER_INVESTMENT"
         raise NotImplementedError()

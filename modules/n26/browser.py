@@ -18,7 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser.browsers import DomainBrowser
-from weboob.capabilities.bank import Account, Transaction
+from weboob.capabilities.base import find_object
+from weboob.capabilities.bank import Account, AccountNotFound, Transaction
+
+from decimal import Decimal
 
 from datetime import datetime
 
@@ -34,8 +37,8 @@ class Number26Browser(DomainBrowser):
 
     def request(self, *args, **kwargs):
         """
-        The `request` method makes it more convenient to add the bearer
-        token and convert the result body back to JSON.
+        Makes it more convenient to add the bearer token and convert the result
+        body back to JSON.
         """
         kwargs.setdefault('headers', {})['Authorization'] = self.auth_method + ' ' + self.bearer
         return self.open(*args, **kwargs).json()
@@ -66,7 +69,7 @@ class Number26Browser(DomainBrowser):
         a.label = u'Checking account'
 
         a.id = account["id"]
-        a.balance = account["availableBalance"]
+        a.balance = Decimal(account["availableBalance"])
         a.iban = account["iban"]
 
         return [a]
@@ -87,18 +90,31 @@ class Number26Browser(DomainBrowser):
 
         return cmap
 
+    @staticmethod
+    def is_past_transaction(t):
+        return "userAccepted" in t or "confirmed" in t
+
     def get_transactions(self, categories):
+        return self._internal_get_transactions(categories, Number26Browser.is_past_transaction)
+
+    def get_coming(self, categories):
+        filter = lambda x: not Number26Browser.is_past_transaction(x)
+        return self._internal_get_transactions(categories, filter)
+
+    def _internal_get_transactions(self, categories, filter_func):
         transactions = self.request('/api/smrt/transactions?limit=1000')
 
-        ret = []
-
         for t in transactions:
+
+            if not filter_func(t):
+                continue
+
             new = Transaction()
 
             new.date = datetime.fromtimestamp(t["visibleTS"] / 1000)
             new.rdate = datetime.fromtimestamp(t["createdTS"] / 1000)
 
-            new.amount = t["amount"]
+            new.amount = Decimal(t["amount"])
 
             if "merchantName" in t:
                 new.raw = new.label = t["merchantName"]
@@ -111,7 +127,7 @@ class Number26Browser(DomainBrowser):
             if "originalCurrency" in t:
                 new.original_currency = t["originalCurrency"]
             if "originalAmount"in t:
-                new.original_amount = t["originalAmount"]
+                new.original_amount = Decimal(t["originalAmount"])
 
             if t["type"] == 'PT':
                 new.type = Transaction.TYPE_CARD
@@ -121,6 +137,4 @@ class Number26Browser(DomainBrowser):
             if t["category"] in categories:
                 new.category = categories[t["category"]]
 
-            ret.append(new)
-
-        return ret
+            yield new
