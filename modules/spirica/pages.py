@@ -21,9 +21,9 @@
 import re
 
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.elements import ItemElement, TableElement, SkipItem, method
+from weboob.browser.elements import ItemElement, TableElement, method
 from weboob.browser.filters.standard import CleanText, Date, Regexp, CleanDecimal, \
-                                            Env, TableCell, Field, Async, AsyncLoad, Eval
+                                            TableCell, Field, Async, AsyncLoad, Eval
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
@@ -47,6 +47,9 @@ class LoginPage(HTMLPage):
         form['loginForm:password'] = password
         form['loginForm:login'] = "loginForm:login"
         form.submit()
+
+    def get_error(self):
+        return CleanText('//li[@class="erreurBox"]')(self.doc)
 
 
 class AccountsPage(LoggedPage, HTMLPage):
@@ -78,6 +81,43 @@ class AccountsPage(LoggedPage, HTMLPage):
                     "Option fiscale")]/following-sibling::td', default="Unknown"))(self)]
 
 
+class TableInvestment(TableElement):
+    col_label = u'Support'
+    col_vdate = u'Date de valeur'
+    col_unitvalue = u'Valeur de part'
+    col_quantity = u'Nombre de parts'
+    col_portfolio_share = u'%'
+
+
+class ItemInvestment(ItemElement):
+    klass = Investment
+
+    obj_label = CleanText(TableCell('label'))
+    obj_quantity = MyDecimal(TableCell('quantity', default=None))
+    obj_unitvalue = MyDecimal(TableCell('unitvalue', default=None))
+    obj_vdate = Date(CleanText(TableCell('vdate', default="")), dayfirst=True, default=NotAvailable)
+
+    def obj_valuation(self):
+        valuation = MyDecimal(TableCell('valuation', default=None))(self)
+        h2 = CleanText('./ancestor::div[contains(@id, "Histo")][1]/preceding-sibling::h2[1]')(self)
+        return -valuation if valuation and any(word in h2.lower() for word in self.page.DEBIT_WORDS) else valuation
+
+    def obj_portfolio_share(self):
+        ps = MyDecimal(TableCell('portfolio_share', default=None))(self)
+        return Eval(lambda x: x / 100, ps)(self) if ps else NotAvailable
+
+
+class TableTransactionsInvestment(TableInvestment):
+    item_xpath = './tbody/tr'
+    head_xpath = './thead/tr/th'
+
+    col_code = u'ISIN'
+    col_valuation = [u'Montant brut', u'Montant net']
+
+    class item(ItemInvestment):
+        obj_code = Regexp(CleanText(TableCell('code')), pattern='([A-Z]{2}\d{10})', default=NotAvailable)
+
+
 class DetailsPage(LoggedPage, HTMLPage):
     DEBIT_WORDS = [u'arrêté', 'rachat', 'frais', u'désinvestir']
 
@@ -90,27 +130,14 @@ class DetailsPage(LoggedPage, HTMLPage):
         return form
 
     @method
-    class iter_investment(TableElement):
+    class iter_investment(TableInvestment):
         item_xpath = '//div[contains(@id, "INVESTISSEMENT")]//table/tbody/tr[@data-ri]'
         head_xpath = '//div[contains(@id, "INVESTISSEMENT")]//table/thead/tr/th'
 
-        col_label = u'Support'
-        col_vdate = u'Date de valeur'
-        col_unitvalue = u'Valeur de part'
-        col_quantity = u'Nombre de parts'
         col_valuation = re.compile('Contre')
-        col_portfolio_share = u'%'
 
-        class item(ItemElement):
-            klass = Investment
-
-            obj_label = CleanText(TableCell('label'))
+        class item(ItemInvestment):
             obj_code = Regexp(CleanText('.//td[contains(text(), "Isin")]'), ':[\s]+([\w]+)', default=NotAvailable)
-            obj_quantity = MyDecimal(TableCell('quantity'))
-            obj_unitvalue = MyDecimal(TableCell('unitvalue'))
-            obj_valuation = MyDecimal(TableCell('valuation'))
-            obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
-            obj_portfolio_share = Eval(lambda x: x / 100, MyDecimal(TableCell('portfolio_share')))
 
             def obj_unitprice(self):
                 return MyDecimal('//div[contains(@id, "PRIX_REVIENT")]//a[contains(text(), \
@@ -149,36 +176,6 @@ class DetailsPage(LoggedPage, HTMLPage):
             form['ongletHistoOperations:newoperations_expandedRowIndex'] = data
             yield form
 
-    def get_investments(self, el, xpath='.'):
-        # Get all positions of th
-        positions = {}
-        keys = {'isin': 'code', 'support': 'label', 'supports': 'label', 'nombre de parts': 'quantity', 'valeur de part': \
-                'unitvalue', 'montant brut': 'valuation', 'date de valeur': 'vdate', '%': 'portfolio_share'}
-        for position, th in enumerate(el.xpath("%s//thead//th" % xpath)):
-            key = CleanText().filter(th.xpath('.')).lower()
-            if key in keys:
-                positions[keys[key]] = position + 1
-
-        investments = []
-        for tr in el.xpath("%s//tbody/tr[@data-ri]" % xpath):
-            i = Investment()
-            i.label = CleanText().filter(tr.xpath('./td[%s]' % positions['label'])) \
-                if "label"  in positions else NotAvailable
-            i.code = Regexp(CleanText('./td[%s]' % positions['code']), pattern='([A-Z]{2}\d{10})', default=NotAvailable)(tr)
-            i.quantity = MyDecimal().filter(tr.xpath('./td[%s]' % positions['quantity'])) \
-                if "quantity"  in positions else NotAvailable
-            i.unitvalue = MyDecimal().filter(tr.xpath('./td[%s]' % positions['unitvalue'])) \
-                if "unitvalue"  in positions else NotAvailable
-            i.valuation = MyDecimal().filter(tr.xpath('./td[%s]' % positions['valuation'])) \
-                if "valuation"  in positions else NotAvailable
-            i.vdate = Date(CleanText('./td[%s]' % positions['vdate']), dayfirst=True, default=NotAvailable)(tr) \
-                if "vdate"  in positions else NotAvailable
-            i.portfolio_share = Eval(lambda x: x / 100).filter([MyDecimal().filter(tr.xpath('./td[%s]' % positions['portfolio_share']))]) \
-                if "portfolio_share"  in positions else NotAvailable
-            investments.append(i)
-
-        return investments
-
     @method
     class iter_history(TableElement):
         item_xpath = '//table/tbody[@id and not(contains(@id, "j_idt"))]/tr[@data-ri]'
@@ -197,7 +194,6 @@ class DetailsPage(LoggedPage, HTMLPage):
             obj_label = CleanText(TableCell('label'))
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
             obj_type = Transaction.TYPE_BANK
-            obj_investments = Env('investments')
 
             def obj_amount(self):
                 amount = MyDecimal(TableCell('net') if not CleanText(TableCell('brut'))(self) else TableCell('brut'))(self)
@@ -209,30 +205,7 @@ class DetailsPage(LoggedPage, HTMLPage):
             def condition(self):
                 return u"Validé" in CleanText(TableCell('status'))(self)
 
-            def parse(self, el):
-                if u"Désinvestir" in CleanText('./following-sibling::tr[1]')(self):
-                    self.page.browser.skipped.append([el, el.xpath('./following-sibling::tr[1]')[0]])
-                    raise SkipItem()
-
-                self.env['investments'] = self.page.get_investments(el, \
-                    './following-sibling::tr[1]//span[contains(text(), "ISIN")]/ancestor::table[1]')
-
-    def iter_history_skipped(self):
-        for tr1, tr2 in self.browser.skipped:
-            for table, h2 in zip(tr2.xpath('.//table[@role]'), tr2.xpath(u'.//h2')):
-                t = Transaction()
-
-                t.vdate = Date(CleanText('./td[8]'), dayfirst=True)(tr1)
-                t.date = Date(CleanText('./td[6]'), dayfirst=True, default=t.vdate)(tr1)
-                t.type = Transaction.TYPE_BANK
-                t.label = u"%s - %s" % (CleanText().filter(tr1.xpath('./td[2]')), \
-                                        CleanText().filter(h2.xpath('.')))
-                t.amount = CleanDecimal(replace_dots=True, default=MyDecimal().filter( \
-                                        tr1.xpath('./td[5]'))).filter(tr1.xpath('./td[4]'))
-
-                if t.amount and any(word in t.label.lower() for word in self.DEBIT_WORDS):
-                    t.amount = -t.amount
-
-                t.investments = self.get_investments(table)
-
-                yield t
+            def obj_investments(self):
+                investments = []
+                for table in self.el.xpath('./following-sibling::tr[1]//span[contains(text(), "ISIN")]/ancestor::table[1]'):
+                    investments = sum([investments, list(TableTransactionsInvestment(self.page, el=table)())], [])
