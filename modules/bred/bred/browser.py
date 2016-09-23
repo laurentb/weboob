@@ -18,16 +18,35 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import re
 from datetime import date
 from decimal import Decimal
 
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bank import Account, Transaction
+from weboob.capabilities.bank import Account
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPError, BrowserUnavailable, ParseError
 from weboob.browser import DomainBrowser
 
 
 __all__ = ['BredBrowser']
+
+
+class Transaction(FrenchTransaction):
+    PATTERNS = [(re.compile('^.*Virement (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+                (re.compile(u'PRELEV SEPA (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
+                (re.compile(u'.*Prélèvement.*'),        FrenchTransaction.TYPE_ORDER),
+                (re.compile(u'^(REGL|Rgt)(?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
+                (re.compile('^(?P<text>.*) Carte \d+\s+ LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})'),
+                                                          FrenchTransaction.TYPE_CARD),
+                (re.compile(u'^Débit mensuel.*'), FrenchTransaction.TYPE_CARD_SUMMARY),
+                (re.compile(u"^Retrait d'espèces à un DAB (?P<text>.*) CARTE [X\d]+ LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})"),
+                                                          FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile(u'^Paiement de chèque (?P<text>.*)'),  FrenchTransaction.TYPE_CHECK),
+                (re.compile(u'^(Cotisation|Intérêts) (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+                (re.compile(u'^(Remise Chèque|Remise de chèque)\s*(?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile('^Versement (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+               ]
 
 
 class BredBrowser(DomainBrowser):
@@ -174,14 +193,15 @@ class BredBrowser(DomainBrowser):
                     raise ParseError('There are several transactions with the same ID, probably an infinite loop')
                 t.id = op['id']
                 seen.add(t.id)
+                d = date.fromtimestamp(op.get('dateDebit', op.get('dateOperation'))/1000)
+                raw = ' '.join([op['libelle']] + op['details'])
+                vdate = date.fromtimestamp(op.get('dateValeur', op.get('dateDebit', op.get('dateOperation')))/1000)
+                t.parse(d, raw, vdate=vdate)
                 t.amount = Decimal(str(op['montant']))
-                t.date = date.fromtimestamp(op.get('dateDebit', op.get('dateOperation'))/1000)
                 t.rdate = date.fromtimestamp(op.get('dateOperation', op.get('dateDebit'))/1000)
-                t.vdate = date.fromtimestamp(op.get('dateValeur', op.get('dateDebit', op.get('dateOperation')))/1000)
                 if 'categorie' in op:
                     t.category = op['categorie']
                 t.label = op['libelle']
-                t.raw = ' '.join([op['libelle']] + op['details'])
                 transactions.append(t)
 
             # Transactions are unsorted
