@@ -156,8 +156,10 @@ class AccountsPage(LoggedPage, HTMLPage):
         form[select_id] = option_value
         form[input_id] = "onglet2"
         # Select display : amount or quantity
-        radio_txt = ("En montant" if valuation else u"Quantité") if self.browser.LANG == "fr" else \
-                    ("In amount" if valuation else "Quantity")
+        radio_txt = ("En montant" if valuation else [u"Quantité", "En parts"]) if self.browser.LANG == "fr" else \
+                    ("In amount" if valuation else ["Quantity", "In units"])
+        if isinstance(radio_txt, list):
+            radio_txt = '" or text()="'.join(radio_txt)
         input_id = Regexp(Attr('%s//span[text()="%s"]/preceding-sibling::a[1]' \
             % (div_xpath, radio_txt), 'onclick'), '"([^"]+)')(self.doc)
         form[input_id] = input_id
@@ -219,7 +221,7 @@ class HistoryPage(LoggedPage, HTMLPage):
         head_xpath = '//table//table/thead/tr/th'
 
         col_scheme = [u'Scheme', u'Dispositif']
-        col_label = [re.compile(u'Investment'), re.compile(u'Support')]
+        col_label = [re.compile(u'Investment'), re.compile('My investment'), u'fund', re.compile(u'Support')]
         col_quantity = [re.compile(u'Quantity'), re.compile(u'Quantité')]
         col_valuation = [u'Gross amount', u'Net amount', re.compile(u'Montant brut'), u'Montant Net']
 
@@ -237,7 +239,7 @@ class HistoryPage(LoggedPage, HTMLPage):
         head_xpath = '//table/thead/tr/th'
 
         col_id = [re.compile(u'Ref'), re.compile(u'Réf')]
-        col_date = re.compile(u'Date')
+        col_date = [re.compile(u'Date'), re.compile('Creation date')]
         col_label = [re.compile('Transaction'), re.compile(u'Type')]
 
         def next_page(self):
