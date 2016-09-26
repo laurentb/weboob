@@ -92,7 +92,7 @@ class AdvertPage(HTMLPage):
             place = CleanText('//span[@itemprop="jobLocation"]', default=None)(self)
             if not place:
                 place = Regexp(CleanText('//meta[@property="og:title"]/@content'),
-                               '.*\|(.*)')(self)
+                               u'.*\ à (.*)')(self)
             return place
 
         def obj_publication_date(self):
