@@ -156,6 +156,13 @@ def install_weboob():
     if not options.deps:
         requirements = []
 
+    try:
+        if sys.argv[1] == 'requirements':
+            print('\n'.join(requirements))
+            sys.exit(0)
+    except IndexError:
+        pass
+
     setup(
         name='weboob',
         version='1.2',
