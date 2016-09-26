@@ -190,6 +190,16 @@ class AccountsPage(LoggedPage, HTMLPage):
 
     @method
     class get_list(ListElement):
+
+        # XXX Ugly Hack to replace account by second occurrence.
+        # LCL pro website sometimes display the same account twice and only second link is valid to fetch transactions.
+        def store(self, obj):
+            assert obj.id
+            if obj.id in self.objects:
+                self.logger.warning('There are two objects with the same ID! %s' % obj.id)
+            self.objects[obj.id] = obj
+            return obj
+
         item_xpath = '//tr[contains(@onclick, "redirect")]'
         flush_at_end = True
 
