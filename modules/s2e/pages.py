@@ -120,7 +120,14 @@ class ItemInvestment(ItemElement):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
-    TYPES = {'PEE': Account.TYPE_PEE, 'PEI': Account.TYPE_PEE, 'PEEG': Account.TYPE_PEE, 'PERCO': Account.TYPE_PERCO}
+    TYPES = { 'PEE': Account.TYPE_PEE,
+              'PEI': Account.TYPE_PEE,
+              'PEEG': Account.TYPE_PEE,
+              'PEG': Account.TYPE_PEE,
+              'PLAN': Account.TYPE_PEE,
+              'PERCO': Account.TYPE_PERCO,
+              'PERCOI': Account.TYPE_PERCO
+            }
 
     @method
     class iter_accounts(TableElement):
@@ -137,10 +144,13 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_label = Env('label')
 
             def obj_type(self):
-                return self.page.TYPES.get(Field('label')(self).split()[0], Account.TYPE_UNKNOWN)
+                return self.page.TYPES.get(Field('label')(self).split()[0].upper(), Account.TYPE_UNKNOWN)
 
             def obj_balance(self):
                 return MyDecimal(TableCell('balance')(self)[0].xpath('.//div[has-class("nowrap")]'))(self)
+
+            def obj_currency(self):
+                return Account.get_currency(CleanText(TableCell('balance')(self)[0].xpath('.//div[has-class("nowrap")]'))(self))
 
             def parse(self, el):
                 id, label = CleanText(TableCell('label'))(self).split(' ', 1)
@@ -165,7 +175,8 @@ class AccountsPage(LoggedPage, HTMLPage):
         form[input_id] = input_id
         form['javax.faces.source'] = input_id
         form['valorisationMontant'] = "true" if valuation else "false"
-        form.submit()
+        data = {k: v for k, v in dict(form).iteritems() if "blocages" not in v}
+        self.browser.location(form.url, data=data)
 
     def update_quantity(self, invs):
         for inv in invs:
@@ -222,7 +233,7 @@ class HistoryPage(LoggedPage, HTMLPage):
 
         col_scheme = [u'Scheme', u'Dispositif']
         col_label = [re.compile(u'Investment'), re.compile('My investment'), u'fund', re.compile(u'Support')]
-        col_quantity = [re.compile(u'Quantity'), re.compile(u'Quantité')]
+        col_quantity = [re.compile(u'Quantity'), re.compile(u'Quantité'), re.compile('En parts')]
         col_valuation = [u'Gross amount', u'Net amount', re.compile(u'Montant brut'), u'Montant Net']
 
         class item(ItemInvestment):
