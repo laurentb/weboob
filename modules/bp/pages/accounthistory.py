@@ -47,6 +47,7 @@ class Transaction(FrenchTransaction):
                 (re.compile('^(?P<category>FRAIS POUR)(?P<text>.*)'),    FrenchTransaction.TYPE_BANK),
                 (re.compile('^(?P<text>(?P<category>REMUNERATION).*)'),   FrenchTransaction.TYPE_BANK),
                 (re.compile('^(?P<category>REMISE DE CHEQUES?) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(u'^(?P<text>DEBIT CARTE BANCAIRE DIFFERE.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
                ]
 
 
@@ -87,7 +88,7 @@ class AccountHistory(Page):
                      raw=unicode(self.parser.tocleanstring(mvt.xpath('./td/span')[1]).strip()))
 
             if op.label.startswith('DEBIT CARTE BANCAIRE DIFFERE'):
-                continue
+                op.deleted = True
 
             r = re.compile(r'\d+')
 
@@ -103,11 +104,14 @@ class AccountHistory(Page):
 
             if deferred:
                 op._cardid = 'CARTE %s' % card_no
+                op.type = Transaction.TYPE_DEFERRED_CARD
                 op.rdate = op.date
                 op.date = debit_date
                 # on card page, amounts are without sign
                 if op.amount > 0:
                     op.amount = - op.amount
+
+            op.rdate = datetime.datetime.combine(op.rdate, datetime.time())
 
             op._coming = coming
 

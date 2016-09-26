@@ -118,26 +118,37 @@ class BPBrowser(Browser):
 
         self.location(self.buildurl(v.path, **args))
 
+        transactions = []
+
         if self.is_on_page(AccountHistory):
             for tr in self.page.get_history():
-                yield tr
+                transactions.append(tr)
 
         for tr in self.get_coming(account):
-            yield tr
+            transactions.append(tr)
+
+        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        return transactions
 
     def get_coming(self, account):
+        transactions = []
+
         for card in account._card_links:
             self.location(card)
+
 
             if self.is_on_page(CardsList):
                 for link in self.page.get_cards():
                     self.location(link)
 
                     for tr in self._iter_card_tr():
-                        yield tr
+                        transactions.append(tr)
             else:
                 for tr in self._iter_card_tr():
-                    yield tr
+                    transactions.append(tr)
+
+        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        return transactions
 
     def _iter_card_tr(self):
         """
@@ -173,6 +184,7 @@ class BPBrowser(Browser):
         transfer.date = datetime.now()
         return transfer
 
+
 class BProBrowser(BPBrowser):
     login_url = "https://banqueenligne.entreprises.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&ERROR_CODE=0x00000000&URL=%2Fws_q47%2Fvoscomptes%2Fidentification%2Fidentification.ea%3Forigin%3Dprofessionnels"
 
@@ -195,5 +207,3 @@ class BProBrowser(BPBrowser):
                 if self.is_on_page(RibPage):
                     acc.iban = self.page.get_iban()
             yield acc
-
-
