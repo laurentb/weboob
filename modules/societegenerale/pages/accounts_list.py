@@ -293,17 +293,26 @@ class Market(BasePage, Invest):
                 docs.append(self.browser.get_document(self.browser.openurl('%s%s' % ('/brs/fisc/fisca10a.html?action=12&numPage=', str(n))), encoding='utf-8'))
 
         for doc in docs:
-            for tr in doc.xpath('//tr[count(td)>5]'):
+            # There are two different tables possible depending on the market account type.
+            is_detailed = bool(doc.xpath(u'//span[contains(text(), "Années d\'acquisition")]'))
+            tr_xpath = '//tr[count(td)=6 and td[1]/strong]' if is_detailed else '//tr[count(td)>5]'
+            for tr in doc.xpath(tr_xpath):
                 cells = tr.findall('td')
 
                 inv = Investment()
                 inv.label = unicode(cells[self.COL_LABEL].xpath('.//span')[0].attrib['title'].split(' - ')[0])
                 inv.code = unicode(cells[self.COL_LABEL].xpath('.//span')[0].attrib['title'].split(' - ')[1])
                 inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY])
-                inv.unitprice = self.parse_decimal(cells[self.COL_UNITPRICE].xpath('.//tr[1]/td[2]')[0])
-                inv.unitvalue = self.parse_decimal(cells[self.COL_VALUATION].xpath('.//tr[1]/td[2]')[0])
-                inv.valuation = self.parse_decimal(cells[self.COL_VALUATION].xpath('.//tr[2]/td[2]')[0])
                 inv.diff = self.parse_decimal(cells[self.COL_DIFF])
+                if is_detailed:
+                    self.COL_UNITVALUE = 2
+                    inv.unitprice = self.parse_decimal(tr.xpath('./following-sibling::tr/td[3]')[0])
+                    inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE])
+                    inv.valuation = self.parse_decimal(cells[self.COL_VALUATION])
+                else:
+                    inv.unitprice = self.parse_decimal(cells[self.COL_UNITPRICE].xpath('.//tr[1]/td[2]')[0])
+                    inv.unitvalue = self.parse_decimal(cells[self.COL_VALUATION].xpath('.//tr[1]/td[2]')[0])
+                    inv.valuation = self.parse_decimal(cells[self.COL_VALUATION].xpath('.//tr[2]/td[2]')[0])
 
                 yield inv
 
