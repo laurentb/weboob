@@ -32,7 +32,7 @@ class IndeedBrowser(PagesBrowser):
     advert_page = URL('/cmp/(?P<company>.*)/jobs/(?P<title>.*)-(?P<nb>.*)', AdvertPage)
 
     def search_job(self, metier='', contrat='', limit_date='', radius='', place=''):
-        params = '?as_ttl=%s&limit=10&sort=date&st=employer&sr=directhire&jt=%s&fromage=%s&radius=%s'\
+        params = '?q=%s&limit=10&sort=date&st=employer&sr=directhire&jt=%s&fromage=%s&radius=%s'\
                  % (metier.replace(' ', '+'), contrat, limit_date, radius)
         if place:
             params = '%s&l=%s' % (params, place)
