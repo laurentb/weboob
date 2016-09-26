@@ -21,24 +21,25 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, ProfilPage, DocumentsPage
+from .pages import LoginPage, CaptchaPage, ProfilPage, DocumentsPage
 
 
 class MaterielnetBrowser(LoginBrowser):
-    BASEURL = 'https://www.materiel.net/'
+    BASEURL = 'https://www.materiel.net'
 
-    login = URL('pm/client/login.html', LoginPage)
-    profil = URL('pm/client/compte.html', ProfilPage)
-    documents = URL('pm/client/commande.html\?page=(?P<page>.*)',
-                    'pm/client/commande.html', DocumentsPage)
+    login = URL('/pm/client/login.html', LoginPage)
+    captcha = URL('/pm/client/captcha.html', CaptchaPage)
+    profil = URL('/pm/client/compte.html', ProfilPage)
+    documents = URL('/pm/client/commande.html\?page=(?P<page>.*)',
+                    '/pm/client/commande.html', DocumentsPage)
 
     def do_login(self):
         self.login.go()
 
         self.page.login(self.username, self.password)
 
-        if self.login.is_here():
-            raise BrowserIncorrectPassword
+        if self.login.is_here() or self.captcha.is_here():
+            raise BrowserIncorrectPassword(self.page.get_error())
 
     @need_login
     def get_subscription_list(self):

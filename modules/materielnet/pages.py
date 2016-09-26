@@ -35,6 +35,12 @@ class LoginPage(HTMLPage):
         form['pass'] = password
         form.submit()
 
+    def get_error(self):
+        return CleanText('//div[@class="ValidatorError"]')(self.doc)
+
+class CaptchaPage(HTMLPage):
+    def get_error(self):
+        return CleanText('//div[@class="captcha-block"]/p[1]/text()')(self.doc)
 
 class ProfilPage(LoggedPage, HTMLPage):
     @method
