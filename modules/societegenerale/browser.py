@@ -22,6 +22,7 @@ import urllib
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account
+from weboob.browser.exceptions import BrowserHTTPNotFound
 
 from .pages.accounts_list import AccountsList, AccountHistory, CardsList, LifeInsurance, \
     LifeInsuranceHistory, LifeInsuranceInvest, Market, ListRibPage
@@ -82,7 +83,10 @@ class SocieteGenerale(Browser):
         if not self.is_on_page(LoginPage):
             self.location('https://' + self.DOMAIN_LOGIN + '/index.html', no_login=True)
 
-        self.page.login(self.username, self.password)
+        try:
+            self.page.login(self.username, self.password)
+        except BrowserHTTPNotFound:
+            raise BrowserIncorrectPassword()
 
         if self.is_on_page(LoginPage):
             raise BrowserIncorrectPassword()
