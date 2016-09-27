@@ -106,13 +106,11 @@ class CaisseEpargne(Browser):
                                               ('step', 'authentification'),
                                               ('nuabbd', self.username)))
         try:
-            error = json.loads(response.get_data())['codeError']
+            error = json.loads(response.get_data())['error']
             if error is not None:
-                raise BrowserUnavailable(error)
+                raise BrowserIncorrectPassword(error)
         except ValueError:
             raise BrowserUnavailable()
-        except KeyError:
-            pass
         v = urlsplit(response.geturl())
         self.DOMAIN = v.netloc
         try:
