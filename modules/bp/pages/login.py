@@ -105,6 +105,8 @@ class repositionnerCheminCourant(Page):
 class Initident(Page):
     def on_loaded(self):
         self.browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/verifierMotDePasse-identif.ea")
+        if self.document.xpath(u'//span[contains(text(), "L\'identifiant utilisé est celui d\'une Entreprise ou d\'une Association")]'):
+            raise BrowserIncorrectPassword(u"L'identifiant utilisé est celui d'une Entreprise ou d'une Association")
 
 
 class CheckPassword(Page):

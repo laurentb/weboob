@@ -33,6 +33,7 @@ from weboob.tools.ordereddict import OrderedDict
 class AccountList(Page):
     def on_loaded(self):
         if self.document.xpath(u'//h2[text()="%s"]' % u'ERREUR'):
+            self.browser.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/initialiser-identif.ea')
             raise BrowserUnavailable()
         self.accounts = OrderedDict()
         self.parse_table('comptes',         Account.TYPE_CHECKING)
