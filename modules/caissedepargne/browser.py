@@ -106,9 +106,9 @@ class CaisseEpargne(Browser):
                                               ('step', 'authentification'),
                                               ('nuabbd', self.username)))
         try:
-            error = json.loads(response.get_data())['error']
-            if error is not None:
-                raise BrowserIncorrectPassword(error)
+            json_response = json.loads(response.get_data())
+            if not json_response['action']:
+                raise BrowserIncorrectPassword(json_response['error'])
         except ValueError:
             raise BrowserUnavailable()
         v = urlsplit(response.geturl())
