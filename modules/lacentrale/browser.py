@@ -17,9 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-import urllib
-
 from weboob.browser import PagesBrowser, URL
 
 from .pages import ListingAutoPage, AdvertPage
@@ -35,7 +32,7 @@ class LaCentraleBrowser(PagesBrowser):
     advert_page = URL('/auto-occasion-annonce-(?P<_id>.*).html', AdvertPage)
 
     def iter_prices(self, product):
-        _request = urllib.urlencode(product._criteria)
+        _request = '&'.join(['%s=%s' % (key, item) for key, item in product._criteria.iteritems()])
         return self.list_page.go(_request=_request).iter_prices()
 
     def get_price(self, _id, obj):

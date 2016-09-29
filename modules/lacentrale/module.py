@@ -57,6 +57,14 @@ class LaCentraleModule(Module, CapPriceComparison):
                 criteria['witchSearch'] = 1
             if u'part' in pattern:
                 criteria['witchSearch'] = 0
+            if u'diesel' in pattern:
+                criteria['energie'] = 2
+            if u'essence' in pattern:
+                criteria['energie'] = 1
+            if u'electrique' in pattern:
+                criteria['energie'] = 4
+            if u'hybride' in pattern:
+                criteria['energie'] = '8,9'
 
         if criteria:
             product = LaCentraleProduct()

@@ -31,20 +31,20 @@ class ListingAutoPage(HTMLPage):
     @pagination
     @method
     class iter_prices(ListElement):
-        item_xpath = '//div[@class="adContainer"]'
+        item_xpath = '//div[@class="adContainer "]'
         next_page = Link('//section[@class="pagination"]/ul/li[@class="last"]/a')
 
         class item(ItemElement):
             klass = Price
 
             obj_id = CleanText('./p/a/@data-annid')
-            obj_cost = CleanDecimal('./a/div/div/div/span[@class="fieldPrice"]')
-            obj_currency = Regexp(CleanText('./a/div/div/div/span[@class="fieldPrice"]'),
+            obj_cost = CleanDecimal('./a/div/div/div/div[@class="fieldPrice"]')
+            obj_currency = Regexp(CleanText('./a/div/div/div/div[@class="fieldPrice"]'),
                                   '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
-            obj_message = Format('%s %s %s',
-                                 CleanText('./a/div/h3'),
-                                 CleanText('./a/div/div/div/span[@class="fieldYear"]'),
-                                 CleanText('./a/div/div/div/span[@class="fieldMileage"]'))
+            obj_message = Format('%s / %s / %s',
+                                 CleanText('./a/div/div/h3'),
+                                 CleanText('./a/div/div/div/div[@class="fieldYear"]'),
+                                 CleanText('./a/div/div/div/div[@class="fieldMileage"]'))
             obj_url = Format('http://www.lacentrale.fr%s',
                              CleanText('./a/@href'))
 
