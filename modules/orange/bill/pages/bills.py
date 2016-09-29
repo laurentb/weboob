@@ -73,7 +73,7 @@ class BillsPage(LoggedPage, HTMLPage):
             klass = Bill
 
             obj_id = Format('%s_%s', Env('subid'), CleanDecimal(CleanText('.//span[has-class("date")]')))
-            obj__url = Link('.//span[has-class("pdf")]/a', default=NotAvailable)
+            obj_url = Link('.//span[has-class("pdf")]/a', default=NotAvailable)
             obj_date = Date(CleanText('.//span[has-class("date")]'), dayfirst=True)
             obj_label = CleanText('.//span[has-class("date")]')
             obj_format = u"pdf"

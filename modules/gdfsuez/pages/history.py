@@ -62,7 +62,7 @@ class HistoryPage(Page):
         bill.id = date.__str__().replace('-', '')
         bill.date = date
         bill._price = price
-        bill._url = link
+        bill.url = unicode(link)
         bill.format = u'pdf'
         bill.type = u'bill'
         bill.label = unicode(price)

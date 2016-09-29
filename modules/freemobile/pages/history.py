@@ -113,9 +113,9 @@ class DetailsPage(LoggedPage, BadUTF8Page):
                 num = Attr('.', 'data-fact_ligne', default='')(self)
                 return self.env['subid'] == num
 
-            obj__url = Attr('.//div[@class="pdf"]/a', 'href')
-            obj__localid = Regexp(Field('_url'), '&l=(\d*)&id', u'\\1')
-            obj_label = Regexp(Field('_url'), '&date=(\d*)', u'\\1')
+            obj_url = Attr('.//div[@class="pdf"]/a', 'href')
+            obj__localid = Regexp(Field('url'), '&l=(\d*)&id', u'\\1')
+            obj_label = Regexp(Field('url'), '&date=(\d*)', u'\\1')
             obj_id = Format('%s.%s.%s',
                             Env('subid'),
                             Field('label'),

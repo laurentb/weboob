@@ -93,4 +93,4 @@ class GdfSuezModule(Module, CapDocument):
         if not isinstance(bill, Bill):
             bill = self.get_document(bill)
         with self.browser:
-            return self.browser.readurl(bill._url)
+            return self.browser.readurl(bill.url)

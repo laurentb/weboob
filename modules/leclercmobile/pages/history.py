@@ -173,7 +173,7 @@ class HistoryPage(Page):
             max += 1
             link = li.xpath('a')[0]
             bill = Bill()
-            bill._url = link.attrib['href']
+            bill.url = unicode(link.attrib['href'])
             bill.label = unicode(link.text)
             bill.format = u"pdf"
             bill.type = u"bill"

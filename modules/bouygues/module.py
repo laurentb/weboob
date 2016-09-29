@@ -68,4 +68,4 @@ class BouyguesModule(Module, CapMessages, CapMessagesPost, CapDocument):
     def download_document(self, document):
         if not isinstance(document, Document):
             document = self.get_document(document)
-        return self.browser.open(document._url).content
+        return self.browser.open(document.url).content

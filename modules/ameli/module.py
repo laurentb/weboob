@@ -75,6 +75,6 @@ class AmeliModule(Module, CapDocument):
     def download_document(self, bill):
         if not isinstance(bill, Bill):
             bill = self.get_document(bill)
-        request = self.browser.open(bill._url, stream=True)
+        request = self.browser.open(bill.url, stream=True)
         assert(request.headers['content-type'] == "application/pdf")
         return request.content

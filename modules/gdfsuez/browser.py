@@ -81,7 +81,7 @@ class GdfSuez(Browser):
         id = bills[0].id
         if not self.is_on_page(HistoryPage):
             self.location(self.historyp)
-        url = 'https://www.gdfsuez-dolcevita.fr/' + self.get_document(id)._url
+        url = 'https://www.gdfsuez-dolcevita.fr/' + self.get_document(id).url
         response = self.openurl(url)
         pdf = PdfPage(StringIO.StringIO(response.read()))
         for detail in pdf.get_details(subscription.label):

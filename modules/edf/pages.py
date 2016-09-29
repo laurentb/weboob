@@ -68,7 +68,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
             klass = Bill
 
             obj_id = Format('%s_%s', Env('subid'), Env('docid'))
-            obj__url = Env('url')
+            obj_url = Env('url')
             obj_date = Date(Regexp(CleanText(TableCell('date')), ' ([\d\/]+)'))
             obj_format = u"pdf"
             obj_label = Format('Facture %s', Env('docid'))

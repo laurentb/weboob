@@ -198,8 +198,8 @@ class BillsPage(AmeliBasePage):
             bil.format = u'pdf'
             bil.type = u'bill'
             bil.label = date.strftime("%Y%m%d")
-            bil._url = '/PortailAS/PDFServletReleveMensuel.dopdf?PDF.moisRecherche='+date.strftime("%m%Y")
+            bil.url = unicode('/PortailAS/PDFServletReleveMensuel.dopdf?PDF.moisRecherche='+date.strftime("%m%Y"))
             yield bil
 
     def get_document(self, bill):
-        self.location(bill._url, urllib.urlencode(bill._args))
+        self.location(bill.url, urllib.urlencode(bill._args))

@@ -126,7 +126,7 @@ class Amazon(LoginBrowser):
         orders = self.iter_orders()
         for o in orders:
             b = Bill()
-            b._url = o._bill['url']
+            b.url = unicode(o._bill['url'])
             b.id = '%s.%s' % (subscription.id, o.id)
             b.date = o.date
             b.price = o.total

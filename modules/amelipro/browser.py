@@ -109,5 +109,5 @@ class AmeliProBrowser(LoginBrowser):
 
     @need_login
     def download_document(self, bill):
-        request = self.open(bill._url, data=bill._data, stream=True)
+        request = self.open(bill.url, data=bill._data, stream=True)
         return request.content

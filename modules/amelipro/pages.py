@@ -113,7 +113,7 @@ class BillsPage(HTMLPage):
                 bil.format = u''+format
                 bil.type = u'bill'
                 filedate = date.strftime("%m%Y")
-                bil._url = '/PortailPS/fichier.do'
+                bil.url = u'/PortailPS/fichier.do'
                 bil._data = {'FICHIER.type': format.lower()+'.releveCompteMensuel',
                             'dateReleve': filedate,
                             'FICHIER.titre': 'Releve' + filedate

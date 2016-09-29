@@ -96,7 +96,7 @@ class LeclercMobileModule(Module, CapDocument):
             bill = self.get_document(bill)
 
         with self.browser:
-            return self.browser.readurl(bill._url)
+            return self.browser.readurl(bill.url)
 
     def get_balance(self, subscription):
         if not isinstance(subscription, Subscription):

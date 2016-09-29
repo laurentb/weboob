@@ -49,7 +49,7 @@ class BillsPage(HTMLPage, LoggedPage):
             klass = Bill
 
             obj_id = Format('%s_%s', Env('subid'), CleanText('./td[3]'))
-            obj__url = Attr('./td[@class="center" or @class="center pdf"]/a', 'href')
+            obj_url = Attr('./td[@class="center" or @class="center pdf"]/a', 'href')
             obj_date = Env('date')
             obj_format = u"pdf"
             obj_type = u"bill"

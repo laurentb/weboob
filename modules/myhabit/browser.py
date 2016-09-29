@@ -72,7 +72,7 @@ class HistoryPage(MyHabitPage):
 class OrderPage(MyHabitPage):
     def order(self, url):
         order = Order(id=self.order_number())
-        order._url = url
+        order.url = unicode(url)
         order.date = self.order_date()
         order.tax = self.tax()
         order.shipping = self.shipping()
@@ -169,15 +169,15 @@ class MyHabit(LoginBrowser):
 
     @need_login
     def iter_payments(self, order):
-        if self.url != self.BASEURL+order._url:
-            self.location(order._url)
+        if self.url != self.BASEURL+order.url:
+            self.location(order.url)
         assert self.order.is_here()
         return self.page.payments()
 
     @need_login
     def iter_items(self, order):
-        if self.url != self.BASEURL+order._url:
-            self.location(order._url)
+        if self.url != self.BASEURL+order.url:
+            self.location(order.url)
         assert self.order.is_here()
         return self.page.items()
 

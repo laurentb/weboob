@@ -64,4 +64,4 @@ class OvhModule(Module, CapDocument):
     def download_document(self, bill):
         if not isinstance(bill, Bill):
             bill = self.get_document(bill)
-        return self.browser.open(bill._url).content
+        return self.browser.open(bill.url).content
