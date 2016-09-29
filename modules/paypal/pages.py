@@ -199,7 +199,8 @@ class ProHistoryPage(HistoryPage, JsonPage):
                                                                                        u'Brouillon',
                                                                                        u'Paid',
                                                                                        u'Pending',
-                                                                                       u'Canceled']:
+                                                                                       u'Canceled',
+                                                                                       u'Suspended']:
             return []
         for pattern in [u'Commande à', u'Offre de remboursement', u'Bill to']:
             if 'description' not in transaction['transactionDescription'] or transaction['transactionDescription']['description'].startswith(pattern):
