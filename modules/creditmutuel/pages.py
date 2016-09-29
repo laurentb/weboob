@@ -318,7 +318,7 @@ class CardsListPage(LoggedPage, HTMLPage):
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
-                (re.compile('^PRLV (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
+                (re.compile('^(PRLV|Plt) (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
                 (re.compile('^(?P<text>.*) CARTE \d+ PAIEMENT CB\s+(?P<dd>\d{2})(?P<mm>\d{2}) ?(.*)$'),
                                                           FrenchTransaction.TYPE_CARD),
                 (re.compile('^PAIEMENT PSC\s+(?P<dd>\d{2})(?P<mm>\d{2}) (?P<text>.*) CARTE \d+ ?(.*)$'),

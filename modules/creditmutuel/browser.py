@@ -24,7 +24,6 @@ except ImportError:
     from urllib.parse import urlparse
 
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 from random import randint
 
 from weboob.tools.compat import basestring
@@ -192,7 +191,6 @@ class CreditMutuelBrowser(LoginBrowser):
 
     def get_history(self, account):
         transactions = []
-        last_debit = None
         if not account._link_id:
             return iter([])
         # need to refresh the months select
@@ -200,9 +198,6 @@ class CreditMutuelBrowser(LoginBrowser):
             self.location(account._pre_link)
         for tr in self.list_operations(account._link_id):
             transactions.append(tr)
-            if last_debit is None:
-                # we set the debit date to last day of month so we need to do the same form last_debit
-                last_debit = (tr.date + relativedelta(day=31))
 
         coming_link = self.page.get_coming_link() if self.operations.is_here() else None
         if coming_link is not None:
@@ -214,14 +209,14 @@ class CreditMutuelBrowser(LoginBrowser):
             for tr in self.list_operations(card_link):
                 if not differed_date or tr._differed_date < differed_date:
                     differed_date = tr._differed_date
-                if last_debit is None or tr.date > last_debit:
+                if tr.date > datetime.now():
                     tr._is_coming = True
                 transactions.append(tr)
 
         if differed_date is not None:
             # set deleted for card_summary
             for tr in transactions:
-                tr.deleted = True if tr.type == FrenchTransaction.TYPE_CARD_SUMMARY and differed_date.month <= tr.date.month else False
+                tr.deleted = tr.type == FrenchTransaction.TYPE_CARD_SUMMARY and differed_date.month <= tr.date.month
 
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions
