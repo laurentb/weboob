@@ -23,7 +23,8 @@ from weboob.capabilities.base import find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
-from .browser import EdfBrowser
+from .par.browser import EdfBrowser
+from .pro.browser import EdfproBrowser
 
 
 __all__ = ['EdfModule']
@@ -36,12 +37,15 @@ class EdfModule(Module, CapDocument):
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'AGPLv3+'
     VERSION = '1.2'
-    CONFIG = BackendConfig(Value('login', label='Adresse e-mail'),
-                       ValueBackendPassword('password', label='Mot de passe'))
-
-    BROWSER = EdfBrowser
+    CONFIG = BackendConfig(Value('login', label='E-mail ou Identifiant'), \
+                           ValueBackendPassword('password', label='Mot de passe'), \
+                           Value('website', label='Type de compte', default='par',
+                                 choices={'par': 'Particulier', 'pro': 'Entreprise'}))
 
     def create_default_browser(self):
+        browsers = {'pro': EdfproBrowser, 'par': EdfBrowser}
+        self.BROWSER = browsers[self.config['website'].get()]
+
         return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
     def iter_subscription(self):
@@ -64,6 +68,8 @@ class EdfModule(Module, CapDocument):
     def download_document(self, document):
         if not isinstance(document, Document):
             document = self.get_document(document)
-        if document.url is NotAvailable:
+        if isinstance(self.browser, EdfproBrowser) is True:
+            document.url = self.browser.prepare_document_download(document)
+        elif document.url is NotAvailable:
             return
         return self.browser.open(document.url).content
