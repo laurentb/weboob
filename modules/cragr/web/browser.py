@@ -71,7 +71,7 @@ class Cragr(Browser):
              'https?://[^/]+/stb/entreeBam\?.*act=ChgPerim.*':       ChgPerimeterPage,
             }
 
-    new_login_domain = ['m.ca-normandie.fr']
+    new_login_domain = []
     new_login = False
 
     class WebsiteNotSupported(Exception):
