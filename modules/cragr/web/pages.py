@@ -306,7 +306,9 @@ class CardsPage(BasePage):
 
             account = Account()
             account.type = account.TYPE_CARD
-            account.id = ''.join(get('_id').split()[1:])
+            account.number = ''.join(get('_id').split()[1:])
+            # account.number might be the same for two different cards ..
+            account.id = '%s%s' % (account.number, get('label2').replace(' ', ''))
             account._id = ' '.join(get('_id').split()[1:])
             account.label = '%s - %s' % (get('label1'),
                                          re.sub('\s*-\s*$', '', get('label2')))
@@ -395,7 +397,7 @@ class CardsPage(BasePage):
 
     def is_on_right_detail(self, account):
         return len(self.document.xpath(u'//h1[contains(text(), "Cartes - détail")]')) and\
-               len(self.document.xpath(u'//td[contains(text(), "%s")] | //td[contains(text(), "%s")] ' % (account.id, account._id)))
+               len(self.document.xpath(u'//td[contains(text(), "%s")] | //td[contains(text(), "%s")] ' % (account.number, account._id)))
 
 
 class AccountsPage(_AccountsPage):

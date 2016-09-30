@@ -228,7 +228,7 @@ class Cragr(Browser):
             self.location(self.page.cards_idelco_or_link(idelco))
             assert self.is_on_page(CardsPage)
             for account in self.page.get_list():
-                if account_id and account.id == account_id:
+                if account_id and account.number == account_id:
                     return account
                 else:
                     accounts.append(account)
@@ -301,7 +301,7 @@ class Cragr(Browser):
 
         # card accounts need to get an updated link
         if account.type == Account.TYPE_CARD:
-            account = self.get_cards_or_card(account.id)
+            account = self.get_cards_or_card(account.number)
 
         date_guesser = LinearDateGuesser()
         if account.type != Account.TYPE_CARD or not self.page.is_on_right_detail(account):
