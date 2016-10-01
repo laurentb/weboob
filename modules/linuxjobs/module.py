@@ -55,7 +55,7 @@ class LinuxJobsModule(Module, CapJob):
         :type advert: BaseJobAdvert
         :rtype: :class:`BaseJobAdvert` or None if not found.
         """
-        raise NotImplementedError()
+        return self.browser.get_job_advert(_id, advert)
 
     def search_job(self, pattern=None):
         """
@@ -65,4 +65,5 @@ class LinuxJobsModule(Module, CapJob):
         :type pattern: str
         :rtype: iter[:class:`BaseJobAdvert`]
         """
-        raise NotImplementedError()
+        for job_advert in self.browser.search_job(pattern):
+            yield job_advert

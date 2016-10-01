@@ -20,20 +20,27 @@
 
 from weboob.browser import PagesBrowser, URL
 
-from .pages import Page1, Page2
+from .pages import SearchPage, AdvertPage
+
+import urllib
 
 
 class LinuxJobsBrowser(PagesBrowser):
-    BASEURL = 'http://www.linuxjobs.com'
+    BASEURL = 'https://www.linuxjobs.fr'
 
-    page1 = URL('/page1\?id=(?P<id>.+)', Page1)
-    page2 = URL('/page2', Page2)
+    advert_page = URL('/jobs/(?P<id>.+)', AdvertPage)
+    search_page = URL('/search/(?P<job>)', SearchPage)
 
-    def get_stuff(self, _id):
-        self.page1.go(id=_id)
+    def get_job_advert(self, _id, advert):
+        self.advert_page.go(id=_id)
 
-        assert self.page1.is_here()
-        self.page.do_stuff(_id)
+        assert self.advert_page.is_here()
+        return self.page.get_job_advert(obj=advert)
 
-        assert self.page2.is_here()
-        return self.page.do_more_stuff()
+    def search_job(self, pattern=None):
+        if pattern is None:
+            return []
+        self.search_page.go(job=urllib.quote_plus(pattern.encode('utf-8')))
+
+        assert self.search_page.is_here()
+        return self.page.iter_job_adverts()
