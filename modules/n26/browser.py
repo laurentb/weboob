@@ -75,7 +75,7 @@ class Number26Browser(DomainBrowser):
         return [a]
 
     def get_account(self, _id):
-        return find_object(self.get_accounts(get_iban=False), id=_id, error=AccountNotFound)
+        return find_object(self.get_accounts(), id=_id, error=AccountNotFound)
 
     def get_categories(self):
         """
