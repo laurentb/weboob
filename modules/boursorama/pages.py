@@ -226,8 +226,8 @@ class HistoryPage(LoggedPage, HTMLPage):
             obj_id = Attr('.', 'data-id', default=NotAvailable) or Attr('.', 'data-custom-id')
             obj_raw = Transaction.Raw(CleanText('.//div[has-class("list__movement__line--label__name")]'))
             obj_date = Date(Attr('.//time', 'datetime'))
-            obj_amount = CleanDecimal('.//div[contains(@class, "amount")][1]', replace_dots=True)
-            obj_category = CleanText('.//div[contains(@class, "desc")]')
+            obj_amount = CleanDecimal('.//div[has-class("list__movement__line--amount")]', replace_dots=True)
+            obj_category = CleanText('.//div[has-class("category")]')
 
 
             def obj_rdate(self):
