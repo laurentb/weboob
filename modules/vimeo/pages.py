@@ -23,9 +23,9 @@ from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.collection import Collection
 
 from weboob.exceptions import ParseError
-from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.elements import ItemElement, ListElement, method, DictElement
 from weboob.browser.pages import HTMLPage, pagination, JsonPage
-from weboob.browser.filters.standard import Regexp, Env, CleanText, DateTime, Duration, Field
+from weboob.browser.filters.standard import Regexp, Env, CleanText, DateTime, Duration, Field, BrowserURL
 from weboob.browser.filters.html import Attr, Link, CleanHTML, XPath
 from weboob.browser.filters.json import Dict
 
@@ -37,6 +37,9 @@ class VimeoDuration(Duration):
 
 
 class ListPage(HTMLPage):
+    def get_token(self):
+        return Regexp(CleanText('//script'), '"jwt":"(.*)","url"', default=None)(self.doc)
+
     @pagination
     @method
     class iter_videos(ListElement):
@@ -45,7 +48,6 @@ class ListPage(HTMLPage):
 
         class item(ItemElement):
             klass = BaseVideo
-
             obj_id = Regexp(Attr('.', 'id'), 'clip_(.*)')
             obj_title = Attr('./a', 'title')
 
@@ -55,12 +57,37 @@ class ListPage(HTMLPage):
                 return thumbnail
 
 
+class APIPage(JsonPage):
+    @pagination
+    @method
+    class iter_videos(DictElement):
+        item_xpath = 'data'
+
+        def parse(self, el):
+            self.env['next_page'] = Regexp(Dict('paging/next'), 'page=(\d*)', default=None)(el)
+
+        def next_page(self):
+            if Env('next_page')(self) is not None:
+                return BrowserURL('api_page', page=int(Env('next_page')(self)), category=Env('category'))(self)
+
+        class item(ItemElement):
+            klass = BaseVideo
+
+            obj_id = Regexp(Dict('clip/uri'), '/videos/(.*)')
+            obj_title = Dict('clip/name')
+
+            def obj_thumbnail(self):
+                thumbnail = Thumbnail(Dict('clip/pictures/sizes/0/link')(self))
+                thumbnail.url = thumbnail.id
+                return thumbnail
+
+
 class SearchPage(HTMLPage):
     @pagination
     @method
     class iter_videos(ListElement):
         item_xpath = '//ul[@class="small-block-grid-3"]/li/div[has-class("clip_thumbnail")]'
-
+        ignore_duplicate = True
         next_page = Link(u'//a[text()="Next"]')
 
         class item(ItemElement):
@@ -134,9 +161,9 @@ class VideoJsonPage(JsonPage):
                 quality = self.obj._quality
                 stream = streams[quality]['url'] if quality < len(streams) else streams[0]['url']
 
-            return stream.split('?')[0]
+            return stream
 
-        obj_ext = Regexp(Field('url'), '.*\.(.*)$', '\\1')
+        obj_ext = Regexp(Field('url'), '.*\.(.*)\?.*$', '\\1')
 
 
 class CategoriesPage(HTMLPage):

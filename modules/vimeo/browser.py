@@ -21,7 +21,7 @@
 from weboob.browser import PagesBrowser, URL
 from weboob.browser.exceptions import HTTPNotFound
 from weboob.capabilities.base import NotAvailable
-from .pages import SearchPage, VideoPage, VideoJsonPage, CategoriesPage, ChannelsPage, ListPage
+from .pages import SearchPage, VideoPage, VideoJsonPage, CategoriesPage, ChannelsPage, ListPage, APIPage
 
 import urllib
 from urlparse import urljoin
@@ -38,12 +38,13 @@ class VimeoBrowser(PagesBrowser):
     list_page = URL(r'channels/(?P<channel>.*)/videos/.*?',
                     r'categories/(?P<category>.*)/videos/.*?',
                     ListPage)
-
     categories_page = URL('categories', CategoriesPage)
     channels_page = URL('channels', ChannelsPage)
 
     video_url = URL(r'https://player.vimeo.com/video/(?P<_id>.*)/config', VideoJsonPage)
     video_page = URL('https://vimeo.com/(?P<_id>.*)', VideoPage)
+
+    api_page = URL('https://api.vimeo.com/search\?filter_mature=191&filter_type=clip&sort=featured&direction=desc&page=(?P<page>\d*)&per_page=20&sizes=590x332&_video_override=true&c=b&query=&filter_category=(?P<category>\w*)&fields=search_web%2Cmature_hidden_count&container_fields=parameters%2Ceffects%2Csearch_id%2Cstream_id%2Cmature_hidden_count', APIPage)
 
     def __init__(self, method, quality, *args, **kwargs):
         self.method = method
@@ -94,4 +95,7 @@ class VimeoBrowser(PagesBrowser):
         return self.list_page.go(channel=channel).iter_videos()
 
     def get_category_videos(self, category):
-        return self.list_page.go(category=category).iter_videos()
+        token = self.list_page.go(category=category).get_token()
+        self.session.headers.update({"Authorization": "jwt %s" % token,
+                                     "Accept": "application/vnd.vimeo.*+json;version=3.3"})
+        return self.api_page.go(page=1, category=category).iter_videos()
