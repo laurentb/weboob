@@ -366,9 +366,6 @@ class CsvPage(Page):
             encoding = 'utf-8'
         if self.NEWLINES_HACK:
             content = content.replace('\r\n', '\n').replace('\r', '\n')
-        if encoding == 'latin-1':
-            encoding = 'latin1'
-        encoding = encoding.replace('ISO8859_', 'ISO8859-')
         return self.parse(BytesIO(content), encoding)
 
     def parse(self, data, encoding=None):
@@ -608,8 +605,12 @@ class HTMLPage(Page):
         """
         Method to build the lxml document from response and given encoding.
         """
+        encoding = self.encoding
+        if encoding == 'latin-1':
+            encoding = 'latin1'
+        encoding = encoding.replace('ISO8859_', 'ISO8859-')
         import lxml.html as html
-        parser = html.HTMLParser(encoding=self.encoding)
+        parser = html.HTMLParser(encoding=encoding)
         return html.parse(BytesIO(content), parser)
 
     def detect_encoding(self):
