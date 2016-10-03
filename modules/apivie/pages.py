@@ -66,6 +66,8 @@ class InvestmentsPage(Page):
     def iter_investment(self):
         for line in self.document.xpath('//div[@class="supportTable"]//table/tbody/tr'):
             tds = line.findall('td')
+            if len(tds) < 4:
+                continue
             inv = Investment()
             inv.vdate = Date(dayfirst=True).filter(CleanText().filter(self.document.xpath( \
                         '//div[@id="table-evolution-contrat"]//table/tbody/tr[1]/td[1]')))
