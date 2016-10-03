@@ -31,7 +31,9 @@ from weboob.capabilities import UserError
 from weboob.capabilities.account import CapAccount, Account, AccountRegisterError
 from weboob.core.backendscfg import BackendAlreadyExists
 from weboob.core.repositories import IProgress
-from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden, BrowserSSLError, BrowserQuestion, BrowserHTTPSDowngrade, ModuleInstallError, ModuleLoadError
+from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden, \
+                              BrowserSSLError, BrowserQuestion, BrowserHTTPSDowngrade, \
+                              ModuleInstallError, ModuleLoadError, NoAccountsException
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt, ValueBackendPassword
 from weboob.tools.misc import to_unicode
 from weboob.tools.compat import check_output
@@ -588,6 +590,8 @@ class ConsoleApplication(Application):
             print(u'Error(%s): %s' % (backend.name, to_unicode(error)), file=self.stderr)
         elif isinstance(error, MoreResultsAvailable):
             print(u'Hint: There are more results for backend %s' % (backend.name), file=self.stderr)
+        elif isinstance(error, NoAccountsException):
+            print(u'Error(%s): %s' % (backend.name, to_unicode(error) or 'No account on this backend'), file=self.stderr)
         else:
             print(u'Bug(%s): %s' % (backend.name, to_unicode(error)), file=self.stderr)
 
