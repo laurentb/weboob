@@ -60,10 +60,10 @@ class DocumentsPage(LoggedPage, JsonPage):
         for document in self.doc:
             doc = Bill()
 
-            doc.id = u'%s_%s' % (document['numFacture'], self.browser.username)
+            doc.id = u'%s_%s' % (document['numFactureLabel'], self.browser.username)
             doc.date = date.fromtimestamp(int(document['dateEmission'] / 1000))
             doc.format = u'PDF'
-            doc.label = document['numFactureLabel']
+            doc.label = 'Facture %s' % document['numFactureLabel']
             doc.type = u'bill'
             doc.price = CleanDecimal().filter(document['montantTTC'])
             doc.currency = u'€'
