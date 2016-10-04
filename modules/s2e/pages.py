@@ -29,6 +29,7 @@ from weboob.browser.filters.html import Attr
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
+from weboob.exceptions import NoAccountsException
 
 
 def MyDecimal(*args, **kwargs):
@@ -120,6 +121,11 @@ class ItemInvestment(ItemElement):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        no_accounts_message = CleanText('//span[contains(text(), "On this date, you still have no employee savings in this company.")]')(self.doc)
+        if no_accounts_message:
+            raise NoAccountsException(no_accounts_message)
+
     TYPES = { 'PEE': Account.TYPE_PEE,
               'PEI': Account.TYPE_PEE,
               'PEEG': Account.TYPE_PEE,
