@@ -622,7 +622,8 @@ class Repositories(object):
         to_update = []
         for name, info in self.get_all_modules_info().iteritems():
             if not info.is_local() and info.is_installed():
-                to_update.append(info)
+                if self.versions.get(name) != info.version:
+                    to_update.append(info)
 
         if len(to_update) == 0:
             progress.progress(1.0, 'All modules are up-to-date.')
