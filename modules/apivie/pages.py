@@ -24,6 +24,7 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.deprecated.browser import Page
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.browser.filters.standard import Date, CleanText
+from weboob.browser.filters.html import Attr
 
 
 class LoginPage(Page):
@@ -35,6 +36,10 @@ class LoginPage(Page):
 
 
 class AccountsPage(Page):
+    TYPES = {u'APIVIE': Account.TYPE_LIFE_INSURANCE,
+             u'PERP': Account.TYPE_PERP
+            }
+
     COL_LABEL = 0
     COL_OWNER = 1
     COL_ID = 2
@@ -49,8 +54,8 @@ class AccountsPage(Page):
         account = Account()
         account.id = self.parser.tocleanstring(tds[self.COL_ID])
         account.label = self.parser.tocleanstring(tds[self.COL_LABEL])
-        # It's safe to assume that apivie does only life insurance
-        account.type = Account.TYPE_LIFE_INSURANCE
+        account.type = self.TYPES.get(Attr('//a[contains(@class, "logo")]/img', \
+            'alt')(self.document).upper(), Account.TYPE_UNKNOWN)
         balance_str = self.parser.tocleanstring(tds[self.COL_AMOUNT])
         account.balance = Decimal(FrenchTransaction.clean_amount(balance_str))
         account.currency = account.get_currency(balance_str)
