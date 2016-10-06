@@ -126,7 +126,7 @@ def install_weboob():
     requirements = [
         'lxml',
         'feedparser',
-        'requests',
+        'requests>=2.0.0',
         'python-dateutil',
         'PyYAML',
         'prettytable',
