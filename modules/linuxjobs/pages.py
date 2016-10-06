@@ -23,6 +23,7 @@ from weboob.browser.pages import HTMLPage
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import Regexp, CleanText, Date, Env, BrowserURL
 from weboob.browser.filters.html import Link, CleanHTML
+from weboob.tools.date import parse_french_date
 
 class AdvertPage(HTMLPage):
     @method
@@ -33,6 +34,10 @@ class AdvertPage(HTMLPage):
         obj_url = BrowserURL('advert_page', id=Env('id'))
         obj_title = CleanText('//title')
         obj_job_name = CleanText('//title')
+        obj_society_name = CleanText('//div[2]/div[@class="col-md-9"]/h4[1]')
+        obj_publication_date = Date(CleanText('//div[2]/div[@class="col-md-9"]/small', replace=[(u'Ajoutée le', '')]), parse_func=parse_french_date)
+        obj_place = Regexp(CleanText('//div[2]/div[@class="col-md-9"]/h4[2]'), '(.*) \(.*\)')
+        obj_description = CleanHTML('//div[4]/div[@class="col-md-9"]')
 
 
 class SearchPage(HTMLPage):
@@ -46,3 +51,4 @@ class SearchPage(HTMLPage):
             obj_id = Regexp(Link('.'), '.*fr/jobs/(\d+)/.*')
             obj_title = CleanText('h4/span[@class="job-title"]')
             obj_society_name = CleanText('h4/span[@class="job-company"]')
+            obj_publication_date = Date(CleanText('h4/span[@class="badge pull-right"]'), parse_func=parse_french_date)

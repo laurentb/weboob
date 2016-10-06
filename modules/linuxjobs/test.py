@@ -24,5 +24,8 @@ from weboob.tools.test import BackendTest
 class LinuxJobsTest(BackendTest):
     MODULE = 'linuxjobs'
 
-    def test_linuxjobs(self):
-        raise NotImplementedError()
+    def test_linuxjobs_search(self):
+        l = list(self.backend.search_job('linux'))
+        assert len(l)
+        advert = self.backend.get_job_advert(l[0].id, l[0])
+        self.assertTrue(advert.url, 'URL for announce "%s" not found: %s' % (advert.id, advert.url))
