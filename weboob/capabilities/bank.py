@@ -24,13 +24,14 @@ import re
 
 from weboob.tools.compat import basestring, long
 from weboob.capabilities.base import empty
+from weboob.exceptions import BrowserQuestion
 
 from .base import BaseObject, Field, StringField, DecimalField, IntField, UserError, Currency, NotAvailable
 from .date import DateField
 from .collection import CapCollection
 
 
-__all__ = ['AccountNotFound', 'TransferError', 'Recipient', 'Account', 'Transaction', 'Investment', 'Transfer', 'CapBank']
+__all__ = ['AccountNotFound', 'TransferError', 'TransferSummary', 'Recipient', 'Account', 'Transaction', 'Investment', 'Transfer', 'CapBank', 'RecipientNotFound']
 
 
 class AccountNotFound(UserError):
@@ -40,6 +41,23 @@ class AccountNotFound(UserError):
 
     def __init__(self, msg='Account not found'):
         UserError.__init__(self, msg)
+
+class RecipientNotFound(UserError):
+    """
+    Raised when a recipient is not found.
+    """
+
+    def __init__(self, msg='Recipient not found'):
+        UserError.__init__(self, msg)
+
+
+class TransferSummary(BrowserQuestion):
+    """
+    Ask the user if he accepts the transfer.
+    @param summary_fields  fields of the initiated transfer yet to be confirmed (dict)
+    """
+    def __init__(self, summary_fields):
+        self.summary_fields = summary_fields
 
 
 class TransferError(UserError):
@@ -242,11 +260,14 @@ class Transfer(BaseObject):
     Transfer from an account to a recipient.
     """
 
-    amount =    DecimalField('Amount to transfer')
-    date =      Field('Date of transfer', basestring, date, datetime)
-    origin =    Field('Origin of transfer', int, long, basestring)
-    recipient = Field('Recipient', int, long, basestring)
-    reason =    StringField('Reason')
+    amount =          DecimalField('Amount to transfer')
+    exec_date =       Field('Date of transfer', basestring, date, datetime)
+    register_date =   Field('Date of transfer', basestring, date, datetime)
+    account_webid =   Field('Origin of transfer', int, long, basestring)
+    recipient_webid = Field('Recipient', int, long, basestring)
+    account_iban =    StringField('International Bank Account Number')
+    recipient_iban =  StringField('International Bank Account Number')
+    label =           StringField('Reason')
 
 
 class CapBank(CapCollection):
@@ -342,9 +363,11 @@ class CapBankTransfer(CapBank):
         """
         raise NotImplementedError()
 
-    def transfer(self, account, recipient, amount, reason=None):
+    def init_transfer(self, account, recipient, amount, reason=None):
         """
-        Make a transfer from an account to a recipient.
+        Initialize a transfer from an account to a recipient.
+        Upon success, raises TransferSummary with details of the transfer
+        processed by the bank website which need to be validated by the user.
 
         :param account: account to take money
         :type account: :class:`Account`
@@ -354,6 +377,16 @@ class CapBankTransfer(CapBank):
         :type amount: :class:`decimal.Decimal`
         :param reason: reason of transfer
         :type reason: :class:`unicode`
+        :raises: :class:`AccountNotFound`, :class:`TransferError`, :class:`TransferSummary`
+        """
+        raise NotImplementedError()
+
+    def execute_transfer(self, reference):
+        """
+        Proceed to tranfer if the TransferSummary was accepted by the user, else
+        abort the transfer.
+
+        :param str webid
         :rtype: :class:`Transfer`
         :raises: :class:`AccountNotFound`, :class:`TransferError`
         """

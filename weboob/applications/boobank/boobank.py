@@ -29,7 +29,7 @@ from weboob.browser.browsers import APIBrowser
 from weboob.browser.profiles import Weboob
 from weboob.exceptions import BrowserHTTPError
 from weboob.capabilities.base import empty
-from weboob.capabilities.bank import CapBank, Account, Transaction, CapBankTransfer
+from weboob.capabilities.bank import CapBank, Account, Transaction, CapBankTransfer, TransferSummary
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
@@ -353,6 +353,20 @@ class Boobank(ReplApplication):
                            }
     COLLECTION_OBJECTS = (Account, Transaction, )
 
+    def bcall_error_handler(self, backend, error, backtrace):
+        if isinstance(error, TransferSummary):
+            padding = len(max(error.summary_fields.keys(), key=len))
+            for key, value in error.summary_fields.iteritems():
+                if key and value:
+                    print(u'{:<{}} {}'.format('%s:' % key, padding, value))
+            v = self.ask('Are you sure to do this transfer?', default=True)
+            backend.config['accept_transfer'].set(v)
+            self.start_format()
+            for transfer in self.do('execute_transfer', error.summary_fields['webid'], backends=backend):
+                self.format(transfer)
+        else:
+            return ReplApplication.bcall_error_handler(self, backend, error, backtrace)
+
     def load_default_backends(self):
         self.load_backends(CapBank, storage=self.create_storage())
 
@@ -459,7 +473,7 @@ class Boobank(ReplApplication):
 
         if not id_to:
             self.objects = []
-            self.set_formatter('recipient_list')
+            self.set_formatter('table')
             self.set_formatter_header(u'Available recipients')
 
             self.start_format()
@@ -479,26 +493,7 @@ class Boobank(ReplApplication):
             print('Error: please give a decimal amount to transfer', file=self.stderr)
             return 2
 
-        if self.interactive:
-            # Try to find the recipient label. It can be missing from
-            # recipients list, for example for banks which allow transfers to
-            # arbitrary recipients.
-            to = id_to
-            for recipient in self.do('iter_transfer_recipients', account.id, backends=account.backend, caps=CapBankTransfer):
-                if recipient.id == id_to:
-                    to = recipient.label
-                    break
-
-            self.print('Amount: %s%s' % (amount, account.currency_text))
-            self.print('From:   %s' % account.label)
-            self.print('To:     %s' % to)
-            self.print('Reason: %s' % (reason or ''))
-            if not self.ask('Are you sure to do this transfer?', default=True):
-                return
-
-        self.start_format()
-        for transfer in self.do('transfer', account.id, id_to, amount, reason, backends=account.backend):
-            self.format(transfer)
+        next(iter(self.do('init_transfer', account.id, id_to, amount, reason, backends=account.backend)))
 
     def do_investment(self, id):
         """
