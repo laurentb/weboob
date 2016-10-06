@@ -33,7 +33,7 @@ from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, SkipItem, method, TableElement
 from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, TableCell, Regexp, Async, AsyncLoad, Date, ColumnNotFound, Format
 from weboob.browser.filters.html import Link, Attr
-from weboob.exceptions import BrowserIncorrectPassword, ParseError
+from weboob.exceptions import BrowserIncorrectPassword, ParseError, NoAccountsException
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -111,6 +111,11 @@ class TransfertPage(LoggedPage, HTMLPage):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        no_account_message = CleanText(u'//td[contains(text(), "Votre contrat de banque à distance ne vous donne accès à aucun compte.")]')(self.doc)
+        if no_account_message:
+            raise NoAccountsException(no_account_message)
+
     TYPES = {u'C/C':               Account.TYPE_CHECKING,
              u'Livret':            Account.TYPE_SAVINGS,
              u'Nouveau Prêt':      Account.TYPE_LOAN,
