@@ -28,7 +28,7 @@ from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.json import Dict
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
-from weboob.capabilities.bank import Account, Investment, Recipient
+from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, TransferError, TransferSummary
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import rib2iban, rebuild_rib, is_iban_valid
@@ -200,6 +200,7 @@ class MyRecipient(ItemElement):
     klass = Recipient
 
     obj_currency = Dict('devise')
+    obj__outer_recipient = False
 
     def obj_enabled_at(self):
         return datetime.now().replace(microsecond=0)
@@ -242,9 +243,86 @@ class RecipientsPage(BNPPage):
             obj_id = Dict('idBeneficiaire')
             obj_label = Dict('nomBeneficiaire')
             obj_iban = Dict('ibanNumCompte')
+            obj__outer_recipient = True
 
             def obj_bank_name(self):
                 return Dict('nomBanque')(self) or NotAvailable
+
+
+class ValidateTransferPage(BNPPage):
+    def check_errors(self):
+        if not 'data' in self.doc:
+            raise TransferError(self.doc['message'])
+
+    def abort_if_unknown(self, transfer_data):
+        try:
+            assert transfer_data['typeOperation'] in ['1', '2']
+            assert transfer_data['repartitionFrais'] == '0'
+            assert transfer_data['devise'] == 'EUR'
+            assert not transfer_data['montantDeviseEtrangere']
+        except AssertionError as e:
+            raise TransferError(e)
+
+    def handle_response(self, account, recipient, amount, reason):
+        self.check_errors()
+        transfer_data = self.doc['data']['validationVirement']
+
+        self.abort_if_unknown(transfer_data)
+
+        if transfer_data['idBeneficiaire'] is not None:
+            assert transfer_data['idBeneficiaire'] == recipient.id
+
+        exec_date = Date(transfer_data['dateExecution']).date()
+        today = datetime.today().date()
+        if transfer_data['typeOperation'] == '1':
+            assert exec_date == today
+        else:
+            assert exec_date > today
+
+        fields = {}
+        fields['currency'] = transfer_data['devise']
+        fields['amount'] = Decimal(transfer_data['montantEuros'])
+        fields['account_iban'] = transfer_data['ibanCompteDebiteur']
+        fields['recipient_iban'] = transfer_data['ibanCompteCrediteur'] or recipient.iban
+        fields['account_webid'] = account.id
+        fields['recipient_webid'] = recipient.id
+        fields['exec_date'] = exec_date
+        fields['fees'] = Decimal(transfer_data['montantFrais'])
+        fields['label'] = transfer_data['motifVirement']
+
+        fields['account_label'] = account.label
+        fields['recipient_label'] = recipient.label
+        fields['webid'] = transfer_data['reference']
+        if transfer_data['doublon']:
+            fields['doublon'] = True
+
+        self.browser.pending_transfer['validation_token'] = transfer_data['reference']
+        self.browser.pending_transfer['account'] = account.to_dict()
+        self.browser.pending_transfer['recipient'] = recipient.to_dict()
+        self.browser.pending_transfer['amount'] = amount
+        self.browser.pending_transfer['reason'] = reason
+
+        raise TransferSummary(fields)
+
+
+class RegisterTransferPage(ValidateTransferPage):
+    def handle_response(self):
+        self.check_errors()
+
+        transfer = Transfer()
+        transfer.id = self.doc['data']['enregistrementVirement']['reference']
+        transfer.amount = Decimal(self.browser.pending_transfer['amount'])
+        transfer.exec_date = Date(self.doc['data']['enregistrementVirement']['dateExecution']).date()
+        transfer.register_date = Date(self.doc['data']['enregistrementVirement']['dateEnregistrement'])
+        transfer.account_webid = self.browser.pending_transfer['account']['id']
+        transfer.account_iban = self.browser.pending_transfer['account']['iban']
+        transfer.recipient_webid = self.browser.pending_transfer['recipient']['id']
+        transfer.recipient_iban = self.browser.pending_transfer['recipient']['iban']
+        transfer.label = self.browser.pending_transfer['reason']
+
+        self.browser.pending_transfer = {}
+
+        yield transfer
 
 
 class Transaction(FrenchTransaction):

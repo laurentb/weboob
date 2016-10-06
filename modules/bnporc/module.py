@@ -21,10 +21,12 @@
 from decimal import Decimal
 from datetime import datetime, timedelta
 
-from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, Account
+from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, \
+                                     Account, TransferError, RecipientNotFound
 from weboob.capabilities.messages import CapMessages, Thread
+from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword, Value
+from weboob.tools.value import ValueBackendPassword, Value, ValueBool
 
 from .deprecated.browser import BNPorc
 from .enterprise.browser import BNPEnterprise
@@ -45,6 +47,7 @@ class BNPorcModule(Module, CapBankTransfer, CapMessages):
     CONFIG = BackendConfig(
         ValueBackendPassword('login',      label=u'Numéro client', masked=False),
         ValueBackendPassword('password',   label=u'Code secret', regexp='^(\d{6}|)$'),
+        ValueBool('accept_transfer',       label=u'Accept current transfer', default=False),
         #ValueBackendPassword('rotating_password', default='',
         #    label='Password to set when the allowed uses are exhausted (6 digits)',
         #    regexp='^(\d{6}|)$'),
@@ -67,6 +70,8 @@ class BNPorcModule(Module, CapBankTransfer, CapMessages):
     def create_default_browser(self):
         b = {'ppold': BNPorc, 'ent': BNPEnterprise, 'ent2': BNPCompany, 'pp': BNPPartPro, 'hbank': HelloBank}
         self.BROWSER = b[self.config['website'].get()]
+        if self.BROWSER is BNPPartPro:
+            return self.create_browser(self.config)
         return self.create_browser(self.config['login'].get(),
                                    self.config['password'].get())
 
@@ -95,22 +100,32 @@ class BNPorcModule(Module, CapBankTransfer, CapMessages):
             raise NotImplementedError()
         return self.browser.iter_recipients(origin_account)
 
-    def transfer(self, account, to, amount, reason=None):
-        if self.config['website'].get() != 'ppold':
+    def init_transfer(self, account, recipient, amount, reason=None, by_iban=False):
+        if self.config['website'].get() != 'pp':
             raise NotImplementedError()
 
-        if isinstance(account, Account):
-            account = account.id
+        if reason is None:
+            raise TransferError('label required')
+
+        if by_iban:
+            account = find_object(self.iter_accounts(), iban=account, error=AccountNotFound)
+            recipient = find_object(self.iter_transfer_recipients(account.id), iban=recipient, error=RecipientNotFound)
+        else:
+            if not isinstance(account, Account):
+                account = find_object(self.iter_accounts(), id=account, error=AccountNotFound)
+            recipient = find_object(self.iter_transfer_recipients(account.id), id=recipient, error=RecipientNotFound)
 
         try:
-            assert account.isdigit()
-            assert to.isdigit()
-            amount = Decimal(amount)
+            assert account.id.isdigit()
+            # quantize to show 2 decimals.
+            amount = Decimal(amount).quantize(Decimal(10) ** -2)
         except (AssertionError, ValueError):
-            raise AccountNotFound()
+            raise TransferError('something went wrong')
 
-        with self.browser:
-            return self.browser.transfer(account, to, amount, reason)
+        return self.browser.init_transfer(account, recipient, amount, reason)
+
+    def execute_transfer(self, reference):
+        return self.browser.execute_transfer(reference)
 
     def iter_threads(self, cache=False):
         """
