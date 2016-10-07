@@ -89,6 +89,6 @@ class GanAssurances(LoginBrowser):
                 self.location(self.page.get_coming_link())
                 assert self.transactions.is_here()
 
-                return self.page.get_history()
+                return self.page.get_history(accid=account.id)
 
         return iter([])
