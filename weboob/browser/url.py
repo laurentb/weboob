@@ -87,7 +87,7 @@ class URL(object):
 
         return self.go(**kwargs)
 
-    def go(self, params=None, data=None, method=None, **kwargs):
+    def go(self, params=None, data=None, method=None, headers=None, **kwargs):
         """
         Request to go on this url.
 
@@ -96,7 +96,7 @@ class URL(object):
         >>> url = URL('http://exawple.org/(?P<pagename>).html')
         >>> url.stay_or_go(pagename='index')
         """
-        r = self.browser.location(self.build(**kwargs), params=params, data=data, method=method)
+        r = self.browser.location(self.build(**kwargs), params=params, data=data, method=method, headers=headers)
         return r.page or r
 
     def open(self, params=None, data=None, **kwargs):
