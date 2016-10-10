@@ -119,7 +119,7 @@ class EntreparticuliersBrowser(PagesBrowser):
     def get_housing(self, _id, obj=None):
         self.update_header()
         splitted_id = _id.split('#')
-        data = '{idannonce: %s,source:"%s",rubrique:%s}' % (splitted_id[0], splitted_id[2], splitted_id[1])
+        data = '{idannonce: %s,source:"%s",rubrique:%s, fromcache:0}' % (splitted_id[0], splitted_id[2], splitted_id[1])
         obj = self.housing.go(data=data).get_housing(obj=obj)
         obj.id = _id
         return obj

@@ -65,7 +65,7 @@ class SearchPage(EntreParticuliersXMLPage):
                             CleanText('./Idannonce'),
                             CleanText('./Rubrique'),
                             CleanText('./Source'))
-            obj_title = CleanText('./Titre')
+            obj_title = CleanText('./MiniINfos')
             obj_cost = CleanDecimal('./Prix', default=Decimal(0))
             obj_currency = u'€'
             obj_text = Format('%s / %s', CleanText('Localisation'),
