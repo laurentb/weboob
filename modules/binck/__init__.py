@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2018 Arthur Huillet
+# Copyright(C) 2016      Edouard Lambert
 #
 # This file is part of weboob.
 #
@@ -16,8 +16,6 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-
-from __future__ import unicode_literals
 
 
 from .module import BinckModule

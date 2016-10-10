@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2018 Arthur Huillet
+# Copyright(C) 2016      Edouard Lambert
 #
 # This file is part of weboob.
 #
@@ -17,16 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-
 
 from weboob.tools.test import BackendTest
 
 
 class BinckTest(BackendTest):
     MODULE = 'binck'
+
     def test_binck(self):
-        l = list(self.backend.iter_accounts())
-        self.assertTrue(len(l) > 0)
-#        a = l[0]
-#        list(self.backend.iter_history(a))
+        raise NotImplementedError()

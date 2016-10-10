@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2018 Arthur Huillet
+# Copyright(C) 2016      Edouard Lambert
 #
 # This file is part of weboob.
 #
@@ -17,59 +17,42 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
 
-
-from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
+from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.base import find_object
 
-from .browser import Binck
+from .browser import BinckBrowser
 
 
 __all__ = ['BinckModule']
 
 
-class BinckModule(Module, CapBankWealth):
+class BinckModule(Module, CapBank):
     NAME = 'binck'
-    MAINTAINER = 'Arthur Huillet'
-    EMAIL = 'arthur.huillet+weboob@free.fr'
-    VERSION = '1.4'
-    LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Binck'
+    MAINTAINER = u'Edouard Lambert'
+    EMAIL = 'elambert@budget-insight.com'
+    LICENSE = 'AGPLv3+'
+    VERSION = '1.4'
     CONFIG = BackendConfig(
-                ValueBackendPassword('login',     label='Identifiant', masked=False, required=True),
-                ValueBackendPassword('password',  label='Mot de passe', required=True))
-    BROWSER = Binck
+            ValueBackendPassword('login',    label='Identifiant', masked=False),
+            ValueBackendPassword('password', label='Mot de passe'))
+
+    BROWSER = BinckBrowser
 
     def create_default_browser(self):
-        return self.create_browser(
-                self.config['login'].get(),
-                self.config['password'].get()
-        )
+        return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
-    def get_account(self, id):
-        """
-        Get an account from its ID.
-
-        :param id: ID of the account
-        :type id: :class:`str`
-        :rtype: :class:`Account`
-        :raises: :class:`AccountNotFound`
-        """
-        return find_object(self.iter_accounts(), id=id, error=AccountNotFound)
+    def get_account(self, _id):
+        return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)
 
     def iter_accounts(self):
-        """
-        Iter accounts.
-
-        :rtype: iter[:class:`Account`]
-        """
-        return self.browser.get_accounts_list()
-
-    def iter_investment(self, account):
-        return self.browser.iter_investment(account)
+        return self.browser.iter_accounts()
 
     def iter_history(self, account):
         return self.browser.iter_history(account)
+
+    def iter_investment(self, account):
+        return self.browser.iter_investment(account)

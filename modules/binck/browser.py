@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2018 Arthur Huillet
+# Copyright(C) 2016      Edouard Lambert
 #
 # This file is part of weboob.
 #
@@ -17,70 +17,76 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountsList, TransactionHistoryJSON, AccountSelectionBar, InvestmentListJSON
-
-__all__ = ['Binck']
+from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage
 
 
-class Binck(LoginBrowser):
-    BASEURL = 'https://web.binck.fr/'
+class BinckBrowser(LoginBrowser):
+    BASEURL = 'https://web.binck.fr'
 
-    # login and account overview are easy. Other pages are stateful and use the
-    # current account that is sent via a POST request that includes a one-time
-    # verification token
-    login_page = URL('/logon$', LoginPage)
-    accounts_page = URL('/AccountsOverview/Index', AccountsList)
-    transaction_history_json = URL('/TransactionsOverview/GetTransactions', TransactionHistoryJSON)
-    investment_list_json = URL('/PortfolioOverview/GetPortfolioOverview', InvestmentListJSON)
-    account_history_page = URL('/TransactionsOverview/FilteredOverview', AccountSelectionBar)
-    investment_page = URL('/PortfolioOverview/Index', AccountSelectionBar)
-    generic_page_with_account_selector = URL('/Home/Index', AccountSelectionBar)
+    login = URL('/Logon', LoginPage)
+    accounts = URL('/AccountsOverview', '/$', AccountsPage)
+    investment = URL('/PortfolioOverview/GetPortfolioOverview', InvestmentPage)
+    history = URL('/TransactionsOverview/GetTransactions',
+                  '/TransactionsOverview/FilteredOverview', HistoryPage)
 
     def __init__(self, *args, **kwargs):
-        super(Binck, self).__init__(*args, **kwargs)
-        self.current_account = None
-        self.verification_token = None
+        super(BinckBrowser, self).__init__(*args, **kwargs)
+        self.cache = {}
+        self.cache['invs'] = {}
+        self.cache['trs'] = {}
+
+    def deinit(self):
+        if self.page.logged:
+            self.location("/Account/Logoff")
+        super(BinckBrowser, self).deinit()
 
     def do_login(self):
-        self.login_page.stay_or_go()
-        self.page.login(self.username, self.password)
+        self.login.go().login(self.username, self.password)
 
-        if self.login_page.is_here():
-            raise BrowserIncorrectPassword()
+        if self.login.is_here():
+            raise BrowserIncorrectPassword(self.page.get_error())
 
     @need_login
-    def get_accounts_list(self):
-        self.accounts_page.stay_or_go()
-        return self.page.get_list()
-
-    def make_account_current(self, account):
-        self.token = self.page.get_account_selector_verification_token()
-        self.location('/Header/SwitchAccount', data={'__RequestVerificationToken': self.token, 'accountNumber': account.id})
-        self.token = self.page.get_account_selector_verification_token()
-        self.current_account = account
+    def iter_accounts(self):
+        if 'accs' not in self.cache.keys():
+            accs = []
+            for a in self.accounts.go().iter_accounts():
+                self.accounts.stay_or_go().go_toaccount(a.id)
+                a.iban = self.page.get_iban()
+                # Get token
+                token = self.page.get_token()
+                # Get investment page
+                data = {'grouping': "SecurityCategory"}
+                a._invpage = self.investment.go(data=data, headers=token) \
+                    if self.page.is_investment() else None
+                if a._invpage:
+                    a.valuation_diff = a._invpage.get_valuation_diff()
+                # Get history page
+                data = [('currencyCode', a.currency), ('startDate', ""), ('endDate', "")]
+                a._histpages = [self.history.go(data=data, headers=token)]
+                while self.page.doc['EndOfData'] is False:
+                    a._histpages.append(self.history.go(data=self.page.get_nextpage_data(data[:]), headers=token))
+                accs.append(a)
+            self.cache['accs'] = accs
+        return self.cache['accs']
 
     @need_login
     def iter_investment(self, account):
-        self.investment_page.stay_or_go()
-        self.make_account_current(account)
-        self.location('/PortfolioOverview/GetPortfolioOverview', data={'grouping': 'SecurityCategory'},
-                      headers={'__RequestVerificationToken': self.token})
-        return self.page.iter_investment()
+        if account.id not in self.cache['invs']:
+            invs = [i for i in account._invpage.iter_investment()] \
+                if account._invpage else []
+            self.cache['invs'][account.id] = invs
+        return self.cache['invs'][account.id]
 
     @need_login
     def iter_history(self, account):
-        # Not very useful as Binck's history page sucks (descriptions make no sense)
-        self.account_history_page.stay_or_go()
-        self.make_account_current(account)
-        # XXX handle other currencies than EUR
-        self.location('/TransactionsOverview/GetTransactions',
-                      data={'currencyCode': 'EUR', 'mutationGroup': '', 'startDate': '', 'endDate': '', 'isFilteredOverview': True},
-                      headers={'__RequestVerificationToken': self.token})
-
-        return self.page.iter_history()
+        if account.id not in self.cache['trs']:
+            trs = []
+            for page in account._histpages:
+                trs.extend([t for t in page.iter_history()])
+            self.cache['trs'][account.id] = trs
+        return self.cache['trs'][account.id]

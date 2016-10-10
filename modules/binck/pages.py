@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2018 Arthur Huillet
+# Copyright(C) 2016      Edouard Lambert
 #
 # This file is part of weboob.
 #
@@ -18,166 +18,135 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import unicode_literals
+import re
 
+from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
+from weboob.browser.elements import ItemElement, TableElement, DictElement, method
+from weboob.browser.filters.standard import CleanText, Date, Format, CleanDecimal, Eval, Env, TableCell
 from weboob.browser.filters.html import Attr
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Currency, Date
 from weboob.browser.filters.json import Dict
+from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.base import NotAvailable
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
-from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Transaction, Investment
-from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
-from weboob.browser.elements import method, ItemElement, DictElement
+
+def MyDecimal(*args, **kwargs):
+    kwargs.update(replace_dots=True, default=NotAvailable)
+    return CleanDecimal(*args, **kwargs)
 
 
 class LoginPage(HTMLPage):
-    def login(self, login, passwd):
-
-        form = self.get_form(id='loginForm')
+    def login(self, login, password):
+        form = self.get_form('//form[@class="logon-form"]')
         form['UserName'] = login
-        form['Password'] = passwd
+        form['Password'] = password
         form.submit()
 
-
-class AccountSelectionBar(LoggedPage, HTMLPage):
-    def get_account_selector_verification_token(self):
-        return self.doc.xpath("//div[@class='accounts']//input[@name='__RequestVerificationToken']/@value")[0]
+    def get_error(self):
+        return CleanText('//div[contains(@class, "errors")]')(self.doc)
 
 
-class AccountsList(AccountSelectionBar):
+class AccountsPage(LoggedPage, HTMLPage):
+    TYPES = {u'LIVRET':         Account.TYPE_SAVINGS,
+             u'COMPTE-TITRES':  Account.TYPE_MARKET,
+             u'PEA-PME':        Account.TYPE_PEA,
+             u'PEA':            Account.TYPE_PEA
+            }
 
-    def get_list(self):
-        accounts = []
+    def go_toaccount(self, number):
+        form = self.get_form('//form[contains(@action, "Switch")]')
+        form['accountNumber'] = number
+        form.submit()
 
-        for account_category in self.doc.xpath('//div[@id="AccountGroups"]//h1'):
-            type_mappings = {'PEA'           : Account.TYPE_PEA,
-                             'Compte-titres' : Account.TYPE_MARKET,
-                             'Livret'        : Account.TYPE_SAVINGS,
-                             # XXX PEA-PME?
-                             }
+    def get_iban(self):
+        return CleanText('//div[@class="iban"]/text()', replace=[(' ', '')], default=NotAvailable)(self.doc)
 
-            try:
-                current_type = type_mappings[account_category.text]
-            except KeyError:
-                self.logger.warning("Unknown account type for " + CleanText().filter(account_category))
-                current_type = Account.TYPE_UNKNOWN
+    def get_token(self):
+        return [{Attr('.', 'name')(input): Attr('.', 'value')(input)} \
+            for input in self.doc.xpath('//input[contains(@name, "Token")]')][0]
 
-            for cpt in account_category.xpath('..//tr[@data-accountnumber]'):
-                account = Account()
-                account.type = current_type
-                account.id = Attr(".", "data-accountnumber")(cpt)
-                account.label = CleanText("./td[1]")(cpt)
-                account.balance = CleanDecimal("./td[2]", replace_dots=True)(cpt)
-                account.iban = NotAvailable  # XXX need IBAN
-                accounts.append(account)
-        return accounts
+    def is_investment(self):
+        return CleanText('//header/a[contains(@href, "Portfolio")]', default=False)(self.doc)
 
-
-class TransactionHistoryJSON(JsonPage):
     @method
-    class iter_history(DictElement):
-        item_xpath = 'Transactions'
-        '''
-{u'CurrentPage': 0,
- u'EndOfData': True,
- u'LastSequenceNumber': 1,
- u'MutationGroupIntroductionText': u'Historique des transactions',
- u'MutationGroupIntroductionTitle': u'Toutes les transactions',
- u'Pages': [24],
- u'Transactions': [{u'Amount': u'0,00 \u20ac',
-   u'Date': u'06/04/2017',
-   u'Description': u'\xe0 xxxx',
-   u'Mutation': u'-345,99 \u20ac',
-   u'Number': 24,
-   u'TransactionId': 20333,
-   u'Type': u'Virement interne',
-   u'ValueDate': u'06/04/2017'},
-  {u'Amount': u'345,99 \u20ac',
-   u'Date': u'05/04/2017',
-   u'Description': u"'Frais remboursement'",
-   u'Mutation': u'5,00 \u20ac',
-   u'Number': 23,
-   u'TransactionId': 2031111,
-   u'Type': u'Commissions',
-   u'ValueDate': u'05/04/2017'},
-}
-'''
+    class iter_accounts(TableElement):
+        item_xpath = '//table[contains(@class, "accountsTable")]/tbody/tr'
+        head_xpath = '//table[contains(@class, "accountsTable")]/thead/tr/th'
+
+        col_label = u'Intitulé du compte'
+        col_balance = u'Total Portefeuille'
+
         class item(ItemElement):
-            klass = Transaction
-            obj_id = Dict('TransactionId')
-            obj_date = Date(Dict('Date'), dayfirst=True, default=NotAvailable)
-            obj_label = CleanText(Dict('Description'))
-            obj_amount = CleanDecimal(Dict('Mutation'), replace_dots=True, default=NotAvailable)
-            obj__account_balance = CleanDecimal(Dict('Amount'), replace_dots=True, default=NotAvailable)
-            obj__num_oper = Dict('Number')
-            obj__transaction_id = Dict('TransactionId')
-            # XXX this page has types that do not make a lot of sense, and
-            # crappy descriptions, and weboob does not have the types we want
-            # anyway. Don't bother filling in the type.
-            obj_type = Transaction.TYPE_BANK
-            obj_vdate = Date(Dict('ValueDate'), dayfirst=True, default=NotAvailable)
+            klass = Account
 
-            def obj_original_currency(self):
-                return Account.get_currency(Dict('Mutation')(self))
+            obj_id = Attr('.', 'data-accountnumber')
+            obj_label = CleanText(TableCell('label'))
+            obj_balance = MyDecimal(TableCell('balance'))
 
-            def obj__transaction_detail(self):
-                return
-                'https://web.binck.fr/TransactionDetails/TransactionDetails?transactionSequenceNumber=%d&currencyCode=%s' % \
-                    (self.obj._num_oper, self.obj.original_currency)
+            def obj_type(self):
+                return self.page.TYPES.get(CleanText('./ancestor::section[h1]/h1')(self).upper(), Account.TYPE_UNKNOWN)
+
+            def obj_currency(self):
+                return Account.get_currency(CleanText(TableCell('balance'))(self))
 
 
-class InvestmentListJSON(JsonPage):
-    '''
-{
-    "PortfolioOverviewGroups": [
-        {
-            "GroupName": "ETF",
-            "Items": [
-                {
-                    "CurrencyCode": "EUR",
-                    "SecurityId": 4019272,
-                    "SecurityName": "Amundi ETF MSCI Emg Markets UCITS EUR C",
-                    "Quantity": "5\u00a0052",
-                    "QuantityValue": 5052.0,
-                    "Quote": "4,1265",
-                    "ValueInEuro": "20\u00a0847,08 \u20ac",
-                    "ValueInEuroRaw": 20847.08,
-                    "HistoricQuote": "3,68289",
-                    "HistoricValue": "18\u00a0605,95 \u20ac",
-                    "HistoricValueInEuro": "18\u00a0605,95 \u20ac",
-                    "ResultValueInEuro": "2\u00a0241,12 \u20ac",
-                    "ResultPercentageInEuro": "12,05 %",
-                    "ValueInSecurityCurrency": "20\u00a0847,08 \u20ac",
-                    "Difference": "-0,0285",
-                    "DifferencePercentage": "-0,69 %",
-                    "ResultValueInSecurityCurrency": "2\u00a0241,12 \u20ac",
-                    "ResultPercentageInSecurityCurrency": "12,05 %",
-                    "DayResultInEuro": "-166,72 \u20ac",
-                    "LowestPrice": "4,1294",
-                    "HighestPrice": "4,141",
-                    "OpeningPrice": "4,1305",
-                    "ClosingPrice": "4,1595",
-                    "IsinCode": "LU1681045370",
-                    "SecurityCategory": "ETF",
-                },
-            '''
+class InvestmentPage(LoggedPage, JsonPage):
+    def get_valuation_diff(self):
+        return CleanDecimal().filter(Dict('PortfolioSummary/UnrealizedResultValue')(self.doc))
+
     @method
     class iter_investment(DictElement):
         item_xpath = 'PortfolioOverviewGroups/*/Items'
 
+        def parse(self, el):
+            self.env['vdate'] = Date(dayfirst=True).filter(Dict('PortfolioSummary/UpdatedAt')(self.page.doc))
+
         class item(ItemElement):
             klass = Investment
-            obj_id = Dict('SecurityId')
+
             obj_label = Dict('SecurityName')
             obj_code = Dict('IsinCode')
-            obj_code_type = Investment.CODE_TYPE_ISIN
-            obj_quantity = CleanDecimal(Dict('QuantityValue'))
-            obj_unitprice = CleanDecimal(Dict('HistoricQuote'), replace_dots=True)
-            obj_unitvalue = CleanDecimal(Dict('Quote'), replace_dots=True)
-            obj_valuation = CleanDecimal(Dict('ValueInEuroRaw'))
-            obj_diff = CleanDecimal(Dict('ResultValueInEuro'), replace_dots=True)
-            obj_diff_percent = CleanDecimal(Dict('ResultPercentageInEuro'), replace_dots=True)
-            obj_original_currency = Currency(Dict('CurrencyCode'))
-            obj_original_valuation = CleanDecimal(Dict('ValueInSecurityCurrency'), replace_dots=True)
-            obj_original_diff = CleanDecimal(Dict('ResultValueInSecurityCurrency'), replace_dots=True)
+            obj_quantity = MyDecimal(Dict('Quantity'))
+            obj_vdate = Env('vdate')
 
+            obj_valuation = MyDecimal(Dict('ValueInEuro'))
+            obj_unitvalue = MyDecimal(Dict('Quote'))
+            obj_unitprice = MyDecimal(Dict('HistoricQuote'))
+            obj_diff = MyDecimal(Dict('ResultValueInEuro'))
+            obj_diff_percent = Eval(lambda x: x / 100, MyDecimal(Dict('ResultPercentageInEuro')))
+
+            obj_original_currency = Dict('CurrencyCode')
+            obj_original_valuation = MyDecimal(Dict('ValueInSecurityCurrency'))
+            obj_original_diff = MyDecimal(Dict('ResultValueInSecurityCurrency'))
+
+
+class Transaction(FrenchTransaction):
+    PATTERNS = [(re.compile(u'^(?P<text>(Virement.*|Transfert.*))'), FrenchTransaction.TYPE_TRANSFER),
+                (re.compile(u'^(?P<text>Dépôt.*)'), FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(u'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+               ]
+
+
+class HistoryPage(LoggedPage, JsonPage):
+    def get_nextpage_data(self, data):
+        data.append(('direction', "0"))
+        data.append(('lastSequenceNumber', Dict('LastSequenceNumber')(self.doc)))
+        data.append(('currentPage', Dict('CurrentPage')(self.doc)))
+        data.extend([('pages', x) for x in self.doc['Pages']])
+        return data
+
+    @method
+    class iter_history(DictElement):
+        item_xpath = 'Transactions'
+
+        class item(ItemElement):
+            klass = Transaction
+
+            condition = lambda self: MyDecimal(Dict('Mutation'))(self.el)
+
+            obj_raw = Transaction.Raw(Format('%s %s', Dict('Type'), Dict('Description')))
+            obj_date = Date(Dict('Date'), dayfirst=True)
+            obj_amount = MyDecimal(Dict('Mutation'))
+
+            def obj_id(self):
+                return str(Dict('TransactionId')(self))
