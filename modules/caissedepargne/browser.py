@@ -123,8 +123,7 @@ class CaisseEpargne(Browser):
 
     def get_accounts_list(self):
         if self.is_on_page(IndexPage):
-            if self.page.check_no_accounts():
-                return iter([])
+            self.page.check_no_accounts()
             self.page.go_list()
         else:
             self.location(self.buildurl('/Portail.aspx'))

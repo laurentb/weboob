@@ -32,6 +32,7 @@ from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban
+from weboob.exceptions import NoAccountsException
 
 
 class GarbagePage(Page):
@@ -122,8 +123,9 @@ class IndexPage(Page):
             self.browser.location(bourse_link[0].attrib['href'])
 
     def check_no_accounts(self):
-        # Prevent infinite loop when no accouts on website.
-        return len(self.document.xpath(u'//span[@id="MM_LblMessagePopinError"]/p[contains(text(), "Aucun compte disponible")]')) == 1
+        no_account_message = CleanText(u'//span[@id="MM_LblMessagePopinError"]/p[contains(text(), "Aucun compte disponible")]')(self.document)
+        if no_account_message:
+            raise NoAccountsException(no_account_message)
 
     def _get_account_info(self, a):
         m = re.search("PostBack(Options)?\([\"'][^\"']+[\"'],\s*['\"]([HISTORIQUE_\w|SYNTHESE_ASSURANCE_CNP|BOURSE|COMPTE_TITRE][\d\w&]+)?['\"]", a.attrib.get('href', ''))
