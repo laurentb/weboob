@@ -84,3 +84,7 @@ class ModuleLoadError(Exception):
     def __init__(self, module_name, msg):
         Exception.__init__(self, msg)
         self.module = module_name
+
+
+class ActionNeeded(Exception):
+    pass
