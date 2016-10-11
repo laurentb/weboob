@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .module import CaptaintrainModule
+from .module import TrainlineModule
 
 
-__all__ = ['CaptaintrainModule']
+__all__ = ['TrainlineModule']

@@ -28,11 +28,11 @@ from weboob.browser.exceptions import ClientError
 from weboob.capabilities.bill import Bill, Subscription
 
 
-class CaptaintrainBrowser(APIBrowser):
-    BASEURL = 'https://www.captaintrain.com/api/v5/'
+class TrainlineBrowser(APIBrowser):
+    BASEURL = 'https://www.trainline.fr/api/v5/'
 
     def __init__(self, email, password, *args, **kwargs):
-        super(CaptaintrainBrowser, self).__init__(*args, **kwargs)
+        super(TrainlineBrowser, self).__init__(*args, **kwargs)
 
         self.session.headers['X-Requested-With'] = 'XMLHttpRequest'
 
@@ -80,6 +80,7 @@ class CaptaintrainBrowser(APIBrowser):
                     b.format = u"pdf"
                     b.label = u'Trajet du %s' % Date().filter(trip['departure_date'])
                     b.type = u"bill"
+                    b.vat = 0
                     b.price = CleanDecimal().filter(format(pnr['cents']/float(100), '.2f'))
                     b.currency = pnr['currency']
                     docs.append(b)

@@ -21,8 +21,8 @@
 from weboob.tools.test import BackendTest
 
 
-class CaptaintrainTest(BackendTest):
-    MODULE = 'captaintrain'
+class TrainlineTest(BackendTest):
+    MODULE = 'trainline'
 
-    def test_captaintrain(self):
+    def test_trainline(self):
         raise NotImplementedError()

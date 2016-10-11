@@ -23,15 +23,15 @@ from weboob.capabilities.base import find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
-from .browser import CaptaintrainBrowser
+from .browser import TrainlineBrowser
 
 
-__all__ = ['CaptaintrainModule']
+__all__ = ['TrainlineModule']
 
 
-class CaptaintrainModule(Module, CapDocument):
-    NAME = 'captaintrain'
-    DESCRIPTION = u'captaintrain website'
+class TrainlineModule(Module, CapDocument):
+    NAME = 'trainline'
+    DESCRIPTION = u'trainline website'
     MAINTAINER = u'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'AGPLv3+'
@@ -39,7 +39,7 @@ class CaptaintrainModule(Module, CapDocument):
     CONFIG = BackendConfig(Value('login', label='Adresse email'),
                        ValueBackendPassword('password', label='Mot de passe'))
 
-    BROWSER = CaptaintrainBrowser
+    BROWSER = TrainlineBrowser
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(), self.config['password'].get())
