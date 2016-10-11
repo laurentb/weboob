@@ -52,14 +52,28 @@ class S2eBrowser(LoginBrowser):
     @need_login
     def iter_accounts(self):
         if 'accs' not in self.cache.keys():
-            self.accounts.stay_or_go(slug=self.SLUG, lang=self.LANG)
-            self.cache['accs'] = [a for a in self.page.iter_accounts()]
+            multi = self.accounts.stay_or_go(slug=self.SLUG, lang=self.LANG).get_multi()
+            if len(multi):
+                # Handle multi entreprise accounts
+                accs = []
+                for id in multi:
+                    self.page.go_multi(id)
+                    for a in self.accounts.go(slug=self.SLUG).iter_accounts():
+                        a._multi = id
+                        accs.append(a)
+            else:
+                accs = [a for a in self.page.iter_accounts()]
+            self.cache['accs'] = accs
         return self.cache['accs']
 
     @need_login
     def iter_investment(self, account):
         if account.id not in self.cache['invs']:
             self.accounts.stay_or_go(slug=self.SLUG)
+            # Handle multi entreprise accounts
+            if hasattr(account, '_multi'):
+                self.page.go_multi(account._multi)
+                self.accounts.go(slug=self.SLUG)
             # Select account
             self.page.get_investment_pages(account.id)
             invs = [i for i in self.page.iter_investment()]
@@ -71,7 +85,13 @@ class S2eBrowser(LoginBrowser):
     @need_login
     def iter_history(self, account):
         if account.id not in self.cache['trs']:
-            self.history.stay_or_go(slug=self.SLUG).show_more("50")
+            self.history.stay_or_go(slug=self.SLUG)
+            # Handle multi entreprise accounts
+            if hasattr(account, '_multi'):
+                self.page.go_multi(account._multi)
+                self.history.go(slug=self.SLUG)
+            # Get more transactions on each page
+            self.page.show_more("50")
             trs = [t for t in self.page.iter_history(accid=account.id)]
             self.cache['trs'][account.id] = trs
             # Go back to first page

@@ -120,7 +120,21 @@ class ItemInvestment(ItemElement):
         self.env['vdate'] = Date(dayfirst=True).filter(vdate) if vdate else NotAvailable
 
 
-class AccountsPage(LoggedPage, HTMLPage):
+class MultiPage(HTMLPage):
+    def get_multi(self):
+        return [Attr('.', 'value')(option) for option in \
+            self.doc.xpath('//select[@class="ComboEntreprise"]/option')]
+
+    def go_multi(self, id):
+        if Attr('//select[@class="ComboEntreprise"]/option[@selected]', 'value')(self.doc) != id:
+            form = self.get_form('//select[@class="ComboEntreprise"]/ancestor::form[1]')
+            key = [k for k, v in dict(form).iteritems() if "SelectItems" in k][0]
+            form[key] = id
+            form['javax.faces.source'] = key
+            form.submit()
+
+
+class AccountsPage(LoggedPage, MultiPage):
     def on_load(self):
         no_accounts_message = CleanText('//span[contains(text(), "On this date, you still have no employee savings in this company.")] | \
                         //span[contains(text(), "On this date, you do not yet have any employee savings in this company.")]')(self.doc)
@@ -206,7 +220,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                     .xpath('.//div[has-class("nowrap")]'))(self))(self)
 
 
-class HistoryPage(LoggedPage, HTMLPage):
+class HistoryPage(LoggedPage, MultiPage):
     XPATH_FORM = '//div[@id="operation"]//form'
 
     def get_history_form(self, idt, args={}):
