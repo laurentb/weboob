@@ -24,7 +24,7 @@ from decimal import Decimal
 
 from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.deprecated.browser import Page
-from weboob.exceptions import BrowserUnavailable
+from weboob.exceptions import BrowserUnavailable, NoAccountsException
 from weboob.tools.misc import to_unicode
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.ordereddict import OrderedDict
@@ -43,6 +43,8 @@ class AccountList(Page):
         self.parse_table('comptesRetraireEuros')
 
     def get_accounts_list(self):
+        if not self.accounts:
+            raise NoAccountsException()
         return self.accounts.itervalues()
 
     def parse_table(self, what, actype=Account.TYPE_UNKNOWN):
