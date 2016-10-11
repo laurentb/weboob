@@ -93,7 +93,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             obj_label = Label(CleanText('./td[1]/a'))
             obj_coming = Env('coming')
-            obj_currency = FrenchTransaction.Currency('./td[3]')
+            obj_currency = FrenchTransaction.Currency('./td[2]')
             obj__link_id = Link('./td[1]/a')
             obj_type = Type(Field('label'))
             obj_coming = NotAvailable
