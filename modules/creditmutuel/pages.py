@@ -537,7 +537,7 @@ class LIAccountsPage(LoggedPage, HTMLPage):
             obj_id = CleanText('./td[2]', replace=[(' ', '')])
             obj_label = CleanText('./td[1]')
             obj_balance = CleanDecimal('./td[3]', replace_dots=True, default=NotAvailable)
-            obj_currency = FrenchTransaction.Currency('./td[4]')
+            obj_currency = FrenchTransaction.Currency('./td[3]')
             obj__card_links = []
             obj_type = Account.TYPE_LIFE_INSURANCE
             obj__is_inv = True
