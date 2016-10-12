@@ -58,6 +58,7 @@ class AccountsPage(LoggedPage, JsonPage):
             ac.label = acc['libelleDispositif']
             ac._entreprise = acc['libelleEntreprise']
             ac.balance = Decimal(acc['mtBrut'])
+            ac.currency = u'EUR'
             ac._ident = acc['idEnt']
             for k, v in t.items():
                 if k in ac.label:
