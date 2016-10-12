@@ -96,7 +96,7 @@ class URL(object):
         >>> url = URL('http://exawple.org/(?P<pagename>).html')
         >>> url.stay_or_go(pagename='index')
         """
-        r = self.browser.location(self.build(**kwargs), params=params, data=data, method=method, headers=headers)
+        r = self.browser.location(self.build(**kwargs), params=params, data=data, method=method, headers=headers or {})
         return r.page or r
 
     def open(self, params=None, data=None, **kwargs):
