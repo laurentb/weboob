@@ -18,7 +18,11 @@ wd = os.path.join(project, 'localconfig')
 if not os.path.isdir(wd):
     os.makedirs(wd)
 
-paths = os.getenv('PYTHONPATH', '').split(':')
+paths = os.getenv('PYTHONPATH', None)
+if not paths:
+    paths = sys.path
+else:
+    paths = paths.split(':')
 if project not in paths:
     paths.insert(0, project)
 env = os.environ.copy()
