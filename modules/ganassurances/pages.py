@@ -100,8 +100,10 @@ class TransactionsPage(HTMLPage):
         head_xpath = '//table[@id="releve_operation"]//tr/th'
         item_xpath = '//table[@id="releve_operation"]//tr'
 
-        col_date =       [u'Date opé', 'Date', u'Date d\'opé']
+        col_date =       [u'Date opé', 'Date', u'Date d\'opé', u'Date opération']
         col_vdate =      [u'Date valeur']
+        col_credit =     [u'Crédit', u'Montant', u'Valeur']
+        col_debit =      [u'Débit']
 
         def next_page(self):
             url = Attr('//a[contains(text(), "Page suivante")]', 'onclick', default=None)(self)
@@ -116,5 +118,8 @@ class TransactionsPage(HTMLPage):
                 return len(self.el.xpath('./td')) > 3
 
     def get_coming_link(self):
-        a = self.doc.getroot().cssselect('div#sous_nav ul li a.bt_sans_off')[0]
+        try:
+            a = self.doc.getroot().cssselect('div#sous_nav ul li a.bt_sans_off')[0]
+        except IndexError:
+            return None
         return re.sub('[ \t\r\n]+', '', a.attrib['href'])

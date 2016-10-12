@@ -78,7 +78,6 @@ class GanAssurances(LoginBrowser):
 
         return iter([])
 
-
     def get_coming(self, account):
         accounts = self.get_accounts_list()
         for a in accounts:
@@ -86,9 +85,11 @@ class GanAssurances(LoginBrowser):
                 self.location(a._link)
                 assert self.transactions.is_here()
 
-                self.location(self.page.get_coming_link())
-                assert self.transactions.is_here()
+                link = self.page.get_coming_link()
+                if link is not None:
+                    self.location(self.page.get_coming_link())
+                    assert self.transactions.is_here()
 
-                return self.page.get_history(accid=account.id)
+                    return self.page.get_history(accid=account.id)
 
         return iter([])
