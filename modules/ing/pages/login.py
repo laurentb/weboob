@@ -19,10 +19,11 @@
 
 from StringIO import StringIO
 
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard
 from weboob.browser.pages import HTMLPage
 from weboob.browser.filters.html import Attr
+from weboob.browser.filters.standard import CleanText
 
 
 class INGVirtKeyboard(VirtKeyboard):
@@ -113,6 +114,16 @@ class LoginPage(HTMLPage):
         form['AJAXREQUEST'] = '_viewRoot'
         form['mrc:mrldisplayLogin'] = vk.get_coordinates(password)
         form.submit()
+
+    def check_for_action_needed(self):
+        link = Attr('//meta[@content="/general?command=displayTRAlertMessage"]', 'content', default=None)(self.doc)
+        if link:
+            self.browser.location(link)
+
+
+class ActionNeededPage(HTMLPage):
+    def on_load(self):
+        raise ActionNeeded(CleanText(u'//form//h1[1]')(self.doc))
 
 
 class StopPage(HTMLPage):

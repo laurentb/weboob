@@ -28,7 +28,7 @@ from weboob.capabilities.base import find_object
 
 from .pages import AccountsList, LoginPage, NetissimaPage, TitrePage, TitreHistory,\
     TransferPage, TransferConfirmPage, BillsPage, StopPage, TitreDetails, TitreValuePage, ASVHistory,\
-    ASVInvest, DetailFondsPage, IbanPage
+    ASVInvest, DetailFondsPage, IbanPage, ActionNeededPage
 
 
 __all__ = ['IngBrowser']
@@ -57,6 +57,7 @@ class IngBrowser(LoginBrowser):
     # Login and error
     loginpage = URL('/public/displayLogin.jsf.*', LoginPage)
     errorpage = URL('.*displayCoordonneesCommand.*', StopPage)
+    actioneeded = URL('/general\?command=displayTRAlertMessage', ActionNeededPage)
 
     # CapBank
     accountspage = URL('/protected/pages/index.jsf',
@@ -103,6 +104,7 @@ class IngBrowser(LoginBrowser):
             raise BrowserIncorrectPassword()
         if self.errorpage.is_here():
             raise BrowserIncorrectPassword('Please login on website to fill the form and retry')
+        self.page.check_for_action_needed()
 
     @need_login
     @check_bourse
