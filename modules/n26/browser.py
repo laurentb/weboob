@@ -17,13 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from decimal import Decimal
+from datetime import datetime
+
 from weboob.browser.browsers import DomainBrowser
 from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import Account, AccountNotFound, Transaction
-
-from decimal import Decimal
-
-from datetime import datetime
+from weboob.capabilities.bank import Account, Transaction, AccountNotFound
+from weboob.browser.filters.standard import CleanText
 
 # Do not use an APIBrowser since APIBrowser sends all its requests bodies as
 # JSON, although N26 only accepts urlencoded format.
@@ -69,7 +69,7 @@ class Number26Browser(DomainBrowser):
         a.label = u'Checking account'
 
         a.id = account["id"]
-        a.balance = Decimal(account["availableBalance"])
+        a.balance = Decimal(str(account["availableBalance"]))
         a.iban = account["iban"]
 
         return [a]
@@ -113,13 +113,14 @@ class Number26Browser(DomainBrowser):
 
             new.date = datetime.fromtimestamp(t["visibleTS"] / 1000)
             new.rdate = datetime.fromtimestamp(t["createdTS"] / 1000)
+            new.id = t['id']
 
-            new.amount = Decimal(t["amount"])
+            new.amount = Decimal(str(t["amount"]))
 
             if "merchantName" in t:
                 new.raw = new.label = t["merchantName"]
             elif "partnerName" in t:
-                new.raw = t["referenceText"]
+                new.raw = CleanText().filter(t["referenceText"]) or CleanText().filter(t["partnerName"])
                 new.label = t["partnerName"]
             else:
                 raise "unknown transaction label"
@@ -127,7 +128,7 @@ class Number26Browser(DomainBrowser):
             if "originalCurrency" in t:
                 new.original_currency = t["originalCurrency"]
             if "originalAmount"in t:
-                new.original_amount = Decimal(t["originalAmount"])
+                new.original_amount = Decimal(str(t["originalAmount"]))
 
             if t["type"] == 'PT':
                 new.type = Transaction.TYPE_CARD
