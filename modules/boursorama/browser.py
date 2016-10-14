@@ -59,6 +59,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     saving_history = URL('/compte/cefp/.*/(positions|mouvements)',
                          '/compte/.*ord/.*/mouvements',
                          '/compte/pea/.*/mouvements',
+                         '/compte/0%25pea/.*/mouvements',
                          '/compte/pea-pme/.*/mouvements', SavingMarketPage)
     market = URL('/compte/(?!assurance|cav|epargne).*/(positions|mouvements)',
                  '/compte/ord/.*/positions', MarketPage)
