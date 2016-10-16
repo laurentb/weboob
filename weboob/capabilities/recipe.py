@@ -108,7 +108,7 @@ class Recipe(BaseObject):
         if not empty(self.preparation_time):
             preptime = ET.SubElement(desc, 'preparation-time')
             preptime.text = '%02d:%02d' % (self.preparation_time / 60, self.preparation_time % 60)
-        if not empty(self.picture_url):
+        if not empty(self.picture_url) and self.picture_url != '':
             data = urllib.urlopen(self.picture_url).read()
             datab64 = base64.encodestring(data)[:-1]
 
