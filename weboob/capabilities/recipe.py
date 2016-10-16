@@ -118,7 +118,7 @@ class Recipe(BaseObject):
 
         if not empty(self.ingredients):
             ings = ET.SubElement(recipe, 'krecipes-ingredients')
-            pat = re.compile('^[0-9]*')
+            pat = re.compile('^[0-9,.]*')
             for i in self.ingredients:
                 sname = u'%s' % i
                 samount = ''
