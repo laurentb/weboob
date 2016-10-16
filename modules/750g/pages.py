@@ -99,7 +99,7 @@ class RecipePage(HTMLPage):
 
         obj_instructions = CleanHTML('//div[has-class("c-recipe-steps__item")]')
 
-        obj_picture_url = CleanText('(//img[has-class("c-swiper__media")]/@src)[1]')
+        obj_picture_url = CleanText('(//picture[has-class("c-swiper__media")]/img/@src)[1]', default='')
         obj_author = Regexp(CleanText('//meta[@name="description"]/@content',
                                       default=''),
                             '.* par (.*)',

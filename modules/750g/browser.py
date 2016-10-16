@@ -32,14 +32,25 @@ class SevenFiftyGramsBrowser(PagesBrowser):
     recipe = URL('/(?P<id>.*).htm', RecipePage)
 
     def iter_recipes(self, pattern):
-        return self.search.go(pattern=pattern.replace(' ', '_')).iter_recipes()
+        try:
+            self.search.go(pattern=pattern.replace(' ', '_'))
+        except BrowserHTTPNotFound:
+            return []
+
+        if isinstance(self.page, ResultsPage):
+            return self.page.iter_recipes()
+        return [self.get_recipe_content()]
 
     def get_recipe(self, id, recipe=None):
         try:
-            recipe = self.recipe.go(id=id).get_recipe(obj=recipe)
-            comments = list(self.page.get_comments())
-            if comments:
-                recipe.comments = comments
-            return recipe
+            self.recipe.go(id=id)
+            return self.get_recipe_content(recipe)
         except BrowserHTTPNotFound:
             return
+
+    def get_recipe_content(self, recipe=None):
+        recipe = self.page.get_recipe(obj=recipe)
+        comments = list(self.page.get_comments())
+        if comments:
+            recipe.comments = comments
+        return recipe
