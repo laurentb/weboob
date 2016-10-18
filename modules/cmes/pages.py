@@ -45,7 +45,7 @@ class LoginPage(HTMLPage):
 
 class AccountsPage(LoggedPage, HTMLPage):
     def get_investment_link(self):
-        return Link().filter(self.doc.xpath('//a[contains(text(), "fonds")]'))
+        return Link().filter(self.doc.xpath('//a[contains(text(), "fonds")]')) if self.doc.xpath('//a[contains(text(), "fonds")]') else None
 
     @method
     class iter_accounts(ListElement):
