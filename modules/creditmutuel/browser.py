@@ -60,7 +60,9 @@ class CreditMutuelBrowser(LoginBrowser):
     accounts =    URL('/(?P<subbank>.*)/fr/banque/situation_financiere.cgi',
                       '/(?P<subbank>.*)/fr/banque/situation_financiere.html',
                       AccountsPage)
-    user_space =  URL('/(?P<subbank>.*)/fr/banque/espace_personnel.aspx',    UserSpacePage)
+    user_space =  URL('/(?P<subbank>.*)/fr/banque/espace_personnel.aspx',
+                      '/(?P<subbank>.*)/fr/banque/accueil.cgi',
+                      UserSpacePage)
     operations =  URL('/(?P<subbank>.*)/fr/banque/mouvements.cgi.*',
                       '/(?P<subbank>.*)/fr/banque/mouvements.html.*',
                       '/(?P<subbank>.*)/fr/banque/nr/nr_devbooster.aspx.*',
