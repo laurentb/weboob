@@ -30,7 +30,7 @@ from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import Env, CleanDecimal, CleanText, Field, Format
 from weboob.browser.filters.html import Attr
-from weboob.exceptions import ParseError
+from weboob.exceptions import BrowserIncorrectPassword
 
 
 class Transaction(FrenchTransaction):
@@ -96,7 +96,10 @@ class LoginPage(HTMLPage):
 
         form = self.get_form('//form[@id="formulaire-login"]')
         code = vk.get_string_code(password)
-        assert len(code)==10, ParseError("Wrong number of character.")
+        try:
+            assert len(code)==10
+        except AssertionError:
+            raise BrowserIncorrectPassword("Wrong number of character")
         form['accordirect.identifiant'] = login
         form['accordirect.code'] = code
         form.submit()
