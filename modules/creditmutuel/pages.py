@@ -439,10 +439,11 @@ class CardPage(OperationsPage, LoggedPage):
         class item(ItemElement):
             klass = Account
 
-            obj__owner = Regexp(CleanText('./td[1]/text()', replace=[(' ', '')]), 'Titulaire:(.*)')
-            obj_id = Format('%s%s', Regexp(CleanText('./td[1]/a', replace=[(' ', '')]), '([\d]+)'), Field('_owner'))
+            obj__owner = Regexp(CleanText('./td[1]/text()'), 'Titulaire :(.*)')
+            obj_id = Format('%s%s', Regexp(CleanText('./td[1]/a', replace=[(' ', '')]), '([\d]+)'), CleanText(Field('_owner'), replace=[(' ', '')]))
             obj_label = Field('_owner')
             obj_balance = NotAvailable
+            obj_coming = CleanDecimal('./td[2]', replace_dots=True)
             obj_currency = FrenchTransaction.Currency('./td[2]')
             obj__link_id = Link('./td[1]/a')
             obj_type = Account.TYPE_CARD
