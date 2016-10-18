@@ -26,6 +26,7 @@ from io import BytesIO
 from datetime import date as da
 
 from weboob.deprecated.browser import Page, BrokenPageError, BrowserIncorrectPassword
+from weboob.exceptions import ActionNeeded
 from weboob.tools.json import json
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities import NotAvailable
@@ -308,6 +309,11 @@ class ProAccountsPage(AccountsPage):
         return url, args
 
     def get_list(self):
+
+        no_accounts_message = self.document.xpath(u'//span/b[contains(text(),"Votre abonnement est clôturé. Veuillez contacter votre conseiller.")]/text()')
+        if no_accounts_message:
+            raise ActionNeeded(no_accounts_message[0])
+
         for tr in self.document.xpath('//table[@class="datas"]//tr'):
             if tr.attrib.get('class', '') == 'entete':
                 continue
