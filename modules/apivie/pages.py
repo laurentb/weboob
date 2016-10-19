@@ -21,6 +21,7 @@
 from decimal import Decimal
 
 from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.base import NotAvailable
 from weboob.deprecated.browser import Page
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.browser.filters.standard import Date, CleanText
@@ -74,8 +75,9 @@ class InvestmentsPage(Page):
             if len(tds) < 4:
                 continue
             inv = Investment()
-            inv.vdate = Date(dayfirst=True).filter(CleanText().filter(self.document.xpath( \
-                        '//div[@id="table-evolution-contrat"]//table/tbody/tr[1]/td[1]')))
+            inv.vdate = Date(dayfirst=True).filter(CleanText().filter( \
+                    self.document.xpath('//div[@id="table-evolution-contrat"]//table/tbody/tr[1]/td[1]'))) \
+                    if self.document.xpath('//div[@id="table-evolution-contrat"]//table/tbody/tr[1]/td[1]') else NotAvailable
             inv.label = self.parser.tocleanstring(tds[self.COL_LABEL])
             inv.code = self.parser.tocleanstring(tds[self.COL_CODE])
             inv.valuation = Decimal(FrenchTransaction.clean_amount( \
