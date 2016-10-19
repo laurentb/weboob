@@ -21,9 +21,9 @@
 from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.value import Value, ValueBackendPassword
 
-from .browser import GanAssurances
+from .browser import GroupamaBrowser
 
 
 __all__ = ['GroupamaModule']
@@ -36,13 +36,12 @@ class GroupamaModule(Module, CapBank):
     VERSION = '1.4'
     DESCRIPTION = u'Groupama'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label=u'Numéro client', masked=False),
+    CONFIG = BackendConfig(Value('login',    label=u'Numéro client'), \
                            ValueBackendPassword('password', label=u"Code d'accès"))
-    BROWSER = GanAssurances
+    BROWSER = GroupamaBrowser
 
     def create_default_browser(self):
-        return self.create_browser('espaceclient.groupama.fr',
-                                   self.config['login'].get(),
+        return self.create_browser(self.config['login'].get(), \
                                    self.config['password'].get())
 
     def iter_accounts(self):
