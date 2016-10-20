@@ -323,6 +323,7 @@ class Cragr(Browser):
                 url = self.page.get_next_url()
 
         elif self.page:
+            self.page.order_transactions()
             while True:
                 assert self.is_on_page(TransactionsPage)
 

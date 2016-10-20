@@ -334,6 +334,9 @@ class CardsPage(BasePage):
             account._perimeter = self.browser.current_perimeter
             yield account
 
+    def order_transactions(self):
+        pass
+
     def get_next_url(self):
         links = self.document.xpath('//font[@class="btnsuiteliste"]')
         if len(links) < 1:
@@ -467,6 +470,16 @@ class TransactionsPage(BasePage):
         for font in self.document.xpath('(//td[font/b/text()="IBAN"])[1]/table//font'):
             s += self.parser.tocleanstring(font)
         return s
+
+    def order_transactions(self):
+        date = self.document.xpath('//th[@scope="col"]/a[text()="Date"]')
+        if len(date) < 1:
+            return
+
+        if 'active' in date[0].attrib.get('class', ''):
+            return
+
+        self.browser.location(date[0].attrib['href'])
 
     def get_next_url(self):
         links = self.document.xpath('//span[@class="pager"]/a[@class="liennavigationcorpspage"]')
