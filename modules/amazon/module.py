@@ -109,5 +109,5 @@ class AmazonModule(Module, CapShop, CapDocument):
         if not isinstance(bill, Bill):
             bill = self.get_document(bill)
         if bill.url:
-            return self.browser.open(bill.url).content
+            return self.browser.download_document(bill.url)
         return None

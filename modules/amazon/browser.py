@@ -24,6 +24,7 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ServerError, HTTPNotFound
 from weboob.capabilities.bill import Subscription, Bill
 from weboob.capabilities.shop import OrderNotFound
+from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import HomePage, LoginPage, AmazonPage, HistoryPage, \
@@ -136,3 +137,10 @@ class Amazon(LoginBrowser):
             b.label = '%s %s' % (subscription.label, o.date)
             b.vat = o.tax
             yield b
+
+    @need_login
+    def download_document(self, url):
+        doc = self.location(url)
+        if not self.order_new.is_here():
+            return doc.content
+        return NotAvailable
