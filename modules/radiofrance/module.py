@@ -54,11 +54,11 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
                           u'live': u'programmes?xmlHttpRequest=1',
                           u'podcast': u'programmes?xmlHttpRequest=1',
                           u'selection': u''},
-        'franceinfo': {u'title': u'France Info',
-                       u'player': u'player',
-                       u'live': u'lecteur_commun_json/timeline',
-                       u'podcast': u'programmes-chroniques/podcasts',
-                       u'selection': u'lecteur_commun_json/reecoute-%s' % int(time.mktime(datetime.utcnow().replace(hour=14, minute=0, second=0).timetuple()))},
+        'francetvinfo': {u'title': u'France Info',
+                         u'player': u'en-direct/radio.html',
+                         u'live': u'',
+                         # u'podcast': u'', TODO
+                         u'selection': u''},
         'fbidf': {u'title': u'France Bleu Île-de-France (Paris)',
                   u'player': u'107-1',
                   u'live': u'grid/107-1'},
@@ -284,7 +284,7 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
                 stream.bitrate = 128
             else:
                 stream.bitrate = 32
-                url = url.replace('midfi128', 'lofi32')
+                url = url.replace('midfi', 'lofi')
 
             stream.format = u'mp3'
             stream.title = u'%s kbits/s' % (stream.bitrate)

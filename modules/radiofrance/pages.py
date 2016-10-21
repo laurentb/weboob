@@ -70,6 +70,10 @@ class RadioPage(HTMLPage):
         url = Regexp(CleanText('//script'), '.*liveUrl: \'(.*)\', timeshiftUrl.*', default=None)(self.doc)
         if not url:
             url = CleanText('//a[@id="player"][1]/@href')(self.doc)
+        if not url:
+            url = CleanText('//div[@id="audio"][1]/@data-url-live')(self.doc)
+        if not url:
+            url = Regexp(CleanText('//script'), '.*urlLive:\'(.*)\',urlTS.*', default=None)(self.doc)
         return url
 
     @method

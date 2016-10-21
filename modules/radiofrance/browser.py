@@ -39,14 +39,10 @@ class RadioFranceBrowser(PagesBrowser):
         if radio == 'francebleu':
             return self.json_page.go(fbplayer=player).get_fburl()
 
-        if radio == 'franceculture':
-            self.location('%s%s' % (self.BASEURL, player))
-            return self.page.get_france_culture_url()
-
         return self.radio_page.go(page=player).get_url()
 
     def fill_base_url(self, radio):
-        if radio in ['franceinter', 'francebleu']:
+        if radio in ['franceinter', 'francebleu', 'franceculture']:
             self.BASEURL = 'https://www.%s.fr/' % radio
         else:
             self.BASEURL = 'http://www.%s.fr/' % radio
@@ -60,6 +56,9 @@ class RadioFranceBrowser(PagesBrowser):
         if radio in ['franceculture', 'franceinter']:
             return self.json_page.go().get_culture_inter_current()
 
+        if radio == 'francetvinfo':
+            return u'', u''
+
         return self.json_page.go(json_url=url).get_current()
 
     def get_selection(self, radio_url, json_url, radio_id):
@@ -69,6 +68,8 @@ class RadioFranceBrowser(PagesBrowser):
         elif radio_id == 'franceculture':
             self.fill_base_url(radio_id)
             return self.radio_page.go(page='').get_france_culture_selection(radio_id=radio_id)
+        elif radio_id == 'francetvinfo':
+            return []
 
         return self.json_page.go(json_url=json_url).get_selection(radio_id=radio_id)
 
