@@ -29,11 +29,10 @@ import re
 import os
 from logging import warning
 
-from weboob.core.modules import ModuleLoadError
 from weboob.core.repositories import IProgress
 from weboob.core.backendscfg import BackendAlreadyExists
 from weboob.capabilities.account import CapAccount, Account, AccountRegisterError
-from weboob.exceptions import ModuleInstallError
+from weboob.exceptions import ModuleInstallError, ModuleLoadError
 from .backendcfg_ui import Ui_BackendCfg
 from .reposdlg_ui import Ui_RepositoriesDlg
 from weboob.tools.ordereddict import OrderedDict

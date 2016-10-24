@@ -26,7 +26,7 @@ from weboob.capabilities.base import BaseObject, FieldNotFound, \
 from weboob.tools.misc import iter_fields
 from weboob.tools.log import getLogger
 from weboob.tools.value import ValuesDict
-from weboob.exceptions import ModuleInstallError
+from weboob.exceptions import ModuleInstallError, ModuleLoadError
 
 
 __all__ = ['BackendStorage', 'BackendConfig', 'Module']
@@ -454,14 +454,16 @@ class AbstractModule(Module):
         if cls.PARENT is None:
             raise AbstractModuleMissingParentError("PARENT is not defined for module %s" % cls.__name__)
 
-        if not weboob.modules_loader.module_exists(cls.PARENT):
+        try:
+            parent = weboob.modules_loader.get_or_load_module(cls.PARENT).klass
+        except ModuleLoadError:
             try:
                 weboob.repositories.install(cls.PARENT)
+                parent = weboob.modules_loader.get_or_load_module(cls.PARENT).klass
             except ModuleInstallError as err:
                 raise ModuleInstallError('The module %s depends on %s module but %s\'s installation failed with: %s' % (name, cls.PARENT, cls.PARENT, err))
 
 
-        parent = weboob.modules_loader.get_or_load_module(cls.PARENT).klass
         return type(cls.__name__, tuple([parent] + list(cls.iter_caps())), dict(cls.__dict__))(weboob, name, config, storage, logger)
 
 

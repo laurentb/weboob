@@ -78,3 +78,9 @@ class NoAccountsException(Exception):
 
 class ModuleInstallError(Exception):
     pass
+
+
+class ModuleLoadError(Exception):
+    def __init__(self, module_name, msg):
+        Exception.__init__(self, msg)
+        self.module = module_name

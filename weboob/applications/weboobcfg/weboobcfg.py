@@ -23,7 +23,7 @@ import os
 import re
 
 from weboob.capabilities.account import CapAccount
-from weboob.core.modules import ModuleLoadError
+from weboob.exceptions import ModuleLoadError
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.console import ConsoleProgress
 from weboob.tools.ordereddict import OrderedDict

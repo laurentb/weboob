@@ -26,7 +26,7 @@ except ImportError as e:
     from pysqlite2 import dbapi2 as sqlite
 
 from weboob.core import Weboob
-from weboob.core.modules import ModuleLoadError
+from weboob.exceptions import ModuleLoadError
 import sys
 import logging
 level = logging.DEBUG

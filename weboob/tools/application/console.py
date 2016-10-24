@@ -30,9 +30,8 @@ import os
 from weboob.capabilities import UserError
 from weboob.capabilities.account import CapAccount, Account, AccountRegisterError
 from weboob.core.backendscfg import BackendAlreadyExists
-from weboob.core.modules import ModuleLoadError
 from weboob.core.repositories import IProgress
-from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden, BrowserSSLError, BrowserQuestion, BrowserHTTPSDowngrade, ModuleInstallError
+from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden, BrowserSSLError, BrowserQuestion, BrowserHTTPSDowngrade, ModuleInstallError, ModuleLoadError
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt, ValueBackendPassword
 from weboob.tools.misc import to_unicode
 from weboob.tools.compat import check_output

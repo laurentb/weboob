@@ -23,15 +23,9 @@ import logging
 
 from weboob.tools.backend import Module
 from weboob.tools.log import getLogger
+from weboob.exceptions import ModuleLoadError
 
-
-__all__ = ['LoadedModule', 'ModulesLoader', 'RepositoryModulesLoader', 'ModuleLoadError']
-
-
-class ModuleLoadError(Exception):
-    def __init__(self, module_name, msg):
-        Exception.__init__(self, msg)
-        self.module = module_name
+__all__ = ['LoadedModule', 'ModulesLoader', 'RepositoryModulesLoader']
 
 
 class LoadedModule(object):
