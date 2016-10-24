@@ -17,14 +17,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.browser.pages import HTMLPage, pagination
+from weboob.browser.pages import HTMLPage, pagination, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import CleanText, Regexp, Env, Date, BrowserURL, Join
 from weboob.browser.filters.html import CleanHTML, Link
+from weboob.browser.filters.json import Dict
 from weboob.capabilities.job import BaseJobAdvert
 from weboob.exceptions import ParseError
 from datetime import date, timedelta
 from weboob.capabilities import NotAvailable
+
+
+class LocationPage(JsonPage):
+    def get_location(self):
+        return Dict('0/value', default='')(self.doc)
 
 
 class SearchPage(HTMLPage):

@@ -154,6 +154,7 @@ class RegionsjobModule(Module, CapJob):
     }.iteritems())])
 
     CONFIG = BackendConfig(Value('website', label=u'Region', choices=website_choices),
+                           Value('place', label='Place', masked=False, default=''),
                            Value('metier', label='Job name', masked=False, default=''),
                            Value('fonction', label=u'Fonction', choices=fonction_choices, default=''),
                            Value('secteur', label=u'Secteur', choices=secteur_choices, default=''),
@@ -176,7 +177,8 @@ class RegionsjobModule(Module, CapJob):
                                        contract=self.config['contract'].get(),
                                        experience=self.config['experience'].get().strip(),
                                        qualification=self.config['qualification'].get(),
-                                       enterprise_type=self.config['enterprise_type'].get())
+                                       enterprise_type=self.config['enterprise_type'].get(),
+                                       place=self.config['place'].get())
 
     def get_job_advert(self, _id, advert=None):
         return self.browser.get_job_advert(_id, advert)

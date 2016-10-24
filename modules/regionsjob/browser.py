@@ -19,7 +19,7 @@
 
 from weboob.browser import PagesBrowser, URL
 
-from .pages import SearchPage, AdvertPage
+from .pages import SearchPage, AdvertPage, LocationPage
 
 __all__ = ['RegionsjobBrowser']
 
@@ -28,13 +28,14 @@ class RegionsjobBrowser(PagesBrowser):
 
     search_page = URL('emplois/recherche.html\?.*', SearchPage)
     advert_page = URL('emplois/(?P<_id>.*)\.html', AdvertPage)
+    location_page = URL('search/getloc\?term=(?P<place>.*)', LocationPage)
 
     def __init__(self, website, *args, **kwargs):
         self.BASEURL = 'http://%s/' % website
         PagesBrowser.__init__(self, *args, **kwargs)
 
     def search_job(self, pattern='', fonction='', secteur='', contract='',
-                   experience='', qualification='', enterprise_type=''):
+                   experience='', qualification='', enterprise_type='', place=''):
 
         params = {'k': pattern.encode('utf-8')}
 
@@ -55,6 +56,10 @@ class RegionsjobBrowser(PagesBrowser):
 
         if enterprise_type:
             params['et'] = enterprise_type
+
+        if place:
+            location = self.location_page.go(place=place).get_location()
+            params['l'] = location
 
         return self.search_page.go(params=params).iter_job_adverts(domain=self.BASEURL)
 
