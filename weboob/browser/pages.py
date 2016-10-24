@@ -608,7 +608,8 @@ class HTMLPage(Page):
         encoding = self.encoding
         if encoding == 'latin-1':
             encoding = 'latin1'
-        encoding = encoding.replace('ISO8859_', 'ISO8859-')
+        if encoding:
+            encoding = encoding.replace('ISO8859_', 'ISO8859-')
         import lxml.html as html
         parser = html.HTMLParser(encoding=encoding)
         return html.parse(BytesIO(content), parser)
