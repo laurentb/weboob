@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013      Laurent Bachelier
+# Copyright(C) 2016      Jean Walrave
 #
 # This file is part of weboob.
 #
@@ -18,96 +18,106 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from datetime import datetime
 
-from .pages import LoginPage, AccountsPage, HistoryPage, UnknownPage
+from dateutil.rrule import rrule, MONTHLY
+from dateutil.relativedelta import relativedelta
+
+from weboob.browser import LoginBrowser, need_login
+from weboob.exceptions import BrowserIncorrectPassword
+from weboob.browser.url import URL
+
+from .pages import LoginPage, AuthPage, AccountsPage, AccountHistoryViewPage, AccountHistoryPage
+
 
 __all__ = ['BNPEnterprise']
 
 
-class BNPEnterprise(Browser):
-    DOMAIN = 'entreprises.bnpparibas.net'
-    PROTOCOL = 'https'
-    CERTHASH = 'e0569d214f9f95a574baa8b9f189da42922bfded21d614fed43cdb21adb44999'
+class BNPEnterprise(LoginBrowser):
+    BASEURL = 'https://secure1.entreprises.bnpparibas.net'
 
-    PAGES = {'%s://%s/NSAccess.*' % (PROTOCOL, DOMAIN): LoginPage,
-             '%s://%s/UNE\?.*' % (PROTOCOL, DOMAIN): AccountsPage,
-             '%s://%s/ROP\?Action=F_RELCO.+' % (PROTOCOL, DOMAIN): HistoryPage,
-             '%s://%s/RLOPI\?.+' % (PROTOCOL, DOMAIN): HistoryPage,
-             '%s://%s/NSFR' % (PROTOCOL, DOMAIN): UnknownPage}
+    login = URL('/sommaire/jsp/identification.jsp',
+                '/sommaire/generateImg', LoginPage)
+    auth = URL('/sommaire/PseMenuServlet', AuthPage)
+    accounts = URL('/NCCPresentationWeb/e10_soldes/liste_soldes.do', AccountsPage)
+    account_history_view = URL('/NCCPresentationWeb/e11_releve_op/init.do\?identifiant=(?P<identifiant>)' + \
+                               '&typeSolde=(?P<type_solde>)&typeReleve=(?P<type_releve>)&typeDate=(?P<type_date>)' + \
+                               '&dateMin=(?P<date_min>)&dateMax=(?P<date_max>)&ajax=true',
+                               '/NCCPresentationWeb/e11_releve_op/init.do', AccountHistoryViewPage)
+    account_coming_view = URL('/NCCPresentationWeb/m04_selectionCompteGroupe/init.do\?type=compte&identifiant=(?P<identifiant>)', AccountHistoryViewPage)
+    account_history = URL('/NCCPresentationWeb/e11_releve_op/listeOperations.do\?identifiant=(?P<identifiant>)' + \
+                               '&dateMin=(?P<date_min>)&dateMax=(?P<date_max>)',
+                          '/NCCPresentationWeb/e11_releve_op/listeOperations.do', AccountHistoryPage)
+    account_coming = URL('/NCCPresentationWeb/e12_rep_cat_op/listOperations.do\?periode=date_valeur&identifiant=(?P<identifiant>)',
+                         '/NCCPresentationWeb/e12_rep_cat_op/listOperations.do', AccountHistoryPage)
 
-    def home(self):
-        self.location('%s://%s/NSAccess' % (self.PROTOCOL, self.DOMAIN))
+    def __init__(self, *args, **kwargs):
+        super(BNPEnterprise, self).__init__(*args, **kwargs)
 
-    def is_logged(self):
-        if self.page:
-            if self.page.get_error() is not None:
-                return False
-        return not self.is_on_page(LoginPage)
+        self.cache = {}
+        self.cache['transactions'] = {}
+        self.cache['coming_transactions'] = {}
 
-    def login(self):
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
-        assert self.password.isdigit()
+    def do_login(self):
+        self.login.go()
 
-        if not self.is_on_page(LoginPage):
-            self.home()
-
-        self.page.login(self.username, self.password)
-        self.location('/UNE?ch6=0&ch8=2000&chA=1&chh=O', no_login=True)
-
-        if not self.is_logged():
-            raise BrowserIncorrectPassword()
-
-    def get_accounts_list(self):
-        # options shows accounts in their original currency
-        # it's the "en capitaux" mode, not sure if it's the best
-        # the "en valeur" mode is ch8=1000
-        if not self.is_on_page(AccountsPage):
-            self.location('/UNE?ch6=0&ch8=2000&chA=1&chh=O')
-        for account in self.page.get_list():
-            yield account
-
-    def get_account(self, _id):
-        for a in self.get_accounts_list():
-            if a.id == _id:
-                yield a
-
-    def _get_history(self, url):
-        numPage = 1
-        while numPage is not None:
-            self.location(url + '&chP=%s' % numPage)
-
-            for tr in self.page.iter_history():
-                yield tr
-
-            nextNumPage = self.page.get_next_numpage()
-            if nextNumPage is not None and nextNumPage <= numPage:
-                self.logger.error("Currently on page %d, next page cannot be %d!" % (numPage, nextNumPage))
-                return
-
-            numPage = nextNumPage
-
-
-    def iter_history(self, account):
-        if account._link_id is None:
-            return iter([])
-
-        self.location('/ROP?Action=F_RELCO&ch4=%s&ch8=2000' % account._link_id)
-        d1, d2 = self.page.get_date_range()
-
-        return self._get_history('/ROP?Action=F_RELCO&ch4=%s&ch5=%s&ch9=%s&ch8=2000' % (account._link_id, d1, d2))
-
-    def iter_coming_operations(self, account):
-        if account._link_id is None:
+        if self.login.is_here() is False:
             return
 
-        self.location('/RLOPI?chC=%s&ch8=0000' % account.id)
-        d1, d2 = self.page.get_date_range()
+        data = {}
+        data['txtAuthentMode'] = 'PASSWORD'
+        data['BEFORE_LOGIN_REQUEST'] = None
+        data['txtPwdUserId'] = self.username
+        data['gridpass_hidden_input'] = self.page.get_password(self.password)
 
-        for tr in self._get_history('/RLOPI?chC=%s&ch8=0000&chB=1&ch7=%s&ch9=%s' % (account.id, d1, d2)):
-            if tr._coming:
-                yield tr
+        self.auth.go(data=data)
 
+        if self.login.is_here():
+            raise BrowserIncorrectPassword
+
+    @need_login
+    def get_accounts_list(self):
+        if "accounts" not in self.cache.keys():
+            self.cache['accounts'] = [a for a in self.accounts.stay_or_go().iter_accounts()]
+        return self.cache['accounts']
+
+    @need_login
+    def get_account(self, _id):
+        for account in self.get_accounts_list():
+            if account.id == _id:
+                return account
+
+    @need_login
+    def iter_history(self, account):
+        if account.id not in self.cache['transactions']:
+            dformat = "%Y%m%d"
+
+            self.cache['transactions'][account.id] = []
+
+            for date in rrule(MONTHLY, dtstart=(datetime.now() - relativedelta(months=3)), until=datetime.now()):
+                self.account_history_view.go(identifiant=account.iban, type_solde='C', type_releve='Comptable', \
+                                             type_date='O', date_min=date.strftime(dformat), \
+                                             date_max=(date + relativedelta(months=1)).strftime(dformat))
+                self.account_history.go(identifiant=account.iban, date_min=date.strftime(dformat), \
+                                        date_max=(date + relativedelta(months=1)).strftime(dformat))
+
+                for transaction in [t for t in self.page.iter_history() if t._coming is False]:
+                    self.cache['transactions'][account.id].append(transaction)
+
+            self.cache['transactions'][account.id].sort(key=lambda t: t.date, reverse=True)
+
+        return self.cache['transactions'][account.id]
+
+    @need_login
+    def iter_coming_operations(self, account):
+        if account.id not in self.cache['coming_transactions']:
+            self.account_coming_view.go(identifiant=account.iban)
+            self.account_coming.go(identifiant=account.iban)
+
+            self.cache['coming_transactions'][account.id] = [t for t in self.page.iter_coming()]
+
+        return self.cache['coming_transactions'][account.id]
+
+    @need_login
     def iter_investment(self, account):
         raise NotImplementedError()

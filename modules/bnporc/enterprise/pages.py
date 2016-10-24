@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013      Laurent Bachelier
+# Copyright(C) 2016      Jean Walrave
 #
 # This file is part of weboob.
 #
@@ -17,272 +17,180 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from decimal import Decimal
-import hashlib
-from urlparse import parse_qs
-from datetime import datetime
+
 import re
 
+from datetime import datetime
+from cStringIO import StringIO
+
 from weboob.capabilities.bank import Account
-from weboob.deprecated.browser import Page, BrokenPageError
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
+from weboob.browser.filters.json import Dict
+from weboob.browser.elements import DictElement, ItemElement, method
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Field, Format, Env
+from weboob.capabilities.bank import Transaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
-from weboob.tools.misc import to_unicode
-
-
-class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile(u'^(?P<category>CHEQUE)(?P<text>.*)'),        FrenchTransaction.TYPE_CHECK),
-                (re.compile('^(?P<category>FACTURE CARTE) DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*?)( CA?R?T?E? ?\d*X*\d*)?$'),
-                                                            FrenchTransaction.TYPE_CARD),
-                (re.compile('^(?P<category>(PRELEVEMENT|TELEREGLEMENT|TIP)) (?P<text>.*)'),
-                                                            FrenchTransaction.TYPE_ORDER),
-                (re.compile('^(?P<category>ECHEANCEPRET)(?P<text>.*)'),   FrenchTransaction.TYPE_LOAN_PAYMENT),
-                (re.compile('^(?P<category>RETRAIT DAB) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})( (?P<HH>\d+)H(?P<MM>\d+))? (?P<text>.*)'),
-                                                            FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^(?P<category>VIR(EMEN)?T? ((RECU|FAVEUR) TIERS|SEPA RECU)?)( /FRM)?(?P<text>.*)'),
-                                                            FrenchTransaction.TYPE_TRANSFER),
-                (re.compile('^(?P<category>REMBOURST) CB DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*)'),
-                                                            FrenchTransaction.TYPE_PAYBACK),
-                (re.compile('^(?P<category>REMBOURST)(?P<text>.*)'),     FrenchTransaction.TYPE_PAYBACK),
-                (re.compile('^(?P<category>COMMISSIONS)(?P<text>.*)'),   FrenchTransaction.TYPE_BANK),
-                (re.compile('^(?P<text>(?P<category>REMUNERATION).*)'),   FrenchTransaction.TYPE_BANK),
-                (re.compile('^(?P<category>REMISE CHEQUES)(?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
-               ]
-
-
-class BEPage(Page):
-    def get_error(self):
-        for title in self.document.xpath('/html/head/title'):
-            if 'erreur' in title.text or 'error' in title.text:
-                return self.parser.select(self.document.getroot(),
-                                          '//input[@name="titre_page"]', 1, 'xpath').value
+from weboob.capabilities import NotAvailable
 
 
 class BNPVirtKeyboard(MappedVirtKeyboard):
-    symbols = {'0': '97a2b5816f2db74851fe05afd17dc9fe',
-               '1': '0a24fe3a35efeb0a89aa5e7b098e6842',
-               '2': '65ff550debf85eacf8efaadd6cd80aa5',
-               '3': '2bd67143fcd4207ac14d0ea8afdf4ebb',
-               '4': 'a46bfd21636805a31a579b253c3b23d5',
-               '5': '3f644894037255bc0feaba9abb1facfa',
-               '6': '40d91064a749563fa4dd31fb52e880f0',
-               '7': 'cd3af65da74d57df1e6a91ca946c09b7',
-               '8': '85b718e032a02e887c757a7745a1f0bd',
-               '9': 'c2cdc08c8c68855d83c0899d7e8c6719',
-               '-1': 'd41d8cd98f00b204e9800998ecf8427e',
+    symbols = {'0': '91d2887b619ec825bb622c7770d4c2dc',
+               '1': '9fe87bb481bde31b01c5ea434fbb391c',
+               '2': '80c24c1586868830b8f578e41167996a',
+               '3': 'dd4d989b1721506884914edbc1df3b91',
+               '4': '38dd990feb7c40573e526fb69e2f17a9',
+               '5': '579acb65bd5e98fcc413070192477528',
+               '6': 'e133ed4e7c4c0028a2a0a7e9126751b4',
+               '7': 'ae012ad7e1314571aef2343f40235d3c',
+               '8': 'a619519f61da73124a2705544c45fb42',
+               '9': 'fa625a1d4dc8357ec8eb87929bacd197',
                }
 
-    color = 45
+    color = (0, 0, 0)
 
-    def __init__(self, basepage):
-        img = basepage.document.find("//img[@usemap='#MapGril']")
-        imgdata = basepage.browser.openurl(img.attrib['src'])
-        MappedVirtKeyboard.__init__(self, imgdata, basepage.document, img, self.color)
-        self.check_symbols(self.symbols, basepage.browser.responses_dirname)
+    def __init__(self, page):
+        img = page.doc.find('//img[@usemap="#gridpass_map_name"]')
+        res = page.browser.open(img.attrib['src'])
+        MappedVirtKeyboard.__init__(self, StringIO(res.content), page.doc, img, self.color, convert='RGB')
+        self.check_symbols(self.symbols, None)
+
+    def check_color(self, pixel):
+        return pixel[0] < 100
 
     def get_symbol_coords(self, coords):
-        # strip borders
         x1, y1, x2, y2 = coords
-        return MappedVirtKeyboard.get_symbol_coords(self, (x1+6, y1+1, x2-6, y2-4))
+
+        return MappedVirtKeyboard.get_symbol_coords(self, (x1 + 6, y1 + 1, x2 - 6, y2 - 4))
 
     def get_symbol_code(self, md5sum):
-        code = MappedVirtKeyboard.get_symbol_code(self, md5sum)
-        code = code.split("'")[1]
-        assert code.isdigit()
-        return code
+        m = re.search('(\d+)', MappedVirtKeyboard.get_symbol_code(self, md5sum))
+        if m:
+            return m.group(1)
 
-    def get_string_code(self, string):
-        code = ''
-        for c in string:
-            code += self.get_symbol_code(self.symbols[c])
-        return code
+class LoginPage(HTMLPage):
+    def get_password(self, password):
+        vk_passwd = None
 
-    def checksum(self, coords):
-        """Copy of parent checksum(), but cropping (removes empty lines)"""
-        x1, y1, x2, y2 = coords
-        s = ''
-        for y in range(y1, min(y2 + 1, self.height)):
-            for x in range(x1, min(x2 + 1, self.width)):
-                if self.check_color(self.pixar[x, y]):
-                    s += " "
-                else:
-                    s += "O"
-            s += "\n"
-        s = '\n'.join([l for l in s.splitlines() if l.strip()])
-        return hashlib.md5(s).hexdigest()
-
-
-class LoginPage(BEPage):
-    def login(self, login, password):
         try:
             vk = BNPVirtKeyboard(self)
-        except VirtKeyboardError as err:
-            self.logger.error("Error: %s" % err)
-            return False
+            vk_passwd = vk.get_string_code(password)
+        except VirtKeyboardError as e:
+            self.logger.error(e)
 
-        self.browser.select_form(name='ident')
-        self.browser.set_all_readonly(False)
+        return vk_passwd
 
-        self.browser['ch1'] = login.encode('iso-8859-1')
-        self.browser['chgrille'] = vk.get_string_code(password)
-        self.browser.submit()
+class AuthPage(HTMLPage):
+    pass
 
+def CleanBalance(balance, dec):
+    return "%s.%s" % (balance[:(len(balance) - dec)], balance[-dec:])
 
-class AccountsPage(BEPage):
-    TYPES = {u'Compte de chèques':  Account.TYPE_CHECKING,
+class AccountsPage(LoggedPage, JsonPage):
+    TYPES = {u'Compte chèque': Account.TYPE_CHECKING}
+
+    @method
+    class iter_accounts(DictElement):
+        item_xpath = "tableauSoldes/listeGroupes/*/listeComptes"
+
+        class item(ItemElement):
+            klass = Account
+
+            def obj_id(self):
+                return CleanText(Dict('numeroCompte'))(self)[2:]
+
+            obj_label = CleanText(Dict('libelleCompte'))
+            obj_currency = CleanText(Dict('deviseTenue'))
+
+            def obj_balance(self):
+                return CleanDecimal(default=NotAvailable) \
+                    .filter(CleanBalance(str(Env('soldeComptable')(self)), Env('decSoldeComptable')(self)))
+
+            def obj_coming(self):
+                return CleanDecimal(default=NotAvailable) \
+                    .filter(CleanBalance(str(Env('soldePrevisionnel')(self)), Env('decSoldePrevisionnel')(self)))
+
+            obj_iban = CleanText(Dict('numeroCompte', default=None), default=NotAvailable)
+
+            def obj_type(self):
+                return self.page.TYPES.get(Dict('libelleType')(self), Account.TYPE_UNKNOWN)
+
+            def parse(self, el):
+                self.env['soldeComptable'] = Dict('soldeComptable%s' % Field('currency')(self), default=None)(self)
+                self.env['soldePrevisionnel'] = Dict('soldePrevisionnel%s' % Field('currency')(self), default=None)(self)
+                self.env['decSoldeComptable'] = Dict('decSoldeComptable%s' % Field('currency')(self))(self)
+                self.env['decSoldePrevisionnel'] = Dict('decSoldePrevisionnel%s' % Field('currency')(self))(self)
+
+class AccountHistoryViewPage(LoggedPage, HTMLPage):
+    pass
+
+def fromtimestamp(page, dict):
+    return datetime.fromtimestamp(float(dict(page) / 1000))
+
+class AccountHistoryPage(LoggedPage, JsonPage):
+    TYPES = {u'CARTE': Transaction.TYPE_CARD, # Cartes
+             u'CHEQU': Transaction.TYPE_CHECK, # Chèques
+             u'REMCB': Transaction.TYPE_CARD, # Remises cartes
+             u'VIREM': Transaction.TYPE_TRANSFER, # Virements
+             u'VIRIT': Transaction.TYPE_TRANSFER, # Virements internationaux
+             u'VIRSP': Transaction.TYPE_TRANSFER, # Virements européens
+             u'VIRTR': Transaction.TYPE_TRANSFER, # Virements de trésorerie
+             u'VIRXX': Transaction.TYPE_TRANSFER, # Autres virements
+             u'PRLVT': Transaction.TYPE_LOAN_PAYMENT, # Prélèvements, TIP et télérèglements
+             u'AUTOP': Transaction.TYPE_UNKNOWN, # Autres opérations
             }
 
-    def find_table(self):
-        for table in self.parser.select(self.document.getroot(), 'table', 'many'):
-            for td in self.parser.select(table, 'tr td'):
-                if td.text and td.text.strip().startswith('COMPTES '):
-                    return table
+    COMING_TYPES = {u'0083': Transaction.TYPE_DEFERRED_CARD,
+                    u'0813': Transaction.TYPE_LOAN_PAYMENT,
+                    u'0568': Transaction.TYPE_TRANSFER,
+                   }
 
-    def calculate_key(self, rib):
-        table = dict((ord(a), b) for a, b in zip(
-            u'abcdefghijklmnopqrstuvwxyz', u'12345678912345678923456789'))
-        rib = rib.lower().translate(table)
-        return 97 - (100 * int(rib)) % 97
+    @method
+    class iter_history(DictElement):
+        item_xpath = "mouvementsBDDF"
 
+        class item(ItemElement):
+            klass = Transaction
 
-    def get_list(self):
-        table = self.find_table()
-        for tr in self.parser.select(table, 'tr', 'many'):
-            tds = self.parser.select(tr, 'td')
-            if len(tds) != 6:
-                continue
-            tdlabel, tdid, tdcur, tdupdated, tdbal, tdbalcur = tds
+            obj_raw = CleanText(Dict('libelle'))
+            obj_original_currency = CleanText(Dict('montant/devise'))
+            obj__coming = Dict('aVenir')
 
-            account = Account()
-            account.label = to_unicode(tdlabel.text_content().strip())
-            # this is important - and is also the last part of the id (considering spaces)
-            # we can't use only the link as it does not goes where we want
-            try:
-                link = self.parser.select(tdlabel, 'a', 1)
-            except BrokenPageError:
-                # probably an account we can't display the history
-                account._link_id = None
-            else:
-                account._link_id = parse_qs(link.attrib['href'])['ch4'][0]
-            account.id = to_unicode(tdid.text.strip().replace(' ', ''))
-            account.iban = 'FR76' + account.id
-            if len(account.iban) == 25:
-                # We miss the key at the end of iban
-                account.iban = 'FR76' + account.id + str(self.calculate_key(account.id)).zfill(2)
+            def obj_type(self):
+                return self.page.TYPES.get(Dict('nature/codefamille')(self), Transaction.TYPE_UNKNOWN)
 
-            # just in case we are showing the converted balances
-            account._main_currency = Account.get_currency(tdcur.text)
-            # we have to ignore those accounts, because using NotAvailable
-            # makes boobank and probably many others crash
-            if tdbal.text_content().strip() == 'indisponible':
-                continue
-            account.balance = Decimal(Transaction.clean_amount(tdbal.text_content()))
-            account.currency = Account.get_currency(tdbalcur.text)
-            account.type = self.TYPES.get(account.label, Account.TYPE_UNKNOWN)
-            account._updated = datetime.strptime(tdupdated.text, '%d/%m/%Y')
-            yield account
+            def obj_date(self):
+                return fromtimestamp(self, Dict('dateCreation'))
 
+            def obj_rdate(self):
+                return fromtimestamp(self, Dict('dateOperation'))
 
-class HistoryPage(BEPage):
-    def is_empty(self):
-        for td in self.parser.select(self.document.getroot(), 'td.V11vertGras'):
-            if u'Aucune opération enregistrée' in to_unicode(td.text_content()):
-                return True
-        return False
+            def obj_vdate(self):
+                return fromtimestamp(self, Dict('dateValeur'))
 
-    def find_table(self):
-        for table in self.parser.select(self.document.getroot(), 'table', 'many'):
-            for td in self.parser.select(table, 'tr td'):
-                if re.search('^OP.RATION', td.text_content().strip()):
-                    return table
+            def obj_amount(self):
+                return CleanDecimal(default=NotAvailable) \
+                    .filter(CleanBalance(str(Dict('montant/montant')(self)), Dict('montant/nb_dec')(self)))
 
-    def get_date_range(self):
-        try:
-            radio = self.parser.select(self.document, '//input[@name="br_tout_date"]', 1, 'xpath')
-        except BrokenPageError:
-            input = self.document.xpath('//input[@name="chB"]')[0]
-            d1, d2 = re.findall('(\d+/\d+/\d+)', input.tail)
-        else:
-            d1 = radio.attrib['value'][0:10]
-            d2 = radio.attrib['value'][10:20]
-        return (d1, d2)
+    @method
+    class iter_coming(DictElement):
+        item_xpath = "infoOperationsAvenir/operationsAvenir"
 
-    TXT2CONST = {u'DATE VALEUR':    'vdate',
-                 u'DATE D\'OPE':    'date',
-                 u'OP.RATION':      'label',
-                 u'D.BIT':          'debit',
-                 u'CR.DIT':         'credit',
-                }
+        class item(ItemElement):
+            klass = Transaction
 
-    def iter_history(self):
-        if self.is_empty():
-            return
+            obj_date = Date(Dict('dateCreatMvmt'))
+            obj_rdate = Date(Dict('dateOpeMvmt'))
+            obj_vdate = Date(Dict('dateValMvmt'))
+            obj_original_currency = CleanText(Dict('montantMvmt/devise'))
 
-        columns = {'date': 0, 'vdate': 1, 'label': 2, 'debit': 3, 'credit': 4}
+            def obj_raw(self):
+                if not Dict('natureLibelleMvt')(self):
+                    return CleanText(Dict('libelle'))(self)
+                return Format('%s %s', CleanText(Dict('natureLibelleMvt')), CleanText(Dict('libelle')))(self)
 
-        table = self.find_table()
-        for i, tr in enumerate(self.parser.select(table, 'tr', 'many')):
-            tds = self.parser.select(tr, 'td')
-            if len(tds) != 5:
-                continue
+            def obj_type(self):
+                return self.page.COMING_TYPES.get(Dict('codeMouvement')(self), Transaction.TYPE_UNKNOWN)
 
-            if self.parser.select(tr, 'td.thtitrefondbleu'):
-                for i, td in enumerate(tds):
-                    txt = self.parser.tocleanstring(td)
-                    for part, const in self.TXT2CONST.iteritems():
-                        if re.search(part, txt):
-                            columns[const] = i
-                            break
-                continue
-
-            tddate = self.parser.tocleanstring(tds[columns['date']])
-            tdval = self.parser.tocleanstring(tds[columns['vdate']])
-            tdlabel = self.parser.tocleanstring(tds[columns['label']])
-            tddebit = self.parser.tocleanstring(tds[columns['debit']])
-            tdcredit = self.parser.tocleanstring(tds[columns['credit']])
-
-            if all((tddate, tdlabel, any((tddebit, tdcredit)))):
-                if tddebit:
-                    tdamount = '- %s' % tddebit
-                else:
-                    tdamount = tdcredit
-                t = Transaction()
-                t.set_amount(tdamount)
-                t.parse(tddate, tdlabel, tdval)
-
-                t._coming = (tds[0].find('span') is not None)
-
-                yield t
-
-    def get_next_numpage(self):
-        current = 1
-        m = re.search('chP=(\d+)', self.url)
-        if m:
-            current = int(m.group(1))
-
-        try:
-            pages = self.parser.tocleanstring(self.document.xpath('.//td[contains(text(), "Page")]')[0])
-        except IndexError:
-            # No pagination
-            return None
-
-        # We get list of all page numbers...
-        pages = sorted(map(int, re.findall('(\d+)', pages)))
-
-        try:
-            # ...find position of the current page...
-            curidx = pages.index(current)
-        except ValueError:
-            self.logger.warning('Unable to find the current page (%d)' % current)
-            return None
-
-        try:
-            # ... and return number of the next page
-            return pages[curidx+1]
-        except IndexError:
-            # Last page
-            return None
-
-
-class UnknownPage(BEPage):
-    pass
+            def obj_amount(self):
+                return CleanDecimal(default=NotAvailable) \
+                    .filter(CleanBalance(str(Dict('montantMvmt/montant')(self)), Dict('montantMvmt/nb_dec')(self)))
