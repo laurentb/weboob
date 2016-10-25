@@ -76,6 +76,26 @@ class RadioPage(HTMLPage):
             url = Regexp(CleanText('//script'), '.*urlLive:\'(.*)\',urlTS.*', default=None)(self.doc)
         return url
 
+    def get_francetvinfo_selection_list(self):
+        for item in XPath('//div[@class="flowItem"]/a')(self.doc):
+            yield Regexp(CleanText('./@href'), 'http://www.francetvinfo.fr/(.*)')(item)
+
+    @method
+    class get_francetvinfo_selection(ItemElement):
+        klass = BaseAudio
+
+        obj_id = BaseAudioIdFilter(Format(u'francetvinfo.%s',
+                                          Regexp(CleanText('//div[@class="player-selector"]/@data-url'),
+                                                 'http://media.radiofrance-podcast.net/podcast09/(.*).mp3')))
+
+        obj_ext = u'mp3'
+        obj_format = u'mp3'
+        obj_url = CleanText('//div[@class="player-selector"]/@data-url')
+        obj_title = Format(u'%s %s',
+                           CleanText('//div[@class="player-selector"]/@data-emission-title'),
+                           CleanText('//div[@class="player-selector"]/@data-diffusion-title'))
+        obj_description = CleanText('//h2[1]')
+
     @method
     class get_france_culture_selection(ListElement):
         item_xpath = '//div[@id="sidebar"]/div[has-class("expression")]/div'
@@ -108,23 +128,28 @@ class RadioPage(HTMLPage):
     def get_france_culture_url(self):
         return CleanText('//a[@id="lecteur-commun"]/@href')(self.doc)
 
+    def get_francetvinfo_podcasts_url(self):
+        return Regexp(CleanText('//a[@class="btn rss"]/@href'),
+                      'http://radiofrance-podcast.net/podcast09/rss_(.*).xml')(self.doc)
+
     @method
     class get_france_info_podcast_emissions(ListElement):
-        item_xpath = '//div[@class="emission-gdp"]'
+        item_xpath = '//section[@class="magazine"]'
         ignore_duplicate = True
 
         class item(ItemElement):
             klass = Collection
 
             def obj_split_path(self):
-                _id = Regexp(CleanText('./div/div/div/div/ul/li/a[@class="ico-rss"]/@href'),
-                             'http://radiofrance-podcast.net/podcast09/rss_(.*).xml')(self)
+                _id = Regexp(CleanText('./a/@href'),
+                             '/replay-radio/(.*)/')(self)
                 self.env['split_path'].append(_id)
                 return self.env['split_path']
 
-            obj_id = Regexp(CleanText('./div/div/div/div/ul/li/a[@class="ico-rss"]/@href'),
-                            'http://radiofrance-podcast.net/podcast09/rss_(.*).xml')
-            obj_title = CleanText('./h2/a')
+            obj_id = Regexp(CleanText('./a/@href'),
+                            '/replay-radio/(.*)/')
+
+            obj_title = CleanText('./a')
 
     @method
     class get_mouv_podcast_emissions(ListElement):

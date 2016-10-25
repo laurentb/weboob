@@ -57,8 +57,8 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
         'francetvinfo': {u'title': u'France Info',
                          u'player': u'en-direct/radio.html',
                          u'live': u'',
-                         # u'podcast': u'', TODO
-                         u'selection': u''},
+                         u'podcast': u'replay-radio',
+                         u'selection': u'en-direct/radio.html'},
         'fbidf': {u'title': u'France Bleu Île-de-France (Paris)',
                   u'player': u'107-1',
                   u'live': u'grid/107-1'},
@@ -269,6 +269,8 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
             podcasts_url = split_path[-1]
             if split_path[0] == 'franceculture':
                 podcasts_url = self.browser.get_france_culture_podcasts_url(split_path[-1])
+            elif split_path[0] == 'francetvinfo':
+                podcasts_url = self.browser.get_francetvinfo_podcasts_url(split_path[-1])
             if podcasts_url:
                 for item in self.browser.get_podcasts(podcasts_url):
                     yield item
