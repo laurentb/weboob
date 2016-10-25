@@ -120,7 +120,7 @@ class Number26Browser(DomainBrowser):
             if "merchantName" in t:
                 new.raw = new.label = t["merchantName"]
             elif "partnerName" in t:
-                new.raw = CleanText().filter(t["referenceText"]) or CleanText().filter(t["partnerName"])
+                new.raw = CleanText().filter(t["referenceText"]) if "referenceText" in t else CleanText().filter(t["partnerName"])
                 new.label = t["partnerName"]
             else:
                 raise "unknown transaction label"
