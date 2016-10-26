@@ -168,7 +168,7 @@ class AccountsPage(BEPage):
             account.iban = 'FR76' + account.id
             if len(account.iban) == 25:
                 # We miss the key at the end of iban
-                account.iban = 'FR76' + account.id + str(self.calculate_key(account.id))
+                account.iban = 'FR76' + account.id + str(self.calculate_key(account.id)).zfill(2)
 
             # just in case we are showing the converted balances
             account._main_currency = Account.get_currency(tdcur.text)
