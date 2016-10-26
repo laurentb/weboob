@@ -166,7 +166,7 @@ class HistoryPage(LoggedPage):
         """
         if not isinstance(amount, Decimal):
             m = re.search(r"\D", amount.strip(u'€').strip(u'\xa0')[::-1])
-            amount = Decimal(re.sub(r'[^\d]', '', amount))/Decimal((10 ** m.start()))
+            amount = Decimal(re.sub(r'[^\d]', '', amount))/Decimal((10 ** m.start())) if m else Decimal(amount)
 
         if is_credit:
             return abs(amount)
