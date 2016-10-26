@@ -108,6 +108,10 @@ class CaisseEpargne(Browser):
         try:
             json_response = json.loads(response.get_data())
             if not json_response['action']:
+                if not self.typeAccount == 'WP' and self.multi_type:
+                    # If we haven't test PRO espace we check before raising wrong pass
+                    self.login()
+                    return
                 raise BrowserIncorrectPassword(json_response['error'])
         except ValueError:
             raise BrowserUnavailable()
