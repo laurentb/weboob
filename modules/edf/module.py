@@ -68,8 +68,4 @@ class EdfModule(Module, CapDocument):
     def download_document(self, document):
         if not isinstance(document, Document):
             document = self.get_document(document)
-        if isinstance(self.browser, EdfproBrowser) is True:
-            document.url = self.browser.prepare_document_download(document)
-        elif document.url is NotAvailable:
-            return
-        return self.browser.open(document.url).content
+        return self.browser.download_document(document)

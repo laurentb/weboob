@@ -23,7 +23,9 @@ import json
 from datetime import datetime
 
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.capabilities.base import NotAvailable 
 from weboob.exceptions import BrowserIncorrectPassword
+from weboob.browser.exceptions import ServerError
 
 from .pages import LoginPage, AuthPage, SubscriptionsPage, BillsPage, DocumentsPage
 
@@ -54,16 +56,20 @@ class EdfproBrowser(LoginBrowser):
                              .get_subscriptions()
 
     @need_login
-    def prepare_document_download(self, document):
-        return '%s/rest/facturemp/telechargerfichier?fname=%s' % (self.BASEURL, \
-                                                                  self.bills.go(data=json.dumps({'date': int(document.date.strftime('%s')), \
-                                                                                                 'iDFelix': document._account_billing, \
-                                                                                                 'numFacture': document._bill_number})).doc)
-
-    @need_login
     def iter_documents(self, subscription):
         return self.documents.go(data=json.dumps({'dateDebut': '01/01/2013', \
                                            'dateFin': datetime.now().strftime('%d/%m/%Y'), \
                                            'element': subscription.id, \
                                            'typeElementListe': 'CONTRAT'})) \
-                             .get_documents()
+                             .get_documents(subscription.id)
+
+    @need_login
+    def download_document(self, document):
+        if document.url is not NotAvailable:
+            try:
+                fname = self.bills.go(data=json.dumps({'date': int(document.date.strftime('%s')), \
+                                                   'iDFelix': document._account_billing, 'numFacture': document._bill_number})).doc
+
+                return self.open('%s/rest/facturemp/telechargerfichier?fname=%s' % (self.BASEURL, fname)).content
+            except ServerError:
+                return NotAvailable

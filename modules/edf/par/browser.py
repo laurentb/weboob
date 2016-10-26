@@ -48,3 +48,7 @@ class EdfBrowser(LoginBrowser):
     @need_login
     def iter_documents(self, subscription):
         return self.documents.stay_or_go(subid=subscription.id).get_documents(subid=subscription.id)
+
+    @need_login
+    def download_document(self, document):
+        return self.open(document._url).content
