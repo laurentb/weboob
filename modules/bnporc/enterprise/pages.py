@@ -151,9 +151,11 @@ class AccountHistoryPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_raw = CleanText(Dict('libelle'))
             obj_original_currency = CleanText(Dict('montant/devise'))
             obj__coming = Dict('aVenir')
+
+            def obj_raw(self):
+                return CleanText(Dict('libelle'))(self) or CleanText(Dict('nature/libelle'))(self)
 
             def obj_type(self):
                 return self.page.TYPES.get(Dict('nature/codefamille')(self), Transaction.TYPE_UNKNOWN)
