@@ -23,12 +23,11 @@ import re
 from datetime import datetime
 from cStringIO import StringIO
 
-from weboob.capabilities.bank import Account
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.filters.json import Dict
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Field, Format, Env
-from weboob.capabilities.bank import Transaction
+from weboob.capabilities.bank import Transaction, Account
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.capabilities import NotAvailable
 
@@ -161,10 +160,10 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                 return self.page.TYPES.get(Dict('nature/codefamille')(self), Transaction.TYPE_UNKNOWN)
 
             def obj_date(self):
-                return fromtimestamp(self, Dict('dateCreation'))
+                return fromtimestamp(self, Dict('dateOperation'))
 
             def obj_rdate(self):
-                return fromtimestamp(self, Dict('dateOperation'))
+                return fromtimestamp(self, Dict('dateCreation'))
 
             def obj_vdate(self):
                 return fromtimestamp(self, Dict('dateValeur'))
@@ -180,8 +179,8 @@ class AccountHistoryPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_date = Date(Dict('dateCreatMvmt'))
-            obj_rdate = Date(Dict('dateOpeMvmt'))
+            obj_date = Date(Dict('dateOpeMvmt'))
+            obj_rdate = Date(Dict('dateCreatMvmt'))
             obj_vdate = Date(Dict('dateValMvmt'))
             obj_original_currency = CleanText(Dict('montantMvmt/devise'))
 
