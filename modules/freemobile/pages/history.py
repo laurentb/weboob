@@ -114,12 +114,9 @@ class DetailsPage(LoggedPage, BadUTF8Page):
                 return self.env['subid'] == num
 
             obj_url = Attr('.//div[@class="pdf"]/a', 'href')
-            obj__localid = Regexp(Field('url'), '&l=(\d*)&id', u'\\1')
+            obj__localid = Regexp(Field('url'), '&id=(.*)&date', u'\\1')
             obj_label = Regexp(Field('url'), '&date=(\d*)', u'\\1')
-            obj_id = Format('%s.%s.%s',
-                            Env('subid'),
-                            Field('label'),
-                            Attr('.', 'data-fact_id'))
+            obj_id = Format('%s.%s', Env('subid'), Field('_localid'))
             obj_date = FormatDate(Field('label'))
             obj_format = u"pdf"
             obj_type = u"bill"
