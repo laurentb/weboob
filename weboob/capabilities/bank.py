@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2015 Romain Bignon
+# Copyright(C) 2010-2016 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -22,16 +22,18 @@ from datetime import date, datetime
 from binascii import crc32
 import re
 
-from weboob.tools.compat import basestring, long
 from weboob.capabilities.base import empty
 from weboob.exceptions import BrowserQuestion
 
-from .base import BaseObject, Field, StringField, DecimalField, IntField, UserError, Currency, NotAvailable
+from .base import BaseObject, Field, StringField, DecimalField, IntField, \
+                  UserError, Currency, NotAvailable
 from .date import DateField
 from .collection import CapCollection
 
 
-__all__ = ['AccountNotFound', 'TransferError', 'TransferSummary', 'Recipient', 'Account', 'Transaction', 'Investment', 'Transfer', 'CapBank', 'RecipientNotFound']
+__all__ = ['AccountNotFound', 'TransferError', 'TransferStep', 'Recipient',
+           'Account', 'Transaction', 'Investment', 'Transfer', 'CapBank',
+           'RecipientNotFound']
 
 
 class AccountNotFound(UserError):
@@ -42,6 +44,7 @@ class AccountNotFound(UserError):
     def __init__(self, msg='Account not found'):
         UserError.__init__(self, msg)
 
+
 class RecipientNotFound(UserError):
     """
     Raised when a recipient is not found.
@@ -49,15 +52,6 @@ class RecipientNotFound(UserError):
 
     def __init__(self, msg='Recipient not found'):
         UserError.__init__(self, msg)
-
-
-class TransferSummary(BrowserQuestion):
-    """
-    Ask the user if he accepts the transfer.
-    @param summary_fields  fields of the initiated transfer yet to be confirmed (dict)
-    """
-    def __init__(self, summary_fields):
-        self.summary_fields = summary_fields
 
 
 class TransferError(UserError):
@@ -76,12 +70,19 @@ class BaseAccount(BaseObject, Currency):
     iban =           StringField('International Bank Account Number')
     bank_name =      StringField('Bank Name')
 
-    def __init__(self, id=0, url=None):
+    def __init__(self, id='0', url=None):
         BaseObject.__init__(self, id, url)
 
     @property
     def currency_text(self):
         return Currency.currency2txt(self.currency)
+
+    @property
+    def ban(self):
+        """ Bank Account Number part of IBAN"""
+        if not self.iban:
+            return NotAvailable
+        return self.iban[4:]
 
 
 class Recipient(BaseAccount):
@@ -141,13 +142,6 @@ class Account(BaseAccount):
     number =    StringField('Shown by the bank to identify your account ie ****7489')
     # market and lifeinssurance accounts
     valuation_diff = DecimalField('+/- values total')
-
-    @property
-    def ban(self):
-        """ Bank Account Number part of IBAN"""
-        if not self.iban:
-            return NotAvailable
-        return self.iban[4:]
 
     def __repr__(self):
         return "<Account id=%r label=%r>" % (self.id, self.label)
@@ -255,18 +249,31 @@ class Investment(BaseObject):
     original_diff = DecimalField('Original diff (in another currency)')
 
 
-class Transfer(BaseObject):
+class TransferStep(BrowserQuestion):
+    def __init__(self, transfer, *values):
+        super(TransferStep, self).__init__(*values)
+        self.transfer = transfer
+
+
+class Transfer(BaseObject, Currency):
     """
     Transfer from an account to a recipient.
     """
 
     amount =          DecimalField('Amount to transfer')
-    exec_date =       Field('Date of transfer', basestring, date, datetime)
-    register_date =   Field('Date of transfer', basestring, date, datetime)
-    account_webid =   Field('Origin of transfer', int, long, basestring)
-    recipient_webid = Field('Recipient', int, long, basestring)
+    currency =        StringField('Currency', default=None)
+    fees =            DecimalField('Fees', default=None)
+
+    exec_date =       Field('Date of transfer', date, datetime)
+
+    account_id =      StringField('ID of original account')
     account_iban =    StringField('International Bank Account Number')
+    account_label =   StringField('Label of original account')
+
+    recipient_id =    StringField('ID of recipient account')
     recipient_iban =  StringField('International Bank Account Number')
+    recipient_label = StringField('Label of recipient account')
+
     label =           StringField('Reason')
 
 
@@ -363,11 +370,11 @@ class CapBankTransfer(CapBank):
         """
         raise NotImplementedError()
 
-    def init_transfer(self, account, recipient, amount, reason=None):
+    def transfer(self, account, recipient, amount, reason, date, **kwargs):
         """
-        Initialize a transfer from an account to a recipient.
-        Upon success, raises TransferSummary with details of the transfer
-        processed by the bank website which need to be validated by the user.
+        Do a transfer from an account to a recipient. Upon success, raises
+        BrowserQuestion with details of the transfer processed by the bank
+        website which need to be validated by the user.
 
         :param account: account to take money
         :type account: :class:`Account`
@@ -377,17 +384,9 @@ class CapBankTransfer(CapBank):
         :type amount: :class:`decimal.Decimal`
         :param reason: reason of transfer
         :type reason: :class:`unicode`
-        :raises: :class:`AccountNotFound`, :class:`TransferError`, :class:`TransferSummary`
-        """
-        raise NotImplementedError()
-
-    def execute_transfer(self, reference):
-        """
-        Proceed to tranfer if the TransferSummary was accepted by the user, else
-        abort the transfer.
-
-        :param str webid
+        :param date: previsional date of transfer
+        :type date: :class:`datetime.date`
+        :raises: :class:`AccountNotFound`, :class:`TransferError`, :class:`BrowserQuestion`
         :rtype: :class:`Transfer`
-        :raises: :class:`AccountNotFound`, :class:`TransferError`
         """
         raise NotImplementedError()
