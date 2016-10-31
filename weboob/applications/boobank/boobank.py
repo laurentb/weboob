@@ -29,7 +29,8 @@ from weboob.browser.browsers import APIBrowser
 from weboob.browser.profiles import Weboob
 from weboob.exceptions import BrowserHTTPError
 from weboob.capabilities.base import empty
-from weboob.capabilities.bank import CapBank, Account, Transaction, CapBankTransfer, TransferSummary
+from weboob.capabilities.bank import CapBank, Account, Transaction, CapBankTransfer, \
+                                     Transfer, TransferStep
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
@@ -354,15 +355,15 @@ class Boobank(ReplApplication):
     COLLECTION_OBJECTS = (Account, Transaction, )
 
     def bcall_error_handler(self, backend, error, backtrace):
-        if isinstance(error, TransferSummary):
-            padding = len(max(error.summary_fields.keys(), key=len))
-            for key, value in error.summary_fields.iteritems():
+        if isinstance(error, TransferStep):
+            params = {}
+            for key, value in error.fields.iteritems():
                 if key and value:
-                    print(u'{:<{}} {}'.format('%s:' % key, padding, value))
-            v = self.ask('Are you sure to do this transfer?', default=True)
-            backend.config['accept_transfer'].set(v)
+                    params[key] = self.ask(value)
+            #backend.config['accept_transfer'].set(v)
+            params['backends'] = backend
             self.start_format()
-            for transfer in self.do('execute_transfer', error.summary_fields['webid'], backends=backend):
+            for transfer in self.do('transfer', error.transfer, **params):
                 self.format(transfer)
         else:
             return ReplApplication.bcall_error_handler(self, backend, error, backtrace)
@@ -493,7 +494,13 @@ class Boobank(ReplApplication):
             print('Error: please give a decimal amount to transfer', file=self.stderr)
             return 2
 
-        next(iter(self.do('init_transfer', account.id, id_to, amount, reason, backends=account.backend)))
+        transfer = Transfer()
+        transfer.account_id = account.id
+        transfer.recipient_id = id_to
+        transfer.amount = amount
+        transfer.label = reason
+
+        next(iter(self.do('transfer', transfer, backends=account.backend)))
 
     def do_investment(self, id):
         """
