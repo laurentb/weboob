@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2009-2015  Romain Bignon
+# Copyright(C) 2009-2016  Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -237,12 +237,12 @@ class BNPPartPro(BNPParibasBrowser, StatesMixin):
         self.BASEURL = self.BASEURL_TEMPLATE % subdomain
 
     @need_login
-    def iter_recipients(self, origin_account):
-        if not origin_account in self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict('Debiteur'):
+    def iter_recipients(self, origin_account_id):
+        if not origin_account_id in self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict('Debiteur'):
             raise NotImplementedError()
-        for recipient in self.page.transferable_on(origin_account_ibancrypte=origin_account):
+        for recipient in self.page.transferable_on(origin_account_ibancrypte=origin_account_id):
             yield recipient
-        if self.page.can_transfer_to_recipients(origin_account):
+        if self.page.can_transfer_to_recipients(origin_account_id):
             for recipient in self.recipients.go(data=JSON({'type': 'TOUS'})).iter_recipients():
                 yield recipient
 
@@ -268,20 +268,21 @@ class BNPPartPro(BNPParibasBrowser, StatesMixin):
 
         data = self.prepare_transfer(account, recipient, amount, reason)
         self.validate_transfer.go(data=JSON(data)).handle_response(account, recipient, amount, reason)
+        raise TransferError('Why the fuck are we here?')
 
-    @need_login
     def execute_transfer(self, reference):
-        if not self.config['accept_transfer'].get():
-            self.logger.info('Transfer refused.')
-            self.pending_transfer = {}
-            return iter([])
+        #if not self.config['accept_transfer'].get():
+        #    self.logger.info('Transfer refused.')
+        #    self.pending_transfer = {}
+        #    raise Exception('Transfer refused.')
 
         if not self.pending_transfer:
-            self.logger.error('Couldn\'t retrieve the pending transfer details.')
             raise TransferError('Couldn\'t retrieve the pending transfer details.')
 
+        self.logger.debug('Pending transfer: %r', self.pending_transfer)
+
         if not reference == self.pending_transfer['validation_token']:
-            self.logger.error('reference doesn\'t match current browser transfer')
+            raise TransferError('Reference doesn\'t match current browser transfer')
 
         self.register_transfer.go(data=JSON({'referenceVirement': self.pending_transfer['validation_token']}))
         return self.page.handle_response()

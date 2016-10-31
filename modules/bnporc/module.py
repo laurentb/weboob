@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2013 Romain Bignon
+# Copyright(C) 2010-2016 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -98,34 +98,37 @@ class BNPorcModule(Module, CapBankTransfer, CapMessages):
     def iter_transfer_recipients(self, origin_account):
         if self.config['website'].get() != 'pp':
             raise NotImplementedError()
+        if isinstance(origin_account, Account):
+            origin_account = origin_account.id
         return self.browser.iter_recipients(origin_account)
 
-    def init_transfer(self, account, recipient, amount, reason=None, by_iban=False):
+    def transfer(self, transfer, validate=None):
         if self.config['website'].get() != 'pp':
             raise NotImplementedError()
 
-        if reason is None:
-            raise TransferError('label required')
+        if transfer.label is None:
+            raise TransferError(u'Veuillez préciser un libellé au virement')
 
-        if by_iban:
-            account = find_object(self.iter_accounts(), iban=account, error=AccountNotFound)
-            recipient = find_object(self.iter_transfer_recipients(account.id), iban=recipient, error=RecipientNotFound)
+        if validate is not None:
+            self.logger.info('Going to validate a transfer %r', transfer.webid)
+            return self.browser.execute_transfer(transfer.webid)
+
+        self.logger.info('Going to initiate a new transfer')
+        if transfer.account_iban:
+            account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
+            recipient = find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban, error=RecipientNotFound)
         else:
-            if not isinstance(account, Account):
-                account = find_object(self.iter_accounts(), id=account, error=AccountNotFound)
-            recipient = find_object(self.iter_transfer_recipients(account.id), id=recipient, error=RecipientNotFound)
+            account = find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
+            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
 
         try:
             assert account.id.isdigit()
             # quantize to show 2 decimals.
-            amount = Decimal(amount).quantize(Decimal(10) ** -2)
+            amount = Decimal(transfer.amount).quantize(Decimal(10) ** -2)
         except (AssertionError, ValueError):
             raise TransferError('something went wrong')
 
-        return self.browser.init_transfer(account, recipient, amount, reason)
-
-    def execute_transfer(self, reference):
-        return self.browser.execute_transfer(reference)
+        return self.browser.init_transfer(account, recipient, amount, transfer.label)
 
     def iter_threads(self, cache=False):
         """
