@@ -94,7 +94,7 @@ class VideoPage(HTMLPage):
         obj_date = DateTime(CleanText('//meta[@property="video:release_date"]/@content'))
 
         def obj__formats(self):
-            player = Regexp(CleanText('//script'), '.*buildPlayer\((.*}})\);.*', default=None)(self)
+            player = Regexp(CleanText('//script'), '.*var config = ({"context".*}}});\s*buildPlayer\(config\);.*', default=None)(self)
             if player:
                 info = json.loads(player)
                 if info.get('error') is not None:
@@ -119,4 +119,5 @@ class VideoPage(HTMLPage):
                         else:
                             formats[ext] = {quality: media_url}
 
-            return formats
+                return formats
+            return None
