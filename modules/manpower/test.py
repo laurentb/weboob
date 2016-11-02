@@ -31,7 +31,7 @@ class ManpowerTest(BackendTest):
         advert = self.backend.get_job_advert(l[0].id, None)
         self.assertTrue(advert.url, 'URL for announce "%s" not found: %s' % (advert.id, advert.url))
 
-    def test_adecco_advanced_search(self):
+    def test_manpower_advanced_search(self):
         l = list(itertools.islice(self.backend.advanced_search_job(), 0, 20))
         assert len(l)
         advert = self.backend.get_job_advert(l[0].id, None)
