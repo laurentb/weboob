@@ -46,7 +46,7 @@ class SearchResultsPage(HTMLPage):
     @pagination
     @method
     class iter_housings(ListElement):
-        item_xpath = '//div[has-class("annonce")]'
+        item_xpath = '//div[has-class("search-results-item")]'
 
         def next_page(self):
             return Link('//ul[@class="pagination"]/li[@class="next"]/a')(self)
@@ -55,19 +55,19 @@ class SearchResultsPage(HTMLPage):
             klass = Housing
 
             def condition(self):
-                return Regexp(Link('./div[@class="box-header"]/a'), '/annonces/(.*)', default=None)(self)
+                return Regexp(Link('./div[has-class("box-header")]/a[@class="title-item"]'), '/annonces/(.*)', default=None)(self)
 
-            obj_id = Regexp(Link('./div[@class="box-header"]/a'), '/annonces/(.*)')
-            obj_title = CleanText('./div[@class="box-header"]/a[@class="title-item"]')
-            obj_area = CleanDecimal(Regexp(CleanText('./div[@class="box-header"]/a/span[@class="h1"]'),
+            obj_id = Regexp(Link('./div[has-class("box-header")]/a[@class="title-item"]'), '/annonces/(.*)')
+            obj_title = CleanText('./div[has-class("box-header")]/a[@class="title-item"]')
+            obj_area = CleanDecimal(Regexp(CleanText('./div[has-class("box-header")]/a/span[@class="h1"]'),
                                            '(.*?)(\d*) m\xb2(.*?)', '\\2'), default=NotAvailable)
-            obj_cost = CleanDecimal(CleanText('./div[@class="box-header"]/a/span[@class="price"]'),
+            obj_cost = CleanDecimal(CleanText('./div[has-class("box-header")]/a/span[@class="price"]'),
                                     replace_dots=True, default=Decimal(0))
-            obj_currency = Regexp(CleanText('./div[@class="box-header"]/a/span[@class="price"]'),
+            obj_currency = Regexp(CleanText('./div[has-class("box-header")]/a/span[@class="price"]'),
                                   '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
 
             def obj_date(self):
-                _date = Regexp(CleanText('./div[@class="box-header"]/p[@class="date"]'),
+                _date = Regexp(CleanText('./div[has-class("box-header")]/p[@class="date"]'),
                                '.* / (.*)')(self)
                 return parse_french_date(_date)
 
