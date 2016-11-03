@@ -320,10 +320,10 @@ class IndexPage(Page):
 
 
 
-    def go_history(self, info):
+    def go_history(self, info, is_cbtab=False):
         self.browser.select_form(name='main')
         self.browser.set_all_readonly(False)
-        self.browser['__EVENTTARGET'] = 'MM$SYNTHESE'
+        self.browser['__EVENTTARGET'] = 'MM$%s' % (info['type'] if is_cbtab else 'SYNTHESE')
         self.browser['__EVENTARGUMENT'] = info['link']
         try:
             self.browser['MM$m_CH$IsMsgInit'] = '0'
@@ -390,6 +390,14 @@ class IndexPage(Page):
             yield t
 
             i += 1
+
+    def get_cbtabs(self):
+        cbtabs = []
+        for href in self.document.xpath('//ul[@class="onglets"]/li/a[contains(text(), "CB")]/@href'):
+            m = re.search('(DETAIL[^"]+)', href)
+            if m:
+                cbtabs.append(m.group(1))
+        return cbtabs
 
     def go_next(self):
         # <a id="MM_HISTORIQUE_CB_lnkSuivante" class="next" href="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;MM$HISTORIQUE_CB$lnkSuivante&quot;, &quot;&quot;, true, &quot;&quot;, &quot;&quot;, false, true))">Suivant<span class="arrow">></span></a>

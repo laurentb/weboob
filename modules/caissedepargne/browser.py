@@ -191,14 +191,23 @@ class CaisseEpargne(Browser):
 
         self.page.go_history(info)
 
+        info['link'] = [info['link']]
+        if info['type'] == "HISTORIQUE_CB":
+            info['link'] += self.page.get_cbtabs()
+
         while True:
-            assert self.is_on_page(IndexPage)
+            for i, link in enumerate(info['link'], 1):
+                if i > 1:
+                    info['link'] = link
+                    self.page.go_history(info, True)
 
-            for tr in self.page.get_history():
-                yield tr
+                assert self.is_on_page(IndexPage)
 
-            if not self.page.go_next():
-                return
+                for tr in self.page.get_history():
+                    yield tr
+                
+                if not self.page.go_next():
+                    return
 
     def _get_history_invests(self, account):
         if self.is_on_page(IndexPage):
@@ -227,11 +236,13 @@ class CaisseEpargne(Browser):
     def get_coming(self, account):
         if not hasattr(account, '_info'):
             raise NotImplementedError()
+        trs = []
         for info in account._card_links:
             for tr in self._get_history(info):
                 tr.type = tr.TYPE_DEFERRED_CARD
                 tr.nopurge = True
-                yield tr
+                trs.append(tr)
+        return iter(sorted(trs, key=lambda t: t.rdate, reverse=True))
 
     def get_investment(self, account):
         if account.type is not Account.TYPE_LIFE_INSURANCE and account.type is not Account.TYPE_MARKET:
