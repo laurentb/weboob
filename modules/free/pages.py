@@ -29,9 +29,10 @@ from weboob.tools.date import parse_french_date
 
 class LoginPage(HTMLPage):
     def login(self, login, password):
-        form = self.get_form('//form[@id="log_form"]')
+        form = self.get_form(id='log_form')
         form['login'] = login
         form['pass'] = password
+
         form.submit()
 
 
@@ -60,14 +61,16 @@ class DocumentsPage(LoggedPage, HTMLPage):
 
     def get_list(self):
         sub = Subscription()
+
         sub.subscriber = self.browser.username
         sub.id = sub.subscriber
         sub.label = sub.subscriber
+
         yield sub
 
     @method
     class get_documents(ListElement):
-        item_xpath = '//ul[@class="pane"]/li'
+        item_xpath = "//ul[@class='pane']/li"
 
         class item(ItemElement):
             klass = Bill
@@ -79,7 +82,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_label = Format('Facture %s', CleanText('./span[1]/strong'))
             obj_type = u"bill"
             obj_price = CleanDecimal(CleanText('./span[2]/strong'), replace_dots=True)
-            obj_currency = u"€"
+            obj_currency = u"EUR"
 
             def parse(self, el):
                 self.env['date'] = parse_french_date(u"01 %s" % CleanText('./span[1]/strong')(self)).date()
