@@ -109,7 +109,8 @@ class CmsoParBrowser(LoginBrowser):
             self.session.headers['Content-Type'] = 'application/x-www-form-urlencoded'
             if not self.market.go(website=self.website, action="historique").get_list(account.label):
                 return iter([])
-            self.page.get_full_list()
+            if not self.page.get_full_list():
+                return iter([])
             # Display code ISIN
             history = self.location("%s?reload=oui&convertirCode=oui" % self.url).page.iter_history()
             self.session.headers['Content-Type'] = 'application/json'

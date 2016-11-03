@@ -26,11 +26,11 @@ from weboob.browser.elements import DictElement, ItemElement, TableElement, meth
 from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, Format, CleanDecimal, Env, Slugify, TableCell, Field
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, Link
+from weboob.browser.exceptions import ServerError
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import BrowserIncorrectPassword
-
 
 def MyDecimal(*args, **kwargs):
     kwargs.update(replace_dots=True, default=NotAvailable)
@@ -258,7 +258,10 @@ class MarketPage(LoggedPage, HTMLPage):
     def get_full_list(self):
         form = self.get_form(name="formOperation")
         form['dateDebut'] = "02/01/1970"
-        return form.submit()
+        try:
+            return form.submit()
+        except ServerError:
+            return False
 
     @method
     class iter_history(TableElement):
