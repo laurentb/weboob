@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+from functools import wraps
 from random import choice
 from unittest import TestCase
 
@@ -31,7 +32,7 @@ except:
     from nose.plugins.skip import SkipTest
 
 
-__all__ = ['BackendTest', 'SkipTest']
+__all__ = ['BackendTest', 'SkipTest', 'skip_without_config']
 
 
 class BackendTest(TestCase):
@@ -75,3 +76,25 @@ class BackendTest(TestCase):
         """
         # do not use TestCase.shortDescription as it returns None
         return '%s [%s]' % (str(self), self.backend_instance)
+
+
+def skip_without_config(*keys):
+    """Decorator to skip a test if backend config is missing
+
+    :param keys: if any of these keys is missing in backend config, skip test
+    """
+
+    if not keys:
+        raise TypeError('skip_without_config() takes at least 1 argument (0 given)')
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            for key in keys:
+                if not self.backend.config[key].get():
+                    raise SkipTest('config key %r is required for this test' %
+                                   key)
+
+            return func(self, *args, **kwargs)
+        return wrapper
+    return decorator
