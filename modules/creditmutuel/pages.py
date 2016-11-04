@@ -199,8 +199,21 @@ class AccountsPage(LoggedPage, HTMLPage):
                         raise ParseError('Unable to find balance for account %s' % CleanText('./td[1]/a')(el))
 
                 self.env['_is_webid'] = False
-                id_xpath = '.%s/td[1]/a/node()[contains(@class, "doux")]' % \
-                            ("/preceding-sibling::tr[1]" if "cartes" in CleanText('./td[1]')(el) else "")
+
+                if "cartes" in CleanText('./td[1]')(el):
+                    # handle cb differed card
+                    if "cartes" in CleanText('./preceding-sibling::tr[1]/td[1]', replace=[(' ', '')])(el):
+                        # In case it's the second month of card history present, we need to ignore the first
+                        # one to get the attach accoount
+                        id_xpath = './preceding-sibling::tr[2]/td[1]/a/node()[contains(@class, "doux")]'
+                    else:
+                        # first month of history, the previous tr is the attached account
+                        id_xpath = './preceding-sibling::tr[1]/td[1]/a/node()[contains(@class, "doux")]'
+                else:
+                    # classical account
+                    id_xpath = './td[1]/a/node()[contains(@class, "doux")]'
+
+
                 id = CleanText(id_xpath, replace=[(' ', '')])(el)
                 if not id:
                     if 'rib' in p:
