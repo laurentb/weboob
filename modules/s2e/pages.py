@@ -141,13 +141,14 @@ class AccountsPage(LoggedPage, MultiPage):
         if no_accounts_message:
             raise NoAccountsException(no_accounts_message)
 
-    TYPES = { 'PEE': Account.TYPE_PEE,
-              'PEI': Account.TYPE_PEE,
-              'PEEG': Account.TYPE_PEE,
-              'PEG': Account.TYPE_PEE,
-              'PLAN': Account.TYPE_PEE,
-              'PERCO': Account.TYPE_PERCO,
-              'PERCOI': Account.TYPE_PERCO
+    TYPES = {'PEE': Account.TYPE_PEE,
+             'PEI': Account.TYPE_PEE,
+             'PEEG': Account.TYPE_PEE,
+             'PEG': Account.TYPE_PEE,
+             'PLAN': Account.TYPE_PEE,
+             'PERCO': Account.TYPE_PERCO,
+             'PERCOI': Account.TYPE_PERCO,
+             'SWISS': Account.TYPE_MARKET
             }
 
     @method
