@@ -313,4 +313,4 @@ class HistoryPage(LoggedPage, MultiPage):
                     raise SkipItem()
 
                 self.env['investments'] = list(page.get_investments(accid=Env('accid')(self)))
-                self.env['amount'] = sum([i.valuation for i in self.env['investments']]) or Decimal('0')
+                self.env['amount'] = sum([i.valuation or Decimal('0') for i in self.env['investments']])
