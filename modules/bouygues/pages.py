@@ -33,8 +33,10 @@ from weboob.tools.date import parse_french_date
 class LoginPage(HTMLPage):
     def login(self, login, password):
         form = self.get_form('//form[@id="log_data"]')
+
         form['username'] = login
         form['password'] = password
+
         form.submit()
 
 
@@ -65,6 +67,7 @@ class ProfilePage(JsonPage, LoggedPage):
 class SendSMSPage(HTMLPage):
     def send_sms(self, message, receivers):
         sms_number = CleanDecimal(Regexp(CleanText('//span[@class="txt12-o"][1]/strong'), '(\d*) SMS.*'))(self.doc)
+
         if sms_number == 0:
             msg = CleanText('//span[@class="txt12-o"][1]')(self.doc)
             raise CantSendMessage(msg)
@@ -72,6 +75,7 @@ class SendSMSPage(HTMLPage):
         form = self.get_form('//form[@name="formSMS"]')
         form["fieldMsisdn"] = receivers
         form["fieldMessage"] = message.content
+
         form.submit()
 
 
@@ -83,6 +87,7 @@ class SendSMSErrorPage(HTMLPage):
 class DocumentsPage(HTMLPage):
     def get_ref(self, label):
         options = self.doc.xpath('//select[@id="factureMois"]/option[position() > 1]/@value')
+
         for option in options:
             ref = self.doc.xpath('//span[contains(text(), "%s")]/ \
                 ancestor::div[has-class("etape-content")]//a[@id="btnAnciennesFactures"]' % label)

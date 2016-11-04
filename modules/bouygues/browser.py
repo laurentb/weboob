@@ -35,8 +35,8 @@ class BouyguesBrowser(LoginBrowser):
     login = URL('cas/login', LoginPage)
     home = URL('https://www.bouyguestelecom.fr/mon-compte', HomePage)
     profile = URL('https://api-mc.bouyguestelecom.fr/client/me/header.json', ProfilePage)
-    documents = URL('http://www.bouyguestelecom.fr/parcours/mes-factures',
-                    'http://www.bouyguestelecom.fr/parcours/mes-factures/historique\?no_reference=(?P<ref>)', DocumentsPage)
+    documents = URL('https://www.bouyguestelecom.fr/parcours/mes-factures',
+                    'https://www.bouyguestelecom.fr/parcours/mes-factures/historique\?no_reference=(?P<ref>)', DocumentsPage)
 
     sms_page = URL('http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/sendSMS.phtml',
                    'http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/confirmSendSMS.phtml',
@@ -90,6 +90,8 @@ class BouyguesBrowser(LoginBrowser):
     @need_login
     def iter_documents(self, subscription):
         ref = self.documents.go().get_ref(subscription.label)
+
         if not ref:
             return iter([])
+
         return self.documents.go(ref=ref).get_documents(subid=subscription.id)
