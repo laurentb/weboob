@@ -158,6 +158,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                      u'Comptes bourse':        Account.TYPE_MARKET,
                      u'Assurances Vie':        Account.TYPE_LIFE_INSURANCE,
                      u'Mes crédits':           Account.TYPE_LOAN,
+                     u'crédit':                Account.TYPE_LOAN,
                      u'prêt':                  Account.TYPE_LOAN,
                     }
 
