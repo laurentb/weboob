@@ -39,7 +39,8 @@ class Paypal(LoginBrowser):
     login = URL('https://\w+.paypal.com/signin.*',
                 '/cgi-bin/webscr\?cmd=_login-submit.+$',
                 '/fr/webapps/mpp/home', LoginPage)
-    landing = URL('/home', LandingPage)
+    landing = URL('/home',
+                  '/$', LandingPage)
     useless = URL('/cgi-bin/webscr\?cmd=_login-processing.+$',
                   '/cgi-bin/webscr\?cmd=_account.*$',
                   '/cgi-bin/webscr\?cmd=_login-done.+$',
@@ -51,7 +52,6 @@ class Paypal(LoginBrowser):
                'https://\w+.paypal.com/myaccount/$',
                '/businessexp/summary.*',
                '/myaccount/?\?country_lang.x=true',
-               '/$',
                '/businessexp/fees/interchange-fees',
                HomePage)
     error = URL('/auth/validatecaptcha$', ErrorPage)
