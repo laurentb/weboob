@@ -18,13 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser.browsers import APIBrowser
-from weboob.browser.exceptions import ClientError
 import datetime
 import re
 import os
 from urllib import quote_plus
 
+from weboob.browser.browsers import APIBrowser
+from weboob.browser.exceptions import ClientError
 
 __all__ = ['GithubBrowser']
 
@@ -40,7 +40,10 @@ class GithubBrowser(APIBrowser):
 
     def get_project(self, project_id):
         json = self.request('https://api.github.com/repos/%s' % project_id)
-        return {'name': json['name'], 'id': project_id}
+        return {
+            'name': json['name'],
+            'id': project_id
+        }
 
     def get_issue(self, project_id, issue_number):
         json = self.request('https://api.github.com/repos/%s/issues/%s' % (project_id, issue_number))
@@ -80,7 +83,7 @@ class GithubBrowser(APIBrowser):
         base_data = self._issue_post_data(issue)
         url = 'https://api.github.com/repos/%s/issues' % issue.project.id
         json = self.request(url, data=base_data)
-        issue_number = json['id']
+        issue_number = json['number']
         return self._make_issue(issue.project.id, issue_number, json)
 
     def edit_issue(self, issue, issue_number):
@@ -90,7 +93,11 @@ class GithubBrowser(APIBrowser):
         return issue
 
     def _issue_post_data(self, issue):
-        data = {'title': issue.title, 'body': issue.body}
+        data = {
+            'title': issue.title,
+            'body': issue.body
+        }
+
         if issue.assignee:
             data['assignee'] = issue.assignee.id
         if issue.version:
@@ -134,7 +141,10 @@ class GithubBrowser(APIBrowser):
     def iter_milestones(self, project_id):
         url = 'https://api.github.com/repos/%s/milestones' % project_id
         for jmilestone in self.request(url):
-            yield {'id': jmilestone['number'], 'name': jmilestone['title']}
+            yield {
+                'id': jmilestone['number'],
+                'name': jmilestone['title']
+            }
 
     def iter_comments(self, project_id, issue_number):
         url = 'https://api.github.com/repos/%s/issues/%s/comments' % (project_id, issue_number)
@@ -149,8 +159,10 @@ class GithubBrowser(APIBrowser):
 
     def _extract_attachments(self, message):
         for attach_url in re.findall(r'https://f.cloud.github.com/assets/[\w/.-]+', message):
-            d = {'url': attach_url, 'filename': os.path.basename(attach_url)}
-            yield d
+            yield {
+                'url': attach_url,
+                'filename': os.path.basename(attach_url)
+            }
 
     def _paginated(self, url, start_at=1):
         while True:
@@ -167,13 +179,19 @@ class GithubBrowser(APIBrowser):
             name = json['name']
         else:
             name = _id # wasted one request...
-        return {'id': _id, 'name': name}
+        return {
+            'id': _id,
+            'name': name
+        }
 
     def iter_members(self, project_id):
         url = 'https://api.github.com/repos/%s/assignees' % project_id
         for json in self._paginated(url):
             for jmember in json:
-                yield {'id': jmember['login'], 'name': jmember['login']}
+                yield {
+                    'id': jmember['login'],
+                    'name': jmember['login']
+                }
             if len(json) < 100:
                 break
 

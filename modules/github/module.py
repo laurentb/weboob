@@ -28,7 +28,7 @@ from .browser import GithubBrowser
 __all__ = ['GithubModule']
 
 
-STATUSES = {'open': Status('open', u'Open', Status.VALUE_NEW),
+STATUSES = {'open': Status('open', u'open', Status.VALUE_NEW),
             'closed': Status('closed', u'closed', Status.VALUE_RESOLVED)}
 # TODO tentatively parse github "labels"?
 
@@ -99,9 +99,16 @@ class GithubModule(Module, CapBugTracker):
             _, issue_number = self._extract_issue_id(issue.id)
             self.browser.edit_issue(issue, issue_number)
         else:
-            self.browser.post_issue(issue)
+            d = self.browser.post_issue(issue)
+            issue.id = self._build_issue_id(issue.project.id, d['number'])
+        return issue
 
     def update_issue(self, issue_id, update):
+        try:
+            issue_id = issue_id.id
+        except AttributeError:
+            pass
+
         assert not update.attachments
         self.browser.post_comment(issue_id, update.message)
 
