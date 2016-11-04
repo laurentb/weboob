@@ -25,6 +25,7 @@ from urlparse import urlsplit
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account
 from weboob.browser.exceptions import BrowserHTTPNotFound
+from weboob.exceptions import ActionNeeded
 
 from .pages import IndexPage, ErrorPage, UnavailablePage, MarketPage, LifeInsurance, GarbagePage, MessagePage
 
@@ -96,6 +97,9 @@ class CaisseEpargne(Browser):
             self.multi_type = True
             response = self.openurl('/authentification/manage?step=account&identifiant=%s&account=%s' % (self.username, self.typeAccount))
             data = json.loads(response.get_data())
+
+        if data['authMode'] == 'redirect':
+            raise ActionNeeded()
 
         typeAccount = data['account'][0]
         response = self.openurl(self.buildurl(data['url'],
