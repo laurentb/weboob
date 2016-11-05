@@ -21,10 +21,12 @@
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import time
+from requests.exceptions import ConnectionError
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import AccountNotFound, Account
+from weboob.tools.decorators import retry
 from weboob.tools.json import json
 from weboob.browser.exceptions import ServerError
 from weboob.exceptions import BrowserIncorrectPassword
@@ -91,6 +93,10 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     market_syn = URL('pe-war/rpc/synthesis/get', MarketSynPage)
     market = URL('pe-war/rpc/portfolioDetails/get', MarketPage)
     market_history = URL('/pe-war/rpc/turnOverHistory/get', MarketHistoryPage)
+
+    @retry(ConnectionError, tries=3)
+    def open(self, *args, **kwargs):
+        return super(BNPParibasBrowser, self).open(*args, **kwargs)
 
     def do_login(self):
         if not (self.username.isdigit() and self.password.isdigit()):
