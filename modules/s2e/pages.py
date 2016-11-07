@@ -29,12 +29,17 @@ from weboob.browser.filters.html import Attr
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
-from weboob.exceptions import NoAccountsException
+from weboob.exceptions import NoAccountsException, BrowserUnavailable
 
 
 def MyDecimal(*args, **kwargs):
     kwargs.update(replace_dots=True, default=NotAvailable)
     return CleanDecimal(*args, **kwargs)
+
+
+class ErrorPage(HTMLPage):
+    def on_load(self):
+        raise BrowserUnavailable()
 
 
 class S2eVirtKeyboard(MappedVirtKeyboard):

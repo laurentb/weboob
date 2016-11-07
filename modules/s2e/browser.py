@@ -21,7 +21,7 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountsPage, HistoryPage
+from .pages import LoginPage, AccountsPage, HistoryPage, ErrorPage
 
 
 class S2eBrowser(LoginBrowser):
@@ -30,6 +30,7 @@ class S2eBrowser(LoginBrowser):
     accounts = URL('/portal/salarie-(?P<slug>\w+)/monepargne/mesavoirs\?language=(?P<lang>)',
                    '/portal/salarie-(?P<slug>\w+)/monepargne/mesavoirs', AccountsPage)
     history = URL('/portal/salarie-(?P<slug>\w+)/operations/consulteroperations', HistoryPage)
+    error = URL('/maintenance/HSBC/', ErrorPage)
 
     def __init__(self, *args, **kwargs):
         self.secret = None
