@@ -17,9 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.tools.backend import Module, BackendConfig
-from weboob.capabilities.base import StringField
+from weboob.capabilities.base import StringField, UserError
 from weboob.capabilities.gauge import CapGauge, GaugeSensor, Gauge, GaugeMeasure, SensorNotFound
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.ordereddict import OrderedDict
@@ -30,9 +31,9 @@ from .browser import VelibBrowser
 __all__ = ['jcvelauxModule']
 
 
-SENSOR_TYPES = OrderedDict(((u'available_bikes', u'Available bikes'),
-                (u'available_bike_stands', u'Free stands'),
-                (u'bike_stands', u'Total stands')))
+SENSOR_TYPES = OrderedDict([('available_bikes', 'Available bikes'),
+                            ('available_bike_stands', 'Free stands'),
+                            ('bike_stands', 'Total stands')])
 
 CITIES = ("Paris", "Rouen", "Toulouse", "Luxembourg", "Valence", "Stockholm",
           "Goteborg", "Santander", "Amiens", "Lillestrom", "Mulhouse", "Lyon",
@@ -53,15 +54,14 @@ class BikeSensor(GaugeSensor):
 
 class jcvelauxModule(Module, CapGauge):
     NAME = 'jcvelaux'
-    DESCRIPTION = (u'City bike renting availability information.\nCities: %s' %
-                   u', '.join(CITIES))
-    MAINTAINER = u'Herve Werner'
+    DESCRIPTION = ('City bike renting availability information.\nCities: %s' %
+                   ', '.join(CITIES))
+    MAINTAINER = 'Herve Werner'
     EMAIL = 'dud225@hotmail.com'
     VERSION = '1.2'
     LICENSE = 'AGPLv3'
 
     BROWSER = VelibBrowser
-    STORAGE = {'boards': {}}
 
     CONFIG = BackendConfig(Value('city', label='City', default='Paris',
                                  choices=CITIES + ("ALL",)),
@@ -80,7 +80,7 @@ class jcvelauxModule(Module, CapGauge):
         gauge = Gauge(info['id'])
         gauge.name = unicode(info['name'])
         gauge.city = unicode(info['city'])
-        gauge.object = u'bikes'
+        gauge.object = 'bikes'
         return gauge
 
     def _make_sensor(self, sensor_type, info, gauge):
@@ -88,14 +88,16 @@ class jcvelauxModule(Module, CapGauge):
         sensor = BikeSensor(id)
         sensor.gaugeid = gauge.id
         sensor.name = SENSOR_TYPES[sensor_type]
-        sensor.address = unicode(info['address'])
+        sensor.address = '%s' % info['address']
         sensor.longitude = info['longitude']
         sensor.latitude = info['latitude']
         sensor.history = []
         return sensor
 
-    def _make_measure(self, sensor_type, info):
-        measure = BikeMeasure()
+    def _make_measure(self, sensor_type, info, gauge):
+        id = '%s.%s' % (sensor_type, gauge.id)
+
+        measure = BikeMeasure(id)
         measure.date = info['last_update']
         measure.level = float(info[sensor_type])
         return measure
@@ -106,7 +108,7 @@ class jcvelauxModule(Module, CapGauge):
 
         for type in SENSOR_TYPES:
             sensor = self._make_sensor(type, info, gauge)
-            measure = self._make_measure(type, info)
+            measure = self._make_measure(type, info, gauge)
             sensor.lastvalue = measure
             gauge.sensors.append(sensor)
 
@@ -169,8 +171,12 @@ class jcvelauxModule(Module, CapGauge):
             return None
 
     def _get_sensor_by_id(self, id):
-        _, gauge_id = id.split('.', 1)
-        gauge = self._get_gauge_by_id(gauge_id)
+        try:
+            sensor_name, gauge_name, contract = id.split('.')
+        except ValueError:
+            raise UserError('Expected format NAME.ID.CITY for sensor: %r' % id)
+
+        gauge = self._get_gauge_by_id('%s.%s' % (gauge_name, contract))
         if not gauge:
             raise SensorNotFound()
         for sensor in gauge.sensors:

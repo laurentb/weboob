@@ -17,31 +17,32 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import datetime
-from weboob.deprecated.browser import Browser
+from urllib import urlencode
+
+from weboob.browser.browsers import APIBrowser
 
 
 __all__ = ['VelibBrowser']
 
 
-class VelibBrowser(Browser):
+class VelibBrowser(APIBrowser):
     ENCODING = 'utf-8'
 
     API_KEY = '2282a34b49cf45d8129cdf93d88762914cece88b'
-    BASE_URL = 'https://api.jcdecaux.com/vls/v1/'
+    BASEURL = 'https://api.jcdecaux.com/vls/v1/'
 
     def __init__(self, api_key, *a, **kw):
-        kw['parser'] = 'json'
-        Browser.__init__(self, *a, **kw)
+        super(VelibBrowser, self).__init__(*a, **kw)
         self.api_key = api_key or VelibBrowser.API_KEY
 
     def do_get(self, path, **query):
-        qs = '&'.join('%s=%s' % kv for kv in query.items())
-        if qs:
-            qs = '&' + qs
-        url = '%s%s?apiKey=%s%s' % (self.BASE_URL, path, self.api_key, qs)
-        return self.get_document(self.openurl(url))
+        query['apiKey'] = self.api_key
+        qs = urlencode(query.items())
+        url = '%s?%s' % (path, qs)
+        return self.request(url)
 
     def get_contracts_list(self):
         return self.do_get('contracts')
@@ -64,7 +65,7 @@ class VelibBrowser(Browser):
         jgauge['id'] = '%s.%s' % (jgauge['number'], jgauge['contract_name'])
         jgauge['city'] = jgauge['contract_name']
         jgauge['last_update'] = datetime.datetime.fromtimestamp(jgauge['last_update'] / 1000)
-        jgauge['latitude'] = str(jgauge['position']['lat'])
-        jgauge['longitude'] = str(jgauge['position']['lng'])
+        jgauge['latitude'] = '%s' % jgauge['position']['lat']
+        jgauge['longitude'] = '%s' % jgauge['position']['lng']
         del jgauge['position']
         return jgauge
