@@ -18,66 +18,48 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser, BrowserBanned
+from weboob.browser.browsers import APIBrowser, ClientError
 from weboob.tools.date import datetime
-from weboob.deprecated.browser.parsers.jsonparser import json
-import lxml.html
-import time
-import email
+from weboob.tools.decorators import retry
 
 
 __all__ = ['MailinatorBrowser']
 
 
-class MailinatorBrowser(Browser):
-    PROTOCOL = 'http'
-    DOMAIN = 'mailinator.com'
+class MailinatorBrowser(APIBrowser):
+    BASEURL = 'https://www.mailinator.com'
     ENCODING = 'utf-8'
 
-    def __init__(self, *args, **kw):
-        kw['parser'] = 'raw'
-        Browser.__init__(self, *args, **kw)
-
-    def _get_unicode(self, url):
-        return self.get_document(self.openurl(url)).decode(self.ENCODING, 'replace')
-
-    def _get_json(self, url):
-        j = json.loads(self._get_unicode(url))
-        if 'rate' in j:
-            # shit, we've been banned...
-            raise BrowserBanned('Flood - Banned for today')
-        return j
-
+    @retry(ClientError)
     def get_mails(self, boxid, after=None):
-        mails = self._get_json('http://mailinator.com/api/webinbox?to=%s&time=%d' % (boxid, millis()))
-        for mail in mails['messages']:
-            d = {'id': mail['id'],
-                 'from': mail['fromfull'],
-                 'to': mail['to'],
-                 'from_name': mail['from'],
-                 'datetime': frommillis(mail['time']),
-                 'subject': mail['subject'],
-                 'read': mail['been_read'],
-                 'box': boxid
-                 }
+        mails = self.request('/api/webinbox2?x=0&public_to=%s' % boxid)
+
+        for mail in mails['public_msgs']:
+            d = {
+                'id': mail['id'],
+                'from': mail['fromfull'],
+                'to': mail['to'],
+                'from_name': mail['from'],
+                'datetime': frommillis(mail['time']),
+                'subject': mail['subject'],
+                'box': boxid
+            }
             yield d
 
+    @retry(ClientError)
     def get_mail_content(self, mailid):
-        frame = self._get_unicode('http://mailinator.com/rendermail.jsp?msgid=%s&time=%s&text=true' % (mailid, millis())).strip()
-        if not len(frame):
-            # likely we're banned
-            return ''
-        doc = lxml.html.fromstring(frame)
-        pre = doc.xpath('//pre')[0]
-        msg = email.message_from_string(pre.text_content().strip().encode('utf-8'))
-        if msg.is_multipart():
-            return msg.get_payload(0).get_payload()
+        data = self.request('/fetchmail?msgid=%s&zone=public' % mailid)['data']
+        if 'parts' not in data:
+            return 'text', ''
 
-        return msg.get_payload()
+        for part in data['parts']:
+            content_type = part['headers'].get('content-type', '')
+            if content_type.startswith('text/plain'):
+                return 'text', part['body']
+            elif content_type.startswith('text/html'):
+                return 'html', part['body']
 
-
-def millis():
-    return int(time.time() * 1000)
+        return 'text', ''
 
 
 def frommillis(millis):

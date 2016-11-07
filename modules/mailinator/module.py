@@ -54,17 +54,20 @@ class MailinatorModule(Module, CapMessages):
 
                 msg = self.make_message(d, thread)
                 if not msg.content:
-                    msg.content = self.browser.get_mail_content(msg.id)
+                    self._fetch_content(msg)
 
                 thread.root = msg
                 yield thread
+
+    def _fetch_content(self, msg):
+        msg_type, msg.content = self.browser.get_mail_content(msg.id)
+        if msg_type == 'html':
+            msg.flags = Message.IS_HTML
 
     def _get_messages_thread(self, inbox, thread):
         first = True
         for d in self.browser.get_mails(inbox):
             msg = self.make_message(d, thread)
-            if not msg.content:
-                msg.content = self.browser.get_mail_content(msg.id)
 
             if first:
                 first = False
@@ -86,8 +89,6 @@ class MailinatorModule(Module, CapMessages):
         msg.children = []
         msg.sender = d['from']
         msg.flags = 0
-        if not d.get('read', True):
-            msg.flags = msg.IS_UNREAD
         msg.title = d['subject']
         msg.date = d['datetime']
         msg.receivers = [d['to']]
@@ -95,7 +96,8 @@ class MailinatorModule(Module, CapMessages):
 
     def fill_msg(self, msg, fields):
         if 'content' in fields:
-            msg.content = self.browser.get_mail_content(msg.id)
+            self._fetch_content(msg)
+
         return msg
 
     OBJECTS = {Message: fill_msg}

@@ -32,3 +32,6 @@ class MailinatorTest(BackendTest):
         assert t.root.date
         assert t.root.sender
         assert t.root.receivers
+
+        self.backend.fillobj(t.root, ('content',))
+        assert t.root.content
