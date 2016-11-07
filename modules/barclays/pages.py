@@ -18,46 +18,49 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import datetime
-from decimal import Decimal, InvalidOperation
-import re
+import datetime, re
+from decimal import Decimal
 
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import HTMLPage, LoggedPage, PDFPage
+from weboob.browser.filters.standard import CleanText, CleanDecimal
+from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment, NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-class LoginPage(Page):
+def MyDecimal(*args, **kwargs):
+    kwargs.update(replace_dots=True, default=NotAvailable)
+    return CleanDecimal(*args, **kwargs)
+
+
+class LoginPage(HTMLPage):
     def login(self, login, passwd):
-        self.browser.select_form(name='frmLogin')
-        self.browser['username'] = login.encode(self.browser.ENCODING)
-        self.browser['password'] = passwd.encode(self.browser.ENCODING)
-        self.browser.submit(nologin=True)
+        form = self.get_form(name='frmLogin')
+        form['username'] = login
+        form['password'] = passwd
+        form.submit()
 
     def has_redirect(self):
-        if len(self.document.getroot().xpath('//form')) > 0:
-            return False
-        else:
-            return True
+        return not len(self.doc.getroot().xpath('//form')) > 0
 
 
-class Login2Page(Page):
+class Login2Page(HTMLPage):
     def login(self, secret):
-        label = self.document.xpath('//span[@class="PF_LABEL"]')[0].text.strip()
+        label = self.doc.xpath('//span[@class="PF_LABEL"]')[0].text.strip()
         letters = ''
         for n in re.findall('(\d+)', label):
             letters += secret[int(n) - 1]
 
-        self.browser.select_form(name='frmControl')
-        self.browser['word'] = letters.encode(self.browser.ENCODING)
-        self.browser.submit(name='valider', nologin=True)
+        form = self.get_form(name='frmControl', submit='//*[@name="valider"]')
+        form['word'] = letters
+        form.submit()
 
 
-class IndexPage(Page):
+class IndexPage(HTMLPage):
     pass
 
 
-class AccountsPage(Page):
+class AccountsPage(LoggedPage, HTMLPage):
     ACCOUNT_TYPES = {u'Epargne':                Account.TYPE_SAVINGS,
                      u'Liquidités':             Account.TYPE_CHECKING,
                      u'Titres':                 Account.TYPE_MARKET,
@@ -67,7 +70,7 @@ class AccountsPage(Page):
     def get_list(self):
         accounts = []
 
-        for block in self.document.xpath('//div[@class="pave"]/div'):
+        for block in self.doc.xpath('//div[@class="pave"]/div'):
             head_type = block.xpath('./div/span[@class="accGroupLabel"]')[0].text.strip()
             account_type = self.ACCOUNT_TYPES.get(head_type, Account.TYPE_UNKNOWN)
             for tr in block.cssselect('ul li.tbord_account'):
@@ -95,7 +98,7 @@ class AccountsPage(Page):
 
         if len(accounts) == 0:
             # Sometimes, accounts are only in javascript...
-            for script in self.document.xpath('//script'):
+            for script in self.doc.xpath('//script'):
                 text = script.text
                 if text is None:
                     continue
@@ -144,13 +147,30 @@ class AccountsPage(Page):
 
         return accounts
 
+    def get_ibanlink(self):
+        return Link('//a[@id="editionRibLevel2link"]', default=None)(self.doc)
+
     def populate_cards(self, account):
         account.type = account.TYPE_CARD
         account.coming = account.balance
         account.balance = Decimal('0.0')
-        doc = self.browser.get_document(self.browser.openurl(account._link))
-        self.browser.openurl(self.url)
+        doc = self.browser.open(account._link).page.doc
+        self.browser.open(self.browser.url)
         account._attached_acc = ''.join(re.findall('\d', doc.xpath(u'//td[contains(text(), "Carte rattachée")]')[0].text))
+
+
+class IbanPage(LoggedPage, HTMLPage):
+    def get_list(self):
+        form = self.get_form(name='frmRIB')
+        trs = self.doc.xpath('//tr[td[a[@checkaccount]]]')
+        return {'form': form, 'list': \
+            {CleanText('./td[1]', replace=[(' ', '')])(tr): Attr('.//a[@checkaccount]', 'checkaccount')(tr) for tr in trs}}
+
+
+class IbanPDFPage(LoggedPage, PDFPage):
+    def get_iban(self):
+        ibans = re.findall(r'1001\d{3}.9\d{3}.73Tm\/F18Tf000rg\(([A-Z\d]+)\)', "".join(self.doc.split()))
+        return NotAvailable if not len(ibans) else CleanText().filter(ibans[0])
 
 
 class Transaction(FrenchTransaction):
@@ -179,7 +199,7 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class HistoryBasePage(Page):
+class HistoryBasePage(HTMLPage):
     def iter_investments(self):
         self.logger.warning('Do not support investments on account of type %s' % type(self).__name__)
         return iter([])
@@ -189,14 +209,14 @@ class HistoryBasePage(Page):
         return iter([])
 
     def get_next_page(self):
-        link = self.document.xpath('//a[span[contains(text(), "Suiv.")]]')
+        link = self.doc.xpath('//a[span[contains(text(), "Suiv.")]]')
         if link:
             return link[0].attrib['href']
 
 
-class TransactionsPage(HistoryBasePage):
+class TransactionsPage(LoggedPage, HistoryBasePage):
     def get_history(self):
-        for tr in self.document.xpath('//table[@id="operation"]/tbody/tr'):
+        for tr in self.doc.xpath('//table[@id="operation"]/tbody/tr'):
             tds = tr.findall('td')
 
             if len(tds) < 5:
@@ -218,11 +238,11 @@ class TransactionsPage(HistoryBasePage):
             yield t
 
 
-class CardPage(HistoryBasePage):
+class CardPage(LoggedPage, HistoryBasePage):
     def get_history(self):
         debit_date = None
         coming = True
-        for tr in self.document.xpath('//table[@class="report"]/tbody/tr'):
+        for tr in self.doc.xpath('//table[@class="report"]/tbody/tr'):
             tds = tr.findall('td')
 
             if len(tds) == 2:
@@ -249,41 +269,32 @@ class CardPage(HistoryBasePage):
             yield t
 
 
-class ValuationPage(HistoryBasePage):
+class ValuationPage(LoggedPage, HistoryBasePage):
     pass
 
 
-class LoanPage(HistoryBasePage):
+class LoanPage(LoggedPage, HistoryBasePage):
     pass
 
 
-class MarketPage(HistoryBasePage):
+class MarketPage(LoggedPage, HistoryBasePage):
     pass
 
 
-class AssurancePage(HistoryBasePage):
+class AssurancePage(LoggedPage, HistoryBasePage):
     def iter_investments(self):
-        for tr in self.document.xpath('//table[@id="support"]/tbody/tr'):
+        for tr in self.doc.xpath('//table[@id="support"]/tbody/tr'):
             tds = tr.findall('td')
 
             inv = Investment()
-            inv.label = self.parser.tocleanstring(tds[0])
+            inv.label = CleanText('.')(tds[0])
             inv.code = NotAvailable
 
-            try:
-                inv.quantity = Decimal(Transaction.clean_amount(self.parser.tocleanstring(tds[1])))
-            except InvalidOperation:
-                pass
-
-            try:
-                inv.unitvalue = Decimal(Transaction.clean_amount(self.parser.tocleanstring(tds[2])))
-            except InvalidOperation:
-                pass
-
-            inv.valuation = Decimal(Transaction.clean_amount(self.parser.tocleanstring(tds[3])))
-            inv.set_empty_fields(NotAvailable)
+            inv.quantity = MyDecimal('.')(tds[1])
+            inv.unitvalue = MyDecimal('.')(tds[2])
+            inv.valuation = MyDecimal('.')(tds[3])
             yield inv
 
 
-class LogoutPage(Page):
+class LogoutPage(HTMLPage):
     pass

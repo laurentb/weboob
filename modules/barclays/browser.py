@@ -17,62 +17,63 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+
 import re
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.browser import LoginBrowser, URL, need_login
+from weboob.exceptions import BrowserIncorrectPassword
+from weboob.capabilities.bank import NotAvailable
 
-from .pages import LoginPage, Login2Page, IndexPage, AccountsPage, TransactionsPage, \
+from .pages import LoginPage, Login2Page, IndexPage, AccountsPage, IbanPage, IbanPDFPage, TransactionsPage, \
                    CardPage, ValuationPage, LoanPage, MarketPage, AssurancePage, LogoutPage
 
 
-__all__ = ['Barclays']
+class Barclays(LoginBrowser):
+    BASEURL = 'https://www.barclays.fr'
 
-
-class Barclays(Browser):
-    PROTOCOL = 'https'
-    DOMAIN = 'www.barclays.fr'
-    PAGES = {'https?://.*.barclays.fr/\d-index.html':                                   IndexPage,
-             'https://.*.barclays.fr/barclaysnetV2/logininstit.do.*':                   LoginPage,
-             'https://.*.barclays.fr/barclaysnetV2/loginSecurite.do.*':                 Login2Page,
-             'https://.*.barclays.fr/bayexterne/barclaysnet/deconnexion/index.html':    LogoutPage,
-             'https://.*.barclays.fr/barclaysnetV2/tbord.do.*':                         AccountsPage,
-             'https://.*.barclays.fr/barclaysnetV2/releve.do.*':                        TransactionsPage,
-             'https://.*.barclays.fr/barclaysnetV2/cartes.do.*':                        CardPage,
-             'https://.*.barclays.fr/barclaysnetV2/valuationViewBank.do.*':             ValuationPage,
-             'https://.*.barclays.fr/barclaysnetV2/pret.do.*':                          LoanPage,
-             'https://.*.barclays.fr/barclaysnetV2/titre.do.*':                         MarketPage,
-             'https://.*.barclays.fr/barclaysnetV2/assurance.do.*':                     AssurancePage,
-             'https://.*.barclays.fr/barclaysnetV2/assuranceSupports.do.*':             AssurancePage,
-            }
+    index = URL('https?://.*.barclays.fr/\d-index.html',                                 IndexPage)
+    login = URL('https://.*.barclays.fr/barclaysnetV2/logininstit.do.*',                 LoginPage)
+    login2 = URL('https://.*.barclays.fr/barclaysnetV2/loginSecurite.do.*',              Login2Page)
+    logout = URL('https://.*.barclays.fr/bayexterne/barclaysnet/deconnexion/index.html', LogoutPage)
+    accounts = URL('https://.*.barclays.fr/barclaysnetV2/tbord.do.*',                    AccountsPage)
+    iban = URL('https://.*.barclays.fr/barclaysnetV2/editionRIB.do.*',                   IbanPage)
+    ibanpdf = URL('https://.*.barclays.fr/barclaysnetV2/telechargerRIB.pdf',             IbanPDFPage)
+    transactions = URL('https://.*.barclays.fr/barclaysnetV2/releve.do.*',               TransactionsPage)
+    card = URL('https://.*.barclays.fr/barclaysnetV2/cartes.do.*',                       CardPage)
+    valuation = URL('https://.*.barclays.fr/barclaysnetV2/valuationViewBank.do.*',       ValuationPage)
+    loan = URL('https://.*.barclays.fr/barclaysnetV2/pret.do.*',                         LoanPage)
+    market = URL('https://.*.barclays.fr/barclaysnetV2/titre.do.*',                      MarketPage)
+    assurance = URL('https://.*.barclays.fr/barclaysnetV2/assurance.do.*',
+                    'https://.*.barclays.fr/barclaysnetV2/assuranceSupports.do.*',       AssurancePage)
 
     SESSION_PARAM = None
 
     def __init__(self, secret, *args, **kwargs):
+        super(Barclays, self).__init__(*args, **kwargs)
         self.secret = secret
-
-        Browser.__init__(self, *args, **kwargs)
+        self.cache = {}
 
     def is_logged(self):
-        return self.page is not None and not self.is_on_page((LoginPage, IndexPage, Login2Page))
+        return self.page is not None and not (self.login.is_here() or self.index.is_here() or self.login2.is_here())
 
-    def home(self):
+    def go_home(self):
         if self.is_logged():
-            link = self.page.document.xpath('.//a[contains(@id, "tbordalllink")]')[0].attrib['href']
-            m = re.match('(.*?fr)', self.page.url)
+            link = self.page.doc.xpath('.//a[contains(@id, "tbordalllink")]')[0].attrib['href']
+            m = re.match('(.*?fr)', self.url)
             if m:
                 absurl = m.group(1)
                 self.location('%s%s' % (absurl, link))
         else:
-            self.login()
+            self.do_login()
 
     def set_session_param(self):
         if self.is_logged():
-            link = self.page.document.xpath('.//a[contains(@id, "tbordalllink")]')[0].attrib['href']
+            link = self.page.doc.xpath('.//a[contains(@id, "tbordalllink")]')[0].attrib['href']
             m = re.search('&(.*)', link)
             if m:
                 self.SESSION_PARAM = m.group(1)
 
-    def login(self):
+    def do_login(self):
         """
         Attempt to log in.
         Note: this method does nothing if we are already logged in.
@@ -83,17 +84,17 @@ class Barclays(Browser):
         if self.is_logged():
             return
 
-        if not self.is_on_page(LoginPage):
-            self.location('https://b-net.barclays.fr/barclaysnetV2/logininstit.do?lang=fr&nodoctype=0', no_login=True)
+        if not self.login.is_here():
+            self.location('https://b-net.barclays.fr/barclaysnetV2/logininstit.do?lang=fr&nodoctype=0')
 
         self.page.login(self.username, self.password)
 
         if not self.page.has_redirect():
             raise BrowserIncorrectPassword()
 
-        self.location('loginSecurite.do', no_login=True)
+        self.location('loginSecurite.do')
 
-        if self.is_on_page(LogoutPage):
+        if self.logout.is_here():
             raise BrowserIncorrectPassword()
 
         self.page.login(self.secret)
@@ -103,10 +104,33 @@ class Barclays(Browser):
 
         self.set_session_param()
 
+    def get_ibans_form(self):
+        link = self.page.get_ibanlink()
+        if link:
+            self.location(link.split('/')[-1])
+            return self.page.get_list()
+        return False
+
+    @need_login
     def get_accounts_list(self):
-        if not self.is_on_page(AccountsPage):
-            self.home()
-        return self.page.get_list()
+        if 'accs' not in self.cache.keys():
+            if not self.accounts.is_here():
+                self.go_home()
+            accounts = self.page.get_list()
+            accounts_url = self.url
+            ibans = self.get_ibans_form()
+            accs = []
+            for a in accounts:
+                if ibans and a.id in ibans['list']:
+                    ibans['form']['checkaccount'] = ibans['list'][a.id]
+                    ibans['form'].submit()
+                    a.iban = self.page.get_iban()
+                else:
+                    a.iban = NotAvailable
+                accs.append(a)
+            self.location(accounts_url)
+            self.cache['accs'] = accs
+        return self.cache['accs']
 
     def get_account(self, id):
         assert isinstance(id, basestring)
@@ -126,13 +150,15 @@ class Barclays(Browser):
         assert len(l) == 1
         return l[0]
 
+    @need_login
     def get_history(self, account):
-        if not self.is_on_page(AccountsPage):
-            self.home()
+        if not self.accounts.is_here():
+            self.go_home()
 
         self.location(account._link)
 
-        assert self.is_on_page((TransactionsPage, ValuationPage, LoanPage, MarketPage, AssurancePage, CardPage))
+        assert (self.transactions.is_here() or self.valuation.is_here() or self.loan.is_here() \
+                or self.market.is_here() or self.assurance.is_here() or self.card.is_here())
 
         transactions = list()
         while True:
@@ -153,16 +179,17 @@ class Barclays(Browser):
         for tr in sorted(transactions, key=lambda t: t.rdate, reverse=True) :
             yield tr
 
+    @need_login
     def iter_investments(self, account):
         if account.type not in (account.TYPE_MARKET, account.TYPE_LIFE_INSURANCE):
             raise NotImplementedError()
 
-        if not self.is_on_page(AccountsPage):
-            self.home()
+        if not self.accounts.is_here():
+            self.go_home()
 
         self.location(account._link)
 
         if account.type == account.TYPE_LIFE_INSURANCE:
-            self.location(self.page.url.replace('assurance.do', 'assuranceSupports.do'))
+            self.location(self.url.replace('assurance.do', 'assuranceSupports.do'))
 
         return self.page.iter_investments()

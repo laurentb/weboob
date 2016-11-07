@@ -21,6 +21,7 @@
 from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
+from weboob.capabilities.base import find_object
 
 from .browser import Barclays
 
@@ -46,17 +47,10 @@ class BarclaysModule(Module, CapBank):
                                    self.config['password'].get())
 
     def iter_accounts(self):
-        with self.browser:
-            return self.browser.get_accounts_list()
+        return self.browser.get_accounts_list()
 
     def get_account(self, _id):
-        with self.browser:
-            account = self.browser.get_account(_id)
-
-        if account:
-            return account
-        else:
-            raise AccountNotFound()
+        return find_object(self.browser.get_account(), id=_id, error=AccountNotFound)
 
     def iter_history(self, account):
         for tr in self.browser.get_history(account):
