@@ -205,7 +205,7 @@ class CaisseEpargne(Browser):
 
                 for tr in self.page.get_history():
                     yield tr
-                
+
                 if not self.page.go_next():
                     return
 
