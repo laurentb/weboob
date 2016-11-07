@@ -80,7 +80,7 @@ class TrainlineBrowser(APIBrowser):
                     b.format = u"pdf"
                     b.label = u'Trajet du %s' % Date().filter(trip['departure_date'])
                     b.type = u"bill"
-                    b.vat = 0
+                    b.vat = CleanDecimal().filter('0')
                     b.price = CleanDecimal().filter(format(pnr['cents']/float(100), '.2f'))
                     b.currency = pnr['currency']
                     docs.append(b)
