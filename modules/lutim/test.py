@@ -25,7 +25,7 @@ class LutimTest(BackendTest):
     MODULE = 'lutim'
 
     # small gif file
-    DATA = u'R0lGODlhAQABAIAAAP///wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==\n'
+    DATA = u'R0lGODlhAQABAPAAAP///wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==\n'
     TITLE = u'foo.gif'
 
     def test_lutim(self):
@@ -34,12 +34,12 @@ class LutimTest(BackendTest):
         post.title = self.TITLE
         assert self.backend.can_post(post.contents, post.title)
         self.backend.post_paste(post, max_age=86400)
-        assert post.id
+        self.assertTrue(post.id)
 
         got = self.backend.get_paste(post.id)
-        assert got
-        assert got.title == self.TITLE
-        assert got.contents == self.DATA
+        self.assertTrue(got)
+        self.assertEqual(got.title, self.TITLE)
+        self.assertEqual(got.contents, self.DATA)
 
         # test with an empty name
         post.title = u''
