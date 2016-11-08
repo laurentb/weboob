@@ -19,7 +19,7 @@
 
 
 from weboob.tools.test import BackendTest
-from datetime import datetime
+from datetime import datetime, date
 
 
 class ParisKiwiTest(BackendTest):
@@ -27,15 +27,15 @@ class ParisKiwiTest(BackendTest):
 
     def test_pariskiwi_event(self):
         event = self.backend.get_event('11-9-2013_-Event_2')
-        assert event
-        assert event.location
-        assert event.price
-        assert event.summary
-        assert event.url == 'http://pariskiwi.org/~parislagrise/mediawiki/index.php/Agenda/Detruire_Ennui_Paris/11-9-2013_-Event_2'
-        assert event.start_date == datetime(2013, 11, 9, 20, 30)
+        self.assertTrue(event)
+        self.assertIn('Belleville', event.location)
+        self.assertEqual(event.price, 5)
+        self.assertTrue(event.summary)
+        self.assertEqual(event.start_date, datetime(2013, 11, 9, 20, 30))
+        self.assertEqual(event.url, 'https://pariskiwi.org/index.php/Agenda/Detruire_Ennui_Paris/11-9-2013_-Event_2')
 
     def test_pariskiwi_list(self):
         it = self.backend.list_events(datetime.now())
-        ev = it.next()
-        assert ev is not None
-        assert ev.start_date >= datetime.now()
+        ev = next(it)
+        self.assertTrue(ev)
+        self.assertGreaterEqual(ev.start_date.date(), date.today())

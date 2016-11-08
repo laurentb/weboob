@@ -42,14 +42,19 @@ class ParisKiwiModule(Module, CapCalendarEvent):
 
     def search_events(self, query):
         if self.has_matching_categories(query):
-            return self.list_events(query.start_date, query.end_date or None)
+            for event in self.list_events(query.start_date, query.end_date or None):
+                yield event
 
     def list_events(self, date_from, date_to=None):
         for d in self.browser.list_events_all():
-            if self.matches_date(d, date_from, date_to):
-                event = self.get_event(d['id'])
-                if event is not None:
-                    yield event
+            if date_from and d['date'] < date_from:
+                continue
+            if date_to and d['date'] > date_to:
+                break
+
+            event = self.get_event(d['id'])
+            if event:
+                yield event
 
     def get_event(self, _id):
         d = self.browser.get_event(_id)
@@ -82,10 +87,3 @@ class ParisKiwiModule(Module, CapCalendarEvent):
         event.category = CATEGORIES.CONCERT
         event.transp = TRANSP.OPAQUE
         return event
-
-    def matches_date(self, d, date_from, date_to):
-        if date_from and d['date'] < date_from:
-            return False
-        if date_to and d['date'] > date_from:
-            return False
-        return True
