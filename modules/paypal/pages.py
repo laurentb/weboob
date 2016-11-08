@@ -208,7 +208,7 @@ class ProHistoryPage(HistoryPage, JsonPage):
 
         t = FrenchTransaction(transaction['transactionId'])
         # Those are not really transactions.
-        if not 'currency' in transaction['grossAmount'] \
+        if 'grossAmount' not in transaction or not 'currency' in transaction['grossAmount'] \
                 or transaction['transactionDescription']['description'].startswith("Conversion de devise"):
             return []
         original_currency = unicode(transaction['grossAmount']['currency'])
