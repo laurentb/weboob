@@ -24,12 +24,13 @@ import os
 from urllib import quote_plus
 
 from weboob.browser.browsers import APIBrowser
+from weboob.browser.cache import CacheMixin
 from weboob.browser.exceptions import ClientError
 
 __all__ = ['GithubBrowser']
 
 
-class GithubBrowser(APIBrowser):
+class GithubBrowser(CacheMixin, APIBrowser):
     BASEURL = 'https://api.github.com'
 
     def __init__(self, username, password, *a, **kw):
@@ -212,7 +213,7 @@ class GithubBrowser(APIBrowser):
 
         left = total = end = None
         try:
-            ret = super(GithubBrowser, self).open(*args, **kwargs)
+            ret = super(GithubBrowser, self).open_with_cache(*args, **kwargs)
         except ClientError as err:
             left, total, end = self._extract_rate_info(err.response.headers)
             raise

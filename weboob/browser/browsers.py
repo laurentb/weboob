@@ -824,6 +824,15 @@ class APIBrowser(DomainBrowser):
     A browser for API websites.
     """
 
+    def build_request(self, *args, **kwargs):
+        if 'data' in kwargs:
+            kwargs['data'] = json.dumps(kwargs['data'])
+        if 'headers' not in kwargs:
+            kwargs['headers'] = {}
+        kwargs['headers']['Content-Type'] = 'application/json'
+
+        return super(APIBrowser, self).build_request(*args, **kwargs)
+
     def open(self, *args, **kwargs):
         """
         Do a JSON request.
@@ -835,12 +844,6 @@ class APIBrowser(DomainBrowser):
         :param headers: if specified, add these headers to the request
         :type headers: :class:`dict`
         """
-        if 'data' in kwargs:
-            kwargs['data'] = json.dumps(kwargs['data'])
-        if 'headers' not in kwargs:
-            kwargs['headers'] = {}
-        kwargs['headers']['Content-Type'] = 'application/json'
-
         return super(APIBrowser, self).open(*args, **kwargs)
 
     def request(self, *args, **kwargs):
