@@ -230,7 +230,6 @@ class HistoryPage(LoggedPage, HTMLPage):
             obj_amount = CleanDecimal('.//div[has-class("list__movement__line--amount")]', replace_dots=True)
             obj_category = CleanText('.//div[has-class("category")]')
 
-
             def obj_rdate(self):
                 s = Regexp(Field('raw'), ' (\d{2}/\d{2}/\d{2}) | (?!NUM) (\d{6}) ', default=NotAvailable)(self)
                 if not s:
@@ -240,6 +239,10 @@ class HistoryPage(LoggedPage, HTMLPage):
 
             def obj__is_coming(self):
                 return len(self.xpath(u'.//span[@title="Mouvement à débit différé"]'))
+
+            # These are on deffered cards accounts.
+            def condition(self):
+                return not len(self.xpath(u'.//span[has-class("icon-carte-bancaire")]'))
 
 
 class Myiter_investment(TableElement):
