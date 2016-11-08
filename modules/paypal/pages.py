@@ -35,8 +35,7 @@ class LandingPage(HTMLPage):
     pass
 
 class OldWebsitePage(LoggedPage, HTMLPage):
-    def on_load(self):
-        raise BrowserUnavailable('Old Website is not supported anymore.')
+    pass
 
 
 class PromoPage(LoggedPage, HTMLPage):

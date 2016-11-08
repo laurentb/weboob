@@ -96,6 +96,8 @@ class Paypal(LoginBrowser):
             raise BrowserIncorrectPassword()
 
         self.location('/')
+        if self.old_website.is_here():
+            self.location('https://www.paypal.com/businessexp/summary')
         if self.login.is_here() or self.landing.is_here():
             raise BrowserIncorrectPassword(u'Impossible de se connecter, le compte nécessite une étape de vérification supplémentaire.')
         self.detect_account_type()
