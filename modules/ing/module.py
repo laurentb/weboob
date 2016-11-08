@@ -124,5 +124,5 @@ class INGModule(Module, CapBankTransfer, CapDocument):
             self.browser.predownload(bill)
         except ServerError:
             return NotAvailable
-        assert(self.browser.response.headers['content-type'] == "application/pdf")
+        assert(self.browser.response.headers['content-type'] in ["application/pdf", "application/download"])
         return self.browser.response.content
