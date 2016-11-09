@@ -154,6 +154,8 @@ class BredBrowser(DomainBrowser):
                     a.label = u'Portefeuille Titres'
                     a.balance = Decimal(str(poste['montantTitres']['valeur']))
                     a.currency = poste['montantTitres']['monnaie']['code'].strip()
+                    if not a.balance and not a.currency and 'dateTitres' not in poste:
+                        continue
                     yield a
 
                 if 'libelle' not in poste:
