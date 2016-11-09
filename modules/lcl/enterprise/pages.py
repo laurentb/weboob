@@ -54,7 +54,7 @@ class MovementsPage(LoggedPage, HTMLPage):
         form['perimetreMandatParentData'] = m.group(1)
         form['perimetreMandatEnfantData'] = m.group(2)
         # Can't do multi with async because of inconsistency...
-        return self.browser.open(form.url, data=dict(form)).page
+        return self.browser.open(form.url, data=dict(form)).page, form.url, dict(form)
 
     @method
     class iter_accounts(ListElement):
@@ -71,16 +71,18 @@ class MovementsPage(LoggedPage, HTMLPage):
             obj_type = Account.TYPE_CHECKING
             obj_balance = Env('balance')
             obj_currency = Env('currency')
-            obj__page = Env('page')
+            obj__url = Env('url')
+            obj__data = Env('data')
 
             def parse(self, el):
-                page = self.page.get_changecompte(Link('.')(self)) if self.page.multi else self.page
+                page, url, data = self.page.get_changecompte(Link('.')(self)) if self.page.multi else self.page
                 self.env['accid'] = CleanText('.')(self).strip().replace(' ', '').split('-')[0]
                 self.env['label'] = CleanText('.')(self).split("-")[-1].strip()
                 balance_xpath = '//div[contains(text(),"Solde")]/strong'
                 self.env['balance'] = MyDecimal().filter(page.doc.xpath(balance_xpath))
                 self.env['currency'] = Account.get_currency(CleanText().filter(page.doc.xpath(balance_xpath)))
-                self.env['page'] = page
+                self.env['url'] = url
+                self.env['data'] = data
 
 
     @pagination
