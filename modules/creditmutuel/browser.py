@@ -88,7 +88,7 @@ class CreditMutuelBrowser(LoginBrowser):
                       '/(?P<subbank>.*)/fr/banque/POR_SyntheseLst.aspx',
                       PorPage)
     li =          URL('/(?P<subbank>.*)/fr/assurances/profilass.aspx\?domaine=epargne',
-                      '/(?P<subbank>.*)/fr/assurances/consultation/WI_ASSAVI', LIAccountsPage)
+                      '/(?P<subbank>.*)/fr/assurances/(consultation/)?WI_ASSAVI', LIAccountsPage)
     iban =        URL('/(?P<subbank>.*)/fr/banque/rib.cgi', IbanPage)
 
     new_home =    URL('/fr/banque/pageaccueil.html',
