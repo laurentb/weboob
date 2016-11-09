@@ -106,7 +106,7 @@ class DocumentsPage(HTMLPage):
 
             obj__ref = CleanText('//input[@id="noref"]/@value')
             obj_id = Format('%s_%s', Env('subid'), CleanText('./@facture-id'))
-            obj_url = Format(u'http://www.bouyguestelecom.fr/parcours/facture/download/index?id=%s', CleanText('./@facture-id'))
+            obj_url = Format('http://www.bouyguestelecom.fr/parcours/facture/download/index?id=%s&no_reference=%s', CleanText('./@facture-id'), CleanText('./@facture-ligne'))
             obj_date = Env('date')
             obj_format = u"pdf"
             obj_label = CleanText('./text()')
