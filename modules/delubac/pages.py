@@ -201,7 +201,7 @@ class HistoryPage(LoggedPage, HTMLPage):
             klass = Transaction
 
             def condition(self):
-                if len(self.el.xpath('./td')) < 6 or len(self.el.xpath('./td[@class="TitreTableau"]')) > 0:
+                if len(self.el.xpath('./td')) < 5 or len(self.el.xpath('./td[@class="TitreTableau"]')) > 0:
                     return False
                 return True
 
