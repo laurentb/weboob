@@ -78,6 +78,10 @@ class CreditMutuelBrowser(LoginBrowser):
     change_pass = URL('/(?P<subbank>.*)/fr/validation/change_password.cgi',
                       '/fr/services/change_password.html', ChangePasswordPage)
     verify_pass = URL('/(?P<subbank>.*)/fr/validation/verif_code.cgi.*',     VerifCodePage)
+    new_home =    URL('/fr/banque/pageaccueil.html',
+                      '/(mabanque/)?fr/banque/DELG_Gestion.*',
+                      '/mabanque/fr/banque/pageaccueil.html',
+                      '/fr/banque/welcome_pack.html', NewHomePage)
     empty =       URL('/(?P<subbank>.*)/fr/banques/index.html',
                       '/(?P<subbank>.*)/fr/banque/paci_beware_of_phishing.*',
                       '/(?P<subbank>.*)/fr/validation/(?!change_password|verif_code).*',
@@ -91,10 +95,6 @@ class CreditMutuelBrowser(LoginBrowser):
                       '/(?P<subbank>.*)/fr/assurances/(consultation/)?WI_ASSAVI', LIAccountsPage)
     iban =        URL('/(?P<subbank>.*)/fr/banque/rib.cgi', IbanPage)
 
-    new_home =    URL('/fr/banque/pageaccueil.html',
-                      '/fr/banque/DELG_Gestion.*',
-                      '/mabanque/fr/banque/pageaccueil.html',
-                      '/fr/banque/welcome_pack.html', NewHomePage)
     new_accounts = URL('/(mabanque/)?fr/banque/comptes-et-contrats.html', AccountsPage)
     new_operations = URL('/fr/banque/mouvements.cgi',
                          '/fr/banque/mouvements.html', OperationsPage)
