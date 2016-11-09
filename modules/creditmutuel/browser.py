@@ -63,14 +63,14 @@ class CreditMutuelBrowser(LoginBrowser):
     user_space =  URL('/(?P<subbank>.*)/fr/banque/espace_personnel.aspx',
                       '/(?P<subbank>.*)/fr/banque/accueil.cgi',
                       UserSpacePage)
+    card =        URL('/(?P<subbank>.*)/fr/banque/operations_carte.cgi.*',
+                      '/(mabanque/)?fr/banque/mouvements.html\?webid=.*cardmonth=\d+$',
+                      CardPage)
     operations =  URL('/(?P<subbank>.*)/fr/banque/mouvements.cgi.*',
                       '/(?P<subbank>.*)/fr/banque/mouvements.html.*',
                       '/(?P<subbank>.*)/fr/banque/nr/nr_devbooster.aspx.*',
                       OperationsPage)
     coming =      URL('/(?P<subbank>.*)/fr/banque/mvts_instance.cgi.*',      ComingPage)
-    card =        URL('/(?P<subbank>.*)/fr/banque/operations_carte.cgi.*',
-                      '/fr/banque/mouvements.html\?webid=.*cardmonth=\d+$',
-                      CardPage)
     noop =        URL('/(?P<subbank>.*)/fr/banque/CR/arrivee.asp.*',         NoOperationsPage)
     info =        URL('/(?P<subbank>.*)/fr/banque/BAD.*',                    EmptyPage)
     transfert =   URL('/(?P<subbank>.*)/fr/banque/virements/vplw_vi.html',   EmptyPage)
@@ -93,15 +93,16 @@ class CreditMutuelBrowser(LoginBrowser):
 
     new_home =    URL('/fr/banque/pageaccueil.html',
                       '/fr/banque/DELG_Gestion.*',
+                      '/mabanque/fr/banque/pageaccueil.html',
                       '/fr/banque/welcome_pack.html', NewHomePage)
-    new_accounts = URL('/fr/banque/comptes-et-contrats.html', AccountsPage)
+    new_accounts = URL('/(mabanque/)?fr/banque/comptes-et-contrats.html', AccountsPage)
     new_operations = URL('/fr/banque/mouvements.cgi',
                          '/fr/banque/mouvements.html', OperationsPage)
-    new_por = URL('/fr/banque/POR_ValoToute.aspx',
-                  '/fr/banque/POR_SyntheseLst.aspx', PorPage)
-    new_iban = URL('/fr/banque/rib.cgi', IbanPage)
+    new_por = URL('/(mabanque/)?fr/banque/POR_ValoToute.aspx',
+                  '/(mabanque/)?fr/banque/POR_SyntheseLst.aspx', PorPage)
+    new_iban = URL('/(mabanque/)?fr/banque/rib.cgi', IbanPage)
 
-    redirect = URL('/fr/banque/paci_engine/static_content_manager.aspx', RedirectPage)
+    redirect = URL('/(mabanque/)?fr/banque/paci_engine/static_content_manager.aspx', RedirectPage)
 
     cards_activity = URL('/(?P<subbank>.*)/fr/banque/pro/ENC_liste_tiers.aspx', CardsActivityPage)
     cards_list = URL('/(?P<subbank>.*)/fr/banque/pro/ENC_liste_ctr.*', CardsListPage)
