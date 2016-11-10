@@ -58,31 +58,32 @@ class MainWindow(QtMainWindow):
         self.mdl.jobAdded.connect(self._jobAdded)
         self.mdl.jobFinished.connect(self._jobFinished)
         self.proxy_mdl = FilterTypeModel()
-        self.proxy_mdl.setAcceptedTypes([BaseCollection])
+        self.proxy_mdl.setAcceptedTypes([BaseCollection, BaseGallery])
         self.proxy_mdl.setSourceModel(self.mdl)
 
         self.ui.collectionTree.setModel(self.proxy_mdl)
         self.ui.collectionTree.selectionModel().currentChanged.connect(self.showCollection)
+        n = self.mdl.columnCount(QModelIndex())
+        for i in xrange(n):
+            self.ui.collectionTree.setColumnWidth(i, self.ui.collectionTree.width() // n)
 
         self.config = config
         self.storage = storage
         self.weboob = weboob
 
         self.ui.browseButton.clicked.connect(self.startBrowse)
-        self.ui.searchEdit.returnPressed.connect(self.startSearch)
-        self.ui.searchButton.clicked.connect(self.startSearch)
-        self.ui.galleryList.setModel(self.mdl)
-        self.ui.galleryList.selectionModel().currentChanged.connect(self.showGallery)
-        self.ui.galleryList.hide()
+
+        self.ui.searchGallEdit.returnPressed.connect(self.startGallSearch)
+        self.ui.searchGallButton.clicked.connect(self.startGallSearch)
+
+        self.ui.searchImgEdit.returnPressed.connect(self.startImgSearch)
+        self.ui.searchImgButton.clicked.connect(self.startImgSearch)
 
         self.ui.imageList.setModel(self.mdl)
         self.ui.imageList.selectionModel().currentChanged.connect(self.showImageInfo)
         self.ui.imageList.activated.connect(self.openImage)
 
-        # backendEdit choice
-
         self.fillBackends()
-        self.ui.backendEdit.currentIndexChanged.connect(self.changeBackend)
 
         if self.weboob.count_backends() == 0:
             self.backendsConfig()
@@ -98,22 +99,17 @@ class MainWindow(QtMainWindow):
 
     def fillBackends(self):
         model = BackendListModel(self.weboob)
-        model.addBackends(CapGallery, entry_title=True)
+        model.addBackends(CapGallery)
+        self.ui.backendGallCombo.setModel(model)
+
+        model = BackendListModel(self.weboob)
+        model.addBackends(CapImage)
+        self.ui.backendImgCombo.setModel(model)
+
+        model = BackendListModel(self.weboob)
         model.addBackends(CapImage, entry_title=True)
-        self.ui.backendEdit.setModel(model)
-
-    def selectedBackend(self):
-        cap = self.ui.backendEdit.currentData(BackendListModel.RoleCapability)
-        backend = self.ui.backendEdit.currentData(BackendListModel.RoleBackendName)
-        return cap, backend
-
-    def _collectionBackends(self):
-        cap, backend = self.selectedBackend()
-        if backend is not None:
-            return [backend]
-
-        backends = self.weboob.iter_backends(caps=cap)
-        return [b for b in backends if b.has_caps(CapCollection)]
+        model.addBackends(CapGallery, entry_title=True)
+        self.ui.backendCollCombo.setModel(model)
 
     @Slot()
     def changeBackend(self):
@@ -127,19 +123,9 @@ class MainWindow(QtMainWindow):
 
     @Slot(QModelIndex)
     def showCollection(self, qidx):
-        cap, _ = self.selectedBackend()
-
         qidx = self.proxy_mdl.mapToSource(qidx)
         qidx = qidx.sibling(qidx.row(), 0)
-        if cap is CapImage:
-            self.ui.galleryList.hide()
-            self.ui.imageList.setRootIndex(qidx)
-            self.ui.imageList.setEnabled(True)
-            self.ui.imageList.show()
-        else:
-            self.ui.galleryList.show()
-            self.ui.galleryList.setRootIndex(qidx)
-            self.ui.galleryList.setEnabled(True)
+        self.ui.imageList.setRootIndex(qidx)
 
     @Slot(QModelIndex)
     def showGallery(self, qidx):
@@ -159,71 +145,89 @@ class MainWindow(QtMainWindow):
 
     @Slot(QModelIndex)
     def showImageInfo(self, qidx):
-        image = qidx.data(self.mdl.RoleObject)
-        if image is None:
+        obj = qidx.data(ResultModel.RoleObject)
+        if obj is None:
             self.showNoneItem()
             return
 
-        self.ui.labelTitle.setText(image.title or '')
-        self.ui.labelDescription.setText(image.description or '')
-        self.ui.labelAuthor.setText(image.author or '')
-        if image.size:
-            self.ui.labelSize.setText(size_format(image.size) or '')
-        else:
-            self.ui.labelSize.setText('-')
-        if image.url:
-            self.ui.labelLink.setText('<a href="%s">Link</a>' % image.url)
-        else:
-            self.ui.labelLink.setText('')
+        if isinstance(obj, BaseImage):
+            self.ui.labelTitle.setText(obj.title or '')
+            self.ui.labelDescription.setText(obj.description or '')
+            self.ui.labelAuthor.setText(obj.author or '')
+            if obj.size:
+                self.ui.labelSize.setText(size_format(obj.size) or '')
+            else:
+                self.ui.labelSize.setText('-')
+            if obj.url:
+                self.ui.labelLink.setText('<a href="%s">Link</a>' % obj.url)
+            else:
+                self.ui.labelLink.setText('')
+        elif isinstance(obj, BaseGallery):
+            pass
 
     @Slot(QModelIndex)
     def openImage(self, qidx):
-        viewer = Viewer(self.weboob, self)
-        viewer.jobAdded.connect(self._jobAdded)
-        viewer.jobFinished.connect(self._jobFinished)
-        viewer.setData(self.mdl, qidx)
-        viewer.show()
+        obj = qidx.data(ResultModel.RoleObject)
+
+        if isinstance(obj, BaseImage):
+            viewer = Viewer(self.weboob, self)
+            viewer.jobAdded.connect(self._jobAdded)
+            viewer.jobFinished.connect(self._jobFinished)
+            viewer.setData(self.mdl, qidx)
+            viewer.show()
+        elif isinstance(obj, BaseGallery):
+            self.ui.imageList.setRootIndex(qidx)
+
+            qidx = self.proxy_mdl.mapFromSource(qidx)
+            self.ui.collectionTree.setCurrentIndex(qidx)
 
     @Slot()
-    def startSearch(self):
-        pattern = self.ui.searchEdit.text()
+    def startImgSearch(self):
+        backend = self.ui.backendImgCombo.currentData(BackendListModel.RoleBackendName)
+        if not backend:
+            backend = list(self.weboob.iter_backends(caps=CapImage))
+
+        pattern = self.ui.searchImgEdit.text()
         if not pattern:
             return
 
         self.mdl.clear()
-        cap, backend = self.selectedBackend()
-        if cap is CapImage:
-            self.ui.galleryList.hide()
-            self.ui.imageList.setRootIndex(QModelIndex())
-            self.mdl.addRootDo('search_image', pattern, backends=backend)
-            self.ui.imageList.setEnabled(True)
-            self.ui.imageList.show()
-        elif cap is CapGallery:
-            self.ui.imageList.hide()
-            self.ui.galleryList.setRootIndex(QModelIndex())
-            self.mdl.addRootDo('search_galleries', pattern, backends=backend)
-            self.ui.galleryList.setEnabled(True)
-            self.ui.galleryList.show()
+
+        self.ui.imageList.setRootIndex(QModelIndex())
+        self.ui.collectionTree.setRootIndex(QModelIndex())
+        self.mdl.addRootDo('search_image', pattern, backends=backend)
 
     @Slot()
-    def startBrowse(self):
-        self.ui.collectionTree.setEnabled(True)
-        self.ui.galleryList.setEnabled(False)
-        self.ui.imageList.setEnabled(False)
+    def startGallSearch(self):
+        backend = self.ui.backendGallCombo.currentData(BackendListModel.RoleBackendName)
+        if not backend:
+            backend = list(self.weboob.iter_backends(caps=CapGallery))
+
+        pattern = self.ui.searchGallEdit.text()
+        if not pattern:
+            return
 
         self.mdl.clear()
 
-        cap, backend = self.selectedBackend()
-        if cap is CapImage:
-            self.ui.galleryList.hide()
-            res_class = BaseImage
-        else:
-            self.ui.galleryList.show()
-            res_class = BaseGallery
-        self.mdl.setResourceClasses([res_class])
+        self.ui.imageList.setRootIndex(QModelIndex())
+        self.ui.collectionTree.setRootIndex(QModelIndex())
+        self.mdl.addRootDo('search_galleries', pattern, backends=backend)
 
-        backends = self._collectionBackends()
-        self.mdl.addRootDo('iter_resources', [res_class], [], backends=backends)
+    @Slot()
+    def startBrowse(self):
+        self.mdl.clear()
+
+        cap = self.ui.backendCollCombo.currentData(BackendListModel.RoleCapability)
+        backend = self.ui.backendCollCombo.currentData(BackendListModel.RoleBackendName)
+        if backend:
+            backends = [backend]
+        else:
+            backends = [b for b in self.weboob.iter_backends(caps=[cap]) if b.has_caps(CapCollection)]
+
+        res_classes = [BaseImage, BaseGallery]
+        self.mdl.setResourceClasses(res_classes)
+
+        self.mdl.addRootDo('iter_resources', res_classes, [], backends=backends)
 
     @Slot()
     def _jobAdded(self):

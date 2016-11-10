@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>1024</width>
+    <height>768</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,84 +16,43 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
-     <widget class="QScrollArea" name="scrollArea">
-      <property name="widgetResizable">
+     <widget class="QListView" name="imageList">
+      <property name="iconSize">
+       <size>
+        <width>256</width>
+        <height>256</height>
+       </size>
+      </property>
+      <property name="verticalScrollMode">
+       <enum>QAbstractItemView::ScrollPerPixel</enum>
+      </property>
+      <property name="horizontalScrollMode">
+       <enum>QAbstractItemView::ScrollPerPixel</enum>
+      </property>
+      <property name="movement">
+       <enum>QListView::Static</enum>
+      </property>
+      <property name="flow">
+       <enum>QListView::LeftToRight</enum>
+      </property>
+      <property name="isWrapping" stdset="0">
        <bool>true</bool>
       </property>
-      <widget class="QWidget" name="scrollAreaWidgetContents">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>464</width>
-         <height>472</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_4">
-        <item>
-         <widget class="QSplitter" name="splitter">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <widget class="QListView" name="galleryList">
-           <property name="contextMenuPolicy">
-            <enum>Qt::ActionsContextMenu</enum>
-           </property>
-           <property name="movement">
-            <enum>QListView::Static</enum>
-           </property>
-           <property name="flow">
-            <enum>QListView::LeftToRight</enum>
-           </property>
-           <property name="isWrapping" stdset="0">
-            <bool>true</bool>
-           </property>
-           <property name="resizeMode">
-            <enum>QListView::Adjust</enum>
-           </property>
-           <property name="gridSize">
-            <size>
-             <width>256</width>
-             <height>256</height>
-            </size>
-           </property>
-           <property name="viewMode">
-            <enum>QListView::IconMode</enum>
-           </property>
-           <property name="wordWrap">
-            <bool>true</bool>
-           </property>
-          </widget>
-          <widget class="QListView" name="imageList">
-           <property name="movement">
-            <enum>QListView::Static</enum>
-           </property>
-           <property name="flow">
-            <enum>QListView::LeftToRight</enum>
-           </property>
-           <property name="isWrapping" stdset="0">
-            <bool>true</bool>
-           </property>
-           <property name="resizeMode">
-            <enum>QListView::Adjust</enum>
-           </property>
-           <property name="gridSize">
-            <size>
-             <width>256</width>
-             <height>256</height>
-            </size>
-           </property>
-           <property name="viewMode">
-            <enum>QListView::IconMode</enum>
-           </property>
-           <property name="wordWrap">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </widget>
-        </item>
-       </layout>
-      </widget>
+      <property name="resizeMode">
+       <enum>QListView::Adjust</enum>
+      </property>
+      <property name="gridSize">
+       <size>
+        <width>275</width>
+        <height>275</height>
+       </size>
+      </property>
+      <property name="viewMode">
+       <enum>QListView::IconMode</enum>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
      </widget>
     </item>
    </layout>
@@ -103,7 +62,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>1024</width>
      <height>19</height>
     </rect>
    </property>
@@ -147,7 +106,7 @@
         <enum>QFrame::Raised</enum>
        </property>
        <layout class="QGridLayout" name="gridLayout">
-        <item row="0" column="0">
+        <item row="0" column="1">
          <widget class="QLabel" name="label">
           <property name="font">
            <font>
@@ -160,7 +119,7 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="0">
+        <item row="2" column="1">
          <widget class="QLabel" name="label_3">
           <property name="font">
            <font>
@@ -173,7 +132,7 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="0">
+        <item row="4" column="1">
          <widget class="QLabel" name="label_5">
           <property name="font">
            <font>
@@ -186,7 +145,7 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="1">
+        <item row="4" column="2">
          <widget class="QLabel" name="labelAuthor">
           <property name="text">
            <string>-</string>
@@ -196,7 +155,7 @@
           </property>
          </widget>
         </item>
-        <item row="3" column="0" colspan="2">
+        <item row="3" column="1" colspan="2">
          <widget class="QLabel" name="labelDescription">
           <property name="text">
            <string>-</string>
@@ -206,7 +165,7 @@
           </property>
          </widget>
         </item>
-        <item row="7" column="1">
+        <item row="7" column="2">
          <widget class="QLabel" name="labelSize">
           <property name="text">
            <string>-</string>
@@ -216,7 +175,7 @@
           </property>
          </widget>
         </item>
-        <item row="8" column="0" colspan="2">
+        <item row="8" column="1" colspan="2">
          <widget class="QLabel" name="labelLink">
           <property name="text">
            <string>-</string>
@@ -229,7 +188,7 @@
           </property>
          </widget>
         </item>
-        <item row="5" column="0">
+        <item row="5" column="1">
          <widget class="QLabel" name="label_7">
           <property name="font">
            <font>
@@ -242,7 +201,7 @@
           </property>
          </widget>
         </item>
-        <item row="5" column="1">
+        <item row="5" column="2">
          <widget class="QLabel" name="labelDate">
           <property name="text">
            <string>-</string>
@@ -252,7 +211,7 @@
           </property>
          </widget>
         </item>
-        <item row="9" column="0" colspan="2">
+        <item row="9" column="1" colspan="2">
          <spacer name="verticalSpacer">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -265,7 +224,7 @@
           </property>
          </spacer>
         </item>
-        <item row="7" column="0">
+        <item row="7" column="1">
          <widget class="QLabel" name="label_2">
           <property name="font">
            <font>
@@ -278,7 +237,7 @@
           </property>
          </widget>
         </item>
-        <item row="6" column="0">
+        <item row="6" column="1">
          <widget class="QLabel" name="label_4">
           <property name="font">
            <font>
@@ -291,7 +250,7 @@
           </property>
          </widget>
         </item>
-        <item row="6" column="1">
+        <item row="6" column="2">
          <widget class="QLabel" name="labelRating">
           <property name="text">
            <string>-</string>
@@ -301,7 +260,7 @@
           </property>
          </widget>
         </item>
-        <item row="1" column="0" colspan="2">
+        <item row="1" column="1" colspan="2">
          <widget class="QLabel" name="labelTitle">
           <property name="text">
            <string>-</string>
@@ -320,38 +279,10 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="dockWidget_3">
-   <property name="features">
-    <set>QDockWidget::NoDockWidgetFeatures</set>
-   </property>
-   <property name="allowedAreas">
-    <set>Qt::TopDockWidgetArea</set>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>4</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents_3">
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="QComboBox" name="backendEdit"/>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-    </layout>
-   </widget>
-  </widget>
   <widget class="QDockWidget" name="dockWidget_4">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+   </property>
    <property name="windowTitle">
     <string>Find</string>
    </property>
@@ -370,25 +301,28 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>167</width>
-          <height>399</height>
+          <width>256</width>
+          <height>76</height>
          </rect>
         </property>
         <attribute name="label">
-         <string>Search</string>
+         <string>Search (galleries)</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_6">
          <item>
+          <widget class="QComboBox" name="backendGallCombo"/>
+         </item>
+         <item>
           <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
-            <widget class="QLineEdit" name="searchEdit">
+            <widget class="QLineEdit" name="searchGallEdit">
              <property name="placeholderText">
               <string>Text to search...</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QToolButton" name="searchButton">
+            <widget class="QToolButton" name="searchGallButton">
              <property name="text">
               <string>Go</string>
              </property>
@@ -411,19 +345,71 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="page_3">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>256</width>
+          <height>76</height>
+         </rect>
+        </property>
+        <attribute name="label">
+         <string>Search (images)</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <widget class="QComboBox" name="backendImgCombo"/>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
+            <widget class="QLineEdit" name="searchImgEdit">
+             <property name="placeholderText">
+              <string>Text to search...</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="searchImgButton">
+             <property name="text">
+              <string>Go</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
        <widget class="QWidget" name="page_2">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>196</width>
-          <height>118</height>
+          <width>256</width>
+          <height>76</height>
          </rect>
         </property>
         <attribute name="label">
          <string>Browse</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_5">
+         <item>
+          <widget class="QComboBox" name="backendCollCombo"/>
+         </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
@@ -449,17 +435,54 @@
           </layout>
          </item>
          <item>
-          <widget class="QTreeView" name="collectionTree">
-           <property name="enabled">
-            <bool>false</bool>
+          <spacer name="verticalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
            </property>
-           <attribute name="headerDefaultSectionSize">
-            <number>0</number>
-           </attribute>
-          </widget>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </widget>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+   </property>
+   <property name="windowTitle">
+    <string>Results</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <item>
+      <widget class="QTreeView" name="collectionTree">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>48</width>
+         <height>48</height>
+        </size>
+       </property>
+       <property name="uniformRowHeights">
+        <bool>true</bool>
+       </property>
+       <attribute name="headerDefaultSectionSize">
+        <number>0</number>
+       </attribute>
       </widget>
      </item>
     </layout>

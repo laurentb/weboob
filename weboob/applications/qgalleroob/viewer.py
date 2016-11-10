@@ -22,9 +22,9 @@ import re
 
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.QtGui import QPixmap, QImage, QKeySequence
-from PyQt5.QtCore import Qt, pyqtSlot as Slot, pyqtSignal as Signal
+from PyQt5.QtCore import Qt, pyqtSlot as Slot, pyqtSignal as Signal, QModelIndex
 
-from weboob.tools.application.qt5 import QtMainWindow, QtDo
+from weboob.tools.application.qt5 import QtMainWindow
 from weboob.tools.application.qt5.models import ResultModel
 from weboob.capabilities.base import NotLoaded
 
@@ -40,6 +40,7 @@ class Viewer(QtMainWindow):
 
     def __init__(self, weboob, parent=None):
         super(Viewer, self).__init__(parent)
+
         self.ui = Ui_Viewer()
         self.ui.setupUi(self)
         self.ui.prevButton.clicked.connect(self.prev)
@@ -71,6 +72,7 @@ class Viewer(QtMainWindow):
         self.model.rowsRemoved.connect(self.updatePos)
         self.model.rowsInserted.connect(self.updateNavButtons)
         self.model.rowsRemoved.connect(self.updateNavButtons)
+        self.model.dataChanged.connect(self._dataChanged)
 
         self.updateImage()
 
@@ -86,11 +88,6 @@ class Viewer(QtMainWindow):
         self.total = self.model.rowCount(self.current.parent())
         self.ui.posLabel.setText('%d / %d' % (self.current.row() + 1, self.total))
 
-    def _gotData(self, obj, qidx):
-        if self.current == qidx:
-            self.pixmap = QPixmap(QImage.fromData(obj.data))
-            self._rebuildImage()
-
     def updateImage(self):
         self.updatePos()
         self.updateNavButtons()
@@ -99,15 +96,20 @@ class Viewer(QtMainWindow):
         pixmap = QPixmap()
 
         if obj.data is NotLoaded:
-            qidx = self.current
-            process = QtDo(self.weboob, lambda r: self._gotData(r, qidx), fb=self.jobFinished.emit)
-            self.jobAdded.emit()
-            process.do('fillobj', obj, ['data'])
+            self.model.fillObj(obj, ['data'], self.current)
+            return
         elif obj.data:
             pixmap = QPixmap(QImage.fromData(obj.data))
         self.pixmap = pixmap
 
         self._rebuildImage()
+
+    @Slot(QModelIndex)
+    def _dataChanged(self, qidx):
+        if qidx == self.current:
+            obj = qidx.data(ResultModel.RoleObject)
+            self.pixmap = QPixmap(QImage.fromData(obj.data))
+            self._rebuildImage()
 
     @Slot()
     def next(self):
