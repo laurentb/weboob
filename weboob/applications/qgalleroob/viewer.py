@@ -93,14 +93,14 @@ class Viewer(QtMainWindow):
         self.updateNavButtons()
 
         obj = self.current.data(ResultModel.RoleObject)
-        pixmap = QPixmap()
 
         if obj.data is NotLoaded:
             self.model.fillObj(obj, ['data'], self.current)
-            return
+            self.pixmap = None
         elif obj.data:
-            pixmap = QPixmap(QImage.fromData(obj.data))
-        self.pixmap = pixmap
+            self.pixmap = QPixmap(QImage.fromData(obj.data))
+        else:
+            self.pixmap = QPixmap()
 
         self._rebuildImage()
 
@@ -108,7 +108,11 @@ class Viewer(QtMainWindow):
     def _dataChanged(self, qidx):
         if qidx == self.current:
             obj = qidx.data(ResultModel.RoleObject)
-            self.pixmap = QPixmap(QImage.fromData(obj.data))
+
+            if obj.data:
+                self.pixmap = QPixmap(QImage.fromData(obj.data))
+            else:
+                self.pixmap = QPixmap()
             self._rebuildImage()
 
     @Slot()
@@ -175,11 +179,14 @@ class Viewer(QtMainWindow):
         return pixmap
 
     def _rebuildImage(self):
-        if self.pixmap.isNull():
-            pixmap = self.pixmap
-        else:
-            pixmap = self._rebuildZoom()
+        if self.pixmap is None:
+            self.ui.view.setText('Loading...')
+            return
+        elif self.pixmap.isNull():
+            self.ui.view.setText('Image could not be loaded')
+            return
 
+        pixmap = self._rebuildZoom()
         self.ui.view.setPixmap(pixmap)
 
     @Slot()
