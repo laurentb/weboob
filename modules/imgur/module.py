@@ -121,7 +121,9 @@ class ImgurModule(Module, CapPaste, CapGallery, CapImage):
         img.title = d['title'] or u''
         img.description = d['description'] or u''
         img.ext = img.url.rsplit('.', 1)[-1]
+        img.date = datetime.fromtimestamp(d['datetime'])
         img.thumbnail = Thumbnail(img.thumbnail_url)
+        img.thumbnail.date = img.date
         img.nsfw = bool(d['nsfw'])
         img.size = d['size']
         return img
