@@ -22,4 +22,4 @@ from weboob.capabilities.video import BaseVideo
 class MoocVideo(BaseVideo):
     @classmethod
     def id2url(cls, _id):
-        return 'https://fun.libcast.com/resource/%s/flavor/video/fun-hd.mp4' % _id
+        return 'https://d3gzh2mxagd143.cloudfront.net/videos/%s/HD.mp4' % _id

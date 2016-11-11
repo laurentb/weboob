@@ -39,15 +39,16 @@ class FunmoocModule(Module, CapVideo, CapCollection):
     CONFIG = BackendConfig(Value('email', label='Email', default=''),
                            ValueBackendPassword('password', label='Password',
                                                 default=''),
-                           Value('quality', label='Quality', default='hd',
-                                 choices=['hd', 'sd', 'ld']))
+                           Value('quality', label='Quality', default='HD',
+                                 choices=['HD', 'SD', 'LD']))
 
     BROWSER = FunmoocBrowser
 
     def create_default_browser(self):
+        quality = self.config['quality'].get().upper()
         return self.create_browser(self.config['email'].get(),
                                    self.config['password'].get(),
-                                   quality=self.config['quality'].get())
+                                   quality=quality)
 
     def get_video(self, _id):
         return self.browser.get_video(_id)

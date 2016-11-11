@@ -17,8 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.capabilities.image import Thumbnail
 
 from .pages import PageLogin, PageDashboard, PageChapter, PageSection
 from .video import MoocVideo
@@ -29,7 +31,7 @@ import re
 class FunmoocBrowser(LoginBrowser):
     BASEURL = 'https://www.fun-mooc.fr'
 
-    login = URL('/accounts/login', PageLogin)
+    login = URL('/login', PageLogin)
     dashboard = URL('/dashboard', PageDashboard)
     course = URL('/courses/(?P<course>[^/]+/[^/]+/[^/]+)/courseware/?$',
                  '/courses/(?P<course>[^/]+/[^/]+/[^/]+)/info/?$',
@@ -39,8 +41,8 @@ class FunmoocBrowser(LoginBrowser):
     section = URL('/courses/(?P<course>[^/]+/[^/]+/[^/]+)/courseware/'
                   '(?P<chapter>[0-9a-f]+)/(?P<section>[0-9a-f]+)/$', PageSection)
 
-    file = URL(r'https://fun\.libcast\.com/resource/(?P<id>[^/]+)/'
-               r'flavor/video/fun-(?P<quality>\w+)\.mp4')
+    file = URL(r'https://d3gzh2mxagd143\.cloudfront\.net/videos/(?P<id>[^/]+)/'
+               r'(?P<quality>\w+)\.mp4')
 
     def __init__(self, username, password, quality='hd', *args, **kwargs):
         super(FunmoocBrowser, self).__init__(username, password, *args, **kwargs)
@@ -50,6 +52,7 @@ class FunmoocBrowser(LoginBrowser):
         self.login.stay_or_go()
         csrf = self.session.cookies.get('csrftoken')
         self.page.login(self.username, self.password, csrf)
+        self.dashboard.stay_or_go()
 
     def get_video(self, _id):
         if re.search('[^a-zA-Z0-9_-]', _id):
@@ -68,7 +71,14 @@ class FunmoocBrowser(LoginBrowser):
     def iter_videos(self, course, chapter, section):
         course = course.replace('-', '/')
         assert self.section.stay_or_go(course=course, chapter=chapter, section=section)
-        return self.page.iter_videos()
+
+        for n, d in enumerate(self.page.iter_videos()):
+            video = self.get_video(d['id'])
+            if d.get('thumbnail'):
+                video.thumbnail = Thumbnail(d['thumbnail'])
+            if d.get('title'):
+                video.title = d['title']
+            yield video
 
     @need_login
     def iter_sections(self, courseid, chapter):
