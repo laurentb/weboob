@@ -79,6 +79,7 @@ ${PYTHON} "${WEBOOB_DIR}/scripts/weboob-config" update
 set +e
 if [ -n "${BACKEND}" ]; then
     ${PYTHON} ${NOSE} -c /dev/null -sv "${WEBOOB_MODULES}/${BACKEND}/test.py" ${XUNIT_ARGS}
+    STATUS=$?
     STATUS_CORE=0
 else
     echo "=== Weboob ==="
@@ -86,8 +87,8 @@ else
     STATUS_CORE=$?
     echo "=== Modules ==="
     find "${WEBOOB_MODULES}" -name "test.py" | sort | xargs ${PYTHON} ${NOSE} -c /dev/null -sv ${XUNIT_ARGS}
+    STATUS=$?
 fi
-STATUS=$?
 
 # xunit transfer
 if [ -n "${RSYNC_TARGET}" ]; then
