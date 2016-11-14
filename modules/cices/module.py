@@ -43,7 +43,7 @@ class CmesModule(Module, CapBank):
     BROWSER = CmesBrowser
 
     def create_default_browser(self):
-        return self.create_browser('https://www.cic-epargnesalariale.fr/fr/', self.config['login'].get(), self.config['password'].get())
+        return self.create_browser('https://www.cic-epargnesalariale.fr', self.config['login'].get(), self.config['password'].get())
 
     def get_account(self, _id):
         return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)

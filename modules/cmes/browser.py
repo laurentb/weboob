@@ -25,11 +25,12 @@ from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage
 
 
 class CmesBrowser(LoginBrowser):
-    login = URL('identification/default.cgi', LoginPage)
-    accounts = URL('espace/devbavoirs.aspx\?mode=net&menu=cpte$', AccountsPage)
-    investment = URL('.*GoPositionsParFond.*', InvestmentPage)
-    history = URL('espace/ListeOperations.asp\?TypeOperation_=T',
-                  'espace/OpeDetail.asp', HistoryPage)
+    login = URL('/fr/identification/default.cgi', LoginPage)
+    accounts = URL('/fr/espace/devbavoirs.aspx\?mode=net&menu=cpte$', AccountsPage)
+    investment = URL('/fr/.*GoPositionsParFond.*', InvestmentPage)
+    history = URL('/fr/espace/devbavoirs.aspx\?mode=net&menu=cpte&page=operations',
+                  '/fr/.*GoOperationsTraitees',
+                  '/fr/.*GoOperationDetails', HistoryPage)
 
     def __init__(self, website, username, password, *args, **kwargs):
         super(LoginBrowser, self).__init__(*args, **kwargs)
@@ -56,4 +57,7 @@ class CmesBrowser(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
-        return self.history.stay_or_go().iter_history()
+        link = self.history.stay_or_go().get_link()
+        if link:
+            return self.location(link).page.iter_history()
+        return iter([])

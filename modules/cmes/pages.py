@@ -45,7 +45,7 @@ class LoginPage(HTMLPage):
 
 class AccountsPage(LoggedPage, HTMLPage):
     def get_investment_link(self):
-        return Link().filter(self.doc.xpath('//a[contains(text(), "fonds")]')) if self.doc.xpath('//a[contains(text(), "fonds")]') else None
+        return Link('//a[contains(text(), "fonds")]', default=None)(self.doc)
 
     @method
     class iter_accounts(ListElement):
@@ -55,7 +55,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_id = Regexp(Upper(Field('label')), '[\s]+([^\s]+)[\s]+([^\s]+).*:[\s]+([^\s]+)', '\\1\\2\\3')
             obj_type = Account.TYPE_PEE
             obj_label = CleanText('//table[@class="fiche"]//td')
-            obj_balance = MyDecimal('//td[em[contains(text(), "Total")]]/following-sibling::td')
+            obj_balance = MyDecimal('//th[contains(text(), "Montant total")]/em')
 
 
 class InvestmentPage(LoggedPage, HTMLPage):
@@ -70,7 +70,7 @@ class InvestmentPage(LoggedPage, HTMLPage):
             obj_quantity = CleanDecimal('./td[last() - 1]')
             obj_unitvalue = MyDecimal('./preceding-sibling::tr[td[6]][1]/td[3]')
             obj_valuation = MyDecimal('./td[last()]')
-            obj_vdate = Date(Regexp(CleanText(u'//p[contains(text(), "financière au ")]'), 'au[\s]+(.*)'),dayfirst=True)
+            obj_vdate = Date(Regexp(CleanText(u'//p[contains(text(), "financière au ")]'), 'au[\s]+(.*)'), dayfirst=True)
 
 
 class Transaction(FrenchTransaction):
@@ -84,16 +84,20 @@ class Transaction(FrenchTransaction):
 class HistoryPage(LoggedPage, HTMLPage):
     DEBIT_WORDS = ['sortant', 'paiement', 'retrait', 'frais']
 
+    def get_link(self):
+        return Link(u'//a[contains(text(), "Vos opérations traitées")]', default=None)(self.doc)
+
     @method
     class get_investments(TableElement):
         item_xpath = '//table/tbody/tr'
         head_xpath = '//table/thead/tr/th'
 
         col_label = u'Support'
-        col_unitvalue = u'Valeur'
+        col_unitvalue = re.compile(u'Valeur')
         col_quantity = u'Nombre de parts'
-        col_valuation = [u'Transfert demandé', u'Versement souhaité', \
-                         u'Arbitrage demandé', u'Paiement demandé', u'Montant net']
+        col_valuation = [re.compile(u'Transfert demandé'), re.compile(u'Versement souhaité'), \
+                         re.compile(u'Arbitrage demandé'), re.compile(u'Paiement demandé'), \
+                         re.compile(u'Montant net')]
 
         class item(ItemElement):
             klass = Investment
@@ -101,18 +105,18 @@ class HistoryPage(LoggedPage, HTMLPage):
             condition = lambda self: len(self.el.xpath('./td')) == 9
 
             obj_label = CleanText(TableCell('label'))
-            obj_quantity = MyDecimal(TableCell('quantity'))
-            obj_unitvalue = MyDecimal(TableCell('unitvalue'))
-            obj_valuation = MyDecimal(TableCell('valuation'))
+            obj_quantity = CleanDecimal(TableCell('quantity'), default=NotAvailable)
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), default=NotAvailable)
+            obj_valuation = CleanDecimal(TableCell('valuation'), default=NotAvailable)
 
             def obj_vdate(self):
-                return Date(Regexp(CleanText(u'//p[contains(text(), " du ")]'), 'du[\s]+(.*)'), dayfirst=True)(self)
+                return Date(Regexp(CleanText(u'//p[contains(text(), " du ")]'), 'du ([\d\/]+)'), dayfirst=True)(self)
 
     @pagination
     @method
     class iter_history(TableElement):
-        item_xpath = '//table[@class="liste"]/tbody/tr'
-        head_xpath = '//table[@class="liste"]/thead/tr/th'
+        item_xpath = u'//table[@summary="Liste des opérations"]/tbody/tr'
+        head_xpath = u'//table[@summary="Liste des opérations"]/thead/tr/th'
 
         col_date = u'Date'
         col_label = u'Opération'
@@ -137,11 +141,11 @@ class HistoryPage(LoggedPage, HTMLPage):
                 # Try to get gross amount
                 amount = None
                 for td in page.doc.xpath('//td[em[1][contains(text(), "Total")]]/following-sibling::td'):
-                    amount = MyDecimal('.', default=None)(td)
+                    amount = CleanDecimal('.', default=None)(td)
                     if amount:
                         break
 
-                amount = amount if amount else MyDecimal(TableCell('amount'))(self)
+                amount = amount or MyDecimal(TableCell('amount'))(self)
                 if any(word in label.lower() for word in self.page.DEBIT_WORDS):
                     amount = -amount
 
