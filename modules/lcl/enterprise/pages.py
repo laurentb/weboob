@@ -75,7 +75,7 @@ class MovementsPage(LoggedPage, HTMLPage):
             obj__data = Env('data')
 
             def parse(self, el):
-                page, url, data = self.page.get_changecompte(Link('.')(self)) if self.page.multi else self.page
+                page, url, data = self.page.get_changecompte(Link('.')(self)) if self.page.multi else self.page, None, None
                 self.env['accid'] = CleanText('.')(self).strip().replace(' ', '').split('-')[0]
                 self.env['label'] = CleanText('.')(self).split("-")[-1].strip()
                 balance_xpath = '//div[contains(text(),"Solde")]/strong'

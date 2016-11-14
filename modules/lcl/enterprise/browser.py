@@ -60,7 +60,9 @@ class LCLEnterpriseBrowser(LoginBrowser):
 
     @need_login
     def get_history(self, account):
-        return self.open(account._url, data=account._data).page.iter_history()
+        if account._data:
+            return self.open(account._url, data=account._data).page.iter_history()
+        return self.movements.go().iter_history()
 
     def get_cb_operations(self, account):
         raise NotImplementedError()
