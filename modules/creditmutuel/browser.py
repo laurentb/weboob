@@ -25,6 +25,7 @@ except ImportError:
 
 from datetime import datetime
 from random import randint
+from dateutil.relativedelta import relativedelta
 
 from weboob.tools.compat import basestring
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -176,11 +177,27 @@ class CreditMutuelBrowser(LoginBrowser):
         else:
             self.location('%s/fr/banque/%s' % (self.BASEURL, page_url))
 
+        # getting about 6 months history on new website
+        if self.is_new_website:
+            try:
+                for x in range(0, 2):
+                    form = self.page.get_form(id="I1:fm", submit='//input[@name="_FID_DoActivateSearch"]')
+                    if x == 1:
+                        form.update({
+                            [k for k in form.keys() if "DateStart" in k][0]: (datetime.now() - relativedelta(months=7)).strftime('%d/%m/%Y'),
+                            [k for k in form.keys() if "DateEnd" in k][0]: datetime.now().strftime('%d/%m/%Y')
+                        })
+                        [form.pop(k, None) for k in form.keys() if "_FID_Do" in k and "DoSearch" not in k]
+                    form.submit()
+            except (IndexError, FormNotFound):
+                pass
+
         while self.page:
             try:
                 form = self.page.get_form('//*[@id="I1:fm"]', submit='//input[@name="_FID_DoLoadMoreTransactions"]')
+                [form.pop(k, None) for k in form.keys() if "_FID_Do" in k and "LoadMore" not in k]
                 form.submit()
-            except (IndexError,FormNotFound):
+            except (IndexError, FormNotFound):
                 break
 
         if self.li.is_here():
