@@ -26,7 +26,7 @@ from cStringIO import StringIO
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.filters.json import Dict
 from weboob.browser.elements import DictElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Field, Format, Env
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Format, Eval
 from weboob.capabilities.bank import Transaction, Account
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.capabilities import NotAvailable
@@ -81,9 +81,6 @@ class LoginPage(HTMLPage):
 class AuthPage(HTMLPage):
     pass
 
-def CleanBalance(balance, dec):
-    return "%s.%s" % (balance[:(len(balance) - dec)], balance[-dec:])
-
 class AccountsPage(LoggedPage, JsonPage):
     TYPES = {u'Compte chèque': Account.TYPE_CHECKING}
 
@@ -101,23 +98,16 @@ class AccountsPage(LoggedPage, JsonPage):
             obj_currency = CleanText(Dict('deviseTenue'))
 
             def obj_balance(self):
-                return CleanDecimal(default=NotAvailable) \
-                    .filter(CleanBalance(str(Env('soldeComptable')(self)), Env('decSoldeComptable')(self)))
+                return Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('soldeComptable')), CleanDecimal(Dict('decSoldeComptable')))(self)
 
             def obj_coming(self):
-                return CleanDecimal(default=NotAvailable) \
-                    .filter(CleanBalance(str(Env('soldePrevisionnel')(self)), Env('decSoldePrevisionnel')(self)))
+                return Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('soldePrevisionnel')), CleanDecimal(Dict('decSoldePrevisionnel')))(self)
 
             obj_iban = CleanText(Dict('numeroCompte', default=None), default=NotAvailable)
 
             def obj_type(self):
                 return self.page.TYPES.get(Dict('libelleType')(self), Account.TYPE_UNKNOWN)
 
-            def parse(self, el):
-                self.env['soldeComptable'] = Dict('soldeComptable%s' % Field('currency')(self), default=None)(self)
-                self.env['soldePrevisionnel'] = Dict('soldePrevisionnel%s' % Field('currency')(self), default=None)(self)
-                self.env['decSoldeComptable'] = Dict('decSoldeComptable%s' % Field('currency')(self))(self)
-                self.env['decSoldePrevisionnel'] = Dict('decSoldePrevisionnel%s' % Field('currency')(self))(self)
 
 class AccountHistoryViewPage(LoggedPage, HTMLPage):
     pass
@@ -169,8 +159,7 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                 return fromtimestamp(self, Dict('dateValeur'))
 
             def obj_amount(self):
-                return CleanDecimal(default=NotAvailable) \
-                    .filter(CleanBalance(str(Dict('montant/montant')(self)), Dict('montant/nb_dec')(self)))
+                return Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('montant/montant')), CleanDecimal(Dict('montant/nb_dec')))(self)
 
     @method
     class iter_coming(DictElement):
@@ -193,5 +182,4 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                 return self.page.COMING_TYPES.get(Dict('codeMouvement')(self), Transaction.TYPE_UNKNOWN)
 
             def obj_amount(self):
-                return CleanDecimal(default=NotAvailable) \
-                    .filter(CleanBalance(str(Dict('montantMvmt/montant')(self)), Dict('montantMvmt/nb_dec')(self)))
+                return Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('montantMvmt/montant')), CleanDecimal(Dict('montantMvmt/nb_dec')))(self)
