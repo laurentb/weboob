@@ -52,6 +52,7 @@ class CmesBrowser(LoginBrowser):
         link = self.accounts.stay_or_go().get_investment_link()
         if link:
             return self.location(link).page.iter_investment()
+        return iter([])
 
     @need_login
     def iter_history(self, account):
