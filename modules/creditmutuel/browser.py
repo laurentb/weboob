@@ -81,12 +81,11 @@ class CreditMutuelBrowser(LoginBrowser):
     new_home =    URL('/fr/banque/pageaccueil.html',
                       '/(mabanque/)?fr/banque/DELG_Gestion.*',
                       '/mabanque/fr/banque/pageaccueil.html',
+                      '/(mabanque/)?fr/banque/paci_engine/static_content_manager.aspx',
                       '/fr/banque/welcome_pack.html', NewHomePage)
     empty =       URL('/(?P<subbank>.*)/fr/banques/index.html',
                       '/(?P<subbank>.*)/fr/banque/paci_beware_of_phishing.*',
                       '/(?P<subbank>.*)/fr/validation/(?!change_password|verif_code).*',
-                      '/(?P<subbank>.*)/fr/banque/paci_engine/static_content_manager.aspx',
-                      '/(?P<subbank>.*)/fr/banque/DELG_Gestion.*',
                       EmptyPage)
     por =         URL('/(?P<subbank>.*)/fr/banque/POR_ValoToute.aspx',
                       '/(?P<subbank>.*)/fr/banque/POR_SyntheseLst.aspx',
