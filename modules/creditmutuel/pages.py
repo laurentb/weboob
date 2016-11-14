@@ -522,9 +522,13 @@ class CardPage(OperationsPage, LoggedPage):
                     self.env['differed_date'] = parse_french_date(Regexp(CleanText(u'//*[contains(text(), "Achats")]'), 'au[\s]+(.*)')(self)).date()
                     amount = TableCell('credit')(self)[0]
                     if self.page.browser.is_new_website:
-                        amount = amount.xpath('./div')[0] if len(amount.xpath('./div')) else TableCell('debit')(self)[0].xpath('./div')[0]
+                        if not len(amount.xpath('./div')):
+                            amount = TableCell('debit')(self)[0]
+                        original_amount = amount.xpath('./div')[1].text if len(amount.xpath('./div')) > 1 else None
+                        amount = amount.xpath('./div')[0]
+                    else:
+                        original_amount = amount.xpath('./span')[0].text
                     self.env['amount'] = CleanDecimal(replace_dots=True).filter(amount.text)
-                    original_amount = None if self.page.browser.is_new_website else amount.xpath('./span')[0].text
                     self.env['original_amount'] = CleanDecimal(replace_dots=True).filter(original_amount) \
                                                   if original_amount is not None else NotAvailable
                     self.env['original_currency'] = Account.get_currency(original_amount[1:-1]) \
