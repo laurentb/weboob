@@ -499,7 +499,7 @@ class Currency(object):
                   u'BRL': (u'R$',),
                   u'MXN': (u'$',),
                   u'JPY': (u'¥',),
-                  u'TRY': (u'₺',),
+                  u'TRY': (u'₺', 'TRY'),
                   u'RON': (u'lei',),
                   u'COP': (u'$',),
                   u'NOK': (u'kr',),
