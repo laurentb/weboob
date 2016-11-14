@@ -40,7 +40,7 @@ from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
                    TransfertPage, ChangePasswordPage, VerifCodePage,       \
                    EmptyPage, PorPage, IbanPage, NewHomePage, RedirectPage, \
                    LIAccountsPage, CardsActivityPage, CardsListPage,       \
-                   CardsOpePage
+                   CardsOpePage, NewAccountsPage
 
 
 __all__ = ['CreditMutuelBrowser']
@@ -94,7 +94,7 @@ class CreditMutuelBrowser(LoginBrowser):
                       '/(?P<subbank>.*)/fr/assurances/(consultation/)?WI_ASSAVI', LIAccountsPage)
     iban =        URL('/(?P<subbank>.*)/fr/banque/rib.cgi', IbanPage)
 
-    new_accounts = URL('/(mabanque/)?fr/banque/comptes-et-contrats.html', AccountsPage)
+    new_accounts = URL('/(mabanque/)?fr/banque/comptes-et-contrats.html', NewAccountsPage)
     new_operations = URL('/fr/banque/mouvements.cgi',
                          '/fr/banque/mouvements.html', OperationsPage)
     new_por = URL('/(mabanque/)?fr/banque/POR_ValoToute.aspx',

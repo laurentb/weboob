@@ -264,6 +264,10 @@ class AccountsPage(LoggedPage, HTMLPage):
         return []
 
 
+class NewAccountsPage(NewHomePage, AccountsPage):
+    pass
+
+
 class CardsActivityPage(LoggedPage, HTMLPage):
     def companies_link(self):
         companies_link = []
