@@ -159,16 +159,18 @@ class ASVHistory(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Transaction
 
-            load_details = Link('./td/a', default=None) & AsyncLoad
-
             obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
             obj_raw = Transaction.Raw(TableCell('raw'))
             obj_amount = CleanDecimal(TableCell('amount'), replace_dots=True)
-            obj_investments = Env('investments')
+            obj__detail = Env('detail')
+
+            def obj_id(self):
+                try:
+                    return Regexp(Link('./td/a', default=None), 'numMvt=(\d+)', default=None)(self)
+                except TypeError:
+                    return NotAvailable
 
             def parse(self, el):
-                try:
-                    page = Async('details').loaded_page(self)
-                except AttributeError:
-                    page = None
-                self.env['investments'] = list(page.get_investments()) if page and 'numMvt' in page.url else []
+                link = Link('./td/a', default=None)(self)
+                page = self.page.browser.async_open(link) if link else None
+                self.env['detail'] = page
