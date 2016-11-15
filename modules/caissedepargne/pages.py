@@ -18,58 +18,73 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.mech import ClientForm
-ControlNotFoundError = ClientForm.ControlNotFoundError
-
-from decimal import Decimal
 import re
 
-from weboob.deprecated.mech import ClientForm
+from decimal import Decimal
+
+from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.tools.ordereddict import OrderedDict
-from weboob.deprecated.browser import Page, BrokenPageError, BrowserUnavailable
 from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText
+from weboob.browser.filters.html import Link
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban
 from weboob.exceptions import NoAccountsException
+from weboob.deprecated.browser import BrokenPageError, BrowserUnavailable
 
 
-class GarbagePage(Page):
-    def on_loaded(self):
-        go_back_link = self.document.xpath('//a[@class="btn"]/@href')
+class LoginPage(JsonPage):
+    def get_response(self):
+        return self.doc
+
+
+class CenetLoginPage(HTMLPage):
+    def login(self, username, password, nuser, codeCaisse):
+        form = self.get_form(id='aspnetForm')
+
+        form['__EVENTTARGET'] = "btn_authentifier"
+        form['__EVENTARGUMENT'] = '{"CodeCaisse":"%s","NumeroBad":"%s","NumeroUsager":"%s",\
+                                    "MotDePasse":"%s"}' % (codeCaisse, username, nuser, password)
+
+        form.submit()
+
+
+class GarbagePage(LoggedPage, HTMLPage):
+    def on_load(self):
+        go_back_link = Link('//a[@class="btn"]/@href')(self.doc)
+
         if go_back_link:
             assert len(go_back_link) == 1
-            go_back_link = re.search('\(~deibaseurl\)(.*)$', go_back_link[0]).group(1)
-        self.browser.location('https://%s%s' % (self.browser.DOMAIN, go_back_link))
+            go_back_link = re.search('\(~deibaseurl\)(.*)$', go_back_link).group(1)
+        self.page.browser.location(go_back_link)
+
 
 class MessagePage(GarbagePage):
     def submit(self):
-        self.browser.select_form(name='leForm')
-        self.browser['signature1'] = ["on"]
-        self.browser.submit()
+        form = self.get_form(name='leForm')
+
+        form['signatur1'] = ['on']
+
+        form.submit()
 
 
-class _LogoutPage(Page):
-    def on_loaded(self):
+class _LogoutPage(HTMLPage):
+    def on_load(self):
         try:
-            raise BrowserUnavailable(self.parser.tocleanstring(self.parser.select(self.document.getroot(), '.messErreur', 1)))
+            raise BrowserUnavailable(CleanText('//*[@class="messErreur"]')(self.doc))
         except BrokenPageError:
             pass
-
-
-class LoginPage(Page):
-    pass
 
 
 class ErrorPage(_LogoutPage):
     pass
 
 
-class UnavailablePage(Page):
-    def on_loaded(self):
+class UnavailablePage(HTMLPage):
+    def on_load(self):
         try:
-            raise BrowserUnavailable(self.parser.select(self.document.getroot(), 'div#message_error_hs', 1).text.strip())
+            raise BrowserUnavailable(CleanText('//div[@id="message_error_hs"]')(self.doc))
         except BrokenPageError:
             raise BrowserUnavailable()
 
@@ -101,7 +116,7 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class IndexPage(Page):
+class IndexPage(LoggedPage, HTMLPage):
     ACCOUNT_TYPES = {u'Epargne liquide':            Account.TYPE_SAVINGS,
                      u'Compte Courant':             Account.TYPE_CHECKING,
                      u'Mes comptes':                Account.TYPE_CHECKING,
@@ -116,14 +131,17 @@ class IndexPage(Page):
                      u'Mes crédits consommation':   Account.TYPE_LOAN,
                     }
 
-    def on_loaded(self):
+    def on_load(self):
         # This page is sometimes an useless step to the market website.
-        bourse_link = self.document.xpath(u'//div[@id="MM_COMPTE_TITRE_pnlbourseoic"]//a[contains(text(), "Accédez à la consultation")]')
-        if len(bourse_link) == 1:
-            self.browser.location(bourse_link[0].attrib['href'])
+
+        bourse_link = Link(u'//div[@id="MM_COMPTE_TITRE_pnlbourseoic"]//a[contains(text(), "Accédez à la consultation")]', default=None)(self.doc)
+
+        if bourse_link:
+            self.page.browser.location(bourse_link)
 
     def check_no_accounts(self):
-        no_account_message = CleanText(u'//span[@id="MM_LblMessagePopinError"]/p[contains(text(), "Aucun compte disponible")]')(self.document)
+        no_account_message = CleanText(u'//span[@id="MM_LblMessagePopinError"]/p[contains(text(), "Aucun compte disponible")]')(self.doc)
+
         if no_account_message:
             raise NoAccountsException(no_account_message)
 
@@ -183,9 +201,9 @@ class IndexPage(Page):
         if not account.type == Account.TYPE_LIFE_INSURANCE:
             return NotAvailable
         self.go_history(account._info)
-        balance = self.browser.page.document.xpath('.//tr[td[contains(., ' + account.id + ')]]/td[contains(@class, "somme")]')
+        balance = self.doc.xpath('.//tr[td[contains(., ' + account.id + ')]]/td[contains(@class, "somme")]')
         if len(balance) > 0:
-            balance = self.parser.tocleanstring(balance[0])
+            balance = CleanText('.')(balance[0])
             balance = Decimal(FrenchTransaction.clean_amount(balance)) if balance != u'' else NotAvailable
         else:
             balance = NotAvailable
@@ -196,36 +214,36 @@ class IndexPage(Page):
         accounts = OrderedDict()
 
         # Old website
-        for table in self.document.xpath('//table[@cellpadding="1"]'):
+        for table in self.doc.xpath('//table[@cellpadding="1"]'):
             account_type = Account.TYPE_UNKNOWN
             for tr in table.xpath('./tr'):
                 tds = tr.findall('td')
                 if tr.attrib.get('class', '') == 'DataGridHeader':
                     account_type = self.ACCOUNT_TYPES.get(tds[1].text.strip()) or\
-                                   self.ACCOUNT_TYPES.get(self.parser.tocleanstring(tds[2])) or\
-                                   self.ACCOUNT_TYPES.get(self.parser.tocleanstring(tds[3]), Account.TYPE_UNKNOWN)
+                                   self.ACCOUNT_TYPES.get(CleanText('.')(tds[2])) or\
+                                   self.ACCOUNT_TYPES.get(CleanText('.')(tds[3]), Account.TYPE_UNKNOWN)
                 else:
                     # On the same row, there are many accounts (for example a
                     # check accound and a card one).
                     if len(tds) > 4:
                         for i, a in enumerate(tds[2].xpath('./a')):
-                            label = self.parser.tocleanstring(a)
-                            balance = self.parser.tocleanstring(tds[-2].xpath('./a')[i])
+                            label = CleanText('.')(a)
+                            balance = CleanText('.')(tds[-2].xpath('./a')[i])
                             self._add_account(accounts, a, label, account_type, balance)
                     # Only 4 tds on banque de la reunion website.
                     elif len(tds) == 4:
                         for i, a in enumerate(tds[1].xpath('./a')):
-                            label = self.parser.tocleanstring(a)
-                            balance = self.parser.tocleanstring(tds[-1].xpath('./a')[i])
+                            label = CleanText('.')(a)
+                            balance = CleanText('.')(tds[-1].xpath('./a')[i])
                             self._add_account(accounts, a, label, account_type, balance)
 
         if len(accounts) == 0:
             # New website
-            for table in self.document.xpath('//div[@class="panel"]'):
+            for table in self.doc.xpath('//div[@class="panel"]'):
                 title = table.getprevious()
                 if title is None:
                     continue
-                account_type = self.ACCOUNT_TYPES.get(self.parser.tocleanstring(title), Account.TYPE_UNKNOWN)
+                account_type = self.ACCOUNT_TYPES.get(CleanText('.')(title), Account.TYPE_UNKNOWN)
                 for tr in table.xpath('.//tr'):
                     tds = tr.findall('td')
                     for i in xrange(len(tds)):
@@ -236,8 +254,8 @@ class IndexPage(Page):
                     if a is None:
                         continue
 
-                    label = self.parser.tocleanstring(tds[0])
-                    balance = self.parser.tocleanstring(tds[-1])
+                    label = CleanText('.')(tds[0])
+                    balance = CleanText('.')(tds[-1])
 
                     self._add_account(accounts, a, label, account_type, balance)
 
@@ -246,11 +264,11 @@ class IndexPage(Page):
     def get_loan_list(self):
         accounts = OrderedDict()
         # New website
-        for table in self.document.xpath('//div[@class="panel"]'):
+        for table in self.doc.xpath('//div[@class="panel"]'):
             title = table.getprevious()
             if title is None:
                 continue
-            account_type = self.ACCOUNT_TYPES.get(self.parser.tocleanstring(title), Account.TYPE_UNKNOWN)
+            account_type = self.ACCOUNT_TYPES.get(CleanText('.')(title), Account.TYPE_UNKNOWN)
             for tr in table.xpath('./table/tbody/tr[contains(@id,"MM_SYNTHESE_CREDITS") and contains(@id,"IdTrGlobal")]'):
                 tds = tr.findall('td')
                 if len(tds) == 0 :
@@ -258,90 +276,84 @@ class IndexPage(Page):
                 for i in tds[0].xpath('.//a/strong'):
                     label = i.text.strip()
                     break
-                balance = Decimal(FrenchTransaction.clean_amount(self.parser.tocleanstring(tds[-1])))
+                balance = Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-1])))
                 account = Account()
                 account.id = label.split(' ')[-1]
                 account.label = unicode(label)
                 account.type = account_type
                 account.balance = -abs(balance)
-                account.currency = account.get_currency(self.parser.tocleanstring(tds[-1]))
+                account.currency = account.get_currency(CleanText('.')(tds[-1]))
                 account._card_links = []
                 accounts[account.id] = account
         return accounts.itervalues()
 
     def go_list(self):
-        self.browser.select_form(name='main')
-        self.browser.set_all_readonly(False)
-        self.browser['__EVENTARGUMENT'] = 'CPTSYNT0'
-        self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
+        form = self.get_form(name='main')
 
-        # Ugly check to determine if we are on the new or old website.
-        try:
-            self.browser['MM$m_CH$IsMsgInit']
-        except ControlNotFoundError:
-            self.logger.debug('New website')
-            self.browser['__EVENTTARGET'] = 'MM$m_PostBack'
-            self.browser['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$m_PostBack'
+        form['__EVENTARGUMENT'] = "CPTSYNT0"
+
+        if "MM$m_CH$IsMsgInit" in form:
+            # Old website
+            form['__EVENTTARGET'] = "Menu_AJAX"
+            form['m_ScriptManager'] = "m_ScriptManager|Menu_AJAX"
         else:
-            self.logger.debug('Old website')
-            self.browser['__EVENTTARGET'] = 'Menu_AJAX'
-            self.browser['m_ScriptManager'] = 'm_ScriptManager|Menu_AJAX'
+            # New website
+            form['__EVENTTARGET'] = "MM$m_PostBack"
+            form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$m_PostBack"
 
         for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
-        'MM$m_CH$ButtonImageMessagerie']:
+                     'MM$m_CH$ButtonImageMessagerie']:
             try:
-                self.browser.controls.remove(self.browser.find_control(name=name))
-            except ControlNotFoundError:
+                del form[name]
+            except KeyError:
                 pass
-        self.browser.submit()
+
+        form.submit()
 
     def go_loan_list(self):
-        self.browser.select_form(name='main')
-        self.browser.set_all_readonly(False)
-        self.browser['__EVENTARGUMENT'] = 'CRESYNT0'
-        self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
+        form = self.get_form(name='main')
 
-        # Ugly check to determine if we are on the new or old website.
-        try:
-            self.browser['MM$m_CH$IsMsgInit']
-        except ControlNotFoundError:
-            self.logger.debug('New website')
-            self.browser['__EVENTTARGET'] = 'MM$m_PostBack'
-            self.browser['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$m_PostBack'
-        else:
+        form['__EVENTARGUMENT'] = "CRESYNT0"
+
+        if "MM$m_CH$IsMsgInit" in form:
+            # Old website
             pass
+        else:
+            # New website
+            form['__EVENTTARGET'] = "MM$m_PostBack"
+            form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$m_PostBack"
+
         for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
-        'MM$m_CH$ButtonImageMessagerie']:
+                     'MM$m_CH$ButtonImageMessagerie']:
             try:
-                self.browser.controls.remove(self.browser.find_control(name=name))
-            except ControlNotFoundError:
+                del form[name]
+            except KeyError:
                 pass
-        self.browser.submit()
+
+        form.submit()
 
     def go_history(self, info, is_cbtab=False):
-        self.browser.select_form(name='main')
-        self.browser.set_all_readonly(False)
-        self.browser['__EVENTTARGET'] = 'MM$%s' % (info['type'] if is_cbtab else 'SYNTHESE')
-        self.browser['__EVENTARGUMENT'] = info['link']
-        try:
-            self.browser['MM$m_CH$IsMsgInit'] = '0'
-        except ControlNotFoundError:
-            # Not available on new website.
-            pass
-        self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
-        self.browser['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$SYNTHESE'
+        form = self.get_form(name='main')
+
+        form['__EVENTTARGET'] = 'MM$%s' % (info['type'] if is_cbtab else 'SYNTHESE')
+        form['__EVENTARGUMENT'] = info['link']
+
+        if "MM$m_CH$IsMsgInit" in form and form['MM$m_CH$IsMsgInit'] == "0":
+            form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$SYNTHESE"
+
         for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
-        'MM$m_CH$ButtonImageMessagerie']:
+                     'MM$m_CH$ButtonImageMessagerie']:
             try:
-                self.browser.controls.remove(self.browser.find_control(name=name))
-            except ControlNotFoundError:
+                del form[name]
+            except KeyError:
                 pass
-        self.browser.submit()
+
+        form.submit()
 
     def get_history(self):
         i = 0
         ignore = False
-        for tr in self.document.xpath('//table[@cellpadding="1"]/tr') + self.document.xpath('//tr[@class="rowClick" or @class="rowHover"]'):
+        for tr in self.doc.xpath('//table[@cellpadding="1"]/tr') + self.doc.xpath('//tr[@class="rowClick" or @class="rowHover"]'):
             tds = tr.findall('td')
 
             if len(tds) < 4:
@@ -374,7 +386,7 @@ class IndexPage(Page):
 
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
 
-            card_debit_date = self.document.xpath(u'//span[@id="MM_HISTORIQUE_CB_m_TableTitle3_lblTitle"] | //label[contains(text(), "débiter le")]')
+            card_debit_date = self.doc.xpath(u'//span[@id="MM_HISTORIQUE_CB_m_TableTitle3_lblTitle"] | //label[contains(text(), "débiter le")]')
             if card_debit_date:
                 t.rdate = Date(dayfirst=True).filter(date)
                 m = re.search('(\d{2}\/\d{2}\/\d{4})', card_debit_date[0].text)
@@ -391,7 +403,7 @@ class IndexPage(Page):
 
     def get_cbtabs(self):
         cbtabs = []
-        for href in self.document.xpath('//ul[@class="onglets"]/li/a[contains(text(), "CB")]/@href'):
+        for href in self.doc.xpath('//ul[@class="onglets"]/li/a[contains(text(), "CB")]/@href'):
             m = re.search('(DETAIL[^"]+)', href)
             if m:
                 cbtabs.append(m.group(1))
@@ -400,7 +412,7 @@ class IndexPage(Page):
     def go_next(self):
         # <a id="MM_HISTORIQUE_CB_lnkSuivante" class="next" href="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;MM$HISTORIQUE_CB$lnkSuivante&quot;, &quot;&quot;, true, &quot;&quot;, &quot;&quot;, false, true))">Suivant<span class="arrow">></span></a>
 
-        link = self.document.xpath('//a[contains(@id, "lnkSuivante")]')
+        link = self.doc.xpath('//a[contains(@id, "lnkSuivante")]')
         if len(link) == 0 or 'disabled' in link[0].attrib:
             return False
 
@@ -409,76 +421,73 @@ class IndexPage(Page):
         if m:
             account_type = m.group(1)
 
-        self.browser.select_form(name='main')
-        self.browser.set_all_readonly(False)
-        self.browser['__EVENTTARGET'] = 'MM$HISTORIQUE_%s$lnkSuivante' % account_type
-        self.browser['__EVENTARGUMENT'] = ''
-        try:
-            self.browser['MM$m_CH$IsMsgInit'] = 'N'
-        except ControlNotFoundError:
-            # New website
-            pass
-        self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
-        self.browser['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$HISTORIQUE_COMPTE$lnkSuivante'
+        form = self.get_form(name='main')
+
+        form['__EVENTTARGET'] = "MM$HISTORIQUE_%s$lnkSuivante" % account_type
+        form['__EVENTARGUMENT'] = ''
+
+        if "MM$m_CH$IsMsgInit" in form and form['MM$m_CH$IsMsgInit'] == "N":
+            form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$HISTORIQUE_COMPTE$lnkSuivante"
+
         for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
-        'MM$m_CH$ButtonImageMessagerie']:
+                     'MM$m_CH$ButtonImageMessagerie']:
             try:
-                self.browser.controls.remove(self.browser.find_control(name=name))
-            except ControlNotFoundError:
+                del form[name]
+            except KeyError:
                 pass
-        self.browser.submit()
+
+        form.submit()
 
         return True
 
     def go_life_insurance(self, account):
-        link = self.document.xpath('//tr[td[contains(., ' + account.id + ') ]]//a')[0]
+        link = self.doc.xpath('//tr[td[contains(., ' + account.id + ') ]]//a')[0]
         m = re.search("PostBackOptions?\([\"']([^\"']+)[\"'],\s*['\"](REDIR_ASS_VIE[\d\w&]+)?['\"]", link.attrib.get('href', ''))
         if m is not None:
-            self.browser.select_form(name='main')
-            self.browser.set_all_readonly(False)
-            self.browser['__EVENTTARGET'] = m.group(1)
-            self.browser['__EVENTARGUMENT'] = m.group(2)
-            try:
-                self.browser['MM$m_CH$IsMsgInit'] = '0'
-            except ControlNotFoundError:
-                # Not available on new website.
-                pass
-            self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
-            self.browser['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$SYNTHESE'
+            form = self.get_form(name='main')
+
+            form['__EVENTTARGET'] = m.group(1)
+            form['__EVENTARGUMENT'] = m.group(2)
+
+            if "MM$m_CH$IsMsgInit" in form and form['MM$m_CH$IsMsgInit'] == "0":
+                form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$SYNTHESE"
+
             for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
-            'MM$m_CH$ButtonImageMessagerie']:
+                         'MM$m_CH$ButtonImageMessagerie']:
                 try:
-                    self.browser.controls.remove(self.browser.find_control(name=name))
-                except ControlNotFoundError:
+                    del form[name]
+                except KeyError:
                     pass
-            self.browser.submit()
+
+            form.submit()
 
 
-class MarketPage(Page):
+class MarketPage(LoggedPage, HTMLPage):
     def is_error(self):
         try:
-            return self.document.xpath('//caption')[0].text == "Erreur"
+            return self.doc.xpath('//caption')[0].text == "Erreur"
         except IndexError:
             return False
         except AssertionError:
             return True
 
     def parse_decimal(self, td):
-        value = self.parser.tocleanstring(td)
+        value = CleanText('.')(td)
         if value and value != '-':
             return Decimal(FrenchTransaction.clean_amount(value))
         else:
             return NotAvailable
 
     def submit(self):
-        self.browser.select_form(nr=1)
-        self.browser.submit()
+        form = self.get_form(nr=0)
+
+        form.submit()
 
     def iter_investment(self):
-        for tbody in self.document.xpath(u'//table[@summary="Contenu du portefeuille valorisé"]/tbody'):
+        for tbody in self.doc.xpath(u'//table[@summary="Contenu du portefeuille valorisé"]/tbody'):
             inv = Investment()
-            inv.label = self.parser.tocleanstring(tbody.xpath('./tr[1]/td[1]/a/span')[0])
-            inv.code = self.parser.tocleanstring(tbody.xpath('./tr[1]/td[1]/a')[0]).split(' - ')[1]
+            inv.label = CleanText('.')(tbody.xpath('./tr[1]/td[1]/a/span')[0])
+            inv.code = CleanText('.')(tbody.xpath('./tr[1]/td[1]/a')[0]).split(' - ')[1]
             inv.quantity = self.parse_decimal(tbody.xpath('./tr[2]/td[2]')[0])
             inv.unitvalue = self.parse_decimal(tbody.xpath('./tr[2]/td[3]')[0])
             inv.unitprice = self.parse_decimal(tbody.xpath('./tr[2]/td[5]')[0])
@@ -488,42 +497,42 @@ class MarketPage(Page):
             yield inv
 
     def get_valuation_diff(self, account):
-        val = CleanText(self.document.xpath(u'//td[contains(text(), "values latentes")]/following-sibling::*[1]'))
+        val = CleanText(self.doc.xpath(u'//td[contains(text(), "values latentes")]/following-sibling::*[1]'))
         account.valuation_diff = CleanDecimal(Regexp(val, '([^\(\)]+)'), replace_dots=True)(self)
 
     def is_on_right_portfolio(self, account):
-        return len(self.document.xpath('//form[@class="choixCompte"]//option[@selected and contains(text(), "%s")]' % account._info['id']))
+        return len(self.doc.xpath('//form[@class="choixCompte"]//option[@selected and contains(text(), "%s")]' % account._info['id']))
 
     def get_compte(self, account):
-        return self.document.xpath('//option[contains(text(), "%s")]/@value' % account._info['id'])[0]
+        return self.doc.xpath('//option[contains(text(), "%s")]/@value' % account._info['id'])[0]
 
 class LifeInsurance(MarketPage):
     def get_cons_repart(self):
-        return self.document.xpath('//tr[@id="sousMenuConsultation3"]/td/div/a')[0].attrib['href']
+        return self.doc.xpath('//tr[@id="sousMenuConsultation3"]/td/div/a')[0].attrib['href']
 
     def get_cons_histo(self):
-        return self.document.xpath('//tr[@id="sousMenuConsultation4"]/td/div/a')[0].attrib['href']
+        return self.doc.xpath('//tr[@id="sousMenuConsultation4"]/td/div/a')[0].attrib['href']
 
     def iter_history(self):
-        for tr in self.document.xpath(u'//table[@class="boursedetail"]/tbody/tr[td]'):
+        for tr in self.doc.xpath(u'//table[@class="boursedetail"]/tbody/tr[td]'):
             t = Transaction()
 
-            t.label = self.parser.tocleanstring(tr.xpath('./td[2]')[0])
-            t.date = Date(dayfirst=True).filter(self.parser.tocleanstring(tr.xpath('./td[1]')[0]))
+            t.label = CleanText('.')(tr.xpath('./td[2]')[0])
+            t.date = Date(dayfirst=True).filter(CleanText('.')(tr.xpath('./td[1]')[0]))
             t.amount = self.parse_decimal(tr.xpath('./td[3]')[0])
 
             yield t
 
     def iter_investment(self):
-        for tr in self.document.xpath(u'//table[@class="boursedetail"]/tr[@class and not(@class="total")]'):
+        for tr in self.doc.xpath(u'//table[@class="boursedetail"]/tr[@class and not(@class="total")]'):
 
             inv = Investment()
-            libelle = self.parser.tocleanstring(tr.xpath('./td[1]')[0]).split(' ')
+            libelle = CleanText('.')(tr.xpath('./td[1]')[0]).split(' ')
             inv.label, inv.code = self.split_label_code(libelle)
             diff = self.parse_decimal(tr.xpath('./td[6]')[0])
             inv.quantity = self.parse_decimal(tr.xpath('./td[2]')[0])
             inv.unitvalue = self.parse_decimal(tr.xpath('./td[3]')[0])
-            date = self.parser.tocleanstring(tr.xpath('./td[4]')[0])
+            date = CleanText('.')(tr.xpath('./td[4]')[0])
             inv.vdate = Date(dayfirst=True).filter(date) if date and date != '-' else NotAvailable
             inv.unitprice = self.calc(inv.unitvalue, diff)
             inv.valuation = self.parse_decimal(tr.xpath('./td[5]')[0])

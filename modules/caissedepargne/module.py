@@ -36,6 +36,7 @@ class CaisseEpargneModule(Module, CapBank):
     VERSION = '1.2'
     DESCRIPTION = u'Caisse d\'Épargne'
     LICENSE = 'AGPLv3+'
+    BROWSER = CaisseEpargne
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'www.caisse-epargne.fr':     u'Caisse d\'Épargne',
         'www.banquebcp.fr':          u'Banque BCP',
@@ -43,8 +44,7 @@ class CaisseEpargneModule(Module, CapBank):
     CONFIG = BackendConfig(Value('website',  label='Banque', choices=website_choices, default='www.caisse-epargne.fr'),
                            ValueBackendPassword('login',    label='Identifiant client', masked=False),
                            ValueBackendPassword('password', label='Code personnel', regexp='\d+'),
-                           Value('nuser', label='User ID (optional)', default=''))
-    BROWSER = CaisseEpargne
+                           Value('nuser',                   label='User ID (optional)', default=''))
 
     def create_default_browser(self):
         return self.create_browser(nuser=self.config['nuser'].get(),
@@ -52,16 +52,15 @@ class CaisseEpargneModule(Module, CapBank):
                                    password=self.config['password'].get(),
                                    domain=self.config['website'].get())
 
+
     def iter_accounts(self):
-        with self.browser:
-            for account in self.browser.get_accounts_list():
-                yield account
-            for account in self.browser.get_loans_list():
-                yield account
+        for account in self.browser.get_accounts_list():
+            yield account
+        for account in self.browser.get_loans_list():
+            yield account
 
     def get_account(self, _id):
-        with self.browser:
-            account = self.browser.get_account(_id)
+        account = self.browser.get_account(_id)
 
         if account:
             return account
@@ -69,12 +68,10 @@ class CaisseEpargneModule(Module, CapBank):
             raise AccountNotFound()
 
     def iter_history(self, account):
-        with self.browser:
-            return self.browser.get_history(account)
+        return self.browser.get_history(account)
 
     def iter_coming(self, account):
-        with self.browser:
-            return self.browser.get_coming(account)
+        return self.browser.get_coming(account)
 
     def iter_investment(self, account):
         return self.browser.get_investment(account)
