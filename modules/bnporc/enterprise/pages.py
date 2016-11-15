@@ -30,6 +30,7 @@ from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Forma
 from weboob.capabilities.bank import Transaction, Account
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.capabilities import NotAvailable
+from weboob.exceptions import ActionNeeded
 
 
 class BNPVirtKeyboard(MappedVirtKeyboard):
@@ -80,6 +81,11 @@ class LoginPage(HTMLPage):
 
 class AuthPage(HTMLPage):
     pass
+
+
+class ActionNeededPage(HTMLPage):
+    def on_load(self):
+        raise ActionNeeded(CleanText('//p[@class="message"]')(self.doc))
 
 class AccountsPage(LoggedPage, JsonPage):
     TYPES = {u'Compte chèque': Account.TYPE_CHECKING}

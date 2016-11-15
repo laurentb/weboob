@@ -27,7 +27,7 @@ from weboob.browser import LoginBrowser, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.url import URL
 
-from .pages import LoginPage, AuthPage, AccountsPage, AccountHistoryViewPage, AccountHistoryPage
+from .pages import LoginPage, AuthPage, AccountsPage, AccountHistoryViewPage, AccountHistoryPage, ActionNeededPage
 
 
 __all__ = ['BNPEnterprise']
@@ -50,6 +50,8 @@ class BNPEnterprise(LoginBrowser):
                           '/NCCPresentationWeb/e11_releve_op/listeOperations.do', AccountHistoryPage)
     account_coming = URL('/NCCPresentationWeb/e12_rep_cat_op/listOperations.do\?periode=date_valeur&identifiant=(?P<identifiant>)',
                          '/NCCPresentationWeb/e12_rep_cat_op/listOperations.do', AccountHistoryPage)
+
+    renew_pass = URL('/sommaire/PseRedirectPasswordConnect', ActionNeededPage)
 
     def __init__(self, *args, **kwargs):
         super(BNPEnterprise, self).__init__(*args, **kwargs)
