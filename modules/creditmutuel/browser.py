@@ -97,6 +97,7 @@ class CreditMutuelBrowser(LoginBrowser):
 
     new_accounts = URL('/(mabanque/)?fr/banque/comptes-et-contrats.html', NewAccountsPage)
     new_operations = URL('/fr/banque/mouvements.cgi',
+                         '/fr/banque/nr/nr_devbooster.aspx.*',
                          '/fr/banque/mouvements.html', OperationsPage)
     new_por = URL('/(mabanque/)?fr/banque/POR_ValoToute.aspx',
                   '/(mabanque/)?fr/banque/POR_SyntheseLst.aspx', PorPage)
