@@ -44,8 +44,8 @@ class MediawikiModule(Module, CapContent, CapImage):
     VERSION = '1.2'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'Wikis running MediaWiki, like Wikipedia'
-    CONFIG = BackendConfig(Value('url',      label='URL of the Mediawiki website', default='http://en.wikipedia.org/', regexp='https?://.*'),
-                           Value('apiurl',   label='URL of the Mediawiki website\'s API', default='http://en.wikipedia.org/w/api.php', regexp='https?://.*'),
+    CONFIG = BackendConfig(Value('url',      label='URL of the Mediawiki website', default='https://en.wikipedia.org/', regexp='https?://.*'),
+                           Value('apiurl',   label='URL of the Mediawiki website\'s API', default='https://en.wikipedia.org/w/api.php', regexp='https?://.*'),
                            Value('username', label='Login', default=''),
                            ValueBackendPassword('password', label='Password', default=''))
 
