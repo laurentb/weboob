@@ -17,13 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import os
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.content import CapContent, Content
 from weboob.capabilities.file import CapFile
 from weboob.capabilities.image import CapImage, BaseImage, Thumbnail
 from weboob.tools.value import ValueBackendPassword, Value
-
 
 from .browser import MediawikiBrowser
 
@@ -82,13 +82,17 @@ class MediawikiModule(Module, CapContent, CapImage):
 
     def _make_image(self, info):
         img = WikiImage(info['title'])
+
+        img.title, img.ext = os.path.splitext(info['title'])
+        img.title = img.title.rsplit(':', 1)[-1]
+        img.size = info['size']
+
         if 'thumbnail' in info:
             thumb = Thumbnail(info['thumbnail'])
             img.thumbnail = thumb
         if 'original' in info:
             img.url = info['original']
         img._canonical_url = info['canonicalurl']
-        img.size = info['size']
 
         return img
 

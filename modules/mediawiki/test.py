@@ -48,6 +48,8 @@ class MediawikiTest(BackendTest):
         it = iter(self.backend.search_file('logo'))
         for _, img in zip(xrange(3), it):
             assert img
+            assert img.title
+            assert img.ext
             assert img.page_url
             assert img.size
             if not img.url:

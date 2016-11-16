@@ -189,10 +189,11 @@ class MediawikiBrowser(DomainBrowser):
 
     def _common_file_request(self):
         return {'action':       'query',
-                'prop':         'info|pageimages|imageinfo',
-                'piprop':       'thumbnail|name|original',
+                'prop':         'info|imageinfo',
                 'inprop':       'url',
-                'iiprop':       'extmetadata|size'
+                'iiprop':       'extmetadata|size|url|canonicaltitle',
+                'iiurlwidth':   512,
+                'iiurlheight':  512,
                }
 
     def _common_parse_file(self, info):
@@ -200,9 +201,12 @@ class MediawikiBrowser(DomainBrowser):
                'title':        info['title'],
                'size':         info['imageinfo'][0]['size'],
               }
-        if 'thumbnail' in info:
-            res['original'] = info['thumbnail']['original']
-            res['thumbnail'] = info['thumbnail']['source']
+
+        iinfo = info['imageinfo'][0]
+        if 'url' in iinfo:
+            res['original'] = iinfo['url']
+        if 'thumburl' in iinfo:
+            res['thumbnail'] = iinfo['thumburl']
         return res
 
     def search_file(self, pattern):
@@ -216,8 +220,8 @@ class MediawikiBrowser(DomainBrowser):
             for fdict in response['query']['pages'].values():
                 yield self._common_parse_file(fdict)
 
-            if 'query-continue' in response:
-                data.update(response['query-continue']['search'])
+            if 'continue' in response:
+                data.update(response['continue'])
             else:
                 break
 
