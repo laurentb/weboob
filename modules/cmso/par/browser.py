@@ -109,8 +109,7 @@ class CmsoParBrowser(LoginBrowser):
             url = json.loads(self.lifeinsurance.go(accid=account._index).content)['url']
             url = self.location(url).page.get_link(u"opérations")
 
-            history = self.location(url).page.iter_history()
-
+            return self.location(url).page.iter_history()
         elif account.type == Account.TYPE_MARKET:
             self.location(json.loads(self.market.go(data=json.dumps({'place': 'SITUATION_PORTEFEUILLE'})).content)['urlSSO'])
             self.session.headers['Content-Type'] = 'application/x-www-form-urlencoded'
