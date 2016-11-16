@@ -201,10 +201,10 @@ class ArteBrowser(PagesBrowser):
 
     def get_arte_cinema_video(self, id, video=None):
         json_url = self.videos_list.go(_site=SITE.CINEMA.get('id'), id=id).get_json_url()
-        m = re.search('https://api.arte.tv/api/player/v1/config/(\w{2})/(.*)\?vector=(.*)\&.*', json_url)
+        m = re.search('https://api.arte.tv/api/player/v1/config/(\w{2})/(.*)\?(vector|platform)=(.*)\&.*', json_url)
         if m:
             video = self.webservice.go(__lang=m.group(1),
-                                       vid=m.group(2), ___site=m.group(3)).get_arte_cinema_video(obj=video)
+                                       vid=m.group(2), ___site=m.group(4)).get_arte_cinema_video(obj=video)
             video.ext, video.url = self.get_url()
             video.id = id
             return video

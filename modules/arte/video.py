@@ -60,4 +60,4 @@ class ArteSiteVideo(BaseVideo):
 
 class ArteEmptyVideo(BaseVideo):
     def __init__(self):
-        self.description = 'There is no video on this page'
+        self.description = u'There is no video on this page'

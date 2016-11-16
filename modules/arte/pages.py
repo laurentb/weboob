@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import timedelta
+import urllib
 
 from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.base import BaseObject, NotAvailable
@@ -165,7 +166,7 @@ class VideosListPage(HTMLPage):
 
     @method
     class get_arte_cinema_videos(ListElement):
-        item_xpath = '//article[@id]'
+        item_xpath = '//div[has-class("article-list")]/article[@id]'
 
         class item(ItemElement):
             klass = ArteSiteVideo
@@ -190,6 +191,9 @@ class VideosListPage(HTMLPage):
     def get_json_url(self):
         if self.doc.xpath('//div[@class="video-container"]'):
             return self.doc.xpath('//div[@class="video-container"]')[0].attrib['arte_vp_url']
+        elif self.doc.xpath('//iframe'):
+            url = Regexp(CleanText('./@src'), '.*json_url=(.*)')(self.doc.xpath('//iframe')[0])
+            return urllib.unquote(url)
         return ''
 
 
