@@ -19,7 +19,6 @@
 
 
 import datetime
-from time import sleep
 from dateutil.relativedelta import relativedelta
 from itertools import chain
 
@@ -64,7 +63,6 @@ class CmsoProBrowser(LoginBrowser):
             self.subscription.stay_or_go()
             self.location(area)
             for a in self.accounts.go().iter_accounts():
-                sleep(3)
                 a._area = area
                 yield a
 

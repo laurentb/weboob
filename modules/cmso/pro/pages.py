@@ -98,11 +98,9 @@ class AccountsPage(CMSOPage):
                             return actype
                     return Account.TYPE_UNKNOWN
 
-            load_details = Field('_history_url') & AsyncLoad
-
             obj__history_url = Link('./td[1]/a')
             obj_label = CleanText('./td[1]')
-            obj_id = Async('details') & Regexp(CleanText('//span[has-class("Rappel")]'), '(\d{18})')
+            obj_id = Env('id')
             obj_balance = CleanDecimal('./td[2]', replace_dots=True)
             obj_type = Type(Field('label'))
             # Last numbers replaced with XX... or we have to send sms to get RIB.
@@ -112,6 +110,10 @@ class AccountsPage(CMSOPage):
                 if obj.id is None:
                     obj.id = obj.label.replace(' ', '')
                 return True
+
+            def parse(self, el):
+                page = self.page.browser.open(Field('_history_url')(self)).page
+                self.env['id'] = Regexp(CleanText('//span[has-class("Rappel")]'), '(\d{18})')(page.doc)
 
     def on_load(self):
         if self.doc.xpath('//p[contains(text(), "incident technique")]'):
