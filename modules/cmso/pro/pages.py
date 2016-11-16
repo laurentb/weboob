@@ -24,7 +24,7 @@ import datetime
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, DateGuesser, Env, Field, Filter, Regexp, Async, AsyncLoad
+from weboob.browser.filters.standard import CleanText, CleanDecimal, DateGuesser, Env, Field, Filter, Regexp
 from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable

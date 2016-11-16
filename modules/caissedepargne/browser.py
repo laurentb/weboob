@@ -21,7 +21,6 @@
 import json
 import mechanize
 from urlparse import urlsplit
-from copy import copy
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account
