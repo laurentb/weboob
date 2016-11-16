@@ -125,24 +125,11 @@ class CmsoParBrowser(LoginBrowser):
             self.session.headers['Content-Type'] = 'application/json'
 
             return history
-
-        history = []
-
-        if account.type == Account.TYPE_CHECKING:
-            # Get one year
-            for number in ['UN', 'DEUX', 'TROIS', 'QUATRE', 'CINQ', 'SIX', 'SEPT', 'HUIT', 'NEUF', 'DIX', 'ONZE', 'DOUZE']:
-                for transaction in self.history.go(data=json.dumps({'index': account._index, \
-                                                                    'filtreOperationsComptabilisees': 'MOIS_MOINS_%s' % number}), \
-                                                   page='detailcompte').iter_history():
-                    history.append(transaction)
-
-        # Get one month
-        for transaction in self.history.go(data=json.dumps({'index': account._index}), page='detailcompte').iter_history():
-            if (transaction.date.month == datetime.datetime.now().month and account.type == Account.TYPE_CHECKING) or \
-               account.type != Account.TYPE_CHECKING:
-                history.append(transaction)
-
-        return history
+        # Getting a year of history
+        nbs = ["UN", "DEUX", "TROIS", "QUATRE", "CINQ", "SIX", "SEPT", "HUIT", "NEUF", "DIX", "ONZE", "DOUZE"]
+        self.history.go(data=json.dumps({'index': account._index}), page="detailcompte")
+        self.trs = {'lastdate': None, 'list': []}
+        return self.page.iter_history(index=account._index, nbs=nbs)
 
     @need_login
     def iter_coming(self, account):

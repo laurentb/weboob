@@ -18,11 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
+import re, requests, json
 from datetime import datetime as dt
 
 from weboob.browser.pages import HTMLPage, JsonPage, RawPage, LoggedPage, pagination
-from weboob.browser.elements import DictElement, ItemElement, TableElement, method
+from weboob.browser.elements import DictElement, ItemElement, TableElement, SkipItem, method
 from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, Format, CleanDecimal, Env, Slugify, TableCell, Field
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, Link
@@ -157,6 +157,7 @@ class AccountsPage(LoggedPage, JsonPage):
                 return CleanDecimal().filter("-%s" % \
                     (Dict('montantRestant', default=None)(self) or Dict('montantDisponible')(self)))
 
+
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(u'^(?P<text>CARTE.*)'),  FrenchTransaction.TYPE_CARD),
                 (re.compile(u'^(?P<text>(PRLV|PRELEVEMENTS).*)'), FrenchTransaction.TYPE_ORDER),
@@ -173,8 +174,17 @@ class HistoryPage(LoggedPage, JsonPage):
     def get_keys(self):
         return [k for k, v in self.doc.items() if v and isinstance(v, (dict, list)) and "exception" not in self.doc]
 
+    @pagination
     @method
     class iter_history(DictElement):
+        def next_page(self):
+            if len(Env('nbs', default=[])(self)):
+                data = {'index': Env('index')(self),
+                        'filtreOperationsComptabilisees': "MOIS_MOINS_%s" % Env('nbs')(self)[0]
+                       }
+                Env('nbs')(self).pop(0)
+                return requests.Request('POST', data=json.dumps(data))
+
         def parse(self, el):
             # Key only if coming
             key = Env('key', default=None)(self)
@@ -191,6 +201,14 @@ class HistoryPage(LoggedPage, JsonPage):
 
             def obj_date(self):
                 return dt.fromtimestamp(int(Dict('dateOperation')(self)[:-3]))
+
+            def parse(self, el):
+                # Skip duplicate transactions
+                tr = "%s%s%s" % (Dict('libelleCourt')(self), Dict('dateOperation')(self), Dict('montantEnEuro')(self))
+                if tr in self.page.browser.trs['list'] and self.page.browser.trs['lastdate'] < Field('date')(self):
+                    raise SkipItem()
+                self.page.browser.trs['lastdate'] = Field('date')(self)
+                self.page.browser.trs['list'].append(tr)
 
 
 class LifeinsurancePage(LoggedPage, HTMLPage):
