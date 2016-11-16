@@ -318,8 +318,6 @@ class IndexPage(Page):
                 pass
         self.browser.submit()
 
-
-
     def go_history(self, info, is_cbtab=False):
         self.browser.select_form(name='main')
         self.browser.set_all_readonly(False)
@@ -376,7 +374,7 @@ class IndexPage(Page):
 
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
 
-            card_debit_date = self.document.xpath('//span[@id="MM_HISTORIQUE_CB_m_TableTitle3_lblTitle"]')
+            card_debit_date = self.document.xpath(u'//span[@id="MM_HISTORIQUE_CB_m_TableTitle3_lblTitle"] | //label[contains(text(), "débiter le")]')
             if card_debit_date:
                 t.rdate = Date(dayfirst=True).filter(date)
                 m = re.search('(\d{2}\/\d{2}\/\d{4})', card_debit_date[0].text)

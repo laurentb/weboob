@@ -21,6 +21,7 @@
 import json
 import mechanize
 from urlparse import urlsplit
+from copy import copy
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account
@@ -242,7 +243,7 @@ class CaisseEpargne(Browser):
             raise NotImplementedError()
         trs = []
         for info in account._card_links:
-            for tr in self._get_history(info):
+            for tr in self._get_history(info.copy()):
                 tr.type = tr.TYPE_DEFERRED_CARD
                 tr.nopurge = True
                 trs.append(tr)
