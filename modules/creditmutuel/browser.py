@@ -63,6 +63,7 @@ class CreditMutuelBrowser(LoginBrowser):
                       AccountsPage)
     user_space =  URL('/(?P<subbank>.*)/fr/banque/espace_personnel.aspx',
                       '/(?P<subbank>.*)/fr/banque/accueil.cgi',
+                      '/(?P<subbank>.*)/fr/banque/DELG_Gestion',
                       UserSpacePage)
     card =        URL('/(?P<subbank>.*)/fr/banque/operations_carte.cgi.*',
                       '/(mabanque/)?fr/banque/mouvements.html\?webid=.*cardmonth=\d+$',
@@ -98,6 +99,7 @@ class CreditMutuelBrowser(LoginBrowser):
     new_accounts = URL('/(mabanque/)?fr/banque/comptes-et-contrats.html', NewAccountsPage)
     new_operations = URL('/fr/banque/mouvements.cgi',
                          '/fr/banque/nr/nr_devbooster.aspx.*',
+                         '/(mabanque/)?fr/banque/RE/aiguille.asp',
                          '/fr/banque/mouvements.html', OperationsPage)
     new_por = URL('/(mabanque/)?fr/banque/POR_ValoToute.aspx',
                   '/(mabanque/)?fr/banque/POR_SyntheseLst.aspx', PorPage)
@@ -179,7 +181,7 @@ class CreditMutuelBrowser(LoginBrowser):
             self.location('%s/fr/banque/%s' % (self.BASEURL, page_url))
 
         # getting about 6 months history on new website
-        if self.is_new_website:
+        if self.is_new_website and self.page:
             try:
                 for x in range(0, 2):
                     form = self.page.get_form(id="I1:fm", submit='//input[@name="_FID_DoActivateSearch"]')
