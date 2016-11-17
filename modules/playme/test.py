@@ -18,12 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest
+from weboob.tools.test import BackendTest, skip_without_config
 
 
 class PlayMeTest(BackendTest):
     MODULE = 'playme'
 
+    @skip_without_config('username', 'password')
     def test_playme(self):
         for m in self.backend.iter_unread_messages():
             pass

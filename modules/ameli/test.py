@@ -18,12 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest
+from weboob.tools.test import BackendTest, skip_without_config
 
 
 class AmeliTest(BackendTest):
     MODULE = 'ameli'
 
+    @skip_without_config('login', 'password')
     def test_ameli(self):
         for subscription in self.backend.iter_subscription():
             list(self.backend.iter_documents_history(subscription.id))

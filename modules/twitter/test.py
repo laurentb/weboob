@@ -20,35 +20,29 @@
 import itertools
 
 from weboob.capabilities.base import BaseObject
-from weboob.tools.test import BackendTest, SkipTest
+from weboob.tools.test import BackendTest, skip_without_config
 
 
 class TwitterTest(BackendTest):
     MODULE = 'twitter'
 
+    @skip_without_config('username','password')
     def test_twitter_logged(self):
-        if self.backend.browser.username:
-            assert(self.backend.browser.get_me())
-        else:
-            raise SkipTest("User credentials not defined")
+        assert(self.backend.browser.get_me())
 
+    @skip_without_config('username','password')
     def test_twitter_list(self):
-        if self.backend.browser.username:
-            l = list(itertools.islice(self.backend.iter_threads(), 0, 20))
-            assert len(l)
-            thread = self.backend.get_thread(l[0].id)
-            assert len(thread.root.content)
-        else:
-            raise SkipTest("User credentials not defined")
+        l = list(itertools.islice(self.backend.iter_threads(), 0, 20))
+        assert len(l)
+        thread = self.backend.get_thread(l[0].id)
+        assert len(thread.root.content)
 
+    @skip_without_config('username','password')
     def test_ls_me(self):
-        if self.backend.browser.username:
-            l = list(itertools.islice(self.backend.iter_resources([BaseObject], ['me']), 0, 20))
-            assert len(l)
-            thread = self.backend.get_thread(l[0].id)
-            assert len(thread.root.content)
-        else:
-            raise SkipTest("User credentials not defined")
+        l = list(itertools.islice(self.backend.iter_resources([BaseObject], ['me']), 0, 20))
+        assert len(l)
+        thread = self.backend.get_thread(l[0].id)
+        assert len(thread.root.content)
 
     def test_ls_search(self):
         l = list(itertools.islice(self.backend.iter_resources([BaseObject], ['search', 'weboob']), 0, 20))

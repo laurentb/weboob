@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest
+from weboob.tools.test import BackendTest, skip_without_config
 from weboob.capabilities.bank import Account
 from datetime import timedelta
 import random
@@ -27,6 +27,7 @@ import random
 class INGTest(BackendTest):
     MODULE = 'ing'
 
+    @skip_without_config('login', 'password')
     def test_accounts(self):
         l = list(self.backend.iter_accounts())
         for account in l:
@@ -49,6 +50,7 @@ class INGTest(BackendTest):
                 self.backend.iter_history(id_or_account)  # can be empty. Only try to call it
                 self.assertTrue(len(invest) > 0)
 
+    @skip_without_config('login', 'password')
     def test_subscriptions(self):
         l = list(self.backend.iter_subscription())
         for sub in l:

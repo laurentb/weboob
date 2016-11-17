@@ -18,16 +18,18 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest
+from weboob.tools.test import BackendTest, skip_without_config
 
 
 class PhpBBTest(BackendTest):
     MODULE = 'phpbb'
 
+    @skip_without_config('url')
     def testthreads(self):
         for thread in self.backend.iter_threads():
             pass
 
+    @skip_without_config('url')
     def test_unread_messages(self):
         for message in self.backend.iter_unread_messages():
             pass

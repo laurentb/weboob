@@ -18,11 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest
+from weboob.tools.test import BackendTest, skip_without_config
 
 
 class Number26Test(BackendTest):
     MODULE = 'number26'
 
+    @skip_without_config('login', 'password')
     def test_number26(self):
         raise NotImplementedError()

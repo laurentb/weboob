@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.test import BackendTest
+from weboob.tools.test import BackendTest, skip_without_config
 from weboob.capabilities.base import NotLoaded
 
 import urllib
@@ -27,6 +27,7 @@ from random import choice
 class T411Test(BackendTest):
     MODULE = 't411'
 
+    @skip_without_config('username', 'password')
     def test_torrent(self):
         torrents = list(self.backend.iter_torrents('spiderman'))[:10]
         for torrent in torrents:

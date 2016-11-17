@@ -17,12 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.test import BackendTest
+from weboob.tools.test import BackendTest, skip_without_config
 
 
 class PaypalTest(BackendTest):
     MODULE = 'paypal'
 
+    @skip_without_config('login', 'password')
     def test_balance(self):
         for account in self.backend.iter_accounts():
             balance = sum(t.amount for t in self.backend.iter_history(account))

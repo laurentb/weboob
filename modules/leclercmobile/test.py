@@ -18,12 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest
+from weboob.tools.test import BackendTest, skip_without_config
 
 
 class LeclercMobileTest(BackendTest):
     MODULE = 'leclercmobile'
 
+    @skip_without_config('login', 'password')
     def test_list(self):
         """
         Test listing of subscriptions .
@@ -36,6 +37,7 @@ class LeclercMobileTest(BackendTest):
         self.assertTrue(self.backend.get_balance(subscriptions[0]) > 0,
                         msg="Get balance failed")
 
+    @skip_without_config('login', 'password')
     def test_downloadbills(self):
         """
         Iter all bills and try to download it.
@@ -44,10 +46,12 @@ class LeclercMobileTest(BackendTest):
             for bill in self.backend.iter_documents(subscription.id):
                 self.backend.download_document(bill.id)
 
+    @skip_without_config('login', 'password')
     def test_history(self):
         for subscription in self.backend.iter_subscription():
             self.assertTrue(len(list(self.backend.iter_documents_history(subscription))) > 0)
 
+    @skip_without_config('login', 'password')
     def test_details(self):
         for subscription in self.backend.iter_subscription():
             details = list(self.backend.get_details(subscription))

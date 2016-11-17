@@ -18,12 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest
+from weboob.tools.test import BackendTest, skip_without_config
 
 
 class FortuneoTest(BackendTest):
     MODULE = 'fortuneo'
 
+    @skip_without_config('login', 'password')
     def test_fortuneo(self):
         l = list(self.backend.iter_accounts())
         self.assertTrue(len(l) > 0)

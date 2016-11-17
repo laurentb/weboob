@@ -18,12 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest
+from weboob.tools.test import BackendTest, skip_without_config
 
 
 class S2eTest(BackendTest):
     MODULE = 's2e'
 
+    @skip_without_config('login', 'password')
     def test_bank(self):
         l = list(self.backend.iter_accounts())
         if len(l) > 0:

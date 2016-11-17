@@ -18,12 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest
+from weboob.tools.test import BackendTest, skip_without_config
 
 
 class CitelisTest(BackendTest):
     MODULE = 'citelis'
 
+    @skip_without_config('login', 'password')
     def test_citelis(self):
         l = list(self.backend.iter_accounts())
         assert len(l)

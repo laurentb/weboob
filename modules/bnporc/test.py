@@ -18,13 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest
+from weboob.tools.test import BackendTest, skip_without_config
 from random import choice
 
 
 class BNPorcTest(BackendTest):
     MODULE = 'bnporc'
 
+    @skip_without_config('login', 'password')
     def test_bank(self):
         l = list(self.backend.iter_accounts())
         if len(l) > 0:
@@ -32,6 +33,7 @@ class BNPorcTest(BackendTest):
             list(self.backend.iter_coming(a))
             list(self.backend.iter_history(a))
 
+    @skip_without_config('login', 'password')
     def test_msgs(self):
         threads = list(self.backend.iter_threads())
         thread = self.backend.fillobj(choice(threads), ['root'])

@@ -18,12 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest
+from weboob.tools.test import BackendTest, skip_without_config
 
 
 class CrAgrTest(BackendTest):
     MODULE = 'cragr'
 
+    @skip_without_config('login', 'password', 'website')
     def test_cragr(self):
         l = list(self.backend.iter_accounts())
         if len(l) > 0:
