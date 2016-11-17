@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from urllib import quote_plus
 
 from weboob.tools.misc import get_bytes_size
@@ -8,7 +8,7 @@ from weboob.browser.pages import HTMLPage
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.torrent import Torrent, MagnetOnly
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Date, Type
+from weboob.browser.filters.standard import CleanText, Regexp, Date, Type
 
 
 def parse_timestamp(txt, **kwargs):
