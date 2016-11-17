@@ -98,14 +98,13 @@ class BNPEnterprise(LoginBrowser):
 
             for date in rrule(MONTHLY, dtstart=(datetime.now() - relativedelta(months=3)), until=datetime.now()):
                 self.account_history_view.go(identifiant=account.iban, type_solde='C', type_releve='Comptable', \
-                                             type_date='O', date_min=date.strftime(dformat), \
+                                             type_date='O', date_min=(date + relativedelta(days=1)).strftime(dformat), \
                                              date_max=(date + relativedelta(months=1)).strftime(dformat))
-                self.account_history.go(identifiant=account.iban, date_min=date.strftime(dformat), \
+                self.account_history.go(identifiant=account.iban, date_min=(date + relativedelta(days=1)).strftime(dformat), \
                                         date_max=(date + relativedelta(months=1)).strftime(dformat))
 
                 for transaction in [t for t in self.page.iter_history() if t._coming is False]:
                     self.cache['transactions'][account.id].append(transaction)
-
             self.cache['transactions'][account.id].sort(key=lambda t: t.date, reverse=True)
 
         return self.cache['transactions'][account.id]
