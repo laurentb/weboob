@@ -64,6 +64,7 @@ class CreditMutuelBrowser(LoginBrowser):
     user_space =  URL('/(?P<subbank>.*)/fr/banque/espace_personnel.aspx',
                       '/(?P<subbank>.*)/fr/banque/accueil.cgi',
                       '/(?P<subbank>.*)/fr/banque/DELG_Gestion',
+                      '/(?P<subbank>.*)/fr/banque/paci_engine/static_content_manager.aspx',
                       UserSpacePage)
     card =        URL('/(?P<subbank>.*)/fr/banque/operations_carte.cgi.*',
                       '/(mabanque/)?fr/banque/mouvements.html\?webid=.*cardmonth=\d+$',
