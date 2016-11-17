@@ -141,11 +141,13 @@ class BoursoramaVirtKeyboard(VirtKeyboard):
 class LoginPage(HTMLPage):
     def login(self, login, password):
         form = self.get_form()
-        vk = BoursoramaVirtKeyboard(self.browser.keyboard.open())
+        keyboard_page = self.browser.keyboard.open()
+        vk = BoursoramaVirtKeyboard(keyboard_page)
         code = vk.get_code(password)
         form['form[login]'] = login
         form['form[fakePassword]'] = len(password) * '•'
         form['form[password]'] = code
+        form['form[matrixRandomChallenge]'] = re.search('val\("(.*)"', CleanText('//script')(keyboard_page.doc)).group(1)
         form.submit()
 
 
