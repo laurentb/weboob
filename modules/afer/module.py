@@ -98,33 +98,3 @@ class AferModule(Module, CapBank):
         :raises: :class:`AccountNotFound`
         """
         return self.browser.iter_investments(account)
-
-
-    def iter_transfer_recipients(self, account):
-        """
-        Iter recipients availables for a transfer from a specific account.
-
-        :param account: account which initiate the transfer
-        :type account: :class:`Account`
-        :rtype: iter[:class:`Recipient`]
-        :raises: :class:`AccountNotFound`
-        """
-        raise NotImplementedError()
-
-    def transfer(self, account, recipient, amount, reason):
-        """
-        Make a transfer from an account to a recipient.
-
-        :param account: account to take money
-        :type account: :class:`Account`
-        :param recipient: account to send money
-        :type recipient: :class:`Recipient`
-        :param amount: amount
-        :type amount: :class:`decimal.Decimal`
-        :param reason: reason of transfer
-        :type reason: :class:`unicode`
-        :rtype: :class:`Transfer`
-        :raises: :class:`AccountNotFound`, :class:`TransferError`
-        """
-        raise NotImplementedError()
-
