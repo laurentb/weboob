@@ -80,8 +80,8 @@ class INGModule(Module, CapBankTransfer, CapDocument):
             account = self.get_account(account)
         return self.browser.get_recipients(account)
 
-    def transfer(self, account, recipient, amount, reason):
-        if not reason:
+    def transfer(self, account, recipient, amount, reason=None):
+        if reason is None:
             raise UserError('Reason is mandatory to do a transfer on ING website')
         if not isinstance(account, Account):
             account = self.get_account(account)
