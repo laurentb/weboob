@@ -38,6 +38,7 @@ class LoginPage(Page):
 
 class AccountsPage(Page):
     TYPES = {u'APIVIE': Account.TYPE_LIFE_INSURANCE,
+             u'LINXEA ZEN CLIENT': Account.TYPE_LIFE_INSURANCE,
              u'PERP': Account.TYPE_PERP
             }
 
