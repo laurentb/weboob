@@ -24,7 +24,6 @@ except ImportError:
     from urllib.parse import urlparse
 
 from datetime import datetime
-from random import randint
 from dateutil.relativedelta import relativedelta
 
 from weboob.tools.compat import basestring
@@ -34,14 +33,15 @@ from weboob.browser.profiles import Wget
 from weboob.browser.url import URL
 from weboob.browser.pages import FormNotFound
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.capabilities.bank import Transfer, TransferError, Account
+from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
                    OperationsPage, CardPage, ComingPage, NoOperationsPage, \
                    TransfertPage, ChangePasswordPage, VerifCodePage,       \
                    EmptyPage, PorPage, IbanPage, NewHomePage, RedirectPage, \
                    LIAccountsPage, CardsActivityPage, CardsListPage,       \
-                   CardsOpePage, NewAccountsPage
+                   CardsOpePage, NewAccountsPage, InternalTransferPage, \
+                   ExternalTransferPage
 
 
 __all__ = ['CreditMutuelBrowser']
@@ -112,6 +112,9 @@ class CreditMutuelBrowser(LoginBrowser):
     cards_list = URL('/(?P<subbank>.*)/fr/banque/pro/ENC_liste_ctr.*', CardsListPage)
     cards_ope = URL('/(?P<subbank>.*)/fr/banque/pro/ENC_liste_oper', CardsOpePage)
 
+    internal_transfer = URL('/fr/banque/virements/vplw_vi.html', InternalTransferPage)
+    external_transfer = URL('/fr/banque/virements/vplw_vee.html', ExternalTransferPage)
+
     currentSubBank = None
     is_new_website = False
 
@@ -134,32 +137,33 @@ class CreditMutuelBrowser(LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
-        self.fleet_pages = {}
-        if self.currentSubBank is None and not self.is_new_website:
-            self.getCurrentSubBank()
-        accounts = []
-        if not self.is_new_website:
-            for a in self.accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts():
-                accounts.append(a)
-            for company in self.page.company_fleet():
-                self.location(company)
-                for a in self.page.iter_cards():
-                    accounts.append(a)
-            self.iban.go(subbank=self.currentSubBank).fill_iban(accounts)
-            self.por.go(subbank=self.currentSubBank).add_por_accounts(accounts)
-            for acc in self.li.go(subbank=self.currentSubBank).iter_li_accounts():
-                accounts.append(acc)
-        else:
-            for a in self.new_accounts.stay_or_go().iter_accounts():
-                accounts.append(a)
-            self.new_iban.go().fill_iban(accounts)
-            self.new_por.go().add_por_accounts(accounts)
-        for id, pages_list in self.fleet_pages.iteritems():
-            for page in pages_list:
-                for a in page.get_cards(accounts=accounts):
-                    if a not in accounts:
-                        accounts.append(a)
-        return accounts
+        if not hasattr(self, 'accounts_list'):
+            self.fleet_pages = {}
+            if self.currentSubBank is None and not self.is_new_website:
+                self.getCurrentSubBank()
+            self.accounts_list = []
+            if not self.is_new_website:
+                for a in self.accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts():
+                    self.accounts_list.append(a)
+                for company in self.page.company_fleet():
+                    self.location(company)
+                    for a in self.page.iter_cards():
+                        self.accounts_list.append(a)
+                self.iban.go(subbank=self.currentSubBank).fill_iban(self.accounts_list)
+                self.por.go(subbank=self.currentSubBank).add_por_accounts(self.accounts_list)
+                for acc in self.li.go(subbank=self.currentSubBank).iter_li_accounts():
+                    self.accounts_list.append(acc)
+            else:
+                for a in self.new_accounts.stay_or_go().iter_accounts():
+                    self.accounts_list.append(a)
+                self.new_iban.go().fill_iban(self.accounts_list)
+                self.new_por.go().add_por_accounts(self.accounts_list)
+            for id, pages_list in self.fleet_pages.iteritems():
+                for page in pages_list:
+                    for a in page.get_cards(accounts=self.accounts_list):
+                        if a not in self.accounts_list:
+                            self.accounts_list.append(a)
+        return self.accounts_list
 
     def get_account(self, id):
         assert isinstance(id, basestring)
@@ -174,7 +178,7 @@ class CreditMutuelBrowser(LoginBrowser):
         self.currentSubBank = url.path.lstrip('/').split('/')[0]
 
     def list_operations(self, page_url):
-        if page_url.startswith('/') or page_url.startswith('https'):
+        if page_url.startswith('/') or page_url.startswith('https') or page_url.startswith('?'):
             self.location(page_url)
         elif not self.is_new_website:
             self.location('%s/%s/fr/banque/%s' % (self.BASEURL, self.currentSubBank, page_url))
@@ -259,63 +263,34 @@ class CreditMutuelBrowser(LoginBrowser):
             return self.page.iter_investment()
         return iter([])
 
-    def transfer(self, account, to, amount, reason=None):
-        if self.is_new_website:
-            raise NotImplementedError()
+    def iter_recipients(self, origin_account):
         # access the transfer page
-        self.transfert.go(subbank=self.currentSubBank)
+        self.internal_transfer.go()
+        if self.page.can_transfer(origin_account.id):
+            for recipient in self.page.iter_recipients(origin_account=origin_account):
+                yield recipient
+        self.external_transfer.go()
+        if self.page.can_transfer(origin_account.id):
+            origin_account._external_recipients = set()
+            for recipient in self.page.iter_recipients(origin_account=origin_account):
+                yield recipient
 
-        # fill the form
-        form = self.page.get_form(xpath="//form[@id='P:F']")
-        try:
-            form['data_input_indiceCompteADebiter'] = self.page.get_from_account_index(account)
-            form['data_input_indiceCompteACrediter'] = self.page.get_to_account_index(to)
-        except ValueError as e:
-            raise TransferError(e.message)
-        form['[t:dbt%3adouble;]data_input_montant_value_0_'] = '%s' % str(amount).replace('.', ',')
-        if reason is not None:
-            form['[t:dbt%3astring;x(27)]data_input_libelleCompteDebite'] = reason
-            form['[t:dbt%3astring;x(31)]data_input_motifCompteCredite'] = reason
-        del form['_FID_GoCancel']
-        del form['_FID_DoValidate']
-        form['_FID_DoValidate.x'] = str(randint(3, 125))
-        form['_FID_DoValidate.y'] = str(randint(3, 22))
+    def transfer(self, account, to, amount, reason=None):
+        if not self.is_new_website:
+            raise NotImplementedError()
+
+        if to._outer_recipient:
+            self.external_transfer.go()
+        else:
+            self.internal_transfer.go()
+
+        self.page.prepare_transfer(account, to, amount, reason)
+        transfer = self.page.handle_response(account, to, amount, reason)
+
+        form = self.page.get_form(id='P:F', submit='//input[@type="submit" and contains(@value, "Confirmer")]')
+        # For the moment, don't ask the user if he confirms the duplicate.
+        form['Bool:data_input_confirmationDoublon'] = 'true'
         form.submit()
 
-        # look for known errors
-        content = self.page.get_unicode_content()
-        insufficient_amount_message =     u'Le montant du virement doit être positif, veuillez le modifier'
-        maximum_allowed_balance_message = u'Montant maximum autorisé au débit pour ce compte'
+        return self.page.create_transfer(transfer)
 
-        if insufficient_amount_message in content:
-            raise TransferError('The amount you tried to transfer is too low.')
-
-        if maximum_allowed_balance_message in content:
-            raise TransferError('The maximum allowed balance for the target account has been / would be reached.')
-
-        # look for the known "all right" message
-        ready_for_transfer_message = u'Confirmer un virement entre vos comptes'
-        if ready_for_transfer_message not in content:
-            raise TransferError('The expected message "%s" was not found.' % ready_for_transfer_message)
-
-        # submit the confirmation form
-        form = self.page.get_form(xpath="//form[@id='P:F']")
-        del form['_FID_DoConfirm']
-        form['_FID_DoConfirm.x'] = str(randint(3, 125))
-        form['_FID_DoConfirm.y'] = str(randint(3, 22))
-        submit_date = datetime.now()
-        form.submit()
-
-        # look for the known "everything went well" message
-        content = self.page.get_unicode_content()
-        transfer_ok_message = u'Votre virement a &#233;t&#233; ex&#233;cut&#233;'
-        if transfer_ok_message not in content:
-            raise TransferError('The expected message "%s" was not found.' % transfer_ok_message)
-
-        # We now have to return a Transfer object
-        transfer = Transfer(submit_date.strftime('%Y%m%d%H%M%S'))
-        transfer.amount = amount
-        transfer.origin = account
-        transfer.recipient = to
-        transfer.date = submit_date
-        return transfer

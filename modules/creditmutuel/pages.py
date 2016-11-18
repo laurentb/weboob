@@ -27,7 +27,7 @@ except ImportError:
 from decimal import Decimal, InvalidOperation
 import re
 from dateutil.relativedelta import relativedelta
-from datetime import date
+from datetime import date, datetime
 
 from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, SkipItem, method, TableElement
@@ -35,7 +35,9 @@ from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal
 from weboob.browser.filters.html import Link, Attr
 from weboob.exceptions import BrowserIncorrectPassword, ParseError, NoAccountsException
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.base import find_object
+from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, Transfer
+from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_french_date
 
@@ -690,3 +692,162 @@ class IbanPage(LoggedPage, HTMLPage):
             for a in accounts:
                 if a.id.split('EUR')[0] in CleanText('.//em[2]', replace=[(' ', '')])(ele):
                     a.iban = CleanText('.//em[2]', replace=[(' ', '')])(ele)
+
+
+class MyRecipient(ItemElement):
+    klass = Recipient
+
+    obj_currency = u'EUR'
+    obj_label = CleanText('.//div[@role="presentation"]/em | .//div[not(@id) and not(@role)]')
+    obj__outer_recipient = False
+
+    def obj_enabled_at(self):
+        return datetime.now().replace(microsecond=0)
+
+    def validate(self, el):
+        assert is_iban_valid(el.iban)
+        return True
+
+
+class InternalTransferPage(LoggedPage, HTMLPage):
+    RECIPIENT_STRING = 'data_input_indiceCompteACrediter'
+    READY_FOR_TRANSFER_MSG = u'Confirmer un virement entre vos comptes'
+    SUMMARY_RECIPIENT_TITLE = u'Compte à créditer'
+
+    def can_transfer(self, origin_account):
+        for li in self.doc.xpath('//ul[@id="idDetailsListCptDebiterHorizontal:ul"]/li | //ul[@id="idDetailsListCptDebiterVertical:ul"]//li'):
+            if origin_account == CleanText(li.xpath('.//span[@class]'), replace=[(' ', '')])(self):
+                return True
+
+    @method
+    class iter_recipients(ListElement):
+        item_xpath = '//ul[@id="idDetailsListCptCrediterHorizontal:ul"]//li'
+
+        class item(MyRecipient):
+            condition = lambda self: Field('id')(self) != self.env['origin_account'].id
+
+            obj_bank_name = u'Crédit Mutuel'
+            obj_label = CleanText('.//div[@role="presentation"]/em | .//div[not(@id) and not(@role)]')
+            obj_id = CleanText('.//span[@class="_c1 doux _c1"]', replace=[(' ', '')])
+            obj__outer_recipient = False
+
+            def obj_iban(self):
+                return find_object(self.page.browser.get_accounts_list(), id=Field('id')(self)).iban
+
+    def get_account_index(self, direction, account):
+        for div in self.doc.getroot().cssselect(".dw_dli_contents"):
+            inp = div.cssselect("input")[0]
+            if inp.name != direction:
+                continue
+            acct = div.cssselect("span.doux")[0].text.replace(" ", "")
+            if account.endswith(acct):
+                return inp.attrib['value']
+        else:
+            raise ValueError("account %s not found" % account)
+
+    def get_from_account_index(self, account):
+        return self.get_account_index('data_input_indiceCompteADebiter', account)
+
+    def get_to_account_index(self, account):
+        return self.get_account_index(self.RECIPIENT_STRING, account)
+
+    def get_unicode_content(self):
+        return self.content.decode(self.detect_encoding())
+
+    def prepare_transfer(self, account, to, amount, reason):
+        form = self.get_form(id='P:F', submit='//input[@type="submit" and contains(@value, "Valider")]')
+        form['data_input_indiceCompteADebiter'] = self.get_from_account_index(account.id)
+        form[self.RECIPIENT_STRING] = self.get_to_account_index(to.id)
+        form['[t:dbt%3adouble;]data_input_montant_value_0_'] = str(amount).replace('.', ',')
+        form['[t:dbt%3astring;x(27)]data_input_libelleCompteDebite'] = reason
+        form['[t:dbt%3astring;x(31)]data_input_motifCompteCredite'] = reason
+
+        form.submit()
+
+    def check_errors(self):
+        # look for known errors
+        content = self.get_unicode_content()
+        messages = [u'Le montant du virement doit être positif, veuillez le modifier',
+                    u'Montant maximum autorisé au débit pour ce compte',
+                    u'Dépassement du montant journalier autorisé']
+
+        for message in messages:
+            if message in content:
+                raise TransferError(message)
+
+        # look for the known "all right" message
+        if not self.doc.xpath(u'//span[contains(text(), "%s")]' % self.READY_FOR_TRANSFER_MSG):
+            raise TransferError('The expected message "%s" was not found.' % self.READY_FOR_TRANSFER_MSG)
+
+    def check_data_consistency(self, account_id, recipient_id, amount, reason):
+        assert account_id in CleanText(u'//div[div[p[contains(text(), "Compte à débiter")]]]', replace=[(' ', '')])(self.doc)
+        assert recipient_id in CleanText(u'//div[div[p[contains(text(), "%s")]]]' % self.SUMMARY_RECIPIENT_TITLE, replace=[(' ', '')])(self.doc)
+
+        exec_date = Date(Regexp(CleanText('//table[@summary]/tbody/tr[th[contains(text(), "Date")]]/td'), '(\d{2}/\d{2}/\d{4})'), dayfirst=True)(self.doc)
+        assert exec_date == datetime.today().date()
+        r_amount = CleanDecimal('//table[@summary]/tbody/tr[th[contains(text(), "Montant")]]/td', replace_dots=True)(self.doc)
+        assert r_amount == Decimal(amount)
+        currency = FrenchTransaction.Currency('//table[@summary]/tbody/tr[th[contains(text(), "Montant")]]/td')(self.doc)
+        if reason is not None:
+            assert reason.upper() in CleanText(u'//table[@summary]/tbody/tr[th[contains(text(), "Intitulé pour le compte à débiter")]]/td')(self.doc)
+        return exec_date, r_amount, currency
+
+    def handle_response(self, account, recipient, amount, reason):
+        self.check_errors()
+
+        exec_date, r_amount, currency = self.check_data_consistency(account.id, recipient.id, amount, reason)
+        parsed = urlparse(self.url)
+        webid = parse_qs(parsed.query)['_saguid'][0]
+
+        transfer = Transfer()
+        transfer.currency = currency
+        transfer.amount = r_amount
+        transfer.account_iban = account.iban
+        transfer.recipient_iban = recipient.iban
+        transfer.account_id = account.id
+        transfer.recipient_id = recipient.id
+        transfer.exec_date = exec_date
+        transfer.label = reason
+
+        transfer.account_label = account.label
+        transfer.recipient_label = recipient.label
+        transfer.id = webid
+
+        return transfer
+
+    def create_transfer(self, transfer):
+        # look for the known "everything went well" message
+        content = self.get_unicode_content()
+        transfer_ok_message = u'Votre virement a &#233;t&#233; ex&#233;cut&#233;'
+        if transfer_ok_message not in content:
+            raise TransferError('The expected message "%s" was not found.' % transfer_ok_message)
+
+        exec_date, r_amount, currency = self.check_data_consistency(transfer.account_id, transfer.recipient_id, transfer.amount, transfer.label)
+        assert u'Exécuté' in CleanText(u'//table[@summary]/tbody/tr[th[contains(text(), "Etat")]]/td')(self.doc)
+
+        assert transfer.amount == r_amount
+        assert transfer.exec_date == exec_date
+        assert transfer.currency == currency
+
+        return transfer
+
+
+class ExternalTransferPage(InternalTransferPage):
+    RECIPIENT_STRING = 'data_input_indiceBeneficiaire'
+    READY_FOR_TRANSFER_MSG = u'Confirmer un virement vers un bénéficiaire enregistré'
+    SUMMARY_RECIPIENT_TITLE = u'Bénéficiaire à créditer'
+
+    @method
+    class iter_recipients(ListElement):
+        item_xpath = '//ul[@id="idDetailListCptCrediterHorizontal:ul"]/li'
+
+        class item(MyRecipient):
+            condition = lambda self: Field('id')(self) not in self.env['origin_account']._external_recipients
+
+            obj__outer_recipient = True
+            obj_bank_name = NotAvailable
+            obj_iban = obj_id = CleanText('.//span[@class="_c1 doux _c1"]', replace=[(' ', '')])
+            obj_label = CleanText('./div/em')
+
+            def parse(self, el):
+                self.env['origin_account']._external_recipients.add(Field('id')(self))

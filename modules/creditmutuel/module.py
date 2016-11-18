@@ -20,9 +20,9 @@
 
 
 from decimal import Decimal
-import string
 
-from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, Recipient, Account
+from weboob.capabilities.base import find_object
+from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, RecipientNotFound, TransferError
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -70,24 +70,24 @@ class CreditMutuelModule(Module, CapBankTransfer):
     def iter_investment(self, account):
         return self.browser.get_investment(account)
 
-    def iter_transfer_recipients(self, ignored):
-        for account in self.browser.get_accounts_list():
-            recipient = Recipient()
-            recipient.id = account.id
-            recipient.label = account.label
-            yield recipient
+    def iter_transfer_recipients(self, origin_account):
+        origin_account = find_object(self.iter_accounts(), id=origin_account, error=AccountNotFound)
+        return self.browser.iter_recipients(origin_account)
 
-    def transfer(self, account, to, amount, reason=None):
-        if isinstance(account, Account):
-            account = account.id
+    def transfer(self, transfer):
+        self.logger.info('Going to do a new transfer')
+        if transfer.account_iban:
+            account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
+            recipient = find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban, error=RecipientNotFound)
+        else:
+            account = find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
+            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
 
-        account = str(account).strip(string.letters)
-        to = str(to).strip(string.letters)
         try:
-            assert account.isdigit()
-            assert to.isdigit()
-            amount = Decimal(amount)
+            assert account.id.isdigit()
+            # quantize to show 2 decimals.
+            amount = Decimal(transfer.amount).quantize(Decimal(10) ** -2)
         except (AssertionError, ValueError):
-            raise AccountNotFound()
+            raise TransferError('something went wrong')
 
-        return self.browser.transfer(account, to, amount, reason)
+        return self.browser.transfer(account, recipient, amount, transfer.label)
