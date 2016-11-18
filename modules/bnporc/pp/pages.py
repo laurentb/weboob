@@ -28,14 +28,13 @@ from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.json import Dict
 from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, TransferError, TransferStep
+from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, TransferError
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.capabilities.bank.iban import rib2iban, rebuild_rib, is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.tools.date import parse_french_date as Date
 from weboob.tools.json import json
-from weboob.tools.value import ValueBool
 
 
 class ConnectionThresholdPage(HTMLPage):
@@ -294,35 +293,21 @@ class ValidateTransferPage(BNPPage):
         transfer.account_label = account.label
         transfer.recipient_label = recipient.label
         transfer.id = transfer_data['reference']
-        # XXX what's that? -romain
-        #if transfer_data['doublon']:
-        #    fields['doublon'] = True
+        # This is true if a transfer with the same metadata has already been done recently
+        transfer._doublon = transfer_data['doublon']
 
-        self.browser.pending_transfer['validation_token'] = transfer_data['reference']
-        self.browser.pending_transfer['account'] = account.to_dict()
-        self.browser.pending_transfer['recipient'] = recipient.to_dict()
-        self.browser.pending_transfer['amount'] = amount
-        self.browser.pending_transfer['reason'] = reason
-
-        raise TransferStep(transfer, ValueBool('validate'))
+        return transfer
 
 
 class RegisterTransferPage(ValidateTransferPage):
-    def handle_response(self):
+    def handle_response(self, transfer):
         self.check_errors()
+        transfer_data = self.doc['data']['enregistrementVirement']
 
-        transfer = Transfer()
-        transfer.id = self.doc['data']['enregistrementVirement']['reference']
-        transfer.amount = Decimal(self.browser.pending_transfer['amount'])
-        transfer.exec_date = Date(self.doc['data']['enregistrementVirement']['dateExecution']).date()
-        transfer.register_date = Date(self.doc['data']['enregistrementVirement']['dateEnregistrement'])
-        transfer.account_id = self.browser.pending_transfer['account']['id']
-        transfer.account_iban = self.browser.pending_transfer['account']['iban']
-        transfer.recipient_id = self.browser.pending_transfer['recipient']['id']
-        transfer.recipient_iban = self.browser.pending_transfer['recipient']['iban']
-        transfer.label = self.browser.pending_transfer['reason']
-
-        self.browser.pending_transfer = {}
+        transfer.id = transfer_data['reference']
+        assert transfer.exec_date == Date(self.doc['data']['enregistrementVirement']['dateExecution']).date()
+        # Timestamp at which the bank registered the transfer
+        transfer._register_date = Date(self.doc['data']['enregistrementVirement']['dateEnregistrement'])
 
         return transfer
 

@@ -26,7 +26,7 @@ from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, \
 from weboob.capabilities.messages import CapMessages, Thread
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword, Value, ValueBool
+from weboob.tools.value import ValueBackendPassword, Value
 
 from .deprecated.browser import BNPorc
 from .enterprise.browser import BNPEnterprise
@@ -47,7 +47,6 @@ class BNPorcModule(Module, CapBankTransfer, CapMessages):
     CONFIG = BackendConfig(
         ValueBackendPassword('login',      label=u'Numéro client', masked=False),
         ValueBackendPassword('password',   label=u'Code secret', regexp='^(\d{6}|)$'),
-        ValueBool('accept_transfer',       label=u'Accept current transfer', default=False),
         #ValueBackendPassword('rotating_password', default='',
         #    label='Password to set when the allowed uses are exhausted (6 digits)',
         #    regexp='^(\d{6}|)$'),
@@ -102,18 +101,14 @@ class BNPorcModule(Module, CapBankTransfer, CapMessages):
             origin_account = origin_account.id
         return self.browser.iter_recipients(origin_account)
 
-    def transfer(self, transfer, validate=None):
+    def transfer(self, transfer):
         if self.config['website'].get() != 'pp':
             raise NotImplementedError()
 
         if transfer.label is None:
             raise TransferError(u'Veuillez préciser un libellé au virement')
 
-        if validate is not None:
-            self.logger.info('Going to validate a transfer %r', transfer.webid)
-            return self.browser.execute_transfer(transfer.webid)
-
-        self.logger.info('Going to initiate a new transfer')
+        self.logger.info('Going to do a new transfer')
         if transfer.account_iban:
             account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
             recipient = find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban, error=RecipientNotFound)
@@ -128,7 +123,7 @@ class BNPorcModule(Module, CapBankTransfer, CapMessages):
         except (AssertionError, ValueError):
             raise TransferError('something went wrong')
 
-        return self.browser.init_transfer(account, recipient, amount, transfer.label)
+        return self.browser.transfer(account, recipient, amount, transfer.label)
 
     def iter_threads(self, cache=False):
         """

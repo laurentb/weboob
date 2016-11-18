@@ -23,9 +23,9 @@ from dateutil.relativedelta import relativedelta
 import time
 from requests.exceptions import ConnectionError
 
-from weboob.browser.browsers import LoginBrowser, URL, need_login, StatesMixin
+from weboob.browser.browsers import LoginBrowser, URL, need_login
 from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import AccountNotFound, Account, TransferError
+from weboob.capabilities.bank import AccountNotFound, Account
 from weboob.tools.decorators import retry
 from weboob.tools.json import json
 from weboob.browser.exceptions import ServerError
@@ -219,16 +219,12 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     def get_thread(self, thread):
         raise NotImplementedError()
 
-class BNPPartPro(BNPParibasBrowser, StatesMixin):
+class BNPPartPro(BNPParibasBrowser):
     BASEURL_TEMPLATE = r'https://%s.bnpparibas/'
     BASEURL = BASEURL_TEMPLATE % 'mabanque'
 
-    __states__ = ('pending_transfer',)
-
     def __init__(self, config=None, *args, **kwargs):
         self.config = config
-        assert isinstance(self.config['accept_transfer'].get(), bool)
-        self.pending_transfer = {}
         kwargs['username'] = self.config['login'].get()
         kwargs['password'] = self.config['password'].get()
         super(BNPPartPro, self).__init__(*args, **kwargs)
@@ -259,33 +255,15 @@ class BNPPartPro(BNPParibasBrowser, StatesMixin):
             data['idBeneficiaire'] = recipient.id
         else:
             data['compteCrediteur'] = recipient.id
-
         return data
 
     @need_login
-    def init_transfer(self, account, recipient, amount, reason):
-        self.pending_transfer = {}
-
+    def transfer(self, account, recipient, amount, reason):
         data = self.prepare_transfer(account, recipient, amount, reason)
-        self.validate_transfer.go(data=JSON(data)).handle_response(account, recipient, amount, reason)
-        raise TransferError('Why the fuck are we here?')
+        transfer = self.validate_transfer.go(data=JSON(data)).handle_response(account, recipient, amount, reason)
+        self.register_transfer.go(data=JSON({'referenceVirement': transfer.id}))
+        return self.page.handle_response(transfer)
 
-    def execute_transfer(self, reference):
-        #if not self.config['accept_transfer'].get():
-        #    self.logger.info('Transfer refused.')
-        #    self.pending_transfer = {}
-        #    raise Exception('Transfer refused.')
-
-        if not self.pending_transfer:
-            raise TransferError('Couldn\'t retrieve the pending transfer details.')
-
-        self.logger.debug('Pending transfer: %r', self.pending_transfer)
-
-        if not reference == self.pending_transfer['validation_token']:
-            raise TransferError('Reference doesn\'t match current browser transfer')
-
-        self.register_transfer.go(data=JSON({'referenceVirement': self.pending_transfer['validation_token']}))
-        return self.page.handle_response()
 
 class HelloBank(BNPParibasBrowser):
     BASEURL = 'https://www.hellobank.fr/'
