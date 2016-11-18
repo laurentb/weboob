@@ -72,6 +72,9 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_price = CleanDecimal(TableCell('price'))
             obj_currency = u"€"
 
+            def condition(self):
+                return CleanText(TableCell('id'))(self) != "No bills"
+
             def parse(self, el):
                 self.env['username'] = self.page.browser.username
 
