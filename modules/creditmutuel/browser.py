@@ -272,8 +272,15 @@ class CreditMutuelBrowser(LoginBrowser):
         self.external_transfer.go()
         if self.page.can_transfer(origin_account.id):
             origin_account._external_recipients = set()
-            for recipient in self.page.iter_recipients(origin_account=origin_account):
-                yield recipient
+            if self.page.has_transfer_categories():
+                for category in self.page.iter_categories():
+                    self.page.go_on_category(category['index'])
+                    self.page.IS_PRO_PAGE = True
+                    for recipient in self.page.iter_recipients(origin_account=origin_account, category=category['name']):
+                        yield recipient
+            else:
+                for recipient in self.page.iter_recipients(origin_account=origin_account):
+                    yield recipient
 
     def transfer(self, account, to, amount, reason=None):
         if not self.is_new_website:
@@ -284,6 +291,13 @@ class CreditMutuelBrowser(LoginBrowser):
         else:
             self.internal_transfer.go()
 
+        if self.external_transfer.is_here() and self.page.has_transfer_categories():
+            for category in self.page.iter_categories():
+                if category['name'] == to.category:
+                    self.page.go_on_category(category['index'])
+                    break
+            self.page.IS_PRO_PAGE = True
+            self.page.RECIPIENT_STRING = 'data_input_indiceBen'
         self.page.prepare_transfer(account, to, amount, reason)
         transfer = self.page.handle_response(account, to, amount, reason)
 

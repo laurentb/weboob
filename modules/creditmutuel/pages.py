@@ -713,26 +713,45 @@ class InternalTransferPage(LoggedPage, HTMLPage):
     RECIPIENT_STRING = 'data_input_indiceCompteACrediter'
     READY_FOR_TRANSFER_MSG = u'Confirmer un virement entre vos comptes'
     SUMMARY_RECIPIENT_TITLE = u'Compte à créditer'
+    IS_PRO_PAGE = False
+
+    def can_transfer_pro(self, origin_account):
+        for li in self.doc.xpath('//ul[@id="idDetailsListCptDebiterVertical:ul"]//ul/li'):
+            if CleanText(li.xpath('.//span[@class="_c1 doux _c1"]'), replace=[(' ', '')])(self) in origin_account:
+                return True
 
     def can_transfer(self, origin_account):
-        for li in self.doc.xpath('//ul[@id="idDetailsListCptDebiterHorizontal:ul"]/li | //ul[@id="idDetailsListCptDebiterVertical:ul"]//li'):
-            if origin_account == CleanText(li.xpath('.//span[@class]'), replace=[(' ', '')])(self):
+        if self.doc.xpath('//ul[@id="idDetailsListCptDebiterVertical:ul"]') or self.doc.xpath('//ul[@id="idDetailListCptDebiter:ul"]'):
+            self.IS_PRO_PAGE = True
+            return self.can_transfer_pro(origin_account)
+
+        for li in self.doc.xpath('//ul[@id="idDetailsListCptDebiterHorizontal:ul"]/li'):
+            if origin_account == CleanText(li.xpath('.//span[@class="_c1 doux _c1"]'), replace=[(' ', '')])(self):
                 return True
 
     @method
     class iter_recipients(ListElement):
-        item_xpath = '//ul[@id="idDetailsListCptCrediterHorizontal:ul"]//li'
+        def parse(self, el):
+            if self.page.IS_PRO_PAGE:
+                self.item_xpath = '//ul[@id="idDetailsListCptCrediterVertical:ul"]//ul/li'
+            else:
+                self.item_xpath = '//ul[@id="idDetailsListCptCrediterHorizontal:ul"]/li'
 
         class item(MyRecipient):
-            condition = lambda self: Field('id')(self) != self.env['origin_account'].id
+            condition = lambda self: Field('id')(self) not in self.env['origin_account'].id
 
             obj_bank_name = u'Crédit Mutuel'
             obj_label = CleanText('.//div[@role="presentation"]/em | .//div[not(@id) and not(@role)]')
             obj_id = CleanText('.//span[@class="_c1 doux _c1"]', replace=[(' ', '')])
             obj__outer_recipient = False
+            obj_category = u'inner'
 
             def obj_iban(self):
-                return find_object(self.page.browser.get_accounts_list(), id=Field('id')(self)).iban
+                if not self.page.IS_PRO_PAGE:
+                    return find_object(self.page.browser.get_accounts_list(), id=Field('id')(self)).iban
+                l = [a for a in self.page.browser.get_accounts_list() if Field('id')(self) in a.id]
+                assert len(l) == 1
+                return l[0].iban
 
     def get_account_index(self, direction, account):
         for div in self.doc.getroot().cssselect(".dw_dli_contents"):
@@ -837,17 +856,55 @@ class ExternalTransferPage(InternalTransferPage):
     READY_FOR_TRANSFER_MSG = u'Confirmer un virement vers un bénéficiaire enregistré'
     SUMMARY_RECIPIENT_TITLE = u'Bénéficiaire à créditer'
 
+    def can_transfer_pro(self, origin_account):
+        for li in self.doc.xpath('//ul[@id="idDetailListCptDebiter:ul"]//ul/li'):
+            if CleanText(li.xpath('.//span[@class="_c1 doux _c1"]'), replace=[(' ', '')])(self) in origin_account:
+                return True
+
+    def has_transfer_categories(self):
+        select_elem = self.doc.xpath('//select[@name="data_input_indiceMarqueurListe"]')
+        if select_elem:
+            assert len(select_elem) == 1
+            return True
+
+    def iter_categories(self):
+        for option in self.doc.xpath('//select[@name="data_input_indiceMarqueurListe"]/option'):
+            # This is the default selector
+            if option.attrib['value'] == '9999':
+                continue
+            yield {'name': CleanText('.')(option), 'index': option.attrib['value']}
+
+    def go_on_category(self, category_index):
+        form = self.get_form(id='P:F', submit='//input[@type="submit" and @value="Nom"]')
+        form['data_input_indiceMarqueurListe'] = category_index
+        form.submit()
+
     @method
     class iter_recipients(ListElement):
-        item_xpath = '//ul[@id="idDetailListCptCrediterHorizontal:ul"]/li'
+        def parse(self, el):
+            if self.page.IS_PRO_PAGE:
+                self.item_xpath = '//ul[@id="ben.idBen:ul"]/li'
+            else:
+                self.item_xpath = '//ul[@id="idDetailListCptCrediterHorizontal:ul"]/li'
 
         class item(MyRecipient):
             condition = lambda self: Field('id')(self) not in self.env['origin_account']._external_recipients
 
             obj__outer_recipient = True
-            obj_bank_name = NotAvailable
-            obj_iban = obj_id = CleanText('.//span[@class="_c1 doux _c1"]', replace=[(' ', '')])
-            obj_label = CleanText('./div/em')
+            obj_bank_name = CleanText('(.//span[@class="_c1 doux _c1"])[2]', default=NotAvailable)
+            obj_label = CleanText('./div//em')
+
+            def obj_category(self):
+                return self.env['category'] if 'category' in self.env else u'outer'
+
+            def obj_id(self):
+                if self.page.IS_PRO_PAGE:
+                    return CleanText('(.//span[@class="_c1 doux _c1"])[1]', replace=[(' ', '')])(self.el)
+                else:
+                    return CleanText('.//span[@class="_c1 doux _c1"]', replace=[(' ', '')])(self.el)
+
+            def obj_iban(self):
+                return Field('id')(self)
 
             def parse(self, el):
                 self.env['origin_account']._external_recipients.add(Field('id')(self))

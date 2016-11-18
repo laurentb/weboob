@@ -90,6 +90,7 @@ class Recipient(BaseAccount):
     Recipient of a transfer.
     """
     enabled_at =     DateField('Date of availability')
+    category =       StringField('Recipient category')
 
 
 class Account(BaseAccount):
