@@ -23,7 +23,7 @@ from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
-from .browser import AmundiEEBrowser
+from .browser import CAELSBrowser
 
 
 __all__ = ['CaelsModule']
@@ -40,10 +40,11 @@ class CaelsModule(Module, CapBank):
             ValueBackendPassword('login',    label='Identifiant', masked=False),
             ValueBackendPassword('password', label='Mot de passe'))
 
-    BROWSER = AmundiEEBrowser
+    BROWSER = CAELSBrowser
 
     def create_default_browser(self):
-        return self.create_browser("https://www.ca-els.com/",
+        return self.create_browser(self.weboob,
+                                   "https://www.ca-els.com/",
                                    self.config['login'].get(),
                                    self.config['password'].get())
 
