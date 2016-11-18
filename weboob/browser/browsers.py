@@ -862,6 +862,7 @@ class AbstractBrowserMissingParentError(Exception):
 
 class AbstractBrowser(Browser):
     PARENT = None
+    PARENT_ATTR = None
 
     def __new__(cls, weboob, *args, **kwargs):
         if cls.PARENT is None:
@@ -873,5 +874,12 @@ class AbstractBrowser(Browser):
             except ModuleInstallError as err:
                 raise ModuleInstallError('This module depends on %s module but %s\'s installation failed with: %s' % (cls.PARENT, cls.PARENT, err))
 
-        parent = weboob.modules_loader.get_or_load_module(cls.PARENT).klass.BROWSER
+        module = weboob.modules_loader.get_or_load_module(cls.PARENT)
+        if cls.PARENT_ATTR is None:
+            parent = module.klass.BROWSER
+        else:
+            parent = reduce(getattr, cls.PARENT_ATTR.split('.'), module)
+
+        if parent is None:
+            raise AbstractBrowserMissingParentError("Failed to load parent class")
         return type(cls.__name__, (parent,), dict(cls.__dict__))(*args, **kwargs)
