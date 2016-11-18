@@ -348,7 +348,9 @@ class AccountsPage(BasePage):
                      u'Synthèse':                      None,    # ignore this title
                     }
 
-    PATTERN = [(re.compile('.*Titres.*'),Account.TYPE_MARKET),
+    PATTERN = [(re.compile('.*Titres Pea.*'), Account.TYPE_PEA),
+               (re.compile('.*Plan Epargne Retraite.*'), Account.TYPE_PERP),
+               (re.compile('.*Titres.*'), Account.TYPE_MARKET),
                (re.compile('.*Selection Vie.*'),Account.TYPE_LIFE_INSURANCE),
                (re.compile('^Fructi Pulse.*'), Account.TYPE_MARKET),
                ]
