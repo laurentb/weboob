@@ -19,15 +19,18 @@
 
 
 import re
+import json
 
 from decimal import Decimal
 
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
-from weboob.tools.ordereddict import OrderedDict
-from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText
+from weboob.browser.elements import DictElement, ItemElement, method
+from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Eval, Format
 from weboob.browser.filters.html import Link
+from weboob.browser.filters.json import Dict
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.bank import Account, Transaction, Investment
+from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban
 from weboob.exceptions import NoAccountsException
@@ -48,6 +51,92 @@ class CenetLoginPage(HTMLPage):
                                     "MotDePasse":"%s"}' % (codeCaisse, username, nuser, password)
 
         form.submit()
+
+
+class CenetJsonPage(JsonPage):
+    def __init__(self, browser, response, *args, **kwargs):
+        super(CenetJsonPage, self).__init__(browser, response, *args, **kwargs)
+
+        # Why you are so ugly....
+        self.doc = json.loads(Dict('d')(self.doc))
+        self.doc['DonneesSortie'] = json.loads(Dict('DonneesSortie')(self.doc))
+
+
+class CenetAccountsPage(LoggedPage, CenetJsonPage):
+    ACCOUNT_TYPES = {u'CCP': Account.TYPE_CHECKING}
+
+    @method
+    class get_accounts(DictElement):
+        item_xpath = "DonneesSortie"
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_id = CleanText(Dict('Numero'))
+            obj_label = CleanText(Dict('Intitule'))
+            obj_iban = CleanText(Dict('IBAN'))
+
+            def obj_balance(self):
+                return Eval(lambda x: x / 10**2, CleanDecimal(Dict('Solde/Valeur')))(self)
+
+            def obj_currency(self):
+                return CleanText(Dict('Devise'))(self).upper()
+
+            def obj_type(self):
+                return self.page.ACCOUNT_TYPES.get(Dict('TypeCompte')(self), Account.TYPE_UNKNOWN)
+
+            def obj__formated(self):
+                return self.el
+
+
+class CenetCardsPage(LoggedPage, CenetJsonPage):
+    def get_cards(self):
+        cards = Dict('DonneesSortie')(self.doc)
+
+        # Remove dates to prevent bad parsing
+        def reword_dates(card):
+            tmp_card = card
+
+            for k, v in tmp_card.iteritems():
+                if isinstance(v, dict):
+                    v = reword_dates(v)
+                if k == "Date" and v is not None and "Date" in v:
+                    card[k] = None
+
+        for card in cards:
+            reword_dates(card)
+
+        return cards
+
+class CenetAccountHistoryPage(LoggedPage, CenetJsonPage):
+    TR_TYPES = {8: Transaction.TYPE_TRANSFER, # VIR
+                7: Transaction.TYPE_TRANSFER, # VIR COMPTE A COMPTE
+                6: Transaction.TYPE_CASH_DEPOSIT, # REMISE CHECQUE(s)
+                4: Transaction.TYPE_ORDER # PRELV
+                }
+
+    @method
+    class get_history(DictElement):
+        item_xpath = "DonneesSortie"
+
+        class item(ItemElement):
+            klass = Transaction
+
+            obj_raw = Format('%s %s', Dict('Libelle'), Dict('Libelle2'))
+            obj_label = CleanText(Dict('Libelle'))
+            obj_date = Date(Dict('DateGroupImputation'))
+            obj_rdate = Date(Dict('DateGroupReglement'))
+
+            def obj_type(self):
+                return self.page.TR_TYPES.get(Dict('TypeMouvement')(self), Transaction.TYPE_UNKNOWN)
+
+            def obj_original_currency(self):
+                return CleanText(Dict('Montant/Devise'))(self).upper()
+
+            def obj_amount(self):
+                amount = Eval(lambda x: x / 10**2, CleanDecimal(Dict('Montant/Valeur')))(self)
+
+                return -amount if Dict('Montant/CodeSens')(self) == "D" else amount
 
 
 class GarbagePage(LoggedPage, HTMLPage):
@@ -386,6 +475,7 @@ class IndexPage(LoggedPage, HTMLPage):
 
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
 
+
             card_debit_date = self.doc.xpath(u'//span[@id="MM_HISTORIQUE_CB_m_TableTitle3_lblTitle"] | //label[contains(text(), "débiter le")]')
             if card_debit_date:
                 t.rdate = Date(dayfirst=True).filter(date)
@@ -449,8 +539,12 @@ class IndexPage(LoggedPage, HTMLPage):
             form['__EVENTTARGET'] = m.group(1)
             form['__EVENTARGUMENT'] = m.group(2)
 
-            if "MM$m_CH$IsMsgInit" in form and form['MM$m_CH$IsMsgInit'] == "0":
-                form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$SYNTHESE"
+            if "MM$m_CH$IsMsgInit" not in form:
+                # Not available on new website
+                pass
+
+            form['MM$m_CH$IsMsgInit'] = "0"
+            form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$SYNTHESE"
 
             for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
                          'MM$m_CH$ButtonImageMessagerie']:

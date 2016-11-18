@@ -18,7 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import json
 import mechanize
+
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 from weboob.browser import LoginBrowser, need_login
 from weboob.browser.url import URL
@@ -26,7 +30,9 @@ from weboob.capabilities.bank import Account
 from weboob.browser.exceptions import BrowserHTTPNotFound
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import IndexPage, ErrorPage, MarketPage, LifeInsurance, GarbagePage, MessagePage, LoginPage, CenetLoginPage
+from .pages import IndexPage, ErrorPage, MarketPage, LifeInsurance, GarbagePage, \
+                   MessagePage, LoginPage, CenetLoginPage, CenetAccountsPage, \
+                   CenetAccountHistoryPage, CenetCardsPage
 
 
 __all__ = ['CaisseEpargne']
@@ -38,7 +44,11 @@ class CaisseEpargne(LoginBrowser):
     login = URL('/authentification/manage\?step=identification&identifiant=(?P<login>.*)',
                 'https://.*/login.aspx', LoginPage)
     account_login = URL('/authentification/manage\?step=account&identifiant=(?P<login>.*)&account=(?P<accountType>.*)', LoginPage)
-    cenet_login = URL('https://www.cenet.caisse-epargne.fr', CenetLoginPage)
+    cenet_login = URL('https://www.cenet.caisse-epargne.fr/$', CenetLoginPage)
+    cenet_accounts = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/ChargerSyntheseComptes', CenetAccountsPage)
+    cenet_account_history = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/RechercherOperations', CenetAccountHistoryPage)
+    cenet_account_coming = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiCartesBanquaires.asmx/ChargerEnCoursCarte', CenetAccountHistoryPage)
+    cenet_cards = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiCartesBanquaires.asmx/ChargerCartes', CenetCardsPage)
     home = URL('https://.*/Portail.aspx.*', IndexPage)
     home_tache = URL('https://.*/Portail.aspx\?tache=(?P<tache>).*', IndexPage)
     error = URL('https://.*/login.aspx',
@@ -58,6 +68,7 @@ class CaisseEpargne(LoginBrowser):
     def __init__(self, nuser, *args, **kwargs):
         self.BASEURL = kwargs.pop('domain', self.BASEURL)
 
+        self.is_cenet_website = False
         self.multi_type = False
         self.typeAccount = 'WE'
         self.nuser = nuser
@@ -83,6 +94,8 @@ class CaisseEpargne(LoginBrowser):
             raise BrowserIncorrectPassword
 
         if "authMode" in data and data['authMode'] == 'redirect':
+            self.is_cenet_website = True
+
             post_data = {
                 'CodeEtablissement': data['codeCaisse'],
                 'NumeroBad': self.username,
@@ -130,6 +143,28 @@ class CaisseEpargne(LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
+        # cenet website
+        if self.is_cenet_website is True:
+            headers = {
+                'Content-Type': 'application/json; charset=UTF-8',
+                'Accept': 'application/json, text/javascript, */*; q=0.01'
+            }
+
+            data = {
+                'contexte': '',
+                'dateEntree': None,
+                'donneesEntree': 'null',
+                'filtreEntree': None
+            }
+
+            accounts = [account for account in self.cenet_accounts.go(data=json.dumps(data), headers=headers).get_accounts()]
+
+            for account in accounts:
+                account._cards = [card for card in self.cenet_cards.go(data=json.dumps(data), headers=headers).get_cards() \
+                                  if card['Compte']['Numero'] == account.id]
+
+            return accounts
+
         if self.home.is_here():
             self.page.check_no_accounts()
             self.page.go_list()
@@ -166,6 +201,9 @@ class CaisseEpargne(LoginBrowser):
 
     @need_login
     def get_loans_list(self):
+        if self.is_cenet_website is True:
+            return iter([])
+
         if self.home.is_here():
             if self.page.check_no_accounts():
                 return iter([])
@@ -252,6 +290,29 @@ class CaisseEpargne(LoginBrowser):
 
     @need_login
     def get_history(self, account):
+        if self.is_cenet_website is True:
+            # cenet website
+            headers = {
+                'Content-Type': 'application/json; charset=UTF-8',
+                'Accept': 'application/json, text/javascript, */*; q=0.01'
+            }
+
+            now = datetime.now()
+            dformat = '%Y-%m-%d'
+
+            data = {
+                'contexte': '',
+                'dateEntree': None,
+                'donneesEntree': json.dumps({
+                    'TypeRecherche': 'FD', \
+                    'DateFin': now.strftime(dformat) + 'T23:00:00.000Z',
+                    'DateDebut': (now - relativedelta(years=1)).strftime(dformat) + 'T23:00:00.000Z',
+                    'compte': account._formated
+                }),
+                'filtreEntree': None
+            }
+
+            return self.cenet_account_history.go(data=json.dumps(data), headers=headers).get_history()
         if not hasattr(account, '_info'):
             raise NotImplementedError
         if account.type is Account.TYPE_LIFE_INSURANCE:
@@ -260,18 +321,42 @@ class CaisseEpargne(LoginBrowser):
 
     @need_login
     def get_coming(self, account):
-        if not hasattr(account, '_info'):
-            raise NotImplementedError()
         trs = []
-        for info in account._card_links:
-            for tr in self._get_history(info.copy()):
-                tr.type = tr.TYPE_DEFERRED_CARD
-                tr.nopurge = True
-                trs.append(tr)
+
+        if self.is_cenet_website is True:
+            # cenet website
+            headers = {
+                'Content-Type': 'application/json; charset=UTF-8',
+                'Accept': 'application/json, text/javascript, */*; q=0.01'
+            }
+
+            for card in account._cards:
+                data = {
+                    'contexte': '',
+                    'dateEntree': None,
+                    'donneesEntree': json.dumps(card),
+                    'filtreEntree': None
+                }
+
+                for tr in self.cenet_account_coming.go(data=json.dumps(data), headers=headers).get_history():
+                    trs.append(tr)
+        else:
+            if not hasattr(account, '_info'):
+                raise NotImplementedError()
+            for info in account._card_links:
+                for tr in self._get_history(info.copy()):
+                    tr.type = tr.TYPE_DEFERRED_CARD
+                    tr.nopurge = True
+                    trs.append(tr)
+
         return iter(sorted(trs, key=lambda t: t.rdate, reverse=True))
 
     @need_login
     def get_investment(self, account):
+        if self.is_cenet_website is True:
+            # not available for the moment
+            return iter([])
+
         if account.type is not Account.TYPE_LIFE_INSURANCE and account.type is not Account.TYPE_MARKET:
             raise NotImplementedError()
         if self.home.is_here():
