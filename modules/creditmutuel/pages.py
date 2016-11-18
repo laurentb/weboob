@@ -482,8 +482,7 @@ class CardPage(OperationsPage, LoggedPage):
             class item(ItemElement):
                 def __iter__(self):
                     card_link = self.el.get('href')
-                    history_url = '%s/%s/fr/banque/%s' % (self.page.browser.BASEURL, self.page.browser.currentSubBank, card_link)
-                    page = self.page.browser.location(history_url).page
+                    page = self.page.browser.location(card_link).page
 
                     for op in page.get_history():
                         yield op
@@ -531,7 +530,10 @@ class CardPage(OperationsPage, LoggedPage):
                         original_amount = amount.xpath('./div')[1].text if len(amount.xpath('./div')) > 1 else None
                         amount = amount.xpath('./div')[0]
                     else:
-                        original_amount = amount.xpath('./span')[0].text
+                        try:
+                            original_amount = amount.xpath('./span')[0].text
+                        except IndexError:
+                            original_amount = None
                     self.env['amount'] = CleanDecimal(replace_dots=True).filter(amount.text)
                     self.env['original_amount'] = CleanDecimal(replace_dots=True).filter(original_amount) \
                                                   if original_amount is not None else NotAvailable
