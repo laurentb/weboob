@@ -41,6 +41,6 @@ class CICModule(AbstractModule, CapBankTransfer):
     PARENT = 'creditmutuel'
 
     def create_default_browser(self):
-        browser = self.create_browser(self.config['login'].get(), self.config['password'].get())
+        browser = self.create_browser(self.weboob, self.config['login'].get(), self.config['password'].get())
         browser.new_accounts.urls.insert(0, "/mabanque/fr/banque/comptes-et-contrats.html")
         return browser
