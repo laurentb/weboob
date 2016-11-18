@@ -494,6 +494,25 @@ class Boobank(ReplApplication):
             print('Error: please give a decimal amount to transfer', file=self.stderr)
             return 2
 
+        if self.interactive:
+            # Try to find the recipient label. It can be missing from
+            # recipients list, for example for banks which allow transfers to
+            # arbitrary recipients.
+            to = id_to
+            for recipient in self.do('iter_transfer_recipients', account.id, backends=account.backend, caps=CapBankTransfer):
+                if recipient.id == id_to:
+                    to = recipient.label
+                    break
+
+            print('Amount: %s%s' % (amount, account.currency_text))
+            print('From:   %s' % account.label)
+            print('To:     %s' % to)
+            print('Reason: %s' % (reason or ''))
+            if not self.ask('Are you sure to do this transfer?', default=True):
+                return
+
+        self.start_format()
+
         transfer = Transfer()
         transfer.account_id = account.id
         transfer.recipient_id = id_to
