@@ -314,10 +314,10 @@ class IngBrowser(LoginBrowser):
         transactions = list()
         for tr in self.page.iter_history():
             transactions.append(tr)
-        for tr in transactions:
-            page = tr._detail.result().page if tr._detail else None
-            tr.investments = list(page.get_investments()) if page and 'numMvt' in page.url else []
         if self.asv_history.is_here():
+            for tr in transactions:
+                page = tr._detail.result().page if tr._detail else None
+                tr.investments = list(page.get_investments()) if page and 'numMvt' in page.url else []
             self.location('https://secure.ingdirect.fr/')
         return iter(transactions)
 
