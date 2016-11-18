@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2015 Christophe Lampin
+# Copyright(C) 2016      Edouard Lambert
 #
 # This file is part of weboob.
 #
@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .module import S2eModule
+from .module import CapeasiModule
 
-__all__ = ['S2eModule']
+__all__ = ['CapeasiModule']
+
