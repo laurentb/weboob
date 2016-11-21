@@ -326,6 +326,7 @@ class BankAccountsPage(LoggedPage, MyHTMLPage):
         ('courant',            Account.TYPE_CHECKING),
         ('livret',             Account.TYPE_SAVINGS),
         ('ldd',                Account.TYPE_SAVINGS),
+        ('pel',                Account.TYPE_SAVINGS),
         ('pea',                Account.TYPE_MARKET),
         ('titres',             Account.TYPE_MARKET),
     ))
