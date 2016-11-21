@@ -112,13 +112,28 @@ class AccountsPage(CMSOPage):
                 return True
 
             def parse(self, el):
-                page = self.page.browser.open(Field('_history_url')(self)).page
-                self.env['id'] = Regexp(CleanText('//span[has-class("Rappel")]'), '(\d{18})')(page.doc)
+                history_url = Field('_history_url')(self)
+                if history_url.startswith('javascript:'):
+                    # Market account
+                    page = self.page.browser.investment.go()
+                    for tr in page.doc.xpath('.//table/tr[not(has-class("LnTit")) and not(has-class("LnTot"))]'):
+                        # Try to match account with id and balance.
+                        if CleanText('./td[2]//a')(tr) == Field('label')(self) \
+                            and CleanDecimal('./td[3]//a')(tr) == Field('balance')(self):
+                            assert 'id' not in self.env
+                            self.env['id'] = CleanText('./td[1]', replace=[(' ', '')])(tr)
+                else:
+                    page = self.page.browser.open(history_url).page
+                    self.env['id'] = Regexp(CleanText('//span[has-class("Rappel")]'), '(\d{18})')(page.doc)
 
     def on_load(self):
         if self.doc.xpath('//p[contains(text(), "incident technique")]'):
             raise BrowserIncorrectPassword("Vous n'avez aucun compte sur cet espace. " \
                                            "Veuillez choisir un autre type de compte.")
+
+
+class InvestmentPage(CMSOPage):
+    pass
 
 
 class Transaction(FrenchTransaction):

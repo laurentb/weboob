@@ -26,7 +26,7 @@ from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.tools.date import LinearDateGuesser
 
-from .pages import LoginPage, AccountsPage, HistoryPage, ChoiceLinkPage, SubscriptionPage, UselessPage
+from .pages import LoginPage, AccountsPage, HistoryPage, ChoiceLinkPage, SubscriptionPage, InvestmentPage, UselessPage
 
 
 class CmsoProBrowser(LoginBrowser):
@@ -34,6 +34,7 @@ class CmsoProBrowser(LoginBrowser):
     choice_link = URL('/domiweb/accueil.jsp', ChoiceLinkPage)
     subscription = URL('/domiweb/prive/espacesegment/selectionnerAbonnement/0-selectionnerAbonnement.act', SubscriptionPage)
     accounts = URL('/domiweb/prive/professionnel/situationGlobaleProfessionnel/0-situationGlobaleProfessionnel.act', AccountsPage)
+    investment = URL('/domiweb/prive/particulier/portefeuilleSituation/0-situationPortefeuille.act', InvestmentPage)
     history = URL('/domiweb/prive/professionnel/situationGlobaleProfessionnel/1-situationGlobaleProfessionnel.act', HistoryPage)
     useless = URL('/domiweb/prive/particulier/modificationMotDePasse/0-expirationMotDePasse.act', UselessPage)
 
