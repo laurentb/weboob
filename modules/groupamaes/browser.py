@@ -63,4 +63,4 @@ class GroupamaesBrowser(LoginBrowser):
 
     @need_login
     def iter_investment(self):
-        return self.avoir.go(page='&_pid=SituationGlobaleParFond').iter_investment()
+        return self.avoir.go(page='&_fid=GoPositionsParFond&_pid=SituationGlobale').iter_investment()
