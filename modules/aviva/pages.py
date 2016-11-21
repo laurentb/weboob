@@ -85,7 +85,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
 class InvestmentPage(LoggedPage, HTMLPage):
     def get_history_link(self):
-        return Link().filter(self.doc.xpath(u'//a[contains(text(), "opérations")]'))
+        return Link().filter(self.doc.xpath(u'//a[contains(text(), "historique")]'))
 
     @method
     class iter_investment(ListElement):
