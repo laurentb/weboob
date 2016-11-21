@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.travel import Departure
-from weboob.browser.filters.standard import CleanText, Format, Regexp, CleanDecimal
+from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal
 from weboob.browser.filters.html import Link
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.pages import JsonPage
@@ -54,15 +54,12 @@ class DeparturesPage(JsonPage):
             def obj_time(self):
                 _date = CleanText('./article/div/h3[@itemprop="startDate"]/@content')(self).split('-')
                 _time = Regexp(CleanText('./article/div/h3[@itemprop="startDate"]'),
-                               u'.* à|~ (\d+:\d*)')(self).split(':')
+                               u'.* à (\d+:\d+)')(self).split(':')
                 return datetime(int(_date[0]), int(_date[1]),
                                 int(_date[2]), int(_time[0]),
                                 0 if len(_time) < 2 or len(_time) == 2 and not _time[1] else int(_time[1]))
 
-            obj_type = Format('%s (%s)',
-                              CleanText('./article/div/dl[@class="car-type"]/dt/strong'),
-                              CleanText('./article/div/dl[@class="car-type"]/dd/span/@title'))
-
+            obj_type = CleanText('./article/div/h3[@class="fromto"]/span[@class!="u-visuallyHidden"]')
             obj_departure_station = CleanText('./article/div/dl[@class="geo-from"]/dd',
                                               replace=[(": voir avec le conducteur", "")])
             obj_arrival_station = CleanText('./article/div/dl[@class="geo-to"]/dd',
