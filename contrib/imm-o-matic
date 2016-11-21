@@ -1,0 +1,301 @@
+#! /usr/bin/python3
+# -*- coding: utf-8 -*-
+#
+# Copyright 2015-2016, Roland Mas <lolando@debian.org>
+#
+# Licensed under the GNU Affero General Public License, version 3
+#
+# This is imm-o-matic, a script that filters the results of real estate sites
+# according to keywords, then generates PDF files containing the description
+# and photos of the relevant items found
+#
+# Requires a couple of Python modules plus wkhtmltopdf
+# Note that unless wkhtmltopdf is built against a patched webkit, it won't
+# work headless so you need an X session running
+#
+# Configuration file is YAML:
+# [BEGIN CONFIG FILE]
+# ---
+# set1:
+#   queries:
+#     - city1
+#     - city2
+#   keywords:
+#     - garden
+#     - terrace
+#   maxprice: 1000000
+#   minprice: 10000
+#   backends:
+#     - logicimmo
+#     - pap
+#   destdir: /home/roland/immo/set1/files/
+#   workdir: /home/roland/immo/set1/workdir/
+# set2:
+#   queries:
+#     - city3
+#     - city4
+#   keywords:
+#     - balcony
+#   maxprice: 1000000
+#   minprice: 10000
+#   backends:
+#     - explorimmo
+#   destdir: /home/roland/immo/set2/files/
+#   workdir: /home/roland/immo/set2/workdir/
+# [END CONFIG FILE]
+#
+# You'll need to prepare the flatboob saved queries (city1, city2 and so on
+# in the config sample above) by your own means, then run imm-o-matic
+
+import csv
+import sqlite3
+import os
+import json
+import re
+import subprocess
+import hashlib
+import glob
+import tempfile
+import shutil
+import argparse
+import sys
+import yaml
+
+fields = [ u'id', u'title', u'area', u'cost', u'currency', u'date', u'location', u'station', u'text', u'phone', u'photos', u'details', u'url' ]
+
+# Init database connection
+def connectdb():
+    db = sqlite3.connect(dbf)
+    tmpcursor = db.cursor()
+
+    cols = ", ".join(map(lambda x: x+" TEXT", fields))
+    try:
+        tmpcursor.execute('CREATE TABLE ids(id TEXT UNIQUE NOT NULL, details INTEGER DEFAULT 0 NOT NULL, fetched INTEGER DEFAULT 0 NOT NULL)')
+        db.commit()
+    except:
+        db.rollback()
+    try:
+        cursor.execute('CREATE TABLE details('+cols+')')
+        db.commit()
+    except:
+        db.rollback()
+    try:
+        cursor.execute('CREATE TABLE searchable(id TEXT UNIQUE NOT NULL, searchable TEXT NOT NULL)')
+        db.commit()
+    except:
+        db.rollback()
+    return db
+
+# Fetch ids for all available estates
+def getids():
+    cursor = db.cursor()
+    for b in backs:
+        for r in reqs:
+            wf = workdir+r+'-'+b+'.csv'
+            try:
+                os.unlink(wf)
+            except FileNotFoundError:
+                pass
+            print("Querying %s for %s"%(b,r))
+            subprocess.run(['/usr/bin/flatboob','load',r,'-n','1000','-f','csv','-b',b,'-O',wf])
+
+    cursor.execute('SELECT id FROM ids')
+    ids = set()
+    for row in cursor:
+        ids.add(row[0])
+
+    for csf in glob.iglob(workdir+'*.csv'):
+        reader = csv.reader(open(csf), delimiter=";")
+        indices = reader.__next__()
+        for csvrow in reader:
+            row = dict(zip(indices,csvrow))
+            if row['id'] not in ids:
+                print ("Inserting id %s"%(row['id'],))
+                cursor.execute('INSERT INTO ids (id) VALUES (?)',
+                               (row['id'],))
+                ids.add(row['id'])
+    db.commit()
+
+# Fetch and store details for estates
+def getdetails():
+    cursor = db.cursor()
+    cursor.execute('SELECT id FROM ids WHERE details=0 ORDER BY id')
+    ids = set()
+    for row in cursor:
+        ids.add(row[0])
+
+    def serializefield(x):
+        if x.__class__==dict:
+            return json.dumps(x)
+        elif x.__class__==list:
+            return json.dumps(x)
+        else:
+            return x
+
+    for i in ids:
+        print ("Fetching details for %s"%(i,))
+        try:
+            d = json.load(os.popen('flatboob info -f json %s' % (i,)))
+        except json.decoder.JSONDecodeError:
+            continue
+        try:
+            d = d[0]
+        except IndexError:
+            continue
+        q = 'INSERT INTO DETAILS ('+','.join(fields)+') VALUES ('+ ','.join(list(map(lambda x: '?',fields)))+')'
+        p = list(map(lambda x: serializefield(d[x]),fields))
+        cursor.execute(q, p)
+        cursor.execute('UPDATE ids SET details=1 WHERE id=?',(i,))
+    db.commit()
+
+    cursor.execute('SELECT id FROM ids WHERE details=1 ORDER BY id')
+    ids = set()
+    for row in cursor:
+        ids.add(row[0])
+
+    def gensearchable(x):
+        cursor.execute('SELECT title,text FROM details WHERE id=?',(x,))
+        row = cursor.__next__()
+        searchable = row[0]+' '+row[1]
+        searchable = searchable.lower()
+        searchable = re.sub('\\s+',' ',searchable)
+        cursor.execute('DELETE FROM searchable WHERE id=?',(x,))
+        cursor.execute('INSERT INTO searchable (id,searchable) VALUES (?,?)',(x,searchable))
+
+    for i in ids:
+        gensearchable(i)
+    db.commit()
+
+# Filter estates according to keywords and generate PDFs
+def search():
+    cursor = db.cursor()
+    cursor.execute('SELECT id FROM ids WHERE fetched=1 ORDER BY id')
+    fetched = set()
+    for row in cursor:
+        fetched.add('pouet')
+        fetched.add(row[0])
+
+    cursor.execute('SELECT id,searchable FROM searchable')
+    index = {}
+    for row in cursor:
+        if row[0] in fetched:
+            continue
+        index[row[0]] = row[1]
+
+    for i in index:
+        s = index[i]
+        keep = False
+        for k in kws:
+            r = '\\b'+k+'\\b'
+            if re.search(r,s,flags=re.I):
+                keep = True
+                break
+        if not keep:
+            continue
+
+        cursor.execute('SELECT title,location,cost,area,text,phone,photos,url FROM details WHERE id=?',(i,))
+        row = cursor.__next__()
+        d = {
+            'title': row[0],
+            'location': row[1],
+            'cost': row[2],
+            'area': row[3],
+            'text': row[4],
+            'phone': row[5],
+            'photos': row[6],
+            'url': row[7],
+            'id': i,
+            'site': re.sub('.*@','',i),
+        }
+        d['location'] = re.sub('\\d','',d['location'])
+        d['location'] = re.sub('\\s+',' ',d['location'])
+        d['location'] = re.sub('\(.*','',d['location'])
+        d['location'] = d['location'].strip()
+
+        if int(d['cost']) < minprice or int(d['cost']) > maxprice:
+            continue
+
+        print ("Selecting %s, downloading"%(i,))
+
+        for k in kws:
+            r = '\\b('+k+')\\b'
+            d['text'] = re.sub(r,'<span style="background:#FFAAAA">\\1</span>',d['text'],flags=re.I)
+
+        dirpath = tempfile.mkdtemp()
+        do_checks = False
+        try:
+            f = open(dirpath+'/tmp.html','w')
+            f.write("""<html><head><meta charset='utf-8' /><title>%(title)s</title></head><body>
+    <ul>
+    <li>Titre : %(title)s</li>
+    <li>Ville : %(location)s</li>
+    <li>Prix : %(cost)s €</li>
+    <li>Surface : %(area)s</li>
+    <li><a href="%(url)s">%(url)s</a> (site : %(site)s)</li>
+    <li>Téléphone : %(phone)s</li>
+    <li>
+    Descriptif :
+    %(text)s
+    </li>
+    </ul><br>
+    """ % d)
+            photos = json.loads(row[6])
+            for p in photos:
+                u = p['url']
+                os.chdir(dirpath)
+                m = hashlib.md5()
+                m.update(u.encode('utf-8'))
+                fn = 'photo-'+m.hexdigest()
+                subprocess.run(['/usr/bin/wget','-q','-O',fn,'-c',u],check=do_checks)
+                f.write("""<img src="%s" />
+    """%(fn,))
+            f.write("""</body></html>""")
+            f.close()
+            dname = "%(location)s %(cost)s€ %(id)s.pdf" % d
+            dname = dname.strip()
+            subprocess.run(['/usr/bin/wkhtmltopdf','-q','tmp.html',destdir+dname],check=do_checks)
+            cursor.execute('UPDATE ids SET fetched=1 WHERE id=?',(i,))
+        except subprocess.CalledProcessError:
+            print ("Error")
+        shutil.rmtree(dirpath)
+        os.chdir(destdir)
+    db.commit()
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--action", help="What to do", default="all", required=False)
+    parser.add_argument("--regen", help="Regen PDF", required=False)
+    parser.add_argument("--configfile", help="Config file", default=os.getenv('HOME')+'/.config/imm-o-matic.yaml', required=False)
+    args = parser.parse_args()
+
+    configs = yaml.load(open(args.configfile))
+    for i in configs:
+        config = configs[i]
+        destdir = config['destdir']
+        workdir = config['workdir']
+        kws = config['keywords']
+        reqs = config['queries']
+        minprice = config['minprice']
+        maxprice = config['maxprice']
+        backs = config['backends']
+        dbf = workdir + 'imm-o-matic.sqlite'
+
+        db = connectdb()
+        cursor = db.cursor()
+
+        if args.regen:
+            i = args.regen
+            i = re.sub('^.*/','',i)
+            i = re.sub('.pdf$','',i)
+            cursor = db.cursor()
+            cursor.execute('UPDATE ids SET details=0,fetched=0 WHERE id=?',(i,))
+        if args.action == 'getids':
+            getids()
+        elif args.action == 'getdetails':
+            getdetails()
+        elif args.action == 'search':
+            search()
+        elif args.action == 'all':
+            getids()
+            getdetails()
+            search()
