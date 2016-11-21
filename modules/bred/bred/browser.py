@@ -164,6 +164,9 @@ class BredBrowser(DomainBrowser):
                 a.label = ' '.join([content['intitule'].strip(), poste['libelle'].strip()])
                 a.balance = Decimal(str(poste['solde']['valeur']))
                 a.currency = poste['solde']['monnaie']['code'].strip()
+                # Some accounts may have balance currency
+                if 'Solde en devises' in a.label and a.currency != u'EUR':
+                    a.id += str(poste['monnaie']['codeSwift'])
                 yield a
 
     def get_history(self, account):
