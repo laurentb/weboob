@@ -19,8 +19,12 @@
 
 from __future__ import print_function
 
-from PyQt5.QtCore import Qt, QAbstractItemModel, QModelIndex, \
-                         QSortFilterProxyModel, QVariant, pyqtSignal as Signal
+from collections import deque
+from weakref import WeakKeyDictionary
+
+from PyQt5.QtCore import Qt, QObject, QAbstractItemModel, QModelIndex, \
+                         QSortFilterProxyModel, QVariant, pyqtSignal as Signal,\
+                         pyqtSlot as Slot
 from PyQt5.QtGui import QIcon, QImage, QPixmap, QPixmapCache, \
                         QStandardItemModel, QStandardItem
 
@@ -93,50 +97,58 @@ class BackendListModel(QStandardItemModel):
             self.appendRow(item)
 
 
-class DoWrapper(object):
-    """Wrapper for QtDo to use in DoLimiter."""
+class DoWrapper(QtDo):
+    """Wrapper for QtDo to use in DoQueue."""
 
     def __init__(self, *args, **kwargs):
-        self.qtdo = QtDo(*args, **kwargs)
-
-        self.limiter = None
+        super(DoWrapper, self).__init__(*args, **kwargs)
         self.do_args = None
-        self.old_fb = self.qtdo.fb
-        self.qtdo.fb = self._finished
 
     def do(self, *args, **kwargs):
         self.do_args = (args, kwargs)
 
     def start(self):
-        self.qtdo.do(*self.do_args[0], **self.do_args[1])
-
-    def _finished(self):
-        if self.old_fb is not None:
-            self.old_fb()
-        self.limiter._finished(self)
+        super(DoWrapper, self).do(*self.do_args[0], **self.do_args[1])
+        self.do_args = None
 
 
-class DoLimiter(object):
+class DoQueue(QObject):
     """Queue to limit the number of parallel Do processes."""
 
     def __init__(self):
+        super(DoQueue, self).__init__()
         self.max_tasks = 10
-        self.running = 0
-        self.queue = []
+        self.running = set()
+        self.queue = deque()
 
     def add(self, doer):
-        doer.limiter = self
-        if self.running < self.max_tasks:
-            self.running += 1
+        doer.finished.connect(self._finished)
+
+        if len(self.running) < self.max_tasks:
+            self.running.add(doer)
             doer.start()
         else:
             self.queue.append(doer)
 
-    def _finished(self, doer):
-        if len(self.queue):
-            self.queue.pop(0).start()
-        else:
-            self.running -= 1
+    @Slot()
+    def _finished(self):
+        try:
+            self.running.remove(self.sender())
+        except KeyError:
+            return
+
+        try:
+            doer = self.queue.popleft()
+        except IndexError:
+            return
+        self.running.add(doer)
+        doer.start()
+
+    def stop(self):
+        doers = list(self.running) + list(self.queue)
+        self.running, self.queue = set(), deque()
+        for do in doers:
+            do.stop()
 
 
 class ResultModel(QAbstractItemModel):
@@ -156,11 +168,21 @@ class ResultModel(QAbstractItemModel):
         self.children = {}
         self.parents = {}
         self.columns = []
-        self.processes = DoLimiter()
+
+        self.jobs = DoQueue()
+        self.jobExpanders = WeakKeyDictionary()
+        self.jobFillers = WeakKeyDictionary()
+
+    def __del__(self):
+        try:
+            self.jobs.stop()
+        except:
+            pass
 
     # configuration/general operation
     def clear(self):
         """Empty the model completely"""
+        self.jobs.stop()
         n = len(self.children.get(None, []))
         #self.beginResetModel()
         if n:
@@ -171,12 +193,19 @@ class ResultModel(QAbstractItemModel):
         if n:
             self.endRemoveRows()
 
+    @Slot(object)
+    def _gotRootDone(self, obj):
+        self._addToRoot(obj)
+
     def addRootDo(self, *args, **kwargs):
         """Make a weboob.do and add returned items to root of model"""
-        process = DoWrapper(self.weboob, lambda r: self._addToRoot(r), fb=self.jobFinished.emit)
+        process = DoWrapper(self.weboob, None)
+        process.gotResponse.connect(self._gotRootDone)
+        process.finished.connect(self.jobFinished)
+
         process.do(*args, **kwargs)
         self.jobAdded.emit()
-        self.processes.add(process)
+        self.jobs.add(process)
 
     def addRootItems(self, objs):
         for obj in objs:
@@ -201,26 +230,35 @@ class ResultModel(QAbstractItemModel):
         self.parents[obj] = parent
         self.endInsertRows()
 
-    def _makeAdder(self, obj, qidx):
-        return lambda r: self._addItem(r, obj, qidx)
+    @Slot(object)
+    def _expanderGotResponse(self, obj):
+        parent, parent_qidx = self.jobExpanders[self.sender()]
+        self._addItem(obj, parent, parent_qidx)
+
+    def _prepareExpanderJob(self, parent, parent_qidx):
+        process = DoWrapper(self.weboob, None)
+        process.finished.connect(self.jobFinished)
+        process.gotResponse.connect(self._expanderGotResponse)
+        self.jobExpanders[process] = (parent, parent_qidx)
+        return process
 
     def expandGauge(self, gauge, qidx):
-        process = DoWrapper(self.weboob, self._makeAdder(gauge, qidx), fb=self.jobFinished.emit)
+        process = self._prepareExpanderJob(gauge, qidx)
         process.do('iter_sensors', gauge.id, backends=[gauge.backend])
         self.jobAdded.emit()
-        self.processes.add(process)
+        self.jobs.add(process)
 
     def expandGallery(self, gall, qidx):
-        process = DoWrapper(self.weboob, self._makeAdder(gall, qidx), fb=self.jobFinished.emit)
+        process = self._prepareExpanderJob(gall, qidx)
         process.do('iter_gallery_images', gall, backends=[gall.backend])
         self.jobAdded.emit()
-        self.processes.add(process)
+        self.jobs.add(process)
 
     def expandCollection(self, coll, qidx):
-        process = DoWrapper(self.weboob, self._makeAdder(coll, qidx), fb=self.jobFinished.emit)
+        process = self._prepareExpanderJob(coll, qidx)
         process.do('iter_resources', self.resource_classes, coll.split_path, backends=[coll.backend])
         self.jobAdded.emit()
-        self.processes.add(process)
+        self.jobs.add(process)
 
     def expandObj(self, obj, qidx):
         if isinstance(obj, BaseCollection):
@@ -238,12 +276,19 @@ class ResultModel(QAbstractItemModel):
             qidx = qidx.parent()
 
     def fillObj(self, obj, fields, qidx):
-        process = DoWrapper(self.weboob, lambda new: self.dataChanged.emit(qidx, qidx),
-                            fb=self.jobFinished.emit)
+        process = DoWrapper(self.weboob, None)
+        self.jobFillers[process] = qidx
+        process.gotResponse.connect(self._fillerGotResponse)
+        process.finished.connect(self.jobFinished)
 
         process.do('fillobj', obj, fields, backends=qidx.data(self.RoleBackendName))
         self.jobAdded.emit()
-        self.processes.add(process)
+        self.jobs.add(process)
+
+    @Slot(object)
+    def _fillerGotResponse(self, _):
+        qidx = self.jobFillers[self.sender()]
+        self.dataChanged.emit(qidx, qidx)
 
     # Qt model methods
     def index(self, row, col, parent_qidx):
