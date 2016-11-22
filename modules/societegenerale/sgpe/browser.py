@@ -23,7 +23,7 @@ from weboob.browser.url import URL
 from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, CardsPage, CardHistoryPage
+from .pages import LoginPage, CardsPage, CardHistoryPage, ChangePassPage
 from .json_pages import AccountsJsonPage, BalancesJsonPage, HistoryJsonPage
 
 
@@ -34,6 +34,7 @@ class SGPEBrowser(LoginBrowser):
     login = URL('$', LoginPage)
     cards = URL('/Pgn/.+PageID=Cartes&.+', CardsPage)
     cards_history = URL('/Pgn/.+PageID=ReleveCarte&.+', CardHistoryPage)
+    change_pass = URL('/gao/changer-code-secret-expire-saisie.html', ChangePassPage)
 
     def is_logged(self):
         if not self.page or self.login.is_here():

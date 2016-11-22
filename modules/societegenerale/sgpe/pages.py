@@ -26,7 +26,7 @@ from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Env
 from weboob.browser.filters.html import Attr
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-
+from weboob.exceptions import ActionNeeded
 from weboob.tools.json import json
 
 from weboob.capabilities.base import NotAvailable
@@ -75,6 +75,11 @@ class SGPEPage(HTMLPage):
             or self.doc.xpath(u'//div[contains(@class, "waitAuthJetonMsg")]')
         if err:
             return err[0].text.strip()
+
+
+class ChangePassPage(SGPEPage):
+    def on_load(self):
+        raise ActionNeeded(CleanText('//div[@class="ngo_gao_message_intro"]')(self.doc))
 
 
 class LoginPage(SGPEPage):
