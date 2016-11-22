@@ -253,6 +253,7 @@ class Form(OrderedDict):
         self.method = el.attrib.get('method', 'GET')
         self.url = el.attrib.get('action', page.url)
         self.name = el.attrib.get('name', '')
+        self.req = None
         submits = 0
 
         # Find all elements of the form that will be useful to create the request
@@ -310,12 +311,13 @@ class Form(OrderedDict):
         """
         Get the Request object from the form.
         """
-        if self.method.lower() == 'get':
-            req = requests.Request(self.method, self.url, params=self)
-        else:
-            req = requests.Request(self.method, self.url, data=self)
-        req.headers.setdefault('Referer', self.page.url)
-        return req
+        if self.req is None:
+            if self.method.lower() == 'get':
+                self.req = requests.Request(self.method, self.url, params=self)
+            else:
+                self.req = requests.Request(self.method, self.url, data=self)
+            self.req.headers.setdefault('Referer', self.page.url)
+        return self.req
 
     def submit(self, **kwargs):
         """
