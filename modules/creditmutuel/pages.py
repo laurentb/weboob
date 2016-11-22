@@ -90,28 +90,6 @@ class VerifCodePage(LoggedPage, HTMLPage):
         raise BrowserIncorrectPassword('Unable to login: website asks a code from a card')
 
 
-class TransfertPage(LoggedPage, HTMLPage):
-    def get_account_index(self, direction, account):
-        for div in self.doc.getroot().cssselect(".dw_dli_contents"):
-            inp = div.cssselect("input")[0]
-            if inp.name != direction:
-                continue
-            acct = div.cssselect("span.doux")[0].text.replace(" ", "")
-            if account.endswith(acct):
-                return inp.attrib['value']
-        else:
-            raise ValueError("account %s not found" % account)
-
-    def get_from_account_index(self, account):
-        return self.get_account_index('data_input_indiceCompteADebiter', account)
-
-    def get_to_account_index(self, account):
-        return self.get_account_index('data_input_indiceCompteACrediter', account)
-
-    def get_unicode_content(self):
-        return self.content.decode(self.detect_encoding())
-
-
 class AccountsPage(LoggedPage, HTMLPage):
     def on_load(self):
         no_account_message = CleanText(u'//td[contains(text(), "Votre contrat de banque à distance ne vous donne accès à aucun compte.")]')(self.doc)

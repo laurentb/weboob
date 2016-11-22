@@ -37,7 +37,7 @@ from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
                    OperationsPage, CardPage, ComingPage, NoOperationsPage, \
-                   TransfertPage, ChangePasswordPage, VerifCodePage,       \
+                   ChangePasswordPage, VerifCodePage,       \
                    EmptyPage, PorPage, IbanPage, NewHomePage, RedirectPage, \
                    LIAccountsPage, CardsActivityPage, CardsListPage,       \
                    CardsOpePage, NewAccountsPage, InternalTransferPage, \
@@ -77,7 +77,6 @@ class CreditMutuelBrowser(LoginBrowser):
     noop =        URL('/(?P<subbank>.*)/fr/banque/CR/arrivee.asp.*',         NoOperationsPage)
     info =        URL('/(?P<subbank>.*)/fr/banque/BAD.*',                    EmptyPage)
     transfert =   URL('/(?P<subbank>.*)/fr/banque/virements/vplw_vi.html',   EmptyPage)
-    transfert_2 = URL('/(?P<subbank>.*)/fr/banque/virements/vplw_cmweb.aspx.*', TransfertPage)
     change_pass = URL('/(?P<subbank>.*)/fr/validation/change_password.cgi',
                       '/fr/services/change_password.html', ChangePasswordPage)
     verify_pass = URL('/(?P<subbank>.*)/fr/validation/verif_code.cgi.*',     VerifCodePage)
