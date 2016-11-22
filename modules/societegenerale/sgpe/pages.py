@@ -21,15 +21,14 @@ from logging import error
 import re
 from cStringIO import StringIO
 
-from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
+from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Date, Env
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Env
 from weboob.browser.filters.html import Attr
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 from weboob.tools.json import json
 
-from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
 
 from ..captcha import Captcha, TileError
@@ -78,11 +77,6 @@ class SGPEPage(HTMLPage):
             return err[0].text.strip()
 
 
-class ErrorPage(SGPEPage):
-    def get_error(self):
-        return SGPEPage.get_error(self) or 'Unknown error'
-
-
 class LoginPage(SGPEPage):
     def login(self, login, password):
         infos_data = self.browser.open('/sec/vk/gen_crypto?estSession=0').content
@@ -110,73 +104,6 @@ class LoginPage(SGPEPage):
         except KeyError:
             pass
         form.submit()
-
-
-class AccountsListPage(LoggedPage, SGPEPage):
-    def get_binder_number(self):
-        return len(self.doc.xpath("//div[@id='ngo_centre']//table[@id='tab-onglet']//td[@class]"))
-
-class AccountsPage(LoggedPage, SGPEPage):
-    TYPES = {u'COMPTE COURANT':      Account.TYPE_CHECKING,
-             u'COMPTE PERSONNEL':    Account.TYPE_CHECKING,
-             u'CPTE PRO':            Account.TYPE_CHECKING,
-             u'CPTE PERSO':          Account.TYPE_CHECKING,
-             u'CODEVI':              Account.TYPE_SAVINGS,
-             u'CEL':                 Account.TYPE_SAVINGS,
-             u'Ldd':                 Account.TYPE_SAVINGS,
-             u'Livret':              Account.TYPE_SAVINGS,
-             u'PEA':                 Account.TYPE_SAVINGS,
-             u'PEL':                 Account.TYPE_SAVINGS,
-             u'Plan Epargne':        Account.TYPE_SAVINGS,
-             u'Prêt':                Account.TYPE_LOAN,
-            }
-
-    @method
-    class get_list(ListElement):
-        item_xpath = '//table[@id="tab-corps"]//tr'
-
-        class item(ItemElement):
-            klass = Account
-
-            obj_label = CleanText('./td[1]')
-            obj_id = CleanText('./td[2]', replace=[(' ', '')])
-            obj__agency = CleanText('./td[3]')
-            obj_balance = CleanDecimal('./td[4]', replace_dots=True)
-            obj_currency = FrenchTransaction.Currency('./td[4]')
-
-            def obj_type(self):
-                for wording, acc_type in self.page.TYPES.iteritems():
-                    if wording in Field('label')(self):
-                        return acc_type
-                return Account.TYPE_UNKNOWN
-
-            def condition(self):
-                return Field('label')(self) and len(self.el.xpath('./td')) > 1
-
-
-class HistoryPage(LoggedPage, SGPEPage):
-    @method
-    class iter_transactions(ListElement):
-        item_xpath = '//table[@id="tab-corps"]//tr'
-
-        class item(ItemElement):
-            klass = Transaction
-
-            obj_date = Date(CleanText('./td[1]'), dayfirst=True)
-            obj_raw = Transaction.Raw(CleanText('./td[2]'))
-            obj_vdate = Date(CleanText('./td[5]'), dayfirst=True)
-            obj_amount = CleanDecimal('./td[3] | ./td[4]', replace_dots=True)
-
-            def obj_deleted(self):
-                return self.obj.type == FrenchTransaction.TYPE_CARD_SUMMARY
-
-            def condition(self):
-                return CleanText('./td[2]')(self)
-
-    def has_next(self):
-        current = Attr('//input[@id="numPage"]', 'value', default='')(self.doc)
-        end = CleanText('//td[@id="numPageBloc"]/b[@class="contenu3-lien"]', replace=[('/', '')])(self.doc)
-        return end and current and int(end) > int(current)
 
 
 class CardsPage(LoggedPage, SGPEPage):
@@ -228,16 +155,3 @@ class CardHistoryPage(LoggedPage, SGPEPage):
             return True
 
         return False
-
-
-class OrderPage(LoggedPage, JsonPage):
-    def get_iban(self, acc_id):
-        for acc in self.doc['donnees']:
-            if acc_id in acc['ibanCompte']:
-                return unicode(acc['ibanCompte'])
-
-        return NotAvailable
-
-    def get_error(self):
-        # Maybe later we need to implement this
-        return None

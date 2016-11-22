@@ -21,7 +21,7 @@ import requests
 
 from weboob.browser.pages import LoggedPage, JsonPage, pagination
 from weboob.browser.elements import ItemElement, method, DictElement
-from weboob.browser.filters.standard import CleanDecimal, Date, Format, BrowserURL
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, Format, BrowserURL
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import Currency
 from weboob.capabilities import NotAvailable
@@ -30,20 +30,40 @@ from weboob.capabilities.bank import Account
 from .pages import Transaction
 
 class AccountsJsonPage(LoggedPage, JsonPage):
+    TYPES = {u'COMPTE COURANT':      Account.TYPE_CHECKING,
+             u'COMPTE PERSONNEL':    Account.TYPE_CHECKING,
+             u'CPTE PRO':            Account.TYPE_CHECKING,
+             u'CPTE PERSO':          Account.TYPE_CHECKING,
+             u'CODEVI':              Account.TYPE_SAVINGS,
+             u'CEL':                 Account.TYPE_SAVINGS,
+             u'Ldd':                 Account.TYPE_SAVINGS,
+             u'Livret':              Account.TYPE_SAVINGS,
+             u'PEA':                 Account.TYPE_SAVINGS,
+             u'PEL':                 Account.TYPE_SAVINGS,
+             u'Plan Epargne':        Account.TYPE_SAVINGS,
+             u'Prêt':                Account.TYPE_LOAN,
+            }
+
     def iter_accounts(self):
         for classeur in self.doc['donnees']['classeurs']:
             title = classeur['title']
             for compte in classeur['comptes']:
                 a = Account()
-                a.label = compte['libelle']
+                a.label = CleanText().filter(compte['libelle'])
                 a._id = compte['id']
                 a.iban = compte['iban'].replace(' ', '')
                 # id based on iban to match ids in database.
                 a.id = a.iban[4:-2]
-                a.type = Account.TYPE_CHECKING
+                a.type = self.obj_type(a.label)
                 a._agency = compte['agenceGestionnaire']
                 a._title = title
                 yield a
+
+    def obj_type(self, label):
+        for wording, acc_type in self.TYPES.iteritems():
+            if wording.lower() in label.lower():
+                return acc_type
+        return Account.TYPE_CHECKING
 
     def get_error(self):
         if self.doc['commun']['statut'] == 'nok':
@@ -55,7 +75,7 @@ class BalancesJsonPage(LoggedPage, JsonPage):
     def populate_balances(self, accounts):
         for account in accounts:
             acc_dict = self.doc['donnees']['compteSoldesMap'][account._id]
-            account.balance = CleanDecimal(replace_dots=True).filter(acc_dict['soldeInstantane'])
+            account.balance = CleanDecimal(replace_dots=True).filter(acc_dict['soldeComptable'])
             account.currency = Currency.get_currency(acc_dict['deviseSoldeComptable'])
             yield account
 
