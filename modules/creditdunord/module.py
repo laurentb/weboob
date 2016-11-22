@@ -55,34 +55,28 @@ class CreditDuNordModule(Module, CapBank):
                                    self.config['password'].get())
 
     def iter_accounts(self):
-        with self.browser:
-            for account in self.browser.get_accounts_list():
-                yield account
+        for account in self.browser.get_accounts_list():
+            yield account
 
     def get_account(self, _id):
-        with self.browser:
-            account = self.browser.get_account(_id)
-
+        account = self.browser.get_account(_id)
         if account:
             return account
         else:
             raise AccountNotFound()
 
     def iter_history(self, account):
-        with self.browser:
-            account = self.browser.get_account(account.id)
-            transactions = list(self.browser.get_history(account))
-            transactions.sort(key=lambda tr: tr.rdate, reverse=True)
-            return [tr for tr in transactions if not tr._is_coming]
+        account = self.browser.get_account(account.id)
+        for tr in self.browser.get_history(account):
+            if not tr._is_coming:
+                yield tr
 
     def iter_coming(self, account):
-        with self.browser:
-            account = self.browser.get_account(account.id)
-            transactions = list(self.browser.get_history(account, coming=True))
-            transactions.sort(key=lambda tr: tr.rdate, reverse=True)
-            return [tr for tr in transactions if tr._is_coming]
+        account = self.browser.get_account(account.id)
+        for tr in self.browser.get_history(account, coming=True):
+            if tr._is_coming:
+                yield tr
 
     def iter_investment(self, account):
-        with self.browser:
-            account = self.browser.get_account(account.id)
-            return self.browser.get_investment(account)
+        account = self.browser.get_account(account.id)
+        return self.browser.get_investment(account)

@@ -19,73 +19,70 @@
 
 
 import re
-import urllib
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.browser import LoginBrowser, URL, need_login
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
-from .pages import LoginPage, AccountsPage, ProAccountsPage, TransactionsPage, ProTransactionsPage, IbanPage, RedirectPage, AVPage
+from .pages import LoginPage, AccountsPage, ProAccountsPage, TransactionsPage, \
+                   ProTransactionsPage, IbanPage, RedirectPage, AVPage
 
 
-__all__ = ['CreditDuNordBrowser']
-
-
-class CreditDuNordBrowser(Browser):
-    PROTOCOL = 'https'
+class CreditDuNordBrowser(LoginBrowser):
     ENCODING = 'UTF-8'
-    PAGES = {'https://[^/]+/?':                                         LoginPage,
-             'https://[^/]+/.*\?.*_pageLabel=page_erreur_connexion.*':  LoginPage,
-             'https://[^/]+/swm/redirectCDN.html':                      RedirectPage,
-             'https://[^/]+/vos-comptes/particuliers(\?.*)?':           AccountsPage,
-             'https://[^/]+/vos-comptes/particuliers/transac_tableau_de_bord(\?.*)?':           AccountsPage,
-             'https://[^/]+/vos-comptes/particuliers/V1_transactional_portal_page_.*':          AVPage,
-             'https://[^/]+/vos-comptes/.*/transac/particuliers.*':     TransactionsPage,
-             'https://[^/]+/vos-comptes/(?P<kind>professionnels|entreprises).*':    ProAccountsPage,
-             'https://[^/]+/vos-comptes/.*/transac/(professionnels|entreprises).*': ProTransactionsPage,
-             'https://[^/]+/vos-comptes/IPT/cdnProxyResource/transacClippe/RIB_impress.asp.*': IbanPage,
-            }
+
+    login = URL('$',
+                '/.*\?.*_pageLabel=page_erreur_connexion',                        LoginPage)
+    redirect = URL('/swm/redirectCDN.html',                                       RedirectPage)
+    av = URL('/vos-comptes/particuliers/V1_transactional_portal_page_',           AVPage)
+    accounts = URL('/vos-comptes/particuliers',
+                   '/vos-comptes/particuliers/transac_tableau_de_bord',           AccountsPage)
+    transactions = URL('/vos-comptes/.*/transac/particuliers',                    TransactionsPage)
+    proaccounts = URL('/vos-comptes/(professionnels|entreprises)',                ProAccountsPage)
+    protransactions = URL('/vos-comptes/.*/transac/(professionnels|entreprises)', ProTransactionsPage)
+    iban = URL('/vos-comptes/IPT/cdnProxyResource/transacClippe/RIB_impress.asp', IbanPage)
+
     account_type = 'particuliers'
 
     def __init__(self, website, *args, **kwargs):
-        self.DOMAIN = website
-        Browser.__init__(self, *args, **kwargs)
+        super(CreditDuNordBrowser, self).__init__(*args, **kwargs)
+        self.BASEURL = "https://%s" % website
 
     def is_logged(self):
-        return self.page is not None and not self.is_on_page(LoginPage) and \
-            not self.page.document.xpath(u'//b[contains(text(), "vous devez modifier votre code confidentiel")]')
+        return self.page is not None and not self.login.is_here() and \
+            not self.page.doc.xpath(u'//b[contains(text(), "vous devez modifier votre code confidentiel")]')
 
     def home(self):
         if self.is_logged():
-            self.location(self.buildurl('/vos-comptes/%s' % self.account_type))
-            self.location(self.page.document.xpath(u'//a[contains(text(), "Synthèse")]')[0].attrib['href'])
+            self.location('/vos-comptes/%s' % self.account_type)
+            self.location(self.page.doc.xpath(u'//a[contains(text(), "Synthèse")]')[0].attrib['href'])
         else:
-            self.login()
+            self.do_login()
 
-    def login(self):
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
+    def do_login(self):
+        self.login.go().login(self.username, self.password)
 
-        self.location('https://' + self.DOMAIN, no_login=True)
-
-        self.page.login(self.username, self.password)
+        if self.login.is_here():
+            raise BrowserIncorrectPassword(self.page.get_error())
 
         if not self.is_logged():
             raise BrowserIncorrectPassword()
 
-        m = re.match('https://[^/]+/vos-comptes/(\w+).*', self.page.url)
+        m = re.match('https://[^/]+/vos-comptes/(\w+).*', self.url)
         if m:
             self.account_type = m.group(1)
 
+    @need_login
     def get_accounts_list(self, iban=True):
-        if not self.is_on_page(AccountsPage):
+        if not self.accounts.is_here():
             self.home()
         accounts = []
         self.location(self.page.get_av_link())
-        if self.is_on_page(AVPage):
+        if self.av.is_here():
             for a in self.page.get_av_accounts():
-                self.location(a._link, urllib.urlencode(a._args))
-                self.location(a._link.replace("_attente", "_detail_contrat_rep"), urllib.urlencode(a._args))
-                self.page.fill_valuation_diff(a)
+                self.location(a._link, data=a._args)
+                self.location(a._link.replace("_attente", "_detail_contrat_rep"), data=a._args)
+                self.page.fill_diff_currency(a)
                 accounts.append(a)
         self.home()
         for a in self.page.get_list():
@@ -94,7 +91,7 @@ class CreditDuNordBrowser(Browser):
             self.page.iban_page()
             link = self.page.iban_go()
             for a in [a for a in accounts if a._acc_nb]:
-                self.location('%s%s' % (link, a._acc_nb))
+                self.location(link + a._acc_nb)
                 a.iban = self.page.get_iban()
         return iter(accounts)
 
@@ -105,37 +102,45 @@ class CreditDuNordBrowser(Browser):
         for a in l:
             if a.id == id:
                 return a
-
         return None
 
+    @need_login
     def iter_transactions(self, link, args, acc_type):
         if args is None:
             return
 
         while args is not None:
-            self.location(link, urllib.urlencode(args))
+            self.location(link, data=args)
 
-            assert self.is_on_page(TransactionsPage)
+            assert self.transactions.is_here()
 
             for tr in self.page.get_history(acc_type):
                 yield tr
 
             args = self.page.get_next_args(args)
 
+    @need_login
     def get_history(self, account, coming=False):
         if coming and account.type is not Account.TYPE_CARD:
-            return
-        for tr in self.iter_transactions(account._link, account._args, account.type):
-            yield tr
+            return iter([])
 
+        transactions = []
+        for tr in self.iter_transactions(account._link, account._args, account.type):
+            transactions.append(tr)
+        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        return transactions
+
+    @need_login
     def get_investment(self, account):
         if not account._inv:
             return iter([])
+
+        investments = []
         if (account.type == Account.TYPE_MARKET):
-            self.location(account._link, urllib.urlencode(account._args))
-            return self.page.get_market_investment()
+            self.location(account._link, data=account._args)
+            investments = [i for i in self.page.get_market_investment()]
         elif (account.type == Account.TYPE_LIFE_INSURANCE):
-            self.location(account._link, urllib.urlencode(account._args))
-            self.location(account._link.replace("_attente", "_detail_contrat_rep"), urllib.urlencode(account._args))
-            return self.page.get_deposit_investment()
-        return iter([])
+            self.location(account._link, data=account._args)
+            self.location(account._link.replace("_attente", "_detail_contrat_rep"), data=account._args)
+            investments = [i for i in self.page.get_deposit_investment()]
+        return iter(investments)

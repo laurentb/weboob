@@ -18,20 +18,33 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from urllib import quote, urlencode
-from decimal import Decimal
 import re
-from cStringIO import StringIO
+
+from urllib import quote
+from decimal import Decimal
 from io import BytesIO
 from datetime import date as da
+from lxml import html
 
-from weboob.deprecated.browser import Page, BrokenPageError, BrowserIncorrectPassword
-from weboob.exceptions import ActionNeeded
-from weboob.tools.json import json
+from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Regexp
+from weboob.exceptions import ActionNeeded, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
+from weboob.tools.json import json
+
+
+def MyDecimal(*args, **kwargs):
+    kwargs.update(replace_dots=True, default=NotAvailable)
+    return CleanDecimal(*args, **kwargs)
+
+
+def MyStrip(x, xpath='.'):
+    return CleanText(xpath)(html.fromstring("<p>%s</p>" % x)) if isinstance(x, basestring) else \
+           CleanText(xpath)(html.fromstring(CleanText('.')(x)))
+
 
 class CDNVirtKeyboard(GridVirtKeyboard):
     symbols = {'0': '3de2346a63b658c977fce4da925ded28',
@@ -52,7 +65,7 @@ class CDNVirtKeyboard(GridVirtKeyboard):
     ncol = 4
 
     def __init__(self, browser, crypto, grid):
-        f = BytesIO(browser.openurl('/sec/vk/gen_ui?modeClavier=0&cryptogramme=%s' % crypto).read())
+        f = BytesIO(browser.open('/sec/vk/gen_ui?modeClavier=0&cryptogramme=%s' % crypto).content)
         super(CDNVirtKeyboard, self).__init__(range(16), self.ncol, self.nrow, f, self.color)
         self.check_symbols(self.symbols, browser.responses_dirname)
         self.codes = grid
@@ -72,14 +85,15 @@ class CDNVirtKeyboard(GridVirtKeyboard):
         return ','.join(res)
 
 
-class RedirectPage(Page):
-    def on_loaded(self):
-        for script in self.document.xpath('//script'):
-            self.browser.location(re.search(r'href="([^"]+)"', script.text).group(1), no_login=True)
+class RedirectPage(HTMLPage):
+    def on_load(self):
+        for script in self.doc.xpath('//script'):
+            self.browser.location(re.search(r'href="([^"]+)"', script.text).group(1))
 
-class LoginPage(Page):
+
+class LoginPage(HTMLPage):
     def login(self, username, password):
-        login_selector = self.document.xpath('//input[@id="codsec"]')
+        login_selector = self.doc.xpath('//input[@id="codsec"]')
         if login_selector:
             if not password.isdigit() or not len(password) == 6:
                 raise BrowserIncorrectPassword('The credentials have changed on website %s. Please update them.' % self.browser.DOMAIN)
@@ -88,7 +102,7 @@ class LoginPage(Page):
             self.classic_login(username,password)
 
     def vk_login(self, username, password):
-        res = self.browser.openurl('/sec/vk/gen_crypto?estSession=0').read()
+        res = self.browser.open('/sec/vk/gen_crypto?estSession=0').content
         crypto = re.search(r"'crypto': '([^']+)'", res).group(1)
         grid = re.search(r"'grid': \[([^\]]+)]", res).group(1).split(',')
 
@@ -100,13 +114,13 @@ class LoginPage(Page):
                 'vk_op':        'auth',
                }
 
-        self.browser.location(self.browser.buildurl('/swm/redirectCDN.html'), urlencode(data), no_login=True)
+        self.browser.location('/swm/redirectCDN.html', data=data)
 
     def classic_login(self, username, password):
-        m = re.match('www.([^\.]+).fr', self.browser.DOMAIN)
+        m = re.match('www.([^\.]+).fr', self.browser.BASEURL)
         if not m:
             bank_name = 'credit-du-nord'
-            self.logger.error('Unable to find bank name for %s' % self.browser.DOMAIN)
+            self.logger.error('Unable to find bank name for %s' % self.browser.BASEURL)
         else:
             bank_name = m.group(1)
 
@@ -117,15 +131,19 @@ class LoginPage(Page):
                 'username':     username.encode(self.browser.ENCODING),
                }
 
-        self.browser.location(self.browser.buildurl('/saga/authentification'), urlencode(data), no_login=True)
+        self.browser.location('/saga/authentification', data=data)
 
-class CDNBasePage(Page):
+    def get_error(self):
+        return CleanText('//b[has-class("x-attentionErreurLigneHaut")]', default="")(self.doc)
+
+
+class CDNBasePage(HTMLPage):
     def get_from_js(self, pattern, end, is_list=False):
         """
         find a pattern in any javascript text
         """
         value = None
-        for script in self.document.xpath('//script'):
+        for script in self.doc.xpath('//script'):
             txt = script.text
             if txt is None:
                 continue
@@ -158,7 +176,7 @@ class CDNBasePage(Page):
         return '%s%s' % ('/vos-comptes/IPT/cdnProxyResource', self.get_from_js('C_PROXY.StaticResourceClientTranslation( "', '"'))
 
 
-class AccountsPage(CDNBasePage):
+class AccountsPage(LoggedPage, CDNBasePage):
     COL_HISTORY = 2
     COL_FIRE_EVENT = 3
     COL_ID = 4
@@ -184,10 +202,10 @@ class AccountsPage(CDNBasePage):
         return Account.TYPE_UNKNOWN
 
     def get_history_link(self):
-        return self.parser.strip(self.get_from_js(",url: Ext.util.Format.htmlDecode('", "'"))
+        return CleanText().filter(self.get_from_js(",url: Ext.util.Format.htmlDecode('", "'")).replace('&amp;', '&')
 
     def get_av_link(self):
-        return self.document.xpath('//a[contains(text(), "Consultation")]')[0].attrib['href']
+        return self.doc.xpath('//a[contains(text(), "Consultation")]')[0].attrib['href']
 
     def get_list(self):
         accounts = []
@@ -195,7 +213,7 @@ class AccountsPage(CDNBasePage):
         txt = self.get_from_js('_data = new Array(', ');', is_list=True)
 
         if txt is None:
-            raise BrokenPageError('Unable to find accounts list in scripts')
+            raise BrowserUnavailable('Unable to find accounts list in scripts')
 
         data = json.loads('[%s]' % txt.replace("'", '"'))
 
@@ -203,8 +221,7 @@ class AccountsPage(CDNBasePage):
             a = Account()
             a.id = line[self.COL_ID].replace(' ', '')
             a._acc_nb = a.id.split('_')[0] if len(a.id.split('_')) > 1 else None
-            fp = StringIO(unicode(line[self.COL_LABEL]).encode(self.browser.ENCODING))
-            a.label = self.parser.tocleanstring(self.parser.parse(fp, self.browser.ENCODING).xpath('//div[@class="libelleCompteTDB"]')[0])
+            a.label = MyStrip(line[self.COL_LABEL], xpath='.//div[@class="libelleCompteTDB"]')
             # This account can be multiple life insurance accounts
             if a.label == 'ASSURANCE VIE-BON CAPI-SCPI-DIVERS *':
                 continue
@@ -227,7 +244,7 @@ class AccountsPage(CDNBasePage):
                 a._args = {'_ipc_eventValue':  line[self.COL_ID],
                            '_ipc_fireEvent':   line[self.COL_FIRE_EVENT],
                           }
-                a._link = self.document.xpath('//form[@name="changePageForm"]')[0].attrib['action']
+                a._link = self.doc.xpath('//form[@name="changePageForm"]')[0].attrib['action']
 
             if a.type is Account.TYPE_CARD:
                 a.coming = a.balance
@@ -238,14 +255,13 @@ class AccountsPage(CDNBasePage):
         return accounts
 
     def iban_page(self):
-        self.browser.select_form(name="changePageForm")
-        self.browser.form.set_all_readonly(False)
-        self.browser['_ipc_fireEvent'] = 'V1_rib'
-        self.browser['_ipc_eventValue'] = 'bouchon=bouchon'
-        self.browser.submit()
+        form = self.get_form(name="changePageForm")
+        form['_ipc_fireEvent'] = 'V1_rib'
+        form['_ipc_eventValue'] = 'bouchon=bouchon'
+        form.submit()
 
 
-class AVPage(CDNBasePage):
+class AVPage(LoggedPage, CDNBasePage):
     COL_LABEL = 0
     COL_BALANCE = 3
 
@@ -263,17 +279,17 @@ class AVPage(CDNBasePage):
         return url, args
 
     def get_av_accounts(self):
-        for tr in self.document.xpath('//table[@class="datas"]/tr[not(@class)]'):
+        for tr in self.doc.xpath('//table[@class="datas"]/tr[not(@class)]'):
             cols = tr.findall('td')
             if len(cols) != 4:
                 continue
 
             a = Account()
-            a.label = self.parser.tocleanstring(cols[self.COL_LABEL])
+            a.label = CleanText('.')(cols[self.COL_LABEL])
             a.type = Account.TYPE_LIFE_INSURANCE
-            a.balance = Decimal(FrenchTransaction.clean_amount(self.parser.tocleanstring(cols[self.COL_BALANCE])))
+            a.balance = MyDecimal('.')(cols[self.COL_BALANCE])
             a._link, a._args = self.get_params(cols[self.COL_LABEL].find('span/a').attrib['href'])
-            a.id = '%s%s' % (a._args['IndiceSupport'], a._args['NumPolice'])
+            a.id = a._args['IndiceSupport'] + a._args['NumPolice']
             a._acc_nb = None
             a._inv = True
             yield a
@@ -291,13 +307,12 @@ class ProAccountsPage(AccountsPage):
             l.append(sub)
 
         if len(l) <= 1:
-             #For account that have no history
+            #For account that have no history
             return None, None
 
-        kind = self.group_dict['kind']
-        url = '/vos-comptes/IPT/appmanager/transac/' + kind + '?_nfpb=true&_windowLabel=portletInstance_18&_pageLabel=page_synthese_v1' + '&_cdnCltUrl=' + "/transacClippe/" + quote(l.pop(0))
+        url = '/vos-comptes/IPT/appmanager/transac/' + self.browser.account_type + '?_nfpb=true&_windowLabel=portletInstance_18&_pageLabel=page_synthese_v1' + '&_cdnCltUrl=' + "/transacClippe/" + quote(l.pop(0))
         args = {}
-        for input in self.document.xpath('//form[@name="detail"]/input'):
+        for input in self.doc.xpath('//form[@name="detail"]/input'):
             args[input.attrib['name']] = input.attrib.get('value', '')
 
         for i, key in enumerate(self.ARGS):
@@ -310,11 +325,11 @@ class ProAccountsPage(AccountsPage):
 
     def get_list(self):
 
-        no_accounts_message = self.document.xpath(u'//span/b[contains(text(),"Votre abonnement est clôturé. Veuillez contacter votre conseiller.")]/text()')
+        no_accounts_message = self.doc.xpath(u'//span/b[contains(text(),"Votre abonnement est clôturé. Veuillez contacter votre conseiller.")]/text()')
         if no_accounts_message:
             raise ActionNeeded(no_accounts_message[0])
 
-        for tr in self.document.xpath('//table[@class="datas"]//tr'):
+        for tr in self.doc.xpath('//table[@class="datas"]//tr'):
             if tr.attrib.get('class', '') == 'entete':
                 continue
 
@@ -323,8 +338,8 @@ class ProAccountsPage(AccountsPage):
             a = Account()
             a.label = unicode(cols[self.COL_ID].xpath('.//span[@class="left-underline"]')[0].text.strip())
             a.type = self.get_account_type(a.label)
-            balance = self.parser.tocleanstring(cols[self.COL_BALANCE])
-            a.balance = Decimal(FrenchTransaction.clean_amount(balance))
+            balance = CleanText('.')(cols[self.COL_BALANCE])
+            a.balance = CleanDecimal(replace_dots=True).filter(balance)
             a.currency = a.get_currency(balance)
             a._link, a._args = self.params_from_js(cols[self.COL_ID].find('a').attrib['href'])
             a._acc_nb = cols[self.COL_ID].xpath('.//span[@class="right-underline"]')[0].text.replace(' ', '').strip()
@@ -346,13 +361,13 @@ class ProAccountsPage(AccountsPage):
             yield a
 
     def iban_page(self):
-        self.browser.location(self.document.xpath('.//a[contains(text(), "Impression IBAN")]')[0].attrib['href'])
+        self.browser.location(self.doc.xpath('.//a[contains(text(), "Impression IBAN")]')[0].attrib['href'])
 
 
-class IbanPage(Page):
+class IbanPage(LoggedPage, HTMLPage):
     def get_iban(self):
         try:
-            return unicode(self.document.xpath('.//td[@width="315"]/font')[0].text.replace(' ', '').strip())
+            return unicode(self.doc.xpath('.//td[@width="315"]/font')[0].text.replace(' ', '').strip())
         except AttributeError:
             return NotAvailable
 
@@ -377,7 +392,7 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class TransactionsPage(CDNBasePage):
+class TransactionsPage(LoggedPage, CDNBasePage):
     COL_ID = 0
     COL_DATE = -5
     COL_DEBIT_DATE = -4
@@ -394,7 +409,7 @@ class TransactionsPage(CDNBasePage):
         return args
 
     def is_last(self):
-        for script in self.document.xpath('//script'):
+        for script in self.doc.xpath('//script'):
             txt = script.text
             if txt is None:
                 continue
@@ -434,11 +449,11 @@ class TransactionsPage(CDNBasePage):
             t = Transaction()
 
             if acc_type is Account.TYPE_CARD:
-                date = vdate = self.parser.strip(line[self.COL_DEBIT_DATE])
+                date = vdate = Date(dayfirst=True).filter(MyStrip(line[self.COL_DEBIT_DATE]))
             else:
-                date = self.parser.strip(line[self.COL_DATE])
-                vdate = self.parser.strip(line[self.COL_DEBIT_DATE])
-            raw = self.parser.strip(line[self.COL_LABEL])
+                date = Date(dayfirst=True).filter(MyStrip(line[self.COL_DATE]))
+                vdate = Date(dayfirst=True).filter(MyStrip(line[self.COL_DEBIT_DATE]))
+            raw = MyStrip(line[self.COL_LABEL])
 
             t.parse(date, raw, vdate=vdate)
             t.set_amount(line[self.COL_VALUE])
@@ -455,7 +470,8 @@ class TransactionsPage(CDNBasePage):
         COL_UNITVALUE = 3
         COL_VALUATION = 4
         COL_PERF = 5
-        for table in self.document.xpath('//table[@class="datas-large"]'):
+
+        for table in self.doc.xpath('//table[@class="datas-large"]'):
             for tr in table.xpath('.//tr[not(@class="entete")]'):
                 cols = tr.findall('td')
                 if len(cols) < 7:
@@ -465,13 +481,13 @@ class TransactionsPage(CDNBasePage):
                     delta = 1
 
                 inv = Investment()
-                inv.code = self.parser.tocleanstring(cols[COL_LABEL + delta].xpath('.//span')[1]).split(' ')[0].split(u'\xa0')[0]
-                inv.label = self.parser.tocleanstring(cols[COL_LABEL + delta].xpath('.//span')[0])
-                inv.quantity = self.parse_decimal(cols[COL_QUANTITY + delta])
-                inv.unitprice = self.parse_decimal(cols[COL_UNITPRICE + delta])
-                inv.unitvalue = self.parse_decimal(cols[COL_UNITVALUE + delta])
-                inv.valuation = self.parse_decimal(cols[COL_VALUATION + delta])
-                inv.diff = self.parse_decimal(cols[COL_PERF + delta])
+                inv.code = CleanText('.')(cols[COL_LABEL + delta].xpath('.//span')[1]).split(' ')[0].split(u'\xa0')[0]
+                inv.label = CleanText('.')(cols[COL_LABEL + delta].xpath('.//span')[0])
+                inv.quantity = MyDecimal('.')(cols[COL_QUANTITY + delta])
+                inv.unitprice = MyDecimal('.')(cols[COL_UNITPRICE + delta])
+                inv.unitvalue = MyDecimal('.')(cols[COL_UNITVALUE + delta])
+                inv.valuation = MyDecimal('.')(cols[COL_VALUATION + delta])
+                inv.diff = MyDecimal('.')(cols[COL_PERF + delta])
 
                 yield inv
 
@@ -480,30 +496,30 @@ class TransactionsPage(CDNBasePage):
         COL_QUANTITY = 3
         COL_UNITVALUE = 4
         COL_VALUATION = 5
-        for tr in self.document.xpath('//table[@class="datas"]/tr[not(@class="entete")]'):
+
+        for tr in self.doc.xpath('//table[@class="datas"]/tr[not(@class="entete")]'):
             cols = tr.findall('td')
 
             inv = Investment()
-            inv.label = self.parser.tocleanstring(cols[COL_LABEL].xpath('.//a')[0])
-            inv.code = self.parser.tocleanstring(cols[COL_LABEL]).replace(inv.label, "").split(' ')[0].split(u'\xa0')[0]
-            inv.quantity = self.parse_decimal(cols[COL_QUANTITY])
-            inv.unitvalue = self.parse_decimal(cols[COL_UNITVALUE])
-            inv.valuation = self.parse_decimal(cols[COL_VALUATION])
+            inv.label = CleanText('.')(cols[COL_LABEL].xpath('.//a')[0])
+            inv.code = CleanText('./text()')(cols[COL_LABEL])
+            inv.quantity = MyDecimal('.')(cols[COL_QUANTITY])
+            inv.unitvalue = MyDecimal().filter(CleanText('.')(cols[COL_UNITVALUE]).split()[0])
+            inv.vdate = Date(dayfirst=True).filter(Regexp(CleanText('.'), '(\d{2})/(\d{2})/(\d{4})', '\\3-\\2-\\1')(cols[COL_UNITVALUE]))
+            inv.valuation = MyDecimal('.')(cols[COL_VALUATION])
 
             yield inv
 
-    def parse_decimal(self, string):
-        value = self.parser.tocleanstring(string)
-        if value == '-':
-            return NotAvailable
-        return Decimal(Transaction.clean_amount(value))
+    def fill_diff_currency(self, account):
+        valuation_diff = CleanText(u'//td[span[contains(text(), "dont +/- value : ")]]//b', default=None)(self.doc)
+        if valuation_diff:
+            account.valuation_diff = MyDecimal().filter(valuation_diff)
+            account.currency = account.get_currency(valuation_diff)
 
-    def fill_valuation_diff(self, account):
-        account.valuation_diff = self.parse_decimal(self.document.xpath(u'//td[span[contains(text(), "dont +/- value : ")]]//b')[0])
 
 class ProTransactionsPage(TransactionsPage):
     def get_next_args(self, args):
-        if len(self.document.xpath('//a[contains(text(), "Suivant")]')) > 0:
+        if len(self.doc.xpath('//a[contains(text(), "Suivant")]')) > 0:
             args['PageDemandee'] = int(args.get('PageDemandee', 1)) + 1
             return args
 
@@ -511,7 +527,7 @@ class ProTransactionsPage(TransactionsPage):
 
     def parse_transactions(self):
         transactions = {}
-        for script in self.document.xpath('//script'):
+        for script in self.doc.xpath('//script'):
             txt = script.text
             if txt is None:
                 continue
@@ -528,11 +544,12 @@ class ProTransactionsPage(TransactionsPage):
         for i, tr in self.parse_transactions():
             t = Transaction()
             if acc_type is Account.TYPE_CARD:
-                date = vdate = tr['dateval']
+                date = vdate = Date(dayfirst=True).filter(tr['dateval'])
             else:
-                date = tr['date']
-                vdate = tr['dateval'] or date
-            raw = self.parser.strip('<p>%s</p>' % (' '.join([tr['typeope'], tr['LibComp']])))
+                date = Date(dayfirst=True).filter(tr['date'])
+                vdate = Date(dayfirst=True, default=None).filter(tr['dateval']) or date
+            raw = MyStrip(' '.join([tr['typeope'], tr['LibComp']]))
+
             t.parse(date, raw, vdate)
             t.set_amount(tr['mont'])
 
