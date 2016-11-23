@@ -22,7 +22,8 @@
 from decimal import Decimal
 
 from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, RecipientNotFound, TransferError
+from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, RecipientNotFound, \
+                                     Account, TransferError
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -71,10 +72,17 @@ class CreditMutuelModule(Module, CapBankTransfer):
         return self.browser.get_investment(account)
 
     def iter_transfer_recipients(self, origin_account):
-        origin_account = find_object(self.iter_accounts(), id=origin_account, error=AccountNotFound)
+        if not self.browser.is_new_website:
+            raise NotImplementedError()
+
+        if not isinstance(origin_account, Account):
+            origin_account = find_object(self.iter_accounts(), id=origin_account, error=AccountNotFound)
         return self.browser.iter_recipients(origin_account)
 
-    def transfer(self, transfer):
+    def init_transfer(self, transfer, **params):
+        if not self.browser.is_new_website:
+            raise NotImplementedError()
+
         # There is a check on the website, transfer can't be done with too long reason.
         if transfer.label and len(transfer.label) > 27:
             raise TransferError(u'Le libellé du virement est trop long')
@@ -94,4 +102,7 @@ class CreditMutuelModule(Module, CapBankTransfer):
         except (AssertionError, ValueError):
             raise TransferError('something went wrong')
 
-        return self.browser.transfer(account, recipient, amount, transfer.label)
+        return self.browser.init_transfer(account, recipient, amount, transfer.label)
+
+    def execute_transfer(self, transfer, **params):
+        return self.browser.execute_transfer(transfer)

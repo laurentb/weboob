@@ -35,12 +35,11 @@ from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal
 from weboob.browser.filters.html import Link, Attr
 from weboob.exceptions import BrowserIncorrectPassword, ParseError, NoAccountsException
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import find_object, empty
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, Transfer
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_french_date
-
 
 class RedirectPage(LoggedPage, HTMLPage):
     def on_load(self):
@@ -677,7 +676,6 @@ class MyRecipient(ItemElement):
 
     obj_currency = u'EUR'
     obj_label = CleanText('.//div[@role="presentation"]/em | .//div[not(@id) and not(@role)]')
-    obj__outer_recipient = False
 
     def obj_enabled_at(self):
         return datetime.now().replace(microsecond=0)
@@ -721,13 +719,12 @@ class InternalTransferPage(LoggedPage, HTMLPage):
             obj_bank_name = u'Crédit Mutuel'
             obj_label = CleanText('.//div[@role="presentation"]/em | .//div[not(@id) and not(@role)]')
             obj_id = CleanText('.//span[@class="_c1 doux _c1"]', replace=[(' ', '')])
-            obj__outer_recipient = False
-            obj_category = u'inner'
+            obj_category = u'Interne'
 
             def obj_iban(self):
                 if not self.page.IS_PRO_PAGE:
                     return find_object(self.page.browser.get_accounts_list(), id=Field('id')(self)).iban
-                l = [a for a in self.page.browser.get_accounts_list() if Field('id')(self) in a.id]
+                l = [a for a in self.page.browser.get_accounts_list() if Field('id')(self) in a.id and empty(a.valuation_diff)]
                 assert len(l) == 1
                 return l[0].iban
 
@@ -740,7 +737,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
             if account.endswith(acct):
                 return inp.attrib['value']
         else:
-            raise ValueError("account %s not found" % account)
+            raise TransferError("account %s not found" % account)
 
     def get_from_account_index(self, account):
         return self.get_account_index('data_input_indiceCompteADebiter', account)
@@ -868,12 +865,11 @@ class ExternalTransferPage(InternalTransferPage):
         class item(MyRecipient):
             condition = lambda self: Field('id')(self) not in self.env['origin_account']._external_recipients
 
-            obj__outer_recipient = True
             obj_bank_name = CleanText('(.//span[@class="_c1 doux _c1"])[2]', default=NotAvailable)
             obj_label = CleanText('./div//em')
 
             def obj_category(self):
-                return self.env['category'] if 'category' in self.env else u'outer'
+                return self.env['category'] if 'category' in self.env else u'Externe'
 
             def obj_id(self):
                 if self.page.IS_PRO_PAGE:

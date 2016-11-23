@@ -277,11 +277,8 @@ class CreditMutuelBrowser(LoginBrowser):
                 for recipient in self.page.iter_recipients(origin_account=origin_account):
                     yield recipient
 
-    def transfer(self, account, to, amount, reason=None):
-        if not self.is_new_website:
-            raise NotImplementedError()
-
-        if to._outer_recipient:
+    def init_transfer(self, account, to, amount, reason=None):
+        if to.category != u'Interne':
             self.external_transfer.go(subbank=self.currentSubBank)
         else:
             self.internal_transfer.go(subbank=self.currentSubBank)
@@ -294,12 +291,12 @@ class CreditMutuelBrowser(LoginBrowser):
             self.page.IS_PRO_PAGE = True
             self.page.RECIPIENT_STRING = 'data_input_indiceBen'
         self.page.prepare_transfer(account, to, amount, reason)
-        transfer = self.page.handle_response(account, to, amount, reason)
+        return self.page.handle_response(account, to, amount, reason)
 
+    def execute_transfer(self, transfer, **params):
         form = self.page.get_form(id='P:F', submit='//input[@type="submit" and contains(@value, "Confirmer")]')
         # For the moment, don't ask the user if he confirms the duplicate.
         form['Bool:data_input_confirmationDoublon'] = 'true'
         form.submit()
-
         return self.page.create_transfer(transfer)
 
