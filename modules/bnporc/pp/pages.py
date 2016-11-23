@@ -226,6 +226,7 @@ class TransferInitPage(BNPPage):
             obj_id = Dict('ibanCrypte')
             obj_label = Dict('nomTitulaireCompte')
             obj_iban = Dict('iban')
+            obj_category = u'inner'
 
             def obj_bank_name(self):
                 return u'BNP PARIBAS'
@@ -244,6 +245,7 @@ class RecipientsPage(BNPPage):
             obj_label = Dict('nomBeneficiaire')
             obj_iban = Dict('ibanNumCompte')
             obj__outer_recipient = True
+            obj_category = u'outer'
 
             def obj_bank_name(self):
                 return Dict('nomBanque')(self) or NotAvailable
