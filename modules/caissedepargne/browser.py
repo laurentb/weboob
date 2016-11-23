@@ -243,6 +243,8 @@ class CaisseEpargne(LoginBrowser):
 
     @need_login
     def _get_history(self, info):
+        if isinstance(info['link'], list):
+            info['link'] = info['link'][0]
         if not info['link'].startswith('HISTORIQUE'):
             return
         if self.home.is_here():
