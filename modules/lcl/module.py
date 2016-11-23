@@ -18,7 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from decimal import Decimal
+
+from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, \
+                                     RecipientNotFound, TransferError, Account
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 from weboob.capabilities.base import find_object
@@ -30,7 +33,7 @@ from .enterprise.browser import LCLEnterpriseBrowser, LCLEspaceProBrowser
 __all__ = ['LCLModule']
 
 
-class LCLModule(Module, CapBank):
+class LCLModule(Module, CapBankTransfer):
     NAME = 'lcl'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -78,3 +81,34 @@ class LCLModule(Module, CapBank):
 
     def iter_investment(self, account):
         return self.browser.get_investment(account)
+
+    def iter_transfer_recipients(self, origin_account):
+        if self.config['website'].get() not in  ['par', 'pro']:
+            raise NotImplementedError()
+        if not isinstance(origin_account, Account):
+            origin_account = find_object(self.iter_accounts(), id=origin_account, error=AccountNotFound)
+        return self.browser.iter_recipients(origin_account)
+
+    def transfer(self, transfer):
+        if self.config['website'].get() not in  ['par', 'pro']:
+            raise NotImplementedError()
+
+        # There is a check on the website, transfer can't be done with too long reason.
+        if transfer.label and len(transfer.label) > 30:
+            raise TransferError(u'Le libellé du virement est trop long')
+
+        self.logger.info('Going to do a new transfer')
+        if transfer.account_iban:
+            account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
+            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
+        else:
+            account = find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
+            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
+
+        try:
+            # quantize to show 2 decimals.
+            amount = Decimal(transfer.amount).quantize(Decimal(10) ** -2)
+        except (AssertionError, ValueError):
+            raise TransferError('something went wrong')
+
+        return self.browser.transfer(account, recipient, amount, transfer.label)

@@ -23,13 +23,13 @@ from urlparse import urlsplit, parse_qsl
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, find_object
 from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    CBListPage, CBHistoryPage, ContractsPage, BoursePage, \
                    AVPage, AVDetailPage, DiscPage, NoPermissionPage, RibPage, \
-                   HomePage, LoansPage
+                   HomePage, LoansPage, TransferPage, RecipientPage
 
 
 __all__ = ['LCLBrowser','LCLProBrowser']
@@ -77,6 +77,10 @@ class LCLBrowser(LoginBrowser):
 
     loans = URL('/outil/UWCR/SynthesePar/', LoansPage)
 
+    transfer_page = URL('/outil/UWVS/', TransferPage)
+    confirm_transfer = URL('/outil/UWVS/Accueil/redirectView', TransferPage)
+    recipients = URL('/outil/UWBE/Consultation/list', RecipientPage)
+
     def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
@@ -92,6 +96,7 @@ class LCLBrowser(LoginBrowser):
            (self.login.is_here() and self.page.is_error()) :
             raise BrowserIncorrectPassword("invalid login/password.\nIf you did not change anything, be sure to check for password renewal request\non the original web site.\nAutomatic renewal will be implemented later.")
 
+        self.accounts_list = None
         self.accounts.stay_or_go()
 
     @need_login
@@ -110,29 +115,32 @@ class LCLBrowser(LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
-        self.assurancevie.stay_or_go()
-        if self.no_perm.is_here():
-            self.logger.warning('Life insurances are unavailable.')
-        else:
+        if self.accounts_list is None:
+            self.accounts_list = []
+            self.assurancevie.stay_or_go()
+            if self.no_perm.is_here():
+                self.logger.warning('Life insurances are unavailable.')
+            else:
+                for a in self.page.get_list():
+                    self.accounts_list.append(a)
+            self.accounts.stay_or_go()
             for a in self.page.get_list():
-                yield a
-        self.accounts.stay_or_go()
-        for a in self.page.get_list():
-            self.location('/outil/UWRI/Accueil/')
-            self.rib.go(data={'compte': '%s/%s/%s' % (a.id[0:5], a.id[5:11], a.id[11:])})
-            if self.rib.is_here():
-                iban = self.page.get_iban()
-                a.iban = iban if iban and a.id[11:] in iban else NotAvailable
-            yield a
-        self.loans.stay_or_go()
-        for a in self.page.get_list():
-            yield a
-        if self.connexion_bourse():
+                self.location('/outil/UWRI/Accueil/')
+                self.rib.go(data={'compte': '%s/%s/%s' % (a.id[0:5], a.id[5:11], a.id[11:])})
+                if self.rib.is_here():
+                    iban = self.page.get_iban()
+                    a.iban = iban if iban and a.id[11:] in iban else NotAvailable
+                self.accounts_list.append(a)
+            self.loans.stay_or_go()
             for a in self.page.get_list():
-                yield a
-            self.deconnexion_bourse()
-            # Disconnecting from bourse portal before returning account list
-            # to be sure that we are on the banque portal
+                self.accounts_list.append(a)
+            if self.connexion_bourse():
+                for a in self.page.get_list():
+                    self.accounts_list.append(a)
+                self.deconnexion_bourse()
+                # Disconnecting from bourse portal before returning account list
+                # to be sure that we are on the banque portal
+        return iter(self.accounts_list)
 
     @need_login
     def get_history(self, account):
@@ -198,6 +206,25 @@ class LCLBrowser(LoginBrowser):
                 yield inv
             self.deconnexion_bourse()
 
+    @need_login
+    def iter_recipients(self, origin_account):
+        self.transfer_page.go()
+        if not self.page.can_transfer(origin_account._transfer_id):
+            return
+        for recipient in self.page.iter_recipients():
+            recipient.iban = find_object(self.get_accounts_list(), _transfer_id=recipient.id).iban
+            yield recipient
+        for recipient in self.recipients.go().iter_recipients():
+            yield recipient
+
+    @need_login
+    def transfer(self, account, recipient, amount, reason=None):
+        self.transfer_page.stay_or_go()
+        self.page.transfer(account, recipient, amount, reason)
+        self.confirm_transfer.go().check_data_consistency(account, recipient, amount, reason)
+        self.page.confirm(self.password)
+        self.page.check_data_consistency(account, recipient, amount, reason, offset=1)
+        return self.page.create_transfer(account, recipient, amount, reason)
 
 class LCLProBrowser(LCLBrowser):
     BASEURL = 'https://professionnels.secure.lcl.fr'

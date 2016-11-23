@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import json
 import re, requests, base64, math, random
 from decimal import Decimal
 from cStringIO import StringIO
@@ -24,7 +25,7 @@ from urllib import urlencode
 from datetime import datetime, timedelta
 
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, Transfer
 from weboob.browser.elements import method, ListElement, TableElement, ItemElement, SkipItem
 from weboob.exceptions import ParseError
 from weboob.browser.pages import LoggedPage, HTMLPage, FormNotFound, pagination
@@ -34,12 +35,20 @@ from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, Da
                                             TableCell, Eval
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
+from weboob.tools.date import parse_french_date
 
 
 def MyDecimal(*args, **kwargs):
     kwargs.update(replace_dots=True, default=Decimal(0))
     return CleanDecimal(*args, **kwargs)
+
+def myXOR(value,seed):
+    s = ''
+    for i in xrange(len(value)):
+        s += chr(seed^ord(value[i]))
+    return s
 
 
 class LCLBasePage(HTMLPage):
@@ -119,12 +128,6 @@ class LoginPage(HTMLPage):
 
         form.submit()
 
-    def myXOR(self,value,seed):
-        s = ''
-        for i in xrange(len(value)):
-            s += chr(seed^ord(value[i]))
-        return s
-
     def login(self, login, passwd):
         try:
             vk = LCLVirtKeyboard(self)
@@ -148,7 +151,7 @@ class LoginPage(HTMLPage):
 
         form = self.get_form('//form[@id="formAuthenticate"]')
         form['identifiant'] = login
-        form['postClavierXor'] = base64.b64encode(self.myXOR(password,seed))
+        form['postClavierXor'] = base64.b64encode(myXOR(password,seed))
         try:
             form['identifiantRouting'] = self.browser.IDENTIFIANT_ROUTING
         except AttributeError:
@@ -223,7 +226,10 @@ class AccountsPage(LoggedPage, HTMLPage):
                           }
 
             obj__link_id = Format('%s&mode=190', Regexp(CleanText('./@onclick'), "'(.*)'"))
-            obj_id = Regexp(Field('_link_id'), r'.*agence=(\w+).*compte=(\w+)', r'\1\2')
+            obj__agence = Regexp(Field('_link_id'), r'.*agence=(\w+)')
+            obj__compte = Regexp(Field('_link_id'), r'compte=(\w+)')
+            obj_id = Format('%s%s', Field('_agence'), Field('_compte'))
+            obj__transfer_id = Format('%s0000%s', Field('_agence'), Field('_compte'))
             obj__coming_links = []
             obj_label = CleanText('.//div[@class="libelleCompte"]')
             obj_balance = MyDecimal('.//td[has-class("right")]', replace_dots=True)
@@ -614,3 +620,129 @@ class RibPage(LoggedPage, LCLBasePage):
 
 class HomePage(LoggedPage, HTMLPage):
     pass
+
+
+class TransferPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        if '"msgErreur"' in self.text:
+            response = json.loads(self.text)
+            raise TransferError(response['msgErreur'])
+
+    def can_transfer(self, account_transfer_id):
+        for option in self.doc.xpath('//select[@id="id_lstCptDebitablesVO"]/option'):
+            if account_transfer_id in CleanText('.', replace=[(' ', '')])(option):
+                return True
+        return False
+
+    def get_account_index(self, xpath, account_id):
+        for option in self.doc.xpath('//select[@id="%s"]/option' % xpath):
+            if account_id in CleanText('.', replace=[(' ', '')])(option):
+                return option.attrib['value']
+        else:
+            raise TransferError("account %s not found" % account_id)
+
+    def transfer(self, account, recipient, amount, reason):
+        form = self.get_form(id='formclient')
+        form.url = '/outil/UWVS/Accueil/verificationParametres'
+        form['montant'] = amount
+        form['lstCptDebitablesVO'] = self.get_account_index('id_lstCptDebitablesVO', account._transfer_id)
+        if recipient.category == u'inner':
+            form['lstCptCreditablesVO'] = self.get_account_index('id_lstCptCreditablesVO', recipient.id)
+        else:
+            form['lstCptRibPreEnrVIPVO'] = self.get_account_index('lstCptRIBVIPVO', recipient.id)
+            form['benef'] = recipient.label
+            form['typeCptBenef'] = 'R'
+        if reason:
+            form['libEmetteur'] = reason
+            form['libBenef'] = reason
+        form.submit()
+
+    def confirm(self, passwd):
+        try:
+            vk = LCLVirtKeyboard(self)
+        except VirtKeyboardError as err:
+            self.logger.exception(err)
+        password = vk.get_string_code(passwd)
+
+        for script in self.doc.findall("//script"):
+            if script.text is None or len(script.text) == 0:
+                continue
+            m = re.search('myXOR\(\$\("#postClavier"\).val\(\), (\d)', script.text)
+            if m:
+                seed = int(m.group(1))
+                break
+        form = self.get_form(id='mainform')
+        form['postClavier'] = base64.b64encode(myXOR(password, seed))
+        form.submit()
+
+    @method
+    class iter_recipients(ListElement):
+        item_xpath = '//select[@id="id_lstCptCreditablesVO"]/option'
+
+        class Item(ItemElement):
+            klass = Recipient
+
+            obj_id = Regexp(CleanText('.', replace=[(' ', '')]), '(\d+[A-Z]+)---')
+            obj_label = Regexp(CleanText('.'), u'([a-zA-Z \'é]+) ')
+            obj_bank_name = u'LCL'
+            obj_category = u'inner'
+            obj_iban = NotAvailable
+
+            def obj_enabled_at(self):
+                return datetime.now().replace(microsecond=0)
+
+    def check_data_consistency(self, account, recipient, amount, reason, offset=0):
+        try:
+            for index, tr in enumerate(self.doc.xpath('//table[has-class("recap")]/tr[@class="recapLigne"]')):
+                if index == 0 + offset:
+                    assert CleanDecimal('./td[@class="recapValeur"]', replace_dots=True)(tr) == amount
+                elif index == 1 + offset:
+                    assert account._transfer_id in CleanText('./td[@class="recapValeur"]', replace=[(' ', '')])(tr)
+                elif index == 2 + offset and recipient.category == u'outer':
+                    assert recipient.label in CleanText('./td[@class="recapValeur"]')(tr)
+                if index == 3 + offset and recipient.category == u'outer':
+                    assert recipient.iban in CleanText('./td[@class="recapValeur"]', replace=[(' ', '')])(tr)
+                if index == 4 + offset and reason:
+                    assert reason in CleanText('./td[@class="recapValeur"]')(tr)
+        except AssertionError:
+            raise TransferError('Something went wrong')
+
+    def create_transfer(self, account, recipient, amount, reason):
+        transfer = Transfer()
+        transfer.currency = FrenchTransaction.Currency('//table[has-class("recap")]/tr[@class="recapLigne"][2]/td[@class="recapValeur"]')(self.doc)
+        transfer.amount = amount
+        transfer.account_iban = account.iban
+        transfer.recipient_iban = recipient.iban
+        transfer.account_id = account.id
+        transfer.recipient_id = recipient.id
+        transfer.exec_date = parse_french_date(CleanText('//table[has-class("recap")]/tr[@class="recapLigne"][1]/td[@class="recapValeur"]')(self.doc)).date()
+        transfer.label = reason
+        transfer.account_label = account.label
+        transfer.recipient_label = recipient.label
+        transfer.id = CleanDecimal('//td[@class="recapRef"]')(self.doc)
+        return transfer
+
+
+class RecipientPage(LoggedPage, HTMLPage):
+    @method
+    class iter_recipients(TableElement):
+        item_xpath = '//table[@class="tagTab pyjama"]/tbody/tr'
+        head_xpath = '//table[@class="tagTab pyjama"]/thead/tr/th'
+
+        col_iban = 'IBAN'
+        col_label = u'Libellé'
+
+        class Item(ItemElement):
+            klass = Recipient
+
+            obj_iban = obj_id = CleanText(TableCell('iban'), replace=[(' ', '')])
+            obj_label = CleanText(TableCell('label'))
+            obj_bank_name = NotAvailable
+            obj_category = u'outer'
+
+            def obj_enabled_at(self):
+                return datetime.now().replace(microsecond=0)
+
+            def validate(self, el):
+                assert is_iban_valid(el.iban)
+                return True
