@@ -53,7 +53,7 @@ class AccountsJsonPage(LoggedPage, JsonPage):
                 a._id = compte['id']
                 a.iban = compte['iban'].replace(' ', '')
                 # id based on iban to match ids in database.
-                a.id = a.iban[4:-2]
+                a.id = a.iban[4:-2] if len(a.iban) == 27 else a.iban
                 a.type = self.obj_type(a.label)
                 a._agency = compte['agenceGestionnaire']
                 a._title = title
