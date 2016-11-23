@@ -100,7 +100,7 @@ class AccountsPage(CMSOPage):
 
             obj__history_url = Link('./td[1]/a')
             obj_label = CleanText('./td[1]')
-            obj_id = Env('id')
+            obj_id = Env('id', default=None)
             obj_balance = CleanDecimal('./td[2]', replace_dots=True)
             obj_type = Type(Field('label'))
             # Last numbers replaced with XX... or we have to send sms to get RIB.
