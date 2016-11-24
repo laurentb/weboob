@@ -141,12 +141,12 @@ class CenetAccountHistoryPage(LoggedPage, CenetJsonPage):
 
 class GarbagePage(LoggedPage, HTMLPage):
     def on_load(self):
-        go_back_link = Link('//a[@class="btn"]/@href')(self.doc)
+        go_back_link = Link('//a[@class="btn"]')(self.doc)
 
         if go_back_link:
-            assert len(go_back_link) == 1
+            assert len(go_back_link) != 1
             go_back_link = re.search('\(~deibaseurl\)(.*)$', go_back_link).group(1)
-        self.page.browser.location(go_back_link)
+        self.browser.location('%s%s' % (self.browser.BASEURL, go_back_link))
 
 
 class MessagePage(GarbagePage):

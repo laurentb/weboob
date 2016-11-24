@@ -20,6 +20,7 @@
 
 import json
 import mechanize
+import urlparse
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -134,7 +135,7 @@ class CaisseEpargne(LoginBrowser):
                 return
             raise BrowserIncorrectPassword(response['error'])
 
-        self.BASEURL = data['url']
+        self.BASEURL = urlparse.urljoin(data['url'], '/')
 
         try:
             self.home.go()
@@ -176,7 +177,6 @@ class CaisseEpargne(LoginBrowser):
             if account.type == Account.TYPE_MARKET:
                 if not self.home.is_here():
                     self.home_tache.go(tache='CPTSYNT0')
-
                 self.page.go_history(account._info)
 
                 if self.message.is_here():
