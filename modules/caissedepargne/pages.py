@@ -226,7 +226,7 @@ class IndexPage(LoggedPage, HTMLPage):
         bourse_link = Link(u'//div[@id="MM_COMPTE_TITRE_pnlbourseoic"]//a[contains(text(), "Accédez à la consultation")]', default=None)(self.doc)
 
         if bourse_link:
-            self.page.browser.location(bourse_link)
+            self.browser.location(bourse_link)
 
     def check_no_accounts(self):
         no_account_message = CleanText(u'//span[@id="MM_LblMessagePopinError"]/p[contains(text(), "Aucun compte disponible")]')(self.doc)

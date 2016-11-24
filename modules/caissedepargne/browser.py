@@ -283,6 +283,10 @@ class CaisseEpargne(LoginBrowser):
 
         try:
             self.page.go_life_insurance(account)
+
+            if self.market.is_here() is False and self.message.is_here() is False:
+                return iter([])
+
             self.page.submit()
             self.location('https://www.extranet2.caisse-epargne.fr%s' % self.page.get_cons_histo())
         except (IndexError, AttributeError) as e:
@@ -382,6 +386,10 @@ class CaisseEpargne(LoginBrowser):
         elif account.type is Account.TYPE_LIFE_INSURANCE:
             try:
                 self.page.go_life_insurance(account)
+
+                if self.market.is_here() is False and self.message.is_here() is False:
+                    return iter([])
+
                 self.page.submit()
                 self.location('https://www.extranet2.caisse-epargne.fr%s' % self.page.get_cons_repart())
             except (IndexError, AttributeError) as e:
