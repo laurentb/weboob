@@ -82,3 +82,6 @@ class ApivieBrowser(Browser):
 
         assert self.is_on_page(OperationsPage)
         return self.page.iter_history()
+
+    def get_subscription_list(self):
+        return iter([])
