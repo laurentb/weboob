@@ -40,6 +40,7 @@ class CreditDuNordBrowser(LoginBrowser):
     transactions = URL('/vos-comptes/.*/transac/particuliers',                    TransactionsPage)
     proaccounts = URL('/vos-comptes/(professionnels|entreprises)',                ProAccountsPage)
     protransactions = URL('/vos-comptes/.*/transac/(professionnels|entreprises)', ProTransactionsPage)
+    loans = URL('/vos-comptes/professionnels/credit_en_cours',                    ProAccountsPage)
     iban = URL('/vos-comptes/IPT/cdnProxyResource/transacClippe/RIB_impress.asp', IbanPage)
 
     account_type = 'particuliers'
@@ -87,6 +88,9 @@ class CreditDuNordBrowser(LoginBrowser):
         self.home()
         for a in self.page.get_list():
             accounts.append(a)
+        self.loans.go()
+        for a in self.page.get_list():
+            accounts.append(a)
         if iban:
             self.page.iban_page()
             link = self.page.iban_go()
@@ -121,7 +125,7 @@ class CreditDuNordBrowser(LoginBrowser):
 
     @need_login
     def get_history(self, account, coming=False):
-        if coming and account.type is not Account.TYPE_CARD:
+        if coming and account.type is not Account.TYPE_CARD or account.type is Account.TYPE_LOAN:
             return iter([])
 
         transactions = []

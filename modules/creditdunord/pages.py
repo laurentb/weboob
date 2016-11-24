@@ -192,6 +192,8 @@ class AccountsPage(LoggedPage, CDNBasePage):
              u'PEA':                 Account.TYPE_MARKET,
              u'TITRES':              Account.TYPE_MARKET,
              u'ÉTOILE AVANCE':       Account.TYPE_LOAN,
+             u'PRÊT':                Account.TYPE_LOAN,
+             u'CREDIT':              Account.TYPE_LOAN,
             }
 
     def get_account_type(self, label):
@@ -336,14 +338,18 @@ class ProAccountsPage(AccountsPage):
             cols = tr.findall('td')
 
             a = Account()
-            a.label = unicode(cols[self.COL_ID].xpath('.//span[@class="left-underline"]')[0].text.strip())
+            a.label = unicode(cols[self.COL_ID].xpath('.//span[@class="left-underline"] | .//span[@class="left"]/a')[0].text.strip())
             a.type = self.get_account_type(a.label)
             balance = CleanText('.')(cols[self.COL_BALANCE])
+            if balance == '':
+                continue
             a.balance = CleanDecimal(replace_dots=True).filter(balance)
             a.currency = a.get_currency(balance)
-            a._link, a._args = self.params_from_js(cols[self.COL_ID].find('a').attrib['href'])
-            a._acc_nb = cols[self.COL_ID].xpath('.//span[@class="right-underline"]')[0].text.replace(' ', '').strip()
-            if a._args:
+            if cols[self.COL_ID].find('a'):
+                a._link, a._args = self.params_from_js(cols[self.COL_ID].find('a').attrib['href'])
+            a._acc_nb = cols[self.COL_ID].xpath('.//span[@class="right-underline"] | .//span[@class="right"]')[0].text.replace(' ', '').strip()
+
+            if hasattr(a, '_args') and a._args:
                 a.id = '%s%s%s' % (a._acc_nb, a._args['IndiceCompte'], a._args['Indiceclassement'])
             else:
                 a.id = a._acc_nb
