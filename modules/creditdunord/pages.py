@@ -96,7 +96,7 @@ class LoginPage(HTMLPage):
         login_selector = self.doc.xpath('//input[@id="codsec"]')
         if login_selector:
             if not password.isdigit() or not len(password) == 6:
-                raise BrowserIncorrectPassword('The credentials have changed on website %s. Please update them.' % self.browser.DOMAIN)
+                raise BrowserIncorrectPassword('The credentials have changed on website %s. Please update them.' % self.browser.BASEURL)
             self.vk_login(username, password)
         else:
             self.classic_login(username,password)
