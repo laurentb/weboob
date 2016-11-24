@@ -145,7 +145,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                     return Account.TYPE_UNKNOWN
 
             obj_id = Env('id')
-            obj_label = Label(CleanText('./td[1]/a/text() | ./td[1]/a/span[@class and not(contains(@class, "doux"))]'))
+            obj_label = Label(CleanText('./td[1]/a/text() | ./td[1]/a/span[@class and not(contains(@class, "doux"))] | ./td[1]/div/a[has-class("cb")]'))
             obj_coming = Env('coming')
             obj_balance = Env('balance')
             obj_currency = FrenchTransaction.Currency('./td[2] | ./td[3]')
@@ -214,9 +214,9 @@ class AccountsPage(LoggedPage, HTMLPage):
                         account = self.parent.objects[id]
                         if not account.coming:
                             account.coming = Decimal('0.0')
-                        if not hasattr(account, '_coming'):
-                            account._coming = account.coming
-                        account.coming = balance + account._coming
+                        date = parse_french_date(Regexp(Field('label'), 'Fin(.*)', '01\\1')(self)) + relativedelta(day=31)
+                        if date > datetime.now():
+                            account.coming += balance
                         account._card_links.append(link)
                     raise SkipItem()
 
