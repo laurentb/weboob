@@ -75,9 +75,8 @@ class GroupamaBrowser(LoginBrowser):
         accounts_list = [a for a in self.page.get_list()]
 
         for account in accounts_list[:]:
-            if account.type is Account.TYPE_LIFE_INSURANCE:
-                self.get_account_details(account)
-            elif account.balance is NotAvailable:
+            self.get_account_details(account)
+            if account.balance is NotAvailable:
                 accounts_list.remove(account)
 
         return accounts_list
@@ -88,13 +87,20 @@ class GroupamaBrowser(LoginBrowser):
             self.location(account._link)
 
             if self.account_details.is_here():
-                rivage = self.page.get_rivage()
+                if account.type is Account.TYPE_LIFE_INSURANCE:
+                    rivage = self.page.get_rivage()
 
-                if rivage is not None:
-                    self.location(rivage.get('link'), data=rivage.get('data'))
-                    self.page.fill_rivage_account_details(account)
-                else:
-                    self.page.fill_account_details(account)
+                    if rivage is not None:
+                        self.location(rivage.get('link'), data=rivage.get('data'))
+                        self.page.fill_rivage_account_details(account)
+                    else:
+                        self.page.fill_account_details(account)
+            elif self.transactions.is_here():
+                iban_link = self.page.get_iban_link()
+
+                if iban_link is not None:
+                    self.location(iban_link)
+                    self.page.fill_account_iban(account)
         self.accounts.stay_or_go()
 
     @need_login

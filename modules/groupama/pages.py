@@ -145,3 +145,12 @@ class TransactionsPage(LoggedPage, HTMLPage):
         except IndexError:
             return None
         return re.sub('[ \t\r\n]+', '', a.attrib['href'])
+
+    def fill_account_iban(self, account):
+        account.iban = CleanText('(.//font[b[contains(text(), "IBAN")]])[1]', replace=[(' ', '')])(self.doc)[5:]
+
+    def get_iban_link(self):
+        onclick = Attr('.//a[@class="rib"]', 'onclick', default=None)(self.doc)
+        if onclick:
+            m = re.search(r"envoyer\('(\d+)','(.*)'\);", onclick)
+            return '%s?paramNumCpt=%s' % (m.group(2), m.group(1))
