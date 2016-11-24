@@ -22,6 +22,7 @@ import ssl
 from datetime import timedelta, date
 
 from weboob.tools.date import LinearDateGuesser
+from weboob.capabilities.bank import Account
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from .pages import AccountsPage, CBOperationPage, CPTOperationPage, LoginPage, AppGonePage, RibPage
@@ -107,7 +108,8 @@ class HSBC(LoginBrowser):
         if account._link_id is None:
             return
 
-        if account._link_id.startswith('javascript') or '&Crd=' in account._link_id:
+        if account._link_id.startswith('javascript') or '&Crd=' in account._link_id or \
+           account.type == Account.TYPE_LIFE_INSURANCE:
             raise NotImplementedError()
 
         self.location(self.accounts_list[account.id]._link_id)
