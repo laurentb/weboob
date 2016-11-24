@@ -51,4 +51,4 @@ class EdfBrowser(LoginBrowser):
 
     @need_login
     def download_document(self, document):
-        return self.open(document._url).content
+        return self.open(document.url).content
