@@ -53,66 +53,65 @@ class CreditMutuelBrowser(LoginBrowser):
     BASEURL = 'https://www.creditmutuel.fr'
 
     login =       URL('/groupe/fr/index.html',
-                      '/(?P<subbank>.*)/fr/$',
-                      '/(?P<subbank>.*)/fr/banques/accueil.html',
-                      '/(?P<subbank>.*)/fr/banques/particuliers/index.html',
+                      '/(?P<subbank>.*)fr/$',
+                      '/(?P<subbank>.*)fr/banques/accueil.html',
+                      '/(?P<subbank>.*)fr/banques/particuliers/index.html',
                       LoginPage)
-    login_error = URL('/(?P<subbank>.*)/fr/identification/default.cgi',      LoginErrorPage)
-    accounts =    URL('/(?P<subbank>.*)/fr/banque/situation_financiere.cgi',
-                      '/(?P<subbank>.*)/fr/banque/situation_financiere.html',
+    login_error = URL('/(?P<subbank>.*)fr/identification/default.cgi',      LoginErrorPage)
+    accounts =    URL('/(?P<subbank>.*)fr/banque/situation_financiere.cgi',
+                      '/(?P<subbank>.*)fr/banque/situation_financiere.html',
                       AccountsPage)
-    user_space =  URL('/(?P<subbank>.*)/fr/banque/espace_personnel.aspx',
-                      '/(?P<subbank>.*)/fr/banque/accueil.cgi',
-                      '/(?P<subbank>.*)/fr/banque/DELG_Gestion',
-                      '/(?P<subbank>.*)/fr/banque/paci_engine/static_content_manager.aspx',
+    user_space =  URL('/(?P<subbank>.*)fr/banque/espace_personnel.aspx',
+                      '/(?P<subbank>.*)fr/banque/accueil.cgi',
+                      '/(?P<subbank>.*)fr/banque/DELG_Gestion',
+                      '/(?P<subbank>.*)fr/banque/paci_engine/static_content_manager.aspx',
                       UserSpacePage)
-    card =        URL('/(?P<subbank>.*)/fr/banque/operations_carte.cgi.*',
-                      '/(mabanque/)?fr/banque/mouvements.html\?webid=.*cardmonth=\d+$',
+    card =        URL('/(?P<subbank>.*)fr/banque/operations_carte.cgi.*',
+                      '/(?P<subbank>.*)fr/banque/mouvements.html\?webid=.*cardmonth=\d+$',
                       CardPage)
-    operations =  URL('/(?P<subbank>.*)/fr/banque/mouvements.cgi.*',
-                      '/(?P<subbank>.*)/fr/banque/mouvements.html.*',
-                      '/(?P<subbank>.*)/fr/banque/nr/nr_devbooster.aspx.*',
+    operations =  URL('/(?P<subbank>.*)fr/banque/mouvements.cgi.*',
+                      '/(?P<subbank>.*)fr/banque/mouvements.html.*',
+                      '/(?P<subbank>.*)fr/banque/nr/nr_devbooster.aspx.*',
                       OperationsPage)
-    coming =      URL('/(?P<subbank>.*)/fr/banque/mvts_instance.cgi.*',      ComingPage)
-    noop =        URL('/(?P<subbank>.*)/fr/banque/CR/arrivee.asp.*',         NoOperationsPage)
-    info =        URL('/(?P<subbank>.*)/fr/banque/BAD.*',                    EmptyPage)
-    transfert =   URL('/(?P<subbank>.*)/fr/banque/virements/vplw_vi.html',   EmptyPage)
-    change_pass = URL('/(?P<subbank>.*)/fr/validation/change_password.cgi',
+    coming =      URL('/(?P<subbank>.*)fr/banque/mvts_instance.cgi.*',      ComingPage)
+    noop =        URL('/(?P<subbank>.*)fr/banque/CR/arrivee.asp.*',         NoOperationsPage)
+    info =        URL('/(?P<subbank>.*)fr/banque/BAD.*',                    EmptyPage)
+    change_pass = URL('/(?P<subbank>.*)fr/validation/change_password.cgi',
                       '/fr/services/change_password.html', ChangePasswordPage)
-    verify_pass = URL('/(?P<subbank>.*)/fr/validation/verif_code.cgi.*',     VerifCodePage)
+    verify_pass = URL('/(?P<subbank>.*)fr/validation/verif_code.cgi.*',     VerifCodePage)
     new_home =    URL('/fr/banque/pageaccueil.html',
-                      '/(mabanque/)?fr/banque/DELG_Gestion.*',
+                      '/(?P<subbank>.*)fr/banque/DELG_Gestion.*',
                       '/mabanque/fr/banque/pageaccueil.html',
-                      '/(mabanque/)?fr/banque/paci_engine/static_content_manager.aspx',
+                      '/(?P<subbank>.*)fr/banque/paci_engine/static_content_manager.aspx',
                       '/fr/banque/welcome_pack.html', NewHomePage)
-    empty =       URL('/(?P<subbank>.*)/fr/banques/index.html',
-                      '/(?P<subbank>.*)/fr/banque/paci_beware_of_phishing.*',
-                      '/(?P<subbank>.*)/fr/validation/(?!change_password|verif_code).*',
+    empty =       URL('/(?P<subbank>.*)fr/banques/index.html',
+                      '/(?P<subbank>.*)fr/banque/paci_beware_of_phishing.*',
+                      '/(?P<subbank>.*)fr/validation/(?!change_password|verif_code).*',
                       EmptyPage)
-    por =         URL('/(?P<subbank>.*)/fr/banque/POR_ValoToute.aspx',
-                      '/(?P<subbank>.*)/fr/banque/POR_SyntheseLst.aspx',
+    por =         URL('/(?P<subbank>.*)fr/banque/POR_ValoToute.aspx',
+                      '/(?P<subbank>.*)fr/banque/POR_SyntheseLst.aspx',
                       PorPage)
-    li =          URL('/(?P<subbank>.*)/fr/assurances/profilass.aspx\?domaine=epargne',
-                      '/(?P<subbank>.*)/fr/assurances/(consultation/)?WI_ASSAVI', LIAccountsPage)
-    iban =        URL('/(?P<subbank>.*)/fr/banque/rib.cgi', IbanPage)
+    li =          URL('/(?P<subbank>.*)fr/assurances/profilass.aspx\?domaine=epargne',
+                      '/(?P<subbank>.*)fr/assurances/(consultation/)?WI_ASSAVI', LIAccountsPage)
+    iban =        URL('/(?P<subbank>.*)fr/banque/rib.cgi', IbanPage)
 
-    new_accounts = URL('/(mabanque/)?fr/banque/comptes-et-contrats.html', NewAccountsPage)
-    new_operations = URL('/fr/banque/mouvements.cgi',
+    new_accounts = URL('/(?P<subbank>.*)fr/banque/comptes-et-contrats.html', NewAccountsPage)
+    new_operations = URL('/(?P<subbank>.*)fr/banque/mouvements.cgi',
                          '/fr/banque/nr/nr_devbooster.aspx.*',
-                         '/(mabanque/)?fr/banque/RE/aiguille.asp',
+                         '/(?P<subbank>.*)fr/banque/RE/aiguille.asp',
                          '/fr/banque/mouvements.html', OperationsPage)
-    new_por = URL('/(mabanque/)?fr/banque/POR_ValoToute.aspx',
-                  '/(mabanque/)?fr/banque/POR_SyntheseLst.aspx', PorPage)
-    new_iban = URL('/(mabanque/)?fr/banque/rib.cgi', IbanPage)
+    new_por = URL('/(?P<subbank>.*)fr/banque/POR_ValoToute.aspx',
+                  '/(?P<subbank>.*)fr/banque/POR_SyntheseLst.aspx', PorPage)
+    new_iban = URL('/(?P<subbank>.*)fr/banque/rib.cgi', IbanPage)
 
-    redirect = URL('/(mabanque/)?fr/banque/paci_engine/static_content_manager.aspx', RedirectPage)
+    redirect = URL('/(?P<subbank>.*)fr/banque/paci_engine/static_content_manager.aspx', RedirectPage)
 
-    cards_activity = URL('/(?P<subbank>.*)/fr/banque/pro/ENC_liste_tiers.aspx', CardsActivityPage)
-    cards_list = URL('/(?P<subbank>.*)/fr/banque/pro/ENC_liste_ctr.*', CardsListPage)
-    cards_ope = URL('/(?P<subbank>.*)/fr/banque/pro/ENC_liste_oper', CardsOpePage)
+    cards_activity = URL('/(?P<subbank>.*)fr/banque/pro/ENC_liste_tiers.aspx', CardsActivityPage)
+    cards_list = URL('/(?P<subbank>.*)fr/banque/pro/ENC_liste_ctr.*', CardsListPage)
+    cards_ope = URL('/(?P<subbank>.*)fr/banque/pro/ENC_liste_oper', CardsOpePage)
 
-    internal_transfer = URL('/fr/banque/virements/vplw_vi.html', InternalTransferPage)
-    external_transfer = URL('/fr/banque/virements/vplw_vee.html', ExternalTransferPage)
+    internal_transfer = URL('/(?P<subbank>.*)fr/banque/virements/vplw_vi.html', InternalTransferPage)
+    external_transfer = URL('/(?P<subbank>.*)fr/banque/virements/vplw_vee.html', ExternalTransferPage)
 
     currentSubBank = None
     is_new_website = False
@@ -131,14 +130,13 @@ class CreditMutuelBrowser(LoginBrowser):
             if not self.page.logged or self.login_error.is_here():
                 raise BrowserIncorrectPassword()
 
-        if not self.is_new_website:
-            self.getCurrentSubBank()
+        self.getCurrentSubBank()
 
     @need_login
     def get_accounts_list(self):
         if not hasattr(self, 'accounts_list'):
             self.fleet_pages = {}
-            if self.currentSubBank is None and not self.is_new_website:
+            if self.currentSubBank is None:
                 self.getCurrentSubBank()
             self.accounts_list = []
             if not self.is_new_website:
@@ -153,10 +151,10 @@ class CreditMutuelBrowser(LoginBrowser):
                 for acc in self.li.go(subbank=self.currentSubBank).iter_li_accounts():
                     self.accounts_list.append(acc)
             else:
-                for a in self.new_accounts.stay_or_go().iter_accounts():
+                for a in self.new_accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts():
                     self.accounts_list.append(a)
-                self.new_iban.go().fill_iban(self.accounts_list)
-                self.new_por.go().add_por_accounts(self.accounts_list)
+                self.new_iban.go(subbank=self.currentSubBank).fill_iban(self.accounts_list)
+                self.new_por.go(subbank=self.currentSubBank).add_por_accounts(self.accounts_list)
             for id, pages_list in self.fleet_pages.iteritems():
                 for page in pages_list:
                     for a in page.get_cards(accounts=self.accounts_list):
@@ -173,16 +171,14 @@ class CreditMutuelBrowser(LoginBrowser):
 
     def getCurrentSubBank(self):
         # the account list and history urls depend on the sub bank of the user
-        url = urlparse(self.url)
-        self.currentSubBank = url.path.lstrip('/').split('/')[0]
+        paths = urlparse(self.url).path.lstrip('/').split('/')
+        self.currentSubBank = paths[0] + "/" if paths[0] != "fr" else ""
 
     def list_operations(self, page_url):
         if page_url.startswith('/') or page_url.startswith('https') or page_url.startswith('?'):
             self.location(page_url)
-        elif not self.is_new_website:
-            self.location('%s/%s/fr/banque/%s' % (self.BASEURL, self.currentSubBank, page_url))
         else:
-            self.location('%s/fr/banque/%s' % (self.BASEURL, page_url))
+            self.location('%s/%sfr/banque/%s' % (self.BASEURL, self.currentSubBank, page_url))
 
         # getting about 6 months history on new website
         if self.is_new_website and self.page:
@@ -253,7 +249,7 @@ class CreditMutuelBrowser(LoginBrowser):
                 if not self.is_new_website:
                     self.por.go(subbank=self.currentSubBank)
                 else:
-                    self.new_por.go()
+                    self.new_por.go(subbank=self.currentSubBank)
                 self.page.send_form(account)
             elif account.type == Account.TYPE_LIFE_INSURANCE:
                 if not account._link_inv:
@@ -264,11 +260,11 @@ class CreditMutuelBrowser(LoginBrowser):
 
     def iter_recipients(self, origin_account):
         # access the transfer page
-        self.internal_transfer.go()
+        self.internal_transfer.go(subbank=self.currentSubBank)
         if self.page.can_transfer(origin_account.id):
             for recipient in self.page.iter_recipients(origin_account=origin_account):
                 yield recipient
-        self.external_transfer.go()
+        self.external_transfer.go(subbank=self.currentSubBank)
         if self.page.can_transfer(origin_account.id):
             origin_account._external_recipients = set()
             if self.page.has_transfer_categories():
@@ -286,9 +282,9 @@ class CreditMutuelBrowser(LoginBrowser):
             raise NotImplementedError()
 
         if to._outer_recipient:
-            self.external_transfer.go()
+            self.external_transfer.go(subbank=self.currentSubBank)
         else:
-            self.internal_transfer.go()
+            self.internal_transfer.go(subbank=self.currentSubBank)
 
         if self.external_transfer.is_here() and self.page.has_transfer_categories():
             for category in self.page.iter_categories():

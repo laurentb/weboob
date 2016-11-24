@@ -683,7 +683,7 @@ class MyRecipient(ItemElement):
         return datetime.now().replace(microsecond=0)
 
     def validate(self, el):
-        assert is_iban_valid(el.iban)
+        assert not el.iban or is_iban_valid(el.iban)
         return True
 
 
