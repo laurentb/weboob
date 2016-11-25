@@ -43,13 +43,14 @@ class YomoniBrowser(APIBrowser):
         self.investments = {}
         self.histories = {}
 
-    def open(self, *args, **kwargs):
+    def build_request(self, *args, **kwargs):
         if 'data' in kwargs:
             kwargs['data'] = json.dumps(kwargs['data'])
         if 'headers' not in kwargs:
             kwargs['headers'] = {}
         kwargs['headers']['Content-Type'] = 'application/vnd.yomoni.v1+json; charset=UTF-8'
-        return super(APIBrowser, self).open(*args, **kwargs)
+
+        return super(APIBrowser, self).build_request(*args, **kwargs)
 
     def iter_accounts(self):
         if self.accounts:
