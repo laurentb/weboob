@@ -71,6 +71,11 @@ class AccountsPage(LoggedPage, HTMLPage):
                 else:
                     return Link('.//a')(self)
 
+    def refresh_link(self, account):
+        if account.type is not Account.TYPE_LIFE_INSURANCE:
+            m = re.search(r"javascript:submitForm\(([\w_]+),'([^']+)'\);", Attr('.//a[contains(text(), "%s")]' % account.id, 'onclick')(self.doc))
+            account._link =  m.group(2) if m else None
+
 
 class AccountDetailsPage(LoggedPage, HTMLPage):
     def get_rivage(self):

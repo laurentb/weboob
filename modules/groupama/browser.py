@@ -67,19 +67,28 @@ class GroupamaBrowser(LoginBrowser):
         if self.login.is_here():
             raise BrowserIncorrectPassword()
 
+        self.accounts_list = None
+
     @need_login
     def get_accounts_list(self):
+        if self.accounts_list is None:
+            self.accounts_list = []
+            self.accounts.stay_or_go()
+            assert self.accounts.is_here()
+
+            self.accounts_list = [a for a in self.page.get_list()]
+
+            for account in self.accounts_list[:]:
+                self.get_account_details(account)
+                if account.balance is NotAvailable:
+                    self.accounts_list.remove(account)
+        return self.accounts_list
+
+    @need_login
+    def refresh_accounts_link(self):
         self.accounts.stay_or_go()
-        assert self.accounts.is_here()
-
-        accounts_list = [a for a in self.page.get_list()]
-
-        for account in accounts_list[:]:
-            self.get_account_details(account)
-            if account.balance is NotAvailable:
-                accounts_list.remove(account)
-
-        return accounts_list
+        for a in self.accounts_list:
+            self.page.refresh_link(a)
 
     @need_login
     def get_account_details(self, account):
@@ -106,9 +115,9 @@ class GroupamaBrowser(LoginBrowser):
     @need_login
     def get_history(self, account):
         if account.type != Account.TYPE_LIFE_INSURANCE:
-            accounts_list = self.get_accounts_list()
+            self.refresh_accounts_link()
 
-            for a in accounts_list:
+            for a in self.accounts_list:
                 if a.id == account.id:
                     self.location(a._link)
                     assert self.transactions.is_here()
@@ -119,9 +128,9 @@ class GroupamaBrowser(LoginBrowser):
     @need_login
     def get_coming(self, account):
         if account.type != Account.TYPE_LIFE_INSURANCE:
-            accounts_list = self.get_accounts_list()
+            self.refresh_accounts_link()
 
-            for a in accounts_list:
+            for a in self.accounts_list:
                 if a.id == account.id:
                     self.location(a._link)
                     assert self.transactions.is_here()
