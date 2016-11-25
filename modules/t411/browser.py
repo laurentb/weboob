@@ -35,7 +35,7 @@ class T411Browser(LoginBrowser):
     PROFILE = Wget()
     TIMEOUT = 30
 
-    BASEURL = 'https://www.t411.ch/'
+    BASEURL = 'https://www.t411.lI/'
     home = URL('$', HomePage)
     search = URL('torrents/search/\?search=(?P<pattern>.*)&order=seeders&type=desc',
                  SearchPage)
