@@ -772,6 +772,7 @@ class AbstractPageError(Exception):
 class AbstractPage(Page):
     PARENT = None
     PARENT_URL = None
+    BROWSER_ATTR = None
 
     def __new__(cls, browser, *args, **kwargs):
         weboob = getattr(browser, 'weboob', None)
@@ -785,9 +786,14 @@ class AbstractPage(Page):
             raise AbstractPageError("PARENT_URL is not defined for page %s" % cls.__name__)
 
         try:
-            parent_browser = weboob.load_or_install_module(cls.PARENT).klass.BROWSER
+            parent_module = weboob.load_or_install_module(cls.PARENT)
         except ModuleInstallError as err:
             raise ModuleInstallError('This module depends on %s module but %s\'s installation failed with: %s' % (cls.PARENT, cls.PARENT, err))
+
+        if BROWSER_ATTR is None:
+            parent_browser = parent_module.klass.BROWSER
+        else:
+            parent_browser = reduce(getattr, cls.BROWSER_ATTR.split('.'), parent_module)
 
         parent = parent_browser._urls.get(cls.PARENT_URL, None)
         if parent is None:
