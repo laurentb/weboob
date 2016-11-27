@@ -455,13 +455,9 @@ class AbstractModule(Module):
             raise AbstractModuleMissingParentError("PARENT is not defined for module %s" % cls.__name__)
 
         try:
-            parent = weboob.modules_loader.get_or_load_module(cls.PARENT).klass
-        except ModuleLoadError:
-            try:
-                weboob.repositories.install(cls.PARENT)
-                parent = weboob.modules_loader.get_or_load_module(cls.PARENT).klass
-            except ModuleInstallError as err:
-                raise ModuleInstallError('The module %s depends on %s module but %s\'s installation failed with: %s' % (name, cls.PARENT, cls.PARENT, err))
+            parent = weboob.load_or_install_module(cls.PARENT).klass
+        except ModuleInstallError as err:
+            raise ModuleInstallError('The module %s depends on %s module but %s\'s installation failed with: %s' % (name, cls.PARENT, cls.PARENT, err))
 
 
         return type(cls.__name__, tuple([parent] + list(cls.iter_caps())), dict(cls.__dict__))(weboob, name, config, storage, logger)

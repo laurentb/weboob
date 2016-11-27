@@ -474,3 +474,11 @@ class Weboob(WebNip):
             else:
                 self.backend_instances[backend_name] = loaded[backend_name] = backend_instance
         return loaded
+
+    def load_or_install_module(self, module_name):
+        """ Load a backend, and install it if not done before """
+        try:
+            return self.modules_loader.get_or_load_module(module_name)
+        except ModuleLoadError:
+            self.repositories.install(module_name)
+            return self.modules_loader.get_or_load_module(module_name)

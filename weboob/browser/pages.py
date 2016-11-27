@@ -784,13 +784,10 @@ class AbstractPage(Page):
         if cls.PARENT_URL is None:
             raise AbstractPageError("PARENT_URL is not defined for page %s" % cls.__name__)
 
-        if not weboob.modules_loader.module_exists(cls.PARENT):
-            try:
-                weboob.repositories.install(cls.PARENT)
-            except ModuleInstallError as err:
-                raise ModuleInstallError('This module depends on %s module but %s\'s installation failed with: %s' % (cls.PARENT, cls.PARENT, err))
-
-        parent_browser = weboob.modules_loader.get_or_load_module(cls.PARENT).klass.BROWSER
+        try:
+            parent_browser = weboob.load_or_install_module(cls.PARENT).klass.BROWSER
+        except ModuleInstallError as err:
+            raise ModuleInstallError('This module depends on %s module but %s\'s installation failed with: %s' % (cls.PARENT, cls.PARENT, err))
 
         parent = parent_browser._urls.get(cls.PARENT_URL, None)
         if parent is None:

@@ -868,13 +868,11 @@ class AbstractBrowser(Browser):
         if cls.PARENT is None:
             raise AbstractBrowserMissingParentError("PARENT is not defined for browser %s" % cls)
 
-        if not weboob.modules_loader.module_exists(cls.PARENT):
-            try:
-                weboob.repositories.install(cls.PARENT)
-            except ModuleInstallError as err:
-                raise ModuleInstallError('This module depends on %s module but %s\'s installation failed with: %s' % (cls.PARENT, cls.PARENT, err))
+        try:
+            module = weboob.load_or_install_module(cls.PARENT)
+        except ModuleInstallError as err:
+            raise ModuleInstallError('This module depends on %s module but %s\'s installation failed with: %s' % (cls.PARENT, cls.PARENT, err))
 
-        module = weboob.modules_loader.get_or_load_module(cls.PARENT)
         if cls.PARENT_ATTR is None:
             parent = module.klass.BROWSER
         else:
