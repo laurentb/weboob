@@ -861,6 +861,19 @@ class AbstractBrowserMissingParentError(Exception):
 
 
 class AbstractBrowser(Browser):
+    """ AbstractBrowser allow inheritance of a browser defined in another module.
+
+    Websites can share many pages and code base. This class allow to load a browser
+    provided by another module and to build our own browser on top of it (like standard
+    python inheritance. Weboob will install and download the PARENT module for you.
+
+    PARENT is a mandatory attribute, it's the name of the module providing the parent Browser
+
+    PARENT_ATTR is an optionnal attribute used when the parent module does not have only one
+    browser defined as BROWSER class attribute: you can customized the path of the object to load.
+
+    Note that you must pass a valid weboob instance as first argument of the constructor.
+    """
     PARENT = None
     PARENT_ATTR = None
 

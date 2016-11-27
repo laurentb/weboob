@@ -448,6 +448,16 @@ class AbstractModuleMissingParentError(Exception):
 
 
 class AbstractModule(Module):
+    """ Abstract module allow inheritance between modules.
+
+    Sometimes, several websites are based on the same website engine. This module
+    allow to simplify code with a fake inheritance: weboob will install (if needed) and
+    load a PARENT module and build our AbstractModule on top of this class.
+
+    PARENT is a mandatory attribute of any AbstractModule
+
+    Note that you must pass a valid weboob instance as first argument of the constructor.
+    """
     PARENT = None
 
     def __new__(cls, weboob, name, config=None, storage=None, logger=None):
