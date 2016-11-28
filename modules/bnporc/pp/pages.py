@@ -155,6 +155,7 @@ class BNPPage(LoggedPage, JsonPage):
             self.browser.do_login()
         elif code:
             self.logger.debug('Unexpected error: "%s" (code=%s)' % (self.get('message'), code))
+            return (self.get('message'), code)
 
 
 class AccountsPage(BNPPage):
@@ -210,6 +211,11 @@ class MyRecipient(ItemElement):
         return True
 
 class TransferInitPage(BNPPage):
+    def on_load(self):
+        message_code = BNPPage.on_load(self)
+        if message_code is not None:
+            raise TransferError('%s, code=%s' % (message_code[0], message_code[1]))
+
     def get_ibans_dict(self, account_type):
         return dict([(a['ibanCrypte'], a['iban']) for a in self.path('data.infoVirement.listeComptes%s.*' % account_type)])
 

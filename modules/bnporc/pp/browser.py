@@ -258,9 +258,12 @@ class BNPPartPro(BNPParibasBrowser):
         return data
 
     @need_login
-    def transfer(self, account, recipient, amount, reason):
+    def init_transfer(self, account, recipient, amount, reason):
         data = self.prepare_transfer(account, recipient, amount, reason)
-        transfer = self.validate_transfer.go(data=JSON(data)).handle_response(account, recipient, amount, reason)
+        return self.validate_transfer.go(data=JSON(data)).handle_response(account, recipient, amount, reason)
+
+    @need_login
+    def execute_transfer(self, transfer):
         self.register_transfer.go(data=JSON({'referenceVirement': transfer.id}))
         return self.page.handle_response(transfer)
 
