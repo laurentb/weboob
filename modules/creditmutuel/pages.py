@@ -214,7 +214,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                         account = self.parent.objects[id]
                         if not account.coming:
                             account.coming = Decimal('0.0')
-                        date = parse_french_date(Regexp(Field('label'), 'Fin(.*)', '01\\1')(self)) + relativedelta(day=31)
+                        date = parse_french_date(Regexp(Field('label'), 'Fin (.+) (\d{4})', '01 \\1 \\2')(self)) + relativedelta(day=31)
                         if date > datetime.now():
                             account.coming += balance
                         account._card_links.append(link)
