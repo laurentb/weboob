@@ -66,17 +66,17 @@ class CreditDuNordModule(Module, CapBank):
             raise AccountNotFound()
 
     def iter_history(self, account):
-        account = self.browser.get_account(account.id)
+        account = self.get_account(account.id)
         for tr in self.browser.get_history(account):
             if not tr._is_coming:
                 yield tr
 
     def iter_coming(self, account):
-        account = self.browser.get_account(account.id)
+        account = self.get_account(account.id)
         for tr in self.browser.get_history(account, coming=True):
             if tr._is_coming:
                 yield tr
 
     def iter_investment(self, account):
-        account = self.browser.get_account(account.id)
+        account = self.get_account(account.id)
         return self.browser.get_investment(account)
