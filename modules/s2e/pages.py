@@ -43,16 +43,16 @@ class ErrorPage(HTMLPage):
 
 
 class S2eVirtKeyboard(MappedVirtKeyboard):
-    symbols = {'0':'8adee734aaefb163fb008d26bb9b3a42',
-               '1':'b815d6ce999910d48619b5912b81ddf1',
-               '2':'54255a70694787a4e1bd7dd473b50228',
-               '3':'ba06373d2bfba937d00bf52a31d475eb',
-               '4':'3fa795ac70247922048c514115487b10',
-               '5':'788963d15fa05832ee7640f7c2a21bc3',
-               '6':'c8bf62dfaed9feeb86934d8617182503',
-               '7':'f7543fdda3039bdd383531954dd4fc46',
-               '8':'5c4210e2d8e39f7667d7a9e5534b18b7',
-               '9':'94520ac801883fbfb700f43cd4172d41'
+    symbols = {'0':('8adee734aaefb163fb008d26bb9b3a42', '922d79345bf824b1186d0aa523b37a7c'),
+               '1':('b815d6ce999910d48619b5912b81ddf1', '4730473dcd86f205dff51c59c97cf8c0'),
+               '2':('54255a70694787a4e1bd7dd473b50228', '2d8b1ab0b5ce0b88abbc0170d2e85b7e'),
+               '3':('ba06373d2bfba937d00bf52a31d475eb', '08e7e7ab7b330f3cfcb819b95eba64c6'),
+               '4':('3fa795ac70247922048c514115487b10', 'ffb3d035a3a335cfe32c59d8ee1302ad'),
+               '5':('788963d15fa05832ee7640f7c2a21bc3', 'c4b12545020cf87223901b6b35b9a9e2'),
+               '6':('c8bf62dfaed9feeb86934d8617182503', '473357666949855a0794f68f3fc40127'),
+               '7':('f7543fdda3039bdd383531954dd4fc46', '5f3a71bd2f696b8dc835dfeb7f32f92a'),
+               '8':('5c4210e2d8e39f7667d7a9e5534b18b7', 'b9a1a73430f724541108ed5dd862431b'),
+               '9':('94520ac801883fbfb700f43cd4172d41', '12c18ca3d4350acd077f557ac74161e5'),
               }
 
     color = (0, 0, 0)
