@@ -74,7 +74,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                     saving = ['ldd', 'livret']
                     account = ['compte', 'account']
                     loan    = ['pret', 'account']
-                    life = ['vie', 'strategie patr.']
+                    life = ['vie', 'strategie patr.', 'essentiel', 'elysees']
                     for inv in invest:
                         if inv in label.lower():
                             return Account.TYPE_MARKET
