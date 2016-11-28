@@ -251,7 +251,7 @@ class BNPPartPro(BNPParibasBrowser):
         data['compteDebiteur'] = account.id
         data['montant'] = str(amount)
         data['typeVirement'] = 'SEPA'
-        if recipient._outer_recipient:
+        if recipient.category == u'Externe':
             data['idBeneficiaire'] = recipient.id
         else:
             data['compteCrediteur'] = recipient.id

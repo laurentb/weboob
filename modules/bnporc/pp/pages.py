@@ -201,7 +201,6 @@ class MyRecipient(ItemElement):
     klass = Recipient
 
     obj_currency = Dict('devise')
-    obj__outer_recipient = False
 
     def obj_enabled_at(self):
         return datetime.now().replace(microsecond=0)
@@ -232,7 +231,7 @@ class TransferInitPage(BNPPage):
             obj_id = Dict('ibanCrypte')
             obj_label = Dict('nomTitulaireCompte')
             obj_iban = Dict('iban')
-            obj_category = u'inner'
+            obj_category = u'Interne'
 
             def obj_bank_name(self):
                 return u'BNP PARIBAS'
@@ -250,8 +249,7 @@ class RecipientsPage(BNPPage):
             obj_id = Dict('idBeneficiaire')
             obj_label = Dict('nomBeneficiaire')
             obj_iban = Dict('ibanNumCompte')
-            obj__outer_recipient = True
-            obj_category = u'outer'
+            obj_category = u'Externe'
 
             def obj_bank_name(self):
                 return Dict('nomBanque')(self) or NotAvailable
