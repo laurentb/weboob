@@ -75,8 +75,7 @@ class CreditDuNordBrowser(LoginBrowser):
 
     @need_login
     def get_accounts_list(self, iban=True):
-        if not self.accounts.is_here():
-            self.home()
+        self.home()
         accounts = []
         self.location(self.page.get_av_link())
         if self.av.is_here():
