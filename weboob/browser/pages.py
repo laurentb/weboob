@@ -57,7 +57,7 @@ def pagination(func):
     >>> from .browsers import PagesBrowser
     >>> from .url import URL
     >>> class Browser(PagesBrowser):
-    ...     BASEURL = 'http://people.symlink.me'
+    ...     BASEURL = 'https://people.symlink.me'
     ...     list = URL('/~rom1/projects/weboob/list-(?P<pagenum>\d+).html', Page)
     ...
     >>> b = Browser()
@@ -790,7 +790,7 @@ class AbstractPage(Page):
         except ModuleInstallError as err:
             raise ModuleInstallError('This module depends on %s module but %s\'s installation failed with: %s' % (cls.PARENT, cls.PARENT, err))
 
-        if BROWSER_ATTR is None:
+        if cls.BROWSER_ATTR is None:
             parent_browser = parent_module.klass.BROWSER
         else:
             parent_browser = reduce(getattr, cls.BROWSER_ATTR.split('.'), parent_module)

@@ -26,7 +26,7 @@ from weboob.capabilities.base import BaseObject, FieldNotFound, \
 from weboob.tools.misc import iter_fields
 from weboob.tools.log import getLogger
 from weboob.tools.value import ValuesDict
-from weboob.exceptions import ModuleInstallError, ModuleLoadError
+from weboob.exceptions import ModuleInstallError
 
 
 __all__ = ['BackendStorage', 'BackendConfig', 'Module']

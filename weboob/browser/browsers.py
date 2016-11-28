@@ -722,7 +722,7 @@ class PagesBrowser(DomainBrowser):
         ...             raise NextPage(next.attrib['href'])
         ...
         >>> class Browser(PagesBrowser):
-        ...     BASEURL = 'http://people.symlink.me'
+        ...     BASEURL = 'https://people.symlink.me'
         ...     list = URL('/~rom1/projects/weboob/list-(?P<pagenum>\d+).html', Page)
         ...
         >>> b = Browser()
