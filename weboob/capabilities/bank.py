@@ -371,23 +371,40 @@ class CapBankTransfer(CapBank):
         """
         raise NotImplementedError()
 
-    def transfer(self, account, recipient, amount, reason, date, **kwargs):
+    def init_transfer(self, transfer, **params):
         """
-        Do a transfer from an account to a recipient. Upon success, raises
-        BrowserQuestion with details of the transfer processed by the bank
-        website which need to be validated by the user.
+        Initiate a transfer.
 
-        :param account: account to take money
-        :type account: :class:`Account`
-        :param recipient: account to send money
-        :type recipient: :class:`Recipient`
-        :param amount: amount
-        :type amount: :class:`decimal.Decimal`
-        :param reason: reason of transfer
-        :type reason: :class:`unicode`
-        :param date: previsional date of transfer
-        :type date: :class:`datetime.date`
-        :raises: :class:`AccountNotFound`, :class:`TransferError`, :class:`BrowserQuestion`
+        :param :class:`Transfer`
         :rtype: :class:`Transfer`
+        :raises: :class:`TransferError`
         """
         raise NotImplementedError()
+
+    def execute_transfer(self, transfer, **params):
+        """
+        Execute a transfer.
+
+        :param :class:`Transfer`
+        :rtype: :class:`Transfer`
+        :raises: :class:`TransferError`
+        """
+        raise NotImplementedError()
+
+    def transfer(self, transfer, **params):
+        """
+        Do a transfer from an account to a recipient.
+
+        :param :class:`Transfer`
+        :rtype: :class:`Transfer`
+        :raises: :class:`TransferError`
+        """
+        t = self.init_transfer(transfer, **params)
+        for key, value in t.iter_fields():
+            if hasattr(transfer, key) and key != 'id':
+                transfer_val = getattr(transfer, key)
+                try:
+                    assert transfer_val == value or empty(transfer_val)
+                except AssertionError:
+                    raise TransferError('%s changed during transfer processing (from %s to %s)' % (key, transfer_val, value))
+        return self.execute_transfer(t, **params)
