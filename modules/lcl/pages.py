@@ -713,8 +713,8 @@ class TransferPage(LoggedPage, HTMLPage):
         transfer.amount = amount
         transfer.account_iban = account.iban
         transfer.recipient_iban = recipient.iban
-        transfer.account_id = account.id
-        transfer.recipient_id = recipient.id
+        transfer.id_account = account.id
+        transfer.id_recipient = recipient.id
         transfer.exec_date = date.today()
         transfer.label = reason
         transfer.account_label = account.label

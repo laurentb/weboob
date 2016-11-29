@@ -115,8 +115,8 @@ class BNPorcModule(Module, CapBankTransfer, CapMessages):
             account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
             recipient = find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban, error=RecipientNotFound)
         else:
-            account = find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
-            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
+            account = find_object(self.iter_accounts(), id=transfer.id_account, error=AccountNotFound)
+            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.id_recipient, error=RecipientNotFound)
 
         try:
             assert account.id.isdigit()
