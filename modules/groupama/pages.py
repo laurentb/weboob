@@ -22,7 +22,7 @@ import re, requests
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import method, TableElement, ItemElement
-from weboob.browser.filters.standard import Env, CleanText, CleanDecimal, Field
+from weboob.browser.filters.standard import Env, CleanText, CleanDecimal, Field, Regexp
 from weboob.browser.filters.html import Attr, Link
 from weboob.browser.filters.javascript import JSVar
 from weboob.capabilities.bank import Account
@@ -54,7 +54,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             def obj_label(self):
                 return CleanText('.//td[1]', replace=[(u'\u2022', u'')])(self).lstrip()
 
-            def obj_id(self):
+            def obj_number(self):
                 return CleanText().filter(re.findall('(\d+)', Field('label')(self))).replace(u' ', u'')
 
             def obj_type(self):
@@ -62,6 +62,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             obj_balance = CleanDecimal('./td[3]', replace_dots=True, default=NotAvailable)
             obj_currency = u"EUR"
+            obj_id = Regexp(Field('label'), u'N° (\w+)')
 
             def obj__link(self):
                 if Field('type')(self) is not Account.TYPE_LIFE_INSURANCE:
