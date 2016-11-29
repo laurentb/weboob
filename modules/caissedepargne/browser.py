@@ -28,7 +28,7 @@ from dateutil.relativedelta import relativedelta
 from weboob.browser import LoginBrowser, need_login
 from weboob.browser.url import URL
 from weboob.capabilities.bank import Account
-from weboob.browser.exceptions import BrowserHTTPNotFound
+from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
 from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import IndexPage, ErrorPage, MarketPage, LifeInsurance, GarbagePage, \
@@ -92,7 +92,7 @@ class CaisseEpargne(LoginBrowser):
         data = self.login.go(login=self.username).get_response()
 
         if data is None:
-            raise BrowserIncorrectPassword
+            raise BrowserIncorrectPassword()
 
         if "authMode" in data and data['authMode'] == 'redirect':
             self.is_cenet_website = True
@@ -158,7 +158,11 @@ class CaisseEpargne(LoginBrowser):
                 'filtreEntree': None
             }
 
-            accounts = [account for account in self.cenet_accounts.go(data=json.dumps(data), headers=headers).get_accounts()]
+            try:
+                accounts = [account for account in self.cenet_accounts.go(data=json.dumps(data), headers=headers).get_accounts()]
+            except ClientError:
+                # Unauthorized due to wrongpass
+                raise BrowserIncorrectPassword()
 
             for account in accounts:
                 account._cards = [card for card in self.cenet_cards.go(data=json.dumps(data), headers=headers).get_cards() \
