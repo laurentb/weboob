@@ -24,6 +24,7 @@ from itertools import chain
 
 from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser.exceptions import ServerError
 from weboob.tools.date import LinearDateGuesser
 
 from .pages import LoginPage, AccountsPage, HistoryPage, ChoiceLinkPage, SubscriptionPage, InvestmentPage, UselessPage
@@ -63,9 +64,13 @@ class CmsoProBrowser(LoginBrowser):
         for area in self.areas:
             self.subscription.stay_or_go()
             self.location(area)
-            for a in self.accounts.go().iter_accounts():
-                a._area = area
-                yield a
+            try:
+                for a in self.accounts.go().iter_accounts():
+                    a._area = area
+                    yield a
+            except ServerError:
+                self.logger.warning('Area not unavailable.')
+
 
     @need_login
     def iter_history(self, account):
