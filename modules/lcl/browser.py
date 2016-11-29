@@ -211,20 +211,24 @@ class LCLBrowser(LoginBrowser):
         self.transfer_page.go()
         if not self.page.can_transfer(origin_account._transfer_id):
             return
-        for recipient in self.page.iter_recipients():
+        for recipient in self.page.iter_recipients(account_transfer_id=origin_account._transfer_id):
             recipient.iban = find_object(self.get_accounts_list(), _transfer_id=recipient.id).iban
             yield recipient
         for recipient in self.recipients.go().iter_recipients():
             yield recipient
 
     @need_login
-    def transfer(self, account, recipient, amount, reason=None):
+    def init_transfer(self, account, recipient, amount, reason=None):
         self.transfer_page.stay_or_go()
         self.page.transfer(account, recipient, amount, reason)
         self.confirm_transfer.go().check_data_consistency(account, recipient, amount, reason)
-        self.page.confirm(self.password)
-        self.page.check_data_consistency(account, recipient, amount, reason, offset=1)
         return self.page.create_transfer(account, recipient, amount, reason)
+
+    @need_login
+    def execute_transfer(self, transfer):
+        self.page.confirm(self.password)
+        self.page.check_data_consistency(transfer._account, transfer._recipient, transfer.amount, transfer.label, 1)
+        return self.page.fill_transfer_id(transfer)
 
 class LCLProBrowser(LCLBrowser):
     BASEURL = 'https://professionnels.secure.lcl.fr'

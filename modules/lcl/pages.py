@@ -22,7 +22,7 @@ import re, requests, base64, math, random
 from decimal import Decimal
 from cStringIO import StringIO
 from urllib import urlencode
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, Transfer
@@ -37,7 +37,6 @@ from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
-from weboob.tools.date import parse_french_date
 
 
 def MyDecimal(*args, **kwargs):
@@ -646,7 +645,7 @@ class TransferPage(LoggedPage, HTMLPage):
         form.url = '/outil/UWVS/Accueil/verificationParametres'
         form['montant'] = amount
         form['lstCptDebitablesVO'] = self.get_account_index('id_lstCptDebitablesVO', account._transfer_id)
-        if recipient.category == u'inner':
+        if recipient.category == u'Interne':
             form['lstCptCreditablesVO'] = self.get_account_index('id_lstCptCreditablesVO', recipient.id)
         else:
             form['lstCptRibPreEnrVIPVO'] = self.get_account_index('lstCptRIBVIPVO', recipient.id)
@@ -681,11 +680,12 @@ class TransferPage(LoggedPage, HTMLPage):
 
         class Item(ItemElement):
             klass = Recipient
+            validate = lambda self, obj: self.obj_id(self) != self.env['account_transfer_id']
 
             obj_id = Regexp(CleanText('.', replace=[(' ', '')]), '(\d+[A-Z]+)---')
             obj_label = Regexp(CleanText('.'), u'([a-zA-Z \'é]+) ')
             obj_bank_name = u'LCL'
-            obj_category = u'inner'
+            obj_category = u'Interne'
             obj_iban = NotAvailable
 
             def obj_enabled_at(self):
@@ -698,27 +698,32 @@ class TransferPage(LoggedPage, HTMLPage):
                     assert CleanDecimal('./td[@class="recapValeur"]', replace_dots=True)(tr) == amount
                 elif index == 1 + offset:
                     assert account._transfer_id in CleanText('./td[@class="recapValeur"]', replace=[(' ', '')])(tr)
-                elif index == 2 + offset and recipient.category == u'outer':
+                elif index == 2 + offset and recipient.category == u'Externe':
                     assert recipient.label in CleanText('./td[@class="recapValeur"]')(tr)
-                if index == 3 + offset and recipient.category == u'outer':
+                elif index == 3 + offset and recipient.category == u'Externe':
                     assert recipient.iban in CleanText('./td[@class="recapValeur"]', replace=[(' ', '')])(tr)
-                if index == 4 + offset and reason:
+                elif index == 4 + offset and reason:
                     assert reason in CleanText('./td[@class="recapValeur"]')(tr)
         except AssertionError:
             raise TransferError('Something went wrong')
 
     def create_transfer(self, account, recipient, amount, reason):
         transfer = Transfer()
-        transfer.currency = FrenchTransaction.Currency('//table[has-class("recap")]/tr[@class="recapLigne"][2]/td[@class="recapValeur"]')(self.doc)
+        transfer.currency = FrenchTransaction.Currency('//table[has-class("recap")]/tr[@class="recapLigne"][1]/td[@class="recapValeur"]')(self.doc)
         transfer.amount = amount
         transfer.account_iban = account.iban
         transfer.recipient_iban = recipient.iban
         transfer.account_id = account.id
         transfer.recipient_id = recipient.id
-        transfer.exec_date = parse_french_date(CleanText('//table[has-class("recap")]/tr[@class="recapLigne"][1]/td[@class="recapValeur"]')(self.doc)).date()
+        transfer.exec_date = date.today()
         transfer.label = reason
         transfer.account_label = account.label
         transfer.recipient_label = recipient.label
+        transfer._account = account
+        transfer._recipient = recipient
+        return transfer
+
+    def fill_transfer_id(self, transfer):
         transfer.id = CleanDecimal('//td[@class="recapRef"]')(self.doc)
         return transfer
 
@@ -738,7 +743,7 @@ class RecipientPage(LoggedPage, HTMLPage):
             obj_iban = obj_id = CleanText(TableCell('iban'), replace=[(' ', '')])
             obj_label = CleanText(TableCell('label'))
             obj_bank_name = NotAvailable
-            obj_category = u'outer'
+            obj_category = u'Externe'
 
             def obj_enabled_at(self):
                 return datetime.now().replace(microsecond=0)

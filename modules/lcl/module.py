@@ -89,7 +89,7 @@ class LCLModule(Module, CapBankTransfer):
             origin_account = find_object(self.iter_accounts(), id=origin_account, error=AccountNotFound)
         return self.browser.iter_recipients(origin_account)
 
-    def transfer(self, transfer):
+    def init_transfer(self, transfer, **params):
         if self.config['website'].get() not in  ['par', 'pro']:
             raise NotImplementedError()
 
@@ -111,4 +111,7 @@ class LCLModule(Module, CapBankTransfer):
         except (AssertionError, ValueError):
             raise TransferError('something went wrong')
 
-        return self.browser.transfer(account, recipient, amount, transfer.label)
+        return self.browser.init_transfer(account, recipient, amount, transfer.label)
+
+    def execute_transfer(self, transfer, **params):
+        return self.browser.execute_transfer(transfer)
