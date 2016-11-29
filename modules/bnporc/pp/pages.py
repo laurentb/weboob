@@ -229,7 +229,7 @@ class TransferInitPage(BNPPage):
             condition = lambda self: Dict('ibanCrypte')(self.el) != self.env['origin_account_ibancrypte']
 
             obj_id = Dict('ibanCrypte')
-            obj_label = Dict('nomTitulaireCompte')
+            obj_label = Dict('libelleCompte')
             obj_iban = Dict('iban')
             obj_category = u'Interne'
 
