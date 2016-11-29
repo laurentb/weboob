@@ -6,6 +6,7 @@ from __future__ import print_function
 
 from weboob.core import Weboob
 import os
+import sys
 
 weboob = Weboob()
 weboob.modules_loader.load_all()
@@ -26,3 +27,6 @@ if backends_without_tests:
     print('Modules without tests: %s' % backends_without_tests)
 if backends_without_icons:
     print('Modules without icons: %s' % backends_without_icons)
+
+if backends_without_tests or backends_without_icons:
+    sys.exit(1)

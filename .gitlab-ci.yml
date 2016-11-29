@@ -1,0 +1,27 @@
+image: "python:2.7"
+
+before_script:
+  - "pip install -r .ci/requirements.txt"
+  - "REQUIREMENTS=$(mktemp) && python setup.py requirements > ${REQUIREMENTS} && pip install -r ${REQUIREMENTS} && rm ${REQUIREMENTS}"
+  - "pip install -r .ci/requirements_modules.txt"
+
+build:
+  stage: "build"
+  script:
+    - "./tools/local_install.sh ~/bin"
+
+lint:
+  stage: "test"
+  script:
+    - "./tools/pyflakes.sh"
+    - "./tools/weboob_lint.sh"
+
+unittests:
+  stage: "test"
+  script:
+    - "NOSE_PROCESSES=4 ./tools/run_tests.sh"
+
+doc:
+  stage: "deploy"
+  script:
+    - "cd ./docs && make html"

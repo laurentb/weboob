@@ -12,3 +12,4 @@ modules/modules.list
 /localconfig
 *.idea/
 *.DS_Store
+*.coverage*
