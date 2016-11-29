@@ -123,7 +123,7 @@ class AccountsPage(CMSOPage):
                             self.env['id'] = CleanText('./td[1]', replace=[(' ', '')])(tr)
                 else:
                     page = self.page.browser.open(history_url).page
-                    self.env['id'] = Regexp(CleanText('//span[has-class("Rappel")]'), '(\d{18})')(page.doc)
+                    self.env['id'] = Regexp(CleanText('//span[has-class("Rappel")]'), '(\d{18}) | (\d{3}\w\d{15})')(page.doc)
 
     def on_load(self):
         if self.doc.xpath('//p[contains(text(), "incident technique")]'):
