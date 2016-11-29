@@ -54,11 +54,10 @@ class SubscriptionPage(HTMLPage):
         for div in self.doc.xpath('//div[@class="listeAbonnementsBox"]'):
             site_type = div.xpath('./div[1]')[0].text
             if site_type != 'Particulier':
-                link = div.xpath('./div[2]')[0].attrib['onclick']
-                m = re.search(r"href='(.*)'", link)
-                if m:
-                    self.browser.areas.append(m.group(1))
-
+                for link in div.xpath('./div/@onclick'):
+                    m = re.search(r"href='(.*)'", link)
+                    if m:
+                        self.browser.areas.append(m.group(1))
 
 class LoginPage(HTMLPage):
     def login(self, username, password):
