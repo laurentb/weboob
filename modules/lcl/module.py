@@ -100,10 +100,10 @@ class LCLModule(Module, CapBankTransfer):
         self.logger.info('Going to do a new transfer')
         if transfer.account_iban:
             account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
-            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
+            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_webid, error=RecipientNotFound)
         else:
             account = find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
-            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
+            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_webid, error=RecipientNotFound)
 
         try:
             # quantize to show 2 decimals.
