@@ -194,6 +194,7 @@ class AccountsPage(LoggedPage, CDNBasePage):
              u'ÉTOILE AVANCE':       Account.TYPE_LOAN,
              u'PRÊT':                Account.TYPE_LOAN,
              u'CREDIT':              Account.TYPE_LOAN,
+             u'FACILINVEST':         Account.TYPE_LOAN,
             }
 
     def get_account_type(self, label):
