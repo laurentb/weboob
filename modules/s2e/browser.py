@@ -53,7 +53,11 @@ class S2eBrowser(LoginBrowser):
     @need_login
     def iter_accounts(self):
         if 'accs' not in self.cache.keys():
-            multi = self.accounts.stay_or_go(slug=self.SLUG, lang=self.LANG).get_multi()
+            self.accounts.stay_or_go(slug=self.SLUG, lang=self.LANG)
+            # weird wrongpass
+            if not self.accounts.is_here():
+                raise BrowserIncorrectPassword()
+            multi = self.page.get_multi()
             if len(multi):
                 # Handle multi entreprise accounts
                 accs = []
