@@ -798,8 +798,8 @@ class InternalTransferPage(LoggedPage, HTMLPage):
         transfer.amount = r_amount
         transfer.account_iban = account.iban
         transfer.recipient_iban = recipient.iban
-        transfer.id_account = account.id
-        transfer.id_recipient = recipient.id
+        transfer.account_id = account.id
+        transfer.recipient_id = recipient.id
         transfer.exec_date = exec_date
         transfer.label = reason
 
@@ -816,7 +816,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
         if transfer_ok_message not in content:
             raise TransferError('The expected message "%s" was not found.' % transfer_ok_message)
 
-        exec_date, r_amount, currency = self.check_data_consistency(transfer.id_account, transfer.id_recipient, transfer.amount, transfer.label)
+        exec_date, r_amount, currency = self.check_data_consistency(transfer.account_id, transfer.recipient_id, transfer.amount, transfer.label)
         assert u'Exécuté' in CleanText(u'//table[@summary]/tbody/tr[th[contains(text(), "Etat")]]/td')(self.doc)
 
         assert transfer.amount == r_amount

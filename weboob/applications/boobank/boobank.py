@@ -521,8 +521,8 @@ class Boobank(ReplApplication):
         self.start_format()
 
         transfer = Transfer()
-        transfer.id_account = account.id
-        transfer.id_recipient = id_to
+        transfer.account_id = account.id
+        transfer.recipient_id = id_to
         transfer.amount = amount
         transfer.label = reason
         transfer.exec_date = exec_date

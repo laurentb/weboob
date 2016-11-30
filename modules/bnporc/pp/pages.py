@@ -290,8 +290,8 @@ class ValidateTransferPage(BNPPage):
         transfer.amount = Decimal(transfer_data['montantEuros'])
         transfer.account_iban = transfer_data['ibanCompteDebiteur']
         transfer.recipient_iban = transfer_data['ibanCompteCrediteur'] or recipient.iban
-        transfer.id_account = account.id
-        transfer.id_recipient = recipient.id
+        transfer.account_id = account.id
+        transfer.recipient_id = recipient.id
         transfer.exec_date = exec_date
         transfer.fees = Decimal(transfer_data['montantFrais'])
         transfer.label = transfer_data['motifVirement']
