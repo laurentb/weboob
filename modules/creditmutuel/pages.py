@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import requests
+
+import re
 
 try:
     from urlparse import urlparse, parse_qs
@@ -25,9 +26,9 @@ except ImportError:
     from urllib.parse import urlparse, parse_qs
 
 from decimal import Decimal, InvalidOperation
-import re
 from dateutil.relativedelta import relativedelta
 from datetime import date, datetime
+from random import randint
 
 from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, SkipItem, method, TableElement
@@ -214,7 +215,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                         if not account.coming:
                             account.coming = Decimal('0.0')
                         date = parse_french_date(Regexp(Field('label'), 'Fin (.+) (\d{4})', '01 \\1 \\2')(self)) + relativedelta(day=31)
-                        if date > datetime.now():
+                        if date > datetime.now() - relativedelta(day=1):
                             account.coming += balance
                         account._card_links.append(link)
                     raise SkipItem()
@@ -278,43 +279,90 @@ class Pagination(object):
 
     def next_month(self):
         try:
-            self.page.get_form('//form[@id="frmStarcLstOpe"]')
+            form = self.page.get_form('//form[@id="frmStarcLstOpe"]')
         except FormNotFound:
             return
 
         try:
-            current_month = self.page.doc.xpath('//select[@id="moi"]/option[@selected]/following-sibling::option')[0].attrib['value']
+            form['moi'] = self.page.doc.xpath('//select[@id="moi"]/option[@selected]/following-sibling::option')[0].attrib['value']
         except IndexError:
             return
-        return requests.Request('POST', data={'moi': current_month})
+
+        return form.request
 
 
 class CardsListPage(LoggedPage, HTMLPage):
     @pagination
     @method
-    class iter_cards(Pagination, TableElement):
+    class iter_cards(TableElement):
         item_xpath = '//table[@class="liste"]/tbody/tr'
         head_xpath = '//table[@class="liste"]/thead//tr/th'
 
         col_owner = 'Porteur'
         col_card = 'Carte'
 
+        def next_page(self):
+            try:
+                form = self.page.get_form('//form[contains(@id, "frmStarcLstCtrPag")]')
+                form['imgCtrPagSui.x'] =  randint(1, 29)
+                form['imgCtrPagSui.y'] =  randint(1, 17)
+                m = re.search(u'(\d+)/(\d+)', CleanText('.')(form.el))
+                if m and int(m.group(1)) < int(m.group(2)):
+                    return form.request
+            except FormNotFound:
+                return
+
         class item(ItemElement):
             klass = Account
 
-            obj__owner = TableCell('owner') & CleanText
-            obj__link_id = Format('pro/%s', Link('./td[2]/a'))
-            obj_id = Field('_link_id') & Regexp(pattern='ctr=(\d+)')
-            obj_label = Format('%s %s', CleanText(TableCell('card')), Field('_owner'))
-            obj_balance = NotAvailable
-            obj_currency = FrenchTransaction.Currency('./td[3]')
+            load_details = Field('_link_id') & AsyncLoad
+
+            obj_id = Env('id', default="")
+            obj_number = Field('_link_id') & Regexp(pattern='ctr=(\d+)')
+            obj_label = Format('%s %s %s', CleanText(TableCell('card')), Field('id'), CleanText(TableCell('owner')))
+            obj_balance = CleanDecimal('./td[small][1]', replace_dots=True, default=NotAvailable)
+            obj_currency = FrenchTransaction.Currency(CleanText('./td[small][1]'))
             obj_type = Account.TYPE_CARD
-            obj__card_links = []
+            obj__card_page = Env('page')
             obj__is_inv = False
             obj__is_webid = False
 
             def obj__pre_link(self):
                 return self.page.url
+
+            def obj__link_id(self):
+                return Link(TableCell('card')(self)[0].xpath('./a'))(self)
+
+            def parse(self, el):
+                self.env['page'] = page = Async('details').loaded_page(self)
+
+                # Handle multi cards
+                options = page.doc.xpath('//select[@id="iso"]/option')
+                for option in options:
+                    card = Account()
+
+                    for attr in self._attrs:
+                        self.handle_attr(attr, getattr(self, 'obj_%s' % attr))
+                        setattr(card, attr, getattr(self.obj, attr))
+
+                    card.id = CleanText('.', replace=[(' ', '')])(option)
+                    card.label = card.label.replace('  ', ' %s ' % card.id)
+                    card.balance = NotAvailable
+
+                    self.page.browser.multi_cards.append(card)
+
+                # Skip multi and expired cards
+                if len(options) or len(page.doc.xpath('//span[@id="ERREUR"]')):
+                    raise SkipItem()
+
+                # 1 card : we have to check on another page to get id
+                page = page.browser.open(Link('//a[text()="Contrat"]')(page.doc)).page
+                for xpath in [u'//tr[td[text()="%s"]][1]/td[2]' % x for x in ["Active", u"Résiliée", "En opposition"]]:
+                    self.env['id'] = CleanText(xpath,replace=[(' ', '')], default=None)(page.doc)
+                    if self.env['id']:
+                        break
+
+                assert self.env['id']
 
 
 class Transaction(FrenchTransaction):
@@ -380,6 +428,17 @@ class OperationsPage(LoggedPage, HTMLPage):
 
 
 class CardsOpePage(OperationsPage):
+    def select_card(self, card_number):
+        if CleanText('//select[@id="iso"]', default=None)(self.doc):
+            form = self.get_form('//p[@class="restriction"]')
+            card_number = ' '.join([card_number[j*4:j*4+4] for j in xrange(len(card_number)/4+1)]).strip()
+            form['iso'] = Attr('//option[text()="%s"]' % card_number, 'value')(self.doc)
+            moi = Attr('//select[@id="moi"]/option[@selected]', 'value', default=None)(self.doc)
+            if moi:
+                form['moi'] = moi
+            return self.browser.open(form.url, data=dict(form)).page
+        return self
+
     @method
     class get_history(Pagination, Transaction.TransactionsElement):
         head_xpath = '//table[@class="liste"]//thead//tr/th'

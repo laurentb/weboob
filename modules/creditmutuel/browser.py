@@ -25,6 +25,7 @@ except ImportError:
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from itertools import groupby
 
 from weboob.tools.compat import basestring
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -63,7 +64,6 @@ class CreditMutuelBrowser(LoginBrowser):
                       AccountsPage)
     user_space =  URL('/(?P<subbank>.*)fr/banque/espace_personnel.aspx',
                       '/(?P<subbank>.*)fr/banque/accueil.cgi',
-                      '/(?P<subbank>.*)fr/banque/DELG_Gestion',
                       '/(?P<subbank>.*)fr/banque/paci_engine/static_content_manager.aspx',
                       UserSpacePage)
     card =        URL('/(?P<subbank>.*)fr/banque/operations_carte.cgi.*',
@@ -107,7 +107,8 @@ class CreditMutuelBrowser(LoginBrowser):
     redirect = URL('/(?P<subbank>.*)fr/banque/paci_engine/static_content_manager.aspx', RedirectPage)
 
     cards_activity = URL('/(?P<subbank>.*)fr/banque/pro/ENC_liste_tiers.aspx', CardsActivityPage)
-    cards_list = URL('/(?P<subbank>.*)fr/banque/pro/ENC_liste_ctr.*', CardsListPage)
+    cards_list = URL('/(?P<subbank>.*)fr/banque/pro/ENC_liste_ctr.*',
+                     '/(?P<subbank>.*)fr/banque/pro/ENC_detail_ctr', CardsListPage)
     cards_ope = URL('/(?P<subbank>.*)fr/banque/pro/ENC_liste_oper', CardsOpePage)
 
     internal_transfer = URL('/(?P<subbank>.*)fr/banque/virements/vplw_vi.html', InternalTransferPage)
@@ -155,6 +156,14 @@ class CreditMutuelBrowser(LoginBrowser):
                     self.accounts_list.append(a)
                 self.new_iban.go(subbank=self.currentSubBank).fill_iban(self.accounts_list)
                 self.new_por.go(subbank=self.currentSubBank).add_por_accounts(self.accounts_list)
+                # Handle fleet cards
+                self.cards_activity.go(subbank=self.currentSubBank)
+                companies = self.page.companies_link() if self.cards_activity.is_here() else [self.page]
+                self.multi_cards = []
+                for company in companies:
+                    page = self.open(company).page if isinstance(company, basestring) else company
+                    self.accounts_list.extend([card for card in page.iter_cards()])
+                self.accounts_list.extend([card for card in self.multi_cards])
             for id, pages_list in self.fleet_pages.iteritems():
                 for page in pages_list:
                     for a in page.get_cards(accounts=self.accounts_list):
@@ -174,11 +183,14 @@ class CreditMutuelBrowser(LoginBrowser):
         paths = urlparse(self.url).path.lstrip('/').split('/')
         self.currentSubBank = paths[0] + "/" if paths[0] != "fr" else ""
 
-    def list_operations(self, page_url):
-        if page_url.startswith('/') or page_url.startswith('https') or page_url.startswith('?'):
-            self.location(page_url)
+    def list_operations(self, page):
+        if isinstance(page, basestring):
+            if page.startswith('/') or page.startswith('https') or page.startswith('?'):
+                self.location(page)
+            else:
+                self.location('%s/%sfr/banque/%s' % (self.BASEURL, self.currentSubBank, page))
         else:
-            self.location('%s/%sfr/banque/%s' % (self.BASEURL, self.currentSubBank, page_url))
+            self.page = page
 
         # getting about 6 months history on new website
         if self.is_new_website and self.page:
@@ -211,15 +223,31 @@ class CreditMutuelBrowser(LoginBrowser):
 
         return self.pagination(lambda: self.page.get_history())
 
+    def get_monthly_transactions(self, trs):
+        groups = [list(g) for k, g in groupby(sorted(trs, key=lambda tr: tr.date), lambda tr: tr.date)]
+        trs = []
+        for group in groups:
+            tr = FrenchTransaction()
+            tr.raw = u"RELEVE CARTE %s" % group[0].date
+            tr.amount = -sum([t.amount for t in group])
+            tr.date = tr.rdate = tr.vdate = group[0].date
+            tr.type = group[0].type
+            tr._is_coming = False
+            trs.append(tr)
+        return trs
+
     def get_history(self, account):
         transactions = []
         if not account._link_id:
             return iter([])
+
         # need to refresh the months select
-        if account._link_id.startswith('pro'):
+        if account._link_id.startswith('pro') or account._link_id.startswith('ENC_liste_oper'):
             self.location(account._pre_link)
-        for tr in self.list_operations(account._link_id):
-            transactions.append(tr)
+
+        if not hasattr(account, '_card_page'):
+            for tr in self.list_operations(account._link_id):
+                transactions.append(tr)
 
         coming_link = self.page.get_coming_link() if self.operations.is_here() else None
         if coming_link is not None:
@@ -227,13 +255,20 @@ class CreditMutuelBrowser(LoginBrowser):
                 transactions.append(tr)
 
         differed_date = None
-        for card_link in account._card_links:
-            for tr in self.list_operations(card_link):
-                if not differed_date or tr._differed_date < differed_date:
+        cards = [] if self.is_new_website else account._card_links
+        cards = [account._card_page.select_card(account.id)] if hasattr(account, '_card_page') else cards
+        for card in cards:
+            card_trs = []
+            for tr in self.list_operations(card):
+                if hasattr(tr, '_differed_date') and (not differed_date or tr._differed_date < differed_date):
                     differed_date = tr._differed_date
-                if tr.date > datetime.now():
+                if tr.date >= datetime.now():
                     tr._is_coming = True
+                elif hasattr(account, '_card_page'):
+                    card_trs.append(tr)
                 transactions.append(tr)
+            if card_trs:
+                transactions.extend(self.get_monthly_transactions(card_trs))
 
         if differed_date is not None:
             # set deleted for card_summary
@@ -299,4 +334,3 @@ class CreditMutuelBrowser(LoginBrowser):
         form['Bool:data_input_confirmationDoublon'] = 'true'
         form.submit()
         return self.page.create_transfer(transfer)
-
