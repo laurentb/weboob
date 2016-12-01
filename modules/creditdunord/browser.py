@@ -74,35 +74,37 @@ class CreditDuNordBrowser(LoginBrowser):
             self.account_type = m.group(1)
 
     @need_login
-    def get_accounts_list(self, iban=True):
+    def _iter_accounts(self):
         self.home()
-        accounts = []
         self.location(self.page.get_av_link())
         if self.av.is_here():
             for a in self.page.get_av_accounts():
                 self.location(a._link, data=a._args)
                 self.location(a._link.replace("_attente", "_detail_contrat_rep"), data=a._args)
                 self.page.fill_diff_currency(a)
-                accounts.append(a)
+                yield a
         self.home()
         for a in self.page.get_list():
-            accounts.append(a)
+            yield a
         self.loans.go()
         for a in self.page.get_list():
-            accounts.append(a)
-        if iban:
-            self.page.iban_page()
-            link = self.page.iban_go()
-            for a in [a for a in accounts if a._acc_nb]:
-                self.location(link + a._acc_nb)
-                a.iban = self.page.get_iban()
+            yield a
+
+    @need_login
+    def get_accounts_list(self):
+        accounts = list(self._iter_accounts())
+
+        self.page.iban_page()
+        link = self.page.iban_go()
+        for a in [a for a in accounts if a._acc_nb]:
+            self.location(link + a._acc_nb)
+            a.iban = self.page.get_iban()
         return iter(accounts)
 
     def get_account(self, id):
         assert isinstance(id, basestring)
 
-        l = self.get_accounts_list(iban=False)
-        for a in l:
+        for a in self._iter_accounts():
             if a.id == id:
                 return a
         return None
