@@ -64,6 +64,7 @@ class CreditMutuelBrowser(LoginBrowser):
                       AccountsPage)
     user_space =  URL('/(?P<subbank>.*)fr/banque/espace_personnel.aspx',
                       '/(?P<subbank>.*)fr/banque/accueil.cgi',
+                      '/(?P<subbank>.*)fr/banque/DELG_Gestion',
                       '/(?P<subbank>.*)fr/banque/paci_engine/static_content_manager.aspx',
                       UserSpacePage)
     card =        URL('/(?P<subbank>.*)fr/banque/operations_carte.cgi.*',
@@ -79,11 +80,8 @@ class CreditMutuelBrowser(LoginBrowser):
     change_pass = URL('/(?P<subbank>.*)fr/validation/change_password.cgi',
                       '/fr/services/change_password.html', ChangePasswordPage)
     verify_pass = URL('/(?P<subbank>.*)fr/validation/verif_code.cgi.*',     VerifCodePage)
-    new_home =    URL('/fr/banque/pageaccueil.html',
-                      '/(?P<subbank>.*)fr/banque/DELG_Gestion.*',
-                      '/mabanque/fr/banque/pageaccueil.html',
-                      '/(?P<subbank>.*)fr/banque/paci_engine/static_content_manager.aspx',
-                      '/fr/banque/welcome_pack.html', NewHomePage)
+    new_home =    URL('/(?P<subbank>.*)fr/banque/pageaccueil.html',
+                      '/(?P<subbank>.*)banque/welcome_pack.html', NewHomePage)
     empty =       URL('/(?P<subbank>.*)fr/banques/index.html',
                       '/(?P<subbank>.*)fr/banque/paci_beware_of_phishing.*',
                       '/(?P<subbank>.*)fr/validation/(?!change_password|verif_code).*',
@@ -182,6 +180,8 @@ class CreditMutuelBrowser(LoginBrowser):
         # the account list and history urls depend on the sub bank of the user
         paths = urlparse(self.url).path.lstrip('/').split('/')
         self.currentSubBank = paths[0] + "/" if paths[0] != "fr" else ""
+        if paths[0] in ["fr", "mabanque"]:
+            self.is_new_website = True
 
     def list_operations(self, page):
         if isinstance(page, basestring):
