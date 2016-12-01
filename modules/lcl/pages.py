@@ -724,7 +724,7 @@ class TransferPage(LoggedPage, HTMLPage):
         return transfer
 
     def fill_transfer_id(self, transfer):
-        transfer.id = CleanDecimal('//td[@class="recapRef"]')(self.doc)
+        transfer.id = str(CleanDecimal('//td[@class="recapRef"]')(self.doc))
         return transfer
 
 
