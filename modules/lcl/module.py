@@ -83,7 +83,7 @@ class LCLModule(Module, CapBankTransfer):
         return self.browser.get_investment(account)
 
     def iter_transfer_recipients(self, origin_account):
-        if self.config['website'].get() not in  ['par', 'pro']:
+        if self.config['website'].get() not in  ['par', 'pro'] or not hasattr(origin_account, '_transfer_id'):
             raise NotImplementedError()
         if not isinstance(origin_account, Account):
             origin_account = find_object(self.iter_accounts(), id=origin_account, error=AccountNotFound)

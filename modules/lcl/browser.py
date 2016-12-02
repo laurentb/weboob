@@ -23,6 +23,7 @@ from urlparse import urlsplit, parse_qsl
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser.exceptions import ServerError
 from weboob.capabilities.base import NotAvailable, find_object
 from weboob.capabilities.bank import Account
 
@@ -152,7 +153,10 @@ class LCLBrowser(LoginBrowser):
                 yield tr
             self.deconnexion_bourse()
         elif hasattr(account, '_link_id') and account._link_id:
-            self.location(account._link_id)
+            try:
+                self.location(account._link_id)
+            except ServerError:
+                return
             for tr in self.page.get_operations():
                 yield tr
             for tr in self.get_cb_operations(account, 1):
