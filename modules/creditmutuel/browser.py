@@ -231,7 +231,7 @@ class CreditMutuelBrowser(LoginBrowser):
             tr.raw = u"RELEVE CARTE %s" % group[0].date
             tr.amount = -sum([t.amount for t in group])
             tr.date = tr.rdate = tr.vdate = group[0].date
-            tr.type = group[0].type
+            tr.type = FrenchTransaction.TYPE_CARD_SUMMARY
             tr._is_coming = False
             trs.append(tr)
         return trs

@@ -459,7 +459,7 @@ class CardsOpePage(OperationsPage):
             obj_date = obj_vdate = Env('date')
             obj__is_coming = Env('_is_coming')
             obj_amount = CleanDecimal(Env('amount'), replace_dots=True)
-            obj_commission = CleanDecimal(Env('commission'), replace_dots=True, default=NotAvailable)
+            obj_commission = CleanDecimal(Format('-%s', Env('commission')), replace_dots=True, default=NotAvailable)
 
             def parse(self, el):
                 self.env['date'] = Date(Regexp(CleanText(u'//td[contains(text(), "Total prélevé")]'), ' (\d{2}/\d{2}/\d{4})', \
