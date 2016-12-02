@@ -117,7 +117,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
         # This page might be unavailable.
         try:
             ibans.update(self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict('Crediteur'))
-        except TransferError as e:
+        except TransferError:
             pass
 
         accounts = self.accounts.go().iter_accounts(ibans)
