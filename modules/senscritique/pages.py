@@ -16,6 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+import re
 
 from .calendar import SensCritiquenCalendarEvent
 
@@ -49,10 +50,13 @@ class FormatDate(Filter):
 
 class Date(Filter):
     def filter(self, el):
-        spans_date = el[0].xpath("span[@class='d-date']")
+        str_date = CleanText('.')(el[0])
         _date = date.today()
-        if len(spans_date) == 2:
-            day_number = int(spans_date[1].text)
+        m = re.search('\w* (\d\d?) .*', str_date)
+        if ('Demain' in str_date or 'Ce soir' in str_date):
+            _date += timedelta(days=1)
+        elif m:
+            day_number = int(m.group(1))
             month = _date.month
             year = _date.year
             if day_number < _date.day:
@@ -60,8 +64,7 @@ class Date(Filter):
                 if _date.month == 12:
                     year = _date.year + 1
             _date = date(day=day_number, month=month, year=year)
-        elif spans_date[0].attrib['data-sc-day'] == 'Demain':
-            _date += timedelta(days=1)
+
         str_time = el[0].xpath("time")[0].attrib['datetime'][:-6]
         _time = datetime.strptime(str_time, '%H:%M:%S')
         return datetime.combine(_date, _time.time())
@@ -95,7 +98,7 @@ class FilmsPage(HTMLPage):
                     return Format(u'%s#%s#%s',
                                   Regexp(Link('.'), '/film/(.*)'),
                                   FormatDate("%Y%m%d%H%M",
-                                             Date('div/div[@class="elgr-data-diffusion"]')),
+                                             Date('div[@class="elgr-guide-details"]/div[@class="elgr-data-diffusion"]')),
                                   CleanText('./div/span[@class="d-offset"]',
                                             replace=[(' ', '-')]))(self) == self.env['_id']
                 return True
