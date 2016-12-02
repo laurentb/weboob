@@ -24,8 +24,10 @@ for name, backend in weboob.modules_loader.loaded.iteritems():
         backends_without_icons.append(name)
 
 if backends_without_tests:
+    backends_without_tests.sort()
     print('Modules without tests: %s' % backends_without_tests)
 if backends_without_icons:
+    backends_without_icons.sort()
     print('Modules without icons: %s' % backends_without_icons)
 
 if backends_without_tests or backends_without_icons:
