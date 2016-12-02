@@ -57,7 +57,7 @@ class HomePage(LoggedPage, HTMLPage):
 
 
 class DocumentsPage(LoggedPage, HTMLPage):
-    ENCODING = "LATIN-1"
+    ENCODING = "latin1"
 
     def get_list(self):
         sub = Subscription()
