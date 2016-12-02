@@ -25,7 +25,7 @@ from requests.exceptions import ConnectionError
 
 from weboob.browser.browsers import LoginBrowser, URL, need_login
 from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import AccountNotFound, Account
+from weboob.capabilities.bank import AccountNotFound, Account, TransferError
 from weboob.tools.decorators import retry
 from weboob.tools.json import json
 from weboob.browser.exceptions import ServerError
@@ -114,7 +114,11 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     @need_login
     def get_accounts_list(self):
         ibans = self.ibans.go().get_ibans_dict()
-        ibans.update(self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict('Crediteur'))
+        # This page might be unavailable.
+        try:
+            ibans.update(self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict('Crediteur'))
+        except TransferError as e:
+            pass
 
         accounts = self.accounts.go().iter_accounts(ibans)
         self.market_syn.go(data=JSON({}))
@@ -234,8 +238,12 @@ class BNPPartPro(BNPParibasBrowser):
 
     @need_login
     def iter_recipients(self, origin_account_id):
-        if not origin_account_id in self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict('Debiteur'):
-            raise NotImplementedError()
+        try:
+            if not origin_account_id in self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict('Debiteur'):
+                raise NotImplementedError()
+        except TransferError:
+            return
+
         for recipient in self.page.transferable_on(origin_account_ibancrypte=origin_account_id):
             yield recipient
         if self.page.can_transfer_to_recipients(origin_account_id):
