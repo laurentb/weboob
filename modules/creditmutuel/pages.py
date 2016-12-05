@@ -740,8 +740,7 @@ class MyRecipient(ItemElement):
         return datetime.now().replace(microsecond=0)
 
     def validate(self, el):
-        assert not el.iban or is_iban_valid(el.iban)
-        return True
+        return not el.iban or is_iban_valid(el.iban)
 
 
 class InternalTransferPage(LoggedPage, HTMLPage):
