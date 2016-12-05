@@ -68,6 +68,8 @@ class CaisseEpargne(LoginBrowser):
 
     def __init__(self, nuser, *args, **kwargs):
         self.BASEURL = kwargs.pop('domain', self.BASEURL)
+        if not self.BASEURL.startswith('https://'):
+            self.BASEURL = 'https://%s' % self.BASEURL
 
         self.is_cenet_website = False
         self.multi_type = False
