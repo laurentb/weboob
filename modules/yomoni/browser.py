@@ -61,7 +61,7 @@ class YomoniBrowser(APIBrowser):
         for project in self.users['projects']:
             me = self.request('/user/%s/project/%s/' % (self.users['userId'], project['projectId']))
             # Check project in progress
-            if not me['numeroContrat']:
+            if not me['numeroContrat'] or not me['dateAdhesion']:
                 continue
 
             a = Account()
