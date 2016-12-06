@@ -601,7 +601,20 @@ class HTMLPage(Page):
             expressions = ' and '.join(["contains(concat(' ', normalize-space(@class), ' '), ' {0} ')".format(c) for c in classes])
             xpath = 'self::*[@class and {0}]'.format(expressions)
             return bool(context.context_node.xpath(xpath))
+
+        def starts_with(context, text, prefix):
+            if not isinstance(text, list):
+                text = [text]
+            return any(t.startswith(prefix) for t in text)
+
+        def ends_with(context, text, suffix):
+            if not isinstance(text, list):
+                text = [text]
+            return any(t.endswith(suffix) for t in text)
+
         ns['has-class'] = has_class
+        ns['starts-with'] = starts_with
+        ns['ends-with'] = ends_with
 
     def build_doc(self, content):
         """
