@@ -18,8 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import json
-
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ClientError
 from weboob.capabilities.base import NotAvailable
@@ -34,9 +32,11 @@ class AXABanque(LoginBrowser):
     BASEURL = 'https://www.axabanque.fr/'
 
     # Login
-    keyboard = URL('https://www.axa.fr/.sendvirtualkeyboard.json', KeyboardPage)
-    login = URL('https://www.axa.fr/.loginAxa.json', LoginPage)
-    predisconnected = URL('https://www.axa.fr/axa-predisconnect.html', PredisconnectedPage)
+    keyboard = URL('https://connect.axa.fr/keyboard/password', KeyboardPage)
+    login = URL('https://connect.axa.fr/api/identity/auth', LoginPage)
+    tag = URL('https://connect.axa.fr/api/tag', LoginPage)
+    predisconnected = URL('https://www.axa.fr/axa-predisconnect.html',
+                          'https://www.axa.fr/axa-postmaw-predisconnect.html', PredisconnectedPage)
     # Bank
     bank_accounts = URL('transactionnel/client/liste-comptes.html',
                         'transactionnel/client/liste-(?P<tab>.*).html',
@@ -56,6 +56,7 @@ class AXABanque(LoginBrowser):
     investment_cgu = URL('https://client.axa.fr/_layouts/nosi/CGUPage.aspx', InvestmentCguPage)
     investment = URL('https://client.axa.fr/mes-comptes-et-contrats/Pages/(?P<page>.*)',
                      'https://client.axa.fr/_layouts/NOSI/LoadProfile.aspx',
+                     'https://espaceclient.axa.fr',
                      'https://connexion.adis-assurances.com', InvestmentPage)
 
     def __init__(self, *args, **kwargs):
@@ -67,61 +68,56 @@ class AXABanque(LoginBrowser):
         self.history_list = {}
 
     def do_login(self):
-        html = json.loads(self.keyboard.go(data={'login': self.username}).content)['html']
-        self.page.doc = self.page.build_doc(html.encode('utf-8'))
+        vk_passwd = self.keyboard.go().get_password(self.password)
 
-        data = self.page.get_data(self.username, self.password)
-        error = self.login.go(data=data).check_error()
+        self.login.go(data={'email': self.username, \
+                            'password': vk_passwd, \
+                            'rememberIdenfiant': False,
+                            'version': 1})
 
-        # Activate tokens if there has
-        if self.tokens['bank']:
-            error = self.bank_accounts.go(token=self.tokens['bank']).check_error()
-        if self.tokens['investment']:
-            self.investment_activate.go(data={'tokenmixte': self.tokens['investment']})
+        if self.page.check_error():
+            raise BrowserIncorrectPassword()
 
-        if error:
-            raise BrowserIncorrectPassword(error)
+        self.tag.go()
 
     @need_login
     def iter_accounts(self):
         if not self.account_list:
             accounts = []
-            # Get bank accounts if there has
-            if self.tokens['bank']:
-                self.transactions.go()
-                self.bank_accounts.go()
-                # Ugly 3 loops : nav through all tabs and pages
-                for tab in self.page.get_tabs():
-                    for page, page_args in self.bank_accounts.stay_or_go(tab=tab).get_pages(tab):
-                        for a in page.get_list():
-                            args = a._args
-                            # Trying to get IBAN for checking accounts
-                            if a.type == a.TYPE_CHECKING and 'paramCodeFamille' in args:
-                                iban_params = {'action': 'RIBCC',
-                                               'numCompte': args['paramNumCompte'],
-                                               'codeFamille': args['paramCodeFamille'],
-                                               'codeProduit': args['paramCodeProduit'],
-                                               'codeSousProduit': args['paramCodeSousProduit'],
-                                              }
-                                try:
-                                    r = self.open('/webapp/axabanque/popupPDF', params=iban_params)
-                                    a.iban = r.page.get_iban()
-                                except ClientError:
-                                    a.iban = NotAvailable
+
+            # Get accounts
+            self.transactions.go()
+            self.bank_accounts.go()
+            # Ugly 3 loops : nav through all tabs and pages
+            for tab in self.page.get_tabs():
+                for page, page_args in self.bank_accounts.stay_or_go(tab=tab).get_pages(tab):
+                    for a in page.get_list():
+                        args = a._args
+                        # Trying to get IBAN for checking accounts
+                        if a.type == a.TYPE_CHECKING and 'paramCodeFamille' in args:
+                            iban_params = {'action': 'RIBCC',
+                                           'numCompte': args['paramNumCompte'],
+                                           'codeFamille': args['paramCodeFamille'],
+                                           'codeProduit': args['paramCodeProduit'],
+                                           'codeSousProduit': args['paramCodeSousProduit']
+                                          }
+                            try:
+                                r = self.open('/webapp/axabanque/popupPDF', params=iban_params)
+                                a.iban = r.page.get_iban()
+                            except ClientError:
+                                a.iban = NotAvailable
                             # Need it to get accounts from tabs
-                            a._tab, a._pargs, a._purl = tab, page_args, self.url
-                            accounts.append(a)
+                        a._tab, a._pargs, a._purl = tab, page_args, self.url
+                        accounts.append(a)
             # Get investment accounts if there has
-            if self.tokens['investment']:
-                self.investment_pages = []
-                self.investment.go(page="default.aspx").get_home()
-                self.investment.go(page="default.aspx")
-                # If user has cgu
-                if not self.investment_cgu.is_here():
-                    for form in self.page.get_forms():
-                        for a in self.investment.go(page="PartialUpdatePanelLoader.ashx", \
-                                data=form).iter_accounts():
-                            accounts.append(a)
+            self.investment_pages = []
+            self.investment.go(page="default.aspx")
+            # If user has cgu or user doesn't have investments
+            if not self.investment_cgu.is_here() and self.investment.is_here():
+                for form in self.page.get_forms():
+                    for a in self.investment.go(page="PartialUpdatePanelLoader.ashx", \
+                                                data=form).iter_accounts():
+                        accounts.append(a)
             self.account_list = accounts
         return iter(self.account_list)
 

@@ -28,10 +28,11 @@ from weboob.browser.elements import ItemElement, ListElement, TableElement, Skip
 from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Field, Env, \
                                             BrowserURL, TableCell, Async, AsyncLoad, Eval
 from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.json import Dict
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
+from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
 from weboob.tools.ordereddict import OrderedDict
 
 
@@ -40,77 +41,73 @@ def MyDecimal(*args, **kwargs):
     return CleanDecimal(*args, **kwargs)
 
 
-class MyVirtKeyboard(MappedVirtKeyboard):
-    margin = 2, 2, 2, 2
+class MyVirtKeyboard(VirtKeyboard):
+    margin = 5, 5, 5, 5
+    color = (255, 255, 255)
 
-    symbols = {'0':'e2df31c137e6c6cb214f92f7d6cd590a',
-               '1':'6057c05937af4574ff453956fbbd2e0e',
-               '2':'5ea5a38efacd3977f17bbc7af83a1943',
-               '3':'560a86b430d2c77e1bd9688efa1b08f9',
-               '4':'e6b6b156ea34a8ae9304526e091b2960',
-               '5':'914483946ee0e55bcc732fce09a0b7c0',
-               '6':'c2382b8f56a0d902e9b399037a9052b5',
-               '7':'c5294f8154a1407560222ac894539d30',
-               '8':'fa1f25a1d5a674dd7bc0d201413d7cfe',
-               '9':'7658424ff8ab127d27e08b7b9b14d331'
+    symbols = {'0': '6959163af44cc50b3863e7e306d6e571',
+               '1': '98b32dff471e903b6fa8e3a0f1544b17',
+               '2': '32722d5b6572f9d46350aca7fb66263a',
+               '3': '835a9c8bf66e28f3ffa2b12994bc3f9a',
+               '4': 'e7457342c434da4fb0fd974f7dc37002',
+               '5': 'c8b74429a805e12a08c5ed87fd9730ce',
+               '6': '70a84c766bc323343c0c291146f652db',
+               '7': 'e4e7fb4f8cc90c8ad472906b5eceeb99',
+               '8': 'ffb78dbea5a171990e14d707d4772ba2',
+               '9': '063dcb4179beaeff60fb73c80cbd429d'
               }
 
-    color = (0xFF, 0xFF, 0xFF, 0x0)
+    coords = {'0': (0, 0, 40, 40),
+              '1': (40, 0, 80, 40),
+              '2': (80, 0, 120, 40),
+              '3': (120, 0, 160, 40),
+              '4': (0, 40, 40, 80),
+              '5': (40, 40, 80, 80),
+              '6': (80, 40, 120, 80),
+              '7': (120, 40, 160, 80),
+              '8': (0, 80, 40, 120),
+              '9': (40, 80, 80, 120),
+              '10': (80, 80, 120, 120),
+              '11': (120, 80, 160, 120),
+              '12': (0, 120, 40, 160),
+              '13': (40, 120, 80, 160),
+              '14': (80, 120, 120, 160),
+              '15': (120, 120, 160, 160)
+             }
 
-    def __init__(self, img_file, doc, img):
-        MappedVirtKeyboard.__init__(self, img_file, doc, img, self.color)
+    def __init__(self, page):
+        VirtKeyboard.__init__(self, StringIO(page.content), self.coords, self.color, convert='RGB')
+
         self.check_symbols(self.symbols, None)
 
-    def get_symbol_code(self,md5sum):
-        code = MappedVirtKeyboard.get_symbol_code(self,md5sum)
-        return code[-3:-2]
+    def get_string_code(self, string):
+        return ','.join(self.get_position_from_md5(self.symbols[c]) for c in string)
 
-    def get_string_code(self,string):
-        code = ''
-        for c in string:
-            code += self.get_symbol_code(self.symbols[c])
-        return code
+    def get_position_from_md5(self, md5):
+        for k, v in self.md5.iteritems():
+            if v == md5:
+                return k
 
     def check_color(self, pixel):
-        step = 10
-        return abs(pixel[0] - self.color[0]) < step and abs(pixel[1] - self.color[1]) < step and abs(pixel[2] - self.color[2]) < step
+        return pixel[0] > 0
 
 
-class KeyboardPage(HTMLPage):
-    def get_data(self, login, password):
-        key = Attr(None, 'value').filter(self.doc.xpath('//input'))
-        img = self.doc.xpath('//img')[0]
-        img_file = StringIO(self.browser.open('.sendvirtualkeyboard.png?key=%s' % key).content)
+class KeyboardPage(RawPage):
+    def get_password(self, password):
+        vk_passwd = None
 
-        data = {'login':        login,
-                'password':     MyVirtKeyboard(img_file, self.doc, img).get_string_code(password),
-                'key':          key,
-                'vsupActive':   'false',
-               }
+        try:
+            vk = MyVirtKeyboard(self)
+            vk_passwd = vk.get_string_code(password)
+        except VirtKeyboardError as e:
+            self.logger.error(e)
 
-        return data
+        return vk_passwd
 
 
 class LoginPage(JsonPage):
     def check_error(self):
-        label, tokens, error = {}, {}, None
-        # Get labels
-        label['bank'] = self.doc['statusBanque']['statusBanqueLibelle']
-        label['investment'] = self.doc['statusAssurance']['statusAssuranceLibelle']
-        # Get tokens
-        tokens['bank'] = self.doc['customerInfo']['tokenBanque'] \
-                         if "customerInfo" in self.doc else None
-        tokens['investment'] = self.doc['customerInfo']['tokenAssurance'] \
-                               if "customerInfo" in self.doc else None
-        # Check if tokens are available
-        if not tokens['bank'] and not tokens['investment']:
-            error = label['bank'] if label['bank'] else label['investment']
-        # Check insurance password status
-        if self.doc['assurancePasswordChangeRequired'] is True:
-            error = "Veuillez modifier votre code confidentiel."
-        # At least one token ? So we update browser tokens
-        self.browser.tokens = tokens
-        return error
+        return (not Dict('errors')(self.doc)) is False
 
 
 class PredisconnectedPage(HTMLPage):
@@ -163,12 +160,6 @@ class TableInvestments(TableElement):
 
 class InvestmentPage(LoggedPage, HTMLPage):
     TYPES = {'vie': Account.TYPE_LIFE_INSURANCE, 'mad': Account.TYPE_MADELIN, 'prp': Account.TYPE_PERP}
-
-    def get_home(self):
-        form = self.get_form('//form')
-        form['__CALLBACKID'] = "__Page"
-        form['__CALLBACKPARAM'] = "on load"
-        form.submit()
 
     def get_forms(self, filter=False):
         m = re.findall('create(.+?)(?=\);)', CleanText().filter(self.doc.xpath( \
