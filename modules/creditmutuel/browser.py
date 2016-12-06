@@ -134,17 +134,12 @@ class CreditMutuelBrowser(LoginBrowser):
     @need_login
     def get_accounts_list(self):
         if not hasattr(self, 'accounts_list'):
-            self.fleet_pages = {}
             if self.currentSubBank is None:
                 self.getCurrentSubBank()
             self.accounts_list = []
             if not self.is_new_website:
                 for a in self.accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts():
                     self.accounts_list.append(a)
-                for company in self.page.company_fleet():
-                    self.location(company)
-                    for a in self.page.iter_cards():
-                        self.accounts_list.append(a)
                 self.iban.go(subbank=self.currentSubBank).fill_iban(self.accounts_list)
                 self.por.go(subbank=self.currentSubBank).add_por_accounts(self.accounts_list)
                 for acc in self.li.go(subbank=self.currentSubBank).iter_li_accounts():
@@ -154,19 +149,17 @@ class CreditMutuelBrowser(LoginBrowser):
                     self.accounts_list.append(a)
                 self.new_iban.go(subbank=self.currentSubBank).fill_iban(self.accounts_list)
                 self.new_por.go(subbank=self.currentSubBank).add_por_accounts(self.accounts_list)
-                # Handle fleet cards
-                self.cards_activity.go(subbank=self.currentSubBank)
-                companies = self.page.companies_link() if self.cards_activity.is_here() else [self.page]
-                self.multi_cards = []
-                for company in companies:
-                    page = self.open(company).page if isinstance(company, basestring) else company
-                    self.accounts_list.extend([card for card in page.iter_cards()])
-                self.accounts_list.extend([card for card in self.multi_cards])
-            for id, pages_list in self.fleet_pages.iteritems():
-                for page in pages_list:
-                    for a in page.get_cards(accounts=self.accounts_list):
-                        if a not in self.accounts_list:
-                            self.accounts_list.append(a)
+
+            # Handle fleet cards
+            self.cards_activity.go(subbank=self.currentSubBank)
+            companies = self.page.companies_link() if self.cards_activity.is_here() else \
+                        [self.page] if self.is_new_website else []
+            self.multi_cards = []
+            for company in companies:
+                page = self.open(company).page if isinstance(company, basestring) else company
+                self.accounts_list.extend([card for card in page.iter_cards()])
+            self.accounts_list.extend([card for card in self.multi_cards])
+
         return self.accounts_list
 
     def get_account(self, id):
@@ -242,7 +235,7 @@ class CreditMutuelBrowser(LoginBrowser):
             return iter([])
 
         # need to refresh the months select
-        if account._link_id.startswith('pro') or account._link_id.startswith('ENC_liste_oper'):
+        if account._link_id.startswith('ENC_liste_oper'):
             self.location(account._pre_link)
 
         if not hasattr(account, '_card_page'):
@@ -255,8 +248,8 @@ class CreditMutuelBrowser(LoginBrowser):
                 transactions.append(tr)
 
         differed_date = None
-        cards = [] if self.is_new_website else account._card_links
-        cards = [account._card_page.select_card(account.id)] if hasattr(account, '_card_page') else cards
+        cards = [account._card_page.select_card(account.id)] if hasattr(account, '_card_page') else \
+                account._card_links if hasattr(account, '_card_links') else []
         for card in cards:
             card_trs = []
             for tr in self.list_operations(card):

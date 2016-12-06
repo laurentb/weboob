@@ -206,18 +206,16 @@ class AccountsPage(LoggedPage, HTMLPage):
 
                 # Handle cards
                 if id in self.parent.objects:
-                    if page.is_fleet() or id in self.page.browser.fleet_pages:
-                        if not id in self.page.browser.fleet_pages:
-                            self.page.browser.fleet_pages[id] = []
-                        self.page.browser.fleet_pages[id].append(page)
-                    else:
-                        account = self.parent.objects[id]
-                        if not account.coming:
-                            account.coming = Decimal('0.0')
-                        date = parse_french_date(Regexp(Field('label'), 'Fin (.+) (\d{4})', '01 \\1 \\2')(self)) + relativedelta(day=31)
-                        if date > datetime.now() - relativedelta(day=1):
-                            account.coming += balance
-                        account._card_links.append(link)
+                    # be sure that we don't have that case anymore
+                    assert not page.is_fleet()
+
+                    account = self.parent.objects[id]
+                    if not account.coming:
+                        account.coming = Decimal('0.0')
+                    date = parse_french_date(Regexp(Field('label'), 'Fin (.+) (\d{4})', '01 \\1 \\2')(self)) + relativedelta(day=31)
+                    if date > datetime.now() - relativedelta(day=1):
+                        account.coming += balance
+                    account._card_links.append(link)
                     raise SkipItem()
 
                 self.env['id'] = id
@@ -234,14 +232,6 @@ class AccountsPage(LoggedPage, HTMLPage):
 
                 self.env['balance'] = balance
                 self.env['coming'] = coming or NotAvailable
-
-    def company_fleet(self):
-        link = Link(u'//a[contains(text(), "Activité cartes")]', default=None)(self.doc)
-        if link:
-            self.browser.location(link)
-            if self.browser.cards_activity.is_here():
-                return self.browser.page.companies_link()
-        return []
 
 
 class NewAccountsPage(NewHomePage, AccountsPage):
@@ -356,13 +346,14 @@ class CardsListPage(LoggedPage, HTMLPage):
                     raise SkipItem()
 
                 # 1 card : we have to check on another page to get id
-                page = page.browser.open(Link('//a[text()="Contrat"]')(page.doc)).page
-                for xpath in [u'//tr[td[text()="%s"]][1]/td[2]' % x for x in ["Active", u"Résiliée", "En opposition"]]:
-                    self.env['id'] = CleanText(xpath,replace=[(' ', '')], default=None)(page.doc)
-                    if self.env['id']:
-                        break
+                page = page.browser.open(Link('//form//a[text()="Contrat"]')(page.doc)).page
+                xpath = '//table[@class="liste"]/tbody/tr'
+                active_card = CleanText('%s[td[text()="Active"]][1]/td[2]' % xpath, replace=[(' ', '')], default=None)(page.doc)
 
-                assert self.env['id']
+                if not active_card and len(page.doc.xpath(xpath)) != 1:
+                    raise SkipItem()
+
+                self.env['id'] = active_card or CleanText('%s[1]/td[2]' % xpath, replace=[(' ', '')])(page.doc)
 
 
 class Transaction(FrenchTransaction):
@@ -486,31 +477,6 @@ class ComingPage(OperationsPage, LoggedPage):
 class CardPage(OperationsPage, LoggedPage):
     def is_fleet(self):
         return len(self.doc.xpath('//table[@class="liste"]/tbody/tr/td/a')) >= 5
-
-    @method
-    class get_cards(Pagination, ListElement):
-        item_xpath = '//table[@class="liste"]/tbody/tr'
-
-        class item(ItemElement):
-            klass = Account
-
-            obj__owner = Regexp(CleanText('./td[1]/text()'), 'Titulaire :(.*)')
-            obj_id = Format('%s%s', Regexp(CleanText('./td[1]/a', replace=[(' ', '')]), '([\d]+)'), CleanText(Field('_owner'), replace=[(' ', '')]))
-            obj_label = Field('_owner')
-            obj_balance = NotAvailable
-            obj_coming = CleanDecimal('./td[2]', replace_dots=True)
-            obj_currency = FrenchTransaction.Currency('./td[2]')
-            obj__link_id = Link('./td[1]/a')
-            obj_type = Account.TYPE_CARD
-            obj__card_links = []
-            obj__is_inv = False
-            obj__is_webid = False
-
-            def parse(self, el):
-                account = [acc for acc in self.env['accounts'] if acc.id == Field('id')(self)]
-                if account:
-                    account[0]._card_links.append(Field('_link_id')(self))
-                    raise SkipItem()
 
     @method
     class get_history(Pagination, ListElement):
