@@ -83,7 +83,7 @@ class LCLModule(Module, CapBankTransfer):
         return self.browser.get_investment(account)
 
     def iter_transfer_recipients(self, origin_account):
-        if self.config['website'].get() not in  ['par', 'pro'] or not hasattr(origin_account, '_transfer_id'):
+        if self.config['website'].get() not in  ['par', 'pro']:
             raise NotImplementedError()
         if not isinstance(origin_account, Account):
             origin_account = find_object(self.iter_accounts(), id=origin_account, error=AccountNotFound)
@@ -94,8 +94,8 @@ class LCLModule(Module, CapBankTransfer):
             raise NotImplementedError()
 
         # There is a check on the website, transfer can't be done with too long reason.
-        if transfer.label and len(transfer.label) > 30:
-            raise TransferError(u'Le libellé du virement est trop long')
+        if transfer.label:
+            transfer.label = transfer.label[:30]
 
         self.logger.info('Going to do a new transfer')
         if transfer.account_iban:
