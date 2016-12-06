@@ -208,4 +208,5 @@ class DetailsPage(LoggedPage, HTMLPage):
             def obj_investments(self):
                 investments = []
                 for table in self.el.xpath('./following-sibling::tr[1]//span[contains(text(), "ISIN")]/ancestor::table[1]'):
-                    investments = sum([investments, list(TableTransactionsInvestment(self.page, el=table)())], [])
+                    investments.extend(TableTransactionsInvestment(self.page, el=table)())
+                return investments
