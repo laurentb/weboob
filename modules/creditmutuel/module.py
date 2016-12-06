@@ -81,8 +81,7 @@ class CreditMutuelModule(Module, CapBankTransfer):
 
     def init_transfer(self, transfer, **params):
         # There is a check on the website, transfer can't be done with too long reason.
-        if transfer.label and len(transfer.label) > 27:
-            raise TransferError(u'Le libellé du virement est trop long')
+        transfer.label = transfer.label[:27]
 
         self.logger.info('Going to do a new transfer')
         if transfer.account_iban:
