@@ -16,9 +16,13 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+
+
 import re
 import hashlib
 import time
+
+from requests.exceptions import SSLError
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, ParseError
@@ -52,6 +56,7 @@ def check_bourse(f):
 
 class IngBrowser(LoginBrowser):
     BASEURL = 'https://secure.ingdirect.fr'
+    VERIFY = 'certificate.pem'
     TIMEOUT = 60.0
 
     # Login and error
@@ -238,15 +243,20 @@ class IngBrowser(LoginBrowser):
             raise TransferError('Recipient not found')
 
     def go_on_asv_detail(self, account, link):
-        if self.page.asv_is_other:
-            jid = self.page.get_asv_jid()
-            data = {'index': "index", 'javax.faces.ViewState': jid, 'index:j_idcl': "index:asvInclude:goToAsvPartner"}
-            self.accountspage.go(data=data)
-        else:
-            self.accountspage.go(asvpage="manageASVContract")
+        try:
+            if self.page.asv_is_other:
+                jid = self.page.get_asv_jid()
+                data = {'index': "index", 'javax.faces.ViewState': jid, 'index:j_idcl': "index:asvInclude:goToAsvPartner"}
+                self.accountspage.go(data=data)
+            else:
+                self.accountspage.go(asvpage="manageASVContract")
+                self.page.submit()
             self.page.submit()
-        self.page.submit()
-        self.location(link)
+            self.location(link)
+
+            return True
+        except SSLError:
+            return False
 
     def go_investments(self, account):
         account = self.get_account(account.id)
@@ -298,7 +308,9 @@ class IngBrowser(LoginBrowser):
         if self.where == u'titre':
             self.titrerealtime.go()
         elif self.page.asv_has_detail or account._jid:
-            self.go_on_asv_detail(account, '/b2b2c/epargne/CoeDetCon')
+            if self.go_on_asv_detail(account, '/b2b2c/epargne/CoeDetCon') is False:
+                return iter([])
+
             self.where = u"asv"
         return self.page.iter_investments()
 
@@ -308,9 +320,11 @@ class IngBrowser(LoginBrowser):
         if self.where == u'titre':
             self.titrehistory.go()
         elif self.page.asv_has_detail or account._jid:
-            self.go_on_asv_detail(account, '/b2b2c/epargne/CoeLisMvt')
+            if self.go_on_asv_detail(account, '/b2b2c/epargne/CoeLisMvt') is False:
+                return iter([])
         else:
             return iter([])
+
         transactions = list()
         for tr in self.page.iter_history():
             transactions.append(tr)
