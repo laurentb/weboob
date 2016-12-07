@@ -215,7 +215,32 @@ class AccountsPage(LoggedPage, HTMLPage):
                     date = parse_french_date(Regexp(Field('label'), 'Fin (.+) (\d{4})', '01 \\1 \\2')(self)) + relativedelta(day=31)
                     if date > datetime.now() - relativedelta(day=1):
                         account.coming += balance
-                    account._card_links.append(link)
+
+                    # on old website we want card's history in account's history
+                    if not page.browser.is_new_website:
+                        account._card_links.append(link)
+                    else:
+                        card_xpath = u'//*[contains(@id, "MonthSelector")]'
+                        for el in page.doc.xpath(u'%s/li/div/div[1] | %s//span[contains(text(), "Carte")]' % (card_xpath, card_xpath)):
+                            card_id = Regexp(CleanText('.', replace=[(' ', '')]), '(?=\d)([\dx]+)')(el)
+                            if any(a.id == card_id for a in page.browser.accounts_list):
+                                continue
+
+                            card = Account()
+                            card.id = card_id
+                            card.label = "%s %s %s" % (Regexp(CleanText('.'), 'Carte\s(\w+)')(el), card_id, \
+                                                       (Regexp(CleanText('.'), '\d{4}\s([A-Za-z\s]+)', default=None)(el) \
+                                                       or CleanText('./following-sibling::div[1]')(el)).strip())
+                            card.balance = NotAvailable
+                            card.type = Account.TYPE_CARD
+                            card._link_id = link
+                            nextmonth = Link('./following-sibling::tr[contains(@class, "encours")][1]/td[1]//a', default=None)(self)
+                            card._card_pages = [page] if not nextmonth else [page, page.browser.open(nextmonth).page]
+                            card._is_inv = False
+                            card._is_webid = False
+
+                            self.page.browser.accounts_list.append(card)
+
                     raise SkipItem()
 
                 self.env['id'] = id
@@ -313,7 +338,7 @@ class CardsListPage(LoggedPage, HTMLPage):
             obj_balance = CleanDecimal('./td[small][1]', replace_dots=True, default=NotAvailable)
             obj_currency = FrenchTransaction.Currency(CleanText('./td[small][1]'))
             obj_type = Account.TYPE_CARD
-            obj__card_page = Env('page')
+            obj__card_pages = Env('page')
             obj__is_inv = False
             obj__is_webid = False
 
@@ -324,7 +349,8 @@ class CardsListPage(LoggedPage, HTMLPage):
                 return Link(TableCell('card')(self)[0].xpath('./a'))(self)
 
             def parse(self, el):
-                self.env['page'] = page = Async('details').loaded_page(self)
+                page = Async('details').loaded_page(self)
+                self.env['page'] = [page]
 
                 # Handle multi cards
                 options = page.doc.xpath('//select[@id="iso"]/option')
@@ -339,7 +365,7 @@ class CardsListPage(LoggedPage, HTMLPage):
                     card.label = card.label.replace('  ', ' %s ' % card.id)
                     card.balance = NotAvailable
 
-                    self.page.browser.multi_cards.append(card)
+                    self.page.browser.accounts_list.append(card)
 
                 # Skip multi and expired cards
                 if len(options) or len(page.doc.xpath('//span[@id="ERREUR"]')):
@@ -442,7 +468,7 @@ class CardsOpePage(OperationsPage):
         class item(Transaction.TransactionElement):
             condition = lambda self: len(self.el.xpath('./td')) >= 5
 
-            obj_raw = Format('%s %s', TableCell('raw') & CleanText, TableCell('city') & CleanText)
+            obj_raw = obj_label = Format('%s %s', TableCell('raw') & CleanText, TableCell('city') & CleanText)
             obj_original_amount = CleanDecimal(TableCell('original_amount'), default=NotAvailable, replace_dots=True)
             obj_original_currency = FrenchTransaction.Currency(TableCell('original_amount'))
             obj_type = Transaction.TYPE_DEFERRED_CARD
@@ -477,6 +503,21 @@ class ComingPage(OperationsPage, LoggedPage):
 class CardPage(OperationsPage, LoggedPage):
     def is_fleet(self):
         return len(self.doc.xpath('//table[@class="liste"]/tbody/tr/td/a')) >= 5
+
+    def select_card(self, card_number):
+        for option in self.doc.xpath('//select[@name="Data_SelectedCardItemKey"]/option'):
+            card_id = Regexp(CleanText('.', replace=[(' ', '')]), '(?=\d)([\dx]+)')(option)
+            if card_id != card_number:
+                continue
+            if Attr('.', 'selected', default=None)(option):
+                break
+
+            form = self.get_form('//form[@id="I1:fm"]', submit='//input[@type="submit"]')
+            [form.pop(k, None) for k in form.keys() if k.startswith('_FID_Do')]
+            form['_FID_DoChangeCardDetails'] = ""
+            form['Data_SelectedCardItemKey'] = Attr('.', 'value')(option)
+            return self.browser.open(form.url, data=dict(form)).page
+        return self
 
     @method
     class get_history(Pagination, ListElement):

@@ -69,6 +69,7 @@ class CreditMutuelBrowser(LoginBrowser):
                       UserSpacePage)
     card =        URL('/(?P<subbank>.*)fr/banque/operations_carte.cgi.*',
                       '/(?P<subbank>.*)fr/banque/mouvements.html\?webid=.*cardmonth=\d+$',
+                      '/(?P<subbank>.*)fr/banque/mouvements.html.*webid=.*cardmonth=\d+.*cardid=',
                       CardPage)
     operations =  URL('/(?P<subbank>.*)fr/banque/mouvements.cgi.*',
                       '/(?P<subbank>.*)fr/banque/mouvements.html.*',
@@ -137,6 +138,15 @@ class CreditMutuelBrowser(LoginBrowser):
             if self.currentSubBank is None:
                 self.getCurrentSubBank()
             self.accounts_list = []
+
+            # Handle cards on tiers page
+            self.cards_activity.go(subbank=self.currentSubBank)
+            companies = self.page.companies_link() if self.cards_activity.is_here() else \
+                        [self.page] if self.is_new_website else []
+            for company in companies:
+                page = self.open(company).page if isinstance(company, basestring) else company
+                self.accounts_list.extend([card for card in page.iter_cards()])
+
             if not self.is_new_website:
                 for a in self.accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts():
                     self.accounts_list.append(a)
@@ -149,16 +159,6 @@ class CreditMutuelBrowser(LoginBrowser):
                     self.accounts_list.append(a)
                 self.new_iban.go(subbank=self.currentSubBank).fill_iban(self.accounts_list)
                 self.new_por.go(subbank=self.currentSubBank).add_por_accounts(self.accounts_list)
-
-            # Handle fleet cards
-            self.cards_activity.go(subbank=self.currentSubBank)
-            companies = self.page.companies_link() if self.cards_activity.is_here() else \
-                        [self.page] if self.is_new_website else []
-            self.multi_cards = []
-            for company in companies:
-                page = self.open(company).page if isinstance(company, basestring) else company
-                self.accounts_list.extend([card for card in page.iter_cards()])
-            self.accounts_list.extend([card for card in self.multi_cards])
 
         return self.accounts_list
 
@@ -221,7 +221,7 @@ class CreditMutuelBrowser(LoginBrowser):
         trs = []
         for group in groups:
             tr = FrenchTransaction()
-            tr.raw = u"RELEVE CARTE %s" % group[0].date
+            tr.raw = tr.label = u"RELEVE CARTE %s" % group[0].date
             tr.amount = -sum([t.amount for t in group])
             tr.date = tr.rdate = tr.vdate = group[0].date
             tr.type = FrenchTransaction.TYPE_CARD_SUMMARY
@@ -238,7 +238,7 @@ class CreditMutuelBrowser(LoginBrowser):
         if account._link_id.startswith('ENC_liste_oper'):
             self.location(account._pre_link)
 
-        if not hasattr(account, '_card_page'):
+        if not hasattr(account, '_card_pages'):
             for tr in self.list_operations(account._link_id):
                 transactions.append(tr)
 
@@ -248,7 +248,7 @@ class CreditMutuelBrowser(LoginBrowser):
                 transactions.append(tr)
 
         differed_date = None
-        cards = [account._card_page.select_card(account.id)] if hasattr(account, '_card_page') else \
+        cards = [page.select_card(account.id) for page in account._card_pages] if hasattr(account, '_card_pages') else \
                 account._card_links if hasattr(account, '_card_links') else []
         for card in cards:
             card_trs = []
@@ -257,7 +257,7 @@ class CreditMutuelBrowser(LoginBrowser):
                     differed_date = tr._differed_date
                 if tr.date >= datetime.now():
                     tr._is_coming = True
-                elif hasattr(account, '_card_page'):
+                elif hasattr(account, '_card_pages'):
                     card_trs.append(tr)
                 transactions.append(tr)
             if card_trs:
