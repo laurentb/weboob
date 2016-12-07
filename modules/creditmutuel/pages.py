@@ -726,7 +726,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
             return self.can_transfer_pro(origin_account)
 
         for li in self.doc.xpath('//ul[@id="idDetailsListCptDebiterHorizontal:ul"]/li'):
-            if origin_account == CleanText(li.xpath('.//span[@class="_c1 doux _c1"]'), replace=[(' ', '')])(self):
+            if CleanText(li.xpath('.//span[@class="_c1 doux _c1"]'), replace=[(' ', '')])(self) in origin_account:
                 return True
 
     @method
@@ -746,8 +746,6 @@ class InternalTransferPage(LoggedPage, HTMLPage):
             obj_category = u'Interne'
 
             def obj_iban(self):
-                if not self.page.IS_PRO_PAGE:
-                    return find_object(self.page.browser.get_accounts_list(), id=Field('id')(self)).iban
                 l = [a for a in self.page.browser.get_accounts_list() if Field('id')(self) in a.id and empty(a.valuation_diff)]
                 assert len(l) == 1
                 return l[0].iban
