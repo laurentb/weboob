@@ -583,7 +583,7 @@ class ConsoleApplication(Application):
             print(u'Error(%s): %s' % (backend.name, msg or 'Website is unavailable.'), file=self.stderr)
         elif isinstance(error, ActionNeeded):
             msg = unicode(error)
-            print(u'Error(%s): %s' % (backend.name, msg or 'Action needed on website.'), file=self.stderr)
+            print(u'Error(%s): Action needed on website: %s' % (backend.name, msg), file=self.stderr)
         elif isinstance(error, NotImplementedError):
             print(u'Error(%s): this feature is not supported yet by this backend.' % backend.name, file=self.stderr)
             print(u'      %s   To help the maintainer of this backend implement this feature,' % (' ' * len(backend.name)), file=self.stderr)
