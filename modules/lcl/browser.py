@@ -214,6 +214,8 @@ class LCLBrowser(LoginBrowser):
 
     @need_login
     def iter_recipients(self, origin_account):
+        if origin_account._transfer_id is None:
+            return
         self.transfer_page.go()
         if not self.page.can_transfer(origin_account._transfer_id):
             return

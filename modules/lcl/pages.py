@@ -431,6 +431,7 @@ class BoursePage(LoggedPage, HTMLPage):
                                                                   following-sibling::td[1]', replace_dots=True)
             obj__market_link = Regexp(Attr(TableCell('label'), 'onclick'), "'(.*?)'")
             obj__link_id = Async('details') & Link(u'//a[text()="Historique"]')
+            obj__transfer_id = None
 
             def obj_id(self):
                 return "%sbourse" % "".join(CleanText().filter((TableCell('label')(self)[0]).xpath('./div[not(b)]')).split(' - '))
@@ -526,6 +527,7 @@ class AVPage(LoggedPage, HTMLPage):
             obj__link_id = None
             obj__market_link = None
             obj__coming_links = []
+            obj__transfer_id = None
 
             def obj_id(self):
                 _id = CleanText('.//td/a/@id')(self)
@@ -682,8 +684,8 @@ class TransferPage(LoggedPage, HTMLPage):
             klass = Recipient
             validate = lambda self, obj: self.obj_id(self) != self.env['account_transfer_id']
 
-            obj_id = Regexp(CleanText('.', replace=[(' ', '')]), '(\d+[A-Z]+)---')
-            obj_label = Regexp(CleanText('.'), u'([a-zA-Z \'é]+) ')
+            obj_id = CleanText(Regexp(CleanText('.'), ' (\d+ \d+[A-Z]+) - - -'), replace=[(' ', '')])
+            obj_label = Regexp(CleanText('.'), u'(.*?) \d{5}')
             obj_bank_name = u'LCL'
             obj_category = u'Interne'
             obj_iban = NotAvailable
