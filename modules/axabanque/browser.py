@@ -68,14 +68,15 @@ class AXABanque(LoginBrowser):
         self.history_list = {}
 
     def do_login(self):
-        vk_passwd = self.keyboard.go().get_password(self.password)
+        if self.password.isdigit():
+            vk_passwd = self.keyboard.go().get_password(self.password)
 
-        self.login.go(data={'email': self.username, \
-                            'password': vk_passwd, \
-                            'rememberIdenfiant': False,
-                            'version': 1})
+            self.login.go(data={'email': self.username, \
+                                'password': vk_passwd, \
+                                'rememberIdenfiant': False,
+                                'version': 1})
 
-        if self.page.check_error():
+        if not self.password.isdigit() or self.page.check_error():
             raise BrowserIncorrectPassword()
 
         self.tag.go()
