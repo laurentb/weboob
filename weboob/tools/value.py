@@ -152,6 +152,7 @@ class ValueBackendPassword(Value):
         kwargs['masked'] = kwargs.pop('masked', True)
         self.noprompt = kwargs.pop('noprompt', False)
         Value.__init__(self, *args, **kwargs)
+        self.default = kwargs.get('default', '')
 
     def load(self, domain, password, requests):
         if self.is_command(password):
@@ -235,6 +236,7 @@ class ValueInt(Value):
     def __init__(self, *args, **kwargs):
         kwargs['regexp'] = '^\d+$'
         Value.__init__(self, *args, **kwargs)
+        self.default = kwargs.get('default', 0)
 
     def get(self):
         return int(self._value)
@@ -244,6 +246,7 @@ class ValueFloat(Value):
     def __init__(self, *args, **kwargs):
         kwargs['regexp'] = '^[\d\.]+$'
         Value.__init__(self, *args, **kwargs)
+        self.default = kwargs.get('default', 0.0)
 
     def check_valid(self, v):
         try:
@@ -259,6 +262,7 @@ class ValueBool(Value):
     def __init__(self, *args, **kwargs):
         kwargs['choices'] = {'y': 'True', 'n': 'False'}
         Value.__init__(self, *args, **kwargs)
+        self.default = kwargs.get('default', False)
 
     def check_valid(self, v):
         if not isinstance(v, bool) and \

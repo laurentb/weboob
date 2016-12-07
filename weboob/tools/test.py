@@ -46,12 +46,15 @@ class BackendTest(TestCase):
         self.backend = None
         self.weboob = Weboob()
 
+        # Skip tests when passwords are missing
+        self.weboob.requests.register('login', self.login_cb)
+
         if self.weboob.load_backends(modules=[self.MODULE]):
             # provide the tests with all available backends
             self.backends = self.weboob.backend_instances
-            # chose one backend (enough for most tests)
-            self.backend_instance = choice(self.backends.keys())
-            self.backend = self.backends[self.backend_instance]
+
+    def login_cb(self, backend_name, value):
+        raise SkipTest('missing config %r is required for this test' % value.label)
 
     def run(self, result):
         """
@@ -63,10 +66,14 @@ class BackendTest(TestCase):
         sys.setrecursionlimit(10000)
         try:
             if not len(self.backends):
-                result.startTest(self)
-                result.stopTest(self)
-                raise SkipTest('No backends configured for this module.')
-            TestCase.run(self, result)
+                self.backend = self.weboob.build_backend(self.MODULE, nofail=True)
+                TestCase.run(self, result)
+            else:
+                # Run for all backend
+                for backend_instance in self.backends.keys():
+                    print(backend_instance)
+                    self.backend = self.backends[backend_instance]
+                    TestCase.run(self, result)
         finally:
             self.weboob.deinit()
 

@@ -83,7 +83,7 @@ class WebNip(object):
         """
         self.unload_backends()
 
-    def build_backend(self, module_name, params=None, storage=None, name=None):
+    def build_backend(self, module_name, params=None, storage=None, name=None, nofail=False):
         """
         Create a backend.
 
@@ -98,10 +98,12 @@ class WebNip(object):
         :param name: name of backend
         :type name: :class:`basestring`
         :rtype: :class:`weboob.tools.backend.Module`
+        :param nofail: if true, this call can't fail
+        :type nofail: :class:`bool`
         """
         module = self.modules_loader.get_or_load_module(module_name)
 
-        backend_instance = module.create_instance(self, name or module_name, params or {}, storage)
+        backend_instance = module.create_instance(self, name or module_name, params or {}, storage, nofail)
         return backend_instance
 
     class LoadError(Exception):
@@ -387,7 +389,7 @@ class Weboob(WebNip):
             if minfo and not minfo.is_installed():
                 self.repositories.install(minfo, progress)
 
-    def build_backend(self, module_name, params=None, storage=None, name=None):
+    def build_backend(self, module_name, params=None, storage=None, name=None, nofail=False):
         """
         Create a single backend which is not listed in configuration.
 
@@ -399,6 +401,8 @@ class Weboob(WebNip):
         :param name: name of backend
         :type name: :class:`basestring`
         :rtype: :class:`weboob.tools.backend.Module`
+        :param nofail: if true, this call can't fail
+        :type nofail: :class:`bool`
         """
         minfo = self.repositories.get_module_info(module_name)
         if minfo is None:
@@ -407,7 +411,7 @@ class Weboob(WebNip):
         if not minfo.is_installed():
             self.repositories.install(minfo)
 
-        return super(Weboob, self).build_backend(module_name, params, storage, name)
+        return super(Weboob, self).build_backend(module_name, params, storage, name, nofail)
 
     def load_backends(self, caps=None, names=None, modules=None, exclude=None, storage=None, errors=None):
         """

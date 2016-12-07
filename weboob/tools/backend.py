@@ -264,7 +264,7 @@ class Module(object):
     def __repr__(self):
         return "<Backend %r>" % self.name
 
-    def __init__(self, weboob, name, config=None, storage=None, logger=None):
+    def __init__(self, weboob, name, config=None, storage=None, logger=None, nofail=False):
         self.logger = getLogger(name, parent=logger)
         self.weboob = weboob
         self.name = name
@@ -276,7 +276,7 @@ class Module(object):
         self._private_config = dict((key, value) for key, value in config.iteritems() if key.startswith('_'))
 
         # Load configuration of backend.
-        self.config = self.CONFIG.load(weboob, self.NAME, self.name, config)
+        self.config = self.CONFIG.load(weboob, self.NAME, self.name, config, nofail)
 
         self.storage = BackendStorage(self.name, storage)
         self.storage.load(self.STORAGE)
