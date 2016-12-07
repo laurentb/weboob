@@ -82,6 +82,8 @@ class LCLBrowser(LoginBrowser):
     confirm_transfer = URL('/outil/UWVS/Accueil/redirectView', TransferPage)
     recipients = URL('/outil/UWBE/Consultation/list', RecipientPage)
 
+    accounts_list = None
+
     def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
