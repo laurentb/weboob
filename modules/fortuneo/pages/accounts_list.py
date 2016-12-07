@@ -30,9 +30,10 @@ from mechanize import FormNotFoundError
 from weboob.browser.filters.standard import CleanText
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
-from weboob.deprecated.browser import Page, BrowserIncorrectPassword
+from weboob.deprecated.browser import Page
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.json import json
+from weboob.exceptions import ActionNeeded
 
 
 class Transaction(FrenchTransaction):
@@ -232,7 +233,7 @@ class AccountsList(Page):
                                     //span[contains(text(), "Nouveau mot de passe")] | \
                                     //span[contains(text(), "Renouvellement de votre mot de passe")]')
         if len(warn) > 0:
-            raise BrowserIncorrectPassword(warn[0].text)
+            raise ActionNeeded(warn[0].text)
 
         self.load_async(0)
 
