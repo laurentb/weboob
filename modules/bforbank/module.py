@@ -60,4 +60,4 @@ class BforbankModule(Module, CapBank):
         return self.browser.get_history(account)
 
     def iter_investment(self, account):
-        raise NotImplementedError()
+        return self.browser.iter_investment(account)

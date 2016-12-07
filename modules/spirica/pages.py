@@ -118,6 +118,11 @@ class TableTransactionsInvestment(TableInvestment):
         obj_code = Regexp(CleanText(TableCell('code')), pattern='([A-Z]{2}\d{10})', default=NotAvailable)
 
 
+class ProfileTableInvestment(TableInvestment):
+    # used only when portfolio is divided in multiple "profiles"
+    head_xpath = '//thead[ends-with(@id, ":contratProfilTable_head")]/tr/th'
+
+
 class DetailsPage(LoggedPage, HTMLPage):
     DEBIT_WORDS = [u'arrêté', 'rachat', 'frais', u'désinvestir']
 
@@ -131,8 +136,8 @@ class DetailsPage(LoggedPage, HTMLPage):
 
     @method
     class iter_investment(TableInvestment):
-        item_xpath = '//div[contains(@id, "INVESTISSEMENT")]//table/tbody/tr[@data-ri]'
-        head_xpath = '//div[contains(@id, "INVESTISSEMENT")]//table/thead/tr/th'
+        item_xpath = '//div[contains(@id,"INVESTISSEMENT")]//div[ends-with(@id, ":tableDetailSituationCompte")]//table/tbody/tr[@data-ri]'
+        head_xpath = '//div[contains(@id,"INVESTISSEMENT")]//div[ends-with(@id, ":tableDetailSituationCompte")]//table/thead/tr/th'
 
         col_valuation = re.compile('Contre')
 
@@ -146,6 +151,27 @@ class DetailsPage(LoggedPage, HTMLPage):
             def obj_diff(self):
                 return MyDecimal('//div[contains(@id, "PRIX_REVIENT")]//a[contains(text(), \
                             "%s")]/ancestor::tr/td[6]' % Field('label')(self))(self)
+
+            def obj_portfolio_share(self):
+                inv_share = ItemInvestment.obj_portfolio_share(self)
+                if self.xpath('ancestor::tbody[ends-with(@id, "contratProfilTable_data")]'):
+                    # investments are nested in profiles, row share is relative to profile share
+                    profile_table_el = self.xpath('ancestor::tr/ancestor::table[position() = 1]')[0]
+                    profile_table = ProfileTableInvestment(self.page, self, profile_table_el)
+                    share_idx = profile_table.get_colnum('portfolio_share')
+                    assert share_idx
+
+                    curr_profile_el = self.xpath('ancestor::tr/preceding-sibling::tr[@data-ri][position() = 1]')[0]
+                    share_el = curr_profile_el.xpath('./td[%d]' % (share_idx + 1))
+                    path = 'ancestor::tr/preceding-sibling::tr[@data-ri][position() = 1][1]/td[%d]' % (share_idx + 1)
+
+                    profile_share = MyDecimal(path)(self)
+                    assert profile_share
+                    #raise Exception('dtc')
+                    profile_share = Eval(lambda x: x / 100, profile_share)(self)
+                    return inv_share * profile_share
+                else:
+                    return inv_share
 
     def get_historytab_form(self):
         form = self.get_form('//form[contains(@id, "j_idt")]')

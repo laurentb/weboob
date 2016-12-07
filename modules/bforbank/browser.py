@@ -22,7 +22,11 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.bank import Account
 
-from .pages import LoginPage, ErrorPage, AccountsPage, HistoryPage, LoanHistoryPage, RibPage
+from .pages import (
+    LoginPage, ErrorPage, AccountsPage, HistoryPage, LoanHistoryPage, RibPage,
+    LifeInsuranceIframe, LifeInsuranceRedir
+)
+from .spirica.browser import SpiricaBrowser
 
 
 class BforbankBrowser(LoginBrowser):
@@ -35,11 +39,15 @@ class BforbankBrowser(LoginBrowser):
               '/espace-client/rib/(?P<id>\d+)', RibPage)
     loan_history = URL('/espace-client/livret/consultation.*', LoanHistoryPage)
     history = URL('/espace-client/consultation/operations/.*', HistoryPage)
+    lifeinsurance_iframe = URL(r'/client/accounts/lifeInsurance/consultationDetailSpirica.action', LifeInsuranceIframe)
+    lifeinsurance_redir = URL(r'https://assurance-vie.bforbank.com:443/sylvea/welcomeSSO.xhtml', LifeInsuranceRedir)
 
     def __init__(self, birthdate, *args, **kwargs):
         super(BforbankBrowser, self).__init__(*args, **kwargs)
         self.birthdate = birthdate
         self.accounts = None
+
+        self.spirica = SpiricaBrowser('https://assurance-vie.bforbank.com:443/', None, None)
 
     def do_login(self):
         assert isinstance(self.username, basestring)
@@ -62,7 +70,33 @@ class BforbankBrowser(LoginBrowser):
 
     @need_login
     def get_history(self, account):
-        if account.type == Account.TYPE_MARKET or account.type == Account.TYPE_LIFE_INSURANCE:
+        if account.type == Account.TYPE_MARKET:
             raise NotImplementedError()
+        elif account.type == Account.TYPE_LIFE_INSURANCE:
+            self.goto_spirica(account)
+            return self.spirica.iter_history(account)
+
         self.location(account._link.replace('tableauDeBord', 'operations'))
         return self.page.get_operations()
+
+    def goto_spirica(self, account):
+        assert account.type == Account.TYPE_LIFE_INSURANCE
+        self.home.stay_or_go() # make sure we are on the right domain
+        self.location('/client/accounts/lifeInsurance/lifeInsuranceSummary.action')
+        assert self.lifeinsurance_iframe.is_here()
+
+        self.location(self.page.get_iframe())
+        assert self.lifeinsurance_redir.is_here()
+
+        redir = self.page.get_redir()
+        assert redir
+        account._link = self.absurl(redir)
+        self.spirica.session.cookies.update(self.session.cookies)
+        self.spirica.logged = True
+
+    @need_login
+    def iter_investment(self, account):
+        if account.type == Account.TYPE_LIFE_INSURANCE:
+            self.goto_spirica(account)
+            return self.spirica.iter_investment(account)
+        raise NotImplementedError()

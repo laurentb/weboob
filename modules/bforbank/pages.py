@@ -192,3 +192,17 @@ class HistoryPage(LoggedPage, HTMLPage):
 
             obj_raw = Transaction.Raw('./td[1]')
             obj_amount = MyDecimal('./td[2]', replace_dots=True)
+
+
+class LifeInsuranceIframe(LoggedPage, HTMLPage):
+    def get_iframe(self):
+        return Attr(None, 'src').filter(self.doc.xpath('//iframe[@id="iframePartenaire"]'))
+
+
+class LifeInsuranceRedir(LoggedPage, HTMLPage):
+    def get_redir(self):
+        # meta http-equiv redirection...
+        for meta in self.doc.xpath('//meta[@http-equiv="Refresh"]/@content'):
+            match = re.search(r'URL=([^\s"\']+)', meta)
+            if match:
+                return match.group(1)
