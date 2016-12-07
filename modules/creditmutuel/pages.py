@@ -779,6 +779,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
         form['[t:dbt%3adouble;]data_input_montant_value_0_'] = str(amount).replace('.', ',')
         form['[t:dbt%3astring;x(27)]data_input_libelleCompteDebite'] = reason
         form['[t:dbt%3astring;x(31)]data_input_motifCompteCredite'] = reason
+        form['[t:dbt%3astring;x(31)]data_input_motifCompteCredite1'] = reason
 
         form.submit()
 
