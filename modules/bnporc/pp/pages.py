@@ -113,10 +113,12 @@ class LoginPage(JsonPage):
         error = cast(self.get('errorCode'), int, 0)
 
         if error:
-            codes = [201, 21510, 203, 202, 1001]
+            codes = [201, 21510, 203, 202]
             msg = self.get('message')
             if error in codes:
                 raise BrowserIncorrectPassword(msg)
+            elif error == 1001:
+                raise BrowserUnavailable(msg)
             self.logger.debug('Unexpected error at login: "%s" (code=%s)' % (msg, error))
 
     def login(self, username, password):
