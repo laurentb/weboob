@@ -1,1 +1,0 @@
-../../spirica/browser.py

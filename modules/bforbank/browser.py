@@ -26,7 +26,7 @@ from .pages import (
     LoginPage, ErrorPage, AccountsPage, HistoryPage, LoanHistoryPage, RibPage,
     LifeInsuranceIframe, LifeInsuranceRedir
 )
-from .spirica.browser import SpiricaBrowser
+from .spirica_browser import SpiricaBrowser
 
 
 class BforbankBrowser(LoginBrowser):
@@ -42,12 +42,12 @@ class BforbankBrowser(LoginBrowser):
     lifeinsurance_iframe = URL(r'/client/accounts/lifeInsurance/consultationDetailSpirica.action', LifeInsuranceIframe)
     lifeinsurance_redir = URL(r'https://assurance-vie.bforbank.com:443/sylvea/welcomeSSO.xhtml', LifeInsuranceRedir)
 
-    def __init__(self, birthdate, *args, **kwargs):
+    def __init__(self, weboob, birthdate, *args, **kwargs):
         super(BforbankBrowser, self).__init__(*args, **kwargs)
         self.birthdate = birthdate
         self.accounts = None
 
-        self.spirica = SpiricaBrowser('https://assurance-vie.bforbank.com:443/', None, None)
+        self.spirica = SpiricaBrowser(weboob, 'https://assurance-vie.bforbank.com:443/', None, None)
 
     def do_login(self):
         assert isinstance(self.username, basestring)

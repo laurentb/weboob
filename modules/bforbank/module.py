@@ -43,7 +43,8 @@ class BforbankModule(Module, CapBank):
     BROWSER = BforbankBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['birthdate'].get(),
+        return self.create_browser(self.weboob,
+                                   self.config['birthdate'].get(),
                                    self.config['login'].get(),
                                    self.config['password'].get())
 
