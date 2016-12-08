@@ -42,6 +42,7 @@ from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_french_date
 
+
 class RedirectPage(LoggedPage, HTMLPage):
     def on_load(self):
         link = self.doc.xpath('//a[@id="P:F_1.R2:link"]')
@@ -353,6 +354,9 @@ class CardsListPage(LoggedPage, HTMLPage):
             def parse(self, el):
                 page = Async('details').loaded_page(self)
                 self.env['page'] = [page]
+
+                if len(page.doc.xpath(u'//caption[contains(text(), "débits immédiats")]')):
+                    raise SkipItem()
 
                 # Handle multi cards
                 options = page.doc.xpath('//select[@id="iso"]/option')
