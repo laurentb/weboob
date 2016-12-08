@@ -45,6 +45,7 @@ class LCLEnterpriseBrowser(LoginBrowser):
         super(LCLEnterpriseBrowser, self).deinit()
 
     def do_login(self):
+        raise BrowserIncorrectPassword()
         self.login.go().login(self.username, self.password)
 
         error = self.page.get_error() if self.login.is_here() else False
