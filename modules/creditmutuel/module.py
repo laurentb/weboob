@@ -81,7 +81,8 @@ class CreditMutuelModule(Module, CapBankTransfer):
 
     def init_transfer(self, transfer, **params):
         # There is a check on the website, transfer can't be done with too long reason.
-        transfer.label = transfer.label[:27]
+        if transfer.label:
+            transfer.label = transfer.label[:27]
 
         self.logger.info('Going to do a new transfer')
         if transfer.account_iban:
