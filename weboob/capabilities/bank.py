@@ -267,9 +267,10 @@ class Transfer(BaseObject, Currency):
 
     exec_date =       Field('Date of transfer', date, datetime)
 
-    account_id =      StringField('ID of original account')
+    account_id =      StringField('ID of origin account')
     account_iban =    StringField('International Bank Account Number')
-    account_label =   StringField('Label of original account')
+    account_label =   StringField('Label of origin account')
+    account_balance = DecimalField('Balance of origin account before transfer')
 
     recipient_id =    StringField('ID of recipient account')
     recipient_iban =  StringField('International Bank Account Number')

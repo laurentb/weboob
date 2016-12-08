@@ -869,6 +869,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
 
         transfer.account_label = account.label
         transfer.recipient_label = recipient.label
+        transfer.account_balance = account.balance
         transfer.id = webid
 
         return transfer

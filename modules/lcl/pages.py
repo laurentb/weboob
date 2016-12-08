@@ -723,6 +723,7 @@ class TransferPage(LoggedPage, HTMLPage):
         transfer.recipient_label = recipient.label
         transfer._account = account
         transfer._recipient = recipient
+        transfer.account_balance = account.balance
         return transfer
 
     def fill_transfer_id(self, transfer):
