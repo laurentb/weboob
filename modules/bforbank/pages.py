@@ -180,15 +180,14 @@ class HistoryPage(LoggedPage, HTMLPage):
 
             def condition(self):
                 if 'tr-section' in self.el.attrib['class']:
-                    self.parent.env['date'] = Transaction.Date(Regexp(CleanText('.//th'), '(\d+/\d+/\d+)'))(self.el)
                     return False
-                if 'tr-trigger' in self.el.attrib['class']:
+                elif 'tr-trigger' in self.el.attrib['class']:
                     return True
 
                 return False
 
             def obj_date(self):
-                return self.parent.env['date']
+                return Transaction.Date(Regexp(CleanText('./preceding::tr[has-class("tr-section")][1]/th'), r'(\d+/\d+/\d+)'))(self)
 
             obj_raw = Transaction.Raw('./td[1]')
             obj_amount = MyDecimal('./td[2]', replace_dots=True)
