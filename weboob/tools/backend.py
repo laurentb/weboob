@@ -469,7 +469,5 @@ class AbstractModule(Module):
         except ModuleInstallError as err:
             raise ModuleInstallError('The module %s depends on %s module but %s\'s installation failed with: %s' % (name, cls.PARENT, cls.PARENT, err))
 
-
-        return type(cls.__name__, tuple([parent] + list(cls.iter_caps())), dict(cls.__dict__))(weboob, name, config, storage, logger)
-
-
+        cls.__bases__ = tuple([parent] + list(cls.iter_caps()))
+        return cls.__new__(cls, weboob, name, config, storage, logger)
