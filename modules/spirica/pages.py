@@ -161,7 +161,6 @@ class DetailsPage(LoggedPage, HTMLPage):
                     share_idx = profile_table.get_colnum('portfolio_share')
                     assert share_idx
 
-                    curr_profile_el = self.xpath('ancestor::tr/preceding-sibling::tr[@data-ri][position() = 1]')[0]
                     path = 'ancestor::tr/preceding-sibling::tr[@data-ri][position() = 1][1]/td[%d]' % (share_idx + 1)
 
                     profile_share = MyDecimal(path)(self)
