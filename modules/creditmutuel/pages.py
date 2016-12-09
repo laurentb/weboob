@@ -776,7 +776,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
             if self.page.IS_PRO_PAGE:
                 self.item_xpath = '//ul[@id="idDetailsListCptCrediterVertical:ul"]//ul/li'
             else:
-                self.item_xpath = '//ul[@id="idDetailsListCptCrediterHorizontal:ul"]/li'
+                self.item_xpath = '//ul[@id="idDetailsListCptCrediterHorizontal:ul"]//li[@role="radio"]'
 
         class item(MyRecipient):
             condition = lambda self: Field('id')(self) not in self.env['origin_account'].id
