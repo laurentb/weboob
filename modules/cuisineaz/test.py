@@ -27,8 +27,7 @@ class CuisineazTest(BackendTest):
     def test_recipe(self):
         recipes = list(itertools.islice(self.backend.iter_recipes(u'purée'), 0, 20))
         assert len(recipes)
-        for recipe in recipes:
-            full_recipe = self.backend.get_recipe(recipe.id)
-            assert full_recipe.instructions
-            assert full_recipe.ingredients
-            assert full_recipe.title
+        full_recipe = self.backend.get_recipe(recipes[-1].id)
+        assert full_recipe.instructions
+        assert full_recipe.ingredients
+        assert full_recipe.title

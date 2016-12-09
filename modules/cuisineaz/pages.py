@@ -22,7 +22,7 @@ from weboob.capabilities.recipe import Recipe, Comment
 from weboob.capabilities.base import NotAvailable
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, method, ListElement
-from weboob.browser.filters.standard import CleanText, Regexp, Env, Time, Join
+from weboob.browser.filters.standard import CleanText, Regexp, Env, Time, Join, Format
 from weboob.browser.filters.html import XPath
 
 import re
@@ -54,18 +54,18 @@ class ResultsPage(HTMLPage):
             klass = Recipe
 
             def condition(self):
-                return Regexp(CleanText('./div[has-class("searchTitle")]/h2/a/@href'),
+                return Regexp(CleanText('./div/h2/a/@href'),
                               '/recettes/(.*).aspx',
                               default=None)(self.el)
 
-            obj_id = Regexp(CleanText('./div[has-class("searchTitle")]/h2/a/@href'),
+            obj_id = Regexp(CleanText('./div/h2/a/@href'),
                             '/recettes/(.*).aspx')
-            obj_title = CleanText('./div[has-class("searchTitle")]/h2/a')
+            obj_title = CleanText('./div/h2/a')
 
-            obj_thumbnail_url = CleanText('./div[has-class("searchImg")]/span/img[@data-src!=""]/@data-src|./div[has-class("searchImg")]/div/span/img[@src!=""]/@src',
-                                          default=None)
+            obj_thumbnail_url = Format('http:%s', CleanText('./div[has-class("searchImg")]/span/img[@data-src!=""]/@data-src|./div[has-class("searchImg")]/div/span/img[@src!=""]/@src',
+                                                            default=None))
 
-            obj_short_description = CleanText('./div[has-class("searchIngredients")]')
+            obj_short_description = CleanText('./div[has-class("show-for-medium")]')
 
 
 class RecipePage(HTMLPage):
@@ -76,11 +76,13 @@ class RecipePage(HTMLPage):
         klass = Recipe
 
         obj_id = Env('_id')
-        obj_title = CleanText('//div[@id="ficheRecette"]/h1')
+        obj_title = CleanText('//h1')
 
-        obj_picture_url = CleanText('//img[@id="shareimg" and @src!=""]/@src', default=None)
+        obj_picture_url = Format('http:%s',
+                                 CleanText('//img[@id="shareimg" and @src!=""]/@src', default=None))
 
-        obj_thumbnail_url = CleanText('//img[@id="shareimg" and @src!=""]/@src', default=None)
+        obj_thumbnail_url = Format('http:%s',
+                                   CleanText('//img[@id="shareimg" and @src!=""]/@src', default=None))
 
         def obj_preparation_time(self):
             _prep = CuisineazDuration(CleanText('//span[@id="ctl00_ContentPlaceHolder_LblRecetteTempsPrepa"]'))(self)
@@ -96,7 +98,7 @@ class RecipePage(HTMLPage):
 
         def obj_ingredients(self):
             ingredients = []
-            for el in XPath('//div[@id="ingredients"]/ul/li')(self):
+            for el in XPath('//section[has-class("recipe_ingredients")]/ul/li')(self):
                 ingredients.append(CleanText('.')(el))
             return ingredients
 
@@ -110,10 +112,10 @@ class RecipePage(HTMLPage):
         class item(ItemElement):
             klass = Comment
 
-            obj_author = CleanText('./div[has-class("comment-left")]/div/div/div[@class="fs18 txtcaz mb5 first-letter"]')
+            obj_author = CleanText('./div/div/div/div[@class="author"]')
 
-            obj_text = CleanText('./div[has-class("comment-right")]/div/p')
+            obj_text = CleanText('./div/div/p')
             obj_id = CleanText('./@id')
 
             def obj_rate(self):
-                    return len(XPath('./div[has-class("comment-right")]/div/div/div/span/span[@class="icon icon-star"]')(self))
+                    return len(XPath('.//div/div/div/div/div[@class="icon-star"]')(self))
