@@ -34,7 +34,7 @@ from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, SkipItem, method, TableElement
 from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, TableCell, Regexp, Async, AsyncLoad, Date, ColumnNotFound, Format
 from weboob.browser.filters.html import Link, Attr
-from weboob.exceptions import BrowserIncorrectPassword, ParseError, NoAccountsException
+from weboob.exceptions import BrowserIncorrectPassword, ParseError, NoAccountsException, ActionNeeded
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import find_object, empty
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, Transfer
@@ -77,7 +77,9 @@ class EmptyPage(LoggedPage, HTMLPage):
 
 
 class UserSpacePage(LoggedPage, HTMLPage):
-    pass
+    def on_load(self):
+        if self.doc.xpath('//form[@id="GoValider"]'):
+            raise ActionNeeded(u"Le site du contrat Banque à Distance a besoin d'informations supplémentaires")
 
 
 class ChangePasswordPage(LoggedPage, HTMLPage):
