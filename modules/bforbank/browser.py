@@ -24,7 +24,7 @@ from weboob.capabilities.bank import Account
 
 from .pages import (
     LoginPage, ErrorPage, AccountsPage, HistoryPage, LoanHistoryPage, RibPage,
-    LifeInsuranceIframe, LifeInsuranceRedir
+    LifeInsuranceIframe, LifeInsuranceRedir, TitrePage, BoursePage
 )
 from .spirica_browser import SpiricaBrowser
 
@@ -42,10 +42,16 @@ class BforbankBrowser(LoginBrowser):
     lifeinsurance_iframe = URL(r'/client/accounts/lifeInsurance/consultationDetailSpirica.action', LifeInsuranceIframe)
     lifeinsurance_redir = URL(r'https://assurance-vie.bforbank.com:443/sylvea/welcomeSSO.xhtml', LifeInsuranceRedir)
 
+    titre = URL(r'/client/accounts/stocks/consultation/noFramePartenaireCATitres.action\?id=0', TitrePage)
+    bourse = URL('https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis',
+                 'https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.account.*',
+                 BoursePage)
+
     def __init__(self, weboob, birthdate, *args, **kwargs):
         super(BforbankBrowser, self).__init__(*args, **kwargs)
         self.birthdate = birthdate
         self.accounts = None
+        self.weboob = weboob
 
         self.spirica = SpiricaBrowser(weboob, 'https://assurance-vie.bforbank.com:443/', None, None)
 
@@ -71,7 +77,11 @@ class BforbankBrowser(LoginBrowser):
     @need_login
     def get_history(self, account):
         if account.type == Account.TYPE_MARKET:
-            raise NotImplementedError()
+            bourse_account = self.get_bourse_account(account)
+
+            self.location(bourse_account._link_id)
+            assert self.bourse.is_here()
+            return self.page.iter_history()
         elif account.type == Account.TYPE_LIFE_INSURANCE:
             self.goto_spirica(account)
             return self.spirica.iter_history(account)
@@ -94,9 +104,30 @@ class BforbankBrowser(LoginBrowser):
         self.spirica.session.cookies.update(self.session.cookies)
         self.spirica.logged = True
 
+    def get_bourse_account(self, account):
+        self.titre.go()
+        assert self.titre.is_here()
+        self.location(self.page.get_redir()) # "login" to bourse page
+
+        self.bourse.go()
+        assert self.bourse.is_here()
+
+        self.logger.debug('searching account matching %r', account)
+        for bourse_account in self.page.get_list():
+            self.logger.debug('iterating account %r', bourse_account)
+            if bourse_account.id.startswith(account.id[3:]):
+                return bourse_account
+
     @need_login
     def iter_investment(self, account):
         if account.type == Account.TYPE_LIFE_INSURANCE:
             self.goto_spirica(account)
             return self.spirica.iter_investment(account)
+        elif account.type == Account.TYPE_MARKET:
+            bourse_account = self.get_bourse_account(account)
+
+            self.location(bourse_account._market_link)
+            assert self.bourse.is_here()
+            return self.page.iter_investment()
+
         raise NotImplementedError()

@@ -21,7 +21,7 @@ import re
 from StringIO import StringIO
 from PIL import Image
 
-from weboob.browser.pages import LoggedPage, HTMLPage, pagination
+from weboob.browser.pages import LoggedPage, HTMLPage, pagination, AbstractPage
 from weboob.browser.elements import method, ListElement, ItemElement
 from weboob.capabilities.bank import Account
 from weboob.browser.filters.html import Link, Attr
@@ -206,3 +206,13 @@ class LifeInsuranceRedir(LoggedPage, HTMLPage):
             match = re.search(r'URL=([^\s"\']+)', meta)
             if match:
                 return match.group(1)
+
+
+class TitrePage(LoggedPage, HTMLPage):
+    def get_redir(self):
+        return Regexp(CleanText('//body/@onload'), r"document.location='(.*)'", r'\1')(self.doc)
+
+
+class BoursePage(AbstractPage):
+    PARENT = 'lcl'
+    PARENT_URL = 'bourse'
