@@ -36,7 +36,7 @@ from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal
 from weboob.browser.filters.html import Link, Attr
 from weboob.exceptions import BrowserIncorrectPassword, ParseError, NoAccountsException, ActionNeeded
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.base import find_object, empty
+from weboob.capabilities.base import empty
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, Transfer
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
