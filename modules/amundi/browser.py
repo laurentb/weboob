@@ -25,7 +25,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.exceptions import ClientError
 
 
-class AmundiEEBrowser(LoginBrowser):
+class AmundiBrowser(LoginBrowser):
     TIMEOUT = 120.0
 
     login = URL('/psf/authenticate', LoginPage)
@@ -34,8 +34,9 @@ class AmundiEEBrowser(LoginBrowser):
     account_history = URL('/psf/api/individu/operations\?valeurExterne=false&filtreStatutModeExclusion=false&statut=CPTA', AccountHistoryPage)
 
     def __init__(self, website, *args, **kwargs):
-        super(AmundiEEBrowser, self).__init__(*args, **kwargs)
         self.BASEURL = website
+
+        super(AmundiBrowser, self).__init__(*args, **kwargs)
 
     def do_login(self):
         """

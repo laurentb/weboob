@@ -57,9 +57,12 @@ class AccountsPage(LoggedPage, JsonPage):
 
             def obj_label(self):
                 try:
-                    return Dict('libelleDispositif')(self).encode('latin1').decode('utf8')
-                except UnicodeDecodeError:
-                    return Dict('libelleDispositif')(self)
+                    return Dict('libelleDispositif')(self).encode('iso-8859-2').decode('utf8')
+                except (UnicodeEncodeError, UnicodeDecodeError):
+                    try:
+                        return Dict('libelleDispositif')(self).encode('latin1').decode('utf8')
+                    except UnicodeDecodeError:
+                        return Dict('libelleDispositif')(self)
 
     @method
     class iter_investments(DictElement):
