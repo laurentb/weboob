@@ -18,10 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import json
-
 from .pages import LoginPage, AccountsPage, AccountHistoryPage
 from weboob.browser import URL, LoginBrowser, need_login
+from weboob.tools.json import json
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.exceptions import ClientError
 
