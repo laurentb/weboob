@@ -21,59 +21,53 @@ from datetime import datetime
 from decimal import Decimal
 
 from weboob.browser.elements import ItemElement, method, DictElement
-from weboob.browser.filters.standard import CleanDecimal, Date
+from weboob.browser.filters.standard import CleanDecimal, Date, Field, CleanText, Env
 from weboob.browser.filters.json import Dict
-from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage, pagination
+from weboob.browser.pages import LoggedPage, JsonPage
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
-from weboob.browser.pages import NextPage
 
 
-class FakePage(HTMLPage):
-    pass
-
-
-class LoginPage(HTMLPage):
-    def login(self, login, passwd):
-        data = {'mail': login, 'password': passwd, 'connection': ''}
-
-        self.browser.location('/part/home_priv_synth',
-                              data=data,
-                              headers={'Referer': 'https://www.amundi-ee.com/part/home_login'})
-
-    def is_here(self):
-        return bool(self.doc.xpath('//a[@href="home_login"]'))
+class LoginPage(JsonPage):
+    def get_token(self):
+        return Dict('token')(self.doc)
 
 
 class AccountsPage(LoggedPage, JsonPage):
-    def iter_accounts(self):
-        types = {'PEE': Account.TYPE_PEE, 'PEG': Account.TYPE_PEE,
-                 'PERCO': Account.TYPE_PERCO, 'RSP': Account.TYPE_RSP}
-        for acc in self.doc['positionTotaleDispositifDto']:
-            ac = Account()
-            ac.type = types.get(acc['typeDispositif'], Account.TYPE_LIFE_INSURANCE)
-            ac.id = ac.number = acc['codeDispositif']
-            try:
-                ac.label = acc['libelleDispositif'].encode('latin1').decode('utf8')
-            except UnicodeDecodeError:
-                ac.label = acc['libelleDispositif']
-            ac._entreprise = acc['libelleEntreprise']
-            ac.balance = Decimal(acc['mtBrut'])
-            ac.currency = u'EUR'
-            ac._ident = acc['idEnt']
-            yield ac
+    ACCOUNT_TYPES = {'PEE': Account.TYPE_PEE,
+                     'PEG': Account.TYPE_PEE,
+                     'PERCO': Account.TYPE_PERCO,
+                     'RSP': Account.TYPE_RSP
+                    }
 
+    @method
+    class iter_accounts(DictElement):
+        item_xpath = "listPositionsSalarieFondsDto/*/positionsSalarieDispositifDto"
 
-class AccountDetailPage(LoggedPage, JsonPage):
-    def is_here(self):
-        return 'positionsSalarieDispositifDto' in self.doc
+        class item(ItemElement):
+            klass = Account
+
+            obj_id = CleanText(Dict('codeDispositif'))
+            obj_balance = CleanDecimal(Dict('mtBrut'))
+            obj_number = Field('id')
+            obj_currency = u"EUR"
+
+            def obj_type(self):
+                return self.page.ACCOUNT_TYPES.get(Dict('typeDispositif')(self), Account.TYPE_LIFE_INSURANCE)
+
+            def obj_label(self):
+                try:
+                    return Dict('libelleDispositif')(self).encode('latin1').decode('utf8')
+                except UnicodeDecodeError:
+                    return Dict('libelleDispositif')(self)
 
     @method
     class iter_investments(DictElement):
         def find_elements(self):
-            for dispositif in self.page.doc['positionsSalarieDispositifDto']:
-                if self.env['account_id'] == dispositif['codeDispositif']:
-                    return dispositif['positionsSalarieFondsDto']
+            for psds in Dict('listPositionsSalarieFondsDto')(self):
+                for psd in psds.get('positionsSalarieDispositifDto'):
+                    if psd.get('codeDispositif') == Env('account_id')(self):
+                        return psd.get('positionsSalarieFondsDto')
             return {}
 
         class item(ItemElement):
@@ -89,28 +83,29 @@ class AccountDetailPage(LoggedPage, JsonPage):
 
 
 class AccountHistoryPage(LoggedPage, JsonPage):
-    def belongs(self, instructions, data):
+    def belongs(self, instructions, account):
         for ins in instructions:
             if 'nomDispositif' in ins and 'codeDispositif' in ins and '%s%s' % (ins['nomDispositif'], ins['codeDispositif']) == \
-               '%s%s' % (data['acc'].label, data['acc'].id):
+               '%s%s' % (account.label, account.id):
                 return True
         return False
 
-    def get_amount(self, instructions, data):
+    def get_amount(self, instructions, account):
         amount = 0
+
         for ins in instructions:
             if 'nomDispositif' in ins and 'montantNet' in ins and 'codeDispositif' in ins and '%s%s' % (ins['nomDispositif'], ins['codeDispositif']) == \
-               '%s%s' % (data['acc'].label, data['acc'].id):
+               '%s%s' % (account.label, account.id):
                 amount += ins['montantNet']
+
         return Decimal(amount)
 
-    @pagination
-    def iter_history(self, data):
+    def iter_history(self, account):
         for hist in self.doc['operationsIndividuelles']:
             if len(hist['instructions']) > 0:
-                if self.belongs(hist['instructions'], data):
+                if self.belongs(hist['instructions'], account):
                     tr = Transaction()
-                    tr.amount = self.get_amount(hist['instructions'], data)
+                    tr.amount = self.get_amount(hist['instructions'], account)
                     tr.rdate = datetime.strptime(hist['dateComptabilisation'].split('T')[0], '%Y-%m-%d')
                     tr.date = tr.rdate
                     tr.label = hist['libelleOperation'] if 'libelleOperation' in hist else hist['libelleCommunication']
@@ -131,8 +126,3 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                     #     tr.investments.append(inv)
 
                     yield tr
-        if data['total'] > data['params']['limit'] * (data['params']['offset'] + 1):
-            offset=data['params']['offset']
-            self.url=self.url.replace('&offset='+str(offset),'&offset='+str(offset+1))
-            data['params']['offset'] += 1
-            raise NextPage(self.url)

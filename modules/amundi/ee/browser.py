@@ -18,18 +18,21 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .pages import LoginPage, AccountsPage, AccountDetailPage, AccountHistoryPage
+import json
+
+from .pages import LoginPage, AccountsPage, AccountHistoryPage
 from weboob.browser import URL, LoginBrowser, need_login
 from weboob.exceptions import BrowserIncorrectPassword
+from weboob.browser.exceptions import ClientError
 
 
 class AmundiEEBrowser(LoginBrowser):
     TIMEOUT = 120.0
 
-    login = URL('/part/home_login', LoginPage)
-    accounts = URL('/part/home_ajax_noee\?api=/api/individu/positionTotale', AccountsPage)
-    account_detail = URL('/part/home_ajax_noee', AccountDetailPage)
-    account_history = URL('/part/home_ajax_noee\?api=/api/individu/operations', AccountHistoryPage)
+    login = URL('/psf/authenticate', LoginPage)
+    authorize = URL('/psf/authorize', LoginPage)
+    accounts = URL('/psf/api/individu/positionFonds\?flagUrlFicheFonds=true&inclurePositionVide=false', AccountsPage)
+    account_history = URL('/psf/api/individu/operations\?valeurExterne=false&filtreStatutModeExclusion=false&statut=CPTA', AccountHistoryPage)
 
     def __init__(self, website, *args, **kwargs):
         super(AmundiEEBrowser, self).__init__(*args, **kwargs)
@@ -42,24 +45,23 @@ class AmundiEEBrowser(LoginBrowser):
         """
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
-        self.login.go()
-        self.page.login(self.username, self.password)
-        if self.login.is_here():
+
+        try:
+            self.login.go(data=json.dumps({'username' : self.username, 'password' : self.password}), \
+                          headers={'Content-Type': 'application/json;charset=UTF-8'})
+            self.token = self.authorize.go().get_token()
+        except ClientError:
             raise BrowserIncorrectPassword()
 
     @need_login
     def iter_accounts(self):
-        self.accounts.go()
-        return self.page.iter_accounts()
+        return self.accounts.go(headers={'X-noee-authorization': ('noeprd %s' % self.token)}).iter_accounts()
 
     @need_login
     def iter_investments(self, account):
-        self.account_detail.go(params={'api':'/api/individu/positionFonds','flagUrlFicheFonds':'true','inclurePositionVide':'false'})
-        return self.page.iter_investments(account_id=account.id)
+        return self.accounts.go(headers={'X-noee-authorization': ('noeprd %s' % self.token)})\
+                            .iter_investments(account_id=account.id)
 
     @need_login
     def iter_history(self, account):
-        params={'valeurExterne':'false','statut':'CPTA','filtreStatutModeExclusion':'false','limit':100, 'offset':0}
-        self.account_history.go(params=params)
-        total=int(self.page.doc['nbOperationsIndividuelles'])
-        return self.page.iter_history(data={'acc': account, 'params':params, 'total':total})
+        return self.account_history.go(headers={'X-noee-authorization': ('noeprd %s' % self.token)}).iter_history(account=account)
