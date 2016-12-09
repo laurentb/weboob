@@ -118,6 +118,8 @@ class CreditMutuelBrowser(LoginBrowser):
 
     __states__ = ['currentSubBank']
 
+    accounts_list = None
+
     def do_login(self):
         # Clear cookies.
         self.do_logout()
@@ -134,7 +136,7 @@ class CreditMutuelBrowser(LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
-        if not hasattr(self, 'accounts_list'):
+        if not self.accounts_list:
             if self.currentSubBank is None:
                 self.getCurrentSubBank()
             self.accounts_list = []
