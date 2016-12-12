@@ -135,8 +135,11 @@ class LCLBrowser(LoginBrowser):
                     a.iban = iban if iban and a.id[11:] in iban else NotAvailable
                 self.accounts_list.append(a)
             self.loans.stay_or_go()
-            for a in self.page.get_list():
-                self.accounts_list.append(a)
+            if self.no_perm.is_here():
+                self.logger.warning('Loans are unavailable.')
+            else:
+                for a in self.page.get_list():
+                    self.accounts_list.append(a)
             if self.connexion_bourse():
                 for a in self.page.get_list():
                     self.accounts_list.append(a)
