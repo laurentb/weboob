@@ -270,6 +270,7 @@ class LoansPage(LoggedPage, HTMLPage):
             obj_currency = FrenchTransaction.Currency(TableCell('balance'))
             obj_type = Account.TYPE_LOAN
             obj_id = Env('id')
+            obj__transfer_id = None
 
             def obj_label(self):
                 has_type = CleanText('./ancestor::table[.//th[contains(text(), "Type")]]', default=None)(self)
