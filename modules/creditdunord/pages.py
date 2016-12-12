@@ -455,7 +455,7 @@ class TransactionsPage(LoggedPage, CDNBasePage):
         for line in data:
             t = Transaction()
 
-            if acc_type is Account.TYPE_CARD:
+            if acc_type is Account.TYPE_CARD and MyStrip(line[self.COL_DEBIT_DATE]):
                 date = vdate = Date(dayfirst=True).filter(MyStrip(line[self.COL_DEBIT_DATE]))
             else:
                 date = Date(dayfirst=True).filter(MyStrip(line[self.COL_DATE]))
