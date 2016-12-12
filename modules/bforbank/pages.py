@@ -193,6 +193,18 @@ class HistoryPage(LoggedPage, HTMLPage):
             obj_amount = MyDecimal('./td[2]', replace_dots=True)
 
 
+class LifeInsuranceList(LoggedPage, HTMLPage):
+    @method
+    class iter_accounts(ListElement):
+        item_xpath = '//table[has-class("comptes_liste")]/tbody//tr'
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_id = CleanText('./td/a')
+            obj__link = Link('./td/a')
+
+
 class LifeInsuranceIframe(LoggedPage, HTMLPage):
     def get_iframe(self):
         return Attr(None, 'src').filter(self.doc.xpath('//iframe[@id="iframePartenaire"]'))

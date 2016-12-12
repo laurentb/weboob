@@ -20,11 +20,12 @@
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, AccountNotFound
 
 from .pages import (
     LoginPage, ErrorPage, AccountsPage, HistoryPage, LoanHistoryPage, RibPage,
-    LifeInsuranceIframe, LifeInsuranceRedir, TitrePage, BoursePage
+    LifeInsuranceList, LifeInsuranceIframe, LifeInsuranceRedir,
+    TitrePage, BoursePage,
 )
 from .spirica_browser import SpiricaBrowser
 
@@ -39,6 +40,8 @@ class BforbankBrowser(LoginBrowser):
               '/espace-client/rib/(?P<id>\d+)', RibPage)
     loan_history = URL('/espace-client/livret/consultation.*', LoanHistoryPage)
     history = URL('/espace-client/consultation/operations/.*', HistoryPage)
+
+    lifeinsurance_list = URL(r'/client/accounts/lifeInsurance/lifeInsuranceSummary.action', LifeInsuranceList)
     lifeinsurance_iframe = URL(r'/client/accounts/lifeInsurance/consultationDetailSpirica.action', LifeInsuranceIframe)
     lifeinsurance_redir = URL(r'https://assurance-vie.bforbank.com:443/sylvea/welcomeSSO.xhtml', LifeInsuranceRedir)
 
@@ -93,9 +96,21 @@ class BforbankBrowser(LoginBrowser):
 
     def goto_spirica(self, account):
         assert account.type == Account.TYPE_LIFE_INSURANCE
-        self.home.stay_or_go() # make sure we are on the right domain
-        self.location('/client/accounts/lifeInsurance/lifeInsuranceSummary.action')
-        assert self.lifeinsurance_iframe.is_here()
+        self.lifeinsurance_list.go()
+
+        if self.lifeinsurance_list.is_here():
+            self.logger.debug('multiple life insurances, searching for %r', account)
+            # multiple life insurances: dedicated page to choose
+            for insurance_account in self.page.iter_accounts():
+                self.logger.debug('testing %r', account)
+                if insurance_account.id == account.id:
+                    self.location(insurance_account._link)
+                    assert self.lifeinsurance_iframe.is_here()
+                    break
+            else:
+                raise AccountNotFound('account was not found in the dedicated page')
+        else:
+            assert self.lifeinsurance_iframe.is_here()
 
         self.location(self.page.get_iframe())
         assert self.lifeinsurance_redir.is_here()
