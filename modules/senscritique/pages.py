@@ -50,11 +50,16 @@ class FormatDate(Filter):
 
 class Date(Filter):
     def filter(self, el):
+        str_time = el[0].xpath("time")[0].attrib['datetime'][:-6]
+        _time = datetime.strptime(str_time, '%H:%M:%S')
+
         str_date = CleanText('.')(el[0])
         _date = date.today()
         m = re.search('\w* (\d\d?) .*', str_date)
-        if ('Demain' in str_date or 'Ce soir' in str_date):
+        if (('Demain' in str_date and str_time[0] != "0") or ('Ce soir' in str_date and str_time[0] == "0")):
             _date += timedelta(days=1)
+        elif 'Demain' in str_date:
+            _date += timedelta(days=2)
         elif m:
             day_number = int(m.group(1))
             month = _date.month
@@ -65,8 +70,6 @@ class Date(Filter):
                     year = _date.year + 1
             _date = date(day=day_number, month=month, year=year)
 
-        str_time = el[0].xpath("time")[0].attrib['datetime'][:-6]
-        _time = datetime.strptime(str_time, '%H:%M:%S')
         return datetime.combine(_date, _time.time())
 
 
