@@ -25,6 +25,7 @@ from weboob.browser.exceptions import ServerError, HTTPNotFound
 from weboob.capabilities.bill import Subscription, Bill
 from weboob.capabilities.shop import OrderNotFound
 from weboob.capabilities.base import NotAvailable
+from weboob.tools.decorators import retry
 from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import HomePage, LoginPage, AmazonPage, HistoryPage, \
@@ -138,6 +139,7 @@ class Amazon(LoginBrowser):
             b.vat = o.tax
             yield b
 
+    @retry(HTTPNotFound)
     @need_login
     def download_document(self, url):
         doc = self.location(url)
