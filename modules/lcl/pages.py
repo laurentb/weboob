@@ -454,7 +454,7 @@ class BoursePage(LoggedPage, HTMLPage):
             def obj_unitvalue(self):
                 if "%" in CleanText('.//td[4]')(self) and "%" in CleanText('.//td[6]')(self):
                     return NotAvailable
-                return MyDecimal('.//td[4]')(self)
+                return MyDecimal('.//td[4]/text()')(self)
 
             def obj_unitprice(self):
                 if "%" in CleanText('.//td[4]')(self) and "%" in CleanText('.//td[6]')(self):
