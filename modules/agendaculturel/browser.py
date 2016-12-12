@@ -29,9 +29,9 @@ import re
 class AgendaculturelBrowser(PagesBrowser):
     BASEURL = ''
 
-    base = URL('http://www.agendaculturel.fr/search_bw',
-               'http://(?P<region>\d{2}).agendaculturel.fr/(?P<_id>.*).html',
-               'http://\d{2}.agendaculturel.fr/.*',
+    base = URL('https://www.agendaculturel.fr/search_bw',
+               'https://(?P<region>\d{2}).agendaculturel.fr/(?P<_id>.*).html',
+               'https://\d{2}.agendaculturel.fr/.*',
                BasePage)
 
     def __init__(self, place, *args, **kwargs):
@@ -49,7 +49,7 @@ class AgendaculturelBrowser(PagesBrowser):
         self.set_base_url(place)
         query_date_from = date_from.strftime('%Y%m')
         self.page.search_events(query_date_from)
-        region = re.match('http://(\d{2}).agendaculturel.fr/.*', self.page.url).group(1)
+        region = re.match('https://(\d{2}).agendaculturel.fr/.*', self.page.url).group(1)
         return self.page.list_events(region=region, date_from=date_from, date_to=date_to, categories=categories)
 
     def get_event(self, id, event=None):
