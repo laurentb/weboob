@@ -219,11 +219,6 @@ class LifeInsuranceRedir(LoggedPage, HTMLPage):
                 return match.group(1)
 
 
-class TitrePage(LoggedPage, HTMLPage):
-    def get_redir(self):
-        return Regexp(CleanText('//body/@onload'), r"document.location='(.*)'", r'\1')(self.doc)
-
-
 class BoursePage(AbstractPage):
     PARENT = 'lcl'
     PARENT_URL = 'bourse'

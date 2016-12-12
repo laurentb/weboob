@@ -25,7 +25,7 @@ from weboob.capabilities.bank import Account, AccountNotFound
 from .pages import (
     LoginPage, ErrorPage, AccountsPage, HistoryPage, LoanHistoryPage, RibPage,
     LifeInsuranceList, LifeInsuranceIframe, LifeInsuranceRedir,
-    TitrePage, BoursePage,
+    BoursePage,
 )
 from .spirica_browser import SpiricaBrowser
 
@@ -45,7 +45,7 @@ class BforbankBrowser(LoginBrowser):
     lifeinsurance_iframe = URL(r'/client/accounts/lifeInsurance/consultationDetailSpirica.action', LifeInsuranceIframe)
     lifeinsurance_redir = URL(r'https://assurance-vie.bforbank.com:443/sylvea/welcomeSSO.xhtml', LifeInsuranceRedir)
 
-    titre = URL(r'/client/accounts/stocks/consultation/noFramePartenaireCATitres.action\?id=0', TitrePage)
+    bourse_login = URL(r'/espace-client/synthese/debranchementCaTitre/(?P<id>\d+)')
     bourse = URL('https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis',
                  'https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.account.*',
                  BoursePage)
@@ -122,9 +122,7 @@ class BforbankBrowser(LoginBrowser):
         self.spirica.logged = True
 
     def get_bourse_account(self, account):
-        self.titre.go()
-        assert self.titre.is_here()
-        self.location(self.page.get_redir()) # "login" to bourse page
+        self.bourse_login.go(id=account.id) # "login" to bourse page
 
         self.bourse.go()
         assert self.bourse.is_here()
@@ -134,6 +132,8 @@ class BforbankBrowser(LoginBrowser):
             self.logger.debug('iterating account %r', bourse_account)
             if bourse_account.id.startswith(account.id[3:]):
                 return bourse_account
+        else:
+            raise AccountNotFound()
 
     @need_login
     def iter_investment(self, account):
