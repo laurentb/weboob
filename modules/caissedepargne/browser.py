@@ -312,19 +312,25 @@ class CaisseEpargne(LoginBrowser):
             now = datetime.now()
             dformat = '%Y-%m-%d'
 
-            data = {
-                'contexte': '',
-                'dateEntree': None,
-                'donneesEntree': json.dumps({
-                    'TypeRecherche': 'FD', \
-                    'DateFin': now.strftime(dformat) + 'T23:00:00.000Z',
-                    'DateDebut': (now - relativedelta(years=1)).strftime(dformat) + 'T23:00:00.000Z',
-                    'compte': account._formated
-                }),
-                'filtreEntree': None
-            }
+            for i in reversed(range(1, 12)):
+                data = {
+                    'contexte': '',
+                    'dateEntree': None,
+                    'donneesEntree': json.dumps({
+                        'TypeRecherche': 'FD', \
+                        'DateFin': now.strftime(dformat) + 'T23:00:00.000Z',
+                        'DateDebut': (now - relativedelta(months=i)).strftime(dformat) + 'T23:00:00.000Z',
+                        'compte': account._formated
+                    }),
+                    'filtreEntree': None
+                }
 
-            return self.cenet_account_history.go(data=json.dumps(data), headers=headers).get_history()
+                history = self.cenet_account_history.go(data=json.dumps(data), headers=headers).get_history()
+
+                if next(history, None) is not None:
+                    return history
+
+            return iter([])
         if not hasattr(account, '_info'):
             raise NotImplementedError
         if account.type is Account.TYPE_LIFE_INSURANCE:
