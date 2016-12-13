@@ -24,8 +24,9 @@ from decimal import Decimal
 
 from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.browser.pages import LoggedPage, RawPage
+from weboob.browser.filters.html import Link
+from weboob.browser.filters.standard import CleanText
 from weboob.exceptions import BrowserUnavailable, NoAccountsException
-from weboob.tools.misc import to_unicode
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.ordereddict import OrderedDict
 
@@ -42,6 +43,8 @@ class AccountList(LoggedPage, MyHTMLPage):
         self.parse_table('comptesEpargne',  Account.TYPE_SAVINGS)
         self.parse_table('comptesTitres',   Account.TYPE_MARKET)
         self.parse_table('comptesVie',      Account.TYPE_DEPOSIT)
+        self.parse_table('encoursprets',    Account.TYPE_LOAN)
+        # FIXME for loans, the balance may be the loan total, not the loan due??
         self.parse_table('comptesRetraireEuros')
 
     def get_accounts_list(self):
@@ -57,26 +60,21 @@ class AccountList(LoggedPage, MyHTMLPage):
         lines = tables[0].xpath(".//tbody/tr")
         for line in lines:
             account = Account()
-            tmp = line.xpath("./td//a")[0]
-            account.label = to_unicode(tmp.text)
+            account.label = CleanText('./td[1]')(line)
             account.type = actype
-            account._link_id = tmp.get("href")
+            account._link_id = Link('./td[1]//a')(line)
             if 'BourseEnLigne' in account._link_id:
                 account.type = Account.TYPE_MARKET
 
-            tmp = line.xpath("./td/span/strong")
-            if len(tmp) >= 2:
-                tmp_id = tmp[0].text
-                tmp_balance = tmp[1].text
-            else:
-                tmp_id = line.xpath("./td//span")[1].text
-                tmp_balance = tmp[0].text
+            account.id = CleanText('./td[2]')(line)
+            tmp_balance = CleanText('./td[3]')(line)
 
-            account.id = tmp_id
             account.currency = account.get_currency(tmp_balance)
             if not account.currency:
                 account.currency = u'EUR'
             account.balance = Decimal(FrenchTransaction.clean_amount(tmp_balance))
+            if actype == Account.TYPE_LOAN:
+                account.balance = -account.balance
 
             if account.id in self.accounts:
                 a = self.accounts[account.id]

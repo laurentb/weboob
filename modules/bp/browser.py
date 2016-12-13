@@ -51,6 +51,7 @@ class BPBrowser(LoginBrowser):
 
     accounts_list = URL(r'.*synthese_assurancesEtComptes/afficheSynthese-synthese\.ea',
                         r'.*synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea',
+                        r'/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/preparerRechercheListePrets-synthese.ea',
                         AccountList)
     accounts_rib = URL(r'.*voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea.*', AccountRIB)
 
@@ -81,6 +82,7 @@ class BPBrowser(LoginBrowser):
     login_url = 'https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&' \
             'ERROR_CODE=0x00000000&URL=%2Fvoscomptes%2FcanalXHTML%2Fidentif.ea%3Forigin%3Dparticuliers'
     accounts_url = "https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea"
+    accounts_and_loans_url = "https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/preparerRechercheListePrets-synthese.ea"
 
     #def home(self):
     #    self.do_login()
@@ -99,8 +101,22 @@ class BPBrowser(LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
+        ids = set()
+
         self.location(self.accounts_url)
-        return self.page.get_accounts_list()
+        assert self.accounts_list.is_here()
+        for account in self.page.get_accounts_list():
+            ids.add(account.id)
+            yield account
+
+        if self.accounts_and_loans_url:
+            self.location(self.accounts_and_loans_url)
+            assert self.accounts_list.is_here()
+
+            for account in self.page.get_accounts_list():
+                if account.id not in ids:
+                    ids.add(account.id)
+                    yield account
 
     @need_login
     def get_account(self, id):
@@ -188,6 +204,7 @@ class BPBrowser(LoginBrowser):
 
 class BProBrowser(BPBrowser):
     login_url = "https://banqueenligne.entreprises.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&ERROR_CODE=0x00000000&URL=%2Fws_q47%2Fvoscomptes%2Fidentification%2Fidentification.ea%3Forigin%3Dprofessionnels"
+    accounts_and_loans_url = None
 
     def do_login(self):
         super(BProBrowser, self).do_login()
