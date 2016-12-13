@@ -18,16 +18,17 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from urllib import urlencode
 from urlparse import urlsplit, parse_qsl
 from datetime import datetime
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserBanned
-from weboob.deprecated.browser.parsers.iparser import RawParser
+from weboob.browser import LoginBrowser, URL, need_login
+from weboob.exceptions import BrowserIncorrectPassword, BrowserBanned
 
 from .pages import LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate, \
                    AccountList, AccountHistory, CardsList, UnavailablePage, AccountRIB, \
                    TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary
-from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, ProAccountHistoryDownload, ProAccountHistoryCSV, HistoryParser, DownloadRib, RibPage
+from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, ProAccountHistoryDownload, ProAccountHistoryCSV, DownloadRib, RibPage
 
 from weboob.capabilities.bank import Transfer
 
@@ -35,92 +36,89 @@ from weboob.capabilities.bank import Transfer
 __all__ = ['BPBrowser', 'BProBrowser']
 
 
-class BPBrowser(Browser):
-    DOMAIN = 'voscomptesenligne.labanquepostale.fr'
-    PROTOCOL = 'https'
+class BPBrowser(LoginBrowser):
+    BASEURL = 'https://voscomptesenligne.labanquepostale.fr'
     CERTHASH = ['184ccdf506ce87e66cba71ce754e48aa51720f346df56ed27399006c288a82ce', '5719e6295761eb6de357d5e0743a26b917c4346792aff657f585c83cd7eae8f7']
-    ENCODING = 'iso-8859-1'
-    PAGES = {r'.*wsost/OstBrokerWeb/loginform.*'                                         : LoginPage,
-             r'.*authentification/repositionnerCheminCourant-identif.ea'                 : repositionnerCheminCourant,
-             r'.*authentification/initialiser-identif.ea'                                : Initident,
-             r'.*authentification/verifierMotDePasse-identif.ea'                         : CheckPassword,
 
-             r'.*voscomptes/identification/identification.ea.*'                          : RedirectPage,
+    login_page = URL(r'.*wsost/OstBrokerWeb/loginform.*', LoginPage)
+    repositionner_chemin_courant = URL(r'.*authentification/repositionnerCheminCourant-identif.ea', repositionnerCheminCourant)
+    init_ident = URL(r'.*authentification/initialiser-identif.ea', Initident)
+    check_password = URL(r'.*authentification/verifierMotDePasse-identif.ea', CheckPassword)
 
-             r'.*synthese_assurancesEtComptes/afficheSynthese-synthese\.ea'              : AccountList,
-             r'.*synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea'     : AccountList,
-             r'.*voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea.*' : (AccountRIB, RawParser()),
+    redirect_page = URL(r'.*voscomptes/identification/identification.ea.*',
+                        r'.*voscomptes/synthese/3-synthese.ea',
+                        RedirectPage)
 
-             r'.*voscomptes/synthese/3-synthese.ea'                                      : RedirectPage,
-             r'.*voscomptes/synthese/synthese.ea'                                        : ProAccountsList,
-             r'.*voscomptes/historiqueccp/historiqueccp.ea.*'                            : ProAccountHistory,
-             r'.*voscomptes/telechargercomptes/telechargercomptes.ea.*'                  : ProAccountHistoryDownload,
-             r'.*voscomptes/telechargercomptes/1-telechargercomptes.ea'                  : (ProAccountHistoryCSV, HistoryParser()),
+    accounts_list = URL(r'.*synthese_assurancesEtComptes/afficheSynthese-synthese\.ea',
+                        r'.*synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea',
+                        AccountList)
+    accounts_rib = URL(r'.*voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea.*', AccountRIB)
 
-             r'.*CCP/releves_ccp/releveCPP-releve_ccp\.ea'                               : AccountHistory,
-             r'.*CNE/releveCNE/releveCNE-releve_cne\.ea'                                 : AccountHistory,
-             r'.*CB/releveCB/preparerRecherche-mouvementsCarteDD.ea.*'                   : AccountHistory,
-             r'.*CB/releveCB/init-mouvementsCarteDD.ea.*'                                : CardsList,
+    pro_accounts_list = URL(r'.*voscomptes/synthese/synthese.ea', ProAccountsList)
+    pro_history = URL(r'.*voscomptes/historiqueccp/historiqueccp.ea.*', ProAccountHistory)
+    pro_history_dl = URL(r'.*voscomptes/telechargercomptes/telechargercomptes.ea.*', ProAccountHistoryDownload)
+    pro_history_csv = URL(r'.*voscomptes/telechargercomptes/1-telechargercomptes.ea', ProAccountHistoryCSV) # HistoryParser()?
 
-             r'.*/virementSafran_aiguillage/init-saisieComptes\.ea'                      : TransferChooseAccounts,
-             r'.*/virementSafran_aiguillage/formAiguillage-saisieComptes\.ea'            : CompleteTransfer,
-             r'.*/virementSafran_national/validerVirementNational-virementNational.ea'   : TransferConfirm,
-             r'.*/virementSafran_national/confirmerVirementNational-virementNational.ea' : TransferSummary,
+    account_history = URL(r'.*CCP/releves_ccp/releveCPP-releve_ccp\.ea',
+                          r'.*CNE/releveCNE/releveCNE-releve_cne\.ea',
+                          r'.*CB/releveCB/preparerRecherche-mouvementsCarteDD.ea.*',
+                          AccountHistory)
+    cards_list = URL(r'.*CB/releveCB/init-mouvementsCarteDD.ea.*', CardsList)
 
-             r'.*ost/messages\.CVS\.html\?param=0x132120c8.*'                            : BadLoginPage,
-             r'.*ost/messages\.CVS\.html\?param=0x132120cb.*'                            : AccountDesactivate,
-             r'.*/message\.html\?param=0x132120c.*'                                     : AccountDesactivate,
-             r'https?://.*.labanquepostale.fr/delestage.html'                            : UnavailablePage,
-             r'.*/voscomptes/rib/init-rib.ea'                                            : DownloadRib,
-             r'.*/voscomptes/rib/preparerRIB-rib.*'                                      : RibPage,
-             }
+    transfer_choose = URL(r'.*/virementSafran_aiguillage/init-saisieComptes\.ea', TransferChooseAccounts)
+    transfer_complete = URL(r'.*/virementSafran_aiguillage/formAiguillage-saisieComptes\.ea', CompleteTransfer)
+    transfer_confirm = URL(r'.*/virementSafran_national/validerVirementNational-virementNational.ea', TransferConfirm)
+    transfer_summary = URL(r'.*/virementSafran_national/confirmerVirementNational-virementNational.ea', TransferSummary)
+
+    badlogin = URL(r'.*ost/messages\.CVS\.html\?param=0x132120c8.*', BadLoginPage)
+    disabled_account = URL(r'.*ost/messages\.CVS\.html\?param=0x132120cb.*',
+                           r'.*/message\.html\?param=0x132120c.*',
+                           AccountDesactivate)
+    unavailable = URL(r'https?://.*.labanquepostale.fr/delestage.html', UnavailablePage)
+    rib_dl = URL(r'.*/voscomptes/rib/init-rib.ea', DownloadRib)
+    rib = URL(r'.*/voscomptes/rib/preparerRIB-rib.*', RibPage)
 
     login_url = 'https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&' \
             'ERROR_CODE=0x00000000&URL=%2Fvoscomptes%2FcanalXHTML%2Fidentif.ea%3Forigin%3Dparticuliers'
     accounts_url = "https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea"
 
-    def __init__(self, *args, **kwargs):
-        kwargs['parser'] = ('lxml',)
-        Browser.__init__(self, *args, **kwargs)
+    #def home(self):
+    #    self.do_login()
 
-    def home(self):
-        self.login()
-
-    def is_logged(self):
-        return not self.is_on_page(LoginPage)
-
-    def login(self):
-        if not self.is_on_page(LoginPage):
-            self.location(self.login_url, no_login=True)
+    def do_login(self):
+        self.location(self.login_url)
 
         self.page.login(self.username, self.password)
 
-        if self.is_on_page(RedirectPage) and self.page.check_for_perso():
+        if self.redirect_page.is_here() and self.page.check_for_perso():
             raise BrowserIncorrectPassword(u"L'identifiant utilisé est celui d'un compte de Particuliers.")
-        if self.is_on_page(BadLoginPage):
+        if self.badlogin.is_here():
             raise BrowserIncorrectPassword()
-        if self.is_on_page(AccountDesactivate):
+        if self.disabled_account.is_here():
             raise BrowserBanned()
 
+    @need_login
     def get_accounts_list(self):
         self.location(self.accounts_url)
         return self.page.get_accounts_list()
 
+    @need_login
     def get_account(self, id):
-        if not self.is_on_page(AccountList):
+        if not self.accounts_list.is_here():
             self.location(self.accounts_url)
         return self.page.get_account(id)
 
+    @need_login
     def get_history(self, account):
         v = urlsplit(account._link_id)
         args = dict(parse_qsl(v.query))
         args['typeRecherche'] = 10
 
-        self.location(self.buildurl(v.path, **args))
+        self.location('%s?%s' % (v.path, urlencode(args)))
 
         transactions = []
 
-        if self.is_on_page(AccountHistory):
+        if self.account_history.is_here():
             for tr in self.page.get_history():
                 transactions.append(tr)
 
@@ -130,6 +128,7 @@ class BPBrowser(Browser):
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions
 
+    @need_login
     def get_coming(self, account):
         transactions = []
 
@@ -137,7 +136,7 @@ class BPBrowser(Browser):
             self.location(card)
 
 
-            if self.is_on_page(CardsList):
+            if self.cards_list.is_here():
                 for link in self.page.get_cards():
                     self.location(link)
 
@@ -150,6 +149,7 @@ class BPBrowser(Browser):
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions
 
+    @need_login
     def _iter_card_tr(self):
         """
         Iter all pages until there are no transactions.
@@ -167,6 +167,7 @@ class BPBrowser(Browser):
             self.location(link)
             ops = self.page.get_history(deferred=True)
 
+    @need_login
     def make_transfer(self, from_account, to_account, amount):
         self.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virement/virementSafran_aiguillage/init-saisieComptes.ea')
         self.page.set_accouts(from_account, to_account)
@@ -188,8 +189,8 @@ class BPBrowser(Browser):
 class BProBrowser(BPBrowser):
     login_url = "https://banqueenligne.entreprises.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&ERROR_CODE=0x00000000&URL=%2Fws_q47%2Fvoscomptes%2Fidentification%2Fidentification.ea%3Forigin%3Dprofessionnels"
 
-    def login(self):
-        BPBrowser.login(self)
+    def do_login(self):
+        super(BProBrowser, self).do_login()
 
         v = urlsplit(self.page.url)
         version = v.path.split('/')[1]
@@ -197,6 +198,7 @@ class BProBrowser(BPBrowser):
         self.base_url = 'https://banqueenligne.entreprises.labanquepostale.fr/%s' % version
         self.accounts_url = self.base_url + '/voscomptes/synthese/synthese.ea'
 
+    @need_login
     def get_accounts_list(self):
         accounts = BPBrowser.get_accounts_list(self)
         for acc in accounts:
@@ -204,6 +206,6 @@ class BProBrowser(BPBrowser):
             value = self.page.get_rib_value(acc.id)
             if value:
                 self.location('%s/voscomptes/rib/preparerRIB-rib.ea?%s' % (self.base_url, value))
-                if self.is_on_page(RibPage):
+                if self.rib.is_here():
                     acc.iban = self.page.get_iban()
             yield acc

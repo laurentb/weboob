@@ -23,28 +23,25 @@ from dateutil.relativedelta import relativedelta
 from decimal import Decimal
 
 from weboob.browser.filters.standard import CleanText
-from weboob.deprecated.browser import Page
-from weboob.deprecated.browser.parsers.csvparser import CsvParser
+from weboob.browser.pages import LoggedPage, CsvPage
 from weboob.capabilities.bank import Account, AccountNotFound
 
 from .accounthistory import Transaction, AccountHistory
+from .base import MyHTMLPage
 
-class RedirectPage(Page):
+
+class RedirectPage(LoggedPage, MyHTMLPage):
     def check_for_perso(self):
-        return self.document.xpath(u'//p[contains(text(), "L\'identifiant utilisé est celui d\'un compte de Particuliers")]')
+        return self.doc.xpath(u'//p[contains(text(), "L\'identifiant utilisé est celui d\'un compte de Particuliers")]')
 
 
-class HistoryParser(CsvParser):
-    FMTPARAMS = {'delimiter': ';'}
-
-
-class ProAccountsList(Page):
+class ProAccountsList(LoggedPage, MyHTMLPage):
     ACCOUNT_TYPES = {u'Comptes titres': Account.TYPE_MARKET,
                      u'Comptes Ã©pargne':    Account.TYPE_SAVINGS,
                      u'Comptes courants':    Account.TYPE_CHECKING,
                     }
     def get_accounts_list(self):
-        for table in self.document.xpath('//div[@class="comptestabl"]/table'):
+        for table in self.doc.xpath('//div[@class="comptestabl"]/table'):
             try:
                 account_type = self.ACCOUNT_TYPES[table.get('summary')]
                 if not account_type:
@@ -77,24 +74,29 @@ class ProAccountsList(Page):
                 return account
         raise AccountNotFound('Unable to find account: %s' % id)
 
-class ProAccountHistory(Page):
+
+class ProAccountHistory(LoggedPage, MyHTMLPage):
     def on_loaded(self):
-        link = self.document.xpath('//a[contains(@href, "telechargercomptes.ea")]/@href')[0]
+        link = self.doc.xpath('//a[contains(@href, "telechargercomptes.ea")]/@href')[0]
         self.browser.location(link)
 
-class ProAccountHistoryDownload(Page):
+
+class ProAccountHistoryDownload(LoggedPage, MyHTMLPage):
     def on_loaded(self):
         self.browser.select_form(name='telechargement')
         self.browser['dateDebutPeriode'] = (datetime.date.today() - relativedelta(months=11)).strftime('%d/%m/%Y')
         self.browser.submit()
 
-class ProAccountHistoryCSV(AccountHistory):
+
+class ProAccountHistoryCSV(CsvPage, AccountHistory):
+    FMTPARAMS = {'delimiter': ';'}
+
     def get_next_link(self):
         return False
 
     def get_history(self, deferred=False):
         operations = []
-        for line in self.document.rows:
+        for line in self.doc.rows:
             if len(line) < 4 or line[0] == 'Date':
                 continue
             t = Transaction()
@@ -108,18 +110,19 @@ class ProAccountHistoryCSV(AccountHistory):
             yield op
 
 
-class DownloadRib(Page):
+class DownloadRib(LoggedPage, MyHTMLPage):
     def get_rib_value(self, acc_id):
-        opt = self.document.xpath('//div[@class="rechform"]//option')
+        opt = self.doc.xpath('//div[@class="rechform"]//option')
         for o in opt:
             if acc_id in o.text:
                 return o.xpath('./@value')[0]
         return None
 
-class RibPage(Page):
+
+class RibPage(LoggedPage, MyHTMLPage):
     def get_iban(self):
-        if self.document.xpath('//div[@class="blocbleu"][2]//table[@class="datalist"]'):
+        if self.doc.xpath('//div[@class="blocbleu"][2]//table[@class="datalist"]'):
             return CleanText()\
-                .filter(self.document.xpath('//div[@class="blocbleu"][2]//table[@class="datalist"]')[0])\
+                .filter(self.doc.xpath('//div[@class="blocbleu"][2]//table[@class="datalist"]')[0])\
                 .replace(' ', '').strip()
         return None

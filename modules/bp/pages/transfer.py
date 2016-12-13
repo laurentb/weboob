@@ -21,11 +21,13 @@
 import re
 
 from weboob.capabilities.bank import TransferError
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import LoggedPage
 from weboob.tools.misc import to_unicode
 
+from .base import MyHTMLPage
 
-class TransferChooseAccounts(Page):
+
+class TransferChooseAccounts(LoggedPage, MyHTMLPage):
     def set_accouts(self, from_account, to_account):
         self.browser.select_form(name="AiguillageForm")
         self.browser["idxCompteEmetteur"] = [from_account.id]
@@ -33,21 +35,21 @@ class TransferChooseAccounts(Page):
         self.browser.submit()
 
 
-class CompleteTransfer(Page):
+class CompleteTransfer(LoggedPage, MyHTMLPage):
     def complete_transfer(self, amount):
         self.browser.select_form(name="virement_unitaire_saisie_saisie_virement_sepa")
         self.browser["montant"] = str(amount)
         self.browser.submit()
 
 
-class TransferConfirm(Page):
+class TransferConfirm(LoggedPage, MyHTMLPage):
     def confirm(self):
         self.browser.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virement/virementSafran_national/confirmerVirementNational-virementNational.ea')
 
 
-class TransferSummary(Page):
+class TransferSummary(LoggedPage, MyHTMLPage):
     def get_transfer_id(self):
-        p = self.document.xpath("//div[@id='main']/div/p")[0]
+        p = self.doc.xpath("//div[@id='main']/div/p")[0]
 
         #HACK for deal with bad encoding ...
         try:

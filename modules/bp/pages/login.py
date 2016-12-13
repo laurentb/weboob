@@ -18,14 +18,18 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from cStringIO import StringIO
 import re
 
-from weboob.deprecated.browser import Page, BrowserUnavailable, BrowserIncorrectPassword
+from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
+from weboob.browser.pages import LoggedPage
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard
 
+from .base import MyHTMLPage
 
-class UnavailablePage(Page):
-    def on_loaded(self):
+
+class UnavailablePage(MyHTMLPage):
+    def on_load(self):
         raise BrowserUnavailable()
 
 
@@ -45,17 +49,17 @@ class Keyboard(VirtKeyboard):
     color=(0xff, 0xff, 0xff)
 
     def __init__(self, page):
-        m = re.search(r'background:url\("(.*?)"\)', ''.join(page.document.xpath('//script/text()')))
+        m = re.search(r'background:url\("(.*?)"\)', ''.join(page.doc.xpath('//script/text()')))
         if m:
             img_url = m.group(1)
             size = 252
         else:
-            img_url = page.document.xpath('//img[@id="imageCVS"]')[0].attrib['src']
+            img_url = page.doc.xpath('//img[@id="imageCVS"]')[0].attrib['src']
             size = 146
         coords = {}
 
         x, y, width, height = (0, 0, size/4, size/4)
-        for i, _ in enumerate(page.document.xpath('//div[@id="imageclavier"]//button')):
+        for i, _ in enumerate(page.doc.xpath('//div[@id="imageclavier"]//button')):
             code = '%02d' % i
             coords[code] = (x+4, y+4, x+width-8, y+height-8)
             if (x + width + 1) >= size:
@@ -64,7 +68,8 @@ class Keyboard(VirtKeyboard):
             else:
                 x += width + 1
 
-        VirtKeyboard.__init__(self, page.browser.openurl(img_url), coords, self.color)
+        data = page.browser.open(img_url).content
+        VirtKeyboard.__init__(self, StringIO(data), coords, self.color)
 
         self.check_symbols(self.symbols, page.browser.responses_dirname)
 
@@ -84,39 +89,38 @@ class Keyboard(VirtKeyboard):
         return VirtKeyboard.get_symbol_coords(self, (x1+3, y1+3, x2-3, y2-3))
 
 
-class LoginPage(Page):
+class LoginPage(MyHTMLPage):
     def login(self, login, pwd):
         vk = Keyboard(self)
 
-        self.browser.select_form(name='formAccesCompte')
-        self.browser.set_all_readonly(False)
-        self.browser['password'] = vk.get_string_code(pwd)
-        self.browser['username'] = login.encode(self.browser.ENCODING)
-        self.browser.submit()
+        form = self.get_form(name='formAccesCompte')
+        form['password'] = vk.get_string_code(pwd)
+        form['username'] = login.encode(self.ENCODING)
+        form.submit()
 
 
-class repositionnerCheminCourant(Page):
-    def on_loaded(self):
-        page = self.browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/initialiser-identif.ea")
-        if "vous ne disposez pas" in page.read():
+class repositionnerCheminCourant(LoggedPage, MyHTMLPage):
+    def on_load(self):
+        response = self.browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/initialiser-identif.ea")
+        if "vous ne disposez pas" in response.content:
             raise BrowserIncorrectPassword("No online banking service for these ids")
 
 
-class Initident(Page):
-    def on_loaded(self):
+class Initident(LoggedPage, MyHTMLPage):
+    def on_load(self):
         self.browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/verifierMotDePasse-identif.ea")
-        if self.document.xpath(u'//span[contains(text(), "L\'identifiant utilisé est celui d\'une Entreprise ou d\'une Association")]'):
+        if self.doc.xpath(u'//span[contains(text(), "L\'identifiant utilisé est celui d\'une Entreprise ou d\'une Association")]'):
             raise BrowserIncorrectPassword(u"L'identifiant utilisé est celui d'une Entreprise ou d'une Association")
 
 
-class CheckPassword(Page):
-    def on_loaded(self):
+class CheckPassword(LoggedPage, MyHTMLPage):
+    def on_load(self):
         self.browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/init-synthese.ea")
 
 
-class BadLoginPage(Page):
+class BadLoginPage(MyHTMLPage):
     pass
 
 
-class AccountDesactivate(Page):
+class AccountDesactivate(LoggedPage, MyHTMLPage):
     pass

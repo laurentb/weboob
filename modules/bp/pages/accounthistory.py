@@ -22,7 +22,10 @@ import datetime
 import re
 
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import LoggedPage
+from weboob.browser.filters.standard import CleanText
+
+from .base import MyHTMLPage
 
 
 class Transaction(FrenchTransaction):
@@ -51,9 +54,9 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class AccountHistory(Page):
+class AccountHistory(LoggedPage, MyHTMLPage):
     def get_next_link(self):
-        for a in self.document.xpath('//a[@class="btn_crt"]'):
+        for a in self.doc.xpath('//a[@class="btn_crt"]'):
             txt = u''.join([txt.strip() for txt in a.itertext()])
             if u'mois précédent' in txt:
                 return a.attrib['href']
@@ -62,14 +65,14 @@ class AccountHistory(Page):
         """
         deffered is True when we are on a card page.
         """
-        mvt_table = self.document.xpath("//table[@id='mouvements']", smart_strings=False)[0]
+        mvt_table = self.doc.xpath("//table[@id='mouvements']", smart_strings=False)[0]
         mvt_ligne = mvt_table.xpath("./tbody/tr")
 
         operations = []
 
         if deferred:
             # look for the card number, debit date, and if it is already debited
-            txt = u''.join([txt.strip() for txt in self.document.xpath('//div[@class="infosynthese"]')[0].itertext()])
+            txt = u''.join([txt.strip() for txt in self.doc.xpath('//div[@class="infosynthese"]')[0].itertext()])
             m = re.search(u'sur votre carte n°\*\*\*\*\*\*(\d+)\*', txt)
             card_no = u'inconnu'
             if m:
@@ -84,8 +87,8 @@ class AccountHistory(Page):
 
         for mvt in mvt_ligne:
             op = Transaction()
-            op.parse(date=mvt.xpath("./td/span")[0].text.strip(),
-                     raw=unicode(self.parser.tocleanstring(mvt.xpath('./td/span')[1]).strip()))
+            op.parse(date=CleanText('./td[1]/span')(mvt),
+                     raw=CleanText('./td[2]/span')(mvt))
 
             if op.label.startswith('DEBIT CARTE BANCAIRE DIFFERE'):
                 op.deleted = True
@@ -119,10 +122,10 @@ class AccountHistory(Page):
         return operations
 
 
-class CardsList(Page):
+class CardsList(LoggedPage, MyHTMLPage):
     def get_cards(self):
         cards = []
-        for tr in self.document.xpath('//table[@class="dataNum"]/tbody/tr'):
+        for tr in self.doc.xpath('//table[@class="dataNum"]/tbody/tr'):
             cards.append(tr.xpath('.//a')[0].attrib['href'])
 
         return cards

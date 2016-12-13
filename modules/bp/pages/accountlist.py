@@ -23,16 +23,18 @@ import re
 from decimal import Decimal
 
 from weboob.capabilities.bank import Account, AccountNotFound
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import LoggedPage, RawPage
 from weboob.exceptions import BrowserUnavailable, NoAccountsException
 from weboob.tools.misc import to_unicode
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.ordereddict import OrderedDict
 
+from .base import MyHTMLPage
 
-class AccountList(Page):
-    def on_loaded(self):
-        if self.document.xpath(u'//h2[text()="%s"]' % u'ERREUR'):
+
+class AccountList(LoggedPage, MyHTMLPage):
+    def on_load(self):
+        if self.doc.xpath(u'//h2[text()="%s"]' % u'ERREUR'):
             self.browser.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/initialiser-identif.ea')
             raise BrowserUnavailable()
         self.accounts = OrderedDict()
@@ -48,7 +50,7 @@ class AccountList(Page):
         return self.accounts.itervalues()
 
     def parse_table(self, what, actype=Account.TYPE_UNKNOWN):
-        tables = self.document.xpath("//table[@id='%s']" % what, smart_strings=False)
+        tables = self.doc.xpath("//table[@id='%s']" % what, smart_strings=False)
         if len(tables) < 1:
             return
 
@@ -86,8 +88,8 @@ class AccountList(Page):
                 account._card_links = []
                 self.accounts[account.id] = account
 
-                page = self.browser.get_page(self.browser.openurl(self.browser.buildurl('/voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea', ('compte.numero', account.id))))
-                account.iban = page.get_iban()
+                response = self.browser.open('/voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea?compte.numero=%s' % account.id)
+                account.iban = response.page.get_iban()
 
     def get_account(self, id):
         try:
@@ -96,13 +98,13 @@ class AccountList(Page):
             raise AccountNotFound('Unable to find account: %s' % id)
 
 
-class AccountRIB(Page):
+class AccountRIB(LoggedPage, RawPage):
     iban_regexp = r'BankIdentiferCode(\w+)PSS'
 
     def __init__(self, *args, **kwargs):
         super(AccountRIB, self).__init__(*args, **kwargs)
 
-        self.text = ''
+        self.parsed_text = ''
 
         try:
             try:
@@ -118,7 +120,7 @@ class AccountRIB(Page):
         except ImportError:
             self.logger.warning('Please install python-pdfminer to get IBANs')
         else:
-            parser = PDFParser(StringIO(self.document))
+            parser = PDFParser(StringIO(self.doc))
             try:
                 if newapi:
                     doc = PDFDocument(parser)
@@ -141,10 +143,10 @@ class AccountRIB(Page):
             for page in pages:
                 interpreter.process_page(page)
 
-            self.text = out.getvalue()
+            self.parsed_text = out.getvalue()
 
     def get_iban(self):
-        m = re.search(self.iban_regexp, self.text)
+        m = re.search(self.iban_regexp, self.parsed_text)
         if m:
             return unicode(m.group(1))
         return None
