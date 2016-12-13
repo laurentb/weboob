@@ -22,3 +22,8 @@ from weboob.browser.pages import HTMLPage
 
 class MyHTMLPage(HTMLPage):
     ENCODING = 'iso-8859-1'
+
+    def on_load(self):
+        deconnexion = self.doc.xpath('//iframe[contains(@id, "deconnexion")]')
+        if deconnexion:
+            self.browser.do_login()

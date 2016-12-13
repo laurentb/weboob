@@ -101,6 +101,7 @@ class LoginPage(MyHTMLPage):
 
 class repositionnerCheminCourant(LoggedPage, MyHTMLPage):
     def on_load(self):
+        MyHTMLPage.on_load(self)
         response = self.browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/initialiser-identif.ea")
         if "vous ne disposez pas" in response.content:
             raise BrowserIncorrectPassword("No online banking service for these ids")
@@ -108,6 +109,7 @@ class repositionnerCheminCourant(LoggedPage, MyHTMLPage):
 
 class Initident(LoggedPage, MyHTMLPage):
     def on_load(self):
+        MyHTMLPage.on_load(self)
         self.browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/verifierMotDePasse-identif.ea")
         if self.doc.xpath(u'//span[contains(text(), "L\'identifiant utilisé est celui d\'une Entreprise ou d\'une Association")]'):
             raise BrowserIncorrectPassword(u"L'identifiant utilisé est celui d'une Entreprise ou d'une Association")
@@ -115,6 +117,7 @@ class Initident(LoggedPage, MyHTMLPage):
 
 class CheckPassword(LoggedPage, MyHTMLPage):
     def on_load(self):
+        MyHTMLPage.on_load(self)
         self.browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/init-synthese.ea")
 
 

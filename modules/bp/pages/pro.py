@@ -77,12 +77,14 @@ class ProAccountsList(LoggedPage, MyHTMLPage):
 
 class ProAccountHistory(LoggedPage, MyHTMLPage):
     def on_load(self):
+        MyHTMLPage.on_load(self)
         link = self.doc.xpath('//a[contains(@href, "telechargercomptes.ea")]/@href')[0]
         self.browser.location(link)
 
 
 class ProAccountHistoryDownload(LoggedPage, MyHTMLPage):
     def on_load(self):
+        MyHTMLPage.on_load(self)
         form = self.get_form(name='telechargement')
         form['dateDebutPeriode'] = (datetime.date.today() - relativedelta(months=11)).strftime('%d/%m/%Y')
         form.submit()

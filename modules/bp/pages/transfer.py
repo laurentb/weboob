@@ -18,56 +18,128 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
+from datetime import datetime
 
-from weboob.capabilities.bank import TransferError
+from weboob.capabilities.bank import TransferError, Recipient, NotAvailable, Transfer, TransferStep
 from weboob.browser.pages import LoggedPage
-from weboob.tools.misc import to_unicode
+from weboob.browser.filters.standard import CleanText, Env, Regexp, Date, CleanDecimal
+from weboob.browser.filters.html import Attr
+from weboob.browser.elements import ListElement, ItemElement, method, SkipItem
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.value import Value
 
 from .base import MyHTMLPage
 
+class CheckTransferError(MyHTMLPage):
+    def on_load(self):
+        MyHTMLPage.on_load(self)
+        error = CleanText(u'//span[@class="app_erreur"] | //p[@class="warning"] | //p[contains(text(), "Votre virement n\'a pas pu être enregistré")]')(self.doc)
+        if error:
+            raise TransferError(error)
 
 class TransferChooseAccounts(LoggedPage, MyHTMLPage):
-    def set_accouts(self, from_account, to_account):
-        self.browser.select_form(name="AiguillageForm")
-        self.browser["idxCompteEmetteur"] = [from_account.id]
-        self.browser["idxCompteReceveur"] = [to_account.id]
-        self.browser.submit()
+    @method
+    class iter_recipients(ListElement):
+        def condition(self):
+            return any(self.env['account_id'] in CleanText('.')(option) for option in self.page.doc.xpath('//select[@id="donneesSaisie.idxCompteEmetteur"]/option'))
+
+        # You're not dreaming, this is real life
+        item_xpath = '//select[@id="caca"]/option'
+
+        class Item(ItemElement):
+            klass = Recipient
+
+            def condition(self):
+                return self.el.attrib['value'] != '-1'
+
+            obj_category = Env('category')
+            obj_label = Env('label')
+            obj_id = Env('id')
+            obj_currency = u'EUR'
+            obj_iban = Env('iban')
+            obj_bank_name = Env('bank_name')
+            obj__value = Attr('.', 'value')
+
+            def obj_enabled_at(self):
+                return datetime.now().replace(microsecond=0)
+
+            def parse(self, el):
+                self.env['category'] = u'Interne' if any(s in CleanText('.')(el) for s in ['Avoir disponible', 'Solde']) else u'Externe'
+                if self.env['category'] == u'Interne':
+                    _id = Regexp(CleanText('.'), '- (.*?) -')(el)
+                    if _id == self.env['account_id']:
+                        raise SkipItem()
+                    account = self.page.browser.get_account(_id)
+                    self.env['id'] = _id
+                    self.env['label'] = account.label
+                    self.env['iban'] = account.iban
+                    self.env['bank_name'] = u'La Banque Postale'
+                else:
+                    self.env['id'] = self.env['iban'] = Regexp(CleanText('.'), '- (.*?) -')(el).replace(' ', '')
+                    self.env['label'] = CleanText('.')(el).split('-')[-1].strip()
+                    first_part = CleanText('.')(el).split('-')[0].strip()
+                    self.env['bank_name'] = u'La Banque Postale' if first_part == 'CCP' else NotAvailable
+
+    def init_transfer(self, account_id, recipient_value):
+        matched_values = [Attr('.', 'value')(option) for option in self.doc.xpath('//select[@id="donneesSaisie.idxCompteEmetteur"]/option') \
+                          if account_id in CleanText('.')(option)]
+        assert len(matched_values) == 1
+        form = self.get_form(xpath='//form[@class="formvirement"]')
+        form['donneesSaisie.idxCompteReceveur'] = recipient_value
+        form['donneesSaisie.idxCompteEmetteur'] = matched_values[0]
+        form.submit()
 
 
-class CompleteTransfer(LoggedPage, MyHTMLPage):
-    def complete_transfer(self, amount):
-        self.browser.select_form(name="virement_unitaire_saisie_saisie_virement_sepa")
-        self.browser["montant"] = str(amount)
-        self.browser.submit()
+class CompleteTransfer(LoggedPage, CheckTransferError):
+    def complete_transfer(self, amount, label):
+        form = self.get_form(xpath='//form[@method]')
+        form['montant'] = amount
+        if 'commentaire' in form and label:
+            form['commentaire'] = label
+        form.submit()
 
 
-class TransferConfirm(LoggedPage, MyHTMLPage):
+class TransferConfirm(LoggedPage, CheckTransferError):
+    def is_here(self):
+        return not CleanText('//p[contains(text(), "Vous pouvez le consulter dans le menu")]')(self.doc)
+
+    def double_auth(self, transfer):
+        code_needed = CleanText('//label[@for="code_securite"]')(self.doc)
+        if code_needed:
+            raise TransferStep(transfer, Value('code', label= code_needed))
+
     def confirm(self):
-        self.browser.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virement/virementSafran_national/confirmerVirementNational-virementNational.ea')
+        form = self.get_form(id='formID')
+        form.submit()
 
-
-class TransferSummary(LoggedPage, MyHTMLPage):
-    def get_transfer_id(self):
-        p = self.doc.xpath("//div[@id='main']/div/p")[0]
-
-        #HACK for deal with bad encoding ...
+    def handle_response(self, account, recipient, amount, reason):
+        account_txt = CleanText('//form//dl/dt[span[contains(text(), "biter")]]/following::dd[1]', replace=[(' ', '')])(self.doc)
+        recipient_txt = CleanText('//form//dl/dt[span[contains(text(), "diter")]]/following::dd[1]', replace=[(' ', '')])(self.doc)
         try:
-            text = p.text
-        except UnicodeDecodeError as error:
-            text = error.object.strip()
+            assert account.id in account_txt
+            assert recipient.id in recipient_txt
+        except AssertionError:
+            raise TransferError('Something went wrong')
+        r_amount =  CleanDecimal('//form//dl/dt[span[contains(text(), "Montant")]]/following::dd[1]', replace_dots=True)(self.doc)
+        exec_date = Date(CleanText('//form//dl/dt[span[contains(text(), "Date")]]/following::dd[1]'), dayfirst=True)(self.doc)
+        currency = FrenchTransaction.Currency('//form//dl/dt[span[contains(text(), "Montant")]]/following::dd[1]')(self.doc)
 
-        match = re.search("Votre virement N.+ ([0-9]+) ", text)
-        if match:
-            id_transfer = match.groups()[0]
-            return id_transfer
+        transfer = Transfer()
+        transfer.currency = currency
+        transfer.amount = r_amount
+        transfer.account_iban = account.iban
+        transfer.recipient_iban = recipient.iban
+        transfer.account_id = account.id
+        transfer.recipient_id = recipient.id
+        transfer.exec_date = exec_date
+        transfer.label = reason
+        transfer.account_label = account.label
+        transfer.recipient_label = recipient.label
+        transfer.account_balance = account.balance
+        return transfer
 
-        if text.startswith(u"Votre virement n'a pas pu"):
-            if p.find('br') is not None:
-                errmsg = to_unicode(p.find('br').tail).strip()
-                raise TransferError('Unable to process transfer: %s' % errmsg)
-            else:
-                self.browser.logger.warning('Unable to find the error reason')
 
-        self.browser.logger.error('Unable to parse the text result: %r' % text)
-        raise TransferError('Unable to process transfer: %r' % text)
+class TransferSummary(LoggedPage, CheckTransferError):
+    def handle_response(self, transfer):
+        transfer.id = Regexp(CleanText('//div[@class="bloc Tmargin"]'), 'Votre virement N.+ (\d+) ')(self.doc)
+        return transfer

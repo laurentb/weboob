@@ -35,6 +35,7 @@ from .base import MyHTMLPage
 
 class AccountList(LoggedPage, MyHTMLPage):
     def on_load(self):
+        MyHTMLPage.on_load(self)
         if self.doc.xpath(u'//h2[text()="%s"]' % u'ERREUR'):
             self.browser.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/initialiser-identif.ea')
             raise BrowserUnavailable()

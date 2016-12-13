@@ -23,6 +23,7 @@ from urlparse import urlsplit, parse_qsl
 from datetime import datetime
 
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser.browsers import StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, BrowserBanned
 
 from .pages import LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate, \
@@ -30,15 +31,15 @@ from .pages import LoginPage, Initident, CheckPassword, repositionnerCheminCoura
                    TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary
 from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, ProAccountHistoryDownload, ProAccountHistoryCSV, DownloadRib, RibPage
 
-from weboob.capabilities.bank import Transfer
+from weboob.capabilities.bank import Transfer, TransferError
 
 
 __all__ = ['BPBrowser', 'BProBrowser']
 
 
-class BPBrowser(LoginBrowser):
+class BPBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://voscomptesenligne.labanquepostale.fr'
-    CERTHASH = ['184ccdf506ce87e66cba71ce754e48aa51720f346df56ed27399006c288a82ce', '5719e6295761eb6de357d5e0743a26b917c4346792aff657f585c83cd7eae8f7']
+    #CERTHASH = ['184ccdf506ce87e66cba71ce754e48aa51720f346df56ed27399006c288a82ce', '5719e6295761eb6de357d5e0743a26b917c4346792aff657f585c83cd7eae8f7']
 
     # FIXME beware that '.*' in start of URL() won't match all domains but only under BASEURL
 
@@ -68,10 +69,15 @@ class BPBrowser(LoginBrowser):
                           AccountHistory)
     cards_list = URL(r'.*CB/releveCB/init-mouvementsCarteDD.ea.*', CardsList)
 
-    transfer_choose = URL(r'.*/virementSafran_aiguillage/init-saisieComptes\.ea', TransferChooseAccounts)
-    transfer_complete = URL(r'.*/virementSafran_aiguillage/formAiguillage-saisieComptes\.ea', CompleteTransfer)
-    transfer_confirm = URL(r'.*/virementSafran_national/validerVirementNational-virementNational.ea', TransferConfirm)
-    transfer_summary = URL(r'.*/virementSafran_national/confirmerVirementNational-virementNational.ea', TransferSummary)
+    transfer_choose = URL(r'/voscomptes/canalXHTML/virement/mpiaiguillage/init-saisieComptes.ea', TransferChooseAccounts)
+    transfer_complete = URL(r'/voscomptes/canalXHTML/virement/mpiaiguillage/soumissionChoixComptes-saisieComptes.ea', CompleteTransfer)
+    transfer_confirm = URL(r'/voscomptes/canalXHTML/virement/virementSafran_pea/validerVirementPea-virementPea.ea',
+                           r'/voscomptes/canalXHTML/virement/virementSafran_sepa/valider-virementSepa.ea',
+                           r'/voscomptes/canalXHTML/virement/virementSafran_sepa/confirmerInformations-virementSepa.ea',
+                           r'/voscomptes/canalXHTML/virement/virementSafran_national/validerVirementNational-virementNational.ea', TransferConfirm)
+    transfer_summary = URL(r'/voscomptes/canalXHTML/virement/virementSafran_national/confirmerVirementNational-virementNational.ea',
+                           r'/voscomptes/canalXHTML/virement/virementSafran_pea/confirmerInformations-virementPea.ea',
+                           r'/voscomptes/canalXHTML/virement/virementSafran_sepa/confirmerInformations-virementSepa.ea', TransferSummary)
 
     badlogin = URL(r'https://transverse.labanquepostale.fr/.*ost/messages\.CVS\.html\?param=0x132120c8.*', # still valid?
                    r'https://transverse.labanquepostale.fr/xo_/messages/message.html\?param=0x132120c8.*',
@@ -189,22 +195,25 @@ class BPBrowser(LoginBrowser):
             ops = self.page.get_history(deferred=True)
 
     @need_login
-    def make_transfer(self, from_account, to_account, amount):
-        self.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virement/virementSafran_aiguillage/init-saisieComptes.ea')
-        self.page.set_accouts(from_account, to_account)
+    def iter_recipients(self, account_id):
+        return self.transfer_choose.stay_or_go().iter_recipients(account_id=account_id)
 
-        #TODO: Check
-        self.page.complete_transfer(amount)
+    @need_login
+    def init_transfer(self, account, recipient, amount, label):
+        self.transfer_choose.stay_or_go()
+        self.page.init_transfer(account.id, recipient._value)
+        self.page.complete_transfer(amount, label)
+        return self.page.handle_response(account, recipient, amount, label)
 
+    @need_login
+    def execute_transfer(self, transfer, code=None):
+        if not self.transfer_confirm.is_here():
+            raise TransferError('Case not handled.')
         self.page.confirm()
-
-        id_transfer = self.page.get_transfer_id()
-        transfer = Transfer(id_transfer)
-        transfer.amount = amount
-        transfer.origin = from_account.label
-        transfer.recipient = to_account.label
-        transfer.date = datetime.now()
-        return transfer
+        # Should only happen if double auth.
+        if self.transfer_confirm.is_here():
+            self.page.double_auth(transfer)
+        return self.page.handle_response(transfer)
 
 
 class BProBrowser(BPBrowser):
