@@ -37,7 +37,9 @@ class AmericanExpressBrowser(LoginBrowser):
     login = URL('/myca/logon/.*', LoginPage)
     wrong_login = URL('/myca/fuidfyp/emea/.*', WrongLoginPage)
     account_suspended = URL('/myca/onlinepayments/', AccountSuspendedPage)
+    partial_account = URL(r'/myca/intl/isummary/emea/summary.do\?method=reloadCardSummary&Face=fr_FR&sorted_index=(?P<idx>\d+)', AccountsPage)
     accounts = URL('/myca/intl/isummary/.*', AccountsPage)
+
     transactions = URL('/myca/intl/estatement/.*', TransactionsPage)
 
 
@@ -54,15 +56,30 @@ class AmericanExpressBrowser(LoginBrowser):
 
     @need_login
     def go_on_accounts_list(self):
-        form = self.page.get_form(name='leftnav')
-        form.url = '/myca/intl/acctsumm/emea/accountSummary.do'
-        form.submit()
+        if self.transactions.is_here():
+            form = self.page.get_form(name='leftnav')
+            form.url = '/myca/intl/acctsumm/emea/accountSummary.do'
+            form.submit()
+        else:
+            self.partial_account.go(idx='0')
 
     @need_login
     def get_accounts_list(self):
         if not self.accounts.is_here():
             self.go_on_accounts_list()
-        return self.page.get_list()
+
+        for idx in self.page.get_idx_list():
+            yield self.get_account_by_idx(idx)
+
+    @need_login
+    def get_account_by_idx(self, idx):
+        # xhr request fetching partial html of account info
+        form = self.page.get_form(name='j-session-form')
+        form.url = self.partial_account.build(idx=idx)
+        form.submit()
+        assert self.partial_account.is_here()
+
+        return self.page.get_account()
 
     @need_login
     def get_account(self, id):

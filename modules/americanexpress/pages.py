@@ -21,7 +21,7 @@
 import datetime
 import re
 
-from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.pages import HTMLPage, LoggedPage, PartialHTMLPage
 from weboob.browser.filters.standard import CleanText, CleanDecimal
 from weboob.capabilities.bank import Account
 from weboob.capabilities import NotAvailable
@@ -47,8 +47,8 @@ class LoginPage(HTMLPage):
         form.submit()
 
 
-class AccountsPage(LoggedPage, HTMLPage):
-    def get_list(self):
+class AccountsPage(LoggedPage, PartialHTMLPage):
+    def get_account(self):
         for div in self.doc.xpath('.//div[@id="card-details"]'):
             a = Account()
             a.id = CleanText().filter(div.xpath('.//span[@class="acc-num"]'))
@@ -69,7 +69,15 @@ class AccountsPage(LoggedPage, HTMLPage):
             else:
                 a._link = None
 
-            yield a
+            return a
+
+    def get_idx_list(self):
+        for div in self.doc.xpath('//div[@id="card-list"]//div[has-class("card-details")]'):
+            _id = div.attrib['id']
+            yield re.match(r'card-(\d)-detail', _id).group(1)
+
+    def get_session(self):
+        return self.doc.xpath('//form[@id="j-session-form"]//input[@name="Hidden"]/@value')
 
 
 class TransactionsPage(LoggedPage, HTMLPage):
