@@ -693,6 +693,16 @@ class HTMLPage(Page):
         raise FormNotFound()
 
 
+class PartialHTMLPage(HTMLPage):
+    def build_doc(self, content):
+        import lxml.etree
+        try:
+            return super(PartialHTMLPage, self).build_doc(content)
+        except lxml.etree.XMLSyntaxError:
+            content = '<html>%s</html>' % content
+            return super(PartialHTMLPage, self).build_doc(content)
+
+
 class GWTPage(Page):
     """
     GWT page where the "doc" attribute is a list
