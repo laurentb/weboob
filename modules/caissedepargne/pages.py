@@ -33,7 +33,7 @@ from weboob.capabilities.bank import Account, Transaction, Investment
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban
-from weboob.exceptions import NoAccountsException, ActionNeeded
+from weboob.exceptions import NoAccountsException
 from weboob.deprecated.browser import BrokenPageError, BrowserUnavailable
 
 
@@ -143,13 +143,11 @@ class GarbagePage(LoggedPage, HTMLPage):
     def on_load(self):
         go_back_link = Link('//a[@class="btn"]', default=NotAvailable)(self.doc)
 
-        if go_back_link is NotAvailable:
-            raise ActionNeeded(CleanText('(//p[@class="bold"])[1]')(self.doc))
-
-        if go_back_link:
+        if go_back_link is not NotAvailable:
             assert len(go_back_link) != 1
             go_back_link = re.search('\(~deibaseurl\)(.*)$', go_back_link).group(1)
-        self.browser.location('%s%s' % (self.browser.BASEURL, go_back_link))
+
+            self.browser.location('%s%s' % (self.browser.BASEURL, go_back_link))
 
 
 class MessagePage(GarbagePage):
