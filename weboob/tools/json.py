@@ -20,6 +20,9 @@
 # because we don't want to import this file by "import json"
 from __future__ import absolute_import
 
+from decimal import Decimal
+from datetime import datetime, date, time
+
 __all__ = ['json', 'mini_jsonpath']
 
 try:
@@ -28,6 +31,8 @@ try:
 except ImportError:
     # Python 2.6+ has a module similar to simplejson
     import json
+
+from weboob.capabilities.base import BaseObject, NotAvailable, NotLoaded
 
 
 def mini_jsonpath(node, path):
@@ -70,3 +75,24 @@ def mini_jsonpath(node, path):
             keys = [int(name) if type(node) is list else name]
         for k in keys:
             queue.append((node[k], cut(rest)))
+
+
+class WeboobEncoder(json.JSONEncoder):
+    """JSON encoder class for weboob objects (and Decimal and dates)
+
+    >>> json.dumps(object, cls=WeboobEncoder)
+    '{"id": "1234@backend", "url": null}'
+    """
+
+    def default(self, o):
+        if o is NotAvailable:
+            return None
+        elif o is NotLoaded:
+            return None
+        elif isinstance(o, BaseObject):
+            return o.to_dict()
+        elif isinstance(o, Decimal):
+            return str(o)
+        elif isinstance(o, (datetime, date, time)):
+            return o.isoformat()
+        return super(WeboobEncoder, self).default(o)
