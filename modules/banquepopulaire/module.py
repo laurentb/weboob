@@ -71,26 +71,20 @@ class BanquePopulaireModule(Module, CapBank):
                                    self.config['password'].get())
 
     def iter_accounts(self):
-        with self.browser:
-            return self.browser.get_accounts_list()
+        return self.browser.get_accounts_list()
 
     def get_account(self, _id):
-        with self.browser:
-            account = self.browser.get_account(_id)
-
+        account = self.browser.get_account(_id)
         if account:
             return account
         else:
             raise AccountNotFound()
 
     def iter_history(self, account):
-        with self.browser:
-            return self.browser.get_history(account)
+        return self.browser.get_history(account)
 
     def iter_coming(self, account):
-        with self.browser:
-            return self.browser.get_history(account, coming=True)
+        return self.browser.get_history(account, coming=True)
 
     def iter_investment(self, account):
-        with self.browser:
-            return self.browser.get_investment(account)
+        return self.browser.get_investment(account)
