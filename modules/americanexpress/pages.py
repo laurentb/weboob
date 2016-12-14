@@ -74,7 +74,12 @@ class AccountsPage(LoggedPage, PartialHTMLPage):
     def get_idx_list(self):
         for div in self.doc.xpath('//div[@id="card-list"]//div[has-class("card-details")]'):
             _id = div.attrib['id']
-            yield re.match(r'card-(\d)-detail', _id).group(1)
+            idx = re.match(r'card-(\d+)-detail', _id).group(1)
+
+            message = CleanText('.//div[has-class("messages")]')(div).lower()
+            cancelled = ('annul' in message or 'cancel' in message)
+
+            yield idx, cancelled
 
     def get_session(self):
         return self.doc.xpath('//form[@id="j-session-form"]//input[@name="Hidden"]/@value')
