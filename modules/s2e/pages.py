@@ -21,8 +21,9 @@
 import re, requests
 from cStringIO import StringIO
 from decimal import Decimal
+from lxml import objectify
 
-from weboob.browser.pages import HTMLPage, LoggedPage, pagination
+from weboob.browser.pages import HTMLPage, XMLPage, LoggedPage, pagination
 from weboob.browser.elements import ItemElement, TableElement, SkipItem, method
 from weboob.browser.filters.standard import CleanText, Date, Regexp, Eval, CleanDecimal, Env, TableCell, Field
 from weboob.browser.filters.html import Attr
@@ -99,6 +100,22 @@ class LoginPage(HTMLPage):
         return cgu or CleanText('//div[contains(text(), "Erreur")]', default='')(self.doc)
 
 
+class AMFCodePage(XMLPage):
+    ENCODING = "UTF-8"
+
+    def build_doc(self, content):
+        doc = super(AMFCodePage, self).build_doc(content).getroot()
+        # Remove namespaces
+        for el in doc.getiterator():
+            if not hasattr(el.tag, 'find'):
+                continue
+            i = el.tag.find('}')
+            if i >= 0:
+                el.tag = el.tag[i+1:]
+        objectify.deannotate(doc, cleanup_namespaces=True)
+        return doc
+
+
 class ItemInvestment(ItemElement):
     klass = Investment
 
@@ -111,6 +128,20 @@ class ItemInvestment(ItemElement):
 
     def obj_valuation(self):
         return MyDecimal(TableCell('valuation')(self)[0].xpath('.//div[not(.//div)]'))(self)
+
+    def obj_code(self):
+        link_id = Attr(u'.//a[contains(@title, "détail du fonds")]', 'id', default=None)(self)
+        inv_id = Attr('.//a[contains(@id, "linkpdf")]', 'id', default=None)(self)
+        if link_id and inv_id:
+            form = self.page.get_form('//div[@id="operation"]//form')
+            form['idFonds'] = inv_id.split('-', 1)[-1]
+            form['org.richfaces.ajax.component'] = form[link_id] = link_id
+            page = self.page.browser.open(form['javax.faces.encodedURL'], data=dict(form)).page
+            m = re.search('fundid=(\w+).+SH=(\w+)', CleanText('//complete', default="")(page.doc))
+            if m:
+                page = page.browser.open('https://www.assetmanagement.hsbc.com/feedRequest?feed_data=gfcFundData&cod=FR&client=FCPE&fId=%s&SH=%s&lId=fr' % m.groups()).page
+                return CleanText('//AMF_Code', default=NotAvailable)(page.doc)
+        return NotAvailable
 
     def parse(self, el):
         # Trying to find vdate and unitvalue
