@@ -26,7 +26,7 @@ __all__ = ['IndeedBrowser']
 
 class IndeedBrowser(PagesBrowser):
 
-    BASEURL = 'http://www.indeed.fr'
+    BASEURL = 'https://www.indeed.fr'
 
     search_page = URL('/emplois(?P<parameters>.*)', SearchPage)
     advert_page = URL('/cmp/(?P<company>.*)/jobs/(?P<title>.*)-(?P<nb>.*)', AdvertPage)
