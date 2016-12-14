@@ -24,6 +24,7 @@ from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.ordereddict import OrderedDict
+from weboob.browser.exceptions import HTTPNotFound
 
 from .browser import Amazon
 from .fr.browser import AmazonFR
@@ -109,5 +110,8 @@ class AmazonModule(Module, CapShop, CapDocument):
         if not isinstance(bill, Bill):
             bill = self.get_document(bill)
         if bill.url:
-            return self.browser.download_document(bill.url)
+            try:
+                return self.browser.download_document(bill.url)
+            except HTTPNotFound:
+                pass
         return None
