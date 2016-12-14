@@ -23,4 +23,4 @@ from weboob.browser import AbstractBrowser
 
 class CAELSBrowser(AbstractBrowser):
     PARENT = 'amundi'
-    PARENT_ATTR = 'package.ee.browser.AmundiEEBrowser'
+    PARENT_ATTR = 'package.browser.AmundiBrowser'
