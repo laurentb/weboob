@@ -79,7 +79,9 @@ class SGPEPage(HTMLPage):
 
 class ChangePassPage(SGPEPage):
     def on_load(self):
-        raise ActionNeeded(CleanText('//div[@class="ngo_gao_message_intro"]')(self.doc))
+        message = (CleanText('//div[@class="ngo_gao_message_intro"]')(self.doc)
+                or CleanText('//div[@class="ngo_gao_intro"]')(self.doc))
+        raise ActionNeeded(message)
 
 
 class LoginPage(SGPEPage):

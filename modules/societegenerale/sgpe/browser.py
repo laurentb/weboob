@@ -35,7 +35,9 @@ class SGPEBrowser(LoginBrowser):
     cards = URL('/Pgn/.+PageID=Cartes&.+', CardsPage)
     cards_history = URL('/Pgn/.+PageID=ReleveCarte&.+', CardHistoryPage)
     change_pass = URL('/gao/changer-code-secret-expire-saisie.html',
-                      '/gao/changer-code-secret-inscr-saisie.html', ChangePassPage)
+                      '/gao/changer-code-secret-inscr-saisie.html',
+                      '/gao/inscrire-utilisateur-saisie.html',
+                      ChangePassPage)
 
     def is_logged(self):
         if not self.page or self.login.is_here():
