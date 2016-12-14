@@ -94,11 +94,11 @@ class ThreadPage(HTMLPage):
 
         obj_id = Format('%s#%s', Env('user'), Env('_id'))
         obj_title = Format('%s \n\t %s',
-                           CleanText('//div[@class="permalink-inner permalink-tweet-container"]/div/div/div/a',
+                           CleanText('//div[has-class("permalink-inner permalink-tweet-container")]/div/div/div/a',
                                      replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')]),
-                           CleanText('//div[@class="permalink-inner permalink-tweet-container"]/div/div/p',
+                           CleanText('//div[has-class("permalink-inner permalink-tweet-container")]/div/div/p',
                                      replace=[('@ ', '@'), ('# ', '#'), ('http:// ', 'http://')]))
-        obj_date = DateTime(Regexp(CleanText('//div[@class="permalink-inner permalink-tweet-container"]/div/div/div[@class="client-and-actions"]/span/span'),
+        obj_date = DateTime(Regexp(CleanText('//div[has-class("permalink-inner permalink-tweet-container")]/div/div/div[@class="client-and-actions"]/span/span'),
                                    '(\d+:\d+).+- (.+\d{4})',
                                    '\\2 \\1'), translations=DATE_TRANSLATE_FR)
 
