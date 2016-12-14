@@ -29,6 +29,7 @@ class ManpowerBrowser(PagesBrowser):
     search_page = URL('/offre-emploi',
                       '/offre-emploi/(?P<query>.*)', SearchPage)
     advert_page = URL('/candidats/detail-offre-d-emploi/(?P<_id>.*).html', AdvertPage)
+    error_page = URL('/offre-emploi/offre-non-trouvee')
 
     def search_job(self, pattern=None):
         return self.call_search(query=pattern)
@@ -74,4 +75,7 @@ class ManpowerBrowser(PagesBrowser):
         return self.call_search(query=query)
 
     def get_job_advert(self, _id, advert):
-        return self.advert_page.go(_id=_id).get_job_advert(obj=advert)
+        self.advert_page.go(_id=_id)
+        if self.advert_page.is_here():
+            return self.page.get_job_advert(obj=advert)
+        return advert
