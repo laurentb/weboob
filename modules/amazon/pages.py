@@ -44,9 +44,13 @@ class AmazonPage(HTMLPage):
 
 class HomePage(AmazonPage):
     def to_login(self):
-        url1 = self.doc.xpath('//a[@id="nav-link-yourAccount"]/@href')
-        url2 = self.doc.xpath('//a[@id="nav-your-account"]/@href')
-        self.browser.location((url1 or url2)[0])
+        urls = [
+            self.doc.xpath('//a[@id="nav-link-yourAccount"]/@href'),
+            self.doc.xpath('//a[@id="nav-your-account"]/@href'),
+            self.doc.xpath('//a[@id="nav-link-accountList"]/@href'),
+        ]
+        url = filter(None, urls)[0][0]
+        self.browser.location(url)
         return self.browser.page
 
 
