@@ -21,7 +21,7 @@
 from __future__ import absolute_import
 
 from decimal import Decimal
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 
 __all__ = ['json', 'mini_jsonpath']
 
@@ -95,4 +95,6 @@ class WeboobEncoder(json.JSONEncoder):
             return str(o)
         elif isinstance(o, (datetime, date, time)):
             return o.isoformat()
+        elif isinstance(o, timedelta):
+            return o.total_seconds()
         return super(WeboobEncoder, self).default(o)
