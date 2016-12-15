@@ -232,7 +232,13 @@ class ProHistoryPage(HistoryPage, JsonPage):
             t.type = FrenchTransaction.TYPE_TRANSFER
         if raw == u'Annulation des frais de PayPal':
             return []
-        t.commission = Decimal(str(transaction['feeAmount']['amountUnformatted']))
+
+        # Dougs told us that commission should always be netAmount minus grossAmount
+        grossAmount = Decimal(str(transaction['grossAmount']['amountUnformatted']))
+        commission = Decimal(str(transaction['feeAmount']['amountUnformatted']))
+        assert abs(t.amount - grossAmount) == abs(commission)
+        t.commission = t.amount - grossAmount
+
         t.parse(date=date, raw=raw)
         trans.append(t)
         return trans
