@@ -59,7 +59,7 @@ class ProAccountsList(LoggedPage, MyHTMLPage):
                 a.type = account_type
                 a.id = unicode(re.search('([A-Z\d]{4}[A-Z\d\*]{3}[A-Z\d]{4})', link.attrib['title']).group(1))
                 a.label = unicode(link.attrib['title'].replace('%s ' % a.id, ''))
-                tmp_balance = self.parser.tocleanstring(cols[1])
+                tmp_balance = CleanText(None).filter(cols[1])
                 a.currency = a.get_currency(tmp_balance)
                 if not a.currency:
                     a.currency = u'EUR'
@@ -76,16 +76,16 @@ class ProAccountsList(LoggedPage, MyHTMLPage):
 
 
 class ProAccountHistory(LoggedPage, MyHTMLPage):
-    def on_loaded(self):
+    def on_load(self):
         link = self.doc.xpath('//a[contains(@href, "telechargercomptes.ea")]/@href')[0]
         self.browser.location(link)
 
 
 class ProAccountHistoryDownload(LoggedPage, MyHTMLPage):
-    def on_loaded(self):
-        self.browser.select_form(name='telechargement')
-        self.browser['dateDebutPeriode'] = (datetime.date.today() - relativedelta(months=11)).strftime('%d/%m/%Y')
-        self.browser.submit()
+    def on_load(self):
+        form = self.get_form(name='telechargement')
+        form['dateDebutPeriode'] = (datetime.date.today() - relativedelta(months=11)).strftime('%d/%m/%Y')
+        form.submit()
 
 
 class ProAccountHistoryCSV(CsvPage, AccountHistory):
@@ -96,7 +96,7 @@ class ProAccountHistoryCSV(CsvPage, AccountHistory):
 
     def get_history(self, deferred=False):
         operations = []
-        for line in self.doc.rows:
+        for line in self.doc:
             if len(line) < 4 or line[0] == 'Date':
                 continue
             t = Transaction()

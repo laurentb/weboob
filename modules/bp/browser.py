@@ -109,14 +109,14 @@ class BPBrowser(LoginBrowser):
         ids = set()
 
         self.location(self.accounts_url)
-        assert self.accounts_list.is_here()
+        assert self.accounts_list.is_here() or self.pro_accounts_list.is_here()
         for account in self.page.get_accounts_list():
             ids.add(account.id)
             yield account
 
         if self.accounts_and_loans_url:
             self.location(self.accounts_and_loans_url)
-            assert self.accounts_list.is_here()
+            assert self.accounts_list.is_here() or self.pro_accounts_list.is_here()
 
             for account in self.page.get_accounts_list():
                 if account.id not in ids:
@@ -139,7 +139,7 @@ class BPBrowser(LoginBrowser):
 
         transactions = []
 
-        if self.account_history.is_here():
+        if hasattr(self.page, 'get_history'):
             for tr in self.page.get_history():
                 transactions.append(tr)
 
@@ -210,6 +210,8 @@ class BPBrowser(LoginBrowser):
 class BProBrowser(BPBrowser):
     login_url = "https://banqueenligne.entreprises.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&ERROR_CODE=0x00000000&URL=%2Fws_q47%2Fvoscomptes%2Fidentification%2Fidentification.ea%3Forigin%3Dprofessionnels"
     accounts_and_loans_url = None
+
+    BASEURL = 'https://banqueenligne.entreprises.labanquepostale.fr'
 
     def do_login(self):
         super(BProBrowser, self).do_login()
