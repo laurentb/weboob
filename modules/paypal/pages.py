@@ -230,6 +230,8 @@ class ProHistoryPage(HistoryPage, JsonPage):
         raw = "%s %s" % (transaction['transactionDescription']['description'], transaction['transactionDescription']['name'])
         if raw == "Transfert de Compte bancaire":
             t.type = FrenchTransaction.TYPE_TRANSFER
+        if raw == u'Annulation des frais de PayPal':
+            return []
         t.commission = Decimal(str(transaction['feeAmount']['amountUnformatted']))
         t.parse(date=date, raw=raw)
         trans.append(t)
