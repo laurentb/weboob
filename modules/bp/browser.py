@@ -40,6 +40,8 @@ class BPBrowser(LoginBrowser):
     BASEURL = 'https://voscomptesenligne.labanquepostale.fr'
     CERTHASH = ['184ccdf506ce87e66cba71ce754e48aa51720f346df56ed27399006c288a82ce', '5719e6295761eb6de357d5e0743a26b917c4346792aff657f585c83cd7eae8f7']
 
+    # FIXME beware that '.*' in start of URL() won't match all domains but only under BASEURL
+
     login_page = URL(r'.*wsost/OstBrokerWeb/loginform.*', LoginPage)
     repositionner_chemin_courant = URL(r'.*authentification/repositionnerCheminCourant-identif.ea', repositionnerCheminCourant)
     init_ident = URL(r'.*authentification/initialiser-identif.ea', Initident)
@@ -71,9 +73,12 @@ class BPBrowser(LoginBrowser):
     transfer_confirm = URL(r'.*/virementSafran_national/validerVirementNational-virementNational.ea', TransferConfirm)
     transfer_summary = URL(r'.*/virementSafran_national/confirmerVirementNational-virementNational.ea', TransferSummary)
 
-    badlogin = URL(r'.*ost/messages\.CVS\.html\?param=0x132120c8.*', BadLoginPage)
+    badlogin = URL(r'https://transverse.labanquepostale.fr/.*ost/messages\.CVS\.html\?param=0x132120c8.*', # still valid?
+                   r'https://transverse.labanquepostale.fr/xo_/messages/message.html\?param=0x132120c8.*',
+                   BadLoginPage)
     disabled_account = URL(r'.*ost/messages\.CVS\.html\?param=0x132120cb.*',
                            r'.*/message\.html\?param=0x132120c.*',
+                           r'https://transverse.labanquepostale.fr/xo_/messages/message.html\?param=0x132120cb.*',
                            AccountDesactivate)
     unavailable = URL(r'https?://.*.labanquepostale.fr/delestage.html', UnavailablePage)
     rib_dl = URL(r'.*/voscomptes/rib/init-rib.ea', DownloadRib)
