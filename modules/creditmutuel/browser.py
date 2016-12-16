@@ -154,13 +154,14 @@ class CreditMutuelBrowser(LoginBrowser):
                     self.accounts_list.append(a)
                 self.iban.go(subbank=self.currentSubBank).fill_iban(self.accounts_list)
                 self.por.go(subbank=self.currentSubBank).add_por_accounts(self.accounts_list)
-                for acc in self.li.go(subbank=self.currentSubBank).iter_li_accounts():
-                    self.accounts_list.append(acc)
             else:
                 for a in self.new_accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts():
                     self.accounts_list.append(a)
                 self.new_iban.go(subbank=self.currentSubBank).fill_iban(self.accounts_list)
                 self.new_por.go(subbank=self.currentSubBank).add_por_accounts(self.accounts_list)
+
+            for acc in self.li.go(subbank=self.currentSubBank).iter_li_accounts():
+                self.accounts_list.append(acc)
 
         return self.accounts_list
 
