@@ -35,13 +35,19 @@ class VirtKeyboard(object):
     """
     Handle a virtual keyboard.
 
-    :attribute margin: Margin used by :meth:`get_symbol_coords̀` to reduce size
+    :attribute margin: Margin used by :meth:`get_symbol_coords` to reduce size
         of each "key" of the virtual keyboard. This attribute is always
         converted to a 4-tuple, and has the same semantic as the CSS
         ``margin`` property (top, right, bottom, right), in pixels.
     :type margin: int or float or (2|3|4)-tuple
     """
     margin = None
+
+    codesep = ''
+    """Output separator between code strings.
+
+    See :any:`get_string_code`.
+    """
 
     def __init__(self, file=None, coords=None, color=None, convert=None):
         # file: virtual keyboard image
@@ -98,6 +104,7 @@ class VirtKeyboard(object):
         return pixel == self.color
 
     def get_symbol_coords(self, coords):
+        """Return narrow coordinates around symbol."""
         (x1, y1, x2, y2) = coords
         if self.margin:
             top, right, bottom, left = self.margin
@@ -151,7 +158,7 @@ class VirtKeyboard(object):
         raise VirtKeyboardError('Symbol not found for hash "%s".' % md5sum)
 
     def get_string_code(self, string):
-        return ''.join((self.get_symbol_code(self.symbols[c]) for c in string))
+        return self.codesep.join(self.get_symbol_code(self.symbols[c]) for c in string)
 
     def check_symbols(self, symbols, dirname):
         # symbols: dictionary <symbol>:<md5 value>
@@ -181,9 +188,9 @@ class VirtKeyboard(object):
 class MappedVirtKeyboard(VirtKeyboard):
     def __init__(self, file, document, img_element, color, map_attr="onclick", convert=None):
         map_id = img_element.attrib.get("usemap")[1:]
-        map = document.find("//map[@id='" + map_id + "']")
+        map = document.find('//map[@id="%s"]' % map_id)
         if map is None:
-            map = document.find("//map[@name='" + map_id + "']")
+            map = document.find('//map[@name="%s"]' % map_id)
 
         coords = {}
         for area in map.getiterator("area"):
