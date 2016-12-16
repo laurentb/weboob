@@ -34,6 +34,7 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.json import json
+from weboob.tools.misc import to_unicode
 
 
 class BrokenPageError(Exception):
@@ -136,6 +137,8 @@ class MyHTMLPage(BasePage, HTMLPage):
 
 
 class RedirectPage(LoggedPage, MyHTMLPage):
+    ENCODING = None
+
     """
     var i = 'lyhrnu551jo42yfzx0jm0sqk';
     setCookie('i', i);
@@ -166,21 +169,10 @@ class RedirectPage(LoggedPage, MyHTMLPage):
     """
 
     def add_cookie(self, name, value):
-        """
-        c = Cookie(0, name, value,
-                      None, False,
-                      '.' + self.browser.DOMAIN, True, True,
-                      '/', False,
-                      False,
-                      None,
-                      False,
-                      None,
-                      None,
-                      {})
-        cookiejar = self.browser._ua_handlers["_cookies"].cookiejar
-        cookiejar.set_cookie(c)
-        """
-        self.browser.logger.debug('adding cookie %s=%s', name, value)
+        # httplib/cookielib don't seem to like unicode cookies...
+        name = to_unicode(name).encode('utf-8')
+        value = to_unicode(value).encode('utf-8')
+        self.browser.logger.debug('adding cookie %r=%r', name, value)
         self.browser.session.cookies.set(name, value)
 
     def on_load(self):
