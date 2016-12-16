@@ -21,11 +21,11 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ClientError
 from weboob.capabilities.base import NotAvailable
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 
 from .pages import KeyboardPage, LoginPage, PredisconnectedPage, BankAccountsPage, \
-                   InvestmentActivatePage, InvestmentCguPage, InvestmentPage, \
-                   CBTransactionsPage, TransactionsPage, UnavailablePage, IbanPage
+                   InvestmentPage, CBTransactionsPage, TransactionsPage, UnavailablePage, \
+                   IbanPage
 
 
 class AXABanque(LoginBrowser):
@@ -34,7 +34,6 @@ class AXABanque(LoginBrowser):
     # Login
     keyboard = URL('https://connect.axa.fr/keyboard/password', KeyboardPage)
     login = URL('https://connect.axa.fr/api/identity/auth', LoginPage)
-    tag = URL('https://connect.axa.fr/api/tag', LoginPage)
     predisconnected = URL('https://www.axa.fr/axa-predisconnect.html',
                           'https://www.axa.fr/axa-postmaw-predisconnect.html', PredisconnectedPage)
     # Bank
@@ -52,12 +51,10 @@ class AXABanque(LoginBrowser):
                       '.*page-indisponible.html.*',
                       '.*erreur/erreurBanque.faces', UnavailablePage)
     # Investment
-    investment_activate = URL('https://client.axa.fr/_layouts/NOSI/MonitoringSedia.aspx', InvestmentActivatePage)
-    investment_cgu = URL('https://client.axa.fr/_layouts/nosi/CGUPage.aspx', InvestmentCguPage)
-    investment = URL('https://client.axa.fr/mes-comptes-et-contrats/Pages/(?P<page>.*)',
-                     'https://client.axa.fr/_layouts/NOSI/LoadProfile.aspx',
-                     'https://espaceclient.axa.fr',
+    investment = URL('https://espaceclient.axa.fr',
                      'https://connexion.adis-assurances.com', InvestmentPage)
+    investment_transactions = URL('https://espaceclient.axa.fr/accueil/savings/savings/contract/_jcr_content/' + \
+                                  'par/savingsmovementscard.savingscard.pid_(?P<pid>.*).aid_(?P<aid>.*).html\?skip=(?P<skip>.*)')
 
     def __init__(self, *args, **kwargs):
         super(AXABanque, self).__init__(*args, **kwargs)
@@ -68,18 +65,25 @@ class AXABanque(LoginBrowser):
         self.history_list = {}
 
     def do_login(self):
+        # due to the website change, login changed too, this is for don't try to login with the wrong login
+        if len(self.username) > 7:
+            raise ActionNeeded()
+
         if self.password.isdigit():
             vk_passwd = self.keyboard.go().get_password(self.password)
 
-            self.login.go(data={'email': self.username, \
-                                'password': vk_passwd, \
-                                'rememberIdenfiant': False,
-                                'version': 1})
+            login_data = {
+                'email': self.username,
+                'password': vk_passwd,
+                'rememberIdenfiant': False,
+                'version': 1
+            }
+
+            self.login.go(data=login_data)
 
         if not self.password.isdigit() or self.page.check_error():
             raise BrowserIncorrectPassword()
 
-        self.tag.go()
 
     @need_login
     def iter_accounts(self):
@@ -110,16 +114,16 @@ class AXABanque(LoginBrowser):
                             # Need it to get accounts from tabs
                         a._tab, a._pargs, a._purl = tab, page_args, self.url
                         accounts.append(a)
+
             # Get investment accounts if there has
-            self.investment_pages = []
-            self.investment.go(page="default.aspx")
-            # If user has cgu or user doesn't have investments
-            if not self.investment_cgu.is_here() and self.investment.is_here():
-                for form in self.page.get_forms():
-                    for a in self.investment.go(page="PartialUpdatePanelLoader.ashx", \
-                                                data=form).iter_accounts():
-                        accounts.append(a)
+            self.investment.go()
+
+            if self.investment.is_here():
+                for a in self.page.iter_accounts():
+                    accounts.append(a)
+
             self.account_list = accounts
+
         return iter(self.account_list)
 
     @need_login
@@ -141,27 +145,22 @@ class AXABanque(LoginBrowser):
             self.transactions.go(data=args)
 
     @need_login
-    def iter_investment(self, account):
-        if account.id not in self.investment_list:
-            invs = []
-            # Side investment's website
-            if account._acctype is "investment":
-                invs = [i for i in account._page.iter_investment()]
-            # Main website with investments
-            elif account._acctype is "bank" and account._hasinv:
-                self.go_account_pages(account, "investment")
-                invs = [i for i in self.page.iter_investment()]
-            self.investment_list[account.id] = invs
-        return iter(self.investment_list[account.id])
-
-    @need_login
     def iter_history(self, account):
         if account.id not in self.history_list:
             trs = []
             # Side investment's website
             if account._acctype is "investment":
-                self.accform = account._accform
-                trs = [a for a in account._page.iter_history()]
+                skip = 0
+
+                try:
+                    while self.investment_transactions.go(pid=account.id.zfill(16), aid=account._aid, skip=skip):
+                        for a in self.page.iter_history():
+                            trs.append(a)
+                        skip += 10
+                except AssertionError:
+                    # assertion error when page is empty
+                    pass
+
             # Main website withouth investments
             elif account._acctype is "bank" and not account._hasinv:
                 self.go_account_pages(account, "history")
@@ -169,3 +168,13 @@ class AXABanque(LoginBrowser):
                     trs = [a for a in self.page.get_history()]
             self.history_list[account.id] = trs
         return iter(self.history_list[account.id])
+
+    @need_login
+    def iter_investment(self, account):
+        if account.id not in self.investment_list:
+            invs = []
+            if account._acctype is "bank" and account._hasinv:
+                self.go_account_pages(account, "investment")
+                invs = [i for i in self.page.iter_investment()]
+            self.investment_list[account.id] = invs
+        return iter(self.investment_list[account.id])

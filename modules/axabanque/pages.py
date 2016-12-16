@@ -18,16 +18,16 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re, urllib, requests
+import re
 from decimal import Decimal, InvalidOperation
 from cStringIO import StringIO
 
 from weboob.exceptions import BrowserBanned, BrowserUnavailable
-from weboob.browser.pages import HTMLPage, RawPage, JsonPage, PDFPage, LoggedPage, pagination
-from weboob.browser.elements import ItemElement, ListElement, TableElement, SkipItem, method
-from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Field, Env, \
-                                            BrowserURL, TableCell, Async, AsyncLoad, Eval
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.pages import HTMLPage, RawPage, JsonPage, PDFPage, LoggedPage
+from weboob.browser.elements import ItemElement, ListElement, TableElement, method
+from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Field, BrowserURL, \
+                                            TableCell, Async, AsyncLoad, Regexp
+from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
@@ -115,166 +115,75 @@ class PredisconnectedPage(HTMLPage):
         raise BrowserBanned()
 
 
-class InvestmentActivatePage(RawPage):
-    pass
-
-
-class InvestmentCguPage(HTMLPage):
-    pass
-
-
 class InvestmentTransaction(FrenchTransaction):
-    PATTERNS = [(re.compile(u'^(?P<text>Versement.*)'),  FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile(u'^(?P<text>(Arbitrage|Prélèvements.*))'), FrenchTransaction.TYPE_ORDER),
+    PATTERNS = [(re.compile(u'^(?P<text>Versement|versement.*)'),  FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(u'^(?P<text>(Arbitrage|Prélèvement(s).*))'), FrenchTransaction.TYPE_ORDER),
                 (re.compile(u'^(?P<text>Retrait.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile(u'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
                ]
 
 
-class TableInvestments(TableElement):
-    col_label = [re.compile('Support'), u'Libellé']
-    col_code = 'Code ISIN'
-    col_valuation = re.compile(u'Montant')
-    col_quantity = [u'Nombre d\'unités', u'Nb d\'unités de compte']
-    col_unitvalue = [u'Valeur Unité de Compte', re.compile(u'Valeur de l\'unité de compte')]
-    col_portfolio_share = [u'Répartition en %', u'% dans contrat']
-    col_vdate = u'Date de valeur'
-
-    class item(ItemElement):
-        klass = Investment
-
-        obj_label = CleanText(TableCell('label'))
-        obj_quantity = MyDecimal(TableCell('quantity'))
-        obj_unitvalue = MyDecimal(TableCell('unitvalue'))
-        obj_valuation = MyDecimal(TableCell('valuation'))
-        obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
-        obj_portfolio_share = Eval(lambda x: x / 100, MyDecimal(TableCell('portfolio_share')))
-
-        def obj_code(self):
-            code = CleanText(TableCell('code'), replace=[('-', '')], default=NotAvailable)(self)
-            return NotAvailable if not code else code
-
-        def condition(self):
-            return CleanText(TableCell('valuation'))(self)
-
-
 class InvestmentPage(LoggedPage, HTMLPage):
-    TYPES = {'vie': Account.TYPE_LIFE_INSURANCE, 'mad': Account.TYPE_MADELIN, 'prp': Account.TYPE_PERP}
-
-    def get_forms(self, filter=False):
-        m = re.findall('create(.+?)(?=\);)', CleanText().filter(self.doc.xpath( \
-                       '//script[contains(text(), "Application.add")]')))
-        posts = m if not filter else [el for el in m if filter in el]
-        forms = []
-        for post in posts:
-            m = re.search(('Parameters":(.*)(?=,.+Info).*Info[^{]+.([^}]+.)'
-                           '.*Path[^\w]+([^"]+).*\$get[^\w]+([^"]+)'), post)
-            form = {}
-            form['__USERCONTROLPATH'] = urllib.unquote(urllib.unquote( \
-                                        m.group(3)).decode('utf8')).decode('utf8')
-            form['__SCRIPTMANAGERINFO'] = urllib.unquote(urllib.unquote("[{\"Name\":%s]" % \
-                                          '},{"Name":'.join('"Value":'.join(m.group(2).split(':')) \
-                                          .split(',')).replace('""', '","')).decode('utf8')).decode('utf8')
-            form['__CONTROLCLIENTID'] = m.group(4)
-            form['__PARAMETERS'] = "[]" if m.group(1) == "null" else m.group(1)
-            form['__ENCRYPTED'] = 'true'
-            forms.append(form)
-        return forms
+    TYPES = {u'Assurance vie Arpèges': Account.TYPE_LIFE_INSURANCE,
+             'Epargne Retraite  PERP PAIR': Account.TYPE_SAVINGS}
 
     @method
-    class iter_accounts(TableElement):
-        item_xpath = '//table//tr[td[4]]'
-        head_xpath = '//table//tr[th[4]]/th'
-
-        col_label = u'Contrat'
-        col_id = u'Référence'
-        col_balance = u'Montant'
+    class iter_accounts(ListElement):
+        item_xpath = '//section[has-class("cards") and has-class("contracts")]/article[has-class("card")]'
 
         class item(ItemElement):
             klass = Account
 
-            load_details = Field('_url') & AsyncLoad
-
-            obj_id = CleanText(TableCell('id'))
-            obj_balance = MyDecimal(TableCell('balance'))
-            obj_type = Env('type')
+            obj_id = Regexp(CleanText('.//h2/small'), r'#(.*)')
+            obj_balance = MyDecimal('.//span[@class="card-amount"]', default=NotAvailable)
             obj_iban = NotAvailable
-            obj_valuation_diff = Async('details') & MyDecimal('//th[span[contains(text(), \
-                                 "Performance")]]/following-sibling::td[1]')
-            obj__page = Env('page')
-            obj__accform = Env('accform')
+            obj_valuation_diff = MyDecimal('.//p[@class="card-description"]')
+            obj_label = CleanText('.//h2/text()')
             obj__acctype = "investment"
 
-            def obj_label(self):
-                return CleanText(TableCell('label')(self)[0].xpath('./a'))(self)
+            def obj__aid(self):
+                return Regexp(Attr('//a[@class="menu-item" and @href="%s"]' % Attr('.', 'data-redirect')(self), 'data-target'), \
+                              r'aid_(.*).html')(self)
 
-            def obj__url(self):
-                return Link(TableCell('id')(self)[0].xpath('./a'))(self)
+            def obj_type(self):
+                return self.page.TYPES.get(Field('label')(self), Account.TYPE_UNKNOWN)
 
             def condition(self):
-                return CleanText(TableCell('balance', default=""))(self)
-
-            def parse(self, el):
-                page = Async('details').loaded_page(self)
-                accform = page.get_form('//form')
-                type_xpath = '//th[contains(text(), "Cadre fiscal")]/following-sibling::td[1]'
-                type = CleanText().filter(page.doc.xpath(type_xpath))
-                if not type:
-                    for form in page.get_forms():
-                        page.browser.session.headers['Referer'] = Field('_url')(self)
-                        page = page.browser.investment.go(page="PartialUpdatePanelLoader.ashx", data=form)
-                        type = CleanText().filter(page.doc.xpath(type_xpath))
-                        if type:
-                            accform = form
-                            break
-                if not type:
-                    raise SkipItem()
-                self.env['type'] = page.TYPES.get(type.lower().split()[-1], Account.TYPE_UNKNOWN)
-                self.env['page'] = page
-                self.env['accform'] = accform
+                return Field('balance')(self) is not NotAvailable
 
     @method
-    class iter_investment(ListElement):
-        class list_epargne(TableInvestments):
-            item_xpath = '//div[@id="axaPopupdetailEpargne"]//table/tbody/tr[contains(@id, "ctl")]'
-            head_xpath = '//div[@id="axaPopupdetailEpargne"]//table/thead/tr/th'
-
-        class list_distribution(TableInvestments):
-            item_xpath = '//div[contains(@id, "PopupDistribution")]//td/table/tr[contains(@class, "white")]'
-            head_xpath = '//div[contains(@id, "PopupDistribution")]//div/table/tr/th'
-
-    @pagination
-    @method
-    class iter_history(TableElement):
-        item_xpath = '//div[@id="divMouvements"]//table/tbody/tr[position() < last()]'
-        head_xpath = '//div[@id="divMouvements"]//table/thead/tr/th'
-
-        col_date = 'Date'
-        col_label = 'Nature'
-        col_amount = re.compile('Montant')
-
-        def next_page(self):
-            link = Link('//a[@title="Page suivante" and @href]', default=None)(self)
-            if link:
-                form = self.page.browser.accform
-                if isinstance(form, dict):
-                    input = self.page.doc.xpath('//input[contains(@name, "ViewState")]')[0]
-                    form['__VIEWSTATE'] = urllib.unquote(Attr('.', 'value')(input)).decode('utf8')
-                    form['__CONTROLCLIENTID'] = re.findall('(.*)_', Attr('.', 'name')(input))[0]
-                form['__EVENTTARGET'] = re.findall('PostBack[^\'"]+.([^\'"]+)', link)[0]
-                url = self.page.browser.url if isinstance(form, dict) else \
-                      BrowserURL('investment', page=None)(self).replace('None', form.url)
-                return requests.Request("POST", url, data=dict(form))
+    class iter_history(ListElement):
+        item_xpath = "//div[has-class('t-data')]"
 
         class item(ItemElement):
             klass = InvestmentTransaction
 
-            obj_raw = InvestmentTransaction.Raw(TableCell('label'))
-            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
-            obj_amount = MyDecimal(TableCell('amount'))
+            load_details = Field('_url') & AsyncLoad
 
+            obj_label = CleanText('(.//div[has-class("t-data__label")])[1]')
+            obj_raw = InvestmentTransaction.Raw(Field('label'))
+            obj_date = Date(CleanText('(.//div[has-class("t-data__date")])[1]'), dayfirst=True)
+            obj_amount = MyDecimal('(.//div[has-class("t-data__amount")])[1]')
+            obj__hasinv = True
 
-## Bank : done with browser 1
+            def obj__url(self):
+                return '%s%s' % (BrowserURL('investment')(self), Attr('.', 'data-url')(self))
+
+            def obj_investments(self):
+                inv_page = Async('details').loaded_page(self)
+
+                return list(inv_page.iter_investments())
+
+    @method
+    class iter_investments(ListElement):
+        item_xpath = "//div[@class='white-bg']/following-sibling::div[not(@*)]"
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText('.//div[@class="t-data__label"]')
+            obj_portfolio_share = MyDecimal('.//div[has-class("t-data__amount_label")]')
+            obj_valuation = MyDecimal('.//div[has-class("t-data__amount") and has-class("desktop")]')
 
 
 class UnavailablePage(HTMLPage):
@@ -291,7 +200,7 @@ class MyHTMLPage(HTMLPage):
 
     def parse_number(self, number):
         # For some client they randomly displayed 4,115.00 and 4 115,00.
-        # Browser is waiting for for 4 115,00 so we format the number to match this.
+        # Browser is waiting for for 4 115,00 so we format the number to match this.
         if '.' in number and len(number.split('.')[-1]) == 2:
             return number.replace(',', ' ').replace('.', ',')
         return number

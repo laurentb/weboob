@@ -49,8 +49,8 @@ class AXABanqueModule(Module, CapBank):
     def iter_accounts(self):
         return self.browser.iter_accounts()
 
-    def iter_history(self, account):
-        return self.browser.iter_history(account)
-
     def iter_investment(self, account):
         return self.browser.iter_investment(account)
+
+    def iter_history(self, account):
+        return self.browser.iter_history(account)
