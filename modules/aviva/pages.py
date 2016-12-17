@@ -19,7 +19,7 @@
 
 
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.elements import ListElement, ItemElement, method, SkipItem
 from weboob.browser.filters.standard import CleanText, Capitalize, Format, Date, Regexp, CleanDecimal, Env, Field, Async, AsyncLoad
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment, Transaction
@@ -62,14 +62,17 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             load_details = Field('_link') & AsyncLoad
 
-            obj_id = CleanText('//dt[contains(text(), "contrat")]/following-sibling::dd[1]')
-            obj_label = CleanText('//div[has-class("title")]')
+            obj_id = CleanText('.//dt[contains(text(), "contrat")]/following-sibling::dd[1]')
+            obj_label = CleanText('.//div[has-class("title")]')
             obj_type = Account.TYPE_LIFE_INSURANCE
-            obj_balance = Async('details') & MyDecimal('//strong[contains(text(), "Valeur")]/following-sibling::span')
-            obj_valuation_diff = Async('details') & MyDecimal('//a[contains(@title, "diff")]/parent::p')
-            obj__link = Link(u'//a[contains(text(), "Détail")]')
+            obj_balance = Async('details') & MyDecimal('.//strong[contains(text(), "Valeur")]/following-sibling::span')
+            obj_valuation_diff = Async('details') & MyDecimal('.//a[contains(@title, "diff")]/parent::p')
+            obj__link = Link(u'.//a[contains(text(), "Détail")]')
             # Additional waranty : need to know what to do with this
             obj__additionalwaranty = Env('additionalwaranty')
+
+            def condition(self):
+                return 'epargne' in Link(u'.//a[contains(text(), "Détail")]')(self)
 
             def parse(self, el):
                 # Additional waranty
@@ -85,7 +88,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
 class InvestmentPage(LoggedPage, HTMLPage):
     def get_history_link(self):
-        return Link().filter(self.doc.xpath(u'//a[contains(text(), "historique")]'))
+        return self.doc.xpath(u'//a[contains(text(), "historique")]/@href')[0]
 
     @method
     class iter_investment(ListElement):
@@ -94,12 +97,12 @@ class InvestmentPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Investment
 
-            obj_label = CleanText('./div[@data-label="Nom du support"]/a')
-            obj_code = Regexp(Attr('./div[@data-label="Nom du support"]/a', 'onclick'), '\"([^\"]+)')
-            obj_quantity = MyDecimal('./div[@data-label="Nombre de parts"]')
+            obj_label = CleanText('./div[@data-label="Nom du support"]/text()')
+            obj_code = Regexp(Attr('./div[@data-label="Nom du support"]/a', 'onclick', default=''), '\"([^\"]+)', default=NotAvailable)
+            obj_quantity = MyDecimal('./div[@data-label="Nombre de parts"]', default=NotAvailable)
             obj_unitvalue = MyDecimal('./div[@data-label="Valeur de la part"]')
-            obj_valuation = MyDecimal('./div[@data-label="Valeur"]')
-            obj_vdate = Date(CleanText('./div[@data-label="Date de valeur"]'), dayfirst=True)
+            obj_valuation = MyDecimal('./div[@data-label="Valeur"]', default=NotAvailable)
+            obj_vdate = Date(CleanText('./div[@data-label="Date de valeur"]'), dayfirst=True, default=NotAvailable)
 
 
 class HistoryPage(LoggedPage, HTMLPage):

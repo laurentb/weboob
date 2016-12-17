@@ -52,6 +52,9 @@ class AvivaBrowser(LoginBrowser):
     @need_login
     def iter_history(self, account):
         link = self.location(account._link).page.get_history_link()
+        if not link:
+            raise NotImplementedError()
+
         return self.location(link).page.iter_history()
 
     def get_subscription_list(self):
