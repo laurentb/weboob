@@ -465,7 +465,7 @@ class Boobank(ReplApplication):
         If you give only the ACCOUNT parameter, it lists all the
         available recipients for this account.
         """
-        id_from, id_to, amount, reason, exec_date = self.parse_command_args(line, 5, 1)
+        id_from, id_to, amount, reason = self.parse_command_args(line, 4, 1)
 
         account = self.get_object(id_from, 'get_account', [])
         if not account:
@@ -494,11 +494,7 @@ class Boobank(ReplApplication):
             print('Error: please give a decimal amount to transfer', file=self.stderr)
             return 2
 
-        try:
-            exec_date = parse_date(exec_date).date() if exec_date else datetime.date.today()
-        except (AttributeError, ValueError):
-            print('Error: date is not well formatted', file=self.stderr)
-            return 5
+        exec_date = datetime.date.today()
 
         if self.interactive:
             # Try to find the recipient label. It can be missing from
