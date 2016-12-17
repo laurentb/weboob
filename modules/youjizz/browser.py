@@ -29,7 +29,7 @@ __all__ = ['YoujizzBrowser']
 
 
 class YoujizzBrowser(PagesBrowser):
-    BASEURL = 'http://www.youjizz.com'
+    BASEURL = 'https://www.youjizz.com'
 
     index = URL(r'/?(index.php)?$',
                 r'/page/\d+.html',
