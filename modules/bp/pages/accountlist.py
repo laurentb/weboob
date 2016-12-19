@@ -73,7 +73,14 @@ class AccountList(LoggedPage, MyHTMLPage):
             account.currency = account.get_currency(tmp_balance)
             if not account.currency:
                 account.currency = u'EUR'
-            account.balance = Decimal(FrenchTransaction.clean_amount(tmp_balance))
+
+            if tmp_balance:
+                account.balance = Decimal(FrenchTransaction.clean_amount(tmp_balance))
+            else:
+                # empty balance info should only be for fully-reimbursed loans
+                assert actype == Account.TYPE_LOAN
+                account.balance = Decimal(0)
+
             if actype == Account.TYPE_LOAN:
                 account.balance = -account.balance
 
