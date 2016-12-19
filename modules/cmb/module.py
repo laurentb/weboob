@@ -47,7 +47,7 @@ class CmbModule(Module, CapBank):
     def create_default_browser(self):
         b = {'par': CmsoParBrowser, 'pro': CmsoProBrowser}
         self.BROWSER = b[self.config['website'].get()]
-        return self.create_browser("cmb.fr",
+        return self.create_browser(self.weboob, "cmb.fr",
                                    self.config['login'].get(),
                                    self.config['password'].get())
 
