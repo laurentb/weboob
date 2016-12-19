@@ -20,7 +20,6 @@
 
 from urllib import urlencode
 from urlparse import urlsplit, parse_qsl
-from datetime import datetime
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.browsers import StatesMixin
@@ -31,7 +30,7 @@ from .pages import LoginPage, Initident, CheckPassword, repositionnerCheminCoura
                    TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary
 from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, ProAccountHistoryDownload, ProAccountHistoryCSV, DownloadRib, RibPage
 
-from weboob.capabilities.bank import Transfer, TransferError
+from weboob.capabilities.bank import TransferError
 
 
 __all__ = ['BPBrowser', 'BProBrowser']
@@ -222,9 +221,7 @@ class BProBrowser(BPBrowser):
 
     BASEURL = 'https://banqueenligne.entreprises.labanquepostale.fr'
 
-    def do_login(self):
-        super(BProBrowser, self).do_login()
-
+    def set_variables(self):
         v = urlsplit(self.page.url)
         version = v.path.split('/')[1]
 
@@ -233,6 +230,7 @@ class BProBrowser(BPBrowser):
 
     @need_login
     def get_accounts_list(self):
+        self.set_variables()
         accounts = BPBrowser.get_accounts_list(self)
         for acc in accounts:
             self.location('%s/voscomptes/rib/init-rib.ea' % self.base_url)

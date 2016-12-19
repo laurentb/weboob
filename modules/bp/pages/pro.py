@@ -26,7 +26,7 @@ from weboob.browser.filters.standard import CleanText
 from weboob.browser.pages import LoggedPage, CsvPage
 from weboob.capabilities.bank import Account, AccountNotFound
 
-from .accounthistory import Transaction, AccountHistory
+from .accounthistory import Transaction
 from .base import MyHTMLPage
 
 
@@ -90,7 +90,7 @@ class ProAccountHistoryDownload(LoggedPage, MyHTMLPage):
         form.submit()
 
 
-class ProAccountHistoryCSV(CsvPage, AccountHistory):
+class ProAccountHistoryCSV(LoggedPage, CsvPage):
     FMTPARAMS = {'delimiter': ';'}
 
     def get_next_link(self):
