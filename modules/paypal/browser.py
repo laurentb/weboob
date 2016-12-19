@@ -27,7 +27,7 @@ from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.url import URL
 
 from .pages import PromoPage, LoginPage, AccountPage, UselessPage, HomePage, ProHistoryPage, \
-                   PartHistoryPage, HistoryDetailsPage, ErrorPage, OldWebsitePage, LandingPage
+                   PartHistoryPage, HistoryDetailsPage, ErrorPage, OldWebsitePage, LandingPage, InfoPage
 
 
 __all__ = ['Paypal']
@@ -45,6 +45,7 @@ class Paypal(LoginBrowser):
                   '/cgi-bin/webscr\?cmd=_account.*$',
                   '/cgi-bin/webscr\?cmd=_login-done.+$',
                   UselessPage)
+    info = URL('/fr/merchantsignup/personalInfo', InfoPage)
     home = URL('.*/cgi-bin/webscr\?cmd=_home&country_lang.x=true$',
                'https://\w+.paypal.com/webapps/business/\?country_lang.x=true',
                'https://\w+.paypal.com/myaccount/\?nav=0.0',

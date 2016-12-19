@@ -22,7 +22,7 @@ import re
 
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable, Currency
-from weboob.exceptions import BrowserUnavailable
+from weboob.exceptions import BrowserUnavailable, ActionNeeded
 from weboob.browser.exceptions import ServerError
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.filters.standard import CleanText, CleanDecimal
@@ -36,6 +36,11 @@ class LandingPage(HTMLPage):
 
 class OldWebsitePage(LoggedPage, HTMLPage):
     pass
+
+
+class InfoPage(HTMLPage):
+    def on_load(self):
+        raise ActionNeeded(CleanText('//h1[@class="falconHeaderText"]')(self.doc))
 
 
 class PromoPage(LoggedPage, HTMLPage):
@@ -235,9 +240,10 @@ class ProHistoryPage(HistoryPage, JsonPage):
 
         # Dougs told us that commission should always be netAmount minus grossAmount
         grossAmount = Decimal(str(transaction['grossAmount']['amountUnformatted']))
-        commission = Decimal(str(transaction['feeAmount']['amountUnformatted']))
-        assert abs(t.amount - grossAmount) == abs(commission)
-        t.commission = t.amount - grossAmount
+        t.commission = Decimal(str(transaction['feeAmount']['amountUnformatted']))
+        if t.commission:
+            assert abs(t.amount - grossAmount) == abs(t.commission)
+            t.commission = t.amount - grossAmount
 
         t.parse(date=date, raw=raw)
         trans.append(t)
