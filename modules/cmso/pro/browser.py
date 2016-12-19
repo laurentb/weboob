@@ -22,12 +22,13 @@ import datetime
 from dateutil.relativedelta import relativedelta
 from itertools import chain
 
+from weboob.capabilities.bank import AccountNotFound
 from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ServerError
 from weboob.tools.date import LinearDateGuesser
 
-from .pages import LoginPage, AccountsPage, HistoryPage, ChoiceLinkPage, SubscriptionPage, InvestmentPage, UselessPage
+from .pages import LoginPage, AccountsPage, HistoryPage, ChoiceLinkPage, SubscriptionPage, InvestmentPage, InvestmentAccountPage, UselessPage
 
 
 class CmsoProBrowser(LoginBrowser):
@@ -35,9 +36,11 @@ class CmsoProBrowser(LoginBrowser):
     choice_link = URL('/domiweb/accueil.jsp', ChoiceLinkPage)
     subscription = URL('/domiweb/prive/espacesegment/selectionnerAbonnement/0-selectionnerAbonnement.act', SubscriptionPage)
     accounts = URL('/domiweb/prive/professionnel/situationGlobaleProfessionnel/0-situationGlobaleProfessionnel.act', AccountsPage)
-    investment = URL('/domiweb/prive/particulier/portefeuilleSituation/0-situationPortefeuille.act', InvestmentPage)
     history = URL('/domiweb/prive/professionnel/situationGlobaleProfessionnel/1-situationGlobaleProfessionnel.act', HistoryPage)
     useless = URL('/domiweb/prive/particulier/modificationMotDePasse/0-expirationMotDePasse.act', UselessPage)
+
+    investment = URL('/domiweb/prive/particulier/portefeuilleSituation/0-situationPortefeuille.act', InvestmentPage)
+    invest_account = URL(r'/domiweb/prive/particulier/portefeuilleSituation/2-situationPortefeuille.act\?indiceCompte=(?P<idx>\d+)&idRacine=(?P<idroot>\d+)', InvestmentAccountPage)
 
     def __init__(self, website, *args, **kwargs):
         super(CmsoProBrowser, self).__init__(*args, **kwargs)
@@ -104,4 +107,16 @@ class CmsoProBrowser(LoginBrowser):
 
     @need_login
     def iter_investment(self, account):
-        raise NotImplementedError()
+        self.investment.go()
+        assert self.investment.is_here()
+        for page_account in self.page.iter_accounts():
+            if page_account.id == account.id:
+                self.page.go_account(*page_account._formdata)
+                break
+        else:
+            raise AccountNotFound()
+
+        assert self.invest_account.is_here()
+        invests = list(self.page.iter_investments())
+        assert len(invests) < 2, 'implementation should be checked with more than 1 investment' # FIXME
+        return invests

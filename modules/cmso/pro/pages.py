@@ -23,10 +23,10 @@ import datetime
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.pages import HTMLPage, pagination
-from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, DateGuesser, Env, Field, Filter, Regexp
-from weboob.browser.filters.html import Link
-from weboob.capabilities.bank import Account
+from weboob.browser.elements import ListElement, ItemElement, TableElement, method
+from weboob.browser.filters.standard import CleanText, CleanDecimal, DateGuesser, Env, Field, Filter, Regexp, TableCell
+from weboob.browser.filters.html import Link, Attr
+from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -132,7 +132,50 @@ class AccountsPage(CMSOPage):
 
 
 class InvestmentPage(CMSOPage):
-    pass
+    @method
+    class iter_accounts(CmsoListElement):
+        class item(ItemElement):
+            klass = Account
+
+            obj_id = Regexp(CleanText('./td[1]'), r'(\d+)\s*(\d+)', r'\1\2')
+            def obj__formdata(self):
+                js = Attr('./td/a[1]', 'onclick')(self)
+                args = re.search(r'\((.*)\)', js).group(1).split(',')
+
+                form = args[0].strip().split('.')[1]
+                idx = args[2].strip()
+                idroot = args[4].strip().replace("'", "")
+                return (form, idx, idroot)
+
+    def go_account(self, form, idx, idroot):
+        form = self.get_form(name=form)
+        form['indiceCompte'] = idx
+        form['idRacine'] = idroot
+        form.submit()
+
+
+class CmsoTableElement(TableElement):
+    head_xpath = '//table[has-class("Tb")]/tr[has-class("LnTit")]/td'
+    item_xpath = '//table[has-class("Tb")]/tr[has-class("LnA") or has-class("LnB")]'
+
+
+class InvestmentAccountPage(CMSOPage):
+    @method
+    class iter_investments(CmsoTableElement):
+        col_label = 'Valeur'
+        col_isin = 'Code'
+        col_quantity = u'Qté'
+        col_unitvalue = 'Cours'
+        col_valuation = 'Valorisation'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText(TableCell('label'))
+            obj_code = CleanText(TableCell('isin'))
+            obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=(',', '.'))
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=('', ','))
+            obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=(' ', '.'))
 
 
 class Transaction(FrenchTransaction):
