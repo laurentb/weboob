@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from decimal import Decimal
+from decimal import Decimal, ROUND_DOWN
 import re
 
 from weboob.capabilities.bank import Account
@@ -226,7 +226,7 @@ class ProHistoryPage(HistoryPage, JsonPage):
             if not cc:
                 return []
             assert len(cc) == 1
-            t.original_amount = Decimal(str(transaction['grossAmount']['amountUnformatted']))
+            t.original_amount = Decimal(str(transaction['netAmount']['amountUnformatted']))
             t.original_currency = original_currency
             t.amount = Decimal(str(cc[0]))
         else:
@@ -242,8 +242,11 @@ class ProHistoryPage(HistoryPage, JsonPage):
         grossAmount = Decimal(str(transaction['grossAmount']['amountUnformatted']))
         t.commission = Decimal(str(transaction['feeAmount']['amountUnformatted']))
         if t.commission:
-            assert abs(t.amount - grossAmount) == abs(t.commission)
-            t.commission = t.amount - grossAmount
+            if original_currency == account.currency:
+                assert abs(t.amount - grossAmount) == abs(t.commission)
+                t.commission = t.amount - grossAmount
+            else:
+                t.commission = (t.commission * t.amount / t.original_amount).quantize(Decimal('.01'), rounding=ROUND_DOWN)
 
         t.parse(date=date, raw=raw)
         trans.append(t)
