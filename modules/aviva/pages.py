@@ -19,7 +19,7 @@
 
 
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.elements import ListElement, ItemElement, method, SkipItem
+from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, Capitalize, Format, Date, Regexp, CleanDecimal, Env, Field, Async, AsyncLoad
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment, Transaction
