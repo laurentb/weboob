@@ -4,6 +4,8 @@
 #   * RSYNC_TARGET: target on which to rsync the xunit output.
 #   * XUNIT_OUT: file in which xunit output should be saved.
 #   * WEBOOB_BACKENDS: path to the Weboob backends file to use.
+#   * WEBOOB_CI_TARGET: URL of your Weboob-CI instance.
+#   * WEBOOB_CI_ORIGIN: origin for the Weboob-CI data.
 
 # stop on failure
 set -e
@@ -20,6 +22,7 @@ if [ -z "${WEBOOB_WORKDIR}" ]; then
     [ -d "${XDG_CONFIG_HOME}/weboob" ] && WEBOOB_WORKDIR="${XDG_CONFIG_HOME}/weboob"
 fi
 [ -z "${TMPDIR}" ] && TMPDIR="/tmp"
+WEBOOB_TMPDIR=$(mktemp -d "${TMPDIR}/weboob_test.XXXXX")
 [ -z "${WEBOOB_BACKENDS}" ] && WEBOOB_BACKENDS="${WEBOOB_WORKDIR}/backends"
 [ -z "${WEBOOB_MODULES}" ] && WEBOOB_MODULES="${WEBOOB_DIR}/modules"
 [ -z "${PYTHONPATH}" ] && PYTHONPATH=""
@@ -31,13 +34,27 @@ fi
 if [ -n "${RSYNC_TARGET}" ]; then
     # by default, builder name is containing directory name
     [ -z "${BUILDER_NAME}" ] && BUILDER_NAME=$(basename $(readlink -e $(dirname $0)/../..))
+    XUNIT_OUT="${WEBOOB_TMPDIR}/xunit.xml"
 else
     RSYNC_TARGET=""
 fi
 
+# Avoid undefined variables
 if [ ! -n "${XUNIT_OUT}" ]; then
     XUNIT_OUT=""
 fi
+
+# Handle Weboob-CI variables
+if [ -n "${WEBOOB_CI_TARGET}" ]; then
+    if [ ! -n "${WEBOOB_CI_ORIGIN}" ]; then
+        WEBOOB_CI_ORIGIN="Weboob unittests run"
+    fi
+    # Set up xunit reporting
+    XUNIT_OUT="${WEBOOB_TMPDIR}/xunit.xml"
+else
+    WEBOOB_CI_TARGET=""
+fi
+
 
 # find executables
 if [ -z "${PYTHON}" ]; then
@@ -64,7 +81,6 @@ fi
 
 # do not allow undefined variables anymore
 set -u
-WEBOOB_TMPDIR=$(mktemp -d "${TMPDIR}/weboob_test.XXXXX")
 if [ -f "${WEBOOB_BACKENDS}" ]; then
     cp "${WEBOOB_BACKENDS}" "${WEBOOB_TMPDIR}/backends"
 else
@@ -73,9 +89,7 @@ else
 fi
 
 # xunit nose setup
-if [ -n "${RSYNC_TARGET}" ]; then
-    XUNIT_ARGS="--with-xunit --xunit-file=${WEBOOB_TMPDIR}/xunit.xml"
-elif [ -n "${XUNIT_OUT}" ]; then
+if [ -n "${XUNIT_OUT}" ]; then
     XUNIT_ARGS="--with-xunit --xunit-file=${XUNIT_OUT}"
 else
     XUNIT_ARGS=""
@@ -129,10 +143,17 @@ else
     rm ${MODULES_TESTS}
 fi
 
-# xunit transfer
+# Rsync xunit transfer
 if [ -n "${RSYNC_TARGET}" ]; then
-    rsync -iz "${WEBOOB_TMPDIR}/xunit.xml" "${RSYNC_TARGET}/${BUILDER_NAME}-$(date +%s).xml"
-    rm "${WEBOOB_TMPDIR}/xunit.xml"
+    rsync -iz "${XUNIT_OUT}" "${RSYNC_TARGET}/${BUILDER_NAME}-$(date +%s).xml"
+    rm "${XUNIT_OUT}"
+fi
+
+# Weboob-CI upload
+if [ -n "${WEBOOB_CI_TARGET}" ]; then
+    JSON_MODULE_MATRIX=$(${PYTHON} "${WEBOOB_DIR}/tools/modules_testing_grid.py" "${XUNIT_OUT}" "${WEBOOB_CI_ORIGIN}")
+    curl -H "Content-Type: application/json" --data "${JSON_MODULE_MATRIX}" "${WEBOOB_CI_TARGET}/api/v1/modules"
+    rm "${XUNIT_OUT}"
 fi
 
 # safe removal

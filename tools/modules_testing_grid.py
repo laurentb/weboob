@@ -10,7 +10,6 @@ to a [Weboob-CI](https://github.com/Phyks/weboob-ci) instance.
 """
 from __future__ import print_function
 
-import collections
 import json
 import sys
 import xunitparser
@@ -29,7 +28,7 @@ def main(xunit, origin):
             continue
         module = tc.classname.split(".")[1]
         # In the following, we consider
-        # good > skipped > bad
+        # bad > skipped > good
         # and only make update of a module status according to this order
         if tc.good:
             if tc.skipped:
@@ -44,7 +43,11 @@ def main(xunit, origin):
             # Always set to bad on failed test
             modules[module] = "bad"
     # Agregate results by test result rather than module
-    results = collections.defaultdict(list)
+    results = {
+        "good": [],
+        "bad": [],
+        "skipped": []
+    }
     for module in modules:
         results[modules[module]].append(module)
     return {

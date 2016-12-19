@@ -54,7 +54,7 @@ class BackendTest(TestCase):
             self.backends = self.weboob.backend_instances
 
     def login_cb(self, backend_name, value):
-        raise SkipTest('missing config %r is required for this test' % value.label)
+        raise SkipTest('missing config \'%s\' is required for this test' % value.label)
 
     def run(self, result):
         """
