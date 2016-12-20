@@ -135,10 +135,9 @@ class CardsList(LoggedPage, MyHTMLPage):
         return cards
 
 
-class LifeInsuranceSummary(LoggedPage, MyHTMLPage):
-    def get_history(self):
-        page = self.browser.lifeinsurance_history.go(id=self.params['id'])
-        return page.iter_transactions()
+class SavingAccountSummary(LoggedPage, MyHTMLPage):
+    def on_load(self):
+        self.browser.location(Link('//ul[has-class("tabs")]//a[@title="Historique des mouvements"]')(self.doc))
 
 
 class InvestTable(TableElement):
@@ -206,3 +205,21 @@ class LifeInsuranceHistoryInv(LoggedPage, MyHTMLPage):
         class item(InvestItem):
             pass
 
+
+class RetirementHistory(LoggedPage, MyHTMLPage):
+    @method
+    class get_history(TableElement):
+        head_xpath = '//table[@id="mvt" or @id="options" or @id="mouvements"]/thead//th'
+        item_xpath = '//table[@id="mvt" or @id="options" or @id="mouvements"]/tbody//tr'
+
+        col_date = re.compile('Date')
+        col_label = u"Type d'opération"
+        col_amount = 'Montant'
+
+        class item(ItemElement):
+            klass = BaseTransaction
+
+            obj_label = CleanText(TableCell('label'))
+            obj_date = Date(CleanText(TableCell('date')))
+            obj_amount = CleanDecimal(TableCell('amount'), replace_dots=True)
+            obj__coming = False

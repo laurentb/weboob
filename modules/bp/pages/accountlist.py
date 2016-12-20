@@ -48,6 +48,8 @@ class AccountList(LoggedPage, MyHTMLPage):
         self.parse_table('encoursprets',    Account.TYPE_LOAN)
         # FIXME for loans, the balance may be the loan total, not the loan due??
         self.parse_table('comptesRetraireEuros')
+        self.parse_table('comptesRetrairePoints')
+        self.parse_table('comptesAssurancePrevoyance')
 
     def get_accounts_list(self):
         if not self.accounts:
@@ -67,6 +69,7 @@ class AccountList(LoggedPage, MyHTMLPage):
             account._link_id = Link('./td[1]//a', default=NotAvailable)(line)
             if not account._link_id:
                 continue
+
             if 'BourseEnLigne' in account._link_id:
                 account.type = Account.TYPE_MARKET
 
