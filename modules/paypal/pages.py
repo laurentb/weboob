@@ -192,6 +192,10 @@ class ProHistoryPage(HistoryPage, JsonPage):
 
     def parse_transaction(self, transaction, account):
         trans = []
+        # Add secondary transactions on label condition.
+        for t in transaction['secondaryTransactions']:
+            if t['transactionDescription']['description'] == u'Virement à partir de':
+                trans.extend(self.parse_transaction(t, account))
         if 'transactionStatus' in transaction and transaction['transactionStatus'] in [u'Créé',
                                                                                        u'Annulé',
                                                                                        u'Suspendu',
