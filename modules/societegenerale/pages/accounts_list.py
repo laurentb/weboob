@@ -295,21 +295,22 @@ class Market(BasePage, Invest):
         for doc in docs:
             # There are two different tables possible depending on the market account type.
             is_detailed = bool(doc.xpath(u'//span[contains(text(), "Années d\'acquisition")]'))
-            tr_xpath = '//tr[count(td)=6 and td[1]/strong]' if is_detailed else '//tr[count(td)>5]'
+            tr_xpath = '//tr[@height and td[@colspan="6"]]' if is_detailed else '//tr[count(td)>5]'
             for tr in doc.xpath(tr_xpath):
                 cells = tr.findall('td')
 
                 inv = Investment()
                 inv.label = unicode(cells[self.COL_LABEL].xpath('.//span')[0].attrib['title'].split(' - ')[0])
                 inv.code = unicode(cells[self.COL_LABEL].xpath('.//span')[0].attrib['title'].split(' - ')[1])
-                inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY])
-                inv.diff = self.parse_decimal(cells[self.COL_DIFF])
                 if is_detailed:
-                    self.COL_UNITVALUE = 2
-                    inv.unitprice = self.parse_decimal(tr.xpath('./following-sibling::tr/td[3]')[0])
-                    inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE])
-                    inv.valuation = self.parse_decimal(cells[self.COL_VALUATION])
+                    inv.quantity = self.parse_decimal(tr.xpath('./following-sibling::tr/td[2]')[0])
+                    inv.unitprice = self.parse_decimal(tr.xpath('./following-sibling::tr/td[3]')[1])
+                    inv.unitvalue = self.parse_decimal(tr.xpath('./following-sibling::tr/td[3]')[0])
+                    inv.valuation = self.parse_decimal(tr.xpath('./following-sibling::tr/td[4]')[0])
+                    inv.diff = self.parse_decimal(tr.xpath('./following-sibling::tr/td[5]')[0])
                 else:
+                    inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY])
+                    inv.diff = self.parse_decimal(cells[self.COL_DIFF])
                     inv.unitprice = self.parse_decimal(cells[self.COL_UNITPRICE].xpath('.//tr[1]/td[2]')[0])
                     inv.unitvalue = self.parse_decimal(cells[self.COL_VALUATION].xpath('.//tr[1]/td[2]')[0])
                     inv.valuation = self.parse_decimal(cells[self.COL_VALUATION].xpath('.//tr[2]/td[2]')[0])
