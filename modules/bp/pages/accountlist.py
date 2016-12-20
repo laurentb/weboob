@@ -22,6 +22,7 @@ from cStringIO import StringIO
 import re
 from decimal import Decimal
 
+from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.browser.pages import LoggedPage, RawPage
 from weboob.browser.filters.html import Link
@@ -63,7 +64,9 @@ class AccountList(LoggedPage, MyHTMLPage):
             account = Account()
             account.label = CleanText('./td[1]')(line)
             account.type = actype
-            account._link_id = Link('./td[1]//a')(line)
+            account._link_id = Link('./td[1]//a', default=NotAvailable)(line)
+            if not account._link_id:
+                continue
             if 'BourseEnLigne' in account._link_id:
                 account.type = Account.TYPE_MARKET
 
