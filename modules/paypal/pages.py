@@ -62,7 +62,8 @@ class LoginPage(HTMLPage):
         token = str(js.call(func_name))
         csrf = re.search(r'csrf="\+encodeURIComponent\("(.*?)"\)', code).group(1)
         key, value = re.search(r'"/auth/verifychallenge",t,"([^"]+)","([^"]+)"', code).groups()
-        return token, csrf, key, value
+        sessionID = re.search(r'_sessionID="\+encodeURIComponent\("(.*?)"\)', code).group(1)
+        return token, csrf, key, value, sessionID
 
     def login(self, login, password):
         form = self.get_form(name='login')
