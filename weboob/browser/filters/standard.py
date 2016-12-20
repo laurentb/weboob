@@ -302,14 +302,20 @@ class TableCell(_Filter):
     """
 
     def __init__(self, *names, **kwargs):
+        support_th = kwargs.pop('support_th', False)
         super(TableCell, self).__init__(**kwargs)
         self.names = names
+
+        if support_th:
+            self.td = '(./th | ./td)[%s]'
+        else:
+            self.td = './td[%s]'
 
     def __call__(self, item):
         for name in self.names:
             idx = item.parent.get_colnum(name)
             if idx is not None:
-                return item.xpath('./td[%s]' % (idx + 1))
+                return item.xpath(self.td % (idx + 1))
 
         return self.default_or_raise(ColumnNotFound('Unable to find column %s' % ' or '.join(self.names)))
 
