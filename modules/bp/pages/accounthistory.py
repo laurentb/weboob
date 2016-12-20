@@ -21,9 +21,13 @@
 import datetime
 import re
 
+from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.bank import Investment, Transaction as BaseTransaction
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.browser.pages import LoggedPage
-from weboob.browser.filters.standard import CleanText
+from weboob.browser.elements import TableElement, ItemElement, method
+from weboob.browser.filters.html import Link
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Eval, TableCell, Async, AsyncLoad, Date
 
 from .base import MyHTMLPage
 
@@ -129,3 +133,76 @@ class CardsList(LoggedPage, MyHTMLPage):
             cards.append(tr.xpath('.//a')[0].attrib['href'])
 
         return cards
+
+
+class LifeInsuranceSummary(LoggedPage, MyHTMLPage):
+    def get_history(self):
+        page = self.browser.lifeinsurance_history.go(id=self.params['id'])
+        return page.iter_transactions()
+
+
+class InvestTable(TableElement):
+    col_label = 'Support'
+    col_share = 'Poids en %'
+    col_quantity = 'Nb U.C'
+    col_valuation = re.compile('Montant')
+
+
+class InvestItem(ItemElement):
+    klass = Investment
+
+    obj_label = CleanText(TableCell('label', support_th=True))
+    obj_portfolio_share = Eval(lambda x: x / 100 if x else NotAvailable, CleanDecimal(TableCell('share', support_th=True), replace_dots=True, default=NotAvailable))
+    obj_quantity = CleanDecimal(TableCell('quantity', support_th=True), replace_dots=True, default=NotAvailable)
+    obj_valuation = CleanDecimal(TableCell('valuation', support_th=True), replace_dots=True, default=NotAvailable)
+
+
+class LifeInsuranceInvest(LoggedPage, MyHTMLPage):
+    def has_error(self):
+        return 'erreur' in CleanText('//p[has-class("titlePage")]')(self.doc)
+
+    @method
+    class iter_investments(InvestTable):
+        head_xpath = '//table[starts-with(@id, "mouvements")]/thead//th'
+        item_xpath = '//table[starts-with(@id, "mouvements")]/tbody//tr'
+
+        col_unitvalue = 'Valeur Liquidative'
+
+        class item(InvestItem):
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True, default=NotAvailable)
+
+
+class LifeInsuranceHistory(LoggedPage, MyHTMLPage):
+    @method
+    class iter_transactions(TableElement):
+        head_xpath = '//table[@id="options"]/thead//th'
+        item_xpath = '//table[@id="options"]/tbody//tr'
+
+        col_date = 'Date de valeur'
+        col_amount = 'Montant'
+        col_label = u"Type d'opération"
+
+        class item(ItemElement):
+            klass = BaseTransaction
+
+            obj_label = CleanText(TableCell('label'))
+            obj_amount = CleanDecimal(TableCell('amount'), replace_dots=True)
+            obj_date = Date(CleanText(TableCell('date')))
+            obj__coming = False
+
+            load_invs = Link('.//a') & AsyncLoad
+
+            def obj_investments(self):
+                page = Async('invs').loaded_page(self)
+                return list(page.iter_investments())
+
+
+class LifeInsuranceHistoryInv(LoggedPage, MyHTMLPage):
+    @method
+    class iter_investments(InvestTable):
+        head_xpath = '//table/thead//th'
+        item_xpath = '//table/tbody//tr[position() > 1 and position() < last()]'
+
+        class item(InvestItem):
+            pass
+

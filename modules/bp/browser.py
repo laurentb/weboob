@@ -25,9 +25,12 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.browsers import StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, BrowserBanned
 
-from .pages import LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate, \
-                   AccountList, AccountHistory, CardsList, UnavailablePage, AccountRIB, \
-                   TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary
+from .pages import (
+    LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate,
+    AccountList, AccountHistory, CardsList, UnavailablePage, AccountRIB,
+    TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary,
+)
+from .pages.accounthistory import LifeInsuranceSummary, LifeInsuranceInvest, LifeInsuranceHistory, LifeInsuranceHistoryInv
 from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, ProAccountHistoryDownload, ProAccountHistoryCSV, DownloadRib, RibPage
 
 from weboob.capabilities.bank import TransferError
@@ -56,6 +59,11 @@ class BPBrowser(LoginBrowser, StatesMixin):
                         r'/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/preparerRechercheListePrets-synthese.ea',
                         AccountList)
     accounts_rib = URL(r'.*voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea.*', AccountRIB)
+
+    lifeinsurance_summary = URL(r'/voscomptes/canalXHTML/assurance/vie/reafficher-assuranceVie.ea\?numContrat=(?P<id>\w+)', LifeInsuranceSummary)
+    lifeinsurance_invest = URL(r'/voscomptes/canalXHTML/assurance/vie/valorisation-assuranceVie.ea\?numContrat=(?P<id>\w+)', LifeInsuranceInvest)
+    lifeinsurance_history = URL(r'/voscomptes/canalXHTML/assurance/vie/historiqueVie-assuranceVie.ea\?numContrat=(?P<id>\w+)', LifeInsuranceHistory)
+    lifeinsurance_hist_inv = URL(r'/voscomptes/canalXHTML/assurance/vie/detailMouvement-assuranceVie.ea\?idMouvement=(?P<id>\w+)', LifeInsuranceHistoryInv)
 
     pro_accounts_list = URL(r'.*voscomptes/synthese/synthese.ea', ProAccountsList)
     pro_history = URL(r'.*voscomptes/historiqueccp/historiqueccp.ea.*', ProAccountHistory)
@@ -174,6 +182,15 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions
+
+    @need_login
+    def iter_investment(self, account):
+        self.lifeinsurance_invest.go(id=account.id)
+        assert self.lifeinsurance_invest.is_here()
+        if self.page.has_error():
+            raise NotImplementedError()
+
+        return self.page.iter_investments()
 
     @need_login
     def _iter_card_tr(self):
