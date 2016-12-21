@@ -81,6 +81,12 @@ class BasePage(object):
             self.logger.debug('Update token to %s', self.browser.token)
 
     def is_error(self):
+        for script in self.doc.xpath('//script'):
+            if script.text is not None and \
+               (u"Le service est momentanément indisponible" in script.text or
+                u"Votre abonnement ne vous permet pas d'accéder à ces services" in script.text):
+                return True
+
         return False
 
     def build_token(self, token):
@@ -374,14 +380,6 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                (re.compile('.*Selection Vie.*'),Account.TYPE_LIFE_INSURANCE),
                (re.compile('^Fructi Pulse.*'), Account.TYPE_MARKET),
                ]
-    def is_error(self):
-        for script in self.doc.xpath('//script'):
-            if script.text is not None and \
-               (u"Le service est momentanément indisponible" in script.text or
-                u"Votre abonnement ne vous permet pas d'accéder à ces services" in script.text):
-                return True
-
-        return False
 
     def pop_up(self):
         if self.doc.xpath('//span[contains(text(), "du navigateur Internet.")]'):
