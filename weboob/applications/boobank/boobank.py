@@ -31,6 +31,7 @@ from weboob.exceptions import BrowserHTTPError
 from weboob.capabilities.base import empty
 from weboob.capabilities.bank import CapBank, Account, Transaction, CapBankTransfer, \
                                      Transfer, TransferStep
+from weboob.capabilities.contact import CapContact, Advisor
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
@@ -593,3 +594,18 @@ class Boobank(ReplApplication):
                                data={'transactions': transactions})
             client.request('users/me/accounts/%s' % account_id, data={'balance': account.balance})
             print('- %s (%s%s): %s new transactions' % (account.label, account.balance, account.currency_text, len(r)))
+
+    def do_advisor(self, line):
+        """
+        advisor
+
+        Display advisors.
+        """
+        self.start_format()
+        found = 0
+        for advisor in self.do('iter_contacts', caps=CapContact):
+            if isinstance(advisor, Advisor):
+                self.format(advisor)
+                found = 1
+        if not found:
+            print('Error: no advisor found', file=self.stderr)

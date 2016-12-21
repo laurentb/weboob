@@ -70,7 +70,27 @@ class ContactPhoto(BaseObject):
                                                           len(self.thumbnail_data) if self.thumbnail_data else 0)
 
 
-class Contact(BaseObject):
+class BaseContact(BaseObject):
+    """
+    This is the blase class for a contact.
+    """
+    name =      StringField('Name of contact')
+
+
+class Advisor(BaseContact):
+    """
+    An advisor.
+    """
+    email =     StringField('Mail of advisor')
+    phone =     StringField('Phone number of advisor')
+    mobile =    StringField('Mobile number of advisor')
+    fax =       StringField('Fax number of advisor')
+    agency =    StringField('Name of agency')
+    address =   StringField('Address of agency')
+    role =      StringField('Role of advisor', default="bank")
+
+
+class Contact(BaseContact):
     """
     A contact.
     """
@@ -79,7 +99,6 @@ class Contact(BaseObject):
     STATUS_OFFLINE = 0x004
     STATUS_ALL =     0xfff
 
-    name =          StringField('Name of contact')
     status =        IntField('Status of contact (STATUS_* constants)')
     status_msg =    StringField('Message of status')
     summary =       StringField('Description of contact')
