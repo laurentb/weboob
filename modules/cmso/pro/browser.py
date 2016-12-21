@@ -125,7 +125,8 @@ class CmsoProBrowser(LoginBrowser):
                 self.page.go_account(*page_account._formdata)
                 break
         else:
-            raise AccountNotFound()
+            # not an investment account
+            return []
 
         assert self.invest_account.is_here()
         invests = list(self.page.iter_investments())
