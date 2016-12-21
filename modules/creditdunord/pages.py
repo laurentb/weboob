@@ -546,17 +546,18 @@ class ProTransactionsPage(TransactionsPage):
                 i = int(i)
                 if i not in transactions:
                     transactions[i] = {}
-                transactions[i][key] = value
+                transactions[i][key] = value.strip()
 
         return transactions.iteritems()
 
     def get_history(self, acc_type):
         for i, tr in self.parse_transactions():
             t = Transaction()
+
             if acc_type is Account.TYPE_CARD:
-                date = vdate = Date(dayfirst=True).filter(tr['dateval'])
+                date = vdate = Date(dayfirst=True, default=None).filter(tr['dateval'])
             else:
-                date = Date(dayfirst=True).filter(tr['date'])
+                date = Date(dayfirst=True, default=None).filter(tr['date'])
                 vdate = Date(dayfirst=True, default=None).filter(tr['dateval']) or date
             raw = MyStrip(' '.join([tr['typeope'], tr['LibComp']]))
 
