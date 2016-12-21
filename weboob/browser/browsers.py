@@ -19,6 +19,7 @@
 
 from __future__ import absolute_import, print_function
 
+from functools import wraps
 import re
 import pickle
 import base64
@@ -745,6 +746,8 @@ def need_login(func):
     """
     Decorator used to require to be logged to access to this function.
     """
+
+    @wraps(func)
     def inner(browser, *args, **kwargs):
         if browser.page is None or not browser.page.logged:
             browser.do_login()
