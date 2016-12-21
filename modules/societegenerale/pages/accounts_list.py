@@ -28,9 +28,10 @@ import re
 
 from weboob.capabilities.base import empty, NotAvailable
 from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.contact import Advisor
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.deprecated.browser import BrokenPageError
-from weboob.browser.filters.standard import CleanText
+from weboob.browser.filters.standard import CleanText, Regexp
 
 from .base import BasePage
 
@@ -409,3 +410,20 @@ class ListRibPage(BasePage):
                 m = re.search("javascript:windowOpenerRib\('(.*?)'(.*)\)", href)
                 if m:
                     return m.group(1)
+
+
+class AdvisorPage(BasePage):
+    def get_advisor(self):
+        fax = CleanText('//div[contains(text(), "Fax")]/following-sibling::div[1]', replace=[(' ', '')])(self.document)
+        agency = CleanText('//div[contains(@class, "agence")]/div[last()]')(self.document)
+        address = CleanText('//div[contains(text(), "Adresse")]/following-sibling::div[1]')(self.document)
+        for div in self.document.xpath('//div[div[text()="Contacter mon conseiller"]]'):
+            a = Advisor()
+            a.name = CleanText('./div[2]')(div)
+            a.phone = Regexp(CleanText(u'./following-sibling::div[div[contains(text(), "Téléphone")]][1]/div[last()]', replace=[(' ', '')]), '([+\d]+)')(div)
+            a.fax = fax
+            a.agency = agency
+            a.address = address
+            a.mobile = a.email = NotAvailable
+            a.role = u"wealth" if "patrimoine" in CleanText('./div[1]')(div) else u"bank"
+            yield a

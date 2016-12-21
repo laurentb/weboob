@@ -34,7 +34,8 @@ from weboob.exceptions import BrowserIncorrectPassword
 from .pages import LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, TransferInitPage, \
                    ConnectionThresholdPage, LifeInsurancesPage, LifeInsurancesHistoryPage, \
                    LifeInsurancesDetailPage, MarketListPage, MarketPage, MarketHistoryPage, \
-                   MarketSynPage, RecipientsPage, ValidateTransferPage, RegisterTransferPage
+                   MarketSynPage, RecipientsPage, ValidateTransferPage, RegisterTransferPage, \
+                   AdvisorPage
 
 
 __all__ = ['BNPPartPro', 'HelloBank']
@@ -98,6 +99,8 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     recipients = URL('/virement-wspl/rest/listerBeneficiaire', RecipientsPage)
     validate_transfer = URL('/virement-wspl/rest/validationVirement', ValidateTransferPage)
     register_transfer = URL('/virement-wspl/rest/enregistrerVirement', RegisterTransferPage)
+
+    advisor = URL('/conseiller-wspl/rest/monConseiller', AdvisorPage)
 
     @retry(ConnectionError, tries=3)
     def open(self, *args, **kwargs):
@@ -272,8 +275,12 @@ class BNPPartPro(BNPParibasBrowser):
 
     @need_login
     def execute_transfer(self, transfer):
-        self.register_transfer.go(data=JSON({'referenceVirement': transfer.id}))
+        self.register_transfer.go(data=JSON({'referenceVirement': self.pending_transfer['validation_token']}))
         return self.page.handle_response(transfer)
+
+    @need_login
+    def get_advisor(self):
+        return self.advisor.stay_or_go().get_advisor()
 
 
 class HelloBank(BNPParibasBrowser):

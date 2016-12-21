@@ -25,7 +25,7 @@ from weboob.capabilities.bank import Account
 from weboob.browser.exceptions import BrowserHTTPNotFound
 
 from .pages.accounts_list import AccountsList, AccountHistory, CardsList, LifeInsurance, \
-    LifeInsuranceHistory, LifeInsuranceInvest, Market, ListRibPage
+    LifeInsuranceHistory, LifeInsuranceInvest, Market, ListRibPage, AdvisorPage
 from .pages.login import LoginPage, BadLoginPage, ReinitPasswordPage
 
 
@@ -54,6 +54,7 @@ class SocieteGenerale(Browser):
              'https://.*.societegenerale.fr/asv/AVI/asvcns20a.html': LifeInsuranceInvest,
              'https://.*.societegenerale.fr/asv/AVI/asvcns2[0-9]c.html': LifeInsuranceHistory,
              'https://.*.societegenerale.fr/restitution/imp_listeRib.html': ListRibPage,
+             'https://.*.societegenerale.fr/com/contacts.html': AdvisorPage
             }
 
     def home(self):
@@ -175,3 +176,8 @@ class SocieteGenerale(Browser):
 
         for invest in self.page.iter_investment():
             yield invest
+
+    def get_advisor(self):
+        if not self.is_on_page(AdvisorPage):
+            self.location('/com/contacts.html')
+        return self.page.get_advisor()

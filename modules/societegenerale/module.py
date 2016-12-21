@@ -20,6 +20,7 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.contact import CapContact
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.capabilities.base import find_object
@@ -31,7 +32,7 @@ from .sgpe.browser import SGEnterpriseBrowser, SGProfessionalBrowser
 __all__ = ['SocieteGeneraleModule']
 
 
-class SocieteGeneraleModule(Module, CapBank):
+class SocieteGeneraleModule(Module, CapBank, CapContact):
     NAME = 'societegenerale'
     MAINTAINER = u'Jocelyn Jaubert'
     EMAIL = 'jocelyn.jaubert@gmail.com'
@@ -83,3 +84,8 @@ class SocieteGeneraleModule(Module, CapBank):
 
     def iter_investment(self, account):
         return self.browser.iter_investment(account)
+
+    def iter_contacts(self):
+        if not hasattr(self.browser, 'get_advisor'):
+            raise NotImplementedError()
+        return self.browser.get_advisor()

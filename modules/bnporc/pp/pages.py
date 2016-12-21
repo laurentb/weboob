@@ -24,11 +24,13 @@ from random import randint
 from decimal import Decimal
 from datetime import datetime
 
-from weboob.browser.elements import DictElement, ItemElement, method
+from weboob.browser.elements import DictElement, ListElement, ItemElement, method
 from weboob.browser.filters.json import Dict
+from weboob.browser.filters.standard import Format, Regexp, CleanText
 from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, TransferError
+from weboob.capabilities.contact import Advisor
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.capabilities.bank.iban import rib2iban, rebuild_rib, is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -496,3 +498,18 @@ class MarketHistoryPage(BNPPage):
             inv.set_empty_fields(NotAvailable)
             tr.investments.append(inv)
             yield tr
+
+
+class AdvisorPage(BNPPage):
+    @method
+    class get_advisor(ListElement):
+        class item(ItemElement):
+            klass = Advisor
+
+            obj_name = Format('%s %s %s', Dict('data/civilite'), Dict('data/prenom'), Dict('data/nom'))
+            obj_email = Regexp(Dict('data/mail'), '(?=\w)(.*)')
+            obj_phone = CleanText(Dict('data/telephone'), replace=[(' ', '')])
+            obj_mobile = CleanText(Dict('data/mobile'), replace=[(' ', '')])
+            obj_fax = CleanText(Dict('data/fax'), replace=[(' ', '')])
+            obj_agency = Dict('data/agence')
+            obj_address = Format('%s %s %s', Dict('data/adresseAgence'), Dict('data/codePostalAgence'), Dict('data/villeAgence'))
