@@ -81,6 +81,9 @@ class AccountList(LoggedPage, MyHTMLPage):
                 account.currency = u'EUR'
 
             if tmp_balance:
+                if 'non disponible' in tmp_balance:
+                    continue
+
                 account.balance = Decimal(FrenchTransaction.clean_amount(tmp_balance))
             else:
                 # empty balance info should only be for fully-reimbursed loans
