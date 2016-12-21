@@ -18,7 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import json, re
+from functools import wraps
+import json
+import re
 
 from weboob.browser.browsers import APIBrowser
 from weboob.browser.exceptions import ClientError
@@ -28,17 +30,24 @@ from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
 
 
+def need_login(func):
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if self.users is None:
+            self.do_login()
+        return func(self, *args, **kwargs)
+
+    return wrapper
+
+
 class YomoniBrowser(APIBrowser):
     BASEURL = 'https://yomoni.fr'
 
     def __init__(self, username, password, *args, **kwargs):
         super(YomoniBrowser, self).__init__(*args, **kwargs)
-        self.open('auth/init')
-        try:
-            self.users = self.request('auth/login', data={'username': username, \
-                                      'password': password.encode('base64').strip()})
-        except ClientError:
-            raise BrowserIncorrectPassword
+        self.username = username
+        self.password = password
+        self.users = None
         self.accounts = []
         self.investments = {}
         self.histories = {}
@@ -52,6 +61,19 @@ class YomoniBrowser(APIBrowser):
 
         return super(APIBrowser, self).build_request(*args, **kwargs)
 
+    def do_login(self):
+        self.open('auth/init')
+
+        data = {
+            'username': self.username,
+            'password': self.password.encode('base64').strip(),
+        }
+        try:
+            self.users = self.request('auth/login', data=data)
+        except ClientError:
+            raise BrowserIncorrectPassword()
+
+    @need_login
     def iter_accounts(self):
         if self.accounts:
             for account in self.accounts:
@@ -82,6 +104,7 @@ class YomoniBrowser(APIBrowser):
 
             yield a
 
+    @need_login
     def iter_investment(self, account, invs=None):
         if account not in self.investments and invs is not None:
             self.investments[account] = []
@@ -99,6 +122,7 @@ class YomoniBrowser(APIBrowser):
                 self.investments[account].append(i)
         return self.investments[account]
 
+    @need_login
     def iter_history(self, account):
         if account not in self.histories:
             histories = []
