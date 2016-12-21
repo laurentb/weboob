@@ -120,7 +120,7 @@ class BanquePopulaire(LoginBrowser):
     def go_on_accounts_list(self):
         for taskInfoOID in self.ACCOUNT_URLS:
             data = OrderedDict([('taskInfoOID', taskInfoOID), ('token', self.token)])
-            self.location('/cyber/internet/StartTask.do?%s' % urllib.urlencode(data))
+            self.location(self.absurl('/cyber/internet/StartTask.do?%s' % urllib.urlencode(data), base=True))
             if not self.page.is_error():
                 if self.page.pop_up():
                     self.logger.debug('Popup displayed, retry')
@@ -180,7 +180,8 @@ class BanquePopulaire(LoginBrowser):
 
     @need_login
     def get_iban_number(self, account):
-        self.location('/cyber/internet/StartTask.do?taskInfoOID=cyberIBAN&token=%s' % self.page.build_token(self.token))
+        url = self.absurl('/cyber/internet/StartTask.do?taskInfoOID=cyberIBAN&token=%s' % self.page.build_token(self.token), base=True)
+        self.location(url)
         # Sometimes we can't choose an account
         if account.type in [Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET] or (self.page.need_to_go() and not self.page.go_iban(account)):
             return NotAvailable
@@ -210,7 +211,7 @@ class BanquePopulaire(LoginBrowser):
 
         params['token'] = self.page.build_token(params['token'])
 
-        self.location('/cyber/internet/ContinueTask.do', data=params)
+        self.location(self.absurl('/cyber/internet/ContinueTask.do', base=True), data=params)
 
         if not self.page or self.page.no_operations():
             return
@@ -242,7 +243,7 @@ class BanquePopulaire(LoginBrowser):
         account = self.get_account(account.id)
         params = account._invest_params
         params['token'] = self.page.build_token(params['token'])
-        self.location('/cyber/internet/ContinueTask.do', data=params)
+        self.location(self.absurl('/cyber/internet/ContinueTask.do', base=True), data=params)
 
         if self.error_page.is_here():
             raise NotImplementedError()
