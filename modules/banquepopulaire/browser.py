@@ -29,7 +29,7 @@ from weboob.capabilities.base import NotAvailable
 from .pages import LoginPage, IndexPage, AccountsPage, AccountsFullPage, CardsPage, TransactionsPage, \
                    UnavailablePage, RedirectPage, HomePage, Login2Page, ErrorPage, \
                    LineboursePage, NatixisPage, InvestmentNatixisPage, InvestmentLineboursePage, MessagePage, \
-                   IbanPage, NatixisErrorPage
+                   IbanPage, NatixisErrorPage, EtnaPage
 
 
 __all__ = ['BanquePopulaire']
@@ -87,6 +87,7 @@ class BanquePopulaire(LoginBrowser):
     natixis_page = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/views/common.*', NatixisPage)
     invest_natixis_page = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/views/contrat.*', InvestmentNatixisPage)
     natixis_error_page = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/error-redirect.*', NatixisErrorPage)
+    etna = URL(r'https://www.assurances.natixis.fr/etna-ihs-bp/.*', EtnaPage)
 
     def __init__(self, website, *args, **kwargs):
         self.BASEURL = 'https://%s' % website

@@ -841,3 +841,8 @@ class IbanPage(LoggedPage, MyHTMLPage):
                 if re.sub('\D', '', acc_id) in iban:
                     return iban
         return NotAvailable
+
+
+class EtnaPage(LoggedPage, MyHTMLPage):
+    def on_load(self):
+        raise NotImplementedError()
