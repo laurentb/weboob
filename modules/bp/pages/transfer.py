@@ -20,7 +20,7 @@
 
 from datetime import datetime
 
-from weboob.capabilities.bank import TransferError, Recipient, NotAvailable, Transfer, TransferStep
+from weboob.capabilities.bank import TransferError, Recipient, NotAvailable, Transfer, TransferStep, AccountNotFound
 from weboob.browser.pages import LoggedPage
 from weboob.browser.filters.standard import CleanText, Env, Regexp, Date, CleanDecimal
 from weboob.browser.filters.html import Attr
@@ -38,6 +38,12 @@ class CheckTransferError(MyHTMLPage):
             raise TransferError(error)
 
 class TransferChooseAccounts(LoggedPage, MyHTMLPage):
+    def is_inner(self, text):
+        for option in self.doc.xpath('//select[@id="donneesSaisie.idxCompteEmetteur"]/option'):
+            if text == CleanText('.')(option):
+                return True
+        return False
+
     @method
     class iter_recipients(ListElement):
         def condition(self):
@@ -64,21 +70,31 @@ class TransferChooseAccounts(LoggedPage, MyHTMLPage):
                 return datetime.now().replace(microsecond=0)
 
             def parse(self, el):
-                self.env['category'] = u'Interne' if any(s in CleanText('.')(el) for s in ['Avoir disponible', 'Solde']) else u'Externe'
+                if any(s in CleanText('.')(el) for s in ['Avoir disponible', 'Solde']) or self.page.is_inner(CleanText('.')(el)):
+                    self.env['category'] = u'Interne'
+                else:
+                    self.env['category'] = u'Externe'
                 if self.env['category'] == u'Interne':
                     _id = Regexp(CleanText('.'), '- (.*?) -')(el)
                     if _id == self.env['account_id']:
                         raise SkipItem()
-                    account = self.page.browser.get_account(_id)
-                    self.env['id'] = _id
-                    self.env['label'] = account.label
-                    self.env['iban'] = account.iban
+                    try:
+                        account = self.page.browser.get_account(_id)
+                        self.env['id'] = _id
+                        self.env['label'] = account.label
+                        self.env['iban'] = account.iban
+                    except AccountNotFound:
+                        self.env['id'] = Regexp(CleanText('.'), '- (.*?) -')(el).replace(' ', '')
+                        self.env['iban'] = NotAvailable
+                        label = CleanText('.')(el).split('-')
+                        self.env['label'] = '%s %s' % (label[0].strip(), label[-1].strip())
                     self.env['bank_name'] = u'La Banque Postale'
+
                 else:
                     self.env['id'] = self.env['iban'] = Regexp(CleanText('.'), '- (.*?) -')(el).replace(' ', '')
                     self.env['label'] = CleanText('.')(el).split('-')[-1].strip()
                     first_part = CleanText('.')(el).split('-')[0].strip()
-                    self.env['bank_name'] = u'La Banque Postale' if first_part == 'CCP' else NotAvailable
+                    self.env['bank_name'] = u'La Banque Postale' if first_part in ['CCP', 'PEL'] else NotAvailable
 
     def init_transfer(self, account_id, recipient_value):
         matched_values = [Attr('.', 'value')(option) for option in self.doc.xpath('//select[@id="donneesSaisie.idxCompteEmetteur"]/option') \
