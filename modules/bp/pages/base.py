@@ -24,6 +24,6 @@ class MyHTMLPage(HTMLPage):
     ENCODING = 'iso-8859-1'
 
     def on_load(self):
-        deconnexion = self.doc.xpath('//iframe[contains(@id, "deconnexion")]')
+        deconnexion = self.doc.xpath('//iframe[contains(@id, "deconnexion")] | //p[@class="txt" and contains(text(), "Session expir")]')
         if deconnexion:
             self.browser.do_login()
