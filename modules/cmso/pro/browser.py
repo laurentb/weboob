@@ -45,6 +45,7 @@ class CmsoProBrowser(LoginBrowser):
     def __init__(self, website, *args, **kwargs):
         super(CmsoProBrowser, self).__init__(*args, **kwargs)
         self.BASEURL = "https://www.%s" % website
+        self.areas = None
 
     def do_login(self):
         self.login.stay_or_go()
@@ -56,11 +57,17 @@ class CmsoProBrowser(LoginBrowser):
                 raise BrowserIncorrectPassword()
             else:
                 raise
-        else:
+        self.fetch_areas()
+
+    @need_login
+    def fetch_areas(self):
+        if self.areas is None:
             self.subscription.go()
 
     @need_login
     def iter_accounts(self):
+        self.fetch_areas()
+
         # Manage multiple areas
         if not self.areas:
             raise BrowserIncorrectPassword("Vous n'avez pas de comptes sur l'espace professionnel de ce site.")
@@ -77,6 +84,8 @@ class CmsoProBrowser(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
+        self.fetch_areas()
+
         if account._history_url.startswith('javascript:'):
             raise NotImplementedError()
 
@@ -107,6 +116,8 @@ class CmsoProBrowser(LoginBrowser):
 
     @need_login
     def iter_investment(self, account):
+        self.fetch_areas()
+
         self.investment.go()
         assert self.investment.is_here()
         for page_account in self.page.iter_accounts():
