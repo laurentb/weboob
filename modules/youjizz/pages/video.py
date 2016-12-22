@@ -43,7 +43,7 @@ class VideoPage(HTMLPage):
             response = self.page.browser.open('https://www.youjizz.com/videos/embed/%s' % real_id)
             data = response.text
 
-            video_file_urls = re.findall(r'"(https://[^",]+\.(?:flv|mp4)(?:\?[^"]*)?)"', data)
+            video_file_urls = re.findall(r'"(https?://[^",]+\.(?:flv|mp4)(?:\?[^"]*)?)"', data)
             if len(video_file_urls) == 0:
                 raise ValueError('Video URL not found')
             elif len(video_file_urls) > 1:
