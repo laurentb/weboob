@@ -147,7 +147,7 @@ class LoginPage(JsonPage):
 class BNPPage(LoggedPage, JsonPage):
     def build_doc(self, text):
         try:
-            return json.loads(text, parse_float=Decimal)
+            return self.response.json(parse_float=Decimal)
         except ValueError:
             raise BrowserUnavailable()
 
