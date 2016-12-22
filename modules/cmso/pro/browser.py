@@ -22,7 +22,6 @@ import datetime
 from dateutil.relativedelta import relativedelta
 from itertools import chain
 
-from weboob.capabilities.bank import AccountNotFound
 from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ServerError
