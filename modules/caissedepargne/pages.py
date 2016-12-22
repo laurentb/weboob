@@ -33,8 +33,7 @@ from weboob.capabilities.bank import Account, Transaction, Investment
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban
-from weboob.exceptions import NoAccountsException
-from weboob.deprecated.browser import BrokenPageError, BrowserUnavailable
+from weboob.exceptions import NoAccountsException, BrowserUnavailable
 
 
 class LoginPage(JsonPage):
@@ -161,10 +160,7 @@ class MessagePage(GarbagePage):
 
 class _LogoutPage(HTMLPage):
     def on_load(self):
-        try:
-            raise BrowserUnavailable(CleanText('//*[@class="messErreur"]')(self.doc))
-        except BrokenPageError:
-            pass
+        raise BrowserUnavailable(CleanText('//*[@class="messErreur"]')(self.doc))
 
 
 class ErrorPage(_LogoutPage):
@@ -173,10 +169,7 @@ class ErrorPage(_LogoutPage):
 
 class UnavailablePage(HTMLPage):
     def on_load(self):
-        try:
-            raise BrowserUnavailable(CleanText('//div[@id="message_error_hs"]')(self.doc))
-        except BrokenPageError:
-            raise BrowserUnavailable()
+        raise BrowserUnavailable(CleanText('//div[@id="message_error_hs"]')(self.doc))
 
 
 class Transaction(FrenchTransaction):
