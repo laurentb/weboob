@@ -18,13 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from cStringIO import StringIO
 from base64 import b64decode
 from logging import error
 import re
 from weboob.tools.json import json
 
-from weboob.deprecated.browser import BrowserUnavailable
-from weboob.deprecated.mech import ClientForm
+from weboob.exceptions import BrowserUnavailable
 from weboob.exceptions import BrowserPasswordExpired
 
 from .base import BasePage
@@ -35,8 +35,8 @@ class LoginPage(BasePage):
     STRANGE_KEY = ["180","149","244","125","115","058","017","071","075","119","167","040","066","083","254","151","212","245","193","224","006","068","139","054","089","083","111","208","105","235","109","030","130","226","155","245","157","044","061","233","036","101","145","103","185","017","126","142","007","192","239","140","133","250","194","222","079","178","048","184","158","158","086","160","001","114","022","158","030","210","008","067","056","026","042","113","043","169","128","051","107","112","063","240","108","003","079","059","053","127","116","084","157","203","244","031","062","012","062","093"]
     strange_map = None
 
-    def on_loaded(self):
-        for td in self.document.getroot().cssselect('td.LibelleErreur'):
+    def on_load(self):
+        for td in self.doc.getroot().cssselect('td.LibelleErreur'):
             if td.text is None:
                 continue
             msg = td.text.strip()
@@ -68,18 +68,9 @@ class LoginPage(BasePage):
         return new_grid
 
     def login(self, login, password):
-        DOMAIN_LOGIN = self.browser.DOMAIN_LOGIN
-        DOMAIN = self.browser.DOMAIN
-
-        url_login = 'https://' + DOMAIN_LOGIN + '/index.html'
-
-        base_url = 'https://' + DOMAIN
-        url = base_url + '//sec/vkm/gen_crypto?estSession=0'
-        headers = {
-                 'Referer': url_login
-                  }
-        request = self.browser.request_class(url, None, headers)
-        infos_data = self.browser.readurl(request)
+        url = self.browser.BASEURL + '//sec/vkm/gen_crypto?estSession=0'
+        headers = {'Referer': 'https://particuliers.societegenerale.fr/index.html'}
+        infos_data = self.browser.open(url, headers=headers).content
 
         infos_data = re.match('^_vkCallback\((.*)\);$', infos_data).group(1)
 
@@ -87,8 +78,9 @@ class LoginPage(BasePage):
 
         infos['grid'] = self.decode_grid(infos)
 
-        url = base_url + '//sec/vkm/gen_ui?modeClavier=0&cryptogramme=' + infos["crypto"]
-        img = Captcha(self.browser.openurl(url), infos)
+        url = self.browser.BASEURL + '//sec/vkm/gen_ui?modeClavier=0&cryptogramme=' + infos["crypto"]
+        content = self.browser.open(url).content
+        img = Captcha(StringIO(content), infos)
 
         try:
             img.build_tiles()
@@ -97,22 +89,20 @@ class LoginPage(BasePage):
             if err.tile:
                 err.tile.display()
 
-        self.browser.select_form('n2g_authentification')
-        self.browser.controls.append(ClientForm.TextControl('text', 'codsec', {'value': ''}))
-        self.browser.controls.append(ClientForm.TextControl('text', 'cryptocvcs', {'value': ''}))
-        self.browser.controls.append(ClientForm.TextControl('text', 'vkm_op', {'value': 'auth'}))
-        self.browser.set_all_readonly(False)
+        form = self.get_form(id='n2g_authentification')
 
         pwd = img.get_codes(password[:6])
         t = pwd.split(',')
         newpwd = ','.join([t[self.strange_map[j]] for j in xrange(6)])
 
-        self.browser['codcli'] = login.encode('iso-8859-1')
-        self.browser['user_id'] = login.encode('iso-8859-1')
-        self.browser['codsec'] = newpwd
-        self.browser['cryptocvcs'] = infos["crypto"].encode('iso-8859-1')
-        self.browser.form.action = 'https://particuliers.secure.societegenerale.fr//acces/authlgn.html'
-        self.browser.submit(nologin=True)
+        form['codcli'] = login.encode('iso-8859-1')
+        form['user_id'] = login.encode('iso-8859-1')
+        form['codsec'] = newpwd
+        form['cryptocvcs'] = infos["crypto"].encode('iso-8859-1')
+        form['vkm_op'] = 'auth'
+        form.url = 'https://particuliers.secure.societegenerale.fr//acces/authlgn.html'
+        del form['button']
+        form.submit()
 
 
 class BadLoginPage(BasePage):
@@ -120,5 +110,5 @@ class BadLoginPage(BasePage):
 
 
 class ReinitPasswordPage(BasePage):
-    def on_loaded(self):
+    def on_load(self):
         raise BrowserPasswordExpired()

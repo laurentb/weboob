@@ -22,7 +22,7 @@ import urllib
 import datetime
 from urlparse import parse_qs, urlparse
 from lxml.etree import XML
-from cStringIO import StringIO
+from lxml.html import fromstring
 from decimal import Decimal, InvalidOperation
 import re
 
@@ -30,17 +30,19 @@ from weboob.capabilities.base import empty, NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.contact import Advisor
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.deprecated.browser import BrokenPageError
-from weboob.browser.filters.standard import CleanText, Regexp
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp
+from weboob.browser.pages import LoggedPage
 
 from .base import BasePage
 
 
-class AccountsList(BasePage):
-    LINKID_REGEXP = re.compile(".*ch4=(\w+).*")
+def MyDecimal(*args, **kwargs):
+    kwargs.update(replace_dots=True, default=NotAvailable)
+    return CleanDecimal(*args, **kwargs)
 
-    def on_loaded(self):
-        pass
+
+class AccountsList(LoggedPage, BasePage):
+    LINKID_REGEXP = re.compile(".*ch4=(\w+).*")
 
     TYPES = {u'Compte Bancaire':     Account.TYPE_CHECKING,
              u'Compte Epargne':      Account.TYPE_SAVINGS,
@@ -67,7 +69,7 @@ class AccountsList(BasePage):
                     return False
             return True
 
-        for tr in self.document.getiterator('tr'):
+        for tr in self.doc.getiterator('tr'):
             if 'LGNTableRow' not in tr.attrib.get('class', '').split():
                 continue
 
@@ -77,7 +79,7 @@ class AccountsList(BasePage):
                     a = td.find('a')
                     if a is None:
                         break
-                    account.label = self.parser.tocleanstring(a)
+                    account.label = CleanText('.')(a)
                     account._link_id = a.get('href', '')
                     for pattern, actype in self.TYPES.iteritems():
                         if account.label.startswith(pattern):
@@ -91,22 +93,23 @@ class AccountsList(BasePage):
                         account._link_id = None
 
                 elif td.attrib.get('headers', '') == 'NumeroCompte':
-                    account.id = self.parser.tocleanstring(td).replace(u'\xa0', '')
+                    account.id = CleanText(u'.', replace=[(' ', '')])(td)
 
                 elif td.attrib.get('headers', '') == 'Libelle':
-                    text = self.parser.tocleanstring(td)
+                    text = CleanText('.')(td)
                     if text != '':
                         account.label = text
 
                 elif td.attrib.get('headers', '') == 'Solde':
                     div = td.xpath('./div[@class="Solde"]')
                     if len(div) > 0:
-                        balance = self.parser.tocleanstring(div[0])
+                        balance = CleanText('.')(div[0])
                         if len(balance) > 0 and balance not in ('ANNULEE', 'OPPOSITION'):
                             try:
                                 account.balance = Decimal(FrenchTransaction.clean_amount(balance))
                             except InvalidOperation:
-                                raise BrokenPageError('Unable to parse balance %r' % balance)
+                                self.logger.error('Unable to parse balance %r' % balance)
+                                continue
                             account.currency = account.get_currency(balance)
                         else:
                             account.balance = NotAvailable
@@ -123,9 +126,9 @@ class AccountsList(BasePage):
             yield account
 
 
-class CardsList(BasePage):
+class CardsList(LoggedPage, BasePage):
     def iter_cards(self):
-        for tr in self.document.getiterator('tr'):
+        for tr in self.doc.getiterator('tr'):
             tds = tr.findall('td')
             if len(tds) < 4 or tds[0].attrib.get('class', '') != 'tableauIFrameEcriture1':
                 continue
@@ -167,10 +170,10 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class AccountHistory(BasePage):
+class AccountHistory(LoggedPage, BasePage):
     debit_date =  None
     def get_part_url(self):
-        for script in self.document.getiterator('script'):
+        for script in self.doc.getiterator('script'):
             if script.text is None:
                 continue
 
@@ -186,17 +189,16 @@ class AccountHistory(BasePage):
             # There are no transactions in this kind of account
             return
 
-        is_deferred_card = bool(self.document.xpath(u'//div[contains(text(), "Différé")]'))
+        is_deferred_card = bool(self.doc.xpath(u'//div[contains(text(), "Différé")]'))
         while True:
-            d = XML(self.browser.readurl(url))
-            try:
-                el = self.parser.select(d, '//dataBody', 1, 'xpath')
-            except BrokenPageError:
-                # No transactions.
+            d = XML(self.browser.open(url).content)
+            el = d.xpath('//dataBody')
+            if not el:
                 return
 
-            s = StringIO(unicode(el.text).encode('iso-8859-1'))
-            doc = self.browser.get_document(s)
+            el = el[0]
+            s = unicode(el.text).encode('iso-8859-1')
+            doc = fromstring(s)
 
             for tr in self._iter_transactions(doc):
                 if is_deferred_card and tr.type is Transaction.TYPE_CARD:
@@ -209,23 +211,27 @@ class AccountHistory(BasePage):
 
             url = urlparse(url)
             p = parse_qs(url.query)
-            url = self.browser.buildurl(url.path, n10_nrowcolor=0,
-                                                  operationNumberPG=el.find('operationNumber').text,
-                                                  operationTypePG=el.find('operationType').text,
-                                                  pageNumberPG=el.find('pageNumber').text,
-                                                  idecrit=el.find('idecrit').text or '',
-                                                  sign=p['sign'][0],
-                                                  src=p['src'][0])
+
+            args = {}
+            args['n10_nrowcolor'] = 0
+            args['operationNumberPG'] = el.find('operationNumber').text
+            args['operationTypePG'] = el.find('operationType').text
+            args['pageNumberPG'] = el.find('pageNumber').text
+            args['idecrit'] = el.find('idecrit').text or ''
+            args['sign'] = p['sign'][0]
+            args['src'] = p['src'][0]
+
+            url = '%s?%s' % (url.path, urllib.urlencode(args))
 
     def _iter_transactions(self, doc):
         t = None
-        for i, tr in enumerate(self.parser.select(doc.getroot(), 'tr')):
+        for i, tr in enumerate(doc.xpath('//tr')):
             try:
                 raw = tr.attrib['title'].strip()
             except KeyError:
-                raw = tr.xpath('./td[@headers="Libelle"]//text()')[0].strip()
+                raw = CleanText('./td[@headers="Libelle"]//text()')(tr)
 
-            date = tr.xpath('./td[@headers="Date"]')[0].text.strip()
+            date = CleanText('./td[@headers="Date"]')(tr)
             if date == '':
                 m = re.search(r'(\d+)/(\d+)', raw)
                 if not m:
@@ -253,16 +259,16 @@ class AccountHistory(BasePage):
             yield t
 
     def get_iban(self):
-        return CleanText().filter(self.document.xpath("//font[contains(text(),'IBAN')]/b[1]")[0]).replace(' ', '')
+        return CleanText().filter(self.doc.xpath("//font[contains(text(),'IBAN')]/b[1]")[0]).replace(' ', '')
 
 
 class Invest(object):
     def create_investement(self, cells):
         inv = Investment()
-        inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY])
-        inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE])
+        inv.quantity = MyDecimal('.', replace_dots=True, default=NotAvailable)(cells[self.COL_QUANTITY])
+        inv.unitvalue = MyDecimal('.', replace_dots=True, default=NotAvailable)(cells[self.COL_UNITVALUE])
         inv.unitprice = NotAvailable
-        inv.valuation = self.parse_decimal(cells[self.COL_VALUATION])
+        inv.valuation = MyDecimal('.', replace_dots=True, default=NotAvailable)(cells[self.COL_VALUATION])
         inv.diff = NotAvailable
 
         link = cells[self.COL_LABEL].xpath('a[contains(@href, "CDCVAL=")]')[0]
@@ -274,7 +280,7 @@ class Invest(object):
         return inv
 
 
-class Market(BasePage, Invest):
+class Market(LoggedPage, BasePage, Invest):
     COL_LABEL = 0
     COL_QUANTITY = 1
     COL_UNITPRICE = 2
@@ -282,16 +288,16 @@ class Market(BasePage, Invest):
     COL_DIFF = 4
 
     def iter_investment(self):
-        doc = self.browser.get_document(self.browser.openurl('/brs/fisc/fisca10a.html'), encoding='utf-8')
+        doc = self.browser.open('/brs/fisc/fisca10a.html').page.doc
         num_page = None
         try:
-            num_page = int(self.parser.tocleanstring(doc.xpath(u'.//tr[contains(td[1], "Relevé des plus ou moins values latentes")]/td[2]')[0]).split('/')[1])
+            num_page = int(CleanText('.')(doc.xpath(u'.//tr[contains(td[1], "Relevé des plus ou moins values latentes")]/td[2]')[0]).split('/')[1])
         except IndexError:
             pass
         docs = [doc]
         if num_page:
             for n in range(2, num_page + 1):
-                docs.append(self.browser.get_document(self.browser.openurl('%s%s' % ('/brs/fisc/fisca10a.html?action=12&numPage=', str(n))), encoding='utf-8'))
+                docs.append(self.browser.open('%s%s' % ('/brs/fisc/fisca10a.html?action=12&numPage=', str(n))).page.doc)
 
         for doc in docs:
             # There are two different tables possible depending on the market account type.
@@ -304,25 +310,25 @@ class Market(BasePage, Invest):
                 inv.label = unicode(cells[self.COL_LABEL].xpath('.//span')[0].attrib['title'].split(' - ')[0])
                 inv.code = unicode(cells[self.COL_LABEL].xpath('.//span')[0].attrib['title'].split(' - ')[1])
                 if is_detailed:
-                    inv.quantity = self.parse_decimal(tr.xpath('./following-sibling::tr/td[2]')[0])
-                    inv.unitprice = self.parse_decimal(tr.xpath('./following-sibling::tr/td[3]')[1])
-                    inv.unitvalue = self.parse_decimal(tr.xpath('./following-sibling::tr/td[3]')[0])
-                    inv.valuation = self.parse_decimal(tr.xpath('./following-sibling::tr/td[4]')[0])
-                    inv.diff = self.parse_decimal(tr.xpath('./following-sibling::tr/td[5]')[0])
+                    inv.quantity = MyDecimal('.')(tr.xpath('./following-sibling::tr/td[2]')[0])
+                    inv.unitprice = MyDecimal('.', replace_dots=True)(tr.xpath('./following-sibling::tr/td[3]')[1])
+                    inv.unitvalue = MyDecimal('.', replace_dots=True)(tr.xpath('./following-sibling::tr/td[3]')[0])
+                    inv.valuation = MyDecimal('.')(tr.xpath('./following-sibling::tr/td[4]')[0])
+                    inv.diff = MyDecimal('.')(tr.xpath('./following-sibling::tr/td[5]')[0])
                 else:
-                    inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY])
-                    inv.diff = self.parse_decimal(cells[self.COL_DIFF])
-                    inv.unitprice = self.parse_decimal(cells[self.COL_UNITPRICE].xpath('.//tr[1]/td[2]')[0])
-                    inv.unitvalue = self.parse_decimal(cells[self.COL_VALUATION].xpath('.//tr[1]/td[2]')[0])
-                    inv.valuation = self.parse_decimal(cells[self.COL_VALUATION].xpath('.//tr[2]/td[2]')[0])
+                    inv.quantity = MyDecimal('.')(cells[self.COL_QUANTITY])
+                    inv.diff = MyDecimal('.')(cells[self.COL_DIFF])
+                    inv.unitprice = MyDecimal('.')(cells[self.COL_UNITPRICE].xpath('.//tr[1]/td[2]')[0])
+                    inv.unitvalue = MyDecimal('.')(cells[self.COL_VALUATION].xpath('.//tr[1]/td[2]')[0])
+                    inv.valuation = MyDecimal('.')(cells[self.COL_VALUATION].xpath('.//tr[2]/td[2]')[0])
 
                 yield inv
 
 
-class LifeInsurance(BasePage):
+class LifeInsurance(LoggedPage, BasePage):
     def get_error(self):
         try:
-            return self.document.xpath("//div[@class='net2g_asv_error_full_page']")[0].text.strip()
+            return self.doc.xpath("//div[@class='net2g_asv_error_full_page']")[0].text.strip()
         except IndexError:
             return super(LifeInsurance, self).get_error()
 
@@ -334,7 +340,7 @@ class LifeInsuranceInvest(LifeInsurance, Invest):
     COL_VALUATION = 3
 
     def iter_investment(self):
-        for tr in self.document.xpath("//table/tbody/tr[starts-with(@class, 'net2g_asv_tableau_ligne_')]"):
+        for tr in self.doc.xpath("//table/tbody/tr[starts-with(@class, 'net2g_asv_tableau_ligne_')]"):
             cells = tr.findall('td')
 
             inv = self.create_investement(cells)
@@ -351,7 +357,7 @@ class LifeInsuranceHistory(LifeInsurance):
     COL_STATUS = 3
 
     def iter_transactions(self):
-        for tr in self.document.xpath("//table/tbody/tr[starts-with(@class, 'net2g_asv_tableau_ligne_')]"):
+        for tr in self.doc.xpath("//table/tbody/tr[starts-with(@class, 'net2g_asv_tableau_ligne_')]"):
             cells = tr.findall('td')
 
             link = cells[self.COL_LABEL].xpath('a')[0]
@@ -378,13 +384,13 @@ class LifeInsuranceHistory(LifeInsurance):
 
     def set_date(self, trans):
         """fetch date and vdate from another page"""
-        form = self.document.xpath('//form[@id="operationForm"]')[0]
+        form = self.doc.xpath('//form[@id="operationForm"]')[0]
 
         # go to the page containing the dates
         data = dict((item.name, item.value or '') for item in form.inputs)
         data['a100_asv_action'] = 'detail'
         data['a100_asv_indexOp'] = trans._temp_id
-        doc = self.browser.get_document(self.browser.openurl('/asv/AVI/asvcns21c.html', urllib.urlencode(data)), encoding='utf-8')
+        doc = self.browser.open('/asv/AVI/asvcns21c.html', data=data).page.doc
 
         # process the data
         date_xpath = '//td[@class="net2g_asv_suiviOperation_element1"]/following-sibling::td'
@@ -402,9 +408,9 @@ class LifeInsuranceHistory(LifeInsurance):
             return NotAvailable
 
 
-class ListRibPage(BasePage):
+class ListRibPage(LoggedPage, BasePage):
     def get_rib_url(self, account):
-        for div in self.document.xpath('//table//td[@class="fond_cellule"]//div[@class="tableauBodyEcriture1"]//table//tr'):
+        for div in self.doc.xpath('//table//td[@class="fond_cellule"]//div[@class="tableauBodyEcriture1"]//table//tr'):
             if account.id == CleanText().filter(div.xpath('./td[2]//div/div')).replace(' ', ''):
                 href = CleanText().filter(div.xpath('./td[4]//a/@href'))
                 m = re.search("javascript:windowOpenerRib\('(.*?)'(.*)\)", href)
@@ -414,10 +420,10 @@ class ListRibPage(BasePage):
 
 class AdvisorPage(BasePage):
     def get_advisor(self):
-        fax = CleanText('//div[contains(text(), "Fax")]/following-sibling::div[1]', replace=[(' ', '')])(self.document)
-        agency = CleanText('//div[contains(@class, "agence")]/div[last()]')(self.document)
-        address = CleanText('//div[contains(text(), "Adresse")]/following-sibling::div[1]')(self.document)
-        for div in self.document.xpath('//div[div[text()="Contacter mon conseiller"]]'):
+        fax = CleanText('//div[contains(text(), "Fax")]/following-sibling::div[1]', replace=[(' ', '')])(self.doc)
+        agency = CleanText('//div[contains(@class, "agence")]/div[last()]')(self.doc)
+        address = CleanText('//div[contains(text(), "Adresse")]/following-sibling::div[1]')(self.doc)
+        for div in self.doc.xpath('//div[div[text()="Contacter mon conseiller"]]'):
             a = Advisor()
             a.name = CleanText('./div[2]')(div)
             a.phone = Regexp(CleanText(u'./following-sibling::div[div[contains(text(), "Téléphone")]][1]/div[last()]', replace=[(' ', '')]), '([+\d]+)')(div)

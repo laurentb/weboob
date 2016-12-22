@@ -21,19 +21,20 @@
 from decimal import Decimal
 
 from weboob.capabilities.base import NotAvailable
-from weboob.deprecated.browser import Page as _BasePage
+from weboob.browser.pages import HTMLPage
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.browser.filters.standard import CleanText
 
 
-class BasePage(_BasePage):
+class BasePage(HTMLPage):
     def get_error(self):
         try:
-            return self.document.xpath('//span[@class="error_msg"]')[0].text.strip()
+            return self.doc.xpath('//span[@class="error_msg"]')[0].text.strip()
         except IndexError:
             return None
 
     def parse_decimal(self, td):
-        value = self.parser.tocleanstring(td)
+        value = CleanText('.')(td)
         if value:
             return Decimal(FrenchTransaction.clean_amount(value))
         else:
