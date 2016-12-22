@@ -17,20 +17,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-from lxml.html import etree
-from decimal import Decimal
+from urllib import urlencode
 import re
 from time import sleep
 from datetime import date
+
 from dateutil.relativedelta import relativedelta
+from lxml.html import etree
 
-from mechanize import FormNotFoundError
-
-from weboob.browser.filters.standard import CleanText
+from weboob.browser.filters.standard import CleanText, CleanDecimal
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.json import json
 from weboob.exceptions import ActionNeeded
@@ -56,7 +54,7 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class PeaHistoryPage(Page):
+class PeaHistoryPage(LoggedPage, HTMLPage):
     COL_LABEL = 0
     COL_UNITVALUE = 1
     COL_QUANTITY = 3
@@ -65,14 +63,14 @@ class PeaHistoryPage(Page):
     COL_PERF = 6
     COL_WEIGHT = 7
     def get_investments(self):
-        for line in self.document.xpath('//table[@id="t_intraday"]/tbody/tr'):
+        for line in self.doc.xpath('//table[@id="t_intraday"]/tbody/tr'):
             if line.find_class('categorie') or line.find_class('detail') or line.find_class('detail02'):
                 continue
 
             cols = line.findall('td')
 
             inv = Investment()
-            inv.label = self.parser.tocleanstring(cols[self.COL_LABEL])
+            inv.label = CleanText(None).filter(cols[self.COL_LABEL])
             link = cols[self.COL_LABEL].xpath('./a[contains(@href, "cdReferentiel")]')[0]
             inv.id = unicode(re.search('cdReferentiel=(.*)', link.attrib['href']).group(1))
             inv.code = re.match('^[A-Z]+[0-9]+(.*)$', inv.id).group(1)
@@ -84,15 +82,15 @@ class PeaHistoryPage(Page):
             if diff == "-":
                 inv.diff = NotAvailable
             else:
-                inv.diff = Decimal(Transaction.clean_amount(diff))
+                inv.diff = CleanDecimal(None).filter(diff)
 
             yield inv
 
     def parse_decimal(self, string):
-        value = Transaction.clean_amount(self.parser.tocleanstring(string))
-        if value == '-':
+        string = CleanText(None).filter(string)
+        if string == '-':
             return NotAvailable
-        return Decimal(value)
+        return CleanDecimal(None, default=NotAvailable).filter(string)
 
     def select_period(self):
         return True
@@ -101,7 +99,7 @@ class PeaHistoryPage(Page):
         return iter([])
 
 
-class InvestmentHistoryPage(Page):
+class InvestmentHistoryPage(LoggedPage, HTMLPage):
     COL_LABEL = 0
     COL_QUANTITY = 1
     COL_UNITVALUE = 2
@@ -111,14 +109,15 @@ class InvestmentHistoryPage(Page):
     COL_UNITPRICE = 6
     COL_PERF = 7
     COL_PERF_PERCENT = 8
+
     def get_investments(self):
-        for line in self.document.xpath('//table[@id="tableau_support"]/tbody/tr'):
+        for line in self.doc.xpath('//table[@id="tableau_support"]/tbody/tr'):
             cols = line.findall('td')
 
             inv = Investment()
             inv.id = unicode(re.search('cdReferentiel=(.*)', cols[self.COL_LABEL].find('a').attrib['href']).group(1))
             inv.code = re.match('^[A-Z]+[0-9]+(.*)$', inv.id).group(1)
-            inv.label = self.parser.tocleanstring(cols[self.COL_LABEL])
+            inv.label = CleanText(None).filter(cols[self.COL_LABEL])
             inv.quantity = self.parse_decimal(cols[self.COL_QUANTITY])
             inv.unitprice = self.parse_decimal(cols[self.COL_UNITPRICE])
             inv.unitvalue = self.parse_decimal(cols[self.COL_UNITVALUE])
@@ -128,54 +127,52 @@ class InvestmentHistoryPage(Page):
             yield inv
 
     def parse_decimal(self, string):
-        value = self.parser.tocleanstring(string)
-        if value == '-':
+        string = CleanText(None).filter(string)
+        if string == '-':
             return NotAvailable
-        return Decimal(Transaction.clean_amount(value))
+        return CleanDecimal(None, replace_dots=True).filter(string)
 
     def select_period(self):
         self.browser.location(self.url.replace('portefeuille-assurance-vie.jsp', 'operations/assurance-vie-operations.jsp'))
+        assert isinstance(self.browser.page, type(self))
 
         try:
-            self.browser.select_form(name='OperationsForm')
-        except FormNotFoundError:
+            form = self.browser.page.get_form(name='OperationsForm')
+        except FormNotFound:
             return False
-        self.browser.set_all_readonly(False)
-        self.browser['dateDebut'] = (date.today() - relativedelta(years=1)).strftime('%d/%m/%Y')
-        self.browser['nbrEltsParPage'] = '100'
-        self.browser.submit()
+        form['dateDebut'] = (date.today() - relativedelta(years=1)).strftime('%d/%m/%Y')
+        form['nbrEltsParPage'] = '100'
+        form.submit()
         return True
 
     def get_operations(self, account):
-        for tr in self.document.xpath('//table[@id="tableau_histo_opes"]/tbody/tr'):
+        for tr in self.doc.xpath('//table[@id="tableau_histo_opes"]/tbody/tr'):
             tds = tr.findall('td')
 
             t = Transaction()
-            t.parse(date=self.parser.tocleanstring(tds[1]),
-                    raw=self.parser.tocleanstring(tds[2]))
-            t.set_amount(self.parser.tocleanstring(tds[-1]))
+            t.parse(date=CleanText(None).filter(tds[1]),
+                    raw=CleanText(None).filter(tds[2]))
+            t.amount = CleanDecimal(None, replace_dots=True, default=0).filter(tds[-1])
             yield t
 
 
-class AccountHistoryPage(Page):
+class AccountHistoryPage(LoggedPage, HTMLPage):
     def get_investments(self):
         return iter([])
 
     def select_period(self):
-        self.browser.select_form(name='ConsultationHistoriqueOperationsForm')
-        self.browser.set_all_readonly(False)
-        self.browser['dateRechercheDebut'] = (date.today() - relativedelta(years=1)).strftime('%d/%m/%Y')
-        self.browser['nbrEltsParPage'] = '100'
-        self.browser.submit()
+        form = self.get_form(name='ConsultationHistoriqueOperationsForm')
+        form['dateRechercheDebut'] = (date.today() - relativedelta(years=1)).strftime('%d/%m/%Y')
+        form['nbrEltsParPage'] = '100'
+        form.submit()
 
         return True
-
 
     def get_operations(self, account):
         """history, see http://docs.weboob.org/api/capabilities/bank.html?highlight=transaction#weboob.capabilities.bank.Transaction"""
 
         # TODO need to rewrite that with FrenchTransaction class http://tinyurl.com/6lq4r9t
-        tables = self.document.findall(".//*[@id='tabHistoriqueOperations']/tbody/tr")
+        tables = self.doc.findall(".//*[@id='tabHistoriqueOperations']/tbody/tr")
 
         if len(tables) == 0:
             return
@@ -198,12 +195,12 @@ class AccountHistoryPage(Page):
             else:
                 amount = amount[1]
 
-            operation.set_amount(amount)
+            operation.amount = CleanDecimal(None).filter(amount)
 
             yield operation
 
 
-class CardHistoryPage(Page):
+class CardHistoryPage(LoggedPage, HTMLPage):
     def get_investments(self):
         return iter([])
 
@@ -211,27 +208,31 @@ class CardHistoryPage(Page):
         return True
 
     def get_operations(self, account):
-        for op in self.document.xpath('//table[@id="tableauEncours"]/tbody/tr'):
-            rdate =  self.parser.tocleanstring(op.xpath('./td[1]')[0])
-            date =   self.parser.tocleanstring(op.xpath('./td[2]')[0])
-            raw =    self.parser.tocleanstring(op.xpath('./td[3]')[0])
-            credit = self.parser.tocleanstring(op.xpath('./td[4]')[0])
-            debit =  self.parser.tocleanstring(op.xpath('./td[5]')[0])
+        cleaner = CleanText(None).filter
+        for op in self.doc.xpath('//table[@id="tableauEncours"]/tbody/tr'):
+            rdate =  cleaner(op.xpath('./td[1]')[0])
+            date =   cleaner(op.xpath('./td[2]')[0])
+            raw =    cleaner(op.xpath('./td[3]')[0])
+            credit = cleaner(op.xpath('./td[4]')[0])
+            debit =  cleaner(op.xpath('./td[5]')[0])
 
             tr = Transaction()
             tr.parse(date=date, raw=raw)
             tr.rdate = tr.parse_date(rdate)
             tr.type = tr.TYPE_CARD
-            tr.set_amount(credit, debit)
+            if credit:
+                tr.amount = CleanDecimal(None, replace_dots=True).filter(credit)
+            elif debit:
+                tr.amount = -abs(CleanDecimal(None, replace_dots=True).filter(debit))
             yield tr
 
 
-class AccountsList(Page):
-    def on_loaded(self):
-        warn = self.document.xpath('//div[@id="message_renouvellement_mot_passe"] | \
-                                    //span[contains(text(), "Votre identifiant change")] | \
-                                    //span[contains(text(), "Nouveau mot de passe")] | \
-                                    //span[contains(text(), "Renouvellement de votre mot de passe")]')
+class AccountsList(LoggedPage, HTMLPage):
+    def on_load(self):
+        warn = self.doc.xpath('//div[@id="message_renouvellement_mot_passe"] | \
+                               //span[contains(text(), "Votre identifiant change")] | \
+                               //span[contains(text(), "Nouveau mot de passe")] | \
+                               //span[contains(text(), "Renouvellement de votre mot de passe")]')
         if len(warn) > 0:
             raise ActionNeeded(warn[0].text)
 
@@ -239,7 +240,7 @@ class AccountsList(Page):
 
     def load_async(self, time):
         # load content of loading divs.
-        lst = self.document.xpath('//input[@type="hidden" and starts-with(@id, "asynch")]')
+        lst = self.doc.xpath('//input[@type="hidden" and starts-with(@id, "asynch")]')
         if len(lst) > 0:
             params = {}
             for i, input in enumerate(lst):
@@ -247,11 +248,11 @@ class AccountsList(Page):
                 params['div%s' % i] = input.attrib['value']
             params['time'] = time
 
-            r = self.browser.openurl(self.browser.buildurl('/AsynchAjax', **params))
-            data = json.load(r)
+            r = self.browser.open('/AsynchAjax?%s' % urlencode(params))
+            data = json.loads(r.content)
 
             for i, d in enumerate(data['data']):
-                div = self.document.xpath('//div[@id="%s"]' % d['key'])[0]
+                div = self.doc.xpath('//div[@id="%s"]' % d['key'])[0]
                 html = d['flux']
                 div.clear()
                 div.attrib['id'] = d['key'] # needed because clear removes also all attributes
@@ -262,11 +263,11 @@ class AccountsList(Page):
                 return self.load_async(time)
 
     def need_reload(self):
-        form = self.document.xpath('//form[@name="InformationsPersonnellesForm"]')
+        form = self.doc.xpath('//form[@name="InformationsPersonnellesForm"]')
         return len(form) > 0
 
     def need_sms(self):
-        return len(self.document.xpath('//div[@id="aidesecuforte"]'))
+        return len(self.doc.xpath('//div[@id="aidesecuforte"]'))
 
     ACCOUNT_TYPES = {'mes-comptes/compte-courant/consulter-situation': Account.TYPE_CHECKING,
                      'mes-comptes/compte-courant/carte-bancaire':      Account.TYPE_CARD,
@@ -279,7 +280,7 @@ class AccountsList(Page):
         accounts = []
         account = None
 
-        for cpt in self.document.xpath('//a[@class="synthese_id_compte" or @class="synthese_carte_differe"]'):
+        for cpt in self.doc.xpath('//a[@class="synthese_id_compte" or @class="synthese_carte_differe"]'):
             url_to_parse = cpt.xpath('@href')[0].replace("\n", "")  # link
             # account._link_id = lien vers historique d'un compte (courant ou livret)
             if '/mes-comptes/livret/' in url_to_parse:
@@ -295,14 +296,14 @@ class AccountsList(Page):
                 continue
 
             account = Account()
-            account.id = self.parser.tocleanstring(number[0]).replace(u'N°', '')
+            account.id = CleanText(None).filter(number[0]).replace(u'N°', '')
 
             try:
-                balance = self.parser.tocleanstring(cpt.xpath('./span[contains(@class, "synthese_solde")]')[0])
+                balance = CleanText(None).filter(cpt.xpath('./span[contains(@class, "synthese_solde")]')[0])
             except IndexError:
                 continue
 
-            account.balance = Decimal(Transaction.clean_amount(balance))
+            account.balance = CleanDecimal(None, replace_dots=True).filter(balance)
             account.currency = account.get_currency(balance)
             account._link_id = link_id
             account._card_links = []
@@ -322,5 +323,5 @@ class AccountsList(Page):
         return iter(accounts)
 
 
-class GlobalAccountsList(Page):
+class GlobalAccountsList(LoggedPage, HTMLPage):
     pass

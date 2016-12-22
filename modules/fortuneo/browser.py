@@ -18,9 +18,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import re
-
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.browser import LoginBrowser, URL, need_login
+from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages.login import LoginPage
 from .pages.accounts_list import GlobalAccountsList, AccountsList, AccountHistoryPage, CardHistoryPage, \
@@ -29,96 +28,76 @@ from .pages.accounts_list import GlobalAccountsList, AccountsList, AccountHistor
 __all__ = ['Fortuneo']
 
 
-class Fortuneo(Browser):
-    DOMAIN_LOGIN = 'www.fortuneo.fr'
-    DOMAIN = 'www.fortuneo.fr'
-    PROTOCOL = 'https'
-    CERTHASH = ['4ff0301115f80f18c4e81a136ca28829b46d416d404174945b1ae48abd0634e2', '608d63d9ef394c13a64b71ed55e4564491873498dd62540a6b7f7b88f251be30']
-    ENCODING = None # refer to the HTML encoding
-    PAGES = {
-            '.*identification\.jsp.*':                                                         LoginPage,
+class Fortuneo(LoginBrowser):
+    BASEURL = 'https://mabanque.fortuneo.fr'
+    #CERTHASH = ['4ff0301115f80f18c4e81a136ca28829b46d416d404174945b1ae48abd0634e2', '608d63d9ef394c13a64b71ed55e4564491873498dd62540a6b7f7b88f251be30']
+    login_page = URL(r'.*identification\.jsp.*', LoginPage)
 
-            '.*prive/default\.jsp.*':                                                          AccountsList,
-            '.*/prive/mes-comptes/synthese-mes-comptes\.jsp':                                  AccountsList,
-            '.*/prive/mes-comptes/synthese-globale/synthese-mes-comptes\.jsp':                 GlobalAccountsList,
+    accounts_page = URL(r'.*prive/default\.jsp.*',
+                        r'.*/prive/mes-comptes/synthese-mes-comptes\.jsp',
+                        AccountsList)
+    global_accounts = URL(r'.*/prive/mes-comptes/synthese-globale/synthese-mes-comptes\.jsp', GlobalAccountsList)
 
-            '.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp.*':           AccountHistoryPage,
-            '.*/prive/mes-comptes/compte-courant/consulter-situation/consulter-solde\.jsp.*':   AccountHistoryPage,
-            '.*/prive/mes-comptes/compte-courant/carte-bancaire/encours-debit-differe\.jsp.*':  CardHistoryPage,
-            '.*/prive/mes-comptes/compte-titres-.*':                                            PeaHistoryPage,
-            '.*/prive/mes-comptes/assurance-vie.*':                                             InvestmentHistoryPage,
-            '.*/prive/mes-comptes/pea.*':                                                       PeaHistoryPage,
-            '.*/prive/mes-comptes/compte-especes.*':                                            AccountHistoryPage,
-            }
+    account_history = URL(r'.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp.*',
+                          r'.*/prive/mes-comptes/compte-courant/consulter-situation/consulter-solde\.jsp.*',
+                          r'.*/prive/mes-comptes/compte-especes.*',
+                          AccountHistoryPage)
+    card_history = URL(r'.*/prive/mes-comptes/compte-courant/carte-bancaire/encours-debit-differe\.jsp.*', CardHistoryPage)
+    pea_history = URL(r'.*/prive/mes-comptes/compte-titres-.*', r'.*/prive/mes-comptes/pea.*', PeaHistoryPage)
+    invest_history = URL(r'.*/prive/mes-comptes/assurance-vie.*', InvestmentHistoryPage)
 
-    def __init__(self, *args, **kwargs):
-        Browser.__init__(self, *args, **kwargs)
-
-    def home(self):
-        """main page (login)"""
-
-        self.login()
-
-    def is_logged(self):
-        """Return True if we are logged on website"""
-
-        return self.page is not None and not self.is_on_page(LoginPage)
-
-    def login(self):
-        """Login to the website.
-        This function is called when is_logged() returns False and the
-        password attribute is not None."""
-
+    def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
-        if not self.is_on_page(LoginPage):
-            self.location('https://' + self.DOMAIN_LOGIN + '/fr/identification.jsp', no_login=True)
+        if not self.login_page.is_here():
+            self.location('/fr/identification.jsp')
 
         self.page.login(self.username, self.password)
 
-        if self.is_on_page(LoginPage):
+        if self.login_page.is_here():
             raise BrowserIncorrectPassword()
 
-        m = re.match('https://(.*?fr)', self.page.url)
-        if m:
-            self.DOMAIN_LOGIN = m.group(1)
+        self.location('/fr/prive/mes-comptes/synthese-mes-comptes.jsp')
 
-        self.location('https://' + self.DOMAIN_LOGIN + '/fr/prive/mes-comptes/synthese-mes-comptes.jsp')
-
-        if self.is_on_page(AccountsList) and self.page.need_reload():
+        if self.accounts_page.is_here() and self.page.need_reload():
             self.location('/ReloadContext?action=1&')
-        elif self.is_on_page(AccountsList) and self.page.need_sms():
+        elif self.accounts_page.is_here() and self.page.need_sms():
             raise BrowserIncorrectPassword('Authentification with sms is not supported')
 
+    @need_login
     def get_investments(self, account):
-        self.location('https://' + self.DOMAIN_LOGIN + account._link_id)
+        self.location(account._link_id)
 
         return self.page.get_investments()
 
+    @need_login
     def get_history(self, account):
-        self.location('https://' + self.DOMAIN_LOGIN + account._link_id)
+        self.location(account._link_id)
 
         if self.page.select_period():
             return self.page.get_operations(account)
 
         return iter([])
 
+    @need_login
     def get_coming(self, account):
         for cb_link in account._card_links:
-            self.location('https://' + self.DOMAIN_LOGIN + cb_link)
+            self.location(cb_link)
 
             for tr in self.page.get_operations(account):
                 yield tr
 
+    @need_login
     def get_accounts_list(self):
         """accounts list"""
 
-        if not self.is_on_page(AccountsList):
-            self.location('https://' + self.DOMAIN_LOGIN + '/fr/prive/mes-comptes/synthese-mes-comptes.jsp')
+        if not self.accounts_page.is_here():
+            self.location('/fr/prive/mes-comptes/synthese-mes-comptes.jsp')
 
         return self.page.get_list()
 
+    @need_login
     def get_account(self, id):
         """Get an account from its ID"""
 

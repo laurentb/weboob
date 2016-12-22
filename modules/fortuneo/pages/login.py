@@ -20,22 +20,22 @@
 
 #from logging import error
 
-from weboob.deprecated.browser import Page, BrowserUnavailable
+from weboob.browser.pages import HTMLPage
+from weboob.browser.filters.standard import CleanText
+from weboob.exceptions import BrowserUnavailable
 
 
-class LoginPage(Page):
+class LoginPage(HTMLPage):
     def login(self, login, passwd):
-        msgb = self.document.xpath(".//*[@id='message_client']/text()")
-        msga = ''.join(msgb)
-        msg = msga.strip("\n")
+        msg = CleanText(".//*[@id='message_client']/text()")(self.doc)
 
         if "maintenance" in msg:
             raise BrowserUnavailable(msg)
 
-        self.browser.select_form(name="acces_identification")
-        self.browser['login'] = login.encode('utf-8')
-        self.browser['passwd'] = passwd.encode('utf-8')
-        self.browser.submit(nologin=True)
+        form = self.get_form(name="acces_identification")
+        form['login'] = login.encode('utf-8')
+        form['passwd'] = passwd.encode('utf-8')
+        form.submit()
 
 
 # vim:ts=4:sw=4
