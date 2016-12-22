@@ -36,7 +36,7 @@ class AXABanqueModule(Module, CapBank):
     VERSION = '1.2'
     DESCRIPTION = u'AXA Banque'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label=u'N° de client', regexp='\d+', masked=False),
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Code', regexp='\d+'))
     BROWSER = AXABanque
 
