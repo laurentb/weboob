@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import json
 import re, requests, base64, math, random
 from decimal import Decimal
 from cStringIO import StringIO
@@ -25,6 +24,7 @@ from urllib import urlencode
 from datetime import datetime, timedelta, date
 
 from weboob.capabilities import NotAvailable
+from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, Transfer
 from weboob.browser.elements import method, ListElement, TableElement, ItemElement, SkipItem
 from weboob.exceptions import ParseError
@@ -35,7 +35,6 @@ from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, Da
                                             TableCell, Eval
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 
 
@@ -626,13 +625,14 @@ class HomePage(LoggedPage, HTMLPage):
 
 class TransferPage(LoggedPage, HTMLPage):
     def on_load(self):
-        if '"msgErreur"' in self.text:
-            response = json.loads(self.text)
-            raise TransferError(response['msgErreur'])
+        # This aims to track input errors.
+        script_error = CleanText(u"//script[contains(text(), 'if (\"true\"===\"true\")')]")(self.doc)
+        if script_error:
+            raise TransferError(re.search(u'\.html\("(.*?)"\)', script_error).group(1))
 
     def can_transfer(self, account_transfer_id):
-        for option in self.doc.xpath('//select[@id="id_lstCptDebitablesVO"]/option'):
-            if account_transfer_id in CleanText('.', replace=[(' ', '')])(option):
+        for div in self.doc.xpath('//div[input[@id="indexCompteEmetteur"]]//div[@class="infoCompte" and not(@title)]'):
+            if account_transfer_id in CleanText('.', replace=[(' ', '')])(div):
                 return True
         return False
 
@@ -643,77 +643,77 @@ class TransferPage(LoggedPage, HTMLPage):
         else:
             raise TransferError("account %s not found" % account_id)
 
-    def transfer(self, account, recipient, amount, reason):
-        form = self.get_form(id='formclient')
-        form.url = '/outil/UWVS/Accueil/verificationParametres'
-        form['montant'] = amount
-        form['lstCptDebitablesVO'] = self.get_account_index('id_lstCptDebitablesVO', account._transfer_id)
-        if recipient.category == u'Interne':
-            form['lstCptCreditablesVO'] = self.get_account_index('id_lstCptCreditablesVO', recipient.id)
-        else:
-            form['lstCptRibPreEnrVIPVO'] = self.get_account_index('lstCptRIBVIPVO', recipient.id)
-            form['benef'] = recipient.label
-            form['typeCptBenef'] = 'R'
-        if reason:
-            form['libEmetteur'] = reason
-            form['libBenef'] = reason
+    def choose_recip(self, recipient):
+        form = self.get_form(id='formulaire')
+        form['indexCompteDestinataire'] = self.get_value(recipient.id, 'recipient')
         form.submit()
 
-    def confirm(self, passwd):
-        try:
-            vk = LCLVirtKeyboard(self)
-        except VirtKeyboardError as err:
-            self.logger.exception(err)
-        password = vk.get_string_code(passwd)
+    def transfer(self, amount, reason):
+        form = self.get_form(id='formulaire')
+        form['libMontant'] = amount
+        form['motifVirement'] = reason
+        form.submit()
 
-        for script in self.doc.findall("//script"):
-            if script.text is None or len(script.text) == 0:
-                continue
-            m = re.search('myXOR\(\$\("#postClavier"\).val\(\), (\d)', script.text)
-            if m:
-                seed = int(m.group(1))
-                break
-        form = self.get_form(id='mainform')
-        form['postClavier'] = base64.b64encode(myXOR(password, seed))
+    def confirm(self):
+        form = self.get_form(id='formulaire')
+        form.submit()
+
+    def get_value(self, _id, value_type):
+        for div in self.doc.xpath('//div[@onclick]'):
+            if _id in CleanText('.//div[not(@title)]', replace=[(' ', '')])(div):
+                return Regexp(Attr('.', 'onclick'), '(\d)')(div)
+        raise TransferError('Could not find %s account.' % value_type)
+
+    def choose_origin(self, account_transfer_id):
+        form = self.get_form()
+        form['indexCompteEmetteur'] = self.get_value(account_transfer_id, 'origin')
         form.submit()
 
     @method
     class iter_recipients(ListElement):
-        item_xpath = '//select[@id="id_lstCptCreditablesVO"]/option'
+        item_xpath = '//div[@id="listeDestinataires"]//div[@class="pointeur cardCompte"]'
 
         class Item(ItemElement):
             klass = Recipient
             validate = lambda self, obj: self.obj_id(self) != self.env['account_transfer_id']
 
-            obj_id = CleanText(Regexp(CleanText('.'), ' (\d+ \d+[A-Z]+) - - -'), replace=[(' ', '')])
-            obj_label = Regexp(CleanText('.'), u'(.*?) \d{5}')
-            obj_bank_name = u'LCL'
-            obj_category = u'Interne'
-            obj_iban = NotAvailable
+            obj_id = CleanText('./div[@class="infoCompte" and not(@title)]', replace=[(' ', '')])
+            obj_label = CleanText('./div[1]')
+            obj_bank_name = Env('bank_name')
+            obj_category = Env('category')
+            obj_iban = Env('iban')
 
             def obj_enabled_at(self):
                 return datetime.now().replace(microsecond=0)
 
-    def check_data_consistency(self, account, recipient, amount, reason, offset=0):
+            def condition(self):
+                return len(self.el.xpath('./div')) > 1
+
+            def parse(self, el):
+                if bool(CleanText('./div[@id="soldeEurosCompte"]')(self)):
+                    self.env['category'] = u'Interne'
+                    self.env['iban'] = find_object(self.page.browser.get_accounts_list(), _transfer_id=self.obj_id(self)).iban
+                    self.env['bank_name'] = u'LCL'
+                else:
+                    self.env['category'] = u'Externe'
+                    self.env['iban'] = self.obj_id(self)
+                    self.env['bank_name'] = NotAvailable
+
+    def check_data_consistency(self, account, recipient, amount, reason):
         try:
-            for index, tr in enumerate(self.doc.xpath('//table[has-class("recap")]/tr[@class="recapLigne"]')):
-                if index == 0 + offset:
-                    assert CleanDecimal('./td[@class="recapValeur"]', replace_dots=True)(tr) == amount
-                elif index == 1 + offset:
-                    assert account._transfer_id in CleanText('./td[@class="recapValeur"]', replace=[(' ', '')])(tr)
-                elif index == 2 + offset and recipient.category == u'Externe':
-                    assert recipient.label in CleanText('./td[@class="recapValeur"]')(tr)
-                elif index == 3 + offset and recipient.category == u'Externe':
-                    assert recipient.iban in CleanText('./td[@class="recapValeur"]', replace=[(' ', '')])(tr)
-                elif index == 4 + offset and reason:
-                    assert reason in CleanText('./td[@class="recapValeur"]')(tr)
+            assert CleanDecimal('//div[@class="topBox"]/div[@class="montant"]')(self.doc) == amount
+            assert reason in CleanText('//div[@class="motif"]')(self.doc)
+            assert account._transfer_id in CleanText(u'//div[div[@class="libelleChoix" and contains(text(), "Compte émetteur")]] \
+                                                    //div[@class="infoCompte" and not(@title)]', replace=[(' ', '')])(self.doc)
+            assert recipient.id in CleanText(u'//div[div[@class="libelleChoix" and contains(text(), "Compte destinataire")]] \
+                                                    //div[@class="infoCompte" and not(@title)]', replace=[(' ', '')])(self.doc)
         except AssertionError:
-            raise TransferError('Something went wrong')
+            raise TransferError('data consistency failed.')
 
     def create_transfer(self, account, recipient, amount, reason):
         transfer = Transfer()
-        transfer.currency = FrenchTransaction.Currency('//table[has-class("recap")]/tr[@class="recapLigne"][1]/td[@class="recapValeur"]')(self.doc)
-        transfer.amount = amount
+        transfer.currency = FrenchTransaction.Currency('//div[@class="topBox"]/div[@class="montant"]')(self.doc)
+        transfer.amount = CleanDecimal('//div[@class="topBox"]/div[@class="montant"]')(self.doc)
         transfer.account_iban = account.iban
         transfer.recipient_iban = recipient.iban
         transfer.account_id = account.id
@@ -728,30 +728,5 @@ class TransferPage(LoggedPage, HTMLPage):
         return transfer
 
     def fill_transfer_id(self, transfer):
-        transfer.id = str(CleanDecimal('//td[@class="recapRef"]')(self.doc))
+        transfer.id = Regexp(CleanText(u'//div[@class="alertConfirmationVirement"]//p[contains(text(), "référence")]'), u'référence (\d+)')(self.doc)
         return transfer
-
-
-class RecipientPage(LoggedPage, HTMLPage):
-    @method
-    class iter_recipients(TableElement):
-        item_xpath = '//table[@class="tagTab pyjama"]/tbody/tr'
-        head_xpath = '//table[@class="tagTab pyjama"]/thead/tr/th'
-
-        col_iban = 'IBAN'
-        col_label = u'Libellé'
-
-        class Item(ItemElement):
-            klass = Recipient
-
-            obj_iban = obj_id = CleanText(TableCell('iban'), replace=[(' ', '')])
-            obj_label = CleanText(TableCell('label'))
-            obj_bank_name = NotAvailable
-            obj_category = u'Externe'
-
-            def obj_enabled_at(self):
-                return datetime.now().replace(microsecond=0)
-
-            def validate(self, el):
-                assert is_iban_valid(el.iban)
-                return True

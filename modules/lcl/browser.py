@@ -24,13 +24,13 @@ from urlparse import urlsplit, parse_qsl
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ServerError
-from weboob.capabilities.base import NotAvailable, find_object
+from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    CBListPage, CBHistoryPage, ContractsPage, BoursePage, \
                    AVPage, AVDetailPage, DiscPage, NoPermissionPage, RibPage, \
-                   HomePage, LoansPage, TransferPage, RecipientPage
+                   HomePage, LoansPage, TransferPage
 
 
 __all__ = ['LCLBrowser','LCLProBrowser']
@@ -80,7 +80,7 @@ class LCLBrowser(LoginBrowser):
 
     transfer_page = URL('/outil/UWVS/', TransferPage)
     confirm_transfer = URL('/outil/UWVS/Accueil/redirectView', TransferPage)
-    recipients = URL('/outil/UWBE/Consultation/list', RecipientPage)
+    #recipients = URL('/outil/UWBE/Consultation/list', RecipientPage)
 
     accounts_list = None
 
@@ -222,23 +222,22 @@ class LCLBrowser(LoginBrowser):
         self.transfer_page.go()
         if not self.page.can_transfer(origin_account._transfer_id):
             return
+        self.page.choose_origin(origin_account._transfer_id)
         for recipient in self.page.iter_recipients(account_transfer_id=origin_account._transfer_id):
-            recipient.iban = find_object(self.get_accounts_list(), _transfer_id=recipient.id).iban
-            yield recipient
-        for recipient in self.recipients.go().iter_recipients():
             yield recipient
 
     @need_login
     def init_transfer(self, account, recipient, amount, reason=None):
-        self.transfer_page.stay_or_go()
-        self.page.transfer(account, recipient, amount, reason)
-        self.confirm_transfer.go().check_data_consistency(account, recipient, amount, reason)
+        self.transfer_page.go()
+        self.page.choose_origin(account._transfer_id)
+        self.page.choose_recip(recipient)
+        self.page.transfer(amount, reason)
+        self.page.check_data_consistency(account, recipient, amount, reason)
         return self.page.create_transfer(account, recipient, amount, reason)
 
     @need_login
     def execute_transfer(self, transfer):
-        self.page.confirm(self.password)
-        self.page.check_data_consistency(transfer._account, transfer._recipient, transfer.amount, transfer.label, 1)
+        self.page.confirm()
         return self.page.fill_transfer_id(transfer)
 
 class LCLProBrowser(LCLBrowser):
