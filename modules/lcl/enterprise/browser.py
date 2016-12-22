@@ -28,7 +28,7 @@ class LCLEnterpriseBrowser(LoginBrowser):
     BASEURL = 'https://entreprises.secure.lcl.fr'
 
     pass_expired = URL('/outil/IQEN/Authentication/forcerChangePassword', PassExpiredPage)
-    login = URL('/indexcle.html',
+    login = URL('/outil/IQEN/Authentication/indexRedirect',
                 '/outil/IQEN/Authentication/(?P<page>.*)', LoginPage)
     movements = URL('/outil/IQMT/mvt.Synthese/syntheseMouvementPerso',
                     '/outil/IQMT/mvt.Synthese', MovementsPage)
@@ -45,7 +45,6 @@ class LCLEnterpriseBrowser(LoginBrowser):
         super(LCLEnterpriseBrowser, self).deinit()
 
     def do_login(self):
-        raise BrowserIncorrectPassword()
         self.login.go().login(self.username, self.password)
 
         error = self.page.get_error() if self.login.is_here() else False

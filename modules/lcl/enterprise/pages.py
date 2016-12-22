@@ -41,9 +41,10 @@ class LoginPage(HTMLPage):
         return CleanText(default=False).filter(self.doc.xpath('//li[contains(@class, "erreur")]'))
 
     def login(self, login, password):
-        form = self.get_form(id="form_autoComplete")
-        form['Ident_identifiant_'] = login
-        form['Ident_password_'] = password
+        form = self.get_form(id="myForm")
+        form['login'] = login
+        form['pwd'] = password
+        form['mode'] = '1'
         form.submit()
 
 
