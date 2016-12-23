@@ -26,6 +26,7 @@ from datetime import datetime, timedelta, date
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, Transfer
+from weboob.capabilities.contact import Advisor
 from weboob.browser.elements import method, ListElement, TableElement, ItemElement, SkipItem
 from weboob.exceptions import ParseError
 from weboob.browser.pages import LoggedPage, HTMLPage, FormNotFound, pagination
@@ -183,6 +184,7 @@ class ContractsPage(LoginPage):
             form = self.get_form(nr=0)
             form.submit()
 
+
 class AccountsPage(LoggedPage, HTMLPage):
     def on_load(self):
         warn = self.doc.xpath('//div[@id="attTxt"]')
@@ -250,6 +252,20 @@ class AccountsPage(LoggedPage, HTMLPage):
                 account.coming += CleanDecimal('.//td[has-class("right")]', replace_dots=True)(el)
                 account._coming_links.append(link)
                 raise SkipItem()
+
+    @method
+    class get_advisor(ItemElement):
+        klass = Advisor
+
+        obj_name = CleanText('//div[@id="contacterMaBqMenu"]//p[@id="itemNomContactMaBq"]/span')
+        obj_email = obj_mobile = obj_fax = NotAvailable
+        obj_phone = Regexp(CleanText('//div[@id="sousContentAgence"]//p[contains(text(), "Tel")]', replace=[(' ', '')]), '([\s\d]+)')
+        obj_agency = CleanText('//div[@id="sousContentAgence"]//p[@class="itemSousTitreMenuMaBq"][1]')
+
+        def obj_address(self):
+            address = CleanText('//div[@id="sousContentAgence"]//p[@class="itemSousTitreMenuMaBq"][2]', default=None)(self)
+            city = CleanText('//div[@id="sousContentAgence"]//p[@class="itemSousTitreMenuMaBq"][3]', default=None)(self)
+            return "%s %s" % (address, city) if address and city else NotAvailable
 
 
 class LoansPage(LoggedPage, HTMLPage):

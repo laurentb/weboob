@@ -22,6 +22,7 @@ from decimal import Decimal
 
 from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, \
                                      RecipientNotFound, TransferError, Account
+from weboob.capabilities.contact import CapContact
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 from weboob.capabilities.base import find_object
@@ -33,7 +34,7 @@ from .enterprise.browser import LCLEnterpriseBrowser, LCLEspaceProBrowser
 __all__ = ['LCLModule']
 
 
-class LCLModule(Module, CapBankTransfer):
+class LCLModule(Module, CapBankTransfer, CapContact):
     NAME = 'lcl'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -118,3 +119,9 @@ class LCLModule(Module, CapBankTransfer):
 
     def execute_transfer(self, transfer, **params):
         return self.browser.execute_transfer(transfer)
+
+    def iter_contacts(self):
+        if self.config['website'].get() != "par":
+            raise NotImplementedError()
+
+        return self.browser.get_advisor()

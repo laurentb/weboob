@@ -240,6 +240,11 @@ class LCLBrowser(LoginBrowser):
         self.page.confirm()
         return self.page.fill_transfer_id(transfer)
 
+    @need_login
+    def get_advisor(self):
+        return iter([self.accounts.stay_or_go().get_advisor()])
+
+
 class LCLProBrowser(LCLBrowser):
     BASEURL = 'https://professionnels.secure.lcl.fr'
 
