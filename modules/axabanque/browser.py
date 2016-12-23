@@ -90,6 +90,7 @@ class AXABanque(LoginBrowser):
     def iter_accounts(self):
         if not self.account_list:
             accounts = []
+            ids = set()
 
             # Get accounts
             self.transactions.go()
@@ -98,6 +99,11 @@ class AXABanque(LoginBrowser):
             for tab in self.page.get_tabs():
                 for page, page_args in self.bank_accounts.stay_or_go(tab=tab).get_pages(tab):
                     for a in page.get_list():
+                        if a.id in ids:
+                            # the "-comptes" page may return the same accounts as other pages, skip them
+                            continue
+                        ids.add(a.id)
+
                         args = a._args
                         # Trying to get IBAN for checking accounts
                         if a.type == a.TYPE_CHECKING and 'paramCodeFamille' in args:
