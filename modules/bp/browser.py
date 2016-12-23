@@ -41,7 +41,6 @@ __all__ = ['BPBrowser', 'BProBrowser']
 
 class BPBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://voscomptesenligne.labanquepostale.fr'
-    #CERTHASH = ['184ccdf506ce87e66cba71ce754e48aa51720f346df56ed27399006c288a82ce', '5719e6295761eb6de357d5e0743a26b917c4346792aff657f585c83cd7eae8f7']
 
     # FIXME beware that '.*' in start of URL() won't match all domains but only under BASEURL
 
@@ -112,8 +111,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
     accounts_url = "https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea"
     accounts_and_loans_url = "https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/preparerRechercheListePrets-synthese.ea"
 
-    #def home(self):
-    #    self.do_login()
+    accounts = None
 
     def do_login(self):
         self.location(self.login_url)
@@ -129,28 +127,25 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_accounts_list(self):
-        ids = set()
+        if self.accounts is None:
+            self.accounts = []
+            ids = set()
 
-        self.location(self.accounts_url)
-        assert self.accounts_list.is_here() or self.pro_accounts_list.is_here()
-        for account in self.page.get_accounts_list():
-            ids.add(account.id)
-            yield account
-
-        if self.accounts_and_loans_url:
-            self.location(self.accounts_and_loans_url)
-            assert self.accounts_list.is_here() or self.pro_accounts_list.is_here()
-
-            for account in self.page.get_accounts_list():
-                if account.id not in ids:
-                    ids.add(account.id)
-                    yield account
-
-    @need_login
-    def get_account(self, id):
-        if not self.accounts_list.is_here():
             self.location(self.accounts_url)
-        return self.page.get_account(id)
+            assert self.accounts_list.is_here() or self.pro_accounts_list.is_here()
+            for account in self.page.get_accounts_list():
+                ids.add(account.id)
+                self.accounts.append(account)
+
+            if self.accounts_and_loans_url:
+                self.location(self.accounts_and_loans_url)
+                assert self.accounts_list.is_here() or self.pro_accounts_list.is_here()
+
+                for account in self.page.get_accounts_list():
+                    if account.id not in ids:
+                        ids.add(account.id)
+                        self.accounts.append(account)
+        return iter(self.accounts)
 
     @need_login
     def get_history(self, account):

@@ -21,6 +21,7 @@
 from datetime import datetime
 
 from weboob.capabilities.bank import TransferError, Recipient, NotAvailable, Transfer, TransferStep, AccountNotFound
+from weboob.capabilities.base import find_object
 from weboob.browser.pages import LoggedPage
 from weboob.browser.filters.standard import CleanText, Env, Regexp, Date, CleanDecimal
 from weboob.browser.filters.html import Attr
@@ -79,7 +80,7 @@ class TransferChooseAccounts(LoggedPage, MyHTMLPage):
                     if _id == self.env['account_id']:
                         raise SkipItem()
                     try:
-                        account = self.page.browser.get_account(_id)
+                        account = find_object(self.page.browser.get_accounts_list(), id=_id, error=AccountNotFound)
                         self.env['id'] = _id
                         self.env['label'] = account.label
                         self.env['iban'] = account.iban

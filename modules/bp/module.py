@@ -52,7 +52,7 @@ class BPModule(Module, CapBankTransfer):
         return self.browser.get_accounts_list()
 
     def get_account(self, _id):
-        return self.browser.get_account(_id)
+        return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
 
     def iter_history(self, account):
         if account.type == Account.TYPE_MARKET:

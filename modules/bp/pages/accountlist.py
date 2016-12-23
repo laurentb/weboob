@@ -106,12 +106,6 @@ class AccountList(LoggedPage, MyHTMLPage):
                 response = self.browser.open('/voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea?compte.numero=%s' % account.id)
                 account.iban = response.page.get_iban()
 
-    def get_account(self, id):
-        try:
-            return self.accounts[id]
-        except KeyError:
-            raise AccountNotFound('Unable to find account: %s' % id)
-
 
 class AccountRIB(LoggedPage, RawPage):
     iban_regexp = r'BankIdentiferCode(\w+)PSS'

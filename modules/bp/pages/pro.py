@@ -68,12 +68,6 @@ class ProAccountsList(LoggedPage, MyHTMLPage):
                 a._link_id = link.attrib['href']
                 yield a
 
-    def get_account(self, id):
-        for account in self.get_accounts_list():
-            if account.id == id:
-                return account
-        raise AccountNotFound('Unable to find account: %s' % id)
-
 
 class ProAccountHistory(LoggedPage, MyHTMLPage):
     def on_load(self):
