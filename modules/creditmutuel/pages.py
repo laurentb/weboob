@@ -38,6 +38,7 @@ from weboob.exceptions import BrowserIncorrectPassword, ParseError, NoAccountsEx
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import empty
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, Transfer
+from weboob.capabilities.contact import Advisor
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_french_date
@@ -261,9 +262,38 @@ class AccountsPage(LoggedPage, HTMLPage):
                 self.env['balance'] = balance
                 self.env['coming'] = coming or NotAvailable
 
+    def get_advisor_link(self):
+        return Link('//div[@id="e_conseiller"]/a', default=None)(self.doc)
+
+    @method
+    class get_advisor(ItemElement):
+        klass = Advisor
+
+        obj_name = CleanText('//div[@id="e_conseiller"]/a')
+
 
 class NewAccountsPage(NewHomePage, AccountsPage):
-    pass
+    def has_agency(self):
+        return CleanText('//script[contains(text(), "lien_caisse")]', default=None)(self.doc)
+
+    @method
+    class get_advisor(ItemElement):
+        klass = Advisor
+
+        obj_name = Regexp(CleanText('//script[contains(text(), "Espace Conseiller")]'), 'consname.+?([\w\s]+)')
+
+
+class AdvisorPage(LoggedPage, HTMLPage):
+    @method
+    class update_advisor(ItemElement):
+        obj_email = CleanText('//table//*[@itemprop="email"]')
+        obj_phone = CleanText('//table//*[@itemprop="telephone"]', replace=[(' ', '')])
+        obj_mobile = NotAvailable
+        obj_fax = CleanText('//table//*[@itemprop="faxNumber"]', replace=[(' ', '')])
+        obj_agency = CleanText('//div/*[@itemprop="name"]')
+        obj_address = Format('%s %s %s', CleanText('//table//*[@itemprop="streetAddress"]'),
+                                         CleanText('//table//*[@itemprop="postalCode"]'),
+                                         CleanText('//table//*[@itemprop="addressLocality"]'))
 
 
 class CardsActivityPage(LoggedPage, HTMLPage):

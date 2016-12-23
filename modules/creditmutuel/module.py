@@ -24,6 +24,7 @@ from decimal import Decimal
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, RecipientNotFound, \
                                      Account, TransferError
+from weboob.capabilities.contact import CapContact
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -33,7 +34,7 @@ from .browser import CreditMutuelBrowser
 __all__ = ['CreditMutuelModule']
 
 
-class CreditMutuelModule(Module, CapBankTransfer):
+class CreditMutuelModule(Module, CapBankTransfer, CapContact):
     NAME = 'creditmutuel'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
@@ -106,3 +107,6 @@ class CreditMutuelModule(Module, CapBankTransfer):
 
     def execute_transfer(self, transfer, **params):
         return self.browser.execute_transfer(transfer)
+
+    def iter_contacts(self):
+        return self.browser.get_advisor()

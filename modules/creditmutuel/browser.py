@@ -38,8 +38,8 @@ from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
                    OperationsPage, CardPage, ComingPage, NoOperationsPage, \
-                   ChangePasswordPage, VerifCodePage,       \
-                   EmptyPage, PorPage, IbanPage, NewHomePage, RedirectPage, \
+                   ChangePasswordPage, VerifCodePage, EmptyPage, PorPage, \
+                   IbanPage, NewHomePage, AdvisorPage, RedirectPage, \
                    LIAccountsPage, CardsActivityPage, CardsListPage,       \
                    CardsOpePage, NewAccountsPage, InternalTransferPage, \
                    ExternalTransferPage
@@ -102,6 +102,9 @@ class CreditMutuelBrowser(LoginBrowser):
     new_por = URL('/(?P<subbank>.*)fr/banque/POR_ValoToute.aspx',
                   '/(?P<subbank>.*)fr/banque/POR_SyntheseLst.aspx', PorPage)
     new_iban = URL('/(?P<subbank>.*)fr/banque/rib.cgi', IbanPage)
+
+    advisor = URL('/(?P<subbank>.*)fr/banques/contact/trouver-une-agence/(?P<page>.*)',
+                  '/(?P<subbank>.*)fr/infoclient/', AdvisorPage)
 
     redirect = URL('/(?P<subbank>.*)fr/banque/paci_engine/static_content_manager.aspx', RedirectPage)
 
@@ -330,3 +333,17 @@ class CreditMutuelBrowser(LoginBrowser):
         form['Bool:data_input_confirmationDoublon'] = 'true'
         form.submit()
         return self.page.create_transfer(transfer)
+
+    @need_login
+    def get_advisor(self):
+        advisor = None
+        if not self.is_new_website:
+            self.accounts.stay_or_go(subbank=self.currentSubBank)
+            if self.page.get_advisor_link():
+                advisor = self.page.get_advisor()
+                self.location(self.page.get_advisor_link()).page.update_advisor(advisor)
+        else:
+            advisor = self.new_accounts.stay_or_go(subbank=self.currentSubBank).get_advisor()
+            if self.page.has_agency():
+                self.advisor.go(subbank=self.currentSubBank, page="contact.html").update_advisor(advisor)
+        return iter([advisor]) if advisor else iter([])
