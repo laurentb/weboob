@@ -275,7 +275,7 @@ class BNPPartPro(BNPParibasBrowser):
 
     @need_login
     def execute_transfer(self, transfer):
-        self.register_transfer.go(data=JSON({'referenceVirement': self.pending_transfer['validation_token']}))
+        self.register_transfer.go(data=JSON({'referenceVirement': transfer.id}))
         return self.page.handle_response(transfer)
 
     @need_login
