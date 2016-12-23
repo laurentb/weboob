@@ -58,7 +58,6 @@ class CmsoProBrowser(LoginBrowser):
                 raise
         self.fetch_areas()
 
-    @need_login
     def fetch_areas(self):
         if self.areas is None:
             self.subscription.go()
