@@ -102,6 +102,8 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
 
     advisor = URL('/conseiller-wspl/rest/monConseiller', AdvisorPage)
 
+    accounts_list = None
+
     @retry(ConnectionError, tries=3)
     def open(self, *args, **kwargs):
         return super(BNPParibasBrowser, self).open(*args, **kwargs)
@@ -116,21 +118,24 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
-        ibans = self.ibans.go().get_ibans_dict()
-        # This page might be unavailable.
-        try:
-            ibans.update(self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict('Crediteur'))
-        except TransferError:
-            pass
+        if self.accounts_list is None:
+            self.accounts_list = []
+            ibans = self.ibans.go().get_ibans_dict()
+            # This page might be unavailable.
+            try:
+                ibans.update(self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict('Crediteur'))
+            except TransferError:
+                pass
 
-        accounts = self.accounts.go().iter_accounts(ibans)
-        self.market_syn.go(data=JSON({}))
-        for account in accounts:
-            for market_acc in self.page.get_list():
-                if account.label == market_acc['securityAccountName'] and account.type == Account.TYPE_MARKET:
-                    account.valuation_diff = market_acc['profitLoss']
-                    break
-            yield account
+            accounts = self.accounts.go().iter_accounts(ibans)
+            self.market_syn.go(data=JSON({}))
+            for account in accounts:
+                for market_acc in self.page.get_list():
+                    if account.label == market_acc['securityAccountName'] and account.type == Account.TYPE_MARKET:
+                        account.valuation_diff = market_acc['profitLoss']
+                        break
+                self.accounts_list.append(account)
+        return iter(self.accounts_list)
 
     @need_login
     def get_account(self, _id):
