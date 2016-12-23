@@ -171,6 +171,9 @@ class Transaction(FrenchTransaction):
 
 
 class AccountHistory(LoggedPage, BasePage):
+    def is_here(self):
+        return not CleanText('//h1[contains(text(), "Effectuer un virement")]')(self.doc)
+
     debit_date =  None
     def get_part_url(self):
         for script in self.doc.getiterator('script'):

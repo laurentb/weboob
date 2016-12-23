@@ -31,17 +31,9 @@ from .base import BasePage
 from ..captcha import Captcha, TileError
 
 
-class LoginPage(BasePage):
+class PasswordPage(object):
     STRANGE_KEY = ["180","149","244","125","115","058","017","071","075","119","167","040","066","083","254","151","212","245","193","224","006","068","139","054","089","083","111","208","105","235","109","030","130","226","155","245","157","044","061","233","036","101","145","103","185","017","126","142","007","192","239","140","133","250","194","222","079","178","048","184","158","158","086","160","001","114","022","158","030","210","008","067","056","026","042","113","043","169","128","051","107","112","063","240","108","003","079","059","053","127","116","084","157","203","244","031","062","012","062","093"]
     strange_map = None
-
-    def on_load(self):
-        for td in self.doc.getroot().cssselect('td.LibelleErreur'):
-            if td.text is None:
-                continue
-            msg = td.text.strip()
-            if 'indisponible' in msg:
-                raise BrowserUnavailable(msg)
 
     def decode_grid(self, infos):
         grid = b64decode(infos['grid'])
@@ -66,6 +58,16 @@ class LoginPage(BasePage):
             self.strange_map[j] = int(u[j])^self.strange_map[j]
 
         return new_grid
+
+
+class LoginPage(BasePage, PasswordPage):
+    def on_load(self):
+        for td in self.doc.getroot().cssselect('td.LibelleErreur'):
+            if td.text is None:
+                continue
+            msg = td.text.strip()
+            if 'indisponible' in msg:
+                raise BrowserUnavailable(msg)
 
     def login(self, login, password):
         url = self.browser.BASEURL + '//sec/vkm/gen_crypto?estSession=0'

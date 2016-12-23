@@ -18,8 +18,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from decimal import Decimal
 
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, Account, RecipientNotFound
 from weboob.capabilities.contact import CapContact
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
@@ -32,7 +33,7 @@ from .sgpe.browser import SGEnterpriseBrowser, SGProfessionalBrowser
 __all__ = ['SocieteGeneraleModule']
 
 
-class SocieteGeneraleModule(Module, CapBank, CapContact):
+class SocieteGeneraleModule(Module, CapBankTransfer, CapContact):
     NAME = 'societegenerale'
     MAINTAINER = u'Jocelyn Jaubert'
     EMAIL = 'jocelyn.jaubert@gmail.com'
@@ -88,3 +89,32 @@ class SocieteGeneraleModule(Module, CapBank, CapContact):
         if not hasattr(self.browser, 'get_advisor'):
             raise NotImplementedError()
         return self.browser.get_advisor()
+
+    def iter_transfer_recipients(self, origin_account):
+        if self.config['website'].get() != 'par':
+            raise NotImplementedError()
+        if isinstance(origin_account, Account):
+            origin_account = origin_account.id
+        return self.browser.iter_recipients(origin_account)
+
+    def init_transfer(self, transfer, **params):
+        if self.config['website'].get() != 'par':
+            raise NotImplementedError()
+        self.logger.info('Going to do a new transfer')
+        if transfer.account_iban:
+            account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
+        else:
+            account = find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
+
+        if transfer.recipient_iban:
+            recipient = find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban, error=RecipientNotFound)
+        else:
+            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
+
+        transfer.amount = transfer.amount.quantize(Decimal('1.'))
+        return self.browser.init_transfer(account, recipient, transfer)
+
+    def execute_transfer(self, transfer, **params):
+        if self.config['website'].get() != 'par':
+            raise NotImplementedError()
+        return self.browser.execute_transfer(transfer)

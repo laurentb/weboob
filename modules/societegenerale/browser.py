@@ -18,8 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import urllib
-
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account
@@ -27,6 +25,7 @@ from weboob.browser.exceptions import BrowserHTTPNotFound
 
 from .pages.accounts_list import AccountsList, AccountHistory, CardsList, LifeInsurance, \
     LifeInsuranceHistory, LifeInsuranceInvest, Market, ListRibPage, AdvisorPage
+from .pages.transfer import RecipientsPage, TransferPage
 from .pages.login import LoginPage, BadLoginPage, ReinitPasswordPage
 
 
@@ -48,6 +47,9 @@ class SocieteGenerale(LoginBrowser):
     life_insurance_history = URL('/asv/AVI/asvcns2[0-9]c.html', LifeInsuranceHistory)
     list_rib = URL('/restitution/imp_listeRib.html', ListRibPage)
     advisor = URL('/com/contacts.html', AdvisorPage)
+
+    recipients = URL('/personnalisation/per_cptBen_modifier_liste.html', RecipientsPage)
+    transfer = URL('/virement/pas_vipon_saisie.html', '/lgn/url.html\?dup', TransferPage)
 
     accounts_list = None
 
@@ -145,3 +147,22 @@ class SocieteGenerale(LoginBrowser):
     @need_login
     def get_advisor(self):
         return self.advisor.stay_or_go().get_advisor()
+
+    @need_login
+    def iter_recipients(self, account):
+        # Seems like all accounts can transfer on all recipients.
+        for recipient in self.recipients.go().iter_recipients():
+            yield recipient
+        for recipient in self.transfer.go().iter_recipients(account_id=account):
+            yield recipient
+
+    @need_login
+    def init_transfer(self, account, recipient, transfer):
+        self.transfer.go().init_transfer(account, recipient, transfer)
+        self.page.check_data_consistency(account, recipient, transfer)
+        return self.page.create_transfer(account, recipient, transfer)
+
+    @need_login
+    def execute_transfer(self, transfer):
+        self.page.confirm()
+        return transfer
