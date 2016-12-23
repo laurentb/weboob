@@ -137,7 +137,9 @@ class CardsList(LoggedPage, MyHTMLPage):
 
 class SavingAccountSummary(LoggedPage, MyHTMLPage):
     def on_load(self):
-        self.browser.location(Link('//ul[has-class("tabs")]//a[@title="Historique des mouvements"]')(self.doc))
+        link = Link('//ul[has-class("tabs")]//a[@title="Historique des mouvements"]', default=NotAvailable)(self.doc)
+        if link:
+            self.browser.location(link)
 
 
 class InvestTable(TableElement):
