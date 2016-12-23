@@ -75,6 +75,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_type = u"bill"
             obj_price = CleanDecimal(TableCell('price'), replace_dots=True, default=NotAvailable)
             obj_currency = u"€"
+            obj_vat = NotAvailable
 
             def parse(self, el):
                 self.env['docid'] = Regexp(Attr('./td/a[@class="pdf"]', 'title'), '([\d]+)')(self)
