@@ -134,7 +134,7 @@ class InvestmentPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
-            obj_id = Regexp(CleanText('.//h2/small'), r'#(.*)')
+            obj_id = Regexp(CleanText('.//h2/small'), ur'(?:#|N°\s+)(.*)')
             obj_balance = MyDecimal('.//span[@class="card-amount"]', default=NotAvailable)
             obj_iban = NotAvailable
             obj_valuation_diff = MyDecimal('.//p[@class="card-description"]')
