@@ -31,8 +31,8 @@ from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
 from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import IndexPage, ErrorPage, MarketPage, LifeInsurance, GarbagePage, \
-                   MessagePage, LoginPage, CenetLoginPage, CenetAccountsPage, \
-                   CenetAccountHistoryPage, CenetCardsPage
+                   MessagePage, LoginPage, CenetLoginPage, CenetHomePage, \
+                   CenetAccountsPage, CenetAccountHistoryPage, CenetCardsPage
 
 
 __all__ = ['CaisseEpargne']
@@ -45,6 +45,7 @@ class CaisseEpargne(LoginBrowser):
                 'https://.*/login.aspx', LoginPage)
     account_login = URL('/authentification/manage\?step=account&identifiant=(?P<login>.*)&account=(?P<accountType>.*)', LoginPage)
     cenet_login = URL('https://www.cenet.caisse-epargne.fr/$', CenetLoginPage)
+    cenet_home = URL('https://www.cenet.caisse-epargne.fr/Default.aspx$', CenetHomePage)
     cenet_accounts = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/ChargerSyntheseComptes', CenetAccountsPage)
     cenet_account_history = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/RechercherOperations', CenetAccountHistoryPage)
     cenet_account_coming = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiCartesBanquaires.asmx/ChargerEnCoursCarte', CenetAccountHistoryPage)
@@ -409,3 +410,10 @@ class CaisseEpargne(LoginBrowser):
         if self.garbage.is_here():
             return iter([])
         return self.page.iter_investment()
+
+    @need_login
+    def get_advisor(self):
+        if not self.is_cenet_website:
+            raise NotImplementedError()
+
+        return iter([self.cenet_home.stay_or_go().get_advisor()])

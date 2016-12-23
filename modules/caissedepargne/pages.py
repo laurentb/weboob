@@ -30,6 +30,7 @@ from weboob.browser.filters.html import Link
 from weboob.browser.filters.json import Dict
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Transaction, Investment
+from weboob.capabilities.contact import Advisor
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban
@@ -50,6 +51,22 @@ class CenetLoginPage(HTMLPage):
                                     "MotDePasse":"%s"}' % (codeCaisse, username, nuser, password)
 
         form.submit()
+
+
+class CenetHomePage(HTMLPage):
+    @method
+    class get_advisor(ItemElement):
+        klass = Advisor
+
+        obj_name = CleanText('//section[contains(@id, "ChargeAffaires")]//strong')
+        obj_email = CleanText('//li[contains(@id, "MailContact")]')
+        obj_phone = CleanText('//li[contains(@id, "TelAgence")]', replace=[('.', '')])
+        obj_mobile = NotAvailable
+        obj_agency = CleanText('//section[contains(@id, "Agence")]//strong')
+        obj_address = CleanText('//li[contains(@id, "AdresseAgence")]')
+
+        def obj_fax(self):
+            return CleanText('//li[contains(@id, "FaxAgence")]', replace=[('.', '')])(self) or NotAvailable
 
 
 class CenetJsonPage(JsonPage):
