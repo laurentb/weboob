@@ -31,7 +31,7 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.json import json
-from weboob.exceptions import ActionNeeded
+from weboob.exceptions import ActionNeeded, BrowserUnavailable
 
 
 class Transaction(FrenchTransaction):
@@ -239,28 +239,39 @@ class AccountsList(LoggedPage, HTMLPage):
         self.load_async(0)
 
     def load_async(self, time):
-        # load content of loading divs.
-        lst = self.doc.xpath('//input[@type="hidden" and starts-with(@id, "asynch")]')
-        if len(lst) > 0:
-            params = {}
-            for i, input in enumerate(lst):
-                params['key%s' % i] = input.attrib['name']
-                params['div%s' % i] = input.attrib['value']
-            params['time'] = time
+        total = 0
+        restart = True
+        while restart:
+            restart = False
 
-            r = self.browser.open('/AsynchAjax?%s' % urlencode(params))
-            data = json.loads(r.content)
+            # load content of loading divs.
+            lst = self.doc.xpath('//input[@type="hidden" and starts-with(@id, "asynch")]')
+            if len(lst) > 0:
+                params = {}
+                for i, input in enumerate(lst):
+                    params['key%s' % i] = input.attrib['name']
+                    params['div%s' % i] = input.attrib['value']
+                params['time'] = time
 
-            for i, d in enumerate(data['data']):
-                div = self.doc.xpath('//div[@id="%s"]' % d['key'])[0]
-                html = d['flux']
-                div.clear()
-                div.attrib['id'] = d['key'] # needed because clear removes also all attributes
-                div.insert(0, etree.fromstring(html, parser=etree.HTMLParser()))
+                r = self.browser.open('/AsynchAjax?%s' % urlencode(params))
+                data = json.loads(r.content)
 
-            if 'time' in data:
-                sleep(float(data['time'])/1000.0)
-                return self.load_async(time)
+                for i, d in enumerate(data['data']):
+                    div = self.doc.xpath('//div[@id="%s"]' % d['key'])[0]
+                    html = d['flux']
+                    div.clear()
+                    div.attrib['id'] = d['key'] # needed because clear removes also all attributes
+                    div.insert(0, etree.fromstring(html, parser=etree.HTMLParser()))
+
+                if 'time' in data:
+                    wait = float(data['time'])/1000.0
+                    self.logger.debug('should wait %f more seconds', wait)
+                    total += wait
+                    if total > 120:
+                        raise BrowserUnavailable('too long time to wait')
+
+                    sleep(wait)
+                    restart = True
 
     def need_reload(self):
         form = self.doc.xpath('//form[@name="InformationsPersonnellesForm"]')
