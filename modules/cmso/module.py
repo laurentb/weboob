@@ -19,6 +19,7 @@
 
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.contact import CapContact
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
@@ -30,7 +31,7 @@ from .pro.browser import CmsoProBrowser
 __all__ = ['CmsoModule']
 
 
-class CmsoModule(Module, CapBank):
+class CmsoModule(Module, CapBank, CapContact):
     NAME = 'cmso'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -65,3 +66,9 @@ class CmsoModule(Module, CapBank):
 
     def iter_investment(self, account):
         return self.browser.iter_investment(account)
+
+    def iter_contacts(self):
+        if self.config['website'].get() != "par":
+            raise NotImplementedError()
+
+        return self.browser.get_advisor()

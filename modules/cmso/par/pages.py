@@ -29,6 +29,7 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, Link
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.contact import Advisor
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import BrowserIncorrectPassword
@@ -363,3 +364,21 @@ class MarketPage(LoggedPage, HTMLPage):
 
             def condition(self):
                 return not CleanText('//div[has-class("errorConteneur")]', default=None)(self)
+
+
+class AdvisorPage(LoggedPage, JsonPage):
+    @method
+    class get_advisor(ItemElement):
+        klass = Advisor
+
+        obj_name = Dict('nomPrenom')
+        obj_email = obj_mobile = NotAvailable
+
+        def obj_phone(self):
+            return Dict('numeroTelephone')(self) or NotAvailable
+
+    @method
+    class update_agency(ItemElement):
+        obj_fax = CleanText(Dict('numeroFax'), replace=[(' ', '')])
+        obj_agency = Dict('nom')
+        obj_address = Format('%s %s', Dict('adresse1'), Dict('adresse3'))

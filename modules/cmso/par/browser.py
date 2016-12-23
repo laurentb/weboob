@@ -25,7 +25,7 @@ from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account, Transaction
 
-from .pages import LogoutPage, InfosPage, AccountsPage, HistoryPage, LifeinsurancePage, MarketPage
+from .pages import LogoutPage, InfosPage, AccountsPage, HistoryPage, LifeinsurancePage, MarketPage, AdvisorPage
 
 
 class CmsoParBrowser(LoginBrowser):
@@ -40,6 +40,7 @@ class CmsoParBrowser(LoginBrowser):
     market = URL('/domiapi/oauth/json/ssoDomifronttitre',
                  'https://www.(?P<website>.*)/domifronttitre/front/sso/domiweb/01/(?P<action>.*)Portefeuille\?csrf=',
                  'https://www.*/domiweb/prive/particulier', MarketPage)
+    advisor = URL('/edrapi/v(?P<version>\w+)/oauth/(?P<page>\w+)', AdvisorPage)
 
     def __init__(self, website, *args, **kwargs):
         super(CmsoParBrowser, self).__init__(*args, **kwargs)
@@ -191,3 +192,8 @@ class CmsoParBrowser(LoginBrowser):
             return self.page.iter_investment() if self.market.go(website=self.website, \
                         action="situation").get_list(account.label) else iter([])
         raise NotImplementedError()
+
+    @need_login
+    def get_advisor(self):
+        advisor = self.advisor.go(version="2", page="conseiller").get_advisor()
+        return iter([self.advisor.go(version="1", page="agence").update_agency(advisor)])
