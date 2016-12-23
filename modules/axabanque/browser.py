@@ -40,6 +40,7 @@ class AXABanque(LoginBrowser):
     bank_accounts = URL('transactionnel/client/liste-comptes.html',
                         'transactionnel/client/liste-(?P<tab>.*).html',
                         'webapp/axabanque/jsp/visionpatrimoniale/liste_panorama_.*\.faces',
+                        r'/webapp/axabanque/page\?code=(?P<code>\d+)',
                         'webapp/axabanque/client/sso/connexion\?token=(?P<token>.*)', BankAccountsPage)
     iban_pdf = URL('http://www.axabanque.fr/webapp/axabanque/formulaire_AXA_Banque/.*\.pdf.*', IbanPage)
     cbttransactions = URL('webapp/axabanque/jsp/detailCarteBleu.*.faces', CBTransactionsPage)
