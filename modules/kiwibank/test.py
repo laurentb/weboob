@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest, skip_without_config
+from weboob.tools.test import BackendTest
 
 
 __all__ = ['KiwibankTest']
@@ -27,7 +27,6 @@ __all__ = ['KiwibankTest']
 class KiwibankTest(BackendTest):
     MODULE = 'kiwibank'
 
-    @skip_without_config('login', 'password')
     def test_kiwibank(self):
         l = list(self.backend.iter_accounts())
         if len(l) > 0:

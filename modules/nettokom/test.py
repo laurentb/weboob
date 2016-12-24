@@ -18,24 +18,21 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest, skip_without_config
+from weboob.tools.test import BackendTest
 
 
 class NettokomTest(BackendTest):
     MODULE = 'nettokom'
 
-    @skip_without_config('login', 'password')
     def test_details(self):
         for subscription in self.backend.iter_subscription():
             details = list(self.backend.get_details(subscription))
             self.assertTrue(len(details) > 1, msg="Not enough details")
 
-    @skip_without_config('login', 'password')
     def test_history(self):
         for subscription in self.backend.iter_subscription():
             self.assertTrue(len(list(self.backend.iter_documents_history(subscription))) > 0)
 
-    @skip_without_config('login', 'password')
     def test_list(self):
         """
         Test listing of subscriptions.

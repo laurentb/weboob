@@ -19,13 +19,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest, skip_without_config
+from weboob.tools.test import BackendTest
 
 
 class BoursoramaTest(BackendTest):
     MODULE = 'boursorama'
 
-    @skip_without_config('login', 'password', 'pin_code')
     def test_boursorama(self):
         l = list(self.backend.iter_accounts())
         if len(l) > 0:

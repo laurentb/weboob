@@ -17,14 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.test import BackendTest, skip_without_config
+from weboob.tools.test import BackendTest
 from itertools import chain
 
 
 class WellsFargoTest(BackendTest):
     MODULE = 'wellsfargo'
 
-    @skip_without_config('login', 'password')
     def test_history(self):
         """
         Test that there's at least one transaction in the whole history.

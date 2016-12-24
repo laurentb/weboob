@@ -18,12 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest, skip_without_config
+from weboob.tools.test import BackendTest
 
 
 class TinderTest(BackendTest):
     MODULE = 'tinder'
 
-    @skip_without_config('username', 'password')
     def test_tinder(self):
         self.backend.browser.like_profile()

@@ -18,13 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest, skip_without_config
+from weboob.tools.test import BackendTest
 
 
 class SocieteGeneraleTest(BackendTest):
     MODULE = 'societegenerale'
 
-    @skip_without_config('login', 'password')
     def test_societegenerale(self):
         l = list(self.backend.iter_accounts())
         self.assertTrue(len(l) > 0)

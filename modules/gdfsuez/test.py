@@ -19,13 +19,12 @@
 
 
 # This is a clone of freemobile/test.py for the gdfsuez module
-from weboob.tools.test import BackendTest, skip_without_config
+from weboob.tools.test import BackendTest
 
 
 class GdfSuezTest(BackendTest):
     MODULE = 'gdfsuez'
 
-    @skip_without_config('login', 'password')
     def test_gdfsuez(self):
         for subscription in self.backend.iter_subscription():
             list(self.backend.iter_history(subscription.id))

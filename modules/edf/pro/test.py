@@ -18,12 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest, skip_without_config
+from weboob.tools.test import BackendTest
 
 
 class EdfproTest(BackendTest):
     MODULE = 'edfpro'
 
-    @skip_without_config('login', 'password')
     def test_edfpro(self):
         raise NotImplementedError()

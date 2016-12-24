@@ -18,12 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest, skip_without_config
+from weboob.tools.test import BackendTest
 
 
 class AmundiTest(BackendTest):
     MODULE = 'amundi'
 
-    @skip_without_config('login', 'password')
     def test_amundi(self):
         raise NotImplementedError()

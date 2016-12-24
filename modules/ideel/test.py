@@ -17,13 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.test import BackendTest, skip_without_config
+from weboob.tools.test import BackendTest
 
 
 class IdeelTest(BackendTest):
     MODULE = 'ideel'
 
-    @skip_without_config('username', 'password')
     def test_history(self):
         """
         Test that at least one item was ordered in the whole history.
