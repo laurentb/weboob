@@ -67,7 +67,7 @@ class GroupamaesPage(LoggedPage, HTMLPage):
         total = CleanDecimal(Regexp(CleanText('.'), '(.*) .*'),
                              default=1, replace_dots=True)(item)
 
-        item_xpath = u'(//table[@summary="Liste des échéances"]/tbody/tr)[position() < last() and not(contains(./td[1]/@class, "tittot"))]'
+        item_xpath = u'((//table[@summary="Liste des échéances"])[1]/tbody/tr)[position() < last() and not(contains(./td[1]/@class, "tittot"))]'
 
         obj = None
         for tr in self.doc.xpath(item_xpath):
