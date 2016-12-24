@@ -53,7 +53,6 @@ class SocieteGeneraleModule(Module, CapBank, CapContact):
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():
-            account._bisoftcap = {'cb': {'softcap_day':178,'day_for_softcap':2}}
             yield account
 
     def get_account(self, _id):
