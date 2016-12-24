@@ -22,7 +22,7 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.date import LinearDateGuesser
 
-from .pages import LoginPage, LoginErrorPage, AvoirPage, OperationsTraiteesPage, OperationsFuturesPage
+from .pages import LoginPage, LoginErrorPage, GroupamaesPage
 
 
 __all__ = ['GroupamaesBrowser']
@@ -33,9 +33,7 @@ class GroupamaesBrowser(LoginBrowser):
 
     login = URL('/groupama-es/fr/index.html', LoginPage)
     login_error = URL('/groupama-es/fr/identification/default.cgi', LoginErrorPage)
-    avoir = URL('/groupama-es/fr/espace/devbavoirs.aspx\?mode=net&menu=cpte(?P<page>.*)', AvoirPage)
-    operations_traitees = URL('/groupama-es/fr/espace/ListeOperations.asp\?TypeOperation_=T', OperationsTraiteesPage)
-    operations_futures = URL('/groupama-es/fr/espace/ListeOperations.asp\?TypeOperation_=E', OperationsFuturesPage)
+    groupamaes_page = URL('/groupama-es/fr/espace/devbavoirs.aspx\?mode=net&menu=cpte(?P<page>.*)', GroupamaesPage)
 
     def do_login(self):
         self.login.stay_or_go()
@@ -47,20 +45,20 @@ class GroupamaesBrowser(LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
-        return self.avoir.stay_or_go(page='&page=situglob').iter_accounts()
+        return self.groupamaes_page.stay_or_go(page='&page=situglob').iter_accounts()
 
     @need_login
     def get_history(self):
-        transactions = list(self.operations_traitees.go().get_history(date_guesser=LinearDateGuesser()))
+        transactions = list(self.groupamaes_page.go(page='&_pid=MenuOperations&_fid=GoOperationsTraitees').get_history(date_guesser=LinearDateGuesser()))
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions
 
     @need_login
     def get_coming(self):
-        transactions = list(self.operations_futures.go().get_list(date_guesser=LinearDateGuesser()))
+        transactions = list(self.groupamaes_page.go(page='&_pid=OperationsTraitees&_fid=GoWaitingOperations').get_history(date_guesser=LinearDateGuesser()))
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions
 
     @need_login
     def iter_investment(self):
-        return self.avoir.go(page='&_fid=GoPositionsParFond&_pid=SituationGlobale').iter_investment()
+        return self.groupamaes_page.go(page='&_fid=GoPositionsParFond&_pid=SituationGlobale').iter_investment()

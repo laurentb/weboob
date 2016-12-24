@@ -39,7 +39,9 @@ class LoginErrorPage(HTMLPage):
     pass
 
 
-class AvoirPage(LoggedPage, HTMLPage):
+class GroupamaesPage(LoggedPage, HTMLPage):
+    NEGATIVE_AMOUNT_LABELS = [u'Retrait', u'Transfert sortant']
+
     @method
     class iter_accounts(TableElement):
         item_xpath = u'//table[@summary="Liste des échéances"]/tbody/tr'
@@ -90,8 +92,32 @@ class AvoirPage(LoggedPage, HTMLPage):
             obj.portfolio_share = obj.valuation / total
             yield obj
 
+    @method
+    class get_history(TableElement):
+        head_xpath = u'//table[@summary="Liste des opérations"]/thead/tr/th/text()'
+        item_xpath = u'//table[@summary="Liste des opérations"]/tbody/tr'
 
-class OperationsFuturesPage(LoggedPage, HTMLPage):
+        col_date = u'Date'
+        col_operation = u'Opération'
+        col_montant = u'Montant net en EUR'
+
+        class item(ItemElement):
+            klass = Transaction
+
+            def condition(self):
+                return u'Aucune opération' not in CleanText(TableCell('date'))(self)
+
+            obj_date = Date(CleanText(TableCell('date')), Env('date_guesser'))
+            obj_type = Transaction.TYPE_UNKNOWN
+            obj_label = CleanText(TableCell('operation'))
+
+            def obj_amount(self):
+                amount = CleanDecimal(TableCell('montant'), replace_dots=True)(self)
+                for pattern in GroupamaesPage.NEGATIVE_AMOUNT_LABELS:
+                    if Field('label')(self).startswith(pattern):
+                        amount = -amount
+                return amount
+
     @method
     class get_list(TableElement):
         head_xpath = u'//table[@summary="Liste des opérations en attente"]/thead/tr/th/text()'
@@ -113,34 +139,3 @@ class OperationsFuturesPage(LoggedPage, HTMLPage):
             obj_type = Transaction.TYPE_UNKNOWN
             obj_label = CleanText(TableCell('operation'))
             obj_amount = CleanDecimal(TableCell('montant'), replace_dots=True)
-
-
-class OperationsTraiteesPage(LoggedPage, HTMLPage):
-
-    NEGATIVE_AMOUNT_LABELS = [u'Retrait', u'Transfert sortant']
-
-    @method
-    class get_history(TableElement):
-        head_xpath = u'//table[@summary="Liste des opérations en attente"]/thead/tr/th/text()'
-        item_xpath = u'//table[@summary="Liste des opérations en attente"]/tbody/tr'
-
-        col_date = u'Date'
-        col_operation = u'Opération'
-        col_montant = u'Montant net en'
-
-        class item(ItemElement):
-            klass = Transaction
-
-            def condition(self):
-                return u'Aucune opération' not in CleanText(TableCell('date'))(self)
-
-            obj_date = Date(CleanText(TableCell('date')), Env('date_guesser'))
-            obj_type = Transaction.TYPE_UNKNOWN
-            obj_label = CleanText(TableCell('operation'))
-
-            def obj_amount(self):
-                amount = CleanDecimal(TableCell('montant'), replace_dots=True)(self)
-                for pattern in OperationsTraiteesPage.NEGATIVE_AMOUNT_LABELS:
-                    if Field('label')(self).startswith(pattern):
-                        amount = -amount
-                return amount
