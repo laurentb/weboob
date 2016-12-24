@@ -19,7 +19,6 @@
 
 import sys
 from functools import wraps
-from random import choice
 from unittest import TestCase
 
 from weboob.core import Weboob
