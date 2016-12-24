@@ -19,7 +19,6 @@
 
 
 import json
-import mechanize
 import urlparse
 
 from datetime import datetime
@@ -228,7 +227,7 @@ class CaisseEpargne(LoginBrowser):
 
                 if self.home.is_here():
                     self.page.go_list()
-            except mechanize.BrowserStateError:
+            except ClientError:
                 pass
             else:
                 break
