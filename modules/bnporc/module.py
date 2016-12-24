@@ -77,8 +77,6 @@ class BNPorcModule(Module, CapBankTransfer, CapMessages, CapContact):
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():
-            if self.BROWSER is BNPEnterprise:
-                 account._bisoftcap = {'deferred_cb': {'softcap_day': 5, 'day_for_softcap': 25}}
             yield account
 
     def get_account(self, _id):
