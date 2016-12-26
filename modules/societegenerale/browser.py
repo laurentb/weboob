@@ -117,10 +117,9 @@ class SocieteGenerale(LoginBrowser):
 
             # go to next page
             while self.page.doc.xpath('//div[@class="net2g_asv_tableau_pager"]/a[contains(@href, "actionSuivPage")]'):
-                form = self.page.doc.xpath('//form[@id="operationForm"]')[0]
-                data = dict((item.name, item.value or '') for item in form.inputs)
-                data['a100_asv_action'] = 'actionSuivPage'
-                self.location('asvcns21c.html', urllib.urlencode(data))
+                form = self.page.get_form('//form[@id="operationForm"]')
+                form['a100_asv_action'] = 'actionSuivPage'
+                form.submit()
                 for trans in self.page.iter_transactions():
                     yield trans
 
