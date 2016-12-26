@@ -235,7 +235,19 @@ class AccountsPage(LoggedPage, HTMLPage):
                             card.label = "%s %s %s" % (Regexp(CleanText('.'), 'Carte\s(\w+)')(el), card_id, \
                                                        (Regexp(CleanText('.'), '\d{4}\s([A-Za-z\s]+)', default=None)(el) \
                                                        or CleanText('./following-sibling::div[1]')(el)).strip())
-                            card.balance = NotAvailable
+
+                            #<li id="I1:d1.C:MonthSelectorPanel.F1_0.richlb-item" role="radio" aria-checked="false" aria-label="Carte Business 5136 16xx xxxx 1359" tabindex="-1" class="_c1 ei_richlb_item _c1"><div aria-hidden="true" class="_c1 ei_richlb_content _c1" style="height:30px;">
+                            #<span class="fd ei_sdsf_montant _c1 neg _c1">-36,00 EUR</span><div>
+                            #Carte Business 1234 56xx xxxx 7890
+                            #</div><div class="_c1 doux _c1">
+                            #M MACHIN TRUC
+                            #</div> <span class="_c1 ei_valign _c1"></span>
+                            #</div></li>
+
+                            balance_xpath = './preceding-sibling::span[contains(@class, "montant")]'
+                            card.balance = CleanDecimal(balance_xpath, replace_dots=True, default=NotAvailable)(el)
+                            card.currency = card.get_currency(CleanText(balance_xpath)(el))
+
                             card.type = Account.TYPE_CARD
                             card._link_id = link
                             nextmonth = Link('./following-sibling::tr[contains(@class, "encours")][1]/td[1]//a', default=None)(self)
