@@ -23,7 +23,7 @@ import re
 from decimal import Decimal
 
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bank import Account, AccountNotFound
+from weboob.capabilities.bank import Account
 from weboob.browser.pages import LoggedPage, RawPage
 from weboob.browser.filters.html import Link
 from weboob.browser.filters.standard import CleanText

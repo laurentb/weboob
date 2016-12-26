@@ -24,7 +24,7 @@ from decimal import Decimal
 
 from weboob.browser.filters.standard import CleanText
 from weboob.browser.pages import LoggedPage, CsvPage
-from weboob.capabilities.bank import Account, AccountNotFound
+from weboob.capabilities.bank import Account
 
 from .accounthistory import Transaction
 from .base import MyHTMLPage
