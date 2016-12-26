@@ -145,7 +145,7 @@ class SavingAccountSummary(LoggedPage, MyHTMLPage):
 
 class InvestTable(TableElement):
     col_label = 'Support'
-    col_share = 'Poids en %'
+    col_share = [u'Poids en %', u'Répartition en %']
     col_quantity = 'Nb U.C'
     col_valuation = re.compile('Montant')
 
