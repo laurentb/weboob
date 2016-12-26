@@ -317,6 +317,10 @@ class WebNip(object):
         """
         return self.scheduler.run()
 
+    def load_or_install_module(self, module_name):
+        """ Load a backend, but can't install it """
+        return self.modules_loader.get_or_load_module(module_name)
+
 
 class Weboob(WebNip):
     """
