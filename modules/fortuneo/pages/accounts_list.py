@@ -74,23 +74,23 @@ class PeaHistoryPage(LoggedPage, HTMLPage):
             link = cols[self.COL_LABEL].xpath('./a[contains(@href, "cdReferentiel")]')[0]
             inv.id = unicode(re.search('cdReferentiel=(.*)', link.attrib['href']).group(1))
             inv.code = re.match('^[A-Z]+[0-9]+(.*)$', inv.id).group(1)
-            inv.quantity = self.parse_decimal(cols[self.COL_QUANTITY])
-            inv.unitprice = self.parse_decimal(cols[self.COL_UNITPRICE])
-            inv.unitvalue = self.parse_decimal(cols[self.COL_UNITVALUE])
-            inv.valuation = self.parse_decimal(cols[self.COL_VALUATION])
+            inv.quantity = self.parse_decimal(cols[self.COL_QUANTITY], True)
+            inv.unitprice = self.parse_decimal(cols[self.COL_UNITPRICE], True)
+            inv.unitvalue = self.parse_decimal(cols[self.COL_UNITVALUE], False)
+            inv.valuation = self.parse_decimal(cols[self.COL_VALUATION], True)
             diff = cols[self.COL_PERF].text.strip()
             if diff == "-":
                 inv.diff = NotAvailable
             else:
-                inv.diff = CleanDecimal(None).filter(diff)
+                inv.diff = CleanDecimal(None, replace_dots=True).filter(diff)
 
             yield inv
 
-    def parse_decimal(self, string):
+    def parse_decimal(self, string, replace_dots):
         string = CleanText(None).filter(string)
         if string == '-':
             return NotAvailable
-        return CleanDecimal(None, default=NotAvailable).filter(string)
+        return CleanDecimal(None, replace_dots=replace_dots, default=NotAvailable).filter(string)
 
     def select_period(self):
         return True
