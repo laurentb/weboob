@@ -74,7 +74,7 @@ class GroupamaesPage(LoggedPage, HTMLPage):
             tds = tr.xpath('./td')
             if len(tds) > 3:
                 if obj is not None:
-                    obj.portfolio_share = obj.valuation / total
+                    obj.portfolio_share = (obj.valuation / total).quantize(Decimal('.0001'))
                     yield obj
 
                 obj = Investment()
@@ -89,7 +89,7 @@ class GroupamaesPage(LoggedPage, HTMLPage):
                 obj.valuation += CleanDecimal('.', replace_dots=True)(tds[2])
 
         if obj is not None:
-            obj.portfolio_share = obj.valuation / total
+            obj.portfolio_share = (obj.valuation / total).quantize(Decimal('.0001'))
             yield obj
 
     @method
