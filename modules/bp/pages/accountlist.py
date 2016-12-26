@@ -81,7 +81,7 @@ class AccountList(LoggedPage, MyHTMLPage):
                 account.currency = u'EUR'
 
             if tmp_balance:
-                if 'non disponible' in tmp_balance:
+                if any(w in tmp_balance for w in ['non disponible', u'Remboursé intégralement']):
                     continue
 
                 account.balance = Decimal(FrenchTransaction.clean_amount(tmp_balance))
