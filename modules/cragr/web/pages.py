@@ -553,7 +553,7 @@ class TransactionsPage(BasePage):
             t = Transaction()
 
             col_text = cols[self.COL_TEXT]
-            if len(col_text.xpath('.//br')) == 0 and col_text.find('font') is None:
+            if len(col_text.xpath('.//br')) == 0:
                 col_text = cols[self.COL_TEXT+1]
 
             raw = self.parser.tocleanstring(col_text)
@@ -579,7 +579,7 @@ class TransactionsPage(BasePage):
             t.category = unicode(col_text.text.strip())
             t.label = re.sub('(.*)  (.*)', r'\2', t.category).strip()
 
-            sub_label = col_text.find('br').tail if col_text.find('br') else None
+            sub_label = col_text.find('br').tail
             if sub_label is not None and (len(t.label) < 3 or t.label == t.category or len(re.findall('[^\w\s]', sub_label))/float(len(sub_label)) < len(re.findall('\d', t.label))/float(len(t.label))):
                 t.label = unicode(sub_label.strip())
             # Sometimes, the category contains the label, even if there is another line with it again.
