@@ -460,7 +460,7 @@ class AbstractModule(Module):
     """
     PARENT = None
 
-    def __new__(cls, weboob, name, config=None, storage=None, logger=None):
+    def __new__(cls, weboob, name, config=None, storage=None, logger=None, nofail=False):
         if cls.PARENT is None:
             raise AbstractModuleMissingParentError("PARENT is not defined for module %s" % cls.__name__)
 
@@ -470,4 +470,4 @@ class AbstractModule(Module):
             raise ModuleInstallError('The module %s depends on %s module but %s\'s installation failed with: %s' % (name, cls.PARENT, cls.PARENT, err))
 
         cls.__bases__ = tuple([parent] + list(cls.iter_caps()))
-        return cls.__new__(cls, weboob, name, config, storage, logger)
+        return cls.__new__(cls, weboob, name, config, storage, logger, nofail)
