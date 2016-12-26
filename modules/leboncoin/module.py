@@ -59,7 +59,7 @@ class LeboncoinModule(Module, CapHousing):
                                           'nord_pas_de_calais',
                                           'pays_de_la_loire',
                                           'picardie',
-                                          'poitou_chanrentes',
+                                          'poitou_charentes',
                                           'provence_alpes_cote_d_azur',
                                           'rhone_alpes',
                                           'guadeloupe',
