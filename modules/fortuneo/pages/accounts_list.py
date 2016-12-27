@@ -325,7 +325,7 @@ class AccountsList(LoggedPage, HTMLPage):
                     account.type = type
 
             if account.type in (Account.TYPE_CHECKING, Account.TYPE_SAVINGS):
-                # Pour y accéder, vous devez renseigner un code sécurité à usage unique qui vous sera envoyé par SMS
+                # Need a token sent by SMS to customers
                 account.iban = NotAvailable
 
             if (account.label, account.id, account.balance) not in [(a.label, a.id, a.balance) for a in accounts]:
