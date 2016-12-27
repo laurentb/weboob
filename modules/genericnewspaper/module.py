@@ -73,6 +73,7 @@ class GenericNewspaperModule(Module):
         thread.root = Message(
             thread=thread,
             id=0,
+            url=content.url,
             title=content.title,
             sender=content.author,
             receivers=None,
