@@ -41,7 +41,7 @@ class LoginPage(HTMLPage):
 class OpenEDXBrowser(LoginBrowser):
     login = URL('/login', LoginPage)
     login_result = URL("/user_api/v1/account/login_session/", RawPage)
-    threads = URL(r'/courses/(?P<course>.+)/discussion/forum\?ajax=1&page=(?P<page>\d+)&sort_key=date&sort_order=desc', JsonPage)
+    threads = URL(r'/courses/(?P<course>.+)/discussion/forum/\?ajax=1&page=(?P<page>\d+)&sort_key=date&sort_order=desc', JsonPage)
     messages = URL(r'/courses/(?P<course>.+)/discussion/forum/(?P<topic>.+)/threads/(?P<id>.+)\?ajax=1&resp_skip=(?P<skip>\d+)&resp_limit=100', JsonPage)
     thread = URL(r'/courses/(?P<course>.+)/discussion/forum/(?P<topic>.+)/threads/(?P<id>.+)', HTMLPage)
 
