@@ -27,6 +27,7 @@ from weboob.browser.filters.standard import CleanText, Env, Regexp, Date, CleanD
 from weboob.browser.filters.html import Attr
 from weboob.browser.elements import ListElement, ItemElement, method, SkipItem
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.value import Value
 
 from .base import MyHTMLPage
@@ -58,6 +59,9 @@ class TransferChooseAccounts(LoggedPage, MyHTMLPage):
 
             def condition(self):
                 return self.el.attrib['value'] != '-1'
+
+            def validate(self, obj):
+                return not obj.iban or is_iban_valid(obj.iban)
 
             obj_category = Env('category')
             obj_label = Env('label')
