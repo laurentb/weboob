@@ -33,7 +33,7 @@ from .pages import (
 from .pages.accounthistory import LifeInsuranceInvest, LifeInsuranceHistory, LifeInsuranceHistoryInv, RetirementHistory, SavingAccountSummary
 from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, ProAccountHistoryDownload, ProAccountHistoryCSV, DownloadRib, RibPage
 
-from weboob.capabilities.bank import TransferError
+from weboob.capabilities.bank import TransferError, Account
 
 
 __all__ = ['BPBrowser', 'BProBrowser']
@@ -190,6 +190,8 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_investment(self, account):
+        if not account.type == Account.TYPE_LIFE_INSURANCE:
+            return iter([])
         self.lifeinsurance_invest.go(id=account.id)
         assert self.lifeinsurance_invest.is_here()
         if self.page.has_error():
