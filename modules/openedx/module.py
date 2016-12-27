@@ -89,7 +89,7 @@ class OpenEDXModule(Module, CapMessages):
 
         message = Message(thread = thread,
                 id = data["id"],
-                title = None,
+                title = (parent and "Re: %s" or "%s") % thread.title,
                 sender = data.get("username"),
                 receivers = None,
                 date = dateutil.parser.parse(data["created_at"]),
