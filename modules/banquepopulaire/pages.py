@@ -69,7 +69,7 @@ class BasePage(object):
     ENCODING = 'iso-8859-15'
 
     def get_token(self):
-        token = Attr('//form//input[@name="token"]', 'value')(self.doc)
+        token = Attr('//form//input[@name="token"]', 'value', default=NotAvailable)(self.doc)
         if not token:
             token = Attr('//body', 'onload')(self.doc)
             token = re.search(r"saveToken\('(.*?)'", token).group(1)
