@@ -446,3 +446,7 @@ class LoanPage(LoggedPage, HTMLPage):
 
 class ErrorPage(HTMLPage):
     pass
+
+
+class ExpertPage(LoggedPage, HTMLPage):
+    pass

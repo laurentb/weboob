@@ -28,7 +28,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,\
-                   MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage
+                   MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ExpertPage
 
 
 __all__ = ['BoursoramaBrowser']
@@ -49,7 +49,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     accounts = URL('/dashboard/comptes\?_hinclude=300000', AccountsPage)
     acc_tit = URL('/comptes/titulaire/(?P<webid>.*)\?_hinclude=1', AccbisPage)
     acc_rep = URL('/comptes/representative/(?P<webid>.*)\?_hinclude=1', AccbisPage)
-    history = URL('/compte/(cav|epargne)/(?P<webid>.*)/mouvements.*', HistoryPage)
+    history = URL('/compte/(cav|epargne)/(?P<webid>.*)/mouvements.*',  HistoryPage)
     card_transactions = URL('/compte/cav/(?P<webid>.*)/carte/.*', HistoryPage)
     budget_transactions = URL('/budget/compte/(?P<webid>.*)/mouvements.*', HistoryPage)
     other_transactions = URL('/compte/cav/(?P<webid>.*)/mouvements.*', HistoryPage)
@@ -69,6 +69,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     authentication = URL('/securisation', AuthenticationPage)
     iban = URL('/compte/(?P<webid>.*)/rib', IbanPage)
 
+    expert = URL('/compte/derive/', ExpertPage)
 
     __states__ = ('auth_token',)
 
@@ -142,7 +143,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_history(self, account, coming=False):
-        if account.type is Account.TYPE_LOAN:
+        if account.type is Account.TYPE_LOAN or '/compte/derive' in account._link:
             return
         if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
             if coming:
@@ -171,6 +172,8 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_investment(self, account):
+        if '/compte/derive' in account._link:
+            return iter([])
         if not account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
             raise NotImplementedError()
         self.location(account._link)
