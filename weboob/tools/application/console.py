@@ -587,7 +587,7 @@ class ConsoleApplication(Application):
         elif isinstance(error, NotImplementedError):
             print(u'Error(%s): this feature is not supported yet by this backend.' % backend.name, file=self.stderr)
             print(u'      %s   To help the maintainer of this backend implement this feature,' % (' ' * len(backend.name)), file=self.stderr)
-            print(u'      %s   please contact: %s <%s@issues.weboob.org>' % (' ' * len(backend.name), backend.MAINTAINER, backend.NAME), file=self.stderr)
+            print(u'      %s   please contact us on the project mailing list' % (' ' * len(backend.name)), file=self.stderr)
         elif isinstance(error, UserError):
             print(u'Error(%s): %s' % (backend.name, to_unicode(error)), file=self.stderr)
         elif isinstance(error, MoreResultsAvailable):
