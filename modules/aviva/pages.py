@@ -24,6 +24,7 @@ from weboob.browser.filters.standard import CleanText, Capitalize, Format, Date,
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
+from weboob.exceptions import ActionNeeded
 
 
 def MyDecimal(*args, **kwargs):
@@ -141,3 +142,8 @@ class HistoryPage(LoggedPage, HTMLPage):
                     investments.append(i)
 
                 self.env['investments'] = investments
+
+
+class ActionNeededPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        raise ActionNeeded(u'Veuillez mettre à jour vos coordonnées')

@@ -19,9 +19,9 @@
 
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import  BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage
+from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage, ActionNeededPage
 
 
 class AvivaBrowser(LoginBrowser):
@@ -32,6 +32,7 @@ class AvivaBrowser(LoginBrowser):
     accounts = URL('Accueil/Synthese-Contrats', AccountsPage)
     investment = URL('contrat/epargne/', InvestmentPage)
     history = URL('contrat/getOperations', HistoryPage)
+    action_needed = URL(r'coordonnees/detailspersonne\?majcontacts=true', ActionNeededPage)
 
     def do_login(self):
         self.login.go().login(self.username, self.password)
