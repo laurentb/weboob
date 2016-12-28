@@ -19,13 +19,12 @@
 
 import dateutil.parser
 import datetime
-import time
 import requests
 import re
 import xmlrpclib
 
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import Value, ValueBool, ValueBackendPassword
+from weboob.tools.value import Value, ValueBackendPassword
 from weboob.capabilities.messages import CapMessages, Thread, Message
 from weboob.exceptions import BrowserIncorrectPassword
 
@@ -34,7 +33,7 @@ __all__ = ['TapatalkModule']
 class TapatalkError(Exception):
     pass
 
-class RequestsTransport:
+class RequestsTransport(object):
     def __init__(self, uri):
         self._uri = uri
         self._session = requests.Session()
@@ -91,7 +90,7 @@ class TapatalkModule(Module, CapMessages):
             try:
                 self._xmlrpc_client.login(xmlrpclib.Binary(username), xmlrpclib.Binary(password))
             except TapatalkError as e:
-                raise BrowserIncorrectPassword()
+                raise BrowserIncorrectPassword(e.message)
         return self._xmlrpc_client
 
     def _get_time(self, post):
