@@ -61,6 +61,9 @@ class TransferChooseAccounts(LoggedPage, MyHTMLPage):
                 return self.el.attrib['value'] != '-1'
 
             def validate(self, obj):
+                # Some international external recipients show those infos:
+                # INT - CA - 0815304220511006                   - CEGEP CANADA
+                # Skipping those for the moment.
                 return not obj.iban or is_iban_valid(obj.iban)
 
             obj_category = Env('category')
