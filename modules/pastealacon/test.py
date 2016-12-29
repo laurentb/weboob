@@ -63,7 +63,9 @@ class PastealaconTest(BackendTest):
 
     def test_spam(self):
         p = self.backend.new_paste(None, title=u'viagra', contents=u'http://example.com/')
-        self.assertRaises(Spam, self.backend.post_paste, p)
+        with self.assertRaises(Exception) as cm:
+            self.backend.post_paste(p)
+            self.assertEqual(cm.message, "Detected as spam and unable to handle the captcha")
 
     def test_notfound(self):
         for _id in ('424242424242424242424242424242424242',
