@@ -46,7 +46,7 @@ class VirtKeyboard(object):
     codesep = ''
     """Output separator between code strings.
 
-    See :any:`get_string_code`.
+    See :func:`get_string_code`.
     """
 
     def __init__(self, file=None, coords=None, color=None, convert=None):

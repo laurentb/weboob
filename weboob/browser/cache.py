@@ -46,7 +46,7 @@ class CacheMixin(object):
 
         """Cache store object
 
-        To limit the size of the cache, a :any:`weboob.tools.lrudict.LimitedLRUDict`
+        To limit the size of the cache, a :class:`weboob.tools.lrudict.LimitedLRUDict`
         instance can be used.
         """
 
