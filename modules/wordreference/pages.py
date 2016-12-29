@@ -21,7 +21,6 @@ from weboob.browser.pages import HTMLPage
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.capabilities.translate import Translation
 from weboob.browser.filters.standard import CleanText, Regexp, Env
-from weboob.browser.filters.html import CleanHTML
 
 
 class TranslatePage(HTMLPage):
@@ -35,4 +34,4 @@ class TranslatePage(HTMLPage):
             obj_id = Regexp(CleanText('./@id'), '.*:(.*)')
             obj_lang_src = Env('sl')
             obj_lang_dst = Env('tl')
-            obj_text = CleanHTML('./td[@class="ToWrd"]')
+            obj_text = CleanText('./td[@class="ToWrd"]', children=False)

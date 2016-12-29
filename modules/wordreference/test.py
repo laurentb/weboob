@@ -25,5 +25,5 @@ class WordReferenceTest(BackendTest):
     MODULE = 'wordreference'
 
     def test_translate(self):
-        tr = self.backend.translate('French', 'English', 'chat')
-        self.assertTrue(tr.text == u'cat')
+        tr = list(self.backend.translate('French', 'English', 'chat'))[0]
+        self.assertEqual(tr.text, u'cat')
