@@ -150,8 +150,8 @@ def install_weboob():
     if sys.version_info < (3, 2):
         requirements.append('futures')
 
-    if sys.version_info < (2, 6):
-        print('Python older than 2.6 is not supported.', file=sys.stderr)
+    if sys.version_info < (2, 7):
+        print('Python older than 2.7 is not supported.', file=sys.stderr)
         sys.exit(1)
 
     if not options.deps:
@@ -179,7 +179,6 @@ def install_weboob():
             'Environment :: Console',
             'Environment :: X11 Applications :: Qt',
             'License :: OSI Approved :: GNU Affero General Public License v3',
-            'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
             'Programming Language :: Python',
             'Topic :: Communications :: Email',
