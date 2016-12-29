@@ -42,8 +42,8 @@ class INGTest(BackendTest):
                 for elem in history:
                     self.assertTrue(date + timedelta(days=2) >= elem.date)
                     date = elem.date
-                recipients = list(self.backend.iter_transfer_recipients(id_or_account))
-                self.assertTrue(len(recipients) > 0)
+                # recipients = list(self.backend.iter_transfer_recipients(id_or_account))
+                # elf.assertTrue(len(recipients) > 0)
             elif account.type == Account.TYPE_MARKET:
                 invest = list(self.backend.iter_investment(id_or_account))
                 self.backend.iter_history(id_or_account)  # can be empty. Only try to call it
