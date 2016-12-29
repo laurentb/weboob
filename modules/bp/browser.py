@@ -27,7 +27,7 @@ from weboob.exceptions import BrowserIncorrectPassword, BrowserBanned
 
 from .pages import (
     LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate,
-    AccountList, AccountHistory, CardsList, UnavailablePage, AccountRIB,
+    AccountList, AccountHistory, CardsList, UnavailablePage, AccountRIB, Advisor,
     TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary,
 )
 from .pages.accounthistory import LifeInsuranceInvest, LifeInsuranceHistory, LifeInsuranceHistoryInv, RetirementHistory, SavingAccountSummary
@@ -105,6 +105,8 @@ class BPBrowser(LoginBrowser, StatesMixin):
     unavailable = URL(r'https?://.*.labanquepostale.fr/delestage.html', UnavailablePage)
     rib_dl = URL(r'.*/voscomptes/rib/init-rib.ea', DownloadRib)
     rib = URL(r'.*/voscomptes/rib/preparerRIB-rib.*', RibPage)
+    advisor = URL(r'/ws_q45/Q45/canalXHTML/commun/authentification/init-identif.ea\?origin=particuliers&codeMedia=0004&entree=HubHome',
+                  r'/ws_q45/Q45/canalXHTML/desktop/home/init-home.ea', Advisor)
 
     login_url = 'https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&' \
             'ERROR_CODE=0x00000000&URL=%2Fvoscomptes%2FcanalXHTML%2Fidentif.ea%3Forigin%3Dparticuliers'
@@ -237,6 +239,10 @@ class BPBrowser(LoginBrowser, StatesMixin):
         if self.transfer_confirm.is_here():
             self.page.double_auth(transfer)
         return self.page.handle_response(transfer)
+
+    @need_login
+    def get_advisor(self):
+        return iter([self.advisor.go().get_advisor()])
 
 
 class BProBrowser(BPBrowser):

@@ -24,9 +24,11 @@ from decimal import Decimal
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account
+from weboob.capabilities.contact import Advisor
+from weboob.browser.elements import ItemElement, method
 from weboob.browser.pages import LoggedPage, RawPage
 from weboob.browser.filters.html import Link
-from weboob.browser.filters.standard import CleanText
+from weboob.browser.filters.standard import CleanText, Regexp, Env
 from weboob.exceptions import BrowserUnavailable, NoAccountsException
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.ordereddict import OrderedDict
@@ -105,6 +107,41 @@ class AccountList(LoggedPage, MyHTMLPage):
 
                 response = self.browser.open('/voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea?compte.numero=%s' % account.id)
                 account.iban = response.page.get_iban()
+
+
+class Advisor(LoggedPage, MyHTMLPage):
+    @method
+    class get_advisor(ItemElement):
+        klass = Advisor
+
+        obj_name = Env('name')
+        obj_phone = Env('phone')
+        obj_mobile = Env('mobile', default=NotAvailable)
+        obj_agency = Env('agency', default=NotAvailable)
+        obj_email = NotAvailable
+
+        def obj_address(self):
+            return CleanText('//div[h3[contains(text(), "Bureau")]]/div[not(@class)][position() > 1]')(self) or NotAvailable
+
+        def parse(self, el):
+            # we have two kinds of page and sometimes we don't have any advisor
+            agency_phone = CleanText('//span/a[contains(@href, "rendezVous")]', replace=[(' ', '')], default=NotAvailable)(self) or \
+                           CleanText('//div[has-class("lbp-numero")]/span', replace=[(' ', '')], default=NotAvailable)(self)
+            advisor_phone = Regexp(CleanText('//div[h3[contains(text(), "conseil")]]//span[2]', replace=[(' ', '')], default=""), '(\d+)', default="")(self)
+            if advisor_phone.startswith(("06", "07")):
+                self.env['phone'] = agency_phone
+                self.env['mobile'] = advisor_phone
+            else:
+                self.env['phone'] = advisor_phone or agency_phone
+
+            agency = CleanText('//div[h3[contains(text(), "Bureau")]]/div[not(@class)][1]')(self) or NotAvailable
+            name = CleanText('//div[h3[contains(text(), "conseil")]]//span[1]', default=None)(self) or \
+                   CleanText('//div[@class="lbp-font-accueil"]/div[2]/div[1]/span[1]', default=None)(self)
+            if name:
+                self.env['name'] = name
+                self.env['agency'] = agency
+            else:
+                self.env['name'] = agency
 
 
 class AccountRIB(LoggedPage, RawPage):

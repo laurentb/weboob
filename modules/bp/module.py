@@ -20,6 +20,7 @@
 
 from decimal import Decimal
 from weboob.capabilities.bank import CapBankTransfer, Account, AccountNotFound, RecipientNotFound, TransferError
+from weboob.capabilities.contact import CapContact
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
@@ -30,7 +31,7 @@ from .browser import BPBrowser, BProBrowser
 __all__ = ['BPModule']
 
 
-class BPModule(Module, CapBankTransfer):
+class BPModule(Module, CapBankTransfer, CapContact):
     NAME = 'bp'
     MAINTAINER = u'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'
@@ -101,3 +102,9 @@ class BPModule(Module, CapBankTransfer):
 
     def execute_transfer(self, transfer, **params):
         return self.browser.execute_transfer(transfer)
+
+    def iter_contacts(self):
+        if self.config['website'].get() != 'par':
+            raise NotImplementedError()
+
+        return self.browser.get_advisor()
