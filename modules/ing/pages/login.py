@@ -21,7 +21,7 @@ from StringIO import StringIO
 
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard
-from weboob.browser.pages import HTMLPage
+from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.filters.html import Attr
 from weboob.browser.filters.standard import CleanText
 
@@ -134,3 +134,8 @@ class ActionNeededPage(HTMLPage):
 
 class StopPage(HTMLPage):
     pass
+
+
+class ReturnPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        self.get_form(name='retoursso').submit()

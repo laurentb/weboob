@@ -32,7 +32,7 @@ from weboob.capabilities.base import find_object
 
 from .pages import AccountsList, LoginPage, NetissimaPage, TitrePage, TitreHistory,\
     TransferPage, TransferConfirmPage, BillsPage, StopPage, TitreDetails, TitreValuePage, ASVHistory,\
-    ASVInvest, DetailFondsPage, IbanPage, ActionNeededPage
+    ASVInvest, DetailFondsPage, IbanPage, ActionNeededPage, ReturnPage
 
 
 __all__ = ['IngBrowser']
@@ -41,7 +41,7 @@ __all__ = ['IngBrowser']
 def check_bourse(f):
     def wrapper(*args, **kwargs):
         browser = args[0]
-        if browser.where != u"start":
+        if browser.where == "titre":
             for i in xrange(3):
                 try:
                     browser.location("https://bourse.ingdirect.fr/priv/redirectIng.php?pageIng=COMPTE")
@@ -58,6 +58,9 @@ class IngBrowser(LoginBrowser):
     BASEURL = 'https://secure.ingdirect.fr'
     VERIFY = 'certificate.pem'
     TIMEOUT = 60.0
+
+    # avoid relogin every time
+    lifeback = URL(r'https://ingdirectvie.ingdirect.fr/b2b2c/entreesite/EntAccExit', ReturnPage)
 
     # Login and error
     loginpage = URL('/public/displayLogin.jsf.*', LoginPage)
@@ -332,7 +335,7 @@ class IngBrowser(LoginBrowser):
             for tr in transactions:
                 page = tr._detail.result().page if tr._detail else None
                 tr.investments = list(page.get_investments()) if page and 'numMvt' in page.url else []
-            self.location('https://secure.ingdirect.fr/')
+            self.lifeback.go()
         return iter(transactions)
 
     ############# CapDocument #############
