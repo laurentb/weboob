@@ -125,6 +125,7 @@ def install_weboob():
     # Do not put PyQt, it does not work properly.
     requirements = [
         'lxml',
+        'cssselect',
         'feedparser',
         'requests>=2.0.0',
         'python-dateutil',
