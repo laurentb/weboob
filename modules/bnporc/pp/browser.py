@@ -147,7 +147,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
             return self.iter_lifeinsurance_history(account, coming)
         elif account.type == account.TYPE_MARKET and not coming:
             try:
-                self.page = self.market_list.go(data=JSON({}))
+                self.market_list.go(data=JSON({}))
             except ServerError:
                 self.logger.warning("An Internal Server Error occured")
                 return iter([])
@@ -159,7 +159,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
                     return self.page.iter_history()
             return iter([])
         else:
-            self.page = self.history.go(data=JSON({
+            self.history.go(data=JSON({
                 "ibanCrypte": account.id,
                 "pastOrPending": 1,
                 "triAV": 0,
@@ -170,7 +170,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
 
     @need_login
     def iter_lifeinsurance_history(self, account, coming=False):
-        self.page = self.lifeinsurances_history.go(data=JSON({
+        self.lifeinsurances_history.go(data=JSON({
             "ibanCrypte": account.id,
         }))
 
@@ -192,13 +192,13 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     @need_login
     def iter_investment(self, account):
         if account.type == account.TYPE_LIFE_INSURANCE:
-            self.page = self.lifeinsurances.go(data=JSON({
+            self.lifeinsurances.go(data=JSON({
                 "ibanCrypte": account.id,
             }))
             return self.page.iter_investments()
         elif account.type == account.TYPE_MARKET:
             try:
-                self.page = self.market_list.go(data=JSON({}))
+                self.market_list.go(data=JSON({}))
             except ServerError:
                 self.logger.warning("An Internal Server Error occured")
                 return iter([])
@@ -206,7 +206,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
                 if account.number[-4:] == market_acc['securityAccountNumber'][-4:]:
                     # Sometimes generate an Internal Server Error ...
                     try:
-                        self.page = self.market.go(data=JSON({
+                        self.market.go(data=JSON({
                             "securityAccountNumber": market_acc['securityAccountNumber'],
                         }))
                     except ServerError:
