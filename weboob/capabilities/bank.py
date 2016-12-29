@@ -140,7 +140,7 @@ class Account(BaseAccount):
     paymin =    DecimalField('For credit cards. Minimal payment due.')
     cardlimit = DecimalField('For credit cards. Credit limit.')
 
-    number =    StringField('Shown by the bank to identify your account ie ****7489')
+    number =    StringField('Shown by the bank to identify your account ie XXXXX7489')
     # market and lifeinssurance accounts
     valuation_diff = DecimalField('+/- values total')
 
