@@ -131,7 +131,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
             self.market_syn.go(data=JSON({}))
             for account in accounts:
                 for market_acc in self.page.get_list():
-                    if account.label == market_acc['securityAccountName'] and account.type == Account.TYPE_MARKET:
+                    if account.number[-4:] == market_acc['securityAccountNumber'][-4:] and account.type == Account.TYPE_MARKET:
                         account.valuation_diff = market_acc['profitLoss']
                         break
                 self.accounts_list.append(account)
@@ -152,7 +152,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
                 self.logger.warning("An Internal Server Error occured")
                 return iter([])
             for market_acc in self.page.get_list():
-                if account.label == market_acc['securityAccountName']:
+                if account.number[-4:] == market_acc['securityAccountNumber'][-4:]:
                     self.page = self.market_history.go(data=JSON({
                         "securityAccountNumber": market_acc['securityAccountNumber'],
                     }))
@@ -203,7 +203,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
                 self.logger.warning("An Internal Server Error occured")
                 return iter([])
             for market_acc in self.page.get_list():
-                if account.label == market_acc['securityAccountName']:
+                if account.number[-4:] == market_acc['securityAccountNumber'][-4:]:
                     # Sometimes generate an Internal Server Error ...
                     try:
                         self.page = self.market.go(data=JSON({
