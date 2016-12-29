@@ -667,12 +667,12 @@ class PagesBrowser(DomainBrowser):
             if response.page is None:
                 regexp = r'^(?P<proto>\w+)://.*'
 
-                proto_base = re.match(regexp, response.url)
-                if proto_base:
-                    proto_base = proto_base.group('proto')
-                    proto_resp = re.match(regexp, self.BASEURL).group('proto')
+                proto_response = re.match(regexp, response.url)
+                if proto_response:
+                    proto_response = proto_response.group('proto')
+                    proto_base = re.match(regexp, self.BASEURL).group('proto')
 
-                    if proto_base == 'https' and proto_resp != 'https':
+                    if proto_base == 'https' and proto_response != 'https':
                         raise BrowserHTTPSDowngrade()
 
                 self.logger.debug('Unable to handle %s' % response.url)
