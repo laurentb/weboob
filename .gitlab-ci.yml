@@ -19,7 +19,7 @@ lint:
 unittests:
   stage: "test"
   script:
-    - "NOSE_PROCESSES=4 ./tools/run_tests.sh"
+    - "./tools/run_tests.sh"
 
 doc:
   stage: "deploy"
