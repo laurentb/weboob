@@ -91,7 +91,8 @@ def rebuild_rib(rib):
     key = find_rib_checksum(rib[:5], rib[5:10], rib[10:21])
     return unicode(rib[:21] + ('%02d' % key))
 
-if __name__ == '__main__':
-    print(rebuild_iban('FR0013048379405300290000355'))
-    print(rebuild_iban('GB87BARC20658244971655'))
-    print(rebuild_rib('30003021990005077567600'))
+
+def test():
+    assert rebuild_iban('FR0013048379405300290000355') == "FR7613048379405300290000355"
+    assert rebuild_iban('GB87BARC20658244971655') == "GB87BARC20658244971655"
+    assert rebuild_rib('30003021990005077567600') == "30003021990005077567667"
