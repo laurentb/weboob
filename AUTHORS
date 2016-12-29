@@ -44,6 +44,19 @@ Vincent A. <dev@indigo.re>
           ovs, pariskiwi, pixtoilelibre, quvi, sueurdemetal, unsee
           modules maintainer;
         * Many patches on too many code parts.
+        * Port of qt applications to qt5.
+
+Baptiste Delpey <bdelpey@budget-insight.com>
+        * Many fixes and improvement on bank and bill modules.
+        * Author of CapBankTransfer API.
+
+Lucas Verney (Phyks) <phyks@phyks.me>
+        * Author of gitlab-ci part.
+        * Fixes on many tests.
+        * Fixes on some modules.
+
+Edouard Lambert <elambert@budget-insight.com>
+        * Many fixes and improvement of bank modules.
 
 Roger Philibert <roger.philibert@gmail.com>
         * Ehentai, Izneo, JacquieEtMichel, OKC and Youjizz modules maintainer.
@@ -55,9 +68,11 @@ Clément Schreiner <clemux@clemux.info>
         * MediaWiki and Newsfeed modules maintainer.
 
 François Revol <revol@free.fr>
-        * Europarl, GDCVault and Vimeo modules maintainer.
+        * Europarl, GDCVault, linuxjobs and Vimeo modules maintainer.
         * Canaplus and qvideoob fixes
         * Patchs for Haiku support
+        * Patchs on dailymotion and arte module.
+        * Ambassador of weboob in magazine and conferences.
 
 Pierre Mazière <pierre.maziere@gmx.com>
         * RockRadio module maintainer;
@@ -114,9 +129,10 @@ Arno Renevier <arno@renevier.net>
         * Weather module maintainer.
 
 Matthieu Weber <mweber+weboob@free.fr>
-        * Unpronounceable modules maintainer.
+        * Unpronounceable and torrentz modules maintainer.
         * Fix on formatter encoding.
-        * Fixes on t411, btdigg, and more
+        * Fixes on t411, btdigg, and more.
+        * Improvement of encoding output on boobank.
 
 Jocelyn Jaubert <jocelyn.jaubert@gmail.com>
         * SocieteGenerale module maintainer.
@@ -128,6 +144,7 @@ Alexandre Morignot <erdnaxeli@cervoi.se>
 
 Johann Broudin <johann.broudin@6-8.fr>
         * CMB module maintainer.
+        * Fix on virginradio.
 
 Guilhem Bonnefille <guilhem.bonnefille@gmail.com>
         * RMLL module maintainer.
@@ -166,9 +183,6 @@ Clément Calmels <cboulte@gmail.com>
 
 Gabriel Serme <gabriel@serme.net>
         * Support of two-factor authentication for Boursorama.
-
-Baptiste Delpey <bdelpey@budget-insight.com>
-        * Fixes on bank modules.
 
 Jean-Philippe Dutrève <jdutreve@winancial.com>
         * Fixes on bank modules.
@@ -224,8 +238,7 @@ leto <leto@weboob.org>
 
 Vincent Paredes <vincentparedes@gmail.com>
         * Changes in Repl.
-        * Fixes and patchs on banking modules.
-        * Backport in browser2 for wheezy support
+        * Many fixes and patchs on banking modules.
 
 Richard Genoud <richard.genoud@gmail.com>
         * Fixes on CrArg.
@@ -320,14 +333,33 @@ Mickaël Thomas <mickael9@gmail.com>
         * Patch to use gpg by default rather than gpg
 
 James Galt <james.galt.bi@gmail.com.com>
-        * Patch to remove ids that might be non-unique
-        * Add Account.number attribute, and use it in BNP module
+        * Many fixes and improvement on bank and bill modules.
 
 Simon Lipp
-        * Add url attribute to BaseObject, and fill it
+        * Add url attribute to BaseObject, and fill it.
+        * Tapatalk and openedx maintener.
 
 Yannick Heinrich
         * Documentation for installation statement on OSX
+
+Roland Mas <lolando@debian.org>
+        * imm-o-matic script author
+
+Jean Walrave <jean.walrave@budget-insight.com>
+        * Fix on bill and bank modules.
+
+Jonathan Schmidt <jonathan.schmidt@budget-insight.com>
+        * Fix on bill and bank modules.
+
+ZeHiro <mail-github@abossy.fr>
+        * Add support for banque de Savoir on banquepopulaire.
+
+Edouard Lefebvre du Prey <edouard.lefebvreduprey@geneanet.org>
+        * Patch on browser.
+        * Add italian translation for dates.
+
+Julien Danjou <julien@danjou.info>
+        * Fix on seloger.
 
 Edmond Van Overtveldt
 Julia Leven
