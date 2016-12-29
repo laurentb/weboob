@@ -23,6 +23,3 @@ from weboob.tools.test import BackendTest
 
 class ChronopostTest(BackendTest):
     MODULE = 'chronopost'
-
-    def test_chronopost(self):
-        raise NotImplementedError()

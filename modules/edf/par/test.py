@@ -23,6 +23,3 @@ from weboob.tools.test import BackendTest
 
 class EdfTest(BackendTest):
     MODULE = 'edf'
-
-    def test_edf(self):
-        raise NotImplementedError()

@@ -23,6 +23,3 @@ from weboob.tools.test import BackendTest
 
 class BforbankTest(BackendTest):
     MODULE = 'bforbank'
-
-    def test_bforbank(self):
-        raise NotImplementedError()

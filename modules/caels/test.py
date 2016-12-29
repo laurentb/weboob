@@ -23,6 +23,3 @@ from weboob.tools.test import BackendTest
 
 class CaelsTest(BackendTest):
     MODULE = 'caels'
-
-    def test_caels(self):
-        raise NotImplementedError()

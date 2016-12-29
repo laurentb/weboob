@@ -23,6 +23,3 @@ from weboob.tools.test import BackendTest
 
 class Number26Test(BackendTest):
     MODULE = 'number26'
-
-    def test_number26(self):
-        raise NotImplementedError()

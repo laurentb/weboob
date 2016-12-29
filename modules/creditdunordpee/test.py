@@ -23,6 +23,3 @@ from weboob.tools.test import BackendTest
 
 class CreditdunordpeeTest(BackendTest):
     MODULE = 'creditdunordpee'
-
-    def test_creditdunordpee(self):
-        raise NotImplementedError()

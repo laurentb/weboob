@@ -23,6 +23,3 @@ from weboob.tools.test import BackendTest
 
 class BanqueAccordTest(BackendTest):
     MODULE = 'banqueaccord'
-
-    def test_banqueaccord(self):
-        raise NotImplementedError()

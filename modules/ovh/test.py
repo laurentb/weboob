@@ -23,6 +23,3 @@ from weboob.tools.test import BackendTest
 
 class OvhTest(BackendTest):
     MODULE = 'ovh'
-
-    def test_ovh(self):
-        raise NotImplementedError()

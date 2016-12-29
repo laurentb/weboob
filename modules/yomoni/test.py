@@ -23,6 +23,3 @@ from weboob.tools.test import BackendTest
 
 class YomoniTest(BackendTest):
     MODULE = 'yomoni'
-
-    def test_yomoni(self):
-        raise NotImplementedError()
