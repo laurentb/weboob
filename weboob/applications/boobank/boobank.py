@@ -276,6 +276,41 @@ class RecipientListFormatter(PrettyFormatter):
         return obj.label
 
 
+class AdvisorListFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'name')
+
+    def start_format(self, **kwargs):
+        self.output('   Bank           Name                           Contacts')
+        self.output('-----------------+------------------------------+-----------------------------------------')
+
+    def format_obj(self, obj, alias):
+        bank = obj.backend
+        phones = ""
+        if not empty(obj.phone):
+            phones += obj.phone
+        if not empty(obj.mobile):
+            if phones != "":
+                phones += " or %s" % obj.mobile
+            else:
+                phones += obj.mobile
+
+        if not empty(obj.email):
+            email = obj.email
+        else:
+            email = ""
+
+        result = u"  %s %s %s " % (self.colored('%-15s' % bank, 'yellow'),
+                                   self.colored('%-30s' % obj.name, 'red'),
+                                   self.colored("%-30s" % email, 'green'))
+        if phones != "":
+            result += "\n %s %s" % ((" ") * 47, self.colored("%-25s" % phones, 'green'))
+        if not empty(obj.agency):
+            result += "\n %s %s" % ((" ") * 47, self.colored("%-25s" % obj.agency, "green"))
+        if not empty(obj.address):
+            result += "\n %s %s" % ((" ") * 47, self.colored("%-25s" % obj.address, "green"))
+
+        return result
+
 class AccountListFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'label', 'balance', 'coming', 'type')
 
@@ -344,6 +379,7 @@ class Boobank(ReplApplication):
                         'ofx':            OfxFormatter,
                         'ops_list':       TransactionsFormatter,
                         'investment_list': InvestmentFormatter,
+                        'advisor_list':   AdvisorListFormatter,
                         }
     DEFAULT_FORMATTER = 'table'
     COMMANDS_FORMATTERS = {'ls':          'account_list',
@@ -352,6 +388,7 @@ class Boobank(ReplApplication):
                            'history':     'ops_list',
                            'coming':      'ops_list',
                            'investment':  'investment_list',
+                           'advisor':     'advisor_list',
                            }
     COLLECTION_OBJECTS = (Account, Transaction, )
 
