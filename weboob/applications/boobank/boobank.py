@@ -286,6 +286,7 @@ class AdvisorListFormatter(IFormatter):
     def format_obj(self, obj, alias):
         bank = obj.backend
         phones = ""
+        contacts = []
         if not empty(obj.phone):
             phones += obj.phone
         if not empty(obj.mobile):
@@ -293,21 +294,24 @@ class AdvisorListFormatter(IFormatter):
                 phones += " or %s" % obj.mobile
             else:
                 phones += obj.mobile
+        if phones:
+            contacts.append(phones)
 
-        if not empty(obj.email):
-            email = obj.email
+        for attr in ('email', 'agency', 'address'):
+            value = getattr(obj, attr)
+            if not empty(value):
+                contacts.append(value)
+
+        if len(contacts) > 0:
+            first_contact = contacts.pop(0)
         else:
-            email = ""
+            first_contact = ""
 
         result = u"  %s %s %s " % (self.colored('%-15s' % bank, 'yellow'),
                                    self.colored('%-30s' % obj.name, 'red'),
-                                   self.colored("%-30s" % email, 'green'))
-        if phones != "":
-            result += "\n %s %s" % ((" ") * 47, self.colored("%-25s" % phones, 'green'))
-        if not empty(obj.agency):
-            result += "\n %s %s" % ((" ") * 47, self.colored("%-25s" % obj.agency, "green"))
-        if not empty(obj.address):
-            result += "\n %s %s" % ((" ") * 47, self.colored("%-25s" % obj.address, "green"))
+                                   self.colored("%-30s" % first_contact, 'green'))
+        for contact in contacts:
+            result += "\n %s %s" % ((" ") * 47, self.colored("%-25s" % contact, 'green'))
 
         return result
 
