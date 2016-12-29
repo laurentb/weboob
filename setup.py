@@ -46,7 +46,7 @@ def find_executable(name, names):
 def build_qt():
     print('Building Qt applications...', file=sys.stderr)
     make = find_executable('make', ('gmake', 'make'))
-    pyuic5 = find_executable('pyuic5', ('python2-pyuic5', 'pyuic5-python2.7', 'pyuic5-python2.6', 'pyuic5'))
+    pyuic5 = find_executable('pyuic5', ('python2-pyuic5', 'pyuic5-python2.7', 'pyuic5'))
     if not pyuic5 or not make:
         print('Install missing component(s) (see above) or disable Qt applications (with --no-qt).', file=sys.stderr)
         sys.exit(1)
