@@ -103,7 +103,8 @@ class PastealaconBrowser(PagesBrowser):
         Returns unicode.
         """
         try:
-            return self.raw.open(id=_id).text
+            # despite what the HTTP header says, it is iso8859
+            return self.raw.open(id=_id).content.decode('iso8859-15')
         except BrowserHTTPNotFound:
             raise PasteNotFound()
 
