@@ -40,6 +40,8 @@ def genapi():
                          'equals': '=' * len(fmod)})
 
         for d in dirs:
+            if not root and d == "applications":
+                continue
             subs.add('%s/index' % d)
 
         with open(os.path.join(root, 'index.rst'), 'w') as fp:
