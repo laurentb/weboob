@@ -579,9 +579,14 @@ class TransactionsPage(BasePage):
             t.category = unicode(col_text.text.strip())
             t.label = re.sub('(.*)  (.*)', r'\2', t.category).strip()
 
-            sub_label = col_text.find('br').tail
-            if sub_label is not None and (len(t.label) < 3 or t.label == t.category or len(re.findall('[^\w\s]', sub_label))/float(len(sub_label)) < len(re.findall('\d', t.label))/float(len(t.label))):
-                t.label = unicode(sub_label.strip())
+            br = col_text.find('br')
+            if br is not None:
+                sub_label = br.tail
+            if br is not None and sub_label is not None:
+                junk_ratio = len(re.findall('[^\w\s]', sub_label)) / float(len(sub_label))
+                nums_ratio = len(re.findall('\d', t.label)) / float(len(t.label))
+                if len(t.label) < 3 or t.label == t.category or junk_ratio < nums_ratio:
+                    t.label = unicode(sub_label.strip())
             # Sometimes, the category contains the label, even if there is another line with it again.
             t.category = re.sub('(.*)  .*', r'\1', t.category).strip()
 
