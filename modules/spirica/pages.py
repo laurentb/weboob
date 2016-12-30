@@ -207,8 +207,8 @@ class DetailsPage(LoggedPage, HTMLPage):
 
         col_label = u'Type'
         col_status = u'Etat'
-        col_brut = u'Montant brut'
-        col_net = u'Montant net'
+        col_brut = [u'Montant brut', u'Brut']
+        col_net = [u'Montant net', u'Net']
         col_date = u'Date de réception'
         col_vdate = u'Date de valeur'
 
