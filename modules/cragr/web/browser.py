@@ -86,6 +86,7 @@ class Cragr(Browser):
         self.accounts_url = None
         self.savings_url = None
         self._sag = None  # updated while browsing
+        self._old_sag = None
         self.code_caisse = None  # constant for a given website
         self.perimeters = None
         self.current_perimeter = None
@@ -443,4 +444,7 @@ class Cragr(Browser):
             self.login()
 
         script = self.page.document.xpath("//script[contains(.,'idSessionSag =')]")
-        self._sag = re.search('idSessionSag = "([^"]+)";', script[0].text).group(1)
+        if script:
+            self._old_sag = self._sag = re.search('idSessionSag = "([^"]+)";', script[0].text).group(1)
+        else:
+            self._sag = self._old_sag
