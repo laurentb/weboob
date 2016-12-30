@@ -799,6 +799,7 @@ class Keyring(object):
             try:
                 sigfile.write(sigdata)
                 sigfile.flush()  # very important
+                sigfile.close()
                 assert isinstance(data, basestring)
                 # Yes, all of it is necessary
                 proc = subprocess.Popen(verify_command + [
