@@ -23,8 +23,6 @@ from weboob.capabilities.base import NotLoaded
 
 from weboob.capabilities.paste import PasteNotFound
 
-from .browser import Spam
-
 
 class PastealaconTest(BackendTest):
     MODULE = 'pastealacon'
