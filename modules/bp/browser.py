@@ -102,7 +102,10 @@ class BPBrowser(LoginBrowser, StatesMixin):
                            r'.*/message\.html\?param=0x132120c.*',
                            r'https://transverse.labanquepostale.fr/xo_/messages/message.html\?param=0x132120cb.*',
                            AccountDesactivate)
-    unavailable = URL(r'https?://.*.labanquepostale.fr/delestage.html', UnavailablePage)
+
+    unavailable = URL(r'https?://.*.labanquepostale.fr/delestage.html',
+                      r'https://transverse.labanquepostale.fr/xo_/messages/message.html\?param=delestage',
+                      UnavailablePage)
     rib_dl = URL(r'.*/voscomptes/rib/init-rib.ea', DownloadRib)
     rib = URL(r'.*/voscomptes/rib/preparerRIB-rib.*', RibPage)
     advisor = URL(r'/ws_q45/Q45/canalXHTML/commun/authentification/init-identif.ea\?origin=particuliers&codeMedia=0004&entree=HubHome',
