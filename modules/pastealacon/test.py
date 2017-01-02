@@ -44,7 +44,7 @@ class PastealaconTest(BackendTest):
         assert u'héhéhé' in p.contents
         assert p.public is True
 
-    @skip_without_config
+    @skip_without_config()
     def test_post(self):
         p = self.backend.new_paste(None, title=u'ouiboube', contents=u'Weboob Test héhéhé')
         self.backend.post_paste(p, max_age=3600*24)
