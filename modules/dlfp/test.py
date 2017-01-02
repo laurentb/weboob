@@ -40,17 +40,17 @@ class DLFPTest(BackendTest):
         for message in self.backend.iter_unread_messages():
             pass
 
-    @skip_without_config
+    @skip_without_config("username")
     def test_get_content(self):
         self.backend.get_content(u"Ceci-est-un-test")
 
-    @skip_without_config
+    @skip_without_config("username")
     def test_push_content(self):
         content = self.backend.get_content(u"Ceci-est-un-test")
         content.content = "test " + str(datetime.now())
         self.backend.push_content(content, message="test weboob", minor=True)
 
-    @skip_without_config
+    @skip_without_config("username")
     def test_content_preview(self):
         content = self.backend.get_content(u"Ceci-est-un-test")
         self.backend.get_content_preview(content)
