@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest
+from weboob.tools.test import BackendTest, skip_without_config
 import itertools
 
 
@@ -31,6 +31,7 @@ class AdeccoTest(BackendTest):
         advert = self.backend.get_job_advert(l[0].id, None)
         self.assertTrue(advert.url, 'URL for announce "%s" not found: %s' % (advert.id, advert.url))
 
+    @skip_without_config()
     def test_adecco_advanced_search(self):
         l = list(itertools.islice(self.backend.advanced_search_job(), 0, 20))
         assert len(l)
