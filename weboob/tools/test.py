@@ -87,17 +87,21 @@ class BackendTest(TestCase):
 def skip_without_config(*keys):
     """Decorator to skip a test if backend config is missing
 
-    :param keys: if any of these keys is missing in backend config, skip test
+    :param keys: if any of these keys is missing in backend config, skip test. Can be empty.
     """
 
-    if not keys:
-        raise TypeError('skip_without_config() takes at least 1 argument (0 given)')
+    for key in keys:
+        if callable(key):
+            raise TypeError('skip_without_config() must be called with arguments')
 
     def decorator(func):
         @wraps(func)
         def wrapper(self, *args, **kwargs):
+            config = self.backend.config
+            if not config.weboob.backends_config.backend_exists(config.instname):
+                raise SkipTest('a backend must be declared in configuration for this test')
             for key in keys:
-                if not self.backend.config[key].get():
+                if not config[key].get():
                     raise SkipTest('config key %r is required for this test' %
                                    key)
 
