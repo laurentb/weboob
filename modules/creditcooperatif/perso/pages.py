@@ -21,12 +21,13 @@
 import re
 
 from weboob.tools.json import json
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.filters.standard import Filter, Format, CleanText, CleanDecimal, \
                                             BrowserURL, Field, Async, AsyncLoad
 from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.exceptions import ServerError
 
 
 class LoginPage(HTMLPage):
@@ -75,7 +76,12 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_type = AddType(CleanText('.//h2[@class="tt_compte"][1]'))
             obj_balance = CleanDecimal('.//td[@class="sum_solde"]//span[last()]', replace_dots=True)
             obj_currency = u'EUR'
-            obj_iban = Async('details') & CleanText('(.//div[@class="iban"]/p)[1]', replace=[(' ', '')])
+
+            def obj_iban(self):
+                try:
+                    return Async('details', CleanText('(.//div[@class="iban"]/p)[1]', replace=[(' ', '')]))(self)
+                except ServerError:
+                    return NotAvailable
 
 
 class IbanPage(LoggedPage, HTMLPage):
