@@ -678,7 +678,7 @@ class TransferPage(LoggedPage, HTMLPage):
     def get_value(self, _id, value_type):
         for div in self.doc.xpath('//div[@onclick]'):
             if _id in CleanText('.//div[not(@title)]', replace=[(' ', '')])(div):
-                return Regexp(Attr('.', 'onclick'), '(\d)')(div)
+                return Regexp(Attr('.', 'onclick'), '(\d+)')(div)
         raise TransferError('Could not find %s account.' % value_type)
 
     def choose_origin(self, account_transfer_id):
@@ -718,7 +718,7 @@ class TransferPage(LoggedPage, HTMLPage):
 
     def check_data_consistency(self, account, recipient, amount, reason):
         try:
-            assert CleanDecimal('//div[@class="topBox"]/div[@class="montant"]')(self.doc) == amount
+            assert CleanDecimal('//div[@class="topBox"]/div[@class="montant"]', replace_dots=True)(self.doc) == amount
             assert reason in CleanText('//div[@class="motif"]')(self.doc)
             assert account._transfer_id in CleanText(u'//div[div[@class="libelleChoix" and contains(text(), "Compte émetteur")]] \
                                                     //div[@class="infoCompte" and not(@title)]', replace=[(' ', '')])(self.doc)
@@ -730,7 +730,7 @@ class TransferPage(LoggedPage, HTMLPage):
     def create_transfer(self, account, recipient, amount, reason):
         transfer = Transfer()
         transfer.currency = FrenchTransaction.Currency('//div[@class="topBox"]/div[@class="montant"]')(self.doc)
-        transfer.amount = CleanDecimal('//div[@class="topBox"]/div[@class="montant"]')(self.doc)
+        transfer.amount = CleanDecimal('//div[@class="topBox"]/div[@class="montant"]', replace_dots=True)(self.doc)
         transfer.account_iban = account.iban
         transfer.recipient_iban = recipient.iban
         transfer.account_id = account.id
