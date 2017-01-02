@@ -46,12 +46,11 @@ if %IsPythonInstalled% EQU 1 (
   if %ERRORLEVEL% EQU 1 (
     set IsPythonInstalled=0
   ) else (
-    FOR /F "eol=; tokens=3 delims=." %%i in (tmp.txt) do set minor_version=%%i
+    FOR /F "eol=; tokens=2 delims=." %%i in (tmp.txt) do set minor_version=%%i
     if !minor_version! LSS !PYTHON_MINOR_VERSION! (
       set IsPythonInstalled=0
     )
   )
-
   del tmp.txt
 )
 
@@ -72,35 +71,51 @@ if %IsPythonInstalled% EQU 0 (
   del python_donwload
 )
 
+echo Retrieve Python path
+rem check first possible key
+set KEY_NAME=HKLM\Software\Python\PythonCore\2.7\InstallPath
+if %ARCHITECTURE% == x64 (
+  set KEY_NAME=HKLM\SOFTWARE\Python\PythonCore\2.7\InstallPath
+)
+
+REG QUERY !KEY_NAME! >NUL 2>NUL
+if %ERRORLEVEL% EQU 1 (
+  rem first key doesn't exist, test the second possible key
+  set KEY_NAME=HKCU\Software\Python\PythonCore\2.7\InstallPath
+)
+
 for /F "tokens=4" %%A IN ('REG QUERY !KEY_NAME!') do (
   set PythonPath=%%A
 )
 
 echo.
-echo 3.Check PyQt4 Installation
-set KEY_NAME=HKLM\Software\PyQt4\Py2.7\InstallPath
-REG QUERY %KEY_NAME% > nul || (
+echo 3.Check EasyInstall
+if exist "%PythonPath%Scripts\easy_install.exe" (
+  goto :step4
+) else (
 
-  echo 3.1 Download PyQt4
-  "%WGET%" -o qt_download http://sourceforge.net/projects/pyqt/files/PyQt4/PyQt-4.11.3/PyQt4-4.11.3-gpl-Py2.7-Qt4.8.6-%ARCHITECTURE%.exe
+  echo 3.1 Setup setuptools
+  %PythonPath%python.exe ez_setup.py || goto :InstallFailed
 
-  echo 3.2 Setup PyQt4
-  PyQt4-4.11.3-gpl-Py2.7-Qt4.8.6-%ARCHITECTURE%.exe
-
-  del PyQt4-4.11.3-gpl-Py2.7-Qt4.8.6-%ARCHITECTURE%.exe
-  del qt_download
+  del setuptools-1.1.6.tar.gz
+  goto :step4
 )
 
+:step4
 echo.
-echo 4.Check Gpg4win Installation
+echo 4.PyQt5 Installation
+%PythonPath%Scripts\easy_install.exe python-qt5 || goto :InstallFailed
+
+echo.
+echo 5.Check Gpg4win Installation
 set ShouldReboot=0
 set KEY_NAME=HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\GPG4Win
-REG QUERY %KEY_NAME% > nul || (
+REG QUERY %KEY_NAME% > nul 2>NUL || (
 
-  echo 4.1 Download Gpg4win
+  echo 5.1 Download Gpg4win
   "%WGET%" -o gpg4win_download http://files.gpg4win.org/gpg4win-2.2.2.exe
 
-  echo 4.2 Setup Gpg4win
+  echo 5.2 Setup Gpg4win
   gpg4win-2.2.2.exe
 
   set ShouldReboot=1
@@ -109,21 +124,6 @@ REG QUERY %KEY_NAME% > nul || (
   del gpg4win_download
 )
 
-echo.
-echo 5.Check EasyInstall
-if exist "%PythonPath%Scripts\easy_install.exe" (
-	goto :InstallWeboobDependances
-) else (
-
-	echo 5.1 Setup setuptools
-	%PythonPath%python.exe ez_setup.py || goto :InstallFailed
-
-	del setuptools-1.1.6.tar.gz
-
-	goto :InstallWeboobDependances
-)
-
-:InstallWeboobDependances
 echo.
 echo 6.Install Weboob Dependances
 echo.
