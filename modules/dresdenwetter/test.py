@@ -17,12 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.test import BackendTest
+from weboob.tools.test import BackendTest, skip_without_config
 
 
 class DresdenWetterTest(BackendTest):
     MODULE = 'dresdenwetter'
 
+    @skip_without_config
     def test_gauges_sensors(self):
         """
         test if the gauge listing works.
@@ -32,6 +33,7 @@ class DresdenWetterTest(BackendTest):
         self.assertTrue(len(l) == 1, msg="Gauge not found")
         self.assertTrue(len(l[0].sensors) > 5, msg="Not enough sensors")
 
+    @skip_without_config
     def test_sensors_value(self):
         temperature = self.backend.get_last_measure("dd-Temperatur2m").level
         self.assertTrue(temperature > -50., msg="To cold")
@@ -42,6 +44,7 @@ class DresdenWetterTest(BackendTest):
         self.assertTrue(self.backend.get_last_measure("dd-Niederschlagseit001Uhr").level >= 0.)
         self.assertTrue(self.backend.get_last_measure("dd-Globalstrahlung").level >= 0.)
 
+    @skip_without_config
     def test_temperature(self):
         """
         test the first sensor return by module"
@@ -50,6 +53,7 @@ class DresdenWetterTest(BackendTest):
         assert temperature[0].name == u"Temperatur 2m"
         assert temperature[0].unit == u"°C"
 
+    @skip_without_config
     def test_globalstrahlung(self):
         """
         Test the last sensor return by module"
