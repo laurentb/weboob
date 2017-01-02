@@ -36,7 +36,6 @@ from weboob.tools.capabilities.bank.iban import rib2iban, rebuild_rib, is_iban_v
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.tools.date import parse_french_date as Date
-from weboob.tools.json import json
 
 
 class ConnectionThresholdPage(HTMLPage):
