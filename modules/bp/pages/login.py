@@ -21,8 +21,9 @@
 from cStringIO import StringIO
 import re
 
-from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
+from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, NoAccountsException
 from weboob.browser.pages import LoggedPage
+from weboob.browser.filters.standard import CleanText
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard
 
 from .base import MyHTMLPage
@@ -114,6 +115,9 @@ class Initident(LoggedPage, MyHTMLPage):
         self.browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/verifierMotDePasse-identif.ea")
         if self.doc.xpath(u'//span[contains(text(), "L\'identifiant utilisé est celui d\'une Entreprise ou d\'une Association")]'):
             raise BrowserIncorrectPassword(u"L'identifiant utilisé est celui d'une Entreprise ou d'une Association")
+        no_accounts = CleanText(u'//div[@class="textFCK"]')(self.doc)
+        if no_accounts:
+            raise NoAccountsException(no_accounts)
         MyHTMLPage.on_load(self)
 
 
