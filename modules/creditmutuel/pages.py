@@ -71,7 +71,8 @@ class LoginPage(HTMLPage):
 
 
 class LoginErrorPage(HTMLPage):
-    pass
+    def on_load(self):
+        raise BrowserIncorrectPassword(CleanText('//div[has-class("blocmsg")]')(self.doc))
 
 
 class EmptyPage(LoggedPage, HTMLPage):
