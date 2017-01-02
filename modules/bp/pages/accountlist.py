@@ -46,7 +46,7 @@ class AccountList(LoggedPage, MyHTMLPage):
         self.parse_table('comptes',         Account.TYPE_CHECKING)
         self.parse_table('comptesEpargne',  Account.TYPE_SAVINGS)
         self.parse_table('comptesTitres',   Account.TYPE_MARKET)
-        self.parse_table('comptesVie',      Account.TYPE_DEPOSIT)
+        self.parse_table('comptesVie',      Account.TYPE_LIFE_INSURANCE)
         self.parse_table('encoursprets',    Account.TYPE_LOAN)
         # FIXME for loans, the balance may be the loan total, not the loan due??
         self.parse_table('comptesRetraireEuros')
