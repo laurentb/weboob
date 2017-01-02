@@ -342,7 +342,12 @@ class IngBrowser(LoginBrowser):
     @check_bourse
     @need_login
     def get_subscriptions(self):
-        return self.billpage.go().iter_account()
+        self.billpage.go()
+        if self.loginpage.is_here():
+            self.do_login()
+            return self.billpage.go().iter_account()
+        else:
+            return self.page.iter_account()
 
     @need_login
     def get_documents(self, subscription):
