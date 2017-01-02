@@ -24,8 +24,8 @@ from decimal import Decimal
 import re
 import urllib
 
-from weboob.browser.filters.standard import CleanText
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.standard import CleanText, Regexp
+from weboob.browser.filters.html import Attr, Link, AttributeNotFound
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 
 from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound
@@ -71,8 +71,10 @@ class BasePage(object):
     def get_token(self):
         token = Attr('//form//input[@name="token"]', 'value', default=NotAvailable)(self.doc)
         if not token:
-            token = Attr('//body', 'onload')(self.doc)
-            token = re.search(r"saveToken\('(.*?)'", token).group(1)
+            try:
+                token = Regexp(Attr('//body', 'onload'), "saveToken\('(.*?)'")(self.doc)
+            except AttributeNotFound:
+                self.logger.warning('Unable to update token.')
         return token
 
     def on_load(self):
