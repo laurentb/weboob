@@ -26,7 +26,7 @@ from weboob.tools.json import json
 from weboob.browser.pages import LoggedPage
 from weboob.browser.elements import method, ListElement, ItemElement
 from weboob.capabilities.bank import Recipient, TransferError, Transfer
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import find_object, NotAvailable
 from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, \
                                             Env, Date
 from weboob.browser.filters.html import Attr
@@ -61,7 +61,7 @@ class RecipientsPage(LoggedPage, BasePage):
             def obj_label(self):
                 first_label = CleanText('./div[1]/div[3]/span[1]')(self)
                 second_label = CleanText('./div[1]/div[3]/span[2]')(self)
-                return first_label if first_label == second_label else '%s %s' % (first_label, second_label)
+                return first_label if first_label == second_label else ('%s %s' % (first_label, second_label)).strip()
 
 
 class TransferPage(LoggedPage, BasePage, PasswordPage):
@@ -77,14 +77,20 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         class Item(MyRecipient):
             validate = lambda self, obj: self.obj_id(self) != self.env['account_id']
 
-            obj_id = Regexp(CleanText('.', replace=[(' ', '')]), '(\d+)')
+            obj_id = Env('id')
             obj_label = Env('label')
             obj_bank_name = u'Société Générale'
             obj_category = u'Interne'
             obj_iban = Env('iban')
 
             def parse(self, el):
-                account = find_object(self.page.browser.get_accounts_list(), id=self.obj_id(self))
+                _id = Regexp(CleanText('.', replace=[(' ', '')]), '(\d+)', default=NotAvailable)(self)
+                if _id:
+                    account = find_object(self.page.browser.get_accounts_list(), id=_id)
+                    self.env['id'] = _id
+                else:
+                    account = find_object(self.page.browser.get_accounts_list(), label=Regexp(CleanText('.'), '- (.*)')(self))
+                    self.env['id']= account.id
                 self.env['label'] = account.label
                 self.env['iban'] = account.iban
 
