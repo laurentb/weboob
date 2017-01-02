@@ -23,8 +23,8 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.pages import LoggedPage, HTMLPage, pagination
 from weboob.browser.elements import method, ListElement, ItemElement
 from weboob.capabilities.bank import Account
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Map
-from weboob.browser.filters.html import Attr
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Map, Async, AsyncLoad, Regexp, Join
+from weboob.browser.filters.html import Attr, Link
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -59,6 +59,13 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_balance = CleanDecimal('./td[5]', replace_dots=True)
             obj_type = Map(CleanText('./td[3]'), TYPE, default=Account.TYPE_UNKNOWN)
             obj__link = Attr('./td[1]/a', 'href')
+
+            load_iban = Link('./td[@id="idCompteRIB"]/a') & AsyncLoad
+            obj_iban = Async('iban') & Join('', Regexp(CleanText('//td[has-class("ColonneCode")][starts-with(text(), "IBAN")]'), r'\b((?!IBAN)[A-Z0-9]+)\b', nth='*'))
+
+
+class RibPage(LoggedPage, HTMLPage):
+    pass
 
 
 class Transaction(FrenchTransaction):

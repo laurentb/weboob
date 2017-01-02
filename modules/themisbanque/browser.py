@@ -20,7 +20,7 @@
 
 from weboob.browser import LoginBrowser, URL, need_login
 
-from .pages import LoginPage, LoginConfirmPage, AccountsPage, HistoryPage
+from .pages import LoginPage, LoginConfirmPage, AccountsPage, RibPage, HistoryPage
 
 
 class ThemisBrowser(LoginBrowser):
@@ -31,6 +31,7 @@ class ThemisBrowser(LoginBrowser):
     login_confirm = URL('/es@b/servlet/internet0.ressourceWeb.servlet.Login', LoginConfirmPage)
     accounts = URL(r'/es@b/servlet/internet0.ressourceWeb.servlet.PremierePageServlet\?pageToTreatError=fr/Infos.jsp&dummyDate=', AccountsPage)
     history = URL('/es@b/servlet/internet0.ressourceWeb.servlet.ListeDesMouvementsServlet.*', HistoryPage)
+    rib = URL(r'/es@b/fr/rib.jsp\?cryptpara=.*', RibPage)
 
     def do_login(self):
         self.home.go()
