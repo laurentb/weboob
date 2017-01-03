@@ -529,8 +529,11 @@ class CardsOpePage(OperationsPage):
 
             def parse(self, el):
                 self.env['date'] = Date(Regexp(CleanText(u'//td[contains(text(), "Total prélevé")]'), ' (\d{2}/\d{2}/\d{4})', \
-                                               default=NotAvailable), default=NotAvailable)(self) \
-                or (parse_french_date('%s %s' % ('1', CleanText(u'//select[@id="moi"]/option[@selected]')(self))) + relativedelta(day=31)).date()
+                                               default=NotAvailable), default=NotAvailable)(self)
+                if not self.env['date']:
+                    d = CleanText(u'//select[@id="moi"]/option[@selected]')(self) or \
+                        re.search('pour le mois de (.*)', ''.join(w.strip() for w in self.page.doc.xpath('//div[@class="a_blocongfond"]/text()'))).group(1)
+                    self.env['date'] = (parse_french_date('%s %s' % ('1', d)) + relativedelta(day=31)).date()
                 self.env['_is_coming'] = date.today() < self.env['date']
                 amount = CleanText(TableCell('amount'))(self).split('dont frais')
                 self.env['amount'] = amount[0]
