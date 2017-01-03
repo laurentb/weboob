@@ -53,6 +53,8 @@ class DocumentsPage(LoggedPage, HTMLPage):
     @pagination
     @method
     class get_documents(TableElement):
+        ignore_duplicate = True
+
         item_xpath = '//div[@class="factures"]//table/tbody/tr'
         head_xpath = '//div[@class="factures"]//table/thead/tr/th'
 
