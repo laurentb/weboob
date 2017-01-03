@@ -67,7 +67,7 @@ class SearchResultsPage(XMLPage):
         item_xpath = "//annonce"
 
         def next_page(self):
-            page = CleanText('//pageSuivante', default=None)(self)
+            page = CleanText('//pageSuivante', default=None, replace=[('http://ws.seloger.com/', '')])(self)
             if page:
                 return page
 
