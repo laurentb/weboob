@@ -19,6 +19,10 @@ It looks for every files named ``test.py``, and find classes derivated from ``Te
 
 Then, it run every method which name starts with ``test_``.
 
+.. note::
+    Some environment variables are available, to use specific backend file or send the test results. Refer to `the
+    comments in the script <https://git.weboob.org/weboob/devel/blob/master/tools/run_tests.sh#L4-8>`_ for more infos on this.
+
 Write a test case
 *****************
 

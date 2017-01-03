@@ -4,52 +4,42 @@ How to contribute
 Write a patch
 -------------
 
-Help yourself with the [documentation](http://dev.weboob.org).
+Help yourself with the `documentation <http://docs.weboob.org/>`_.
 
-Find an [opened issue on gitlab](https://git.weboob.org/weboob/devel/issues),
-or write you own bugfix or feature. Then, once it is necessary, commit with:
+Find an opened issue on `this website <https://git.weboob.org/weboob/devel/issues>`_, or write your own bugfix or feature.
+Then, once it is necessary, commit with::
 
-```
-$ git commit -a
-```
+    $ git commit -a
 
 Do not forget to write a helpful commit message.
 
 Check your patch
 ----------------
 
-You can run these scripts to be sure your patch doesn’t break anything:
-```
-$ tools/pyflakes.sh
-$ tools/run_tests.sh yourmodulename  # or without yourmodulename to test everything
-```
+You can run these scripts to be sure your patch doesn't break anything::
 
-Perhaps you should also write or fix tests.
+    $ tools/pyflakes.sh
+    $ tools/weboob_lint.sh
+    $ tools/run_tests.sh yourmodulename  # or without yourmodulename to test everything
 
-Send a patch
-------------
+Perhaps you should also write or fix tests. These tests are automatically run by
+`Gitlab CI <https://git.weboob.org/weboob/devel/pipelines>`_ at each commit and merge requests.
 
-```
-$ git format-patch -n -s origin
-```
+Create a merge request or send a patch
+--------------------------------------
 
-Then, send them with this command:
+The easiest way to send your patch is to create a fork on `the Weboob Gitlab <https://git.weboob.org>`_ and create a merge
+request from there. This way, the code review process is easier and continuous integration is run automatically (see
+previous section).
 
-```
-$ git send-email --to=weboob@weboob.org *.patch
-```
+If you prefer good old email patches, just use
 
-You can also send the files by yourself if you haven’t any configured MTA on
-your system.
+::
 
-Create a fork on git.weboob.org
--------------------------------
+    $ git format-patch -n -s origin
 
-If you think you’ll contribute to Weboob regularly, you can create a repository
-on [git.weboob.org](git.weboob.org). To do so,
-[signup](https://git.weboob.org/users/sign_in) and click on _Fork_ on the weboob
-repository's page.
+Then, send them with this command::
 
-Then, you can push your commits, and ask for merge requests.
+    $ git send-email --to=weboob@weboob.org *.patch
 
-All git branch are listed here: https://git.weboob.org/explore/projects
+You can also send the files by yourself if you haven't any configured MTA on your system.

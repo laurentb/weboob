@@ -31,7 +31,7 @@ For example, there is the :class:`CapMessages <weboob.capabilities.messages.CapM
 Pick an existing capability
 ---------------------------
 
-When you want to create a new module, you may have a look on existing capabilities to decide which one can be
+When you want to create a new module, you may have a look at existing capabilities to decide which one can be
 implemented. It is quite important, because each already existing capability is supported by at least one application.
 So if your new module implements an existing capability, it will be usable from the existing applications right now.
 
@@ -69,6 +69,12 @@ In a module directory, there are commonly these files:
 * **pages.py** - all website's pages handled by the browser are defined here
 * **test.py** - functional tests
 * **favicon.png** - a 64x64 transparent PNG icon
+
+.. note::
+
+    A module can implement multiple capabilities, even though the ``tools/boilerplate.py`` script can only generate a
+    template for a single capability. You can freely add inheritance from other capabilities afterwards in
+    ``module.py``.
 
 Update modules list
 -------------------
@@ -120,17 +126,23 @@ class is used to define a value.
 Available parameters of :class:`Value <weboob.tools.value.Value>` are:
 
 * **label** - human readable description of a value
-* **required** - if ``True``, the backend can't loaded if the key isn't found in its configuration
+* **required** - if ``True``, the backend can't be loaded if the key isn't found in its configuration
 * **default** - an optional default value, used when the key is not in config. If there is no default value and the key
   is not found in configuration, the **required** parameter is implicitly set
 * **masked** - if ``True``, the value is masked. It is useful for applications to know if this key is a password
-* **regexp** - if specified, on load the specified value is checked against this regexp, and an error is raised if it doesn't match
+* **regexp** - if specified, the specified value is checked against this regexp upon loading, and an error is raised if
+  it doesn't match
 * **choices** - if this parameter is set, the value must be in the list
 
 .. note::
 
     There is a special class, :class:`ValueBackendPassword <weboob.tools.value.ValueBackendPassword>`, which is used to manage
     private parameters of the config (like passwords or sensible information).
+
+.. note::
+
+    Other classes are available to store specific types of configuration options. See :mod:`weboob.tools.value
+    <weboob.tools.value>` for a full list of them.
 
 For example::
 
@@ -173,14 +185,18 @@ You need to implement each method of all of the capabilities your module impleme
 If you ran the ``boilerplate`` script command ``cap``, every methods are already in ``module.py`` and documented.
 
 Read :class:`documentation of the capability <weboob.capabilities.bank.CapBank>` to know what are types of arguments,
-what are expected returned objects, and what exceptions it may raises.
+what are expected returned objects, and what exceptions it may raise.
+
+When you are done writing your module, you should remove all the not implemented methods from your module, as the base
+capability code will anyway ``raise NotImplementedError()``.
 
 
 Browser
 *******
 
 Most of modules use a class derived from :class:`PagesBrowser <weboob.browser.browsers.PagesBrowser>` or
-:class:`LoginBrowser <weboob.browser.browsers.LoginBrowser>` (for authenticated websites) to interact with a website.
+:class:`LoginBrowser <weboob.browser.browsers.LoginBrowser>` (for authenticated websites) to interact with a website or
+:class:`APIBrowser <weboob.browser.browsers.APIBrowser>` to interact with an API.
 
 Edit ``browser.py``::
 
@@ -242,6 +258,11 @@ Then, you have to declare them in your browser, with the :class:`URL <weboob.bro
 
 Easy, isn't it? The first parameters are regexps of the urls (if you give only a path, it uses the ``BASEURL`` class attribute), and the last one is the class used to handle the response.
 
+.. note::
+
+    You can handle parameters in the URL using ``(?P<someName>)``. You can then use a keyword argument `someName` to
+    bind a value to this parameter in :func:`stay_or_go() <weboob.browser.url.URL.stay_or_go>`.
+
 Each time you will go on the home page, ``IndexPage`` will be instanced and set as the ``page`` attribute.
 
 For example, we can now implement some methods in ``ExampleBrowser``::
@@ -278,7 +299,7 @@ Now you have a functional browser, you can use it in your class ``ExampleModule`
 
 You can now access it with member ``browser``. The class is instanced at the first call to this attribute.
 
-For example, we can now implement :func:`CapBank.iter_accounts <weboob.capabilities.bank.CapBank.iter_accounts`::
+For example, we can now implement :func:`CapBank.iter_accounts <weboob.capabilities.bank.CapBank.iter_accounts>`::
 
     def iter_accounts(self):
         return self.browser.iter_accounts_list()
@@ -339,7 +360,8 @@ Parsing of pages
 ****************
 
 .. note::
-    Depending of the base class you use for your page, it will parse html, json, csv, etc. In our case, it will be only html documents.
+    Depending of the base class you use for your page, it will parse html, json, csv, etc. In this section, we will
+    describe the case of HTML documents.
 
 
 When your browser locates on a page, an instance of the class related to the
@@ -349,7 +371,7 @@ interact with it.
 
 The first thing to know is that page parsing is done in a descriptive way. You
 don't have to loop on HTML elements to construct the object. Just describe how
-to get correct data to construct it. It is the Browser class work to actually
+to get correct data to construct it. It is the ``Browser`` class work to actually
 construct the object.
 
 For example::
@@ -370,10 +392,10 @@ For example::
                 obj_label = CleanText('./td[@class="name"]')
                 obj_balance = CleanDecimal('./td[@class="balance"]')
 
-As you see, we first set ``item_xpath`` which is the xpath string used to
-iterate over elements to access data. In a second time we define ``klass`` which
-is the real class of our object. And then we describe how to fill each object's
-attribute using what we call filters.
+As you can see, we first set ``item_xpath`` which is the xpath string used to iterate over elements to access data. In a
+second time we define ``klass`` which is the real class of our object. And then we describe how to fill each object's
+attribute using what we call filters. To set an attribute `foobar` of the object, we should fill `obj_foobar`. It can
+either be a filter, a constant or a function.
 
 Some example of filters:
 
@@ -381,10 +403,18 @@ Some example of filters:
 * :class:`CleanText <weboob.browser.filters.standard.CleanText>`: get a cleaned text from an element
 * :class:`CleanDecimal <weboob.browser.filters.standard.CleanDecimal>`: get a cleaned Decimal value from an element
 * :class:`Date <weboob.browser.filters.standard.Date>`: read common date formats
+* :class:`DateTime <weboob.browser.filters.standard.Date>`: read common datetime formats
+* :class:`Env <weboob.browser.filters.standard.Env>`: typically useful to get a named parameter in the URL (passed as a
+  keyword argument to :func:`stay_or_go() <weboob.browser.url.URL.stay_or_go>`)
+* :class:`Eval <weboob.browser.filters.standard.Eval>`: evaluate a lambda on the given value
+* :class:`Format <weboob.browser.filters.standard.Format>`: a formatting filter, uses the standard Python format string
+  notations.
 * :class:`Link <weboob.browser.filters.html.Link>`: get the link uri of an element
 * :class:`Regexp <weboob.browser.filters.standard.Regexp>`: apply a regex
 * :class:`Time <weboob.browser.filters.standard.Time>`: read common time formats
 * :class:`Type <weboob.browser.filters.standard.Type>`: get a cleaned value of any type from an element text
+
+The full list of filters can be found in :doc:`weboob.browser.filters </api/browser/filters/index>`.
 
 Filters can be combined. For example::
 
@@ -395,6 +425,23 @@ This code do several things, in order:
 #) extract the href attribute of our item first ``a`` tag child
 #) apply a regex to extract a value
 #) convert this value to int type
+
+
+When you want to access some attributes of your :class:`HTMLPage <weboob.browser.pages.HTMLPage>` object to fill an
+attribute in a Filter, you should use the function construction for this attribute. For example::
+
+	def obj_url(self):
+		return (
+			u'%s%s' % (
+				self.page.browser.BASEURL,
+				Link(
+					u'//a[1]'
+				)(self)
+			)
+	)
+
+which will return a full URL, concatenating the ``BASEURL`` from the browser
+with the (relative) link uri of the first ``a`` tag child.
 
 .. note::
 
@@ -437,6 +484,12 @@ Advanced topics
 Filling objects
 ---------------
 
+.. note::
+
+    Filling objects using ``fillobj`` should be used whenever you need to fill some fields automatically based on data
+    fetched from the scraping. If you only want to fill some fields automatically based on some static data, you should
+    just inherit the base object class and set these fields.
+
 An object returned by a method of a capability can be not fully completed.
 
 The class :class:`Module <weboob.tools.backend.Module>` provides a method named
@@ -445,9 +498,9 @@ fill some unloaded fields of a specific object, for example with::
 
     backend.fillobj(video, ['url', 'author'])
 
-The ``fillobj`` method will check on the object what fields, in the ones given in list, which are
-not loaded (equal to ``NotLoaded``, which is the default value), to reduce the list to the real
-uncompleted fields, and call the method associated to the type of the object.
+The ``fillobj`` method will check on the object which fields (in the ones given in the list argument) are not loaded
+(equal to ``NotLoaded``, which is the default value), to reduce the list to the real uncompleted fields, and call the
+method associated to the type of the object.
 
 To define what objects are supported to be filled, and what method to call, define the ``OBJECTS``
 class attribute in your ``ExampleModule``::
