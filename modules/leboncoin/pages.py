@@ -100,6 +100,7 @@ class HousingListPage(HTMLPage):
             def validate(self, obj):
                 return obj.id is not None
 
+            obj_url = Format(u'http:%s', Link('.'))
             obj_id = Regexp(Link('.'),
                             '//www.leboncoin.fr/(ventes_immobilieres|locations|colocations)/(.*).htm.*',
                             '\\2', default=None)
