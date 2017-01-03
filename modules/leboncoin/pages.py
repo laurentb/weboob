@@ -106,7 +106,7 @@ class HousingListPage(HTMLPage):
                             '\\2', default=None)
 
             obj_title = CleanText('./@title|./section/p[@class="item_title"]')
-            obj_cost = CleanDecimal('./section[@class="item_infos"]/*[@class="item_price"]',
+            obj_cost = CleanDecimal('./section[@class="item_infos"]/*[@class="item_price"]/text()',
                                     replace_dots=(',', '.'),
                                     default=Decimal(0))
             obj_currency = Regexp(CleanText('./section[@class="item_infos"]/*[@class="item_price"]'),
