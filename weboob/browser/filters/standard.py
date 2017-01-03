@@ -29,6 +29,7 @@ from collections import Iterator
 from dateutil.parser import parse as parse_date
 
 from weboob.capabilities.base import empty
+from weboob.capabilities.base import Currency as BaseCurrency
 from weboob.tools.compat import basestring
 from weboob.exceptions import ParseError
 from weboob.browser.url import URL
@@ -438,6 +439,13 @@ class Capitalize(CleanText):
     def filter(self, txt):
         txt = super(Capitalize, self).filter(txt)
         return txt.title()
+
+
+class Currency(CleanText):
+    @debug()
+    def filter(self, txt):
+        txt = super(Currency, self).filter(txt)
+        return BaseCurrency.get_currency(txt)
 
 
 class CleanDecimal(CleanText):
