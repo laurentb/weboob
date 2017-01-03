@@ -709,8 +709,8 @@ class TransferPage(LoggedPage, HTMLPage):
             def parse(self, el):
                 if bool(CleanText('./div[@id="soldeEurosCompte"]')(self)):
                     self.env['category'] = u'Interne'
-                    iban = find_object(self.page.browser.get_accounts_list(), _transfer_id=self.obj_id(self))
-                    self.env['iban'] = iban if iban else NotAvailable
+                    account = find_object(self.page.browser.get_accounts_list(), _transfer_id=self.obj_id(self))
+                    self.env['iban'] = account.iban if account else NotAvailable
                     self.env['bank_name'] = u'LCL'
                 else:
                     self.env['category'] = u'Externe'
