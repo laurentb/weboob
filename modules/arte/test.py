@@ -19,12 +19,22 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.tools.value import Value
 from weboob.capabilities.video import BaseVideo
 from .video import SITE
 
 
 class ArteTest(BackendTest):
     MODULE = 'arte'
+
+    def setUp(self):
+        config = self.backend.config
+        if not config.weboob.backends_config.backend_exists(config.instname):
+            self.backend.config['lang'] = Value(value='FRENCH')
+            self.backend.config['quality'] = Value(value='HD')
+            self.backend.config['order'] = Value(value='LAST_CHANCE')
+            self.backend.config['format'] = Value(value='HLS')
+            self.backend.config['version'] = Value(value='VOSTF')
 
     def test_search(self):
         l = list(self.backend.search_videos('a'))
