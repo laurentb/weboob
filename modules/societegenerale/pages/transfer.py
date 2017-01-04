@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 from cStringIO import StringIO
 from logging import error
@@ -167,13 +167,22 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         # Initiate transfer
         self.browser.location('/lgn/url.html?%s' % '&'.join(['%s=%s' % (k, v) for k, v in data.iteritems()]))
 
-    def check_data_consistency(self, account, recipient, transfer):
+    def check_data_consistency(self, transfer):
+        amount = CleanDecimal('.//td[@headers="virement montant"]', replace_dots=True)(self.doc)
+        label = CleanText('.//td[@headers="virement motif"]')(self.doc)
+        exec_date = Date(CleanText('.//td[@headers="virement date"]'), dayfirst=True)(self.doc)
         try:
-            assert transfer.amount == CleanDecimal('.//td[@headers="virement montant"]', replace_dots=True)(self.doc)
-            assert transfer.exec_date == Date(CleanText('.//td[@headers="virement date"]'), dayfirst=True)(self.doc)
-            assert transfer.label in CleanText('.//td[@headers="virement motif"]')(self.doc)
+            assert transfer.amount == amount
         except AssertionError:
-            raise TransferError('data consistency failed.')
+            raise TransferError('data consistency failed, %s changed from %s to %s' % ('amount', transfer.amount, amount))
+        try:
+            assert transfer.label in label
+        except AssertionError:
+            raise TransferError('data consistency failed, %s changed from %s to %s' % ('label', transfer.label, label))
+        try:
+            assert transfer.exec_date == exec_date or transfer.exec_date + timedelta(days=1) == exec_date
+        except AssertionError:
+            raise TransferError('data consistency failed, %s changed from %s to %s' % ('exec_date', transfer.exec_date, exec_date))
 
     def create_transfer(self, account, recipient, transfer):
         transfer = Transfer()

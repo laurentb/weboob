@@ -159,7 +159,7 @@ class SocieteGenerale(LoginBrowser):
     @need_login
     def init_transfer(self, account, recipient, transfer):
         self.transfer.go().init_transfer(account, recipient, transfer)
-        self.page.check_data_consistency(account, recipient, transfer)
+        self.page.check_data_consistency(transfer)
         return self.page.create_transfer(account, recipient, transfer)
 
     @need_login
