@@ -238,6 +238,7 @@ class Boobot(SingleServerIRCBot):
         # self.connection.add_global_handler('pubmsg', self.on_pubmsg)
         self.connection.add_global_handler('join', self.on_join)
         self.connection.add_global_handler('welcome', self.on_welcome)
+        self.connection.buffer_class.errors = 'replace'
 
         self.mainchannel = channels[0]
         self.joined = dict()
