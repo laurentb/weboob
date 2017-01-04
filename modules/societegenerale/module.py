@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 from decimal import Decimal
 
 from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, Account, RecipientNotFound
@@ -100,6 +101,7 @@ class SocieteGeneraleModule(Module, CapBankTransfer, CapContact):
     def init_transfer(self, transfer, **params):
         if self.config['website'].get() != 'par':
             raise NotImplementedError()
+        transfer.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z ]+', '', transfer.label).split())
         self.logger.info('Going to do a new transfer')
         if transfer.account_iban:
             account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
