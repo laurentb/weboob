@@ -83,6 +83,12 @@ class BackendTest(TestCase):
         # do not use TestCase.shortDescription as it returns None
         return '%s [%s]' % (str(self), self.backend_instance)
 
+    def is_backend_configured(self):
+        """
+        Check if the backend is in the user configuration file
+        """
+        return self.weboob.backends_config.backend_exists(self.backend.config.instname)
+
 
 def skip_without_config(*keys):
     """Decorator to skip a test if backend config is missing
@@ -98,7 +104,7 @@ def skip_without_config(*keys):
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             config = self.backend.config
-            if not config.weboob.backends_config.backend_exists(config.instname):
+            if not self.is_backend_configured():
                 raise SkipTest('a backend must be declared in configuration for this test')
             for key in keys:
                 if not config[key].get():
