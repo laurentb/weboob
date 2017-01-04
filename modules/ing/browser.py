@@ -38,18 +38,23 @@ from .pages import AccountsList, LoginPage, NetissimaPage, TitrePage, TitreHisto
 __all__ = ['IngBrowser']
 
 
-def check_bourse(f):
+def start_with_main_site(f):
     def wrapper(*args, **kwargs):
         browser = args[0]
-        if browser.where == "titre":
+
+        if browser.url.startswith('https://bourse.ingdirect.fr/'):
             for i in xrange(3):
                 try:
-                    browser.location("https://bourse.ingdirect.fr/priv/redirectIng.php?pageIng=COMPTE")
+                    browser.location('https://bourse.ingdirect.fr/priv/redirectIng.php?pageIng=COMPTE')
                 except ServerError:
                     pass
                 else:
                     break
-            browser.where = u"start"
+            browser.where = 'start'
+        elif browser.url.startswith('https://ingdirectvie.ingdirect.fr/'):
+            browser.lifeback.go()
+            browser.where = 'start'
+
         return f(*args, **kwargs)
     return wrapper
 
@@ -115,7 +120,7 @@ class IngBrowser(LoginBrowser):
         self.page.check_for_action_needed()
 
     @need_login
-    @check_bourse
+    @start_with_main_site
     def get_accounts_list(self, get_iban=True):
         self.accountspage.go()
         self.where = "start"
@@ -142,7 +147,7 @@ class IngBrowser(LoginBrowser):
         self.where = "history"
 
     @need_login
-    @check_bourse
+    @start_with_main_site
     def get_coming(self, account):
         if account.type != Account.TYPE_CHECKING and\
                 account.type != Account.TYPE_SAVINGS:
@@ -157,7 +162,7 @@ class IngBrowser(LoginBrowser):
         return self.page.get_coming()
 
     @need_login
-    @check_bourse
+    @start_with_main_site
     def get_history(self, account):
         if account.type == Account.TYPE_MARKET or account.type == Account.TYPE_LIFE_INSURANCE:
             for result in self.get_history_titre(account):
@@ -206,7 +211,7 @@ class IngBrowser(LoginBrowser):
             self.accountspage.go(data=data)
 
     @need_login
-    @check_bourse
+    @start_with_main_site
     def get_recipients(self, account):
         self.transferpage.stay_or_go()
         if self.page.ischecked(account.id):
@@ -218,7 +223,7 @@ class IngBrowser(LoginBrowser):
             self.transferpage.stay_or_go()
             return self.page.get_recipients()
 
-    @check_bourse
+    @start_with_main_site
     def transfer(self, account, recipient, amount, reason):
         found = False
         # Automatically get the good transfer page
@@ -302,7 +307,7 @@ class IngBrowser(LoginBrowser):
         self.titrepage.go()
 
     @need_login
-    @check_bourse
+    @start_with_main_site
     def get_investments(self, account):
         if account.type not in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE):
             raise NotImplementedError()
@@ -339,7 +344,7 @@ class IngBrowser(LoginBrowser):
         return iter(transactions)
 
     ############# CapDocument #############
-    @check_bourse
+    @start_with_main_site
     @need_login
     def get_subscriptions(self):
         self.billpage.go()
