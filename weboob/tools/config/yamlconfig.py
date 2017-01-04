@@ -73,7 +73,8 @@ class YamlConfig(IConfig):
         # write in a temporary file to avoid corruption problems
         with tempfile.NamedTemporaryFile(dir=os.path.dirname(self.path), delete=False) as f:
             yaml.dump(self.values, f, Dumper=WeboobDumper, default_flow_style=False)
-        os.remove(self.path)
+        if os.path.isfile(self.path):
+            os.remove(self.path)
         os.rename(f.name, self.path)
 
     def get(self, *args, **kwargs):
