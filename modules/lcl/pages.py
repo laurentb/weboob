@@ -329,6 +329,7 @@ class Transaction(FrenchTransaction):
             (re.compile('.*ESPECES.*'), FrenchTransaction.TYPE_DEPOSIT),
             (re.compile('.*(CARTE|CB).*'), FrenchTransaction.TYPE_CARD),
             (re.compile('.*(AGIOS|ANNULATIONS|IMPAYES|CREDIT).*'), FrenchTransaction.TYPE_BANK),
+            (re.compile('.*(FRAIS DE TENUE DE COMPTE).*'), FrenchTransaction.TYPE_BANK),
     ]
 
 
