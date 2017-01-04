@@ -64,7 +64,6 @@ class FeedlyBrowser(LoginBrowser):
                   'count': '100'}
         return self.contents.go(params=params).get_articles()
 
-    @need_login
     def get_unread_feed(self, url):
         params = {'streamId': url,
                   'backfill': 'true',
