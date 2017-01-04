@@ -27,8 +27,7 @@ class AgendadulibreTest(BackendTest):
     MODULE = 'agendadulibre'
 
     def setUp(self):
-        config = self.backend.config
-        if not config.weboob.backends_config.backend_exists(config.instname):
+        if not self.is_backend_configured():
             self.backend.config['region'] = Value(value='http://www.agendadulibre.org')
 
     def test_agendadulibre(self):

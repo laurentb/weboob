@@ -28,8 +28,7 @@ class ArteTest(BackendTest):
     MODULE = 'arte'
 
     def setUp(self):
-        config = self.backend.config
-        if not config.weboob.backends_config.backend_exists(config.instname):
+        if not self.is_backend_configured():
             self.backend.config['lang'] = Value(value='FRENCH')
             self.backend.config['quality'] = Value(value='HD')
             self.backend.config['order'] = Value(value='LAST_CHANCE')

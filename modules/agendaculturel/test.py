@@ -27,8 +27,7 @@ class AgendaculturelTest(BackendTest):
     MODULE = 'agendaculturel'
 
     def setUp(self):
-        config = self.backend.config
-        if not config.weboob.backends_config.backend_exists(config.instname):
+        if not self.is_backend_configured():
             self.backend.config['place'] = Value(value='paris')
 
     def test_agendaculturel(self):
