@@ -55,6 +55,7 @@ class Transaction(FrenchTransaction):
                 (re.compile('^(?P<text>(?P<category>REMUNERATION).*)'),   FrenchTransaction.TYPE_BANK),
                 (re.compile('^(?P<category>REMISE DE CHEQUES?) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
                 (re.compile(u'^(?P<text>DEBIT CARTE BANCAIRE DIFFERE.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
+                (re.compile('^(?P<category>FRAIS (TRIMESTRIELS) DE TENUE DE COMPTE.*)'),   FrenchTransaction.TYPE_BANK)
                ]
 
 
