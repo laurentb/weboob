@@ -18,13 +18,18 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest, skip_without_config
+from weboob.tools.test import BackendTest
+from weboob.tools.value import Value
 from datetime import datetime
 
 
-@skip_without_config()
 class AgendadulibreTest(BackendTest):
     MODULE = 'agendadulibre'
+
+    def setUp(self):
+        config = self.backend.config
+        if not config.weboob.backends_config.backend_exists(config.instname):
+            self.backend.config['region'] = Value(value='http://www.agendadulibre.org')
 
     def test_agendadulibre(self):
         l = list(self.backend.list_events(datetime.now()))
