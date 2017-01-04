@@ -20,6 +20,7 @@
 
 import re
 from decimal import Decimal
+from datetime import timedelta
 
 from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, Account, RecipientNotFound
 from weboob.capabilities.contact import CapContact
@@ -120,3 +121,6 @@ class SocieteGeneraleModule(Module, CapBankTransfer, CapContact):
         if self.config['website'].get() != 'par':
             raise NotImplementedError()
         return self.browser.execute_transfer(transfer)
+
+    def check_exec_date(self, old_exec_date, new_exec_date):
+        return old_exec_date == new_exec_date or old_exec_date + timedelta(days=1) == new_exec_date

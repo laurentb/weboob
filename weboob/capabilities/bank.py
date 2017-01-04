@@ -405,7 +405,10 @@ class CapBankTransfer(CapBank):
             if hasattr(transfer, key) and key != 'id':
                 transfer_val = getattr(transfer, key)
                 try:
-                    assert transfer_val == value or empty(transfer_val)
+                    if hasattr(self, 'check_%s' % key):
+                        assert getattr(self, 'check_%s' % key)(transfer_val, value)
+                    else:
+                        assert transfer_val == value or empty(transfer_val)
                 except AssertionError:
                     raise TransferError('%s changed during transfer processing (from %s to %s)' % (key, transfer_val, value))
         return self.execute_transfer(t, **params)
