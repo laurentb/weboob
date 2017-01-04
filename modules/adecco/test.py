@@ -18,12 +18,21 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest, skip_without_config
+from weboob.tools.test import BackendTest
+from weboob.tools.value import Value
 import itertools
 
 
 class AdeccoTest(BackendTest):
     MODULE = 'adecco'
+
+    def setUp(self):
+        if not self.is_backend_configured():
+            self.backend.config['publication_date'] = Value(value='000000')
+            self.backend.config['place'] = Value(value='')
+            self.backend.config['job'] = Value(value='')
+            self.backend.config['town'] = Value(value='')
+            self.backend.config['contract'] = Value(value='ADCFREMP004')
 
     def test_adecco_search(self):
         l = list(itertools.islice(self.backend.search_job(u'manutentionnaire'), 0, 20))
@@ -31,7 +40,6 @@ class AdeccoTest(BackendTest):
         advert = self.backend.get_job_advert(l[0].id, None)
         self.assertTrue(advert.url, 'URL for announce "%s" not found: %s' % (advert.id, advert.url))
 
-    @skip_without_config()
     def test_adecco_advanced_search(self):
         l = list(itertools.islice(self.backend.advanced_search_job(), 0, 20))
         assert len(l)
