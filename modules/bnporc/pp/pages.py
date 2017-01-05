@@ -29,7 +29,7 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import Format, Regexp, CleanText
 from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, TransferError
+from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, TransferError, AddRecipientError
 from weboob.capabilities.contact import Advisor
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.capabilities.bank.iban import rib2iban, rebuild_rib, is_iban_valid
@@ -517,3 +517,33 @@ class AdvisorPage(BNPPage):
             obj_fax = CleanText(Dict('data/fax'), replace=[(' ', '')])
             obj_agency = Dict('data/agence')
             obj_address = Format('%s %s %s', Dict('data/adresseAgence'), Dict('data/codePostalAgence'), Dict('data/villeAgence'))
+
+
+class AddRecipPage(BNPPage):
+    def on_load(self):
+        code = cast(self.get('codeRetour'), int)
+        if code:
+            raise AddRecipientError(self.get('message'))
+
+    def get_recipient(self, recipient):
+        r = Recipient()
+        r.iban = recipient.iban
+        r.id = self.get('data.gestionBeneficiaire.identifiantBeneficiaire')
+        r.label = recipient.label
+        r.category = u'Externe'
+        r.enabled_at = datetime.now().replace(microsecond=0) + timedelta(days=5)
+        r.currency = u'EUR'
+        r.bank_name = NotAvailable
+        return r
+
+class ActivateRecipPage(AddRecipPage):
+    def get_recipient(self, recipient):
+        r = Recipient()
+        r.iban = recipient.iban
+        r.id = recipient.webid if hasattr(recipient, 'webid') else recipient.id
+        r.label = recipient.label
+        r.category = u'Externe'
+        r.enabled_at = datetime.now().replace(microsecond=0) + timedelta(days=5)
+        r.currency = u'EUR'
+        r.bank_name = self.get('data.activationBeneficiaire.nomBanque')
+        return r

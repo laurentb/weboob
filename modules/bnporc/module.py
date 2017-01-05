@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
 from decimal import Decimal
 from datetime import datetime, timedelta
 
@@ -101,6 +102,13 @@ class BNPorcModule(Module, CapBankTransfer, CapMessages, CapContact):
         if isinstance(origin_account, Account):
             origin_account = origin_account.id
         return self.browser.iter_recipients(origin_account)
+
+    def new_recipient(self, recipient, **params):
+        if self.config['website'].get() != 'pp':
+            raise NotImplementedError()
+        # Recipient label has max 70 chars.
+        recipient.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z-,\.: ]+', '', recipient.label).split())[:70]
+        return self.browser.new_recipient(recipient, **params)
 
     def init_transfer(self, transfer, **params):
         if self.config['website'].get() != 'pp':

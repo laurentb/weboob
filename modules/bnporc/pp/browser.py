@@ -25,17 +25,18 @@ from requests.exceptions import ConnectionError
 
 from weboob.browser.browsers import LoginBrowser, URL, need_login
 from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import AccountNotFound, Account, TransferError
+from weboob.capabilities.bank import AccountNotFound, Account, TransferError, AddRecipientStep
 from weboob.tools.decorators import retry
 from weboob.tools.json import json
 from weboob.browser.exceptions import ServerError
 from weboob.exceptions import BrowserIncorrectPassword
+from weboob.tools.value import Value
 
 from .pages import LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, TransferInitPage, \
                    ConnectionThresholdPage, LifeInsurancesPage, LifeInsurancesHistoryPage, \
                    LifeInsurancesDetailPage, MarketListPage, MarketPage, MarketHistoryPage, \
                    MarketSynPage, RecipientsPage, ValidateTransferPage, RegisterTransferPage, \
-                   AdvisorPage
+                   AdvisorPage, AddRecipPage, ActivateRecipPage
 
 
 __all__ = ['BNPPartPro', 'HelloBank']
@@ -97,6 +98,8 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     market_history = URL('/pe-war/rpc/turnOverHistory/get', MarketHistoryPage)
 
     recipients = URL('/virement-wspl/rest/listerBeneficiaire', RecipientsPage)
+    add_recip = URL('/virement-wspl/rest/ajouterBeneficiaire', AddRecipPage)
+    activate_recip = URL('/virement-wspl/rest/activerBeneficiaire', ActivateRecipPage)
     validate_transfer = URL('/virement-wspl/rest/validationVirement', ValidateTransferPage)
     register_transfer = URL('/virement-wspl/rest/enregistrerVirement', RegisterTransferPage)
 
@@ -282,6 +285,33 @@ class BNPPartPro(BNPParibasBrowser):
     def execute_transfer(self, transfer):
         self.register_transfer.go(data=JSON({'referenceVirement': transfer.id}))
         return self.page.handle_response(transfer)
+
+    @need_login
+    def send_code(self, recipient, **params):
+        # depending on whether recipient is a weboob or a budgea backend object.
+        _id = recipient.webid if hasattr(recipient, 'webid') else recipient.id
+        data = {}
+        data['idBeneficiaire'] = _id
+        data['typeActivation'] = 1
+        data['codeActivation'] = params['code']
+        return self.activate_recip.go(data=json.dumps(data), headers={'Content-Type': 'application/json'}).get_recipient(recipient)
+
+    @need_login
+    def new_recipient(self, recipient, **params):
+        if 'code' in params:
+            return self.send_code(recipient, **params)
+        # needed to get the phone number, enabling the possibility to send sms.
+        self.recipients.go(data=JSON({'type': 'TOUS'}))
+        # post recipient data sending sms with same request
+        data = {}
+        data['adresseBeneficiaire'] = ''
+        data['iban'] = recipient.iban
+        data['libelleBeneficiaire'] = recipient.label
+        data['notification'] = True
+        data['typeBeneficiaire'] = ''
+        data['typeEnvoi'] = 'SMS'
+        recipient = self.add_recip.go(data=json.dumps(data), headers={'Content-Type': 'application/json'}).get_recipient(recipient)
+        raise AddRecipientStep(recipient, Value('code', label='Saississez le code.'))
 
     @need_login
     def get_advisor(self):
