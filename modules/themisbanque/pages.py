@@ -60,7 +60,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_type = Map(CleanText('./td[3]'), TYPE, default=Account.TYPE_UNKNOWN)
             obj__link = Attr('./td[1]/a', 'href')
 
-            load_iban = Link('./td[@id="idCompteRIB"]/a') & AsyncLoad
+            load_iban = Link('./td[last()]/a[img[starts-with(@alt, "RIB")]]') & AsyncLoad
             obj_iban = Async('iban') & Join('', Regexp(CleanText('//td[has-class("ColonneCode")][starts-with(text(), "IBAN")]'), r'\b((?!IBAN)[A-Z0-9]+)\b', nth='*'))
 
 
