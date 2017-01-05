@@ -25,7 +25,7 @@ from datetime import datetime, timedelta, date
 
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, Transfer
+from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, Transfer, AddRecipientError
 from weboob.capabilities.contact import Advisor
 from weboob.browser.elements import method, ListElement, TableElement, ItemElement, SkipItem
 from weboob.exceptions import ParseError
@@ -751,3 +751,41 @@ class TransferPage(LoggedPage, HTMLPage):
     def fill_transfer_id(self, transfer):
         transfer.id = Regexp(CleanText(u'//div[@class="alertConfirmationVirement"]//p[contains(text(), "référence")]'), u'référence (\d+)')(self.doc)
         return transfer
+
+
+class AddRecipientPage(LoggedPage, HTMLPage):
+    def validate(self, iban, label):
+        form = self.get_form(id='mainform')
+        form['PAYS_IBAN'] = iban[:2]
+        form['LIBELLE'] = label
+        form['COMPTE_IBAN'] = iban[2:]
+        form.submit()
+
+
+class CheckValuesPage(LoggedPage, HTMLPage):
+    def check_values(self, iban, label):
+        values = CleanText('//table[@class="recap "]//td[@class="recapValeur"]')(self.doc)
+        try:
+            assert iban in values
+        except AssertionError:
+            raise AddRecipientError('iban not found in values')
+        try:
+            assert label in values
+        except AssertionError:
+            raise AddRecipientError('recipient label not found in values')
+
+
+class RecipConfirmPage(CheckValuesPage):
+    pass
+
+
+class RecipientPage(LoggedPage, HTMLPage):
+    pass
+
+
+class SmsPage(LoggedPage, HTMLPage):
+    pass
+
+
+class RecipRecapPage(CheckValuesPage):
+    pass

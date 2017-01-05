@@ -20,24 +20,27 @@
 
 import urllib
 from urlparse import urlsplit, parse_qsl
+from datetime import datetime, timedelta
 
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, AddRecipientError, AddRecipientStep, Recipient
+from weboob.tools.value import Value
 
 from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    CBListPage, CBHistoryPage, ContractsPage, BoursePage, \
                    AVPage, AVDetailPage, DiscPage, NoPermissionPage, RibPage, \
-                   HomePage, LoansPage, TransferPage
+                   HomePage, LoansPage, TransferPage, AddRecipientPage, \
+                   RecipientPage, RecipConfirmPage, SmsPage, RecipRecapPage
 
 
 __all__ = ['LCLBrowser','LCLProBrowser']
 
 
 # Browser
-class LCLBrowser(LoginBrowser):
+class LCLBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://particuliers.secure.lcl.fr'
 
     login = URL('/outil/UAUT/Authentication/authenticate',
@@ -80,7 +83,11 @@ class LCLBrowser(LoginBrowser):
 
     transfer_page = URL('/outil/UWVS/', TransferPage)
     confirm_transfer = URL('/outil/UWVS/Accueil/redirectView', TransferPage)
-    #recipients = URL('/outil/UWBE/Consultation/list', RecipientPage)
+    recipients = URL('/outil/UWBE/Consultation/list', RecipientPage)
+    add_recip = URL('/outil/UWBE/Creation/creationSaisie', AddRecipientPage)
+    recip_confirm = URL('/outil/UWBE/Creation/creationConfirmation', RecipConfirmPage)
+    send_sms = URL('/outil/UWBE/Otp/envoiCodeOtp\?telChoisi=MOBILE', '/outil/UWBE/Otp/getValidationCodeOtp\?codeOtp', SmsPage)
+    recip_recap = URL('/outil/UWBE/Creation/executeCreation', RecipRecapPage)
 
     accounts_list = None
 
@@ -119,8 +126,11 @@ class LCLBrowser(LoginBrowser):
     @need_login
     def get_accounts_list(self):
         if self.accounts_list is None:
-            self.accounts_list = []
             self.assurancevie.stay_or_go()
+            # This is required in case the browser is left in the middle of add_recipient and the session expires.
+            if self.login.is_here():
+                return self.get_accounts_list()
+            self.accounts_list = []
             if self.no_perm.is_here():
                 self.logger.warning('Life insurances are unavailable.')
             else:
@@ -214,6 +224,58 @@ class LCLBrowser(LoginBrowser):
             for inv in self.location(account._market_link).page.iter_investment():
                 yield inv
             self.deconnexion_bourse()
+
+    def locate_browser(self, state):
+        if state['url'] == 'https://particuliers.secure.lcl.fr/outil/UWBE/Creation/creationConfirmation':
+            self.logged = True
+        else:
+            super(LCLBrowser, self).locate_browser(state)
+
+    @need_login
+    def send_code(self, recipient, **params):
+        res = self.open('/outil/UWBE/Otp/getValidationCodeOtp?codeOtp=%s' % params['code'])
+        if res.text == 'false':
+            raise AddRecipientError('Mauvais code sms.')
+        self.recip_recap.go().check_values(recipient.iban, recipient.label)
+        return self.get_recipient_object(recipient.iban, recipient.label)
+
+    @need_login
+    def get_recipient_object(self, iban, label):
+        r = Recipient()
+        r.iban = iban
+        r.id = iban
+        r.label = label
+        r.category = u'Externe'
+        r.enabled_at = datetime.now().replace(microsecond=0) + timedelta(days=5)
+        r.currency = u'EUR'
+        r.bank_name = NotAvailable
+        return r
+
+    @need_login
+    def new_recipient(self, recipient, **params):
+        if 'code' in params:
+            return self.send_code(recipient, **params)
+        try:
+            assert recipient.iban[:2] in ['FR', 'MC']
+        except AssertionError:
+            raise AddRecipientError(u"LCL n'accepte que les iban commençant par MC ou FR.")
+        for _ in range(2):
+            self.add_recip.go()
+            if self.add_recip.is_here():
+                break
+        try:
+            assert self.add_recip.is_here()
+        except AssertionError:
+            raise AddRecipientError('Navigation failed: not on add_recip.')
+        self.page.validate(recipient.iban, recipient.label)
+        try:
+            assert self.recip_confirm.is_here()
+        except AssertionError:
+            raise AddRecipientError('Navigation failed: not on recip_confirm.')
+        self.page.check_values(recipient.iban, recipient.label)
+        # Send sms to user.
+        self.open('/outil/UWBE/Otp/envoiCodeOtp?telChoisi=MOBILE')
+        raise AddRecipientStep(self.get_recipient_object(recipient.iban, recipient.label), Value('code', label='Saississez le code.'))
 
     @need_login
     def iter_recipients(self, origin_account):
