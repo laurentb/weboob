@@ -30,7 +30,7 @@ from weboob.browser.profiles import Weboob
 from weboob.exceptions import BrowserHTTPError
 from weboob.capabilities.base import empty
 from weboob.capabilities.bank import CapBank, Account, Transaction, CapBankTransfer, \
-                                     Transfer, TransferStep
+                                     Transfer, TransferStep, Recipient, AddRecipientStep
 from weboob.capabilities.contact import CapContact, Advisor
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
@@ -399,7 +399,7 @@ class Boobank(ReplApplication):
     def bcall_error_handler(self, backend, error, backtrace):
         if isinstance(error, TransferStep):
             params = {}
-            for key, value in error.fields.iteritems():
+            for key, value in error.fields:
                 if key and value:
                     params[key] = self.ask(value)
             #backend.config['accept_transfer'].set(v)
@@ -407,6 +407,14 @@ class Boobank(ReplApplication):
             self.start_format()
             for transfer in self.do('transfer', error.transfer, **params):
                 self.format(transfer)
+        elif isinstance(error, AddRecipientStep):
+            params = {}
+            params['backends'] = backend
+            for field in error.fields:
+                v = self.ask(field)
+                if v:
+                    params[field.id] = v
+            next(iter(self.do('add_recipient', error.recipient, **params)))
         else:
             return ReplApplication.bcall_error_handler(self, backend, error, backtrace)
 
@@ -493,6 +501,18 @@ class Boobank(ReplApplication):
             return self._complete_account()
         if len(args) == 3:
             return self._complete_account(args[1])
+
+    def do_add_recipient(self, line):
+        """
+        add_recipient iban label
+
+        Add a recipient to a backend.
+        """
+        iban, label = self.parse_command_args(line, 2, 2)
+        recipient = Recipient()
+        recipient.iban = iban
+        recipient.label = label
+        next(iter(self.do('add_recipient', recipient)))
 
     def do_transfer(self, line):
         """

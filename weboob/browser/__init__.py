@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .browsers import Browser, DomainBrowser, UrlNotAllowed, PagesBrowser, LoginBrowser, need_login, AbstractBrowser
+from .browsers import Browser, DomainBrowser, UrlNotAllowed, PagesBrowser, LoginBrowser, need_login, AbstractBrowser, StatesMixin
 from .url import URL
 
 
 __all__ = ['Browser', 'DomainBrowser', 'UrlNotAllowed', 'PagesBrowser', 'URL',
-           'LoginBrowser', 'need_login', 'AbstractBrowser']
+           'LoginBrowser', 'need_login', 'AbstractBrowser', 'StatesMixin']

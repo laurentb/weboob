@@ -24,6 +24,7 @@ import re
 
 from weboob.capabilities.base import empty
 from weboob.exceptions import BrowserQuestion
+from weboob.tools.capabilities.bank.iban import is_iban_valid
 
 from .base import BaseObject, Field, StringField, DecimalField, IntField, \
                   UserError, Currency, NotAvailable
@@ -33,7 +34,7 @@ from .collection import CapCollection
 
 __all__ = ['AccountNotFound', 'TransferError', 'TransferStep', 'Recipient',
            'Account', 'Transaction', 'Investment', 'Transfer', 'CapBank',
-           'RecipientNotFound']
+           'RecipientNotFound', 'AddRecipientError', 'AddRecipientStep']
 
 
 class AccountNotFound(UserError):
@@ -57,6 +58,12 @@ class RecipientNotFound(UserError):
 class TransferError(UserError):
     """
     A transfer has failed.
+    """
+
+
+class AddRecipientError(UserError):
+    """
+    Failed trying to add a recipient.
     """
 
 
@@ -256,6 +263,12 @@ class TransferStep(BrowserQuestion):
         self.transfer = transfer
 
 
+class AddRecipientStep(BrowserQuestion):
+    def __init__(self, recipient, *values):
+        super(AddRecipientStep, self).__init__(*values)
+        self.recipient = recipient
+
+
 class Transfer(BaseObject, Currency):
     """
     Transfer from an account to a recipient.
@@ -371,6 +384,26 @@ class CapBankTransfer(CapBank):
         :raises: :class:`AccountNotFound`
         """
         raise NotImplementedError()
+
+    def new_recipient(self, recipient, **params):
+        raise NotImplementedError()
+
+    def add_recipient(self, recipient, **params):
+        """
+        Add a recipient to the connection.
+
+        :param iban: iban of the new recipient.
+        :type iban: :class:`str`
+        :param label: label of the new recipient.
+        :type label: :class`str`
+        :raises: :class:`BrowserQuestion`
+        rtype: :class:`Recipient`
+        """
+        if not is_iban_valid(recipient.iban):
+            raise AddRecipientError('Iban is not valid.')
+        if not recipient.label:
+            raise AddRecipientError('Recipient label is mandatory.')
+        return self.new_recipient(recipient, **params)
 
     def init_transfer(self, transfer, **params):
         """
