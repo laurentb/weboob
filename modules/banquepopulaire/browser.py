@@ -26,10 +26,14 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
 
-from .pages import LoginPage, IndexPage, AccountsPage, AccountsFullPage, CardsPage, TransactionsPage, \
-                   UnavailablePage, RedirectPage, HomePage, Login2Page, ErrorPage, \
-                   LineboursePage, NatixisPage, InvestmentNatixisPage, InvestmentLineboursePage, MessagePage, \
-                   IbanPage, NatixisErrorPage, EtnaPage
+from .pages import (
+    LoginPage, IndexPage, AccountsPage, AccountsFullPage, CardsPage, TransactionsPage,
+    UnavailablePage, RedirectPage, HomePage, Login2Page, ErrorPage,
+    LineboursePage, InvestmentLineboursePage, MessagePage,
+    IbanPage,
+    NatixisPage, EtnaPage, NatixisInvestPage, NatixisHistoryPage, NatixisErrorPage,
+    NatixisDetailsPage,
+)
 
 
 __all__ = ['BanquePopulaire']
@@ -85,9 +89,11 @@ class BanquePopulaire(LoginBrowser):
 
     # natixis
     natixis_page = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/views/common.*', NatixisPage)
-    invest_natixis_page = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/views/contrat.*', InvestmentNatixisPage)
+    etna = URL(r'https://www.assurances.natixis.fr/etna-ihs-bp/#/contratVie/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>\w+).*', EtnaPage)
     natixis_error_page = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/error-redirect.*', NatixisErrorPage)
-    etna = URL(r'https://www.assurances.natixis.fr/etna-ihs-bp/.*', EtnaPage)
+    natixis_invest = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/rest/v2/contratVie/load/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>\w+)', NatixisInvestPage)
+    natixis_history = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/rest/v2/contratVie/load-operation/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>\w+)', NatixisHistoryPage)
+    natixis_pdf = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/rest/v2/contratVie/load-releve/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>\w+)/(?P<year>\d+)', NatixisDetailsPage)
 
     def __init__(self, website, *args, **kwargs):
         self.BASEURL = 'https://%s' % website
@@ -201,6 +207,11 @@ class BanquePopulaire(LoginBrowser):
     def get_history(self, account, coming=False):
         account = self.get_account(account.id)
 
+        if account._invest_params:
+            for tr in self.get_invest_history(account):
+                yield tr
+            return
+
         if coming:
             params = account._coming_params
         else:
@@ -236,7 +247,7 @@ class BanquePopulaire(LoginBrowser):
             self.location('/cyber/internet/Page.do?%s' % urllib.urlencode(next_params))
 
     @need_login
-    def get_investment(self, account):
+    def go_investments(self, account):
         if not account._invest_params:
             raise NotImplementedError()
 
@@ -258,8 +269,34 @@ class BanquePopulaire(LoginBrowser):
                     self.location('https://www.linebourse.fr/Portefeuille')
             elif self.natixis_page.is_here():
                 self.page.submit_form()
-            if self.natixis_error_page.is_here():
-                return iter([])
-            return self.page.get_investments()
+                assert self.etna.is_here()
 
-        return iter([])
+            if self.natixis_error_page.is_here():
+                return False
+            return True
+
+    @need_login
+    def get_investment(self, account):
+        if not self.go_investments(account):
+            return iter([])
+
+        if self.etna.is_here():
+            self.natixis_invest.go(**self.page.params)
+        return self.page.get_investments()
+
+    @need_login
+    def get_invest_history(self, account):
+        if not self.go_investments(account):
+            return
+        if self.etna.is_here():
+            params = self.page.params
+            self.natixis_history.go(**params)
+            items_from_json = list(self.page.get_history())
+
+            years = list(set(item.date.year for item in items_from_json))
+            years.sort()
+
+            for year in years:
+                self.natixis_pdf.go(year=year, **params)
+                for tr in self.page.get_history():
+                    yield tr

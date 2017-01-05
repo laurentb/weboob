@@ -24,17 +24,20 @@ from decimal import Decimal
 import re
 import urllib
 
-from weboob.browser.filters.standard import CleanText, Regexp
+from weboob.browser.elements import method, DictElement, ItemElement
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Eval, DateTime, Date
 from weboob.browser.filters.html import Attr, Link, AttributeNotFound
+from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 
-from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound
+from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound, JsonPage, RawPage
 
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.json import json
 from weboob.tools.misc import to_unicode
+from weboob.tools.pdf import get_pdf_rows
 
 
 class BrokenPageError(Exception):
@@ -783,31 +786,6 @@ class NatixisErrorPage(LoggedPage, HTMLPage):
     pass
 
 
-class InvestmentNatixisPage(LoggedPage, HTMLPage):
-    COL_LABEL = 0
-    COL_QUANTITY = 2
-    COL_UNITVALUE = 3
-    COL_VALUATION = 4
-
-    def get_investments(self):
-        for line in self.doc.xpath('//div[@class="row-fluid table-contrat-supports"]/table/tbody[(@class)]/tr'):
-            cols = line.findall('td')
-
-            inv = Investment()
-            inv.label = CleanText(None).filter(cols[self.COL_LABEL]).replace('Cas sans risque ', '')
-            inv.quantity = self.parse_decimal(cols[self.COL_QUANTITY])
-            inv.unitvalue = self.parse_decimal(cols[self.COL_UNITVALUE])
-            inv.valuation = self.parse_decimal(cols[self.COL_VALUATION])
-
-            yield inv
-
-    def parse_decimal(self, string):
-        value = CleanText(None).filter(string).replace('Si famille fonds generaux, on affiche un tiret', '').replace('Cas sans risque', '').replace(' ', '')
-        if value == '-':
-            return NotAvailable
-        return Decimal(Transaction.clean_amount(value))
-
-
 class MessagePage(LoggedPage, HTMLPage):
     def skip(self):
         try:
@@ -847,5 +825,124 @@ class IbanPage(LoggedPage, MyHTMLPage):
 
 
 class EtnaPage(LoggedPage, MyHTMLPage):
-    def on_load(self):
-        raise NotImplementedError()
+    pass
+
+
+def float_to_decimal(f):
+    # Decimal(float_value) gives horrible results, convert to str first
+    return Decimal(str(f))
+
+
+class NatixisInvestPage(LoggedPage, JsonPage):
+    @method
+    class get_investments(DictElement):
+        item_xpath = 'detailContratVie/valorisation/supports'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText(Dict('nom'))
+            obj_code = CleanText(Dict('codeIsin'))
+            obj_vdate = DateTime(Dict('dateValeurUniteCompte'))
+
+            obj_valuation = Eval(float_to_decimal, Dict('montant'))
+            obj_quantity = Eval(float_to_decimal, Dict('nombreUnitesCompte'))
+            obj_unitvalue = Eval(float_to_decimal, Dict('valeurUniteCompte'))
+            obj_portfolio_share = Eval(lambda x: float_to_decimal(x) / 100, Dict('repartition'))
+
+
+class NatixisHistoryPage(LoggedPage, JsonPage):
+    @method
+    class get_history(DictElement):
+        item_xpath = None
+
+        class item(ItemElement):
+            klass = Transaction
+
+            obj_amount = Eval(float_to_decimal, Dict('montantNet'))
+            obj_raw = CleanText(Dict('libelle'))
+            obj_date = DateTime(Dict('dateValeur'))
+
+
+class NatixisDetailsPage(LoggedPage, RawPage):
+    def build_doc(self, data):
+        return list(get_pdf_rows(data))
+
+    def get_history(self):
+        sign = 0
+        tr = None
+
+        for page in self.doc:
+            first_in_page = True
+
+            for row in page:
+                if len(row) != 7:
+                    first_in_page = False
+                    continue
+
+                label = ''.join(row[0])
+
+                if label == 'Investissement':
+                    sign = 1
+                    first_in_page = False
+                    continue
+                elif label == u'Désinvestissement':
+                    sign = -1
+                    first_in_page = False
+                    continue
+
+                global_amount = ''.join(row[2])
+                if global_amount:
+                    if first_in_page and tr and tr.raw == label:
+                        # this must be the continuation of the previous page
+                        first_in_page = False
+                        continue
+                    first_in_page = False
+
+                    if tr is not None:
+                        # flush
+                        yield tr
+
+                    # amount is "brut", unlike invest amounts ("net")...
+                    sign = 0
+                    tr = None
+
+                    if not label:
+                        # this pdf is really cryptic...
+                        # we assume blue rows are a new transaction
+                        # but if no label, it doesn't appear in the website json
+                        continue
+
+                    tr = Transaction()
+                    tr.raw = label
+                    tr.investments = []
+                    continue
+
+                first_in_page = False
+
+                date = ''.join(row[1])
+                assert date
+
+                if tr is None:
+                    # ignore transactions with the empty label, see above
+                    continue
+
+                assert sign
+
+                inv = Investment()
+                inv.label = label
+                inv.vdate = Date(dayfirst=True).filter(date)
+
+                inv.quantity = CleanDecimal(replace_dots=True, default=NotAvailable).filter(''.join(row[5]))
+                if inv.quantity is not NotAvailable:
+                    inv.quantity *= sign
+
+                inv.unitvalue = CleanDecimal(replace_dots=True, default=NotAvailable).filter(''.join(row[4]))
+                if inv.unitvalue is not NotAvailable:
+                    inv.unitvalue *= sign
+
+                tr.investments.append(inv)
+
+        # flush
+        if tr is not None:
+            yield tr
