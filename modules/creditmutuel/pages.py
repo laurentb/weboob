@@ -535,7 +535,7 @@ class CardsOpePage(OperationsPage):
                         d = CleanText(u'//select[@id="moi"]/option[@selected]')(self) or \
                             re.search('pour le mois de (.*)', ''.join(w.strip() for w in self.page.doc.xpath('//div[@class="a_blocongfond"]/text()'))).group(1)
                     except AttributeError:
-                        d = Regexp(CleanText('//p[@class="restriction"]'), 'pour le mois de ((?:\w+\s+){2})')(self)
+                        d = Regexp(CleanText('//p[@class="restriction"]'), 'pour le mois de ((?:\w+\s+){2})', flags=re.UNICODE)(self)
                     self.env['date'] = (parse_french_date('%s %s' % ('1', d)) + relativedelta(day=31)).date()
                 self.env['_is_coming'] = date.today() < self.env['date']
                 amount = CleanText(TableCell('amount'))(self).split('dont frais')
