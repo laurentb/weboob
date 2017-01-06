@@ -26,7 +26,7 @@ __all__ = ['PrixCarburantsBrowser']
 
 
 class PrixCarburantsBrowser(PagesBrowser):
-    BASEURL = 'http://www.prix-carburants.economie.gouv.fr'
+    BASEURL = 'https://www.prix-carburants.gouv.fr'
 
     TOKEN = None
 

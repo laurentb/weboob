@@ -19,11 +19,16 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.tools.value import Value
 import itertools
 
 
 class PrixCarburantsTest(BackendTest):
     MODULE = 'prixcarburants'
+
+    def setUp(self):
+        if not self.is_backend_configured():
+            self.backend.config['Zipcode'] = Value(value='59000')
 
     def test_prixcarburants(self):
         products = list(self.backend.search_products('gpl'))
