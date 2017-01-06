@@ -24,7 +24,7 @@ import urllib
 from decimal import Decimal
 from weboob.browser.pages import HTMLPage
 from weboob.capabilities.bill import Subscription, Detail, Bill
-from weboob.browser.filters.standard import CleanText, RawText, Regexp
+from weboob.browser.filters.standard import CleanText, Regexp
 
 # Ugly array to avoid the use of french locale
 FRENCH_MONTHS = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
@@ -73,8 +73,8 @@ class AccountPage(AmeliBasePage):
 class PaymentsPage(AmeliBasePage):
     def get_last_payments_url(self):
         dateDebut = self.doc.xpath('//input[@id="paiements_1dateDebut"]/@value')[0];
-	dateFin = self.doc.xpath('//input[@id="paiements_1dateFin"]/@value')[0];
-	url = "/PortailAS/paiements.do?actionEvt=afficherPaiementsComplementaires&DateDebut=" + dateDebut + "&DateFin=" + dateFin + "&Beneficiaire=tout_selectionner&afficherReleves=false&afficherIJ=false&afficherInva=false&afficherRentes=false&afficherRS=false&indexPaiement=&idNotif="
+        dateFin = self.doc.xpath('//input[@id="paiements_1dateFin"]/@value')[0];
+        url = "/PortailAS/paiements.do?actionEvt=afficherPaiementsComplementaires&DateDebut=" + dateDebut + "&DateFin=" + dateFin + "&Beneficiaire=tout_selectionner&afficherReleves=false&afficherIJ=false&afficherInva=false&afficherRentes=false&afficherRS=false&indexPaiement=&idNotif="
         return url
 
 class LastPaymentsPage(AmeliBasePage):
@@ -130,17 +130,21 @@ class PaymentDetailsPage(AmeliBasePage):
 
                     det = Detail()
 
-                    # TO TEST : Pas pu tester de cas de figure similaire dans la nouvelle mouture du site
+                    # TO TEST : Indemnités journalières : Pas pu tester de cas de figure similaire dans la nouvelle mouture du site
                     if len(tds) == 4:
                         date_str = Regexp(r'.*<br/>(\d+/\d+/\d+)\).*', '\\1')(tds[0].text)
                         det.id = id + "." + str(line)
                         det.label = unicode(tds[0].xpath('.//span')[0].text.strip())
 
-                        montant = tds[1].text
+                        jours = tds[1].text
+                        if jours is None:
+                            jours = '0'
+
+                        montant = tds[2].text
                         if montant is None:
                             montant = '0'
 
-                        price = tds[2].text
+                        price = tds[3].text
                         if price is None:
                             price = '0'
 
