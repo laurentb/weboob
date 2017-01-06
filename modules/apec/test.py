@@ -19,11 +19,20 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.tools.value import Value
 import itertools
 
 
 class ApecTest(BackendTest):
     MODULE = 'apec'
+
+    def setUp(self):
+        if not self.is_backend_configured():
+            self.backend.config['level'] = Value(value='101883')
+            self.backend.config['salaire'] = Value(value='')
+            self.backend.config['secteur'] = Value(value='')
+            self.backend.config['place'] = Value(value='089|62')
+            self.backend.config['contrat'] = Value(value='101888')
 
     def test_apec_search(self):
         l = list(itertools.islice(self.backend.search_job(u'informaticien'), 0, 50))
