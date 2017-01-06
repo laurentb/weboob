@@ -39,12 +39,12 @@ class OuiFMModule(Module, CapRadio, CapCollection):
     LICENSE = 'AGPLv3+'
     BROWSER = StandardBrowser
 
-    _RADIOS = {'general':     (u"OÜI FM",               u'OÜI FM',                       u'http://stream.ouifm.fr/ouifm-high.mp3"', 160),
-               'alternatif':  (u"OÜI FM Alternatif",    u'OÜI FM - L\'Alternative Rock', u'http://alternatif.stream.ouifm.fr/ouifm2.mp3', 128),
-               'classicrock': (u"OÜI FM Classic Rock",  u'OÜI FM - Classic Rock',        u'http://classicrock.stream.ouifm.fr/ouifm3.mp3', 128),
-               'bluesnrock':  (u"OÜI FM Blues'n'Rock",  u'OÜI FM - Blues\'n\'Rock',      u'http://bluesnrock.stream.ouifm.fr/ouifmbluesnrock-128.mp3', 128),
-               'rockinde':    (u"OÜI FM Rock Indé",     u'OÜI FM - Rock Indé',           u'http://rockinde.stream.ouifm.fr/ouifm5.mp3', 128),
-               'ganja':       (u"OÜI FM Ganja",         u'OÜI FM - Ganja',               u'http://ganja.stream.ouifm.fr/ouifmganja-128.mp3', 128),
+    _RADIOS = {'general':     (u"OÜI FM",               u'OÜI FM',                   u'http://stream.ouifm.fr/ouifm-high.mp3"', 160),
+               'alternatif':  (u"OÜI FM Alternatif",    u'OÜI FM - Alternatif',      u'http://alternatif.stream.ouifm.fr/ouifm2.mp3', 128),
+               'classicrock': (u"OÜI FM Classic Rock",  u'OÜI FM - Classic Rock',    u'http://classicrock.stream.ouifm.fr/ouifm3.mp3', 128),
+               'bluesnrock':  (u"OÜI FM Blues'n'Rock",  u'OÜI FM - Blues\'n\'Rock',  u'http://bluesnrock.stream.ouifm.fr/ouifmbluesnrock-128.mp3', 128),
+               'rockinde':    (u"OÜI FM Rock Indé",     u'OÜI FM - Rock Indé',       u'http://rockinde.stream.ouifm.fr/ouifm5.mp3', 128),
+               'ganja':       (u"OÜI FM Ganja",         u'OÜI FM - Ganja',           u'http://ganja.stream.ouifm.fr/ouifmganja-128.mp3', 128),
               }
 
     def create_default_browser(self):
