@@ -19,7 +19,7 @@
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
-from .pages import LoginPage, LoginValidationPage, HomePage, AccountPage, LastPaymentsPage, PaymentDetailsPage, BillsPage
+from .pages import LoginPage, LoginValidationPage, HomePage, AccountPage, LastPaymentsPage, PaymentsPage, PaymentDetailsPage
 
 __all__ = ['AmeliBrowser']
 
@@ -31,9 +31,9 @@ class AmeliBrowser(LoginBrowser):
     login_validationp = URL('https://assure.ameli.fr:443/PortailAS/appmanager/PortailAS/assure;jsessionid=[a-zA-Z0-9!;-]+\?_nfpb=true&_windowLabel=connexioncompte_2&connexioncompte_2_actionOverride=%2Fportlets%2Fconnexioncompte%2Fvalidationconnexioncompte&_pageLabel=as_login_page$', LoginValidationPage)
     homep = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_accueil_page', HomePage)
     accountp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_info_perso_page', AccountPage)
-    billsp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_revele_mensuel_presta_page', BillsPage)
-    paymentdetailsp = URL('/PortailAS/appmanager/PortailAS/assure\?.*_pageLabel=as_dernier_paiement_page&paiements_1_actionOverride=%2Fportlets%2Fpaiements%2Fdetailpaiements.*', PaymentDetailsPage)
-    lastpaymentsp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_dernier_paiement_page$', LastPaymentsPage)
+    paymentsp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_paiements_page', PaymentsPage)
+    paymentdetailsp = URL('/PortailAS/paiements.do\?actionEvt=chargerDetailPaiements.*', PaymentDetailsPage)
+    lastpaymentsp = URL('/PortailAS/paiements.do\?actionEvt=afficherPaiements.*', LastPaymentsPage)
 
     logged = False
 
@@ -78,21 +78,26 @@ class AmeliBrowser(LoginBrowser):
     @need_login
     def iter_history(self, sub):
         self.logger.debug('call Browser.iter_history')
-        self.lastpaymentsp.stay_or_go()
+        self.paymentsp.stay_or_go()
+        payments_url = self.page.get_last_payments_url()
+        self.location(payments_url)
+        assert self.lastpaymentsp.is_here()
         urls = self.page.iter_last_payments()
         for url in urls:
             self.location(url)
             assert self.paymentdetailsp.is_here()
             for payment in self.page.iter_payment_details(sub):
-                yield payment
+                 yield payment
 
     @need_login
     def iter_documents(self, sub):
         self.logger.debug('call Browser.iter_documents')
-        if not sub._id.isdigit():
-            return []
-        self.billsp.stay_or_go()
-        return self.page.iter_documents(sub)
+        self.paymentsp.stay_or_go()
+        payments_url = self.page.get_last_payments_url()
+        self.location(payments_url)
+        assert self.lastpaymentsp.is_here()
+        for document in self.page.iter_documents(sub):
+            yield document
 
     @need_login
     def get_document(self, id):

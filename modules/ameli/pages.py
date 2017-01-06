@@ -59,51 +59,68 @@ class HomePage(AmeliBasePage):
 
 class AccountPage(AmeliBasePage):
     def iter_subscription_list(self):
-        fullname = CleanText('//div[@id="bloc_contenu_masituation"]/h3', replace=[('Titulaire du compte : ', '')])(self.doc)
-        number = re.sub('[^\d]+', '', self.doc.xpath('//div[@id="bloc_contenu_masituation"]/ul/li')[2].text)
+        names_list = self.doc.xpath('//span[@class="NomEtPrenomLabel"]')
+        fullname = CleanText(newlines=True).filter(names_list[0])
+        number = re.sub('[^\d]+', '', CleanText('//span[@class="blocNumSecu"]', replace=[(' ','')])(self.doc))
         sub = Subscription(number)
         sub._id = number
         sub.label = unicode(fullname)
-        firstname = Regexp(RawText('//div[@id="bloc_contenu_masituation"]/h3'), '\t([^\xa0\t]+)\xa0[^:]')(self.doc)
+        firstname = CleanText('//span[@class="prenom-titulaire"]')(self.doc)
         sub.subscriber = unicode(firstname)
         yield sub
 
-        nb_childs = 0
-        childs = self.doc.xpath('//div[@class="bloc_infos"]')
-        for child in childs:
-            fullname = CleanText('.//h3[1]')(child)
-            nb_childs = nb_childs + 1
-            number = "AFFILIE" + str(nb_childs)
-            sub = Subscription(number)
-            sub._id = number
-            sub.label = unicode(fullname)
-            firstname = Regexp(RawText('./h3'), '\t([^\xa0\t]+)\xa0[^:]')(child)
-            sub.subscriber = unicode(firstname)
-            yield sub
 
+class PaymentsPage(AmeliBasePage):
+    def get_last_payments_url(self):
+        dateDebut = self.doc.xpath('//input[@id="paiements_1dateDebut"]/@value')[0];
+	dateFin = self.doc.xpath('//input[@id="paiements_1dateFin"]/@value')[0];
+	url = "/PortailAS/paiements.do?actionEvt=afficherPaiementsComplementaires&DateDebut=" + dateDebut + "&DateFin=" + dateFin + "&Beneficiaire=tout_selectionner&afficherReleves=false&afficherIJ=false&afficherInva=false&afficherRentes=false&afficherRS=false&indexPaiement=&idNotif="
+        return url
 
 class LastPaymentsPage(AmeliBasePage):
     def iter_last_payments(self):
-        list_table = self.doc.xpath('//table[@id="tabDerniersPaiements"]')
-        if len(list_table) > 0:
-            table = list_table[0].xpath('.//tr')
-            for tr in table:
-                list_a = tr.xpath('.//a')
-                if len(list_a) == 0:
-                    continue
-                yield list_a[0].attrib.get('href').replace(':443','')
+        elts = self.doc.xpath('//li[@class="rowitem remboursement"]')
+        for elt in elts:
+            items = Regexp(CleanText('./@onclick'), r'.*ajaxCallRemoteChargerDetailPaiement \(\'(\w+)\', \'(\w+)\', \'(\d+)\', \'(\d+)\'\).*', '\\1,\\2,\\3,\\4')(elt).split(',')
+            yield "/PortailAS/paiements.do?actionEvt=chargerDetailPaiements&idPaiement=" + items[0] + "&naturePaiement=" + items[1] + "&indexGroupe=" + items[2] + "&indexPaiement=" + items[3]
 
+    def iter_documents(self, sub):
+        elts = self.doc.xpath('//li[@class="rowdate"]')
+        for elt in elts:
+            try:
+                elt.xpath('.//a[contains(@id,"lienPDFReleve")]')[0]
+            except IndexError:
+               continue
+            date_str = elt.xpath('.//span[contains(@id,"moisEnCours")]')[0].text
+            month_str = date_str.split()[0]
+            date = datetime.strptime(re.sub(month_str, str(FRENCH_MONTHS.index(month_str) + 1), date_str), "%m %Y").date()
+            bil = Bill()
+            bil.id = sub._id + "." + date.strftime("%Y%m")
+            bil.date = date
+            bil.format = u'pdf'
+            bil.type = u'bill'
+            bil.label = u'' + date.strftime("%Y%m%d")
+            bil.url = unicode('/PortailAS/PDFServletReleveMensuel.dopdf?PDF.moisRecherche='+date.strftime("%m%Y"))
+            yield bil
+
+    def get_document(self, bill):
+        self.location(bill.url, urllib.urlencode(bill._args))
 
 class PaymentDetailsPage(AmeliBasePage):
     def iter_payment_details(self, sub):
-        if CleanText('//div[@class="infoPrestationsAssure"]/span')(self.doc).startswith('Pour %s' % sub.subscriber):
-            id_str = self.doc.xpath('//div[@class="centrepage"]/h2')[0].text.strip()
-            m = re.match('.*le (.*) pour un montant de.*', id_str)
-            if m:
+        id_str = self.doc.xpath('//div[@class="entete container"]/h2')[0].text.strip()
+        m = re.match('.*le (.*) pour un montant de.*', id_str)
+        if m:
+            blocs_benes = self.doc.xpath('//span[contains(@id,"nomBeneficiaire")]')
+            blocs_prestas = self.doc.xpath('//table[@id="tableauPrestation"]')
+            i = 0
+            last_bloc = len(blocs_benes)
+            for i in range(0, last_bloc):
+                bene = blocs_benes[i].text;
                 id_str = m.group(1)
                 id_date = datetime.strptime(id_str, '%d/%m/%Y').date()
                 id = sub._id + "." + datetime.strftime(id_date, "%Y%m%d")
-                table = self.doc.xpath('//div[@class="infoPrestationsAssure"]//table')[0].xpath('.//tr')
+                table = blocs_prestas[i].xpath('.//tr')
                 line = 1
                 last_date = None
                 for tr in table:
@@ -113,20 +130,17 @@ class PaymentDetailsPage(AmeliBasePage):
 
                     det = Detail()
 
-                    if len(tds) == 5:
-                        date_str = tds[0].text
+                    # TO TEST : Pas pu tester de cas de figure similaire dans la nouvelle mouture du site
+                    if len(tds) == 4:
+                        date_str = Regexp(r'.*<br/>(\d+/\d+/\d+)\).*', '\\1')(tds[0].text)
                         det.id = id + "." + str(line)
-                        det.label = unicode(tds[1].text.strip())
+                        det.label = unicode(tds[0].xpath('.//span')[0].text.strip())
 
-                        jours = tds[2].text
-                        if jours is None:
-                            jours = '0'
-
-                        montant = tds[3].text
+                        montant = tds[1].text
                         if montant is None:
                             montant = '0'
 
-                        price = tds[4].text
+                        price = tds[2].text
                         if price is None:
                             price = '0'
 
@@ -139,33 +153,36 @@ class PaymentDetailsPage(AmeliBasePage):
                             last_date = det.datetime
                         det.price = Decimal(re.sub('[^\d,-]+', '', price).replace(',', '.'))
 
-                    if len(tds) == 6:
-                        date_str = tds[0].text
+                    if len(tds) == 5:
+                        date_str = Regexp(pattern=r'\w*(\d{2})/(\d{2})/(\d{4}).*', template='\\1/\\2/\\3', default="").filter("".join(tds[0].itertext()))
                         det.id = id + "." + str(line)
-                        det.label = unicode(tds[1].text.strip())
+                        det.label = bene + u' - ' + unicode(tds[0].xpath('.//span')[0].text.strip())
 
-                        paye = tds[2].text
+                        paye = tds[1].text
                         if paye is None:
                             paye = '0'
 
-                        base = tds[3].text
+                        base = tds[2].text
                         if base is None:
                             base = '0'
 
-                        taux = tds[4].text
-                        if taux is None:
+                        tdtaux = tds[3].xpath('.//span')[0].text
+                        if tdtaux is None:
                             taux = '0'
+                        else:
+                            taux = tdtaux.strip()
 
-                        price = tds[5].text
-                        if price is None:
+                        tdprice = tds[4].xpath('.//span')[0].text
+                        if tdprice is None:
                             price = '0'
-
+                        else:
+                            price = tdprice.strip()
 
                         if date_str is None or date_str == '':
                             det.infos = u''
                             det.datetime = last_date
                         else:
-                            det.infos = u'Payé ' + unicode(re.sub('[^\d,-]+', '', paye)) + u'€ / Base ' + unicode(re.sub('[^\d,-]+', '', base)) + u'€ / Taux ' + unicode(re.sub('[^\d,-]+', '', taux)) + '%'
+                            det.infos = u' Payé ' + unicode(re.sub('[^\d,-]+', '', paye)) + u'€ / Base ' + unicode(re.sub('[^\d,-]+', '', base)) + u'€ / Taux ' + unicode(re.sub('[^\d,-]+', '', taux)) + '%'
                             det.datetime = datetime.strptime(date_str, '%d/%m/%Y').date()
                             last_date = det.datetime
                         det.price = Decimal(re.sub('[^\d,-]+', '', price).replace(',', '.'))
@@ -173,33 +190,3 @@ class PaymentDetailsPage(AmeliBasePage):
                     yield det
 
 
-class BillsPage(AmeliBasePage):
-    def iter_documents(self, sub):
-        try:
-            table = self.doc.xpath('//table[@id="relevesMensuels"]')[0].xpath('.//tr')
-        # When no operations was done in the last month, there is no table. That is fine.
-        except IndexError:
-            return
-        for tr in table:
-            list_tds = tr.xpath('.//td')
-            if len(list_tds) == 0:
-                continue
-            date_str = list_tds[0].text
-            month_str = date_str.split()[0]
-            date = datetime.strptime(re.sub(month_str, str(FRENCH_MONTHS.index(month_str) + 1), date_str), "%m %Y").date()
-            amount = list_tds[1].text
-            if amount is None:
-                continue
-            amount = re.sub('[^\d,-]+', '', amount)
-            bil = Bill()
-            bil.id = sub._id + "." + date.strftime("%Y%m")
-            bil.date = date
-            bil.price = Decimal('-'+amount.strip().replace(',','.'))
-            bil.format = u'pdf'
-            bil.type = u'bill'
-            bil.label = date.strftime("%Y%m%d")
-            bil.url = unicode('/PortailAS/PDFServletReleveMensuel.dopdf?PDF.moisRecherche='+date.strftime("%m%Y"))
-            yield bil
-
-    def get_document(self, bill):
-        self.location(bill.url, urllib.urlencode(bill._args))
