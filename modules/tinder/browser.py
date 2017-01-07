@@ -21,9 +21,10 @@
 import re
 
 from weboob.browser.browsers import DomainBrowser, APIBrowser
+from weboob.browser.filters.standard import CleanText
 from weboob.browser.pages import HTMLPage
-from weboob.browser.profiles import IPhone
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.browser.profiles import IPhone, Android
+from weboob.exceptions import BrowserIncorrectPassword, ParseError
 from weboob.tools.json import json
 
 
@@ -32,31 +33,36 @@ __all__ = ['TinderBrowser', 'FacebookBrowser']
 
 class FacebookBrowser(DomainBrowser):
     BASEURL = 'https://graph.facebook.com'
+    PROFILE = Android()
 
     CLIENT_ID = "464891386855067"
     access_token = None
     info = None
 
     def login(self, username, password):
-        self.location('https://www.facebook.com/dialog/oauth?client_id=%s&redirect_uri=https://www.facebook.com/connect/login_success.html&scope=basic_info,email,public_profile,user_about_me,user_activities,user_birthday,user_education_history,user_friends,user_interests,user_likes,user_location,user_photos,user_relationship_details&response_type=token' % self.CLIENT_ID)
+        self.location('https://www.facebook.com/v2.6/dialog/oauth?redirect_uri=fb464891386855067%3A%2F%2Fauthorize%2F&display=touch&state=%7B%22challenge%22%3A%22IUUkEUqIGud332lfu%252BMJhxL4Wlc%253D%22%2C%220_auth_logger_id%22%3A%2230F06532-A1B9-4B10-BB28-B29956C71AB1%22%2C%22com.facebook.sdk_client_state%22%3Atrue%2C%223_method%22%3A%22sfvc_auth%22%7D&scope=user_birthday%2Cuser_photos%2Cuser_education_history%2Cemail%2Cuser_relationship_details%2Cuser_friends%2Cuser_work_history%2Cuser_likes&response_type=token%2Csigned_request&default_audience=friends&return_scopes=true&auth_type=rerequest&client_id=' + self.CLIENT_ID + '&ret=login&sdk=ios&logger_id=30F06532-A1B9-4B10-BB28-B29956C71AB1&ext=1470840777&hash=AeZqkIcf-NEW6vBd')
         page = HTMLPage(self, self.response)
-        form = page.get_form('//form[@id="login_form"]')
+        form = page.get_form()
         form['email'] = username
         form['pass'] = password
-        form['persistent'] = 1
-        for script in page.doc.xpath('//script'):
-            m = re.search('"_js_datr","([^"]+)"', script.text or '')
-            if m:
-                self.session.cookies.set('_js_datr', m.group(1))
-
         form.submit(allow_redirects=False)
         if 'Location' not in self.response.headers:
             raise BrowserIncorrectPassword()
 
         self.location(self.response.headers['Location'])
-        m = re.search('access_token=([^&]+)&', self.url)
+
+        page = HTMLPage(self, self.response)
+        if len(page.doc.xpath('//td/div[has-class("s")]')) > 0:
+            raise BrowserIncorrectPassword(CleanText('//td/div[has-class("s")]')(page.doc))
+
+        form = page.get_form(nr=0, submit='//input[@name="__CONFIRM__"]')
+        form.submit()
+
+        m = re.search('access_token=([^&]+)&', self.response.text)
         if m:
             self.access_token = m.group(1)
+        else:
+            raise ParseError('Unable to find access_token')
 
         self.info = self.request('/me')
 

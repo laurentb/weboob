@@ -81,7 +81,7 @@ class TinderModule(Module, CapMessages, CapMessagesPost, CapDating):
               }
 
     def create_default_browser(self):
-        facebook = FacebookBrowser()
+        facebook = self.create_browser(klass=FacebookBrowser)
         facebook.login(self.config['username'].get(),
                        self.config['password'].get())
         return self.create_browser(facebook)
