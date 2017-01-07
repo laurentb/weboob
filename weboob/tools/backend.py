@@ -319,8 +319,14 @@ class Module(object):
         """
         Build a browser from the BROWSER class attribute and the
         given arguments.
+
+        :param klass: optional parameter to give another browser class to instanciate
+        :type klass: :class:`weboob.browser.browsers.Browser`
         """
-        if not self.BROWSER:
+
+        klass = kwargs.pop('klass', self.BROWSER)
+
+        if not klass:
             return None
 
         tmpproxy = None
@@ -354,7 +360,7 @@ class Module(object):
         elif os.path.isabs(self._private_config.get('_debug_dir', '')):
             kwargs.setdefault('responses_dirname', self._private_config['_debug_dir'])
 
-        browser = self.BROWSER(*args, **kwargs)
+        browser = klass(*args, **kwargs)
 
         if hasattr(browser, 'load_state'):
             browser.load_state(self.storage.get('browser_state', default={}))
