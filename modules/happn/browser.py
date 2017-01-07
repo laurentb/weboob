@@ -55,7 +55,7 @@ class FacebookBrowser(DomainBrowser):
         if len(page.doc.xpath('//td/div[has-class("s")]')) > 0:
             raise BrowserIncorrectPassword(CleanText('//td/div[has-class("s")]')(page.doc))
 
-        form = page.get_form(nr=0, submit='//input[@value="OK"]')
+        form = page.get_form(nr=0, submit='//input[@name="__CONFIRM__"]')
         form.submit()
 
         m = re.search('access_token=([^&]+)&', self.response.text)
