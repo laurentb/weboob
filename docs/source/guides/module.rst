@@ -111,7 +111,7 @@ Edit ``module.py``. It contains the main class of the module derived from :class
         MAINTAINER = u'John Smith'               # Name of maintainer of this module
         EMAIL = 'john.smith@example.com'         # Email address of the maintainer
         LICENSE = 'AGPLv3+'                      # License of your module
-        VERSION = '0.i'                          # Version of weboob
+        VERSION = '1.2'                          # Version of weboob
 
 In the code above, you can see that your ``ExampleModule`` inherits :class:`CapBank <weboob.capabilities.bank.CapBank>`, as
 we have selected it for the supported website.
