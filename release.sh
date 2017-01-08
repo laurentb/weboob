@@ -4,7 +4,7 @@ set -e
 
 function set_version {
 	echo -n "Replacing version in source files to $1"
-	for fl in $(find . -iname "*.py" ! -path "./contrib/*"); do
+	for fl in $(find . -iregex ".*\.\(py\|rst\)$" ! -path "./contrib/*"); do
         sed "s/^\(\s*\)\(VERSION\|version\|release\)\( *\)=\( *\)[\"'][0-9]\+\..\+[\"']\(,\?\)$/\1\2\3=\4'$1'\5/g" $fl > $fl.new
 		diff $fl.new $fl >/dev/null && echo -n "." || echo -n "+"
 		cp -f $fl.new $fl
