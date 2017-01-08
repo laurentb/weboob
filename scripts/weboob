@@ -3,7 +3,7 @@
 # vim: ft=python et softtabstop=4 cinoptions=4 shiftwidth=4 ts=4 ai
 
 
-# Copyright(C) 2009-2011  Romain Bignon
+# Copyright(C) 2009-2017  Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -20,6 +20,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+
 import re
 import os
 import sys
@@ -32,12 +34,19 @@ from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.application.console import ConsoleApplication
 
 
+__all__ = ['Weboob']
+
+
 class Weboob(ConsoleApplication):
+    APPNAME = 'weboob'
+    VERSION = '1.2'
+    COPYRIGHT = 'Copyright(C) 2010-YEAR The Weboob Team'
+    DESCRIPTION = "This is a console script to launch weboob applications,"
+    SHORT_DESCRIPTION = "launch weboob applications"
 
     UPDATE_DAYS_DELAY = 20
 
-    def __init__(self):
-        super(Weboob, self).__init__()
+    def main(self):
         self.update()
 
         capApplicationDict = self.init_CapApplicationDict()
@@ -156,6 +165,6 @@ class Weboob(ConsoleApplication):
 
 if __name__ == '__main__':
     try:
-        Weboob()
+        Weboob().main()
     except KeyboardInterrupt:
         print('')

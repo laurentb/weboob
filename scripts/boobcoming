@@ -19,6 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import absolute_import
 from weboob.applications.boobcoming import Boobcoming
 
 if __name__ == '__main__':
