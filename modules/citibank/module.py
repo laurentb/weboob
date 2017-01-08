@@ -32,7 +32,7 @@ class CitibankModule(Module, CapBank):
     NAME = 'citibank'
     MAINTAINER = u'Oleg Plakhotniuk'
     EMAIL = 'olegus8@gmail.com'
-    VERSION = '1.2'
+    VERSION = '1.3'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Citibank'
     CONFIG = BackendConfig(

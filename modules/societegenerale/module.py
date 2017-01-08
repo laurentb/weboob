@@ -39,7 +39,7 @@ class SocieteGeneraleModule(Module, CapBankTransfer, CapContact):
     NAME = 'societegenerale'
     MAINTAINER = u'Jocelyn Jaubert'
     EMAIL = 'jocelyn.jaubert@gmail.com'
-    VERSION = '1.2'
+    VERSION = '1.3'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Société Générale'
     CONFIG = BackendConfig(

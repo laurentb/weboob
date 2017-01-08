@@ -33,7 +33,7 @@ class ApecModule(Module, CapJob):
     DESCRIPTION = u'apec website'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
-    VERSION = '1.2'
+    VERSION = '1.3'
 
     BROWSER = ApecBrowser
 

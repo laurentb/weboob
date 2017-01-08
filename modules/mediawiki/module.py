@@ -41,7 +41,7 @@ class MediawikiModule(Module, CapContent, CapImage):
     NAME = 'mediawiki'
     MAINTAINER = u'Clément Schreiner'
     EMAIL = 'clemux@clemux.info'
-    VERSION = '1.2'
+    VERSION = '1.3'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'Wikis running MediaWiki, like Wikipedia'
     CONFIG = BackendConfig(Value('url',      label='URL of the Mediawiki website', default='https://en.wikipedia.org/', regexp='https?://.*'),

@@ -34,7 +34,7 @@ class CaisseEpargneModule(Module, CapBank, CapContact):
     NAME = 'caissedepargne'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.2'
+    VERSION = '1.3'
     DESCRIPTION = u'Caisse d\'Épargne'
     LICENSE = 'AGPLv3+'
     BROWSER = CaisseEpargne

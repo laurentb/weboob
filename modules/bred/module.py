@@ -34,7 +34,7 @@ class BredModule(Module, CapBank):
     NAME = 'bred'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.2'
+    VERSION = '1.3'
     DESCRIPTION = u'Bred'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),

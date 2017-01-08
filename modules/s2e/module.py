@@ -35,7 +35,7 @@ class S2eModule(Module, CapBank):
     MAINTAINER = u'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.2'
+    VERSION = '1.3'
 
     CONFIG = BackendConfig(
              ValueBackendPassword('login',    label='Identifiant', masked=False),

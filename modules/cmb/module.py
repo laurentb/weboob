@@ -34,7 +34,7 @@ class CmbModule(Module, CapBank):
     NAME = 'cmb'
     MAINTAINER = u'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
-    VERSION = '1.2'
+    VERSION = '1.3'
     DESCRIPTION = u'Credit Mutuel de Bretagne'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),

@@ -38,7 +38,7 @@ class CreditMutuelModule(Module, CapBankTransfer, CapContact):
     NAME = 'creditmutuel'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '1.2'
+    VERSION = '1.3'
     DESCRIPTION = u'Crédit Mutuel'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', regexp='^\d{1,13}\w$', masked=False),

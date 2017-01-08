@@ -40,7 +40,7 @@ class JirafeauModule(Module, CapPaste):
     MAINTAINER = u'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.2'
+    VERSION = '1.3'
 
     CONFIG = BackendConfig(Value('base_url', label='Base Jirafeau URL',
                                  description='URL of the Jirafeau-based site to use',

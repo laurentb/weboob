@@ -32,7 +32,7 @@ class ChampslibresModule(Module, CapBook):
     NAME = 'champslibres'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '1.2'
+    VERSION = '1.3'
     DESCRIPTION = 'Champs Libres (Rennes) Library'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(Value('login', label='Account ID', regexp='^\d{1,15}|$'),

@@ -26,7 +26,7 @@ from weboob.tools.application.base import Application
 
 class WeboobDebug(Application):
     APPNAME = 'weboobdebug'
-    VERSION = '1.2'
+    VERSION = '1.3'
     COPYRIGHT = 'Copyright(C) 2010-YEAR Christophe Benz'
     DESCRIPTION = "Weboob-Debug is a console application to debug backends."
     SHORT_DESCRIPTION = "debug backends"
