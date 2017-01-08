@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH QVIDEOOB 1 "17 October 2014" "qvideoob 1\&.0"
+.TH QVIDEOOB 1 "08 January 2017" "qvideoob 1\&.2"
 .SH NAME
 qvideoob \- search and play videos
 .SH SYNOPSIS
@@ -16,6 +16,8 @@ qvideoob \- search and play videos
 Qt application allowing to search videos on various websites and play them.
 
 .SS Supported websites:
+* allocine (AlloCiné French cinema database service)
+.br
 * arretsurimages (arretsurimages website)
 .br
 * arte (Arte French and German TV)
@@ -30,6 +32,8 @@ Qt application allowing to search videos on various websites and play them.
 .br
 * francetelevisions (France Télévisions video website)
 .br
+* funmooc (France\-Université\-Numérique MOOC website)
+.br
 * gdcvault (Game Developers Conferences Vault video streaming website)
 .br
 * ina (INA French TV video archives)
@@ -38,13 +42,17 @@ Qt application allowing to search videos on various websites and play them.
 .br
 * nolifetv (NolifeTV French video streaming website)
 .br
+* pornhub (Pornhub pornographic video streaming website)
+.br
 * quvi (Multi\-website video helper with quvi. Handles Youtube, BBC, and a lot more)
 .br
-* radiofrance (Radios of Radio France: Inter, Info, Bleu, Culture, Musique, FIP, Le Mouv')
+* rmll (Videos from RMLL)
 .br
 * trictractv (TricTrac.tv video website)
 .br
 * vimeo (Vimeo video streaming website)
+.br
+* vine (vine website)
 .br
 * youjizz (YouJizz pornographic video streaming website)
 .br
@@ -86,7 +94,7 @@ file to save logs
 save every response
 
 .SH CONDITION
-The \-c and \-\-condition is a flexible way to filter and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY\-MM\-DD or YYYY\-MM\-DD HH:MM format.
+The \-c and \-\-condition is a flexible way to filter and get only interesting results. It supports conditions on numerical values, dates, durations and strings. Dates are given in YYYY\-MM\-DD or YYYY\-MM\-DD HH:MM format. Durations look like XhYmZs where X, Y and Z are integers. Any of them may be omitted. For instance, YmZs, XhZs or Ym are accepted.
 The syntax of one expression is "\fBfield operator value\fR". The field to test is always the left member of the expression.
 .LP
 The field is a member of the objects returned by the command. For example, a bank account has "balance", "coming" or "label" fields.
@@ -138,7 +146,7 @@ Get transactions betweens the 2th December and 8th December 2013.
 Get transactions after the 2th December in the last 10 transactions
 
 .SH COPYRIGHT
-Copyright(C) 2010-2011 Romain Bignon
+Copyright(C) 2010-2014 Romain Bignon
 .LP
 For full copyright information see the COPYING file in the weboob package.
 .LP

@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH BOOBANK 1 "11 February 2016" "boobank 1\&.1"
+.TH BOOBANK 1 "08 January 2017" "boobank 1\&.2"
 .SH NAME
 boobank \- manage bank accounts
 .SH SYNOPSIS
@@ -16,11 +16,15 @@ boobank \- manage bank accounts
 Console application allowing to list your bank accounts and get their balance, display accounts history and coming bank operations, and transfer money from an account to another (if available).
 
 .SS Supported websites:
+* afer (afer website)
+.br
 * alloresto (Allo Resto)
 .br
 * amazonstorecard (Amazon Store Card)
 .br
 * americanexpress (American Express)
+.br
+* amundi (amundi website)
 .br
 * apivie (Apivie)
 .br
@@ -42,6 +46,8 @@ Console application allowing to list your bank accounts and get their balance, d
 .br
 * bred (Bred)
 .br
+* caels (Crédit Agricole \- Epargne Longue des Salariés)
+.br
 * caissedepargne (Caisse d'Épargne)
 .br
 * carrefourbanque (Carrefour Banque)
@@ -52,7 +58,7 @@ Console application allowing to list your bank accounts and get their balance, d
 .br
 * citibank (Citibank)
 .br
-* cmb (Crédit Mutuel de Bretagne)
+* cmb (Credit Mutuel de Bretagne)
 .br
 * cmso (Crédit Mutuel Sud\-Ouest)
 .br
@@ -60,7 +66,9 @@ Console application allowing to list your bank accounts and get their balance, d
 .br
 * creditcooperatif (Crédit Coopératif)
 .br
-* creditdunord (Crédit du Nord, Banque Courtois, Kolb, Tarneaud)
+* creditdunord (Crédit du Nord, Banque Courtois, Kolb, Nuger, Tarneaud, Société Marseillaise de Crédit)
+.br
+* creditdunordpee (Site de gestion du PEE du groupe Credit du nord)
 .br
 * creditmutuel (Crédit Mutuel)
 .br
@@ -80,18 +88,28 @@ Console application allowing to list your bank accounts and get their balance, d
 .br
 * lcl (LCL)
 .br
+* n26 (Bank N26)
+.br
 * oney (Oney)
 .br
 * paypal (PayPal)
 .br
-* s2e (Esalia, Capeasi, BNP PERE, HSBC ERE)
+* s2e (Épargne Salariale)
 .br
 * societegenerale (Société Générale)
+.br
+* spirica (Spirica)
 .br
 * vicseccard (Victoria's Secret Angel Card)
 .br
 * wellsfargo (Wells Fargo)
+.br
+* yomoni (Yomoni)
 .SH BOOBANK COMMANDS
+.TP
+\fBadvisor\fR
+.br
+Display advisors.
 .TP
 \fBbudgea\fR \fIUSERNAME\fR \fIPASSWORD\fR
 .br
@@ -270,7 +288,7 @@ Use \-d option to display information about a collection (and to not
 .br
 display the content of it). It has the same behavior than the well
 .br
-know UNIX "ls" command.
+known UNIX "ls" command.
 .br
 
 .br
@@ -341,9 +359,9 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (account_list, csv, htmltable, investment_list, json,
-json_line, multiline, ofx, ops_list, pretty_qif, qif, recipient_list, simple,
-table, transfer, webkit)
+select output formatter (account_list, advisor_list, csv, htmltable,
+investment_list, json, json_line, multiline, ofx, ops_list, pretty_qif, qif,
+recipient_list, simple, table, transfer, webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
@@ -407,7 +425,7 @@ Get transactions betweens the 2th December and 8th December 2013.
 Get transactions after the 2th December in the last 10 transactions
 
 .SH COPYRIGHT
-Copyright(C) 2010-2016 Romain Bignon, Christophe Benz
+Copyright(C) 2010-2017 Romain Bignon, Christophe Benz
 .LP
 For full copyright information see the COPYING file in the weboob package.
 .LP

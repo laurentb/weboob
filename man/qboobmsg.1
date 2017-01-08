@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH QBOOBMSG 1 "17 October 2014" "qboobmsg 1\&.0"
+.TH QBOOBMSG 1 "08 January 2017" "qboobmsg 1\&.2"
 .SH NAME
 qboobmsg \- send and receive message threads
 .SH SYNOPSIS
@@ -30,9 +30,9 @@ Qt application allowing to read messages on various websites and reply to them.
 .br
 * guerrillamail (GuerrillaMail temp mailbox)
 .br
-* hds (Histoires de Sexe French erotic novels)
+* happn (Happn dating mobile application)
 .br
-* hellobank (Hello Bank!)
+* hds (Histoires de Sexe French erotic novels)
 .br
 * inrocks (Les Inrocks French news website)
 .br
@@ -42,11 +42,13 @@ Qt application allowing to read messages on various websites and reply to them.
 .br
 * mailinator (mailinator temp mailbox)
 .br
-* minutes20 (2 Minutes French newspaper website)
+* minutes20 (20 Minutes French newspaper website)
 .br
 * newsfeed (Loads RSS and Atom feeds from any website)
 .br
-* okc (OkCupid dating website)
+* okc (OkCupid)
+.br
+* openedx (Discussions on OpenEDX\-powered coursewares)
 .br
 * orange (Orange French mobile phone provider)
 .br
@@ -59,6 +61,8 @@ Qt application allowing to read messages on various websites and reply to them.
 * presseurop (Presseurop website)
 .br
 * sfr (SFR French mobile phone provider)
+.br
+* tapatalk (Tapatalk\-compatible sites)
 .br
 * taz (Taz newspaper website)
 .br
@@ -100,7 +104,7 @@ file to save logs
 save every response
 
 .SH CONDITION
-The \-c and \-\-condition is a flexible way to filter and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY\-MM\-DD or YYYY\-MM\-DD HH:MM format.
+The \-c and \-\-condition is a flexible way to filter and get only interesting results. It supports conditions on numerical values, dates, durations and strings. Dates are given in YYYY\-MM\-DD or YYYY\-MM\-DD HH:MM format. Durations look like XhYmZs where X, Y and Z are integers. Any of them may be omitted. For instance, YmZs, XhZs or Ym are accepted.
 The syntax of one expression is "\fBfield operator value\fR". The field to test is always the left member of the expression.
 .LP
 The field is a member of the objects returned by the command. For example, a bank account has "balance", "coming" or "label" fields.
@@ -152,7 +156,7 @@ Get transactions betweens the 2th December and 8th December 2013.
 Get transactions after the 2th December in the last 10 transactions
 
 .SH COPYRIGHT
-Copyright(C) 2010-2011 Romain Bignon
+Copyright(C) 2010-2017 Romain Bignon
 .LP
 For full copyright information see the COPYING file in the weboob package.
 .LP

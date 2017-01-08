@@ -1,8 +1,8 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH BOOBILL 1 "11 February 2016" "boobill 1\&.1"
+.TH BOOBILL 1 "08 January 2017" "boobill 1\&.2"
 .SH NAME
-boobill \- get and download bills
+boobill \- get/download documents and bills
 .SH SYNOPSIS
 .B boobill
 [\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
@@ -13,7 +13,7 @@ boobill \- get and download bills
 .SH DESCRIPTION
 .LP
 
-Console application allowing to get and download bills.
+Console application allowing to get/download documents and bills.
 
 .SS Supported websites:
 * amazon (Amazon)
@@ -24,7 +24,7 @@ Console application allowing to get and download bills.
 .br
 * bouygues (Bouygues Télécom French mobile phone provider)
 .br
-* edf (Edf website: French power provider)
+* edf (EDF)
 .br
 * freemobile (Free Mobile website)
 .br
@@ -36,13 +36,19 @@ Console application allowing to get and download bills.
 .br
 * leclercmobile (Leclerc Mobile website)
 .br
+* materielnet (Materiel.net)
+.br
 * nettokom (Nettokom website)
+.br
+* onlinenet (Online.net)
 .br
 * orange (Orange French mobile phone provider)
 .br
-* ovh (ovh website)
+* ovh (Ovh)
 .br
 * poivy (Poivy website)
+.br
+* trainline (trainline website)
 .SH BOOBILL COMMANDS
 .TP
 \fBbalance\fR [\fIID\fR]
@@ -67,15 +73,25 @@ Get details of subscriptions.
 .br
 If no ID given, display all details of all backends.
 .TP
+\fBdocuments\fR [\fIID\fR]
+.br
+Get the list of documents for subscriptions.
+.br
+If no ID given, display documents of all backends
+.br
+
+.br
+Default is limited to 10 results.
+.TP
 \fBdownload\fR [\fIID\fR | all] [\fIFILENAME\fR]
 .br
 download ID [FILENAME]
 .br
 
 .br
-download the bill
+download the document
 .br
-id is the identifier of the bill (hint: try bills command)
+id is the identifier of the document (hint: try documents command)
 .br
 FILENAME is where to write the file. If FILENAME is '\-',
 .br
@@ -87,11 +103,11 @@ download all [ID]
 .br
 
 .br
-You can use special word "all" and download all bills of
+You can use special word "all" and download all documents of
 .br
 subscription identified by ID.
 .br
-If Id not given, download bills of all subscriptions.
+If Id not given, download documents of all subscriptions.
 .TP
 \fBhistory\fR [\fIID\fR]
 .br
@@ -216,7 +232,7 @@ Use \-d option to display information about a collection (and to not
 .br
 display the content of it). It has the same behavior than the well
 .br
-know UNIX "ls" command.
+known UNIX "ls" command.
 .br
 
 .br
@@ -352,7 +368,7 @@ Get transactions betweens the 2th December and 8th December 2013.
 Get transactions after the 2th December in the last 10 transactions
 
 .SH COPYRIGHT
-Copyright(C) 2012-2016 Florent Fourcot
+Copyright(C) 2012-2017 Florent Fourcot
 .LP
 For full copyright information see the COPYING file in the weboob package.
 .LP
