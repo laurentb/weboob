@@ -104,7 +104,7 @@ class WeboobRepos(ReplApplication):
 
         if r.signed:
             sigfiles = [r.KEYRING, Repository.INDEX]
-            gpg = find_exe('gpg2') or find_exe('gpg')
+            gpg = find_exe('gpg1') or find_exe('gpg')
             if not gpg:
                 raise Exception('Unable to find the gpg executable.')
             krname = os.path.join(repo_path, r.KEYRING)
