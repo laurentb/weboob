@@ -159,6 +159,10 @@ class WeboobRepos(ReplApplication):
                 shutil.copy(icon_path, os.path.join(repo_path, '%s.png' % name))
 
         if r.signed:
+            gpg = find_exe('gpg2') or find_exe('gpg')
+            if not gpg:
+                raise Exception('Unable to find the gpg executable.')
+
             # Find out which keys are allowed to sign
             fingerprints = [gpgline.strip(':').split(':')[-1]
                             for gpgline
