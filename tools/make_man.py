@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 import imp
 import inspect
@@ -130,7 +130,7 @@ def main():
                     print("Loaded %s" % fname)
                     # Find the applications we can handle
                     for klass in script.__dict__.itervalues():
-                        if inspect.isclass(klass) and issubclass(klass, Application):
+                        if inspect.isclass(klass) and issubclass(klass, Application) and klass.VERSION:
                             analyze_application(klass, fname)
                 finally:
                     # Cleanup compiled files if needed
