@@ -22,7 +22,7 @@ from StringIO import StringIO
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, TableCell, Regexp, Date, AsyncLoad, Async, Eval
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, TableCell, Regexp, Date, AsyncLoad, Async, Eval, RegexpError
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
@@ -429,7 +429,11 @@ class AccbisPage(LoggedPage, HTMLPage):
                         acc.currency = FrenchTransaction.Currency().filter(balance_el)
                         acc._link = Link().filter(a.xpath('.'))
                         acc._history_page = acc._link
-                        acc.id = acc._webid = Regexp(pattern='carte/(.*)$').filter(Link().filter(a.xpath('.')))
+                        try:
+                            acc.id = acc._webid = Regexp(pattern='carte/(.*)$').filter(Link().filter(a.xpath('.')))
+                        except RegexpError:
+                            # Those are external cards, ie: amex cards
+                            continue
                         acc.type = Account.TYPE_CARD
                         if not acc in cards:
                             cards.append(acc)
