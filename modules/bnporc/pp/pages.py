@@ -209,8 +209,9 @@ class MyRecipient(ItemElement):
         return datetime.now().replace(microsecond=0)
 
     def validate(self, el):
-        assert is_iban_valid(el.iban)
-        return True
+        # For the moment, we skip this kind of recipient:
+        # {"nomBeneficiaire":"Aircraft Guaranty Holdings LLC","idBeneficiaire":"00002##00002##FRSTUS44XXX##130018430","ibanNumCompte":"130018430","typeIban":"0","bic":"FRSTUS44XXX","statut":"1","numListe":"00002","typeBeneficiaire":"INTER","devise":"USD","tauxConversion":"1.047764","nbDecimale":"2","typeFrais":"","adresseBeneficiaire":"","nomBanque":"Frost National Bank","adresseBanque":"100 West Houston Street San Antonio, Texas 78205 USA ","canalActivation":"1","libelleStatut":"Activé"}
+        return is_iban_valid(el.iban)
 
 class TransferInitPage(BNPPage):
     def on_load(self):
