@@ -19,11 +19,17 @@
 
 import itertools
 from weboob.tools.test import BackendTest
+from weboob.tools.value import Value
 from weboob.capabilities.housing import Query
 
 
 class LeboncoinTest(BackendTest):
     MODULE = 'leboncoin'
+
+    def setUp(self):
+        if not self.is_backend_configured():
+            self.backend.config['advert_type'] = Value(value='a')
+            self.backend.config['region'] = Value(value='ile_de_france')
 
     def test_leboncoin(self):
         query = Query()
