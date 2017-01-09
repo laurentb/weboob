@@ -27,7 +27,8 @@ from mechanize import FormNotFoundError
 from weboob.capabilities.bank import Account
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.tools.date import LinearDateGuesser
-from weboob.exceptions import BrowserHTTPError
+from weboob.exceptions import BrowserHTTPError, ActionNeeded
+from weboob.browser.filters.standard import CleanText
 
 from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, \
                    SavingsPage, TransactionsPage, UselessPage, CardsPage, \
@@ -392,7 +393,12 @@ class Cragr(Browser):
         form = doc.find('//form[@name="formulaire"]')
         # 'act' parameter allows page recognition, this parameter is ignored by
         # server
-        self.location(form.attrib['action'] + '&act=Synthepargnes')
+        if form:
+            self.location(form.attrib['action'] + '&act=Synthepargnes')
+        else:
+            msg = CleanText(u'//b[contains(text() , "Nous vous invitons à créer un mot de passe trading.")]')(self.page.document)
+            if msg:
+                raise ActionNeeded(msg)
 
         self.update_sag()
 
