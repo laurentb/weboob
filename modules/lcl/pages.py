@@ -463,7 +463,7 @@ class BoursePage(LoggedPage, HTMLPage):
 
     @method
     class iter_investment(ListElement):
-        item_xpath = '//table[@id="tableValeurs"]/tbody/tr[not(@class) and count(descendant::td) > 1]'
+        item_xpath = '//table[@id="tableValeurs"]/tbody/tr[count(descendant::td) > 1]'
         class item(ItemElement):
             klass = Investment
 
