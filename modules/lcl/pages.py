@@ -34,7 +34,7 @@ from weboob.browser.filters.html import Attr, Link
 from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, Date, \
                                             CleanDecimal, Map, AsyncLoad, Async, Env, \
                                             TableCell, Eval
-from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
+from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 
@@ -418,6 +418,11 @@ class CBListPage(CBHistoryPage):
 
 class BoursePage(LoggedPage, HTMLPage):
     ENCODING='latin-1'
+
+    def on_load(self):
+        msg = CleanText(u'//b[contains(text(), "Afin de sécuriser vos transactions, nous vous invitons à créer un mot de passe trading")]')(self.doc)
+        if msg:
+            raise ActionNeeded(msg)
 
     def get_next(self):
         return re.search('"(.*?)"', self.doc.xpath('.//body')[0].attrib['onload']).group(1)
