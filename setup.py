@@ -61,7 +61,7 @@ def build_qt():
 
 def install_weboob():
     scripts = set(os.listdir('scripts'))
-    packages = set(find_packages(exclude=['modules']))
+    packages = set(find_packages(exclude=['modules', 'modules.*']))
 
     hildon_scripts = set(('masstransit',))
     qt_scripts = set(('qboobmsg',
