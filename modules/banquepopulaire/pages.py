@@ -78,8 +78,10 @@ class BasePage(object):
         return token
 
     def on_load(self):
-        self.browser.token = self.get_token()
-        self.logger.debug('Update token to %s', self.browser.token)
+        token = self.get_token()
+        if token:
+            self.browser.token = token
+            self.logger.debug('Update token to %s', self.browser.token)
 
     def is_error(self):
         for script in self.doc.xpath('//script'):
