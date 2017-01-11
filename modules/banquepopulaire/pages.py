@@ -843,7 +843,12 @@ class NatixisInvestPage(LoggedPage, JsonPage):
 
             obj_label = CleanText(Dict('nom'))
             obj_code = CleanText(Dict('codeIsin'))
-            obj_vdate = DateTime(Dict('dateValeurUniteCompte'))
+
+            def obj_vdate(self):
+                dt = Dict('dateValeurUniteCompte', default=None)(self)
+                if dt is None:
+                    dt = self.page.doc['detailContratVie']['valorisation']['date']
+                return DateTime().filter(dt)
 
             obj_valuation = Eval(float_to_decimal, Dict('montant'))
             obj_quantity = Eval(float_to_decimal, Dict('nombreUnitesCompte'))
