@@ -20,6 +20,7 @@
 from __future__ import absolute_import
 
 import datetime
+from functools import wraps
 import re
 import unicodedata
 from decimal import Decimal, InvalidOperation
@@ -104,6 +105,7 @@ def debug(*args):
     It prints by default the name of the Filter and the input value.
     """
     def wraper(function):
+        @wraps(function)
         def print_debug(self, value):
             logger = getLogger('b2filters')
             result = ''

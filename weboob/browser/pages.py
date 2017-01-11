@@ -19,6 +19,7 @@
 
 from __future__ import absolute_import
 
+from functools import wraps
 import warnings
 from io import BytesIO
 import codecs
@@ -66,6 +67,8 @@ def pagination(func):
     >>> list(b.page.iter_values())
     ['One', 'Two', 'Three', 'Four']
     """
+
+    @wraps(func)
     def inner(page, *args, **kwargs):
         while True:
             try:

@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from functools import wraps
 try:
     from urllib.parse import unquote
 except ImportError:
@@ -195,6 +196,8 @@ class URL(object):
         r"""
         Helper decorator to get an URL if the given first parameter is an ID.
         """
+
+        @wraps(func)
         def inner(browser, id_or_url, *args, **kwargs):
             if re.match('^https?://.*', id_or_url):
                 if not self.match(id_or_url, browser.BASEURL):
