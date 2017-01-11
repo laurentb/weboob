@@ -105,9 +105,9 @@ class CapGauge(Capability):
 
     def get_last_measure(self, id):
         """
-        Get last measures of a censor.
+        Get last measures of a sensor.
 
-        :param id: ID of the censor.
+        :param id: ID of the sensor.
         :type id: str
         :rtype: :class:`GaugeMeasure`
         """
