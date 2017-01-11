@@ -17,24 +17,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.deprecated.browser.decorators import id2url
-from weboob.deprecated.browser import Browser
-from .job import LolixJobAdvert
+from weboob.browser import PagesBrowser, URL
 from .pages import SearchPage, AdvertPage
-import urllib
 
 __all__ = ['LolixBrowser']
 
 
-class LolixBrowser(Browser):
-    PROTOCOL = 'http'
-    DOMAIN = 'fr.lolix.org/search/offre'
+class LolixBrowser(PagesBrowser):
+    BASEURL = 'http://fr.lolix.org'
     ENCODING = 'iso-8859-1'
 
-    PAGES = {
-        '%s://%s/search.php' % (PROTOCOL, DOMAIN): SearchPage,
-        '%s://%s/offre.php\?id=(?P<id>.+)' % (PROTOCOL, DOMAIN): AdvertPage,
-    }
+    search_page = URL('/search/offre/search.php', SearchPage)
+    advert_page = URL('/search/offre/offre.php\?id=(?P<id>.+)', AdvertPage)
 
     def advanced_search_job(self, region=0, poste=0, contrat=0, limit_date=0, pattern=None):
         data = {
@@ -46,12 +40,7 @@ class LolixBrowser(Browser):
             'limitjour': limit_date
         }
 
-        self.location('%s://%s/search.php' % (self.PROTOCOL, self.DOMAIN), urllib.urlencode(data))
-        assert self.is_on_page(SearchPage)
-        return self.page.iter_job_adverts(pattern)
+        return self.search_page.go(data=data).iter_job_adverts(pattern=pattern)
 
-    @id2url(LolixJobAdvert.id2url)
-    def get_job_advert(self, url, advert):
-        self.location(url)
-        assert self.is_on_page(AdvertPage)
-        return self.page.get_job_advert(url, advert)
+    def get_job_advert(self, id, advert):
+        return self.advert_page.go(id=id).get_job_advert(obj=advert)

@@ -19,10 +19,18 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.tools.value import Value
 
 
 class LolixTest(BackendTest):
     MODULE = 'lolix'
+
+    def setUp(self):
+        if not self.is_backend_configured():
+            self.backend.config['region'] = Value(value='0')
+            self.backend.config['poste'] = Value(value='0')
+            self.backend.config['contrat'] = Value(value='0')
+            self.backend.config['limit_date'] = Value(value='0')
 
     def test_lolix_advanced_search(self):
         l = list(self.backend.advanced_search_job())

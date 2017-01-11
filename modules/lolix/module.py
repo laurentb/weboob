@@ -20,10 +20,9 @@
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
-from weboob.capabilities.job import CapJob
+from weboob.capabilities.job import CapJob, BaseJobAdvert
 
 from .browser import LolixBrowser
-from .job import LolixJobAdvert
 
 __all__ = ['LolixModule']
 
@@ -138,9 +137,7 @@ class LolixModule(Module, CapJob):
                            Value('limit_date', label=u'Date limite', choices=limit_date_choices))
 
     def search_job(self, pattern=None):
-        with self.browser:
-            for job_advert in self.browser.advanced_search_job(pattern=pattern):
-                yield job_advert
+        return self.browser.advanced_search_job(pattern=pattern)
 
     def advanced_search_job(self):
         for advert in self.browser.advanced_search_job(region=self.config['region'].get(),
@@ -150,10 +147,9 @@ class LolixModule(Module, CapJob):
             yield advert
 
     def get_job_advert(self, _id, advert=None):
-        with self.browser:
-            return self.browser.get_job_advert(_id, advert)
+        return self.browser.get_job_advert(_id, advert)
 
     def fill_obj(self, advert, fields):
         self.get_job_advert(advert.id, advert)
 
-    OBJECTS = {LolixJobAdvert: fill_obj}
+    OBJECTS = {BaseJobAdvert: fill_obj}
