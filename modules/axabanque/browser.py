@@ -156,7 +156,7 @@ class AXABanque(LoginBrowser):
         if account.id not in self.history_list:
             trs = []
             # Side investment's website
-            if account._acctype is "investment":
+            if account._acctype == "investment":
                 skip = 0
 
                 try:
@@ -169,7 +169,7 @@ class AXABanque(LoginBrowser):
                     pass
 
             # Main website withouth investments
-            elif account._acctype is "bank" and not account._hasinv:
+            elif account._acctype == "bank" and not account._hasinv:
                 self.go_account_pages(account, "history")
                 if self.page.more_history():
                     trs = [a for a in self.page.get_history()]
@@ -180,7 +180,7 @@ class AXABanque(LoginBrowser):
     def iter_investment(self, account):
         if account.id not in self.investment_list:
             invs = []
-            if account._acctype is "bank" and account._hasinv:
+            if account._acctype == "bank" and account._hasinv:
                 self.go_account_pages(account, "investment")
                 invs = [i for i in self.page.iter_investment()]
             self.investment_list[account.id] = invs
