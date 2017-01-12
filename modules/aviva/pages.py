@@ -117,16 +117,19 @@ class HistoryPage(LoggedPage, HTMLPage):
             klass = Transaction
 
             obj_label = Format('%s du %s', Env('label'), Field('date'))
-            obj_date = Date(Regexp(CleanText('./ancestor::div[contains(@id, "term") or has-class("grid")]/ \
-                            preceding-sibling::h3//div[contains(text(), "Date")]'), ':[\s]+([\d\/]+)'), dayfirst=True)
+            obj_date = Date(Regexp(CleanText('./ancestor::div[@class="onerow" or starts-with(@id, "term") or has-class("grid")]/'
+                                             'preceding-sibling::h3[1]//div[contains(text(), "Date")]'),
+                                   r':\s+([\d/]+)'),
+                            dayfirst=True)
             obj_type = Transaction.TYPE_BANK
             obj_amount = MyDecimal(Env('amount'))
             obj_investments = Env('investments')
 
             def parse(self, el):
-                label = Regexp(Capitalize('./ancestor::div[@class="bloc-accordeon"]/ \
-                            preceding-sibling::h2[1]'), 'Des[\s]+([\w]+)')(self)
+                label = Regexp(Capitalize('./preceding::h2[@class="feature"][1]'),
+                               'Historique Des\s+(\w+)')(self)
                 self.env['label'] = label[:-1]
+
                 amount = CleanText('./ancestor::div[contains(@id, "term")]/ \
                             preceding-sibling::h3//div[contains(@class, "montant")]')(self)
                 if not amount:
