@@ -274,7 +274,7 @@ def get_pdf_rows(data, miner_layout=True):
     """
     Takes PDF file content as string and yield table row data for each page.
 
-    A dict is yielded for each page. Each dict contains rows as values.
+    For each page in the PDF, the function yields a list of rows.
     Each row is a list of cells. Each cell is a list of strings present in the cell.
     Note that the rows may belong to different tables.
 
