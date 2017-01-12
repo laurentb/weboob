@@ -351,3 +351,24 @@ class DictElement(ListElement):
 
         for el in self.el:
             yield el
+
+
+def magic_highlight(el, open_browser=True):
+    """Open a web browser with the document open and the element highlighted"""
+
+    import lxml.html
+    import webbrowser
+    import tempfile
+
+    old = el.attrib.get('style', '')
+    el.attrib['style'] = 'color: white !important; background: red !important;'
+    html = lxml.html.tostring(el.xpath('/*')[0])
+    el.attrib['style'] = old
+
+    _, fn = tempfile.mkstemp(dir='/tmp', prefix='weboob-highlight', suffix='.html')
+    with open(fn, 'w') as fd:
+        fd.write(html)
+
+    print('Saved to %r' % fn)
+    if open_browser:
+        webbrowser.open('file://%s' % fn)
