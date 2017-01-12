@@ -31,8 +31,8 @@ from weboob.exceptions import BrowserHTTPError, ActionNeeded
 from weboob.browser.filters.standard import CleanText
 
 from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, \
-                   SavingsPage, TransactionsPage, UselessPage, CardsPage, \
-                   LifeInsurancePage, MarketPage, LoansPage, PerimeterPage, \
+                   SavingsPage, TransactionsPage, AdvisorPage, UselessPage, \
+                   CardsPage, LifeInsurancePage, MarketPage, LoansPage, PerimeterPage, \
                    ChgPerimeterPage, MarketHomePage, FirstVisitPage, BGPIPage
 
 
@@ -58,10 +58,11 @@ class Cragr(Browser):
              'https?://[^/]+/stb/collecteNI\?.*sessionAPP=Synthepargnes.*indicePage=.*': SavingsPage,
              'https?://[^/]+/stb/.*act=Releves.*':                       TransactionsPage,
              'https?://[^/]+/stb/collecteNI\?.*sessionAPP=Releves.*':    TransactionsPage,
+             'https?://[^/]+/stb/entreeBam\?.*act=Contact':              AdvisorPage,
              'https?://[^/]+/stb/.*/erreur/.*':                          LoginErrorPage,
              'https?://[^/]+/stb/entreeBam\?.*act=Messagesprioritaires': UselessPage,
              'https?://[^/]+/stb/collecteNI\?.*fwkaction=Cartes.*':      CardsPage,
-             'https?://[^/]+/stb/collecteNI\?.*sessionAPP=Cartes.*':      CardsPage,
+             'https?://[^/]+/stb/collecteNI\?.*sessionAPP=Cartes.*':     CardsPage,
              'https?://[^/]+/stb/collecteNI\?.*fwkaction=Detail.*sessionAPP=Cartes.*': CardsPage,
              'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.WalletVal\?nump=.*': MarketPage,
              'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis': MarketHomePage,
@@ -185,6 +186,7 @@ class Cragr(Browser):
         # we can deduce the URL to "savings" and "loan" accounts from the regular accounts one
         self.savings_url  = re.sub('act=([^&=]+)', 'act=Synthepargnes', self.accounts_url, 1)
         self.loans_url  = re.sub('act=([^&=]+)', 'act=Synthcredits', self.accounts_url, 1)
+        self.advisor_url  = re.sub('act=([^&=]+)', 'act=Contact', self.accounts_url, 1)
 
         if self.page.check_perimeters() and not self.broken_perimeters:
             self.perimeter_url = re.sub('act=([^&=]+)', 'act=Perimetre', self.accounts_url, 1)
@@ -367,6 +369,13 @@ class Cragr(Browser):
             self.quit_market_website()
         elif account.type == Account.TYPE_LIFE_INSURANCE:
             self.quit_insurance_website()
+
+    def iter_advisor(self):
+        if not self.is_on_page(AdvisorPage):
+            self.location(self.advisor_url.format(self.sag))
+
+        for adv in self.page.iter_advisor():
+            yield adv
 
     def moveto_market_website(self, account, home=False):
         response = self.openurl(account._link % self.sag).read()

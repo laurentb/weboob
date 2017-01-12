@@ -24,6 +24,7 @@ import re
 
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.contact import Advisor
 from weboob.deprecated.browser import Page, BrokenPageError, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.date import parse_french_date, LinearDateGuesser
@@ -105,6 +106,7 @@ class LoginPage(BasePage):
             if m:
                 idSessionSag = m.group(1)
         return '%s%s%s%s' % (self.url, '?sessionSAG=', idSessionSag, '&stbpg=pagePU&actCrt=Synthcomptes&stbzn=btn&act=Synthcomptes')
+
 
 class UselessPage(BasePage):
     pass
@@ -607,7 +609,6 @@ class TransactionsPage(BasePage):
             yield t
 
 
-
 class MarketPage(BasePage):
     COL_ID = 1
     COL_QUANTITY = 2
@@ -710,6 +711,30 @@ class LifeInsurancePage(MarketPage):
             inv.diff = NotAvailable
 
             yield inv
+
+
+class AdvisorPage(BasePage):
+    def iter_advisor(self):
+        for p in self.document.xpath(u'//fieldset/div/p[not(contains(text(), "TTC"))]'):
+            phone = None
+            if p.find('b') is not None:
+                phone = ''.join(p.find('b').text_content().split('.'))
+            else:
+                m = re.search('(?=\d)([\d\s.]+)', p.text_content().strip())
+                if m:
+                    phone = ''.join(m.group(1).split())
+            if not phone or len(phone) != 10:
+                continue
+
+            adv = Advisor()
+            adv.name = unicode(re.search('([^:]+)', p.find('span').text).group(1).strip())
+            if adv.name.startswith('Pour toute '):
+                adv.name = u"Fil général"
+            adv.phone = unicode(phone)
+            if "bourse" in adv.name:
+                adv.role = u"wealth"
+            [setattr(adv, k, NotAvailable) for k in ['email', 'mobile', 'fax', 'agency', 'address']]
+            yield adv
 
 
 class BGPIPage(MarketPage):
