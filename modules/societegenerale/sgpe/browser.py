@@ -37,6 +37,7 @@ class SGPEBrowser(LoginBrowser):
     change_pass = URL('/gao/changer-code-secret-expire-saisie.html',
                       '/gao/changer-code-secret-inscr-saisie.html',
                       '/gao/inscrire-utilisateur-saisie.html',
+                      '/gao/changer-code-secret-reattr-saisie.html',
                       ChangePassPage)
 
     def is_logged(self):
