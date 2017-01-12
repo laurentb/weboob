@@ -26,10 +26,11 @@ from weboob.browser.url import URL
 class NewspaperFigaroBrowser(AbstractBrowser):
     "NewspaperFigaroBrowser class"
     PARENT = 'genericnewspaper'
-    BASEURL = ''
+    BASEURL = 'http://lefigaro.fr'
 
     article_page = URL('http://lefigaro.fr/(.*)/(\d{4})/(\d{2})/(\d{2})/(.*$)',
                        'http://\w+.lefigaro.fr/(.*)/(\d{4})/(\d{2})/(\d{2})/(.*$)',
+                       'http://\w+.lefigaro.fr/(.*)',
                        ArticlePage)
 
     def __init__(self, weboob, *args, **kwargs):

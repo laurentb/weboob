@@ -32,7 +32,7 @@ class ArticlePage(AbstractPage):
         self.main_div = self.doc.getroot()
         self.element_title_selector = "h1"
         self.element_author_selector = 'span[itemprop="author"], span.auteur_long>div'
-        self.element_body_selector = "article div.fig-article-body"
+        self.element_body_selector = "article div[itemprop='articleBody']"
 
     def get_body(self):
         element_body = self.get_element_body()
