@@ -24,16 +24,17 @@ from weboob.capabilities.collection import Collection
 
 from weboob.exceptions import ParseError
 from weboob.browser.elements import ItemElement, ListElement, method, DictElement
-from weboob.browser.pages import HTMLPage, pagination, JsonPage
+from weboob.browser.pages import HTMLPage, pagination, JsonPage, XMLPage
 from weboob.browser.filters.standard import Regexp, Env, CleanText, DateTime, Duration, Field, BrowserURL
-from weboob.browser.filters.html import Attr, Link, CleanHTML, XPath
+from weboob.browser.filters.html import Attr, Link, XPath
 from weboob.browser.filters.json import Dict
 
 import re
 
 
 class VimeoDuration(Duration):
-    _regexp = re.compile(r'PT(?P<hh>\d+)H(?P<mm>\d+)M(?P<ss>\d+)S')
+    _regexp = re.compile(r'(?P<ss>\d+)')
+    kwargs = {'seconds': 'ss'}
 
 
 class ListPage(HTMLPage):
@@ -80,54 +81,6 @@ class APIPage(JsonPage):
                 thumbnail = Thumbnail(Dict('clip/pictures/sizes/0/link')(self))
                 thumbnail.url = thumbnail.id
                 return thumbnail
-
-
-class SearchPage(HTMLPage):
-    @pagination
-    @method
-    class iter_videos(ListElement):
-        item_xpath = '//ul[@class="small-block-grid-3"]/li/div[has-class("clip_thumbnail")]'
-        ignore_duplicate = True
-        next_page = Link(u'//a[text()="Next"]')
-
-        class item(ItemElement):
-            klass = BaseVideo
-
-            obj_id = Attr('.', 'data-clip-id')
-            obj_title = Attr('./a/span', 'title')
-
-            def obj_thumbnail(self):
-                thumbnail = Thumbnail(self.xpath('./a/div/img')[0].attrib['src'])
-                thumbnail.url = thumbnail.id
-                return thumbnail
-
-
-class VideoPage(HTMLPage):
-    def __init__(self, *args, **kwargs):
-        super(VideoPage, self).__init__(*args, **kwargs)
-        from weboob.tools.json import json
-        jsoncontent = XPath('//script[@type="application/ld+json"]/text()')(self.doc)[0]
-        self.doc = json.loads(jsoncontent)[0]
-
-    @method
-    class get_video(ItemElement):
-        klass = BaseVideo
-
-        obj_id = Env('_id')
-        obj_title = CleanText(CleanHTML(Dict('name')))
-        obj_description = CleanHTML(Dict('description'))
-        obj_date = DateTime(Dict('uploadDate'))
-        obj_duration = VimeoDuration(Dict('duration'))
-        obj_author = CleanText(Dict('author/name'))
-
-        def obj_nsfw(self):
-            _sfw = Dict('isFamilyFriendly', default="True")(self)
-            return _sfw != "True"
-
-        def obj_thumbnail(self):
-            thumbnail = Thumbnail(Dict('thumbnailUrl')(self.el))
-            thumbnail.url = thumbnail.id
-            return thumbnail
 
 
 class VideoJsonPage(JsonPage):
@@ -184,21 +137,52 @@ class CategoriesPage(HTMLPage):
                 return split_path
 
 
-class ChannelsPage(HTMLPage):
+class VimeoItem(ItemElement):
+    klass = BaseVideo
+
+    obj_id = CleanText('./@id')
+    obj_title = CleanText('./title')
+    obj_description = CleanText('./description')
+    obj_author = CleanText('./owner/@display_name')
+    obj_date = DateTime(CleanText('./upload_date'))
+    obj__is_hd = CleanText('./@is_hd')
+    obj_duration = VimeoDuration(CleanText('./duration'))
+
+    def obj_thumbnail(self):
+        t = CleanText('./thumbnails/thumbnail[1]', default='')(self)
+        if t:
+            thumbnail = Thumbnail(t)
+            thumbnail.url = thumbnail.id
+            return thumbnail
+
+
+class XMLAPIPage(XMLPage):
+    @method
+    class iter_videos(ListElement):
+        item_xpath = '//video'
+
+        class item(VimeoItem):
+            pass
+
+    @method
+    class fill_video_infos(VimeoItem):
+        def __init__(self, *args, **kwargs):
+            super(VimeoItem, self).__init__(*args, **kwargs)
+            self.el = XPath('/rsp/video')(self.el)[0]
+
     @pagination
     @method
     class iter_channels(ListElement):
-        item_xpath = '//div[@id="browse_content"]/ol/li'
-        next_page = Link('//li[@class="pagination_next"]/a')
+        item_xpath = '//channel'
 
         class item(ItemElement):
             klass = Collection
 
-            obj_title = CleanText('div/a/div/p[@class="title"]')
+            obj_title = CleanText('./name')
             obj_id = CleanText('./@id')
 
             def obj_split_path(self):
                 split_path = ['vimeo-channels']
-                channel = CleanText('div/a/@href', replace=[('/channels/', '')])(self)
-                split_path.append(channel)
+                split_path.append(Regexp(CleanText('./url'),
+                                         'http://vimeo.com/channels/(.*)/?')(self))
                 return split_path

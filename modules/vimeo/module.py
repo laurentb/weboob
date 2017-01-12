@@ -67,7 +67,7 @@ class VimeoModule(Module, CapVideo, CapCollection):
         if fields != ['thumbnail']:
             # if we don't want only the thumbnail, we probably want also every fields
             video = self.browser.get_video(video.id, video)
-        if 'thumbnail' in fields and video.thumbnail:
+        if 'thumbnail' in fields and video and video.thumbnail:
             video.thumbnail.data = self.browser.open(video.thumbnail.url).content
 
         return video
