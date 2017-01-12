@@ -108,45 +108,87 @@ class InvestmentPage(LoggedPage, HTMLPage):
             obj_vdate = Date(CleanText('./div[@data-label="Date de valeur"]'), dayfirst=True, default=NotAvailable)
 
 
+class InvestmentElement(ItemElement):
+    klass = Investment
+
+    obj_label = CleanText('./div[@data-label="Nom du support" or @data-label="Support cible"]/span[1]')
+    obj_quantity = MyDecimal('./div[contains(@data-label, "Nombre")]')
+    obj_unitvalue = MyDecimal('./div[contains(@data-label, "Valeur")]')
+    obj_valuation = MyDecimal('./div[contains(@data-label, "Montant")]')
+    obj_vdate = Env('date')
+    #obj_vdate = Field('date')
+
+
+class TransactionElement(ItemElement):
+    klass = Transaction
+
+    obj_label = Format('%s du %s', Field('_labeltype'), Field('date'))
+    obj_date = Date(Regexp(CleanText('./ancestor::div[@class="onerow" or starts-with(@id, "term") or has-class("grid")]/'
+                                     'preceding-sibling::h3[1]//div[contains(text(), "Date")]'),
+                           r':\s+([\d/]+)'),
+                    dayfirst=True)
+    obj_type = Transaction.TYPE_BANK
+
+    obj_amount = MyDecimal('./ancestor::div[@class="onerow" or starts-with(@id, "term") or has-class("grid")]/'
+                           'preceding-sibling::h3[1]//div[has-class("montant-mobile")]', default=NotAvailable)
+
+    obj__labeltype = Regexp(Capitalize('./preceding::h2[@class="feature"][1]'),
+                                      'Historique Des\s+(\w+)')
+
+    def obj_investments(self):
+        return list(self.iter_investments(self.page, parent=self))
+
+    @method
+    class iter_investments(ListElement):
+        item_xpath = './div[@class="line"]'
+
+        class item(InvestmentElement):
+            pass
+
+    def parse(self, el):
+        self.env['date'] = Field('date')(self)
+
+
 class HistoryPage(LoggedPage, HTMLPage):
     @method
-    class iter_history(ListElement):
-        item_xpath = '//div[@class="table-responsive"]'
+    class iter_simple(ListElement):
+        def find_elements(self):
+            # "arbitrage" transactions are split in 2 table-responsive
+            # the html tree is a mess
+            for sub in self.el.xpath('//div[@class="table-responsive"]'):
+                if (sub.getparent().attrib.get('class') != 'onerow' or
+                    'grid' not in sub.getparent().getparent().attrib.get('class')):
 
-        class item(ItemElement):
-            klass = Transaction
+                    yield sub
 
-            obj_label = Format('%s du %s', Env('label'), Field('date'))
-            obj_date = Date(Regexp(CleanText('./ancestor::div[@class="onerow" or starts-with(@id, "term") or has-class("grid")]/'
-                                             'preceding-sibling::h3[1]//div[contains(text(), "Date")]'),
-                                   r':\s+([\d/]+)'),
-                            dayfirst=True)
-            obj_type = Transaction.TYPE_BANK
-            obj_amount = MyDecimal(Env('amount'))
-            obj_investments = Env('investments')
+        obj_date = Date(Regexp(CleanText('./ancestor::div[starts-with(@id, "term")/'
+                                         'preceding-sibling::h3[1]//div[contains(text(), "Date")]'),
+                               r':\s+([\d/]+)'),
+                        dayfirst=True)
 
-            def parse(self, el):
-                label = Regexp(Capitalize('./preceding::h2[@class="feature"][1]'),
-                               'Historique Des\s+(\w+)')(self)
-                self.env['label'] = label[:-1]
+        class item(TransactionElement):
+            class iter_investments(ListElement):
+                item_xpath = './div[@class="line"]'
 
-                amount = CleanText('./ancestor::div[contains(@id, "term")]/ \
-                            preceding-sibling::h3//div[contains(@class, "montant")]')(self)
-                if not amount:
-                    amount = CleanText('.//div[@class="line"]/div[contains(@data-label, "Montant")]')(self)
-                self.env['amount'] = amount
+                class item(InvestmentElement):
+                    pass
 
-                investments = []
-                for line in el.xpath('./div[@class="line"]'):
-                    i = Investment()
-                    i.label = CleanText().filter(line.xpath('./div[@data-label="Nom du support" or @data-label="Support cible"]/span[1]'))
-                    i.quantity = MyDecimal().filter(line.xpath('./div[contains(@data-label, "Nombre")]'))
-                    i.unitvalue = MyDecimal().filter(line.xpath('./div[contains(@data-label, "Valeur")]'))
-                    i.valuation = MyDecimal().filter(line.xpath('./div[contains(@data-label, "Montant")]'))
-                    i.vdate = Field('date')(self)
-                    investments.append(i)
+    @method
+    class iter_complex(ListElement):
+        item_xpath = '//div[has-class("grid")]/div[@class="onerow"]'
 
-                self.env['investments'] = investments
+        class item(TransactionElement):
+            class iter_investments(ListElement):
+                item_xpath = './div[@class="table-responsive"]/div[@class="line"]'
+
+                class item(InvestmentElement):
+                    pass
+
+    def iter_history(self):
+        for tr in self.iter_simple():
+            yield tr
+        for tr in self.iter_complex():
+            yield tr
 
 
 class ActionNeededPage(LoggedPage, HTMLPage):
