@@ -34,7 +34,7 @@ class RATPSensor(GaugeSensor):
 
 
 class RATPModule(Module, CapGauge):
-    NAME = 'RATP'
+    NAME = 'ratp'
     DESCRIPTION = u'RATP network status'
     MAINTAINER = u'Phyks (Lucas Verney)'
     EMAIL = 'phyks@phyks.me'

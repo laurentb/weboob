@@ -22,7 +22,7 @@ from weboob.tools.test import BackendTest
 
 
 class RATPTest(BackendTest):
-    MODULE = 'RATP'
+    MODULE = 'ratp'
 
     def test_ratp_gauges(self):
         l = list(self.backend.iter_gauges())
