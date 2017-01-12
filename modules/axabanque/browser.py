@@ -149,7 +149,8 @@ class AXABanque(LoginBrowser):
             if isinstance(self.page, TransactionsPage):
                 self.page.go_action(action)
         else:
-            self.transactions.go(data=args)
+            target = self.page.get_form_action(args['_form_name'])
+            self.location(target, data=args)
 
     @need_login
     def iter_history(self, account):

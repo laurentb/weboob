@@ -215,6 +215,7 @@ class MyHTMLPage(HTMLPage):
         sub = re.search('oamSubmitForm.+?,\'([^:]+).([^\']+)', s)
         args['%s:_idcl' % sub.group(1)] = "%s:%s" % (sub.group(1), sub.group(2))
         args['%s_SUBMIT' % sub.group(1)] = 1
+        args['_form_name'] = sub.group(1) # for weboob only
 
         return args
 
@@ -335,6 +336,9 @@ class BankAccountsPage(LoggedPage, MyHTMLPage):
                 account._hasinv = True if "Valorisation" in account.label else False
                 account._url = self.doc.xpath('//form[contains(@action, "panorama")]/@action')[0]
                 yield account
+
+    def get_form_action(self, form_name):
+        return self.get_form(id=form_name).url
 
 
 class IbanPage(PDFPage):
