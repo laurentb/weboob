@@ -405,33 +405,38 @@ class Module(object):
         def not_loaded(v):
             return (v is NotLoaded or isinstance(v, BaseObject) and not v.__iscomplete__())
 
+        def filter_missing_fields(obj, fields):
+            missing_fields = []
+            if fields is None:
+                # Select all fields
+                if isinstance(obj, BaseObject):
+                    fields = [item[0] for item in obj.iter_fields()]
+                else:
+                    fields = [item[0] for item in iter_fields(obj)]
+
+            for field in fields:
+                if not hasattr(obj, field):
+                    raise FieldNotFound(obj, field)
+                value = getattr(obj, field)
+
+                missing = False
+                if hasattr(value, '__iter__'):
+                    for v in (value.itervalues() if isinstance(value, dict) else value):
+                        if not_loaded(v):
+                            missing = True
+                            break
+                elif not_loaded(value):
+                    missing = True
+
+                if missing:
+                    missing_fields.append(field)
+
+            return missing_fields
+
         if isinstance(fields, basestring):
             fields = (fields,)
 
-        missing_fields = []
-        if fields is None:
-            # Select all fields
-            if isinstance(obj, BaseObject):
-                fields = [item[0] for item in obj.iter_fields()]
-            else:
-                fields = [item[0] for item in iter_fields(obj)]
-
-        for field in fields:
-            if not hasattr(obj, field):
-                raise FieldNotFound(obj, field)
-            value = getattr(obj, field)
-
-            missing = False
-            if hasattr(value, '__iter__'):
-                for v in (value.itervalues() if isinstance(value, dict) else value):
-                    if not_loaded(v):
-                        missing = True
-                        break
-            elif not_loaded(value):
-                missing = True
-
-            if missing:
-                missing_fields.append(field)
+        missing_fields = filter_missing_fields(obj, fields)
 
         if not missing_fields:
             return obj
@@ -439,7 +444,9 @@ class Module(object):
         for key, value in self.OBJECTS.iteritems():
             if isinstance(obj, key):
                 self.logger.debug(u'Fill %r with fields: %s' % (obj, missing_fields))
-                return value(self, obj, missing_fields) or obj
+                obj = value(self, obj, missing_fields) or obj
+                missing_fields = filter_missing_fields(obj, fields)
+                break
 
         # Object is not supported by backend. Do not notice it to avoid flooding user.
         # That's not so bad.
