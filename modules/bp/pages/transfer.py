@@ -141,7 +141,7 @@ class TransferConfirm(LoggedPage, CheckTransferError):
         recipient_txt = CleanText('//form//dl/dt[span[contains(text(), "diter")]]/following::dd[1]', replace=[(' ', '')])(self.doc)
         try:
             assert account.id in account_txt or ''.join(account.label.split()) == account_txt
-            assert recipient.id in recipient_txt
+            assert recipient.id in recipient_txt or ''.join(recipient.label.split()) == recipient_txt
         except AssertionError:
             raise TransferError('Something went wrong')
         r_amount =  CleanDecimal('//form//dl/dt[span[contains(text(), "Montant")]]/following::dd[1]', replace_dots=True)(self.doc)
