@@ -36,8 +36,7 @@ class AttributeNotFound(FilterError):
 
 
 class CSS(_Selector):
-    @classmethod
-    def select(cls, selector, item, obj=None, key=None):
+    def select(self, selector, item):
         return item.cssselect(selector)
 
 

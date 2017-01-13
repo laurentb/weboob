@@ -161,13 +161,12 @@ class Filter(_Filter):
         super(Filter, self).__init__(default=default)
         self.selector = selector
 
-    @classmethod
-    def select(cls, selector, item, obj=None, key=None):
+    def select(self, selector, item):
         if isinstance(selector, basestring):
             return item.xpath(selector)
         elif isinstance(selector, _Filter):
-            selector._key = key
-            selector._obj = obj
+            selector._key = self._key
+            selector._obj = self._obj
             return selector(item)
         elif callable(selector):
             return selector(item)
@@ -175,7 +174,7 @@ class Filter(_Filter):
             return selector
 
     def __call__(self, item):
-        return self.filter(self.select(self.selector, item, key=self._key, obj=self._obj))
+        return self.filter(self.select(self.selector, item))
 
     @debug()
     def filter(self, value):
@@ -195,11 +194,11 @@ class _Selector(Filter):
 
 class AsyncLoad(Filter):
     def __call__(self, item):
-        link = self.select(self.selector, item, key=self._key, obj=self._obj)
+        link = self.select(self.selector, item)
         return item.page.browser.async_open(link) if link else None
 
 
-class Async(_Filter):
+class Async(Filter):
     def __init__(self, name, selector=None):
         super(Async, self).__init__()
         self.selector = selector
@@ -215,7 +214,10 @@ class Async(_Filter):
         if item.loaders[self.name] is None:
             return None
 
-        return self.selector(self.loaded_page(item).doc)
+        return self.select(self.selector, self.loaded_page(item).doc)
+
+    def filter(self, *args):
+        raise AttributeError()
 
     def loaded_page(self, item):
         result = item.loaders[self.name].result()
@@ -231,8 +233,8 @@ class Base(Filter):
     """
 
     def __call__(self, item):
-        base = self.select(self.base, item, obj=self._obj, key=self._key)
-        return self.selector(base)
+        base = self.select(self.base, item)
+        return self.select(self.selector, base)
 
     def __init__(self, base, selector=None, default=_NO_DEFAULT):
         super(Base, self).__init__(selector, default)
@@ -252,7 +254,7 @@ class Decode(Filter):
     """
     def __call__(self, item):
         self.encoding = item.page.ENCODING if item.page.ENCODING else 'utf-8'
-        return self.filter(self.select(self.selector, item, key=self._key, obj=self._obj))
+        return self.filter(self.select(self.selector, item))
 
     @debug()
     def filter(self, txt):
@@ -680,11 +682,11 @@ class DateGuesser(Filter):
         self.kwargs = kwargs
 
     def __call__(self, item):
-        values = self.select(self.selector, item, obj=self._obj, key=self._key)
+        values = self.select(self.selector, item)
         date_guesser = self.date_guesser
         # In case Env() is used to kive date_guesser.
         if isinstance(date_guesser, _Filter):
-            date_guesser = self.select(date_guesser, item, obj=self._obj, key=self._key)
+            date_guesser = self.select(date_guesser, item)
 
         if isinstance(values, basestring):
             values = re.split('[/-]', values)
@@ -727,7 +729,7 @@ class MultiFilter(Filter):
         super(MultiFilter, self).__init__(args, default)
 
     def __call__(self, item):
-        values = [self.select(selector, item, obj=self._obj, key=self._key) for selector in self.selector]
+        values = [self.select(selector, item) for selector in self.selector]
         return self.filter(tuple(values))
 
     def filter(self, values):
