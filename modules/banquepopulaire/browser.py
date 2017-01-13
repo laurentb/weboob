@@ -22,6 +22,7 @@ from collections import OrderedDict
 import urllib
 
 from weboob.exceptions import BrowserIncorrectPassword
+from weboob.browser.exceptions import HTTPNotFound
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
@@ -292,11 +293,19 @@ class BanquePopulaire(LoginBrowser):
             params = self.page.params
             self.natixis_history.go(**params)
             items_from_json = list(self.page.get_history())
+            items_from_json.sort(key=lambda item: item.date)
 
             years = list(set(item.date.year for item in items_from_json))
             years.sort()
 
             for year in years:
-                self.natixis_pdf.go(year=year, **params)
-                for tr in self.page.get_history():
-                    yield tr
+                try:
+                    self.natixis_pdf.go(year=year, **params)
+                except HTTPNotFound:
+                    self.logger.debug('no pdf for year %s, fallback on json transactions', year)
+                    for tr in items_from_json:
+                        if tr.date.year == year:
+                            yield tr
+                else:
+                    for tr in self.page.get_history():
+                        yield tr

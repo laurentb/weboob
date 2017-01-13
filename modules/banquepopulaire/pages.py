@@ -868,6 +868,8 @@ class NatixisHistoryPage(LoggedPage, JsonPage):
             obj_raw = CleanText(Dict('libelle'))
             obj_vdate = DateTime(Dict('dateValeur', default=NotAvailable), default=NotAvailable)
             obj_date = DateTime(Dict('dateEffet', default=NotAvailable), default=NotAvailable)
+            obj_investments = NotAvailable
+            obj_type = Transaction.TYPE_BANK
 
 
 def use_invest_date(tr):
@@ -930,7 +932,9 @@ class NatixisDetailsPage(LoggedPage, RawPage):
                         continue
 
                     tr = Transaction()
-                    tr.raw = label
+                    # the amount is always positive... do not set it to avoid mistakes
+                    tr.type = Transaction.TYPE_BANK
+                    tr.label = tr.raw = label
                     tr.investments = []
                     continue
 
