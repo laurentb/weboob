@@ -140,8 +140,8 @@ class CenetAccountHistoryPage(LoggedPage, CenetJsonPage):
 
             obj_raw = Format('%s %s', Dict('Libelle'), Dict('Libelle2'))
             obj_label = CleanText(Dict('Libelle'))
-            obj_date = Date(Dict('DateGroupImputation'))
-            obj_rdate = Date(Dict('DateGroupReglement'))
+            obj_date = Date(Dict('DateGroupImputation'), dayfirst=True)
+            obj_rdate = Date(Dict('DateGroupReglement'), dayfirst=True)
 
             def obj_type(self):
                 return self.page.TR_TYPES.get(Dict('TypeMouvement')(self), Transaction.TYPE_UNKNOWN)
