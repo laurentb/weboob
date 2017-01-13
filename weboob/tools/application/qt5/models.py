@@ -64,14 +64,14 @@ class BackendListModel(QStandardItemModel):
         for backend in self.weboob.iter_backends(caps=cap):
             if first and entry_all:
                 item = QStandardItem('(All backends)')
-                item.setData('', Qt.UserRole)
-                item.setData(cap, Qt.UserRole + 1)
+                item.setData('', self.RoleBackendName)
+                item.setData(cap, self.RoleCapability)
                 self.appendRow(item)
             first = False
 
             item = QStandardItem(backend.name)
-            item.setData(backend.name, Qt.UserRole)
-            item.setData(cap, Qt.UserRole + 1)
+            item.setData(backend.name, self.RoleBackendName)
+            item.setData(cap, self.RoleCapability)
             minfo = self.weboob.repositories.get_module_info(backend.NAME)
             icon_path = self.weboob.repositories.get_module_icon_path(minfo)
             if icon_path:
