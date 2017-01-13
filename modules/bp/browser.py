@@ -47,7 +47,9 @@ class BPBrowser(LoginBrowser, StatesMixin):
     login_page = URL(r'.*wsost/OstBrokerWeb/loginform.*', LoginPage)
     repositionner_chemin_courant = URL(r'.*authentification/repositionnerCheminCourant-identif.ea', repositionnerCheminCourant)
     init_ident = URL(r'.*authentification/initialiser-identif.ea', Initident)
-    check_password = URL(r'.*authentification/verifierMotDePasse-identif.ea', CheckPassword)
+    check_password = URL(r'.*authentification/verifierMotDePasse-identif.ea',
+                         r'/voscomptes/canalXHTML/securite/authentification/verifierPresenceCompteOK-identif.ea',
+                         CheckPassword)
 
     redirect_page = URL(r'.*voscomptes/identification/identification.ea.*',
                         r'.*voscomptes/synthese/3-synthese.ea',

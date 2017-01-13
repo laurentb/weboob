@@ -124,7 +124,7 @@ class Initident(LoggedPage, MyHTMLPage):
 class CheckPassword(LoggedPage, MyHTMLPage):
     def on_load(self):
         MyHTMLPage.on_load(self)
-        self.browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/init-synthese.ea")
+        self.browser.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/init-synthese.ea")
 
 
 class BadLoginPage(MyHTMLPage):
