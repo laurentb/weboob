@@ -869,6 +869,15 @@ class NatixisHistoryPage(LoggedPage, JsonPage):
             obj_date = DateTime(Dict('dateValeur'))
 
 
+def use_invest_date(tr):
+    dates = [invest.vdate for invest in tr.investments]
+    if not dates:
+        return
+
+    assert all(d == dates[0] for d in dates)
+    tr.date = dates[0]
+
+
 class NatixisDetailsPage(LoggedPage, RawPage):
     def build_doc(self, data):
         return list(get_pdf_rows(data))
@@ -885,7 +894,7 @@ class NatixisDetailsPage(LoggedPage, RawPage):
                     first_in_page = False
                     continue
 
-                label = ''.join(row[0])
+                label = ' '.join(row[0])
 
                 if label == 'Investissement':
                     sign = 1
@@ -906,6 +915,7 @@ class NatixisDetailsPage(LoggedPage, RawPage):
 
                     if tr is not None:
                         # flush
+                        use_invest_date(tr)
                         yield tr
 
                     # amount is "brut", unlike invest amounts ("net")...
@@ -950,4 +960,5 @@ class NatixisDetailsPage(LoggedPage, RawPage):
 
         # flush
         if tr is not None:
+            use_invest_date(tr)
             yield tr
