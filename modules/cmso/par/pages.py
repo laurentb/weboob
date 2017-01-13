@@ -59,7 +59,9 @@ class AccountsPage(LoggedPage, JsonPage):
             }
 
     def get_keys(self):
-        return [k for k, v in self.doc.items() if v and isinstance(v, (dict, list)) and "exception" not in self.doc]
+        if "exception" in self.doc:
+            return []
+        return [k for k, v in self.doc.items() if v and isinstance(v, (dict, list))]
 
     def check_response(self):
         if "exception" in self.doc:
@@ -181,7 +183,9 @@ class Transaction(FrenchTransaction):
 
 class HistoryPage(LoggedPage, JsonPage):
     def get_keys(self):
-        return [k for k, v in self.doc.items() if v and isinstance(v, (dict, list)) and "exception" not in self.doc]
+        if 'exception' in self.doc:
+            return []
+        return [k for k, v in self.doc.items() if v and isinstance(v, (dict, list))]
 
     @pagination
     @method
