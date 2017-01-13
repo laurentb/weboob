@@ -19,6 +19,7 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.tools.value import Value
 from weboob.capabilities.video import BaseVideo
 
 from random import choice
@@ -31,6 +32,11 @@ class DailymotionTest(BackendTest):
     # Not easy to find a kids video which will always be there
     # This might break in the future
     KIDS_VIDEO_TITLE = 'Telmo et Tula'
+
+    def setUp(self):
+        if not self.is_backend_configured():
+            self.backend.config['resolution'] = Value(value='240')
+            self.backend.config['format'] = Value(value='mp4')
 
     def test_search(self):
         l = list(itertools.islice(self.backend.search_videos('chirac'), 0, 20))
