@@ -37,7 +37,13 @@ class AttributeNotFound(FilterError):
 
 class CSS(_Selector):
     def select(self, selector, item):
-        return item.cssselect(selector)
+        ret = item.cssselect(selector)
+        if isinstance(ret, list):
+            for el in ret:
+                if isinstance(el, html.HtmlElement):
+                    self.highlight_el(el, item)
+
+        return ret
 
 
 class XPath(_Selector):

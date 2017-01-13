@@ -28,6 +28,7 @@ from itertools import islice
 from collections import Iterator
 
 from dateutil.parser import parse as parse_date
+import lxml.html
 
 from weboob.capabilities.base import empty
 from weboob.capabilities.base import Currency as BaseCurrency
@@ -97,6 +98,23 @@ class _Filter(object):
     def __str__(self):
         return self.__class__.__name__
 
+    def highlight_el(self, el, item=None):
+        obj = self._obj or item
+        try:
+            if not hasattr(obj, 'saved_attrib'):
+                return
+            if not obj.page.browser.responses_dirname:
+                return
+        except AttributeError:
+            return
+
+        if el not in obj.saved_attrib:
+            obj.saved_attrib[el] = dict(el.attrib)
+
+        el.attrib['style'] = 'color: white !important; background: red !important;'
+        if self._key:
+            el.attrib['title'] = 'weboob field: %s' % self._key
+
 
 def debug(*args):
     """
@@ -163,15 +181,24 @@ class Filter(_Filter):
 
     def select(self, selector, item):
         if isinstance(selector, basestring):
-            return item.xpath(selector)
+            ret = item.xpath(selector)
         elif isinstance(selector, _Filter):
             selector._key = self._key
             selector._obj = self._obj
-            return selector(item)
+            ret = selector(item)
         elif callable(selector):
-            return selector(item)
+            ret = selector(item)
         else:
-            return selector
+            ret = selector
+
+        if isinstance(ret, lxml.html.HtmlElement):
+            self.highlight_el(ret, item)
+        elif isinstance(ret, list):
+            for el in ret:
+                if isinstance(el, lxml.html.HtmlElement):
+                    self.highlight_el(el, item)
+
+        return ret
 
     def __call__(self, item):
         return self.filter(self.select(self.selector, item))
@@ -320,7 +347,10 @@ class TableCell(_Filter):
         for name in self.names:
             idx = item.parent.get_colnum(name)
             if idx is not None:
-                return item.xpath(self.td % (idx + 1))
+                ret = item.xpath(self.td % (idx + 1))
+                for el in ret:
+                    self.highlight_el(el, item)
+                return ret
 
         return self.default_or_raise(ColumnNotFound('Unable to find column %s' % ' or '.join(self.names)))
 

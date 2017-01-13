@@ -17,10 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import re
 import sys
 from collections import OrderedDict
 from copy import deepcopy
+
+import lxml.html
 
 from weboob.tools.log import getLogger, DEBUG_FILTERS
 from weboob.browser.pages import NextPage
@@ -238,11 +241,42 @@ class ItemElement(AbstractElement):
         super(ItemElement, self).__init__(*args, **kwargs)
         self.logger = getLogger(self.__class__.__name__.lower())
         self.obj = None
+        self.saved_attrib = {}  # safer way would be to clone lxml tree
 
     def build_object(self):
         if self.klass is None:
             return
         return self.klass()
+
+    def _restore_attrib(self):
+        for el in self.saved_attrib:
+            el.attrib.clear()
+            el.attrib.update(self.saved_attrib[el])
+        self.saved_attrib = {}
+
+    def should_highlight(self):
+        try:
+            responses_dirname = self.page.browser.responses_dirname
+            if not responses_dirname:
+                return False
+            if not self.el.getroottree():
+                return False
+        except AttributeError:
+            return False
+        else:
+            return True
+
+    def _write_highlighted(self):
+        if not self.should_highlight():
+            return
+
+        responses_dirname = self.page.browser.responses_dirname
+        html = lxml.html.tostring(self.el.getroottree().getroot())
+
+        fn = os.path.join(responses_dirname, 'obj-%s.html' % self._random_id)
+        with open(fn, 'w') as fd:
+            fd.write(html)
+        self.logger.debug('highlighted object to %s', fn)
 
     def __call__(self, obj=None):
         if obj is not None:
@@ -255,18 +289,30 @@ class ItemElement(AbstractElement):
         if self.condition is not None and not self.condition():
             return
 
+        highlight = False
         try:
-            if self.obj is None:
-                self.obj = self.build_object()
-            self.parse(self.el)
-            self.handle_loaders()
-            for attr in self._attrs:
-                self.handle_attr(attr, getattr(self, 'obj_%s' % attr))
-        except SkipItem:
-            return
+            if self.should_highlight():
+                self.saved_attrib[self.el] = dict(self.el.attrib)
+                self.el.attrib['style'] = 'color: white !important; background: orange !important;'
 
-        if self.validate is not None and not self.validate(self.obj):
-            return
+            try:
+                if self.obj is None:
+                    self.obj = self.build_object()
+                self.parse(self.el)
+                self.handle_loaders()
+                for attr in self._attrs:
+                    self.handle_attr(attr, getattr(self, 'obj_%s' % attr))
+            except SkipItem:
+                return
+
+            if self.validate is not None and not self.validate(self.obj):
+                return
+
+            highlight = True
+        finally:
+            if highlight:
+                self._write_highlighted()
+            self._restore_attrib()
 
         yield self.obj
 
