@@ -216,8 +216,8 @@ class LoginPage(HTMLPage):
             raise BrowserIncorrectPassword(CleanText('.')(message))
 
     def login(self, login):
-        form = self.get_form(nr=2)
-        form['userid'] = login
+        form = self.get_form(id='idv_auth_form')
+        form['userid'] = form['__hbfruserid'] = login
         form.submit()
 
     def get_no_secure_key(self):
