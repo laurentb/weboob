@@ -19,7 +19,8 @@
 
 
 from weboob.tools.backend import Module
-from weboob.capabilities.gauge import CapGauge, GaugeSensor, SensorNotFound
+from weboob.capabilities.base import find_object
+from weboob.capabilities.gauge import CapGauge, GaugeSensor, SensorNotFound, Gauge
 
 from .browser import RATPBrowser
 
@@ -43,17 +44,17 @@ class RATPModule(Module, CapGauge):
 
     BROWSER = RATPBrowser
 
-    def get_last_measure(self, id):
+    def get_last_measure(self, sensor):
         """
         Get last measures of a sensor.
 
-        :param id: ID of the sensor.
-        :type id: str
+        :param sensor: ID of the sensor.
+        :type sensor: str
         :rtype: :class:`GaugeMeasure`
         """
         # Note: The lower the value, the higher the perturbations.
         try:
-            return next(self.browser.get_status(id))
+            return next(self.browser.get_status(sensor))
         except KeyError:
             return SensorNotFound()
 
@@ -74,7 +75,7 @@ class RATPModule(Module, CapGauge):
                 if pattern in gauge.name
             ]
 
-    def iter_sensors(self, id, pattern=None):
+    def iter_sensors(self, gauge, pattern=None):
         """
         Iter instrument of a gauge.
 
@@ -83,12 +84,8 @@ class RATPModule(Module, CapGauge):
         :type pattern: str
         :rtype: iter[:class:`GaugeSensor`]
         """
-        try:
-            gauge = [
-                gauge
-                for gauge in self.browser.list_gauges()
-                if id == gauge.id
-            ][0]
-            return [RATPSensor(gauge)]
-        except KeyError:
-            raise SensorNotFound()
+        if not isinstance(gauge, Gauge):
+            gauge = find_object(self.iter_gauges(), id=gauge, error=SensorNotFound)
+        sensor = RATPSensor(gauge)
+        sensor.lastvalue = self.get_last_measure(sensor.id)
+        return [sensor]
