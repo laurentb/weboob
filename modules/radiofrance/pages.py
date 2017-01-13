@@ -73,6 +73,9 @@ class RadioPage(HTMLPage):
         if not url:
             url = CleanText('//div[@id="audio"][1]/@data-url-live')(self.doc)
         if not url:
+            url = CleanText('//button[1]/@data-url-live')(self.doc)
+
+        if not url:
             url = Regexp(CleanText('//script'), '.*urlLive:\'(.*)\',urlTS.*', default=None)(self.doc)
         return url
 
@@ -176,26 +179,26 @@ class RadioPage(HTMLPage):
 
     @method
     class get_france_musique_podcast_emissions(ListElement):
-        item_xpath = '//div[@class="liste-emissions"]/ul/li'
+        item_xpath = '//article/div'
         ignore_duplicate = True
 
         class item(ItemElement):
             klass = Collection
 
             def condition(self):
-                return CleanText('./div/ul/li/a[@class="ico-rss"]/@href')(self) and\
-                    Regexp(CleanText('./div/ul/li/a[@class="ico-rss"]/@href'),
+                return CleanText('./div/div/div[has-class("rss")]/a/@href')(self) and\
+                    Regexp(CleanText('./div/div/div[has-class("rss")]/a/@href'),
                            'http://radiofrance-podcast.net/podcast09/rss_(.*).xml')(self)
 
             def obj_split_path(self):
-                _id = Regexp(CleanText('./div/ul/li/a[@class="ico-rss"]/@href'),
+                _id = Regexp(CleanText('./div/div/div[has-class("rss")]/a/@href'),
                              'http://radiofrance-podcast.net/podcast09/rss_(.*).xml')(self)
                 self.env['split_path'].append(_id)
                 return self.env['split_path']
 
-            obj_id = Regexp(CleanText('./div/ul/li/a[@class="ico-rss"]/@href'),
+            obj_id = Regexp(CleanText('./div/div/div[has-class("rss")]/a/@href'),
                             'http://radiofrance-podcast.net/podcast09/rss_(.*).xml')
-            obj_title = CleanText('./div/h3')
+            obj_title = CleanText('./header/h2')
 
     @method
     class get_france_inter_podcast_emissions(ListElement):
@@ -239,6 +242,8 @@ class RadioPage(HTMLPage):
 class JsonPage(JsonPage):
     @method
     class get_france_culture_podcast_emissions(DictElement):
+        ignore_duplicate = True
+
         class item(ItemElement):
             klass = Collection
 
