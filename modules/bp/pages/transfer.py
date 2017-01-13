@@ -140,7 +140,7 @@ class TransferConfirm(LoggedPage, CheckTransferError):
         account_txt = CleanText('//form//dl/dt[span[contains(text(), "biter")]]/following::dd[1]', replace=[(' ', '')])(self.doc)
         recipient_txt = CleanText('//form//dl/dt[span[contains(text(), "diter")]]/following::dd[1]', replace=[(' ', '')])(self.doc)
         try:
-            assert account.id in account_txt
+            assert account.id in account_txt or ''.join(account.label.split()) == account_txt
             assert recipient.id in recipient_txt
         except AssertionError:
             raise TransferError('Something went wrong')
