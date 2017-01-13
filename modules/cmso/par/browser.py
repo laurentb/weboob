@@ -79,6 +79,7 @@ class CmsoParBrowser(LoginBrowser):
             'X-ARKEA-EFS': self.arkea,
             'X-Csrf-Token': m.group(1)
         })
+        self.infos.go()
 
     @need_login
     def iter_accounts(self):

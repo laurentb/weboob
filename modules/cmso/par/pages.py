@@ -126,6 +126,9 @@ class AccountsPage(LoggedPage, JsonPage):
             obj__index = Dict('index')
 
             def obj_id(self):
+                if Field('type')(self) == Account.TYPE_LIFE_INSURANCE:
+                    return self.get_lifenumber()
+
                 try:
                     return Env('numbers')(self)[Dict('index')(self)]
                 except KeyError:
@@ -137,6 +140,12 @@ class AccountsPage(LoggedPage, JsonPage):
                     if key in Dict('libelleContrat')(self).lower():
                         return self.page.TYPES[key]
                 return Account.TYPE_UNKNOWN
+
+            def get_lifenumber(self):
+                index = Dict('index')(self)
+                url = json.loads(self.page.browser.lifeinsurance.open(accid=index).content)['url']
+                page = self.page.browser.open(url).page
+                return page.get_account_id()
 
     @method
     class iter_loans(DictElement):
@@ -212,6 +221,9 @@ class HistoryPage(LoggedPage, JsonPage):
 
 
 class LifeinsurancePage(LoggedPage, HTMLPage):
+    def get_account_id(self):
+        return re.sub(r'\s', '', Regexp(CleanText('//h1[@class="portlet-title"]'), ur'n° ([\d\s]+)')(self.doc))
+
     def get_link(self, page):
         return Link().filter(self.doc.xpath(u'//a[contains(text(), "%s")]' % page))
 
