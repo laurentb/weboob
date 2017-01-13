@@ -19,10 +19,17 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.tools.value import Value
 
 
 class IndeedTest(BackendTest):
     MODULE = 'indeed'
+
+    def setUp(self):
+        if not self.is_backend_configured():
+            self.backend.config['limit_date'] = Value(value='any')
+            self.backend.config['metier'] = Value(value='informaticien')
+            self.backend.config['contrat'] = Value(value='contract')
 
     def test_indeed_search(self):
         l = list(self.backend.search_job('informaticien'))
