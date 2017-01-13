@@ -866,7 +866,8 @@ class NatixisHistoryPage(LoggedPage, JsonPage):
 
             obj_amount = Eval(float_to_decimal, Dict('montantNet'))
             obj_raw = CleanText(Dict('libelle'))
-            obj_date = DateTime(Dict('dateValeur'))
+            obj_vdate = DateTime(Dict('dateValeur', default=NotAvailable), default=NotAvailable)
+            obj_date = DateTime(Dict('dateEffet', default=NotAvailable), default=NotAvailable)
 
 
 def use_invest_date(tr):
