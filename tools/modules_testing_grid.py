@@ -23,10 +23,10 @@ def main(xunit, origin):
     modules = {}
     other_testcases = []
     for tc in ts:
-        if not tc.classname.startswith("modules."):
+        if tc.classname.startswith("weboob."):
             other_testcases.append(repr(tc))
             continue
-        module = tc.classname.split(".")[1]
+        module = tc.classname.split(".")[0]
         # In the following, we consider
         # bad > skipped > good
         # and only make update of a module status according to this order
