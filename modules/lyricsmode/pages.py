@@ -59,6 +59,7 @@ class LyricsPage(HTMLPage):
             aid = spl[3]
             sid = spl[4]
             return '%s|%s|%s' % (lid, aid, sid)
+
         obj_content = CleanText(CleanHTML('//p[@id="lyrics_text"]', default=NotAvailable), newlines=False)
-        obj_artist = CleanText('//a[has-class("header-band-name")]', default=NotAvailable)
-        obj_title = Regexp(CleanText('//h1[has-class("header-song-name")]', default=NotAvailable), '(.*) lyrics$')
+        obj_artist = CleanText('//a[has-class("artist_name")]', default=NotAvailable)
+        obj_title = Regexp(CleanText('//h1[has-class("song_name")]', default=NotAvailable), '(.*) lyrics$')
