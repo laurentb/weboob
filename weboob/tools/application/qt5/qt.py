@@ -48,8 +48,7 @@ __all__ = ['QtApplication', 'QtMainWindow', 'QtDo', 'HTMLDelegate']
 
 class QtScheduler(QObject, IScheduler):
     def __init__(self, app):
-        QObject.__init__(self, parent=app)
-        self.app = app
+        super(QtScheduler, self).__init__(parent=app)
         self.params = {}
 
     def schedule(self, interval, function, *args):
@@ -83,10 +82,10 @@ class QtScheduler(QObject, IScheduler):
             timer.setInterval(interval * 1000)
 
     def want_stop(self):
-        self.app.quit()
+        QApplication.instance().quit()
 
     def run(self):
-        return self.app.exec_()
+        return QApplication.instance().exec_()
 
 
 class QCallbacksManager(QObject):
@@ -185,9 +184,9 @@ class QtApplication(QApplication, Application):
         super(QtApplication, self).deinit()
         gc.collect()
 
+
 class QtMainWindow(QMainWindow):
-    def __init__(self, parent=None):
-        QMainWindow.__init__(self, parent)
+    pass
 
 
 class QtDo(QObject):
@@ -196,7 +195,7 @@ class QtDo(QObject):
     finished = Signal()
 
     def __init__(self, weboob, cb, eb=None, fb=None):
-        QObject.__init__(self)
+        super(QtDo, self).__init__()
 
         if not eb:
             eb = self.default_eb
@@ -212,6 +211,7 @@ class QtDo(QObject):
         self.finished.connect(self.local_fb)
 
     def do(self, *args, **kwargs):
+        assert self.process is None
         self.process = self.weboob.do(*args, **kwargs)
         self.process.callback_thread(self.thread_cb, self.thread_eb, self.thread_fb)
 
