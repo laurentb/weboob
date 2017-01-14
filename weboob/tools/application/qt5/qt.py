@@ -24,7 +24,9 @@ import logging
 import re
 import gc
 from threading import Event
+from traceback import print_exc
 from copy import copy
+
 from PyQt5.QtCore import QTimer, QObject, QSize, QVariant, QMutex, Qt
 from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot
 from PyQt5.QtWidgets import QApplication, QCheckBox, QComboBox, QInputDialog, \
@@ -194,7 +196,7 @@ class QtDo(QObject):
     gotError = Signal(object, object, object)
     finished = Signal()
 
-    def __init__(self, weboob, cb, eb=None, fb=None):
+    def __init__(self, weboob, cb, eb=None, fb=None, retain=False):
         super(QtDo, self).__init__()
 
         if not eb:
@@ -210,11 +212,21 @@ class QtDo(QObject):
         self.gotError.connect(self.local_eb)
         self.finished.connect(self.local_fb)
 
+        if not retain:
+            QApplication.instance().aboutToQuit.connect(self.stop)
+
+    def __del__(self):
+        try:
+            self.stop()
+        except Exception:
+            print_exc()
+
     def do(self, *args, **kwargs):
         assert self.process is None
         self.process = self.weboob.do(*args, **kwargs)
         self.process.callback_thread(self.thread_cb, self.thread_eb, self.thread_fb)
 
+    @Slot()
     def stop(self, wait=False):
         if self.process is not None:
             self.process.stop(wait)
