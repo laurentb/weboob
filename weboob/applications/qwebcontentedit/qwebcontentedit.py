@@ -33,6 +33,6 @@ class QWebContentEdit(QtApplication):
 
     def main(self, argv):
         self.load_backends(CapContent, storage=self.create_storage())
-        self.main_window = MainWindow(self.config, self.weboob, self)
-        self.main_window.show()
+        main_window = MainWindow(self.config, self.weboob, self)
+        main_window.show()
         return self.weboob.loop()

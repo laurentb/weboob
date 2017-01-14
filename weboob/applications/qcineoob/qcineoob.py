@@ -43,6 +43,6 @@ class QCineoob(QtApplication):
         self.load_backends([CapCinema, CapTorrent, CapSubtitle])
         self.load_config()
 
-        self.main_window = MainWindow(self.config, self.weboob, self)
-        self.main_window.show()
+        main_window = MainWindow(self.config, self.weboob, self)
+        main_window.show()
         return self.weboob.loop()

@@ -37,6 +37,6 @@ class QHaveDate(QtApplication):
         self.create_storage(self.STORAGE_FILENAME)
         self.load_backends(CapDating)
 
-        self.main_window = MainWindow(self.config, self.weboob)
-        self.main_window.show()
+        main_window = MainWindow(self.config, self.weboob)
+        main_window.show()
         return self.weboob.loop()

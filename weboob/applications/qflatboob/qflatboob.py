@@ -40,6 +40,6 @@ class QFlatBoob(QtApplication):
         self.create_storage()
         self.load_config(klass=YamlConfig)
 
-        self.main_window = MainWindow(self.config, self.storage, self.weboob, self)
-        self.main_window.show()
+        main_window = MainWindow(self.config, self.storage, self.weboob, self)
+        main_window.show()
         return self.weboob.loop()

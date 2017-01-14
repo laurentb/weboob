@@ -35,6 +35,6 @@ class QBoobMsg(QtApplication):
     def main(self, argv):
         self.load_backends(CapMessages, storage=self.create_storage())
 
-        self.main_window = MainWindow(self.config, self.weboob)
-        self.main_window.show()
+        main_window = MainWindow(self.config, self.weboob)
+        main_window.show()
         return self.weboob.loop()
