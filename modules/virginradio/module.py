@@ -76,7 +76,7 @@ class VirginRadioModule(Module, CapRadio, CapCollection):
         stream = BaseAudioStream(0)
         current = StreamInfo(0)
 
-        r = self.browser.open(url, stream=True, headers={'Icy-Metadata':1})
+        r = self.browser.open(url, stream=True, headers={'Icy-Metadata':'1'})
 
         stream.bitrate = int(r.headers['icy-br'].split(',')[0])
 
