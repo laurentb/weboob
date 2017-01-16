@@ -67,8 +67,8 @@ class Amazon(LoginBrowser):
         histRoot = self.to_history()
         for histYear in histRoot.iter_years():
             for order in histYear.iter_orders():
-                if order.order():
-                    yield order.order()
+                if order:
+                    yield order
 
     def iter_payments(self, order):
         return self.to_order(order.id).payments()
@@ -91,12 +91,12 @@ class Amazon(LoginBrowser):
         for i in xrange(self.MAX_RETRIES):
             if (self.order_new.is_here() or self.order_old.is_here()) \
                     and self.page.order_number() == order_id:
-                return self.page
+                return self.page.order()
             try:
                 self.order_new.go(order_id=order_id)
             except HTTPNotFound:
                 self.order_old.go(order_id=order_id)
-        raise OrderNotFound()
+        self.logger.warning('Order %s not found' % order_id)
 
     def do_login(self):
         self.session.cookies.clear()
