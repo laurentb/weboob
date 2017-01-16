@@ -24,6 +24,8 @@ from weboob.browser.browsers import DomainBrowser
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import Account, Transaction, AccountNotFound
 from weboob.browser.filters.standard import CleanText
+from weboob.exceptions import BrowserIncorrectPassword
+from weboob.browser.exceptions import ClientError
 
 # Do not use an APIBrowser since APIBrowser sends all its requests bodies as
 # JSON, although N26 only accepts urlencoded format.
@@ -54,7 +56,10 @@ class Number26Browser(DomainBrowser):
 
         self.auth_method = 'Basic'
         self.bearer = Number26Browser.INITIAL_TOKEN
-        result = self.request('/oauth/token', data=data, method="POST")
+        try:
+            result = self.request('/oauth/token', data=data, method="POST")
+        except ClientError:
+            raise BrowserIncorrectPassword()
 
         self.auth_method = 'bearer'
         self.bearer = result['access_token']
