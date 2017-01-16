@@ -23,7 +23,7 @@ from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
-from .browser import AXABanque
+from .browser import AXABanque, AXAAssurance
 
 
 __all__ = ['AXABanqueModule']
@@ -41,7 +41,9 @@ class AXABanqueModule(Module, CapBank):
     BROWSER = AXABanque
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(), self.config['password'].get())
+        login = self.config['login'].get()
+        self.BROWSER = AXABanque if login.isdigit() else AXAAssurance
+        return self.create_browser(login, self.config['password'].get())
 
     def get_account(self, _id):
         return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)

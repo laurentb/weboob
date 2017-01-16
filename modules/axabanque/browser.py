@@ -23,19 +23,43 @@ from weboob.browser.exceptions import ClientError
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 
-from .pages import KeyboardPage, LoginPage, PredisconnectedPage, BankAccountsPage, \
-                   InvestmentPage, CBTransactionsPage, TransactionsPage, UnavailablePage, \
-                   IbanPage
+from .pages.login import KeyboardPage, LoginPage, PredisconnectedPage
+from .pages.bank import BankAccountsPage, InvestmentPage, CBTransactionsPage, \
+                        TransactionsPage, UnavailablePage, IbanPage
+from .pages.wealth import AccountsPage, InvestmentWealthPage, HistoryPage
 
 
-class AXABanque(LoginBrowser):
-    BASEURL = 'https://www.axabanque.fr/'
-
+class AXABrowser(LoginBrowser):
     # Login
     keyboard = URL('https://connect.axa.fr/keyboard/password', KeyboardPage)
     login = URL('https://connect.axa.fr/api/identity/auth', LoginPage)
     predisconnected = URL('https://www.axa.fr/axa-predisconnect.html',
                           'https://www.axa.fr/axa-postmaw-predisconnect.html', PredisconnectedPage)
+
+    def do_login(self):
+        # due to the website change, login changed too, this is for don't try to login with the wrong login
+        if self.username.isdigit() and len(self.username) > 7:
+            raise ActionNeeded()
+
+        if self.password.isdigit():
+            vk_passwd = self.keyboard.go().get_password(self.password)
+
+            login_data = {
+                'email': self.username,
+                'password': vk_passwd,
+                'rememberIdenfiant': False,
+                'version': 1
+            }
+
+            self.login.go(data=login_data)
+
+        if not self.password.isdigit() or self.page.check_error():
+            raise BrowserIncorrectPassword()
+
+
+class AXABanque(AXABrowser):
+    BASEURL = 'https://www.axabanque.fr/'
+
     # Bank
     bank_accounts = URL('transactionnel/client/liste-comptes.html',
                         'transactionnel/client/liste-(?P<tab>.*).html',
@@ -59,32 +83,10 @@ class AXABanque(LoginBrowser):
 
     def __init__(self, *args, **kwargs):
         super(AXABanque, self).__init__(*args, **kwargs)
-        self.tokens = {}
         # Need to cache every pages, website is too slow
         self.account_list = []
         self.investment_list = {}
         self.history_list = {}
-
-    def do_login(self):
-        # due to the website change, login changed too, this is for don't try to login with the wrong login
-        if len(self.username) > 7:
-            raise ActionNeeded()
-
-        if self.password.isdigit():
-            vk_passwd = self.keyboard.go().get_password(self.password)
-
-            login_data = {
-                'email': self.username,
-                'password': vk_passwd,
-                'rememberIdenfiant': False,
-                'version': 1
-            }
-
-            self.login.go(data=login_data)
-
-        if not self.password.isdigit() or self.page.check_error():
-            raise BrowserIncorrectPassword()
-
 
     @need_login
     def iter_accounts(self):
@@ -186,3 +188,36 @@ class AXABanque(LoginBrowser):
                 invs = [i for i in self.page.iter_investment()]
             self.investment_list[account.id] = invs
         return iter(self.investment_list[account.id])
+
+
+class AXAAssurance(AXABrowser):
+    BASEURL = 'https://espaceclient.axa.fr'
+
+    accounts = URL('/accueil.html', AccountsPage)
+    investment = URL('/content/ecc-popin-cards/savings/savings/repartition', InvestmentWealthPage)
+    history = URL('.*accueil/savings/savings/contract', HistoryPage)
+
+    def __init__(self, *args, **kwargs):
+        super(AXAAssurance, self).__init__(*args, **kwargs)
+        self.cache = {}
+        self.cache['invs'] = {}
+
+    @need_login
+    def iter_accounts(self):
+        if 'accs' not in self.cache.keys():
+            self.cache['accs'] = list(self.accounts.stay_or_go().iter_accounts())
+        return self.cache['accs']
+
+    @need_login
+    def iter_investment(self, account):
+        if account.id not in self.cache['invs']:
+            investment_link = self.location(account._link).page.get_investment_link()
+            self.cache['invs'][account.id] = list(self.location(investment_link).page.iter_investment())
+        return self.cache['invs'][account.id]
+
+    @need_login
+    def iter_history(self, account):
+        pagination_link = self.location(account._link).page.get_pagination_link()
+        self.skip = 0
+        for tr in self.page.iter_history(pagination_link=pagination_link):
+            yield tr
