@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+import codecs
 import stat
 import os
 import sys
@@ -69,6 +69,21 @@ class BackendsConfig(object):
                     raise self.WrongPermissions(
                         u'Weboob will not start as long as config file %s is readable by group or other users.' % confpath)
 
+    def _read_config(self):
+        config = RawConfigParser()
+        with codecs.open(self.confpath, 'r', 'utf-8') as fd:
+            config.readfp(fd)
+        return config
+
+    def _write_config(self, config):
+        for section in config.sections():
+            for k, v in config.items(section):
+                if isinstance(v, unicode):
+                    config.set(section, k, v.encode('utf-8'))
+
+        with open(self.confpath, 'wb') as f:
+            config.write(f)
+
     def iter_backends(self):
         """
         Iterate on backends.
@@ -77,8 +92,7 @@ class BackendsConfig(object):
         :rtype: :class:`tuple`
         """
 
-        config = RawConfigParser()
-        config.read(self.confpath)
+        config = self._read_config()
         changed = False
         for backend_name in config.sections():
             params = dict(config.items(backend_name))
@@ -96,15 +110,13 @@ class BackendsConfig(object):
             yield backend_name, module_name, params
 
         if changed:
-            with open(self.confpath, 'wb') as f:
-                config.write(f)
+            self._write_config(config)
 
     def backend_exists(self, name):
         """
         Return True if the backend exists in config.
         """
-        config = RawConfigParser()
-        config.read(self.confpath)
+        config = self._read_config()
         return name in config.sections()
 
     def add_backend(self, backend_name, module_name, params, edit=False):
@@ -118,8 +130,7 @@ class BackendsConfig(object):
         """
         if not backend_name:
             raise ValueError(u'Please give a name to the configured backend.')
-        config = RawConfigParser()
-        config.read(self.confpath)
+        config = self._read_config()
         if not edit:
             try:
                 config.add_section(backend_name)
@@ -127,11 +138,9 @@ class BackendsConfig(object):
                 raise BackendAlreadyExists(backend_name)
         config.set(backend_name, '_module', module_name)
         for key, value in params.iteritems():
-            if isinstance(value, unicode):
-                value = value.encode('utf-8')
             config.set(backend_name, key, value)
-        with open(self.confpath, 'wb') as f:
-            config.write(f)
+
+        self._write_config(config)
 
     def edit_backend(self, backend_name, module_name, params):
         """Edit a backend from config."""
@@ -145,8 +154,7 @@ class BackendsConfig(object):
         :rtype: tuple
         """
 
-        config = RawConfigParser()
-        config.read(self.confpath)
+        config = self._read_config()
         if not config.has_section(backend_name):
             raise KeyError(u'Configured backend "%s" not found' % backend_name)
 
@@ -166,10 +174,8 @@ class BackendsConfig(object):
     def remove_backend(self, backend_name):
         """Remove a backend from config."""
 
-        config = RawConfigParser()
-        config.read(self.confpath)
+        config = self._read_config()
         if not config.remove_section(backend_name):
             return False
-        with open(self.confpath, 'w') as f:
-            config.write(f)
+        self._write_config(config)
         return True
