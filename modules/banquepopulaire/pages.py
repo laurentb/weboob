@@ -865,11 +865,14 @@ class NatixisHistoryPage(LoggedPage, JsonPage):
             klass = Transaction
 
             obj_amount = Eval(float_to_decimal, Dict('montantNet'))
-            obj_raw = CleanText(Dict('libelle'))
+            obj_raw = CleanText(Dict('libelle', default=''))
             obj_vdate = DateTime(Dict('dateValeur', default=NotAvailable), default=NotAvailable)
             obj_date = DateTime(Dict('dateEffet', default=NotAvailable), default=NotAvailable)
             obj_investments = NotAvailable
             obj_type = Transaction.TYPE_BANK
+
+            def validate(self, obj):
+                return bool(obj.raw)
 
 
 def use_invest_date(tr):
