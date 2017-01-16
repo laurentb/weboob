@@ -25,13 +25,15 @@ from weboob.browser.filters.standard import Regexp, Format, CleanText, Duration,
 from weboob.browser.filters.html import Link, XPath, CleanHTML
 from weboob.browser.filters.json import Dict
 
-from weboob.capabilities import NotAvailable, NotLoaded
+from weboob.capabilities import NotLoaded
 from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.collection import Collection
 
 from .video import RmllVideo
+from datetime import timedelta
 
 BASE_URL = 'http://video.rmll.info'
+
 
 class NormalizeThumbnail(Filter):
     def filter(self, thumbnail):
@@ -61,6 +63,7 @@ def create_video(metadata):
 
     return video
 
+
 class RmllVideoPage(HTMLPage):
     @method
     class get_video(ItemElement):
@@ -77,15 +80,19 @@ class RmllVideoPage(HTMLPage):
                 thumbnail.url = thumbnail.id
                 return thumbnail
 
-        obj_duration = CleanText('/html/head/script[not(@src)]') & Regexp(pattern=r'media_duration: ([^,.]+),?.*,', default='') & Duration(default=NotAvailable)
-
         def obj_url(self):
-            links = XPath('//div[@id="tab_sharing_content"]/div/div/div[@class="paragraph"]/div[@class="share"]/a[@target="_blank"]/@href')(self)
+            links = XPath('//div[@id="download_links"]/div[@class="paragraph"]/div[has-class("share")]/a[@target="_blank"]/@href')(self)
             for link in links:
                 ext = str(link).split('.')[-1]
                 self.logger.debug("Link:%s Ext:%s", link, ext)
                 if ext in ['mp4', 'webm']:
-                    return unicode(link)
+                    return self.page.browser.BASEURL + unicode(link)
+
+
+class RmllDurationPage(JsonPage):
+    def get_duration(self):
+        return timedelta(seconds=Dict('duration')(self.doc))
+
 
 class RmllCollectionPage(HTMLPage):
 
@@ -99,7 +106,7 @@ class RmllCollectionPage(HTMLPage):
             obj_id = Link('a') & Regexp(pattern=r'.*/videos/(.+)/$')
             obj_title = Format(u'%s', CleanHTML('a/span/span/span[@class="item-entry-title"]') & CleanText())
             obj_url = NotLoaded
-            #obj_date = XPath('a/span/span/span[@class="item-entry-creation"]')
+            # obj_date = XPath('a/span/span/span[@class="item-entry-creation"]')
 
             obj_duration = CleanText('a/span/span/span[@class="item-entry-duration"]') & RmllDuration()
 
@@ -109,6 +116,7 @@ class RmllCollectionPage(HTMLPage):
                     thumbnail = Thumbnail(thumbnail)
                     thumbnail.url = thumbnail.id
                     return thumbnail
+
 
 class RmllChannelsPage(JsonPage):
     def iter_resources(self, split_path):
@@ -122,6 +130,7 @@ class RmllChannelsPage(JsonPage):
                 video = create_video(metadata)
                 yield video
 
+
 class RmllLatestPage(JsonPage):
     def iter_resources(self):
         for metadata in self.doc['items']:
@@ -132,6 +141,7 @@ class RmllLatestPage(JsonPage):
             if metadata['type'] == 'v':
                 video = create_video(metadata)
                 yield video
+
 
 class RmllSearchPage(JsonPage):
     def iter_resources(self):

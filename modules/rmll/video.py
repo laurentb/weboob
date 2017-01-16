@@ -28,4 +28,3 @@ class RmllVideo(BaseVideo):
             return _id
         else:
             return 'http://video.rmll.info/permalink/%s/' % (_id)
-

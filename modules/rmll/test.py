@@ -32,15 +32,15 @@ class RmllTest(BackendTest):
             self.assertTrue(video.id, 'ID for video not found')
 
     def test_video_page(self):
-        for slug in ["v124f0bc409e704d92cf", "http://video.rmll.info/permalink/v124f0bc409e704d92cf/"]:
+        for slug in ["v124f0bc409e704d92cf", "%s/permalink/v124f0bc409e704d92cf/" % self.backend.browser.BASEURL]:
             video = self.backend.browser.get_video(slug)
             self.assertTrue(video.id, 'ID for video not found')
             self.assertTrue(video.url, 'URL for video "%s" not found' % (video.id))
             self.assertTrue(video.thumbnail, 'Thumbnail for video "%s" not found' % (video.id))
             self.assertTrue(video.title, 'Title for video "%s" not found' % (video.id))
-            #self.assertTrue(video.description, 'Description for video "%s" not found' % (video.id))
+            # self.assertTrue(video.description, 'Description for video "%s" not found' % (video.id))
             self.assertTrue(video.duration, 'Duration for video "%s" not found' % (video.id))
-            #help(video)
+            # help(video)
 
     def test_video_fill(self):
         slug = "v124f0bc409e704d92cf"
@@ -51,7 +51,7 @@ class RmllTest(BackendTest):
 
     def test_browse(self):
         for path in [[], ['latest']]:
-            videos = self.backend.iter_resources([BaseVideo],path)
+            videos = self.backend.iter_resources([BaseVideo], path)
             self.assertTrue(videos)
             for video in videos:
                 self.assertTrue(video.id, 'ID for video not found')
@@ -62,4 +62,3 @@ class RmllTest(BackendTest):
         for video in videos:
             self.assertTrue(video.id, 'ID for video not found')
             video = self.backend.fill_video(video, ["$full"])
-
