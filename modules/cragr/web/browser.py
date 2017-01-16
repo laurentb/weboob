@@ -19,89 +19,103 @@
 
 
 import re
-import urllib
 from urlparse import urlparse
 
-from mechanize import FormNotFoundError
-
 from weboob.capabilities.bank import Account
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser.pages import FormNotFound
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.date import LinearDateGuesser
 from weboob.exceptions import BrowserHTTPError, ActionNeeded
 from weboob.browser.filters.standard import CleanText
 
-from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, \
-                   SavingsPage, TransactionsPage, AdvisorPage, UselessPage, \
-                   CardsPage, LifeInsurancePage, MarketPage, LoansPage, PerimeterPage, \
-                   ChgPerimeterPage, MarketHomePage, FirstVisitPage, BGPIPage
+from .pages import (
+    HomePage, LoginPage, LoginErrorPage, AccountsPage,
+    SavingsPage, TransactionsPage, AdvisorPage, UselessPage,
+    CardsPage, LifeInsurancePage, MarketPage, LoansPage, PerimeterPage,
+    ChgPerimeterPage, MarketHomePage, FirstVisitPage, BGPIPage,
+)
 
 
 __all__ = ['Cragr']
 
 
-class Cragr(Browser):
-    PROTOCOL = 'https'
-    ENCODING = 'ISO-8859-1'
+class WebsiteNotSupported(Exception):
+    pass
 
-    PAGES = {'https?://[^/]+/':                                          HomePage,
-             'https?://[^/]+/particuliers.html':                         HomePage,
-             'https?://[^/]+/stb/entreeBam':                             LoginPage,
-             'https?://[^/]+/stb/entreeBam\?.*typeAuthentification=CLIC_ALLER.*': LoginPage,
-             'https?://[^/]+/stb/entreeBam\?.*pagePremVisite.*':         FirstVisitPage,
-             'https?://[^/]+/stb/entreeBam\?.*Interstitielle.*':         UselessPage,
-             'https?://[^/]+/stb/entreeBam\?.*act=Tdbgestion':           UselessPage,
-             'https?://[^/]+/stb/entreeBam\?.*act=Synthcomptes':         AccountsPage,
-             'https?://[^/]+/stb/collecteNI\?.*sessionAPP=Synthcomptes.*indicePage=.*': AccountsPage,
-             'https?://[^/]+/stb/entreeBam\?.*act=Synthcredits':         LoansPage,
-             'https?://[^/]+/stb/collecteNI\?.*sessionAPP=Synthcredits.*indicePage=.*': LoansPage,
-             'https?://[^/]+/stb/entreeBam\?.*act=Synthepargnes':        SavingsPage,
-             'https?://[^/]+/stb/collecteNI\?.*sessionAPP=Synthepargnes.*indicePage=.*': SavingsPage,
-             'https?://[^/]+/stb/.*act=Releves.*':                       TransactionsPage,
-             'https?://[^/]+/stb/collecteNI\?.*sessionAPP=Releves.*':    TransactionsPage,
-             'https?://[^/]+/stb/entreeBam\?.*act=Contact':              AdvisorPage,
-             'https?://[^/]+/stb/.*/erreur/.*':                          LoginErrorPage,
-             'https?://[^/]+/stb/entreeBam\?.*act=Messagesprioritaires': UselessPage,
-             'https?://[^/]+/stb/collecteNI\?.*fwkaction=Cartes.*':      CardsPage,
-             'https?://[^/]+/stb/collecteNI\?.*sessionAPP=Cartes.*':     CardsPage,
-             'https?://[^/]+/stb/collecteNI\?.*fwkaction=Detail.*sessionAPP=Cartes.*': CardsPage,
-             'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.WalletVal\?nump=.*': MarketPage,
-             'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis': MarketHomePage,
-             'https://assurance-personnes.credit-agricole.fr(:443)?/filiale/.*': LifeInsurancePage,
-             'https://bgpi-gestionprivee.credit-agricole.fr/bgpi/.*': BGPIPage,
 
-             'https?://[^/]+/stb/entreeBam\?.*act=Perimetre':        PerimeterPage,
-             'https?://[^/]+/stb/entreeBam\?.*act=ChgPerim.*':       ChgPerimeterPage,
-            }
+class Cragr(LoginBrowser):
+    home_page = URL(HomePage)
+    login_page = URL(r'/stb/entreeBam$',
+                     r'/stb/entreeBam\?.*typeAuthentification=CLIC_ALLER.*',
+                     LoginPage)
+
+    first_visit = URL(r'/stb/entreeBam\?.*pagePremVisite.*', FirstVisitPage)
+    useless = URL(r'/stb/entreeBam\?.*Interstitielle.*',
+                  r'/stb/entreeBam\?.*act=Tdbgestion',
+                  r'/stb/entreeBam\?.*act=Messagesprioritaires',
+                  r'https://.*/netfinca-titres/servlet/com.netfinca.frontcr.login.ContextTransferDisconnect',
+                  r'https://assurance-personnes.credit-agricole.fr/filiale/entreeBam\?actCrt=Synthcomptes&sessionSAG=.*&stbpg=pagePU&act=&typeaction=reroutage_retour&site=BAMG2&stbzn=bnc',
+                  r'/stb/entreeBam\?sessionSAG=.*&stbpg=pagePU&.*typeaction=reroutage_aller&.*',
+                  r'https://assurance-personnes.credit-agricole.fr/filiale/ServletReroutageCookie',
+                  UselessPage)
+
+    accounts = URL(r'/stb/entreeBam\?.*act=Synthcomptes',
+                   r'/stb/collecteNI\?.*sessionAPP=Synthcomptes.*indicePage=.*',
+                   AccountsPage)
+
+    loans = URL(r'/stb/entreeBam\?.*act=Synthcredits',
+                r'/stb/collecteNI\?.*sessionAPP=Synthcredits.*indicePage=.*',
+                LoansPage)
+
+    savings = URL(r'/stb/entreeBam\?.*act=Synthepargnes',
+                  r'/stb/collecteNI\?.*sessionAPP=Synthepargnes.*indicePage=.*',
+                  SavingsPage)
+
+    transactions = URL(r'/stb/.*act=Releves.*',
+                       r'/stb/collecteNI\?.*sessionAPP=Releves.*',
+                       TransactionsPage)
+
+    advisor = URL(r'/stb/entreeBam\?.*act=Contact', AdvisorPage)
+    login_error = URL(r'/stb/.*/erreur/.*', LoginErrorPage)
+    cards = URL(r'/stb/collecteNI\?.*fwkaction=Cartes.*',
+                r'/stb/collecteNI\?.*sessionAPP=Cartes.*',
+                r'/stb/collecteNI\?.*fwkaction=Detail.*sessionAPP=Cartes.*',
+                CardsPage)
+
+    market = URL(r'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.WalletVal\?nump=.*', MarketPage)
+    market_home = URL(r'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis', MarketHomePage)
+    lifeinsurance = URL(r'https://assurance-personnes.credit-agricole.fr(:443)?/filiale/.*', LifeInsurancePage)
+    bgpi = URL(r'https://bgpi-gestionprivee.credit-agricole.fr/bgpi/.*', BGPIPage)
+
+    perimeter = URL(r'/stb/entreeBam\?.*act=Perimetre', PerimeterPage)
+    chg_perimeter = URL(r'/stb/entreeBam\?.*act=ChgPerim.*', ChgPerimeterPage)
 
     new_login_domain = []
     new_login = False
 
-    class WebsiteNotSupported(Exception):
-        pass
-
     def __init__(self, website, *args, **kwargs):
         if website in self.new_login_domain:
-            self.DOMAIN = re.sub('^m\.', 'w2.', website)
+            domain = re.sub('^m\.', 'w2.', website)
             self.new_login = True
         else:
-            self.DOMAIN = re.sub('^m\.', 'www.', website)
+            domain = re.sub('^m\.', 'www.', website)
+
+        self._sag = None  # updated while browsing
+        self.home_site = 'https://%s/' % domain
+        self.home_page.urls.append(self.home_site)
+        self.home_page.urls.append(self.home_site + 'particuliers.html')
+
         self.accounts_url = None
         self.savings_url = None
-        self._sag = None  # updated while browsing
         self._old_sag = None
         self.code_caisse = None  # constant for a given website
         self.perimeters = None
         self.current_perimeter = None
         self.broken_perimeters = list()
-        Browser.__init__(self, *args, **kwargs)
+        super(Cragr, self).__init__(*args, **kwargs)
 
-    def home(self):
-        self.login()
-
-    def is_logged(self):
-        return self.page is not None and not self.is_on_page(HomePage) and self.page.get_error() is None
-
-    def login(self):
+    def do_login(self):
         """
         Attempt to log in.
         Note: this method does nothing if we are already logged in.
@@ -109,26 +123,23 @@ class Cragr(Browser):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
-        # Do we really need to login?
-        if self.is_logged():
-            self.logger.debug('already logged in')
-            return
-
         self._sag = None
 
-        if not self.is_on_page(HomePage):
-            self.location(self.absurl('/'), no_login=True)
+        if not self.home_page.is_here():
+            self.home_page.go()
 
         if self.new_login:
             self.page.go_to_auth()
+            parsed = urlparse(self.url)
+            self.BASEURL = '%s://%s' % (parsed.scheme, parsed.netloc)
         else:
             # On the homepage, we get the URL of the auth service.
             url = self.page.get_post_url()
             if url is None:
-                raise self.WebsiteNotSupported()
+                raise WebsiteNotSupported()
 
             # First, post account number to get the password prompt.
-            data = {'CCPTE':                self.username[:11].encode(self.ENCODING),
+            data = {'CCPTE':                self.username[:11].encode('iso8859-15'),
                     'canal':                'WEB',
                     'hauteur_ecran':        768,
                     'largeur_ecran':        1024,
@@ -141,15 +152,14 @@ class Cragr(Browser):
                     'vitrine':              0,
                 }
 
-            self.location(url, urllib.urlencode(data), no_login=True)
+            parsed = urlparse(url)
+            self.BASEURL = '%s://%s' % (parsed.scheme, parsed.netloc)
+            self.location(url, data=data)
 
-        assert self.is_on_page(LoginPage)
+        assert self.login_page.is_here()
 
         # Then, post the password.
-        try:
-            self.page.login(self.username, self.password)
-        except FormNotFoundError:
-            raise BrowserIncorrectPassword()
+        self.page.login(self.username, self.password)
 
         if self.new_login:
             url = self.page.get_accounts_url()
@@ -162,23 +172,22 @@ class Cragr(Browser):
 
         self.location(url.replace('Synthese', 'Synthcomptes'))
 
-        if self.is_on_page(LoginErrorPage):
+        if self.login_error.is_here():
             raise BrowserIncorrectPassword()
 
         if self.page is None:
-            raise self.WebsiteNotSupported()
+            raise WebsiteNotSupported()
 
-        if not self.is_on_page(AccountsPage):
+        if not self.accounts.is_here():
             # Sometimes the home page is Releves.
             new_url  = re.sub('act=([^&=]+)', 'act=Synthcomptes', self.page.url, 1)
             self.location(new_url)
 
-        if not self.is_on_page(AccountsPage):
+        if not self.accounts.is_here():
             raise BrowserIncorrectPassword()
 
         if self.code_caisse is None:
-            scripts = self.page.document.xpath('//script[contains(., " codeCaisse")]')
-            self.code_caisse = re.search('var +codeCaisse *= *"([0-9]+)"', scripts[0].text).group(1)
+            self.code_caisse = self.page.get_code_caisse()
 
         # Store the current url to go back when requesting accounts list.
         self.accounts_url = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', self.page.url)
@@ -194,9 +203,10 @@ class Cragr(Browser):
             self.location(self.perimeter_url.format(self.sag))
             self.page.check_multiple_perimeters()
 
+    @need_login
     def go_perimeter(self, perimeter):
         # If this fails, there is no point in retrying with same cookies.
-        self.location(self.perimeter_url.format(self.sag), no_login=True)
+        self.location(self.perimeter_url.format(self.sag))
         if self.page.get_error() is not None:
             self.login()
             self.location(self.perimeter_url.format(self.sag))
@@ -204,10 +214,11 @@ class Cragr(Browser):
             perimeter_link = self.page.get_perimeter_link(perimeter)
             if perimeter_link:
                 self.location(perimeter_link)
-        self.location(self.chg_perimeter_url.format(self.sag), no_login=True)
+        self.location(self.chg_perimeter_url.format(self.sag))
         if self.page.get_error() is not None:
             self.broken_perimeters.append(perimeter)
 
+    @need_login
     def get_accounts_list(self):
         l = list()
         if self.perimeters:
@@ -221,16 +232,17 @@ class Cragr(Browser):
             l = self.get_list()
         return l
 
+    @need_login
     def get_cards_or_card(self, account_id=None):
         accounts = []
-        if not self.is_on_page(AccountsPage):
+        if not self.accounts.is_here():
             self.location(self.accounts_url.format(self.sag))
 
         for idelco in self.page.cards_idelco_or_link():
-            if not self.is_on_page(AccountsPage):
+            if not self.accounts.is_here():
                 self.location(self.accounts_url.format(self.sag))
             self.location(self.page.cards_idelco_or_link(idelco))
-            assert self.is_on_page(CardsPage)
+            assert self.cards.is_here()
             for account in self.page.get_list():
                 if account_id and account.number == account_id:
                     return account
@@ -239,10 +251,11 @@ class Cragr(Browser):
 
         return accounts
 
+    @need_login
     def get_list(self):
         accounts_list = []
         # regular accounts
-        if not self.is_on_page(AccountsPage):
+        if not self.accounts.is_here():
             self.location(self.accounts_url.format(self.sag))
         accounts_list.extend(self.page.get_list())
 
@@ -253,14 +266,14 @@ class Cragr(Browser):
 
         # loan accounts
         self.location(self.loans_url.format(self.sag))
-        if self.is_on_page(LoansPage):
+        if self.loans.is_here():
             for account in self.page.get_list():
                 if account not in accounts_list:
                     accounts_list.append(account)
 
         # savings accounts
         self.location(self.savings_url.format(self.sag))
-        if self.is_on_page(SavingsPage):
+        if self.savings.is_here():
             for account in self.page.get_list():
                 if account not in accounts_list:
                     accounts_list.append(account)
@@ -270,7 +283,7 @@ class Cragr(Browser):
             if account.type == Account.TYPE_MARKET:
                 try:
                     new_location = self.moveto_market_website(account, home=True)
-                except self.WebsiteNotSupported:
+                except WebsiteNotSupported:
                     account._link = None
                     self.update_sag()
                 else:
@@ -281,6 +294,7 @@ class Cragr(Browser):
 
         return accounts_list
 
+    @need_login
     def get_account(self, id):
         assert isinstance(id, basestring)
 
@@ -291,6 +305,7 @@ class Cragr(Browser):
 
         return None
 
+    @need_login
     def get_history(self, account):
         if account.type in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE):
             self.logger.warning('This account is not supported')
@@ -311,7 +326,7 @@ class Cragr(Browser):
         if account.type != Account.TYPE_CARD or not self.page.is_on_right_detail(account):
             self.location(account._link.format(self.sag))
 
-        if self.is_on_page(CardsPage):
+        if self.cards.is_here():
             url = self.page.url
             state = None
             notfirst = False
@@ -320,7 +335,7 @@ class Cragr(Browser):
                     self.location(url)
                 else:
                     notfirst = True
-                assert self.is_on_page(CardsPage)
+                assert self.cards.is_here()
                 for state, tr in self.page.get_history(date_guesser, state):
                     yield tr
 
@@ -329,7 +344,7 @@ class Cragr(Browser):
         elif self.page:
             self.page.order_transactions()
             while True:
-                assert self.is_on_page(TransactionsPage)
+                assert self.transactions.is_here()
 
                 for tr in self.page.get_history(date_guesser):
                     yield tr
@@ -339,6 +354,7 @@ class Cragr(Browser):
                     break
                 self.location(url)
 
+    @need_login
     def iter_investment(self, account):
         if not account._link or account.type not in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE):
             return
@@ -355,11 +371,11 @@ class Cragr(Browser):
                 return
         elif account.type == Account.TYPE_LIFE_INSURANCE:
             new_location = self.moveto_insurance_website(account)
-            self.location(new_location, urllib.urlencode({}))
-            if self.is_on_page(BGPIPage):
+            self.location(new_location, data={})
+            if self.bgpi.is_here():
                 if not self.page.go_detail():
                     return
-            if self.is_on_page(LifeInsurancePage):
+            if self.lifeinsurance.is_here():
                 self.page.go_on_detail(account.id)
 
         for inv in self.page.iter_investment():
@@ -370,15 +386,17 @@ class Cragr(Browser):
         elif account.type == Account.TYPE_LIFE_INSURANCE:
             self.quit_insurance_website()
 
+    @need_login
     def iter_advisor(self):
-        if not self.is_on_page(AdvisorPage):
+        if not self.advisor.is_here():
             self.location(self.advisor_url.format(self.sag))
 
         for adv in self.page.iter_advisor():
             yield adv
 
+    @need_login
     def moveto_market_website(self, account, home=False):
-        response = self.openurl(account._link % self.sag).read()
+        response = self.open(account._link % self.sag).text
         self._sag = None
         # https://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.navigation.AccueilBridge?TOKEN_ID=
         m = re.search('document.location="([^"]+)"', response)
@@ -386,62 +404,70 @@ class Cragr(Browser):
             url = m.group(1)
         else:
             self.logger.warn('Unable to go to market website')
-            raise self.WebsiteNotSupported()
+            raise WebsiteNotSupported()
 
-        self.openurl(url)
+        self.open(url)
         if home:
             return 'https://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis'
         parsed = urlparse(url)
         url = '%s://%s/netfinca-titres/servlet/com.netfinca.frontcr.account.WalletVal?nump=%s:%s'
         return url % (parsed.scheme, parsed.netloc, account.id, self.code_caisse)
 
+    @need_login
     def quit_market_website(self):
-        parsed = urlparse(self.geturl())
+        parsed = urlparse(self.url)
         exit_url = '%s://%s/netfinca-titres/servlet/com.netfinca.frontcr.login.ContextTransferDisconnect' % (parsed.scheme, parsed.netloc)
-        doc = self.get_document(self.openurl(exit_url), encoding='utf-8')
-        form = doc.find('//form[@name="formulaire"]')
-        # 'act' parameter allows page recognition, this parameter is ignored by
-        # server
-        if form:
-            self.location(form.attrib['action'] + '&act=Synthepargnes')
-        else:
-            msg = CleanText(u'//b[contains(text() , "Nous vous invitons à créer un mot de passe trading.")]')(self.page.document)
+        page = self.open(exit_url).page
+        try:
+            form = page.get_form(name='formulaire')
+        except FormNotFound:
+            msg = CleanText(u'//b[contains(text() , "Nous vous invitons à créer un mot de passe trading.")]')(self.page.doc)
             if msg:
                 raise ActionNeeded(msg)
+        else:
+            # 'act' parameter allows page recognition, this parameter is ignored by
+            # server
+            self.location(form.url + '&act=Synthepargnes')
 
         self.update_sag()
 
+    @need_login
     def moveto_insurance_website(self, account):
-        doc = self.get_document(self.openurl(account._link % self.sag), encoding='utf-8')
+        page = self.open(account._link % self.sag).page
         self._sag = None
         # POST to https://assurance-personnes.credit-agricole.fr/filiale/ServletReroutageCookie
-        form = doc.find('//form[@name="formulaire"]')
-        # bgpi-gestionprivee.
-        if not form:
-            return re.search('location="([^"]+)"', self.openurl(account._link % self.sag).read(), flags=re.MULTILINE).group(1)
+        try:
+            form = page.get_form(name='formulaire')
+        except FormNotFound:
+            # bgpi-gestionprivee.
+            body = self.open(account._link % self.sag).text
+            return re.search('location="([^"]+)"', body, flags=re.MULTILINE).group(1)
+
         data = {
-            'page': form.inputs['page'].attrib['value'],
+            'page': form['page'],
             'cMaxAge': '-1',
         }
-        script = doc.find('//script').text
+
+        # TODO create a dedicated page and move this piece to page
+        script = page.doc.find('//script').text
         for value in ('cMaxAge', 'cName', 'cValue'):
             m = re.search('%s.value *= *"([^"]+)"' % value, script)
             if m:
                 data[value] = m.group(1)
             else:
-                raise self.WebsiteNotSupported()
+                raise WebsiteNotSupported()
 
-        doc = self.get_document(self.openurl(form.attrib['action'], urllib.urlencode(data)), encoding='utf-8')
-
+        page = self.open(form.url, data=data).page
         # POST to https://assurance-personnes.credit-agricole.fr:443/filiale/entreeBam?identifiantBAM=xxx
-        form = doc.find('//form[@name="formulaire"]')
-        return form.attrib['action']
+        form = page.get_form(name='formulaire')
+        return form.url
 
+    @need_login
     def quit_insurance_website(self):
-        if self.is_on_page(BGPIPage):
+        if self.bgpi.is_here():
             return self.page.go_back()
         exit_url = 'https://assurance-personnes.credit-agricole.fr/filiale/entreeBam?actCrt=Synthcomptes&sessionSAG=%s&stbpg=pagePU&act=&typeaction=reroutage_retour&site=BAMG2&stbzn=bnc'
-        doc = self.get_document(self.openurl(exit_url % self.sag), encoding='utf-8')
+        doc = self.open(exit_url % self.sag).page.doc
         form = doc.find('//form[@name="formulaire"]')
         # 'act' parameter allows page recognition, this parameter is ignored by
         # server
@@ -451,14 +477,15 @@ class Cragr(Browser):
     @property
     def sag(self):
         if not self._sag:
-            self.update_sag()
+            try:
+                self.update_sag()
+            except AttributeError as e:
+                print('hahaha', e)
         return self._sag
 
+    @need_login
     def update_sag(self):
-        if not self.is_logged():
-            self.login()
-
-        script = self.page.document.xpath("//script[contains(.,'idSessionSag =')]")
+        script = self.page.doc.xpath("//script[contains(.,'idSessionSag =')]")
         if script:
             self._old_sag = self._sag = re.search('idSessionSag = "([^"]+)";', script[0].text).group(1)
         else:

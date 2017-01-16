@@ -25,7 +25,6 @@ from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .web.browser import Cragr
-from .mobile.browser import CragrMobile
 
 
 __all__ = ['CragrModule']
@@ -84,17 +83,16 @@ class CragrModule(Module, CapBankTransfer, CapContact):
                            ValueBackendPassword('password', label=u'Code personnel', regexp=r'\d{6}'))
     BROWSER = Cragr
 
+    COMPAT_DOMAINS = {
+        'm.lefil.com': 'm.ca-pyrenees-gascogne.fr',
+    }
+
     def create_default_browser(self):
-        try:
-            return self.create_browser(self.config['website'].get(),
-                                       self.config['login'].get(),
-                                       self.config['password'].get())
-        except Cragr.WebsiteNotSupported:
-            self.logger.debug('falling-back on mobile version')
-            self.BROWSER = CragrMobile
-            return self.create_browser(self.config['website'].get(),
-                                       self.config['login'].get(),
-                                       self.config['password'].get())
+        site_conf = self.config['website'].get()
+        site_conf = self.COMPAT_DOMAINS.get(site_conf, site_conf)
+        return self.create_browser(site_conf,
+                                   self.config['login'].get(),
+                                   self.config['password'].get())
 
     def iter_accounts(self):
         return self.browser.get_accounts_list()
@@ -110,15 +108,11 @@ class CragrModule(Module, CapBankTransfer, CapContact):
         return self.browser.get_history(account)
 
     def iter_investment(self, account):
-        with self.browser:
-            for inv in self.browser.iter_investment(account):
-                yield inv
+        for inv in self.browser.iter_investment(account):
+            yield inv
 
     def transfer(self, account, to, amount, reason=None):
         return self.browser.do_transfer(account, to, amount, reason)
 
     def iter_contacts(self):
-        if isinstance(self.BROWSER, CragrMobile):
-            raise NotImplementedError()
-
         return self.browser.iter_advisor()

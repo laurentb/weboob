@@ -22,40 +22,52 @@ from decimal import Decimal
 from urlparse import urlparse
 import re
 
+from weboob.browser.pages import HTMLPage, FormNotFound
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.contact import Advisor
-from weboob.deprecated.browser import Page, BrokenPageError, BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.date import parse_french_date, LinearDateGuesser
-from weboob.browser.filters.standard import Date
+from weboob.browser.filters.standard import Date, CleanText
 
 
-class BasePage(Page):
-    def on_loaded(self):
+class MyLoggedPage(object):
+    pass
+
+
+class BasePage(HTMLPage):
+    def on_load(self):
         self.get_current()
 
     def get_current(self):
         try:
-            current_elem = self.document.xpath('//div[@id="libPerimetre_2"]/span[@class="textePerimetre_2"]')[0]
+            current_elem = self.doc.xpath('//div[@id="libPerimetre_2"]/span[@class="textePerimetre_2"]')[0]
         except IndexError:
             self.logger.debug('Can\'t update current perimeter on this page (%s).', type(self).__name__)
             return False
-        self.browser.current_perimeter = re.search('(.*)$', self.parser.tocleanstring(current_elem)).group(1).lower()
+        self.browser.current_perimeter = CleanText().filter(current_elem).lower()
         return True
 
     def get_error(self):
-        try:
-            error = self.document.xpath('//h1[@class="h1-erreur"]')[0]
-            self.logger.error('Error detected: %s', error.text_content().strip())
+        error = CleanText('//h1[@class="h1-erreur"]')(self.doc)
+        if error:
+            self.logger.error('Error detected: %s', error)
             return error
-        except IndexError:
-            return None
+
+    @property
+    def logged(self):
+        if not isinstance(self, MyLoggedPage):
+            return False
+
+        return self.get_error() is None
 
 
 class HomePage(BasePage):
+    ENCODING = 'iso8859-15'
+
     def get_post_url(self):
-        for script in self.document.xpath('//script'):
+        for script in self.doc.xpath('//script'):
             text = script.text
             if text is None:
                 continue
@@ -67,38 +79,40 @@ class HomePage(BasePage):
         return None
 
     def go_to_auth(self):
-        self.browser.select_form('bamaccess')
-        self.browser.submit(no_login=True)
+        form = self.get_form(name='bamaccess')
+        form.submit()
 
 
 class LoginPage(BasePage):
-    def on_loaded(self):
-        if self.document.xpath('//font[@class="taille2"]'):
+    def on_load(self):
+        if self.doc.xpath('//font[@class="taille2"]'):
             raise BrowserIncorrectPassword()
 
     def login(self, username, password):
         password = password[:6]
         imgmap = {}
-        for td in self.document.xpath('//table[@id="pave-saisie-code"]/tr/td'):
+        for td in self.doc.xpath('//table[@id="pave-saisie-code"]/tr/td'):
             a = td.find('a')
             num = a.text.strip()
             if num.isdigit():
                 imgmap[num] = int(a.attrib['tabindex']) - 1
 
-        self.browser.select_form(name='formulaire')
-        self.browser.set_all_readonly(False)
+        try:
+            form = self.get_form(name='formulaire')
+        except FormNotFound:
+            raise BrowserIncorrectPassword()
         if self.browser.new_login:
-            self.browser['CCPTE'] = username
+            form['CCPTE'] = username
 
-        self.browser['CCCRYC'] = ','.join(['%02d' % imgmap[c] for c in password])
-        self.browser['CCCRYC2'] = '0' * len(password)
-        self.browser.submit(nologin=True)
+        form['CCCRYC'] = ','.join(['%02d' % imgmap[c] for c in password])
+        form['CCCRYC2'] = '0' * len(password)
+        form.submit()
 
     def get_result_url(self):
-        return self.parser.tocleanstring(self.document.getroot())
+        return self.response.text.strip()
 
     def get_accounts_url(self):
-        for script in self.document.xpath('//script'):
+        for script in self.doc.xpath('//script'):
             text = script.text
             if text is None:
                 continue
@@ -108,7 +122,7 @@ class LoginPage(BasePage):
         return '%s%s%s%s' % (self.url, '?sessionSAG=', idSessionSag, '&stbpg=pagePU&actCrt=Synthcomptes&stbzn=btn&act=Synthcomptes')
 
 
-class UselessPage(BasePage):
+class UselessPage(MyLoggedPage, BasePage):
     pass
 
 
@@ -117,11 +131,11 @@ class LoginErrorPage(BasePage):
 
 
 class FirstVisitPage(BasePage):
-    def on_loaded(self):
+    def on_load(self):
         raise BrowserIncorrectPassword(u'Veuillez vous connecter au site du Crédit Agricole pour valider vos données personnelles, et réessayer ensuite.')
 
 
-class _AccountsPage(BasePage):
+class _AccountsPage(MyLoggedPage, BasePage):
     COL_LABEL    = 0
     COL_ID       = 2
     COL_VALUE    = 4
@@ -167,7 +181,7 @@ class _AccountsPage(BasePage):
     def get_list(self):
         account_type = Account.TYPE_UNKNOWN
 
-        for tr in self.document.xpath('//table[@class="ca-table"]/tr'):
+        for tr in self.doc.xpath('//table[@class="ca-table"]/tr'):
             try:
                 title = tr.xpath('.//h3/text()')[0].lower().strip()
             except IndexError:
@@ -182,17 +196,19 @@ class _AccountsPage(BasePage):
             if not cols or len(cols) < self.NB_COLS:
                 continue
 
+            cleaner = CleanText().filter
+
             account = Account()
-            account.id = self.parser.tocleanstring(cols[self.COL_ID])
-            account.label = self.parser.tocleanstring(cols[self.COL_LABEL])
+            account.id = cleaner(cols[self.COL_ID])
+            account.label = cleaner(cols[self.COL_LABEL])
             account.type = self.TYPES.get(account.label, Account.TYPE_UNKNOWN) or account_type
-            balance = self.parser.tocleanstring(cols[self.COL_VALUE])
+            balance = cleaner(cols[self.COL_VALUE])
             # we have to ignore those accounts, because using NotAvailable
             # makes boobank and probably many others crash
             if balance in ('indisponible', ''):
                 continue
             account.balance = Decimal(Transaction.clean_amount(balance))
-            account.currency = account.get_currency(self.parser.tocleanstring(cols[self.COL_CURRENCY]))
+            account.currency = account.get_currency(cleaner(cols[self.COL_CURRENCY]))
             account._link = None
 
             self.set_link(account, cols)
@@ -201,7 +217,7 @@ class _AccountsPage(BasePage):
             yield account
 
         # Checking pagination
-        next_link = self.document.xpath('//a[@class="btnsuiteliste"]/@href')
+        next_link = self.doc.xpath('//a[@class="btnsuiteliste"]/@href')
         if next_link:
             self.browser.location(next_link[0])
             for account in self.browser.page.get_list():
@@ -213,7 +229,7 @@ class _AccountsPage(BasePage):
     def cards_idelco_or_link(self, account_idelco=None):
         # Use a set because it is possible to see several times the same link.
         idelcos = set()
-        for line in self.document.xpath('//table[@class="ca-table"]/tr[@class="ligne-connexe"]'):
+        for line in self.doc.xpath('//table[@class="ca-table"]/tr[@class="ligne-connexe"]'):
             try:
                 link = line.xpath('.//a/@href')[0]
             except IndexError:
@@ -228,26 +244,27 @@ class _AccountsPage(BasePage):
         return idelcos
 
     def check_perimeters(self):
-        return len(self.document.xpath('//a[@title="Espace Autres Comptes"]'))
+        return len(self.doc.xpath('//a[@title="Espace Autres Comptes"]'))
 
-class PerimeterPage(BasePage):
+
+class PerimeterPage(MyLoggedPage, BasePage):
     def check_multiple_perimeters(self):
         self.browser.perimeters = list()
         self.get_current()
         if self.browser.current_perimeter is None:
             return
         self.browser.perimeters.append(self.browser.current_perimeter)
-        multiple = self.document.xpath(u'//p[span/a[contains(text(), "Accès")]]')
+        multiple = self.doc.xpath(u'//p[span/a[contains(text(), "Accès")]]')
         if not multiple:
-            if not len(self.document.xpath(u'//div[contains(text(), "Périmètre en cours de chargement. Merci de patienter quelques secondes.")]')):
+            if not len(self.doc.xpath(u'//div[contains(text(), "Périmètre en cours de chargement. Merci de patienter quelques secondes.")]')):
                 self.logger.debug('Possible error on this page.')
             # We change perimeter in this case to add the second one.
-            self.browser.location(self.browser.chg_perimeter_url.format(self.browser.sag), no_login=True)
+            self.browser.location(self.browser.chg_perimeter_url.format(self.browser.sag))
             if self.browser.page.get_error() is not None:
                 self.browser.broken_perimeters.append('the other perimeter is broken')
                 self.browser.login()
         else:
-            for table in self.document.xpath('//table[@class]'):
+            for table in self.doc.xpath('//table[@class]'):
                 space = ' '.join(table.find('caption').text.lower().split())
                 for perim in table.xpath('.//label'):
                     self.browser.perimeters.append(u'%s : %s' % (space, ' '.join(perim.text.lower().split())))
@@ -255,7 +272,7 @@ class PerimeterPage(BasePage):
     def get_perimeter_link(self, perimeter):
         caption = perimeter.split(' : ')[0].title()
         perim = perimeter.split(' : ')[1]
-        for table in self.document.xpath('//table[@class and caption[contains(text(), "%s")]]' % caption):
+        for table in self.doc.xpath('//table[@class and caption[contains(text(), "%s")]]' % caption):
             for p in table.xpath(u'.//p[span/a[contains(text(), "Accès")]]'):
                 if perim in ' '.join(p.find('label').text.lower().split()):
                     link = p.xpath('./span/a')[0].attrib['href']
@@ -263,7 +280,7 @@ class PerimeterPage(BasePage):
 
 
 class ChgPerimeterPage(PerimeterPage):
-    def on_loaded(self):
+    def on_load(self):
         if self.get_error() is not None:
             self.logger.debug('Error on ChgPerimeterPage')
             return
@@ -273,13 +290,13 @@ class ChgPerimeterPage(PerimeterPage):
             self.browser.perimeters.append(self.browser.current_perimeter)
 
 
-class CardsPage(BasePage):
+class CardsPage(MyLoggedPage, BasePage):
     def get_list(self):
         TABLE_XPATH = '//table[caption[@class="caption tdb-cartes-caption" or @class="ca-table caption"]]'
 
-        cards_tables = self.document.xpath(TABLE_XPATH)
+        cards_tables = self.doc.xpath(TABLE_XPATH)
 
-        currency = self.document.xpath('//table/caption//span/text()[starts-with(.,"Montants en ")]')[0].replace("Montants en ", "") or None
+        currency = self.doc.xpath('//table/caption//span/text()[starts-with(.,"Montants en ")]')[0].replace("Montants en ", "") or None
         if cards_tables:
             self.logger.debug('There are several cards')
             xpaths = {
@@ -300,11 +317,11 @@ class CardsPage(BasePage):
                 'currency': '//table/caption//span/text()[starts-with(.,"Montants en ")]',
             }
             TABLE_XPATH = '(//table[@class="ca-table"])[1]'
-            cards_tables = self.document.xpath(TABLE_XPATH)
+            cards_tables = self.doc.xpath(TABLE_XPATH)
 
 
         for table in cards_tables:
-            get = lambda name: self.parser.tocleanstring(table.xpath(xpaths[name])[0])
+            get = lambda name: CleanText().filter(table.xpath(xpaths[name])[0])
 
             account = Account()
             account.type = account.TYPE_CARD
@@ -316,7 +333,7 @@ class CardsPage(BasePage):
                                          re.sub('\s*-\s*$', '', get('label2')))
             try:
                 account.balance = Decimal(Transaction.clean_amount(table.xpath(xpaths['balance'])[-1].text))
-                account.currency = account.get_currency(self.document
+                account.currency = account.get_currency(self.doc
                         .xpath(xpaths['currency'])[0].replace("Montants en ", ""))
                 if not account.currency and currency:
                     account.currency = Account.get_currency(currency)
@@ -340,7 +357,7 @@ class CardsPage(BasePage):
         pass
 
     def get_next_url(self):
-        links = self.document.xpath('//font[@class="btnsuiteliste"]')
+        links = self.doc.xpath('//font[@class="btnsuiteliste"]')
         if len(links) < 1:
             return None
 
@@ -352,13 +369,13 @@ class CardsPage(BasePage):
 
     def get_history(self, date_guesser, state=None):
         seen = set()
-        lines = self.document.xpath('(//table[@class="ca-table"])[2]/tr')
+        lines = self.doc.xpath('(//table[@class="ca-table"])[2]/tr')
         debit_date = None
         for i, line in enumerate(lines):
             is_balance = line.xpath('./td/@class="cel-texte cel-neg"')
 
             # It is possible to have three or four columns.
-            cols = [self.parser.tocleanstring(td) for td in line.xpath('./td')]
+            cols = [CleanText().filter(td) for td in line.xpath('./td')]
             date = cols[0]
             label = cols[1]
             amount = cols[-1]
@@ -401,8 +418,8 @@ class CardsPage(BasePage):
             yield state, t
 
     def is_on_right_detail(self, account):
-        return len(self.document.xpath(u'//h1[contains(text(), "Cartes - détail")]')) and\
-               len(self.document.xpath(u'//td[contains(text(), "%s")] | //td[contains(text(), "%s")] ' % (account.number, account._id)))
+        return len(self.doc.xpath(u'//h1[contains(text(), "Cartes - détail")]')) and\
+               len(self.doc.xpath(u'//td[contains(text(), "%s")] | //td[contains(text(), "%s")] ' % (account.number, account._id)))
 
 
 class AccountsPage(_AccountsPage):
@@ -410,12 +427,16 @@ class AccountsPage(_AccountsPage):
         a = cols[0].find('a')
         if a is not None:
             account._link = a.attrib['href'].replace(' ', '%20')
-            page = self.browser.get_page(self.browser.openurl(account._link))
+            page = self.browser.open(account._link).page
             account._link = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', account._link)
             url = page.get_iban_url()
             if url:
-                page = self.browser.get_page(self.browser.openurl(url))
+                page = self.browser.open(url).page
                 account.iban = page.get_iban()
+
+    def get_code_caisse(self):
+        scripts = self.doc.xpath('//script[contains(., " codeCaisse")]')
+        return re.search('var +codeCaisse *= *"([0-9]+)"', scripts[0].text).group(1)
 
 
 class LoansPage(_AccountsPage):
@@ -458,9 +479,9 @@ class SavingsPage(_AccountsPage):
                     account._link = url % (origin.netloc, m[0], m[1], m[2])
 
 
-class TransactionsPage(BasePage):
+class TransactionsPage(MyLoggedPage, BasePage):
     def get_iban_url(self):
-        for link in self.document.xpath('//a[contains(text(), "RIB")] | //a[contains(text(), "IBAN")]'):
+        for link in self.doc.xpath('//a[contains(text(), "RIB")] | //a[contains(text(), "IBAN")]'):
             m = re.search("\('([^']+)'", link.get('href', ''))
             if m:
                 return m.group(1)
@@ -469,12 +490,12 @@ class TransactionsPage(BasePage):
 
     def get_iban(self):
         s = ''
-        for font in self.document.xpath('(//td[font/b/text()="IBAN"])[1]/table//font'):
-            s += self.parser.tocleanstring(font)
+        for font in self.doc.xpath('(//td[font/b/text()="IBAN"])[1]/table//font'):
+            s += CleanText().filter(font)
         return s
 
     def order_transactions(self):
-        date = self.document.xpath('//th[@scope="col"]/a[text()="Date"]')
+        date = self.doc.xpath('//th[@scope="col"]/a[text()="Date"]')
         if len(date) < 1:
             return
 
@@ -484,7 +505,7 @@ class TransactionsPage(BasePage):
         self.browser.location(date[0].attrib['href'])
 
     def get_next_url(self):
-        links = self.document.xpath('//span[@class="pager"]/a[@class="liennavigationcorpspage"]')
+        links = self.doc.xpath('//span[@class="pager"]/a[@class="liennavigationcorpspage"]')
         if len(links) < 1:
             return None
 
@@ -515,11 +536,13 @@ class TransactionsPage(BasePage):
             }
 
     def get_history(self, date_guesser):
-        trs = self.document.xpath('//table[@class="ca-table" and @summary]//tr')
+        cleaner = CleanText().filter
+
+        trs = self.doc.xpath('//table[@class="ca-table" and @summary]//tr')
         if trs:
             self.COL_TEXT += 1
         else:
-            trs = self.document.xpath('//table[@class="ca-table"]//tr')
+            trs = self.doc.xpath('//table[@class="ca-table"]//tr')
         for tr in trs:
             parent = tr.getparent()
             while parent is not None and parent.tag != 'table':
@@ -531,7 +554,7 @@ class TransactionsPage(BasePage):
             if tr.attrib.get('class', '') == 'tr-thead':
                 heads = tr.findall('th')
                 for i, head in enumerate(heads):
-                    key = self.parser.tocleanstring(head)
+                    key = cleaner(head)
                     if key == u'Débit':
                         self.COL_DEBIT = i - len(heads)
                     if key == u'Crédit':
@@ -558,11 +581,11 @@ class TransactionsPage(BasePage):
             if len(col_text.xpath('.//br')) == 0:
                 col_text = cols[self.COL_TEXT+1]
 
-            raw = self.parser.tocleanstring(col_text)
-            date = self.parser.tocleanstring(cols[self.COL_DATE])
-            credit = self.parser.tocleanstring(cols[self.COL_CREDIT])
+            raw = cleaner(col_text)
+            date = cleaner(cols[self.COL_DATE])
+            credit = cleaner(cols[self.COL_CREDIT])
             if self.COL_DEBIT is not None:
-                debit =  self.parser.tocleanstring(cols[self.COL_DEBIT])
+                debit = cleaner(cols[self.COL_DEBIT])
             else:
                 debit = ''
 
@@ -609,7 +632,7 @@ class TransactionsPage(BasePage):
             yield t
 
 
-class MarketPage(BasePage):
+class MarketPage(MyLoggedPage, BasePage):
     COL_ID = 1
     COL_QUANTITY = 2
     COL_UNITVALUE = 3
@@ -618,7 +641,7 @@ class MarketPage(BasePage):
     COL_DIFF = 6
 
     def iter_investment(self):
-        for line in self.document.xpath('//table[contains(@class, "ca-data-table")]/descendant::tr[count(td)>=7]'):
+        for line in self.doc.xpath('//table[contains(@class, "ca-data-table")]/descendant::tr[count(td)>=7]'):
             for sub in line.xpath('./td[@class="info-produit"]'):
                 sub.drop_tree()
             cells = line.findall('td')
@@ -658,7 +681,7 @@ class MarketHomePage(MarketPage):
     COL_ID_LABEL = 1
     COL_VALUATION = 5
     def update(self, accounts):
-        for line in self.document.xpath('//table[contains(@class, "tableau_comptes_details")]/tbody/tr'):
+        for line in self.doc.xpath('//table[contains(@class, "tableau_comptes_details")]/tbody/tr'):
             cells = line.findall('td')
 
             id  = cells[self.COL_ID_LABEL].find('div[2]').text.strip()
@@ -676,19 +699,18 @@ class LifeInsurancePage(MarketPage):
 
     def go_on_detail(self, account_id):
         # Sometimes this page is a synthesis, so we need to go on detail.
-        if len(self.document.xpath(u'//h1[contains(text(), "Synthèse de vos contrats d\'assurance vie, de capitalisation et de prévoyance")]')) == 1:
-            self.browser.select_form('frm_fwk')
-            self.browser.set_all_readonly(False)
-            self.browser['ID_CNT_CAR'] = account_id
-            self.browser['fwkaction'] = 'Enchainer'
-            self.browser['fwkcodeaction'] = 'Executer'
-            self.browser['puCible'] = 'SEPPU'
-            self.browser.submit()
+        if len(self.doc.xpath(u'//h1[contains(text(), "Synthèse de vos contrats d\'assurance vie, de capitalisation et de prévoyance")]')) == 1:
+            form = self.get_form(name='frm_fwk')
+            form['ID_CNT_CAR'] = account_id
+            form['fwkaction'] = 'Enchainer'
+            form['fwkcodeaction'] = 'Executer'
+            form['puCible'] = 'SEPPU'
+            form.submit()
             self.browser.location('https://assurance-personnes.credit-agricole.fr/filiale/entreeBam?sessionSAG=%s&stbpg=pagePU&act=SEPPU&stbzn=bnt&actCrt=SEPPU' % self.browser.sag)
 
     def iter_investment(self):
 
-        for line in self.document.xpath('//table[@summary and count(descendant::td) > 1]/tbody/tr'):
+        for line in self.doc.xpath('//table[@summary and count(descendant::td) > 1]/tbody/tr'):
             cells = line.findall('td')
             if len(cells) < 5:
                 continue
@@ -713,9 +735,9 @@ class LifeInsurancePage(MarketPage):
             yield inv
 
 
-class AdvisorPage(BasePage):
+class AdvisorPage(MyLoggedPage, BasePage):
     def iter_advisor(self):
-        for p in self.document.xpath(u'//fieldset/div/p[not(contains(text(), "TTC"))]'):
+        for p in self.doc.xpath(u'//fieldset/div/p[not(contains(text(), "TTC"))]'):
             phone = None
             if p.find('b') is not None:
                 phone = ''.join(p.find('b').text_content().split('.'))
@@ -747,7 +769,7 @@ class BGPIPage(MarketPage):
     COL_DIFF = 6
 
     def iter_investment(self):
-        for line in self.document.xpath('//table[contains(@class, "PuTableauLarge")]/tr[contains(@class, "PuLigne")]'):
+        for line in self.doc.xpath('//table[contains(@class, "PuTableauLarge")]/tr[contains(@class, "PuLigne")]'):
             cells = line.findall('td')
             inv = Investment()
 
@@ -771,10 +793,10 @@ class BGPIPage(MarketPage):
         self.browser.location('https://%s%s' % (origin.netloc, link))
 
     def go_detail(self):
-        link = self.document.xpath(u'.//a[contains(text(), "Détail")]')
+        link = self.doc.xpath(u'.//a[contains(text(), "Détail")]')
         return self.go_on(link[0].attrib['href']) if link else False
 
     def go_back(self):
-        self.go_on(self.document.xpath(u'.//a[contains(text(), "Retour à mes comptes")]')[0].attrib['href'])
-        self.browser.select_form('formulaire')
-        self.browser.submit()
+        self.go_on(self.doc.xpath(u'.//a[contains(text(), "Retour à mes comptes")]')[0].attrib['href'])
+        form = self.browser.page.get_form(name='formulaire')
+        form.submit()
