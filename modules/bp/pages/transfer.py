@@ -95,7 +95,8 @@ class TransferChooseAccounts(LoggedPage, MyHTMLPage):
                         self.env['id'] = Regexp(CleanText('.'), '- (.*?) -')(el).replace(' ', '')
                         self.env['iban'] = NotAvailable
                         label = CleanText('.')(el).split('-')
-                        self.env['label'] = '%s %s' % (label[0].strip(), label[-1].strip())
+                        holder = label[-1] if not any(string in label[-1] for string in ['Avoir disponible', 'Solde']) else label[-2]
+                        self.env['label'] = '%s %s' % (label[0].strip(), holder.strip())
                     self.env['bank_name'] = u'La Banque Postale'
 
                 else:
