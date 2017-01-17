@@ -317,7 +317,8 @@ class AllocineBrowser(Browser):
             return
         if 'castMember' in jres:
             for cast in jres['castMember']:
-                if (role_filter is None or (role_filter is not None and cast['activity']['$'].lower().strip() == role_filter.lower().strip())):
+                if (role_filter is None or
+                   (role_filter is not None and cast['activity']['$'].lower().strip() == role_filter.lower().strip())):
                     id = cast['person']['code']
                     name = unicode(cast['person']['name'])
                     short_description = unicode(cast['activity']['$'])
@@ -356,7 +357,8 @@ class AllocineBrowser(Browser):
         else:
             return
         for m in jres['participation']:
-            if (role_filter is None or (role_filter is not None and m['activity']['$'].lower().strip() == role_filter.lower().strip())):
+            if (role_filter is None or
+               (role_filter is not None and m['activity']['$'].lower().strip() == role_filter.lower().strip())):
                 prod_year = '????'
                 if 'productionYear' in m['movie']:
                     prod_year = m['movie']['productionYear']
@@ -418,7 +420,8 @@ class AllocineBrowser(Browser):
                 yield unicode(cast['person']['code'])
 
     def get_movie_releases(self, id, country):
-        return
+        if country == 'fr':
+            return self.get_movie(id).release_date
 
     def get_person_biography(self, id):
         params = [('partner', self.PARTNER_KEY),
@@ -484,7 +487,9 @@ class AllocineBrowser(Browser):
             video.duration = timedelta(seconds=int(_video['runtime']))
         if 'description' in _video:
             video.description = unicode(_video['description'])
-        renditions = sorted(_video['rendition'], key=lambda x: 'bandwidth' in x and x['bandwidth']['code'], reverse=True)
+        renditions = sorted(_video['rendition'],
+                            key=lambda x: 'bandwidth' in x and x['bandwidth']['code'],
+                            reverse=True)
         video.url = unicode(max(renditions, key=lambda x: 'bandwidth' in x)['href'])
         return video
 
@@ -549,7 +554,9 @@ class AllocineBrowser(Browser):
         if res is None:
             return
         result = json.loads(res)
-        renditions = sorted(result['media']['rendition'], key=lambda x: 'bandwidth' in x and x['bandwidth']['code'], reverse=True)
+        renditions = sorted(result['media']['rendition'],
+                            key=lambda x: 'bandwidth' in x and x['bandwidth']['code'],
+                            reverse=True)
         return max(renditions, key=lambda x: 'bandwidth' in x)['href']
 
     def get_emissions(self, basename):
