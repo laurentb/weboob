@@ -26,6 +26,7 @@ from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import Currency
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 from .pages import Transaction
 
@@ -120,3 +121,6 @@ class HistoryJsonPage(LoggedPage, JsonPage):
             def obj_amount(self):
                 return CleanDecimal(Dict('c', default=None), replace_dots=True, default=None)(self) or \
                     CleanDecimal(Dict('d'), replace_dots=True)(self)
+
+            def obj_deleted(self):
+                return self.obj.type == FrenchTransaction.TYPE_CARD_SUMMARY
