@@ -1,0 +1,1 @@
+../creditcooperatif/pro/browser.py

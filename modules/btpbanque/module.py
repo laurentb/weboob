@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012 Kevin Pouget
+# Copyright(C) 2016      Edouard Lambert
 #
 # This file is part of weboob.
 #
@@ -23,38 +23,31 @@ from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
-from .perso.browser import CreditCooperatif as CreditCooperatifPerso
-from .pro.browser import CreditCooperatif as CreditCooperatifPro
+from .browser import CreditCooperatif as CreditCooperatifPro
 
 
-__all__ = ['CreditCooperatifModule']
+__all__ = ['BtpbanqueModule']
 
 
-class CreditCooperatifModule(Module, CapBank):
-    NAME = 'creditcooperatif'
-    MAINTAINER = u'Kevin Pouget'
-    EMAIL = 'weboob@kevin.pouget.me'
-    VERSION = '1.3'
-    DESCRIPTION = u'Crédit Coopératif'
+class BtpbanqueModule(Module, CapBank):
+    NAME = 'btpbanque'
+    DESCRIPTION = u'BTP Banque'
+    MAINTAINER = u'Edouard Lambert'
+    EMAIL = 'elambert@budget-insight.com'
+    VERSION = '1.2'
     LICENSE = 'AGPLv3+'
-    auth_type = {'particular': "Interface Particuliers",
-                 'weak' : "Code confidentiel (pro)",
+    auth_type = {'weak' : "Code confidentiel (pro)",
                  'strong': "Sesame (pro)"}
-    CONFIG = BackendConfig(Value('auth_type', label='Type de compte', choices=auth_type, default="particular"),
+    CONFIG = BackendConfig(Value('auth_type', label='Type de compte', choices=auth_type, default="weak"),
                            ValueBackendPassword('login', label='Code utilisateur', masked=False),
                            ValueBackendPassword('password', label='Code confidentiel ou code PIN'))
 
     def create_default_browser(self):
-        if self.config['auth_type'].get() == 'particular':
-            self.BROWSER = CreditCooperatifPerso
-            return self.create_browser(self.config['login'].get(),
-                                       self.config['password'].get())
-        else:
-            self.BROWSER = CreditCooperatifPro
-            return self.create_browser("www.coopanet.com",
-                                       self.config['login'].get(),
-                                       self.config['password'].get(),
-                                       strong_auth=self.config['auth_type'].get() == "strong")
+        self.BROWSER = CreditCooperatifPro
+        return self.create_browser("www.btpnet.tm.fr",
+                                   self.config['login'].get(),
+                                   self.config['password'].get(),
+                                   strong_auth=self.config['auth_type'].get() == "strong")
 
     def iter_accounts(self):
         return self.browser.get_accounts_list()

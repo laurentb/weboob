@@ -30,19 +30,19 @@ __all__ = ['CreditCooperatif']
 class CreditCooperatif(Browser):
     PROTOCOL = 'https'
     ENCODING = 'iso-8859-15'
-    DOMAIN = "www.coopanet.com"
-    PAGES = {'https://www.coopanet.com/banque/sso/.*': LoginPage,
-             'https://www.coopanet.com/banque/cpt/incoopanetj2ee.do.*': AccountsPage,
-             'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkReleveAction=X&numeroExterne=.*': TransactionsPage,
-             'https://www.coopanet.com/banque/cpt/cpt/relevecompte.do\?tri_page=.*': TransactionsPage,
-             'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkOpCB=X&numeroExterne=.*': CardTransactionsPage,
-             'https://www.coopanet.com/banque/cpt/cpt/operationscartebancaire.do\?.*': CardTransactionsPage,
-             'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkOpEC=X&numeroExterne=.*': ComingTransactionsPage,
-             'https://www.coopanet.com/banque/cpt/cpt/operationEnCours.do.*': ComingTransactionsPage,
-             'http://www.coopanet.com/PbTechniqueCoopanet.htm': TechnicalErrorPage,
+    PAGES = {'https?://[^/]+/banque/sso/.*': LoginPage,
+             'https?://[^/]+/banque/cpt/incoopanetj2ee.do.*': AccountsPage,
+             'https?://[^/]+/banque/cpt/cpt/situationcomptes.do\?lnkReleveAction=X&numeroExterne=.*': TransactionsPage,
+             'https?://[^/]+/banque/cpt/cpt/relevecompte.do\?tri_page=.*': TransactionsPage,
+             'https?://[^/]+/banque/cpt/cpt/situationcomptes.do\?lnkOpCB=X&numeroExterne=.*': CardTransactionsPage,
+             'https?://[^/]+/banque/cpt/cpt/operationscartebancaire.do\?.*': CardTransactionsPage,
+             'https?://[^/]+/banque/cpt/cpt/situationcomptes.do\?lnkOpEC=X&numeroExterne=.*': ComingTransactionsPage,
+             'https?://[^/]+/banque/cpt/cpt/operationEnCours.do.*': ComingTransactionsPage,
+             'https?://[^/]+/PbTechniqueCoopanet.htm': TechnicalErrorPage,
             }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, domain, *args, **kwargs):
+        self.DOMAIN = domain
         self.strong_auth = kwargs.pop('strong_auth', False)
         Browser.__init__(self, *args, **kwargs)
 
