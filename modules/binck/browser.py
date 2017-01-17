@@ -40,7 +40,7 @@ class BinckBrowser(LoginBrowser):
         self.cache['trs'] = {}
 
     def deinit(self):
-        if self.page.logged:
+        if self.page and self.page.logged:
             self.location("/Account/Logoff")
         super(BinckBrowser, self).deinit()
 
