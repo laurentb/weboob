@@ -477,10 +477,7 @@ class Cragr(LoginBrowser):
     @property
     def sag(self):
         if not self._sag:
-            try:
-                self.update_sag()
-            except AttributeError as e:
-                print('hahaha', e)
+            self.update_sag()
         return self._sag
 
     @need_login

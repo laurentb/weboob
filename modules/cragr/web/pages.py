@@ -387,7 +387,7 @@ class CardsPage(MyLoggedPage, BasePage):
             if is_balance:
                 m = re.search('(\d+ [^ ]+ \d+)', label)
                 if not m:
-                    raise BrokenPageError('Unable to read card balance in history: %r' % label)
+                    raise Exception('Unable to read card balance in history: %r' % label)
                 if state is None:
                     debit_date = parse_french_date(m.group(1))
                 else:
