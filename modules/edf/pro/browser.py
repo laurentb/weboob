@@ -20,7 +20,7 @@
 
 import json
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.base import NotAvailable
@@ -57,7 +57,7 @@ class EdfproBrowser(LoginBrowser):
 
     @need_login
     def iter_documents(self, subscription):
-        return self.documents.go(data=json.dumps({'dateDebut': '01/01/2013', \
+        return self.documents.go(data=json.dumps({'dateDebut': (datetime.now() - timedelta(weeks=156)).strftime('%d/%m/%Y'), \
                                            'dateFin': datetime.now().strftime('%d/%m/%Y'), \
                                            'element': subscription.id, \
                                            'typeElementListe': 'CONTRAT'})) \
