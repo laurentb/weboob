@@ -49,6 +49,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
     init_ident = URL(r'.*authentification/initialiser-identif.ea', Initident)
     check_password = URL(r'.*authentification/verifierMotDePasse-identif.ea',
                          r'/voscomptes/canalXHTML/securite/authentification/verifierPresenceCompteOK-identif.ea',
+                         r'.*//voscomptes/identification/motdepasse.jsp',
                          CheckPassword)
 
     redirect_page = URL(r'.*voscomptes/identification/identification.ea.*',
