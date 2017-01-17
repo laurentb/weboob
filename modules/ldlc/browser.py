@@ -22,11 +22,12 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import HomePage, BillsPage
+from .pages import HomePage, BillsPage, LoginPage
 
 class LdlcBrowser(LoginBrowser):
-    home = URL('/default.aspx', HomePage)
+    login = URL('/Account/LoginPage.aspx', LoginPage)
     bills = URL('/Account/CommandListingPage.aspx', BillsPage)
+    home = URL('/$', HomePage)
 
     def __init__(self, website, *args, **kwargs):
         self.website = website
@@ -38,12 +39,8 @@ class LdlcBrowser(LoginBrowser):
 
 
     def do_login(self):
-        self.location('/Account/LoginPage.aspx',
-                      data={'log' : self.username,
-                            'pass': self.password})
-
-        self.home.stay_or_go()
-        if not self.home.is_here():
+        self.login.stay_or_go().login(self.username, self.password)
+        if self.login.is_here():
             raise BrowserIncorrectPassword
 
     @need_login
