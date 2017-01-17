@@ -83,6 +83,8 @@ class BforbankBrowser(LoginBrowser):
     def get_history(self, account):
         if account.type == Account.TYPE_MARKET:
             bourse_account = self.get_bourse_account(account)
+            if not bourse_account:
+                return iter([])
 
             self.location(bourse_account._link_id)
             assert self.bourse.is_here()
@@ -127,6 +129,8 @@ class BforbankBrowser(LoginBrowser):
         self.bourse.go()
         assert self.bourse.is_here()
 
+        if self.page.password_required():
+            return
         self.logger.debug('searching account matching %r', account)
         for bourse_account in self.page.get_list():
             self.logger.debug('iterating account %r', bourse_account)
@@ -142,6 +146,8 @@ class BforbankBrowser(LoginBrowser):
             return self.spirica.iter_investment(account)
         elif account.type == Account.TYPE_MARKET:
             bourse_account = self.get_bourse_account(account)
+            if not bourse_account:
+                return iter([])
 
             self.location(bourse_account._market_link)
             assert self.bourse.is_here()
