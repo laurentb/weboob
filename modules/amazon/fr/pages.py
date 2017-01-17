@@ -86,7 +86,7 @@ class OrderPage(AmazonPage):
         # Payment for not yet shipped orders may change, and is not always
         # available.
 
-        return bool([x for s in [u'En préparation pour expédition', u'En cours de préparation']  # TODO : Other French status applied ?
+        return bool([x for s in [u'En préparation pour expédition', u'En cours de préparation', u'Commande annulée']  # TODO : Other French status applied ?
                     for x in self.doc.xpath(u'//*[contains(text(),"%s")]' % s)])
 
     def decimal_amount(self, amount):
@@ -187,9 +187,10 @@ class OrderNewPage(OrderPage):
 
     def amount(self, *names):
         try:
-            return Decimal(sum(self.decimal_amount(amount.strip())
-                       for n in names for amount in self.doc.xpath(
-                       '(//span[contains(text(),"%s")]/../..//span)[2]/text()' % n)))
+            return Decimal(sum(
+                self.decimal_amount(amount.strip()) or 0.0
+                for n in names for amount in self.doc.xpath(
+                    '(//span[contains(text(),"%s")]/../..//span)[2]/text()' % n)))
         except TypeError:
             return NotAvailable
 
