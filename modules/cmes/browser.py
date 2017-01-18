@@ -25,39 +25,40 @@ from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage
 
 
 class CmesBrowser(LoginBrowser):
-    login = URL('/fr/identification/default.cgi', LoginPage)
-    accounts = URL('/fr/espace/devbavoirs.aspx\?mode=net&menu=cpte$', AccountsPage)
-    investment = URL('/fr/.*GoPositionsParFond.*', InvestmentPage)
-    history = URL('/fr/espace/devbavoirs.aspx\?mode=net&menu=cpte&page=operations',
-                  '/fr/.*GoOperationsTraitees',
-                  '/fr/.*GoOperationDetails', HistoryPage)
+    login = URL('(?P<subsite>.*)fr/identification/default.cgi', LoginPage)
+    accounts = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte$', AccountsPage)
+    investment = URL('(?P<subsite>.*)fr/.*GoPositionsParFond.*', InvestmentPage)
+    history = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte&page=operations',
+                  '(?P<subsite>.*)fr/.*GoOperationsTraitees',
+                  '(?P<subsite>.*)fr/.*GoOperationDetails', HistoryPage)
 
-    def __init__(self, website, username, password, *args, **kwargs):
+    def __init__(self, website, username, password, subsite="", *args, **kwargs):
         super(LoginBrowser, self).__init__(*args, **kwargs)
         self.BASEURL = website
         self.username = username
         self.password = password
+        self.subsite = subsite
 
     def do_login(self):
-        self.login.go().login(self.username, self.password)
+        self.login.go(subsite=self.subsite).login(self.username, self.password)
 
         if self.login.is_here():
             raise BrowserIncorrectPassword
 
     @need_login
     def iter_accounts(self):
-        return self.accounts.stay_or_go().iter_accounts()
+        return self.accounts.stay_or_go(subsite=self.subsite).iter_accounts()
 
     @need_login
     def iter_investment(self, account):
-        link = self.accounts.stay_or_go().get_investment_link()
+        link = self.accounts.stay_or_go(subsite=self.subsite).get_investment_link()
         if link:
             return self.location(link).page.iter_investment()
         return iter([])
 
     @need_login
     def iter_history(self, account):
-        link = self.history.stay_or_go().get_link()
+        link = self.history.stay_or_go(subsite=self.subsite).get_link()
         if link:
             return self.location(link).page.iter_history()
         return iter([])
