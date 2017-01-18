@@ -46,8 +46,7 @@ class Freemobile(LoginBrowser):
         if self.loginpage.is_here():
             raise BrowserIncorrectPassword()
 
-    @need_login
-    def get_subscription_list(self):
+    def _get_subscription_list_helper(self):
         subscriptions = self.homepage.stay_or_go().get_list()
 
         self.detailspage.go()
@@ -56,6 +55,10 @@ class Freemobile(LoginBrowser):
             subscription._virtual = self.page.load_virtual(subscription.id)
             subscription.renewdate = self.page.get_renew_date(subscription)
             yield subscription
+
+    @need_login
+    def get_subscription_list(self):
+        return self._get_subscription_list_helper()
 
     def get_history(self, subscription):
         self.historypage.go(data={'login': subscription._login})
@@ -72,10 +75,9 @@ class Freemobile(LoginBrowser):
         receiver = message.thread.id
         username = [
             subscription._login
-            for subscription in self.get_subscription_list()
+            for subscription in self._get_subscription_list_helper()
             if subscription.id.split("@")[0] == receiver
         ]
-        print(username)
         if username:
             username = username[0]
         else:
@@ -92,6 +94,6 @@ class Freemobile(LoginBrowser):
             )
 
         self.sendAPI.go(
-            username=self.username, apikey=api_key,
+            username=username, apikey=api_key,
             msg=message.content
         )
