@@ -38,6 +38,7 @@ class SGPEBrowser(LoginBrowser):
                       '/gao/changer-code-secret-inscr-saisie.html',
                       '/gao/inscrire-utilisateur-saisie.html',
                       '/gao/changer-code-secret-reattr-saisie.html',
+                      '/gae/afficherInscriptionUtilisateur.html',
                       ChangePassPage)
 
     def is_logged(self):

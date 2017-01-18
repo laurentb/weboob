@@ -80,7 +80,8 @@ class SGPEPage(HTMLPage):
 class ChangePassPage(SGPEPage):
     def on_load(self):
         message = (CleanText('//div[@class="ngo_gao_message_intro"]')(self.doc)
-                or CleanText('//div[@class="ngo_gao_intro"]')(self.doc))
+                or CleanText('//div[@class="ngo_gao_intro"]')(self.doc)
+                or u'Informations manquantes sur le site Société Générale')
         raise ActionNeeded(message)
 
 
