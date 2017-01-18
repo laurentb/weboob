@@ -24,7 +24,7 @@ from weboob.browser.filters.standard import CleanText, Capitalize, Format, Date,
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
-from weboob.exceptions import ActionNeeded
+from weboob.exceptions import ActionNeeded, BrowserUnavailable
 
 
 def MyDecimal(*args, **kwargs):
@@ -32,7 +32,16 @@ def MyDecimal(*args, **kwargs):
     return CleanDecimal(*args, **kwargs)
 
 
-class LoginPage(HTMLPage):
+class BasePage(HTMLPage):
+    def on_load(self):
+        super(BasePage, self).on_load()
+
+        if 'Erreur' in CleanText('//div[@id="main"]/h1', default='')(self.doc):
+            err = CleanText('//div[@id="main"]/div[@class="content"]', default=u'Site indisponible')(self.doc)
+            raise BrowserUnavailable(err)
+
+
+class LoginPage(BasePage, HTMLPage):
     def get_values(self):
         values = {}
         for input in self.doc.xpath('//input[@keypad]'):
@@ -53,7 +62,7 @@ class LoginPage(HTMLPage):
         form.submit()
 
 
-class AccountsPage(LoggedPage, HTMLPage):
+class AccountsPage(LoggedPage, BasePage, HTMLPage):
     @method
     class iter_accounts(ListElement):
         item_xpath = '//div[@id]/div[has-class("productDetails")]'
