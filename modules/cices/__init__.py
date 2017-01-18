@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .module import CmesModule
+from .module import CicesModule
 
 
-__all__ = ['CmesModule']
+__all__ = ['CicesModule']
