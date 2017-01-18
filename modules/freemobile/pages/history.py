@@ -52,13 +52,17 @@ class DetailsPage(LoggedPage, BadUTF8Page):
             self.details[num] = []
 
             # National parsing
-            divnat = div.xpath('div[@class="national"]')[0]
-            self._parse_div(divnat, "National : %s | International : %s", num, False)
+            divnat = div.xpath('div[@class="national"]')
+            if divnat:
+                divnat = divnat[0]
+                self._parse_div(divnat, "National : %s | International : %s", num, False)
 
             # International parsing
-            divint = div.xpath('div[@class="international hide"]')[0]
-            if divint.xpath('div[@class="detail"]'):
-                self._parse_div(divint, u"Appels émis : %s | Appels reçus : %s", num, True)
+            divint = div.xpath('div[@class="international hide"]')
+            if divint:
+                divint = divint[0]
+                if divint.xpath('div[@class="detail"]'):
+                    self._parse_div(divint, u"Appels émis : %s | Appels reçus : %s", num, True)
 
     def _parse_div(self, divglobal, string, num, inter=False):
         divs = divglobal.xpath('div[@class="detail"]')
