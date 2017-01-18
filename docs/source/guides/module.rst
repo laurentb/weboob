@@ -81,7 +81,7 @@ Update modules list
 
 As you are in development mode, to see your new module in ``weboob-config``'s list, you have to update ``modules/modules.list`` with this command::
 
-    $ weboob-config update
+    $ weboob update
 
 To be sure your module is correctly added, use this command::
 
@@ -98,7 +98,13 @@ To be sure your module is correctly added, use this command::
     | Location        | /home/me/src/weboob/modules/example
     '-----------------'
 
-If the last command does not work, check your :doc:`repositories setup </guides/setup>`.
+If the last command does not work, check your :doc:`repositories setup
+</guides/setup>`. In particular, when you want to edit an already existing
+module, you should take great care of setting your development environment
+correctly, or your changes to the module will not have any effect. You can also
+use ``./tools/local_run.sh`` script as a quick and dirty method of forcing
+Weboob applications to use local modules rather than remote ones.
+
 
 Module class
 *************
@@ -451,6 +457,13 @@ with the (relative) link uri of the first ``a`` tag child.
 Your module is now functional and you can use this command::
 
     $ boobank -b example list
+
+.. note::
+
+	You can pass ``-a`` command-line argument to any Weboob application to log
+	all the possible debug output (including requests and their parameters, raw
+	responses and loaded HTML pages) in a temporary directory, indicated at the
+	launch of the program.
 
 Tests
 *****
