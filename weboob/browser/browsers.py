@@ -793,6 +793,12 @@ class StatesMixin(object):
     Saved state variables.
     """
 
+    def locate_browser(self, state):
+        try:
+            self.location(state['url'])
+        except (requests.exceptions.HTTPError, requests.exceptions.TooManyRedirects):
+            pass
+
     def load_state(self, state):
         if 'cookies' in state:
             try:
@@ -806,10 +812,7 @@ class StatesMixin(object):
                 setattr(self, attrname, state[attrname])
 
         if 'url' in state:
-            try:
-                self.location(state['url'])
-            except (requests.exceptions.HTTPError, requests.exceptions.TooManyRedirects):
-                pass
+            self.locate_browser(state)
 
     def dump_state(self):
         state = {}
