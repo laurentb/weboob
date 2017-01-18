@@ -24,15 +24,6 @@ from .history import BadUTF8Page
 
 
 class OptionsPage(LoggedPage, BadUTF8Page):
-    def get_number(self, login):
-        ligne = self.doc.xpath(
-            '//select[@id="select_ligne"]//option[@value="%s"]' % login
-        )
-        if ligne:
-            return ligne[0].text.split('-')[1].strip()
-        else:
-            return None
-
     def get_api_key(self):
         api_key = self.doc.xpath(
             '//div[contains(@class, "div_gestionOptions")]//span[contains(@class, "secret-key")]'

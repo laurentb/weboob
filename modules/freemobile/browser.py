@@ -30,7 +30,7 @@ class Freemobile(LoginBrowser):
 
     homepage = URL('index.php\?page=home', HomePage)
     detailspage = URL('index.php\?page=suiviconso', DetailsPage)
-    optionspage = URL('index.php\?page=options', OptionsPage)
+    optionspage = URL('index.php\?page=options&o=(?P<username>)', OptionsPage)
     loginpage = URL('index.php', LoginPage)
     historypage = URL('ajax.php\?page=consotel_current_month', HistoryPage)
     sendAPI = URL('https://smsapi.free-mobile.fr/sendmsg\?user=(?P<username>)&pass=(?P<apikey>)&msg=(?P<msg>)')
@@ -69,22 +69,26 @@ class Freemobile(LoginBrowser):
 
     @need_login
     def post_message(self, message):
-        self.optionspage.go()
-
-        # TODO: This code does not handle multilines account properly.
-        number = self.page.get_number(self.username)
-        api_key = self.page.get_api_key()
-        if not number or not api_key:
+        receiver = message.thread.id
+        username = [
+            subscription._login
+            for subscription in self.get_subscription_list()
+            if subscription.id.split("@")[0] == receiver
+        ]
+        print(username)
+        if username:
+            username = username[0]
+        else:
             raise CantSendMessage(
-                u'Cannot fetch number or API key for this account.'
+                u'Cannot fetch own number.'
             )
 
-        if (
-            (message.receivers and message.receivers != [number]) or
-            (message.thread and message.thread.id != number)
-        ):
+        self.optionspage.go(username=username)
+
+        api_key = self.page.get_api_key()
+        if not api_key:
             raise CantSendMessage(
-                u'Can only send messages to own number.'
+                u'Cannot fetch API key for this account, is option enabled?'
             )
 
         self.sendAPI.go(
