@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012  Florent Fourcot
+# Copyright(C) 2012-2014 Florent Fourcot
 #
 # This file is part of weboob.
 #
@@ -18,9 +18,26 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .homepage import HomePage
-from .history import HistoryPage, DetailsPage
-from .login import LoginPage
-from .options import OptionsPage
+from weboob.browser.pages import LoggedPage
 
-__all__ = ['LoginPage', 'HomePage', 'HistoryPage', 'DetailsPage', 'OptionsPage']
+from .history import BadUTF8Page
+
+
+class OptionsPage(LoggedPage, BadUTF8Page):
+    def get_number(self, login):
+        ligne = self.doc.xpath(
+            '//select[@id="select_ligne"]//option[@value="%s"]' % login
+        )
+        if ligne:
+            return ligne[0].text.split('-')[1].strip()
+        else:
+            return None
+
+    def get_api_key(self):
+        api_key = self.doc.xpath(
+            '//div[contains(@class, "div_gestionOptions")]//span[contains(@class, "secret-key")]'
+        )
+        if api_key:
+            return api_key[0].text.strip()
+        else:
+            return None

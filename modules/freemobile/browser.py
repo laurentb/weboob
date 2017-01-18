@@ -18,8 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.capabilities.messages import CantSendMessage
 from weboob.exceptions import BrowserIncorrectPassword
-from .pages import HomePage, LoginPage, HistoryPage, DetailsPage
+from .pages import HomePage, LoginPage, HistoryPage, DetailsPage, OptionsPage
 
 __all__ = ['Freemobile']
 
@@ -29,8 +30,10 @@ class Freemobile(LoginBrowser):
 
     homepage = URL('index.php\?page=home', HomePage)
     detailspage = URL('index.php\?page=suiviconso', DetailsPage)
+    optionspage = URL('index.php\?page=options', OptionsPage)
     loginpage = URL('index.php', LoginPage)
     historypage = URL('ajax.php\?page=consotel_current_month', HistoryPage)
+    sendAPI = URL('https://smsapi.free-mobile.fr/sendmsg\?user=(?P<username>)&pass=(?P<apikey>)&msg=(?P<msg>)')
 
     def do_login(self):
         assert isinstance(self.username, basestring)
@@ -63,3 +66,28 @@ class Freemobile(LoginBrowser):
 
     def iter_documents(self, subscription):
         return self.detailspage.stay_or_go().date_bills(subid=subscription.id)
+
+    @need_login
+    def post_message(self, message):
+        self.optionspage.go()
+
+        # TODO: This code does not handle multilines account properly.
+        number = self.page.get_number(self.username)
+        api_key = self.page.get_api_key()
+        if not number or not api_key:
+            raise CantSendMessage(
+                u'Cannot fetch number or API key for this account.'
+            )
+
+        if (
+            (message.receivers and message.receivers != [number]) or
+            (message.thread and message.thread.id != number)
+        ):
+            raise CantSendMessage(
+                u'Can only send messages to own number.'
+            )
+
+        self.sendAPI.go(
+            username=self.username, apikey=api_key,
+            msg=message.content
+        )
