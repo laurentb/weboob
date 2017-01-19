@@ -31,7 +31,7 @@ class CICBrowser(AbstractBrowser):
     BASEURL = 'https://www.cic.fr'
     PARENT = 'creditmutuel'
 
-    login =       URL('/mabanque/fr/authentification.html',
+    login =       URL('/fr/authentification.html',
                       '/sb/fr/banques/particuliers/index.html',
                       '/(?P<subbank>.*)/fr/$',
                       '/(?P<subbank>.*)/fr/banques/accueil.html',
