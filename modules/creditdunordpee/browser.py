@@ -27,7 +27,7 @@ from .pages import LoginPage, HomePage, AvoirPage, HistoryPage
 
 class CreditdunordpeeBrowser(LoginBrowser):
     BASEURL = 'https://salaries.pee.credit-du-nord.fr'
-    home = URL('/portal/fr/salarie-cdn/', HomePage)
+    home = URL('/?/portal/fr/salarie-cdn/', HomePage)
     login = URL('/portal/login', LoginPage)
     avoir = URL(u'/portal/salarie-cdn/monepargne/mesavoirs', AvoirPage)
     history = URL(u'/portal/salarie-cdn/operations/consulteroperations\?scenario=ConsulterOperationsEffectuees',
