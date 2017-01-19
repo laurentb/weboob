@@ -212,7 +212,7 @@ class Cragr(LoginBrowser):
         # If this fails, there is no point in retrying with same cookies.
         self.location(self.perimeter_url.format(self.sag))
         if self.page.get_error() is not None:
-            self.login()
+            self.do_login()
             self.location(self.perimeter_url.format(self.sag))
         if len(self.perimeters) > 2:
             perimeter_link = self.page.get_perimeter_link(perimeter)
