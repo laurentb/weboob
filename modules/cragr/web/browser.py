@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from collections import OrderedDict
 import re
 from urlparse import urlparse
 
@@ -95,6 +95,8 @@ class Cragr(LoginBrowser):
     new_login = False
 
     def __init__(self, website, *args, **kwargs):
+        super(Cragr, self).__init__(*args, **kwargs)
+
         if website in self.new_login_domain:
             domain = re.sub('^m\.', 'w2.', website)
             self.new_login = True
@@ -102,9 +104,12 @@ class Cragr(LoginBrowser):
             domain = re.sub('^m\.', 'www.', website)
 
         self._sag = None  # updated while browsing
+
+        self._urls = OrderedDict(self._urls)
         self.home_site = 'https://%s/' % domain
-        self.home_page.urls.append(self.home_site)
-        self.home_page.urls.append(self.home_site + 'particuliers.html')
+        self.home_page = URL(self.home_site, self.home_site + 'particuliers.html', HomePage)
+        self.home_page.browser = self
+        self._urls['home_page'] = self.home_page
 
         self.accounts_url = None
         self.savings_url = None
@@ -113,7 +118,6 @@ class Cragr(LoginBrowser):
         self.perimeters = None
         self.current_perimeter = None
         self.broken_perimeters = list()
-        super(Cragr, self).__init__(*args, **kwargs)
 
     def do_login(self):
         """
