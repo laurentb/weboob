@@ -27,7 +27,7 @@ __all__ = ['SenscritiqueBrowser']
 
 class SenscritiqueBrowser(PagesBrowser):
 
-    BASEURL = 'http://www.senscritique.com'
+    BASEURL = 'https://www.senscritique.com'
 
     films_page = URL('/everymovie/programme-tv/cette-semaine', FilmsPage)
     event_page = URL('/film/(?P<_id>.*)', EventPage)
