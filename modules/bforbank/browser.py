@@ -44,6 +44,7 @@ class BforbankBrowser(LoginBrowser):
     lifeinsurance_list = URL(r'/client/accounts/lifeInsurance/lifeInsuranceSummary.action', LifeInsuranceList)
     lifeinsurance_iframe = URL(r'/client/accounts/lifeInsurance/consultationDetailSpirica.action', LifeInsuranceIframe)
     lifeinsurance_redir = URL(r'https://assurance-vie.bforbank.com:443/sylvea/welcomeSSO.xhtml', LifeInsuranceRedir)
+    lifeinsurance_error = URL(r'/client/accounts/lifeInsurance/lifeInsuranceError.action\?errorCode=.*&errorMsg=.*', ErrorPage)
 
     bourse_login = URL(r'/espace-client/synthese/debranchementCaTitre/(?P<id>\d+)')
     bourse = URL('https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis',
@@ -90,7 +91,9 @@ class BforbankBrowser(LoginBrowser):
             assert self.bourse.is_here()
             return self.page.iter_history()
         elif account.type == Account.TYPE_LIFE_INSURANCE:
-            self.goto_spirica(account)
+            if not self.goto_spirica(account):
+                return iter([])
+
             return self.spirica.iter_history(account)
 
         self.location(account._link.replace('tableauDeBord', 'operations'))
@@ -115,6 +118,11 @@ class BforbankBrowser(LoginBrowser):
             assert self.lifeinsurance_iframe.is_here()
 
         self.location(self.page.get_iframe())
+        if self.lifeinsurance_error.is_here():
+            self.home.go()
+            self.logger.warning('life insurance site is unavailable')
+            return False
+
         assert self.lifeinsurance_redir.is_here()
 
         redir = self.page.get_redir()
@@ -122,6 +130,7 @@ class BforbankBrowser(LoginBrowser):
         account._link = self.absurl(redir)
         self.spirica.session.cookies.update(self.session.cookies)
         self.spirica.logged = True
+        return True
 
     def get_bourse_account(self, account):
         self.bourse_login.go(id=account.id) # "login" to bourse page
@@ -142,7 +151,9 @@ class BforbankBrowser(LoginBrowser):
     @need_login
     def iter_investment(self, account):
         if account.type == Account.TYPE_LIFE_INSURANCE:
-            self.goto_spirica(account)
+            if not self.goto_spirica(account):
+                return iter([])
+
             return self.spirica.iter_investment(account)
         elif account.type == Account.TYPE_MARKET:
             bourse_account = self.get_bourse_account(account)
