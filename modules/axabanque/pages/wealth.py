@@ -35,6 +35,10 @@ def MyDecimal(*args, **kwargs):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
+    TYPES = {u'assurance vie': Account.TYPE_LIFE_INSURANCE,
+             u'perp': Account.TYPE_PERP,
+            }
+
     @method
     class iter_accounts(ListElement):
         item_xpath = '//section[has-class("contracts")]/article'
@@ -50,7 +54,8 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj__link = Async('details') & Attr(u'//a[@data-target][.//div[@class="amount"]]', 'data-target')
 
             def obj_type(self):
-                return Account.TYPE_LIFE_INSURANCE if "Assurance vie" in Field('label')(self) else Account.TYPE_UNKNOWN
+                types = [v for k, v in self.page.TYPES.items() if k in Field('label')(self).lower()]
+                return types[0] if len(types) else Account.TYPE_UNKNOWN
 
             def obj_currency(self):
                 return Account.get_currency(CleanText('.//span[has-class("card-amount")]')(self))
@@ -116,7 +121,7 @@ class HistoryPage(LoggedPage, HTMLPage):
 
             load_details = Attr('.', 'data-url') & AsyncLoad
 
-            obj_raw = Transaction.Raw('.//div[@class="t-data__label desktop"]')
+            obj_raw = Transaction.Raw('.//div[has-class("desktop")]//em')
             obj_date = Date(CleanText('.//div[has-class("t-data__date") and has-class("desktop")]'), dayfirst=True)
             obj_amount = MyDecimal('.//div[has-class("t-data__amount") and has-class("desktop")]')
 

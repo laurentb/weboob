@@ -194,8 +194,8 @@ class AXAAssurance(AXABrowser):
     BASEURL = 'https://espaceclient.axa.fr'
 
     accounts = URL('/accueil.html', AccountsPage)
-    investment = URL('/content/ecc-popin-cards/savings/savings/repartition', InvestmentWealthPage)
-    history = URL('.*accueil/savings/savings/contract', HistoryPage)
+    investment = URL('/content/ecc-popin-cards/savings/(\w+)/repartition', InvestmentWealthPage)
+    history = URL('.*accueil/savings/(\w+)/contract', HistoryPage)
 
     def __init__(self, *args, **kwargs):
         super(AXAAssurance, self).__init__(*args, **kwargs)
