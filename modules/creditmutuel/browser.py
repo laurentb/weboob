@@ -232,6 +232,7 @@ class CreditMutuelBrowser(LoginBrowser):
             tr.date = tr.rdate = tr.vdate = group[0].date
             tr.type = FrenchTransaction.TYPE_CARD_SUMMARY
             tr._is_coming = False
+            tr._is_manualsum = True
             trs.append(tr)
         return trs
 
@@ -272,7 +273,9 @@ class CreditMutuelBrowser(LoginBrowser):
         if differed_date is not None:
             # set deleted for card_summary
             for tr in transactions:
-                tr.deleted = tr.type == FrenchTransaction.TYPE_CARD_SUMMARY and differed_date.month <= tr.date.month
+                tr.deleted = tr.type == FrenchTransaction.TYPE_CARD_SUMMARY and \
+                             differed_date.month <= tr.date.month and \
+                             not hasattr(tr, '_is_manualsum')
 
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions
