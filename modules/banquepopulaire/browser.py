@@ -270,10 +270,11 @@ class BanquePopulaire(LoginBrowser):
                     self.location('https://www.linebourse.fr/Portefeuille')
             elif self.natixis_page.is_here():
                 self.page.submit_form()
-                assert self.etna.is_here()
 
             if self.natixis_error_page.is_here():
+                self.logger.warning("natixis site doesn't work")
                 return False
+            assert self.etna.is_here()
             return True
 
     @need_login
