@@ -35,6 +35,7 @@ from .pages import (
     SavingsPage, TransactionsPage, AdvisorPage, UselessPage,
     CardsPage, LifeInsurancePage, MarketPage, LoansPage, PerimeterPage,
     ChgPerimeterPage, MarketHomePage, FirstVisitPage, BGPIPage,
+    TransferInit, TransferPage,
 )
 
 
@@ -91,6 +92,9 @@ class Cragr(LoginBrowser):
 
     perimeter = URL(r'/stb/entreeBam\?.*act=Perimetre', PerimeterPage)
     chg_perimeter = URL(r'/stb/entreeBam\?.*act=ChgPerim.*', ChgPerimeterPage)
+
+    transfer_init_page = URL(r'/stb/entreeBam\?sessionSAG=(?P<sag>[^&]+)&stbpg=pagePU&act=Virementssepa&stbzn=bnt&actCrt=Virementssepa', TransferInit)
+    transfer_page = URL(r'/stb/collecteNI\?fwkaid=([\d_]+)&fwkpid=([\d_]+)', TransferPage)
 
     new_login_domain = []
     new_login = False
@@ -492,3 +496,64 @@ class Cragr(LoginBrowser):
             self._old_sag = self._sag = re.search('idSessionSag = "([^"]+)";', script[0].text).group(1)
         else:
             self._sag = self._old_sag
+
+    @need_login
+    def iter_transfer_recipients(self, account):
+        self.transfer_init_page.go(sag=self.sag)
+        for rcpt in self.page.iter_emitters():
+            if rcpt.id == account.id:
+                break
+        else:
+            # couldn't find the account as emitter
+            return
+
+        for rcpt in self.page.iter_recipients():
+            if rcpt.iban or rcpt.id != account.id:
+                yield rcpt
+
+    @need_login
+    def init_transfer(self, transfer, **params):
+        accounts = self.get_accounts_list()
+
+        assert transfer.recipient_id
+        assert transfer.account_id
+
+        self.transfer_init_page.go(sag=self.sag)
+        assert self.transfer_init_page.is_here()
+
+        currency = transfer.currency or 'EUR'
+        if not isinstance(currency, basestring):
+            # sometimes it's a Currency object
+            currency = currency.id
+
+        self.page.submit_accounts(transfer.account_id, transfer.recipient_id, transfer.amount, currency)
+
+        assert self.page.is_reason()
+        self.page.submit_more(transfer.label, transfer.exec_date)
+
+        assert self.page.is_confirm()
+        res = self.page.get_transfer()
+
+        if not res.account_iban:
+            for acc in accounts:
+                self.logger.warning('%r %r', res.account_id, acc.id)
+                if res.account_id == acc.id:
+                    res.account_iban = acc.iban
+                    break
+
+        if not res.recipient_iban:
+            for acc in accounts:
+                if res.recipient_id == acc.id:
+                    res.recipient_iban = acc.iban
+                    break
+
+        return res
+
+    @need_login
+    def execute_transfer(self, transfer, **params):
+        assert self.transfer_page.is_here()
+        assert self.page.is_confirm()
+        self.page.submit_confirm()
+
+        assert self.page.is_sent()
+        return self.page.get_transfer()

@@ -18,8 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from collections import OrderedDict
+import re
 
-from weboob.capabilities.bank import AccountNotFound, CapBankTransfer
+from weboob.capabilities.bank import Account, AccountNotFound, CapBankTransfer
 from weboob.capabilities.contact import CapContact
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
@@ -111,8 +112,23 @@ class CragrModule(Module, CapBankTransfer, CapContact):
         for inv in self.browser.iter_investment(account):
             yield inv
 
-    def transfer(self, account, to, amount, reason=None):
-        return self.browser.do_transfer(account, to, amount, reason)
-
     def iter_contacts(self):
         return self.browser.iter_advisor()
+
+    def iter_transfer_recipients(self, account):
+        if not isinstance(account, Account):
+            account = self.get_account(account)
+
+        return self.browser.iter_transfer_recipients(account)
+
+    def init_transfer(self, transfer, **params):
+        def to_ascii(s):
+            return s.encode('ascii', errors='ignore').decode('ascii')
+
+        if transfer.label:
+            transfer.label = re.sub(r'[+!]', '', to_ascii(transfer.label[:33]))
+
+        return self.browser.init_transfer(transfer, **params)
+
+    def execute_transfer(self, transfer, **params):
+        return self.browser.execute_transfer(transfer, **params)

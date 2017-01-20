@@ -17,19 +17,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import date as ddate
+from __future__ import unicode_literals
+
+from datetime import date as ddate, datetime
 from decimal import Decimal
 from urlparse import urlparse
 import re
 
 from weboob.browser.pages import HTMLPage, FormNotFound
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.base import Currency
+from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, TransferError
 from weboob.capabilities.contact import Advisor
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.date import parse_french_date, LinearDateGuesser
-from weboob.browser.filters.standard import Date, CleanText
+from weboob.browser.filters.standard import Date, CleanText, CleanDecimal, Currency as CleanCurrency
 
 
 class MyLoggedPage(object):
@@ -807,3 +810,166 @@ class BGPIPage(MarketPage):
         self.go_on(self.doc.xpath(u'.//a[contains(text(), "Retour à mes comptes")]')[0].attrib['href'])
         form = self.browser.page.get_form(name='formulaire')
         form.submit()
+
+
+class TransferInit(MyLoggedPage, BasePage):
+    def iter_emitters(self):
+        items = self.doc.xpath('//select[@name="VIR_VIR1_FR3_LE"]/option')
+        return self.parse_recipients(items, assume_internal=True)
+
+    def iter_recipients(self):
+        items = self.doc.xpath('//select[@name="VIR_VIR1_FR3_LB"]/option')
+        return self.parse_recipients(items)
+
+    def parse_recipients(self, items, assume_internal=False):
+        for opt in items:
+            lines = get_text_lines(opt)
+
+            if opt.attrib['value'].startswith('I') or assume_internal:
+                for n, line in enumerate(lines):
+                    if line.strip().startswith('n°'):
+                        rcpt = Recipient()
+                        rcpt._index = opt.attrib['value']
+                        rcpt._raw_label = ' '.join(lines)
+                        rcpt.category = 'Interne'
+                        rcpt.id = CleanText().filter(line[2:].strip())
+                        # we don't have iban here, use account number
+                        rcpt.label = ' '.join(lines[:n])
+                        rcpt.currency = Currency.get_currency(lines[-1])
+                        rcpt.enabled_at = datetime.now().replace(microsecond=0)
+                        yield rcpt
+                        break
+            elif opt.attrib['value'].startswith('E'):
+                rcpt = Recipient()
+                rcpt._index = opt.attrib['value']
+                rcpt._raw_label = ' '.join(lines)
+                rcpt.category = 'Externe'
+                rcpt.label = lines[0]
+                rcpt.iban = lines[1]
+                rcpt.id = rcpt.iban
+                rcpt.enabled_at = datetime.now().replace(microsecond=0)
+                yield rcpt
+
+    def submit_accounts(self, account_id, recipient_id, amount, currency):
+        emitters = [rcpt for rcpt in self.iter_emitters() if rcpt.id == account_id and not rcpt.iban]
+        if len(emitters) != 1:
+            raise TransferError('Could not find emitter %r' % account_id)
+        recipients = [rcpt for rcpt in self.iter_recipients() if rcpt.id and rcpt.id == recipient_id]
+        if len(recipients) != 1:
+            raise TransferError('Could not find recipient %r' % recipient_id)
+
+        form = self.get_form(name='frm_fwk')
+        assert amount > 0
+        amount = str(amount.quantize(Decimal('0.00')))
+        form['T3SEF_MTT_EURO'], form['T3SEF_MTT_CENT'] = amount.split('.')
+        form['VIR_VIR1_FR3_LE'] = emitters[0]._index
+        form['VIR_VIR1_FR3_LB'] = recipients[0]._index
+        form['DEVISE'] = currency or emitters[0].currency
+        form['VIR_VIR1_FR3_LE_HID'] = emitters[0]._raw_label
+        form['VIR_VIR1_FR3_LB_HID'] = recipients[0]._raw_label
+        form['fwkaction'] = 'Confirmer' # mandatory
+        form['fwkcodeaction'] = 'Executer'
+        form.submit()
+
+
+class TransferPage(MyLoggedPage, BasePage):
+    def get_step(self):
+        return CleanText('//div[@id="etapes"]//li[has-class("encours")]')(self.doc)
+
+    def is_sent(self):
+        return self.get_step().startswith('Récapitulatif')
+
+    def is_confirm(self):
+        return self.get_step().startswith('Confirmation')
+
+    def is_reason(self):
+        return self.get_step().startswith('Informations complémentaires')
+
+    def get_transfer(self):
+        transfer = Transfer()
+
+        amount_xpath = '//fieldset//p[has-class("montant")]'
+        transfer.amount = CleanDecimal(amount_xpath, replace_dots=True)(self.doc)
+        transfer.currency = CleanCurrency(amount_xpath)(self.doc)
+
+        for p in self.doc.xpath('//fieldset[.//h3[contains(text(), "Compte émetteur")]]//p'):
+            found = False
+            for line in get_text_lines(p):
+                if line.startswith('n°'):
+                    line = line[2:].strip()
+                    found = True
+
+                    transfer.account_id = line
+                    break
+            if found:
+                break
+
+        for p in self.doc.xpath('//fieldset[.//h3[contains(text(), "Compte bénéficiaire")]]//p'):
+            found = False
+            for line in get_text_lines(p):
+                if line.startswith('n°'):
+                    line = line[2:].strip()
+                    found = True
+
+                    transfer.recipient_id = line
+                    break
+                elif line.startswith('IBAN :'):
+                    line = line[len('IBAN :'):].strip().replace(' ', '')
+                    found = True
+
+                    transfer.recipient_iban = line
+                    transfer.recipient_id = line
+                    break
+            if found:
+                break
+
+        pfx = 'Référence opération :'
+        for fs in self.doc.xpath('//fieldset//p'):
+            txt = CleanText().filter(fs)
+            if txt.startswith(pfx):
+                txt = txt[len(pfx):].strip()
+                transfer.label = txt
+                break
+
+        pfx = 'Virement unique le :'
+        for fs in self.doc.xpath('//fieldset//p'):
+            txt = CleanText().filter(fs)
+            if txt.startswith(pfx):
+                txt = txt[len(pfx):].strip()
+                transfer.exec_date = Date(dayfirst=True).filter(txt)
+                break
+
+        return transfer
+
+    def submit_more(self, label, date=None):
+        if date is None:
+            date = ddate.today()
+
+        form = self.get_form(name='frm_fwk')
+        form['VICrt_CDDOOR'] = label
+        form['VICrtU_DATEVRT_JJ'] = date.strftime('%d')
+        form['VICrtU_DATEVRT_MM'] = date.strftime('%m')
+        form['VICrtU_DATEVRT_AAAA'] = date.strftime('%Y')
+        form['DATEC'] = date.strftime('%d/%m/%Y')
+        form['PERIODE'] = 'U'
+        form['fwkaction'] = 'Confirmer'
+        form['fwkcodeaction'] = 'Executer'
+        form.submit()
+
+    def submit_confirm(self):
+        form = self.get_form(name='frm_fwk')
+        form['fwkaction'] = 'Confirmer'
+        form['fwkcodeaction'] = 'Executer'
+        form.submit()
+
+    def on_load(self):
+        super(TransferPage, self).on_load()
+        # warning: the "service indisponible" message (not catched here) is not a real BrowserUnavailable
+        err = CleanText('//div[has-class("blc-choix-erreur")]//p', default='')(self.doc)
+        if err:
+            raise TransferError(err)
+
+
+def get_text_lines(el):
+    lines = [re.sub(r'\s+', ' ', line).strip() for line in el.text_content().split('\n')]
+    return filter(None, lines)
