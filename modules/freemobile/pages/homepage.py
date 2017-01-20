@@ -30,6 +30,10 @@ class HomePage(BadUTF8Page):
 
         return True
 
+    @property
+    def logged(self):
+        return self.is_here()
+
     @method
     class get_list(ListElement):
         item_xpath = '//div[@class="abonne"]'
