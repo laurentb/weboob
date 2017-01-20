@@ -40,6 +40,10 @@ from weboob.tools.misc import to_unicode
 from weboob.tools.pdf import get_pdf_rows
 
 
+class LoggedOut(Exception):
+    pass
+
+
 class BrokenPageError(Exception):
     pass
 
@@ -257,6 +261,9 @@ class LoginPage(MyHTMLPage):
             text = CleanText('//h4[1]')(self.doc) or h1
             raise BrowserUnavailable(text)
 
+        if not self.browser.no_login:
+            raise LoggedOut()
+
     def login(self, login, passwd):
         form = self.get_form(name='Login')
         form['IDToken1'] = login.encode(self.ENCODING)
@@ -272,6 +279,9 @@ class Login2Page(LoginPage):
         return 'https://www.icgauth.banquepopulaire.fr/dacswebssoissuer/api/v1u0/transaction/%s' % transactionID
 
     def on_load(self):
+        if not self.browser.no_login:
+            raise LoggedOut()
+
         r = self.browser.open(self.request_url)
         doc = json.loads(r.content)
         self.form_id = doc['step']['validationUnits'][0]['PASSWORD_LOOKUP'][0]['id']

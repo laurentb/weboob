@@ -17,17 +17,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 from collections import OrderedDict
+from functools import wraps
 import urllib
 
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.browser.exceptions import HTTPNotFound
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
 
 from .pages import (
+    LoggedOut,
     LoginPage, IndexPage, AccountsPage, AccountsFullPage, CardsPage, TransactionsPage,
     UnavailablePage, RedirectPage, HomePage, Login2Page, ErrorPage,
     LineboursePage, InvestmentLineboursePage, MessagePage,
@@ -42,6 +43,52 @@ __all__ = ['BanquePopulaire']
 
 class BrokenPageError(Exception):
     pass
+
+
+def retry(exc_check):
+    """Decorate a function to retry several times in case of exception.
+
+    The decorated function is called at max 4 times. It is retried only when it
+    raises an exception of the type `exc_check`.
+    If the function call succeeds and returns an iterator, a wrapper to the
+    iterator is returned. If iterating on the result raises an exception of type
+    `exc_check`, the iterator is recreated by re-calling the function, but the
+    values already yielded will not be re-yielded.
+    For consistency, the function MUST always return values in the same order.
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(browser, *args, **kwargs):
+            cb = lambda: func(browser, *args, **kwargs)
+
+            for i in xrange(5):
+                try:
+                    ret = cb()
+                except exc_check as exc:
+                    browser.logger.debug('%s raised, retrying', exc)
+                    continue
+
+                if not hasattr(ret, '__iter__'):
+                    return ret  # simple value, no need to retry on items
+                return iter_retry(cb, value=ret, retries=i, exc_check=exc_check, logger=browser.logger)
+
+            raise BrowserUnavailable('Site did not reply successfully after multiple tries')
+
+        return wrapper
+    return decorator
+
+
+def no_need_login(func):
+    # indicate a login is in progress, so LoggedOut should not be raised
+    def wrapper(browser, *args, **kwargs):
+        browser.no_login += 1
+        try:
+            return func(browser, *args, **kwargs)
+        finally:
+            browser.no_login -= 1
+
+    return wrapper
+
 
 
 class BanquePopulaire(LoginBrowser):
@@ -105,6 +152,9 @@ class BanquePopulaire(LoginBrowser):
     #def home(self):
     #    self.do_login()
 
+    no_login = 0
+
+    @no_need_login
     def do_login(self):
         """
         Attempt to log in.
@@ -113,8 +163,7 @@ class BanquePopulaire(LoginBrowser):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
-        if not self.login_page.is_here():
-            self.location(self.BASEURL)
+        self.location(self.BASEURL)
 
         self.page.login(self.username, self.password)
 
@@ -144,6 +193,7 @@ class BanquePopulaire(LoginBrowser):
             form['token'] = self.page.build_token(form['token'])
             form.submit()
 
+    @retry(LoggedOut)
     @need_login
     def get_accounts_list(self, get_iban=True):
         # We have to parse account list in 2 different way depending if we want the iban number or not
@@ -194,6 +244,7 @@ class BanquePopulaire(LoginBrowser):
             return NotAvailable
         return self.page.get_iban(account.id)
 
+    @retry(LoggedOut)
     @need_login
     def get_account(self, id):
         assert isinstance(id, basestring)
@@ -204,6 +255,7 @@ class BanquePopulaire(LoginBrowser):
 
         return None
 
+    @retry(LoggedOut)
     @need_login
     def get_history(self, account, coming=False):
         account = self.get_account(account.id)
@@ -277,6 +329,7 @@ class BanquePopulaire(LoginBrowser):
             assert self.etna.is_here()
             return True
 
+    @retry(LoggedOut)
     @need_login
     def get_investment(self, account):
         if not self.go_investments(account):
@@ -310,3 +363,58 @@ class BanquePopulaire(LoginBrowser):
                 else:
                     for tr in self.page.get_history():
                         yield tr
+
+
+class iter_retry(object):
+    # when the callback is retried, it will create a new iterator, but we may already yielded
+    # some values, so we need to keep track of them and seek in the middle of the iterator
+
+    def __init__(self, cb, retries=0, value=None, exc_check=Exception, logger=None):
+        self.cb = cb
+        self.it = value
+        self.items = []
+        self.retries = retries
+        self.exc_check = exc_check
+        self.logger = logger
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.retries > 4:
+            raise BrowserUnavailable('Site did not reply successfully after multiple tries')
+
+        if self.it is None:
+            self.it = self.cb()
+
+            # recreated iterator, consume previous items
+            try:
+                for sent in self.items:
+                    new = next(self.it)
+                    if sent.to_dict() != new.to_dict():
+                        # safety is not guaranteed
+                        raise BrowserUnavailable('Site replied inconsistently between retries')
+            except StopIteration:
+                raise BrowserUnavailable('Site replied fewer elements than last iteration')
+            except self.exc_check as exc:
+                if self.logger:
+                    self.logger.info('%s raised, retrying', exc)
+                self.it = None
+                self.retries += 1
+                return next(self)
+
+        # return one item
+        try:
+            obj = next(self.it)
+        except self.exc_check as exc:
+            if self.logger:
+                self.logger.info('%s raised, retrying', exc)
+            self.it = None
+            self.retries += 1
+            return next(self)
+        else:
+            self.items.append(obj)
+            return obj
+
+    next = __next__
+
