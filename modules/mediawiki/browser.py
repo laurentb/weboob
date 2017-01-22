@@ -21,6 +21,8 @@ from urlparse import urlsplit, urljoin
 import datetime
 import re
 
+import dateutil.parser
+
 from weboob.browser.browsers import DomainBrowser
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.content import Revision
@@ -234,6 +236,62 @@ class MediawikiBrowser(DomainBrowser):
         pageid = response['query']['pages'].keys()[0]
         info = response['query']['pages'][pageid]
         return self._common_parse_file(info)
+
+    def search_categories(self, pattern):
+        request = {
+            'action': 'query',
+            'prop': 'info|categoryinfo',
+            'inprop': 'url',
+        }
+
+        request.update({
+            'generator': 'search',
+            'gsrnamespace': 14, # 'Category:' namespace
+            'gsrsearch': pattern,
+        })
+
+        while True:
+            response = self.API_get(request)
+            for cdict in response['query']['pages'].values():
+                if not cdict['categoryinfo'].get('files', 0):
+                    continue
+                yield {
+                    'id': cdict['title'],
+                    'title': cdict['title'],
+                    'url': cdict['canonicalurl'],
+                }
+
+            if 'continue' in response:
+                request.update(response['continue'])
+            else:
+                break
+
+    def iter_images(self, category):
+        request = self._common_file_request()
+        request.update({
+            'generator': 'categorymembers',
+            'gcmtitle': category,
+            'gcmtype': 'file',
+        })
+
+        while True:
+            response = self.API_get(request)
+            for fdict in response['query']['pages'].values():
+                yield self._common_parse_file(fdict)
+
+            if 'continue' in response:
+                request.update(response['continue'])
+            else:
+                break
+
+    def fill_file(self, obj, fields):
+        response = self.browser.open(obj.url)
+        if 'data' in fields:
+            obj.data = response.content
+        if 'size' in fields:
+            obj.size = len(response.content)
+        if 'date' in fields:
+            obj.date = dateutil.parser.parse(response.headers.get('Date'))
 
     def home(self):
         # We don't need to change location, we're using the JSON API here.

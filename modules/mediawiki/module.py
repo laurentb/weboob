@@ -22,7 +22,8 @@ import os
 from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.content import CapContent, Content
 from weboob.capabilities.file import CapFile
-from weboob.capabilities.image import CapImage, BaseImage, Thumbnail
+from weboob.capabilities.gallery import CapGallery, BaseImage, BaseGallery
+from weboob.capabilities.image import CapImage, Thumbnail
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import MediawikiBrowser
@@ -37,7 +38,7 @@ class WikiImage(BaseImage):
         return self._canonical_url
 
 
-class MediawikiModule(Module, CapContent, CapImage):
+class MediawikiModule(Module, CapContent, CapImage, CapGallery):
     NAME = 'mediawiki'
     MAINTAINER = u'Clément Schreiner'
     EMAIL = 'clemux@clemux.info'
@@ -105,15 +106,27 @@ class MediawikiModule(Module, CapContent, CapImage):
         info = self.browser.get_image(_id)
         return self._make_image(info)
 
+    def search_galleries(self, pattern, sortby=CapGallery.SEARCH_RELEVANCE):
+        for info in self.browser.search_categories(pattern):
+            gall = BaseGallery(info['id'])
+            gall.title = info['title']
+            yield gall
+
+    def iter_gallery_images(self, gallery):
+        for info in self.browser.iter_images(gallery.id):
+            yield self._make_image(info)
+
     def fill_img(self, obj, fields):
         if set(fields) & set(('url', 'thumbnail')):
             new = self.get_image(obj.id)
-            if not obj.url:
+
+            if 'url' in fields:
                 obj.url = new.url
-            if not obj.thumbnail:
+            if 'thumbnail' in fields:
                 obj.thumbnail = new.thumbnail
+                self.fillobj(obj.thumbnail)
         if 'data' in fields:
-            obj.data = self.browser.open(obj.url).content
+            self.browser.fill_file(obj, fields)
         return obj
 
     OBJECTS = {BaseImage: fill_img, Thumbnail: fill_img}
