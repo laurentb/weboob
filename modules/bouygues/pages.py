@@ -90,7 +90,7 @@ class DocumentsPage(HTMLPage):
 
         for option in options:
             ref = self.doc.xpath('//span[contains(text(), "%s")]/ \
-                ancestor::div[has-class("etape-content")]//a[@id="btnAnciennesFactures"]' % label)
+                ancestor::div[has-class("eccoetape")]//a[@id="btnAnciennesFactures"]' % label)
             if ref:
                 # Get ref and return it
                 return re.search('reference=([\d]+)', Link().filter(ref)).group(1)
