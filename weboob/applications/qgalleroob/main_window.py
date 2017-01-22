@@ -89,6 +89,9 @@ class MainWindow(QtMainWindow):
             self.backendsConfig()
         self.ui.actionBackends.triggered.connect(self.backendsConfig)
 
+        self.ui.limitResults.valueChanged.connect(self._limitResultsChanged)
+        self.mdl.setLimit(self.ui.limitResults.value())
+
         self.lastSaveDir = os.path.expanduser('~')
 
     @Slot()
@@ -195,7 +198,7 @@ class MainWindow(QtMainWindow):
 
         self.ui.imageList.setRootIndex(QModelIndex())
         self.ui.collectionTree.setRootIndex(QModelIndex())
-        self.mdl.addRootDo('search_image', pattern, backends=backend)
+        self.mdl.addRootDoLimit(BaseImage, 'search_image', pattern, backends=backend)
 
     @Slot()
     def startGallSearch(self):
@@ -211,7 +214,7 @@ class MainWindow(QtMainWindow):
 
         self.ui.imageList.setRootIndex(QModelIndex())
         self.ui.collectionTree.setRootIndex(QModelIndex())
-        self.mdl.addRootDo('search_galleries', pattern, backends=backend)
+        self.mdl.addRootDoLimit(BaseGallery, 'search_galleries', pattern, backends=backend)
 
     @Slot()
     def startBrowse(self):
@@ -227,7 +230,7 @@ class MainWindow(QtMainWindow):
         res_classes = [BaseImage, BaseGallery]
         self.mdl.setResourceClasses(res_classes)
 
-        self.mdl.addRootDo('iter_resources', res_classes, [], backends=backends)
+        self.mdl.addRootDoLimit(None, 'iter_resources', res_classes, [], backends=backends)
 
     @Slot()
     def _jobAdded(self):
@@ -236,3 +239,7 @@ class MainWindow(QtMainWindow):
     @Slot()
     def _jobFinished(self):
         QApplication.restoreOverrideCursor()
+
+    @Slot(int)
+    def _limitResultsChanged(self, value):
+        self.mdl.setLimit(value)

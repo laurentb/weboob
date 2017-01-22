@@ -290,7 +290,44 @@
     <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_4">
-    <layout class="QHBoxLayout" name="horizontalLayout_4">
+    <layout class="QVBoxLayout" name="verticalLayout_4">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>Results limit:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="limitResults">
+         <property name="specialValueText">
+          <string>No limit</string>
+         </property>
+         <property name="maximum">
+          <number>10000</number>
+         </property>
+         <property name="value">
+          <number>50</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
      <item>
       <widget class="QToolBox" name="toolBox">
        <property name="currentIndex">
@@ -302,7 +339,7 @@
           <x>0</x>
           <y>0</y>
           <width>256</width>
-          <height>76</height>
+          <height>214</height>
          </rect>
         </property>
         <attribute name="label">
@@ -351,7 +388,7 @@
           <x>0</x>
           <y>0</y>
           <width>256</width>
-          <height>76</height>
+          <height>214</height>
          </rect>
         </property>
         <attribute name="label">
@@ -400,7 +437,7 @@
           <x>0</x>
           <y>0</y>
           <width>256</width>
-          <height>76</height>
+          <height>214</height>
          </rect>
         </property>
         <attribute name="label">
