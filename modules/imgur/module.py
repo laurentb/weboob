@@ -193,7 +193,9 @@ class ImgurModule(Module, CapPaste, CapGallery, CapImage):
 
     def fill_img(self, img, fields):
         if 'data' in fields:
-            img.data = self.browser.open_raw(img.url).content
+            self.browser.fill_file(img, fields)
+        if 'thumbnail' in fields and img.thumbnail:
+            self.fillobj(img.thumbnail, None)
         return img
 
-    OBJECTS = {Img: fill_img, Thumbnail: fill_img}
+    OBJECTS = {Img: fill_img, Thumbnail: fill_img, BaseGallery: fill_img}

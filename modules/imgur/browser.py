@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import dateutil.parser
 
 from weboob.browser import URL
 from weboob.browser.browsers import APIBrowser
@@ -41,6 +42,15 @@ class ImgurBrowser(APIBrowser):
 
     def open_raw(self, *args, **kwargs):
         return super(ImgurBrowser, self).open(*args, **kwargs)
+
+    def fill_file(self, file, fields):
+        response = self.open_raw(file.url)
+        if 'date' in fields:
+            file.date = dateutil.parser.parse(response.headers.get('Date'))
+        if 'data' in fields:
+            file.data = response.content
+        if 'size' in fields:
+            file.size = len(response.content)
 
     def open(self, *args, **kwargs):
         kwargs.setdefault('headers', {})
