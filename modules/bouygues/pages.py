@@ -120,3 +120,7 @@ class DocumentsPage(HTMLPage):
             def condition(self):
                 # XXX ugly fix to avoid duplicate bills
                 return CleanText('./@facture-id')(self.el) != CleanText('./following-sibling::div[1]/@facture-id')(self.el)
+
+
+class UselessPage(HTMLPage):
+    pass
