@@ -27,12 +27,13 @@ from PyQt5.QtCore import Qt, QObject, QAbstractItemModel, QModelIndex, \
                          pyqtSlot as Slot
 from PyQt5.QtGui import QIcon, QImage, QPixmap, QPixmapCache, \
                         QStandardItemModel, QStandardItem
+from PyQt5.QtWidgets import QApplication
 
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.collection import BaseCollection
 from weboob.capabilities.file import BaseFile
-from weboob.capabilities.gallery import BaseGallery
-from weboob.capabilities.gauge import Gauge
+from weboob.capabilities.gallery import BaseGallery, BaseImage as GBaseImage
+from weboob.capabilities.gauge import Gauge, GaugeSensor
 # TODO expand other cap objects when needed
 
 from .qt import QtDo
@@ -169,6 +170,8 @@ class ResultModel(QAbstractItemModel):
         self.parents = {}
         self.columns = []
 
+        self.limit = None
+
         self.jobs = DoQueue()
         self.jobExpanders = WeakKeyDictionary()
         self.jobFillers = WeakKeyDictionary()
@@ -180,6 +183,9 @@ class ResultModel(QAbstractItemModel):
             pass
 
     # configuration/general operation
+    def setLimit(self, limit):
+        self.limit = limit
+
     def clear(self):
         """Empty the model completely"""
         self.jobs.stop()
@@ -206,6 +212,14 @@ class ResultModel(QAbstractItemModel):
         process.do(*args, **kwargs)
         self.jobAdded.emit()
         self.jobs.add(process)
+
+    def addRootDoLimit(self, cls, *args, **kwargs):
+        app = QApplication.instance()
+        if cls is None:
+            fields = None
+        else:
+            fields = self._expandableFields(cls)
+        return self.addRootDo(app._do_complete, self.limit, fields, *args, **kwargs)
 
     def addRootItems(self, objs):
         for obj in objs:
@@ -242,21 +256,47 @@ class ResultModel(QAbstractItemModel):
         self.jobExpanders[process] = (parent, parent_qidx)
         return process
 
+    def _expandableFields(self, cls):
+        fields = set()
+
+        for col in self.columns:
+            for f in col:
+                if f == 'id' or f in cls._fields:
+                    fields.add(f)
+        if 'thumbnail' in cls._fields:
+            fields.add('thumbnail')
+
+        return list(fields)
+
     def expandGauge(self, gauge, qidx):
+        app = QApplication.instance()
+        fields = self._expandableFields(GaugeSensor)
+
         process = self._prepareExpanderJob(gauge, qidx)
-        process.do('iter_sensors', gauge.id, backends=[gauge.backend])
+        process.do(app._do_complete, self.limit, fields, 'iter_sensors', gauge.id, backends=[gauge.backend])
         self.jobAdded.emit()
         self.jobs.add(process)
 
     def expandGallery(self, gall, qidx):
+        app = QApplication.instance()
+        fields = self._expandableFields(GBaseImage)
+
         process = self._prepareExpanderJob(gall, qidx)
-        process.do('iter_gallery_images', gall, backends=[gall.backend])
+        process.do(app._do_complete, self.limit, fields, 'iter_gallery_images', gall, backends=[gall.backend])
         self.jobAdded.emit()
         self.jobs.add(process)
 
     def expandCollection(self, coll, qidx):
+        app = QApplication.instance()
+        if len(self.resource_classes) == 1:
+            fields = self._expandableFields(self.resource_classes[0])
+        else:
+            fields = None
+            # at this point, we don't know the class of each object
+            # FIXME reimplement _do_complete obj to filter dynamically
+
         process = self._prepareExpanderJob(coll, qidx)
-        process.do('iter_resources', self.resource_classes, coll.split_path, backends=[coll.backend])
+        process.do(app._do_complete, self.limit, fields, 'iter_resources', self.resource_classes, coll.split_path, backends=[coll.backend])
         self.jobAdded.emit()
         self.jobs.add(process)
 
