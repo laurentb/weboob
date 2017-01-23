@@ -220,7 +220,7 @@ class LCLBrowser(LoginBrowser):
         if origin_account._transfer_id is None:
             return
         self.transfer_page.go()
-        if not self.page.can_transfer(origin_account._transfer_id):
+        if self.no_perm.is_here() or not self.page.can_transfer(origin_account._transfer_id):
             return
         self.page.choose_origin(origin_account._transfer_id)
         for recipient in self.page.iter_recipients(account_transfer_id=origin_account._transfer_id):
