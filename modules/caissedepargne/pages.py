@@ -297,14 +297,14 @@ class IndexPage(LoggedPage, HTMLPage):
         accounts[account.id] = account
 
     def get_balance(self, account):
-        if not account.type == Account.TYPE_LIFE_INSURANCE:
+        if account.type != Account.TYPE_LIFE_INSURANCE:
             return NotAvailable
-        self.go_history(account._info)
-        balance = self.doc.xpath('.//tr[td[contains(., ' + account.id + ')]]/td[contains(@class, "somme")]')
+        page = self.go_history(account._info).page
+        balance = page.doc.xpath('.//tr[td[ends-with(@id,"NumContrat")]/a[contains(text(),"%s")]]/td[@class="somme"]' % account.id)
         if len(balance) > 0:
             balance = CleanText('.')(balance[0])
             balance = Decimal(FrenchTransaction.clean_amount(balance)) if balance != u'' else NotAvailable
-        else:
+        else: # sometimes the accounts are attached but no info is available
             balance = NotAvailable
         self.go_list()
         return balance
@@ -447,7 +447,7 @@ class IndexPage(LoggedPage, HTMLPage):
             except KeyError:
                 pass
 
-        form.submit()
+        return form.submit()
 
     def get_history(self):
         i = 0
