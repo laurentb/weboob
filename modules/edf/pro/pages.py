@@ -23,6 +23,7 @@ from datetime import date
 from weboob.browser.pages import HTMLPage, JsonPage, RawPage, LoggedPage
 from weboob.browser.filters.standard import CleanDecimal
 from weboob.capabilities.bill import Subscription, Bill
+from weboob.exceptions import ActionNeeded
 
 
 class LoginPage(HTMLPage):
@@ -36,6 +37,11 @@ class AuthPage(RawPage):
     pass
 
 class SubscriptionsPage(LoggedPage, JsonPage):
+    def build_doc(self, text):
+        if self.content == 'REDIRECT_CGU':
+            raise ActionNeeded(u"Vous devez accepter les conditions générales d'utilisation sur le site de votre banque.")
+        super(SubscriptionsPage, self).build_doc(text)
+
     def get_subscriptions(self):
         subscriptions = []
 
