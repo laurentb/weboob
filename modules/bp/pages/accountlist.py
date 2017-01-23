@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from cStringIO import StringIO
+from io import BytesIO
 import re
 from decimal import Decimal
 from collections import OrderedDict
@@ -166,7 +166,7 @@ class AccountRIB(LoggedPage, RawPage):
         except ImportError:
             self.logger.warning('Please install python-pdfminer to get IBANs')
         else:
-            parser = PDFParser(StringIO(self.doc))
+            parser = PDFParser(BytesIO(self.doc))
             try:
                 if newapi:
                     doc = PDFDocument(parser)
@@ -178,7 +178,7 @@ class AccountRIB(LoggedPage, RawPage):
                 return
 
             rsrcmgr = PDFResourceManager()
-            out = StringIO()
+            out = BytesIO()
             device = TextConverter(rsrcmgr, out)
             interpreter = PDFPageInterpreter(rsrcmgr, device)
             if newapi:
