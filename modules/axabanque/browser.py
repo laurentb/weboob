@@ -24,9 +24,9 @@ from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 
 from .pages.login import KeyboardPage, LoginPage, PredisconnectedPage
-from .pages.bank import BankAccountsPage, InvestmentPage, CBTransactionsPage, \
+from .pages.bank import AccountsPage as BankAccountsPage, CBTransactionsPage, \
                         TransactionsPage, UnavailablePage, IbanPage
-from .pages.wealth import AccountsPage, InvestmentWealthPage, HistoryPage
+from .pages.wealth import AccountsPage as WealthAccountsPage, InvestmentPage, HistoryPage
 
 
 class AXABrowser(LoginBrowser):
@@ -75,25 +75,23 @@ class AXABanque(AXABrowser):
     unavailable = URL('login_errors/indisponibilite.*',
                       '.*page-indisponible.html.*',
                       '.*erreur/erreurBanque.faces', UnavailablePage)
-    # Investment
-    investment = URL('https://espaceclient.axa.fr',
-                     'https://connexion.adis-assurances.com', InvestmentPage)
-    investment_transactions = URL('https://espaceclient.axa.fr/accueil/savings/savings/contract/_jcr_content/' + \
-                                  'par/savingsmovementscard.savingscard.pid_(?P<pid>.*).aid_(?P<aid>.*).html\?skip=(?P<skip>.*)')
+    # Wealth
+    wealth_accounts = URL('https://espaceclient.axa.fr/$',
+                          'https://connexion.adis-assurances.com', WealthAccountsPage)
+    investment = URL('https://espaceclient.axa.fr/.*content/ecc-popin-cards/savings/(\w+)/repartition', InvestmentPage)
+    history = URL('https://espaceclient.axa.fr/.*accueil/savings/(\w+)/contract',
+                  'https://espaceclient.axa.fr/#', HistoryPage)
 
     def __init__(self, *args, **kwargs):
         super(AXABanque, self).__init__(*args, **kwargs)
-        # Need to cache every pages, website is too slow
-        self.account_list = []
-        self.investment_list = {}
-        self.history_list = {}
+        self.cache = {}
+        self.cache['invs'] = {}
 
     @need_login
     def iter_accounts(self):
-        if not self.account_list:
+        if 'accs' not in self.cache.keys():
             accounts = []
             ids = set()
-
             # Get accounts
             self.transactions.go()
             self.bank_accounts.go()
@@ -120,20 +118,13 @@ class AXABanque(AXABrowser):
                                 a.iban = r.page.get_iban()
                             except ClientError:
                                 a.iban = NotAvailable
-                            # Need it to get accounts from tabs
+                        # Need it to get accounts from tabs
                         a._tab, a._pargs, a._purl = tab, page_args, self.url
                         accounts.append(a)
-
             # Get investment accounts if there has
-            self.investment.go()
-
-            if self.investment.is_here():
-                for a in self.page.iter_accounts():
-                    accounts.append(a)
-
-            self.account_list = accounts
-
-        return iter(self.account_list)
+            accounts.extend(list(self.wealth_accounts.go().iter_accounts()))
+            self.cache['accs'] = accounts
+        return self.cache['accs']
 
     @need_login
     def go_account_pages(self, account, action):
@@ -155,46 +146,41 @@ class AXABanque(AXABrowser):
             self.location(target, data=args)
 
     @need_login
-    def iter_history(self, account):
-        if account.id not in self.history_list:
-            trs = []
-            # Side investment's website
-            if account._acctype == "investment":
-                skip = 0
-
-                try:
-                    while self.investment_transactions.go(pid=account.id.zfill(16), aid=account._aid, skip=skip):
-                        for a in self.page.iter_history():
-                            trs.append(a)
-                        skip += 10
-                except AssertionError:
-                    # assertion error when page is empty
-                    pass
-
-            # Main website withouth investments
-            elif account._acctype == "bank" and not account._hasinv:
-                self.go_account_pages(account, "history")
-                if self.page.more_history():
-                    trs = [a for a in self.page.get_history()]
-            self.history_list[account.id] = trs
-        return iter(self.history_list[account.id])
-
-    @need_login
     def iter_investment(self, account):
-        if account.id not in self.investment_list:
+        if account.id not in self.cache['invs']:
             invs = []
+            # do we still need it ?...
             if account._acctype == "bank" and account._hasinv:
                 self.go_account_pages(account, "investment")
-                invs = [i for i in self.page.iter_investment()]
-            self.investment_list[account.id] = invs
-        return iter(self.investment_list[account.id])
+                invs = list(self.page.iter_investment())
+            elif account._acctype == "investment":
+                investment_link = self.location(account._link).page.get_investment_link()
+                invs = list(self.location(investment_link).page.iter_investment())
+            self.cache['invs'][account.id] = invs
+        return self.cache['invs'][account.id]
+
+    @need_login
+    def iter_history(self, account):
+        # Side investment's website
+        if account._acctype == "investment":
+            pagination_link = self.location(self.wealth_accounts.urls[0][:-1] + account._link).page.get_pagination_link()
+            self.location(pagination_link, params={'skip': 0})
+            self.skip = 0
+            for tr in self.page.iter_history(pagination_link=pagination_link):
+                yield tr
+        # Main website withouth investments
+        elif account._acctype == "bank" and not account._hasinv:
+            self.go_account_pages(account, "history")
+            if self.page.more_history():
+                for tr in self.page.get_history():
+                    yield tr
 
 
 class AXAAssurance(AXABrowser):
     BASEURL = 'https://espaceclient.axa.fr'
 
-    accounts = URL('/accueil.html', AccountsPage)
-    investment = URL('/content/ecc-popin-cards/savings/(\w+)/repartition', InvestmentWealthPage)
+    accounts = URL('/accueil.html', WealthAccountsPage)
+    investment = URL('/content/ecc-popin-cards/savings/(\w+)/repartition', InvestmentPage)
     history = URL('.*accueil/savings/(\w+)/contract', HistoryPage)
 
     def __init__(self, *args, **kwargs):
@@ -218,6 +204,7 @@ class AXAAssurance(AXABrowser):
     @need_login
     def iter_history(self, account):
         pagination_link = self.location(account._link).page.get_pagination_link()
+        self.location(pagination_link, params={'skip': 0})
         self.skip = 0
         for tr in self.page.iter_history(pagination_link=pagination_link):
             yield tr

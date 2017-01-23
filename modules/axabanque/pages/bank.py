@@ -23,92 +23,12 @@ from decimal import Decimal, InvalidOperation
 
 from weboob.exceptions import BrowserUnavailable
 from weboob.browser.pages import HTMLPage, PDFPage, LoggedPage
-from weboob.browser.elements import ItemElement, ListElement, TableElement, method
-from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Field, BrowserURL, \
-                                            TableCell, Async, AsyncLoad, Regexp
+from weboob.browser.elements import ItemElement, TableElement, method
+from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell
 from weboob.browser.filters.html import Attr
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-
-
-def MyDecimal(*args, **kwargs):
-    kwargs.update(replace_dots=True, default=NotAvailable)
-    return CleanDecimal(*args, **kwargs)
-
-
-class InvestmentTransaction(FrenchTransaction):
-    PATTERNS = [(re.compile(u'^(?P<text>Versement|versement.*)'),  FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile(u'^(?P<text>(Arbitrage|Prélèvement(s).*))'), FrenchTransaction.TYPE_ORDER),
-                (re.compile(u'^(?P<text>Retrait.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile(u'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
-               ]
-
-
-class InvestmentPage(LoggedPage, HTMLPage):
-    TYPES = {u'Assurance vie Arpèges': Account.TYPE_LIFE_INSURANCE,
-             u'Assurance vie AMADEO EXCELLENCE VIE': Account.TYPE_LIFE_INSURANCE,
-             u'Epargne Retraite  PERP PAIR': Account.TYPE_PERP,
-             u'Epargne Retraite NOVIAL AVENIR': Account.TYPE_MADELIN,
-            }
-
-    @method
-    class iter_accounts(ListElement):
-        item_xpath = '//section[has-class("cards") and has-class("contracts")]/article[has-class("card")]'
-
-        class item(ItemElement):
-            klass = Account
-
-            obj_id = Regexp(CleanText('.//h2/small'), ur'(?:#|N°\s+)(.*)')
-            obj_balance = MyDecimal('.//span[@class="card-amount"]', default=NotAvailable)
-            obj_iban = NotAvailable
-            obj_valuation_diff = MyDecimal('.//p[@class="card-description"]')
-            obj_label = CleanText('.//h2/text()')
-            obj__acctype = "investment"
-
-            def obj__aid(self):
-                return Regexp(Attr('//a[@class="menu-item" and @href="%s"]' % Attr('.', 'data-redirect')(self), 'data-target'), \
-                              r'aid_(.*).html')(self)
-
-            def obj_type(self):
-                return self.page.TYPES.get(Field('label')(self), Account.TYPE_UNKNOWN)
-
-            def condition(self):
-                return Field('balance')(self) is not NotAvailable
-
-    @method
-    class iter_history(ListElement):
-        item_xpath = "//div[has-class('t-data')]"
-
-        class item(ItemElement):
-            klass = InvestmentTransaction
-
-            load_details = Field('_url') & AsyncLoad
-
-            obj_label = CleanText('(.//div[has-class("t-data__label")])[1]')
-            obj_raw = InvestmentTransaction.Raw(Field('label'))
-            obj_date = Date(CleanText('(.//div[has-class("t-data__date")])[1]'), dayfirst=True)
-            obj_amount = MyDecimal('(.//div[has-class("t-data__amount")])[1]')
-            obj__hasinv = True
-
-            def obj__url(self):
-                return '%s%s' % (BrowserURL('investment')(self), Attr('.', 'data-url')(self))
-
-            def obj_investments(self):
-                inv_page = Async('details').loaded_page(self)
-
-                return list(inv_page.iter_investments())
-
-    @method
-    class iter_investments(ListElement):
-        item_xpath = "//div[@class='white-bg']/following-sibling::div[not(@*)]"
-
-        class item(ItemElement):
-            klass = Investment
-
-            obj_label = CleanText('.//div[@class="t-data__label"]')
-            obj_portfolio_share = MyDecimal('.//div[has-class("t-data__amount_label")]')
-            obj_valuation = MyDecimal('.//div[has-class("t-data__amount") and has-class("desktop")]')
 
 
 class UnavailablePage(HTMLPage):
@@ -145,7 +65,7 @@ class MyHTMLPage(HTMLPage):
         return args
 
 
-class BankAccountsPage(LoggedPage, MyHTMLPage):
+class AccountsPage(LoggedPage, MyHTMLPage):
     ACCOUNT_TYPES = OrderedDict((
         ('visa',               Account.TYPE_CARD),
         ('courant-titre',      Account.TYPE_CHECKING),

@@ -37,6 +37,7 @@ def MyDecimal(*args, **kwargs):
 class AccountsPage(LoggedPage, HTMLPage):
     TYPES = {u'assurance vie': Account.TYPE_LIFE_INSURANCE,
              u'perp': Account.TYPE_PERP,
+             u'novial avenir': Account.TYPE_MADELIN,
             }
 
     @method
@@ -48,10 +49,14 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             load_details = Attr('.', 'data-redirect') & AsyncLoad
 
+            condition = lambda self: Field('balance')(self) is not NotAvailable
+
             obj_id = Regexp(CleanText('.//h2/small'), '(\d+)')
             obj_label = CleanText('.//h2/text()')
             obj_balance = MyDecimal('.//span[has-class("card-amount")]')
+            obj_valuation_diff = MyDecimal('.//p[@class="card-description"]')
             obj__link = Async('details') & Attr(u'//a[@data-target][.//div[@class="amount"]]', 'data-target')
+            obj__acctype = "investment"
 
             def obj_type(self):
                 types = [v for k, v in self.page.TYPES.items() if k in Field('label')(self).lower()]
@@ -61,7 +66,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return Account.get_currency(CleanText('.//span[has-class("card-amount")]')(self))
 
 
-class InvestmentWealthPage(LoggedPage, HTMLPage):
+class InvestmentPage(LoggedPage, HTMLPage):
     @method
     class iter_investment(ListElement):
         item_xpath = '//table/tbody/tr[td[2]]'
@@ -70,7 +75,6 @@ class InvestmentWealthPage(LoggedPage, HTMLPage):
             klass = Investment
 
             obj_label = CleanText('./td[1]/text()')
-            # don't know if we need replace_dots or not
             obj_valuation = MyDecimal('./td[2]/strong')
             obj_vdate = Date(CleanText('./td[2]/span'), dayfirst=True)
             obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal('./td[1]/strong'))
