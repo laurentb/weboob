@@ -63,15 +63,15 @@ class AdvSearchPage(HTMLPage):
 
             klass = BaseJobAdvert
 
-            obj_id = CleanText('./div[@class="jobTitle"]/h2/a/@data-m_impr_j_jobid')
-            obj_society_name = CleanText('./div[@class="company"]/span[@itemprop="name"]',
+            obj_id = CleanText('.//div[@class="jobTitle"]/h2/a/@data-m_impr_j_jobid')
+            obj_society_name = CleanText('.//div[@class="company"]/span[@itemprop="name"]|.//div[@class="company"]/a/span[@itemprop="name"]',
                                          replace=[(u'Trouvée sur : ', u'')],
                                          default=NotAvailable)
-            obj_title = CleanText('./div[@class="jobTitle"]/h2/a/span[@itemprop="title"]',
+            obj_title = CleanText('.//div[@class="jobTitle"]/h2/a/span[@itemprop="title"]',
                                   default=NotAvailable)
-            obj_publication_date = DateTime(CleanText('./div[@class="extras"]/div[@class="postedDate"]/time/@datetime'),
+            obj_publication_date = DateTime(CleanText('.//div[has-class("job-specs-date")]/p/time/@datetime|./div[@class="extras"]/div[@class="postedDate"]/time/@datetime'),
                                             default=NotAvailable)
-            obj_place = CleanText('./div[@class="location"]/span[@itemprop="name"]',
+            obj_place = CleanText('.//div[has-class("job-specs-location")]|.//div[has-class("location")]',
                                   default=NotAvailable)
 
 

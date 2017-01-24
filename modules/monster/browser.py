@@ -26,7 +26,7 @@ __all__ = ['MonsterBrowser']
 
 
 class MonsterBrowser(PagesBrowser):
-    BASEURL = 'http://www.monster.fr'
+    BASEURL = 'https://www.monster.fr'
 
     advert = URL('http://offre-emploi.monster.fr/v2/job/View\?JobID=(?P<_id>.*)', AdvertPage)
     expired_advert = URL('http://offre-emploi.monster.fr/v2/job/Expired\?JobId=(?P<_id>.*)', ExpiredAdvert)
