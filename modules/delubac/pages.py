@@ -146,7 +146,8 @@ class MenuPage(LoggedPage, HTMLPage):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
-    TYPES = {'COMPTE COURANT':    Account.TYPE_CHECKING,
+    TYPES = {'COMPTE COURANT':     Account.TYPE_CHECKING,
+             'COMPTE TRANSACTION': Account.TYPE_CHECKING,
             }
 
     is_here = u'//title[text() = "Solde de chacun de vos comptes"]'
@@ -170,13 +171,13 @@ class AccountsPage(LoggedPage, HTMLPage):
                             return actype
                     return Account.TYPE_UNKNOWN
 
-            obj__title = CleanText('td[@id="idCompteIntitule"]')
-            obj__nature = CleanText('td[@id="idCompteNature"]')
+            obj__title = CleanText('td[@class="ColonneLibelle"][2]')
+            obj__nature = CleanText('td[@class="ColonneLibelle"][3]')
             obj_label = Format('%s %s', Field('_title'), Field('_nature'))
-            obj_currency = FrenchTransaction.Currency('./td[@id="idCompteSoldeUM"]')
-            obj_id = CleanText('td[@id="idCompteLibelle"]/a')
-            obj_balance = CleanDecimal('td[@id="idCompteSolde"]', replace_dots=True)
-            obj__link = Link('td[@id="idCompteLibelle"]/a')
+            obj_currency = FrenchTransaction.Currency('./td[@class="ColonneCode"]')
+            obj_id = CleanText('td[@class="ColonneLibelle"][1]/a')
+            obj_balance = CleanDecimal('td[@class="ColonneNumerique"]', replace_dots=True)
+            obj__link = Link('td[@class="ColonneLibelle"][1]/a')
             obj_type = Type(Field('label'))
 
 
