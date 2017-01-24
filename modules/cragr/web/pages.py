@@ -26,7 +26,7 @@ from weboob.browser.pages import HTMLPage, FormNotFound
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.contact import Advisor
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.date import parse_french_date, LinearDateGuesser
 from weboob.browser.filters.standard import Date, CleanText
@@ -132,7 +132,7 @@ class LoginErrorPage(BasePage):
 
 class FirstVisitPage(BasePage):
     def on_load(self):
-        raise BrowserIncorrectPassword(u'Veuillez vous connecter au site du Crédit Agricole pour valider vos données personnelles, et réessayer ensuite.')
+        raise ActionNeeded(u'Veuillez vous connecter au site du Crédit Agricole pour valider vos données personnelles, et réessayer ensuite.')
 
 
 class _AccountsPage(MyLoggedPage, BasePage):
