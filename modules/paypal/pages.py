@@ -56,12 +56,13 @@ class LoginPage(HTMLPage):
         code1 = re.sub('return typeof document!="undefined"&&typeof document.createAttribute!="undefined"', 'return 1==1', code1)
         # now it checks if some browsers-only builtin variables are defined:
         # e+=function(e,t){return typeof navigator!="undefined"?e:t}
-        js = Javascript('var navigator = {}; var document = {}; document.lastModified = 1; \
+        js = Javascript('var window = {}; window.innerWidth = 1; screen = 1; location = {}; location.host = 1; \
+        var navigator = {}; navigator.appName = 1; var document = {}; document.lastModified = 1; \
         document.getElementsByTagName = 1; document.implementation = 1; document.createAttribute = 1; document.getElementsByName = 1;'+ code1)
         func_name = re.search(r'function (\w+)\(\)', code1).group(1)
         token = str(js.call(func_name))
         csrf = re.search(r'csrf="\+encodeURIComponent\("(.*?)"\)', code).group(1)
-        key, value = re.search(r'"/auth/verifychallenge",t,"([^"]+)","([^"]+)"', code).groups()
+        key, value = re.search(r'"/auth/verifychallenge",[tn],"([^"]+)","([^"]+)"', code).groups()
         sessionID = re.search(r'_sessionID="\+encodeURIComponent\("(.*?)"\)', code).group(1)
         return token, csrf, key, value, sessionID
 
