@@ -262,7 +262,7 @@ class PerimeterPage(MyLoggedPage, BasePage):
             self.browser.location(self.browser.chg_perimeter_url.format(self.browser.sag))
             if self.browser.page.get_error() is not None:
                 self.browser.broken_perimeters.append('the other perimeter is broken')
-                self.browser.login()
+                self.browser.do_login()
         else:
             for table in self.doc.xpath('//table[@class]'):
                 space = ' '.join(table.find('caption').text.lower().split())
