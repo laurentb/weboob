@@ -128,7 +128,7 @@ class Number26Browser(DomainBrowser):
                 new.raw = CleanText().filter(t["referenceText"]) if "referenceText" in t else CleanText().filter(t["partnerName"])
                 new.label = t["partnerName"]
             else:
-                raise "unknown transaction label"
+                raise Exception("unknown transaction label")
 
             if "originalCurrency" in t:
                 new.original_currency = t["originalCurrency"]
