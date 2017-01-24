@@ -20,6 +20,7 @@
 from collections import OrderedDict
 import re
 from urlparse import urlparse
+from html2text import unescape
 
 from weboob.capabilities.bank import Account
 from weboob.browser import LoginBrowser, URL, need_login
@@ -172,7 +173,7 @@ class Cragr(LoginBrowser):
             url = self.page.get_result_url()
 
         if not url.startswith('http'):
-            raise BrowserIncorrectPassword(url)
+            raise BrowserIncorrectPassword(unescape(url, unicode_snob=True))
 
         self.location(url.replace('Synthese', 'Synthcomptes'))
 
