@@ -18,7 +18,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.ordereddict import OrderedDict
+from collections import OrderedDict
+
 from .base import NotLoaded, Field, BytesField
 from .file import CapFile, BaseFile
 

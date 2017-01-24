@@ -20,6 +20,7 @@
 
 from __future__ import print_function
 
+from collections import OrderedDict
 from copy import copy
 import getpass
 import logging
@@ -38,7 +39,6 @@ from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, Brow
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt, ValueBackendPassword
 from weboob.tools.misc import to_unicode
 from weboob.tools.compat import check_output
-from weboob.tools.ordereddict import OrderedDict
 
 from .base import Application, MoreResultsAvailable
 

@@ -19,6 +19,7 @@
 
 from __future__ import absolute_import, print_function
 
+from collections import OrderedDict
 from functools import wraps
 import re
 import pickle
@@ -47,7 +48,6 @@ except ImportError:
 from weboob.exceptions import BrowserHTTPSDowngrade, ModuleInstallError
 
 from weboob.tools.log import getLogger
-from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.json import json
 
 from .cookies import WeboobCookieJar

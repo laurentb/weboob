@@ -19,6 +19,7 @@
 
 from __future__ import absolute_import
 
+from collections import OrderedDict
 from functools import wraps
 import warnings
 from io import BytesIO
@@ -34,7 +35,6 @@ import requests
 from weboob.exceptions import ParseError, ModuleInstallError
 from weboob.tools.compat import basestring
 from weboob.tools.log import getLogger
-from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.pdf import decompress_pdf
 
 

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from collections import OrderedDict
 import datetime
 from dateutil.parser import parse as parse_date
 from dateutil.relativedelta import relativedelta
@@ -31,7 +31,6 @@ from weboob.capabilities.contact import CapContact, Contact, ProfileNode
 from weboob.exceptions import BrowserHTTPError
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
-from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.log import getLogger
 
 from .browser import HappnBrowser, FacebookBrowser

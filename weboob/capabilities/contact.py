@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from collections import OrderedDict
 
 from .base import Capability, BaseObject, Field, StringField, BytesField, IntField, \
                   UserError
-from weboob.tools.ordereddict import OrderedDict
 
 
 __all__ = ['ProfileNode', 'ContactPhoto', 'Contact', 'QueryError', 'Query', 'CapContact']

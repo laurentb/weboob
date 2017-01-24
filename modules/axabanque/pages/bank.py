@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from collections import OrderedDict
 import re
 from decimal import Decimal, InvalidOperation
 
@@ -30,7 +30,6 @@ from weboob.browser.filters.html import Attr
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.ordereddict import OrderedDict
 
 
 def MyDecimal(*args, **kwargs):

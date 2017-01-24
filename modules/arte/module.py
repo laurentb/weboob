@@ -19,7 +19,8 @@
 
 
 import re
-from weboob.tools.ordereddict import OrderedDict
+from collections import OrderedDict
+
 from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound, Collection
 from weboob.tools.backend import Module, BackendConfig

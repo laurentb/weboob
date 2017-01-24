@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from collections import OrderedDict
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.calendar import CapCalendarEvent, CATEGORIES
-from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
 
 from .browser import RazibusBrowser

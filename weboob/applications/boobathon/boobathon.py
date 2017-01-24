@@ -24,10 +24,10 @@ import re
 import sys
 from urlparse import urlsplit
 from random import choice
+from collections import OrderedDict
 
 from weboob.capabilities.content import CapContent
 from weboob.tools.application.repl import ReplApplication
-from weboob.tools.ordereddict import OrderedDict
 
 
 __all__ = ['Boobathon']

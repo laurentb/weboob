@@ -8,9 +8,10 @@
 # To Public License, Version 2, as published by Sam Hocevar. See
 # http://sam.zoy.org/wtfpl/COPYING for more details.
 
-
+from collections import OrderedDict
 import urllib
 import datetime
+
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.misc import to_unicode
 from weboob.deprecated.browser import Page
@@ -19,7 +20,6 @@ from weboob.deprecated.browser import Browser
 from weboob.deprecated.browser.decorators import id2url
 from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.video import BaseVideo
-from weboob.tools.ordereddict import OrderedDict
 
 
 __all__ = ['CappedBrowser']

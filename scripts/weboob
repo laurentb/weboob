@@ -27,9 +27,9 @@ import os
 import sys
 import inspect
 from datetime import datetime, timedelta
+from collections import OrderedDict
 
 import weboob.applications
-from weboob.tools.ordereddict import OrderedDict
 
 from weboob.tools.application.console import ConsoleApplication
 

@@ -26,6 +26,7 @@ from PyQt5.QtGui import QTextDocument, QPixmap, QImage, QIcon
 from PyQt5.QtCore import Qt, QVariant, QUrl, QThread
 from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot
 
+from collections import OrderedDict
 import re
 import os
 from logging import warning
@@ -36,7 +37,6 @@ from weboob.capabilities.account import CapAccount, Account, AccountRegisterErro
 from weboob.exceptions import ModuleInstallError, ModuleLoadError
 from .backendcfg_ui import Ui_BackendCfg
 from .reposdlg_ui import Ui_RepositoriesDlg
-from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.misc import to_unicode
 from .qt import QtValue
 

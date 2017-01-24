@@ -21,6 +21,7 @@
 from cStringIO import StringIO
 import re
 from decimal import Decimal
+from collections import OrderedDict
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account
@@ -31,7 +32,6 @@ from weboob.browser.filters.html import Link
 from weboob.browser.filters.standard import CleanText, Regexp, Env
 from weboob.exceptions import BrowserUnavailable, NoAccountsException
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.ordereddict import OrderedDict
 
 from .base import MyHTMLPage
 

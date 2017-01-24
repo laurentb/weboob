@@ -17,13 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from collections import OrderedDict
 import re
 import subprocess
 
 from .compat import check_output
 from .misc import to_unicode
-from .ordereddict import OrderedDict
 
 
 __all__ = ['ValuesDict', 'Value', 'ValueBackendPassword', 'ValueInt', 'ValueFloat', 'ValueBool']

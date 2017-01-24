@@ -19,6 +19,7 @@
 
 from datetime import datetime, timedelta
 import re
+from collections import OrderedDict
 from cStringIO import StringIO
 from logging import error
 from weboob.tools.json import json
@@ -31,7 +32,6 @@ from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, \
                                             Env, Date
 from weboob.browser.filters.html import Attr
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.ordereddict import OrderedDict
 
 from ..captcha import Captcha, TileError
 from .base import BasePage

@@ -21,6 +21,7 @@ from __future__ import print_function
 
 import atexit
 from cmd import Cmd
+from collections import OrderedDict
 import logging
 import re
 from optparse import OptionGroup, OptionParser, IndentedHelpFormatter
@@ -32,7 +33,6 @@ from weboob.core import CallErrors
 from weboob.tools.application.formatters.iformatter import MandatoryFieldsNotFound
 from weboob.tools.misc import to_unicode
 from weboob.tools.path import WorkingPath
-from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.collection import Collection, BaseCollection, CapCollection, CollectionNotFound
 
 from .console import BackendNotGiven, ConsoleApplication

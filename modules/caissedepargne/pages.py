@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from collections import OrderedDict
 import re
 import json
 
@@ -31,7 +31,6 @@ from weboob.browser.filters.json import Dict
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Transaction, Investment
 from weboob.capabilities.contact import Advisor
-from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban
 from weboob.exceptions import NoAccountsException, BrowserUnavailable

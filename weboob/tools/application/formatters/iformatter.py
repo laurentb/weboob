@@ -20,6 +20,7 @@
 
 from __future__ import print_function
 
+from collections import OrderedDict
 import os
 import sys
 import subprocess
@@ -61,7 +62,6 @@ else:
 
 from weboob.capabilities.base import BaseObject
 from weboob.tools.application.console import ConsoleApplication
-from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.misc import guess_encoding
 
 __all__ = ['IFormatter', 'MandatoryFieldsNotFound']

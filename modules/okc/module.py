@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from collections import OrderedDict
 from datetime import datetime
 from html2text import unescape
 
@@ -26,7 +26,6 @@ from weboob.capabilities.dating import CapDating
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Message, Thread
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.misc import to_unicode
-from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value, ValueBackendPassword
 
 from .browser import OkCBrowser

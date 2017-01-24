@@ -19,10 +19,10 @@
 
 import re
 import sys
+from collections import OrderedDict
 from copy import deepcopy
 
 from weboob.tools.log import getLogger, DEBUG_FILTERS
-from weboob.tools.ordereddict import OrderedDict
 from weboob.browser.pages import NextPage
 
 from .filters.standard import _Filter, CleanText

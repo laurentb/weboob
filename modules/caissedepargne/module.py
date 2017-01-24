@@ -17,12 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from collections import OrderedDict
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.capabilities.contact import CapContact
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
-from weboob.tools.ordereddict import OrderedDict
 
 from .browser import CaisseEpargne
 

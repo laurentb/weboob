@@ -19,11 +19,11 @@
 
 
 from ConfigParser import RawConfigParser, DEFAULTSECT
+from collections import OrderedDict
 from decimal import Decimal
 import logging
 import os
 
-from weboob.tools.ordereddict import OrderedDict
 from .iconfig import IConfig
 
 

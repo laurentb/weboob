@@ -19,11 +19,12 @@
 
 from __future__ import unicode_literals
 
+from collections import OrderedDict
+
 from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.base import StringField, UserError
 from weboob.capabilities.gauge import CapGauge, GaugeSensor, Gauge, GaugeMeasure, SensorNotFound
 from weboob.tools.value import Value, ValueBackendPassword
-from weboob.tools.ordereddict import OrderedDict
 
 from .browser import VelibBrowser
 

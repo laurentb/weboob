@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from collections import OrderedDict
 import warnings
 import re
 from decimal import Decimal
@@ -25,7 +25,6 @@ from copy import deepcopy, copy
 
 from weboob.tools.compat import unicode, long
 from weboob.tools.misc import to_unicode
-from weboob.tools.ordereddict import OrderedDict
 
 
 __all__ = ['UserError', 'FieldNotFound', 'NotAvailable',

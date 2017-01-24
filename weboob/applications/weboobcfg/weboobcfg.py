@@ -21,12 +21,12 @@ from __future__ import print_function
 
 import os
 import re
+from collections import OrderedDict
 
 from weboob.capabilities.account import CapAccount
 from weboob.exceptions import ModuleLoadError
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.console import ConsoleProgress
-from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.application.formatters.iformatter import IFormatter
 
 __all__ = ['WeboobCfg']

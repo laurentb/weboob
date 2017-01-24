@@ -24,10 +24,10 @@ ControlNotFoundError = ClientForm.ControlNotFoundError
 
 from decimal import Decimal, InvalidOperation
 import re
+from collections import OrderedDict
 
 from weboob.deprecated.browser import Page
 from weboob.tools.misc import to_unicode
-from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
