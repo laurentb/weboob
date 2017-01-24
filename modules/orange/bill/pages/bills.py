@@ -17,16 +17,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
-import json
+import re
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.capabilities.bill import Subscription
-from weboob.browser.elements import ListElement, ItemElement, SkipItem, method
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Regexp, Date, Async, AsyncLoad, BrowserURL
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Field, Regexp, Date, Currency
+from weboob.browser.filters.html import Link
+from weboob.browser.filters.javascript import JSValue
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bill import Bill
+from weboob.tools.date import parse_french_date
 
 
 class ProfilPage(HTMLPage):
@@ -35,50 +38,46 @@ class ProfilPage(HTMLPage):
 
 class BillsPage(LoggedPage, HTMLPage):
     @method
-    class get_list(ListElement):
-        def parse(self, el):
-            if self.page.doc.xpath('//div[@ecareurl]'):
-                self.item_xpath = '//div[@ecareurl]'
-
-        class item(ItemElement):
-            klass = Subscription
-
-            load_details = BrowserURL('profilpage') & AsyncLoad
-
-            obj_subscriber = Env('subscriber')
-            obj_label = Env('subid')
-            obj_id = obj_label
-            obj__multi = Env('multi')
-
-            def parse(self, el):
-                subscriber = Async('details', CleanText(u'//span[contains(text(), "prénom / nom")]/following-sibling::span[1]'))(self)
-                self.env['subscriber'] = subscriber if subscriber else \
-                                         Async('details', Format('%s %s %s', \
-                                         CleanText(u'//*[contains(text(), "civilité")]/following-sibling::*[1]'), \
-                                         CleanText(u'//*[contains(text(), "prénom")]/following-sibling::*[1]'), \
-                                         CleanText(u'//*[text() = "nom :"]/following-sibling::*[1]')))(self)
-                subid = Regexp(Attr('.', 'ecareurl', default="None"), 'idContrat=(\d+)', default=None)(self)
-                self.env['subid'] = subid if subid else self.page.browser.username
-                self.env['multi'] = True if subid else False
-
-                # Prevent from available account but no added in customer area
-                if subid and not json.loads(self.page.browser.open(Attr('.', 'ecareurl')(self)).content)['html']:
-                    raise SkipItem()
-
-    @method
     class get_documents(ListElement):
-        item_xpath = '//ul[has-class("factures")]/li'
+        item_xpath = '//div[has-class("factures-historique")]//table//tr[not(ancestor::thead)]'
 
         class item(ItemElement):
             klass = Bill
 
-            obj_id = Format('%s_%s', Env('subid'), CleanDecimal(CleanText('.//span[has-class("date")]')))
-            obj_url = Link('.//span[has-class("pdf")]/a', default=NotAvailable)
-            obj_date = Date(CleanText('.//span[has-class("date")]'), dayfirst=True)
-            obj_label = CleanText('.//span[has-class("date")]')
+            def obj_id(self):
+                return '%s_%s' % (Env('subid')(self), Field('date')(self).strftime('%d%m%Y'))
+
+            obj_url = Link('.//td[@headers="ec-downloadCol"]/a', default=NotAvailable)
+            obj_date = Date(CleanText('.//td[@headers="ec-dateCol"]'), parse_func=parse_french_date, dayfirst=True)
+            obj_label = CleanText('.//td[@headers="ec-dateCol"]')
             obj_format = u"pdf"
             obj_type = u"bill"
-            obj_price = CleanDecimal('span[@class="montant"]', replace_dots=True)
+            obj_price = CleanDecimal('.//td[@headers="ec-amountCol"]', replace_dots=True)
+            obj_currency = Currency('.//td[@headers="ec-amountCol"]')
 
-            def obj_currency(self):
-                return Bill.get_currency(CleanText('span[@class="montant"]')(self))
+
+class SubscriptionsPage(LoggedPage, HTMLPage):
+    def build_doc(self, data):
+        data = data.decode(self.encoding)
+        for line in data.split('\n'):
+            mtc = re.match('necFe.bandeau.container.innerHTML\s*=\s*stripslashes\((.*)\);$', line)
+            if mtc:
+                html = JSValue().filter(mtc.group(1)).encode(self.encoding)
+                return super(SubscriptionsPage, self).build_doc(html)
+
+    @method
+    class iter_subscription(ListElement):
+        item_xpath = '//ul[@id="contractContainer"]//a[starts-with(@id,"carrousel-")]'
+
+        class item(ItemElement):
+            klass = Subscription
+
+            obj_id = Regexp(Link('.'), r'\bidContrat=(\d+)', default='')
+            obj__page = Regexp(Link('.'), r'\bpage=([^&]+)', default='')
+            obj_label = CleanText('.')
+
+            def validate(self, obj):
+                # unsubscripted contracts may still be there, skip them else
+                # facture-historique could yield wrong bills
+                return bool(obj.id) and obj._page != 'nec-tdb-ouvert'
+

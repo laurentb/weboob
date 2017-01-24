@@ -17,24 +17,34 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from .pages import LoginPage, ProfilPage, BillsPage
+from .pages.bills import SubscriptionsPage
 
 __all__ = ['OrangeBillBrowser']
 
 
 class OrangeBillBrowser(LoginBrowser):
+    BASEURL = 'https://espaceclientv3.orange.fr/'
+
     loginpage = URL('https://id.orange.fr/auth_user/bin/auth_user.cgi', LoginPage)
     profilpage = URL('https://espaceclientv3.orange.fr/\?page=profil-infosPerso',
                      'https://espaceclientv3.orange.fr/ajax.php', ProfilPage)
+
+    subscriptions = URL(r'https://espaceclientv3.orange.fr/js/necfe.php\?zonetype=bandeau&idPage=gt-home-page', SubscriptionsPage)
+
+    subscriptions1 = URL(r'https://espaceclientv3.orange.fr/\?page=gt-home-page&orange&pro')
+    subscriptions2 = URL(r'https://espaceclientv3.orange.fr/\?page=gt-home-page&sosh')
+
     billspage = URL('https://m.espaceclientv3.orange.fr/\?page=factures-archives',
                     'https://.*.espaceclientv3.orange.fr/\?page=factures-archives',
                     'https://espaceclientv3.orange.fr/\?page=factures-archives',
                     'https://espaceclientv3.orange.fr/\?page=facture-telecharger',
                     'https://espaceclientv3.orange.fr/maf.php',
-                    'https://espaceclientv3.orange.fr/\?idContrat=(?P<subid>.*)&page=factures-archives',
+                    'https://espaceclientv3.orange.fr/\?idContrat=(?P<subid>.*)&page=factures-historique',
                      BillsPage)
 
     def do_login(self):
@@ -55,10 +65,20 @@ class OrangeBillBrowser(LoginBrowser):
 
     @need_login
     def get_subscription_list(self):
-        return self.billspage.go().get_list()
+        ids = set()
+
+        self.location('https://espaceclientv3.orange.fr/?page=gt-home-page&orange&pro')
+        self.subscriptions.go()
+        for sub in self.page.iter_subscription():
+            ids.add(sub.id)
+            yield sub
+
+        self.location('https://espaceclientv3.orange.fr/?page=gt-home-page&sosh')
+        self.subscriptions.go()
+        for sub in self.page.iter_subscription():
+            if sub.id not in ids:
+                yield sub
 
     @need_login
     def iter_documents(self, subscription):
-        # Only if muti accounts
-        subid = subscription.id if subscription._multi else ""
-        return self.billspage.go(subid=subid).get_documents(subid=subscription.id)
+        return self.billspage.go(subid=subscription.id).get_documents(subid=subscription.id)
