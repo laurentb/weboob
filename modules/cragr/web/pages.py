@@ -291,6 +291,13 @@ class ChgPerimeterPage(PerimeterPage):
 
 
 class CardsPage(MyLoggedPage, BasePage):
+    # cragr sends us this shit: <td  class="cel-texte"  >
+    # Msft *<e01002ymrk,E010
+    # </td>
+    def build_doc(self, content):
+        content = re.sub(r'\*<e01002ymrk,E010', '*', content)
+        return super(CardsPage, self).build_doc(content)
+
     def get_list(self):
         TABLE_XPATH = '//table[caption[@class="caption tdb-cartes-caption" or @class="ca-table caption"]]'
 
