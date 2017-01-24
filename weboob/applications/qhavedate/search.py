@@ -72,7 +72,7 @@ class SearchWidget(QWidget):
         self.contacts.insert(0, contact)
         self.ui.queueLabel.setText('%d' % len(self.contacts))
         if self.current is None:
-            self.next()
+            next(self)
 
     @Slot()
     def next(self):

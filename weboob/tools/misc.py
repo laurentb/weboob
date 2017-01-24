@@ -118,7 +118,7 @@ def limit(iterator, lim):
     count = 0
     iterator = iter(iterator)
     while count < lim:
-        yield iterator.next()
+        yield next(iterator)
         count += 1
 
 

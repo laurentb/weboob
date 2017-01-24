@@ -24,6 +24,6 @@ class GenericComicReaderTest(BackendTest):
     def _test_download(self, _id):
         g = self.backend.get_gallery(_id)
         it = self.backend.iter_gallery_images(g)
-        it.next()
-        img = it.next()
+        next(it)
+        img = next(it)
         self.backend.fillobj(img, ('url', 'data'))

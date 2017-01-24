@@ -292,7 +292,7 @@ class Radioob(ReplApplication):
                     stream = self.get_object(stream.id, 'get_audio')
                 else:
                     r = requests.get(stream.url, stream=True)
-                    buf = r.iter_content(512).next()
+                    buf = next(r.iter_content(512))
                     r.close()
                     playlistFormat = None
                     for line in buf.split("\n"):

@@ -25,6 +25,7 @@ import re
 import pickle
 import base64
 import zlib
+from functools import reduce
 try:
     from requests.packages import urllib3
 except ImportError:

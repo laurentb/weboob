@@ -38,7 +38,7 @@ def enum(**enums):
     _keys = enums.keys()
     _items = enums.items()
     _types = list((type(value) for value in enums.values()))
-    _index = dict((value if not isinstance(value, dict) else value.itervalues().next(), i) for i, value in enumerate(enums.values()))
+    _index = dict((value if not isinstance(value, dict) else next(value.itervalues()), i) for i, value in enumerate(enums.values()))
 
     enums['keys'] = _keys
     enums['values'] = _values

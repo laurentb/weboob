@@ -140,7 +140,7 @@ class CapCollection(Capability):
             return
         try:
             i = self.iter_resources(objs, collection.split_path)
-            i.next()
+            next(i)
         except StopIteration:
             raise CollectionNotFound(collection.split_path)
 

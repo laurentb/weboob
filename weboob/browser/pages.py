@@ -25,6 +25,7 @@ import warnings
 from io import BytesIO
 import codecs
 from cgi import parse_header
+from functools import reduce
 try:
     import urlparse
 except ImportError:
