@@ -28,7 +28,7 @@ _country2length = dict(
     LV=21, LB=28, LI=21, LT=20, LU=20, MK=19, MT=31, MR=27,
     MU=30, MC=27, MD=24, ME=22, NL=18, NO=15, PK=24, PS=29,
     PL=28, PT=25, RO=24, SM=27, SA=24, RS=22, SK=24, SI=19,
-    ES=24, SE=24, CH=21, TN=24, TR=26, AE=23, GB=22, VG=24 )
+    ES=24, SE=24, CH=21, TN=24, TR=26, AE=23, GB=22, VG=24, MA=28)
 
 def clean(iban):
     return iban.replace(' ','').replace('\t', '')
@@ -40,10 +40,7 @@ def is_iban_valid(iban):
         return False
 
     # Validate country code against expected length.
-    if iban[:2] not in _country2length:
-        return False
-
-    if len(iban) != _country2length[iban[:2]]:
+    if iban[:2] in _country2length and len(iban) != _country2length[iban[:2]]:
         return False
 
     digits = iban2numeric(iban)
