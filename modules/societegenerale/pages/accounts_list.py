@@ -378,7 +378,8 @@ class LifeInsuranceHistory(LifeInsurance):
             # search for 'Réalisé'
             trans._coming = 'alis' not in cells[self.COL_STATUS].text.strip()
 
-            self.set_date(trans)
+            if not self.set_date(trans):
+                continue
 
             if u'Annulé' in cells[self.COL_STATUS].text.strip():
                 continue
@@ -387,13 +388,22 @@ class LifeInsuranceHistory(LifeInsurance):
 
     def set_date(self, trans):
         """fetch date and vdate from another page"""
-        form = self.doc.xpath('//form[@id="operationForm"]')[0]
-
         # go to the page containing the dates
-        data = dict((item.name, item.value or '') for item in form.inputs)
-        data['a100_asv_action'] = 'detail'
-        data['a100_asv_indexOp'] = trans._temp_id
-        doc = self.browser.open('/asv/AVI/asvcns21c.html', data=data).page.doc
+        form = self.get_form(id='operationForm')
+        form['a100_asv_action'] = 'detail'
+        form['a100_asv_indexOp'] = trans._temp_id
+        form.url = '/asv/AVI/asvcns21c.html'
+
+        # but the page sometimes fail
+        for i in xrange(3, -1, -1):
+            page = form.submit().page
+            doc = page.doc
+            if not page.get_error():
+                break
+            self.logger.warning('Life insurance history error (%s), retrying %d more times', page.get_error(), i)
+        else:
+            self.logger.warning('Life insurance history error (%s), failed', page.get_error())
+            return False
 
         # process the data
         date_xpath = '//td[@class="net2g_asv_suiviOperation_element1"]/following-sibling::td'
@@ -401,6 +411,7 @@ class LifeInsuranceHistory(LifeInsurance):
         trans.date = self.parse_date(doc, trans, date_xpath, 1)
         trans.rdate = trans.date
         trans.vdate = self.parse_date(doc, trans, vdate_xpath, 0)
+        return True
 
     @staticmethod
     def parse_date(doc, trans, xpath, index):

@@ -113,7 +113,15 @@ class SocieteGenerale(LoginBrowser):
                 yield trans
 
         elif self.life_insurance.is_here():
-            self.location('/asv/AVI/asvcns20c.html')
+            for i in xrange(3, -1, -1):
+                self.location('/asv/AVI/asvcns20c.html')
+                if not self.page.get_error():
+                    break
+                self.logger.warning('Life insurance error (%s), retrying %d more times', self.page.get_error(), i)
+            else:
+                self.logger.warning('Life insurance error (%s), failed', self.page.get_error())
+                return
+
             for trans in self.page.iter_transactions():
                 yield trans
 
