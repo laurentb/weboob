@@ -796,7 +796,7 @@ class ReplApplication(Cmd, ConsoleApplication):
             level = levels[args[0]]
         except KeyError:
             print('Level "%s" does not exist.' % args[0], file=self.stderr)
-            print('Availables: %s' % ' '.join(levels.iterkeys()), file=self.stderr)
+            print('Availables: %s' % ' '.join(levels), file=self.stderr)
             return 2
         else:
             logging.root.setLevel(level)

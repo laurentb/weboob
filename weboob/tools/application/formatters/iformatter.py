@@ -194,7 +194,7 @@ class IFormatter(object):
                         obj.pop(name)
 
             if self.MANDATORY_FIELDS:
-                missing_fields = set(self.MANDATORY_FIELDS) - set(obj.iterkeys())
+                missing_fields = set(self.MANDATORY_FIELDS) - set(obj)
                 if missing_fields:
                     raise MandatoryFieldsNotFound(missing_fields)
 

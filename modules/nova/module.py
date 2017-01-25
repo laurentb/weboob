@@ -51,7 +51,7 @@ class NovaModule(Module, CapRadio, CapCollection):
         if Radio in objs:
             self._restrict_level(split_path)
 
-            for id in self._RADIOS.iterkeys():
+            for id in self._RADIOS:
                 yield self.get_radio(id)
 
     def iter_radios_search(self, pattern):

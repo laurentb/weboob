@@ -463,15 +463,15 @@ class ConsoleApplication(Application):
         elif v.choices:
             if v.tiny is None:
                 v.tiny = True
-                for key in v.choices.iterkeys():
+                for key in v.choices:
                     if len(key) > 5 or ' ' in key:
                         v.tiny = False
                         break
 
             if v.tiny:
                 question = u'%s (%s)' % (question, '/'.join((s.upper() if s == v.default else s)
-                                                            for s in v.choices.iterkeys()))
-                for s in v.choices.iterkeys():
+                                                            for s in v.choices))
+                for s in v.choices:
                     if s == v.default:
                         aliases[s.upper()] = s
                 for key, value in v.choices.iteritems():

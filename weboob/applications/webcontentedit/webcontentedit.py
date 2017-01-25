@@ -78,7 +78,7 @@ class WebContentEdit(ReplApplication):
             # check cases where /usr/bin/vi is a symlink to vim
             if 'vim' in (os.path.basename(editor), os.path.basename(os.path.realpath(find_executable(editor) or '/')).replace('.nox', '')):
                 params = '-p'
-            os.system("%s %s %s" % (editor, params, ' '.join(['"%s"' % path.replace('"', '\\"') for path in paths.iterkeys()])))
+            os.system("%s %s %s" % (editor, params, ' '.join('"%s"' % path.replace('"', '\\"') for path in paths)))
 
             for path, content in paths.iteritems():
                 with open(path, 'r') as f:

@@ -118,7 +118,7 @@ class MainWindow(QtMainWindow):
     def reloadQueriesList(self, select_name=None):
         self.ui.queriesList.currentIndexChanged.disconnect(self.queryChanged)
         self.ui.queriesList.clear()
-        for name in self.config.get('queries', default={}).iterkeys():
+        for name in self.config.get('queries', default={}):
             self.ui.queriesList.addItem(name)
             if name == select_name:
                 self.ui.queriesList.setCurrentIndex(len(self.ui.queriesList)-1)

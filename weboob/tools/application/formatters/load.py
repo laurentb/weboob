@@ -35,7 +35,7 @@ class FormattersLoader(object):
         self.formatters[name] = klass
 
     def get_available_formatters(self):
-        l = set(self.formatters.iterkeys())
+        l = set(self.formatters)
         l = l.union(self.BUILTINS)
         l = sorted(l)
         return l

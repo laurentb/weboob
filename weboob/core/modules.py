@@ -175,7 +175,7 @@ class RepositoryModulesLoader(ModulesLoader):
         self.repositories = repositories
 
     def iter_existing_module_names(self):
-        for name in self.repositories.get_all_modules_info().iterkeys():
+        for name in self.repositories.get_all_modules_info():
             yield name
 
     def get_module_path(self, module_name):
