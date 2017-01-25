@@ -697,13 +697,26 @@ class HTMLPage(Page):
 
 
 class PartialHTMLPage(HTMLPage):
+    """
+    HTML page for broken pages with multiple roots.
+
+    This class should typically be used for requests which return only a part of
+    a full document, to insert in another document. Such a sub-document can have
+    multiple root tags, so this class is required in this case.
+    """
+
     def build_doc(self, content):
         import lxml.etree
-        try:
-            return super(PartialHTMLPage, self).build_doc(content)
-        except lxml.etree.XMLSyntaxError:
-            content = '<html>%s</html>' % content
-            return super(PartialHTMLPage, self).build_doc(content)
+
+        if content.strip():
+            # lxml raises a different error if content is whitespace-only
+            try:
+                return super(PartialHTMLPage, self).build_doc(content)
+            except lxml.etree.XMLSyntaxError:
+                pass
+
+        content = b'<html>%s</html>' % content
+        return super(PartialHTMLPage, self).build_doc(content)
 
 
 class GWTPage(Page):
