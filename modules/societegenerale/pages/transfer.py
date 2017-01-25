@@ -66,8 +66,9 @@ class RecipientsPage(LoggedPage, BasePage):
 
 class TransferPage(LoggedPage, BasePage, PasswordPage):
     def on_load(self):
+        excluded_errors = [u"Vous n'avez pas la possibilité d'accéder à cette fonction. Veuillez prendre contact avec votre Conseiller."]
         error_msg = CleanText('//span[@class="error_msg"]')(self.doc)
-        if error_msg:
+        if error_msg and error_msg not in excluded_errors:
             raise TransferError(error_msg)
 
     @method
