@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
-from cStringIO import StringIO
+from io import BytesIO
 
 import requests
 
@@ -57,7 +57,7 @@ class VirtKeyboard(MappedVirtKeyboard):
     def __init__(self, page):
         img = page.doc.find("//img[@usemap='#cv']")
         res = page.browser.open(img.attrib['src'])
-        MappedVirtKeyboard.__init__(self, StringIO(res.content), page.doc, img, self.color, 'href', convert='RGB')
+        MappedVirtKeyboard.__init__(self, BytesIO(res.content), page.doc, img, self.color, 'href', convert='RGB')
 
         self.check_symbols(self.symbols, page.browser.responses_dirname)
 

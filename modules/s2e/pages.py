@@ -19,7 +19,7 @@
 
 
 import re, requests
-from cStringIO import StringIO
+from io import BytesIO
 from decimal import Decimal
 from lxml import objectify
 
@@ -61,7 +61,7 @@ class S2eVirtKeyboard(MappedVirtKeyboard):
     def __init__(self, page, vkid):
         img = page.doc.find('//img[@id="clavier_virtuel"]')
         res = page.browser.open("/portal/rest/clavier_virtuel/%s" % vkid)
-        MappedVirtKeyboard.__init__(self, StringIO(res.content), page.doc, img, self.color, convert='RGB')
+        MappedVirtKeyboard.__init__(self, BytesIO(res.content), page.doc, img, self.color, convert='RGB')
         self.check_symbols(self.symbols, None)
 
     def get_symbol_code(self, md5sum):

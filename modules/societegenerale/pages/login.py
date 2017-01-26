@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from cStringIO import StringIO
+from io import BytesIO
 from base64 import b64decode
 from logging import error
 import re
@@ -82,7 +82,7 @@ class LoginPage(BasePage, PasswordPage):
 
         url = self.browser.BASEURL + '//sec/vkm/gen_ui?modeClavier=0&cryptogramme=' + infos["crypto"]
         content = self.browser.open(url).content
-        img = Captcha(StringIO(content), infos)
+        img = Captcha(BytesIO(content), infos)
 
         try:
             img.build_tiles()

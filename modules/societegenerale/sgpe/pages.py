@@ -19,7 +19,7 @@
 
 from logging import error
 import re
-from cStringIO import StringIO
+from io import BytesIO
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
@@ -93,7 +93,7 @@ class LoginPage(SGPEPage):
         infos = json.loads(infos_data.replace("'", '"'))
 
         url = '/sec/vk/gen_ui?modeClavier=0&cryptogramme=' + infos["crypto"]
-        img = Captcha(StringIO(self.browser.open(url).content), infos)
+        img = Captcha(BytesIO(self.browser.open(url).content), infos)
 
         try:
             img.build_tiles()

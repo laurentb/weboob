@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from cStringIO import StringIO
+from io import BytesIO
 import re
 
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, NoAccountsException
@@ -70,7 +70,7 @@ class Keyboard(VirtKeyboard):
                 x += width + 1
 
         data = page.browser.open(img_url).content
-        VirtKeyboard.__init__(self, StringIO(data), coords, self.color)
+        VirtKeyboard.__init__(self, BytesIO(data), coords, self.color)
 
         self.check_symbols(self.symbols, page.browser.responses_dirname)
 

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from cStringIO import StringIO
+from io import BytesIO
 
 from weboob.exceptions import BrowserBanned, ActionNeeded
 from weboob.browser.pages import HTMLPage, RawPage, JsonPage
@@ -61,7 +61,7 @@ class MyVirtKeyboard(VirtKeyboard):
              }
 
     def __init__(self, page):
-        VirtKeyboard.__init__(self, StringIO(page.content), self.coords, self.color, convert='RGB')
+        VirtKeyboard.__init__(self, BytesIO(page.content), self.coords, self.color, convert='RGB')
 
         self.check_symbols(self.symbols, None)
 

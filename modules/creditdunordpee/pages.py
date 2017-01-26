@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-from cStringIO import StringIO
+from io import BytesIO
 import re
 from decimal import Decimal
 from weboob.browser.pages import HTMLPage, LoggedPage
@@ -43,7 +43,7 @@ class VirtKeyboard(MappedVirtKeyboard):
         self.img_id = page.doc.find("//input[@id='identifiantClavierVirtuel']").attrib['value']
         img = page.doc.find("//img[@id='clavier_virtuel']")
         res = page.browser.open('/portal/rest/clavier_virtuel/%s' % self.img_id)
-        MappedVirtKeyboard.__init__(self, StringIO(res.content), page.doc, img, (0, 0, 0), convert='RGB')
+        MappedVirtKeyboard.__init__(self, BytesIO(res.content), page.doc, img, (0, 0, 0), convert='RGB')
 
         self.check_symbols(self.symbols, page.browser.responses_dirname)
 

@@ -20,7 +20,7 @@
 
 from weboob.deprecated.browser import Browser
 from weboob.tools.capabilities.paste import image_mime
-from StringIO import StringIO
+from io import BytesIO
 
 from .pages import PageHome, PageImage, PageError
 
@@ -45,7 +45,7 @@ class PixtoilelibreBrowser(Browser):
         self.select_form(nr=0)
         self.form.find_control('private').items[0].selected = private
         self.form['description'] = description or ''
-        self.form.find_control('img').add_file(StringIO(contents), filename=filename, content_type=mime)
+        self.form.find_control('img').add_file(BytesIO(contents), filename=filename, content_type=mime)
         self.submit()
 
         assert self.is_on_page(PageImage)

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
-from StringIO import StringIO
+from io import BytesIO
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem
@@ -121,7 +121,7 @@ class BoursoramaVirtKeyboard(VirtKeyboard):
     def __init__(self, page):
         for span in page.doc.xpath('//span'):
             c = span.attrib['data-matrix-key']
-            img = StringIO(span.xpath('./img/@src')[0].replace('data:image/png;base64,', '').decode('base64'))
+            img = BytesIO(span.xpath('./img/@src')[0].replace('data:image/png;base64,', '').decode('base64'))
             self.load_image(img, self.color, convert='RGB')
             self.load_symbols((0,0,42,42), c)
 

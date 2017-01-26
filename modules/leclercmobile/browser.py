@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import time
-import StringIO
+from io import BytesIO
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from .pages import HomePage, LoginPage, HistoryPage, PdfPage
@@ -109,7 +109,7 @@ class Leclercmobile(Browser):
             response = self.openurl(self.bills + str(i))
             mimetype = response.info().get('Content-Type', '').split(';')[0]
             if mimetype == "application/pdf":
-                pdf = PdfPage(StringIO.StringIO(response.read()))
+                pdf = PdfPage(BytesIO(response.read()))
                 for call in pdf.get_calls():
                     call.label = call.label.strip()
                     yield call
@@ -120,7 +120,7 @@ class Leclercmobile(Browser):
         response = self.openurl(self.bills + "0")
         mimetype = response.info().get('Content-Type', '').split(';')[0]
         if mimetype == "application/pdf":
-            pdf = PdfPage(StringIO.StringIO(response.read()))
+            pdf = PdfPage(BytesIO(response.read()))
             for detail in pdf.get_details():
                 yield detail
 

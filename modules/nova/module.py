@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from cStringIO import StringIO
+from io import BytesIO
 
 from weboob.capabilities.radio import CapRadio, Radio
 from weboob.capabilities.audiostream import BaseAudioStream
@@ -88,7 +88,7 @@ class NovaModule(Module, CapRadio, CapCollection):
         doc = self.browser.location('http://www.novaplanet.com/radionova/ontheair?origin=/')
         html = doc['track']['markup']
         parser = get_parser()()
-        doc = parser.parse(StringIO(html))
+        doc = parser.parse(BytesIO(html))
         artist = u' '.join([txt.strip() for txt in doc.xpath('//div[@class="artist"]')[0].itertext()])
         title = u' '.join([txt.strip() for txt in doc.xpath('//div[@class="title"]')[0].itertext()])
         return unicode(artist).strip(), unicode(title).strip()

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from StringIO import StringIO
+from io import BytesIO
 import hashlib
 from decimal import Decimal
 from datetime import datetime
@@ -47,7 +47,7 @@ class BNPVirtKeyboard(MappedVirtKeyboard):
     def __init__(self, basepage):
         img = basepage.doc.xpath('//img[@id="gridpass_img"]')[0]
         imgdata = basepage.browser.open(img.attrib['src']).content
-        MappedVirtKeyboard.__init__(self, StringIO(imgdata), basepage.doc, img, self.color, convert='RGB')
+        MappedVirtKeyboard.__init__(self, BytesIO(imgdata), basepage.doc, img, self.color, convert='RGB')
         self.check_symbols(self.symbols, basepage.browser.responses_dirname)
 
     def get_symbol_code(self, md5sum):

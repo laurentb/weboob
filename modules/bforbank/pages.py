@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
-from StringIO import StringIO
+from io import BytesIO
 from PIL import Image
 
 from weboob.browser.pages import LoggedPage, HTMLPage, pagination, AbstractPage
@@ -48,7 +48,7 @@ class BfBKeyboard(object):
         self.fingerprints = []
         for htmlimg in self.basepage.doc.xpath('.//div[@class="m-btn-pin"]//img'):
             url = htmlimg.attrib.get("src")
-            imgfile = StringIO(basepage.browser.open(url).content)
+            imgfile = BytesIO(basepage.browser.open(url).content)
             img = Image.open(imgfile)
             matrix = img.load()
             s = ""

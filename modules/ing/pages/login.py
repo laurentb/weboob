@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from StringIO import StringIO
+from io import BytesIO
 
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard
@@ -59,7 +59,7 @@ class INGVirtKeyboard(VirtKeyboard):
 
         url = Attr('.', "src")(img[1])
 
-        VirtKeyboard.__init__(self, StringIO(self.page.browser.open(url).content),
+        VirtKeyboard.__init__(self, BytesIO(self.page.browser.open(url).content),
                               self.coords, self.color)
 
         self.check_symbols(self.symbols, self.page.browser.responses_dirname)

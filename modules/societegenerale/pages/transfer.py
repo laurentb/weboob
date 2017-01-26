@@ -20,7 +20,7 @@
 from datetime import datetime, timedelta
 import re
 from collections import OrderedDict
-from cStringIO import StringIO
+from io import BytesIO
 from logging import error
 from weboob.tools.json import json
 
@@ -217,7 +217,7 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         infos['grid'] = self.decode_grid(infos)
         url = self.browser.BASEURL + '/sec/vkm/gen_ui?modeClavier=0&cryptogramme=' + infos["crypto"]
         content = self.browser.open(url).content
-        img = Captcha(StringIO(content), infos)
+        img = Captcha(BytesIO(content), infos)
 
         try:
             img.build_tiles()

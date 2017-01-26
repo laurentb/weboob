@@ -19,7 +19,7 @@
 
 
 import time
-from StringIO import StringIO
+from io import BytesIO
 from PIL import Image
 
 from weboob.browser.pages import HTMLPage
@@ -43,7 +43,7 @@ class FreeKeyboard(object):
         self.fingerprints = []
         for htmlimg in self.basepage.doc.xpath('//img[@class="ident_chiffre_img pointer"]'):
             url = htmlimg.attrib.get("src")
-            imgfile = StringIO(basepage.browser.open(url).content)
+            imgfile = BytesIO(basepage.browser.open(url).content)
             img = Image.open(imgfile)
             matrix = img.load()
             s = ""

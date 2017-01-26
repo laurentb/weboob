@@ -20,7 +20,7 @@
 
 import math
 from urlparse import urljoin
-from StringIO import StringIO
+from io import BytesIO
 from weboob.browser import PagesBrowser, URL
 
 from .pages import ImagePage, UploadPage
@@ -46,7 +46,7 @@ class LutimBrowser(PagesBrowser):
     def post(self, paste, max_age=0):
         bin = paste.contents.decode('base64')
         name = paste.title or 'file' # filename is mandatory
-        filefield = {'file': (name, StringIO(bin))}
+        filefield = {'file': (name, BytesIO(bin))}
         params = {'format': 'json'}
         if max_age:
             params['delete-day'] = math.ceil(max_age / 86400.)

@@ -19,7 +19,7 @@
 
 
 import re
-from cStringIO import StringIO
+from io import BytesIO
 from random import randint
 from decimal import Decimal
 from datetime import datetime, timedelta
@@ -83,7 +83,7 @@ class BNPKeyboard(GridVirtKeyboard):
     def __init__(self, page, image):
         symbols = list('%02d' % x for x in range(1, 11))
 
-        super(BNPKeyboard, self).__init__(symbols, 5, 2, StringIO(image.content), self.color, convert='RGB')
+        super(BNPKeyboard, self).__init__(symbols, 5, 2, BytesIO(image.content), self.color, convert='RGB')
         self.check_symbols(self.symbols, page.browser.responses_dirname)
 
 

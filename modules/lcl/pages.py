@@ -19,7 +19,7 @@
 
 import re, requests, base64, math, random
 from decimal import Decimal
-from cStringIO import StringIO
+from io import BytesIO
 from urllib import urlencode
 from datetime import datetime, timedelta, date
 
@@ -105,7 +105,7 @@ class LCLVirtKeyboard(MappedVirtKeyboard):
         img=basepage.doc.find("//img[@id='idImageClavier']")
         random.seed()
         self.url += "%s"%str(long(math.floor(long(random.random()*1000000000000000000000))))
-        super(LCLVirtKeyboard, self).__init__(StringIO(basepage.browser.open(self.url).content), basepage.doc,img,self.color, "id")
+        super(LCLVirtKeyboard, self).__init__(BytesIO(basepage.browser.open(self.url).content), basepage.doc,img,self.color, "id")
         self.check_symbols(self.symbols,basepage.browser.responses_dirname)
 
     def get_symbol_code(self, md5sum):

@@ -21,7 +21,7 @@
 import re
 
 from datetime import datetime
-from cStringIO import StringIO
+from io import BytesIO
 
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.filters.json import Dict
@@ -52,7 +52,7 @@ class BNPVirtKeyboard(MappedVirtKeyboard):
     def __init__(self, page):
         img = page.doc.find('//img[@usemap="#gridpass_map_name"]')
         res = page.browser.open(img.attrib['src'])
-        MappedVirtKeyboard.__init__(self, StringIO(res.content), page.doc, img, self.color, convert='RGB')
+        MappedVirtKeyboard.__init__(self, BytesIO(res.content), page.doc, img, self.color, convert='RGB')
         self.check_symbols(self.symbols, None)
 
     def check_color(self, pixel):

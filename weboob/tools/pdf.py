@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from cStringIO import StringIO
+from io import BytesIO
 from collections import namedtuple
 import os
 import subprocess
@@ -302,7 +302,7 @@ def get_pdf_rows(data, miner_layout=True):
     from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
     from pdfminer.layout import LAParams, LTRect, LTTextBox, LTTextLine, LTLine, LTChar
 
-    parser = PDFParser(StringIO(data))
+    parser = PDFParser(BytesIO(data))
     try:
         if newapi:
             doc = PDFDocument(parser)
@@ -321,7 +321,7 @@ def get_pdf_rows(data, miner_layout=True):
 
     interpreter = PDFPageInterpreter(rsrcmgr, device)
     if newapi:
-        pages = PDFPage.get_pages(StringIO(data), check_extractable=True)
+        pages = PDFPage.get_pages(BytesIO(data), check_extractable=True)
     else:
         doc.initialize()
         pages = doc.get_pages()
