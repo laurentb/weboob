@@ -175,41 +175,36 @@ class BredBrowser(DomainBrowser):
 
         if account._univers != self.current_univers:
             self.move_to_univers(account._univers)
-        offset = 0
-        next_page = True
-        seen = set()
-        while next_page:
-            r = self.api_open('/transactionnel/services/applications/operations/get/%(number)s/%(nature)s/00/%(currency)s/%(startDate)s/%(endDate)s/%(offset)s/%(limit)s' %
-                          {'number': account._number,
-                           'nature': account._nature,
-                           'currency': account.currency,
-                           'startDate': '2000-01-01',
-                           'endDate': date.today().strftime('%Y-%m-%d'),
-                           'offset': offset,
-                           'limit': 50
-                          })
-            next_page = False
-            offset += 50
-            transactions = []
-            for op in reversed(r.json()['content']['operations']):
-                next_page = True
-                t = Transaction()
-                if op['id'] in seen:
-                    raise ParseError('There are several transactions with the same ID, probably an infinite loop')
-                t.id = op['id']
-                seen.add(t.id)
-                d = date.fromtimestamp(op.get('dateDebit', op.get('dateOperation'))/1000)
-                op['details'] = [i for i in op['details'] if i] # sometimes they put "null" elements...
-                raw = ' '.join([op['libelle']] + op['details'])
-                vdate = date.fromtimestamp(op.get('dateValeur', op.get('dateDebit', op.get('dateOperation')))/1000)
-                t.parse(d, raw, vdate=vdate)
-                t.amount = Decimal(str(op['montant']))
-                t.rdate = date.fromtimestamp(op.get('dateOperation', op.get('dateDebit'))/1000)
-                if 'categorie' in op:
-                    t.category = op['categorie']
-                t.label = op['libelle']
-                transactions.append(t)
 
-            # Transactions are unsorted
-            for t in sorted(transactions, key=lambda t: t.rdate, reverse=True):
-                yield t
+        # warning: the site is FUBAR, the offset is ignored, the limit is ignored, and the ids are random...
+        # there seems to be one page only anyway, so just stop here
+        offset = 0
+        r = self.api_open('/transactionnel/services/applications/operations/get/%(number)s/%(nature)s/00/%(currency)s/%(startDate)s/%(endDate)s/%(offset)s/%(limit)s' %
+                      {'number': account._number,
+                       'nature': account._nature,
+                       'currency': account.currency,
+                       'startDate': '2000-01-01',
+                       'endDate': date.today().strftime('%Y-%m-%d'),
+                       'offset': offset,
+                       'limit': 50
+                      })
+        transactions = []
+        for op in reversed(r.json()['content']['operations']):
+            next_page = True
+            t = Transaction()
+            t.id = op['id']
+            d = date.fromtimestamp(op.get('dateDebit', op.get('dateOperation'))/1000)
+            op['details'] = [i for i in op['details'] if i] # sometimes they put "null" elements...
+            raw = ' '.join([op['libelle']] + op['details'])
+            vdate = date.fromtimestamp(op.get('dateValeur', op.get('dateDebit', op.get('dateOperation')))/1000)
+            t.parse(d, raw, vdate=vdate)
+            t.amount = Decimal(str(op['montant']))
+            t.rdate = date.fromtimestamp(op.get('dateOperation', op.get('dateDebit'))/1000)
+            if 'categorie' in op:
+                t.category = op['categorie']
+            t.label = op['libelle']
+            transactions.append(t)
+
+        # Transactions are unsorted
+        for t in sorted(transactions, key=lambda t: t.rdate, reverse=True):
+            yield t
