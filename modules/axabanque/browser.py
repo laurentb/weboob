@@ -23,7 +23,7 @@ from weboob.browser.exceptions import ClientError
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 
-from .pages.login import KeyboardPage, LoginPage, PredisconnectedPage
+from .pages.login import KeyboardPage, LoginPage, ChangepasswordPage, PredisconnectedPage
 from .pages.bank import AccountsPage as BankAccountsPage, CBTransactionsPage, \
                         TransactionsPage, UnavailablePage, IbanPage
 from .pages.wealth import AccountsPage as WealthAccountsPage, InvestmentPage, HistoryPage
@@ -33,6 +33,7 @@ class AXABrowser(LoginBrowser):
     # Login
     keyboard = URL('https://connect.axa.fr/keyboard/password', KeyboardPage)
     login = URL('https://connect.axa.fr/api/identity/auth', LoginPage)
+    password = URL('https://connect.axa.fr/#/changebankpassword', ChangepasswordPage)
     predisconnected = URL('https://www.axa.fr/axa-predisconnect.html',
                           'https://www.axa.fr/axa-postmaw-predisconnect.html', PredisconnectedPage)
 
@@ -122,7 +123,10 @@ class AXABanque(AXABrowser):
                         a._tab, a._pargs, a._purl = tab, page_args, self.url
                         accounts.append(a)
             # Get investment accounts if there has
-            accounts.extend(list(self.wealth_accounts.go().iter_accounts()))
+            self.wealth_accounts.go()
+            if self.wealth_accounts.is_here():
+                accounts.extend(list(self.page.iter_accounts()))
+
             self.cache['accs'] = accounts
         return self.cache['accs']
 

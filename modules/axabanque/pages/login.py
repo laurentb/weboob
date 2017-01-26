@@ -20,7 +20,7 @@
 
 from cStringIO import StringIO
 
-from weboob.exceptions import BrowserBanned
+from weboob.exceptions import BrowserBanned, ActionNeeded
 from weboob.browser.pages import HTMLPage, RawPage, JsonPage
 from weboob.browser.filters.json import Dict
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
@@ -93,6 +93,11 @@ class KeyboardPage(RawPage):
 class LoginPage(JsonPage):
     def check_error(self):
         return (not Dict('errors')(self.doc)) is False
+
+
+class ChangepasswordPage(HTMLPage):
+    def on_load(self):
+        raise ActionNeeded()
 
 
 class PredisconnectedPage(HTMLPage):
