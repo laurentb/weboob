@@ -47,7 +47,7 @@ def enum(**enums):
     enums['items'] = _items
     enums['index'] = _index
     enums['types'] = _types
-    return type('Enum', (), enums)
+    return type(b'Enum', (), enums)
 
 
 def empty(value):
