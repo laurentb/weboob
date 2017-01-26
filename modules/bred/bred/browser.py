@@ -199,6 +199,7 @@ class BredBrowser(DomainBrowser):
                 t.id = op['id']
                 seen.add(t.id)
                 d = date.fromtimestamp(op.get('dateDebit', op.get('dateOperation'))/1000)
+                op['details'] = [i for i in op['details'] if i] # sometimes they put "null" elements...
                 raw = ' '.join([op['libelle']] + op['details'])
                 vdate = date.fromtimestamp(op.get('dateValeur', op.get('dateDebit', op.get('dateOperation')))/1000)
                 t.parse(d, raw, vdate=vdate)
