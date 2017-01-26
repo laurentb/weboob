@@ -89,11 +89,12 @@ class DocumentsPage(HTMLPage):
         options = self.doc.xpath('//select[@id="factureMois"]/option[position() > 1]/@value')
 
         for option in options:
-            ref = self.doc.xpath('//span[contains(text(), "%s")]/ \
-                ancestor::div[has-class("eccoetape")]//a[@id="btnAnciennesFactures"]' % label)
-            if ref:
-                # Get ref and return it
-                return re.search('reference=([\d]+)', Link().filter(ref)).group(1)
+            for ctr in self.doc.xpath('//div[has-class("eccoetape")]'):
+                if ctr.xpath('.//span[contains(text(), "%s")]' % label):
+                    ref = ctr.xpath('.//a[@id="btnAnciennesFactures"]')
+                    return re.search('reference=([\d]+)', Link().filter(ref)).group(1)
+
+            self.logger.debug("couldn't find ref this month, retrying with %s", option)
             self.doc = self.browser.open('%s?mois=%s' % (self.browser.url, option)).page.doc
         return None
 
