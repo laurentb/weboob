@@ -23,7 +23,7 @@ from weboob.browser.url import URL
 from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, CardsPage, CardHistoryPage, ChangePassPage
+from .pages import LoginPage, CardsPage, CardHistoryPage, ProfileProPage, ProfileEntPage, ChangePassPage
 from .json_pages import AccountsJsonPage, BalancesJsonPage, HistoryJsonPage
 
 
@@ -91,6 +91,10 @@ class SGPEBrowser(LoginBrowser):
     def iter_investment(self, account):
         raise NotImplementedError()
 
+    @need_login
+    def get_profile(self):
+        return self.profile.stay_or_go().get_profile()
+
 
 class SGEnterpriseBrowser(SGPEBrowser):
     BASEURL = 'https://entreprises.secure.societegenerale.fr'
@@ -103,6 +107,7 @@ class SGEnterpriseBrowser(SGPEBrowser):
     history = URL('/icd/syd-front/data/syd-comptes-chargerReleve.json',
                   '/icd/syd-front/data/syd-intraday-chargerDetail.json', HistoryJsonPage)
     history_next = URL('/icd/syd-front/data/syd-comptes-chargerProchainLotEcriture.json', HistoryJsonPage)
+    profile = URL('/gae/afficherModificationMesDonnees.html', ProfileEntPage)
 
     def go_accounts(self):
         self.accounts.go()
@@ -127,3 +132,5 @@ class SGProfessionalBrowser(SGEnterpriseBrowser):
     LOGIN_FORM = 'auth_reco'
     MENUID = 'SBOREL'
     CERTHASH = '9f5232c9b2283814976608bfd5bba9d8030247f44c8493d8d205e574ea75148e'
+
+    profile = URL('/gao/modifier-donnees-perso-saisie.html', ProfileProPage)

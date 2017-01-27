@@ -26,6 +26,7 @@ from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Env
 from weboob.browser.filters.html import Attr
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.capabilities.profile import Profile, Person
 from weboob.exceptions import ActionNeeded
 from weboob.tools.json import json
 
@@ -166,3 +167,41 @@ class CardHistoryPage(LoggedPage, SGPEPage):
             return True
 
         return False
+
+
+class ProfileProPage(LoggedPage, SGPEPage):
+    @method
+    class get_profile(ItemElement):
+        klass = Profile
+
+        obj_email = Attr('//input[contains(@name, "_email")]', 'value')
+
+        def obj_name(self):
+            civility = CleanText('//td[input[contains(@name, "civilite")][@checked]]/label', default=None)(self) or \
+                       CleanText(u'//tr[td[contains(text(), "Civilité")]]/td[last()]')(self)
+            firstname = Attr('//input[contains(@name, "_prenom")]', 'value', default=None)(self) or \
+                        CleanText(u'//tr[td[contains(text(), "Prénom")]]/td[last()]')(self)
+            lastname = Attr('//input[contains(@name, "_nom")]', 'value', default=None)(self) or \
+                        CleanText(u'//tr[td[contains(text(), "Nom")]]/td[last()]')(self)
+            return "%s %s %s" % (civility, firstname, lastname)
+
+
+class ProfileEntPage(LoggedPage, SGPEPage):
+    @method
+    class get_profile(ItemElement):
+        klass = Person
+
+        obj_email = Attr('//input[@name="email"]', 'value')
+        obj_phone = Attr('//input[@name="telephone"]', 'value')
+        obj_job = CleanText('//select[@name="fonction"]/option[@selected]')
+        obj_company_name = CleanText(u'//tr[th[contains(text(), "Raison sociale")]]/td')
+        obj_company_siren = CleanText(u'//tr[th[contains(text(), "SIREN")]]/td')
+
+        def obj_name(self):
+            civility = Attr('//input[@name="civilite"][@checked]', 'value', default=None)(self) or \
+                       CleanText(u'//tr[th[contains(text(), "Civilité")]]/td')(self)
+            firstname = Attr('//input[@name="prenom"]', 'value', default=None)(self) or \
+                        CleanText(u'//tr[th[contains(text(), "Prénom")]]/td')(self)
+            lastname = Attr('//input[@name="nom"]', 'value', default=None)(self) or \
+                       CleanText(u'//tr[th[contains(text(), "Nom")]]/td')(self)
+            return "%s %s %s" % (civility, firstname, lastname)

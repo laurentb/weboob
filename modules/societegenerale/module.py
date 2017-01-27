@@ -24,6 +24,7 @@ from datetime import timedelta
 
 from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, Account, RecipientNotFound
 from weboob.capabilities.contact import CapContact
+from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.capabilities.base import find_object
@@ -35,7 +36,7 @@ from .sgpe.browser import SGEnterpriseBrowser, SGProfessionalBrowser
 __all__ = ['SocieteGeneraleModule']
 
 
-class SocieteGeneraleModule(Module, CapBankTransfer, CapContact):
+class SocieteGeneraleModule(Module, CapBankTransfer, CapContact, CapProfile):
     NAME = 'societegenerale'
     MAINTAINER = u'Jocelyn Jaubert'
     EMAIL = 'jocelyn.jaubert@gmail.com'
@@ -91,6 +92,11 @@ class SocieteGeneraleModule(Module, CapBankTransfer, CapContact):
         if not hasattr(self.browser, 'get_advisor'):
             raise NotImplementedError()
         return self.browser.get_advisor()
+
+    def get_profile(self):
+        if not hasattr(self.browser, 'get_profile'):
+            raise NotImplementedError()
+        return self.browser.get_profile()
 
     def iter_transfer_recipients(self, origin_account):
         if self.config['website'].get() != 'par':
