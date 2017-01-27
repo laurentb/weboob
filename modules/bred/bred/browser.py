@@ -129,6 +129,8 @@ class BredBrowser(DomainBrowser):
     def get_list(self):
         r = self.api_open('/transactionnel/services/rest/Account/accounts')
 
+        seen = set()
+
         for content in r.json()['content']:
             if self.accnum != '00000000000' and content['numero'] != self.accnum:
                 continue
@@ -139,6 +141,14 @@ class BredBrowser(DomainBrowser):
                 a._consultable = poste['consultable']
                 a._univers = self.current_univers
                 a.id = '%s.%s' % (a._number, a._nature)
+
+                if a.id in seen:
+                    # some accounts like "compte à terme fidélis" have the same _number and _nature
+                    # but in fact are kind of closed, so worthless...
+                    self.logger.warning('ignored account id %r (%r) because it is already used', a.id, poste.get('numeroDossier'))
+                    continue
+                seen.add(a.id)
+
                 a.type = self.ACCOUNT_TYPES.get(poste['codeNature'], Account.TYPE_UNKNOWN)
                 if a.type == Account.TYPE_CHECKING:
                     iban_response = self.api_open('/transactionnel/services/rest/Account/account/%s/iban' % a._number).json()
