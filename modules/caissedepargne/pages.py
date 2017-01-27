@@ -31,6 +31,7 @@ from weboob.browser.filters.json import Dict
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Transaction, Investment
 from weboob.capabilities.contact import Advisor
+from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban
 from weboob.exceptions import NoAccountsException, BrowserUnavailable
@@ -66,6 +67,12 @@ class CenetHomePage(HTMLPage):
 
         def obj_fax(self):
             return CleanText('//li[contains(@id, "FaxAgence")]', replace=[('.', '')])(self) or NotAvailable
+
+    @method
+    class get_profile(ItemElement):
+        klass = Profile
+
+        obj_name = CleanText('//li[@class="identite"]/a/span')
 
 
 class CenetJsonPage(JsonPage):

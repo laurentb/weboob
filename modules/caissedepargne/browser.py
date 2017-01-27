@@ -20,6 +20,7 @@
 
 import json
 import urlparse
+import re
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -27,6 +28,7 @@ from dateutil.relativedelta import relativedelta
 from weboob.browser import LoginBrowser, need_login
 from weboob.browser.url import URL
 from weboob.capabilities.bank import Account
+from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
 from weboob.exceptions import BrowserIncorrectPassword
 
@@ -417,3 +419,12 @@ class CaisseEpargne(LoginBrowser):
             raise NotImplementedError()
 
         return iter([self.cenet_home.stay_or_go().get_advisor()])
+
+    @need_login
+    def get_profile(self):
+        if not self.is_cenet_website:
+            profile = Profile()
+            profile.name = unicode(re.search('nomusager=([^&]+)', self.session.cookies['headerdei']).group(1))
+        else:
+            profile = self.cenet_home.stay_or_go().get_profile()
+        return profile
