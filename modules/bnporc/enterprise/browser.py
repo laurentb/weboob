@@ -40,7 +40,8 @@ class BNPEnterprise(LoginBrowser):
                 '/sommaire/generateImg', LoginPage)
     auth = URL('/sommaire/PseMenuServlet', AuthPage)
     accounts = URL('/NCCPresentationWeb/e10_soldes/liste_soldes.do', AccountsPage)
-    account_history_view = URL('/NCCPresentationWeb/e11_releve_op/init.do\?identifiant=(?P<identifiant>)' + \
+    account_history_view = URL('/NCCPresentationWeb/e10_soldes/init.do\?nccIdSelected=NCC_Soldes',
+                               '/NCCPresentationWeb/e11_releve_op/init.do\?identifiant=(?P<identifiant>)' + \
                                '&typeSolde=(?P<type_solde>)&typeReleve=(?P<type_releve>)&typeDate=(?P<type_date>)' + \
                                '&dateMin=(?P<date_min>)&dateMax=(?P<date_max>)&ajax=true',
                                '/NCCPresentationWeb/e11_releve_op/init.do', AccountHistoryViewPage)
@@ -122,3 +123,7 @@ class BNPEnterprise(LoginBrowser):
     @need_login
     def iter_investment(self, account):
         raise NotImplementedError()
+
+    @need_login
+    def get_profile(self):
+        return self.account_history_view.go().get_profile()

@@ -26,8 +26,9 @@ from cStringIO import StringIO
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.filters.json import Dict
 from weboob.browser.elements import DictElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Format, Eval
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Regexp, Format, Eval
 from weboob.capabilities.bank import Transaction, Account
+from weboob.capabilities.profile import Profile
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.capabilities import NotAvailable
 from weboob.exceptions import ActionNeeded
@@ -67,6 +68,7 @@ class BNPVirtKeyboard(MappedVirtKeyboard):
         if m:
             return m.group(1)
 
+
 class LoginPage(HTMLPage):
     def get_password(self, password):
         vk_passwd = None
@@ -79,6 +81,7 @@ class LoginPage(HTMLPage):
 
         return vk_passwd
 
+
 class AuthPage(HTMLPage):
     pass
 
@@ -86,6 +89,7 @@ class AuthPage(HTMLPage):
 class ActionNeededPage(HTMLPage):
     def on_load(self):
         raise ActionNeeded(CleanText('//p[@class="message"]')(self.doc))
+
 
 class AccountsPage(LoggedPage, JsonPage):
     TYPES = {u'Compte chèque': Account.TYPE_CHECKING}
@@ -116,10 +120,16 @@ class AccountsPage(LoggedPage, JsonPage):
 
 
 class AccountHistoryViewPage(LoggedPage, HTMLPage):
-    pass
+    @method
+    class get_profile(ItemElement):
+        klass = Profile
+
+        obj_name = Regexp(CleanText('//table[@class="table_info_connecte"]//td'), '(.+?)\s-')
+
 
 def fromtimestamp(page, dict):
     return datetime.fromtimestamp(float(dict(page) / 1000))
+
 
 class AccountHistoryPage(LoggedPage, JsonPage):
     TYPES = {u'CARTE': Transaction.TYPE_CARD, # Cartes

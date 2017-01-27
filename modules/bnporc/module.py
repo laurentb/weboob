@@ -26,6 +26,7 @@ from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, \
                                      Account, TransferError, RecipientNotFound
 from weboob.capabilities.messages import CapMessages, Thread
 from weboob.capabilities.contact import CapContact
+from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
@@ -39,7 +40,7 @@ from .pp.browser import BNPPartPro, HelloBank
 __all__ = ['BNPorcModule']
 
 
-class BNPorcModule(Module, CapBankTransfer, CapMessages, CapContact):
+class BNPorcModule(Module, CapBankTransfer, CapMessages, CapContact, CapProfile):
     NAME = 'bnporc'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -144,6 +145,11 @@ class BNPorcModule(Module, CapBankTransfer, CapMessages, CapContact):
         if not hasattr(self.browser, 'get_advisor'):
             raise NotImplementedError()
         return self.browser.get_advisor()
+
+    def get_profile(self):
+        if not hasattr(self.browser, 'get_profile'):
+            raise NotImplementedError()
+        return self.browser.get_profile()
 
     def iter_threads(self, cache=False):
         """
