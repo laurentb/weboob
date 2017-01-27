@@ -21,7 +21,7 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, MovementsPage, PassExpiredPage
+from .pages import LoginPage, MovementsPage, ProfilePage, PassExpiredPage
 
 
 class LCLEnterpriseBrowser(LoginBrowser):
@@ -32,6 +32,7 @@ class LCLEnterpriseBrowser(LoginBrowser):
                 '/outil/IQEN/Authentication/(?P<page>.*)', LoginPage)
     movements = URL('/outil/IQMT/mvt.Synthese/syntheseMouvementPerso',
                     '/outil/IQMT/mvt.Synthese', MovementsPage)
+    profile = URL('/outil/IQGA/FicheUtilisateur/maFicheUtilisateur', ProfilePage)
 
     def __init__(self, *args, **kwargs):
         super(LCLEnterpriseBrowser, self).__init__(*args, **kwargs)
@@ -63,6 +64,10 @@ class LCLEnterpriseBrowser(LoginBrowser):
         if account._data:
             return self.open(account._url, data=account._data).page.iter_history()
         return self.movements.go().iter_history()
+
+    @need_login
+    def get_profile(self):
+        return self.profile.go().get_profile()
 
     def get_cb_operations(self, account):
         raise NotImplementedError()

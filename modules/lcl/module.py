@@ -24,6 +24,7 @@ import re
 from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, \
                                      RecipientNotFound, TransferError, Account
 from weboob.capabilities.contact import CapContact
+from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 from weboob.capabilities.base import find_object
@@ -35,7 +36,7 @@ from .enterprise.browser import LCLEnterpriseBrowser, LCLEspaceProBrowser
 __all__ = ['LCLModule']
 
 
-class LCLModule(Module, CapBankTransfer, CapContact):
+class LCLModule(Module, CapBankTransfer, CapContact, CapProfile):
     NAME = 'lcl'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -133,3 +134,8 @@ class LCLModule(Module, CapBankTransfer, CapContact):
             raise NotImplementedError()
 
         return self.browser.get_advisor()
+
+    def get_profile(self):
+        if not hasattr(self.browser, 'get_profile'):
+            raise NotImplementedError()
+        return self.browser.get_profile()

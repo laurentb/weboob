@@ -25,6 +25,7 @@ from weboob.browser.elements import ListElement, ItemElement, TableElement, meth
 from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Env, TableCell
 from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account
+from weboob.capabilities.profile import Profile
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserPasswordExpired
 
@@ -113,6 +114,16 @@ class MovementsPage(LoggedPage, HTMLPage):
                 credit = MyDecimal(TableCell('credit'))(self)
                 debit = MyDecimal(TableCell('debit'))(self)
                 return credit if credit else -debit
+
+
+class ProfilePage(LoggedPage, HTMLPage):
+    @method
+    class get_profile(ItemElement):
+        klass = Profile
+
+        obj_name = CleanText('//div[@class="headerInfos"][not(@id)]/span')
+        obj_phone = CleanText('//div[label[@id="tel_fix_label"]]/following-sibling::div[1]')
+        obj_email = CleanText('//div[label[@id="email_label"]]/following-sibling::div[1]')
 
 
 class PassExpiredPage(HTMLPage):
