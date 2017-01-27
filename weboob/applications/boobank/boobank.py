@@ -32,6 +32,7 @@ from weboob.capabilities.base import empty
 from weboob.capabilities.bank import CapBank, Account, Transaction, CapBankTransfer, \
                                      Transfer, TransferStep, Recipient, AddRecipientStep
 from weboob.capabilities.contact import CapContact, Advisor
+from weboob.capabilities.profile import CapProfile
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
@@ -670,3 +671,13 @@ class Boobank(ReplApplication):
                 found = 1
         if not found:
             print('Error: no advisor found', file=self.stderr)
+
+    def do_profile(self, line):
+        """
+        profile
+
+        Display detailed information about person or company.
+        """
+        self.start_format()
+        for profile in self.do('get_profile', caps=CapProfile):
+            self.format(profile)
