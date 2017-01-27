@@ -21,7 +21,7 @@
 from weboob.tools.test import BackendTest
 from weboob.tools.value import Value
 from weboob.capabilities.video import BaseVideo
-from .video import SITE
+from .video import SITE, ArteSiteVideo
 
 
 class ArteTest(BackendTest):
@@ -50,15 +50,17 @@ class ArteTest(BackendTest):
 
             l1 = list(self.backend.iter_resources([BaseVideo], [site.get('id')]))
             assert len(l1)
-            l1 = l1[0]
 
-            while not isinstance(l1, BaseVideo):
-                l1 = list(self.backend.iter_resources([BaseVideo], l1.split_path))
+            while not isinstance(l1[0], BaseVideo):
+                l1 = list(self.backend.iter_resources([BaseVideo], l1[0].split_path))
                 assert len(l1)
-                l1 = l1[0]
 
-            self.backend.fillobj(l1, ('url',))
-            self.assertTrue(l1.url, 'URL for video "%s" not found' % (l1.id))
+            for v in l1:
+                v = self.backend.fillobj(v, ('url',))
+                if type(v) == ArteSiteVideo:
+                    exit
+
+            self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
 
     def test_latest(self):
         l = list(self.backend.iter_resources([BaseVideo], [u'arte-latest']))

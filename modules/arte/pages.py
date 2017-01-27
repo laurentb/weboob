@@ -192,7 +192,7 @@ class VideosListPage(HTMLPage):
         if self.doc.xpath('//div[@class="video-container"]'):
             return self.doc.xpath('//div[@class="video-container"]')[0].attrib['arte_vp_url']
         elif self.doc.xpath('//iframe'):
-            url = Regexp(CleanText('./@src'), '.*json_url=(.*)')(self.doc.xpath('//iframe')[0])
+            url = Regexp(CleanText('./@src'), '.*json_url=(.*)', default='')(self.doc.xpath('//iframe')[0])
             return urllib.unquote(url)
         return ''
 
