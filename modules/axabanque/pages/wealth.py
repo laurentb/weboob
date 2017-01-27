@@ -94,7 +94,7 @@ class HistoryPage(LoggedPage, HTMLPage):
         return super(HistoryPage, self).build_doc(content)
 
     def get_investment_link(self):
-        return Attr('//article[has-class("card-distribution")]', 'data-url')(self.doc)
+        return Attr('//article[has-class("card-distribution")]', 'data-url', default=None)(self.doc)
 
     def get_pagination_link(self):
         return Attr('//div[has-class("default")][@data-current-page]', 'data-url')(self.doc)

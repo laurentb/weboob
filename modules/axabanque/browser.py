@@ -159,6 +159,10 @@ class AXABanque(AXABrowser):
                 invs = list(self.page.iter_investment())
             elif account._acctype == "investment":
                 investment_link = self.location(account._link).page.get_investment_link()
+                if investment_link is None:
+                    self.logger.warning('no investment link for account %s, returning empty', account)
+                    # fake data, don't cache it
+                    return []
                 invs = list(self.location(investment_link).page.iter_investment())
             self.cache['invs'][account.id] = invs
         return self.cache['invs'][account.id]
