@@ -350,3 +350,11 @@ class CreditMutuelBrowser(LoginBrowser):
             if self.page.has_agency():
                 self.advisor.go(subbank=self.currentSubBank, page="contact.html").update_advisor(advisor)
         return iter([advisor]) if advisor else iter([])
+
+    @need_login
+    def get_profile(self):
+        if not self.is_new_website:
+            profile = self.accounts.stay_or_go(subbank=self.currentSubBank).get_profile()
+        else:
+            profile = self.new_accounts.stay_or_go(subbank=self.currentSubBank).get_profile()
+        return profile

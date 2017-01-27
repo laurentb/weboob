@@ -39,6 +39,7 @@ from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import empty
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, Transfer
 from weboob.capabilities.contact import Advisor
+from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_french_date
@@ -284,6 +285,12 @@ class AccountsPage(LoggedPage, HTMLPage):
 
         obj_name = CleanText('//div[@id="e_conseiller"]/a')
 
+    @method
+    class get_profile(ItemElement):
+        klass = Profile
+
+        obj_name = CleanText('//div[@id="e_identification_ok_content"]//strong[1]')
+
 
 class NewAccountsPage(NewHomePage, AccountsPage):
     def has_agency(self):
@@ -294,6 +301,12 @@ class NewAccountsPage(NewHomePage, AccountsPage):
         klass = Advisor
 
         obj_name = Regexp(CleanText('//script[contains(text(), "Espace Conseiller")]'), 'consname.+?([\w\s]+)')
+
+    @method
+    class get_profile(ItemElement):
+        klass = Profile
+
+        obj_name = CleanText('//p[contains(@class, "master_nom")]')
 
 
 class AdvisorPage(LoggedPage, HTMLPage):
