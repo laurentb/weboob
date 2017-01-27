@@ -22,10 +22,12 @@ from StringIO import StringIO
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, TableCell, Regexp, Date, AsyncLoad, Async, Eval, RegexpError
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Format, TableCell, \
+                                            Regexp, Date, AsyncLoad, Async, Eval, RegexpError
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.value import Value
 from weboob.tools.date import parse_french_date
@@ -454,3 +456,33 @@ class ErrorPage(HTMLPage):
 
 class ExpertPage(LoggedPage, HTMLPage):
     pass
+
+
+def MyInput(*args, **kwargs):
+    args = (u'//input[contains(@name, "%s")]' % args[0], 'value',)
+    kwargs.update(default=NotAvailable)
+    return Attr(*args, **kwargs)
+
+
+def MySelect(*args, **kwargs):
+    args = (u'//select[contains(@name, "%s")]/option[@selected]' % args[0],)
+    kwargs.update(default=NotAvailable)
+    return CleanText(*args, **kwargs)
+
+
+class ProfilePage(LoggedPage, HTMLPage):
+    @method
+    class get_profile(ItemElement):
+        klass = Person
+
+        obj_name = Format('%s %s %s', MySelect('genderTitle'), MyInput('firstName'), MyInput('lastName'))
+        obj_nationality = CleanText(u'//span[contains(text(), "Nationalité")]/span')
+        obj_spouse_name = MyInput('spouseFirstName')
+        obj_children = CleanDecimal(MyInput('dependentChildren'), default=NotAvailable)
+        obj_family_situation = MySelect('maritalStatus')
+        obj_matrimonial = MySelect('matrimonial')
+        obj_housing_status = MySelect('housingSituation')
+        obj_job = MyInput('occupation')
+        obj_job_start_date = Date(MyInput('employeeSince'))
+        obj_company_name = MyInput('employer')
+        obj_socioprofessional_category = MySelect('socioProfessionalCategory')

@@ -28,7 +28,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,\
-                   MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ExpertPage
+                   MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ProfilePage, ExpertPage
 
 
 __all__ = ['BoursoramaBrowser']
@@ -68,6 +68,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
                 '/credit/lombard/.*/caracteristiques', LoanPage)
     authentication = URL('/securisation', AuthenticationPage)
     iban = URL('/compte/(?P<webid>.*)/rib', IbanPage)
+    profile = URL('/mon-profil/', ProfilePage)
 
     expert = URL('/compte/derive/', ExpertPage)
 
@@ -181,3 +182,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         if self.login.is_here():
             return self.get_investment(account)
         return self.page.iter_investment()
+
+    @need_login
+    def get_profile(self):
+        return self.profile.stay_or_go().get_profile()
