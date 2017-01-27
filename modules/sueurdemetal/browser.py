@@ -17,8 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
-from weboob.deprecated.browser import Browser
+from weboob.browser import PagesBrowser, URL
 
 from .pages import PageCity, PageConcert, PageCityList, PageDate, PageDates
 
@@ -26,39 +27,35 @@ from .pages import PageCity, PageConcert, PageCityList, PageDate, PageDates
 __all__ = ['SueurDeMetalBrowser']
 
 
-class SueurDeMetalBrowser(Browser):
-    PROTOCOL = 'http'
-    DOMAIN = 'www.sueurdemetal.com'
-    ENCODING = 'iso-8859-15'
+class SueurDeMetalBrowser(PagesBrowser):
+    BASEURL = 'http://www.sueurdemetal.com'
 
-    PAGES = {
-        '%s://%s/ville-metal-.+.htm' % (PROTOCOL, DOMAIN): PageCity,
-        r'%s://%s/detail-concert-metal.php\?c=.+' % (PROTOCOL, DOMAIN): PageConcert,
-        '%s://%s/recherchemulti.php' % (PROTOCOL, DOMAIN): PageCityList,
-        '%s://%s/liste-dates-concerts.php' % (PROTOCOL, DOMAIN): PageDates,
-        r'%s://%s/date-metal-.+.htm' % (PROTOCOL, DOMAIN): PageDate,
-    }
+    city = URL(r'/ville-metal-(?P<city>.+).htm', PageCity)
+    concert = URL(r'/detail-concert-metal.php\?c=(?P<id>.+)', PageConcert)
+    cities = URL(r'/recherchemulti.php', PageCityList)
+    dates = URL(r'/liste-dates-concerts.php', PageDates)
+    date = URL(r'/date-metal-.+.htm', PageDate)
 
     def get_concerts_city(self, city):
-        self.location('%s://%s/ville-metal-%s.htm' % (self.PROTOCOL, self.DOMAIN, city))
-        assert self.is_on_page(PageCity)
+        self.city.go(city=city)
+        assert self.city.is_here()
         return self.page.get_concerts()
 
     def get_concerts_date(self, date_from, date_end=None):
-        self.location('%s://%s/liste-dates-concerts.php' % (self.PROTOCOL, self.DOMAIN))
-        assert self.is_on_page(PageDates)
+        self.dates.go()
+        assert self.dates.is_here()
         for day in self.page.get_dates_filtered(date_from, date_end):
             self.location(day['url'])
-            assert self.is_on_page(PageDate)
+            assert self.date.is_here()
             for data in self.page.get_concerts():
                 yield data
 
     def get_concert(self, _id):
-        self.location('%s://%s/detail-concert-metal.php?c=%s' % (self.PROTOCOL, self.DOMAIN, _id))
-        assert self.is_on_page(PageConcert)
+        self.concert.go(id=_id)
+        assert self.concert.is_here()
         return self.page.get_concert()
 
     def get_cities(self):
-        self.location('%s://%s/recherchemulti.php' % (self.PROTOCOL, self.DOMAIN))
-        assert self.is_on_page(PageCityList)
+        self.cities.go()
+        assert self.cities.is_here()
         return self.page.get_cities()

@@ -17,17 +17,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import HTMLPage
 from weboob.tools.date import parse_french_date
 import re
 from urlparse import urljoin
 
 
-class PageWithConcerts(Page):
+class PageWithConcerts(HTMLPage):
     def extract_concert(self, concert_table):
         d = {}
-        date_h3 = concert_table.iter('h3').next()
+        date_h3 = next(concert_table.iter('h3'))
         d['date'] = parse_french_date(date_h3.text)
 
         cancel_h2 = next(date_h3.itersiblings('h2'), None)
@@ -36,7 +37,7 @@ class PageWithConcerts(Page):
         else:
             d['active'] = True
 
-        performers_table = concert_table.iterdescendants('table').next()
+        performers_table = next(concert_table.iterdescendants('table'))
         d['performers'] = list(self.extract_performers(performers_table))
         d['summary'] = ' + '.join(p['name'] for p in d['performers'])
         d['description'] = d['summary']
@@ -67,11 +68,11 @@ class PageWithConcerts(Page):
 
 class PageCity(PageWithConcerts):
     def get_concerts(self):
-        for concert_table in self.document.xpath('//div[@id="centre-page"]//div/table'):
+        for concert_table in self.doc.xpath('//div[@id="centre-page"]//div/table'):
             yield self.extract_concert(concert_table)
 
     def extract_concert(self, concert_table):
-        d = PageWithConcerts.extract_concert(self, concert_table)
+        d = super(PageCity, self).extract_concert(concert_table)
         self.extract_concert_link(concert_table, d)
         d['city_id'] = self.extract_city_from_url(self.url)
         return d
@@ -79,11 +80,11 @@ class PageCity(PageWithConcerts):
 
 class PageDate(PageWithConcerts):
     def get_concerts(self):
-        for concert_table in self.document.xpath('//div[@id="centre-page"]//div/table'):
+        for concert_table in self.doc.xpath('//div[@id="centre-page"]//div/table'):
             yield self.extract_concert(concert_table)
 
     def extract_concert(self, concert_table):
-        d = PageWithConcerts.extract_concert(self, concert_table)
+        d = super(PageDate, self).extract_concert(concert_table)
         self.extract_concert_link(concert_table, d)
         city_a = concert_table.xpath('.//a[starts-with(@href, "ville-metal-")]')[0]
         d['city_id'] = self.extract_city_from_url(city_a.get('href'))
@@ -92,14 +93,14 @@ class PageDate(PageWithConcerts):
 
 class PageConcert(PageWithConcerts):
     def get_concert(self):
-        concert_table = self.document.xpath('//div[@id="centre-page"]//div/table')[0]
+        concert_table = self.doc.xpath('//div[@id="centre-page"]//div/table')[0]
         d = self.extract_concert(concert_table)
         d['id'] = self.extract_id_from_url(self.url)
         d['url'] = self.url
 
         it = concert_table.iterdescendants('table')
-        it.next() # ignore performers table
-        infos_table = it.next()
+        next(it) # ignore performers table
+        infos_table = next(it)
         self.infos_table = infos_table
         info_trs = infos_table.findall('tr')
         d['room'] = (info_trs[3].findall('td')[1].text or '').strip()
@@ -109,7 +110,7 @@ class PageConcert(PageWithConcerts):
         if price is not None: # "None" is different from "0€"
             d['price'] = price
 
-        city_a = self.document.xpath('//a[starts-with(@href, "ville-metal-")]')[0]
+        city_a = self.doc.xpath('//a[starts-with(@href, "ville-metal-")]')[0]
         d['city_id'] = self.extract_city_from_url(city_a.get('href'))
         d['city'] = city_a.text
         return d
@@ -123,10 +124,10 @@ class PageConcert(PageWithConcerts):
         return float(parts[-1])
 
 
-class PageCityList(Page):
+class PageCityList(HTMLPage):
     def get_cities(self):
         cities = {}
-        for option in self.document.xpath('//select[@name="ville"]/option'):
+        for option in self.doc.xpath('//select[@name="ville"]/option'):
             v = option.get('value')
             if not v:
                 continue
@@ -139,9 +140,9 @@ class PageCityList(Page):
         return cities
 
 
-class PageDates(Page):
+class PageDates(HTMLPage):
     def get_dates(self):
-        for a in self.document.xpath('//div[@id="dateconcerts"]//a'):
+        for a in self.doc.xpath('//div[@id="dateconcerts"]//a'):
             d = {}
             d['date'] = parse_french_date(a.text.strip())
             d['url'] = urljoin(self.url, a.get('href'))
