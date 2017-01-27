@@ -239,8 +239,16 @@ class AccountHistory(LoggedPage, BasePage):
                 m = re.search(r'(\d+)/(\d+)', raw)
                 if not m:
                     continue
+
+                old_debit_date = self.debit_date
                 self.debit_date = t.date if t else datetime.date.today()
                 self.debit_date = self.debit_date.replace(day=int(m.group(1)), month=int(m.group(2)))
+
+                if old_debit_date is not None:
+                    while self.debit_date > old_debit_date:
+                        self.debit_date = self.debit_date.replace(year=self.debit_date.year - 1)
+                        self.logger.error('adjusting debit date to %s', self.debit_date)
+
                 if not t:
                     continue
 
@@ -257,7 +265,7 @@ class AccountHistory(LoggedPage, BasePage):
                 t.amount = -t.amount
                 date = self.debit_date
             t.rdate = t.parse_date(date)
-            t.parse(raw=raw, date=(self.debit_date or date))
+            t.parse(raw=raw, date=(self.debit_date or date), vdate=(date or None))
 
             yield t
 
