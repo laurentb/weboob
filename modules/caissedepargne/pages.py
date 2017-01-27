@@ -92,7 +92,11 @@ class CenetAccountsPage(LoggedPage, CenetJsonPage):
             obj_iban = CleanText(Dict('IBAN'))
 
             def obj_balance(self):
-                return Eval(lambda x: x / 10**2, CleanDecimal(Dict('Solde/Valeur')))(self)
+                absolut_amount = CleanDecimal(Dict('Solde/Valeur'))(self)/ 10**2
+                if CleanText(Dict('Solde/CodeSens'))(self) == 'D':
+                    return -absolut_amount
+                return absolut_amount
+
 
             def obj_currency(self):
                 return CleanText(Dict('Devise'))(self).upper()
