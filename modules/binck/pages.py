@@ -66,7 +66,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             for input in self.doc.xpath('//input[contains(@name, "Token")]')][0]
 
     def is_investment(self):
-        return CleanText('//header/a[contains(@href, "Portfolio")]', default=False)(self.doc)
+        return CleanText('//a[contains(@href, "Portfolio")]', default=False)(self.doc)
 
     @method
     class iter_accounts(TableElement):
