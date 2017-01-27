@@ -60,7 +60,8 @@ class AddType(Filter):
              u'Orange': Account.TYPE_SAVINGS, u'Durable': Account.TYPE_SAVINGS,
              u'Titres': Account.TYPE_MARKET, u'PEA': Account.TYPE_MARKET,
              u'Direct Vie': Account.TYPE_LIFE_INSURANCE,
-             u'Assurance Vie': Account.TYPE_LIFE_INSURANCE
+             u'Assurance Vie': Account.TYPE_LIFE_INSURANCE,
+             u'Crédit Immobilier': Account.TYPE_LOAN,
             }
 
     def filter(self, label):
