@@ -229,6 +229,10 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_CARD_SUMMARY),
                 (re.compile('^CB [\d\*]+ (?P<text>.*)', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_CARD),
+                (re.compile('^CB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_CARD),
+                (re.compile('\*CB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_CARD),
                ]
 
 
