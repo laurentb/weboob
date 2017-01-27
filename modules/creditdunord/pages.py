@@ -27,9 +27,11 @@ from datetime import date as da
 from lxml import html
 
 from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.elements import method, ItemElement
 from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Regexp
 from weboob.exceptions import ActionNeeded, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.profile import Profile
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
@@ -263,6 +265,12 @@ class AccountsPage(LoggedPage, CDNBasePage):
         form['_ipc_eventValue'] = 'bouchon=bouchon'
         form.submit()
 
+    @method
+    class get_profile(ItemElement):
+        klass = Profile
+
+        obj_name = CleanText('//p[@class="nom"]')
+
 
 class AVPage(LoggedPage, CDNBasePage):
     COL_LABEL = 0
@@ -369,6 +377,12 @@ class ProAccountsPage(AccountsPage):
 
     def iban_page(self):
         self.browser.location(self.doc.xpath('.//a[contains(text(), "Impression IBAN")]')[0].attrib['href'])
+
+    @method
+    class get_profile(ItemElement):
+        klass = Profile
+
+        obj_name = CleanText('//p[@class="nom"]')
 
 
 class IbanPage(LoggedPage, HTMLPage):

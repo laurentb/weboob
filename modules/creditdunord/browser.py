@@ -149,3 +149,8 @@ class CreditDuNordBrowser(LoginBrowser):
             self.location(account._link.replace("_attente", "_detail_contrat_rep"), data=account._args)
             investments = [i for i in self.page.get_deposit_investment()]
         return iter(investments)
+
+    @need_login
+    def get_profile(self):
+        self.home()
+        return self.page.get_profile()
