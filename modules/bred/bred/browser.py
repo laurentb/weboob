@@ -25,7 +25,7 @@ from decimal import Decimal
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPError, BrowserUnavailable, ParseError
+from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPError, BrowserUnavailable
 from weboob.browser import DomainBrowser
 
 
@@ -190,7 +190,6 @@ class BredBrowser(DomainBrowser):
                       })
         transactions = []
         for op in reversed(r.json()['content']['operations']):
-            next_page = True
             t = Transaction()
             t.id = op['id']
             d = date.fromtimestamp(op.get('dateDebit', op.get('dateOperation'))/1000)
