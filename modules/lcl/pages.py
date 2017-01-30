@@ -37,6 +37,7 @@ from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, Da
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
+from weboob.tools.html import html2text
 
 
 def MyDecimal(*args, **kwargs):
@@ -648,7 +649,7 @@ class TransferPage(LoggedPage, HTMLPage):
         # This aims to track input errors.
         script_error = CleanText(u"//script[contains(text(), 'if (\"true\"===\"true\")')]")(self.doc)
         if script_error:
-            raise TransferError(re.search(u'\.html\("(.*?)"\)', script_error).group(1))
+            raise TransferError(html2text(re.search(u'\.html\("(.*?)"\)', script_error).group(1)).strip())
 
     def can_transfer(self, account_transfer_id):
         for div in self.doc.xpath('//div[input[@id="indexCompteEmetteur"]]//div[@class="infoCompte" and not(@title)]'):
