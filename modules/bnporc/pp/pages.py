@@ -477,6 +477,9 @@ class HistoryPage(BNPPage):
             tr.parse(raw=op.get('libelleOperation'),
                      date=Date(op.get('dateOperation')),
                      vdate=Date(self.one('montant.valueDate', op)))
+            if tr.type == Transaction.TYPE_CARD and tr.raw.startswith('FACTURE CARTE SELON RELEVE DU'):
+                tr.type = Transaction.TYPE_CARD_SUMMARY
+                tr.deleted = True
             yield tr
 
     def iter_coming(self):
@@ -491,6 +494,9 @@ class HistoryPage(BNPPage):
             tr.parse(date=Date(op.get('dateOperation')),
                      vdate=Date(op.get('valueDate')),
                      raw=op.get('libelle'))
+            if tr.type == Transaction.TYPE_CARD:
+                tr.type = Transaction.TYPE_DEFERRED_CARD
+                tr.nopurge = True
             yield tr
 
 
