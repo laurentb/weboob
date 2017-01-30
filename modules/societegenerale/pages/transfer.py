@@ -71,6 +71,10 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         if error_msg and error_msg not in excluded_errors:
             raise TransferError(error_msg)
 
+    def is_able_to_transfer(self, account):
+        numbers = [''.join(Regexp(CleanText('.'), '(\d+)', nth='*', default=None)(opt)) for opt in self.doc.xpath('.//select[@id="SelectEmet"]//option')]
+        return bool(CleanText('.//select[@id="SelectEmet"]//option[contains(text(), "%s")]' % account.label)(self.doc)) or bool(account.id in numbers)
+
     @method
     class iter_recipients(ListElement):
         item_xpath = '//select[@id="SelectDest"]/optgroup[@label="Vos comptes"]/option | //select[@id="SelectDest"]/optgroup[@label="Procurations"]/option'
@@ -108,6 +112,7 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
             params = re.findall('"(.*?)"', account)
             if params[2] + params[3] == _id or params[3] + params[4] == _id or params[-2] == _id:
                 return params
+        raise TransferError(u'Paramètres pour le compte %s numéro %s introuvable.' % (_type, _id))
 
     def get_account_value(self, _id):
         for option in self.doc.xpath('//select[@id="SelectEmet"]//option'):

@@ -158,10 +158,11 @@ class SocieteGenerale(LoginBrowser):
 
     @need_login
     def iter_recipients(self, account):
-        # Seems like all accounts can transfer on all recipients.
-        for recipient in self.recipients.go().iter_recipients():
+        if not self.transfer.go().is_able_to_transfer(account):
+            return
+        for recipient in self.page.iter_recipients(account_id=account.id):
             yield recipient
-        for recipient in self.transfer.go().iter_recipients(account_id=account):
+        for recipient in self.recipients.go().iter_recipients():
             yield recipient
 
     @need_login

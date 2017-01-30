@@ -95,8 +95,8 @@ class SocieteGeneraleModule(Module, CapBankTransfer, CapContact):
     def iter_transfer_recipients(self, origin_account):
         if self.config['website'].get() != 'par':
             raise NotImplementedError()
-        if isinstance(origin_account, Account):
-            origin_account = origin_account.id
+        if not isinstance(origin_account, Account):
+            origin_account = find_object(self.iter_accounts(), id=origin_account, error=AccountNotFound)
         return self.browser.iter_recipients(origin_account)
 
     def init_transfer(self, transfer, **params):
