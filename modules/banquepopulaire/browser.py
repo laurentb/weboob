@@ -45,7 +45,7 @@ class BrokenPageError(Exception):
     pass
 
 
-def retry(exc_check):
+def retry(exc_check, tries=4):
     """Decorate a function to retry several times in case of exception.
 
     The decorated function is called at max 4 times. It is retried only when it
@@ -61,7 +61,7 @@ def retry(exc_check):
         def wrapper(browser, *args, **kwargs):
             cb = lambda: func(browser, *args, **kwargs)
 
-            for i in xrange(5):
+            for i in xrange(tries, 0, -1):
                 try:
                     ret = cb()
                 except exc_check as exc:
@@ -70,7 +70,7 @@ def retry(exc_check):
 
                 if not hasattr(ret, '__iter__'):
                     return ret  # simple value, no need to retry on items
-                return iter_retry(cb, value=ret, retries=i, exc_check=exc_check, logger=browser.logger)
+                return iter_retry(cb, value=ret, remaining=i, exc_check=exc_check, logger=browser.logger)
 
             raise BrowserUnavailable('Site did not reply successfully after multiple tries')
 
@@ -369,11 +369,11 @@ class iter_retry(object):
     # when the callback is retried, it will create a new iterator, but we may already yielded
     # some values, so we need to keep track of them and seek in the middle of the iterator
 
-    def __init__(self, cb, retries=0, value=None, exc_check=Exception, logger=None):
+    def __init__(self, cb, remaining=4, value=None, exc_check=Exception, logger=None):
         self.cb = cb
         self.it = value
         self.items = []
-        self.retries = retries
+        self.remaining = remaining
         self.exc_check = exc_check
         self.logger = logger
 
@@ -381,7 +381,7 @@ class iter_retry(object):
         return self
 
     def __next__(self):
-        if self.retries > 4:
+        if self.remaining <= 0:
             raise BrowserUnavailable('Site did not reply successfully after multiple tries')
 
         if self.it is None:
@@ -389,18 +389,23 @@ class iter_retry(object):
 
             # recreated iterator, consume previous items
             try:
-                for sent in self.items:
+                nb = -1
+                for nb, sent in enumerate(self.items):
                     new = next(self.it)
-                    if sent.to_dict() != new.to_dict():
+                    if hasattr(new, 'to_dict'):
+                        equal = sent.to_dict() == new.to_dict()
+                    else:
+                        equal = sent == new
+                    if not equal:
                         # safety is not guaranteed
-                        raise BrowserUnavailable('Site replied inconsistently between retries')
+                        raise BrowserUnavailable('Site replied inconsistently between retries, %r vs %r', sent, new)
             except StopIteration:
-                raise BrowserUnavailable('Site replied fewer elements than last iteration')
+                raise BrowserUnavailable('Site replied fewer elements (%d) than last iteration (%d)', nb + 1, len(self.items))
             except self.exc_check as exc:
                 if self.logger:
                     self.logger.info('%s raised, retrying', exc)
                 self.it = None
-                self.retries += 1
+                self.remaining -= 1
                 return next(self)
 
         # return one item
@@ -410,7 +415,7 @@ class iter_retry(object):
             if self.logger:
                 self.logger.info('%s raised, retrying', exc)
             self.it = None
-            self.retries += 1
+            self.remaining -= 1
             return next(self)
         else:
             self.items.append(obj)
