@@ -58,6 +58,8 @@ class SocieteGenerale(LoginBrowser):
         assert isinstance(self.password, basestring)
         if not self.password.isdigit() or len(self.password) != 6:
             raise BrowserIncorrectPassword()
+        if not self.username.isdigit():
+            raise BrowserIncorrectPassword()
         self.username = self.username[:8]
 
         self.login.stay_or_go()
