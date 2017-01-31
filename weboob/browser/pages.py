@@ -34,6 +34,7 @@ from weboob.exceptions import ParseError, ModuleInstallError
 from weboob.tools.compat import basestring, unicode, urljoin
 from weboob.tools.log import getLogger
 from weboob.tools.pdf import decompress_pdf
+from .exceptions import LoggedOut
 
 
 def pagination(func):
@@ -847,3 +848,11 @@ class AbstractPage(Page):
 
         cls.__bases__ = (parent.klass,)
         return object.__new__(cls)
+
+
+class LoginPage(Page):
+    def on_load(self):
+        if not self.browser.logging_in:
+            raise LoggedOut()
+
+        super(LoginPage, self).on_load()

@@ -31,3 +31,7 @@ class ClientError(HTTPError, BrowserHTTPError):
 
 class ServerError(HTTPError, BrowserHTTPError):
     pass
+
+
+class LoggedOut(Exception):
+    pass
