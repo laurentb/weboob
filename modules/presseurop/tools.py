@@ -26,7 +26,7 @@ def url2id(url):
     if "/today/" in url:
         return url.split("#")[1]
     else:
-        regexp = re.compile(".*/([0-9]+)-.*")
+        regexp = re.compile(".*/.*-([0-9]+)\?.*")
         id = regexp.match(url).group(1)
         return id
 

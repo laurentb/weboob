@@ -19,10 +19,15 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.tools.value import Value
 
 
 class PresseuropTest(BackendTest):
     MODULE = 'presseurop'
+
+    def setUp(self):
+        if not self.is_backend_configured():
+            self.backend.config['lang'] = Value(value='fr')
 
     def test_new_messages(self):
         for message in self.backend.iter_unread_messages():
