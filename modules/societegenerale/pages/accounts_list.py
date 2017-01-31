@@ -471,6 +471,7 @@ class LoansPage(LoggedPage, JsonPage):
             obj_type = Account.TYPE_LOAN
             obj_label = Dict('libelle')
             obj_currency = Dict('capitalRestantDu/devise')
+            obj__link_id = None
 
             def obj_balance(self):
                 val = Decimal(Dict('capitalRestantDu/valeur')(self))
