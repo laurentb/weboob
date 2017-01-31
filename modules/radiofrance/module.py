@@ -65,7 +65,9 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
         'fipradio': {u'title': u'FIP',
                      u'player': u'player',
                      u'live': 'import_si/si_titre_antenne/FIP_player_current',
-                     u'selection': u'%s' % int(time.mktime(datetime.utcnow().replace(hour=12, minute=0, second=0).timetuple()))},
+                     u'selection': u'%s' % int(time.mktime(datetime.utcnow().replace(hour=12,
+                                                                                     minute=0,
+                                                                                     second=0).timetuple()))},
         'francemusique': {u'title': u'France Musique',
                           u'player': u'player',
                           u'live': u'programmes?xmlHttpRequest=1',
@@ -74,7 +76,9 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
                  u'player': u'player',
                  u'live': u'lecteur_commun_json/timeline',
                  u'podcast': u'podcasts',
-                 u'selection': u'lecteur_commun_json/reecoute-%s' % int(time.mktime(datetime.utcnow().replace(hour=13, minute=0, second=0).timetuple()))},
+                 u'selection': u'lecteur_commun_json/reecoute-%s' % int(time.mktime(datetime.utcnow().replace(hour=13,
+                                                                                                              minute=0,
+                                                                                                              second=0).timetuple()))},
         'fbalsace': {u'title': u'France Bleu Alsace (Strasbourg)',
                      u'player': u'alsace',
                      u'live': u'grid/alsace'},
@@ -337,8 +341,25 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
             if 'selection' in self._RADIOS[radio]:
                 selection_url = self._RADIOS[radio]['selection']
                 radio_url = radio if not radio.startswith('fb') else 'francebleu'
-                for item in self.browser.search_audio(pattern, radio_url, selection_url, radio):
-                    yield item
+                for item in self.browser.get_selection(radio_url, selection_url, radio):
+                    if pattern.upper() in item.title.upper():
+                        yield item
+
+            if 'podcast' in self._RADIOS[radio]:
+                podcast_url = self._RADIOS[radio]['podcast']
+                radio_url = radio if not radio.startswith('fb') else 'francebleu'
+                for item in self.browser.get_podcast_emissions(radio_url,
+                                                               podcast_url,
+                                                               [radio]):
+                    if pattern.upper() in item.title.upper():
+                        podcasts_url = item.id
+                        if radio == 'franceculture':
+                            podcasts_url = self.browser.get_france_culture_podcasts_url(item.id)
+                        elif radio == 'francetvinfo':
+                            podcasts_url = self.browser.get_francetvinfo_podcasts_url(item.id)
+
+                        for pod in self.browser.get_podcasts(podcasts_url):
+                            yield pod
 
     def get_audio(self, _id):
         radio = self.get_radio_id(_id)

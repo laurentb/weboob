@@ -209,17 +209,17 @@ class RadioPage(HTMLPage):
             klass = Collection
 
             def condition(self):
-                return CleanText('./div/footer/div[has-class("rss")]/a/@href')(self) and\
-                    Regexp(CleanText('./div/footer/div[has-class("rss")]/a/@href'),
+                return CleanText('./div/div/div/div/ul/li/a[has-class("rss")]/@href')(self) and\
+                    Regexp(CleanText('./div/div/div/div/ul/li/a[has-class("rss")]/@href'),
                            'http://radiofrance-podcast.net/podcast09/rss_(.*).xml')(self)
 
             def obj_split_path(self):
-                _id = Regexp(CleanText('./div/footer/div[has-class("rss")]/a/@href'),
+                _id = Regexp(CleanText('./div/div/div/div/ul/li/a[has-class("rss")]/@href'),
                              'http://radiofrance-podcast.net/podcast09/rss_(.*).xml')(self)
                 self.env['split_path'].append(_id)
                 return self.env['split_path']
 
-            obj_id = Regexp(CleanText('./div/footer/div[has-class("rss")]/a/@href'),
+            obj_id = Regexp(CleanText('./div/div/div/div/ul/li/a[has-class("rss")]/@href'),
                             'http://radiofrance-podcast.net/podcast09/rss_(.*).xml')
 
             obj_title = CleanText('./div/div[@class="rich-section-list-item-content-show"]')

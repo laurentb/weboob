@@ -21,6 +21,7 @@
 from weboob.tools.test import BackendTest
 from weboob.capabilities.audio import BaseAudio
 from weboob.capabilities.radio import Radio
+import itertools
 
 
 class RadioFranceTest(BackendTest):
@@ -75,7 +76,7 @@ class RadioFranceTest(BackendTest):
         self.assertTrue(len(l[0].streams) > 0)
 
     def test_search_get_audio(self):
-        l = list(self.backend.search_audio('jou'))
+        l = list(itertools.islice(self.backend.search_audio('jou'), 0, 20))
         self.assertTrue(len(l) > 0)
 
         a = self.backend.get_audio(l[0].id)

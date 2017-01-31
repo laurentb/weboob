@@ -84,11 +84,6 @@ class RadioFranceBrowser(PagesBrowser):
                 return item
         return []
 
-    def search_audio(self, pattern, radio_url, json_url, radio_id):
-        for item in self.get_selection(radio_url, json_url, radio_id):
-            if pattern.upper() in item.title.upper():
-                yield item
-
     def get_podcast_emissions(self, radio_url, podcast_url, split_path):
         self.fill_base_url(radio_url)
         if split_path[0] == 'franceinter':
