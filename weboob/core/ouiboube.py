@@ -62,6 +62,11 @@ class WebNip(object):
 
         if modules_path is None:
             import pkg_resources
+            # Package weboob_modules is provided by
+            # https://git.weboob.org/weboob/modules
+            # and should be pip-installed separately.
+            # Note that Weboob users should rather install Weboob modules
+            # through https://updates.weboob.org/.
             modules_path = pkg_resources.resource_filename('weboob_modules', '')
 
         if modules_path:
