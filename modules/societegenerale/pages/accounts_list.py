@@ -30,8 +30,10 @@ from weboob.capabilities.base import empty, NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.contact import Advisor
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.browser.elements import DictElement, ItemElement, method
+from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp
-from weboob.browser.pages import LoggedPage
+from weboob.browser.pages import JsonPage, LoggedPage
 
 from .base import BasePage
 
@@ -455,3 +457,28 @@ class AdvisorPage(BasePage):
             a.mobile = a.email = NotAvailable
             a.role = u"wealth" if "patrimoine" in CleanText('./div[1]')(div) else u"bank"
             yield a
+
+
+class LoansPage(LoggedPage, JsonPage):
+    @method
+    class iter_accounts(DictElement):
+        item_xpath = 'donnees/tabPrestations'
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_id = Dict('idPrestation')
+            obj_type = Account.TYPE_LOAN
+            obj_label = Dict('libelle')
+            obj_currency = Dict('capitalRestantDu/devise')
+
+            def obj_balance(self):
+                val = Decimal(Dict('capitalRestantDu/valeur')(self))
+                point = Decimal(Dict('capitalRestantDu/posDecimale')(self))
+                assert point >= 0
+                return val.scaleb(-point)
+
+            def validate(self, obj):
+                assert obj.id
+                assert obj.label
+                return True

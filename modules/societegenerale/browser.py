@@ -23,8 +23,11 @@ from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account
 from weboob.browser.exceptions import BrowserHTTPNotFound
 
-from .pages.accounts_list import AccountsList, AccountHistory, CardsList, LifeInsurance, \
-    LifeInsuranceHistory, LifeInsuranceInvest, Market, ListRibPage, AdvisorPage
+from .pages.accounts_list import (
+    AccountsList, AccountHistory, CardsList, LifeInsurance,
+    LifeInsuranceHistory, LifeInsuranceInvest, Market, ListRibPage, AdvisorPage,
+    LoansPage,
+)
 from .pages.transfer import RecipientsPage, TransferPage
 from .pages.login import LoginPage, BadLoginPage, ReinitPasswordPage
 
@@ -50,6 +53,8 @@ class SocieteGenerale(LoginBrowser):
 
     recipients = URL('/personnalisation/per_cptBen_modifier_liste.html', RecipientsPage)
     transfer = URL('/virement/pas_vipon_saisie.html', '/lgn/url.html\?dup', TransferPage)
+
+    loans = URL(r'/abm/restit/listeRestitutionPretsNET.json\?a100_isPretConso=(?P<conso>\w+)', LoansPage)
 
     accounts_list = None
 
@@ -97,6 +102,11 @@ class SocieteGenerale(LoginBrowser):
                     if account._rib_url:
                         self.location(account._rib_url)
                         account.iban = self.page.get_iban()
+
+            for type_ in ['true', 'false']:
+                self.loans.go(conso=type_)
+                self.accounts_list.extend(self.page.iter_accounts())
+
         return iter(self.accounts_list)
 
     @need_login
