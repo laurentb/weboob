@@ -424,7 +424,8 @@ class BoursePage(LoggedPage, HTMLPage):
         return CleanText(u'//b[contains(text(), "Afin de sécuriser vos transactions, nous vous invitons à créer un mot de passe trading")]')(self.doc)
 
     def get_next(self):
-        return re.search('"(.*?)"', self.doc.xpath('.//body')[0].attrib['onload']).group(1)
+        if 'onload' in self.doc.xpath('.//body')[0].attrib:
+            return re.search('"(.*?)"', self.doc.xpath('.//body')[0].attrib['onload']).group(1)
 
     def get_fullhistory(self):
         form = self.get_form(id="historyFilter")
