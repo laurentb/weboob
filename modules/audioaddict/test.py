@@ -20,10 +20,16 @@
 
 from weboob.tools.test import BackendTest
 from weboob.capabilities.radio import Radio
+from weboob.tools.value import Value
 
 
 class AudioAddictTest(BackendTest):
     MODULE = 'audioaddict'
+
+    def setUp(self):
+        if not self.is_backend_configured():
+            self.backend.config['networks'] = Value(value='RockRadio RadioTunes JazzRadio DI')
+            self.backend.config['quality'] = Value(value='l')
 
     def test_audioaddict(self):
         ls = list(self.backend.iter_resources((Radio, ), []))
