@@ -667,7 +667,7 @@ class TransferPage(LoggedPage, HTMLPage):
 
     def choose_recip(self, recipient):
         form = self.get_form(id='formulaire')
-        form['indexCompteDestinataire'] = self.get_value(recipient.id, 'recipient')
+        form['indexCompteDestinataire'] = self.get_value(recipient._transfer_id, 'recipient')
         form.submit()
 
     def transfer(self, amount, reason):
@@ -699,7 +699,8 @@ class TransferPage(LoggedPage, HTMLPage):
             klass = Recipient
             validate = lambda self, obj: self.obj_id(self) != self.env['account_transfer_id']
 
-            obj_id = CleanText('./div[@class="infoCompte" and not(@title)]', replace=[(' ', '')])
+            obj_id = CleanText('./div[@class="infoCompte" and not(@title)]', replace=[(' 0000', '')])
+            obj__transfer_id = CleanText('./div[@class="infoCompte" and not(@title)]', replace=[(' ', '')])
             obj_label = CleanText('./div[1]')
             obj_bank_name = Env('bank_name')
             obj_category = Env('category')
@@ -714,7 +715,7 @@ class TransferPage(LoggedPage, HTMLPage):
             def parse(self, el):
                 if bool(CleanText('./div[@id="soldeEurosCompte"]')(self)):
                     self.env['category'] = u'Interne'
-                    account = find_object(self.page.browser.get_accounts_list(), _transfer_id=self.obj_id(self))
+                    account = find_object(self.page.browser.get_accounts_list(), id=self.obj_id(self))
                     self.env['iban'] = account.iban if account else NotAvailable
                     self.env['bank_name'] = u'LCL'
                 else:
@@ -728,7 +729,7 @@ class TransferPage(LoggedPage, HTMLPage):
             assert reason in CleanText('//div[@class="motif"]')(self.doc)
             assert account._transfer_id in CleanText(u'//div[div[@class="libelleChoix" and contains(text(), "Compte émetteur")]] \
                                                     //div[@class="infoCompte" and not(@title)]', replace=[(' ', '')])(self.doc)
-            assert recipient.id in CleanText(u'//div[div[@class="libelleChoix" and contains(text(), "Compte destinataire")]] \
+            assert recipient._transfer_id in CleanText(u'//div[div[@class="libelleChoix" and contains(text(), "Compte destinataire")]] \
                                                     //div[@class="infoCompte" and not(@title)]', replace=[(' ', '')])(self.doc)
         except AssertionError:
             raise TransferError('data consistency failed.')
