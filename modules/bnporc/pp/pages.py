@@ -203,7 +203,8 @@ class AccountsIBANPage(BNPPage):
 class MyRecipient(ItemElement):
     klass = Recipient
 
-    obj_currency = Dict('devise')
+    def obj_currency(self):
+        return Dict('devise')(self) or NotAvailable
 
     def validate(self, el):
         # For the moment, we skip this kind of recipient:
