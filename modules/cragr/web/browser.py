@@ -94,7 +94,7 @@ class Cragr(LoginBrowser):
     chg_perimeter = URL(r'/stb/entreeBam\?.*act=ChgPerim.*', ChgPerimeterPage)
 
     transfer_init_page = URL(r'/stb/entreeBam\?sessionSAG=(?P<sag>[^&]+)&stbpg=pagePU&act=Virementssepa&stbzn=bnt&actCrt=Virementssepa', TransferInit)
-    transfer_page = URL(r'/stb/collecteNI\?fwkaid=([\d_]+)&fwkpid=([\d_]+)', TransferPage)
+    transfer_page = URL(r'/stb/collecteNI\?fwkaid=([\d_]+)&fwkpid=([\d_]+)$', TransferPage)
 
     new_login_domain = []
     new_login = False
