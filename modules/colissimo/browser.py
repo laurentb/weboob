@@ -38,7 +38,7 @@ class TrackingPage(HTMLPage):
         class item(ItemElement):
             klass = Event
 
-            obj_date = Date(CleanText('td[@headers="Date"]'))
+            obj_date = Date(CleanText('td[@headers="Date"]'), dayfirst=True)
             obj_activity = CleanText('td[@headers="Libelle"]')
             obj_location = CleanText('td[@headers="site"]')
 
