@@ -32,7 +32,7 @@ from weboob.capabilities.contact import Advisor
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.date import parse_french_date, LinearDateGuesser
-from weboob.browser.filters.standard import Date, CleanText, CleanDecimal, Currency as CleanCurrency
+from weboob.browser.filters.standard import Date, CleanText, CleanDecimal, Currency as CleanCurrency, Regexp
 
 
 class MyLoggedPage(object):
@@ -888,56 +888,41 @@ class TransferPage(MyLoggedPage, BasePage):
     def get_transfer(self):
         transfer = Transfer()
 
+        # FIXME all will probably fail if an account has a user-chosen label with "IBAN :" or "n°"
+
         amount_xpath = '//fieldset//p[has-class("montant")]'
         transfer.amount = CleanDecimal(amount_xpath, replace_dots=True)(self.doc)
         transfer.currency = CleanCurrency(amount_xpath)(self.doc)
 
-        for p in self.doc.xpath('//fieldset[.//h3[contains(text(), "Compte émetteur")]]//p'):
-            found = False
-            for line in get_text_lines(p):
-                if line.startswith('n°'):
-                    line = line[2:].strip()
-                    found = True
+        if self.is_sent():
+            transfer.account_id = Regexp(CleanText('//p[@class="nomarge"][span[contains(text(),'
+                                                   '"Compte émetteur")]]/text()'),
+                                         r'n°(\d+)')(self.doc)
 
-                    transfer.account_id = line
-                    break
-            if found:
-                break
+            base = CleanText('//fieldset//table[.//span[contains(text(), "Compte bénéficiaire")]]'
+                             '//td[contains(text(),"n°") or contains(text(),"IBAN :")]//text()', newlines=False)(self.doc)
+            transfer.recipient_id = Regexp(None, r'IBAN : ([^\n]+)|n°(\d+)').filter(base)
+            transfer.recipient_id = transfer.recipient_id.replace(' ', '')
+            if 'IBAN' in base:
+                transfer.recipient_iban = transfer.recipient_id
 
-        for p in self.doc.xpath('//fieldset[.//h3[contains(text(), "Compte bénéficiaire")]]//p'):
-            found = False
-            for line in get_text_lines(p):
-                if line.startswith('n°'):
-                    line = line[2:].strip()
-                    found = True
+            transfer.exec_date = Date(CleanText('//p[@class="nomarge"][span[contains(text(), "Date de l\'ordre")]]/text()'),
+                                      dayfirst=True)(self.doc)
+        else:
+            transfer.account_id = Regexp(CleanText('//fieldset[.//h3[contains(text(), "Compte émetteur")]]//p'),
+                                         r'n°(\d+)')(self.doc)
 
-                    transfer.recipient_id = line
-                    break
-                elif line.startswith('IBAN :'):
-                    line = line[len('IBAN :'):].strip().replace(' ', '')
-                    found = True
+            base = CleanText('//fieldset[.//h3[contains(text(), "Compte bénéficiaire")]]//text()',
+                             newlines=False)(self.doc)
+            transfer.recipient_id = Regexp(None, r'IBAN : ([^\n]+)|n°(\d+)').filter(base)
+            transfer.recipient_id = transfer.recipient_id.replace(' ', '')
+            if 'IBAN' in base:
+                transfer.recipient_iban = transfer.recipient_id
 
-                    transfer.recipient_iban = line
-                    transfer.recipient_id = line
-                    break
-            if found:
-                break
+            transfer.exec_date = Date(CleanText('//fieldset//p[span[contains(text(), "Virement unique le :")]]/text()'), dayfirst=True)(self.doc)
 
-        pfx = 'Référence opération :'
-        for fs in self.doc.xpath('//fieldset//p'):
-            txt = CleanText().filter(fs)
-            if txt.startswith(pfx):
-                txt = txt[len(pfx):].strip()
-                transfer.label = txt
-                break
-
-        pfx = 'Virement unique le :'
-        for fs in self.doc.xpath('//fieldset//p'):
-            txt = CleanText().filter(fs)
-            if txt.startswith(pfx):
-                txt = txt[len(pfx):].strip()
-                transfer.exec_date = Date(dayfirst=True).filter(txt)
-                break
+        transfer.label = CleanText('//fieldset//p[span[contains(text(), "Référence opération")]]')(self.doc)
+        transfer.label = re.sub(r'^Référence opération(?:\s*):', '', transfer.label).strip()
 
         return transfer
 
