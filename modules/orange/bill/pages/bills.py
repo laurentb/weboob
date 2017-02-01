@@ -52,7 +52,8 @@ class BillsPage(LoggedPage, HTMLPage):
             obj_label = CleanText('.//td[@headers="ec-dateCol"]')
             obj_format = u"pdf"
             obj_type = u"bill"
-            obj_price = CleanDecimal('.//td[@headers="ec-amountCol"]', replace_dots=True)
+            # sometimes the price td contains a subtag with "inclus un avoir de XX€"
+            obj_price = CleanDecimal(CleanText('.//td[@headers="ec-amountCol"]/strong', children=False), replace_dots=True)
             obj_currency = Currency('.//td[@headers="ec-amountCol"]')
 
 
