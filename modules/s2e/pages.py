@@ -30,7 +30,7 @@ from weboob.browser.filters.html import Attr
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
-from weboob.exceptions import NoAccountsException, BrowserUnavailable
+from weboob.exceptions import NoAccountsException, BrowserUnavailable, ActionNeeded
 
 
 def MyDecimal(*args, **kwargs):
@@ -177,6 +177,10 @@ class AccountsPage(LoggedPage, MultiPage):
                         //span[contains(text(), "On this date, you no longer have any employee savings in this company.")]')(self.doc)
         if no_accounts_message:
             raise NoAccountsException(no_accounts_message)
+
+        if CleanText('//a//span[contains(text(), "J\'ACCEPTE LES CONDITIONS GENERALES D\'UTILISATION") or'
+                     '          contains(text(), "I ACCEPT THE GENERAL CONDITIONS OF USE")]')(self.doc):
+            raise ActionNeeded("Veuillez valider les conditions générales d'utilisation")
 
     TYPES = {'PEE': Account.TYPE_PEE,
              'PEI': Account.TYPE_PEE,
