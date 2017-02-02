@@ -114,7 +114,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         self.location('/outil/UWBO/AccesBourse/temporisationCar?codeTicker=TICKERBOURSECLI')
         if self.no_perm.is_here():
             return False
-        next_page = self.page_get_next()
+        next_page = self.page.get_next()
         if next_page:
             self.location(self.page.get_next())
             self.bourse.stay_or_go()
