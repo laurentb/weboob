@@ -119,7 +119,9 @@ class LoginPage(JsonPage):
             if error in codes:
                 raise BrowserIncorrectPassword(msg)
             elif error == 1001:
-                raise BrowserUnavailable(msg)
+                # json says "Erreur lors de l'authentification Code retour : 1001 Code retour : 1001"
+                # but js message from "getErrorMessage" says "veuillez contacter votre conseiller"...
+                raise BrowserIncorrectPassword()
             self.logger.debug('Unexpected error at login: "%s" (code=%s)' % (msg, error))
 
     def login(self, username, password):
