@@ -19,6 +19,7 @@
 
 from collections import OrderedDict
 import re
+import hashlib
 from urlparse import urlparse
 from html2text import unescape
 
@@ -78,7 +79,8 @@ class Cragr(LoginBrowser):
                        r'/stb/collecteNI\?.*sessionAPP=Releves.*',
                        TransactionsPage)
 
-    advisor = URL(r'/stb/entreeBam\?.*act=Contact', AdvisorPage)
+    advisor = URL(r'/stb/entreeBam\?.*act=Contact',
+                  r'https://.*/vitrine/tracking/t/', AdvisorPage)
     login_error = URL(r'/stb/.*/erreur/.*', LoginErrorPage)
     cards = URL(r'/stb/collecteNI\?.*fwkaction=Cartes.*',
                 r'/stb/collecteNI\?.*sessionAPP=Cartes.*',
@@ -400,8 +402,18 @@ class Cragr(LoginBrowser):
         if not self.advisor.is_here():
             self.location(self.advisor_url.format(self.sag))
 
-        for adv in self.page.iter_advisor():
-            yield adv
+        # it looks like we have an advisor only on cmds
+        if "ca-cmds" in self.home_site:
+            perimetre, agence = self.page.get_codeperimetre().split('-')
+            publickey = self.location(self.home_site + '/Vitrine/jsp/CMDS/b.js').page.get_publickey()
+            self.location("%svitrine/tracking/t/%s-%s.html" % (self.home_site.replace("www.ca", "www.credit-agricole"),
+                                                               hashlib.sha1(perimetre + publickey).hexdigest(),
+                                                               agence))
+            yield self.page.get_advisor()
+        # for other we take numbers
+        else:
+            for adv in self.page.iter_numbers():
+                yield adv
 
     @need_login
     def moveto_market_website(self, account, home=False):

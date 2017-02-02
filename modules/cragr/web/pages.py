@@ -32,6 +32,7 @@ from weboob.capabilities.contact import Advisor
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.date import parse_french_date, LinearDateGuesser
+from weboob.browser.elements import ItemElement, method
 from weboob.browser.filters.standard import Date, CleanText, CleanDecimal, Currency as CleanCurrency, Regexp
 
 
@@ -84,6 +85,9 @@ class HomePage(BasePage):
     def go_to_auth(self):
         form = self.get_form(name='bamaccess')
         form.submit()
+
+    def get_publickey(self):
+        return Regexp(CleanText('.'), r'public_key.+?(\w+)')(self.doc)
 
 
 class LoginPage(BasePage):
@@ -746,7 +750,21 @@ class LifeInsurancePage(MarketPage):
 
 
 class AdvisorPage(MyLoggedPage, BasePage):
-    def iter_advisor(self):
+    def get_codeperimetre(self):
+        script = CleanText('//script[contains(text(), "codePerimetre")]', default=None)(self.doc)
+        if script:
+            return Regexp(pattern=r'codePerimetre.+?(\d+).+?codeAgence.+?(\d+)', template='\\1-\\2').filter(script)
+
+    @method
+    class get_advisor(ItemElement):
+        klass = Advisor
+
+        obj_name = CleanText('//span[@class="c1"]')
+        obj_email = CleanText('//span[@id="emailCons"]')
+        obj_phone = Regexp(CleanText('//span[@class="c2"]', symbols=' ', default=""), '(\d+)', default=NotAvailable)
+        obj_agency = CleanText('//span[@class="a1"]')
+
+    def iter_numbers(self):
         for p in self.doc.xpath(u'//fieldset/div/p[not(contains(text(), "TTC"))]'):
             phone = None
             if p.find('b') is not None:
