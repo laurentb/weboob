@@ -164,6 +164,12 @@ class CenetAccountHistoryPage(LoggedPage, CenetJsonPage):
 
                 return -amount if Dict('Montant/CodeSens')(self) == "D" else amount
 
+    def next_offset(self):
+        offset = Dict('OffsetSortie')(self.doc)
+        if offset:
+            assert Dict('EstComplete')(self.doc) == 'false'
+        return offset
+
 
 class GarbagePage(LoggedPage, HTMLPage):
     def on_load(self):

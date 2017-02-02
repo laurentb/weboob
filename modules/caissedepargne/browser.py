@@ -22,9 +22,6 @@ import json
 import urlparse
 import re
 
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-
 from weboob.browser import LoginBrowser, need_login
 from weboob.browser.url import URL
 from weboob.capabilities.bank import Account
@@ -49,7 +46,7 @@ class CaisseEpargne(LoginBrowser):
     cenet_login = URL('https://www.cenet.caisse-epargne.fr/$', CenetLoginPage)
     cenet_home = URL('https://www.cenet.caisse-epargne.fr/Default.aspx$', CenetHomePage)
     cenet_accounts = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/ChargerSyntheseComptes', CenetAccountsPage)
-    cenet_account_history = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/RechercherOperations', CenetAccountHistoryPage)
+    cenet_account_history = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/ChargerHistoriqueCompte', CenetAccountHistoryPage)
     cenet_account_coming = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiCartesBanquaires.asmx/ChargerEnCoursCarte', CenetAccountHistoryPage)
     cenet_cards = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiCartesBanquaires.asmx/ChargerCartes', CenetCardsPage)
     home = URL('https://.*/Portail.aspx.*', IndexPage)
@@ -311,28 +308,28 @@ class CaisseEpargne(LoginBrowser):
                 'Accept': 'application/json, text/javascript, */*; q=0.01'
             }
 
-            now = datetime.now()
-            dformat = '%Y-%m-%d'
+            data = {
+                'contexte': '',
+                'dateEntree': None,
+                'filtreEntree': None,
+                'donneesEntree': json.dumps(account._formated),
+            }
 
-            for i in reversed(range(1, 12)):
-                data = {
-                    'contexte': '',
-                    'dateEntree': None,
-                    'donneesEntree': json.dumps({
-                        'TypeRecherche': 'FD', \
-                        'DateFin': now.strftime(dformat) + 'T23:00:00.000Z',
-                        'DateDebut': (now - relativedelta(months=i)).strftime(dformat) + 'T23:00:00.000Z',
-                        'compte': account._formated
-                    }),
-                    'filtreEntree': None
-                }
+            items = []
+            while True:
+                self.cenet_account_history.go(data=json.dumps(data), headers=headers)
+                for tr in self.page.get_history():
+                    items.append(tr)
 
-                history = self.cenet_account_history.go(data=json.dumps(data), headers=headers).get_history()
+                offset = self.page.next_offset()
+                if not offset:
+                    break
 
-                if next(history, None) is not None:
-                    return history
+                data['filtreEntree'] = json.dumps({
+                    'Offset': offset,
+                })
 
-            return iter([])
+            return items
         if not hasattr(account, '_info'):
             raise NotImplementedError
         if account.type is Account.TYPE_LIFE_INSURANCE:
