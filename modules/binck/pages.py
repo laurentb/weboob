@@ -66,6 +66,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             for input in self.doc.xpath('//input[contains(@name, "Token")]')][0]
 
     def is_investment(self):
+        # warning: the link can be present even in case of non-investement account
         return CleanText('//a[contains(@href, "Portfolio")]', default=False)(self.doc)
 
     @method

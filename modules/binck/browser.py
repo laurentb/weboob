@@ -20,6 +20,7 @@
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
+from weboob.browser.exceptions import HTTPNotFound
 
 from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage
 
@@ -61,8 +62,13 @@ class BinckBrowser(LoginBrowser):
                 token = self.page.get_token()
                 # Get investment page
                 data = {'grouping': "SecurityCategory"}
-                a._invpage = self.investment.go(data=data, headers=token) \
-                    if self.page.is_investment() else None
+                try:
+                    a._invpage = self.investment.go(data=data, headers=token) \
+                        if self.page.is_investment() else None
+                except HTTPNotFound:
+                    # if it's not an invest account, the portfolio link may be present but hidden and return a 404
+                    a._invpage = None
+
                 if a._invpage:
                     a.valuation_diff = a._invpage.get_valuation_diff()
                 # Get history page
