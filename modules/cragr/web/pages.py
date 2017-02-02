@@ -415,13 +415,14 @@ class CardsPage(MyLoggedPage, BasePage):
 
                 # Consider the second one as a positive amount to reset balance to 0.
                 t.amount = -t.amount
+                t.type = t.TYPE_CARD_SUMMARY
                 state = t.date
             else:
                 day, month = map(int, date.split('/', 1))
                 t.rdate = date_guesser.guess_date(day, month)
                 t.date = debit_date
+                t.type = t.TYPE_DEFERRED_CARD
 
-            t.type = t.TYPE_CARD
             try:
                 t.id = t.unique_id(seen)
             except UnicodeEncodeError:
@@ -535,7 +536,7 @@ class TransactionsPage(MyLoggedPage, BasePage):
     COL_CREDIT = -1
 
     TYPES = {'Paiement Par Carte':          Transaction.TYPE_CARD,
-             'Remise Carte':                Transaction.TYPE_CARD,
+             'Remise Carte':                Transaction.TYPE_CARD_SUMMARY,
              'Retrait Au Distributeur':     Transaction.TYPE_WITHDRAWAL,
              'Frais':                       Transaction.TYPE_BANK,
              'Cotisation':                  Transaction.TYPE_BANK,
