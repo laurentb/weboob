@@ -26,7 +26,7 @@ from weboob.browser.filters.standard import CleanText, Date, Regexp, CleanDecima
                                             TableCell, Field, Async, AsyncLoad, Eval
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment, Transaction
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, empty
 from weboob.exceptions import BrowserUnavailable
 
 
@@ -104,7 +104,7 @@ class ItemInvestment(ItemElement):
 
     def obj_portfolio_share(self):
         ps = MyDecimal(TableCell('portfolio_share', default=None))(self)
-        return Eval(lambda x: x / 100, ps)(self) if ps else NotAvailable
+        return Eval(lambda x: x / 100, ps)(self) if not empty(ps) else NotAvailable
 
 
 class TableTransactionsInvestment(TableInvestment):
