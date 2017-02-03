@@ -40,7 +40,7 @@ class SubscriptionsPage(LoggedPage, JsonPage):
     def build_doc(self, text):
         if self.content == 'REDIRECT_CGU':
             raise ActionNeeded(u"Vous devez accepter les conditions générales d'utilisation sur le site de votre banque.")
-        super(SubscriptionsPage, self).build_doc(text)
+        return super(SubscriptionsPage, self).build_doc(text)
 
     def get_subscriptions(self):
         subscriptions = []

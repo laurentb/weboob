@@ -42,7 +42,7 @@ class EdfproBrowser(LoginBrowser):
 
     def do_login(self):
         self.login.go().login(self.username, self.password)
-        self.location(self.absurl('/ice/rest/aiguillagemp/redirect'), allow_redirects=False)
+        self.location(self.absurl('/ice/rest/aiguillagemp/redirect'), allow_redirects=True)
 
         if self.auth.is_here() and self.page.response.status_code != 303:
             raise BrowserIncorrectPassword
