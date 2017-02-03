@@ -22,14 +22,15 @@ import re
 import json
 
 from decimal import Decimal
+from datetime import datetime
 
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
-from weboob.browser.elements import DictElement, ItemElement, method
-from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Eval, Format
-from weboob.browser.filters.html import Link
+from weboob.browser.elements import DictElement, ItemElement, method, ListElement
+from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Eval, Format, Env, Upper
+from weboob.browser.filters.html import Link, Attr
 from weboob.browser.filters.json import Dict
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Transaction, Investment
+from weboob.capabilities.bank import Account, Transaction, Investment, Recipient, TransferError, Transfer
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -588,6 +589,14 @@ class IndexPage(LoggedPage, HTMLPage):
 
             form.submit()
 
+    def go_transfer(self):
+        link = self.doc.xpath(u'//a[span[contains(text(), "Effectuer un virement")]] | //a[contains(text(), "Réaliser un virement unitaire")]')[0]
+        m = re.search("PostBackOptions?\([\"']([^\"']+)[\"'],\s*['\"]([^\"']+)?['\"]", link.attrib.get('href', ''))
+        form = self.get_form(name='main')
+        form['__EVENTTARGET'] = m.group(1)
+        form['__EVENTARGUMENT'] = m.group(2)
+        form.submit()
+
 
 class MarketPage(LoggedPage, HTMLPage):
     def is_error(self):
@@ -683,3 +692,151 @@ class LifeInsurance(MarketPage):
             return ' '.join(libelle[:-1]), libelle[-1]
         else:
             return ' '.join(libelle), NotAvailable
+
+
+class MyRecipient(ItemElement):
+    klass = Recipient
+
+    # Assume all recipients currency is euros.
+    obj_currency = u'EUR'
+
+    def obj_enabled_at(self):
+        return datetime.now().replace(microsecond=0)
+
+
+class TransferErrorPage(object):
+    def on_load(self):
+        error = CleanText('//span[@id="MM_LblMessagePopinError"]/p | //div[h2[contains(text(), "Erreur de saisie")]]/p[1]')(self.doc)
+        if error:
+            raise TransferError(error)
+
+
+class TransferPage(TransferErrorPage, IndexPage):
+    def is_here(self):
+        return bool(CleanText(u'//h2[contains(text(), "Effectuer un virement")]')(self.doc))
+
+    def can_transfer(self, account):
+        for o in self.doc.xpath('//select[@id="MM_VIREMENT_SAISIE_VIREMENT_ddlCompteDebiter"]/option'):
+            if Regexp(CleanText('.'), '- (\d+)')(o) in account.id:
+                return True
+
+    def get_origin_account_value(self, account):
+        origin_value = [Attr('.', 'value')(o) for o in self.doc.xpath('//select[@id="MM_VIREMENT_SAISIE_VIREMENT_ddlCompteDebiter"]/option') if
+                        Regexp(CleanText('.'), '- (\d+)')(o) in account.id]
+        if len(origin_value) != 1:
+            raise TransferError('error during origin account matching')
+        return origin_value[0]
+
+    def get_recipient_value(self, recipient):
+        if recipient.category == u'Externe':
+            recipient_value = [Attr('.', 'value')(o) for o in self.doc.xpath('//select[@id="MM_VIREMENT_SAISIE_VIREMENT_ddlCompteCrediter"]/option') if
+                               Regexp(CleanText('.'), ' - (.*) -', default=NotAvailable)(o) == recipient.iban]
+        elif recipient.category == u'Interne':
+            recipient_value = [Attr('.', 'value')(o) for o in self.doc.xpath('//select[@id="MM_VIREMENT_SAISIE_VIREMENT_ddlCompteCrediter"]/option') if
+                               Regexp(CleanText('.'), '- (\d+)', default=NotAvailable)(o) and Regexp(CleanText('.'), '- (\d+)', default=NotAvailable)(o) in recipient.id]
+        if len(recipient_value) != 1:
+            raise TransferError('error during recipient matching')
+        return recipient_value[0]
+
+    def init_transfer(self, account, recipient, transfer):
+        form = self.get_form(name='main')
+        form['MM$VIREMENT$SAISIE_VIREMENT$ddlCompteDebiter'] = self.get_origin_account_value(account)
+        form['MM$VIREMENT$SAISIE_VIREMENT$ddlCompteCrediter'] = self.get_recipient_value(recipient)
+        form['MM$VIREMENT$SAISIE_VIREMENT$txtLibelleVirement'] = transfer.label
+        form['MM$VIREMENT$SAISIE_VIREMENT$txtMontant$m_txtMontant'] = unicode(transfer.amount)
+        form['__EVENTTARGET'] = 'MM$VIREMENT$m_WizardBar$m_lnkNext$m_lnkButton'
+        if transfer.exec_date != datetime.today().date():
+            form['MM$VIREMENT$SAISIE_VIREMENT$radioVirement'] = 'differe'
+            form['MM$VIREMENT$SAISIE_VIREMENT$m_DateDiffere$txtDate'] = transfer.exec_date.strftime('%d/%m/%Y')
+        form.submit()
+
+    @method
+    class iter_recipients(ListElement):
+        item_xpath = '//select[@id="MM_VIREMENT_SAISIE_VIREMENT_ddlCompteCrediter"]/option'
+
+        class Item(MyRecipient):
+            validate = lambda self, obj: self.obj_id(self) != self.env['account_id']
+
+            obj_id = Env('id')
+            obj_iban = Env('iban')
+            obj_bank_name = Env('bank_name')
+            obj_category = Env('category')
+            obj_label = Env('label')
+
+            def parse(self, el):
+                self.env['category'] = u'Interne' if Attr('.', 'value')(self)[0] == 'I' else u'Externe'
+                if self.env['category'] == u'Interne':
+                    _id = Regexp(CleanText('.'), '- (\d+)')(self)
+                    accounts = list(self.page.browser.get_accounts_list()) + list(self.page.browser.get_loans_list())
+                    match = [acc for acc in accounts if _id in acc.id]
+                    assert len(match) == 1
+                    match = match[0]
+                    self.env['id'] = match.id
+                    self.env['iban'] = match.iban
+                    self.env['bank_name'] = u"Caisse d'Épargne"
+                    self.env['label'] = match.label
+                else:
+                    self.env['id'] = self.env['iban'] = Regexp(CleanText('.'), ' - (.*) -')(self)
+                    self.env['bank_name'] = Regexp(CleanText('.'), '([^-]+)$', default=NotAvailable)(self)
+                    if self.env['bank_name']:
+                        self.env['bank_name'] = self.env['bank_name'].strip()
+                    self.env['label'] = Regexp(CleanText('.'), '^(.*?) - ')(self)
+
+    def continue_transfer(self, origin_label, recipient, label):
+        form = self.get_form(name='main')
+        type_ = 'intra' if recipient.category == u'Interne' else 'sepa'
+        fill = lambda s, t: s % (t.upper(), t.capitalize())
+        form['__EVENTTARGET'] = 'MM$VIREMENT$m_WizardBar$m_lnkNext$m_lnkButton'
+        form[fill('MM$VIREMENT$SAISIE_VIREMENT_%s$m_Virement%s$txtIdentBenef', type_)] = recipient.label
+        form[fill('MM$VIREMENT$SAISIE_VIREMENT_%s$m_Virement%s$txtIdent', type_)] = origin_label
+        form[fill('MM$VIREMENT$SAISIE_VIREMENT_%s$m_Virement%s$txtRef', type_)] = label
+        form[fill('MM$VIREMENT$SAISIE_VIREMENT_%s$m_Virement%s$txtMotif', type_)] = label
+        form.submit()
+
+
+class TransferConfirmPage(TransferErrorPage, IndexPage):
+    def is_here(self):
+        return bool(CleanText(u'//h2[contains(text(), "Confirmer mon virement")]')(self.doc))
+
+    def confirm(self):
+        form = self.get_form(name='main')
+        form['__EVENTTARGET'] = 'MM$VIREMENT$m_WizardBar$m_lnkNext$m_lnkButton'
+        form.submit()
+
+    def create_transfer(self, account, recipient, transfer):
+        transfer = Transfer()
+        transfer.currency = FrenchTransaction.Currency('.//tr[td[contains(text(), "Montant")]]/td[not(@class)] | \
+                                                        .//tr[th[contains(text(), "Montant")]]/td[not(@class)]')(self.doc)
+        transfer.amount = CleanDecimal('.//tr[td[contains(text(), "Montant")]]/td[not(@class)] | \
+                                        .//tr[th[contains(text(), "Montant")]]/td[not(@class)]', replace_dots=True)(self.doc)
+        transfer.account_iban = account.iban
+        transfer.recipient_iban = Upper(Regexp(CleanText(u'.//tr[th[contains(text(), "Compte à créditer")]]/td[not(@class)]'), '(\w+)$'))(self.doc) \
+                                  if recipient.category == u'Externe' else recipient.iban
+        transfer.account_id = unicode(account.id)
+        transfer.recipient_id = unicode(recipient.id)
+        transfer.exec_date = Date(CleanText('.//tr[th[contains(text(), "En date du")]]/td[not(@class)]'), dayfirst=True)(self.doc)
+        transfer.label = CleanText(u'.//tr[td[contains(text(), "Motif de l\'opération")]]/td[not(@class)] | \
+                                     .//tr[td[contains(text(), "Libellé")]]/td[not(@class)]')(self.doc)
+        transfer.account_label = account.label
+        transfer.recipient_label = recipient.label
+        transfer._account = account
+        transfer._recipient = recipient
+        transfer.account_balance = account.balance
+        return transfer
+
+
+class TransferSummaryPage(TransferErrorPage, IndexPage):
+    def is_here(self):
+        return bool(CleanText(u'//h2[contains(text(), "Accusé de réception")]')(self.doc))
+
+    def populate_reference(self, transfer):
+        transfer.id = Regexp(CleanText(u'//p[contains(text(), "a bien été enregistré")]'), '(\d+)')(self.doc)
+        return transfer
+
+
+class ProTransferPage(IndexPage):
+    def is_here(self):
+        return bool(CleanText(u'//span[contains(text(), "Réalisez un virement")]')(self.doc))
+
+    def can_transfer(self, account):
+        return False

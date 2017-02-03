@@ -31,7 +31,8 @@ from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import IndexPage, ErrorPage, MarketPage, LifeInsurance, GarbagePage, \
                    MessagePage, LoginPage, CenetLoginPage, CenetHomePage, \
-                   CenetAccountsPage, CenetAccountHistoryPage, CenetCardsPage
+                   CenetAccountsPage, CenetAccountHistoryPage, CenetCardsPage, \
+                   TransferPage, ProTransferPage, TransferConfirmPage, TransferSummaryPage
 
 
 __all__ = ['CaisseEpargne']
@@ -49,6 +50,10 @@ class CaisseEpargne(LoginBrowser):
     cenet_account_history = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/ChargerHistoriqueCompte', CenetAccountHistoryPage)
     cenet_account_coming = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiCartesBanquaires.asmx/ChargerEnCoursCarte', CenetAccountHistoryPage)
     cenet_cards = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiCartesBanquaires.asmx/ChargerCartes', CenetCardsPage)
+    transfer = URL('https://.*/Portail.aspx.*', TransferPage)
+    transfer_summary = URL('https://.*/Portail.aspx.*', TransferSummaryPage)
+    transfer_confirm = URL('https://.*/Portail.aspx.*', TransferConfirmPage)
+    pro_transfer = URL('https://.*/Portail.aspx.*', ProTransferPage)
     home = URL('https://.*/Portail.aspx.*', IndexPage)
     home_tache = URL('https://.*/Portail.aspx\?tache=(?P<tache>).*', IndexPage)
     error = URL('https://.*/login.aspx',
@@ -426,3 +431,39 @@ class CaisseEpargne(LoginBrowser):
         else:
             profile = self.cenet_home.stay_or_go().get_profile()
         return profile
+
+    @need_login
+    def iter_recipients(self, origin_account):
+        if self.is_cenet_website is True:
+            # not available for the moment
+            return iter([])
+        if self.home.is_here():
+            self.page.go_list()
+        else:
+            self.home.go()
+        self.page.go_transfer()
+        if not self.page.can_transfer(origin_account):
+            return iter([])
+        return self.page.iter_recipients(account_id=origin_account.id)
+
+    @need_login
+    def init_transfer(self, account, recipient, transfer):
+        if self.is_cenet_website is True:
+            # not available for the moment
+            raise NotImplementedError()
+        if self.home.is_here():
+            self.page.go_list()
+        else:
+            self.home.go()
+        self.page.go_transfer()
+        if self.pro_transfer.is_here():
+            raise NotImplementedError()
+
+        self.page.init_transfer(account, recipient, transfer)
+        self.page.continue_transfer(account.label, recipient, transfer.label)
+        return self.page.create_transfer(account, recipient, transfer)
+
+    @need_login
+    def execute_transfer(self, transfer):
+        self.page.confirm()
+        return self.page.populate_reference(transfer)

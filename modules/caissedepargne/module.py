@@ -18,10 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from collections import OrderedDict
+import re
 
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, Account, RecipientNotFound
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
+from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 
@@ -31,7 +33,7 @@ from .browser import CaisseEpargne
 __all__ = ['CaisseEpargneModule']
 
 
-class CaisseEpargneModule(Module, CapBank, CapContact, CapProfile):
+class CaisseEpargneModule(Module, CapBankTransfer, CapContact, CapProfile):
     NAME = 'caissedepargne'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -83,3 +85,26 @@ class CaisseEpargneModule(Module, CapBank, CapContact, CapProfile):
 
     def get_profile(self):
         return self.browser.get_profile()
+
+    def iter_transfer_recipients(self, origin_account):
+        if not isinstance(origin_account, Account):
+            origin_account = find_object(self.iter_accounts(), id=origin_account, error=AccountNotFound)
+        return self.browser.iter_recipients(origin_account)
+
+    def init_transfer(self, transfer, **params):
+        self.logger.info('Going to do a new transfer')
+        transfer.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z/\-\?:\(\)\.,\'\+ ]+', '', transfer.label).split()).upper()
+        if transfer.account_iban:
+            account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
+        else:
+            account = find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
+
+        if transfer.recipient_iban:
+            recipient = find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban, error=RecipientNotFound)
+        else:
+            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
+
+        return self.browser.init_transfer(account, recipient, transfer)
+
+    def execute_transfer(self, transfer, **params):
+        return self.browser.execute_transfer(transfer)
