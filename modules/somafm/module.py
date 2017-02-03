@@ -17,23 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-import lxml.etree
 from weboob.capabilities.radio import CapRadio, Radio
-from weboob.capabilities.audiostream import BaseAudioStream
-from weboob.tools.capabilities.streaminfo import StreamInfo
 from weboob.capabilities.collection import CapCollection
 from weboob.tools.backend import Module
-from weboob.deprecated.browser import StandardBrowser
-from weboob.deprecated.browser.parsers.iparser import IParser
 
+from .browser import SomaFMBrowser
 
 __all__ = ['SomaFMModule']
-
-
-class LxmlParser(IParser):
-    def parse(self, data, encoding=None):
-        return lxml.etree.fromstring(data.read())
 
 
 class SomaFMModule(Module, CapRadio, CapCollection):
@@ -43,79 +33,23 @@ class SomaFMModule(Module, CapRadio, CapCollection):
     VERSION = '1.3'
     DESCRIPTION = u'SomaFM web radio'
     LICENSE = 'AGPLv3+'
-    BROWSER = StandardBrowser
-
-    QUALITIES = ['fast', 'slow', 'highest']
-
-    ALLINFO = 'http://api.somafm.com/channels.xml'
-
-    def create_default_browser(self):
-        return self.create_browser(parser=LxmlParser())
-
-    def _parse_current(self, data):
-        current = data.split(' - ')
-        if len(current) == 2:
-            return current
-        else:
-            return ('Unknown', 'Unknown')
-
-    def _fetch_radio_list(self):
-        radios = []
-
-        document = self.browser.location(self.ALLINFO)
-        for channel in document.iter('channel'):
-            id=channel.get('id')
-            radio = Radio(id)
-            radio.title = channel.findtext('title')
-            radio.description = channel.findtext('description')
-
-            current_data = channel.findtext('lastPlaying')
-            current = StreamInfo(0)
-            current.what, current.who = self._parse_current(current_data)
-            radio.current = current
-
-            radio.streams = []
-            stream_id = 0
-            for subtag in channel:
-                if subtag.tag.endswith('pls'):
-                    stream = BaseAudioStream(stream_id)
-                    bitrate=subtag.text.replace('http://somafm.com/'+id,'').replace('.pls','')
-                    if(bitrate != ''):
-                        stream.bitrate=int(bitrate)
-                        bitrate+='Kbps'
-                    else:
-                        stream.bitrate=0
-                        bitrate=subtag.tag.replace('pls','')
-                    stream.format=subtag.get('format')
-                    stream.title = '%s/%s' % (bitrate, stream.format)
-                    stream.url = subtag.text
-                    radio.streams.append(stream)
-                    stream_id += 1
-
-            radios.append(radio)
-
-        return radios
+    BROWSER = SomaFMBrowser
 
     def iter_radios_search(self, pattern):
-        radios = self._fetch_radio_list()
-
         pattern = pattern.lower()
-        for radio in radios:
+        for radio in self.browser.iter_radios():
             if pattern in radio.title.lower() or pattern in radio.description.lower():
                 yield radio
 
     def iter_resources(self, objs, split_path):
-        radios = self._fetch_radio_list()
-
         if Radio in objs:
             self._restrict_level(split_path)
 
-            for radio in radios:
+            for radio in self.browser.iter_radios():
                 yield radio
 
     def get_radio(self, radio_id):
-        radios = self._fetch_radio_list()
-        for radio in radios:
+        for radio in self.browser.iter_radios():
             if radio_id == radio.id:
                 return radio
 
