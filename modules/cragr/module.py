@@ -22,6 +22,7 @@ import re
 
 from weboob.capabilities.bank import Account, AccountNotFound, CapBankTransfer
 from weboob.capabilities.contact import CapContact
+from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -31,7 +32,7 @@ from .web.browser import Cragr
 __all__ = ['CragrModule']
 
 
-class CragrModule(Module, CapBankTransfer, CapContact):
+class CragrModule(Module, CapBankTransfer, CapContact, CapProfile):
     NAME = 'cragr'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -114,6 +115,11 @@ class CragrModule(Module, CapBankTransfer, CapContact):
 
     def iter_contacts(self):
         return self.browser.iter_advisor()
+
+    def get_profile(self):
+        if not hasattr(self.browser, 'get_profile'):
+            raise NotImplementedError()
+        return self.browser.get_profile()
 
     def iter_transfer_recipients(self, account):
         if not isinstance(account, Account):

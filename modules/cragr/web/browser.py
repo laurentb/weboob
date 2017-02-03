@@ -36,7 +36,7 @@ from .pages import (
     SavingsPage, TransactionsPage, AdvisorPage, UselessPage,
     CardsPage, LifeInsurancePage, MarketPage, LoansPage, PerimeterPage,
     ChgPerimeterPage, MarketHomePage, FirstVisitPage, BGPIPage,
-    TransferInit, TransferPage,
+    TransferInit, TransferPage, ProfilePage,
 )
 
 
@@ -81,6 +81,7 @@ class Cragr(LoginBrowser):
 
     advisor = URL(r'/stb/entreeBam\?.*act=Contact',
                   r'https://.*/vitrine/tracking/t/', AdvisorPage)
+    profile = URL(r'/stb/entreeBam\?.*act=Coordonnees', ProfilePage)
     login_error = URL(r'/stb/.*/erreur/.*', LoginErrorPage)
     cards = URL(r'/stb/collecteNI\?.*fwkaction=Cartes.*',
                 r'/stb/collecteNI\?.*sessionAPP=Cartes.*',
@@ -207,6 +208,7 @@ class Cragr(LoginBrowser):
         self.savings_url  = re.sub('act=([^&=]+)', 'act=Synthepargnes', self.accounts_url, 1)
         self.loans_url  = re.sub('act=([^&=]+)', 'act=Synthcredits', self.accounts_url, 1)
         self.advisor_url  = re.sub('act=([^&=]+)', 'act=Contact', self.accounts_url, 1)
+        self.profile_url  = re.sub('act=([^&=]+)', 'act=Coordonnees', self.accounts_url, 1)
 
         if self.page.check_perimeters() and not self.broken_perimeters:
             self.perimeter_url = re.sub('act=([^&=]+)', 'act=Perimetre', self.accounts_url, 1)
@@ -414,6 +416,13 @@ class Cragr(LoginBrowser):
         else:
             for adv in self.page.iter_numbers():
                 yield adv
+
+    @need_login
+    def get_profile(self):
+        if not self.profile.is_here():
+            self.location(self.profile_url.format(self.sag))
+
+        return self.page.get_profile()
 
     @need_login
     def moveto_market_website(self, account, home=False):

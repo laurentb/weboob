@@ -29,11 +29,12 @@ from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import Currency
 from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, TransferError
 from weboob.capabilities.contact import Advisor
+from weboob.capabilities.profile import Profile
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.date import parse_french_date, LinearDateGuesser
 from weboob.browser.elements import ItemElement, method
-from weboob.browser.filters.standard import Date, CleanText, CleanDecimal, Currency as CleanCurrency, Regexp
+from weboob.browser.filters.standard import Date, CleanText, CleanDecimal, Currency as CleanCurrency, Regexp, Format
 
 
 class MyLoggedPage(object):
@@ -786,6 +787,27 @@ class AdvisorPage(MyLoggedPage, BasePage):
                 adv.role = u"wealth"
             [setattr(adv, k, NotAvailable) for k in ['email', 'mobile', 'fax', 'agency', 'address']]
             yield adv
+
+
+class ProfilePage(MyLoggedPage, BasePage):
+    @method
+    class get_profile(ItemElement):
+        klass = Profile
+
+        obj_email = Regexp(CleanText('//font/b/script[contains(text(), "Mail")]', default=""), '\'([^\']+)', default=NotAvailable)
+
+        def obj_address(self):
+            address = ""
+            for tr in self.page.doc.xpath('//tr[td[contains(text(), "Adresse")]]/following-sibling::tr[position() < 4]'):
+                address += " " + CleanText('./td[last()]')(tr).strip()
+            return ' '.join(address.split()) or NotAvailable
+
+        def obj_name(self):
+            name = CleanText('//span[contains(text(), "Espace Titulaire")]', default=None)(self)
+            if name and not "particuliers" in name:
+                return ''.join(name.split(':')[1:]).strip()
+            pattern = u'//td[contains(text(), "%s")]/following-sibling::td[1]'
+            return Format('%s %s', CleanText(pattern % "Nom"), CleanText(pattern % "Prénom"))(self)
 
 
 class BGPIPage(MarketPage):
