@@ -470,11 +470,15 @@ class LoansPage(LoggedPage, JsonPage):
             obj_id = Dict('idPrestation')
             obj_type = Account.TYPE_LOAN
             obj_label = Dict('libelle')
-            obj_currency = Dict('capitalRestantDu/devise')
+            obj_currency = Dict('capitalRestantDu/devise', default=NotAvailable)
             obj__link_id = None
 
             def obj_balance(self):
-                val = Decimal(Dict('capitalRestantDu/valeur')(self))
+                val = Dict('capitalRestantDu/valeur', default=NotAvailable)(self)
+                if val is NotAvailable:
+                    return val
+
+                val = Decimal(val)
                 point = Decimal(Dict('capitalRestantDu/posDecimale')(self))
                 assert point >= 0
                 return val.scaleb(-point)
@@ -482,4 +486,8 @@ class LoansPage(LoggedPage, JsonPage):
             def validate(self, obj):
                 assert obj.id
                 assert obj.label
+                if obj.balance is NotAvailable:
+                    # ... but the account may be in the main AccountsList anyway
+                    self.logger.debug('skipping account %r %r due to missing balance', obj.id, obj.label)
+                    return False
                 return True
