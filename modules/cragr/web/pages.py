@@ -303,7 +303,7 @@ class CardsPage(MyLoggedPage, BasePage):
     # Msft *<e01002ymrk,E010
     # </td>
     def build_doc(self, content):
-        content = re.sub(r'\*<e01002ymrk,E010', '*', content)
+        content = re.sub(br'\*<e01002ymrk,E010', b'*', content)
         return super(CardsPage, self).build_doc(content)
 
     def get_list(self):
