@@ -33,13 +33,14 @@ class Profile(BaseObject):
     country =                     StringField('Country of owner')
     phone =                       StringField('Phone number')
     email =                       StringField('Mail of owner')
+    main_bank =                   StringField('Main bank of owner')
 
 
 class Person(Profile):
     """
     Person.
     """
-    birth_date  =                 DateField('Birth date')
+    birth_date =                  DateField('Birth date')
     nationality =                 StringField('Nationality of owner')
     mobile =                      StringField('Mobile number of owner')
     spouse_name =                 StringField('Name of spouse')
@@ -48,7 +49,9 @@ class Person(Profile):
     matrimonial =                 StringField('Matrimonial status')
     housing_status =              StringField('Housing status')
     job =                         StringField('Profession')
-    job_start_date  =             DateField('Start date of current job')
+    job_start_date =              DateField('Start date of current job')
+    job_activity_area =           StringField('Activity area of company')
+    job_contract_type =           StringField('Contract type of current job')
     company_name =                StringField('Name of company')
     company_siren =               StringField('SIREN Number of company')
     socioprofessional_category =  StringField('Socio-Professional Category')
