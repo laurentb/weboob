@@ -24,10 +24,11 @@ import re
 
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.profile import Person
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, TableElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Filter, Field, MultiFilter, Date, \
-                                            Lower, Async, AsyncLoad, Format, TableCell, Eval
+                                            Lower, Async, AsyncLoad, Format, TableCell, Eval, Env
 from weboob.browser.filters.html import Attr, Link
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -264,3 +265,60 @@ class ASVInvest(LoggedPage, HTMLPage):
 
 class DetailFondsPage(LoggedPage,HTMLPage):
     pass
+
+
+def MyInput(*args, **kwargs):
+    args = (u'//input[contains(@name, "%s")]' % args[0], 'value',)
+    kwargs.update(default=NotAvailable)
+    return Attr(*args, **kwargs)
+
+
+def MySelect(*args, **kwargs):
+    args = (u'//select[contains(@name, "%s")]/option[@selected]' % args[0],)
+    kwargs.update(default=NotAvailable)
+    return CleanText(*args, **kwargs)
+
+
+class ProfilePage(LoggedPage, HTMLPage):
+    @method
+    class get_profile(ItemElement):
+        klass = Person
+
+        obj_name = CleanText('//a[has-class("hme-pm")]/span[@title]')
+        obj_address = CleanText('//ul[@class="newPostAdress"]//dd[@class="withMessage"]')
+        obj_country = CleanText('//dt[label[contains(text(), "Pays")]]/following-sibling::dd')
+        obj_email = CleanText('//dt[contains(text(), "Email")]/following-sibling::dd/text()')
+        obj_phone = Env('phone')
+        obj_mobile = Env('mobile')
+
+        def parse(self, el):
+            pattern = '//dt[contains(text(), "%s")]/following-sibling::dd/label'
+            phone = CleanText(pattern % "professionnel")(self)
+            mobile = CleanText(pattern % "portable")(self)
+            self.env['phone'] = phone or mobile
+            self.env['mobile'] = mobile
+
+    @method
+    class update_profile(ItemElement):
+        obj_job = MyInput('category_pro')
+        obj_job_contract_type = MySelect('contractType')
+        obj_company_name = MyInput('category_empl')
+        obj_socioprofessional_category = MySelect('personal_form:csp')
+
+        def obj_job_activity_area(self):
+            return MySelect('business_sector')(self) or NotAvailable
+
+        def obj_main_bank(self):
+            return MySelect('present_bank')(self) or NotAvailable
+
+        def obj_housing_status(self):
+            return MySelect('housingType')(self) or NotAvailable
+
+        def obj_job_start_date(self):
+            month = MySelect('seniority_Month')(self)
+            year = MySelect('seniority_Year')(self)
+            return Date(default=NotAvailable).filter('01/%s/%s' % (month, year)) if month and year else NotAvailable
+
+        def obj_birth_date(self):
+            birth_date = self.page.browser.birthday
+            return Date().filter("%s/%s/%s" % (birth_date[2:4], birth_date[:2], birth_date[-4:]))

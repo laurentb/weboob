@@ -32,7 +32,7 @@ from weboob.capabilities.base import find_object
 
 from .pages import AccountsList, LoginPage, NetissimaPage, TitrePage, TitreHistory,\
     TransferPage, TransferConfirmPage, BillsPage, StopPage, TitreDetails, TitreValuePage, ASVHistory,\
-    ASVInvest, DetailFondsPage, IbanPage, ActionNeededPage, ReturnPage
+    ASVInvest, DetailFondsPage, IbanPage, ActionNeededPage, ReturnPage, ProfilePage
 
 
 __all__ = ['IngBrowser']
@@ -93,6 +93,8 @@ class IngBrowser(LoginBrowser):
     detailfonds = URL('https://ingdirectvie.ingdirect.fr/b2b2c/fonds/PerDesFac\?codeFonds=(.*)', DetailFondsPage)
     # CapDocument
     billpage = URL('/protected/pages/common/estatement/eStatement.jsf', BillsPage)
+    # CapProfile
+    profile = URL('/protected/pages/common/profil/(?P<page>\w+).jsf', ProfilePage)
 
     __states__ = ['where']
 
@@ -369,3 +371,9 @@ class IngBrowser(LoginBrowser):
 
     def predownload(self, bill):
         self.page.postpredown(bill._localid)
+
+    @need_login
+    def get_profile(self):
+        profile = self.profile.go(page='coordonnees').get_profile()
+        self.profile.go(page='infosperso').update_profile(profile)
+        return profile

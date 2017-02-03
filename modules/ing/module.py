@@ -21,6 +21,7 @@
 from weboob.capabilities.bank import CapBank, Account, Recipient
 from weboob.capabilities.bill import CapDocument, Bill, Subscription,\
     SubscriptionNotFound, DocumentNotFound
+from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.base import UserError, find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -31,7 +32,7 @@ from .browser import IngBrowser
 __all__ = ['INGModule']
 
 
-class INGModule(Module, CapBank, CapDocument):
+class INGModule(Module, CapBank, CapDocument, CapProfile):
     NAME = 'ing'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
@@ -126,3 +127,6 @@ class INGModule(Module, CapBank, CapDocument):
             return NotAvailable
         assert(self.browser.response.headers['content-type'] in ["application/pdf", "application/download"])
         return self.browser.response.content
+
+    def get_profile(self):
+        return self.browser.get_profile()
