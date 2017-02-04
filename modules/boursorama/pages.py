@@ -19,14 +19,15 @@
 
 import re
 from io import BytesIO
+from datetime import date
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Format, TableCell, \
-                                            Regexp, Date, AsyncLoad, Async, Eval, RegexpError
+                                            Regexp, Date, AsyncLoad, Async, Eval, RegexpError, Env
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, empty
 from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.value import Value
@@ -243,7 +244,13 @@ class HistoryPage(LoggedPage, HTMLPage):
                 return Date(dayfirst=True).filter('%s%s%s%s%s' % (s[:2], '-', s[2:4], '-', s[4:]))
 
             def obj__is_coming(self):
-                return len(self.xpath(u'.//span[@title="Mouvement à débit différé"]'))
+                return Env('coming', default=False)(self) or len(self.xpath(u'.//span[@title="Mouvement à débit différé"]')) or self.obj_date() > date.today()
+
+            def obj_date(self):
+                debit_date = CleanText(u'//h4[@class="summary__title" and contains(text(), "Solde débité au")]')(self)
+                #if debit_date:
+                #    return Date().filter(debit_date)
+                return Date(Attr('.//time', 'datetime'))(self)
 
             # These are on deffered cards accounts.
             def condition(self):
@@ -425,7 +432,7 @@ class AccbisPage(LoggedPage, HTMLPage):
                     label = CleanText().filter(a.xpath('.//span[@class="nav-category__name"]'))
                     balance_el = a.xpath('.//span[@class="nav-category__value"]')
                     balance = CleanDecimal(replace_dots=True, default=NotAvailable).filter(balance_el)
-                    if 'CARTE' in label and balance:
+                    if 'CARTE' in label and not empty(balance):
                         acc = Account()
                         acc.balance = balance
                         acc.label = label

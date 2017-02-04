@@ -170,6 +170,15 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
                 self.location('%s' % account._link)
             for t in self.page.iter_history():
                 yield t
+            if account.type == Account.TYPE_CARD:
+                self.location('%s' % account._link, params={'movementSearch[period]': 'previousPeriod'})
+                for t in self.page.iter_history(is_card=True):
+                    yield t
+            if coming:
+                if account.type != Account.TYPE_CARD:
+                    self.location('%s/mouvements-a-venir' % account._link.rstrip('/'), params=params)
+                for t in self.page.iter_history(coming=True):
+                    yield t
 
     @need_login
     def get_investment(self, account):
