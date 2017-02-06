@@ -75,8 +75,8 @@ class InvestmentPage(LoggedPage, HTMLPage):
             klass = Investment
 
             obj_label = CleanText('./td[1]/text()')
-            obj_valuation = MyDecimal('./td[2]/strong')
-            obj_vdate = Date(CleanText('./td[2]/span'), dayfirst=True)
+            obj_valuation = CleanDecimal('./td[2]/strong')
+            obj_vdate = Date(CleanText('./td[2]/span'), dayfirst=True, default=NotAvailable)
             obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal('./td[1]/strong'))
 
 
