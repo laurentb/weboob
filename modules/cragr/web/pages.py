@@ -153,7 +153,7 @@ class _AccountsPage(MyLoggedPage, BasePage):
 
     TYPES = {u'CCHQ':       Account.TYPE_CHECKING, # par
              u'CCOU':       Account.TYPE_CHECKING, # pro
-             u'DAV PEA':    Account.TYPE_CHECKING,
+             u'DAV PEA':    Account.TYPE_SAVINGS,
              u'LIV A':      Account.TYPE_SAVINGS,
              u'LDD':        Account.TYPE_SAVINGS,
              u'PEL':        Account.TYPE_SAVINGS,
@@ -842,6 +842,8 @@ class BGPIPage(MarketPage):
     def go_on(self, link):
         origin = urlparse(self.url)
         self.browser.location('https://%s%s' % (origin.netloc, link))
+
+        return True
 
     def go_detail(self):
         link = self.doc.xpath(u'.//a[contains(text(), "Détail")]')
