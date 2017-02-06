@@ -141,8 +141,10 @@ class FrenchTransaction(Transaction):
                     return args.get(key, None) is not None
 
                 self.type = _type
-                if inargs('text'):
-                    self.label = args['text'].strip()
+                labels = [args[name].strip() for name in ('text', 'text2') if inargs(name)]
+                if labels:
+                    self.label = ' '.join(labels)
+
                 if inargs('category'):
                     self.category = args['category'].strip()
 
@@ -251,8 +253,10 @@ class FrenchTransaction(Transaction):
                             return args.get(key, None) is not None
 
                         item.obj.type = _type
-                        if inargs('text'):
-                            item.obj.label = args['text'].strip()
+                        labels = [args[name].strip() for name in ('text', 'text2') if inargs(name)]
+                        if labels:
+                            item.obj.label = ' '.join(labels)
+
                         if inargs('category'):
                             item.obj.category = args['category'].strip()
 
