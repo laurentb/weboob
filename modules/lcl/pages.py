@@ -596,7 +596,7 @@ class AVDetailPage(LoggedPage, LCLBasePage):
 
     @method
     class iter_investment(ListElement):
-        item_xpath = '//table[@class="table"]/tbody/tr[td[6]]'
+        item_xpath = '//div[@id="mandatEnVigueur"]//table[@class="table"]/tbody/tr[td[6]]'
 
         class item(ItemElement):
             klass = Investment
