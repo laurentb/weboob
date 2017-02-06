@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.capabilities.radio import CapRadio, Radio
 from weboob.capabilities.audiostream import BaseAudioStream
@@ -24,7 +25,7 @@ from weboob.tools.capabilities.streaminfo import StreamInfo
 from weboob.capabilities.collection import CapCollection, Collection
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value
-from weboob.deprecated.browser import StandardBrowser
+from weboob.browser.browsers import APIBrowser
 import time
 
 __all__ = ['AudioAddictModule']
@@ -45,7 +46,7 @@ class AudioAddictModule(Module, CapRadio, CapCollection):
     VERSION = '1.3'
     DESCRIPTION = u'Internet radios powered by audioaddict.com services'
     LICENSE = 'AGPLv3+'
-    BROWSER = StandardBrowser
+    BROWSER = APIBrowser
 
     # Data extracted from http://tobiass.eu/api-doc.html
     NETWORKS = {
@@ -140,11 +141,11 @@ class AudioAddictModule(Module, CapRadio, CapCollection):
         domain = self.NETWORKS[network]['domain']
         url = 'http://api.audioaddict.com/v1/%s/track_history' %\
               (domain[domain.find('.') + 1:domain.rfind('.')])
-        self.HISTORY[network] = self.browser.location(url)
+        self.HISTORY[network] = self.browser.request(url)
         return self.HISTORY
 
     def create_default_browser(self):
-        return self.create_browser(parser='json')
+        return self.create_browser()
 
     def _get_stream_name(self, network, quality):
         streamName = 'public3'
@@ -168,9 +169,9 @@ class AudioAddictModule(Module, CapRadio, CapCollection):
                 if not self.RADIOS:
                     self.RADIOS = {}
                 if selectedNetwork not in self.RADIOS:
-                    document = self.browser.location('http://%s/%s' %
-                                                     (self.NETWORKS[selectedNetwork]['domain'],
-                                                      streamName))
+                    document = self.browser.request('http://%s/%s' %
+                                                    (self.NETWORKS[selectedNetwork]['domain'],
+                                                     streamName))
                     self.RADIOS[selectedNetwork] = {}
                     for info in document:
                         radio = info['key']
