@@ -103,7 +103,6 @@ class CmsoProBrowser(LoginBrowser):
         self.location(account._history_url)
         first_page = self.page
         rest_page = self.history.go(data=query)
-
         date_guesser = LinearDateGuesser()
 
         return chain(first_page.iter_history(date_guesser=date_guesser), reversed(list(rest_page.iter_history(date_guesser=date_guesser))))

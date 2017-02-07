@@ -207,7 +207,7 @@ class CmsoTransactionElement(ItemElement):
 
 class HistoryPage(CMSOPage):
     def iter_history(self, *args, **kwargs):
-        if self.doc.xpath('//a[@href="1-situationGlobaleProfessionnel.act"]'):
+        if self.doc.xpath('//a[contains(., "Revenir")]'):
             return self.iter_history_rest_page(*args, **kwargs)
         return self.iter_history_first_page(*args, **kwargs)
 
