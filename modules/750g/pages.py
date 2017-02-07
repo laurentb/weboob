@@ -22,18 +22,20 @@ from weboob.capabilities.recipe import Recipe, Comment
 from weboob.capabilities.base import NotAvailable
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import CleanText, Regexp, Env, Filter, DateTime, CleanDecimal
-from weboob.browser.filters.html import CleanHTML
-
+from weboob.browser.filters.standard import CleanText, Regexp, Env, CleanDecimal
+from weboob.browser.filters.json import Dict, NotFound
 from datetime import datetime, date, time
+from dateutil.parser import parse as parse_date
+from weboob.tools.json import json
 
 
-class Time(Filter):
+class Time(Dict):
     def filter(self, el):
-        _time = DateTime(CleanText(el, replace=[('PT', '')]), default=None)(self)
-        if _time:
-            _time_ = _time - datetime.combine(date.today(), time(0))
-            return _time_.seconds // 60
+        if el and not isinstance(el, NotFound):
+            el = el.replace('PT', '')
+            _time = parse_date(el, dayfirst=False, fuzzy=False)
+            _time = _time - datetime.combine(date.today(), time(0))
+            return _time.seconds // 60
 
 
 class ResultsPage(HTMLPage):
@@ -82,25 +84,19 @@ class RecipePage(HTMLPage):
     class get_recipe(ItemElement):
         klass = Recipe
 
+        def parse(self, el):
+            json_content = CleanText('//script[@type="application/ld+json"]')(el)
+            self.el = json.loads(json_content)
+
         obj_id = Env('id')
-        obj_title = CleanText('//h1[has-class("fn")]')
-
-        def obj_ingredients(self):
-            ingredients = []
-            for el in self.page.doc.xpath('//li[@class="ingredient"]'):
-                ingredients.append(CleanText('.')(el))
-            return ingredients
-
-        obj_cooking_time = Time('//time[@itemprop="cookTime"]/@datetime')
-        obj_preparation_time = Time('//time[@itemprop="prepTime"]/@datetime')
+        obj_title = Dict('name')
+        obj_ingredients = Dict('recipeIngredient')
+        obj_cooking_time = Time('cookTime')
+        obj_preparation_time = Time('prepTime')
 
         def obj_nb_person(self):
-            return [CleanDecimal('//span[@class="yield"]', default=0)(self)]
+            return [CleanDecimal(Dict('recipeYield'), default=0)(self)]
 
-        obj_instructions = CleanHTML('//div[has-class("c-recipe-steps__item")]')
-
-        obj_picture_url = CleanText('(//picture[has-class("c-swiper__media")]/img/@src)[1]', default='')
-        obj_author = Regexp(CleanText('//meta[@name="description"]/@content',
-                                      default=''),
-                            '.* par (.*)',
-                            default=NotAvailable)
+        obj_instructions = Dict('recipeInstructions')
+        obj_picture_url = Dict('image', default='')
+        obj_author = Dict('author/name', default=NotAvailable)
