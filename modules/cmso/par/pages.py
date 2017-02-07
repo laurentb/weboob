@@ -23,7 +23,7 @@ from datetime import datetime as dt
 
 from weboob.browser.pages import HTMLPage, JsonPage, RawPage, LoggedPage, pagination
 from weboob.browser.elements import DictElement, ItemElement, TableElement, SkipItem, method
-from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, Format, CleanDecimal, Env, Slugify, TableCell, Field
+from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, Format, CleanDecimal, Env, Slugify, TableCell, Field, Eval
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, Link
 from weboob.browser.exceptions import ServerError
@@ -170,7 +170,7 @@ class AccountsPage(LoggedPage, JsonPage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile(u'^(?P<text>CARTE.*)'), FrenchTransaction.TYPE_CARD),
+    PATTERNS = [(re.compile(u'^CARTE (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'), FrenchTransaction.TYPE_CARD),
                 (re.compile(u'^(?P<text>(PRLV|PRELEVEMENTS).*)'), FrenchTransaction.TYPE_ORDER),
                 (re.compile(u'^(?P<text>RET DAB.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile(u'^(?P<text>ECH.*)'), FrenchTransaction.TYPE_LOAN_PAYMENT),
@@ -211,12 +211,10 @@ class HistoryPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_raw = Transaction.Raw(Dict('libelleCourt'))
+            obj_date = Date(Eval(lambda t: dt.fromtimestamp(int(t)/1000).strftime('%Y-%m-%d'), Regexp(Dict('dateOperation'), r'(\d+)', r'\1')))
             obj_vdate = Date(Dict('dateValeur'), dayfirst=True)
             obj_amount = CleanDecimal(Dict('montantEnEuro'), default=NotAvailable)
-
-            def obj_date(self):
-                return dt.fromtimestamp(int(Dict('dateOperation')(self)[:-3]))
+            obj_raw = Transaction.Raw(Dict('libelleCourt'))
 
             def parse(self, el):
                 # Skip duplicate transactions
