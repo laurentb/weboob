@@ -164,6 +164,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                      u'Mes crédits':           Account.TYPE_LOAN,
                      u'crédit':                Account.TYPE_LOAN,
                      u'prêt':                  Account.TYPE_LOAN,
+                     u'pea':                   Account.TYPE_PEA,
                     }
 
     @method
@@ -197,8 +198,8 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return id
 
             def obj_type(self):
-                return self.page.ACCOUNT_TYPES.get(CleanText('./preceding-sibling::tr[has-class("list--accounts--master")]//h4')(self), Account.TYPE_UNKNOWN) \
-                    or next((self.page.ACCOUNT_TYPES.get(word) for word in self.obj_label(self).lower().split() if self.page.ACCOUNT_TYPES.get(word)), Account.TYPE_UNKNOWN)
+                return next((self.page.ACCOUNT_TYPES.get(word) for word in self.obj_label(self).lower().split() if self.page.ACCOUNT_TYPES.get(word)), Account.TYPE_UNKNOWN) \
+                    or self.page.ACCOUNT_TYPES.get(CleanText('./preceding-sibling::tr[has-class("list--accounts--master")]//h4')(self), Account.TYPE_UNKNOWN)
 
             def obj__link(self):
                 link = Attr('.//a[@class="account--name"] | .//a[2]', 'href', default=NotAvailable)(self)
