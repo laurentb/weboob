@@ -22,7 +22,7 @@ import re, json
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Transaction
 
 from .pages import LogoutPage, InfosPage, AccountsPage, HistoryPage, LifeinsurancePage, MarketPage
 
@@ -127,10 +127,25 @@ class CmsoParBrowser(LoginBrowser):
 
             return history
         # Getting a year of history
+
         nbs = ["UN", "DEUX", "TROIS", "QUATRE", "CINQ", "SIX", "SEPT", "HUIT", "NEUF", "DIX", "ONZE", "DOUZE"]
+        trs = []
+
+        self.history.go(data=json.dumps({"index": account._index}), page="pendingListOperations")
+
+        has_deferred_cards = self.page.has_deferred_cards()
+
         self.history.go(data=json.dumps({'index': account._index}), page="detailcompte")
+
         self.trs = {'lastdate': None, 'list': []}
-        return self.page.iter_history(index=account._index, nbs=nbs)
+
+        for tr in self.page.iter_history(index=account._index, nbs=nbs):
+            if has_deferred_cards and tr.type == Transaction.TYPE_CARD:
+                tr.type = Transaction.TYPE_DEFERRED_CARD
+
+            trs.append(tr)
+
+        return trs
 
     @need_login
     def iter_coming(self, account):
@@ -142,8 +157,13 @@ class CmsoParBrowser(LoginBrowser):
         self.history.go(data=json.dumps({"index": account._index}), page="pendingListOperations")
 
         for key in self.page.get_keys():
-            for a in self.page.iter_history(key=key):
-                comings.append(a)
+            for c in self.page.iter_history(key=key):
+                if "DeferredDebitCard" in key:
+                    c.type = Transaction.TYPE_DEFERRED_CARD # force deferred card type for comings inside cards
+
+                c.vdate = None # vdate don't work for comings
+
+                comings.append(c)
         return iter(comings)
 
     @need_login

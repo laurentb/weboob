@@ -170,18 +170,21 @@ class AccountsPage(LoggedPage, JsonPage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile(u'^(?P<text>CARTE.*)'),  FrenchTransaction.TYPE_CARD),
+    PATTERNS = [(re.compile(u'^(?P<text>CARTE.*)'), FrenchTransaction.TYPE_CARD),
                 (re.compile(u'^(?P<text>(PRLV|PRELEVEMENTS).*)'), FrenchTransaction.TYPE_ORDER),
                 (re.compile(u'^(?P<text>RET DAB.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile(u'^(?P<text>ECH.*)'), FrenchTransaction.TYPE_LOAN_PAYMENT),
                 (re.compile(u'^(?P<text>VIR.*)'), FrenchTransaction.TYPE_TRANSFER),
                 (re.compile(u'^(?P<text>ANN.*)'), FrenchTransaction.TYPE_PAYBACK),
                 (re.compile(u'^(?P<text>(VRST|VERSEMENT).*)'), FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile(u'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+                (re.compile(u'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK)
                ]
 
 
 class HistoryPage(LoggedPage, JsonPage):
+    def has_deferred_cards(self):
+        return Dict('pendingDeferredDebitCardList/currentMonthCardList', default=None)
+
     def get_keys(self):
         if 'exception' in self.doc:
             return []
