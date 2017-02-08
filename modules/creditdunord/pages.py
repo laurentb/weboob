@@ -140,11 +140,10 @@ class LoginPage(HTMLPage):
 
 
 class CDNBasePage(HTMLPage):
-    def get_from_js(self, pattern, end, is_list=False):
+    def get_from_js(self, pattern, end_pattern, is_list=False):
         """
         find a pattern in any javascript text
         """
-        value = None
         for script in self.doc.xpath('//script'):
             txt = script.text
             if txt is None:
@@ -154,22 +153,17 @@ class CDNBasePage(HTMLPage):
             if start < 0:
                 continue
 
-            while True:
-                if value is None:
-                    value = ''
-                else:
-                    value += ','
-                value += txt[start+len(pattern):start+txt[start+len(pattern):].find(end)+len(pattern)]
+            values = []
+            while start >= 0:
+                start += len(pattern)
+                end = txt.find(end_pattern, start)
+                values.append(txt[start:end])
 
                 if not is_list:
                     break
 
-                txt = txt[start+len(pattern)+txt[start+len(pattern):].find(end):]
-
-                start = txt.find(pattern)
-                if start < 0:
-                    break
-            return value
+                start = txt.find(pattern, end)
+            return ','.join(values)
 
     def get_execution(self):
         return self.get_from_js("name: 'execution', value: '", "'")
@@ -214,6 +208,11 @@ class AccountsPage(LoggedPage, CDNBasePage):
 
     def get_list(self):
         accounts = []
+
+        noaccounts = self.get_from_js('_js_noMvts =', ';')
+        if noaccounts is not None:
+            assert 'avez aucun compte' in noaccounts
+            return []
 
         txt = self.get_from_js('_data = new Array(', ');', is_list=True)
 
