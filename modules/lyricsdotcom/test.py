@@ -32,10 +32,11 @@ class LyricsdotcomTest(BackendTest):
             assert songlyrics.artist
             assert songlyrics.content is NotLoaded
             full_lyr = self.backend.get_lyrics(songlyrics.id)
-            assert full_lyr.id
-            assert full_lyr.title
-            assert full_lyr.artist
-            assert full_lyr.content is not NotLoaded
+            if full_lyr:
+                assert full_lyr.id
+                assert full_lyr.title
+                assert full_lyr.artist
+                assert full_lyr.content
 
     def test_search_artist(self):
         l_lyrics = list(self.backend.iter_lyrics('artist', 'boris'))

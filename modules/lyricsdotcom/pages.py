@@ -19,32 +19,47 @@
 
 
 from weboob.capabilities.lyrics import SongLyrics
-from weboob.capabilities.base import NotLoaded, NotAvailable
+from weboob.capabilities.base import NotLoaded, NotAvailable, BaseObject
 
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.pages import HTMLPage
-from weboob.browser.filters.standard import Regexp, CleanText
-from weboob.browser.filters.html import CleanHTML
+from weboob.browser.filters.standard import Regexp, CleanText, Env, BrowserURL
+from weboob.browser.filters.html import CleanHTML, XPath
 
 
 class SearchPage(HTMLPage):
     @method
     class iter_lyrics(ListElement):
-        item_xpath = '//div[has-class("row")]'
+        item_xpath = '//div[has-class("sec-lyric")]'
 
         class item(ItemElement):
             klass = SongLyrics
 
-            def obj_id(self):
-                real_id = Regexp(CleanText('.//a[has-class("lyrics_preview")]/@href', default=NotAvailable),
-                    '/(.*)\.html')(self)
-                # to avoid several times the same ID (damn website)
-                salt_id = Regexp(CleanText('.//a[has-class("lyrics_preview")]/@t_id', default=NotAvailable),
-                    'T (.*)')(self)
-                return '%s|%s' % (real_id, salt_id)
-            obj_title = CleanText('.//a[has-class("lyrics_preview")]', default=NotAvailable)
-            obj_artist = CleanText('.//a[has-class("artist_link")]', default=NotAvailable)
+            def condition(self):
+                title = CleanText('./div/p[@class="lyric-meta-title"]/a', default="")(self)
+                content = CleanText('./pre[@class="lyric-body"]')(self)
+                return content.replace(title, "").strip() != ""
+
+            obj_id = Regexp(CleanText('./div/p[@class="lyric-meta-title"]/a/@href', default=NotAvailable),
+                            '/lyric/(.*)')
+
+            obj_title = CleanText('./div/p[@class="lyric-meta-title"]/a', default=NotAvailable)
+
+            obj_artist = CleanText('./div/p[@class="lyric-meta-artists"]/a', default=NotAvailable)
+
             obj_content = NotLoaded
+
+    @method
+    class iter_artists(ListElement):
+        item_xpath = '//td[@class="tal qx"]'
+
+        class item(ItemElement):
+            klass = BaseObject
+
+            def condition(self):
+                return CleanText('.//a/@href')(self)
+
+            obj_id = Regexp(CleanText('.//a/@href'), 'artist/(.*)')
 
 
 class LyricsPage(HTMLPage):
@@ -52,14 +67,28 @@ class LyricsPage(HTMLPage):
     class get_lyrics(ItemElement):
         klass = SongLyrics
 
-        def obj_id(self):
-            subid = self.page.url.replace('.html','').split('/')[-1].replace('/','')
-            # sorry for the potential id comparison mistakes in application level. you know what i mean ?
-            id = '%s|000' % (subid)
-            return id
-        obj_content = CleanText(CleanHTML('//div[@id="lyrics"]', default=NotAvailable), newlines=False)
-        def obj_title(self):
-            artist = CleanText('//h1[@id="profile_name"]//a', default=NotAvailable)(self)
-            fullhead = CleanText('//h1[@id="profile_name"]', default=NotAvailable)(self)
-            return fullhead.replace('by %s' % artist, '')
-        obj_artist = CleanText('//h1[@id="profile_name"]//a', default=NotAvailable)
+        def condition(self):
+            return not XPath('//div[has-class("lyric-no-data")]')(self)
+
+        obj_id = Env('id')
+        obj_url = BrowserURL('songLyrics', id=Env('id'))
+        obj_content = CleanHTML('//pre[@id="lyric-body-text"]', default=NotAvailable)
+        obj_title = CleanText('//h2[@id="lyric-title-text"]')
+        obj_artist = CleanText('//h3[@class="lyric-artist"]/a[1]', default=NotAvailable)
+
+
+class ArtistPages(HTMLPage):
+    @method
+    class iter_lyrics(ListElement):
+        item_xpath = '//td[@class="tal qx"]'
+
+        class item(ItemElement):
+            klass = SongLyrics
+
+            def condition(self):
+                return CleanText('./strong/a/@href')(self)
+
+            obj_id = Regexp(CleanText('./strong/a/@href'), '/lyric/(.*)')
+            obj_title = CleanText('./strong/a', default=NotAvailable)
+            obj_artist = CleanText('//h3/strong', default=NotAvailable)
+            obj_content = NotLoaded

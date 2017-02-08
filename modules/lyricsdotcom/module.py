@@ -44,8 +44,7 @@ class LyricsdotcomModule(Module, CapLyrics):
 
     def fill_songlyrics(self, songlyrics, fields):
         if 'content' in fields:
-            sl = self.get_lyrics(songlyrics.id)
-            songlyrics.content = sl.content
+            songlyrics = self.get_lyrics(songlyrics.id)
         return songlyrics
 
     OBJECTS = {

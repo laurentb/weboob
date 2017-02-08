@@ -17,13 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-from weboob.browser.exceptions import BrowserHTTPNotFound
 from weboob.browser import PagesBrowser
 from weboob.browser.url import URL
 from weboob.browser.profiles import Firefox
 
-from .pages import SearchPage, LyricsPage
+from .pages import SearchPage, LyricsPage, ArtistPages
 
 
 __all__ = ['LyricsdotcomBrowser']
@@ -33,24 +31,25 @@ class LyricsdotcomBrowser(PagesBrowser):
     PROFILE = Firefox()
     TIMEOUT = 30
 
-    BASEURL = 'http://www.lyrics.com/'
-    search = URL('search\.php\?keyword=(?P<pattern>[^&]*)&what=all&search_btn=Search',
+    BASEURL = 'http://www.lyrics.com'
+    search = URL('/serp.php\?st=(?P<pattern>.*)&qtype=(?P<criteria>1|2)',
                  SearchPage)
-    songLyrics = URL('(?P<id>[^/]*-lyrics-[^/]*)\.html$',
-                  LyricsPage)
-
+    songLyrics = URL('/lyric/(?P<id>\d*)',
+                     LyricsPage)
+    artistsong = URL('/artist/(?P<id>.*)', ArtistPages)
 
     def iter_lyrics(self, criteria, pattern):
-        self.search.go(pattern=pattern)
-        assert self.search.is_here()
-        return self.page.iter_lyrics()
+        if criteria == 'song':
+            self.search.go(pattern=pattern, criteria=1)
+            assert self.search.is_here()
+            for song in self.page.iter_lyrics():
+                yield song
+        elif criteria == 'artist':
+            self.search.go(pattern=pattern, criteria=2)
+            assert self.search.is_here()
+            for artist in self.page.iter_artists():
+                for song in self.artistsong.go(id=artist.id).iter_lyrics():
+                    yield song
 
     def get_lyrics(self, id):
-        real_id = id.split('|')[0]
-        try:
-            self.songLyrics.go(id=real_id)
-            songlyrics = self.page.get_lyrics()
-            return songlyrics
-        except BrowserHTTPNotFound:
-            return
-
+        return self.songLyrics.go(id=id).get_lyrics()
