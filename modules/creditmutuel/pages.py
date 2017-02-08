@@ -469,6 +469,8 @@ class OperationsPage(LoggedPage, HTMLPage):
                     parts = [re.sub(u'Détail|Date de valeur\s+:\s+\d{2}/\d{2}(/\d{4})?', '',txt.strip()) for txt in el.itertext() if len(txt.strip()) > 0]
                     # To simplify categorization of CB, reverse order of parts to separate
                     # location and institution.
+                    if parts[0] == u"Cliquer pour déplier ou plier le détail de l'opération":
+                        parts.pop(0)
                     if parts[0].startswith('PAIEMENT CB'):
                         parts.reverse()
 
