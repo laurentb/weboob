@@ -19,7 +19,7 @@
 
 import re
 from io import BytesIO
-from datetime import date
+from datetime import date, timedelta
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem
@@ -226,6 +226,12 @@ class AccountsPage(LoggedPage, HTMLPage):
                     Async('details', CleanText(u'//h4/div[contains(text(), "Établissement bancaire")]'))(self)
 
 
+class CalendarPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        self.browser.deferred_card_calendar = map(parse_french_date,
+        [CleanText('.')(td) for td in self.doc.xpath('//div[h3[contains(text(), "CALENDRIER")]]//tr[contains(@class, "table__line")]/td[3]')])
+
+
 class HistoryPage(LoggedPage, HTMLPage):
     @method
     class iter_history(ListElement):
@@ -257,9 +263,18 @@ class HistoryPage(LoggedPage, HTMLPage):
                 return Env('coming', default=False)(self) or len(self.xpath(u'.//span[@title="Mouvement à débit différé"]')) or self.obj_date() > date.today()
 
             def obj_date(self):
-                debit_date = CleanText(u'//h4[@class="summary__title" and contains(text(), "Solde débité au")]')(self)
-                #if debit_date:
-                #    return Date().filter(debit_date)
+                if Env('is_card', default=False)(self):
+                    date_text = CleanText(u'//li[h3]/h4[@class="summary__title" and contains(text(), "Solde débité au")]',
+                                                            replace=[(u'Solde débité au ', '')])(self)
+                    if not date_text:
+                        return Date(Attr('.//time', 'datetime'))(self)
+                    debit_date = parse_french_date(date_text)
+                    if Env('is_previous', default=False)(self):
+                        debit_date = (debit_date - timedelta(days=7)).replace(day=1)
+                        if self.page.browser.deferred_card_calendar is None:
+                            self.page.browser.location(Link('//a[contains(text(), "calendrier")]')(self))
+                        debit_date = self.page.browser.get_closest(debit_date)
+                    return debit_date.date()
                 return Date(Attr('.//time', 'datetime'))(self)
 
             # These are on deffered cards accounts.

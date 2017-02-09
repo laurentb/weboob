@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import date
+from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 from lxml.etree import XMLSyntaxError
 
@@ -29,7 +29,7 @@ from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,\
                    MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ProfilePage, ExpertPage,\
-                   LinksPage, CardsNumberPage
+                   LinksPage, CardsNumberPage, CalendarPage
 
 
 __all__ = ['BoursoramaBrowser']
@@ -44,6 +44,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     TIMEOUT = 60.0
 
     keyboard = URL('/connexion/clavier-virtuel\?_hinclude=300000', VirtKeyboardPage)
+    calendar = URL('/compte/cav/.*/calendrier', CalendarPage)
     error = URL('/connexion/compte-verrouille',
                 '/infos-profil', ErrorPage)
     login = URL('/connexion/', LoginPage)
@@ -83,6 +84,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         self.auth_token = None
         self.webid = None
         self.accounts_list = None
+        self.deferred_card_calendar = None
         kwargs['username'] = self.config['login'].get()
         kwargs['password'] = self.config['password'].get()
         super(BoursoramaBrowser, self).__init__(*args, **kwargs)
@@ -152,43 +154,53 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
                 return a
         return None
 
+    def get_closest(self, debit_date):
+        debit_date = [dd for dd in self.deferred_card_calendar if debit_date <= dd <= debit_date + timedelta(days=7)]
+        assert len(debit_date) == 1
+        return debit_date[0]
+
+    def get_card_transactions(self, account):
+        for t in self.location('%s' % account._link).page.iter_history(is_card=True):
+            yield t
+        for t in self.location('%s' % account._link, params={'movementSearch[period]': 'previousPeriod'}).page.iter_history(is_card=True, is_previous=True):
+            yield t
+
+    def get_invest_transactions(self, account, coming):
+        if coming:
+            return
+        transactions = []
+        self.location('%s/mouvements' % account._link.rstrip('/'))
+        account._history_pages = []
+        for t in self.page.iter_history(account=account):
+            transactions.append(t)
+        for t in self.page.get_transactions_from_detail(account):
+            transactions.append(t)
+        for t in sorted(transactions, key=lambda tr: tr.date, reverse=True):
+            yield t
+
+    def get_regular_transactions(self, account, coming):
+        # We look for 1 year of history.
+        params = {}
+        params['movementSearch[toDate]'] = (date.today() + relativedelta(days=40)).strftime('%d/%m/%Y')
+        params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=1)).strftime('%d/%m/%Y')
+        params['movementSearch[selectedAccounts][]'] = account._webid
+        self.location('%s/mouvements' % account._link.rstrip('/'), params=params)
+        for t in self.page.iter_history():
+            yield t
+        if coming and account.type == Account.TYPE_CHECKING:
+            self.location('%s/mouvements-a-venir' % account._link.rstrip('/'), params=params)
+            for t in self.page.iter_history(coming=True):
+                yield t
+
     @need_login
     def get_history(self, account, coming=False):
         if account.type is Account.TYPE_LOAN or '/compte/derive' in account._link:
             return
         if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
-            if coming:
-                return
-            transactions = []
-            self.location('%s/mouvements' % account._link.rstrip('/'))
-            account._history_pages = []
-            for t in self.page.iter_history(account=account):
-                transactions.append(t)
-            for t in self.page.get_transactions_from_detail(account):
-                transactions.append(t)
-            for t in sorted(transactions, key=lambda tr: tr.date, reverse=True):
-                yield t
-        else:
-            # We look for 1 year of history.
-            params = {}
-            params['movementSearch[toDate]'] = (date.today() + relativedelta(days=40)).strftime('%d/%m/%Y')
-            params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=1)).strftime('%d/%m/%Y')
-            params['movementSearch[selectedAccounts][]'] = account._webid
-            if account.type != Account.TYPE_CARD:
-                self.location('%s/mouvements' % account._link.rstrip('/'), params=params)
-            else:
-                self.location('%s' % account._link)
-            for t in self.page.iter_history():
-                yield t
-            if account.type == Account.TYPE_CARD:
-                self.location('%s' % account._link, params={'movementSearch[period]': 'previousPeriod'})
-                for t in self.page.iter_history(is_card=True):
-                    yield t
-            if coming:
-                if account.type != Account.TYPE_CARD:
-                    self.location('%s/mouvements-a-venir' % account._link.rstrip('/'), params=params)
-                for t in self.page.iter_history(coming=True):
-                    yield t
+            return self.get_invest_transactions(account, coming)
+        elif account.type == Account.TYPE_CARD:
+            return self.get_card_transactions(account)
+        return self.get_regular_transactions(account, coming)
 
     @need_login
     def get_investment(self, account):
