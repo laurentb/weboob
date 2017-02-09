@@ -28,7 +28,10 @@
 
 from __future__ import absolute_import
 
+from functools import wraps
 import os
+import socket
+import ssl as basessl
 import subprocess
 
 try:
@@ -84,6 +87,29 @@ def cert_to_dict(cert):
     return ret
 
 
+ERROR_MAP = {
+    nss.error.PR_CONNECT_TIMEOUT_ERROR: (socket.timeout,),
+    nss.error.PR_IO_TIMEOUT_ERROR: (socket.timeout,),
+    nss.error.PR_CONNECT_RESET_ERROR: (socket.error,),
+}
+
+
+def wrap_callable(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except nss.error.NSPRError as e:
+            if e.error_desc.startswith('(SEC_ERROR_') or e.error_desc.startswith('(SSL_ERROR_'):
+                raise basessl.SSLError(0, e.error_message or e.error_desc, e)
+
+            for k in ERROR_MAP:
+                if k == e.error_code:
+                    raise ERROR_MAP[k][0]
+
+    return wrapper
+
+
 class FileWrapper(object):
     def __init__(self, obj):
         self.__obj = obj
@@ -104,7 +130,10 @@ class Wrapper(object):
         pass
 
     def __getattr__(self, attr):
-        return getattr(self.__obj, attr)
+        ret = getattr(self.__obj, attr)
+        if callable(ret):
+            ret = wrap_callable(ret)
+        return ret
 
     def getpeercert(self, binary_form=False):
         # TODO return none or exception in case no cert yet?
