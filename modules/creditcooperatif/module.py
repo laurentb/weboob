@@ -51,7 +51,7 @@ class CreditCooperatifModule(Module, CapBank):
                                        self.config['password'].get())
         else:
             self.BROWSER = CreditCooperatifPro
-            return self.create_browser("www.coopanet.com",
+            return self.create_browser("https://www.coopanet.com",
                                        self.config['login'].get(),
                                        self.config['password'].get(),
                                        strong_auth=self.config['auth_type'].get() == "strong")

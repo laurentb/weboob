@@ -17,8 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
-from weboob.exceptions import BrowserUnavailable
+from weboob.browser import LoginBrowser, URL, need_login
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 
 from .pages import LoginPage, AccountsPage, ITransactionsPage, TransactionsPage, ComingTransactionsPage, CardTransactionsPage, \
                    TechnicalErrorPage
@@ -27,35 +27,32 @@ from .pages import LoginPage, AccountsPage, ITransactionsPage, TransactionsPage,
 __all__ = ['CreditCooperatif']
 
 
-class CreditCooperatif(Browser):
-    PROTOCOL = 'https'
-    ENCODING = 'iso-8859-15'
-    PAGES = {'https?://[^/]+/banque/sso/.*': LoginPage,
-             'https?://[^/]+/banque/cpt/incoopanetj2ee.do.*': AccountsPage,
-             'https?://[^/]+/banque/cpt/cpt/situationcomptes.do\?lnkReleveAction=X&numeroExterne=.*': TransactionsPage,
-             'https?://[^/]+/banque/cpt/cpt/relevecompte.do\?tri_page=.*': TransactionsPage,
-             'https?://[^/]+/banque/cpt/cpt/situationcomptes.do\?lnkOpCB=X&numeroExterne=.*': CardTransactionsPage,
-             'https?://[^/]+/banque/cpt/cpt/operationscartebancaire.do\?.*': CardTransactionsPage,
-             'https?://[^/]+/banque/cpt/cpt/situationcomptes.do\?lnkOpEC=X&numeroExterne=.*': ComingTransactionsPage,
-             'https?://[^/]+/banque/cpt/cpt/operationEnCours.do.*': ComingTransactionsPage,
-             'https?://[^/]+/PbTechniqueCoopanet.htm': TechnicalErrorPage,
-            }
+class CreditCooperatif(LoginBrowser):
+    login_page = URL(r'https?://[^/]+/banque/sso/.*', LoginPage)
+    accounts = URL(r'https?://[^/]+/banque/cpt/incoopanetj2ee.do.*', AccountsPage)
+    transactions = URL(r'https?://[^/]+/banque/cpt/cpt/situationcomptes.do\?lnkReleveAction=X&numeroExterne=.*',
+                       r'https?://[^/]+/banque/cpt/cpt/relevecompte.do\?tri_page=.*',
+                       TransactionsPage)
+    card_transactions = URL(r'https?://[^/]+/banque/cpt/cpt/situationcomptes.do\?lnkOpCB=X&numeroExterne=.*',
+                            r'https?://[^/]+/banque/cpt/cpt/operationscartebancaire.do\?.*',
+                            CardTransactionsPage)
+    comings = URL(r'https?://[^/]+/banque/cpt/cpt/situationcomptes.do\?lnkOpEC=X&numeroExterne=.*',
+                  r'https?://[^/]+/banque/cpt/cpt/operationEnCours.do.*',
+                  ComingTransactionsPage)
+    error = URL(r'https?://[^/]+/PbTechniqueCoopanet.htm', TechnicalErrorPage)
 
-    def __init__(self, domain, *args, **kwargs):
-        self.DOMAIN = domain
+    def __init__(self, baseurl, *args, **kwargs):
+        self.BASEURL = baseurl
         self.strong_auth = kwargs.pop('strong_auth', False)
-        Browser.__init__(self, *args, **kwargs)
+        super(CreditCooperatif, self).__init__(*args, **kwargs)
 
     def home(self):
         self.location("/banque/sso/")
-        if self.is_on_page(TechnicalErrorPage):
+        if self.error.is_here():
             raise BrowserUnavailable()
-        assert self.is_on_page(LoginPage)
+        assert self.login_page.is_here()
 
-    def is_logged(self):
-        return not self.is_on_page(LoginPage)
-
-    def login(self):
+    def do_login(self):
         """
         Attempt to log in.
         Note: this method does nothing if we are already logged in.
@@ -65,27 +62,25 @@ class CreditCooperatif(Browser):
         assert isinstance(self.password, basestring)
         assert isinstance(self.strong_auth, bool)
 
-        if self.is_logged():
-            return
-
-        if not self.is_on_page(LoginPage):
+        if not self.login_page.is_here():
             self.home()
 
         self.page.login(self.username, self.password, self.strong_auth)
 
-        if not self.is_logged():
+        if not self.page or self.login_page.is_here():
             raise BrowserIncorrectPassword()
 
+    @need_login
     def get_accounts_list(self):
-        self.location(self.buildurl('/banque/cpt/incoopanetj2ee.do?ssomode=ok'))
-
+        self.location(self.absurl('/banque/cpt/incoopanetj2ee.do?ssomode=ok'))
         return self.page.get_list()
 
+    @need_login
     def _get_history(self, link):
         self.location(link)
 
         while True:
-            assert self.is_on_page(ITransactionsPage)
+            assert isinstance(self.page, ITransactionsPage)
 
             for tr in self.page.get_history():
                 yield tr
@@ -96,9 +91,11 @@ class CreditCooperatif(Browser):
 
             self.location(next_url)
 
+    @need_login
     def get_history(self, account):
         return self._get_history('/banque/cpt/cpt/situationcomptes.do?lnkReleveAction=X&numeroExterne='+ account.id)
 
+    @need_login
     def get_coming(self, account):
         # credit cards transactions
         for tr in self._get_history('/banque/cpt/cpt/situationcomptes.do?lnkOpCB=X&numeroExterne='+ account.id):

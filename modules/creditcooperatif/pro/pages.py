@@ -22,28 +22,29 @@ from decimal import Decimal
 import re
 import time
 
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.filters.standard import CleanText
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
-class TechnicalErrorPage(Page):
+class TechnicalErrorPage(LoggedPage, HTMLPage):
     pass
 
 
-class LoginPage(Page):
+class LoginPage(HTMLPage):
     def login(self, login, pin, strong_auth):
         form_nb = 1 if strong_auth else 0
         indentType = "RENFORCE" if strong_auth else "MDP"
 
-        self.browser.select_form(name='loginCoForm', nr=form_nb)
-        self.browser['codeUtil'] = login.encode(self.browser.ENCODING)
-        self.browser['motPasse'] = pin[:12].encode(self.browser.ENCODING)
+        form = self.get_form(name='loginCoForm', nr=form_nb)
+        form['codeUtil'] = login.encode('iso8859-15')
+        form['motPasse'] = pin[:12].encode('iso8859-15')
 
-        assert self.browser['identType'] == indentType
-        self.browser.submit(nologin=True)
+        assert form['identType'] == indentType
+        form.submit()
 
 
-class AccountsPage(Page):
+class AccountsPage(LoggedPage, HTMLPage):
     ACCOUNT_TYPES = {u'COMPTE NEF': Account.TYPE_CHECKING}
 
     CPT_ROW_ID = 0
@@ -53,14 +54,14 @@ class AccountsPage(Page):
     CPT_ROW_ENCOURS = 4
 
     def is_error(self):
-        for par in self.document.xpath('//p[@class=acctxtnoirlien]'):
+        for par in self.doc.xpath('//p[@class=acctxtnoirlien]'):
             if par.text is not None and u"La page demandée ne peut pas être affichée." in par.text:
                 return True
 
         return False
 
     def get_list(self):
-        for trCompte in self.document.xpath('//table[@id="compte"]/tbody/tr'):
+        for trCompte in self.doc.xpath('//table[@id="compte"]/tbody/tr'):
             tds = trCompte.findall('td')
 
             account = Account()
@@ -71,8 +72,9 @@ class AccountsPage(Page):
 
             account.type = self.ACCOUNT_TYPES.get(account_type_str,  Account.TYPE_UNKNOWN)
 
-            account.balance = Decimal(FrenchTransaction.clean_amount(self.parser.tocleanstring(tds[self.CPT_ROW_BALANCE])))
-            account.coming = Decimal(FrenchTransaction.clean_amount(self.parser.tocleanstring( tds[self.CPT_ROW_ENCOURS])))
+            cleaner = CleanText('.')
+            account.balance = Decimal(FrenchTransaction.clean_amount(cleaner(tds[self.CPT_ROW_BALANCE])))
+            account.coming = Decimal(FrenchTransaction.clean_amount(cleaner(tds[self.CPT_ROW_ENCOURS])))
             account.currency = account.get_currency(tds[self.CPT_ROW_BALANCE].find("a").text)
             yield account
 
@@ -98,10 +100,10 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class ITransactionsPage(Page):
+class ITransactionsPage(LoggedPage, HTMLPage):
     def get_next_url(self):
         # can be 'Suivant' or ' Suivant'
-        next = self.document.xpath("//a[normalize-space(text()) = 'Suivant']")
+        next = self.doc.xpath("//a[normalize-space(text()) = 'Suivant']")
 
         if not next:
             return None
@@ -120,12 +122,10 @@ class TransactionsPage(ITransactionsPage):
     TABLE_NAME = 'operation'
 
     def get_history(self):
-        for tr in self.document.xpath('//table[@id="%s"]/tbody/tr' % self.TABLE_NAME):
+        for tr in self.doc.xpath('//table[@id="%s"]/tbody/tr' % self.TABLE_NAME):
             tds = tr.findall('td')
 
-            def get_content(td):
-                ret = self.parser.tocleanstring(td)
-                return ret.replace(u"\xa0", " ").strip()
+            get_content = CleanText('.')
 
             date = get_content(tds[self.TR_DATE])
             raw = get_content(tds[self.TR_TEXT])
@@ -156,12 +156,10 @@ class CardTransactionsPage(ITransactionsPage):
 
     def get_history(self):
         comment = None
-        for tr in self.document.xpath('//table[@id="operation"]/tbody/tr'):
+        for tr in self.doc.xpath('//table[@id="operation"]/tbody/tr'):
             tds = tr.findall('td')
 
-            def get_content(td):
-                ret = td.text
-                return ret.replace(u"\xa0", " ").strip()
+            get_content = CleanText('.', children=False)
 
             raw = get_content(tds[self.COM_TR_TEXT])
 
