@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from contextlib import contextmanager
 from functools import wraps
 
 from .browsers import LoginBrowser
@@ -86,6 +87,19 @@ def retry_on_logout(exc_check=LoggedOut, tries=4):
 
         return wrapper
     return decorator
+
+
+@contextmanager
+def retry_on_logout_context(tries=4, logger=None):
+    for i in range(tries, 0, -1):
+        try:
+            yield
+        except LoggedOut as exc:
+            if logger:
+                logger.debug('%r raised, retrying', exc)
+        else:
+            return
+    raise BrowserUnavailable('Site did not reply successfully after multiple tries')
 
 
 class RetryLoginBrowser(LoginBrowser):
