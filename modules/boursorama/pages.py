@@ -461,6 +461,9 @@ class AccbisPage(LoggedPage, HTMLPage):
                         if not account.type:
                             account.type = AccountsPage.ACCOUNT_TYPES.get(title, Account.TYPE_UNKNOWN)
                         account._webid = Attr(None, 'data-account-label').filter(a.xpath('.//span[@class="nav-category__name"]'))
+        if cards:
+            self.browser.go_cards_number()
+            self.browser.page.populate_cards_number(cards)
         accounts.extend(cards)
 
 
@@ -504,3 +507,17 @@ class ProfilePage(LoggedPage, HTMLPage):
         obj_job_start_date = Date(MyInput('employeeSince'))
         obj_company_name = MyInput('employer')
         obj_socioprofessional_category = MySelect('socioProfessionalCategory')
+
+
+class LinksPage(LoggedPage, HTMLPage):
+    def get_cards_number_link(self):
+        return Link('//a[small[span[contains(text(), "Ma carte bancaire")]]]')(self.doc)
+
+
+class CardsNumberPage(LoggedPage, HTMLPage):
+    def populate_cards_number(self, cards):
+        labels = [CleanText('.', replace=[('DEBIT DIFFERE ', '')])(o) for o in self.doc.xpath('//select/option')]
+        for card in cards:
+            match = [label for label in labels if card.label in label]
+            if len(match) == 1:
+                card.number = re.search('(\d{4}\*{8}\d{4})', match[0]).group(1)

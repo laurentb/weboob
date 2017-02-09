@@ -28,7 +28,8 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
 from .pages import LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,\
-                   MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ProfilePage, ExpertPage
+                   MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ProfilePage, ExpertPage,\
+                   LinksPage, CardsNumberPage
 
 
 __all__ = ['BoursoramaBrowser']
@@ -72,6 +73,9 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
 
     expert = URL('/compte/derive/', ExpertPage)
 
+    links = URL('/alertes-et-actions', LinksPage)
+    cards = URL('/compte/cav/cb', CardsNumberPage)
+
     __states__ = ('auth_token',)
 
     def __init__(self, config=None, *args, **kwargs):
@@ -114,6 +118,12 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         if self.authentication.is_here():
             raise BrowserIncorrectAuthenticationCode('Invalid PIN code')
 
+    def go_cards_number(self):
+        params = {}
+        params['default'] = 'AppBundle:Shared:loading.html.twig'
+        params['_hinclude'] = '1'
+        self.location('/alertes-et-actions', params=params)
+        self.location(self.page.get_cards_number_link())
 
     @need_login
     def get_accounts_list(self):
