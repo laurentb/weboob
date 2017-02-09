@@ -18,46 +18,29 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import urllib
-
-from weboob.deprecated.browser import Browser
-
-from .pages import ForecastPage, WeatherPage, CityPage
+from weboob.browser import PagesBrowser, URL
+from .pages import WeatherPage, CityPage
 
 __all__ = ['WeatherBrowser']
 
 
-class WeatherBrowser(Browser):
-    DOMAIN = 'www.weather.com'
-    PROTOCOL = 'http'
-    ENCODING = 'utf-8'
-    PAGES = {}
+class WeatherBrowser(PagesBrowser):
+    BASEURL = 'https://www.weather.com'
+    API_KEY = 'c1ea9f47f6a88b9acb43aba7faf389d4'
 
-    SEARCH_URL = 'http://www.weather.com/search/enhancedlocalsearch?where=%s'
-    WEATHER_URL = 'http://www.weather.com/weather/today/%s'
-    FORECAST_URL = 'http://www.weather.com/weather/tenday/%s'
-    RIGHTNOW_URL = 'http://www.weather.com/weather/right-now/%s'
-    USER_AGENT = Browser.USER_AGENTS['desktop_firefox']
+    city_page = URL('https://dsx\.weather\.com/x/v2/web/loc/fr_FR/1/4/5/9/11/13/19/21/1000/1001/1003/fr%5E/\((?P<pattern>.*)\)', CityPage)
 
-    PAGES = {
-        (SEARCH_URL.replace('.', '\\.').replace('?', '\\?') % '.*'): CityPage,
-        (WEATHER_URL.replace('.', '\\.').replace('?', '\\?') % '.*'): WeatherPage,
-        (FORECAST_URL.replace('.', '\\.').replace('?', '\\?') % '.*'): ForecastPage,
-        (RIGHTNOW_URL.replace('.', '\\.').replace('?', '\\?') % '.*'): WeatherPage,
-        }
+    weather_page = URL('https://api\.weather\.com/v2/turbo/vt1currentdatetime;vt1observation\?units=m&language=fr-FR&geocode=(?P<city_id>.*)&format=json&apiKey=(?P<api>.*)',
+                       WeatherPage)
+
+    forecast_page = URL('https://api\.weather\.com/v2/turbo/vt1dailyForecast\?units=m&language=fr-FR&geocode=(?P<city_id>.*)&format=json&apiKey=(?P<api>.*)',
+                        WeatherPage)
 
     def iter_city_search(self, pattern):
-        self.location(self.SEARCH_URL % urllib.quote_plus(pattern.encode('utf-8')))
-        if self.is_on_page(CityPage):
-            return self.page.iter_city_search()
-        elif self.is_on_page(WeatherPage):
-            return [self.page.get_city()]
+        return self.city_page.go(pattern=pattern).iter_cities()
 
     def get_current(self, city_id):
-        self.location(self.WEATHER_URL % urllib.quote_plus(city_id.encode('utf-8')))
-        return self.page.get_current()
+        return self.weather_page.go(city_id=city_id, api=self.API_KEY).get_current()
 
     def iter_forecast(self, city_id):
-        self.location(self.FORECAST_URL % urllib.quote_plus(city_id.encode('utf-8')))
-        assert self.is_on_page(ForecastPage)
-        return self.page.iter_forecast()
+        return self.forecast_page.go(city_id=city_id, api=self.API_KEY).iter_forecast()

@@ -16,53 +16,54 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+from __future__ import unicode_literals
+from dateutil.parser import parse as parse_date
+
+from weboob.browser.elements import ItemElement, method, DictElement
+from weboob.browser.pages import JsonPage
+from weboob.browser.filters.standard import Format, DateTime, Env
+from weboob.browser.filters.json import Dict
+from weboob.capabilities.weather import Forecast, Current, City, Temperature
 
 
-from weboob.deprecated.browser import Page
-from weboob.capabilities.weather import Forecast, Current, City
+class CityPage(JsonPage):
+    ENCODING = 'utf-8'
 
-import datetime
+    @method
+    class iter_cities(DictElement):
+        item_xpath = '0/doc'
+        ignore_duplicate = True
 
+        class item(ItemElement):
+            klass = City
 
-class CityPage(Page):
-    def iter_city_search(self):
-        for item in self.document.findall('//div[@class="searchResultsList"]/ul/li'):
-            if item.attrib.get('class', '') == 'searchResultsMoreLink':
-                continue
-            city_name = unicode(item.text_content().strip())
-            city_id = item.find('a').attrib.get("href", "").split("+")[-1]
-            yield City(city_id, city_name)
-
-
-class WeatherPage(Page):
-    def get_city(self):
-        parts = self.url.split('/')[-1].split('+')
-        return City(parts[-1], u', '.join(parts[:-1]))
-
-    def get_current(self):
-        date = datetime.datetime.now()
-        text = unicode(self.document.findall('//p[@class="wx-narrative"]')[0].text_content().strip())
-        temp = float(self.document.find('//p[@class="wx-temp"]').text_content().strip().split(u'°')[0])
-        return Current(date, temp, text, u'F')
+            obj_id = Dict('geocode')
+            obj_name = Dict('name')
 
 
-class ForecastPage(Page):
+class WeatherPage(JsonPage):
+    @method
+    class get_current(ItemElement):
+        klass = Current
+
+        obj_date = DateTime(Dict('vt1currentdatetime/datetime'))
+        obj_id = Env('city_id')
+        obj_text = Format('%shPa (%s) - humidity %s%% - feels like %s°C - %s',
+                          Dict('vt1observation/altimeter'),
+                          Dict('vt1observation/barometerTrend'),
+                          Dict('vt1observation/humidity'),
+                          Dict('vt1observation/feelsLike'),
+                          Dict('vt1observation/phrase'))
+
+        def obj_temp(self):
+            temp = Dict('vt1observation/temperature')(self)
+            return Temperature(float(temp), 'C')
+
     def iter_forecast(self):
-        divs = self.document.findall('//div[@class="wx-daypart"]')
-
-        for day in range (0, len(divs)):
-            div = divs[day].find('div[@class="wx-conditions"]')
-            text = unicode(div.find('p[@class="wx-phrase"]').text_content().strip())
-            try:
-                thigh = float(div.find('p[@class="wx-temp"]').text_content().strip().split(u'°')[0])
-            except:
-                thigh = None
-            try:
-                tlow = float(div.find('p[@class="wx-temp-alt"]').text_content().strip().split(u'°')[0])
-            except:
-                tlow = None
-            date = divs[day].find('h3/span').text_content().strip()
-            #date = self.document.findall('//table[@class="twc-forecast-table twc-first"]//th')[day].text
-            #if len (date.split(' ')) > 3:
-            #    date = " ".join(date.split(' ', 3)[:3])
-            yield Forecast(date, tlow, thigh, text, u'F')
+        forecast = self.doc['vt1dailyForecast']
+        for i in range(1, len(forecast['dayOfWeek'])):
+            date = parse_date(forecast['validDate'][1])
+            tlow = float(forecast['day']['temperature'][i])
+            thigh = tlow
+            text = forecast['day']['narrative'][i]
+            yield Forecast(date, tlow, thigh, text, 'C')
