@@ -20,12 +20,13 @@
 
 from decimal import Decimal
 import re
-import time
+from datetime import date as ddate, timedelta
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.filters.standard import CleanText
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.date import parse_date
 
 class TechnicalErrorPage(LoggedPage, HTMLPage):
     pass
@@ -167,7 +168,10 @@ class CardTransactionsPage(ITransactionsPage):
             yield tr
 
     def get_single_history(self):
-        comment = None
+        now = ddate.today()
+        delta = timedelta(days=60) # random duration
+
+        debit_date = None
         for tr in self.doc.xpath('//table[@id="operation"]/tbody/tr'):
             tds = tr.findall('td')
 
@@ -175,21 +179,20 @@ class CardTransactionsPage(ITransactionsPage):
 
             raw = get_content(tds[self.COM_TR_TEXT])
 
-            if comment is None:
-                comment = get_content(tds[self.COM_TR_COMMENT])
-                raw = "%s (%s) " % (raw, comment)
+            comment = get_content(tds[self.COM_TR_COMMENT])
+            if comment:
+                debit_date = re.sub(u'Débit au ', '', comment)
 
             debit = get_content(tds[self.COM_TR_VALUE])
-            date = get_content(tds[self.COM_TR_DATE])
-
-            if comment is not None:
-                #date is 'JJ/MM'. add '/YYYY'
-                date += comment[comment.rindex("/"):]
-            else:
-                date += "/%d" % time.localtime().tm_year
+            date = parse_date(get_content(tds[self.COM_TR_DATE]))
+            if date > now + delta:
+                date = date.replace(year=date.year - 1)
+            elif date < now - delta:
+                date = date.replace(year=date.year + 1)
 
             t = Transaction()
-            t.parse(date, re.sub(r'[ ]+', ' ', raw))
+            t.parse(debit_date or date, re.sub(r'[ ]+', ' ', raw), vdate=date)
+            t.rdate = t.vdate or t.date
             t.set_amount("", debit)
 
             yield t
