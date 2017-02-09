@@ -35,6 +35,7 @@ class CreditCooperatif(LoginBrowser):
                        TransactionsPage)
     card_transactions = URL(r'https?://[^/]+/banque/cpt/cpt/situationcomptes.do\?lnkOpCB=X&numeroExterne=.*',
                             r'https?://[^/]+/banque/cpt/cpt/operationscartebancaire.do\?.*',
+                            r'https://[^/]+/banque/cpt/cpt/encourscartesbancaires.do\?index=.*',
                             CardTransactionsPage)
     comings = URL(r'https?://[^/]+/banque/cpt/cpt/situationcomptes.do\?lnkOpEC=X&numeroExterne=.*',
                   r'https?://[^/]+/banque/cpt/cpt/operationEnCours.do.*',

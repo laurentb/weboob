@@ -155,6 +155,18 @@ class CardTransactionsPage(ITransactionsPage):
     COM_TR_VALUE = 3
 
     def get_history(self):
+        if self.doc.xpath(u'//table[@id="operation"]/thead//th[text()[contains(.,"Numéro carte")]]'):
+            self.logger.debug('multiple cards on same account')
+            for a in self.doc.xpath(u'//table[@id="operation"]/tbody//a[contains(@href,"/banque/cpt/cpt/encourscartesbancaires.do")]/@href'):
+                page = self.browser.open(a).page
+                for tr in page.get_single_history():
+                    yield tr
+            return
+
+        for tr in self.get_single_history():
+            yield tr
+
+    def get_single_history(self):
         comment = None
         for tr in self.doc.xpath('//table[@id="operation"]/tbody/tr'):
             tds = tr.findall('td')
