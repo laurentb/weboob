@@ -205,7 +205,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     @need_login
     def get_history(self, account, coming=False):
         if account.type is Account.TYPE_LOAN or '/compte/derive' in account._link:
-            return
+            return []
         if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
             return self.get_invest_transactions(account, coming)
         elif account.type == Account.TYPE_CARD:
