@@ -103,7 +103,7 @@ class _Filter(object):
         try:
             if not hasattr(obj, 'saved_attrib'):
                 return
-            if not obj.page.browser.responses_dirname:
+            if not obj.page.browser.highlight_el:
                 return
         except AttributeError:
             return

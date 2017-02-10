@@ -359,6 +359,8 @@ class Module(object):
                                                                 self._private_config.get('_debug_dir', self.name)))
         elif os.path.isabs(self._private_config.get('_debug_dir', '')):
             kwargs.setdefault('responses_dirname', self._private_config['_debug_dir'])
+        if self._private_config.get('_highlight_el', ''):
+            kwargs.setdefault('highlight_el', bool(int(self._private_config['_highlight_el'])))
 
         browser = klass(*args, **kwargs)
 

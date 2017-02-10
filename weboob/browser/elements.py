@@ -256,7 +256,7 @@ class ItemElement(AbstractElement):
 
     def should_highlight(self):
         try:
-            responses_dirname = self.page.browser.responses_dirname
+            responses_dirname = self.page.browser.responses_dirname and self.page.browser.highlight_el
             if not responses_dirname:
                 return False
             if not self.el.getroottree():

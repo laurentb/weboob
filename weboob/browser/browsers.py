@@ -634,6 +634,7 @@ class PagesBrowser(DomainBrowser):
                 self.__class__.__name__, name))
 
     def __init__(self, *args, **kwargs):
+        self.highlight_el = kwargs.pop('highlight_el', False)
         super(PagesBrowser, self).__init__(*args, **kwargs)
 
         self.page = None
