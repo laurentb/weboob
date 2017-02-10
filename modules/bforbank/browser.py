@@ -103,6 +103,15 @@ class BforbankBrowser(LoginBrowser):
         assert account.type == Account.TYPE_LIFE_INSURANCE
         self.lifeinsurance_list.go()
 
+        if self.login.is_here():
+            self.logger.info('was logged out, relogging')
+            # if we don't clear cookies, we may land on the wrong spirica page
+            self.session.cookies.clear()
+            self.spirica.session.cookies.clear()
+
+            self.do_login()
+        self.lifeinsurance_list.go()
+
         if self.lifeinsurance_list.is_here():
             self.logger.debug('multiple life insurances, searching for %r', account)
             # multiple life insurances: dedicated page to choose
