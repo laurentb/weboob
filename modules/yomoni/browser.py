@@ -25,7 +25,7 @@ import re
 from weboob.browser.browsers import APIBrowser
 from weboob.browser.exceptions import ClientError
 from weboob.browser.filters.standard import CleanDecimal, Date
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
 
@@ -80,8 +80,13 @@ class YomoniBrowser(APIBrowser):
                 yield account
             return
 
+        waiting = False
+
         for project in self.users['projects']:
             me = self.request('/user/%s/project/%s/' % (self.users['userId'], project['projectId']))
+
+            waiting = (me['status'] == 'RETURN_CUSTOMER_SERVICE')
+
             # Check project in progress
             if not me['numeroContrat'] or not me['dateAdhesion']:
                 continue
@@ -103,6 +108,9 @@ class YomoniBrowser(APIBrowser):
             self.iter_investment(a, me['sousJacents'])
 
             yield a
+
+        if not self.accounts and waiting:
+            raise ActionNeeded("Le service client Yomoni est en attente d'un retour de votre part")
 
     @need_login
     def iter_investment(self, account, invs=None):
