@@ -47,6 +47,7 @@ from weboob.tools.date import parse_french_date
 
 class RedirectPage(LoggedPage, HTMLPage):
     def on_load(self):
+        super(RedirectPage, self).on_load()
         link = self.doc.xpath('//a[@id="P:F_1.R2:link"]')
         if link:
             self.browser.location(link[0].attrib['href'])
@@ -55,6 +56,7 @@ class RedirectPage(LoggedPage, HTMLPage):
 class NewHomePage(LoggedPage, HTMLPage):
     def on_load(self):
         self.browser.is_new_website = True
+        super(NewHomePage, self).on_load()
 
 
 class LoginPage(HTMLPage):
@@ -84,6 +86,7 @@ class UserSpacePage(LoggedPage, HTMLPage):
     def on_load(self):
         if self.doc.xpath('//form[@id="GoValider"]'):
             raise ActionNeeded(u"Le site du contrat Banque à Distance a besoin d'informations supplémentaires")
+        super(UserSpacePage, self).on_load()
 
 
 class ChangePasswordPage(LoggedPage, HTMLPage):
@@ -98,6 +101,8 @@ class VerifCodePage(LoggedPage, HTMLPage):
 
 class AccountsPage(LoggedPage, HTMLPage):
     def on_load(self):
+        super(AccountsPage, self).on_load()
+
         no_account_message = CleanText(u'//td[contains(text(), "Votre contrat de banque à distance ne vous donne accès à aucun compte.")]')(self.doc)
         if no_account_message:
             raise NoAccountsException(no_account_message)
