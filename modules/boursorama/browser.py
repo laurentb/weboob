@@ -24,14 +24,15 @@ from lxml.etree import XMLSyntaxError
 
 from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
-from weboob.exceptions import BrowserIncorrectPassword
-from weboob.capabilities.bank import Account
+from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPNotFound
+from weboob.capabilities.bank import Account, AccountNotFound, TransferError
 from weboob.tools.captcha.virtkeyboard import VirtKeyboardError
 
 from .pages import (
     LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,
     MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ProfilePage, ExpertPage,
     CardsNumberPage, CalendarPage, HomePage,
+    TransferAccounts, TransferRecipients, TransferCharac, TransferConfirm, TransferSent,
 )
 
 
@@ -62,6 +63,19 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     other_transactions = URL('/compte/cav/(?P<webid>.*)/mouvements.*', HistoryPage)
     saving_transactions = URL('/compte/epargne/csl/(?P<webid>.*)/mouvements.*', HistoryPage)
     incident = URL('/compte/cav/(?P<webid>.*)/mes-incidents.*', IncidentPage)
+
+    transfer_accounts = URL(r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/nouveau/(?P<id>\w+)/1',
+                            TransferAccounts)
+    recipients_page = URL(r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/$',
+                          r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/nouveau/(?P<id>\w+)/2',
+                          TransferRecipients)
+    transfer_charac = URL(r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/nouveau/(?P<id>\w+)/3',
+                          TransferCharac)
+    transfer_confirm = URL(r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/nouveau/(?P<id>\w+)/4',
+                           TransferConfirm)
+    transfer_sent = URL(r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/nouveau/(?P<id>\w+)/5',
+                        TransferSent)
+
     asv = URL('/compte/assurance-vie/.*', AsvPage)
     saving_history = URL('/compte/cefp/.*/(positions|mouvements)',
                          '/compte/.*ord/.*/mouvements',
@@ -234,3 +248,89 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     @need_login
     def get_profile(self):
         return self.profile.stay_or_go().get_profile()
+
+    @need_login
+    def iter_transfer_recipients(self, account):
+        assert account._link
+        if account._link.endswith('/'):
+            target = account._link + 'virements'
+        else:
+            target = account._link + '/virements'
+
+        try:
+            self.location(target)
+        except BrowserHTTPNotFound:
+            return []
+
+        assert self.transfer_accounts.is_here()
+        try:
+            self.page.submit_account(account.id)
+        except AccountNotFound:
+            return []
+
+        assert self.recipients_page.is_here()
+        return self.page.iter_recipients()
+
+    def check_basic_transfer(self, transfer):
+        if transfer.amount <= 0:
+            raise TransferError('transfer amount must be positive')
+        if transfer.recipient_id == transfer.account_id:
+            raise TransferError('recipient must be different from emitter')
+        if not transfer.label:
+            raise TransferError('transfer label cannot be empty')
+
+    @need_login
+    def init_transfer(self, transfer, **kwargs):
+        self.check_basic_transfer(transfer)
+
+        account = self.get_account(transfer.account_id)
+        if not account:
+            raise AccountNotFound()
+
+        recipients = list(self.iter_transfer_recipients(account))
+        if not recipients:
+            raise TransferError('The account cannot emit transfers')
+
+        recipients = [rcpt for rcpt in recipients if rcpt.id == transfer.recipient_id]
+        if len(recipients) == 0:
+            raise TransferError('The recipient cannot be used with the emitter account')
+        assert len(recipients) == 1
+
+        self.page.submit_recipient(recipients[0]._tempid)
+        assert self.transfer_charac.is_here()
+
+        self.page.submit_info(transfer.amount, transfer.label, transfer.exec_date)
+        assert self.transfer_confirm.is_here()
+
+        ret = self.page.get_transfer()
+
+        # at this stage, the site doesn't show the real ids/ibans, we can only guess
+        if recipients[0].label != ret.recipient_label:
+            if not recipients[0].label.startswith('%s - ' % ret.recipient_label):
+                # the label displayed here is just "<name>"
+                # but in the recipients list it is "<name> - <bank>"...
+                raise TransferError('Recipient label changed during transfer')
+        ret.recipient_id = recipients[0].id
+        ret.recipient_iban = recipients[0].iban
+
+        if account.label != ret.account_label:
+            raise TransferError('Account label changed during transfer')
+
+        ret.account_id = account.id
+        ret.account_iban = account.iban
+
+        return ret
+
+    @need_login
+    def execute_transfer(self, transfer, **kwargs):
+        assert self.transfer_confirm.is_here()
+        ret = self.page.get_transfer()
+        self.page.submit()
+
+        assert self.transfer_sent.is_here()
+
+        if transfer.account_iban and not ret.account_iban:
+            account = self.get_account(transfer.account_id)
+            ret.account_iban = account.iban
+
+        return ret

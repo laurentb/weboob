@@ -17,16 +17,23 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
+import datetime
+from decimal import Decimal
 import re
 from io import BytesIO
 from datetime import date, timedelta
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Format, TableCell, \
-                                            Regexp, Date, AsyncLoad, Async, Eval, RegexpError, Env
+from weboob.browser.filters.standard import (
+    CleanText, CleanDecimal, Field, Format, TableCell,
+    Regexp, Date, AsyncLoad, Async, Eval, RegexpError, Env,
+    Currency as CleanCurrency,
+)
 from weboob.browser.filters.html import Attr, Link
-from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, AccountNotFound
 from weboob.capabilities.base import NotAvailable, empty
 from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -547,4 +554,122 @@ class CardsNumberPage(LoggedPage, HTMLPage):
 
 
 class HomePage(LoggedPage, HTMLPage):
+    pass
+
+
+class NoTransferPage(LoggedPage, HTMLPage):
+    pass
+
+
+class TransferAccounts(LoggedPage, HTMLPage):
+    @method
+    class iter_accounts(ListElement):
+        item_xpath = '//a[has-class("next-step")][@data-value]'
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_id = CleanText('.//div[@class="transfer__account-number"]')
+            obj__sender_id = Attr('.', 'data-value')
+
+    def submit_account(self, id):
+        for account in self.iter_accounts():
+            if account.id == id:
+                break
+        else:
+            raise AccountNotFound()
+
+        form = self.get_form(name='DebitAccount')
+        form['DebitAccount[debitAccountKey]'] = account._sender_id
+        form.submit()
+
+
+class TransferRecipients(LoggedPage, HTMLPage):
+    @method
+    class iter_recipients(ListElement):
+        item_xpath = '//a[has-class("transfer__account-wrapper")]'
+
+        class item(ItemElement):
+            klass = Recipient
+
+            obj_id = CleanText('.//div[@class="transfer__account-number"]')
+            obj_label = CleanText('.//div[@class="transfer__account-name"]')
+
+            def obj_category(self):
+                text = CleanText('./ancestor::div[has-class("deploy--item")]//a[has-class("deploy__title")]')(self)
+                if 'Mes comptes Boursorama Banque' in text:
+                    return 'Interne'
+                elif 'Comptes externes' in text or 'Comptes de tiers' in text:
+                    return 'Externe'
+
+            def obj_iban(self):
+                if Field('category')(self) == 'Externe':
+                    return Field('id')(self)
+
+            def obj_enabled_at(self):
+                return datetime.datetime.now().replace(microsecond=0)
+
+            obj__tempid = Attr('.', 'data-value')
+
+    def submit_recipient(self, tempid):
+        form = self.get_form(name='CreditAccount')
+        form['CreditAccount[creditAccountKey]'] = tempid
+        form.submit()
+
+
+class TransferCharac(LoggedPage, HTMLPage):
+    def get_option(self, select, text):
+        for opt in select.xpath('option'):
+            if opt.text_content() == text:
+                return opt.attrib['value']
+
+    def submit_info(self, amount, label, exec_date):
+        form = self.get_form(name='Characteristics')
+
+        assert amount > 0
+        amount = str(amount.quantize(Decimal('0.00'))).replace('.', ',')
+        form['Characteristics[amount]'] = amount
+        form['Characteristics[label]'] = label
+
+        if not exec_date:
+            exec_date = datetime.date.today()
+        if datetime.date.today() == exec_date:
+            assert self.get_option(form.el.xpath('//select[@id="Characteristics_schedulingType"]')[0], 'Ponctuel') == '1'
+            form['Characteristics[schedulingType]'] = '1'
+        else:
+            assert self.get_option(form.el.xpath('//select[@id="Characteristics_schedulingType"]')[0], 'Différé') == '2'
+            form['Characteristics[schedulingType]'] = '2'
+            form['Characteristics[scheduledDate][day]'] = exec_date.strftime('%d')
+            form['Characteristics[scheduledDate][month]'] = exec_date.strftime('%m')
+            form['Characteristics[scheduledDate][year]'] = exec_date.strftime('%Y')
+
+        form['Characteristics[notice]'] = 'none'
+        form.submit()
+
+
+class TransferConfirm(LoggedPage, HTMLPage):
+    @method
+    class get_transfer(ItemElement):
+        klass = Transfer
+
+        obj_label = CleanText('//div[@id="transfer-label"]/span[@class="transfer__account-value"]')
+        obj_amount = CleanDecimal('//div[@id="transfer-amount"]/span[@class="transfer__account-value"]', replace_dots=True)
+        obj_currency = CleanCurrency('//div[@id="transfer-amount"]/span[@class="transfer__account-value"]')
+
+        obj_account_label = CleanText('//span[@id="transfer-origin-account"]')
+        obj_recipient_label = CleanText('//span[@id="transfer-destination-account"]')
+
+        def obj_exec_date(self):
+            type_ = CleanText('//div[@id="transfer-type"]/span[@class="transfer__account-value"]')(self)
+            if type_ == 'Ponctuel':
+                return datetime.date.today()
+            elif type_ == 'Différé':
+                return Date(CleanText('//div[@id="transfer-date"]/span[@class="transfer__account-value"]'), dayfirst=True)(self)
+
+    def submit(self):
+        form = self.get_form(name='Confirm')
+        form.submit()
+
+
+class TransferSent(LoggedPage, HTMLPage):
     pass

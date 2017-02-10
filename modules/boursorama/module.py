@@ -20,7 +20,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankTransfer, Account, AccountNotFound
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, ValueBool, Value
@@ -31,7 +31,7 @@ from .browser import BoursoramaBrowser
 __all__ = ['BoursoramaModule']
 
 
-class BoursoramaModule(Module, CapBank, CapProfile):
+class BoursoramaModule(Module, CapBankTransfer, CapProfile):
     NAME = 'boursorama'
     MAINTAINER = u'Gabriel Kerneis'
     EMAIL = 'gabriel@kerneis.info'
@@ -74,3 +74,14 @@ class BoursoramaModule(Module, CapBank, CapProfile):
 
     def get_profile(self):
         return self.browser.get_profile()
+
+    def iter_transfer_recipients(self, account):
+        if not isinstance(account, Account):
+            account = self.get_account(account)
+        return self.browser.iter_transfer_recipients(account)
+
+    def init_transfer(self, transfer, **kwargs):
+        return self.browser.init_transfer(transfer, **kwargs)
+
+    def execute_transfer(self, transfer, **kwargs):
+        return self.browser.execute_transfer(transfer, **kwargs)
