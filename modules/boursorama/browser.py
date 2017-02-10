@@ -27,9 +27,11 @@ from weboob.browser.url import URL
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
-from .pages import LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,\
-                   MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ProfilePage, ExpertPage,\
-                   LinksPage, CardsNumberPage, CalendarPage
+from .pages import (
+    LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,
+    MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ProfilePage, ExpertPage,
+    LinksPage, CardsNumberPage, CalendarPage, HomePage,
+)
 
 
 __all__ = ['BoursoramaBrowser']
@@ -43,6 +45,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://clients.boursorama.com'
     TIMEOUT = 60.0
 
+    home = URL('/$', HomePage)
     keyboard = URL('/connexion/clavier-virtuel\?_hinclude=300000', VirtKeyboardPage)
     calendar = URL('/compte/cav/.*/calendrier', CalendarPage)
     error = URL('/connexion/compte-verrouille',
@@ -160,9 +163,16 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         return debit_date[0]
 
     def get_card_transactions(self, account):
-        for t in self.location('%s' % account._link).page.iter_history(is_card=True):
+        self.location('%s' % account._link)
+        if self.home.is_here():
+            # for some cards, the site redirects us to '/'...
+            return
+
+        for t in self.page.iter_history(is_card=True):
             yield t
-        for t in self.location('%s' % account._link, params={'movementSearch[period]': 'previousPeriod'}).page.iter_history(is_card=True, is_previous=True):
+
+        self.location('%s' % account._link, params={'movementSearch[period]': 'previousPeriod'})
+        for t in self.page.iter_history(is_card=True, is_previous=True):
             yield t
 
     def get_invest_transactions(self, account, coming):

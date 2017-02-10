@@ -536,3 +536,7 @@ class CardsNumberPage(LoggedPage, HTMLPage):
             match = [label for label in labels if card.label in label]
             if len(match) == 1:
                 card.number = re.search('(\d{4}\*{8}\d{4})', match[0]).group(1)
+
+
+class HomePage(LoggedPage, HTMLPage):
+    pass
