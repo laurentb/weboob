@@ -72,6 +72,8 @@ class CaisseEpargne(LoginBrowser):
 
         self.is_cenet_website = False
         self.multi_type = False
+        self.accounts = None
+        self.loans = None
         self.typeAccount = 'WE'
         self.nuser = nuser
 
@@ -145,94 +147,93 @@ class CaisseEpargne(LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
-        # cenet website
-        if self.is_cenet_website is True:
-            headers = {
-                'Content-Type': 'application/json; charset=UTF-8',
-                'Accept': 'application/json, text/javascript, */*; q=0.01'
-            }
+        if self.accounts is None:
+            # cenet website
+            if self.is_cenet_website is True:
+                headers = {
+                    'Content-Type': 'application/json; charset=UTF-8',
+                    'Accept': 'application/json, text/javascript, */*; q=0.01'
+                }
 
-            data = {
-                'contexte': '',
-                'dateEntree': None,
-                'donneesEntree': 'null',
-                'filtreEntree': None
-            }
+                data = {
+                    'contexte': '',
+                    'dateEntree': None,
+                    'donneesEntree': 'null',
+                    'filtreEntree': None
+                }
 
-            try:
-                accounts = [account for account in self.cenet_accounts.go(data=json.dumps(data), headers=headers).get_accounts()]
-            except ClientError:
-                # Unauthorized due to wrongpass
-                raise BrowserIncorrectPassword()
+                try:
+                    self.accounts = [account for account in self.cenet_accounts.go(data=json.dumps(data), headers=headers).get_accounts()]
+                except ClientError:
+                    # Unauthorized due to wrongpass
+                    raise BrowserIncorrectPassword()
 
-            for account in accounts:
-                account._cards = [card for card in self.cenet_cards.go(data=json.dumps(data), headers=headers).get_cards() \
-                                  if card['Compte']['Numero'] == account.id]
+                for account in self.accounts:
+                    account._cards = [card for card in self.cenet_cards.go(data=json.dumps(data), headers=headers).get_cards() \
+                                    if card['Compte']['Numero'] == account.id]
+            else:
+                if self.home.is_here():
+                    self.page.check_no_accounts()
+                    self.page.go_list()
+                else:
+                    self.home.go()
 
-            return accounts
+                self.accounts = list(self.page.get_list())
+                for account in self.accounts:
+                    if account.type == Account.TYPE_MARKET:
+                        if not self.home.is_here():
+                            self.home_tache.go(tache='CPTSYNT0')
+                        self.page.go_history(account._info)
 
-        if self.home.is_here():
-            self.page.check_no_accounts()
-            self.page.go_list()
-        else:
-            self.home.go()
+                        if self.message.is_here():
+                            self.page.submit()
+                            self.page.go_history(account._info)
 
-        accounts = list(self.page.get_list())
-        for account in accounts:
-            if account.type == Account.TYPE_MARKET:
-                if not self.home.is_here():
-                    self.home_tache.go(tache='CPTSYNT0')
-                self.page.go_history(account._info)
+                        # Some users may not have access to this.
+                        if not self.market.is_here():
+                            continue
 
-                if self.message.is_here():
-                    self.page.submit()
-                    self.page.go_history(account._info)
+                        self.page.submit()
 
-                # Some users may not have access to this.
-                if not self.market.is_here():
-                    continue
+                        if self.page.is_error():
+                            continue
 
-                self.page.submit()
+                        self.garbage.go()
 
-                if self.page.is_error():
-                    continue
-
-                self.garbage.go()
-
-                if self.garbage.is_here():
-                    continue
-                self.page.get_valuation_diff(account)
-        return iter(accounts)
+                        if self.garbage.is_here():
+                            continue
+                        self.page.get_valuation_diff(account)
+        return iter(self.accounts)
 
     @need_login
     def get_loans_list(self):
-        if self.is_cenet_website is True:
-            return iter([])
-
-        if self.home.is_here():
-            if self.page.check_no_accounts():
+        if self.loans is None:
+            self.loans = []
+            if self.is_cenet_website is True:
                 return iter([])
 
-        self.home_tache.go(tache='CRESYNT0')
+            if self.home.is_here():
+                if self.page.check_no_accounts():
+                    return iter([])
 
-        loan_accounts = list()
+            self.home_tache.go(tache='CRESYNT0')
 
-        if self.home.is_here():
-            self.page.go_loan_list()
-            loan_accounts = list(self.page.get_loan_list())
+            if self.home.is_here():
+                self.page.go_loan_list()
+                self.loans = list(self.page.get_loan_list())
 
-        for _ in range(3):
-            try:
-                self.home_tache.go(tache='CPTSYNT0')
+            for _ in range(3):
+                try:
+                    self.home_tache.go(tache='CPTSYNT0')
 
-                if self.home.is_here():
-                    self.page.go_list()
-            except ClientError:
-                pass
-            else:
-                break
+                    if self.home.is_here():
+                        self.page.go_list()
+                except ClientError:
+                    pass
+                else:
+                    break
 
-        return (loan_accounts)
+        return iter(self.loans)
 
     @need_login
     def get_account(self, id):
