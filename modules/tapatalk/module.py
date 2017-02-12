@@ -121,7 +121,7 @@ class TapatalkModule(Module, CapMessages):
         message = Message(
             id = is_root and "0" or str(post['post_id']),
             thread = thread,
-            sender = unicode(str(post['post_author_name']), 'utf-8'),
+            sender = unicode(str(post.get('post_author_name', 'Anonymous')), 'utf-8'),
             title = is_root and thread.title or u"Re: %s"%thread.title,
             url = url,
             receivers = None,
