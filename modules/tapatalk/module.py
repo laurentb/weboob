@@ -205,7 +205,7 @@ class TapatalkModule(Module, CapMessages):
                     break
 
         def process_forum(forum, prefix):
-            if (not unread or forum.get('new_post')) and not forum['sub_only']:
+            if (not unread or forum.get('new_post', True)) and not forum['sub_only']:
                 for mode in ('TOP', 'ANN', None):
                     for thread in browse_forum_mode(forum, prefix, mode):
                         yield thread
