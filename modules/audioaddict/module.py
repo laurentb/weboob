@@ -53,16 +53,16 @@ class AudioAddictModule(Module, CapRadio, CapCollection):
         'DI': {
             'desc': 'Digitally Imported addictive electronic music',
             'domain': 'listen.di.fm',
-            'streams': {'android_low': {'rate': 40, 'fmt': 'aac'},
-                        'android': {'rate': 64, 'fmt': 'aac'},
-                        'android_high': {'rate': 96, 'fmt': 'aac'},
+            'streams': {  # 'android_low': {'rate': 40, 'fmt': 'aac'},
+                        # 'android': {'rate': 64, 'fmt': 'aac'},
+                        # 'android_high': {'rate': 96, 'fmt': 'aac'},
                         'android_premium_low': {'rate': 40, 'fmt': 'aac'},
                         'android_premium_medium': {'rate': 64, 'fmt': 'aac'},
                         'android_premium': {'rate': 128, 'fmt': 'aac'},
                         'android_premium_high': {'rate': 256, 'fmt': 'aac'},
-                        'public1': {'rate': 64, 'fmt': 'aac'},
-                        'public2': {'rate': 40, 'fmt': 'aac'},
-                        'public3': {'rate': 96, 'fmt': 'mp3'},
+                        # 'public1': {'rate': 64, 'fmt': 'aac'},
+                        # 'public2': {'rate': 40, 'fmt': 'aac'},
+                        # 'public3': {'rate': 96, 'fmt': 'mp3'},
                         'premium_low': {'rate': 40, 'fmt': 'aac'},
                         'premium_medium': {'rate': 64, 'fmt': 'aac'},
                         'premium': {'rate': 128, 'fmt': 'aac'},
@@ -72,15 +72,15 @@ class AudioAddictModule(Module, CapRadio, CapCollection):
         'RadioTunes': {
             'desc': 'Radio Tunes',
             'domain': 'listen.radiotunes.com',
-            'streams': {'appleapp_low': {'rate': 40, 'fmt': 'aac'},
-                        'appleapp': {'rate': 64, 'fmt': 'aac'},
+            'streams': {  # 'appleapp_low': {'rate': 40, 'fmt': 'aac'},
+                        # 'appleapp': {'rate': 64, 'fmt': 'aac'},
                         'appleapp_high': {'rate': 96, 'fmt': 'mp3'},
                         'appleapp_premium_medium': {'rate': 64, 'fmt': 'aac'},
                         'appleapp_premium': {'rate': 128, 'fmt': 'aac'},
                         'appleapp_premium_high': {'rate': 256, 'fmt': 'mp3'},
-                        'public1': {'rate': 40, 'fmt': 'aac'},
-                        'public5': {'rate': 40, 'fmt': 'wma'},
-                        'public3': {'rate': 96, 'fmt': 'mp3'},
+                        # 'public1': {'rate': 40, 'fmt': 'aac'},
+                        # 'public5': {'rate': 40, 'fmt': 'wma'},
+                        # 'public3': {'rate': 96, 'fmt': 'mp3'},
                         'premium_low': {'rate': 40, 'fmt': 'aac'},
                         'premium_medium': {'rate': 64, 'fmt': 'aac'},
                         'premium': {'rate': 128, 'fmt': 'aac'},
@@ -90,13 +90,13 @@ class AudioAddictModule(Module, CapRadio, CapCollection):
         'JazzRadio': {
             'desc': 'Jazz Radio',
             'domain': 'listen.jazzradio.com',
-            'streams': {'appleapp_low': {'rate': 40, 'fmt': 'aac'},
-                        'appleapp': {'rate': 64, 'fmt': 'aac'},
+            'streams': {  # 'appleapp_low': {'rate': 40, 'fmt': 'aac'},
+                        # 'appleapp': {'rate': 64, 'fmt': 'aac'},
                         'appleapp_premium_medium': {'rate': 64, 'fmt': 'aac'},
                         'appleapp_premium': {'rate': 128, 'fmt': 'aac'},
                         'appleapp_premium_high': {'rate': 256, 'fmt': 'mp3'},
-                        'public1': {'rate': 40, 'fmt': 'aac'},
-                        'public3': {'rate': 64, 'fmt': 'mp3'},
+                        # 'public1': {'rate': 40, 'fmt': 'aac'},
+                        # 'public3': {'rate': 64, 'fmt': 'mp3'},
                         'premium_low': {'rate': 40, 'fmt': 'aac'},
                         'premium_medium': {'rate': 64, 'fmt': 'aac'},
                         'premium': {'rate': 128, 'fmt': 'aac'},
@@ -106,21 +106,25 @@ class AudioAddictModule(Module, CapRadio, CapCollection):
         'RockRadio': {
             'desc': 'Rock Radio',
             'domain': 'listen.rockradio.com',
-            'streams': {'android_low': {'rate': 40, 'fmt': 'aac'},
-                        'android': {'rate': 64, 'fmt': 'aac'},
+            'streams': {  # 'android_low': {'rate': 40, 'fmt': 'aac'},
+                        # 'android': {'rate': 64, 'fmt': 'aac'},
                         'android_premium_medium': {'rate': 64, 'fmt': 'aac'},
                         'android_premium': {'rate': 128, 'fmt': 'aac'},
                         'android_premium_high': {'rate': 256, 'fmt': 'mp3'},
-                        'public3': {'rate': 96, 'fmt': 'mp3'}
+                        # 'public1': {'rate': 96, 'fmt': 'mp3'}
                         }
         },
-        'FrescaRadio': {
-            'desc': 'Fresca Radio',
-            'domain': 'frescaradio.com',
-            'streams': {
-                        'public3': {'rate': 96, 'fmt': 'mp3'}
-            }
-        }
+        'ClassicalRadio': {
+            'desc': 'Classical Radio',
+            'domain': 'listen.classicalradio.com',
+            'streams': {  # 'android_low': {'rate': 40, 'fmt': 'aac'},
+                        # 'android': {'rate': 64, 'fmt': 'aac'},
+                        'android_premium_medium': {'rate': 64, 'fmt': 'aac'},
+                        'android_premium': {'rate': 128, 'fmt': 'aac'},
+                        'android_premium_high': {'rate': 256, 'fmt': 'mp3'},
+                        # 'public1': {'rate': 96, 'fmt': 'mp3'}
+                        }
+        },
     }
 
     CONFIG = BackendConfig(Value('networks',
@@ -133,6 +137,8 @@ class AudioAddictModule(Module, CapRadio, CapCollection):
 
     def __init__(self, *a, **kw):
         super(AudioAddictModule, self).__init__(*a, **kw)
+        if 'FrescaRadio' in self.config['networks'].get():
+            raise self.ConfigError('FresacaRadio does not exists anymore')
         self.RADIOS = {}
         self.HISTORY = {}
 
@@ -255,7 +261,7 @@ class AudioAddictModule(Module, CapRadio, CapCollection):
         stream.bitrate = self.NETWORKS[network]['streams'][defaultname]['rate']
         stream.format = self.NETWORKS[network]['streams'][defaultname]['fmt']
         stream.title = u'%s %skbps' % (stream.format, stream.bitrate)
-        stream.url = 'http://listen.%s/%s/%s.pls' %\
+        stream.url = 'http://%s/%s/%s.pls' %\
                      (self.NETWORKS[network]['domain'], defaultname, radioName)
         radio.streams.append(stream)
         i = 1
@@ -266,7 +272,7 @@ class AudioAddictModule(Module, CapRadio, CapCollection):
             stream.bitrate = self.NETWORKS[network]['streams'][name]['rate']
             stream.format = self.NETWORKS[network]['streams'][name]['fmt']
             stream.title = u'%s %skbps' % (stream.format, stream.bitrate)
-            stream.url = 'http://listen.%s/%s/%s.pls' % \
+            stream.url = 'http://%s/%s/%s.pls' % \
                          (self.NETWORKS[network]['domain'], name, radioName)
 
             radio.streams.append(stream)

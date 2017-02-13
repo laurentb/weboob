@@ -28,7 +28,7 @@ class AudioAddictTest(BackendTest):
 
     def setUp(self):
         if not self.is_backend_configured():
-            self.backend.config['networks'] = Value(value='RockRadio RadioTunes JazzRadio DI')
+            self.backend.config['networks'] = Value(value='RockRadio RadioTunes JazzRadio DI ClassicRadio')
             self.backend.config['quality'] = Value(value='l')
 
     def test_audioaddict(self):
