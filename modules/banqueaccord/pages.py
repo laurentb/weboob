@@ -104,7 +104,7 @@ class LoginPage(HTMLPage):
 class IndexPage(LoggedPage, HTMLPage):
     @method
     class get_list(ListElement):
-        item_xpath = '//li[@id="menu-n2-mesproduits"]//li//a'
+        item_xpath = '(//li[@id="menu-n2-mesproduits"])[1]//li//a'
 
         class item(ItemElement):
             klass = Account
