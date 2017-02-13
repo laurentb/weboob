@@ -38,7 +38,7 @@ class AvivaModule(Module, CapBank):
     VERSION = '1.2'
     CONFIG = BackendConfig(
             ValueBackendPassword('login',    label='Identifiant', masked=False),
-            ValueBackendPassword('password', label='Mot de passe'))
+            ValueBackendPassword('password', label='Mot de passe', regexp='\d{6}'))
 
     BROWSER = AvivaBrowser
 

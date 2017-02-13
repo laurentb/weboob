@@ -35,6 +35,8 @@ class AvivaBrowser(LoginBrowser):
     action_needed = URL(r'coordonnees/detailspersonne\?majcontacts=true', ActionNeededPage)
 
     def do_login(self):
+        if not self.password.isdigit():
+            raise BrowserIncorrectPassword()
         self.login.go().login(self.username, self.password)
 
         if self.login.is_here():
