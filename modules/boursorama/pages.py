@@ -478,8 +478,9 @@ class AccbisPage(LoggedPage, HTMLPage):
                         account._webid = Attr(None, 'data-account-label').filter(a.xpath('.//span[@class="nav-category__name"]'))
         if cards:
             self.browser.go_cards_number()
-            self.browser.page.populate_cards_number(cards)
-        accounts.extend(cards)
+            if self.browser.cards.is_here():
+                self.browser.page.populate_cards_number(cards)
+                accounts.extend(cards)
 
 
 class LoanPage(LoggedPage, HTMLPage):
@@ -526,7 +527,7 @@ class ProfilePage(LoggedPage, HTMLPage):
 
 class LinksPage(LoggedPage, HTMLPage):
     def get_cards_number_link(self):
-        return Link('//a[small[span[contains(text(), "Ma carte bancaire")]]]')(self.doc)
+        return Link('//a[small[span[contains(text(), "carte bancaire")]]]', default=NotAvailable)(self.doc)
 
 
 class CardsNumberPage(LoggedPage, HTMLPage):
