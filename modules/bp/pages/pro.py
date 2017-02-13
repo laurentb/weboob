@@ -85,6 +85,12 @@ class ProAccountHistoryDownload(LoggedPage, MyHTMLPage):
 
 
 class ProAccountHistoryCSV(LoggedPage, CsvPage):
+    def decode_row(self, row, encoding):
+        try:
+            return [unicode(cell, encoding) for cell in row]
+        except UnicodeDecodeError:
+            return ''
+
     FMTPARAMS = {'delimiter': ';'}
 
     def get_next_link(self):
