@@ -111,6 +111,10 @@ class LoginPage(JsonPage):
         if self.url.startswith('https://mabanqueprivee.'):
             self.browser.switch('mabanqueprivee')
 
+        # Some kind of internal server error instead of normal wrongpass errorCode.
+        if self.get('errorCode') == 'INTO_FACADE ERROR: JDF_GENERIC_EXCEPTION':
+            raise BrowserIncorrectPassword()
+
         error = cast(self.get('errorCode'), int, 0)
 
         if error:
