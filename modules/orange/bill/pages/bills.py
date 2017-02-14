@@ -53,8 +53,20 @@ class BillsPage(LoggedPage, HTMLPage):
             obj_format = u"pdf"
             obj_type = u"bill"
             # sometimes the price td contains a subtag with "inclus un avoir de XX€"
-            obj_price = CleanDecimal(CleanText('.//td[@headers="ec-amountCol"]/strong', children=False), replace_dots=True)
+            def obj_price(self):
+                # if TTC is indicated, there's also HT, don't take both
+                txt = CleanText('.//td[@headers="ec-amountCol"]/strong[contains(text(),"TTC")]', children=False)(self)
+                if not txt:
+                    txt = CleanText('.//td[@headers="ec-amountCol"]/strong', children=False)(self)
+                return CleanDecimal(replace_dots=True).filter(txt)
+
             obj_currency = Currency('.//td[@headers="ec-amountCol"]')
+
+            def obj_vat(self):
+                ht = CleanDecimal(CleanText('.//td[@headers="ec-amountCol"]/strong[contains(text(),"HT")]', children=False), replace_dots=True, default=NotAvailable)(self)
+                if ht is NotAvailable:
+                    return ht
+                return Field('price')(self) - ht
 
 
 class SubscriptionsPage(LoggedPage, HTMLPage):
