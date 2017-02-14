@@ -284,7 +284,7 @@ class AccountsList(LoggedPage, HTMLPage):
                      'mes-comptes/compte-courant/carte-bancaire':      Account.TYPE_CARD,
                      'mes-comptes/assurance-vie':                      Account.TYPE_LIFE_INSURANCE,
                      'mes-comptes/livret':                             Account.TYPE_SAVINGS,
-                     'mes-comptes/pea':                                Account.TYPE_MARKET,
+                     'mes-comptes/pea':                                Account.TYPE_PEA,
                      'mes-comptes/compte-titres':                      Account.TYPE_MARKET,
                     }
     def get_list(self):
