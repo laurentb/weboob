@@ -39,7 +39,7 @@ class TwitterBrowser(LoginBrowser):
     search = URL(u'i/search/timeline', SearchTimelinePage)
     search_page = URL(u'search\?q=(?P<pattern>.+)&src=sprv',
                       u'search-home', SearchPage)
-    profil = URL(u'i/profiles/show/(?P<path>.+)/timeline/with_replies', HomeTimelinePage)
+    profil = URL(u'i/profiles/show/(?P<path>.+)/timeline/tweets', HomeTimelinePage)
     timeline = URL(u'i/timeline', TimelinePage)
     login = URL(u'', LoginPage)
 
