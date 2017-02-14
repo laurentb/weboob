@@ -249,6 +249,8 @@ class IndexPage(LoggedPage, HTMLPage):
                      u'Mes crédits immobiliers':    Account.TYPE_LOAN,
                      u'Mes crédits renouvelables':  Account.TYPE_LOAN,
                      u'Mes crédits consommation':   Account.TYPE_LOAN,
+                     u'PEA NUMERAIRE':              Account.TYPE_PEA,
+                     u'PEA':                        Account.TYPE_PEA,
                     }
 
     def on_load(self):
@@ -302,7 +304,7 @@ class IndexPage(LoggedPage, HTMLPage):
             account.iban = rib2iban(info['id'])
         account._info = info
         account.label = label
-        account.type = info['acc_type'] if 'acc_type' in info else account_type
+        account.type = self.ACCOUNT_TYPES.get(label, info['acc_type'] if 'acc_type' in info else account_type)
         account.balance = Decimal(FrenchTransaction.clean_amount(balance)) if balance else self.get_balance(account)
         account.currency = account.get_currency(balance)
         account._card_links = []
