@@ -328,7 +328,9 @@ class CardsPage(MyLoggedPage, BasePage):
                 '_id': './/tr/td[@class="cel-texte"]',
                 'label1': './/tr[@class="ligne-impaire ligne-bleu"]/th',
                 'label2': './caption/span[@class="tdb-cartes-prop"]/b',
-                'balance': './/tr[last()-1]/td[@class="cel-num"] | .//tr[last()-2]/td[@class="cel-num"]',
+                'balance': './/tr[last()-1]/td[@class="cel-num"] | '
+                           './/tr[last()-2]/td[@class="cel-num"] | '
+                           './following-sibling::table[1]//tr[1][td[has-class("cel-neg")]]/td[@class="cel-num"]',
                 'currency': '//table/caption//span/text()[starts-with(.,"Montants en ")]',
             }
             TABLE_XPATH = '(//table[@class="ca-table"])[1]'
@@ -347,7 +349,8 @@ class CardsPage(MyLoggedPage, BasePage):
             account.label = '%s - %s' % (get('label1'),
                                          re.sub('\s*-\s*$', '', get('label2')))
             try:
-                account.balance = Decimal(Transaction.clean_amount(table.xpath(xpaths['balance'])[-1].text))
+                balance = CleanText(xpaths['balance'], default=None)(table)
+                account.balance = Decimal(Transaction.clean_amount(balance)) if balance else Decimal('0.0')
                 account.currency = account.get_currency(self.doc
                         .xpath(xpaths['currency'])[0].replace("Montants en ", ""))
                 if not account.currency and currency:
