@@ -349,8 +349,7 @@ class CardsPage(MyLoggedPage, BasePage):
             account.label = '%s - %s' % (get('label1'),
                                          re.sub('\s*-\s*$', '', get('label2')))
             try:
-                balance = CleanText(xpaths['balance'], default=None)(table)
-                account.balance = Decimal(Transaction.clean_amount(balance)) if balance else Decimal('0.0')
+                account.balance = Decimal(Transaction.clean_amount(table.xpath(xpaths['balance'])[-1].text))
                 account.currency = account.get_currency(self.doc
                         .xpath(xpaths['currency'])[0].replace("Montants en ", ""))
                 if not account.currency and currency:
