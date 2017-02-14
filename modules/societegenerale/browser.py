@@ -105,6 +105,9 @@ class SocieteGenerale(LoginBrowser):
 
             for type_ in ['true', 'false']:
                 self.loans.go(conso=type_)
+                # some loans page are unavailable
+                if self.page.doc['commun']['statut'] == 'nok':
+                    continue
                 self.accounts_list.extend(self.page.iter_accounts())
 
         return iter(self.accounts_list)
