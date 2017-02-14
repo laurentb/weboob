@@ -42,6 +42,7 @@ __all__ = ['LCLBrowser','LCLProBrowser']
 # Browser
 class LCLBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://particuliers.secure.lcl.fr'
+    STATE_DURATION = 15
 
     login = URL('/outil/UAUT/Authentication/authenticate',
                 '/outil/UAUT\?from=.*',
