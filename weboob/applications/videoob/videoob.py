@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
+from io import BytesIO
 from urlparse import urlparse
 
 import requests
@@ -30,12 +31,14 @@ from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
 from weboob.tools.application.formatters.iformatter import PrettyFormatter
 
+from .image2xterm import image2xterm, get_term_size
+
 __all__ = ['Videoob']
 
 
 class VideoListFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'title', 'duration', 'date')
-    DISPLAYED_FIELDS = ('author', 'rating')
+    DISPLAYED_FIELDS = ('author', 'rating', 'thumbnail')
 
     def get_title(self, obj):
         return obj.title
@@ -49,6 +52,10 @@ class VideoListFormatter(PrettyFormatter):
             result += u' - %s' % obj.author
         if hasattr(obj, 'rating') and not empty(obj.rating):
             result += u' (%s/%s)' % (obj.rating, obj.rating_max)
+        if hasattr(obj, 'thumbnail') and not empty(obj.thumbnail) and not empty(obj.thumbnail.data):
+            result += u'\n'
+            result += image2xterm(BytesIO(obj.thumbnail.data), newsize=get_term_size())
+
         return result
 
 
