@@ -37,6 +37,8 @@ import os
 import sys
 from copy import deepcopy
 import inspect
+from datetime import datetime, timedelta
+from dateutil import parser
 
 try:
     import requests
@@ -794,6 +796,11 @@ class StatesMixin(object):
     Saved state variables.
     """
 
+    STATE_DURATION = None
+    """
+    In minutes, used to set an expiration datetime object of the state.
+    """
+
     def locate_browser(self, state):
         try:
             self.location(state['url'])
@@ -801,6 +808,8 @@ class StatesMixin(object):
             pass
 
     def load_state(self, state):
+        if 'expire' in state and parser.parse(state['expire']) < datetime.now():
+            return self.logger.info('State expired, not reloading it from storage')
         if 'cookies' in state:
             try:
                 self.session.cookies = pickle.loads(zlib.decompress(base64.b64decode(state['cookies'])))
@@ -822,6 +831,8 @@ class StatesMixin(object):
         state['cookies'] = base64.b64encode(zlib.compress(pickle.dumps(self.session.cookies, -1)))
         for attrname in self.__states__:
             state[attrname] = getattr(self, attrname)
+        if self.STATE_DURATION is not None:
+            state['expire'] = unicode((datetime.now() + timedelta(minutes=self.STATE_DURATION)).replace(microsecond=0))
         self.logger.info('Stored cookies into storage')
         return state
 
