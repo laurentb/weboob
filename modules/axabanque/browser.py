@@ -57,6 +57,9 @@ class AXABrowser(LoginBrowser):
         if not self.password.isdigit() or self.page.check_error():
             raise BrowserIncorrectPassword()
 
+        # home page to finish login
+        self.location('https://espaceclient.axa.fr/')
+
 
 class AXABanque(AXABrowser):
     BASEURL = 'https://www.axabanque.fr/'
