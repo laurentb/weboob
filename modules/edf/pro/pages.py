@@ -22,6 +22,7 @@ from datetime import date
 
 from weboob.browser.pages import HTMLPage, JsonPage, RawPage, LoggedPage
 from weboob.browser.filters.standard import CleanDecimal
+from weboob.browser.filters.json import Dict
 from weboob.capabilities.bill import Subscription, Bill
 from weboob.exceptions import ActionNeeded
 
@@ -29,8 +30,10 @@ from weboob.exceptions import ActionNeeded
 class LoginPage(HTMLPage):
     def login(self, login, password):
         form = self.get_form(id='form-authenticate-entreprise')
+
         form['IDToken1'] = login
         form['IDToken2'] = password
+
         form.submit(allow_redirects=False)
 
 class AuthPage(RawPage):
@@ -56,8 +59,9 @@ class SubscriptionsPage(LoggedPage, JsonPage):
 
         return subscriptions
 
-class BillsPage(LoggedPage, RawPage):
-    pass
+class BillsPage(LoggedPage, JsonPage):
+    def get_bill_name(self):
+        return Dict('nomFichier')(self.doc)
 
 class DocumentsPage(LoggedPage, JsonPage):
     def get_documents(self, subid):

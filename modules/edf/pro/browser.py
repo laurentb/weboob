@@ -34,7 +34,8 @@ class EdfproBrowser(LoginBrowser):
     BASEURL = 'https://www.edfentreprises.fr'
 
     login = URL('https://www.edf.fr/entreprises', LoginPage)
-    auth = URL('/openam/UI/Login',
+    auth = URL('/openam/UI/Login.*',
+               'https://www.edfentreprises.fr:443/openam/UI/Login.*',
                '/ice/rest/aiguillagemp/redirect', AuthPage)
     contracts = URL('/rest/contratmp/detaillercontrat', SubscriptionsPage)
     bills = URL('/rest/facturemp/getnomtelechargerfacture', BillsPage)
@@ -67,9 +68,9 @@ class EdfproBrowser(LoginBrowser):
     def download_document(self, document):
         if document.url is not NotAvailable:
             try:
-                fname = self.bills.go(data=json.dumps({'date': int(document.date.strftime('%s')), \
-                                                   'iDFelix': document._account_billing, 'numFacture': document._bill_number})).doc
+                self.bills.go(data=json.dumps({'date': int(document.date.strftime('%s')), \
+                                               'iDFelix': document._account_billing, 'numFacture': document._bill_number}))
 
-                return self.open('%s/rest/facturemp/telechargerfichier?fname=%s' % (self.BASEURL, fname)).content
+                return self.open('%s/rest/facturemp/telechargerfichier?fname=%s' % (self.BASEURL, self.page.get_bill_name())).content
             except ServerError:
                 return NotAvailable
