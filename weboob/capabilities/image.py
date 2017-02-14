@@ -51,6 +51,9 @@ class Thumbnail(_BaseImage):
     def __repr__(self):
         return '<Thumbnail url=%r>' % self.url
 
+    def __iscomplete__(self):
+        return self.data is not NotLoaded
+
 
 class BaseImage(_BaseImage):
     """
