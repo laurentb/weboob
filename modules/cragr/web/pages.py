@@ -172,7 +172,7 @@ class _AccountsPage(MyLoggedPage, BasePage):
              u'P. HABITAT': Account.TYPE_LOAN,
              u'PRET 0%':    Account.TYPE_LOAN,
              u'INV PRO':    Account.TYPE_LOAN,
-             u'PEA':        Account.TYPE_MARKET,
+             u'PEA':        Account.TYPE_PEA,
              u'CPS':        Account.TYPE_MARKET,
              u'TITR':       Account.TYPE_MARKET,
              u'TITR CTD':   Account.TYPE_MARKET,
@@ -474,7 +474,7 @@ class SavingsPage(_AccountsPage):
         if not account._link:
             a = cols[0].xpath('descendant::a[contains(@href, "CATITRES")]')
             # Sometimes there is no link.
-            if a or account.type == Account.TYPE_MARKET:
+            if a or account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
                 url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&site=CATITRES&typeaction=reroutage_aller'
                 account._link = url % origin.netloc
 

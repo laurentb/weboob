@@ -293,7 +293,7 @@ class Cragr(LoginBrowser):
 
         # update market accounts
         for account in accounts_list:
-            if account.type == Account.TYPE_MARKET:
+            if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
                 try:
                     new_location = self.moveto_market_website(account, home=True)
                 except WebsiteNotSupported:
@@ -320,7 +320,7 @@ class Cragr(LoginBrowser):
 
     @need_login
     def get_history(self, account):
-        if account.type in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE):
+        if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA, Account.TYPE_LIFE_INSURANCE):
             self.logger.warning('This account is not supported')
             raise NotImplementedError()
 
@@ -369,13 +369,13 @@ class Cragr(LoginBrowser):
 
     @need_login
     def iter_investment(self, account):
-        if not account._link or account.type not in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE):
+        if not account._link or account.type not in (Account.TYPE_MARKET, Account.TYPE_PEA, Account.TYPE_LIFE_INSURANCE):
             return
 
         if account._perimeter != self.current_perimeter:
             self.go_perimeter(account._perimeter)
 
-        if account.type == Account.TYPE_MARKET:
+        if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
             new_location = self.moveto_market_website(account)
             # Detail unavailable
             try:
@@ -394,7 +394,7 @@ class Cragr(LoginBrowser):
         for inv in self.page.iter_investment():
             yield inv
 
-        if account.type == Account.TYPE_MARKET:
+        if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
             self.quit_market_website()
         elif account.type == Account.TYPE_LIFE_INSURANCE:
             self.quit_insurance_website()
