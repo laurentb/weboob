@@ -141,7 +141,7 @@ class CreditDuNordBrowser(LoginBrowser):
             return iter([])
 
         investments = []
-        if (account.type == Account.TYPE_MARKET):
+        if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
             self.location(account._link, data=account._args)
             investments = [i for i in self.page.get_market_investment()]
         elif (account.type == Account.TYPE_LIFE_INSURANCE):
