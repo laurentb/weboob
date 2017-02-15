@@ -57,7 +57,7 @@ class TrainlineBrowser(APIBrowser):
         bills = self.request('pnrs')
         while check < month_back:
             # If not first
-            if docs_len > -1:
+            if docs_len > -1 and date:
                 if check > 0:
                     # If nothing, we try 4 weeks back
                     date = (datetime.strptime(date, '%Y-%m-%d') - relativedelta(weeks=4)).strftime('%Y-%m-%d')
@@ -81,7 +81,8 @@ class TrainlineBrowser(APIBrowser):
                     b.label = u'Trajet du %s' % Date().filter(trip['departure_date'])
                     b.type = u"bill"
                     b.vat = CleanDecimal().filter('0')
-                    b.price = CleanDecimal().filter(format(pnr['cents']/float(100), '.2f'))
+                    if pnr['cents']:
+                        b.price = CleanDecimal().filter(format(pnr['cents']/float(100), '.2f'))
                     b.currency = pnr['currency']
                     docs.append(b)
 
