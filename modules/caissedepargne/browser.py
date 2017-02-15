@@ -185,7 +185,7 @@ class CaisseEpargne(LoginBrowser):
 
                 self.accounts = list(self.page.get_list())
                 for account in self.accounts:
-                    if account.type == Account.TYPE_MARKET:
+                    if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
                         if not self.home.is_here():
                             self.home_tache.go(tache='CPTSYNT0')
                         self.page.go_history(account._info)
@@ -380,7 +380,7 @@ class CaisseEpargne(LoginBrowser):
             # not available for the moment
             return iter([])
 
-        if account.type is not Account.TYPE_LIFE_INSURANCE and account.type is not Account.TYPE_MARKET:
+        if account.type not in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET, Account.TYPE_PEA):
             raise NotImplementedError()
         if self.home.is_here():
             self.page.go_list()
@@ -388,7 +388,7 @@ class CaisseEpargne(LoginBrowser):
             self.home.go()
 
         self.page.go_history(account._info)
-        if account.type is Account.TYPE_MARKET:
+        if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
             # Some users may not have access to this.
             if not self.market.is_here():
                 return iter([])
