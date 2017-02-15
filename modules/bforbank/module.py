@@ -55,7 +55,7 @@ class BforbankModule(Module, CapBank):
         return self.browser.iter_accounts()
 
     def iter_coming(self, account):
-        raise NotImplementedError()
+        return self.browser.get_coming(account)
 
     def iter_history(self, account):
         return self.browser.get_history(account)

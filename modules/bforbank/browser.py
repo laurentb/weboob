@@ -25,7 +25,7 @@ from weboob.capabilities.bank import Account, AccountNotFound
 from .pages import (
     LoginPage, ErrorPage, AccountsPage, HistoryPage, LoanHistoryPage, RibPage,
     LifeInsuranceList, LifeInsuranceIframe, LifeInsuranceRedir,
-    BoursePage,
+    BoursePage, CardHistoryPage,
 )
 from .spirica_browser import SpiricaBrowser
 
@@ -40,6 +40,7 @@ class BforbankBrowser(LoginBrowser):
               '/espace-client/rib/(?P<id>\d+)', RibPage)
     loan_history = URL('/espace-client/livret/consultation.*', LoanHistoryPage)
     history = URL('/espace-client/consultation/operations/.*', HistoryPage)
+    card_history = URL('espace-client/consultation/encoursCarte/.*', CardHistoryPage)
 
     lifeinsurance_list = URL(r'/client/accounts/lifeInsurance/lifeInsuranceSummary.action', LifeInsuranceList)
     lifeinsurance_iframe = URL(r'/client/accounts/lifeInsurance/consultationDetailSpirica.action', LifeInsuranceIframe)
@@ -96,7 +97,28 @@ class BforbankBrowser(LoginBrowser):
 
             return self.spirica.iter_history(account)
 
+        history = []
         self.location(account._link.replace('tableauDeBord', 'operations'))
+        assert self.history.is_here() or self.loan_history.is_here()
+        history.extend(self.page.get_operations())
+
+        if account.type == Account.TYPE_CHECKING:
+            # TODO same as get_coming, we should handle more than one card
+            # TODO what if no deferred card?
+            self.location(account._link.replace('tableauDeBord', 'encoursCarte') + '/0?month=1')
+            assert self.card_history.is_here()
+            history.extend(self.page.get_operations())
+            history.sort(reverse=True, key=lambda tr: tr.date or tr.rdate)
+
+        return history
+
+    @need_login
+    def get_coming(self, account):
+        if account.type != Account.TYPE_CHECKING:
+            raise NotImplementedError()
+
+        # TODO there could be multiple cards, how to find the number of cards?
+        self.location(account._link.replace('tableauDeBord', 'encoursCarte') + '/0')
         return self.page.get_operations()
 
     def goto_spirica(self, account):

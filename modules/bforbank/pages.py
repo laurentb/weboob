@@ -17,16 +17,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from collections import OrderedDict
 import re
 from io import BytesIO
 from PIL import Image
+from urllib import urlencode
+from urlparse import urlparse, urlunparse, parse_qsl
 
 from weboob.browser.pages import LoggedPage, HTMLPage, pagination, AbstractPage
-from weboob.browser.elements import method, ListElement, ItemElement
+from weboob.browser.elements import method, ListElement, ItemElement, TableElement
 from weboob.capabilities.bank import Account
 from weboob.browser.filters.html import Link, Attr
-from weboob.browser.filters.standard import CleanText, Regexp, Field, Map, \
-                                            CleanDecimal
+from weboob.browser.filters.standard import (
+    CleanText, Regexp, Field, Map, CleanDecimal, Date, TableCell,
+)
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -151,6 +155,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^(?P<category>VIREMENT)'), FrenchTransaction.TYPE_TRANSFER),
                 (re.compile('^(?P<category>INTERETS)'), FrenchTransaction.TYPE_BANK),
+                (re.compile(u'^Règlement cartes à débit différé du'), FrenchTransaction.TYPE_CARD_SUMMARY),
                ]
 
 
@@ -191,6 +196,49 @@ class HistoryPage(LoggedPage, HTMLPage):
 
             obj_raw = Transaction.Raw('./td[1]')
             obj_amount = MyDecimal('./td[2]', replace_dots=True)
+
+            def obj_deleted(self):
+                Field('raw')(self)
+                return self.obj.type == Transaction.TYPE_CARD_SUMMARY
+
+
+def add_qs(url, **kwargs):
+    parts = list(urlparse(url))
+    qs = OrderedDict(parse_qsl(parts[4]))
+    qs.update(kwargs)
+    parts[4] = urlencode(qs)
+    return urlunparse(parts)
+
+
+class CardHistoryPage(LoggedPage, HTMLPage):
+    @pagination
+    @method
+    class get_operations(TableElement):
+        head_xpath = '//table[has-class("style-operations")]//th'
+        item_xpath = '//table[has-class("style-operations")]/tbody/tr[not(has-class("tr-category") or has-class("tr-more"))]'
+
+        def next_page(self):
+            page = Attr('//a[@id="next-page"]', 'data')(self)
+            return add_qs(self.page.url, page=page)
+
+        col_raw = u'Libellé'
+        col_vdate = u'Date opération'
+        col_amount = 'Montant'
+
+        class item(ItemElement):
+            klass = Transaction
+
+            def condition(self):
+                return CleanText('.')(self) != u'Aucune opération effectuée'
+
+            obj_type = Transaction.TYPE_DEFERRED_CARD
+
+            obj_raw = CleanText(TableCell('raw'))
+            obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
+            obj_amount = MyDecimal(TableCell('amount'), replace_dots=True)
+            obj_date = Date(Regexp(CleanText('//div[@class="m-tabs-tab-meta"]'),
+                                   ur'Ces opérations (?:seront|ont été) débitées sur votre compte le (\d{2}/\d{2}/\d{4})'),
+                            dayfirst=True)
 
 
 class LifeInsuranceList(LoggedPage, HTMLPage):
