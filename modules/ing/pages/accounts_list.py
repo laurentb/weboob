@@ -57,9 +57,12 @@ class AddPref(MultiFilter):
 
 
 class AddType(Filter):
-    types = {u'Courant': Account.TYPE_CHECKING, u'Livret A': Account.TYPE_SAVINGS,
-             u'Orange': Account.TYPE_SAVINGS, u'Durable': Account.TYPE_SAVINGS,
-             u'Titres': Account.TYPE_MARKET, u'PEA': Account.TYPE_MARKET,
+    types = {u'Courant': Account.TYPE_CHECKING,
+             u'Livret A': Account.TYPE_SAVINGS,
+             u'Orange': Account.TYPE_SAVINGS,
+             u'Durable': Account.TYPE_SAVINGS,
+             u'Titres': Account.TYPE_MARKET,
+             u'PEA': Account.TYPE_PEA,
              u'Direct Vie': Account.TYPE_LIFE_INSURANCE,
              u'Assurance Vie': Account.TYPE_LIFE_INSURANCE,
              u'Crédit Immobilier': Account.TYPE_LOAN,
