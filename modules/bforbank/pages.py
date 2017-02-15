@@ -136,9 +136,9 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             TYPE = {'Livret':        Account.TYPE_SAVINGS,
                     'Compte':        Account.TYPE_CHECKING,
-                    'PEA':           Account.TYPE_MARKET,
+                    'PEA':           Account.TYPE_PEA,
+                    'PEA-PME':       Account.TYPE_PEA,
                     'Compte-titres': Account.TYPE_MARKET,
-                    'PEA-PME':       Account.TYPE_MARKET,
                     'Assurance-vie': Account.TYPE_LIFE_INSURANCE,
                    }
 

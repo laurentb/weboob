@@ -83,7 +83,7 @@ class BforbankBrowser(LoginBrowser):
 
     @need_login
     def get_history(self, account):
-        if account.type == Account.TYPE_MARKET:
+        if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
             bourse_account = self.get_bourse_account(account)
             if not bourse_account:
                 return iter([])
@@ -186,7 +186,7 @@ class BforbankBrowser(LoginBrowser):
                 return iter([])
 
             return self.spirica.iter_investment(account)
-        elif account.type == Account.TYPE_MARKET:
+        elif account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
             bourse_account = self.get_bourse_account(account)
             if not bourse_account:
                 return iter([])
