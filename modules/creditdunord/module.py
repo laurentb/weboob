@@ -35,12 +35,13 @@ class CreditDuNordModule(Module, CapBank, CapProfile):
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '1.3'
-    DESCRIPTION = u'Crédit du Nord, Banque Courtois, Kolb, Nuger, Tarneaud, Société Marseillaise de Crédit'
+    DESCRIPTION = u'Crédit du Nord, Banque Courtois, Kolb, Nuger, Laydernier, Tarneaud, Société Marseillaise de Crédit'
     LICENSE = 'AGPLv3+'
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'www.credit-du-nord.fr':     u'Crédit du Nord',
         'www.banque-courtois.fr':    u'Banque Courtois',
         'www.banque-kolb.fr':        u'Banque Kolb',
+        'www.banque-laydernier.fr':  u'Banque Laydernier',
         'www.banque-nuger.fr':       u'Banque Nuger',
         'www.banque-rhone-alpes.fr': u'Banque Rhône-Alpes',
         'www.tarneaud.fr':           u'Tarneaud',
