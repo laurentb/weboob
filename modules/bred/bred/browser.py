@@ -25,7 +25,7 @@ from decimal import Decimal
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPError, BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPError, BrowserUnavailable, ActionNeeded
 from weboob.browser import DomainBrowser
 
 
@@ -71,6 +71,8 @@ class BredBrowser(DomainBrowser):
             raise BrowserIncorrectPassword('Your account is disabled')
         if '/pages-gestion-des-erreurs/erreur-technique' in r.url:
             raise BrowserUnavailable('A technical error occured')
+        if '/pages-gestion-des-erreurs/message-tiers-oppose' in r.url:
+            raise ActionNeeded('Cannot connect to account because 2-factor authentication is enabled')
 
     ACCOUNT_TYPES = {'000': Account.TYPE_CHECKING,
                      '999': Account.TYPE_MARKET,
