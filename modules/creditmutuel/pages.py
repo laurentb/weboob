@@ -19,6 +19,7 @@
 
 
 import re
+import hashlib
 
 try:
     from urlparse import urlparse, parse_qs
@@ -29,7 +30,6 @@ from decimal import Decimal, InvalidOperation
 from dateutil.relativedelta import relativedelta
 from datetime import date, datetime
 from random import randint
-
 from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, SkipItem, method, TableElement
 from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, TableCell, Regexp, Async, AsyncLoad, Date, ColumnNotFound, Format
@@ -37,12 +37,13 @@ from weboob.browser.filters.html import Link, Attr
 from weboob.exceptions import BrowserIncorrectPassword, ParseError, NoAccountsException, ActionNeeded
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import empty
-from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, Transfer
+from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, Transfer, AddRecipientError, AddRecipientStep
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_french_date
+from weboob.tools.value import Value
 
 
 class RedirectPage(LoggedPage, HTMLPage):
@@ -93,10 +94,6 @@ class ChangePasswordPage(LoggedPage, HTMLPage):
     def on_load(self):
         raise BrowserIncorrectPassword('Please change your password')
 
-
-class VerifCodePage(LoggedPage, HTMLPage):
-    def on_load(self):
-        raise BrowserIncorrectPassword('Unable to login: website asks a code from a card')
 
 
 class AccountsPage(LoggedPage, HTMLPage):
@@ -1032,3 +1029,151 @@ class ExternalTransferPage(InternalTransferPage):
 
             def parse(self, el):
                 self.env['origin_account']._external_recipients.add(Field('id')(self))
+
+
+class VerifCodePage(LoggedPage, HTMLPage):
+    HASHES = {
+        'c5aa0990f26b7ab94b956ca4a8f32620': 'A1',
+        'dc2e60c9ea7e8a4076f2ced9a0764c3c': 'A2',
+        '2c2842278e250204c16376a0efab5a95': 'A3',
+        '62b3987e9f1322bfdff6d5dc0b38db08': 'A4',
+        '4d3bc686ee24c909cf3e513b315b5551': 'A5',
+        '54c44d50e8ad2ce142d3116c24de3846': 'A6',
+        'd079635c75592592f8fba617ba96f781': 'A7',
+        '89b084012994c80ba29fd59ae759a9c1': 'A8',
+        '4850adcdee0b34d2c496ae9512790422': 'B1',
+        'ecf777518d4ba4c84bc3784b53e33279': 'B2',
+        'bcbd6ff41afc246fa3c9d89ef1d7c8ba': 'B3',
+        'ef70cdd8973f051c73027dddcf2905e0': 'B4',
+        '76167582ad6272b7b2ccce1f218f1b68': 'B5',
+        '2e42ff3e319b7788f40b8494b06d2e7f': 'B6',
+        'fc379f6d576b803d20d23c143404b27b': 'B7',
+        'e7b1bc375f6a2f022fc97d25345c275f': 'B8',
+        '00cb13da73d8759dce3b1efa3c9073ed': 'C1',
+        'a7a60cfa11ac35f69e833e6993f4d620': 'C2',
+        'c391e1da87e22e4ffdc8e864285e858b': 'C3',
+        'a8b9b55786955656d4dcf3e1fda79865': 'C4',
+        'd4a1ad08f9b43acb84b10bf8715b0cc6': 'C5',
+        'aea1cab2813ee28a00590f331b5dc148': 'C6',
+        'cd9dfa746761b5b03384eb8988a77189': 'C7',
+        '81f95a02a90cadfbd555ba4b7e3d2203': 'C8',
+        'a7ddf5e4033fab294bba4a3abb1b7db4': 'D1',
+        'df6352fd5eeda71fd3fe49c6523f93ae': 'D2',
+        '185ad70f321b901aa4a53f4364e747f5': 'D3',
+        '6caf4a58ccf5e873a30c47e5ec56761e': 'D4',
+        '3e63d6517b934c2f56a326d167040609': 'D5',
+        '6703817598ecc33e12f285af111dee2e': 'D6',
+        'cec8a1b5a815575b3ff549b63d7af98c': 'D7',
+        '3362f25f5b2cc5c5e0bdb09cd179bda0': 'D8',
+        'e2701343f157fc4ac5e47263b9b8663e': 'E1',
+        '2ee0dfbd7d34a415f87482f7ccd6fd36': 'E2',
+        '112c85cfccf6a5fc7d925cc01572a041': 'E3',
+        '809d68e42776c0a9f4b68e68c68fffd3': 'E4',
+        'af996f7e536f6fc905b92ab7c1c33d31': 'E5',
+        '9e694194e4c16771d2d90085c0edbbd3': 'E6',
+        'e49c03811ce80bb5dec6df7dc817f545': 'E7',
+        'da4398cc81d9399dc0b1aebdf554dc9c': 'E8',
+        '9fc496cc4d416fd53eda938d8643b9f4': 'F1',
+        '77ada5bfbeb73d0c77acd7d0d1ab50b4': 'F2',
+        '03837ab975dee769a3fc4418a9b27184': 'F3',
+        'a68defaa9b8b6f9f63c337dc91f0af0f': 'F4',
+        'deaec96b46cd269b125705a50bc7db78': 'F5',
+        '6cc495fa739c998320623e10b1a7a832': 'F6',
+        'ed97b23f70d1ae7b22a89b14554c0df1': 'F7',
+        'dc67341a14c5495d4422ee7b766a3d6d': 'F8',
+        '39a5e6807e9c10a1777fca5ab2d97f99': 'G1',
+        '114f9c8d5440f6e31dd151b5f6c7b0d5': 'G2',
+        'd77bb8c4161b59186f038b4f3c2c7a7c': 'G3',
+        '912d2bc8d64f6c87971a76e0a6d4d04c': 'G4',
+        'de00ec70d550474359fe671e8eada3c1': 'G5',
+        '5a8211709a85604d1e01465f9e0e8440': 'G6',
+        '509e7acaad0ab886116a64798332bd68': 'G7',
+        '46ac73377b08712a1bbe297d5f3a51f3': 'G8',
+        'bc288cbfa82b119c508cf4fbcfe75a6e': 'H1',
+        '6a8f5a82419fed29eeb8bd439a109920': 'H2',
+        '36ad9e845c7a6ca642b0021c3b2cef2c': 'H3',
+        '0124561f987c77a5118abe6b5b1a56d5': 'H4',
+        'd20f5baef6301de18cc0ffed06806f18': 'H5',
+        '004c7a4ec9ad6fdcf1723269c6e78c6c': 'H6',
+        '54b06cc669a176693649076c87eb1239': 'H7',
+        'd5a615cd08d558cee1f2feaa4fb92785': 'H8',
+        }
+
+    def on_load(self):
+        error = CleanText(u'//p[contains(text(), "Clé invalide !")]')(self.doc)
+        if error:
+            raise AddRecipientError(error)
+
+    def get_question(self):
+        s = CleanText('//label[@for="txtCle"]')(self.doc)
+        key_case = self.HASHES[hashlib.md5(self.browser.open(Attr('//label[@for="txtCle"]/img', 'src')(self.doc)).content).hexdigest()]
+        return s[:25] + ' %s' % key_case + s[25:]
+
+    def post_code(self, key):
+        form = self.get_form(id='frm')
+        form['code'] = key
+        form['valChx.x'] = '1'
+        form['valChx.y'] = '1'
+        form.submit()
+
+
+class RecipientsListPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        txt = CleanText(u'//em[contains(text(), "Protection de vos opérations en ligne")]')(self.doc)
+        if txt:
+            self.browser.location(Link('//div[@class="blocboutons"]//a')(self.doc))
+
+        error = CleanText(u'//div[@class="blocmsg err"]/p')(self.doc)
+        if error and error != u'Veuillez renseigner le BIC ou les coordonnées de la banque':
+            raise AddRecipientError(error)
+
+    def has_list(self):
+        return bool(CleanText('//th[contains(text(), "Listes pour virements ordinaires")]')(self.doc))
+
+    def get_recipients_list(self):
+        return [CleanText(u'.')(a) for a in self.doc.xpath(u'//tr[td[has-class("a_actions")]]//a[@title="Afficher le bénéficiaires de la liste"]')]
+
+    def go_list(self, category):
+        form = self.get_form(id='P1:F', submit='//input[@value="%s"]' % category)
+        del form['_FID_DoAjoutListe']
+        form.submit()
+
+    def go_to_add(self):
+        form = self.get_form(id='P1:F', submit='//input[@value="Ajouter"]')
+        form.submit()
+
+    def get_add_recipient_form(self, recipient):
+        form = self.get_form(id='P:F')
+        del form['_FID_GoI%5fRechercheBIC']
+        form['[t:dbt%3astring;x(70)]data_input_nom'] = recipient.label
+        form['[t:dbt%3astring;x(34)]data_input_IBANBBAN'] = recipient.iban
+        return form
+
+    def add_recipient(self, recipient):
+        form = self.get_add_recipient_form(recipient)
+        form.submit()
+
+    def bic_needed(self):
+        error = CleanText(u'//div[@class="blocmsg err"]/p')(self.doc)
+        if error == u'Veuillez renseigner le BIC ou les coordonnées de la banque':
+            return True
+
+    def set_browser_form(self, form):
+        self.browser.form = dict((k, v) for k, v in form.iteritems() if v)
+        self.browser.form['url'] = form.url
+        self.browser.page = None
+        self.browser.logged = 1
+
+    def ask_bic(self, recipient):
+        form = self.get_add_recipient_form(recipient)
+        self.set_browser_form(form)
+        raise AddRecipientStep(recipient, Value('Bic', label='Veuillez renseigner le BIC'))
+
+    def ask_sms(self, recipient):
+        txt = CleanText(u'//span[contains(text(), "Pour confirmer votre opération, indiquez votre ")]')(self.doc)
+        if txt:
+            form = self.get_form(id='P:F')
+            self.set_browser_form(form)
+            raise AddRecipientStep(recipient, Value('code', label=txt))
+        raise AddRecipientError('Was expecting a page where sms code is asked')
+

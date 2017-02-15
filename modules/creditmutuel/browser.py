@@ -28,13 +28,15 @@ from dateutil.relativedelta import relativedelta
 from itertools import groupby
 
 from weboob.tools.compat import basestring
+from weboob.tools.value import Value
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.browser.browsers import LoginBrowser, need_login
+from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
 from weboob.browser.profiles import Wget
 from weboob.browser.url import URL
 from weboob.browser.pages import FormNotFound
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, AddRecipientStep, AddRecipientError, Recipient
+from weboob.capabilities import NotAvailable
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
                    OperationsPage, CardPage, ComingPage, NoOperationsPage, \
@@ -42,14 +44,15 @@ from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
                    IbanPage, NewHomePage, AdvisorPage, RedirectPage, \
                    LIAccountsPage, CardsActivityPage, CardsListPage,       \
                    CardsOpePage, NewAccountsPage, InternalTransferPage, \
-                   ExternalTransferPage
+                   ExternalTransferPage, RecipientsListPage
 
 
 __all__ = ['CreditMutuelBrowser']
 
 
-class CreditMutuelBrowser(LoginBrowser):
+class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     PROFILE = Wget()
+    STATE_DURATION = 15
     TIMEOUT = 30
     BASEURL = 'https://www.creditmutuel.fr'
 
@@ -85,7 +88,7 @@ class CreditMutuelBrowser(LoginBrowser):
                       '/(?P<subbank>.*)banque/welcome_pack.html', NewHomePage)
     empty =       URL('/(?P<subbank>.*)fr/banques/index.html',
                       '/(?P<subbank>.*)fr/banque/paci_beware_of_phishing.*',
-                      '/(?P<subbank>.*)fr/validation/(?!change_password|verif_code).*',
+                      '/(?P<subbank>.*)fr/validation/(?!change_password|verif_code|image_case).*',
                       EmptyPage)
     por =         URL('/(?P<subbank>.*)fr/banque/POR_ValoToute.aspx',
                       '/(?P<subbank>.*)fr/banque/POR_SyntheseLst.aspx',
@@ -114,11 +117,14 @@ class CreditMutuelBrowser(LoginBrowser):
 
     internal_transfer = URL('/(?P<subbank>.*)fr/banque/virements/vplw_vi.html', InternalTransferPage)
     external_transfer = URL('/(?P<subbank>.*)fr/banque/virements/vplw_vee.html', ExternalTransferPage)
+    recipients_list =   URL('/(?P<subbank>.*)fr/banque/virements/vplw_bl.html', RecipientsListPage)
 
     currentSubBank = None
     is_new_website = False
+    form = None
+    logged = None
 
-    __states__ = ['currentSubBank']
+    __states__ = ['currentSubBank', 'form', 'logged']
 
     accounts_list = None
 
@@ -362,3 +368,68 @@ class CreditMutuelBrowser(LoginBrowser):
         else:
             profile = self.new_accounts.stay_or_go(subbank=self.currentSubBank).get_profile()
         return profile
+
+    def get_recipient_object(self, recipient):
+        r = Recipient()
+        r.iban = recipient.iban
+        r.id = recipient.iban
+        r.label = recipient.label
+        r.category = recipient.category
+        # On credit mutuel recipients are immediatly available.
+        r.enabled_at = datetime.now().replace(microsecond=0)
+        r.currency = u'EUR'
+        r.bank_name = NotAvailable
+        return r
+
+    def continue_new_recipient(self, recipient, **params):
+        self.page.post_code(params[u'Clé'])
+        self.page.add_recipient(recipient)
+        if self.page.bic_needed():
+            self.page.ask_bic(self.get_recipient_object(recipient))
+        self.page.ask_sms(self.get_recipient_object(recipient))
+
+    def send_sms(self, sms):
+        data = {}
+        for k, v in self.form.iteritems():
+            if k != 'url':
+                data[k] = v
+        data['otp_password'] = sms
+        data['_FID_DoConfirm.x'] = '1'
+        data['_FID_DoConfirm.y'] = '1'
+        data['global_backup_hidden_key'] = ''
+        self.location(self.form['url'], data=data)
+
+    def end_new_recipient(self, recipient, **params):
+        self.send_sms(params['code'])
+        self.form = None
+        self.page = None
+        self.logged = 0
+        return self.get_recipient_object(recipient)
+
+    def post_with_bic(self, recipient, **params):
+        data = {}
+        for k, v in self.form.iteritems():
+            if k != 'url':
+                data[k] = v
+        data['[t:dbt%3astring;x(11)]data_input_BIC'] = params[u'Bic']
+        self.location(self.form['url'], data=data)
+        self.page.ask_sms(self.get_recipient_object(recipient))
+
+    @need_login
+    def new_recipient(self, recipient, **params):
+        if self.currentSubBank is None:
+            self.getCurrentSubBank()
+        if 'Bic' in params:
+            return self.post_with_bic(recipient, **params)
+        if 'code' in params:
+            return self.end_new_recipient(recipient, **params)
+        if u'Clé' in params:
+            return self.continue_new_recipient(recipient, **params)
+        self.recipients_list.go(subbank=self.currentSubBank)
+        if self.page.has_list():
+            if recipient.category not in self.page.get_recipients_list():
+                raise AddRecipientError('Recipient category is not on the website available list.')
+            self.page.go_list(recipient.category)
+        self.page.go_to_add()
+        assert self.verify_pass.is_here()
+        raise AddRecipientStep(self.get_recipient_object(recipient), Value(u'Clé', label=self.page.get_question()))

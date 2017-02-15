@@ -81,6 +81,11 @@ class CreditMutuelModule(Module, CapBankTransfer, CapContact, CapProfile):
             origin_account = find_object(self.iter_accounts(), id=origin_account, error=AccountNotFound)
         return self.browser.iter_recipients(origin_account)
 
+    def new_recipient(self, recipient, **params):
+        # Recipient label has max 15 alphanumrical chars.
+        #recipient.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z ]+', '', recipient.label).split())[:15]
+        return self.browser.new_recipient(recipient, **params)
+
     def init_transfer(self, transfer, **params):
         # There is a check on the website, transfer can't be done with too long reason.
         if transfer.label:
