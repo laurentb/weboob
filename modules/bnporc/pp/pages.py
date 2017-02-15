@@ -180,7 +180,7 @@ class AccountsPage(BNPPage):
     }
 
     LABEL_TO_TYPE = {
-        u'PEA Espèces':    Account.TYPE_SAVINGS,
+        u'PEA Espèces':    Account.TYPE_PEA,
     }
 
     def iter_accounts(self, ibans):
