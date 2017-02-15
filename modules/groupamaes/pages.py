@@ -99,7 +99,7 @@ class GroupamaesPage(LoggedPage, HTMLPage):
 
         col_date = u'Date'
         col_operation = u'Opération'
-        col_montant = u'Montant net en EUR'
+        col_montant = [u'Montant net en EUR', 'Montant en']
 
         class item(ItemElement):
             klass = Transaction
