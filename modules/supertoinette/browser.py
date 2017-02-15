@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
+from weboob.browser import PagesBrowser, URL
 
 from .pages import RecipePage, ResultsPage
 
@@ -26,25 +26,14 @@ from .pages import RecipePage, ResultsPage
 __all__ = ['SupertoinetteBrowser']
 
 
-class SupertoinetteBrowser(Browser):
-    DOMAIN = 'www.supertoinette.com'
-    PROTOCOL = 'http'
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['desktop_firefox']
-    PAGES = {
-        'http://www.supertoinette.com/liste-recettes/.*': ResultsPage,
-        'http://www.supertoinette.com/recette/[0-9]*.*': RecipePage,
-    }
+class SupertoinetteBrowser(PagesBrowser):
+    BASEURL = 'https://www.supertoinette.com'
+
+    search = URL('/liste-recettes/(?P<pattern>.*)', ResultsPage)
+    recipe = URL('/recette/(?P<_id>.*).html', RecipePage)
 
     def iter_recipes(self, pattern):
-        self.location('http://www.supertoinette.com/liste-recettes/%s/' % (pattern))
-        assert self.is_on_page(ResultsPage)
-        return self.page.iter_recipes()
+        return self.search.go(pattern=pattern).iter_recipes()
 
     def get_recipe(self, id):
-        try:
-            self.location('http://www.supertoinette.com/recette/%s/' % id)
-        except BrowserHTTPNotFound:
-            return
-        if self.is_on_page(RecipePage):
-            return self.page.get_recipe(id)
+        return self.recipe.go(_id=id).get_recipe()
