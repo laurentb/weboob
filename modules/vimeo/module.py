@@ -61,7 +61,9 @@ class VimeoModule(Module, CapVideo, CapCollection):
         return self.browser.search_videos(pattern, self.SORTBY[sortby])
 
     def get_video(self, _id):
-        return self.browser.get_video(self.parse_id(_id))
+        _id = self.parse_id(_id)
+        if _id:
+            return self.browser.get_video(self.parse_id(_id))
 
     def fill_video(self, video, fields):
         if fields != ['thumbnail']:
@@ -76,7 +78,10 @@ class VimeoModule(Module, CapVideo, CapCollection):
         m = re.match('https?://vimeo.com/(.*)', _id)
         if m:
             return m.group(1)
-        return _id
+        elif not _id.startswith('http'):
+            return _id
+
+        return None
 
     def iter_resources(self, objs, split_path):
         if BaseVideo in objs:
