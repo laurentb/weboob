@@ -42,7 +42,7 @@ def start_with_main_site(f):
     def wrapper(*args, **kwargs):
         browser = args[0]
 
-        if browser.url.startswith('https://bourse.ingdirect.fr/'):
+        if browser.url and browser.url.startswith('https://bourse.ingdirect.fr/'):
             for i in xrange(3):
                 try:
                     browser.location('https://bourse.ingdirect.fr/priv/redirectIng.php?pageIng=COMPTE')
@@ -51,7 +51,7 @@ def start_with_main_site(f):
                 else:
                     break
             browser.where = 'start'
-        elif browser.url.startswith('https://ingdirectvie.ingdirect.fr/'):
+        elif browser.url and browser.url.startswith('https://ingdirectvie.ingdirect.fr/'):
             browser.lifeback.go()
             browser.where = 'start'
 
