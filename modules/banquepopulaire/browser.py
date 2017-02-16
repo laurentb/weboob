@@ -347,10 +347,10 @@ class BanquePopulaire(LoginBrowser):
             params = self.page.params
             self.natixis_history.go(**params)
             items_from_json = list(self.page.get_history())
-            items_from_json.sort(key=lambda item: item.date)
+            items_from_json.sort(reverse=True, key=lambda item: item.date)
 
             years = list(set(item.date.year for item in items_from_json))
-            years.sort()
+            years.sort(reverse=True)
 
             for year in years:
                 try:
@@ -361,7 +361,9 @@ class BanquePopulaire(LoginBrowser):
                         if tr.date.year == year:
                             yield tr
                 else:
-                    for tr in self.page.get_history():
+                    history = list(self.page.get_history())
+                    history.sort(reverse=True, key=lambda item: item.date)
+                    for tr in history:
                         yield tr
 
 
