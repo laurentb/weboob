@@ -132,7 +132,11 @@ class TransactionsPage(LoggedPage, HTMLPage):
 
     def assert_first_page_or_go_there(self):
         if len(self.doc.xpath('//table[@id="tgDecorationFoot"]')) and not len(self.doc.xpath('//table[@id="tgDecorationFoot"]//b[contains(text(), "1")]')):
-            self.browser.location(Attr('//table[@id="tgDecorationFoot"]//a[contains(text(), "1")]', 'href')(self.doc))
+            url = Attr('//table[@id="tgDecorationFoot"]//a[contains(text(), "1")]', 'href', default=None)(self.doc)
+            if url is None:
+                # at page=4, there is "<Première page> ... <2> <3> 4"
+                url = Attr(u'//table[@id="tgDecorationFoot"]//a[contains(text(), "Première page")]', 'href')(self.doc)
+            self.browser.location(url)
 
 
 class ErrorPage(HTMLPage):
