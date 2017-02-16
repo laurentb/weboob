@@ -971,8 +971,10 @@ class NatixisDetailsPage(LoggedPage, RawPage):
                     inv.quantity *= sign
 
                 inv.unitvalue = CleanDecimal(replace_dots=True, default=NotAvailable).filter(''.join(row[4]))
-                if inv.unitvalue is not NotAvailable:
-                    inv.unitvalue *= sign
+
+                inv.valuation = CleanDecimal(replace_dots=True, default=NotAvailable).filter(''.join(row[3]))
+                if inv.valuation is not NotAvailable:
+                    inv.valuation *= sign
 
                 tr.investments.append(inv)
 
