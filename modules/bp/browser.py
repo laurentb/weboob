@@ -42,6 +42,8 @@ __all__ = ['BPBrowser', 'BProBrowser']
 class BPBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://voscomptesenligne.labanquepostale.fr'
 
+    STATE_DURATION = 15
+
     # FIXME beware that '.*' in start of URL() won't match all domains but only under BASEURL
 
     login_page = URL(r'.*wsost/OstBrokerWeb/loginform.*', LoginPage)
