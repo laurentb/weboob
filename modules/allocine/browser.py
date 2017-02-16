@@ -23,8 +23,8 @@ from weboob.capabilities.video import BaseVideo
 from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.base import NotAvailable, NotLoaded, find_object
 from weboob.capabilities.cinema import Movie, Person
-from weboob.deprecated.browser import Browser
-from weboob.tools.json import json
+from weboob.browser.browsers import APIBrowser
+from weboob.browser.profiles import Android
 import base64
 import hashlib
 from datetime import datetime, date, timedelta
@@ -34,11 +34,8 @@ import urllib
 __all__ = ['AllocineBrowser']
 
 
-class AllocineBrowser(Browser):
-    DOMAIN = 'api.allocine.fr'
-    PROTOCOL = 'http'
-    ENCODING = 'utf-8'
-    USER_AGENT = 'Dalvik/1.6.0 (Linux; U; Android 4.2.2; Nexus 4 Build/JDQ39E)'
+class AllocineBrowser(APIBrowser):
+    PROFILE = Android()
 
     PARTNER_KEY = '100043982026'
     SECRET_KEY = '29d185d98c984a359e6e6f26a0474269'
@@ -51,7 +48,7 @@ class AllocineBrowser(Browser):
 
         query_url = 'http://api.allocine.fr/rest/v3/' + method + '?' + params_encode + '&sed=' + sed + '&sig=' + sig
 
-        return self.readurl(query_url)
+        return self.request(query_url)
 
     def iter_movies(self, pattern):
         params = [('partner', self.PARTNER_KEY),
@@ -59,10 +56,9 @@ class AllocineBrowser(Browser):
                   ('format', 'json'),
                   ('filter', 'movie')]
 
-        res = self.__do_request('search', params)
-        if res is None:
+        jres = self.__do_request('search', params)
+        if jres is None:
             return
-        jres = json.loads(res)
         if 'movie' not in jres['feed']:
             return
         for m in jres['feed']['movie']:
@@ -98,10 +94,9 @@ class AllocineBrowser(Browser):
                   ('format', 'json'),
                   ('filter', 'person')]
 
-        res = self.__do_request('search', params)
-        if res is None:
+        jres = self.__do_request('search', params)
+        if jres is None:
             return
-        jres = json.loads(res)
         if 'person' not in jres['feed']:
             return
         for p in jres['feed']['person']:
@@ -136,9 +131,8 @@ class AllocineBrowser(Browser):
                   ('striptags', 'synopsis,synopsisshort'),
                   ('format', 'json')]
 
-        res = self.__do_request('movie', params)
-        if res is not None:
-            jres = json.loads(res)
+        jres = self.__do_request('movie', params)
+        if jres is not None:
             if 'movie' in jres:
                 jres = jres['movie']
             else:
@@ -218,9 +212,8 @@ class AllocineBrowser(Browser):
                   ('striptags', 'biography,biographyshort'),
                   ('format', 'json')]
 
-        res = self.__do_request('person', params)
-        if res is not None:
-            jres = json.loads(res)
+        jres = self.__do_request('person', params)
+        if jres is not None:
             if 'person' in jres:
                 jres = jres['person']
             else:
@@ -306,9 +299,8 @@ class AllocineBrowser(Browser):
                   ('striptags', 'synopsis,synopsisshort'),
                   ('format', 'json')]
 
-        res = self.__do_request('movie', params)
-        if res is not None:
-            jres = json.loads(res)
+        jres = self.__do_request('movie', params)
+        if jres is not None:
             if 'movie' in jres:
                 jres = jres['movie']
             else:
@@ -347,9 +339,8 @@ class AllocineBrowser(Browser):
                   ('filter', 'movie'),
                   ('format', 'json')]
 
-        res = self.__do_request('filmography', params)
-        if res is not None:
-            jres = json.loads(res)
+        jres = self.__do_request('filmography', params)
+        if jres is not None:
             if 'person' in jres:
                 jres = jres['person']
             else:
@@ -385,9 +376,8 @@ class AllocineBrowser(Browser):
                   ('filter', 'movie'),
                   ('format', 'json')]
 
-        res = self.__do_request('filmography', params)
-        if res is not None:
-            jres = json.loads(res)
+        jres = self.__do_request('filmography', params)
+        if jres is not None:
             if 'person' in jres:
                 jres = jres['person']
             else:
@@ -406,9 +396,8 @@ class AllocineBrowser(Browser):
                   ('striptags', 'synopsis,synopsisshort'),
                   ('format', 'json')]
 
-        res = self.__do_request('movie', params)
-        if res is not None:
-            jres = json.loads(res)
+        jres = self.__do_request('movie', params)
+        if jres is not None:
             if 'movie' in jres:
                 jres = jres['movie']
             else:
@@ -432,9 +421,8 @@ class AllocineBrowser(Browser):
                   ('striptags', 'biography,biographyshort'),
                   ('format', 'json')]
 
-        res = self.__do_request('person', params)
-        if res is not None:
-            jres = json.loads(res)
+        jres = self.__do_request('person', params)
+        if jres is not None:
             if 'person' in jres:
                 jres = jres['person']
             else:
@@ -454,10 +442,9 @@ class AllocineBrowser(Browser):
                   ('mediafmt', 'mp4'),
                   ('filter', category)
                   ]
-        res = self.__do_request('movielist', params)
-        if res is None:
+        result = self.__do_request('movielist', params)
+        if result is None:
             return
-        result = json.loads(res)
         for movie in result['feed']['movie']:
             if 'trailer' not in movie or 'productionYear' not in movie:
                 continue
@@ -469,10 +456,9 @@ class AllocineBrowser(Browser):
                   ('mediafmt', 'mp4'),
                   ('filter', category)
                   ]
-        res = self.__do_request('videolist', params)
-        if res is None:
+        result = self.__do_request('videolist', params)
+        if result is None:
             return
-        result = json.loads(res)
         if 'feed' in result and 'media' in result['feed']:
             for episode in result['feed']['media']:
                 if 'title' in episode:
@@ -534,10 +520,9 @@ class AllocineBrowser(Browser):
                   ('filter', 'movie'),
                   ('code', _id),
                   ]
-        res = self.__do_request('movie', params)
-        if res is None:
+        result = self.__do_request('movie', params)
+        if result is None:
             return
-        result = json.loads(res)
         return self.parse_video(result['movie'])
 
     def get_video_from_id(self, _id, category):
@@ -550,10 +535,9 @@ class AllocineBrowser(Browser):
                   ('code', code),
                   ('profile', 'large'),
                   ]
-        res = self.__do_request('media', params)
-        if res is None:
+        result = self.__do_request('media', params)
+        if result is None:
             return
-        result = json.loads(res)
         renditions = sorted(result['media']['rendition'],
                             key=lambda x: 'bandwidth' in x and x['bandwidth']['code'],
                             reverse=True)
@@ -564,10 +548,9 @@ class AllocineBrowser(Browser):
                   ('format', 'json'),
                   ('filter', 'acshow'),
                   ]
-        res = self.__do_request('termlist', params)
-        if res is None:
+        result = self.__do_request('termlist', params)
+        if result is None:
             return
-        result = json.loads(res)
         for emission in result['feed']['term']:
             yield Collection([basename, unicode(emission['nameShort'])], unicode(emission['$']))
 
@@ -581,10 +564,9 @@ class AllocineBrowser(Browser):
             movie = self.iter_movies(query.summary).next()
             params.append(('movie', movie.id))
 
-        res = self.__do_request('showtimelist', params)
-        if res is None:
+        result = self.__do_request('showtimelist', params)
+        if result is None:
             return
-        result = json.loads(res)
 
         for event in self.create_event(result):
             if (not query.end_date or event.start_date <= query.end_date)\
@@ -600,10 +582,9 @@ class AllocineBrowser(Browser):
                   ('movie', split_id[2]),
                   ]
 
-        res = self.__do_request('showtimelist', params)
-        if res is None:
+        result = self.__do_request('showtimelist', params)
+        if result is None:
             return
-        result = json.loads(res)
 
         for event in self.create_event(result):
             if event.id.split('#')[-1] == split_id[-1]:
