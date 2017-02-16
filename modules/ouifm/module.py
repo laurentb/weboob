@@ -23,7 +23,7 @@ from weboob.capabilities.audiostream import BaseAudioStream
 from weboob.tools.capabilities.streaminfo import StreamInfo
 from weboob.capabilities.collection import CapCollection
 from weboob.tools.backend import Module
-from weboob.deprecated.browser import StandardBrowser
+from weboob.browser.browsers import APIBrowser
 from weboob.tools.misc import to_unicode
 
 
@@ -37,18 +37,26 @@ class OuiFMModule(Module, CapRadio, CapCollection):
     VERSION = '1.3'
     DESCRIPTION = u'OÜI FM French radio'
     LICENSE = 'AGPLv3+'
-    BROWSER = StandardBrowser
+    BROWSER = APIBrowser
 
-    _RADIOS = {'general':     (u"OÜI FM",               u'OÜI FM',                   u'http://stream.ouifm.fr/ouifm-high.mp3"', 160),
-               'alternatif':  (u"OÜI FM Alternatif",    u'OÜI FM - Alternatif',      u'http://alternatif.stream.ouifm.fr/ouifm2.mp3', 128),
-               'classicrock': (u"OÜI FM Classic Rock",  u'OÜI FM - Classic Rock',    u'http://classicrock.stream.ouifm.fr/ouifm3.mp3', 128),
-               'bluesnrock':  (u"OÜI FM Blues'n'Rock",  u'OÜI FM - Blues\'n\'Rock',  u'http://bluesnrock.stream.ouifm.fr/ouifmbluesnrock-128.mp3', 128),
-               'rockinde':    (u"OÜI FM Rock Indé",     u'OÜI FM - Rock Indé',       u'http://rockinde.stream.ouifm.fr/ouifm5.mp3', 128),
-               'ganja':       (u"OÜI FM Ganja",         u'OÜI FM - Ganja',           u'http://ganja.stream.ouifm.fr/ouifmganja-128.mp3', 128),
-              }
-
-    def create_default_browser(self):
-        return self.create_browser(parser='json')
+    _RADIOS = {'general':     (u"OÜI FM",
+                               u'OÜI FM',
+                               u'http://stream.ouifm.fr/ouifm-high.mp3"', 160),
+               'alternatif':  (u"OÜI FM Alternatif",
+                               u'OÜI FM - Alternatif',
+                               u'http://alternatif.stream.ouifm.fr/ouifm2.mp3', 128),
+               'classicrock': (u"OÜI FM Classic Rock",
+                               u'OÜI FM - Classic Rock',
+                               u'http://classicrock.stream.ouifm.fr/ouifm3.mp3', 128),
+               'bluesnrock':  (u"OÜI FM Blues'n'Rock",
+                               u'OÜI FM - Blues\'n\'Rock',
+                               u'http://bluesnrock.stream.ouifm.fr/ouifmbluesnrock-128.mp3', 128),
+               'rockinde':    (u"OÜI FM Rock Indé",
+                               u'OÜI FM - Rock Indé',
+                               u'http://rockinde.stream.ouifm.fr/ouifm5.mp3', 128),
+               'ganja':       (u"OÜI FM Ganja",
+                               u'OÜI FM - Ganja',
+                               u'http://ganja.stream.ouifm.fr/ouifmganja-128.mp3', 128)}
 
     def iter_resources(self, objs, split_path):
         if Radio in objs:
@@ -63,7 +71,7 @@ class OuiFMModule(Module, CapRadio, CapCollection):
                 yield radio
 
     def get_current(self, radio):
-        document = self.browser.location('http://www.ouifm.fr/onair.json')
+        document = self.browser.request('http://www.ouifm.fr/onair.json')
         rad = ''
         if radio == 'general':
             rad = 'rock'
@@ -94,8 +102,8 @@ class OuiFMModule(Module, CapRadio, CapCollection):
         radio.current = current
 
         stream = BaseAudioStream(0)
-        stream.bitrate=bitrate
-        stream.format=u'mp3'
+        stream.bitrate = bitrate
+        stream.format = u'mp3'
         stream.title = u'%skbits/s' % (stream.bitrate)
         stream.url = url
         radio.streams = [stream]
