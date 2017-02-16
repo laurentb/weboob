@@ -372,6 +372,8 @@ class IngBrowser(LoginBrowser):
     def predownload(self, bill):
         self.page.postpredown(bill._localid)
 
+    ############# CapProfile #############
+    @start_with_main_site
     @need_login
     def get_profile(self):
         profile = self.profile.go(page='coordonnees').get_profile()
