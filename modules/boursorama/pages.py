@@ -32,7 +32,7 @@ from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.value import Value
 from weboob.tools.date import parse_french_date
-from weboob.tools.captcha.virtkeyboard import VirtKeyboard
+from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
 from weboob.exceptions import BrowserQuestion, BrowserIncorrectPassword, BrowserHTTPNotFound
 
 
@@ -143,7 +143,10 @@ class BoursoramaVirtKeyboard(VirtKeyboard):
         for i, d in enumerate(password):
             if i > 0:
                 code += '|'
-            code += self.md5[self.symbols[d]]
+            try:
+                code += self.md5[self.symbols[d]]
+            except KeyError:
+                raise VirtKeyboardError()
         return code
 
 

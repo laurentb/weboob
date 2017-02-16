@@ -26,6 +26,7 @@ from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
+from weboob.tools.captcha.virtkeyboard import VirtKeyboardError
 
 from .pages import (
     LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,
@@ -111,8 +112,16 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         if self.auth_token and self.config['pin_code'].get():
             self.page.authenticate()
         else:
-            self.login.go()
-            self.page.login(self.username, self.password)
+            for _ in range(3):
+                self.login.go()
+                try:
+                    self.page.login(self.username, self.password)
+                except VirtKeyboardError:
+                    self.logger.error('Failed to process VirtualKeyboard')
+                else:
+                    break
+            else:
+                raise VirtKeyboardError()
 
             if self.login.is_here() or self.error.is_here():
                 raise BrowserIncorrectPassword()
