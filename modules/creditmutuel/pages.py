@@ -298,8 +298,9 @@ class AccountsPage(LoggedPage, HTMLPage):
 
 
 class NewAccountsPage(NewHomePage, AccountsPage):
-    def has_agency(self):
-        return CleanText('//script[contains(text(), "lien_caisse")]', default=None)(self.doc)
+    def get_agency(self):
+        return Regexp(CleanText('//script[contains(text(), "lien_caisse")]', default=''),
+                      r'(https://[^"]+)', default='')(self.doc)
 
     @method
     class get_advisor(ItemElement):

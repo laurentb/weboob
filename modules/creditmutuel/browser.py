@@ -104,7 +104,9 @@ class CreditMutuelBrowser(LoginBrowser):
     new_iban = URL('/(?P<subbank>.*)fr/banque/rib.cgi', IbanPage)
 
     advisor = URL('/(?P<subbank>.*)fr/banques/contact/trouver-une-agence/(?P<page>.*)',
-                  '/(?P<subbank>.*)fr/infoclient/', AdvisorPage)
+                  '/(?P<subbank>.*)fr/infoclient/',
+                  r'/(?P<subbank>.*)fr/banques/accueil/menu-droite/Details.aspx\?banque=.*',
+                  AdvisorPage)
 
     redirect = URL('/(?P<subbank>.*)fr/banque/paci_engine/static_content_manager.aspx', RedirectPage)
 
@@ -352,8 +354,11 @@ class CreditMutuelBrowser(LoginBrowser):
                 self.location(self.page.get_advisor_link()).page.update_advisor(advisor)
         else:
             advisor = self.new_accounts.stay_or_go(subbank=self.currentSubBank).get_advisor()
-            if self.page.has_agency():
-                self.advisor.go(subbank=self.currentSubBank, page="contact.html").update_advisor(advisor)
+            link = self.page.get_agency()
+            if link:
+                link = link.replace(':443/', '/')
+                self.location(link)
+                self.page.update_advisor(advisor)
         return iter([advisor]) if advisor else iter([])
 
     @need_login
