@@ -399,7 +399,12 @@ class IndexPage(LoggedPage, HTMLPage):
                 for i in tds[0].xpath('.//a/strong'):
                     label = i.text.strip()
                     break
-                balance = Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-1])))
+                if len(tds) == 3 and Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-2]))):
+                    # in case of Consumer credit or revolving credit, we substract avalaible amount with max amout
+                    # to get what was spend
+                    balance = Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-2]))) - Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-1])))
+                else:
+                    balance = Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-1])))
                 account = Account()
                 account.id = label.split(' ')[-1]
                 account.label = unicode(label)
