@@ -248,6 +248,12 @@ class HistoryPage(LoggedPage, HTMLPage):
             obj_amount = CleanDecimal('.//div[has-class("list__movement__line--amount")]', replace_dots=True)
             obj_category = CleanText('.//div[has-class("category")]')
 
+            def obj_type(self):
+                if not Env('is_card', default=False)(self):
+                    # keep the value previously set by Transaction.Raw
+                    return self.obj.type
+                return Transaction.TYPE_DEFERRED_CARD
+
             def obj_rdate(self):
                 if self.obj.rdate:
                     # Transaction.Raw may have already set it
