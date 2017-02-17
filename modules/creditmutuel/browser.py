@@ -236,6 +236,7 @@ class CreditMutuelBrowser(LoginBrowser):
             trs.append(tr)
         return trs
 
+    @need_login
     def get_history(self, account):
         transactions = []
         if not account._link_id:
@@ -280,6 +281,7 @@ class CreditMutuelBrowser(LoginBrowser):
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions
 
+    @need_login
     def get_investment(self, account):
         if account._is_inv:
             if account.type == Account.TYPE_MARKET:
@@ -295,6 +297,7 @@ class CreditMutuelBrowser(LoginBrowser):
             return self.page.iter_investment()
         return iter([])
 
+    @need_login
     def iter_recipients(self, origin_account):
         # access the transfer page
         self.internal_transfer.go(subbank=self.currentSubBank)
@@ -314,6 +317,7 @@ class CreditMutuelBrowser(LoginBrowser):
                 for recipient in self.page.iter_recipients(origin_account=origin_account):
                     yield recipient
 
+    @need_login
     def init_transfer(self, account, to, amount, reason=None):
         if to.category != u'Interne':
             self.external_transfer.go(subbank=self.currentSubBank)
@@ -330,6 +334,7 @@ class CreditMutuelBrowser(LoginBrowser):
         self.page.prepare_transfer(account, to, amount, reason)
         return self.page.handle_response(account, to, amount, reason)
 
+    @need_login
     def execute_transfer(self, transfer, **params):
         form = self.page.get_form(id='P:F', submit='//input[@type="submit" and contains(@value, "Confirmer")]')
         # For the moment, don't ask the user if he confirms the duplicate.
