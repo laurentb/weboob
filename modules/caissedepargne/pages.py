@@ -771,7 +771,7 @@ class TransferPage(TransferErrorPage, IndexPage):
             def parse(self, el):
                 self.env['category'] = u'Interne' if Attr('.', 'value')(self)[0] == 'I' else u'Externe'
                 if self.env['category'] == u'Interne':
-                    _id = Regexp(CleanText('.'), '- (\d+)')(self)
+                    _id = Regexp(CleanText('.'), '- (\w+)')(self)
                     accounts = list(self.page.browser.get_accounts_list()) + list(self.page.browser.get_loans_list())
                     match = [acc for acc in accounts if _id in acc.id]
                     assert len(match) == 1
