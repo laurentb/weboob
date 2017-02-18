@@ -31,7 +31,7 @@ from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env
 from weboob.browser.filters.html import Attr
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.exceptions import ParseError
+from weboob.exceptions import BrowserIncorrectPassword
 
 
 class Transaction(FrenchTransaction):
@@ -95,7 +95,7 @@ class LoginPage(HTMLPage):
 
         form = self.get_form('//form[@id="formulaire-login"]')
         code = vk.get_string_code(password)
-        assert len(code)==10, ParseError("Wrong number of character.")
+        assert len(code)==10, BrowserIncorrectPassword()
         form['accordirect.identifiant'] = login
         form['accordirect.code'] = code
         form.submit()
