@@ -45,5 +45,5 @@ class IndexPage(HTMLPage):
 
             def obj_thumbnail(self):
                 thumbnail = Thumbnail(self.xpath('.//img')[0].attrib['data-original'])
-                thumbnail.url = thumbnail.id
+                thumbnail.url = thumbnail.id.replace('http://', 'https://')
                 return thumbnail
