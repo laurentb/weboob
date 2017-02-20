@@ -262,6 +262,9 @@ class IndexPage(LoggedPage, HTMLPage):
         if bourse_link:
             self.browser.location(bourse_link)
 
+    def need_auth(self):
+        return bool(CleanText(u'//span[contains(text(), "Authentification non rejouable")]')(self.doc))
+
     def check_no_accounts(self):
         no_account_message = CleanText(u'//span[@id="MM_LblMessagePopinError"]/p[contains(text(), "Aucun compte disponible")]')(self.doc)
 
