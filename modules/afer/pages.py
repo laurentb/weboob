@@ -123,6 +123,7 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
             return
 
         class item(ItemElement):
+            condition = lambda self: len(self.el.xpath('./td')) >= 3
             def load_details(self):
                 a = self.el.xpath(".//img[@src='../../images/commun/loupe.png']")
                 if len(a) > 0:
@@ -136,7 +137,7 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                 return None
 
             klass = Transaction
-            obj_date = obj_rdate = obj_vdate = Date(CleanText('.//td[3]'))
+            obj_date = obj_rdate = obj_vdate = Date(CleanText('.//td[3]'), dayfirst=True)
             obj_label = CleanText('.//td[1]')
 
             def obj_amount(self):
