@@ -21,7 +21,8 @@
 from datetime import date
 
 from weboob.browser.pages import HTMLPage, JsonPage, RawPage, LoggedPage
-from weboob.browser.filters.standard import CleanDecimal
+from weboob.browser.filters.standard import CleanDecimal, CleanText
+from weboob.browser.filters.html import CleanHTML
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bill import Subscription, Bill
 from weboob.exceptions import ActionNeeded
@@ -52,7 +53,7 @@ class SubscriptionsPage(LoggedPage, JsonPage):
             sub = Subscription()
 
             sub.id = contract['refDevis']
-            sub.label = contract['nomOffreModele']
+            sub.label = CleanText().filter(CleanHTML().filter(contract['nomOffreModele']))
             sub.subscriber = ('%s %s' % (contract['prenomIntPrinc'].lower(), contract['nomIntPrinc'].lower())).title()
 
             subscriptions.append(sub)

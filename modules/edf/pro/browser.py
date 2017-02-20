@@ -58,11 +58,14 @@ class EdfproBrowser(LoginBrowser):
 
     @need_login
     def iter_documents(self, subscription):
-        return self.documents.go(data=json.dumps({'dateDebut': (datetime.now() - timedelta(weeks=156)).strftime('%d/%m/%Y'), \
-                                           'dateFin': datetime.now().strftime('%d/%m/%Y'), \
-                                           'element': subscription.id, \
-                                           'typeElementListe': 'CONTRAT'})) \
-                             .get_documents(subscription.id)
+        try:
+            return self.documents.go(data=json.dumps({'dateDebut': (datetime.now() - timedelta(weeks=156)).strftime('%d/%m/%Y'), \
+                                                      'dateFin': datetime.now().strftime('%d/%m/%Y'), \
+                                                      'element': subscription.id, \
+                                                      'typeElementListe': 'CONTRAT'})) \
+                                 .get_documents(subscription.id)
+        except ServerError:
+            return iter([])
 
     @need_login
     def download_document(self, document):
