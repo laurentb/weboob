@@ -123,7 +123,9 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     def get_accounts_list(self):
         if self.accounts_list is None:
             self.accounts_list = []
-            ibans = self.ibans.go().get_ibans_dict()
+            # In case of password renewal, we need to go on ibans twice.
+            self.ibans.go()
+            ibans = self.page.get_ibans_dict() if self.ibans.is_here() else self.ibans.go().get_ibans_dict()
             # This page might be unavailable.
             try:
                 ibans.update(self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict('Crediteur'))
