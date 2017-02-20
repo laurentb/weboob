@@ -95,7 +95,8 @@ class LoginPage(HTMLPage):
 
         form = self.get_form('//form[@id="formulaire-login"]')
         code = vk.get_string_code(password)
-        assert len(code)==10, BrowserIncorrectPassword()
+        if not len(code)==10:
+            BrowserIncorrectPassword()
         form['accordirect.identifiant'] = login
         form['accordirect.code'] = code
         form.submit()
