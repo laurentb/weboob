@@ -24,7 +24,7 @@ import re
 
 from weboob.browser import LoginBrowser, need_login
 from weboob.browser.url import URL
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, TransferError
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
 from weboob.exceptions import BrowserIncorrectPassword
@@ -441,7 +441,10 @@ class CaisseEpargne(LoginBrowser):
             self.page.go_list()
         else:
             self.home.go()
-        self.page.go_transfer()
+        try:
+            self.page.go_transfer()
+        except TransferError:
+            return iter([])
         if self.page.need_auth() or not self.page.can_transfer(origin_account):
             return iter([])
         return self.page.iter_recipients(account_id=origin_account.id)
