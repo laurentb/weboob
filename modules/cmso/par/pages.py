@@ -50,6 +50,9 @@ class InfosPage(LoggedPage, HTMLPage):
 
 class AccountsPage(LoggedPage, JsonPage):
     TYPES = {'courant':             Account.TYPE_CHECKING,
+             'pee':                 Account.TYPE_PEE,
+             'epargne en actions':  Account.TYPE_PEA,
+             'pea':                 Account.TYPE_PEA,
              'preference':          Account.TYPE_LOAN,
              'vie':                 Account.TYPE_LIFE_INSURANCE,
              'actions':             Account.TYPE_MARKET,
