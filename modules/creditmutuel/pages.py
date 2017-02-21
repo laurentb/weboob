@@ -119,9 +119,9 @@ class AccountsPage(LoggedPage, HTMLPage):
              u'Compte Cheque':     Account.TYPE_CHECKING,
              u'Start':             Account.TYPE_CHECKING,
              u'Contrat Personnel': Account.TYPE_CHECKING,
+             u'P.E.A':             Account.TYPE_PEA,
              u'Compte Epargne':    Account.TYPE_SAVINGS,
              u'Plan D\'Epargne':   Account.TYPE_SAVINGS,
-             u'P.E.A':             Account.TYPE_SAVINGS,
              u'Tonic Croissance':  Account.TYPE_SAVINGS,
              u'Ldd':               Account.TYPE_SAVINGS,
              u'Etalis':            Account.TYPE_SAVINGS,
@@ -738,6 +738,14 @@ class LIAccountsPage(LoggedPage, HTMLPage):
 
 
 class PorPage(LoggedPage, HTMLPage):
+    TYPES = {u'PLAN D\'EPARGNE EN ACTIONS': Account.TYPE_PEA}
+
+    def get_type(self, label):
+        for pattern, actype in self.TYPES.iteritems():
+            if label.startswith(pattern):
+                return actype
+        return Account.TYPE_MARKET
+
     def find_amount(self, title):
         return None
 
@@ -746,7 +754,7 @@ class PorPage(LoggedPage, HTMLPage):
             for a in accounts:
                 if a.id.startswith(ele.attrib['value']):
                     a._is_inv = True
-                    a.type = Account.TYPE_MARKET
+                    a.type = self.get_type(a.label)
                     self.fill(a)
                     break
             else:
@@ -757,7 +765,7 @@ class PorPage(LoggedPage, HTMLPage):
                     continue
                 acc.label = unicode(re.sub("\d", '', ele.text).strip())
                 acc._link_id = None
-                acc.type = Account.TYPE_MARKET
+                acc.type = self.get_type(acc.label)
                 acc._is_inv = True
                 self.fill(acc)
                 accounts.append(acc)
