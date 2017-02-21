@@ -528,7 +528,11 @@ class TransactionsPage(LoggedPage, CDNBasePage):
             inv.quantity = MyDecimal('.')(cols[COL_QUANTITY])
             inv.unitvalue = MyDecimal().filter(CleanText('.')(cols[COL_UNITVALUE]).split()[0])
             if inv.unitvalue is not NotAvailable:
-                inv.vdate = Date(dayfirst=True).filter(Regexp(CleanText('.'), '(\d{2})/(\d{2})/(\d{4})', '\\3-\\2-\\1')(cols[COL_UNITVALUE]))
+                inv.vdate = Date(dayfirst=True, default=NotAvailable)\
+                   .filter(Regexp(CleanText('.'), '(\d{2})/(\d{2})/(\d{4})', '\\3-\\2-\\1', default=NotAvailable)(cols[COL_UNITVALUE])) or \
+                   Date(dayfirst=True, default=NotAvailable)\
+                   .filter(Regexp(CleanText('//tr[td[span[b[contains(text(), "Estimation du contrat")]]]]/td[2]'),
+                                  '(\d{2})/(\d{2})/(\d{4})', '\\3-\\2-\\1', default=NotAvailable)(cols[COL_UNITVALUE]))
             inv.valuation = MyDecimal('.')(cols[COL_VALUATION])
 
             yield inv
