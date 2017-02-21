@@ -28,7 +28,7 @@ from weboob.capabilities.bank import Account
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.pages import FormNotFound
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.tools.date import ChaoticDateGuesser
+from weboob.tools.date import ChaoticDateGuesser, LinearDateGuesser
 from weboob.exceptions import BrowserHTTPError, ActionNeeded
 from weboob.browser.filters.standard import CleanText
 
@@ -336,11 +336,11 @@ class Cragr(LoginBrowser):
         if account.type == Account.TYPE_CARD:
             account = self.get_cards_or_card(account.number)
 
-        date_guesser = ChaoticDateGuesser(date.today()-timedelta(weeks=24))
         if account.type != Account.TYPE_CARD or not self.page.is_on_right_detail(account):
             self.location(account._link.format(self.sag))
 
         if self.cards.is_here():
+            date_guesser = ChaoticDateGuesser(date.today()-timedelta(weeks=24))
             url = self.page.url
             state = None
             notfirst = False
@@ -356,6 +356,7 @@ class Cragr(LoginBrowser):
                 url = self.page.get_next_url()
 
         elif self.page:
+            date_guesser = LinearDateGuesser()
             self.page.order_transactions()
             while True:
                 assert self.transactions.is_here()
