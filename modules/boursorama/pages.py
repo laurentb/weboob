@@ -290,6 +290,9 @@ class HistoryPage(LoggedPage, HTMLPage):
             def condition(self):
                 return not len(self.xpath(u'.//span[has-class("icon-carte-bancaire")]'))
 
+    def get_cards_number_link(self):
+        return Link('//a[small[span[contains(text(), "carte bancaire")]]]', default=NotAvailable)(self.doc)
+
 
 class Myiter_investment(TableElement):
     item_xpath = '//table[contains(@class, "operations")]/tbody/tr'
@@ -460,7 +463,7 @@ class AccbisPage(LoggedPage, HTMLPage):
     def populate(self, accounts):
         cards = []
         for account in accounts:
-            for li in  self.doc.xpath('//li[@class="nav-category"]'):
+            for li in self.doc.xpath('//li[@class="nav-category"]'):
                 title = CleanText().filter(li.xpath('./h3'))
                 for a in li.xpath('./ul/li//a'):
                     label = CleanText().filter(a.xpath('.//span[@class="nav-category__name"]'))
@@ -486,7 +489,7 @@ class AccbisPage(LoggedPage, HTMLPage):
                             account.type = AccountsPage.ACCOUNT_TYPES.get(title, Account.TYPE_UNKNOWN)
                         account._webid = Attr(None, 'data-account-label').filter(a.xpath('.//span[@class="nav-category__name"]'))
         if cards:
-            self.browser.go_cards_number()
+            self.browser.go_cards_number(cards[0]._link)
             if self.browser.cards.is_here():
                 self.browser.page.populate_cards_number(cards)
                 accounts.extend(cards)
@@ -532,11 +535,6 @@ class ProfilePage(LoggedPage, HTMLPage):
         obj_job_start_date = Date(MyInput('employeeSince'), default=NotAvailable)
         obj_company_name = MyInput('employer')
         obj_socioprofessional_category = MySelect('socioProfessionalCategory')
-
-
-class LinksPage(LoggedPage, HTMLPage):
-    def get_cards_number_link(self):
-        return Link('//a[small[span[contains(text(), "carte bancaire")]]]', default=NotAvailable)(self.doc)
 
 
 class CardsNumberPage(LoggedPage, HTMLPage):

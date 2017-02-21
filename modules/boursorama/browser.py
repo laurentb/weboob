@@ -31,7 +31,7 @@ from weboob.tools.captcha.virtkeyboard import VirtKeyboardError
 from .pages import (
     LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,
     MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ProfilePage, ExpertPage,
-    LinksPage, CardsNumberPage, CalendarPage, HomePage,
+    CardsNumberPage, CalendarPage, HomePage,
 )
 
 
@@ -79,7 +79,6 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
 
     expert = URL('/compte/derive/', ExpertPage)
 
-    links = URL('/alertes-et-actions', LinksPage)
     cards = URL('/compte/cav/cb', CardsNumberPage)
 
     __states__ = ('auth_token',)
@@ -134,11 +133,8 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         if self.authentication.is_here():
             raise BrowserIncorrectAuthenticationCode('Invalid PIN code')
 
-    def go_cards_number(self):
-        params = {}
-        params['default'] = 'AppBundle:Shared:loading.html.twig'
-        params['_hinclude'] = '1'
-        self.location('/alertes-et-actions', params=params)
+    def go_cards_number(self, link):
+        self.location(link)
         self.location(self.page.get_cards_number_link())
 
     @need_login
