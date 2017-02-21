@@ -22,7 +22,7 @@ import urllib
 
 import lxml.etree
 
-from weboob.deprecated.browser import Browser
+from weboob.browser import PagesBrowser, URL
 from weboob.deprecated.browser.decorators import id2url
 
 from .pages import ChannelsPage, VideoPage
@@ -42,15 +42,14 @@ class XMLParser(object):
         return lxml.etree.XML(data.get_data(), parser)
 
 
-class CanalplusBrowser(Browser):
-    DOMAIN = u'service.canal-plus.com'
+class CanalplusBrowser(PagesBrowser):
+    BASEURL = u'http://service.canal-plus.com'
     ENCODING = 'utf-8'
-    PAGES = {
-        r'http://service.canal-plus.com/video/rest/initPlayer/cplus/': ChannelsPage,
-        r'http://service.canal-plus.com/video/rest/search/cplus/.*': VideoPage,
-        r'http://service.canal-plus.com/video/rest/getVideosLiees/cplus/(?P<id>.+)': VideoPage,
-        r'http://service.canal-plus.com/video/rest/getMEAs/cplus/.*': VideoPage,
-        }
+
+    channels = URL('/video/rest/initPlayer/cplus/', ChannelsPage)
+    videos = URL('/video/rest/search/cplus/.*',
+                 '/video/rest/getVideosLiees/cplus/(?P<id>.+)',
+                 '/video/rest/getMEAs/cplus/.*', VideoPage)
 
     #We need lxml.etree.XMLParser to read CDATA
     PARSER = XMLParser()
@@ -60,7 +59,8 @@ class CanalplusBrowser(Browser):
         }
 
     def __init__(self, quality, *args, **kwargs):
-        Browser.__init__(self, parser=self.PARSER, *args, **kwargs)
+        super(CanalplusBrowser, self).__init__(*args, **kwargs)
+
         self.quality = self.FORMATS.get(quality, self.FORMATS['hd'])
 
     def home(self):

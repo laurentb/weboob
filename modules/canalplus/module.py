@@ -46,15 +46,13 @@ class CanalplusModule(Module, CapVideo, CapCollection):
         return self.create_browser(quality=self.config['quality'].get())
 
     def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
-        with self.browser:
-            return self.browser.search_videos(pattern)
+        return self.browser.search_videos(pattern)
 
     def get_video(self, _id):
         m = re.match('https?://www\.canal-?plus\.fr/.*\?vid=(\d+)', _id)
         if m:
             _id = m.group(1)
-        with self.browser:
-            return self.browser.get_video(_id)
+        return self.browser.get_video(_id)
 
     def fill_video(self, video, fields):
         if fields != ['thumbnail']:

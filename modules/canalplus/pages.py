@@ -20,7 +20,7 @@
 from datetime import datetime
 import re
 
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import XMLPage
 from weboob.capabilities.collection import Collection
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.image import Thumbnail
@@ -28,13 +28,13 @@ from weboob.capabilities.image import Thumbnail
 from .video import CanalplusVideo
 
 
-class ChannelsPage(Page):
+class ChannelsPage(XMLPage):
     def get_channels(self):
         """
         Extract all possible channels (paths) from the page
         """
         channels = list()
-        for elem in self.document[2].getchildren():
+        for elem in self.doc[2].getchildren():
             for e in elem.getchildren():
                 if e.tag == "NOM":
                     fid, name = self._clean_name(e.text)
@@ -55,7 +55,7 @@ class ChannelsPage(Page):
         return friendly_id, name
 
 
-class VideoPage(Page):
+class VideoPage(XMLPage):
     def parse_video(self, el, video=None):
         _id = el.find('ID').text
         if _id == '-1':
@@ -98,13 +98,13 @@ class VideoPage(Page):
         return video
 
     def iter_results(self):
-        for vid in self.document.getchildren():
+        for vid in self.doc.iter(tag='VIDEO'):
             video = self.parse_video(vid)
             video.url = NotLoaded
             yield video
 
     def iter_channel(self):
-        for vid in self.document.getchildren():
+        for vid in self.doc.iter(tag='VIDEO'):
             yield self.parse_video_channel(vid)
 
     def parse_video_channel(self, el):
@@ -115,8 +115,8 @@ class VideoPage(Page):
         return video
 
     def get_video(self, video):
-        _id = self.group_dict['id']
-        for vid in self.document.getchildren():
+        _id = self.params.get('id')
+        for vid in self.doc.iter(tag='VIDEO'):
             if _id not in vid.find('ID').text:
                 continue
             return self.parse_video(vid, video)
