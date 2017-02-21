@@ -427,7 +427,7 @@ class CaisseEpargne(LoginBrowser):
     def get_profile(self):
         if not self.is_cenet_website:
             profile = Profile()
-            profile.name = unicode(re.search('nomusager=([^&]+)', self.session.cookies['headerdei']).group(1))
+            profile.name = unicode(re.search('username=([^&]+)', self.session.cookies['CTX']).group(1))
         else:
             profile = self.cenet_home.stay_or_go().get_profile()
         return profile
