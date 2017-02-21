@@ -339,7 +339,7 @@ class ProAccountsPage(AccountsPage):
         if no_accounts_message:
             raise ActionNeeded(no_accounts_message[0])
 
-        for tr in self.doc.xpath('//table[@class="datas"]//tr'):
+        for tr in self.doc.xpath('//table[has-class("datas")]//tr'):
             if tr.attrib.get('class', '') == 'entete':
                 continue
 
