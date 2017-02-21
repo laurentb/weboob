@@ -107,7 +107,8 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     def do_login(self):
         assert isinstance(self.config['device'].get(), basestring)
         assert isinstance(self.config['enable_twofactors'].get(), bool)
-        assert self.password.isdigit()
+        if not self.password.isdigit():
+            raise BrowserIncorrectPassword()
 
         if self.auth_token and self.config['pin_code'].get():
             self.page.authenticate()
