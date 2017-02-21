@@ -290,7 +290,7 @@ class ArteJsonPage(JsonPage):
         klass = ArteSiteVideo
 
         obj__site = SITE.CINEMA.get('id')
-        obj_date = Date(Dict('VRA'))
+        obj_date = Date(Dict('VRA', default=''), default=NotAvailable)
 
     @method
     class get_program_video(ArteItemElement):
