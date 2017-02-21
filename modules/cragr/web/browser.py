@@ -22,12 +22,13 @@ import re
 import hashlib
 from urlparse import urlparse
 from html2text import unescape
+from datetime import date, timedelta
 
 from weboob.capabilities.bank import Account
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.pages import FormNotFound
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.tools.date import LinearDateGuesser
+from weboob.tools.date import ChaoticDateGuesser
 from weboob.exceptions import BrowserHTTPError, ActionNeeded
 from weboob.browser.filters.standard import CleanText
 
@@ -335,7 +336,7 @@ class Cragr(LoginBrowser):
         if account.type == Account.TYPE_CARD:
             account = self.get_cards_or_card(account.number)
 
-        date_guesser = LinearDateGuesser()
+        date_guesser = ChaoticDateGuesser(date.today()-timedelta(weeks=24))
         if account.type != Account.TYPE_CARD or not self.page.is_on_right_detail(account):
             self.location(account._link.format(self.sag))
 
