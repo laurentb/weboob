@@ -53,6 +53,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
                 '/infos-profil', ErrorPage)
     login = URL('/connexion/', LoginPage)
     accounts = URL('/dashboard/comptes\?_hinclude=300000', AccountsPage)
+    pro_accounts = URL(r'/dashboard/comptes-professionnels\?_hinclude=1', AccountsPage)
     acc_tit = URL('/comptes/titulaire/(?P<webid>.*)\?_hinclude=1', AccbisPage)
     acc_rep = URL('/comptes/representative/(?P<webid>.*)\?_hinclude=1', AccbisPage)
     history = URL('/compte/(cav|epargne)/(?P<webid>.*)/mouvements.*',  HistoryPage)
@@ -145,9 +146,9 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         for x in range(3) :
             if self.accounts_list is not None:
                 break
-            self.accounts_list = list()
-            for account in self.accounts.go().iter_accounts():
-                self.accounts_list.append(account)
+            self.accounts_list = []
+            self.accounts_list.extend(self.pro_accounts.go().iter_accounts())
+            self.accounts_list.extend(self.accounts.go().iter_accounts())
             self.acc_tit.go(webid=self.webid).populate(self.accounts_list)
             try:
                 if not all([acc._webid for acc in self.accounts_list]):
