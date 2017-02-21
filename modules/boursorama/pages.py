@@ -529,7 +529,7 @@ class ProfilePage(LoggedPage, HTMLPage):
         obj_matrimonial = MySelect('matrimonial')
         obj_housing_status = MySelect('housingSituation')
         obj_job = MyInput('occupation')
-        obj_job_start_date = Date(MyInput('employeeSince'))
+        obj_job_start_date = Date(MyInput('employeeSince'), default=NotAvailable)
         obj_company_name = MyInput('employer')
         obj_socioprofessional_category = MySelect('socioProfessionalCategory')
 
