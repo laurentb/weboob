@@ -18,6 +18,8 @@ login = 123456
 password = `pass show weboob/bnporc21`
 """
 
+from __future__ import print_function
+
 import os
 import re
 import shutil
@@ -38,6 +40,7 @@ if not shutil.which('pass'):
 errors = 0
 seen = set()
 
+backend = None
 with open(FILE) as inp:
     with tempfile.NamedTemporaryFile('w', delete=False, dir=os.path.dirname(FILE)) as outp:
         for line in inp:
