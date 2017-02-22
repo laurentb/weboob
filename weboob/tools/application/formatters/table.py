@@ -21,6 +21,7 @@ from prettytable import PrettyTable
 
 from weboob.capabilities.base import empty
 from weboob.tools.misc import guess_encoding
+from weboob.tools.compat import range
 
 from .iformatter import IFormatter
 
@@ -46,11 +47,11 @@ class TableFormatter(IFormatter):
         if len(self.queue) == 0:
             return
 
-        queue = [() for i in xrange(len(self.queue))]
+        queue = [() for i in range(len(self.queue))]
         column_headers = []
         # Do not display columns when all values are NotLoaded or NotAvailable
         maxrow = 0
-        for i in xrange(len(self.keys)):
+        for i in range(len(self.keys)):
             available = False
             for line in self.queue:
                 if len(line)> i and not empty(line[i]):
@@ -59,7 +60,7 @@ class TableFormatter(IFormatter):
                     break
             if available:
                 column_headers.append(self.keys[i].capitalize().replace('_', ' '))
-                for j in xrange(len(self.queue)):
+                for j in range(len(self.queue)):
                     if len(self.queue[j]) > i:
                         queue[j] += (self.queue[j][i],)
 

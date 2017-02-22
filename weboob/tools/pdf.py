@@ -23,6 +23,8 @@ import os
 import subprocess
 from tempfile import mkstemp
 
+from .compat import range
+
 
 __all__ = ['decompress_pdf', 'get_pdf_rows']
 
@@ -200,7 +202,7 @@ def build_rows(lines):
         coord = (line.x0, line.y0)
         plines = points.get(coord)
         if plines is None:
-            plines = points[coord] = tuple([] for _ in xrange(2))
+            plines = points[coord] = tuple([] for _ in range(2))
 
         plines[a].append(line)
 

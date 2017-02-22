@@ -388,7 +388,7 @@ class Boobathon(ReplApplication):
             cur = (datetime.now() - self.event.begin).seconds
             pct = cur*20/tot
             progress = ''
-            for i in xrange(20):
+            for i in range(20):
                 if i < pct:
                     progress += '='
                 elif i == pct:

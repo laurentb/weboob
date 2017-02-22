@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-__all__ = ['unicode', 'long', 'basestring', 'check_output']
+__all__ = ['unicode', 'long', 'basestring', 'check_output', 'range']
 
 
 try:
@@ -35,6 +35,12 @@ try:
     basestring = basestring
 except NameError:
     basestring = str
+
+
+try:
+    range = xrange
+except NameError:
+    range = range
 
 
 from subprocess import check_output

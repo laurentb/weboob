@@ -26,6 +26,7 @@ from PyQt5.QtWidgets import QApplication
 from weboob.tools.application.qt5 import QtMainWindow
 from weboob.tools.application.qt5.backendcfg import BackendCfg
 from weboob.tools.application.qt5.models import BackendListModel, ResultModel, FilterTypeModel
+from weboob.tools.compat import range
 from weboob.capabilities.collection import BaseCollection, CapCollection
 from weboob.capabilities.gallery import CapGallery, BaseGallery
 from weboob.capabilities.image import CapImage, BaseImage
@@ -64,7 +65,7 @@ class MainWindow(QtMainWindow):
         self.ui.collectionTree.setModel(self.proxy_mdl)
         self.ui.collectionTree.selectionModel().currentChanged.connect(self.showCollection)
         n = self.mdl.columnCount(QModelIndex())
-        for i in xrange(n):
+        for i in range(n):
             self.ui.collectionTree.setColumnWidth(i, self.ui.collectionTree.width() // n)
 
         self.config = config

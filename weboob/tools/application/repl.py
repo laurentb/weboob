@@ -31,6 +31,7 @@ import os
 from weboob.capabilities.base import FieldNotFound, BaseObject, UserError
 from weboob.core import CallErrors
 from weboob.tools.application.formatters.iformatter import MandatoryFieldsNotFound
+from weboob.tools.compat import range
 from weboob.tools.misc import to_unicode
 from weboob.tools.path import WorkingPath
 from weboob.capabilities.collection import Collection, BaseCollection, CapCollection, CollectionNotFound
@@ -383,7 +384,7 @@ class ReplApplication(Cmd, ConsoleApplication):
             raise NotEnoughArguments('Command needs %d arguments' % req_n)
 
         if len(args) < nb:
-            args += tuple(None for i in xrange(nb - len(args)))
+            args += tuple(None for i in range(nb - len(args)))
         return args
 
     # -- cmd.Cmd methods ---------

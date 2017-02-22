@@ -24,6 +24,7 @@ from PyQt5.QtWidgets import QWidget, QTreeWidgetItem
 from PyQt5.QtCore import Qt, pyqtSignal as Signal, pyqtSlot as Slot
 
 from weboob.capabilities.base import NotLoaded
+from weboob.tools.compat import range
 from weboob.tools.application.qt5 import QtDo, HTMLDelegate
 
 from .ui.events_ui import Ui_Events
@@ -103,7 +104,7 @@ class EventsWidget(QWidget):
 
     def gotEvent(self, event):
         found = False
-        for i in xrange(self.ui.typeBox.count()):
+        for i in range(self.ui.typeBox.count()):
             s = self.ui.typeBox.itemData(i)
             if s == event.type:
                 found = True

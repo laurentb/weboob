@@ -21,6 +21,7 @@ from PyQt5.QtWidgets import QDialog, QListWidgetItem, QMessageBox
 from PyQt5.QtCore import Qt, pyqtSlot as Slot
 
 from weboob.tools.application.qt5 import QtDo, HTMLDelegate
+from weboob.tools.compat import range
 
 from .ui.query_ui import Ui_QueryDialog
 
@@ -52,7 +53,7 @@ class QueryDialog(QDialog):
         event.ignore()
 
     def selectComboValue(self, box, value):
-        for i in xrange(box.count()):
+        for i in range(box.count()):
             if box.itemText(i) == str(value):
                 box.setCurrentIndex(i)
                 break

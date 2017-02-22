@@ -21,6 +21,7 @@ from PyQt5.QtGui import QImage, QPixmap, QIcon, QBrush, QColor
 from PyQt5.QtWidgets import QLabel, QListWidgetItem
 from PyQt5.QtCore import Qt, pyqtSlot as Slot
 
+from weboob.tools.compat import range
 from weboob.tools.application.qt5 import QtMainWindow, QtDo, HTMLDelegate
 from weboob.tools.application.qt5.backendcfg import BackendCfg
 from weboob.capabilities.housing import CapHousing, Query, City
@@ -169,7 +170,7 @@ class MainWindow(QtMainWindow):
             query = {}
             query['type'] = querydlg.ui.typeBox.currentIndex()
             query['cities'] = []
-            for i in xrange(len(querydlg.ui.citiesList)):
+            for i in range(len(querydlg.ui.citiesList)):
                 item = querydlg.ui.citiesList.item(i)
                 city = item.data(Qt.UserRole)
                 query['cities'].append({'id': city.id, 'backend': city.backend, 'name': city.name})

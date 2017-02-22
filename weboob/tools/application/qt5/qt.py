@@ -36,6 +36,7 @@ from PyQt5.QtGui import QTextDocument, QAbstractTextDocumentLayout, QPalette
 
 from weboob.core.ouiboube import Weboob, VersionsMismatchError
 from weboob.core.scheduler import IScheduler
+from weboob.tools.compat import range
 from weboob.tools.config.iconfig import ConfigError
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden, ModuleInstallError
 from weboob.tools.value import ValueInt, ValueBool, ValueBackendPassword
@@ -408,7 +409,7 @@ class _QtValueChoices(QComboBox):
 
     def set_value(self, value):
         self._value = value
-        for i in xrange(self.count()):
+        for i in range(self.count()):
             if self.itemData(i) == self._value.get():
                 self.setCurrentIndex(i)
                 return

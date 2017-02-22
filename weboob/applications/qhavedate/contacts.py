@@ -27,6 +27,7 @@ from PyQt5.QtCore import Qt, pyqtSlot as Slot
 
 from weboob.tools.application.qt5 import QtDo, HTMLDelegate
 from weboob.tools.application.qt5.models import BackendListModel
+from weboob.tools.compat import range
 from weboob.tools.misc import to_unicode
 from weboob.capabilities.contact import CapContact, Contact
 from weboob.capabilities.chat import CapChat
@@ -538,7 +539,7 @@ class ContactsWidget(QWidget):
                 process.do('fillobj', photo, ['thumbnail_data'], backends=contact.backend)
                 self.photo_processes[contact.id] = process
 
-        for i in xrange(self.ui.contactList.count()):
+        for i in range(self.ui.contactList.count()):
             if self.ui.contactList.item(i).data(Qt.UserRole).status > contact.status:
                 self.ui.contactList.insertItem(i, item)
                 return

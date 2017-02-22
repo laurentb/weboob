@@ -26,6 +26,7 @@ try:
 except ImportError:
     raise ImportError('Please install python-dateutil')
 
+from .compat import range
 
 __all__ = ['local2utc', 'utc2local', 'LinearDateGuesser', 'date', 'datetime', 'new_date', 'new_datetime', 'closest_date']
 
@@ -363,7 +364,7 @@ def closest_date(date, date_from, date_to):
         return date
 
     dates = [real_datetime(year, date.month, date.day)
-             for year in xrange(date_from.year, date_to.year+1)]
+             for year in range(date_from.year, date_to.year+1)]
 
     # Ideally, pick the date within given range.
     for d in dates:
