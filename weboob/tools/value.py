@@ -20,8 +20,8 @@
 from collections import OrderedDict
 import re
 import subprocess
+from subprocess import check_output
 
-from .compat import check_output
 from .misc import to_unicode
 
 

@@ -25,6 +25,7 @@ from copy import copy
 import getpass
 import logging
 import subprocess
+from subprocess import check_output
 import sys
 import os
 
@@ -38,7 +39,6 @@ from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, Brow
                               ActionNeeded
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt, ValueBackendPassword
 from weboob.tools.misc import to_unicode
-from weboob.tools.compat import check_output
 
 from .base import Application, MoreResultsAvailable
 
