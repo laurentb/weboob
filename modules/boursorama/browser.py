@@ -324,13 +324,8 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     @need_login
     def execute_transfer(self, transfer, **kwargs):
         assert self.transfer_confirm.is_here()
-        ret = self.page.get_transfer()
         self.page.submit()
 
         assert self.transfer_sent.is_here()
-
-        if transfer.account_iban and not ret.account_iban:
-            account = self.get_account(transfer.account_id)
-            ret.account_iban = account.iban
-
-        return ret
+        # the last page contains no info, return the last transfer object from init_transfer
+        return transfer
