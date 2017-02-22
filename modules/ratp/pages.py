@@ -82,23 +82,13 @@ class MeteoPage(HTMLPage):
                     return NORMAL
 
             def obj_alarm(self):
-                classes = Attr(
-                    u'//*[@class="lignes"]//div[@id="%s"]' % self.env[u'line'],
-                    attr=u'class'
+                title = CleanText(
+                    u'//*[@class="lignes"]//div[@id="%s"]//div[@class="popin_hover_title"]' % self.env[u'line']
                 )(self)
-                classes = classes.split()
-                if u"perturb_critique_trav" in classes:
-                    return u"Critical and work."
-                elif u"perturb_critique" in classes:
-                    return u"Critical"
-                elif u"perturb_alerte_trav" in classes:
-                    return u"Alert and work"
-                elif u"perturb_alerte" in classes:
-                    return u"Alert"
-                elif u"perturb_normal_trav" in classes:
-                    return u"Normal and work"
-                elif u"perturb_normal" in classes:
-                    return u"Normal"
+                details = CleanText(
+                    u'//*[@class="lignes"]//div[@id="%s"]//div[@class="popin_hover_text"]//span[1]' % self.env[u'line']
+                )(self)
+                return u"%s: %s" % (title, details)
 
             def obj_date(self):
                 time = CleanText(u'//span[@id="refresh_time"]')(self)
