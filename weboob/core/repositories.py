@@ -36,6 +36,7 @@ from weboob.exceptions import BrowserHTTPError, BrowserHTTPNotFound, ModuleInsta
 from .modules import LoadedModule
 from weboob.tools.log import getLogger
 from weboob.tools.misc import get_backtrace, to_unicode, find_exe
+from weboob.tools.compat import basestring, unicode
 try:
     from ConfigParser import RawConfigParser, DEFAULTSECT
 except ImportError:

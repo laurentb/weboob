@@ -27,6 +27,9 @@ except ImportError:
     from configparser import RawConfigParser, DuplicateSectionError
 from logging import warning
 
+from weboob.tools.compat import unicode
+
+
 __all__ = ['BackendsConfig', 'BackendAlreadyExists']
 
 

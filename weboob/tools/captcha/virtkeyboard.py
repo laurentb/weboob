@@ -26,6 +26,8 @@ try:
 except ImportError:
     raise ImportError('Please install python-imaging')
 
+from weboob.tools.compat import basestring
+
 
 class VirtKeyboardError(Exception):
     pass

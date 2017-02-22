@@ -23,6 +23,7 @@ from PyQt5.QtWidgets import QDialog
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 
 from weboob.applications.qvideoob.ui.video_ui import Ui_Video
+from weboob.tools.compat import unicode
 
 
 class Video(QDialog):

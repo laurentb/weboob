@@ -28,6 +28,7 @@ from copy import deepcopy
 import lxml.html
 
 from weboob.tools.log import getLogger, DEBUG_FILTERS
+from weboob.tools.compat import basestring, unicode
 from weboob.browser.pages import NextPage
 
 from .filters.standard import _Filter, CleanText

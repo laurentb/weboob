@@ -25,6 +25,7 @@ from PyQt5.QtWidgets import QFrame, QFileDialog
 from weboob.applications.qcineoob.ui.torrent_ui import Ui_Torrent
 from weboob.applications.weboorrents.weboorrents import sizeof_fmt
 from weboob.capabilities.base import empty
+from weboob.tools.compat import unicode
 
 
 class Torrent(QFrame):

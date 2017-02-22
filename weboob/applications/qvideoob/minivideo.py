@@ -22,6 +22,7 @@ from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QFrame
 
 from weboob.tools.application.qt5 import QtDo
+from weboob.tools.compat import unicode
 from weboob.applications.qvideoob.ui.minivideo_ui import Ui_MiniVideo
 from .video import Video
 

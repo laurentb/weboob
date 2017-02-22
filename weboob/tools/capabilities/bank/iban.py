@@ -20,6 +20,8 @@
 
 import re
 
+from weboob.tools.compat import unicode
+
 _country2length = dict(
     AL=28, AD=24, AT=20, AZ=28, BE=16, BH=22, BA=20, BR=29,
     BG=22, CR=21, HR=21, CY=28, CZ=24, DK=18, DO=28, EE=20,

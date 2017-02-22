@@ -19,6 +19,8 @@
 from copy import copy
 from posixpath import sep, join
 
+from .compat import unicode
+
 
 class WorkingPath(object):
     def __init__(self):

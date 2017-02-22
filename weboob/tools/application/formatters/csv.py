@@ -20,6 +20,8 @@
 from __future__ import absolute_import
 import csv
 
+from weboob.tools.compat import basestring, unicode
+
 from .iformatter import IFormatter
 
 __all__ = ['CSVFormatter']

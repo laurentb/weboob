@@ -27,6 +27,7 @@ from distutils.spawn import find_executable
 from weboob.core.bcall import CallErrors
 from weboob.capabilities.content import CapContent, Revision
 from weboob.tools.application.repl import ReplApplication, defaultcount
+from weboob.tools.compat import unicode
 
 
 __all__ = ['WebContentEdit']

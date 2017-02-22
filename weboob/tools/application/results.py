@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities import UserError
+from weboob.tools.compat import unicode
 
 
 __all__ = ['ResultsCondition', 'ResultsConditionError']

@@ -36,6 +36,7 @@ except ImportError:
     import json
 
 from weboob.capabilities.base import BaseObject, NotAvailable, NotLoaded
+from weboob.tools.compat import basestring
 
 
 def mini_jsonpath(node, path):

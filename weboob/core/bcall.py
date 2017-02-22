@@ -26,6 +26,7 @@ except ImportError:
     import queue as Queue
 
 from weboob.capabilities.base import BaseObject
+from weboob.tools.compat import basestring
 from weboob.tools.misc import get_backtrace
 from weboob.tools.log import getLogger
 

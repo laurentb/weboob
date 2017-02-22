@@ -38,6 +38,7 @@ from weboob.exceptions import ModuleInstallError, ModuleLoadError
 from .backendcfg_ui import Ui_BackendCfg
 from .reposdlg_ui import Ui_RepositoriesDlg
 from weboob.tools.misc import to_unicode
+from weboob.tools.compat import unicode
 from .qt import QtValue
 
 

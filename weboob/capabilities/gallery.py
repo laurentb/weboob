@@ -19,6 +19,7 @@
 
 
 from weboob.capabilities.image import BaseImage as CIBaseImage, Thumbnail
+from weboob.tools.compat import unicode
 from .base import Capability, BaseObject, NotLoaded, Field, StringField, \
                   IntField, FloatField
 from .date import DateField

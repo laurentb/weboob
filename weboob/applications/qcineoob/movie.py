@@ -26,6 +26,7 @@ from PyQt5.QtWidgets import QFrame, QMessageBox
 from weboob.applications.qcineoob.ui.movie_ui import Ui_Movie
 from weboob.capabilities.base import empty
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
+from weboob.tools.compat import unicode
 
 
 class Movie(QFrame):

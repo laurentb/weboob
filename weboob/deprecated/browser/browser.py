@@ -53,6 +53,7 @@ from gzip import GzipFile
 from threading import RLock
 
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserPasswordExpired, BrowserForbidden, BrowserBanned, BrowserHTTPNotFound, BrowserHTTPError, FormFieldConversionWarning, BrowserSSLError
+from weboob.tools.compat import basestring, unicode
 from weboob.tools.decorators import retry
 from weboob.tools.log import getLogger
 from weboob.deprecated.browser.parsers import get_parser

@@ -62,6 +62,7 @@ else:
 
 from weboob.capabilities.base import BaseObject
 from weboob.tools.application.console import ConsoleApplication
+from weboob.tools.compat import basestring
 from weboob.tools.misc import guess_encoding
 
 __all__ = ['IFormatter', 'MandatoryFieldsNotFound']

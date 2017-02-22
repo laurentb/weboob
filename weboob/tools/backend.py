@@ -24,6 +24,7 @@ from copy import copy
 from weboob.capabilities.base import BaseObject, FieldNotFound, \
     Capability, NotLoaded, NotAvailable
 from weboob.tools.misc import iter_fields
+from weboob.tools.compat import basestring
 from weboob.tools.log import getLogger
 from weboob.tools.value import ValuesDict
 from weboob.exceptions import ModuleInstallError

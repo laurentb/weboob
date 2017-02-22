@@ -36,6 +36,7 @@ from weboob.core import Weboob, CallErrors
 from weboob.core.scheduler import Scheduler
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Thread, Message
 from weboob.tools.application.repl import ReplApplication
+from weboob.tools.compat import unicode
 from weboob.tools.date import utc2local
 from weboob.tools.html import html2text
 from weboob.tools.misc import get_backtrace, to_unicode

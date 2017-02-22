@@ -27,6 +27,7 @@ from weboob.core.requests import RequestsManager
 from weboob.core.repositories import Repositories, PrintProgress
 from weboob.core.scheduler import Scheduler
 from weboob.tools.backend import Module
+from weboob.tools.compat import basestring, unicode
 from weboob.tools.config.iconfig import ConfigError
 from weboob.tools.log import getLogger
 from weboob.exceptions import ModuleLoadError

@@ -31,7 +31,7 @@ import os
 from weboob.capabilities.base import FieldNotFound, BaseObject, UserError
 from weboob.core import CallErrors
 from weboob.tools.application.formatters.iformatter import MandatoryFieldsNotFound
-from weboob.tools.compat import range
+from weboob.tools.compat import range, basestring, unicode
 from weboob.tools.misc import to_unicode
 from weboob.tools.path import WorkingPath
 from weboob.capabilities.collection import Collection, BaseCollection, CapCollection, CollectionNotFound

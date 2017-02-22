@@ -19,6 +19,8 @@
 
 from collections import OrderedDict
 
+from weboob.tools.compat import unicode
+
 from .base import Capability, BaseObject, Field, StringField, BytesField, IntField, \
                   BoolField, UserError
 

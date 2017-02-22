@@ -19,6 +19,8 @@
 
 import warnings
 
+from weboob.tools.compat import unicode
+
 __all__ = ['html2text']
 
 

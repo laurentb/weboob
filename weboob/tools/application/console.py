@@ -41,6 +41,7 @@ from weboob.capabilities.bank import TransferInvalidLabel, TransferInvalidAmount
                                      TransferInvalidEmitter, TransferInvalidRecipient
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt, ValueBackendPassword
 from weboob.tools.misc import to_unicode
+from weboob.tools.compat import unicode
 
 from .base import Application, MoreResultsAvailable
 

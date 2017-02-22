@@ -21,6 +21,7 @@
 import csv
 
 from weboob.tools.log import getLogger
+from weboob.tools.compat import basestring, unicode
 from .iparser import IParser
 
 

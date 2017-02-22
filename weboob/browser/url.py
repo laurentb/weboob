@@ -25,6 +25,7 @@ except ImportError:
 import re
 import requests
 
+from weboob.tools.compat import basestring
 from weboob.tools.regex_helper import normalize
 from weboob.tools.misc import to_unicode
 

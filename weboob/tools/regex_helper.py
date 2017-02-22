@@ -34,6 +34,8 @@ This is not, and is not intended to be, a complete reg-exp decompiler. It
 should be good enough for a large class of URLS, however.
 """
 
+from weboob.tools.compat import basestring
+
 # Mapping of an escape character to a representative of that class. So, e.g.,
 # "\w" is replaced by "x" in a reverse URL. A value of None means to ignore
 # this sequence. Any missing key is mapped to itself.

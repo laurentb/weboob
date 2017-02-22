@@ -20,6 +20,8 @@
 
 from datetime import datetime, date
 
+from weboob.tools.compat import basestring, unicode
+
 from .base import Capability, BaseObject, Field, FloatField, \
                   StringField, UserError, NotLoaded
 from .date import DateField

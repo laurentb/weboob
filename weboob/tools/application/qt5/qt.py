@@ -36,7 +36,7 @@ from PyQt5.QtGui import QTextDocument, QAbstractTextDocumentLayout, QPalette
 
 from weboob.core.ouiboube import Weboob, VersionsMismatchError
 from weboob.core.scheduler import IScheduler
-from weboob.tools.compat import range
+from weboob.tools.compat import range, unicode
 from weboob.tools.config.iconfig import ConfigError
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden, ModuleInstallError
 from weboob.tools.value import ValueInt, ValueBool, ValueBackendPassword

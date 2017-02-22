@@ -51,6 +51,7 @@ except ImportError:
 from weboob.exceptions import BrowserHTTPSDowngrade, ModuleInstallError
 
 from weboob.tools.log import getLogger
+from weboob.tools.compat import basestring, unicode
 from weboob.tools.json import json
 
 from .cookies import WeboobCookieJar

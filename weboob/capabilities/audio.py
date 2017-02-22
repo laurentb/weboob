@@ -19,6 +19,8 @@
 
 import re
 
+from weboob.tools.compat import unicode
+
 from .image import Thumbnail
 from .base import Field, StringField, IntField, BaseObject
 from .date import DeltaField

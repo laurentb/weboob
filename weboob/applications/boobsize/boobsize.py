@@ -23,6 +23,7 @@ from weboob.capabilities.base import empty
 from weboob.capabilities.gauge import CapGauge, SensorNotFound
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
+from weboob.tools.compat import unicode
 
 
 __all__ = ['Boobsize']

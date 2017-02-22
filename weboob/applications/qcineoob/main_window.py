@@ -31,6 +31,7 @@ from weboob.tools.application.qt5 import QtMainWindow, QtDo
 from weboob.tools.application.qt5.backendcfg import BackendCfg
 from weboob.tools.application.qt5.models import BackendListModel
 from weboob.tools.application.qt5.search_history import HistoryCompleter
+from weboob.tools.compat import unicode
 
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 from weboob.applications.qcineoob.ui.main_window_ui import Ui_MainWindow

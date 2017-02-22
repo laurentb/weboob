@@ -21,6 +21,8 @@
 import datetime
 import time
 
+from weboob.tools.compat import unicode
+
 from .base import Capability, BaseObject, NotLoaded, Field, StringField, \
                   IntField, UserError
 from .date import DateField

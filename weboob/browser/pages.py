@@ -34,7 +34,7 @@ except ImportError:
 import requests
 
 from weboob.exceptions import ParseError, ModuleInstallError
-from weboob.tools.compat import basestring
+from weboob.tools.compat import basestring, unicode
 from weboob.tools.log import getLogger
 from weboob.tools.pdf import decompress_pdf
 

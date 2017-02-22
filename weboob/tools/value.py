@@ -25,6 +25,8 @@ import subprocess
 from collections import OrderedDict
 from subprocess import check_output
 
+from weboob.tools.compat import basestring, unicode
+
 from .misc import to_unicode
 
 

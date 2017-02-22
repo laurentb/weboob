@@ -21,6 +21,7 @@
 import lxml.html as html
 from .standard import _Selector, _NO_DEFAULT, Filter, FilterError
 from weboob.tools.html import html2text
+from weboob.tools.compat import basestring, unicode
 
 
 __all__ = ['CSS', 'XPath', 'XPathNotFound', 'AttributeNotFound',

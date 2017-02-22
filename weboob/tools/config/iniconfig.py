@@ -28,6 +28,8 @@ from decimal import Decimal
 import logging
 import os
 
+from weboob.tools.compat import basestring, unicode
+
 from .iconfig import IConfig
 
 

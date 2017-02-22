@@ -25,6 +25,7 @@ import re
 from weboob.capabilities.base import empty
 from weboob.exceptions import BrowserQuestion
 from weboob.tools.capabilities.bank.iban import is_iban_valid
+from weboob.tools.compat import unicode
 
 from .base import BaseObject, Field, StringField, DecimalField, IntField, \
                   UserError, Currency, NotAvailable

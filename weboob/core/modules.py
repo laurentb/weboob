@@ -22,6 +22,7 @@ import imp
 import logging
 
 from weboob.tools.backend import Module
+from weboob.tools.compat import basestring
 from weboob.tools.log import getLogger
 from weboob.exceptions import ModuleLoadError
 

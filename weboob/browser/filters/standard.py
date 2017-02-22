@@ -32,7 +32,7 @@ import lxml.html
 
 from weboob.capabilities.base import empty
 from weboob.capabilities.base import Currency as BaseCurrency
-from weboob.tools.compat import basestring
+from weboob.tools.compat import basestring, unicode
 from weboob.exceptions import ParseError
 from weboob.browser.url import URL
 from weboob.tools.log import getLogger, DEBUG_FILTERS
