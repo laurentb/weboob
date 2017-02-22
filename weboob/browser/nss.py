@@ -200,7 +200,11 @@ def init_nss(path, rw=False):
 
 
 def create_cert_db(path):
-    subprocess.check_call(['certutil', '-N', '--empty-password', '-d', path])
+    try:
+        subprocess.check_call(['certutil', '-N', '--empty-password', '-d', path])
+    except OSError:
+        raise ImportError('Please install libnss3-tools')
+
     cert_dir = '/etc/ssl/certs'
     for f in os.listdir(cert_dir):
         f = os.path.join(cert_dir, f)
