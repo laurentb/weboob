@@ -52,7 +52,7 @@ from logging import debug
 __all__ = ['Masstransit']
 
 
-class MasstransitHildon():
+class MasstransitHildon(object):
     "hildon interface"
 
     def connect_event(self, connection, event=None, c=None, d=None):

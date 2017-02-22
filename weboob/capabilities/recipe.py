@@ -30,7 +30,7 @@ import re
 __all__ = ['Recipe', 'CapRecipe']
 
 
-class Comment():
+class Comment(object):
     def __init__(self, author=None, rate=None, text=None):
         self.author = author
         self.rate = rate

@@ -22,7 +22,7 @@ from weboob.browser.pages import Page
 from weboob.browser.url import UrlNotResolvable
 
 
-class MyMockBrowserWithoutBrowser():
+class MyMockBrowserWithoutBrowser(object):
     BASEURL = "http://weboob.org"
     url = URL("http://test.org")
 

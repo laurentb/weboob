@@ -26,7 +26,7 @@ from weboob.browser.pages import Form, FormSubmitWarning
 
 
 # Mock that allows to represent a Page
-class MyMockPage():
+class MyMockPage(object):
     url = URL("http://httpbin.org")
 
 
