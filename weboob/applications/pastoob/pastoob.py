@@ -198,7 +198,7 @@ class Pastoob(ReplApplication):
 
         seconds = 0
         for number, unit in parts:
-            for rx, secs in argsmap.iteritems():
+            for rx, secs in argsmap.items():
                 if re.match('^(%s)$' % rx, unit):
                     seconds += float(number) * float(secs)
 

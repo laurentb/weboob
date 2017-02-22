@@ -68,7 +68,7 @@ def find_object(mylist, error=None, **kwargs):
     """
     for a in mylist:
         found = True
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             if getattr(a, key) != value:
                 found = False
                 break
@@ -407,7 +407,7 @@ class BaseObject(object):
 
         if hasattr(self, 'id') and self.id is not None:
             yield 'id', self.id
-        for name, field in self._fields.iteritems():
+        for name, field in self._fields.items():
             yield name, field.value
 
     def __eq__(self, obj):
@@ -566,7 +566,7 @@ class Currency(object):
         """
         curtexts = klass.EXTRACTOR.sub(' ', text.upper()).split()
         for curtext in curtexts:
-            for currency, symbols in klass.CURRENCIES.iteritems():
+            for currency, symbols in klass.CURRENCIES.items():
                 if curtext in currency:
                     return currency
                 for symbol in symbols:

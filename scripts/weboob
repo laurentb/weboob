@@ -143,7 +143,7 @@ class Weboob(ConsoleApplication):
                     else:
                         capApplicationDict[capability] = [application]
 
-        return OrderedDict([(k, v) for k, v in sorted(capApplicationDict.iteritems())])
+        return OrderedDict([(k, v) for k, v in sorted(capApplicationDict.items())])
 
     def get_application_capabilities(self, application):
         if hasattr(application, 'CAPS') and application.CAPS:

@@ -74,7 +74,7 @@ class INIConfig(IConfig):
 
     def save(self):
         def save_section(values, root_section=self.ROOTSECT):
-            for k, v in values.iteritems():
+            for k, v in values.items():
                 if isinstance(v, (int, Decimal, float, basestring)):
                     if not self.config.has_section(root_section):
                         self.config.add_section(root_section)

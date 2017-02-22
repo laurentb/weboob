@@ -233,7 +233,7 @@ h2. Attendees
        self.format_duration() or '_Unknown_',
        self.location or '_Unknown_')
 
-        for member in self.members.itervalues():
+        for member in self.members.values():
             if self.date:
                 availabilities = ''
             else:
@@ -355,7 +355,7 @@ class Boobathon(ReplApplication):
         Display progress of members.
         """
         self.event.load()
-        for member in self.event.members.itervalues():
+        for member in self.event.members.values():
             if member.is_me and member is self.event.winner:
                 status = '\o/ ->'
             elif member.is_me:
@@ -421,7 +421,7 @@ class Boobathon(ReplApplication):
             if i >= 0 and i%2:
                 # second line of task, see if we'll stop
                 stop = True
-            for mem in self.event.members.itervalues():
+            for mem in self.event.members.values():
                 if len(mem.tasks) > (i/2+1):
                     # there are more tasks, don't stop now
                     stop = False
@@ -455,7 +455,7 @@ class Boobathon(ReplApplication):
         args = line.split(' ')
         if len(args) == 2:
             self.event.load()
-            return [member.name for member in self.event.members.itervalues()]
+            return [member.name for member in self.event.members.values()]
 
     def do_close(self, name):
         """
@@ -465,7 +465,7 @@ class Boobathon(ReplApplication):
         """
         self.event.load()
 
-        for member in self.event.members.itervalues():
+        for member in self.event.members.values():
             if member.name == name:
                 self.event.winner = member
                 if self.save_event('Close event'):
@@ -533,7 +533,7 @@ class Boobathon(ReplApplication):
         Display members information.
         """
         self.event.load()
-        for member in self.event.members.itervalues():
+        for member in self.event.members.values():
             print(member.name)
             print('-' * len(member.name))
             print('Repository:', member.repository)

@@ -211,7 +211,7 @@ class WebNip(object):
         :type module: :class:`basestring`
         :rtype: iter[:class:`weboob.tools.backend.Module`]
         """
-        for _, backend in sorted(self.backend_instances.iteritems()):
+        for _, backend in sorted(self.backend_instances.items()):
             if (caps is None or backend.has_caps(caps)) and \
                (module is None or backend.NAME == module):
                 with backend:

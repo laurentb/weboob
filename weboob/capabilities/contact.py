@@ -124,7 +124,7 @@ class Contact(BaseContact):
             self.photos[name] = ContactPhoto(name)
 
         photo = self.photos[name]
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             setattr(photo, key, value)
 
     def get_text(self):
@@ -132,7 +132,7 @@ class Contact(BaseContact):
             result = u''
             if node.flags & node.SECTION:
                 result += u'\t' * level + node.label + '\n'
-                for sub in node.value.itervalues():
+                for sub in node.value.values():
                     result += print_node(sub, level + 1)
             else:
                 if isinstance(node.value, (tuple, list)):
@@ -156,10 +156,10 @@ class Contact(BaseContact):
         result += u'Status: %s (%s)\n' % (s, self.status_msg)
         result += u'URL: %s\n' % self.url
         result += u'Photos:\n'
-        for name, photo in self.photos.iteritems():
+        for name, photo in self.photos.items():
             result += u'\t%s%s\n' % (photo, ' (hidden)' if photo.hidden else '')
         result += u'\nProfile:\n'
-        for head in self.profile.itervalues():
+        for head in self.profile.values():
             result += print_node(head)
         result += u'Description:\n'
         for s in self.summary.split('\n'):

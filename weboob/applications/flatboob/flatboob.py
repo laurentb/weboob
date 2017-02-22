@@ -66,7 +66,7 @@ class HousingFormatter(IFormatter):
 
         if hasattr(obj, 'details') and obj.details:
             result += '\n\n%sDetails%s\n' % (self.BOLD, self.NC)
-            for key, value in obj.details.iteritems():
+            for key, value in obj.details.items():
                 result += ' %s: %s\n' % (key, value)
 
         return result

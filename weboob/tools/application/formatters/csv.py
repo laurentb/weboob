@@ -49,4 +49,4 @@ class CSVFormatter(IFormatter):
             writer.writerow([unicode(v).encode('utf-8') for v in item.keys()])
             self.started = True
 
-        writer.writerow([unicode(v).encode('utf-8') for v in item.itervalues()])
+        writer.writerow([unicode(v).encode('utf-8') for v in item.values()])

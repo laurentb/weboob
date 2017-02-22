@@ -59,7 +59,7 @@ class WeboobDebug(Application):
 
         locs = dict(backend=backend, browser=backend.browser, application=self, weboob=self.weboob)
         banner = 'Weboob debug shell\nBackend "%s" loaded.\nAvailable variables:\n' % backend_name \
-                 + '\n'.join(['  %s: %s' % (k, v) for k, v in locs.iteritems()])
+                 + '\n'.join(['  %s: %s' % (k, v) for k, v in locs.items()])
 
         if self.options.bpython:
             funcs = [self.bpython, self.ipython, self.python]

@@ -16,7 +16,7 @@ backends_without_tests = []
 backends_without_icons = []
 backends_using_deprecated = []
 
-for name, backend in weboob.modules_loader.loaded.iteritems():
+for name, backend in weboob.modules_loader.loaded.items():
     path = backend.package.__path__[0]
     if not os.path.exists(os.path.join(path, 'test.py')):
         backends_without_tests.append(name)

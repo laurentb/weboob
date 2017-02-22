@@ -90,7 +90,7 @@ class EventsWidget(QWidget):
             pass
 
         img = None
-        for photo in contact.photos.itervalues():
+        for photo in contact.photos.values():
             if photo.thumbnail_data:
                 img = QImage.fromData(photo.thumbnail_data)
                 break

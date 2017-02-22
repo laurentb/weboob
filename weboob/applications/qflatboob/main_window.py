@@ -345,7 +345,7 @@ class MainWindow(QtMainWindow):
             child.widget().deleteLater()
 
         if housing.details:
-            for key, value in housing.details.iteritems():
+            for key, value in housing.details.items():
                 if empty(value):
                     continue
                 label = QLabel(value)

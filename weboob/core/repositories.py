@@ -334,7 +334,7 @@ class Repository(object):
         if private:
             config.set(DEFAULTSECT, 'url', self.url)
 
-        for module in self.modules.itervalues():
+        for module in self.modules.values():
             config.add_section(module.name)
             for key, value in module.dump():
                 config.set(module.name, key, to_unicode(value).encode('utf-8'))
@@ -370,7 +370,7 @@ class Versions(object):
 
     def save(self):
         config = RawConfigParser()
-        for name, version in self.versions.iteritems():
+        for name, version in self.versions.items():
             config.set(DEFAULTSECT, name, version)
         with open(os.path.join(self.path, self.VERSIONS_LIST), 'wb') as fp:
             config.write(fp)
@@ -490,7 +490,7 @@ class Repositories(object):
         """
         modules = {}
         for repos in reversed(self.repositories):
-            for name, info in repos.modules.iteritems():
+            for name, info in repos.modules.items():
                 if name not in modules and (not caps or info.has_caps(caps)):
                     modules[name] = self._extend_module_info(repos, info)
         return modules
@@ -621,7 +621,7 @@ class Repositories(object):
         self.update_repositories(progress)
 
         to_update = []
-        for name, info in self.get_all_modules_info().iteritems():
+        for name, info in self.get_all_modules_info().items():
             if not info.is_local() and info.is_installed():
                 if self.versions.get(name) != info.version:
                     to_update.append(info)

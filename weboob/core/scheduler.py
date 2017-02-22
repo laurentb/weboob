@@ -152,7 +152,7 @@ class Scheduler(IScheduler):
     def _wait_to_stop(self):
         self.want_stop()
         with self.mutex:
-            for e in self.queue.itervalues():
+            for e in self.queue.values():
                 e.cancel()
                 e.join()
             self.queue = {}
@@ -171,7 +171,7 @@ class Scheduler(IScheduler):
     def want_stop(self):
         self.stop_event.set()
         with self.mutex:
-            for t in self.queue.itervalues():
+            for t in self.queue.values():
                 t.cancel()
                 # Contrary to _wait_to_stop(), don't call t.join
                 # because want_stop() have to be non-blocking.

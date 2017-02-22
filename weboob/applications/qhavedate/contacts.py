@@ -256,7 +256,7 @@ class ContactProfile(QWidget):
             missing_fields.add('profile')
         elif not self.loaded_profile:
             self.loaded_profile = True
-            for head in contact.profile.itervalues():
+            for head in contact.profile.values():
                 if head.flags & head.HEAD:
                     widget = self.ui.headWidget
                 else:
@@ -271,7 +271,7 @@ class ContactProfile(QWidget):
         if node.flags & node.SECTION:
             value = QWidget()
             value.setLayout(QFormLayout())
-            for sub in node.value.itervalues():
+            for sub in node.value.values():
                 self.process_node(sub, value)
         elif isinstance(node.value, list):
             value = QLabel('<br />'.join(unicode(s) for s in node.value))
@@ -491,7 +491,7 @@ class ContactsWidget(QWidget):
             pass
 
         img = None
-        for photo in contact.photos.itervalues():
+        for photo in contact.photos.values():
             if photo.thumbnail_data:
                 img = QImage.fromData(photo.thumbnail_data)
                 break

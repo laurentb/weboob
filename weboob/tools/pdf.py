@@ -207,7 +207,7 @@ def build_rows(lines):
         plines[a].append(line)
 
     boxes = ApproxVecDict()
-    for plines in points.itervalues():
+    for plines in points.values():
         if not (plines[ANGLE_HORIZONTAL] and plines[ANGLE_VERTICAL]):
             continue
         for hline in plines[ANGLE_HORIZONTAL]:

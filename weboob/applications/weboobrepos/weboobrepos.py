@@ -137,7 +137,7 @@ class WeboobRepos(ReplApplication):
             else:
                 print('Keyring is up to date')
 
-        for name, module in r.modules.iteritems():
+        for name, module in r.modules.items():
             tarname = os.path.join(repo_path, '%s.tar.gz' % name)
             if r.signed:
                 sigfiles.append(os.path.basename(tarname))

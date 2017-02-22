@@ -59,7 +59,7 @@ class ModuleInfoFormatter(IFormatter):
         result += '| Location        | %s\n' % minfo['location']
         if 'config' in minfo:
             first = True
-            for key, field in minfo['config'].iteritems():
+            for key, field in minfo['config'].items():
                 label = field['label']
                 if field['default'] is not None:
                     label += ' (default: %s)' % field['default']
@@ -186,7 +186,7 @@ class WeboobCfg(ReplApplication):
                                ('Configuration', ', '.join(
                                    '%s=%s' % (key, ('*****' if key in module.config and module.config[key].masked
                                                     else value))
-                                   for key, value in params.iteritems())),
+                                   for key, value in params.items())),
                                ])
             self.format(row)
 
@@ -243,7 +243,7 @@ class WeboobCfg(ReplApplication):
         Show available modules.
         """
         caps = line.split()
-        for name, info in sorted(self.weboob.repositories.get_all_modules_info(caps).iteritems()):
+        for name, info in sorted(self.weboob.repositories.get_all_modules_info(caps).items()):
             row = OrderedDict([('Name', name),
                                ('Capabilities', CapabilitiesWrapper(info.capabilities)),
                                ('Description', info.description),
@@ -287,7 +287,7 @@ class WeboobCfg(ReplApplication):
         module_info['location'] = '%s' % (minfo.url or os.path.join(minfo.path, minfo.name))
         if module:
             module_info['config'] = {}
-            for key, field in module.config.iteritems():
+            for key, field in module.config.items():
                 module_info['config'][key] = {'label': field.label,
                                               'default': field.default,
                                               'description': field.description,

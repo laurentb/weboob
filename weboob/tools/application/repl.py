@@ -60,7 +60,7 @@ class ReplOptionParser(OptionParser):
 class ReplOptionFormatter(IndentedHelpFormatter):
     def format_commands(self, commands):
         s = u''
-        for section, cmds in commands.iteritems():
+        for section, cmds in commands.items():
             if len(cmds) == 0:
                 continue
             if len(s) > 0:
@@ -128,7 +128,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                                 '',
                                ))
         self.formatters_loader = FormattersLoader()
-        for key, klass in self.EXTRA_FORMATTERS.iteritems():
+        for key, klass in self.EXTRA_FORMATTERS.items():
             self.formatters_loader.register_formatter(key, klass)
         self.formatter = None
         self.commands_formatters = self.COMMANDS_FORMATTERS.copy()
@@ -634,7 +634,7 @@ class ReplApplication(Cmd, ConsoleApplication):
             elif args[1] == 'disable':
                 choices = sorted(enabled_backends_names)
             elif args[1] in ('add', 'register') and len(args) == 3:
-                for name, module in sorted(self.weboob.repositories.get_all_modules_info(self.CAPS).iteritems()):
+                for name, module in sorted(self.weboob.repositories.get_all_modules_info(self.CAPS).items()):
                     choices.append(name)
             elif args[1] == 'edit':
                 choices = sorted(available_backends_names)
@@ -725,7 +725,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                 enabled = backend in self.enabled_backends
                 self.unload_backends(names=[backend.name])
                 self.edit_backend(backend.name)
-                for newb in self.load_backends(names=[backend.name]).itervalues():
+                for newb in self.load_backends(names=[backend.name]).values():
                     if not enabled:
                         self.enabled_backends.remove(newb)
         elif action == 'remove':
@@ -735,7 +735,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         elif action == 'list-modules':
             modules = []
             print('Modules list:')
-            for name, info in sorted(self.weboob.repositories.get_all_modules_info().iteritems()):
+            for name, info in sorted(self.weboob.repositories.get_all_modules_info().items()):
                 if not self.is_module_loadable(info):
                     continue
                 modules.append(name)
@@ -933,7 +933,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                     return 1
         else:
             print('Default formatter: %s' % self.DEFAULT_FORMATTER)
-            for key, klass in self.commands_formatters.iteritems():
+            for key, klass in self.commands_formatters.items():
                 print('Command "%s": %s' % (key, klass))
 
     def do_select(self, line):

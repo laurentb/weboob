@@ -190,7 +190,7 @@ class IFormatter(object):
 
             if selected_fields:
                 obj = obj.copy()
-                for name, value in obj.iteritems():
+                for name, value in obj.items():
                     if name not in selected_fields:
                         obj.pop(name)
 

@@ -32,7 +32,7 @@
       ${video_item(item)}
     % endfor
   % else:
-    % for backend, items in sorted(results.iteritems()):
+    % for backend, items in sorted(results.items()):
       <h2>${backend}</h2>
       % for item in items:
         ${video_item(item)}

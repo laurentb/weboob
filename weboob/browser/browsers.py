@@ -159,7 +159,7 @@ class Browser(object):
         request = response.request
         with open(response_filepath + '-request.txt', 'w') as f:
             f.write('%s %s\n\n\n' % (request.method, request.url))
-            for key, value in request.headers.iteritems():
+            for key, value in request.headers.items():
                 f.write('%s: %s\n' % (key, value))
             if request.body is not None:  # separate '' from None
                 f.write('\n\n\n%s' % request.body)
@@ -167,7 +167,7 @@ class Browser(object):
             if hasattr(response.elapsed, 'total_seconds'):
                 f.write('Time: %3.3fs\n' % response.elapsed.total_seconds())
             f.write('%s %s\n\n\n' % (response.status_code, response.reason))
-            for key, value in response.headers.iteritems():
+            for key, value in response.headers.items():
                 f.write('%s: %s\n' % (key, value))
 
         match_filepath = os.path.join(self.responses_dirname, 'url_response_match.txt')
@@ -397,7 +397,7 @@ class Browser(object):
             req.data = req.data.encode(data_encoding)
         if isinstance(req.data, dict) and data_encoding:
             req.data = OrderedDict([(k, v.encode(data_encoding) if isinstance(v, unicode) else v)
-                                    for k, v in req.data.iteritems()])
+                                    for k, v in req.data.items()])
 
         if referrer is None:
             referrer = self.get_referrer(self.url, url)
@@ -658,7 +658,7 @@ class PagesBrowser(DomainBrowser):
 
         self.page = None
         self._urls = deepcopy(self._urls)
-        for url in self._urls.itervalues():
+        for url in self._urls.values():
             url.browser = self
 
     def open(self, *args, **kwargs):
@@ -677,7 +677,7 @@ class PagesBrowser(DomainBrowser):
         def internal_callback(response):
             # Try to handle the response page with an URL instance.
             response.page = None
-            for url in self._urls.itervalues():
+            for url in self._urls.values():
                 page = url.handle(response)
                 if page is not None:
                     self.logger.debug('Handle %s with %s' % (response.url, page.__class__.__name__))

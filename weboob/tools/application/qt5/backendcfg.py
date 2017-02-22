@@ -200,7 +200,7 @@ class BackendCfg(QDialog):
 
     def loadModules(self):
         self.ui.modulesList.clear()
-        for name, module in sorted(self.weboob.repositories.get_all_modules_info(self.caps).iteritems()):
+        for name, module in sorted(self.weboob.repositories.get_all_modules_info(self.caps).items()):
             item = QListWidgetItem(name.capitalize())
             self.set_icon(item, module)
             self.ui.modulesList.addItem(item)
@@ -328,7 +328,7 @@ class BackendCfg(QDialog):
             info = self.weboob.repositories.get_module_info(module_name)
             if info and (info.is_installed() or self.installModule(info)):
                 module = self.weboob.modules_loader.get_or_load_module(module_name)
-                for key, value in module.config.load(self.weboob, module_name, backend_name, params, nofail=True).iteritems():
+                for key, value in module.config.load(self.weboob, module_name, backend_name, params, nofail=True).items():
                     try:
                         l, widget = self.config_widgets[key]
                     except KeyError:
@@ -348,7 +348,7 @@ class BackendCfg(QDialog):
 
     @Slot()
     def moduleSelectionChanged(self):
-        for key, (label, value) in self.config_widgets.iteritems():
+        for key, (label, value) in self.config_widgets.items():
             label.hide()
             value.hide()
             self.ui.configLayout.removeWidget(label)
@@ -406,7 +406,7 @@ class BackendCfg(QDialog):
         else:
             self.ui.registerButton.hide()
 
-        for key, field in module.config.iteritems():
+        for key, field in module.config.items():
             label = QLabel(u'%s:' % field.label)
             qvalue = QtValue(field)
             self.ui.configLayout.addRow(label, qvalue)
@@ -459,7 +459,7 @@ class BackendCfg(QDialog):
                 return
 
         config = module.config.load(self.weboob, module.name, backend_name, {}, nofail=True)
-        for key, field in config.iteritems():
+        for key, field in config.items():
             label, qtvalue = self.config_widgets[key]
 
             try:
@@ -510,7 +510,7 @@ class BackendCfg(QDialog):
         vbox.addWidget(QLabel('To create an account %s, please provide this information:' % website))
         formlayout = QFormLayout()
         props_widgets = OrderedDict()
-        for key, prop in module.klass.ACCOUNT_REGISTER_PROPERTIES.iteritems():
+        for key, prop in module.klass.ACCOUNT_REGISTER_PROPERTIES.items():
             widget = QtValue(prop)
             formlayout.addRow(QLabel(u'%s:' % prop.label), widget)
             props_widgets[prop.id] = widget
@@ -528,7 +528,7 @@ class BackendCfg(QDialog):
             if dialog.exec_():
                 account = Account()
                 account.properties = {}
-                for key, widget in props_widgets.iteritems():
+                for key, widget in props_widgets.items():
                     try:
                         v = widget.get_value()
                     except ValueError as e:
@@ -546,7 +546,7 @@ class BackendCfg(QDialog):
                             self.tr('Unable to register account %s:<br /><br />%s') % (website, e))
                         end = False
                     else:
-                        for key, value in account.properties.iteritems():
+                        for key, value in account.properties.items():
                             if key in self.config_widgets:
                                 self.config_widgets[key][1].set_value(value)
 

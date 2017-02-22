@@ -70,7 +70,7 @@ class ManpageHelpFormatter(optparse.HelpFormatter):
             self.app.weboob.modules_loader.load_all()
             caps = self.app.CAPS if isinstance(self.app.CAPS, tuple) else (self.app.CAPS,)
             modules = []
-            for name, module in self.app.weboob.modules_loader.loaded.iteritems():
+            for name, module in self.app.weboob.modules_loader.loaded.items():
                 if module.has_caps(*caps):
                     modules.append(u'* %s (%s)' % (name, module.description))
             if len(modules) > 0:
@@ -80,7 +80,7 @@ class ManpageHelpFormatter(optparse.HelpFormatter):
 
     def format_commands(self, commands):
         s = u''
-        for section, cmds in commands.iteritems():
+        for section, cmds in commands.items():
             if len(cmds) == 0:
                 continue
             s += '.SH %s COMMANDS\n' % section.upper()
@@ -130,7 +130,7 @@ def main():
                 else:
                     print("Loaded %s" % fname)
                     # Find the applications we can handle
-                    for klass in script.__dict__.itervalues():
+                    for klass in script.__dict__.values():
                         if inspect.isclass(klass) and issubclass(klass, Application) and klass.VERSION:
                             analyze_application(klass, fname)
                 finally:

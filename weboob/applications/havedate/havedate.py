@@ -74,7 +74,7 @@ class HaveDate(Boobmsg):
             self.bcall_errors_handler(e)
 
         optimizations = self.storage.get('optims')
-        for optim, backends in optimizations.iteritems():
+        for optim, backends in optimizations.items():
             self.optims('start', backends, optim, store=False)
 
         return ReplApplication.main(self, argv)
@@ -100,7 +100,7 @@ class HaveDate(Boobmsg):
             for optim in self.do('get_optimization', optim_name, backends=backend_names):
                 if optim:
                     backends_optims[optim.backend] = optim
-            for backend_name, optim in backends_optims.iteritems():
+            for backend_name, optim in backends_optims.items():
                 if len(optim.CONFIG) == 0:
                     print('%s.%s does not require configuration.' % (backend_name, optim_name))
                     continue
@@ -114,7 +114,7 @@ class HaveDate(Boobmsg):
                     params = {}
                 print('Configuration of %s.%s' % (backend_name, optim_name))
                 print('-----------------%s-%s' % ('-' * len(backend_name), '-' * len(optim_name)))
-                for key, value in optim.CONFIG.iteritems():
+                for key, value in optim.CONFIG.items():
                     params[key] = self.ask(value, default=params[key] if (key in params) else value.default)
 
                 optim.set_config(params)
@@ -236,7 +236,7 @@ class HaveDate(Boobmsg):
                 backends.add(optim.backend)
 
             backends = sorted(backends)
-            for name, backends_status in optims.iteritems():
+            for name, backends_status in optims.items():
                 line = [('name', name)]
                 for b in backends:
                     try:

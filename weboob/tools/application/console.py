@@ -107,7 +107,7 @@ class ConsoleApplication(Application):
 
     def unload_backends(self, *args, **kwargs):
         unloaded = self.weboob.unload_backends(*args, **kwargs)
-        for backend in unloaded.itervalues():
+        for backend in unloaded.values():
             try:
                 self.enabled_backends.remove(backend)
             except KeyError:
@@ -130,7 +130,7 @@ class ConsoleApplication(Application):
                 self.edit_backend(err.backend_name)
                 self.load_backends(names=[err.backend_name])
 
-        for name, backend in ret.iteritems():
+        for name, backend in ret.items():
             self.enabled_backends.add(backend)
 
         self.check_loaded_backends()
@@ -152,7 +152,7 @@ class ConsoleApplication(Application):
         while r != 'q':
             modules = []
             print('\nAvailable modules:')
-            for name, info in sorted(self.weboob.repositories.get_all_modules_info().iteritems()):
+            for name, info in sorted(self.weboob.repositories.get_all_modules_info().items()):
                 if not self.is_module_loadable(info):
                     continue
                 modules.append(name)
@@ -277,7 +277,7 @@ class ConsoleApplication(Application):
             website = 'with backend %s' % backend.name
         while True:
             asked_config = False
-            for key, prop in backend.klass.ACCOUNT_REGISTER_PROPERTIES.iteritems():
+            for key, prop in backend.klass.ACCOUNT_REGISTER_PROPERTIES.items():
                 if not asked_config:
                     asked_config = True
                     print('Configuration of new account %s' % website)
@@ -298,7 +298,7 @@ class ConsoleApplication(Application):
             else:
                 break
         backend_config = {}
-        for key, value in account.properties.iteritems():
+        for key, value in account.properties.items():
             if key in backend.config:
                 backend_config[key] = value.get()
 
@@ -348,7 +348,7 @@ class ConsoleApplication(Application):
 
         # ask for params non-specified on command-line arguments
         asked_config = False
-        for key, value in config.iteritems():
+        for key, value in config.items():
             if not asked_config:
                 asked_config = True
                 print('')
@@ -373,7 +373,7 @@ class ConsoleApplication(Application):
 
         try:
             config = config.load(self.weboob, module.name, backend_name, params, nofail=True)
-            for key, value in params.iteritems():
+            for key, value in params.items():
                 if key not in config:
                     continue
                 config[key].set(value)
@@ -477,10 +477,10 @@ class ConsoleApplication(Application):
                 for s in v.choices:
                     if s == v.default:
                         aliases[s.upper()] = s
-                for key, value in v.choices.iteritems():
+                for key, value in v.choices.items():
                     print('     %s%s%s: %s' % (self.BOLD, key, self.NC, value))
             else:
-                for n, (key, value) in enumerate(v.choices.iteritems()):
+                for n, (key, value) in enumerate(v.choices.items()):
                     print('     %s%2d)%s %s' % (self.BOLD, n + 1, self.NC,
                                                 value.encode(self.encoding)))
                     aliases[str(n + 1)] = key

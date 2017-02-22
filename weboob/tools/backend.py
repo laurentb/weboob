@@ -153,7 +153,7 @@ class BackendConfig(ValuesDict):
         cfg.modname = modname
         cfg.instname = instname
         cfg.weboob = weboob
-        for name, field in self.iteritems():
+        for name, field in self.items():
             value = config.get(name, None)
 
             if value is None:
@@ -180,7 +180,7 @@ class BackendConfig(ValuesDict):
         :rtype: :class:`dict`
         """
         settings = {}
-        for name, value in self.iteritems():
+        for name, value in self.items():
             settings[name] = value.dump()
         return settings
 
@@ -274,7 +274,7 @@ class Module(object):
             config = {}
 
         # Private fields (which start with '_')
-        self._private_config = dict((key, value) for key, value in config.iteritems() if key.startswith('_'))
+        self._private_config = dict((key, value) for key, value in config.items() if key.startswith('_'))
 
         # Load configuration of backend.
         self.config = self.CONFIG.load(weboob, self.NAME, self.name, config, nofail)
@@ -430,7 +430,7 @@ class Module(object):
 
                 missing = False
                 if hasattr(value, '__iter__'):
-                    for v in (value.itervalues() if isinstance(value, dict) else value):
+                    for v in (value.values() if isinstance(value, dict) else value):
                         if not_loaded(v):
                             missing = True
                             break
@@ -450,7 +450,7 @@ class Module(object):
         if not missing_fields:
             return obj
 
-        for key, value in self.OBJECTS.iteritems():
+        for key, value in self.OBJECTS.items():
             if isinstance(obj, key):
                 self.logger.debug(u'Fill %r with fields: %s' % (obj, missing_fields))
                 obj = value(self, obj, missing_fields) or obj

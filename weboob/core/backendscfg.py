@@ -146,7 +146,7 @@ class BackendsConfig(object):
             except DuplicateSectionError:
                 raise BackendAlreadyExists(backend_name)
         config.set(backend_name, '_module', module_name)
-        for key, value in params.iteritems():
+        for key, value in params.items():
             config.set(backend_name, key, value)
 
         self._write_config(config)

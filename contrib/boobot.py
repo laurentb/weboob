@@ -159,7 +159,7 @@ class MyThread(Thread):
         self.bot.set_weboob(self.weboob)
 
     def run(self):
-        for ev in self.bot.joined.itervalues():
+        for ev in self.bot.joined.values():
             ev.wait()
 
         self.weboob.repeat(5, self.check_tasks)

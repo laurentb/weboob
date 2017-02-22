@@ -81,7 +81,7 @@ class WebContentEdit(ReplApplication):
                 params = '-p'
             os.system("%s %s %s" % (editor, params, ' '.join('"%s"' % path.replace('"', '\\"') for path in paths)))
 
-            for path, content in paths.iteritems():
+            for path, content in paths.items():
                 with open(path, 'r') as f:
                     data = f.read()
                     try:
@@ -106,7 +106,7 @@ class WebContentEdit(ReplApplication):
 
             errors = CallErrors([])
             for content in contents:
-                path = [path for path, c in paths.iteritems() if c == content][0]
+                path = [path for path, c in paths.items() if c == content][0]
                 self.stdout.write('Pushing %s...' % content.id.encode('utf-8'))
                 self.stdout.flush()
                 try:

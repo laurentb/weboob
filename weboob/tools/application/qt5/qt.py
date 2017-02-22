@@ -402,7 +402,7 @@ class _QtValueChoices(QComboBox):
     def __init__(self, value):
         QComboBox.__init__(self)
         self._value = value
-        for k, l in value.choices.iteritems():
+        for k, l in value.choices.items():
             self.addItem(l, QVariant(k))
             if value.default == k:
                 self.setCurrentIndex(self.count()-1)

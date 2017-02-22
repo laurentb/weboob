@@ -72,7 +72,7 @@ class IssueFormatter(IFormatter):
         result += self.format_attr(obj, 'category')
         result += self.format_attr(obj, 'assignee')
         if hasattr(obj, 'fields') and not empty(obj.fields):
-            for key, value in obj.fields.iteritems():
+            for key, value in obj.fields.items():
                 result += self.format_key(key.capitalize(), value)
         if hasattr(obj, 'attachments') and obj.attachments:
             result += '\n%s\n' % self.colored('Attachments:', 'green')
@@ -310,7 +310,7 @@ class BoobTracker(ReplApplication):
                                         for o in objects_list])
                 output += 'X-Available-%s: %s\n' % (self.sanitize_key(key), availables)
 
-        for key, value in issue.fields.iteritems():
+        for key, value in issue.fields.items():
             output += '%s: %s\n' % (self.sanitize_key(key), value or '')
             # TODO: Add X-Available-* for lists
 

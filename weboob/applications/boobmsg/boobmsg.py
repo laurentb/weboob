@@ -289,7 +289,7 @@ class Boobmsg(ReplApplication):
             else:
                 results[field.backend] = [field]
 
-        for name, fields in results.iteritems():
+        for name, fields in results.items():
             print(':: %s ::' % name)
             for f in fields:
                 if f.flags & f.FIELD_HTML:

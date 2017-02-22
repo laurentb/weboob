@@ -125,7 +125,7 @@ class ListElement(AbstractElement):
         self.objects = OrderedDict()
 
     def __call__(self, *args, **kwargs):
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             self.env[key] = value
 
         return self.__iter__()
@@ -173,7 +173,7 @@ class ListElement(AbstractElement):
         self.check_next_page()
 
     def flush(self):
-        for obj in self.objects.itervalues():
+        for obj in self.objects.values():
             yield obj
 
     def check_next_page(self):
@@ -352,7 +352,7 @@ class TableElement(ListElement):
         colnum = 0
         for el in self.el.xpath(self.head_xpath):
             title = self.cleaner.clean(el)
-            for name, titles in columns.iteritems():
+            for name, titles in columns.items():
                 if name in self._cols:
                     continue
                 if title.lower() in [s for s in titles if isinstance(s, (str, unicode))] or \

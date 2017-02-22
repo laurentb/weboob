@@ -74,7 +74,7 @@ class URL(object):
         # XXX use unquote on current params values because if there are spaces
         # or special characters in them, it is encoded only in but not in kwargs.
         return self.browser.page and isinstance(self.browser.page, self.klass) \
-            and (params is None or params == dict([(k,unquote(v)) for k,v in self.browser.page.params.iteritems()]))
+            and (params is None or params == dict([(k,unquote(v)) for k,v in self.browser.page.params.items()]))
 
     def stay_or_go(self, **kwargs):
         """

@@ -740,7 +740,7 @@ class Time(Filter):
         m = self._regexp.search(txt)
         if m:
             kwargs = {}
-            for key, index in self.kwargs.iteritems():
+            for key, index in self.kwargs.items():
                 kwargs[key] = int(m.groupdict()[index] or 0)
             return self.klass(**kwargs)
 

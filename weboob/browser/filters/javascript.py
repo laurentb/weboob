@@ -94,7 +94,7 @@ class JSValue(Regexp):
     def to_python(self, m):
         "Convert MatchObject to python value"
         values = m.groupdict()
-        for t, v in values.iteritems():
+        for t, v in values.items():
             if v is not None:
                 break
         if self.need_type and t != self.need_type:
