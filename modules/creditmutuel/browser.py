@@ -99,9 +99,6 @@ class CreditMutuelBrowser(LoginBrowser):
                          '/fr/banque/nr/nr_devbooster.aspx.*',
                          '/(?P<subbank>.*)fr/banque/RE/aiguille.asp',
                          '/fr/banque/mouvements.html', OperationsPage)
-    new_por = URL('/(?P<subbank>.*)fr/banque/POR_ValoToute.aspx',
-                  '/(?P<subbank>.*)fr/banque/POR_SyntheseLst.aspx', PorPage)
-    new_iban = URL('/(?P<subbank>.*)fr/banque/rib.cgi', IbanPage)
 
     advisor = URL('/(?P<subbank>.*)fr/banques/contact/trouver-une-agence/(?P<page>.*)',
                   '/(?P<subbank>.*)fr/infoclient/',
@@ -162,8 +159,8 @@ class CreditMutuelBrowser(LoginBrowser):
             else:
                 for a in self.new_accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts():
                     self.accounts_list.append(a)
-                self.new_iban.go(subbank=self.currentSubBank).fill_iban(self.accounts_list)
-                self.new_por.go(subbank=self.currentSubBank).add_por_accounts(self.accounts_list)
+                self.iban.go(subbank=self.currentSubBank).fill_iban(self.accounts_list)
+                self.por.go(subbank=self.currentSubBank).add_por_accounts(self.accounts_list)
 
             for acc in self.li.go(subbank=self.currentSubBank).iter_li_accounts():
                 self.accounts_list.append(acc)
@@ -287,10 +284,7 @@ class CreditMutuelBrowser(LoginBrowser):
     def get_investment(self, account):
         if account._is_inv:
             if account.type == Account.TYPE_MARKET:
-                if not self.is_new_website:
-                    self.por.go(subbank=self.currentSubBank)
-                else:
-                    self.new_por.go(subbank=self.currentSubBank)
+                self.por.go(subbank=self.currentSubBank)
                 self.page.send_form(account)
             elif account.type == Account.TYPE_LIFE_INSURANCE:
                 if not account._link_inv:
