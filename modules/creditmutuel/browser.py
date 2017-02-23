@@ -239,7 +239,7 @@ class CreditMutuelBrowser(LoginBrowser):
     def get_history(self, account):
         transactions = []
         if not account._link_id:
-            return iter([])
+            raise NotImplementedError()
 
         # need to refresh the months select
         if account._link_id.startswith('ENC_liste_oper'):
@@ -283,7 +283,7 @@ class CreditMutuelBrowser(LoginBrowser):
     @need_login
     def get_investment(self, account):
         if account._is_inv:
-            if account.type == Account.TYPE_MARKET:
+            if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
                 self.por.go(subbank=self.currentSubBank)
                 self.page.send_form(account)
             elif account.type == Account.TYPE_LIFE_INSURANCE:
