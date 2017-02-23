@@ -40,6 +40,12 @@ from weboob.tools.date import parse_french_date
 __all__ = ['BoobTracker']
 
 
+try:
+    input = raw_input
+except NameError:
+    pass
+
+
 class IssueFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'project', 'title', 'body', 'author')
 
@@ -395,7 +401,7 @@ class BoobTracker(ReplApplication):
             except ValueError as e:
                 if not self.stdin.isatty():
                     raise
-                raw_input("%s -- Press Enter to continue..." % unicode(e).encode("utf-8"))
+                input("%s -- Press Enter to continue..." % unicode(e).encode("utf-8"))
                 continue
 
             try:
@@ -410,7 +416,7 @@ class BoobTracker(ReplApplication):
             except IssueError as e:
                 if not self.stdin.isatty():
                     raise
-                raw_input("%s -- Press Enter to continue..." % unicode(e).encode("utf-8"))
+                input("%s -- Press Enter to continue..." % unicode(e).encode("utf-8"))
 
     def send_notification(self, email_to, issue):
         text = """Hi,
