@@ -233,7 +233,9 @@ class LoginPage(HTMLPage):
         form['memorableAnswer'] = secret
         inputs = self.doc.xpath(u'//input[starts-with(@id, "keyrcc_password_first")]')
         split_pass = u''
-        if len(password) != len(inputs):
+        if len(password) < len(inputs):
+            raise BrowserIncorrectPassword('The password must be at least %d characters' % len(inputs))
+        elif len(password) > len(inputs):
             # HSBC only use 6 first and last two from the password
             password = password[:6] + password[-2:]
 
