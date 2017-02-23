@@ -789,7 +789,8 @@ class TransferPage(TransferErrorPage, IndexPage):
                     self.env['bank_name'] = u"Caisse d'Épargne"
                     self.env['label'] = match.label
                 else:
-                    self.env['id'] = self.env['iban'] = Regexp(CleanText('.'), ' - ([^-]+) (- )?- ?$')(self)
+                    # <recipient name> - <account number or iban> - <bank name (optional)>
+                    self.env['id'] = self.env['iban'] = Regexp(CleanText('.'), ' - ([^-]+) -(?: [^-]+)?$')(self)
                     self.env['bank_name'] = Regexp(CleanText('.'), '([^-]+)$', default=NotAvailable)(self)
                     if self.env['bank_name']:
                         self.env['bank_name'] = self.env['bank_name'].strip()

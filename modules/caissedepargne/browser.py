@@ -426,8 +426,12 @@ class CaisseEpargne(LoginBrowser):
     @need_login
     def get_profile(self):
         if not self.is_cenet_website:
+            from weboob.tools.misc import to_unicode
             profile = Profile()
-            profile.name = unicode(re.search('username=([^&]+)', self.session.cookies['CTX']).group(1))
+            if 'username=' in self.session.cookies.get('CTX', ''):
+                profile.name = to_unicode(re.search('username=([^&]+)', self.session.cookies['CTX']).group(1))
+            elif 'nomusager=' in self.session.cookies.get('headerdei'):
+                profile.name = to_unicode(re.search('nomusager=(?:[^&]+/ )?([^&]+)', self.session.cookies['headerdei']).group(1))
         else:
             profile = self.cenet_home.stay_or_go().get_profile()
         return profile
