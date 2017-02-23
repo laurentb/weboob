@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from collections import Counter
 import re
 from io import BytesIO
 from random import randint
@@ -31,7 +31,7 @@ from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, TransferError, AddRecipientError
 from weboob.capabilities.contact import Advisor
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired
 from weboob.tools.capabilities.bank.iban import rib2iban, rebuild_rib, is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
@@ -53,11 +53,39 @@ class ConnectionThresholdPage(HTMLPage):
         data['passwordActuel'] = vk.get_string_code(oldpass)
         self.browser.location('/mcs-wspl/rpc/modifiercodesecret', data=data)
 
+    def looks_legit(self, password):
+        # the site says:
+        # no more than 2 repeats
+        for v in Counter(password).values():
+            if v > 2:
+                return False
+
+        # not the birthdate (but we don't know it)
+        if 0 < int(password[2:4]) <= 12 and (0 < int(password[0:2]) <= 31 or 0 < int(password[4:6]) <= 31):
+            return False
+
+        # no sequence (more than 4 digits?)
+        password = list(map(int, password))
+        up = 0
+        down = 0
+        for a, b in zip(password[:-1], password[1:]):
+            up += int(a + 1 == b)
+            down += int(a - 1 == b)
+        if up >= 4 or down >= 4:
+            return False
+
+        return True
+
     def on_load(self):
+        if not self.looks_legit(self.browser.password):
+            # we may not be able to restore the password, so reject it
+            raise BrowserPasswordExpired()
+
         new_pass = ''.join([str((int(l) + 1) % 10) for l in self.browser.password])
         self.logger.warning('Password expired. Renewing it. Temporary password is %s', new_pass)
         self.change_pass(self.browser.password, new_pass)
         self.change_pass(new_pass, self.browser.password)
+
 
 def cast(x, typ, default=None):
     try:
