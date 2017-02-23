@@ -1,0 +1,25 @@
+{
+    "manifest_version": 2,
+    "name": "Weboob session importer",
+    "version": "0.0.1",
+
+    "description": "Import Weboob session URL and cookies",
+    "homepage_url": "http://weboob.org",
+
+    "icons": {
+        "48": "logo.png"
+    },
+
+    "permissions": [
+        "<all_urls>",
+        "cookies",
+        "tabs"
+    ],
+
+    "browser_action": {
+        "browser_style": true,
+        "default_icon": "logo.png",
+        "default_title": "Import Weboob session",
+        "default_popup": "popup.html"
+    }
+}

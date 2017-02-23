@@ -479,6 +479,21 @@ class Browser(object):
             return
         return oldurl
 
+    def export_session(self):
+        def make_cookie(c):
+            d = {
+                k: getattr(c, k) for k in ['name', 'value', 'domain', 'path', 'secure']
+            }
+            #d['session'] = c.discard
+            d['httpOnly'] = 'httponly' in [k.lower() for k in c._rest.keys()]
+            d['expirationDate'] = getattr(c, 'expires', None)
+            return d
+
+        return {
+            'url': self.url,
+            'cookies': [make_cookie(c) for c in self.session.cookies],
+        }
+
 
 class UrlNotAllowed(Exception):
     """
