@@ -911,7 +911,8 @@ class InternalTransferPage(LoggedPage, HTMLPage):
         content = self.get_unicode_content()
         messages = [u'Le montant du virement doit être positif, veuillez le modifier',
                     u'Montant maximum autorisé au débit pour ce compte',
-                    u'Dépassement du montant journalier autorisé']
+                    u'Dépassement du montant journalier autorisé',
+                    u'Nom prénom du bénéficiaire différent du titulaire. Utilisez un compte courant']
 
         for message in messages:
             if message in content:
