@@ -25,6 +25,7 @@ from weboob.browser.elements import ItemElement, TableElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Format, Regexp, Date, Env, TableCell, Field
 from weboob.browser.filters.html import CleanHTML
 from weboob.capabilities.bank import Account, Transaction, Investment
+from weboob.capabilities.base import NotAvailable
 
 
 class VirtKeyboard(MappedVirtKeyboard):
@@ -137,4 +138,4 @@ class HistoryPage(LoggedPage, HTMLPage):
             obj_id = CleanText(TableCell('reference'))
             obj_label = CleanText(TableCell('type'))
             obj_amount = CleanDecimal(CleanHTML(TableCell('montant')),
-                                      replace_dots=True)
+                                      replace_dots=True, default=NotAvailable)
