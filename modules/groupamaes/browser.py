@@ -55,7 +55,7 @@ class GroupamaesBrowser(LoginBrowser):
 
     @need_login
     def get_coming(self):
-        transactions = list(self.groupamaes_page.go(page='&_pid=OperationsTraitees&_fid=GoWaitingOperations').get_history(date_guesser=LinearDateGuesser()))
+        transactions = list(self.groupamaes_page.go(page='&_pid=OperationsTraitees&_fid=GoWaitingOperations').get_history(date_guesser=LinearDateGuesser(), coming=True))
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions
 

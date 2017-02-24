@@ -25,6 +25,7 @@ from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import TableElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell, Date, Env, Regexp, Field
 from weboob.capabilities.bank import Account, Transaction, Investment
+from weboob.capabilities.base import NotAvailable
 
 
 class LoginPage(HTMLPage):
@@ -112,7 +113,11 @@ class GroupamaesPage(LoggedPage, HTMLPage):
             obj_label = CleanText(TableCell('operation'))
 
             def obj_amount(self):
-                amount = CleanDecimal(TableCell('montant'), replace_dots=True)(self)
+                amount = CleanDecimal(TableCell('montant'), replace_dots=True, default=NotAvailable)(self)
+                if amount is NotAvailable:
+                    assert self.env.get('coming')
+                    return amount
+
                 for pattern in GroupamaesPage.NEGATIVE_AMOUNT_LABELS:
                     if Field('label')(self).startswith(pattern):
                         amount = -amount
