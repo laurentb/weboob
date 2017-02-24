@@ -57,7 +57,7 @@ class Amazon(LoginBrowser):
         return self.CURRENCY
 
     def get_order(self, id_):
-        order = self.to_order(id_).order()
+        order = self.to_order(id_)
         if order:
             return order
         else:
@@ -71,10 +71,10 @@ class Amazon(LoginBrowser):
                     yield order
 
     def iter_payments(self, order):
-        return self.to_order(order.id).payments()
+        return self.to_order_page(order.id).payments()
 
     def iter_items(self, order):
-        return self.to_order(order.id).items()
+        return self.to_order_page(order.id).items()
 
     @need_login
     def to_history(self):
@@ -83,7 +83,7 @@ class Amazon(LoginBrowser):
         return self.page
 
     @need_login
-    def to_order(self, order_id):
+    def to_order_page(self, order_id):
         """
         Amazon updates its website in stages: they reroute a random part of
         their users to new pages, and the rest to old ones.
@@ -96,6 +96,15 @@ class Amazon(LoginBrowser):
                 self.order_new.go(order_id=order_id)
             except HTTPNotFound:
                 self.order_old.go(order_id=order_id)
+        self.logger.warning('Order %s not found' % order_id)
+
+    @need_login
+    def to_order(self, order_id):
+        """
+        Amazon updates its website in stages: they reroute a random part of
+        their users to new pages, and the rest to old ones.
+        """
+        return self.to_order_page(order_id).order()
         self.logger.warning('Order %s not found' % order_id)
 
     def do_login(self):
