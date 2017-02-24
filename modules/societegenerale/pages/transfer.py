@@ -120,6 +120,11 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
                 attr = Attr('.', 'value')(option)
                 return attr
 
+    def get_account_value_by_label(self, label):
+        l = [Attr('.', 'value')(option) for option in self.doc.xpath('//select[@id="SelectEmet"]//option') if label in CleanText('.')(option)]
+        if len(l) == 1:
+            return l[0]
+
     def init_transfer(self, account, recipient, transfer):
         try:
             assert account.currency == recipient.currency == 'EUR'
@@ -128,7 +133,9 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         origin_params = self.get_params(account.id, 'Emetteurs')
         recipient_params = self.get_params(recipient.id, 'Destinataires')
         data = OrderedDict()
-        value = self.get_account_value(account.id)
+        value = self.get_account_value(account.id) or self.get_account_value_by_label(account.label)
+        if value is None:
+            raise TransferError("Couldn't retrieve origin account in list")
         data['dup'] = re.search('dup=(.*?)(&|$)', value).group(1)
         data['src'] = re.search('src=(.*?)(&|$)', value).group(1)
         data['sign'] = re.search('sign=(.*?)(&|$)', value).group(1)
