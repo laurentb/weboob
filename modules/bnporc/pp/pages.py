@@ -51,7 +51,10 @@ class ConnectionThresholdPage(HTMLPage):
         data['confirmNouveauPassword'] = vk.get_string_code(newpass)
         data['nouveauPassword'] = vk.get_string_code(newpass)
         data['passwordActuel'] = vk.get_string_code(oldpass)
-        self.browser.location('/mcs-wspl/rpc/modifiercodesecret', data=data)
+        response = self.browser.location('/mcs-wspl/rpc/modifiercodesecret', data=data)
+        if response.json().get('messageIden').lower() == 'nouveau mot de passe invalide':
+            return False
+        return True
 
     def looks_legit(self, password):
         # the site says:
@@ -83,8 +86,12 @@ class ConnectionThresholdPage(HTMLPage):
 
         new_pass = ''.join([str((int(l) + 1) % 10) for l in self.browser.password])
         self.logger.warning('Password expired. Renewing it. Temporary password is %s', new_pass)
-        self.change_pass(self.browser.password, new_pass)
-        self.change_pass(new_pass, self.browser.password)
+        if not self.change_pass(self.browser.password, new_pass):
+            self.logger.warning('New temp password is rejected, giving up')
+            raise BrowserPasswordExpired()
+
+        if not self.change_pass(new_pass, self.browser.password):
+            self.logger.error('Could not restore old password!')
 
 
 def cast(x, typ, default=None):
