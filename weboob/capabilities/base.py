@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-
 from collections import OrderedDict
 import warnings
 import re
@@ -47,7 +45,7 @@ def enum(**enums):
     enums['items'] = _items
     enums['index'] = _index
     enums['types'] = _types
-    return type(b'Enum', (), enums)
+    return type('Enum', (), enums)
 
 
 def empty(value):
@@ -123,7 +121,7 @@ class NotAvailableType(object):
     """
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return repr(self)
 
     def __copy__(self):
         return self
@@ -140,6 +138,8 @@ class NotAvailableType(object):
     def __nonzero__(self):
         return False
 
+    __bool__ = __nonzero__
+
 NotAvailable = NotAvailableType()
 
 
@@ -152,7 +152,7 @@ class NotLoadedType(object):
     """
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return repr(self)
 
     def __copy__(self):
         return self
@@ -168,6 +168,8 @@ class NotLoadedType(object):
 
     def __nonzero__(self):
         return False
+
+    __bool__ = __nonzero__
 
 NotLoaded = NotLoadedType()
 
@@ -503,42 +505,42 @@ class BaseObject(object):
 
 class Currency(object):
     CURRENCIES = OrderedDict([
-        ('EUR', ('€', 'EURO')),
-        ('CHF', ('CHF',)),
-        ('USD', ('$',)),
-        ('GBP', ('£',)),
-        ('LBP', ('ل.ل',)),
-        ('AED', ('AED',)),
-        ('XOF', ('XOF',)),
-        ('RUB', ('руб',)),
-        ('SGD', ('SGD',)),
-        ('BRL', ('R$',)),
-        ('MXN', ('$',)),
-        ('JPY', ('¥',)),
-        ('TRY', ('₺', 'TRY')),
-        ('RON', ('lei',)),
-        ('COP', ('$',)),
-        ('NOK', ('kr',)),
-        ('CNY', ('¥',)),
-        ('RSD', ('din',)),
-        ('ZAR', ('rand',)),
-        ('MYR', ('RM',)),
-        ('HUF', ('Ft',)),
-        ('HKD', ('HK$',)),
-        ('QAR', ('QR',)),
-        ('MAD', ('MAD',)),
-        ('ARS', ('ARS',)),
-        ('AUD', ('AUD',)),
-        ('CAD', ('CAD',)),
-        ('NZD', ('NZD',)),
-        ('BHD', ('BHD',)),
-        ('SEK', ('SEK',)),
-        ('DKK', ('DKK',)),
-        ('LUF', ('F', 'fr.', 'LUF',)),
-        ('KZT', ('KZT',)),
-        ('PLN', ('PLN',)),
-        ('ILS', ('ILS',)),
-        ('THB', ('THB',)),
+        (u'EUR', (u'€', u'EURO')),
+        (u'CHF', (u'CHF',)),
+        (u'USD', (u'$',)),
+        (u'GBP', (u'£',)),
+        (u'LBP', (u'ل.ل',)),
+        (u'AED', (u'AED',)),
+        (u'XOF', (u'XOF',)),
+        (u'RUB', (u'руб',)),
+        (u'SGD', (u'SGD',)),
+        (u'BRL', (u'R$',)),
+        (u'MXN', (u'$',)),
+        (u'JPY', (u'¥',)),
+        (u'TRY', (u'₺', u'TRY')),
+        (u'RON', (u'lei',)),
+        (u'COP', (u'$',)),
+        (u'NOK', (u'kr',)),
+        (u'CNY', (u'¥',)),
+        (u'RSD', (u'din',)),
+        (u'ZAR', (u'rand',)),
+        (u'MYR', (u'RM',)),
+        (u'HUF', (u'Ft',)),
+        (u'HKD', (u'HK$',)),
+        (u'QAR', (u'QR',)),
+        (u'MAD', (u'MAD',)),
+        (u'ARS', (u'ARS',)),
+        (u'AUD', (u'AUD',)),
+        (u'CAD', (u'CAD',)),
+        (u'NZD', (u'NZD',)),
+        (u'BHD', (u'BHD',)),
+        (u'SEK', (u'SEK',)),
+        (u'DKK', (u'DKK',)),
+        (u'LUF', (u'F', u'fr.', u'LUF',)),
+        (u'KZT', (u'KZT',)),
+        (u'PLN', (u'PLN',)),
+        (u'ILS', (u'ILS',)),
+        (u'THB', (u'THB',)),
     ])
 
     EXTRACTOR = re.compile(r'[\d\s,\.\-]', re.UNICODE)
