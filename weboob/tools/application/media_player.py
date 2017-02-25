@@ -20,10 +20,11 @@
 
 from __future__ import print_function
 
+from contextlib import closing
 import os
 from subprocess import PIPE, Popen
-import cookielib
-import urllib2
+
+import requests
 
 from weboob.tools.log import getLogger
 
@@ -96,7 +97,7 @@ class MediaPlayer(object):
         """
         # if flag play_proxy...
         if hasattr(media, '_play_proxy') and media._play_proxy is True:
-            # use urllib2 to handle redirect and cookies
+            # use requests to handle redirect and cookies
             self._play_proxy(media, player_name, args)
             return None
 
@@ -110,7 +111,7 @@ class MediaPlayer(object):
 
     def _play_proxy(self, media, player_name, args):
         """
-        Load data with python urllib2 and pipe data to a media player.
+        Load data with python requests and pipe data to a media player.
 
         We need this function for url that use redirection and cookies.
         This function is used if the non-standard,
@@ -129,24 +130,16 @@ class MediaPlayer(object):
         proc = Popen(player_name + ' ' + args, stdin=PIPE, shell=True)
 
         # Handle cookies (and redirection 302...)
-        cj = cookielib.CookieJar()
-        url_opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+        session = requests.sessions.Session()
 
-        url_handler = url_opener.open(media.url)
-        file_size = int(url_handler.info().getheaders("Content-Length")[0])
-        file_size_dl = 0
-        block_sz = 8192
-        while file_size_dl < file_size:
-            _buffer = url_handler.read(block_sz)
-            if not buffer:
-                break
-
-            file_size_dl += len(_buffer)
-            try:
-                proc.stdin.write(_buffer)
-            except:
-                print("play_proxy broken pipe. Can't write anymore.")
-                break
+        with closing(proc.stdin):
+            with closing(session.get(media.url, stream=True)) as response:
+                for buffer in response.iter_content(8192):
+                    try:
+                        proc.stdin.write(buffer)
+                    except:
+                        print("play_proxy broken pipe. Can't write anymore.")
+                        break
 
     def _play_rtmp(self, media, player_name, args):
         """
