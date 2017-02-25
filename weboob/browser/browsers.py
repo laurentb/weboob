@@ -51,7 +51,7 @@ except ImportError:
 from weboob.exceptions import BrowserHTTPSDowngrade, ModuleInstallError
 
 from weboob.tools.log import getLogger
-from weboob.tools.compat import basestring, unicode
+from weboob.tools.compat import basestring, unicode, with_metaclass
 from weboob.tools.json import json
 
 from .cookies import WeboobCookieJar
@@ -614,7 +614,7 @@ class _PagesBrowserMeta(type):
         return new_class
 
 
-class PagesBrowser(DomainBrowser):
+class PagesBrowser(with_metaclass(_PagesBrowserMeta, DomainBrowser)):
     r"""
     A browser which works pages and keep state of navigation.
 
@@ -643,7 +643,6 @@ class PagesBrowser(DomainBrowser):
 
 
     _urls = None
-    __metaclass__ = _PagesBrowserMeta
 
     def __getattr__(self, name):
         if self._urls is not None and name in self._urls:

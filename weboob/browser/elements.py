@@ -28,7 +28,7 @@ from copy import deepcopy
 import lxml.html
 
 from weboob.tools.log import getLogger, DEBUG_FILTERS
-from weboob.tools.compat import basestring, unicode
+from weboob.tools.compat import basestring, unicode, with_metaclass
 from weboob.browser.pages import NextPage
 
 from .filters.standard import _Filter, CleanText
@@ -229,9 +229,7 @@ class _ItemElementMeta(type):
         return new_class
 
 
-class ItemElement(AbstractElement):
-    __metaclass__ = _ItemElementMeta
-
+class ItemElement(with_metaclass(_ItemElementMeta, AbstractElement)):
     _attrs = None
     _loaders = None
     klass = None

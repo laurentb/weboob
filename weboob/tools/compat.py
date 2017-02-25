@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-__all__ = ['unicode', 'long', 'basestring', 'check_output', 'range']
+__all__ = ['unicode', 'long', 'basestring', 'check_output', 'range',
+           'with_metaclass']
 
 
 try:
@@ -44,3 +45,9 @@ except NameError:
 
 
 from subprocess import check_output
+
+
+try:
+    from future.utils import with_metaclass
+except ImportError:
+    from six import with_metaclass

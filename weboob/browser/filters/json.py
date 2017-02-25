@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.compat import basestring
+from weboob.tools.compat import basestring, with_metaclass
 
 from .standard import _Filter, _NO_DEFAULT, Filter, ParseError
 
@@ -36,9 +36,7 @@ class _DictMeta(type):
         return cls(name)
 
 
-class Dict(Filter):
-    __metaclass__ = _DictMeta
-
+class Dict(with_metaclass(_DictMeta, Filter)):
     def __init__(self, selector=None, default=_NO_DEFAULT):
         super(Dict, self).__init__(self, default=default)
         if selector is None:
