@@ -370,7 +370,7 @@ class CsvPage(Page):
             content = content.decode('utf-16').encode('utf-8')
             encoding = 'utf-8'
         if self.NEWLINES_HACK:
-            content = content.replace('\r\n', '\n').replace('\r', '\n')
+            content = content.replace(b'\r\n', b'\n').replace(b'\r', b'\n')
         return self.parse(BytesIO(content), encoding)
 
     def parse(self, data, encoding=None):
@@ -490,7 +490,7 @@ class XMLPage(Page):
 
     def detect_encoding(self):
         import re
-        m = re.search('<\?xml version="1.0" encoding="(.*)"\?>', self.data)
+        m = re.search(b'<\?xml version="1.0" encoding="(.*)"\?>', self.data)
         if m:
             return m.group(1)
 
