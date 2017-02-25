@@ -18,7 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from ConfigParser import RawConfigParser, DEFAULTSECT
+try:
+    from configparser import RawConfigParser, DEFAULTSECT
+except ImportError:
+    from ConfigParser import RawConfigParser, DEFAULTSECT
+
 from collections import OrderedDict
 from decimal import Decimal
 import logging
