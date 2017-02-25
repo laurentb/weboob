@@ -91,7 +91,7 @@ class Amazon(LoginBrowser):
         for i in xrange(self.MAX_RETRIES):
             if (self.order_new.is_here() or self.order_old.is_here()) \
                     and self.page.order_number() == order_id:
-                return self.page.order()
+                return self.page
             try:
                 self.order_new.go(order_id=order_id)
             except HTTPNotFound:
