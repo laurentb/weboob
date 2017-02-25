@@ -20,6 +20,7 @@
 
 from __future__ import print_function
 
+from codecs import open
 from collections import OrderedDict
 import os
 import sys
@@ -91,13 +92,15 @@ class IFormatter(object):
             attrs = [attrs]
         return colored(string, color, on_color=on_color, attrs=attrs)
 
-    def __init__(self, display_keys=True, display_header=True, outfile=sys.stdout):
+    def __init__(self, display_keys=True, display_header=True, outfile=None):
         self.display_keys = display_keys
         self.display_header = display_header
         self.interactive = False
         self.print_lines = 0
         self.termrows = 0
         self.termcols = None
+        if outfile is None:
+            outfile = sys.stdout
         self.outfile = outfile
         # XXX if stdin is not a tty, it seems that the command fails.
 
@@ -128,8 +131,9 @@ class IFormatter(object):
 
     def output(self, formatted):
         if self.outfile != sys.stdout:
-            with open(self.outfile, "a+") as outfile:
-                outfile.write(formatted.encode(guess_encoding(outfile), 'replace') + os.linesep)
+            encoding = guess_encoding(sys.stdout)
+            with open(self.outfile, "a+", encoding=encoding, errors='replace') as outfile:
+                outfile.write(formatted + os.linesep)
 
         else:
             for line in formatted.split('\n'):
@@ -141,8 +145,6 @@ class IFormatter(object):
                     self.print_lines = 0
 
                 plen = len(line.replace(self.BOLD, '').replace(self.NC, ''))
-                if isinstance(line, unicode):
-                    line = line.encode(guess_encoding(self.outfile), 'replace')
 
                 print(line)
 

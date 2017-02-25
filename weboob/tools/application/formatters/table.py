@@ -20,7 +20,6 @@
 from prettytable import PrettyTable
 
 from weboob.capabilities.base import empty
-from weboob.tools.misc import guess_encoding
 from weboob.tools.compat import range
 
 from .iformatter import IFormatter
@@ -41,7 +40,7 @@ class TableFormatter(IFormatter):
     def flush(self):
         s = self.get_formatted_table()
         if s is not None:
-            self.output(s.encode(guess_encoding(self.outfile), 'replace'))
+            self.output(s)
 
     def get_formatted_table(self):
         if len(self.queue) == 0:

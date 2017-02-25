@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
+from codecs import open
 import csv
 
 from weboob.tools.compat import basestring, unicode
@@ -40,13 +41,13 @@ class CSVFormatter(IFormatter):
         if not isinstance(self.outfile, basestring):
             return self.write_dict(item, self.outfile)
 
-        with open(self.outfile, "a+") as fp:
+        with open(self.outfile, "a+", encoding='utf-8') as fp:
             return self.write_dict(item, fp)
 
     def write_dict(self, item, fp):
         writer = csv.writer(fp, delimiter=self.field_separator)
         if not self.started:
-            writer.writerow([unicode(v).encode('utf-8') for v in item.keys()])
+            writer.writerow([unicode(v) for v in item.keys()])
             self.started = True
 
-        writer.writerow([unicode(v).encode('utf-8') for v in item.values()])
+        writer.writerow([unicode(v) for v in item.values()])
