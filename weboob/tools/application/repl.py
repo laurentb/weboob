@@ -532,9 +532,9 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         if self.options.count is not None:
             self._is_default_count = False
-        if self.options.count <= 0:
-            # infinite search
-            self.options.count = None
+            if self.options.count <= 0:
+                # infinite search
+                self.options.count = None
 
         if self.options.condition:
             self.condition = ResultsCondition(self.options.condition)

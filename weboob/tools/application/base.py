@@ -165,7 +165,7 @@ class Application(object):
         self._parser.add_option('-I', '--insecure', action='store_true', help='do not validate SSL')
         self._parser.add_option('--nss', action='store_true', help='Use NSS instead of OpenSSL')
         logging_options = OptionGroup(self._parser, 'Logging Options')
-        logging_options.add_option('-d', '--debug', action='count', help='display debug messages. Set up it twice to more verbosity')
+        logging_options.add_option('-d', '--debug', action='count', help='display debug messages. Set up it twice to more verbosity', default=0)
         logging_options.add_option('-q', '--quiet', action='store_true', help='display only error messages')
         logging_options.add_option('-v', '--verbose', action='store_true', help='display info messages')
         logging_options.add_option('--logging-file', action='store', type='string', dest='logging_file', help='file to save logs')
