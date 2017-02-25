@@ -40,7 +40,8 @@ def get_backtrace(empty="Empty backtrace."):
     try:
         info = sys.exc_info()
         trace = traceback.format_exception(*info)
-        sys.exc_clear()
+        if sys.version_info.major == 2:
+            sys.exc_clear()
         if trace[0] != "None\n":
             return "".join(trace)
     except:
@@ -89,6 +90,8 @@ def to_unicode(text):
     if isinstance(text, unicode):
         return text
     if not isinstance(text, str):
+        if sys.version_info.major > 2:
+            return unicode(text)
         try:
             text = str(text)
         except UnicodeError:
