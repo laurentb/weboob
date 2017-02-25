@@ -167,7 +167,7 @@ class ConsoleApplication(Application):
                             loaded += 1
                 print('%s%d)%s [%s] %s%-15s%s   %s' % (self.BOLD, len(modules), self.NC, loaded,
                                                        self.BOLD, name, self.NC,
-                                                       info.description.encode(self.encoding)))
+                                                       info.description))
             print('%sa) --all--%s               install all backends' % (self.BOLD, self.NC))
             print('%sq)%s --stop--\n' % (self.BOLD, self.NC))
             r = self.ask('Select a backend to create (q to stop)', regexp='^(\d+|q|a)$')
@@ -427,7 +427,7 @@ class ConsoleApplication(Application):
             question = u'[%s] %s' % (v.id, question)
 
         if isinstance(v, ValueBackendPassword):
-            print(question.encode(self.encoding) + ':')
+            print(question + ':')
             question = v.label
             choices = OrderedDict()
             choices['c'] = 'Run an external tool during backend load'
@@ -481,8 +481,7 @@ class ConsoleApplication(Application):
                     print('     %s%s%s: %s' % (self.BOLD, key, self.NC, value))
             else:
                 for n, (key, value) in enumerate(v.choices.items()):
-                    print('     %s%2d)%s %s' % (self.BOLD, n + 1, self.NC,
-                                                value.encode(self.encoding)))
+                    print('     %s%2d)%s %s' % (self.BOLD, n + 1, self.NC, value))
                     aliases[str(n + 1)] = key
                 question = u'%s (choose in list)' % question
         if v.masked:
@@ -498,11 +497,13 @@ class ConsoleApplication(Application):
                 if sys.platform == 'win32':
                     line = getpass.getpass(str(question))
                 else:
-                    line = getpass.getpass(question.encode(self.encoding))
+                    line = getpass.getpass(question)
+                    if isinstance(line, bytes): # only for python2
+                        line = line.decode(self.encoding)
             else:
-                self.stdout.write(question.encode(self.encoding))
+                self.stdout.write(question)
                 self.stdout.flush()
-                line = self.stdin.readline()
+                line = self._readline()
                 if len(line) == 0:
                     raise EOFError()
                 else:
@@ -510,8 +511,6 @@ class ConsoleApplication(Application):
 
             if not line and v.default is not None:
                 line = v.default
-            if isinstance(line, str):
-                line = line.decode('utf-8')
 
             if line in aliases:
                 line = aliases[line]
@@ -527,7 +526,19 @@ class ConsoleApplication(Application):
         return v.get()
 
     def print(self, txt):
-        print(txt.encode(self.encoding, "replace"))
+        print(txt)
+
+    def _readall(self):
+        if sys.version_info.major == 2:
+            return self.stdin.read().decode(self.encoding)
+        else:
+            return self.stdin.read()
+
+    def _readline(self):
+        if sys.version_info.major == 2:
+            return self.stdin.readline().decode(self.encoding)
+        else:
+            return self.stdin.readline()
 
     def acquire_input(self, content=None, editor_params=None):
         editor = os.getenv('EDITOR', 'vi')
@@ -537,7 +548,7 @@ class ConsoleApplication(Application):
                 filename = f.name
                 if content is not None:
                     if isinstance(content, unicode):
-                        content = content.encode(self.encoding)
+                        content = content
                     f.write(content)
                     f.flush()
                 try:
@@ -551,8 +562,8 @@ class ConsoleApplication(Application):
             if self.stdin.isatty():
                 print('Reading content from stdin... Type ctrl-D '
                           'from an empty line to stop.')
-            text = self.stdin.read()
-        return text.decode(self.encoding)
+            text = self._readall()
+        return text
 
     def bcall_error_handler(self, backend, error, backtrace):
         """

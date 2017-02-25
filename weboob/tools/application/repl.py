@@ -115,7 +115,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         Cmd.__init__(self)
         ConsoleApplication.__init__(self, ReplOptionParser(self.SYNOPSIS, version=self._get_optparse_version()))
 
-        copyright = self.COPYRIGHT.replace('YEAR', '%d' % datetime.today().year).encode(self.encoding)
+        copyright = self.COPYRIGHT.replace('YEAR', '%d' % datetime.today().year)
         self.intro = '\n'.join(('Welcome to %s%s%s v%s' % (self.BOLD, self.APPNAME, self.NC, self.VERSION),
                                 '',
                                 copyright,
@@ -171,7 +171,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         #    of the same line instead of new line.
         #self.prompt = self.BOLD + '%s> ' % self.APPNAME + self.NC
         if len(self.working_path.get()):
-            wp_enc = unicode(self.working_path).encode(self.encoding)
+            wp_enc = unicode(self.working_path)
             self.prompt = '%s:%s> ' % (self.APPNAME, wp_enc)
         else:
             self.prompt = '%s> ' % (self.APPNAME)
@@ -1147,7 +1147,7 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         collections = self.all_collections()
         for collection in collections:
-            directories.add(collection.basename.encode(self.encoding))
+            directories.add(collection.basename)
 
         return [s[offs:] for s in directories if s.startswith(mline)]
 
