@@ -71,17 +71,23 @@ class BackendsConfig(object):
 
     def _read_config(self):
         config = RawConfigParser()
-        with codecs.open(self.confpath, 'r', 'utf-8') as fd:
+        with codecs.open(self.confpath, 'r', encoding='utf-8') as fd:
             config.readfp(fd)
         return config
 
     def _write_config(self, config):
         for section in config.sections():
             for k, v in config.items(section):
-                if isinstance(v, unicode):
-                    config.set(section, k, v.encode('utf-8'))
+                if isinstance(v, unicode) and sys.version_info.major == 2:
+                    # python2's configparser enforces bytes coercion with str(value)...
+                    config.remove_option(section, k)
+                    config.set(section, k.encode('utf-8'), v.encode('utf-8'))
 
-        with open(self.confpath, 'wb') as f:
+        if sys.version_info.major == 2:
+            f = open(self.confpath, 'wb')
+        else:
+            f = codecs.open(self.confpath, 'wb', encoding='utf-8')
+        with f:
             config.write(f)
 
     def iter_backends(self):
