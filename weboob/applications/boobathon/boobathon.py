@@ -296,7 +296,7 @@ class Boobathon(ReplApplication):
             print('Please give the name of the boobathon', file=self.stderr)
             return 1
 
-        self.event = Event(argv[1], choice(self.weboob.backend_instances.values()))
+        self.event = Event(argv[1], choice(list(self.weboob.backend_instances.values())))
         if self.event.description is None:
             if not self.ask("This event doesn't seem to exist. Do you want to create it?", default=True):
                 return 1

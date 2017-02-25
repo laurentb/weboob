@@ -240,7 +240,7 @@ def build_rows(lines):
                 box = Rect(hline.x0, hline.y0, hline.x1, vline.y1)
                 boxes.setdefault((vline.y0, vline.y1), []).append(box)
 
-    rows = boxes.values()
+    rows = list(boxes.values())
     for row in rows:
         row.sort(key=lambda box: box.x0)
     rows.sort(key=lambda row: row[0].y0)

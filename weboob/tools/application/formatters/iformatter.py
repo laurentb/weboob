@@ -172,7 +172,7 @@ class IFormatter(object):
         if isinstance(obj, BaseObject):
             if selected_fields:  # can be an empty list (nothing to do), or None (return all fields)
                 obj = obj.copy()
-                for name, value in obj.iter_fields():
+                for name, value in list(obj.iter_fields()):
                     if name not in selected_fields:
                         delattr(obj, name)
 

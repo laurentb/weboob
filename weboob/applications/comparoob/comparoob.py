@@ -108,12 +108,12 @@ class Comparoob(ReplApplication):
                 products[product.name] = [product]
 
         products_type = None
-        products_names = products.keys()
+        products_names = list(products.keys())
         if len(products_names) == 0:
             print('Error: no product found with this pattern', file=self.stderr)
             return 1
         elif len(products_names) == 1:
-            products_type = products.keys()[0]
+            products_type = products_names[0]
         else:
             print('What product do you want to compare?')
             for i, p in enumerate(products_names):

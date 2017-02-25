@@ -466,7 +466,7 @@ Weboob Team
         if len(args) == 2:
             return self._complete_object()
         if len(args) == 3:
-            return dict(self.ISSUE_FIELDS).keys()
+            return list(dict(self.ISSUE_FIELDS).keys())
 
     def do_edit(self, line):
         """

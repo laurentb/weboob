@@ -107,19 +107,17 @@ class Weboob(ConsoleApplication):
 
     def choose_capability(self, capApplicationDict):
         cap = None
-        while cap not in capApplicationDict.keys():
-            for _cap in capApplicationDict.keys():
-                print('  %s%2d)%s %s' % (self.BOLD,
-                                         capApplicationDict.keys().index(_cap) + 1,
-                                         self.NC,
-                                         _cap))
+        caps = list(capApplicationDict.keys())
+        while cap not in caps:
+            for n, _cap in enumerate(caps):
+                print('  %s%2d)%s %s' % (self.BOLD, n + 1, self.NC, _cap))
             r = self.ask('  Select a capability', regexp='(\d+|)', default='')
             if not r.isdigit():
                 continue
             r = int(r)
-            if r <= 0 or r > len(capApplicationDict.keys()):
+            if r <= 0 or r > len(caps):
                 continue
-            cap = capApplicationDict.keys()[r - 1]
+            cap = caps[r - 1]
         return cap
 
     def init_CapApplicationDict(self):

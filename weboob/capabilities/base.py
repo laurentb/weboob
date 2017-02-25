@@ -34,11 +34,12 @@ __all__ = ['UserError', 'FieldNotFound', 'NotAvailable',
 
 
 def enum(**enums):
-    _values = enums.values()
-    _keys = enums.keys()
-    _items = enums.items()
+    _values = list(enums.values())
+    _keys = list(enums.keys())
+    _items = list(enums.items())
     _types = list((type(value) for value in enums.values()))
-    _index = dict((value if not isinstance(value, dict) else next(value.itervalues()), i) for i, value in enumerate(enums.values()))
+    _index = {(value if not isinstance(value, dict) else next(iter(value.values()))): i
+              for i, value in enumerate(enums.values())}
 
     enums['keys'] = _keys
     enums['values'] = _values
@@ -295,7 +296,7 @@ class BytesField(Field):
 
 class _BaseObjectMeta(type):
     def __new__(cls, name, bases, attrs):
-        fields = [(field_name, attrs.pop(field_name)) for field_name, obj in attrs.items() if isinstance(obj, Field)]
+        fields = [(field_name, attrs.pop(field_name)) for field_name, obj in list(attrs.items()) if isinstance(obj, Field)]
         fields.sort(key=lambda x: x[1]._creation_counter)
 
         new_class = super(_BaseObjectMeta, cls).__new__(cls, name, bases, attrs)

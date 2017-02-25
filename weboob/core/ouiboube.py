@@ -159,7 +159,7 @@ class WebNip(object):
         if isinstance(names, basestring):
             names = [names]
         elif names is None:
-            names = self.backend_instances.keys()
+            names = list(self.backend_instances.keys())
 
         for name in names:
             backend = self.backend_instances.pop(name)
@@ -243,7 +243,7 @@ class WebNip(object):
         :type caps: list[:class:`weboob.capabilities.base.Capability`]
         :rtype: A :class:`weboob.core.bcall.BackendsCall` object (iterable)
         """
-        backends = self.backend_instances.values()
+        backends = list(self.backend_instances.values())
         _backends = kwargs.pop('backends', None)
         if _backends is not None:
             if isinstance(_backends, Module):

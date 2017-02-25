@@ -602,7 +602,7 @@ class _PagesBrowserMeta(type):
     Private meta-class used to keep order of URLs instances of PagesBrowser.
     """
     def __new__(mcs, name, bases, attrs):
-        urls = [(url_name, attrs.pop(url_name)) for url_name, obj in attrs.items() if isinstance(obj, URL)]
+        urls = [(url_name, attrs.pop(url_name)) for url_name, obj in list(attrs.items()) if isinstance(obj, URL)]
         urls.sort(key=lambda x: x[1]._creation_counter)
 
         new_class = super(_PagesBrowserMeta, mcs).__new__(mcs, name, bases, attrs)

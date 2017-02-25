@@ -177,7 +177,7 @@ class CapDocument(CapCollection):
         :rtype: iter[:class:`Bill`]
         """
         documents = self.iter_documents(subscription)
-        return filter(lambda doc: doc.type == "bill", documents)
+        return [doc for doc in documents if doc.type == "bill"]
 
     def get_details(self, subscription):
         """

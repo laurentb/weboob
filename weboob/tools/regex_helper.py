@@ -111,7 +111,7 @@ def normalize(pattern):
     try:
         ch, escaped = next(pattern_iter)
     except StopIteration:
-        return zip([u''],  [[]])
+        return list(zip([u''],  [[]]))
 
     try:
         while True:
@@ -224,9 +224,9 @@ def normalize(pattern):
         pass
     except NotImplementedError:
         # A case of using the disjunctive form. No results for you!
-        return zip([u''],  [[]])
+        return list(zip([u''],  [[]]))
 
-    return zip(*flatten_result(result))
+    return list(zip(*flatten_result(result)))
 
 
 def next_char(input_iter):

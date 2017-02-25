@@ -161,7 +161,7 @@ class Parceloob(ReplApplication):
 
         Display status for all of the tracked parcels.
         """
-        backends = map(get_backend_name, self.enabled_backends)
+        backends = list(map(get_backend_name, self.enabled_backends))
         self.start_format()
         # XXX cleaning of cached objects may be by start_format()?
         self.objects = []

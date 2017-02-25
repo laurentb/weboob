@@ -345,7 +345,7 @@ def parse_date(string):
             year = 2000 + int(year)
         return date(int(year), int(matches.group(2)), int(matches.group(1)))
 
-    elif string.upper() in WEEK.keys():
+    elif string.upper() in list(WEEK.keys()):
         return get_date_from_day(string)
 
     elif string.upper() == "TODAY":

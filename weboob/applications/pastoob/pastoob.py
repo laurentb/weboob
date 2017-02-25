@@ -163,7 +163,7 @@ class Pastoob(ReplApplication):
                 backends.setdefault(score, []).append(backend)
         # select a random backend from the best scores
         if len(backends):
-            backend = choice(backends[max(backends.keys())])
+            backend = choice(backends[max(list(backends.keys()))])
         else:
             print('No suitable backend found.', file=self.stderr)
             return 1

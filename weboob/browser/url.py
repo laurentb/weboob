@@ -136,7 +136,7 @@ class URL(object):
             url = pattern
             # only use full-name substitutions, to allow % in URLs
             args = kwargs.copy()
-            for key in args.keys():  # need to use keys() because of pop()
+            for key in list(args.keys()):  # need to use keys() because of pop()
                 search = '%%(%s)s' % key
                 if search in pattern:
                     url = url.replace(search, to_unicode(args.pop(key)))

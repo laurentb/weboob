@@ -391,7 +391,7 @@ class CsvPage(Page):
         for i, row in enumerate(reader):
             if self.HEADER and i+1 < self.HEADER:
                 continue
-            row = map(unicode.strip, self.decode_row(row, encoding))
+            row = [c.strip() for c in self.decode_row(row, encoding)]
             if header is None and self.HEADER:
                 header = row
             else:
@@ -424,7 +424,7 @@ class JsonPage(Page):
 
     def get(self, path):
         node = self.doc
-        for name in filter(None, path.strip('.').split('.')):
+        for name in [_f for _f in path.strip('.').split('.') if _f]:
             node = node.get(name)
             if node is None:
                 break
@@ -473,7 +473,7 @@ class XLSPage(Page):
                 continue
             row = sh.row_values(i)
             if header is None and self.HEADER:
-                header = map(lambda s: s.replace('/', ''), row)
+                header = [s.replace('/', '') for s in row]
             else:
                 rows.append(row)
                 if header:

@@ -56,7 +56,7 @@ def mini_jsonpath(node, path):
     """
 
     def iterkeys(i):
-        return range(len(i)) if type(i) is list else i
+        return range(len(i)) if isinstance(i, list) else i
 
     def cut(s):
         p = s.split('.', 1) if s else [None]

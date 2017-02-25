@@ -649,7 +649,7 @@ class Regexp(Filter):
             return self.default_or_raise(RegexpError(msg))
 
         if isinstance(m, Iterator):
-            return map(self.expand, m)
+            return list(map(self.expand, m))
 
         return self.expand(m)
 
@@ -789,7 +789,7 @@ class BrowserURL(MultiFilter):
     def __init__(self, url_name, **kwargs):
         super(BrowserURL, self).__init__(*kwargs.values())
         self.url_name = url_name
-        self.keys = kwargs.keys()
+        self.keys = list(kwargs.keys())
 
     def __call__(self, item):
         values = super(BrowserURL, self).__call__(item)

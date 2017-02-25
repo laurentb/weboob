@@ -96,8 +96,8 @@ class TableFormatter(IFormatter):
 
     def format_dict(self, item):
         if self.keys is None:
-            self.keys = item.keys()
-        self.queue.append(item.values())
+            self.keys = list(item.keys())
+        self.queue.append(list(item.values()))
 
     def set_header(self, string):
         self.header = string

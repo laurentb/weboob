@@ -322,7 +322,7 @@ class ContactProfile(QWidget):
             self.ui.photoUrlLabel.setText('')
             return
 
-        photo = self.contact.photos.values()[self.displayed_photo_idx]
+        photo = list(self.contact.photos.values())[self.displayed_photo_idx]
         if photo.data:
             data = photo.data
             if photo.id in self.process_photo:
@@ -534,7 +534,7 @@ class ContactsWidget(QWidget):
             self.photo_processes[contact.id] = process
         elif len(contact.photos) > 0:
             if not self.setPhoto(contact, item):
-                photo = contact.photos.values()[0]
+                photo = list(contact.photos.values())[0]
                 process = QtDo(self.weboob, lambda p: self.setPhoto(contact, item))
                 process.do('fillobj', photo, ['thumbnail_data'], backends=contact.backend)
                 self.photo_processes[contact.id] = process
