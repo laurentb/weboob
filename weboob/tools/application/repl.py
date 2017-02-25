@@ -955,19 +955,8 @@ class ReplApplication(Cmd, ConsoleApplication):
 
     # First sort in alphabetical of backend
     # Second, sort with ID
-    def comp_object(self, obj1, obj2):
-        if obj1.backend == obj2.backend:
-            if obj1.id == obj2.id:
-                return 0
-            elif obj1.id > obj2.id:
-                return 1
-            else:
-                return -1
-        elif obj1.backend > obj2.backend:
-            return 1
-
-        return -1
-
+    def comp_key(self, obj):
+        return (obj.backend, obj.id)
 
     @defaultcount(40)
     def do_ls(self, line):
@@ -1018,9 +1007,9 @@ class ReplApplication(Cmd, ConsoleApplication):
                     self._format_obj(res, only)
 
         if sort:
-            objects.sort(cmp=self.comp_object)
+            objects.sort(key=self.comp_key)
             collections = self._merge_collections_with_same_path(collections)
-            collections.sort(cmp=self.comp_object)
+            collections.sort(key=self.comp_key)
             for collection in collections:
                 self.formatter.format_collection(collection, only)
             for obj in objects:
