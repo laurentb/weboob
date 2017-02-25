@@ -311,21 +311,21 @@ class Transaction(BaseObject):
         :returns: an unique ID encoded in 8 length hexadecimal string (for example ``'a64e1bc9'``)
         :rtype: :class:`str`
         """
-        crc = crc32(str(self.date))
-        crc = crc32(str(self.amount), crc)
+        crc = crc32(unicode(self.date).encode('utf-8'))
+        crc = crc32(unicode(self.amount).encode('utf-8'), crc)
         if not empty(self.raw):
             label = self.raw
         else:
             label = self.label
 
-        crc = crc32(re.sub('[ ]+', ' ', label.encode("utf-8")), crc)
+        crc = crc32(re.sub('[ ]+', ' ', label).encode("utf-8"), crc)
 
         if account_id is not None:
-            crc = crc32(str(account_id), crc)
+            crc = crc32(unicode(account_id).encode('utf-8'), crc)
 
         if seen is not None:
             while crc in seen:
-                crc = crc32("*", crc)
+                crc = crc32(b"*", crc)
 
             seen.add(crc)
 
