@@ -45,7 +45,7 @@ class Thumbnail(_BaseImage):
         super(Thumbnail, self).__init__(url)
         self.url = url.replace(u' ', u'%20')
 
-    def __str__(self):
+    def __unicode__(self):
         return self.url
 
     def __repr__(self):

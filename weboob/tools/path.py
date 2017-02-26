@@ -19,10 +19,10 @@
 from copy import copy
 from posixpath import sep, join
 
-from .compat import unicode
+from .compat import StrConv, unicode
 
 
-class WorkingPath(object):
+class WorkingPath(StrConv, object):
     def __init__(self):
         self.split_path = []
         self.previous = copy(self.split_path)

@@ -48,7 +48,7 @@ class HousingPhoto(BaseObject):
     def __iscomplete__(self):
         return self.data
 
-    def __str__(self):
+    def __unicode__(self):
         return self.url
 
     def __repr__(self):

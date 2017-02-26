@@ -88,7 +88,7 @@ class BaseImage(CIBaseImage):
         self.ext = ext
         self.gallery = gallery
 
-    def __str__(self):
+    def __unicode__(self):
         return self.url
 
     def __repr__(self):

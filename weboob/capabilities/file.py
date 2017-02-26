@@ -53,8 +53,8 @@ class BaseFile(BaseObject):
     rating_max =    Field('Maximum rating', int, long, float, default=NotAvailable)
     license =       StringField('License name')
 
-    def __str__(self):
-        return self.url or ''
+    def __unicode__(self):
+        return self.url or u''
 
     def __repr__(self):
         return '<%s title=%r url=%r>' % (type(self).__name__, self.title, self.url)

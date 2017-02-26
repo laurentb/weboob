@@ -63,7 +63,7 @@ class ContactPhoto(BaseObject):
     def __iscomplete__(self):
         return (self.data and (not self.thumbnail_url or self.thumbnail_data))
 
-    def __str__(self):
+    def __unicode__(self):
         return self.url
 
     def __repr__(self):

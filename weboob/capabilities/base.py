@@ -23,7 +23,7 @@ import re
 from decimal import Decimal
 from copy import deepcopy, copy
 
-from weboob.tools.compat import unicode, long, with_metaclass
+from weboob.tools.compat import unicode, long, with_metaclass, StrConv
 from weboob.tools.misc import to_unicode
 
 
@@ -316,7 +316,7 @@ class _BaseObjectMeta(type):
         return new_class
 
 
-class BaseObject(with_metaclass(_BaseObjectMeta, object)):
+class BaseObject(with_metaclass(_BaseObjectMeta, StrConv, object)):
     """
     This is the base class for a capability object.
 

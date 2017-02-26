@@ -26,24 +26,27 @@ import requests
 import base64
 import re
 
+from weboob.tools.compat import StrConv
+from weboob.tools.misc import to_unicode
+
 
 __all__ = ['Recipe', 'CapRecipe']
 
 
-class Comment(object):
+class Comment(StrConv, object):
     def __init__(self, author=None, rate=None, text=None):
-        self.author = author
-        self.rate = rate
-        self.text = text
+        self.author = to_unicode(author or '')
+        self.rate = to_unicode(rate or '')
+        self.text = to_unicode(text or '')
 
-    def __str__(self):
-        result = ''
+    def __unicode__(self):
+        result = u''
         if self.author:
-            result += 'author: %s, ' % self.author
+            result += u'author: %s, ' % self.author
         if self.rate:
-            result += 'note: %s, ' % self.rate
+            result += u'note: %s, ' % self.rate
         if self.text:
-            result += 'comment: %s' % self.text
+            result += u'comment: %s' % self.text
         return result
 
 
