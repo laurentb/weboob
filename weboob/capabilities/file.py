@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from weboob.tools.compat import long
 
 from .base import Capability, BaseObject, NotAvailable, Field, StringField, IntField, enum
 from .date import DateField

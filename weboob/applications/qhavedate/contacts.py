@@ -27,7 +27,7 @@ from PyQt5.QtCore import Qt, pyqtSlot as Slot
 
 from weboob.tools.application.qt5 import QtDo, HTMLDelegate
 from weboob.tools.application.qt5.models import BackendListModel
-from weboob.tools.compat import range, basestring, unicode
+from weboob.tools.compat import range, basestring, unicode, long
 from weboob.tools.misc import to_unicode
 from weboob.capabilities.contact import CapContact, Contact
 from weboob.capabilities.chat import CapChat

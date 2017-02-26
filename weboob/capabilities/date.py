@@ -18,8 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
+
 from weboob.tools.date import new_date, new_datetime
 from weboob.capabilities.base import Field
+from weboob.tools.compat import long
 
 
 __all__ = ['DateField', 'TimeField', 'DeltaField']
