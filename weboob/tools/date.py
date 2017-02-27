@@ -135,6 +135,10 @@ def strftime(dt, fmt):
     return s
 
 
+def cmp(a, b):
+    return (a > b) - (a < b)
+
+
 class LinearDateGuesser(object):
     """
     The aim of this class is to guess the exact date object from
