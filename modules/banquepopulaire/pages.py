@@ -882,7 +882,7 @@ class NatixisHistoryPage(LoggedPage, JsonPage):
             obj_type = Transaction.TYPE_BANK
 
             def validate(self, obj):
-                return bool(obj.raw)
+                return bool(obj.raw) and bool(obj.date)
 
 
 def use_invest_date(tr):
