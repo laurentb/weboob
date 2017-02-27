@@ -23,7 +23,7 @@ import datetime
 from decimal import Decimal
 import re
 from io import BytesIO
-from datetime import date, timedelta
+from datetime import date
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem
@@ -282,16 +282,13 @@ class HistoryPage(LoggedPage, HTMLPage):
 
             def obj_date(self):
                 if Env('is_card', default=False)(self):
-                    date_text = CleanText(u'//li[h3]/h4[@class="summary__title" and contains(text(), "Solde débité au")]',
+                    month = CleanText('//label[@for="movementSearch_period_%s"]' % ('1' if Env('is_previous', default=False)(self) else '0'),
+                                      replace=[(u'Débit ', '')])(self)
+                    date_text = CleanText(u'//li[h3]/h4[@class="summary__title" and contains(text(), "Solde débité au")and contains(text(), "%s")]' % month,
                                                             replace=[(u'Solde débité au ', '')])(self)
                     if not date_text:
                         return Date(Attr('.//time', 'datetime'))(self)
                     debit_date = parse_french_date(date_text)
-                    if Env('is_previous', default=False)(self):
-                        debit_date = (debit_date - timedelta(days=7)).replace(day=1)
-                        if self.page.browser.deferred_card_calendar is None:
-                            self.page.browser.location(Link('//a[contains(text(), "calendrier")]')(self))
-                        debit_date = self.page.browser.get_closest(debit_date)
                     return debit_date.date()
                 return Date(Attr('.//time', 'datetime'))(self)
 

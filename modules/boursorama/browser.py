@@ -184,7 +184,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         return debit_date[0]
 
     def get_card_transactions(self, account):
-        self.location('%s' % account._link)
+        self.location('%s' % account._link, params={'movementSearch[period]': 'currentPeriod'})
         if self.home.is_here():
             # for some cards, the site redirects us to '/'...
             return
