@@ -163,6 +163,7 @@ class Application(object):
         self._parser.add_option('-b', '--backends', help='what backend(s) to enable (comma separated)')
         self._parser.add_option('-e', '--exclude-backends', help='what backend(s) to exclude (comma separated)')
         self._parser.add_option('-I', '--insecure', action='store_true', help='do not validate SSL')
+        self._parser.add_option('--nss', action='store_true', help='Use NSS instead of OpenSSL')
         logging_options = OptionGroup(self._parser, 'Logging Options')
         logging_options.add_option('-d', '--debug', action='count', help='display debug messages. Set up it twice to more verbosity')
         logging_options.add_option('-q', '--quiet', action='store_true', help='display only error messages')
@@ -231,6 +232,9 @@ class Application(object):
 
         self.config = klass(path)
         self.config.load(self.CONFIG)
+
+        if self.config.get('use_nss', default=False):
+            self.setup_nss()
 
     def main(self, argv):
         """
@@ -366,6 +370,8 @@ class Application(object):
             level = logging.WARNING
         if self.options.insecure:
             log_settings['ssl_insecure'] = True
+        if self.options.nss:
+            self.setup_nss()
 
         # this only matters to developers
         if not self.options.debug and not self.options.save_responses:
@@ -410,6 +416,15 @@ class Application(object):
         logging.root.setLevel(level)
         for handler in handlers:
             logging.root.addHandler(handler)
+
+    def setup_nss(self):
+        from weboob.browser.nss import init_nss, inject_in_urllib3, create_cert_db
+
+        path = self.CONFDIR
+        if not os.path.exists(os.path.join(path, 'cert8.db')):
+            create_cert_db(path)
+        init_nss(path)
+        inject_in_urllib3()
 
     def create_logging_file_handler(self, filename):
         try:
