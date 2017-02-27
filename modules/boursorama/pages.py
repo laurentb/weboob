@@ -260,6 +260,8 @@ class HistoryPage(LoggedPage, HTMLPage):
 
             def obj_type(self):
                 if not Env('is_card', default=False)(self):
+                    if Env('coming', default=False)(self) and Field('raw')(self).startswith('CARTE '):
+                        return Transaction.TYPE_CARD_SUMMARY
                     # keep the value previously set by Transaction.Raw
                     return self.obj.type
                 return Transaction.TYPE_DEFERRED_CARD
