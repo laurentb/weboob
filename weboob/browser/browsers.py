@@ -30,10 +30,6 @@ try:
     from requests.packages import urllib3
 except ImportError:
     import urllib3
-try:
-    from urllib.parse import urlparse, urljoin
-except ImportError:
-    from urlparse import urlparse, urljoin
 import os
 import sys
 from copy import deepcopy
@@ -51,7 +47,7 @@ except ImportError:
 from weboob.exceptions import BrowserHTTPSDowngrade, ModuleInstallError
 
 from weboob.tools.log import getLogger
-from weboob.tools.compat import basestring, unicode, with_metaclass
+from weboob.tools.compat import basestring, unicode, with_metaclass, urlparse, urljoin
 from weboob.tools.json import json
 
 from .cookies import WeboobCookieJar

@@ -21,7 +21,11 @@ import sys
 
 
 __all__ = ['unicode', 'long', 'basestring', 'check_output', 'range',
-           'with_metaclass']
+           'with_metaclass',
+           'quote', 'quote_plus', 'unquote', 'unquote_plus',
+           'urlparse', 'urlunparse', 'urlsplit', 'urlunsplit',
+           'urlencode', 'urljoin', 'parse_qs', 'parse_qsl',
+          ]
 
 
 try:
@@ -69,3 +73,13 @@ else:
                 return self.__unicode__()
             else:
                 return repr(self)
+
+
+try:
+    from urllib import quote, quote_plus, unquote, unquote_plus, urlencode
+    from urlparse import urlparse, urlunparse, urljoin, urlsplit, urlunsplit, parse_qsl, parse_qs
+except ImportError:
+    from urllib.parse import (
+        urlparse, urlunparse, urlsplit, urlunsplit, urljoin, urlencode,
+        quote, quote_plus, unquote, unquote_plus, parse_qsl, parse_qs,
+    )

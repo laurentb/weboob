@@ -285,7 +285,7 @@ class Decode(Filter):
 
     @debug()
     def filter(self, txt):
-        from urllib import unquote
+        from weboob.tools.compat import unquote
         try:
             txt = unquote(txt.encode('ascii')).decode(self.encoding)
         except (UnicodeDecodeError, UnicodeEncodeError):

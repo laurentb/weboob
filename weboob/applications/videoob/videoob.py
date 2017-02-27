@@ -19,7 +19,6 @@
 
 from __future__ import print_function
 from io import BytesIO
-from urlparse import urlparse
 
 import requests
 import subprocess
@@ -30,6 +29,7 @@ from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
 from weboob.tools.application.formatters.iformatter import PrettyFormatter
+from weboob.tools.compat import urlparse
 
 from .image2xterm import image2xterm, get_term_size
 

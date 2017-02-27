@@ -18,14 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from functools import wraps
-try:
-    from urllib.parse import unquote
-except ImportError:
-    from urllib import unquote
 import re
 import requests
 
-from weboob.tools.compat import basestring
+from weboob.tools.compat import basestring, unquote
 from weboob.tools.regex_helper import normalize
 from weboob.tools.misc import to_unicode
 

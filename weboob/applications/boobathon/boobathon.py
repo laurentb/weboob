@@ -22,12 +22,12 @@ from __future__ import print_function
 from datetime import datetime, timedelta
 import re
 import sys
-from urlparse import urlsplit
 from random import choice
 from collections import OrderedDict
 
 from weboob.capabilities.content import CapContent
 from weboob.tools.application.repl import ReplApplication
+from weboob.tools.compat import urlsplit
 
 
 __all__ = ['Boobathon']

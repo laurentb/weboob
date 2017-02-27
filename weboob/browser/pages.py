@@ -26,15 +26,11 @@ from io import BytesIO
 import codecs
 from cgi import parse_header
 from functools import reduce
-try:
-    import urlparse
-except ImportError:
-    import urllib.parse as urlparse
 
 import requests
 
 from weboob.exceptions import ParseError, ModuleInstallError
-from weboob.tools.compat import basestring, unicode
+from weboob.tools.compat import basestring, unicode, urljoin
 from weboob.tools.log import getLogger
 from weboob.tools.pdf import decompress_pdf
 
@@ -215,7 +211,7 @@ class Page(object):
         """
         Get an absolute URL from an a partial URL, relative to the Page URL
         """
-        return urlparse.urljoin(self.url, url)
+        return urljoin(self.url, url)
 
 
 class FormNotFound(Exception):
@@ -557,7 +553,7 @@ class HTMLPage(Page):
             m = self.browser.REFRESH_RE.match(refresh.get('content', ''))
             if not m:
                 continue
-            url = urlparse.urljoin(self.url, m.groupdict().get('url', None))
+            url = urljoin(self.url, m.groupdict().get('url', None))
             sleep = float(m.groupdict()['sleep'])
 
             if sleep <= self.REFRESH_MAX:
