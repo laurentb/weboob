@@ -19,9 +19,9 @@
 
 from __future__ import print_function
 
-import urllib
 import codecs
 
+import requests
 from PyQt5.QtCore import Qt, pyqtSlot as Slot
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QFrame, QFileDialog
@@ -87,7 +87,7 @@ class Recipe(QFrame):
 
     def gotThumbnail(self):
         if self.recipe.picture_url and not empty(self.recipe.picture_url):
-            data = urllib.urlopen(self.recipe.picture_url).read()
+            data = requests.get(self.recipe.picture_url).content
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToWidth(250, Qt.SmoothTransformation))
 

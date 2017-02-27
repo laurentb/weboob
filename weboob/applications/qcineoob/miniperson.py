@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
+import requests
 
 from PyQt5.QtGui import QIcon, QImage, QPixmap, QPixmapCache
 from PyQt5.QtWidgets import QFrame, QApplication
@@ -66,7 +66,7 @@ class MiniPerson(QFrame):
         if empty(self.person.thumbnail_url) and self.person.thumbnail_url != NotAvailable:
             self.backend.fill_person(self.person, ('thumbnail_url'))
         if not empty(self.person.thumbnail_url):
-            data = urllib.urlopen(self.person.thumbnail_url).read()
+            data = requests.get(self.person.thumbnail_url).content
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToHeight(100,Qt.SmoothTransformation))
 

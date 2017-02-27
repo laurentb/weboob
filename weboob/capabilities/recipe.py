@@ -21,10 +21,10 @@
 from .base import Capability, BaseObject, StringField, IntField, Field, empty
 
 import lxml.etree as ET
+import requests
 
 import base64
 import re
-import urllib
 
 
 __all__ = ['Recipe', 'CapRecipe']
@@ -109,7 +109,7 @@ class Recipe(BaseObject):
             preptime = ET.SubElement(desc, 'preparation-time')
             preptime.text = '%02d:%02d' % (self.preparation_time / 60, self.preparation_time % 60)
         if not empty(self.picture_url) and self.picture_url != '':
-            data = urllib.urlopen(self.picture_url).read()
+            data = requests.get(self.picture_url).content
             datab64 = base64.encodestring(data)[:-1]
 
             pictures = ET.SubElement(desc, 'pictures')

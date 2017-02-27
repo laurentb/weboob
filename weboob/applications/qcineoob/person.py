@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
+import requests
 
 from PyQt5.QtCore import pyqtSlot as Slot, Qt
 from PyQt5.QtGui import QImage, QPixmap
@@ -67,7 +67,7 @@ class Person(QFrame):
 
     def gotThumbnail(self):
         if not empty(self.person.thumbnail_url):
-            data = urllib.urlopen(self.person.thumbnail_url).read()
+            data = requests.get(self.person.thumbnail_url).content
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToWidth(220,Qt.SmoothTransformation))
 
