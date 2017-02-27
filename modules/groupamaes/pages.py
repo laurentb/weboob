@@ -41,7 +41,7 @@ class LoginErrorPage(HTMLPage):
 
 
 class GroupamaesPage(LoggedPage, HTMLPage):
-    NEGATIVE_AMOUNT_LABELS = [u'Retrait', u'Transfert sortant']
+    NEGATIVE_AMOUNT_LABELS = [u'Retrait', u'Transfert sortant', u'Frais']
 
     @method
     class iter_accounts(TableElement):
