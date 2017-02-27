@@ -681,3 +681,7 @@ class Boobank(ReplApplication):
         self.start_format()
         for profile in self.do('get_profile', caps=CapProfile):
             self.format(profile)
+
+    def main(self, argv):
+        self.load_config()
+        return super(Boobank, self).main(argv)
