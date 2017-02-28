@@ -331,6 +331,12 @@ class IndexPage(LoggedPage, MyHTMLPage):
 
 
 class HomePage(LoggedPage, MyHTMLPage):
+    # Sometimes, the page is empty but nothing is scrapped on it.
+    def build_doc(self, data, *args, **kwargs):
+        if not data:
+            return None
+        return super(MyHTMLPage, self).build_doc(data, *args, **kwargs)
+
     def get_token(self):
         vary = None
         if self.params.get('vary', None) is not None:
