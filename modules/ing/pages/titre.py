@@ -50,18 +50,21 @@ class TitrePage(LoggedPage, RawPage):
         # [...]
         lines = self.doc.split("|1|")
         if len(lines) > 1:
+            start = 1
             lines[0] = lines[0].split("|")[1]
         else:
+            start = 0
+            lines = self.doc.split("popup=2")
             lines.pop(0)
         invests = []
         for line in lines:
             _id, _pl = None, None
             columns = line.split('#')
             if columns[1] != '':
-                _pl = columns[1].split('{')[1]
-                _id = columns[1].split('{')[2]
+                _pl = columns[start].split('{')[1]
+                _id = columns[start].split('{')[2]
             invest = Investment()
-            invest.label = unicode(columns[0].split('{')[-1])
+            invest.label = unicode(columns[start].split('{')[-1])
             invest.code = unicode(_id) if _id is not None else NotAvailable
             if invest.code and ':' in invest.code:
                 invest.code = self.browser.titrevalue.open(val=invest.code,pl=_pl).get_isin()
@@ -71,25 +74,25 @@ class TitrePage(LoggedPage, RawPage):
                 if m:
                     invest.code = unicode(m.group(1) or m.group(2))
 
-            quantity = FrenchTransaction.clean_amount(columns[2])
+            quantity = FrenchTransaction.clean_amount(columns[start + 1])
             invest.quantity = CleanDecimal(default=NotAvailable).filter(quantity)
 
-            unitprice = FrenchTransaction.clean_amount(columns[3])
+            unitprice = FrenchTransaction.clean_amount(columns[start + 2])
             invest.unitprice = CleanDecimal(default=NotAvailable).filter(unitprice)
 
-            unitvalue = FrenchTransaction.clean_amount(columns[4])
+            unitvalue = FrenchTransaction.clean_amount(columns[start + 3])
             invest.unitvalue = CleanDecimal(default=NotAvailable).filter(unitvalue)
 
-            valuation = FrenchTransaction.clean_amount(columns[5])
+            valuation = FrenchTransaction.clean_amount(columns[start + 4])
             # valuation is not nullable, use 0 as default value
             invest.valuation = CleanDecimal(default=Decimal('0')).filter(valuation)
 
-            diff = FrenchTransaction.clean_amount(columns[6])
+            diff = FrenchTransaction.clean_amount(columns[start + 5])
             invest.diff = CleanDecimal(default=NotAvailable).filter(diff)
 
             # On some case we have a multine investment with a total column
             # for now we have only see this on 2 lines, we will need to adapt it when o
-            if columns[0] == u'|Total' and _id == 'fichevaleur':
+            if columns[9 if start == 0 else 0] == u'|Total' and _id == 'fichevaleur':
                 prev_inv = invest
                 invest = invests.pop(-1)
                 if prev_inv.quantity:
