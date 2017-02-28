@@ -1,0 +1,11 @@
+html, body
+{
+	width: 500px;
+}
+
+textarea
+{
+	width: 96%;
+	background: url(bg.png) center no-repeat;
+	background-size: 150px;
+}
