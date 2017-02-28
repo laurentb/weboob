@@ -35,6 +35,11 @@ def MyDecimal(*args, **kwargs):
     return CleanDecimal(*args, **kwargs)
 
 
+class QuestionPage(HTMLPage):
+    def on_load(self):
+        form = self.get_form('//form[@action="/FDL_Complex_FR_Compte/Introduction/SkipQuestionnaire"]')
+        form.submit()
+
 class LoginPage(HTMLPage):
     def login(self, login, password):
         form = self.get_form('//form[@class="logon-form"]')

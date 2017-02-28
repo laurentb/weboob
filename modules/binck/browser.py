@@ -22,7 +22,7 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.exceptions import HTTPNotFound
 
-from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage
+from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage, QuestionPage
 
 
 class BinckBrowser(LoginBrowser):
@@ -33,6 +33,7 @@ class BinckBrowser(LoginBrowser):
     investment = URL('/PortfolioOverview/GetPortfolioOverview', InvestmentPage)
     history = URL('/TransactionsOverview/GetTransactions',
                   '/TransactionsOverview/FilteredOverview', HistoryPage)
+    questions = URL('/FDL_Complex_FR_Compte', QuestionPage)
 
     def __init__(self, *args, **kwargs):
         super(BinckBrowser, self).__init__(*args, **kwargs)
