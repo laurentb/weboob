@@ -89,9 +89,8 @@ class InvestmentPage(LoggedPage, JsonPage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile(u'^(?P<text>Versement.*)'), FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile(u'^(?P<text>(Arbitrage.*|Prélèvements.*))'), FrenchTransaction.TYPE_ORDER),
-                (re.compile(u'^(?P<text>Retrait.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
+    PATTERNS = [(re.compile(u'^Deposit.*'), FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(u'^(Buy.*|Sell.*)'), FrenchTransaction.TYPE_ORDER),
                 (re.compile(u'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
                ]
 
@@ -104,8 +103,7 @@ class HistoryPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_label = CleanText(Dict('description'))
-            obj_raw = Field('label')
+            obj_raw = Transaction.Raw(CleanText(Dict('description')))
             obj_date = Date(CleanText(Dict('date')), dayfirst=True)
             obj_amount = CleanDecimal(Dict('change'))
 
@@ -117,7 +115,7 @@ class HistoryPage(LoggedPage, JsonPage):
 
             def obj_investments(self):
                 if Field('_isin')(self):
-                    return [i for i in Env('transaction_investments')(self) if i.code == Field('_isin')(self) and i._action == Field('label')(self)[0] and i._datetime == Field('_datetime')(self)]
+                    return [i for i in Env('transaction_investments')(self) if i.code == Field('_isin')(self) and i._action == Field('raw')(self)[0] and i._datetime == Field('_datetime')(self)]
                 return []
 
 
