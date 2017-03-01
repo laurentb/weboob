@@ -67,8 +67,9 @@ class SearchPage(HTMLPage):
             obj_id = CleanText('./@data-classified-id')
             obj_title = CleanText('./div/h2[@itemprop="name"]/a')
             obj_location = CleanText('./div/h2[@itemprop="name"]/span[class="item-localisation"]')
-            obj_cost = CleanDecimal('./div/div/span[@class="price-label"]', default=NotAvailable)
-            obj_currency = Regexp(CleanText('./div/div/span[@class="price-label"]'),
+            obj_cost = CleanDecimal('./div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]',
+                                    default=NotAvailable)
+            obj_currency = Regexp(CleanText('./div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]'),
                                   '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
             obj_text = CleanText('./div/div/div[@itemprop="description"]')
             obj_area = CleanDecimal(Regexp(CleanText('./div/h2[@itemprop="name"]/a'),
