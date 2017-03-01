@@ -320,8 +320,17 @@ class Market(LoggedPage, BasePage, Invest):
                 cells = tr.findall('td')
 
                 inv = Investment()
-                inv.label = unicode(cells[self.COL_LABEL].xpath('.//span')[0].attrib['title'].split(' - ')[0])
-                inv.code = unicode(cells[self.COL_LABEL].xpath('.//span')[0].attrib['title'].split(' - ')[1])
+
+                title_split = cells[self.COL_LABEL].xpath('.//span')[0].attrib['title'].split(' - ')
+                inv.label = unicode(title_split[0])
+
+                for code in title_split[1:]:
+                    if len(code) == 12:
+                        inv.code = unicode(code)
+                        break
+                else:
+                    inv.code = NotAvailable
+
                 if is_detailed:
                     inv.quantity = MyDecimal('.')(tr.xpath('./following-sibling::tr/td[2]')[0])
                     inv.unitprice = MyDecimal('.', replace_dots=True)(tr.xpath('./following-sibling::tr/td[3]')[1])
