@@ -69,27 +69,27 @@ class AccountsPage(LoggedPage, HTMLPage):
                     return text.lstrip(' 0123456789').title()
 
             class Type(Filter):
+                PATTERNS = [
+                    ('invest', Account.TYPE_MARKET),
+                    ('ldd', Account.TYPE_SAVINGS),
+                    ('livret', Account.TYPE_SAVINGS),
+                    ('compte', Account.TYPE_CHECKING),
+                    ('account', Account.TYPE_CHECKING),
+                    ('pret', Account.TYPE_LOAN),
+                    ('vie', Account.TYPE_LIFE_INSURANCE),
+                    ('strategie patr.', Account.TYPE_LIFE_INSURANCE),
+                    ('essentiel', Account.TYPE_LIFE_INSURANCE),
+                    ('elysees', Account.TYPE_LIFE_INSURANCE),
+                    ('abondance', Account.TYPE_LIFE_INSURANCE),
+                    ('ely. retraite', Account.TYPE_LIFE_INSURANCE),
+                    ('lae option assurance', Account.TYPE_LIFE_INSURANCE),
+                ]
+
                 def filter(self, label):
-                    invest  = ['invest']
-                    saving = ['ldd', 'livret']
-                    account = ['compte', 'account']
-                    loan    = ['pret', 'account']
-                    life = ['vie', 'strategie patr.', 'essentiel', 'elysees', 'abondance', 'ely. retraite']
-                    for inv in invest:
-                        if inv in label.lower():
-                            return Account.TYPE_MARKET
-                    for acc in saving:
-                        if acc in label.lower():
-                            return Account.TYPE_SAVINGS
-                    for acc in account:
-                        if acc in label.lower():
-                            return Account.TYPE_CHECKING
-                    for l in loan:
-                        if l in label.lower():
-                            return Account.TYPE_LOAN
-                    for l in life:
-                        if l in label.lower():
-                            return Account.TYPE_LIFE_INSURANCE
+                    label = label.lower()
+                    for pattern, type in self.PATTERNS:
+                        if pattern in label:
+                            return type
                     return Account.TYPE_UNKNOWN
 
             obj_label = Label(CleanText('./td[1]/a'))
