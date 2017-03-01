@@ -83,6 +83,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                     ('abondance', Account.TYPE_LIFE_INSURANCE),
                     ('ely. retraite', Account.TYPE_LIFE_INSURANCE),
                     ('lae option assurance', Account.TYPE_LIFE_INSURANCE),
+                    ('carte ', Account.TYPE_CARD),
                 ]
 
                 def filter(self, label):
@@ -101,7 +102,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             @property
             def obj_balance(self):
-                if self.el.xpath('./parent::*/tr/th') and self.el.xpath('./parent::*/tr/th')[0].text == 'Credits':
+                if self.el.xpath('./parent::*/tr/th') and self.el.xpath('./parent::*/tr/th')[0].text in [u'Credits', u'Crédits']:
                     balance = CleanDecimal(replace_dots=True).filter(self.el.xpath('./td[3]'))
                     if balance < 0:
                         return balance
