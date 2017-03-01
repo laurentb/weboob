@@ -210,4 +210,4 @@ def create_cert_db(path):
         f = os.path.join(cert_dir, f)
         if os.path.isdir(f):
             continue
-        subprocess.check_call(['certutil', '-A', '-d', path, '-i', f, '-n', f, '-t', 'TCu,Cu,Tu'])
+        subprocess.check_call(['certutil', '-A', '-d', path, '-i', f, '-n', f, '-t', 'TC,C,T'])
