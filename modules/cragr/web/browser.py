@@ -17,10 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from collections import OrderedDict
 import re
 import hashlib
-from urlparse import urlparse
+from urlparse import urlparse, urljoin
 from html2text import unescape
 from datetime import date, timedelta
 
@@ -49,7 +48,7 @@ class WebsiteNotSupported(Exception):
 
 
 class Cragr(LoginBrowser):
-    home_page = URL(HomePage)
+    home_page = URL('/$', '/particuliers.html', HomePage)
     login_page = URL(r'/stb/entreeBam$',
                      r'/stb/entreeBam\?.*typeAuthentification=CLIC_ALLER.*',
                      LoginPage)
@@ -107,18 +106,12 @@ class Cragr(LoginBrowser):
         super(Cragr, self).__init__(*args, **kwargs)
 
         if website in self.new_login_domain:
-            domain = re.sub('^m\.', 'w2.', website)
+            self.first_domain = re.sub('^m\.', 'w2.', website)
             self.new_login = True
         else:
-            domain = re.sub('^m\.', 'www.', website)
+            self.first_domain = re.sub('^m\.', 'www.', website)
 
         self._sag = None  # updated while browsing
-
-        self._urls = OrderedDict(self._urls)
-        self.home_site = 'https://%s/' % domain
-        self.home_page = URL(self.home_site, self.home_site + 'particuliers.html', HomePage)
-        self.home_page.browser = self
-        self._urls['home_page'] = self.home_page
 
         self.accounts_url = None
         self.savings_url = None
@@ -136,6 +129,7 @@ class Cragr(LoginBrowser):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
+        self.BASEURL = 'https://%s/' % self.first_domain
         self._sag = None
 
         if not self.home_page.is_here():
@@ -407,12 +401,12 @@ class Cragr(LoginBrowser):
             self.location(self.advisor_url.format(self.sag))
 
         # it looks like we have an advisor only on cmds
-        if "ca-cmds" in self.home_site:
+        if "ca-cmds" in self.first_domain:
             perimetre, agence = self.page.get_codeperimetre().split('-')
-            publickey = self.location(self.home_site + '/Vitrine/jsp/CMDS/b.js').page.get_publickey()
-            self.location("%svitrine/tracking/t/%s-%s.html" % (self.home_site.replace("www.ca", "www.credit-agricole"),
-                                                               hashlib.sha1(perimetre + publickey).hexdigest(),
-                                                               agence))
+            publickey = self.location(urljoin(self.first_domain, '/Vitrine/jsp/CMDS/b.js')).page.get_publickey()
+            self.location(urljoin(self.first_domain.replace("www.ca", "www.credit-agricole"),
+                                  "vitrine/tracking/t/%s-%s.html" % (hashlib.sha1(perimetre + publickey).hexdigest(),
+                                                                     agence)))
             yield self.page.get_advisor()
         # for other we take numbers
         else:
