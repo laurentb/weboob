@@ -39,8 +39,8 @@ class S2eModule(Module, CapBank):
 
     CONFIG = BackendConfig(
              ValueBackendPassword('login',    label='Identifiant', masked=False),
-             ValueBackendPassword('password',   label='Code secret', regexp='^(\d{6}|)$'),
-             ValueBackendPassword('secret', label=u'Réponse secrète (optionnel)', default=''),
+             ValueBackendPassword('password', label='Code secret', regexp='^(\d{6}|)$'),
+             ValueBackendPassword('secret',   label=u'Réponse secrète (optionnel)', default=''),
              Value('website', label='Banque', default='', choices={'esalia': u'Esalia',
                                                                    'capeasi': u'Capeasi',
                                                                    'erehsbc': u'ERE HSBC',

@@ -18,10 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import Module, BackendConfig
+from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.capabilities.base import find_object
+from weboob.capabilities.bank import CapBank
 
 from .browser import CapeasiBrowser
 
@@ -29,31 +28,21 @@ from .browser import CapeasiBrowser
 __all__ = ['CapeasiModule']
 
 
-class CapeasiModule(Module, CapBank):
+class CapeasiModule(AbstractModule, CapBank):
     NAME = 'capeasi'
     DESCRIPTION = u'AXA Épargne Salariale'
     MAINTAINER = u'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.2'
+    VERSION = '1.3'
     CONFIG = BackendConfig(
              ValueBackendPassword('login',    label='Identifiant', masked=False),
              ValueBackendPassword('password', label='Code secret', regexp='^(\d{6}|)$'))
 
     BROWSER = CapeasiBrowser
+    PARENT = 's2e'
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
+        return self.create_browser(self.weboob,
+                                   self.config['login'].get(),
                                    self.config['password'].get())
-
-    def get_account(self, _id):
-        return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)
-
-    def iter_accounts(self):
-        return self.browser.iter_accounts()
-
-    def iter_history(self, account):
-        return self.browser.iter_history(account)
-
-    def iter_investment(self, account):
-        return self.browser.iter_investment(account)
