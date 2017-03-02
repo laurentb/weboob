@@ -25,6 +25,7 @@ from weboob.browser.elements import ItemElement, TableElement, DictElement, meth
 from weboob.browser.filters.standard import CleanText, Date, Format, CleanDecimal, Eval, Env, TableCell
 from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
+from weboob.exceptions import BrowserPasswordExpired
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -39,6 +40,10 @@ class QuestionPage(HTMLPage):
     def on_load(self):
         form = self.get_form('//form[@action="/FDL_Complex_FR_Compte/Introduction/SkipQuestionnaire"]')
         form.submit()
+
+class ChangePassPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        raise BrowserPasswordExpired()
 
 class LoginPage(HTMLPage):
     def login(self, login, password):
