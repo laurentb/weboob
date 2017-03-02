@@ -655,6 +655,12 @@ class MarketPage(LoggedPage, HTMLPage):
     def get_compte(self, account):
         return self.doc.xpath('//option[contains(text(), "%s")]/@value' % account._info['id'])[0]
 
+    def come_back(self):
+        link = Link(u'//div/a[contains(text(), "Accueil accès client")]')(self.doc)
+        if link:
+            self.browser.location(link)
+
+
 class LifeInsurance(MarketPage):
     def get_cons_repart(self):
         return self.doc.xpath('//tr[@id="sousMenuConsultation3"]/td/div/a')[0].attrib['href']

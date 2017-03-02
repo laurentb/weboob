@@ -378,7 +378,7 @@ class CaisseEpargne(LoginBrowser):
     def get_investment(self, account):
         if self.is_cenet_website is True:
             # not available for the moment
-            return iter([])
+            return
 
         if account.type not in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET, Account.TYPE_PEA):
             raise NotImplementedError()
@@ -391,13 +391,13 @@ class CaisseEpargne(LoginBrowser):
         if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
             # Some users may not have access to this.
             if not self.market.is_here():
-                return iter([])
+                return
             self.page.submit()
             if self.page.is_error():
-                return iter([])
+                return
             self.location('https://www.caisse-epargne.offrebourse.com/Portefeuille')
             if self.message.is_here():
-                return iter([])
+                return
             if not self.page.is_on_right_portfolio(account):
                 self.location('https://www.caisse-epargne.offrebourse.com/Portefeuille?compte=%s' % self.page.get_compte(account))
         elif account.type is Account.TYPE_LIFE_INSURANCE:
@@ -405,16 +405,19 @@ class CaisseEpargne(LoginBrowser):
                 self.page.go_life_insurance(account)
 
                 if self.market.is_here() is False and self.message.is_here() is False:
-                    return iter([])
+                    return
 
                 self.page.submit()
                 self.location('https://www.extranet2.caisse-epargne.fr%s' % self.page.get_cons_repart())
             except (IndexError, AttributeError) as e:
                 self.logger.error(e)
-                return iter([])
+                return
         if self.garbage.is_here():
-            return iter([])
-        return self.page.iter_investment()
+            return
+        for i in self.page.iter_investment():
+            yield i
+        if self.market.is_here():
+            self.page.come_back()
 
     @need_login
     def get_advisor(self):
