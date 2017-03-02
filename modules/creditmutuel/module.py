@@ -82,8 +82,6 @@ class CreditMutuelModule(Module, CapBankTransfer, CapContact, CapProfile):
         return self.browser.iter_recipients(origin_account)
 
     def new_recipient(self, recipient, **params):
-        # Recipient label has max 15 alphanumrical chars.
-        #recipient.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z ]+', '', recipient.label).split())[:15]
         return self.browser.new_recipient(recipient, **params)
 
     def init_transfer(self, transfer, **params):
