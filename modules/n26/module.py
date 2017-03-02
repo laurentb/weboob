@@ -52,7 +52,7 @@ class Number26Module(Module, CapBank):
         return categories
 
     def create_default_browser(self):
-        return Number26Browser(self.config['login'].get(), self.config['password'].get())
+        return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
     def iter_accounts(self):
         return self.browser.get_accounts()
