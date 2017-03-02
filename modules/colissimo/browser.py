@@ -29,28 +29,26 @@ __all__ = ['ColissimoBrowser']
 
 
 class TrackingPage(HTMLPage):
-    ENCODING = 'iso-8859-15'
-
     @method
     class iter_infos(ListElement):
-        item_xpath = '//table[@class="dataArray"]/tbody/tr'
+        item_xpath = '//div[has-class("results-suivi")]//table/tbody/tr'
 
         class item(ItemElement):
             klass = Event
 
-            obj_date = Date(CleanText('td[@headers="Date"]'), dayfirst=True)
-            obj_activity = CleanText('td[@headers="Libelle"]')
-            obj_location = CleanText('td[@headers="site"]')
+            obj_date = Date(CleanText('td[1]'), dayfirst=True)
+            obj_activity = CleanText('td[2]')
+            obj_location = CleanText('td[3]')
 
     def get_error(self):
-        return CleanText("//div[@class='error']")(self.doc)
+        return CleanText('//div[has-class("error-suivi")]')(self.doc)
 
 
 class ColissimoBrowser(PagesBrowser):
-    BASEURL = 'http://www.colissimo.fr'
+    BASEURL = 'http://www.laposte.fr'
     PROFILE = Firefox()
 
-    tracking_url = URL('/portail_colissimo/suivre.do\?colispart=(?P<_id>.*)', TrackingPage)
+    tracking_url = URL('/particulier/outils/suivre-vos-envois\?code=(?P<_id>.*)', TrackingPage)
 
     def get_tracking_info(self, _id):
         self.tracking_url.stay_or_go(_id=_id)
