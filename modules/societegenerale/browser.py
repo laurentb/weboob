@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account
 from weboob.browser.exceptions import BrowserHTTPNotFound
@@ -28,15 +28,16 @@ from .pages.accounts_list import (
     LifeInsuranceHistory, LifeInsuranceInvest, Market, ListRibPage, AdvisorPage,
     LoansPage,
 )
-from .pages.transfer import RecipientsPage, TransferPage
+from .pages.transfer import RecipientsPage, TransferPage, AddRecipientPage, RecipientJson
 from .pages.login import LoginPage, BadLoginPage, ReinitPasswordPage
 
 
 __all__ = ['SocieteGenerale']
 
 
-class SocieteGenerale(LoginBrowser):
+class SocieteGenerale(LoginBrowser, StatesMixin):
     BASEURL = 'https://particuliers.secure.societegenerale.fr'
+    STATE_DURATION = 5
 
     login = URL('https://particuliers.societegenerale.fr/index.html', LoginPage)
     bad_login = URL('\/acces/authlgn.html', '/error403.html', BadLoginPage)
@@ -53,10 +54,17 @@ class SocieteGenerale(LoginBrowser):
 
     recipients = URL('/personnalisation/per_cptBen_modifier_liste.html', RecipientsPage)
     transfer = URL('/virement/pas_vipon_saisie.html', '/lgn/url.html\?dup', TransferPage)
+    add_recipient = URL('/lgn/url.html', AddRecipientPage)
+    json_recipient = URL('/sec/getsigninfo.json', '/sec/csa/send.json', '/sec/oob_sendoob.json', '/sec/oob_polling.json', RecipientJson)
 
     loans = URL(r'/abm/restit/listeRestitutionPretsNET.json\?a100_isPretConso=(?P<conso>\w+)', LoansPage)
 
     accounts_list = None
+    context = None
+    dup = None
+    id_transaction = None
+
+    __states__ = ('context', 'dup', 'id_transaction')
 
     def do_login(self):
         assert isinstance(self.username, basestring)
@@ -190,3 +198,27 @@ class SocieteGenerale(LoginBrowser):
     def execute_transfer(self, transfer):
         self.page.confirm()
         return transfer
+
+    def end_sms_recipient(self, recipient, **params):
+        data = [('context', self.context), ('context', self.context), ('dup', self.dup), ('code', params['code']), ('csa_op', 'sign')]
+        self.add_recipient.go(data=data, headers={'Referer': 'https://particuliers.secure.societegenerale.fr/lgn/url.html'})
+        return self.page.get_recipient_object(recipient)
+
+    def end_oob_recipient(self, recipient, **params):
+        self.open('https://particuliers.secure.societegenerale.fr/sec/oob_polling.json', data={'n10_id_transaction': self.id_transaction})
+        data = [('context', self.context), ('b64_jeton_transaction', self.context), ('dup', self.dup), ('n10_id_transaction', self.id_transaction), ('oob_op', 'sign')]
+        self.add_recipient.go(data=data, headers={'Referer': 'https://particuliers.secure.societegenerale.fr/lgn/url.html'})
+        return self.page.get_recipient_object(recipient)
+
+    @need_login
+    def new_recipient(self, recipient, **params):
+        if 'code' in params:
+            return self.end_sms_recipient(recipient, **params)
+        if 'pass' in params:
+            return self.end_oob_recipient(recipient, **params)
+        self.transfer.go()
+        self.location(self.page.get_add_recipient_link())
+        self.page.post_iban(recipient)
+        self.page.post_label(recipient)
+        self.page.double_auth(recipient)
+        return self.page.get_recipient_object(recipient)

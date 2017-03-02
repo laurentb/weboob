@@ -22,16 +22,18 @@ import re
 from collections import OrderedDict
 from io import BytesIO
 from logging import error
-from weboob.tools.json import json
+from time import sleep
 
-from weboob.browser.pages import LoggedPage
+from weboob.browser.pages import LoggedPage, JsonPage, FormNotFound
 from weboob.browser.elements import method, ListElement, ItemElement
-from weboob.capabilities.bank import Recipient, TransferError, Transfer
+from weboob.capabilities.bank import Recipient, TransferError, Transfer, AddRecipientError, AddRecipientStep
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, \
                                             Env, Date
-from weboob.browser.filters.html import Attr
+from weboob.browser.filters.html import Attr, Link
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.value import Value
+from weboob.tools.json import json
 
 from ..captcha import Captcha, TileError
 from .base import BasePage
@@ -65,6 +67,13 @@ class RecipientsPage(LoggedPage, BasePage):
 
 
 class TransferPage(LoggedPage, BasePage, PasswordPage):
+    def is_here(self):
+        return not bool(CleanText(u'//h3[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc)) and\
+            not bool(CleanText(u'//h1[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc))
+
+    def get_add_recipient_link(self):
+        return Regexp(Link('//a[img[@src="/img/personnalisation/btn_ajouter_beneficiaire.jpg"]]'), 'javascript:window.location="([^"]+)"')(self.doc)
+
     def on_load(self):
         excluded_errors = [u"Vous n'avez pas la possibilité d'accéder à cette fonction. Veuillez prendre contact avec votre Conseiller."]
         error_msg = CleanText('//span[@class="error_msg"]')(self.doc)
@@ -240,3 +249,100 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         form['cryptocvcs'] = infos["crypto"].encode('iso-8859-1')
         form['vkm_op'] = 'sign'
         form.submit()
+
+
+class RecipientJson(LoggedPage, JsonPage):
+    pass
+
+class AddRecipientPage(LoggedPage, BasePage):
+    def on_load(self):
+        error_msg = CleanText(u'//span[@class="error_msg"]')(self.doc)
+        if error_msg:
+            raise AddRecipientError(error_msg)
+
+    def is_here(self):
+        return bool(CleanText(u'//h3[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc)) or \
+                bool(CleanText(u'//h1[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc)) or \
+                bool(CleanText(u'//h3[contains(text(), "Veuillez vérifier les informations du compte à ajouter")]')(self.doc)) or \
+                bool(Link('//a[contains(@href, "per_cptBen_ajouterFrBic")]')(self.doc))
+
+    def post_iban(self, recipient):
+        form = self.get_form(name='persoAjoutCompteBeneficiaire')
+        form['codeIBAN'] = recipient.iban
+        form['n10_form_etr'] = '1'
+        form.submit()
+
+    def post_label(self, recipient):
+        form = self.get_form(name='persoAjoutCompteBeneficiaire')
+        form['nomBeneficiaire'] = recipient.label
+        form['codeIBAN'] = form['codeIBAN'].replace(' ', '')
+        form['n10_form_etr'] = '1'
+        form.submit()
+
+    def get_action_level(self):
+        for script in self.doc.xpath('//script'):
+            if 'actionLevel' in CleanText('.')(script):
+                return re.search("'actionLevel': (\d{3}),", script.text).group(1)
+
+    def double_auth(self, recipient):
+        try:
+            form = self.get_form(id='formCache')
+        except FormNotFound:
+            raise AddRecipientError('form not found')
+
+        self.browser.context = form['context']
+        self.browser.dup = form['dup']
+        self.browser.logged = 1
+
+        getsigninfo_data = {}
+        getsigninfo_data['b64_jeton_transaction'] = form['context']
+        getsigninfo_data['action_level'] = self.get_action_level()
+        r = self.browser.open('https://particuliers.secure.societegenerale.fr/sec/getsigninfo.json', data=getsigninfo_data)
+        assert r.page.doc['commun']['statut'] == 'ok'
+
+        recipient = self.get_recipient_object(recipient, get_info=True)
+        self.browser.page = None
+        if r.page.doc['donnees']['sign_proc'] == 'csa':
+            send_data = {}
+            send_data['csa_op'] = 'sign'
+            send_data['context'] = form['context']
+            r = self.browser.open('https://particuliers.secure.societegenerale.fr/sec/csa/send.json', data=send_data)
+            assert r.page.doc['commun']['statut'] == 'ok'
+            raise AddRecipientStep(recipient, Value('code', label=u'Cette opération doit être validée par un Code Sécurité.'))
+        elif r.page.doc['donnees']['sign_proc'] == 'OOB':
+            oob_data = {}
+            oob_data['b64_jeton_transaction'] = form['context']
+            r = self.browser.open('https://particuliers.secure.societegenerale.fr/sec/oob_sendoob.json', data=oob_data)
+            assert r.page.doc['commun']['statut'] == 'ok'
+            self.browser.id_transaction = r.page.doc['donnees']['id-transaction']
+            r = self.browser.open('https://particuliers.secure.societegenerale.fr/sec/oob_polling.json', data={'n10_id_transaction': self.browser.id_transaction})
+            while r.page.doc['donnees']['transaction_status'] == 'in_progress':
+                sleep(5)
+                headers = {'X-Requested-With': 'XMLHttpRequest', 'Referer': 'https://particuliers.secure.societegenerale.fr/lgn/url.html'}
+                r = self.browser.open('https://particuliers.secure.societegenerale.fr/sec/oob_polling.json', data={'n10_id_transaction': self.browser.id_transaction})
+            data = {}
+            data['context'] = self.browser.context
+            data['n10_id_transaction'] = self.browser.id_transaction
+            data['dup'] = self.browser.dup
+            data['b64_jeton_transaction'] = self.browser.context
+            data['oob_op'] = 'sign'
+            headers = {'Referer': 'https://particuliers.secure.societegenerale.fr/lgn/url.html'}
+            self.browser.add_recipient.go(data=data, headers=headers)
+        else:
+            raise AddRecipientError('sign process unknown')
+
+    def get_recipient_object(self, recipient, get_info=False):
+        r = Recipient()
+        if get_info:
+            recap_iban = CleanText('//div[div[contains(text(), "IBAN")]]/div[has-class("recapTextField")]', replace=[(' ', '')])(self.doc)
+            assert recap_iban == recipient.iban
+            recipient.bank_name = CleanText('//div[div[contains(text(), "Banque du")]]/div[has-class("recapTextField")]', default=NotAvailable)(self.doc)
+        r.iban = recipient.iban
+        r.id = recipient.iban
+        r.label = recipient.label
+        r.category = recipient.category
+        # On societe generale recipients are immediatly available.
+        r.enabled_at = datetime.now().replace(microsecond=0)
+        r.currency = u'EUR'
+        r.bank_name = recipient.bank_name
+        return r

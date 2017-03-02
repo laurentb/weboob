@@ -105,6 +105,10 @@ class SocieteGeneraleModule(Module, CapBankTransfer, CapContact, CapProfile):
             origin_account = find_object(self.iter_accounts(), id=origin_account, error=AccountNotFound)
         return self.browser.iter_recipients(origin_account)
 
+    def new_recipient(self, recipient, **params):
+        recipient.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z:\/\-\?\(\)\.,\'\+ ]+', '', recipient.label).split())
+        return self.browser.new_recipient(recipient, **params)
+
     def init_transfer(self, transfer, **params):
         if self.config['website'].get() != 'par':
             raise NotImplementedError()
