@@ -171,7 +171,8 @@ class CmsoParBrowser(LoginBrowser):
         if account.type == Account.TYPE_LIFE_INSURANCE:
             url = json.loads(self.lifeinsurance.go(accid=account._index).content)['url']
             url = self.location(url).page.get_link("supports")
-
+            if not url:
+                return iter([])
             return self.location(url).page.iter_investment()
         elif account.type == Account.TYPE_MARKET:
             self.location(json.loads(self.market.go(data=json.dumps({"place": \

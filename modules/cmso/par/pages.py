@@ -233,7 +233,7 @@ class LifeinsurancePage(LoggedPage, HTMLPage):
         return re.sub(r'\s', '', Regexp(CleanText('//h1[@class="portlet-title"]'), ur'n° ([\d\s]+)')(self.doc))
 
     def get_link(self, page):
-        return Link().filter(self.doc.xpath(u'//a[contains(text(), "%s")]' % page))
+        return Link(default=NotAvailable).filter(self.doc.xpath(u'//a[contains(text(), "%s")]' % page))
 
     @pagination
     @method
