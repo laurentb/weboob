@@ -22,7 +22,6 @@ import re
 from collections import OrderedDict
 from io import BytesIO
 from logging import error
-from time import sleep
 
 from weboob.browser.pages import LoggedPage, JsonPage, FormNotFound
 from weboob.browser.elements import method, ListElement, ItemElement
@@ -32,7 +31,7 @@ from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, \
                                             Env, Date
 from weboob.browser.filters.html import Attr, Link
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.value import Value
+from weboob.tools.value import Value, ValueBool
 from weboob.tools.json import json
 
 from ..captcha import Captcha, TileError
@@ -315,19 +314,7 @@ class AddRecipientPage(LoggedPage, BasePage):
             r = self.browser.open('https://particuliers.secure.societegenerale.fr/sec/oob_sendoob.json', data=oob_data)
             assert r.page.doc['commun']['statut'] == 'ok'
             self.browser.id_transaction = r.page.doc['donnees']['id-transaction']
-            r = self.browser.open('https://particuliers.secure.societegenerale.fr/sec/oob_polling.json', data={'n10_id_transaction': self.browser.id_transaction})
-            while r.page.doc['donnees']['transaction_status'] == 'in_progress':
-                sleep(5)
-                headers = {'X-Requested-With': 'XMLHttpRequest', 'Referer': 'https://particuliers.secure.societegenerale.fr/lgn/url.html'}
-                r = self.browser.open('https://particuliers.secure.societegenerale.fr/sec/oob_polling.json', data={'n10_id_transaction': self.browser.id_transaction})
-            data = {}
-            data['context'] = self.browser.context
-            data['n10_id_transaction'] = self.browser.id_transaction
-            data['dup'] = self.browser.dup
-            data['b64_jeton_transaction'] = self.browser.context
-            data['oob_op'] = 'sign'
-            headers = {'Referer': 'https://particuliers.secure.societegenerale.fr/lgn/url.html'}
-            self.browser.add_recipient.go(data=data, headers=headers)
+            raise AddRecipientStep(recipient, ValueBool('pass', label=u'Valider cette opération sur votre applicaton société générale'))
         else:
             raise AddRecipientError('sign process unknown')
 
