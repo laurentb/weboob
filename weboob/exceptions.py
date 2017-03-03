@@ -30,10 +30,6 @@ class BrowserBanned(BrowserIncorrectPassword):
     pass
 
 
-class BrowserPasswordExpired(BrowserIncorrectPassword):
-    pass
-
-
 class BrowserUnavailable(Exception):
     pass
 
@@ -87,4 +83,8 @@ class ModuleLoadError(Exception):
 
 
 class ActionNeeded(Exception):
+    pass
+
+
+class BrowserPasswordExpired(ActionNeeded):
     pass
