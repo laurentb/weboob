@@ -329,6 +329,26 @@ class Module(object):
         if not klass:
             return None
 
+        kwargs['proxy'] = self.get_proxy()
+        kwargs['logger'] = self.logger
+
+        if self.logger.settings['responses_dirname']:
+            kwargs.setdefault('responses_dirname', os.path.join(self.logger.settings['responses_dirname'],
+                                                                self._private_config.get('_debug_dir', self.name)))
+        elif os.path.isabs(self._private_config.get('_debug_dir', '')):
+            kwargs.setdefault('responses_dirname', self._private_config['_debug_dir'])
+        if self._private_config.get('_highlight_el', ''):
+            kwargs.setdefault('highlight_el', bool(int(self._private_config['_highlight_el'])))
+
+
+        browser = klass(*args, **kwargs)
+
+        if hasattr(browser, 'load_state'):
+            browser.load_state(self.storage.get('browser_state', default={}))
+
+        return browser
+
+    def get_proxy(self):
         tmpproxy = None
         tmpproxys = None
 
@@ -345,29 +365,12 @@ class Module(object):
         elif 'HTTPS_PROXY' in os.environ:
             tmpproxys = os.environ['HTTPS_PROXY']
 
-        if any((tmpproxy, tmpproxys)):
-            kwargs['proxy'] = {}
-            if tmpproxy is not None:
-                kwargs['proxy']['http'] = tmpproxy
-            if tmpproxys is not None:
-                kwargs['proxy']['https'] = tmpproxys
-
-        kwargs['logger'] = self.logger
-
-        if self.logger.settings['responses_dirname']:
-            kwargs.setdefault('responses_dirname', os.path.join(self.logger.settings['responses_dirname'],
-                                                                self._private_config.get('_debug_dir', self.name)))
-        elif os.path.isabs(self._private_config.get('_debug_dir', '')):
-            kwargs.setdefault('responses_dirname', self._private_config['_debug_dir'])
-        if self._private_config.get('_highlight_el', ''):
-            kwargs.setdefault('highlight_el', bool(int(self._private_config['_highlight_el'])))
-
-        browser = klass(*args, **kwargs)
-
-        if hasattr(browser, 'load_state'):
-            browser.load_state(self.storage.get('browser_state', default={}))
-
-        return browser
+        proxy = {}
+        if tmpproxy is not None:
+            proxy['http'] = tmpproxy
+        if tmpproxys is not None:
+            proxy['https'] = tmpproxys
+        return proxy
 
     @classmethod
     def iter_caps(klass):
