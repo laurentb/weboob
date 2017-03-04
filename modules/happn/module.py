@@ -19,10 +19,13 @@
 
 from collections import OrderedDict
 import datetime
+from random import randint, random
+
 from dateutil.parser import parse as parse_date
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import tzlocal
-from random import randint
+import geopy
+import geopy.distance
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Thread, Message
@@ -40,7 +43,7 @@ __all__ = ['HappnModule']
 
 
 class ProfilesWalker(Optimization):
-    def __init__(self, sched, storage, browser):
+    def __init__(self, sched, storage, browser, location, distance):
         super(ProfilesWalker, self).__init__()
         self._sched = sched
         self._storage = storage
@@ -49,6 +52,9 @@ class ProfilesWalker(Optimization):
         self._last_position_update = None
 
         self._view_cron = None
+
+        self._location = geopy.Point(map(float, location.split(',')))
+        self._max_distance = int(distance)
 
     def start(self):
         self._view_cron = self._sched.schedule(1, self.view_profile)
@@ -65,8 +71,6 @@ class ProfilesWalker(Optimization):
     def is_running(self):
         return self._view_cron is not None
 
-    INTERVALS = [(48896403, 2303976),
-                 (48820992, 2414698)]
     def view_profile(self):
         try:
             n = 0
@@ -87,15 +91,16 @@ class ProfilesWalker(Optimization):
 
             if n == 0 and (self._last_position_update is None or self._last_position_update + datetime.timedelta(minutes=20) < datetime.datetime.now()):
                 self._logger.info('No more new profiles, updating position...')
-                lat = randint(self.INTERVALS[1][0], self.INTERVALS[0][0])/1000000.0
-                lng = randint(self.INTERVALS[0][1], self.INTERVALS[1][1])/1000000.0
+
+                d = geopy.distance.VincentyDistance(kilometers=random()*self._max_distance)
+                pos = d.destination(point=self._location, bearing=randint(0,360))
                 try:
-                    self._browser.set_position(lat, lng)
+                    self._browser.set_position(pos.latitude, pos.longitude)
                 except BrowserHTTPError:
                     self._logger.warning('Unable to update position for now, it will be retried later.')
                     self._logger.warning('NB: don\'t be afraid, happn only allows to update position every 20 minutes.')
                 else:
-                    self._logger.info('You are now here: https://www.google.com/maps/place//@%s,%s,17z', lat, lng)
+                    self._logger.info('You are now here: https://www.google.com/maps/place//@%s,%s,17z', pos.latitude, pos.longitude)
                     self._last_position_update = datetime.datetime.now()
 
             for thread in self._browser.get_threads():
@@ -180,7 +185,9 @@ class HappnModule(Module, CapMessages, CapMessagesPost, CapDating, CapContact):
     LICENSE = 'AGPLv3+'
     VERSION = '1.3'
     CONFIG = BackendConfig(Value('username',                label='Facebook email'),
-                           ValueBackendPassword('password', label='Facebook password'))
+                           ValueBackendPassword('password', label='Facebook password'),
+                           Value('location',                label='Location (example: 49.6008457,6.129709)'),
+                           Value('distance',                label='Distance (in km) around your location you\'re walking'))
 
     BROWSER = HappnBrowser
     STORAGE = {'contacts': {},
@@ -195,7 +202,9 @@ class HappnModule(Module, CapMessages, CapMessagesPost, CapDating, CapContact):
     # ---- CapDating methods -----------------------
 
     def init_optimizations(self):
-        self.add_optimization('PROFILE_WALKER', ProfilesWalker(self.weboob.scheduler, self.storage, self.browser))
+        self.add_optimization('PROFILE_WALKER', ProfilesWalker(self.weboob.scheduler, self.storage, self.browser,
+                                                               self.config['location'].get(),
+                                                               self.config['distance'].get()))
 
     # ---- CapMessages methods ---------------------
 
