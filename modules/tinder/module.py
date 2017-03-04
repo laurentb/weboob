@@ -74,7 +74,8 @@ class TinderModule(Module, CapMessages, CapMessagesPost, CapDating):
     LICENSE = 'AGPLv3+'
     VERSION = '1.3'
     CONFIG = BackendConfig(Value('username',                label='Facebook email'),
-                           ValueBackendPassword('password', label='Facebook password'))
+                           ValueBackendPassword('password', label='Facebook password'),
+                           Value('location',                label='Location (example: 49.6008457,6.129709)', default=''))
 
     BROWSER = TinderBrowser
     STORAGE = {'contacts': {},
@@ -84,7 +85,7 @@ class TinderModule(Module, CapMessages, CapMessagesPost, CapDating):
         facebook = self.create_browser(klass=FacebookBrowser)
         facebook.login(self.config['username'].get(),
                        self.config['password'].get())
-        return self.create_browser(facebook)
+        return self.create_browser(facebook, self.config['location'].get())
 
     # ---- CapDating methods -----------------------
 

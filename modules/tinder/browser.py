@@ -78,7 +78,7 @@ class TinderBrowser(APIBrowser):
 
     recs = []
 
-    def __init__(self, facebook, *args, **kwargs):
+    def __init__(self, facebook, location, *args, **kwargs):
         super(TinderBrowser, self).__init__(*args, **kwargs)
         self.facebook = facebook
 
@@ -88,6 +88,10 @@ class TinderBrowser(APIBrowser):
 
         self.my_id = me['user']['_id']
         self.my_name = me['user']['name']
+
+        if location:
+            lat, lon = location.split(',')
+            self.request('/user/ping', data={'lat': lat, 'lon': lon})
 
     def get_threads(self):
         resp = self.request('/updates', data={'last_activity_date': '2014-05-01T06:13:16.971Z'})
