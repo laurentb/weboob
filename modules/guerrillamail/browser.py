@@ -17,39 +17,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-from weboob.deprecated.browser import Browser
+from weboob.browser import DomainBrowser
 from weboob.tools.date import datetime
-from weboob.deprecated.browser.parsers.jsonparser import json
-from urllib import urlencode
-
-#from .pages import Page1, Page2
+from weboob.tools.json import json
 
 
 __all__ = ['GuerrillamailBrowser']
 
 
-class GuerrillamailBrowser(Browser):
-    PROTOCOL = 'https'
-    DOMAIN = 'www.guerrillamail.com'
-    ENCODING = 'utf-8'
-
-    def __init__(self, *args, **kw):
-        kw['parser'] = 'raw'
-        Browser.__init__(self, *args, **kw)
-
-    def _get_unicode(self, url, *a):
-        return self.get_document(self.openurl(url, *a)).decode(self.ENCODING, 'replace')
-
-    def _get_json(self, url, *a):
-        j = json.loads(self._get_unicode(url, *a))
-        return j
+class GuerrillamailBrowser(DomainBrowser):
+    BASEURL = 'https://www.guerrillamail.com'
 
     def get_mails(self, boxid):
         params = {'email_user': boxid, 'lang': 'en', 'domain': 'guerrillamail.com'}
-        d = self._get_json('https://www.guerrillamail.com/ajax.php?f=set_email_user', urlencode(params))
+        d = self.open('https://www.guerrillamail.com/ajax.php?f=set_email_user', data=params).json()
 
-        d = self._get_json('https://www.guerrillamail.com/ajax.php?f=get_email_list&offset=0&domain=guerrillamail.com')
+        d = self.open('https://www.guerrillamail.com/ajax.php?f=get_email_list&offset=0&domain=guerrillamail.com').json()
         for m in d['list']:
             info = {}
             info['id'] = m['mail_id']
@@ -62,9 +45,9 @@ class GuerrillamailBrowser(Browser):
             yield info
 
     def get_mail_content(self, mailid):
-        d = self._get_json('https://www.guerrillamail.com/ajax.php?f=fetch_email&email_id=mr_%s&domain=guerrillamail.com' % mailid)
+        d = self.open('https://www.guerrillamail.com/ajax.php?f=fetch_email&email_id=mr_%s&domain=guerrillamail.com' % mailid).json()
         return d['mail_body']
 
     def send_mail(self, from_, to, subject, body):
         params = {'from': from_, 'to': to, 'subject': subject, 'body': body, 'attach': '', 'domain': 'guerrillamail.com'}
-        self._get_json('https://www.guerrillamail.com/ajax.php?f=send_email', urlencode(params))
+        self.open('https://www.guerrillamail.com/ajax.php?f=send_email', data=params)
