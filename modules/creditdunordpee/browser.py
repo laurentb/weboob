@@ -48,7 +48,7 @@ class CreditdunordpeeBrowser(LoginBrowser):
     @need_login
     def iter_accounts(self):
         account = Account(self.username)
-        return self.avoir.go().get_account(obj=account)
+        return iter([self.avoir.go().get_account(obj=account)])
 
     @need_login
     def get_history(self):
