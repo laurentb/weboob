@@ -66,7 +66,7 @@ class YomoniBrowser(APIBrowser):
 
         data = {
             'username': self.username,
-            'password': self.password.encode('base64').strip(),
+            'password': self.password.encode('utf8').encode('base64').strip(),
         }
         try:
             self.users = self.request('auth/login', data=data)
