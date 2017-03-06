@@ -79,7 +79,7 @@ class AvoirPage(LoggedPage, HTMLPage):
 
         obj_label = Format('PEE %s', CleanText('//div[@id="pbGp_df83b8bd_2dd787_2d4d10_2db608_2d69c44af91e91_j_id1:j_idt1:j_idt2:j_idt15_body"]'))
         obj_balance = CleanDecimal('//div[@id="pbGp_3f1d2af7_2ddd41_2d45d2_2dbb9d_2d8f27b33a375f_j_id1:j_idt1:form:j_idt2:j_idt14:j_idt23:0:j_idt65:j_idt47_body"]',
-                                   default=0,
+                                   default=Decimal(0),
                                    replace_dots=True)
         obj_currency = Regexp(CleanText('//div[@id="pbGp_3f1d2af7_2ddd41_2d45d2_2dbb9d_2d8f27b33a375f_j_id1:j_idt1:form:j_idt2:j_idt14:j_idt23:0:j_idt65:j_idt47_body"]'),
                               '.*(.)$', default=u'€')
