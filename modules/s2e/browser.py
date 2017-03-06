@@ -41,7 +41,7 @@ class S2eBrowser(LoginBrowser):
         super(S2eBrowser, self).__init__(*args, **kwargs)
         self.cache = {}
         self.cache['invs'] = {}
-        self.cache['trs'] = {}
+        self.cache['pockets'] = {}
         self.cache['details'] = {}
 
     def do_login(self):
@@ -84,25 +84,35 @@ class S2eBrowser(LoginBrowser):
             self.page.get_investment_pages(account.id)
             invs = [i for i in self.page.iter_investment()]
             # Get page with quantity
-            self.page.get_investment_pages(account.id, False)
-            self.cache['invs'][account.id] = self.page.update_quantity(invs)
+            self.page.get_investment_pages(account.id, valuation=False)
+            self.cache['invs'][account.id] = self.page.update_invs_quantity(invs)
         return self.cache['invs'][account.id]
 
     @need_login
+    def iter_pocket(self, account):
+        if account.id not in self.cache['pockets']:
+            self.iter_investment(account)
+            # Select account
+            self.page.get_investment_pages(account.id, pocket=True)
+            pockets = [p for p in self.page.iter_pocket(accid=account.id)]
+            # Get page with quantity
+            self.page.get_investment_pages(account.id, valuation=False, pocket=True)
+            self.cache['pockets'][account.id] = self.page.update_pockets_quantity(pockets)
+        return self.cache['pockets'][account.id]
+
+    @need_login
     def iter_history(self, account):
-        if account.id not in self.cache['trs']:
-            self.history.stay_or_go(slug=self.SLUG)
-            # Handle multi entreprise accounts
-            if hasattr(account, '_multi'):
-                self.page.go_multi(account._multi)
-                self.history.go(slug=self.SLUG)
-            # Get more transactions on each page
-            self.page.show_more("50")
-            trs = [t for t in self.page.iter_history(accid=account.id)]
-            self.cache['trs'][account.id] = trs
-            # Go back to first page
-            self.page.go_start()
-        return self.cache['trs'][account.id]
+        self.history.stay_or_go(slug=self.SLUG)
+        # Handle multi entreprise accounts
+        if hasattr(account, '_multi'):
+            self.page.go_multi(account._multi)
+            self.history.go(slug=self.SLUG)
+        # Get more transactions on each page
+        self.page.show_more("50")
+        for tr in self.page.iter_history(accid=account.id):
+            yield tr
+        # Go back to first page
+        self.page.go_start()
 
 
 class EsaliaBrowser(S2eBrowser):

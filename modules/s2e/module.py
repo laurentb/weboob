@@ -70,3 +70,6 @@ class S2eModule(Module, CapBank):
 
     def iter_investment(self, account):
         return self.browser.iter_investment(account)
+
+    def iter_pocket(self, account):
+        return self.browser.iter_pocket(account)

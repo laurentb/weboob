@@ -27,7 +27,7 @@ from weboob.browser.pages import HTMLPage, XMLPage, LoggedPage, pagination
 from weboob.browser.elements import ItemElement, TableElement, SkipItem, method
 from weboob.browser.filters.standard import CleanText, Date, Regexp, Eval, CleanDecimal, Env, TableCell, Field
 from weboob.browser.filters.html import Attr
-from weboob.capabilities.bank import Account, Investment, Transaction
+from weboob.capabilities.bank import Account, Investment, Pocket, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
 from weboob.exceptions import NoAccountsException, BrowserUnavailable, ActionNeeded
@@ -130,6 +130,10 @@ class ItemInvestment(ItemElement):
         return MyDecimal(TableCell('valuation')(self)[0].xpath('.//div[not(.//div)]'))(self)
 
     def obj_code(self):
+        # works only on erehsbc for now
+        if "hsbc.fr" not in self.page.browser.BASEURL:
+            return NotAvailable
+
         link_id = Attr(u'.//a[contains(@title, "détail du fonds")]', 'id', default=None)(self)
         inv_id = Attr('.//a[contains(@id, "linkpdf")]', 'id', default=None)(self)
         if link_id and inv_id:
@@ -139,6 +143,7 @@ class ItemInvestment(ItemElement):
             page = self.page.browser.open(form['javax.faces.encodedURL'], data=dict(form)).page
             m = re.search('fundid=(\w+).+SH=(\w+)', CleanText('//complete', default="")(page.doc))
             if m:
+                # had to put full url to skip redirections.
                 page = page.browser.open('https://www.assetmanagement.hsbc.com/feedRequest?feed_data=gfcFundData&cod=FR&client=FCPE&fId=%s&SH=%s&lId=fr' % m.groups()).page
                 return CleanText('//AMF_Code', default=NotAvailable)(page.doc)
         return NotAvailable
@@ -220,14 +225,13 @@ class AccountsPage(LoggedPage, MultiPage):
                 self.env['id'] = id
                 self.env['label'] = label
 
-    def get_investment_pages(self, accid, valuation=True):
+    def get_investment_pages(self, accid, valuation=True, pocket=False):
         form = self.get_form('//div[@id="operation"]//form')
-        div_xpath = '//div[contains(@id, "ongletDetailParSupport")]'
+        div_xpath = '//div[contains(@id, "%s")]' % ("detailParSupportEtDate" if pocket else "ongletDetailParSupport")
         input_id = Attr('//input[contains(@id, "onglets")]', 'name')(self.doc)
         select_id = Attr('%s//select' % div_xpath, 'id')(self.doc)
-        option_value = Attr('//option[contains(text(), "%s")]' % accid, 'value')(self.doc)
-        form[select_id] = option_value
-        form[input_id] = "onglet2"
+        form[select_id] = Attr('//option[contains(text(), "%s")]' % accid, 'value')(self.doc)
+        form[input_id] = "onglet4" if pocket else "onglet2"
         # Select display : amount or quantity
         radio_txt = ("En montant" if valuation else [u"Quantité", "En parts"]) if self.browser.LANG == "fr" else \
                     ("In amount" if valuation else ["Quantity", "In units"])
@@ -237,15 +241,12 @@ class AccountsPage(LoggedPage, MultiPage):
             % (div_xpath, radio_txt), 'onclick'), '"([^"]+)')(self.doc)
         form[input_id] = input_id
         form['javax.faces.source'] = input_id
-        form['valorisationMontant'] = "true" if valuation else "false"
+        if pocket:
+            form['visualisationMontant'] = "true" if valuation else "false"
+        else:
+            form['valorisationMontant'] = "true" if valuation else "false"
         data = {k: v for k, v in dict(form).iteritems() if "blocages" not in v}
         self.browser.location(form.url, data=data)
-
-    def update_quantity(self, invs):
-        for inv in invs:
-            inv.quantity = MyDecimal().filter(CleanText('//div[contains(@id, "ongletDetailParSupport")] \
-                 //tr[.//div[contains(text(), "%s")]]/td[last()]//div/text()' % inv.label)(self.doc))
-        return invs
 
     @method
     class iter_investment(TableElement):
@@ -257,9 +258,65 @@ class AccountsPage(LoggedPage, MultiPage):
         col_portfolio_share = [u'Distribution', u'Répartition']
 
         class item(ItemInvestment):
+            def obj_id(self):
+                return
+
             def obj_portfolio_share(self):
                 return Eval(lambda x: x / 100, MyDecimal(TableCell('portfolio_share')(self)[0] \
                     .xpath('.//div[has-class("nowrap")]'))(self))(self)
+
+    CONDITIONS = {u'disponible': Pocket.CONDITION_AVAILABLE,
+                  u'available':  Pocket.CONDITION_AVAILABLE,
+                  u'withdrawal': Pocket.CONDITION_RETIREMENT,
+                  u'retraite':   Pocket.CONDITION_RETIREMENT,
+                 }
+
+    def update_invs_quantity(self, invs):
+        for inv in invs:
+            inv.quantity = MyDecimal().filter(CleanText('//div[contains(@id, "ongletDetailParSupport")] \
+                 //tr[.//div[contains(text(), "%s")]]/td[last()]//div/text()' % inv.label)(self.doc))
+        return invs
+
+    @method
+    class iter_pocket(TableElement):
+        item_xpath = '//div[contains(@id, "detailParSupportEtDate")]//table/tbody[@class="rf-cst"]/tr[td[4]]'
+        head_xpath = '//div[contains(@id, "detailParSupportEtDate")]//table/thead/tr/th'
+
+        col_amount = [re.compile(u'Gross amount'), re.compile(u'Montant brut')]
+        col_availability = [u'Availability date', u'Date de disponibilité']
+
+        class item(ItemElement):
+            klass = Pocket
+
+            obj_availability_date = Env('availability_date')
+            obj_condition = Env('condition')
+            obj__matching_txt = Env('matching_txt')
+
+            def obj_amount(self):
+                return MyDecimal(TableCell('amount')(self)[0].xpath('.//div[has-class("nowrap")]'))(self)
+
+            def obj_investment(self):
+                investment = None
+                for inv in self.page.browser.cache['invs'][Env('accid')(self)]:
+                    if inv.label in CleanText('./parent::tbody/preceding-sibling::tbody[1]')(self):
+                        investment = inv
+                assert investment is not None
+                return investment
+
+            def parse(self, el):
+                txt = CleanText(TableCell('availability')(self)[0].xpath('./span'))(self)
+                self.env['availability_date'] = Date(dayfirst=True, default=NotAvailable).filter(txt)
+                self.env['condition'] = Pocket.CONDITION_DATE if self.env['availability_date'] else \
+                                        self.page.CONDITIONS.get(txt.lower().split()[0], Pocket.CONDITION_UNKNOWN)
+                self.env['matching_txt'] = txt
+
+    def update_pockets_quantity(self, pockets):
+        for pocket in pockets:
+            # not so pretty
+            pocket.quantity = MyDecimal(CleanText('//div[contains(@id, "detailParSupportEtDate")] \
+                //tbody[.//div[contains(text(), "%s")]]/following-sibling::tbody[1]//tr[.//span[contains(text(), \
+                "%s")]]/td[last()]//div/text()' % (pocket.investment.label, pocket._matching_txt)))(self.doc)
+        return pockets
 
 
 class HistoryPage(LoggedPage, MultiPage):
