@@ -588,20 +588,31 @@ class Boobank(ReplApplication):
 
         next(iter(self.do('transfer', transfer, backends=account.backend)))
 
-    def do_investment(self, id):
-        """
-        investment ID
-
-        Display investments of an account.
-        """
+    def show_wealth(self, command, id):
         account = self.get_object(id, 'get_account', [])
         if not account:
             print('Error: account "%s" not found (Hint: try the command "list")' % id, file=self.stderr)
             return 2
 
         self.start_format()
-        for investment in self.do('iter_investment', account, backends=account.backend):
-            self.format(investment)
+        for el in self.do(command, account, backends=account.backend):
+            self.format(el)
+
+    def do_investment(self, id):
+        """
+        investment ID
+
+        Display investments of an account.
+        """
+        self.show_wealth('iter_investment', id)
+
+    def do_pocket(self, id):
+        """
+        pocket ID
+
+        Display pockets of an account.
+        """
+        self.show_wealth('iter_pocket', id)
 
     def do_budgea(self, line):
         """

@@ -316,6 +316,33 @@ class Investment(BaseObject):
     original_diff = DecimalField('Original diff (in another currency)')
 
 
+class Pocket(BaseObject):
+    """
+    Pocket
+    """
+    CONDITION_UNKNOWN                    = 0
+    CONDITION_DATE                       = 1
+    CONDITION_AVAILABLE                  = 2
+    CONDITION_RETIREMENT                 = 3
+    CONDITION_WEDDING                    = 4
+    CONDITION_DEATH                      = 5
+    CONDITION_INDEBTEDNESS               = 6
+    CONDITION_DIVORCE                    = 7
+    CONDITION_DISABILITY                 = 8
+    CONDITION_BUSINESS_CREATION          = 9
+    CONDITION_BREACH_EMPLOYMENT_CONTRACT = 10
+    CONDITION_UNLOCKING_EXCEPTIONAL      = 11
+    CONDITION_THIRD_CHILD                = 12
+    CONDITION_EXPIRATION_UNEMPLOYMENT    = 13
+    CONDITION_PURCHASE_APARTMENT         = 14
+
+    amount =            DecimalField('Amount of the pocket')
+    quantity =          DecimalField('Quantity of stocks')
+    availability_date = DateField('Availability date of the pocket')
+    condition =         IntField('Withdrawal condition of the pocket', default=CONDITION_UNKNOWN)
+    investment =        Field('Reference to the investment of the pocket', Investment)
+
+
 class TransferStep(BrowserQuestion):
     def __init__(self, transfer, *values):
         super(TransferStep, self).__init__(*values)
@@ -422,6 +449,17 @@ class CapBank(CapCollection):
         :param account: account to get investments
         :type account: :class:`Account`
         :rtype: iter[:class:`Investment`]
+        :raises: :class:`AccountNotFound`
+        """
+        raise NotImplementedError()
+
+    def iter_pocket(self, account):
+        """
+        Iter pocket
+
+        :param account: account to get pockets
+        :type account: :class:`Account`
+        :rtype: iter[:class:`Pocket`]
         :raises: :class:`AccountNotFound`
         """
         raise NotImplementedError()
