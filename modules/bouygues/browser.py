@@ -43,12 +43,7 @@ class BouyguesBrowser(LoginBrowser):
     sms_error_page = URL('http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/SMS_erreur.phtml',
                          SendSMSErrorPage)
 
-    logged = False
-
     def do_login(self):
-        if self.logged:
-            return
-
         self.login.go()
 
         if self.home.is_here():
@@ -57,10 +52,7 @@ class BouyguesBrowser(LoginBrowser):
         self.page.login(self.username, self.password)
 
         if not self.home.is_here():
-            raise BrowserIncorrectPassword
-
-        self.logged = True
-        self.page.logged = True
+            raise BrowserIncorrectPassword()
 
     @need_login
     def post_message(self, message):
