@@ -656,7 +656,7 @@ class MarketPage(LoggedPage, HTMLPage):
         return self.doc.xpath('//option[contains(text(), "%s")]/@value' % account._info['id'])[0]
 
     def come_back(self):
-        link = Link(u'//div/a[contains(text(), "Accueil accès client")]')(self.doc)
+        link = Link(u'//div/a[contains(text(), "Accueil accès client")]', default=NotAvailable)(self.doc)
         if link:
             self.browser.location(link)
 
