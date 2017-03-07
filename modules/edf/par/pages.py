@@ -18,12 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
+from datetime import datetime
+from decimal import Decimal
 
-from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage, pagination
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Env, Format, TableCell, Regexp, Date
-from weboob.browser.elements import ItemElement, DictElement, TableElement, method
-from weboob.browser.filters.html import Attr
+from weboob.browser.pages import LoggedPage, JsonPage
+from weboob.browser.filters.standard import Env, Format, Date, Eval, Field
+from weboob.browser.elements import ItemElement, DictElement, method
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bill import Bill, Subscription
 from weboob.capabilities.base import NotAvailable
@@ -38,7 +38,7 @@ class LoginPage(JsonPage):
 
 class ProfilPage(LoggedPage, JsonPage):
     @method
-    class get_list(DictElement):
+    class iter_subscriptions(DictElement):
         item_xpath = 'customerAccordContracts'
 
         class item(ItemElement):
@@ -48,37 +48,48 @@ class ProfilPage(LoggedPage, JsonPage):
             obj_id = Dict('number')
             obj_label = obj_id
 
+    def get_token(self):
+        return Dict('data')(self.doc)
 
-class DocumentsPage(LoggedPage, HTMLPage):
-    @pagination
+
+class DocumentsPage(LoggedPage, JsonPage):
     @method
-    class get_documents(TableElement):
-        ignore_duplicate = True
+    class iter_bills(DictElement):
+        def parse(self, el):
+            for i, sub in enumerate(Dict('0/listOfBillsByAccDTO')(self)):
+                if Dict('accDTO/numAcc')(sub) in Env('subid')(self):
+                    self.item_xpath = "0/listOfBillsByAccDTO/%d/listOfbills" % i
 
-        item_xpath = '//div[@class="factures"]//table/tbody/tr'
-        head_xpath = '//div[@class="factures"]//table/thead/tr/th'
-
-        col_date = u'Consulter ma facture détaillée'
-        col_price = u'Montant (TTC)'
-
-        def next_page(self):
-            next_page = Attr('//ul[@class="years"]//span/../following-sibling::li/a', 'href')(self)
-            if next_page:
-                return next_page
+                self.env['bpNumber'] = Dict('0/bpDto/bpNumber')(self)
 
         class item(ItemElement):
             klass = Bill
 
-            obj_id = Format('%s_%s', Env('subid'), Env('docid'))
-            obj_url = Env('url')
-            obj_date = Date(Regexp(CleanText(TableCell('date')), ' ([\d\/]+)'))
+            obj_id = Format('%s_%s', Env('subid'), Dict('documentNumber'))
+            obj_date = Date(Eval(lambda t: datetime.fromtimestamp(int(t)/1000).strftime('%Y-%m-%d'), Dict('creationDate')))
             obj_format = u"pdf"
-            obj_label = Format('Facture %s', Env('docid'))
+            obj_label = Format('Facture %s', Dict('documentNumber'))
             obj_type = u"bill"
-            obj_price = CleanDecimal(TableCell('price'), replace_dots=True, default=NotAvailable)
+            obj_price = Env('price')
             obj_currency = u"€"
             obj_vat = NotAvailable
+            obj__doc_number = Dict('documentNumber')
+            obj__par_number = Dict('parNumber')
+            obj__num_acc = Env('numAcc')
+            obj__bp = Env('bpNumber')
 
             def parse(self, el):
-                self.env['docid'] = Regexp(Attr('./td/a[@class="pdf"]', 'title'), '([\d]+)')(self)
-                self.env['url'] = re.sub('[\t\r\n]', '', Attr('./td/a[@class="pdf"]', 'href')(self))
+                self.env['price'] = -Decimal(Dict('billAmount')(self))
+                self.env['numAcc'] = str(int(Env('subid')(self)))
+
+            def validate(self, el):
+                return Field('price')(self) < 0
+
+    def get_bills_informations(self):
+        return {
+            'bpNumber': Dict('bpNumber')(self.doc),
+            'docId': Dict('docId')(self.doc),
+            'docName': Dict('docName')(self.doc),
+            'numAcc': Dict('numAcc')(self.doc),
+            'parNumber': Dict('parNumber')(self.doc)
+        }

@@ -18,8 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from time import time
+
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
+from weboob.tools.json import json
 
 from .pages import LoginPage, ProfilPage, DocumentsPage
 
@@ -29,26 +32,49 @@ class EdfBrowser(LoginBrowser):
 
     login = URL('/bin/edf_rc/servlets/authentication', LoginPage)
     profil = URL('/services/rest/authenticate/getListContracts', ProfilPage)
-    documents = URL('https://monagencepart.edf.fr/ASPFront/appmanager/ASPFront/front\?service=page_mes_factures&privee=true&accord=(?P<subid>\d+)',
-                    'https://monagencepart.edf.fr', DocumentsPage)
+    csrf_token = URL('/services/rest/init/initPage\?_=(?P<timestamp>.*)', ProfilPage)
+    documents = URL('/services/rest/edoc/getMyDocuments', DocumentsPage)
+    bills = URL('/services/rest/edoc/getBillsDocuments', DocumentsPage)
+    bill_informations = URL('/services/rest/document/dataUserDocumentGetX', DocumentsPage)
+    bill_download = URL('/services/rest/document/getDocumentGetXByData\?csrfToken=(?P<csrf_token>.*)&dn=(?P<dn>.*)&pn=(?P<pn>.*)&di=(?P<di>.*)&bn=(?P<bn>.*)&an=(?P<an>.*)')
 
     def do_login(self):
         self.location(self.BASEURL)
 
-        data = {'login': self.username, 'password': self.password}
-        self.login.go(data=data)
+        self.login.go(data={'login': self.username, 'password': self.password})
 
         if not self.page.is_logged():
             raise BrowserIncorrectPassword
 
+    def get_csrf_token(self):
+        return self.csrf_token.go(timestamp=int(time())).get_token()
+
     @need_login
     def get_subscription_list(self):
-        return self.profil.stay_or_go().get_list()
+        return self.profil.stay_or_go().iter_subscriptions()
 
     @need_login
     def iter_documents(self, subscription):
-        return self.documents.stay_or_go(subid=subscription.id).get_documents(subid=subscription.id)
+        self.documents.go() # go to docs before, else we get an error, thanks EDF
+
+        return self.bills.go().iter_bills(subid=subscription.id)
 
     @need_login
     def download_document(self, document):
-        return self.open(document.url).content
+        token = self.get_csrf_token()
+
+        bills_informations = self.bill_informations.go(headers={'Content-Type': 'application/json;charset=UTF-8', 'Accept': 'application/json, text/plain, */*'}, data=json.dumps({
+            'bpNumber': document._bp,
+            'csrfToken': token,
+            'docId': document._doc_number,
+            'docName': 'FACTURE',
+            'numAcc': document._num_acc,
+            'parNumber': document._par_number
+        })).get_bills_informations()
+
+        return self.bill_download.go(csrf_token=token, \
+                                     dn=bills_informations.get('docName'), \
+                                     pn=bills_informations.get('parNumber'), \
+                                     di=bills_informations.get('docId'), \
+                                     bn=bills_informations.get('bpNumber'),
+                                     an=bills_informations.get('numAcc')).content
