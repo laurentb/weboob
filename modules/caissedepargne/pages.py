@@ -407,7 +407,7 @@ class IndexPage(LoggedPage, HTMLPage):
                 for i in tds[0].xpath('.//a/strong'):
                     label = i.text.strip()
                     break
-                if len(tds) == 3 and Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-2]))) and 'dgImmo' not in Attr('.', 'id')(tr):
+                if len(tds) == 3 and Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-2]))) and any(cls in Attr('.', 'id')(tr) for cls in ['dgImmo', 'dgConso']) == False:
                     # in case of Consumer credit or revolving credit, we substract avalaible amount with max amout
                     # to get what was spend
                     balance = Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-2]))) - Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-1])))
