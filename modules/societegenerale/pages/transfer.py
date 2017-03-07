@@ -77,7 +77,7 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         excluded_errors = [u"Vous n'avez pas la possibilité d'accéder à cette fonction. Veuillez prendre contact avec votre Conseiller."]
         error_msg = CleanText('//span[@class="error_msg"]')(self.doc)
         if error_msg and error_msg not in excluded_errors:
-            raise TransferError(error_msg)
+            raise TransferError(error_msg, TransferError.TYPE_BANK_MESSAGE)
 
     def is_able_to_transfer(self, account):
         numbers = [''.join(Regexp(CleanText('.'), '(\d+)', nth='*', default=None)(opt)) for opt in self.doc.xpath('.//select[@id="SelectEmet"]//option')]
@@ -120,7 +120,7 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
             params = re.findall('"(.*?)"', account)
             if params[2] + params[3] == _id or params[3] + params[4] == _id or params[-2] == _id:
                 return params
-        raise TransferError(u'Paramètres pour le compte %s numéro %s introuvable.' % (_type, _id))
+        raise TransferError(u'Paramètres pour le compte %s numéro %s introuvable.' % (_type, _id), TransferError.TYPE_INTERNAL_ERROR)
 
     def get_account_value(self, _id):
         for option in self.doc.xpath('//select[@id="SelectEmet"]//option'):
@@ -134,16 +134,14 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
             return l[0]
 
     def init_transfer(self, account, recipient, transfer):
-        try:
-            assert account.currency == recipient.currency == 'EUR'
-        except AssertionError:
-            raise TransferError('wrong currency')
+        if not (account.currency == recipient.currency == 'EUR'):
+            raise TransferError('wrong currency', TransferError.TYPE_INVALID_CURRENCY)
         origin_params = self.get_params(account.id, 'Emetteurs')
         recipient_params = self.get_params(recipient.id, 'Destinataires')
         data = OrderedDict()
         value = self.get_account_value(account.id) or self.get_account_value_by_label(account.label)
         if value is None:
-            raise TransferError("Couldn't retrieve origin account in list")
+            raise TransferError("Couldn't retrieve origin account in list", TransferError.TYPE_INTERNAL_ERROR)
         data['dup'] = re.search('dup=(.*?)(&|$)', value).group(1)
         data['src'] = re.search('src=(.*?)(&|$)', value).group(1)
         data['sign'] = re.search('sign=(.*?)(&|$)', value).group(1)
@@ -192,18 +190,12 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         amount = CleanDecimal('.//td[@headers="virement montant"]', replace_dots=True)(self.doc)
         label = CleanText('.//td[@headers="virement motif"]')(self.doc)
         exec_date = Date(CleanText('.//td[@headers="virement date"]'), dayfirst=True)(self.doc)
-        try:
-            assert transfer.amount == amount
-        except AssertionError:
-            raise TransferError('data consistency failed, %s changed from %s to %s' % ('amount', transfer.amount, amount))
-        try:
-            assert transfer.label in label
-        except AssertionError:
-            raise TransferError('data consistency failed, %s changed from %s to %s' % ('label', transfer.label, label))
-        try:
-            assert transfer.exec_date == exec_date or transfer.exec_date + timedelta(days=1) == exec_date
-        except AssertionError:
-            raise TransferError('data consistency failed, %s changed from %s to %s' % ('exec_date', transfer.exec_date, exec_date))
+        if transfer.amount != amount:
+            raise TransferError('data consistency failed, %s changed from %s to %s' % ('amount', transfer.amount, amount), TransferError.TYPE_INTERNAL_ERROR)
+        if transfer.label not in label:
+            raise TransferError('data consistency failed, %s changed from %s to %s' % ('label', transfer.label, label), TransferError.TYPE_INTERNAL_ERROR)
+        if not (transfer.exec_date == exec_date or transfer.exec_date + timedelta(days=1) == exec_date):
+            raise TransferError('data consistency failed, %s changed from %s to %s' % ('exec_date', transfer.exec_date, exec_date), TransferError.TYPE_INTERNAL_ERROR)
 
     def create_transfer(self, account, recipient, transfer):
         transfer = Transfer()

@@ -241,7 +241,7 @@ class IngBrowser(LoginBrowser):
             self.page.transfer(recipient, amount, reason)
             self.valtransferpage.go()
             if not self.valtransferpage.is_here():
-                raise TransferError("Invalid transfer (no confirmation page)")
+                raise TransferError("Invalid transfer (no confirmation page)", TransferError.TYPE_INTERNAL_ERROR)
             else:
                 self.page.confirm(self.password)
                 self.valtransferpage.go()
@@ -250,7 +250,7 @@ class IngBrowser(LoginBrowser):
                     raise ParseError('Unable to find confirmation')
                 return self.page.recap()
         else:
-            raise TransferError('Recipient not found')
+            raise TransferError('Recipient not found', TransferError.TYPE_INTERNAL_ERROR)
 
     def go_on_asv_detail(self, account, link):
         try:

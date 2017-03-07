@@ -37,7 +37,8 @@ class CheckTransferError(MyHTMLPage):
         MyHTMLPage.on_load(self)
         error = CleanText(u'//span[@class="app_erreur"] | //p[@class="warning"] | //p[contains(text(), "Votre virement n\'a pas pu être enregistré")]')(self.doc)
         if error:
-            raise TransferError(error)
+            raise TransferError(error, TransferError.TYPE_BANK_MESSAGE)
+
 
 class TransferChooseAccounts(LoggedPage, MyHTMLPage):
     def is_inner(self, text):
@@ -144,7 +145,7 @@ class TransferConfirm(LoggedPage, CheckTransferError):
             assert account.id in account_txt or ''.join(account.label.split()) == account_txt
             assert recipient.id in recipient_txt or ''.join(recipient.label.split()) == recipient_txt
         except AssertionError:
-            raise TransferError('Something went wrong')
+            raise TransferError('Something went wrong', TransferError.TYPE_INTERNAL_ERROR)
         r_amount =  CleanDecimal('//form//dl/dt[span[contains(text(), "Montant")]]/following::dd[1]', replace_dots=True)(self.doc)
         exec_date = Date(CleanText('//form//dl/dt[span[contains(text(), "Date")]]/following::dd[1]'), dayfirst=True)(self.doc)
         currency = FrenchTransaction.Currency('//form//dl/dt[span[contains(text(), "Montant")]]/following::dd[1]')(self.doc)

@@ -727,7 +727,7 @@ class TransferErrorPage(object):
     def on_load(self):
         error = CleanText('//span[@id="MM_LblMessagePopinError"]/p | //div[h2[contains(text(), "Erreur de saisie")]]/p[1]')(self.doc)
         if error:
-            raise TransferError(error)
+            raise TransferError(error, TransferError.TYPE_BANK_MESSAGE)
 
 
 class TransferPage(TransferErrorPage, IndexPage):

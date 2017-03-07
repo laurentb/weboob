@@ -882,7 +882,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
             if account.endswith(acct):
                 return inp.attrib['value']
         else:
-            raise TransferError("account %s not found" % account)
+            raise TransferError("account %s not found" % account, TransferError.TYPE_INTERNAL_ERROR)
 
     def get_from_account_index(self, account):
         return self.get_account_index('data_input_indiceCompteADebiter', account)
@@ -914,11 +914,11 @@ class InternalTransferPage(LoggedPage, HTMLPage):
 
         for message in messages:
             if message in content:
-                raise TransferError(message)
+                raise TransferError(message, TransferError.TYPE_BANK_MESSAGE)
 
         # look for the known "all right" message
         if not self.doc.xpath(u'//span[contains(text(), "%s")]' % self.READY_FOR_TRANSFER_MSG):
-            raise TransferError('The expected message "%s" was not found.' % self.READY_FOR_TRANSFER_MSG)
+            raise TransferError('The expected message "%s" was not found.' % self.READY_FOR_TRANSFER_MSG, TransferError.TYPE_INTERNAL_ERROR)
 
     def check_data_consistency(self, account_id, recipient_id, amount, reason):
         assert account_id in CleanText(u'//div[div[p[contains(text(), "Compte à débiter")]]]', replace=[(' ', '')])(self.doc)
@@ -962,7 +962,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
         content = self.get_unicode_content()
         transfer_ok_message = u'Votre virement a &#233;t&#233; ex&#233;cut&#233;'
         if transfer_ok_message not in content:
-            raise TransferError('The expected message "%s" was not found.' % transfer_ok_message)
+            raise TransferError('The expected message "%s" was not found.' % transfer_ok_message, TransferError.TYPE_INTERNAL_ERROR)
 
         exec_date, r_amount, currency = self.check_data_consistency(transfer.account_id, transfer.recipient_id, transfer.amount, transfer.label)
         assert u'Exécuté' in CleanText(u'//table[@summary]/tbody/tr[th[contains(text(), "Etat")]]/td')(self.doc)

@@ -898,10 +898,10 @@ class TransferInit(MyLoggedPage, BasePage):
     def submit_accounts(self, account_id, recipient_id, amount, currency):
         emitters = [rcpt for rcpt in self.iter_emitters() if rcpt.id == account_id and not rcpt.iban]
         if len(emitters) != 1:
-            raise TransferError('Could not find emitter %r' % account_id)
+            raise TransferError('Could not find emitter %r' % account_id, TransferError.TYPE_INTERNAL_ERROR)
         recipients = [rcpt for rcpt in self.iter_recipients() if rcpt.id and rcpt.id == recipient_id]
         if len(recipients) != 1:
-            raise TransferError('Could not find recipient %r' % recipient_id)
+            raise TransferError('Could not find recipient %r' % recipient_id, TransferError.TYPE_INTERNAL_ERROR)
 
         form = self.get_form(name='frm_fwk')
         assert amount > 0
@@ -997,7 +997,7 @@ class TransferPage(MyLoggedPage, BasePage):
         # warning: the "service indisponible" message (not catched here) is not a real BrowserUnavailable
         err = CleanText('//div[has-class("blc-choix-erreur")]//p', default='')(self.doc)
         if err:
-            raise TransferError(err)
+            raise TransferError(err, TransferError.TYPE_BANK_MESSAGE)
 
 
 def get_text_lines(el):

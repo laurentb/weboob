@@ -256,7 +256,7 @@ class TransferInitPage(BNPPage):
     def on_load(self):
         message_code = BNPPage.on_load(self)
         if message_code is not None:
-            raise TransferError('%s, code=%s' % (message_code[0], message_code[1]))
+            raise TransferError('%s, code=%s' % (message_code[0], message_code[1]), TransferError.TYPE_INTERNAL_ERROR)
 
     def get_ibans_dict(self, account_type):
         return dict([(a['ibanCrypte'], a['iban']) for a in self.path('data.infoVirement.listeComptes%s.*' % account_type)])
@@ -307,7 +307,7 @@ class RecipientsPage(BNPPage):
 class ValidateTransferPage(BNPPage):
     def check_errors(self):
         if not 'data' in self.doc:
-            raise TransferError(self.doc['message'])
+            raise TransferError(self.doc['message'], TransferError.TYPE_BANK_MESSAGE)
 
     def abort_if_unknown(self, transfer_data):
         try:
@@ -316,7 +316,7 @@ class ValidateTransferPage(BNPPage):
             assert transfer_data['devise'] == 'EUR'
             assert not transfer_data['montantDeviseEtrangere']
         except AssertionError as e:
-            raise TransferError(e)
+            raise TransferError(e, TransferError.TYPE_INTERNAL_ERROR)
 
     def handle_response(self, account, recipient, amount, reason):
         self.check_errors()

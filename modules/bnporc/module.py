@@ -116,7 +116,7 @@ class BNPorcModule(Module, CapBankTransfer, CapMessages, CapContact, CapProfile)
             raise NotImplementedError()
 
         if transfer.label is None:
-            raise TransferError(u'Veuillez préciser un libellé au virement')
+            raise TransferError(u'Veuillez préciser un libellé au virement', TransferError.TYPE_INVALID_LABEL)
 
         self.logger.info('Going to do a new transfer')
         if transfer.account_iban:
@@ -134,7 +134,7 @@ class BNPorcModule(Module, CapBankTransfer, CapMessages, CapContact, CapProfile)
             # quantize to show 2 decimals.
             amount = Decimal(transfer.amount).quantize(Decimal(10) ** -2)
         except (AssertionError, ValueError):
-            raise TransferError('something went wrong')
+            raise TransferError('something went wrong', TransferError.TYPE_INTERNAL_ERROR)
 
         return self.browser.init_transfer(account, recipient, amount, transfer.label)
 

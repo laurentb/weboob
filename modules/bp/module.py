@@ -96,7 +96,7 @@ class BPModule(Module, CapBankTransfer, CapContact):
             # quantize to show 2 decimals.
             amount = Decimal(transfer.amount).quantize(Decimal(10) ** -2)
         except (AssertionError, ValueError):
-            raise TransferError('something went wrong')
+            raise TransferError('something went wrong', TransferError.TYPE_INTERNAL_ERROR)
 
         return self.browser.init_transfer(account, recipient, amount, transfer.label)
 

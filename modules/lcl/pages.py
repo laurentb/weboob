@@ -650,7 +650,7 @@ class TransferPage(LoggedPage, HTMLPage):
         # This aims to track input errors.
         script_error = CleanText(u"//script[contains(text(), 'if (\"true\"===\"true\")')]")(self.doc)
         if script_error:
-            raise TransferError(html2text(re.search(u'\.html\("(.*?)"\)', script_error).group(1)).strip())
+            raise TransferError(html2text(re.search(u'\.html\("(.*?)"\)', script_error).group(1)).strip(), TransferError.TYPE_BANK_MESSAGE)
 
     def can_transfer(self, account_transfer_id):
         for div in self.doc.xpath('//div[input[@id="indexCompteEmetteur"]]//div[@class="infoCompte" and not(@title)]'):
@@ -663,7 +663,7 @@ class TransferPage(LoggedPage, HTMLPage):
             if account_id in CleanText('.', replace=[(' ', '')])(option):
                 return option.attrib['value']
         else:
-            raise TransferError("account %s not found" % account_id)
+            raise TransferError("account %s not found" % account_id, TransferError.TYPE_INTERNAL_ERROR)
 
     def choose_recip(self, recipient):
         form = self.get_form(id='formulaire')
@@ -684,7 +684,7 @@ class TransferPage(LoggedPage, HTMLPage):
         for div in self.doc.xpath('//div[@onclick]'):
             if _id in CleanText('.//div[not(@title)]', replace=[(' ', '')])(div):
                 return Regexp(Attr('.', 'onclick'), '(\d+)')(div)
-        raise TransferError('Could not find %s account.' % value_type)
+        raise TransferError('Could not find %s account.' % value_type, TransferError.TYPE_INTERNAL_ERROR)
 
     def choose_origin(self, account_transfer_id):
         form = self.get_form()
@@ -732,7 +732,7 @@ class TransferPage(LoggedPage, HTMLPage):
             assert recipient._transfer_id in CleanText(u'//div[div[@class="libelleChoix" and contains(text(), "Compte destinataire")]] \
                                                     //div[@class="infoCompte" and not(@title)]', replace=[(' ', '')])(self.doc)
         except AssertionError:
-            raise TransferError('data consistency failed.')
+            raise TransferError('data consistency failed', TransferError.TYPE_INTERNAL_ERROR)
 
     def create_transfer(self, account, recipient, amount, reason):
         transfer = Transfer()
