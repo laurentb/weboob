@@ -60,6 +60,40 @@ class TransferError(UserError):
     A transfer has failed.
     """
 
+    TYPE_OTHER = 0
+
+    TYPE_BANK_MESSAGE = 1
+    """The transfer was rejected by the bank with a message."""
+
+    TYPE_INTERNAL_ERROR = 2
+    """Parsing failed or the bank returned an unexpected result."""
+
+    TYPE_INVALID_RECIPIENT = 3
+    """The emitter cannot transfer to this recipient."""
+
+    TYPE_INVALID_EMITTER = 4
+    """The emitter account cannot be used for transfers."""
+
+    TYPE_INVALID_AMOUNT = 5
+    """This amount is not allowed."""
+
+    TYPE_INVALID_LABEL = 6
+    """The transfer label is invalid."""
+
+    TYPE_INVALID_EXEC_DATE = 7
+    """This execution date cannot be used."""
+
+    TYPE_INSUFFICIENT_FUNDS = 8
+    """Not enough funds on emitter account."""
+
+    TYPE_INVALID_CURRENCY = 9
+    """The transfer currency is invalid."""
+
+    def __init__(self, message=None, type=TYPE_OTHER, **kwargs):
+        super(TransferError, self).__init__(message, type, **kwargs)
+        self.message = message
+        self.type = type
+
 
 class AddRecipientError(UserError):
     """
@@ -433,6 +467,10 @@ class CapBankTransfer(CapBank):
         :rtype: :class:`Transfer`
         :raises: :class:`TransferError`
         """
+
+        if not transfer.amount or transfer.amount <= 0:
+            raise TransferError('amount must be strictly positive', TransferError.TYPE_INVALID_AMOUNT)
+
         t = self.init_transfer(transfer, **params)
         for key, value in t.iter_fields():
             if hasattr(transfer, key) and key != 'id':
@@ -443,5 +481,5 @@ class CapBankTransfer(CapBank):
                     else:
                         assert transfer_val == value or empty(transfer_val)
                 except AssertionError:
-                    raise TransferError('%s changed during transfer processing (from %s to %s)' % (key, transfer_val, value))
+                    raise TransferError('%s changed during transfer processing (from %s to %s)' % (key, transfer_val, value), TransferError.TYPE_INTERNAL_ERROR)
         return self.execute_transfer(t, **params)
