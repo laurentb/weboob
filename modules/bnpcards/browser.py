@@ -54,6 +54,7 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
     ti_histo = URL('/ce_internet_prive_ti/operationHistoDetail.builder.do',
                    '/ce_internet_prive_ti/operationHistoDetail.event.do.*',
                    '/ce_internet_prive_ti/pageOperationHistoDetail.event.do.*', TiHistoPage)
+    ti_corporate = URL('/ce_internet_corporate_ti/accueilInternetTiCorporate.builder.do', HomePage)
     TIMEOUT = 60.0
     CARDTYP = None
 
