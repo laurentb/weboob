@@ -126,7 +126,21 @@ class BredBrowser(DomainBrowser):
             if univers != self.current_univers:
                 self.move_to_univers(univers)
             accounts.extend(self.get_list())
+            accounts.extend(self.get_loans_list())
         return accounts
+
+    def get_loans_list(self):
+        r = self.api_open('/transactionnel/services/applications/prets/liste')
+
+        if 'content' in r.json():
+            for content in r.json()['content']:
+                a = Account()
+                a.id = "%s.%s" % (content['comptePrets'].strip(), content['numeroDossier'].strip())
+                a.type = Account.TYPE_LOAN
+                a.label = ' '.join([content['intitule'].strip(), content['libellePrets'].strip()])
+                a.balance = -Decimal(str(content['montantCapitalDu']['valeur']))
+                a.currency = content['montantCapitalDu']['monnaie']['code'].strip()
+                yield a
 
     def get_list(self):
         r = self.api_open('/transactionnel/services/rest/Account/accounts')
@@ -182,7 +196,7 @@ class BredBrowser(DomainBrowser):
                 yield a
 
     def get_history(self, account):
-        if not account._consultable:
+        if account.type is Account.TYPE_LOAN or not account._consultable:
             raise NotImplementedError()
 
         if account._univers != self.current_univers:
