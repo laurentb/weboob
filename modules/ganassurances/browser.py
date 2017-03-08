@@ -17,9 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-import ssl
-
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
@@ -39,15 +36,6 @@ class GanAssurances(LoginBrowser):
         self.BASEURL = 'https://%s' % website
         super(GanAssurances, self).__init__(*args, **kwargs)
 
-    def prepare_request(self, req):
-        """
-        Gan Assurances does not support SSL anymore.
-        """
-        preq = super(GanAssurances, self).prepare_request(req)
-        conn = self.session.adapters['https://'].get_connection(preq.url)
-        conn.ssl_version = ssl.PROTOCOL_TLSv1
-        return preq
-
     def do_login(self):
         """
         Attempt to log in.
@@ -60,7 +48,8 @@ class GanAssurances(LoginBrowser):
 
         self.page.login(self.username, self.password)
 
-        if self.login.is_here():
+        if self.login.is_here() or '/login' in self.url:
+            # sometimes ganassurances may be redirected to groupama.../login
             raise BrowserIncorrectPassword()
 
     @need_login
