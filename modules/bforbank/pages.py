@@ -234,7 +234,7 @@ class CardHistoryPage(LoggedPage, HTMLPage):
             obj_type = Transaction.TYPE_DEFERRED_CARD
 
             obj_raw = CleanText(TableCell('raw'))
-            obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
+            obj_vdate = obj_rdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
             obj_amount = MyDecimal(TableCell('amount'), replace_dots=True)
             obj_date = Date(Regexp(CleanText('//div[@class="m-tabs-tab-meta"]'),
                                    ur'Ces opérations (?:seront|ont été) débitées sur votre compte le (\d{2}/\d{2}/\d{4})'),
