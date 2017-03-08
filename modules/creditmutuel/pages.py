@@ -37,7 +37,7 @@ from weboob.browser.filters.html import Link, Attr
 from weboob.exceptions import BrowserIncorrectPassword, ParseError, NoAccountsException, ActionNeeded
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import empty
-from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, Transfer, AddRecipientError, AddRecipientStep
+from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, Transfer, AddRecipientError, AddRecipientStep
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.iban import is_iban_valid
@@ -882,7 +882,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
             if account.endswith(acct):
                 return inp.attrib['value']
         else:
-            raise TransferError("account %s not found" % account, TransferError.TYPE_INTERNAL_ERROR)
+            raise TransferError("account %s not found" % account)
 
     def get_from_account_index(self, account):
         return self.get_account_index('data_input_indiceCompteADebiter', account)
@@ -914,11 +914,11 @@ class InternalTransferPage(LoggedPage, HTMLPage):
 
         for message in messages:
             if message in content:
-                raise TransferError(message, TransferError.TYPE_BANK_MESSAGE)
+                raise TransferBankError(message=message)
 
         # look for the known "all right" message
         if not self.doc.xpath(u'//span[contains(text(), "%s")]' % self.READY_FOR_TRANSFER_MSG):
-            raise TransferError('The expected message "%s" was not found.' % self.READY_FOR_TRANSFER_MSG, TransferError.TYPE_INTERNAL_ERROR)
+            raise TransferError('The expected message "%s" was not found.' % self.READY_FOR_TRANSFER_MSG)
 
     def check_data_consistency(self, account_id, recipient_id, amount, reason):
         assert account_id in CleanText(u'//div[div[p[contains(text(), "Compte à débiter")]]]', replace=[(' ', '')])(self.doc)
@@ -962,7 +962,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
         content = self.get_unicode_content()
         transfer_ok_message = u'Votre virement a &#233;t&#233; ex&#233;cut&#233;'
         if transfer_ok_message not in content:
-            raise TransferError('The expected message "%s" was not found.' % transfer_ok_message, TransferError.TYPE_INTERNAL_ERROR)
+            raise TransferError('The expected message "%s" was not found.' % transfer_ok_message)
 
         exec_date, r_amount, currency = self.check_data_consistency(transfer.account_id, transfer.recipient_id, transfer.amount, transfer.label)
         assert u'Exécuté' in CleanText(u'//table[@summary]/tbody/tr[th[contains(text(), "Etat")]]/td')(self.doc)

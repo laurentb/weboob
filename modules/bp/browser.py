@@ -241,7 +241,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
     @need_login
     def execute_transfer(self, transfer, code=None):
         if not self.transfer_confirm.is_here():
-            raise TransferError('Case not handled.', TransferError.TYPE_INTERNAL_ERROR)
+            raise TransferError('Case not handled.')
         self.page.confirm()
         # Should only happen if double auth.
         if self.transfer_confirm.is_here():

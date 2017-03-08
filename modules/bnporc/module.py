@@ -22,8 +22,10 @@ import re
 from decimal import Decimal
 from datetime import datetime, timedelta
 
-from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, \
-                                     Account, TransferError, RecipientNotFound
+from weboob.capabilities.bank import (
+    CapBankTransfer, AccountNotFound, Account, TransferError, RecipientNotFound,
+    TransferInvalidLabel,
+)
 from weboob.capabilities.messages import CapMessages, Thread
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
@@ -116,7 +118,7 @@ class BNPorcModule(Module, CapBankTransfer, CapMessages, CapContact, CapProfile)
             raise NotImplementedError()
 
         if transfer.label is None:
-            raise TransferError(u'Veuillez préciser un libellé au virement', TransferError.TYPE_INVALID_LABEL)
+            raise TransferInvalidLabel()
 
         self.logger.info('Going to do a new transfer')
         if transfer.account_iban:
@@ -134,7 +136,7 @@ class BNPorcModule(Module, CapBankTransfer, CapMessages, CapContact, CapProfile)
             # quantize to show 2 decimals.
             amount = Decimal(transfer.amount).quantize(Decimal(10) ** -2)
         except (AssertionError, ValueError):
-            raise TransferError('something went wrong', TransferError.TYPE_INTERNAL_ERROR)
+            raise TransferError('something went wrong')
 
         return self.browser.init_transfer(account, recipient, amount, transfer.label)
 

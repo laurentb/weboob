@@ -25,7 +25,10 @@ from lxml.etree import XMLSyntaxError
 from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
 from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPNotFound
-from weboob.capabilities.bank import Account, AccountNotFound, TransferError
+from weboob.capabilities.bank import (
+    Account, AccountNotFound, TransferError, TransferInvalidAmount,
+    TransferInvalidEmitter, TransferInvalidLabel, TransferInvalidRecipient,
+)
 from weboob.tools.captcha.virtkeyboard import VirtKeyboardError
 
 from .pages import (
@@ -273,11 +276,11 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
 
     def check_basic_transfer(self, transfer):
         if transfer.amount <= 0:
-            raise TransferError('transfer amount must be positive', TransferError.TYPE_INVALID_AMOUNT)
+            raise TransferInvalidAmount('transfer amount must be positive')
         if transfer.recipient_id == transfer.account_id:
-            raise TransferError('recipient must be different from emitter', TransferError.TYPE_INVALID_RECIPIENT)
+            raise TransferInvalidRecipient('recipient must be different from emitter')
         if not transfer.label:
-            raise TransferError('transfer label cannot be empty', TransferError.TYPE_INVALID_LABEL)
+            raise TransferInvalidLabel('transfer label cannot be empty')
 
     @need_login
     def init_transfer(self, transfer, **kwargs):
@@ -289,11 +292,11 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
 
         recipients = list(self.iter_transfer_recipients(account))
         if not recipients:
-            raise TransferError('The account cannot emit transfers', TransferError.TYPE_INVALID_EMITTER)
+            raise TransferInvalidEmitter('The account cannot emit transfers')
 
         recipients = [rcpt for rcpt in recipients if rcpt.id == transfer.recipient_id]
         if len(recipients) == 0:
-            raise TransferError('The recipient cannot be used with the emitter account', TransferError.TYPE_INVALID_RECIPIENT)
+            raise TransferInvalidRecipient('The recipient cannot be used with the emitter account')
         assert len(recipients) == 1
 
         self.page.submit_recipient(recipients[0]._tempid)
@@ -309,12 +312,12 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
             if not recipients[0].label.startswith('%s - ' % ret.recipient_label):
                 # the label displayed here is just "<name>"
                 # but in the recipients list it is "<name> - <bank>"...
-                raise TransferError('Recipient label changed during transfer', TransferError.TYPE_INTERNAL_ERROR)
+                raise TransferError('Recipient label changed during transfer')
         ret.recipient_id = recipients[0].id
         ret.recipient_iban = recipients[0].iban
 
         if account.label != ret.account_label:
-            raise TransferError('Account label changed during transfer', TransferError.TYPE_INTERNAL_ERROR)
+            raise TransferError('Account label changed during transfer')
 
         ret.account_id = account.id
         ret.account_iban = account.iban

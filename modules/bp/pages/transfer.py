@@ -20,7 +20,9 @@
 
 from datetime import datetime
 
-from weboob.capabilities.bank import TransferError, Recipient, NotAvailable, Transfer, TransferStep, AccountNotFound
+from weboob.capabilities.bank import (
+    TransferError, TransferBankError, Transfer, TransferStep, NotAvailable, Recipient, AccountNotFound,
+)
 from weboob.capabilities.base import find_object
 from weboob.browser.pages import LoggedPage
 from weboob.browser.filters.standard import CleanText, Env, Regexp, Date, CleanDecimal
@@ -37,7 +39,7 @@ class CheckTransferError(MyHTMLPage):
         MyHTMLPage.on_load(self)
         error = CleanText(u'//span[@class="app_erreur"] | //p[@class="warning"] | //p[contains(text(), "Votre virement n\'a pas pu être enregistré")]')(self.doc)
         if error:
-            raise TransferError(error, TransferError.TYPE_BANK_MESSAGE)
+            raise TransferBankError(message=error)
 
 
 class TransferChooseAccounts(LoggedPage, MyHTMLPage):
@@ -145,7 +147,7 @@ class TransferConfirm(LoggedPage, CheckTransferError):
             assert account.id in account_txt or ''.join(account.label.split()) == account_txt
             assert recipient.id in recipient_txt or ''.join(recipient.label.split()) == recipient_txt
         except AssertionError:
-            raise TransferError('Something went wrong', TransferError.TYPE_INTERNAL_ERROR)
+            raise TransferError('Something went wrong')
         r_amount =  CleanDecimal('//form//dl/dt[span[contains(text(), "Montant")]]/following::dd[1]', replace_dots=True)(self.doc)
         exec_date = Date(CleanText('//form//dl/dt[span[contains(text(), "Date")]]/following::dd[1]'), dayfirst=True)(self.doc)
         currency = FrenchTransaction.Currency('//form//dl/dt[span[contains(text(), "Montant")]]/following::dd[1]')(self.doc)

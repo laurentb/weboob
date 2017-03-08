@@ -29,7 +29,7 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import Format, Regexp, CleanText
 from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, TransferError, AddRecipientError
+from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, TransferError, TransferBankError, AddRecipientError
 from weboob.capabilities.contact import Advisor
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired
 from weboob.tools.capabilities.bank.iban import rib2iban, rebuild_rib, is_iban_valid
@@ -256,7 +256,7 @@ class TransferInitPage(BNPPage):
     def on_load(self):
         message_code = BNPPage.on_load(self)
         if message_code is not None:
-            raise TransferError('%s, code=%s' % (message_code[0], message_code[1]), TransferError.TYPE_INTERNAL_ERROR)
+            raise TransferError('%s, code=%s' % (message_code[0], message_code[1]))
 
     def get_ibans_dict(self, account_type):
         return dict([(a['ibanCrypte'], a['iban']) for a in self.path('data.infoVirement.listeComptes%s.*' % account_type)])
@@ -307,7 +307,7 @@ class RecipientsPage(BNPPage):
 class ValidateTransferPage(BNPPage):
     def check_errors(self):
         if not 'data' in self.doc:
-            raise TransferError(self.doc['message'], TransferError.TYPE_BANK_MESSAGE)
+            raise TransferBankError(message=self.doc['message'])
 
     def abort_if_unknown(self, transfer_data):
         try:
@@ -316,7 +316,7 @@ class ValidateTransferPage(BNPPage):
             assert transfer_data['devise'] == 'EUR'
             assert not transfer_data['montantDeviseEtrangere']
         except AssertionError as e:
-            raise TransferError(e, TransferError.TYPE_INTERNAL_ERROR)
+            raise TransferError(e)
 
     def handle_response(self, account, recipient, amount, reason):
         self.check_errors()

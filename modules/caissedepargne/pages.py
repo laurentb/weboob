@@ -30,7 +30,7 @@ from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanTex
 from weboob.browser.filters.html import Link, Attr
 from weboob.browser.filters.json import Dict
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Transaction, Investment, Recipient, TransferError, Transfer
+from weboob.capabilities.bank import Account, Transaction, Investment, Recipient, TransferError, TransferBankError, Transfer
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -727,7 +727,7 @@ class TransferErrorPage(object):
     def on_load(self):
         error = CleanText('//span[@id="MM_LblMessagePopinError"]/p | //div[h2[contains(text(), "Erreur de saisie")]]/p[1]')(self.doc)
         if error:
-            raise TransferError(error, TransferError.TYPE_BANK_MESSAGE)
+            raise TransferBankError(message=error)
 
 
 class TransferPage(TransferErrorPage, IndexPage):
