@@ -24,13 +24,13 @@ import time
 from requests.exceptions import SSLError
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword, ParseError
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.exceptions import ServerError
-from weboob.capabilities.bank import Account, TransferError, AccountNotFound
+from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.capabilities.base import find_object
 
 from .pages import AccountsList, LoginPage, NetissimaPage, TitrePage, TitreHistory,\
-    TransferPage, TransferConfirmPage, BillsPage, StopPage, TitreDetails, TitreValuePage, ASVHistory,\
+    TransferPage, BillsPage, StopPage, TitreDetails, TitreValuePage, ASVHistory,\
     ASVInvest, DetailFondsPage, IbanPage, ActionNeededPage, ReturnPage, ProfilePage
 
 
@@ -73,9 +73,6 @@ class IngBrowser(LoginBrowser):
     # CapBank
     accountspage = URL('/protected/pages/index.jsf',
                        '/protected/pages/asv/contract/(?P<asvpage>.*).jsf', AccountsList)
-    transferpage = URL('/protected/pages/cc/transfer/transferManagement.jsf', TransferPage)
-    dotransferpage = URL('/general\?command=DisplayDoTransferCommand', TransferPage)
-    valtransferpage = URL('/protected/pages/cc/transfer/create/transferCreateValidation.jsf', TransferConfirmPage)
     titredetails = URL('/general\?command=display.*', TitreDetails)
     ibanpage = URL('/protected/pages/common/rib/initialRib.jsf', IbanPage)
     # CapBank-Market
@@ -93,6 +90,8 @@ class IngBrowser(LoginBrowser):
     billpage = URL('/protected/pages/common/estatement/eStatement.jsf', BillsPage)
     # CapProfile
     profile = URL('/protected/pages/common/profil/(?P<page>\w+).jsf', ProfilePage)
+
+    transfer = URL('/protected/pages/common/virement/index.jsf', TransferPage)
 
     __states__ = ['where']
 
@@ -229,43 +228,25 @@ class IngBrowser(LoginBrowser):
 
     @need_login
     @start_with_main_site
-    def get_recipients(self, account):
-        self.transferpage.stay_or_go()
-        if self.page.ischecked(account.id):
-            return self.page.get_recipients()
-        else:
-            # It is hard to check the box and to get the real list.
-            # We try an alternative way like normal users
-            self.get_history(account).next()
-            self.transferpage.stay_or_go()
-            return self.page.get_recipients()
+    def iter_recipients(self, account):
+        self.transfer.go()
+        if not self.page.able_to_transfer(account):
+            return iter([])
+        self.page.go_to_recipient_selection(account)
+        return self.page.get_recipients(origin=account)
 
+    @need_login
     @start_with_main_site
-    def transfer(self, account, recipient, amount, reason):
-        found = False
-        # Automatically get the good transfer page
-        self.logger.debug('Search %s' % recipient)
-        for destination in self.get_recipients(account):
-            self.logger.debug('Found %s ' % destination.id)
-            if destination.id == recipient:
-                found = True
-                recipient = destination
-                break
-        if found:
-            self.transferpage.open(data=self.page.buildonclick(recipient, account))
-            self.page.transfer(recipient, amount, reason)
-            self.valtransferpage.go()
-            if not self.valtransferpage.is_here():
-                raise TransferError("Invalid transfer (no confirmation page)")
-            else:
-                self.page.confirm(self.password)
-                self.valtransferpage.go()
-                recap = self.page.recap()
-                if len(list(recap)) == 0:
-                    raise ParseError('Unable to find confirmation')
-                return self.page.recap()
-        else:
-            raise TransferError('Recipient not found')
+    def init_transfer(self, account, recipient, transfer):
+        self.transfer.go()
+        self.page.do_transfer(account, recipient, transfer)
+        return self.page.recap(account, recipient, transfer)
+
+    @need_login
+    @start_with_main_site
+    def execute_transfer(self, transfer):
+        self.page.confirm(self.password)
+        return transfer
 
     def go_on_asv_detail(self, account, link):
         try:

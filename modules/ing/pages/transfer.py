@@ -17,116 +17,134 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.bank import Recipient, AccountNotFound, Transfer
+from datetime import datetime
+
+from weboob.capabilities.bank import Recipient, Transfer
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Format
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Env, Regexp
 from weboob.browser.filters.html import Attr
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.date import parse_french_date
+
 from .login import INGVirtKeyboard
 
 
+class MyRecipient(ItemElement):
+    klass = Recipient
+
+    def obj_enabled_at(self):
+        return datetime.now().replace(microsecond=0)
+
+
 class TransferPage(LoggedPage, HTMLPage):
+    def able_to_transfer(self, origin):
+        return [div for div in self.doc.xpath('//div[@id="internalAccounts"]//div[@data-acct-number]')
+                if Attr('.', 'data-acct-number')(div) in origin.id and 'disabled' not in div.attrib['class']]
 
     @method
     class get_recipients(ListElement):
         class ExternalRecipients(ListElement):
-            item_xpath = '//select[@id="transfer_form:externalAccounts"]/option'
+            item_xpath = '//tr[@id="externalAccountsIsotopeWrapper"]//div[not(has-class("disabled")) and @data-acct-number]'
 
-            class item(ItemElement):
-                klass = Recipient
-                condition = lambda self: Attr('.', 'value')(self.el) != "na"
+            class item(MyRecipient):
 
-                obj_id = Attr('.', 'value')
-                obj_label = CleanText('.')
-                obj__type = 'ext'
+                obj_id = obj_iban = Attr('.', 'data-acct-number')
+                obj_label = CleanText('.//span[@class="title"]')
+                obj_category = u'Externe'
+                obj_bank_name = CleanText(Attr('.//span[@class="bankname"]', 'title'))
 
         class InternalRecipients(ListElement):
-            item_xpath = '//table[@id="transfer_form:receiptAccount"]/tbody/tr'
+            item_xpath = '//div[@id="internalAccounts"]//td/div[not(has-class("disabled"))]'
 
-            class item(ItemElement):
-                klass = Recipient
+            class item(MyRecipient):
 
-                obj_id = Attr('td[1]/input', 'value')
-                obj_label = Format(u"%s %s %s", CleanText('td[1]/label'),
-                                   CleanText('td[2]/label'), CleanText('td[3]/label'))
-                obj__type = "int"
+                obj_category = u'Interne'
+                obj_currency = FrenchTransaction.Currency('.//span[@class="solde"]/label')
+                obj_id = Env('id')
+                obj_label = Env('label')
+                obj_iban = Env('iban')
+                obj_bank_name = u'ING'
 
-    def ischecked(self, _id):
-        # remove prefix (CC-, LA-, ...)
-        if "-" in _id:
-            _id = _id.split('-')[1]
-        try:
-            option = self.doc.xpath('//input[@value="%s"]' % _id)[0]
-        except:
-            raise AccountNotFound()
-        return option.attrib.get("checked") == "checked"
+                def parse(self, el):
+                    _id = Attr('.', 'data-acct-number')(self)
+                    accounts = [acc for acc in self.page.browser.get_accounts_list() if _id in acc.id]
+                    assert len(accounts) == 1
+                    account = accounts[0]
+                    self.env['id'] = account.id
+                    self.env['label'] = account.label
+                    self.env['iban'] = account.iban
 
-    def transfer(self, recipient, amount, reason):
-        form = self.get_form(name="transfer_form")
-        form.pop('transfer_form:_link_hidden_')
-        form.pop('transfer_form:j_idcl')
-        form['AJAXREQUEST'] = "_viewRoot"
-        form['AJAX:EVENTS_COUNT'] = "1"
-        form['transfer_form:transferMotive'] = reason
-        form["transfer_form:valide"] = "transfer_form:valide"
-        form["transfer_form:validateDoTransfer"] = "needed"
-        form["transfer_form:transferAmount"] = str(amount)
-        if recipient._type == "int":
-            form['transfer_recipient_radio'] = recipient.id
-        else:
-            form['transfer_form:externalAccounts'] = recipient.id
+
+    def get_origin_account_id(self, origin):
+        return [Attr('.', 'data-acct-number')(div) for div in self.doc.xpath('//div[@id="internalAccounts"]//div[@data-acct-number]')
+                if Attr('.', 'data-acct-number')(div) in origin.id][0]
+
+    def get_transfer_form(self, txt):
+        form = self.get_form(xpath='//form[script[contains(text(), "%s")]]' % txt)
+        form['AJAXREQUEST'] = '_viewRoot'
+        form['AJAX:EVENTS_COUNT'] = '1'
+        param = Attr('//form[script[contains(text(), "RenderTransferDetail")]]/script[contains(text(), "%s")]' % txt, 'id')(self.doc)
+        form[param] = param
+        return form
+
+    def go_to_recipient_selection(self, origin):
+        form = self.get_transfer_form('SetScreenStep')
+        form['screenStep'] = '1'
         form.submit()
 
-    def buildonclick(self, recipient, account):
-        javax = self.doc.xpath('//input[@id="javax.faces.ViewState"]')[0].attrib['value']
-        if recipient._type == "ext":
-            select = self.doc.xpath('//select[@id="transfer_form:externalAccounts"]')[0]
-            onclick = select.attrib['onchange']
-            params = onclick.split(',')[3].split('{')[1]
-            idparam = params.split("'")[1]
-            param = params.split("'")[3]
-            request = {"AJAXREQUEST": "transfer_form:transfer_radios_form",
-                       "transfer_form:generalMessages": "",
-                       "transfer_issuer_radio": account.id[3:],
-                       "transfer_form:externalAccounts": recipient.id,
-                       "transfer_date": "0",
-                       "transfer_form:transferAmount": "",
-                       "transfer_form:transferMotive": "",
-                       "transfer_form:validateDoTransfer": "needed",
-                       "transfer_form": "transfer_form",
-                       "autoScrol": "",
-                       "javax.faces.ViewState": javax,
-                       idparam: param}
-            return request
-        elif recipient._type == "int":
-            for input in self.doc.xpath('//input[@value=%s]' % recipient.id):
-                if input.attrib['name'] == "transfer_recipient_radio":
-                    onclick = input.attrib['onclick']
-                    break
-            # Get something like transfer_form:issueAccount:0:click
-            params = onclick.split(',')[3].split('{')[1]
-            idparam = params.split("'")[1]
-            param = params.split("'")[3]
-            request = {"AJAXREQUEST": "transfer_form:transfer_radios_form",
-                       'transfer_issuer_radio': account.id[3:],
-                       "transfer_recipient_radio": recipient.id,
-                       "transfer_form:externalAccounts": "na",
-                       "transfer_date": 0,
-                       "transfer_form:transferAmount": "",
-                       "transfer_form:transferMotive": "",
-                       "transfer_form:validateDoTransfer": "needed",
-                       "transfer_form": "transfer_form",
-                       "autoScroll": "",
-                       "javax.faces.ViewState": javax,
-                       idparam: param}
-            return request
+        # Select debit account
+        form = self.get_transfer_form('SetDebitAccount')
+        form['selectedDebitAccountNumber'] = self.get_origin_account_id(origin)
+        form.submit()
 
+        # Render available accounts
+        form = self.get_transfer_form('ReRenderAccountList')
+        form.submit()
 
-class TransferConfirmPage(LoggedPage, HTMLPage):
+    def do_transfer(self, account, recipient, transfer):
+        self.go_to_recipient_selection(account)
+
+        form = self.get_transfer_form('SetScreenStep')
+        form['screenStep'] = '2'
+        form.submit()
+
+        form = self.get_transfer_form('SetCreditAccount')
+        form['selectedCreditAccountNumber'] = recipient.id
+        form.submit()
+
+        form = self.get_transfer_form('ReRenderAccountList')
+        form.submit()
+
+        form = self.get_transfer_form('ReRenderStepTwo')
+        form.submit()
+
+        form = self.get_form()
+        keys = [k for k in form.iterkeys() if '_link_hidden' in k or 'j_idcl' in k]
+        for k in keys:
+            form.pop(k)
+        form['AJAXREQUEST'] = "_viewRoot"
+        form['AJAX:EVENTS_COUNT'] = "1"
+        form["transfer_form:transferAmount"] = str(transfer.amount)
+        form["transfer_form:validateDoTransfer"] = "needed"
+        form['transfer_form:transferMotive'] = transfer.label
+        form['transfer_form:ipt-date-exec'] = transfer.exec_date.strftime('%d/%m/%Y')
+        form['transfer_form'] = 'transfer_form'
+        form['transfer_form:valide'] = 'transfer_form:valide'
+        form.submit()
+
+    def continue_transfer(self, password):
+        form = self.get_form(xpath='//form[h2[contains(text(), "Saisissez votre code secret pour valider la transaction")]]')
+        vk = INGVirtKeyboard(self)
+        for k in form:
+            if 'mrltransfer' in k:
+                form[k] = vk.get_coordinates(password)
+        form.submit()
+
     def confirm(self, password):
         vk = INGVirtKeyboard(self)
 
-        form = self.get_form(xpath='//div[@id="transfer_panel"]//form')
+        form = self.get_form(xpath='//form[h2[contains(text(), "Saisissez votre code secret pour valider la transaction")]]')
         for elem in form:
             if "_link_hidden_" in elem or "j_idcl" in elem:
                 form.pop(elem)
@@ -136,14 +154,27 @@ class TransferConfirmPage(LoggedPage, HTMLPage):
         form['%s:mrltransfer' % form.name] = vk.get_coordinates(password)
         form.submit()
 
-    @method
-    class recap(ListElement):
-        item_xpath = '//div[@class="encadre transfert-validation"]'
+    def recap(self, origin, recipient, transfer):
+        t = Transfer()
+        t.label = transfer.label
+        assert transfer.amount == CleanDecimal('//div[@id="transferSummary"]/div[@id="virementLabel"]\
+        //label[@class="digits positive"]', replace_dots=True)(self.doc)
+        t.amount = transfer.amount
+        t.currency = FrenchTransaction.Currency('//div[@id="transferSummary"]/div[@id="virementLabel"]\
+        //label[@class="digits positive"]')(self.doc)
 
-        class item(ItemElement):
-            klass = Transfer
+        assert origin.label == CleanText('//div[@id="transferSummary"]/div[has-class("debit")]//span[@class="title"]')(self.doc)
+        assert origin.balance == CleanDecimal('//div[@id="transferSummary"]/div[has-class("debit")]\
+        //label[@class="digits positive"]', replace_dots=True)(self.doc)
+        t.account_balance = origin.balance
+        t.account_label = origin.label
+        t.account_iban = origin.iban
+        t.account_id = origin.id
 
-            obj_amount = CleanDecimal('.//label[@id="confirmtransferAmount"]', replace_dots=True)
-            obj_origin = CleanText('.//span[@id="confirmfromAccount"]')
-            obj_recipient = CleanText('.//span[@id="confirmtoAccount"]')
-            obj_reason = CleanText('.//span[@id="confirmtransferMotive"]')
+        assert recipient.label == CleanText('//div[@id="transferSummary"]/div[has-class("credit")]//span[@class="title"]')(self.doc)
+        t.recipient_label = recipient.label
+        t.recipient_iban = recipient.iban
+        t.recipient_id = recipient.id
+
+        t.exec_date = parse_french_date(Regexp(CleanText('//p[has-class("exec-date")]', children=False), '\((.*)\)')(self.doc)).date()
+        return t

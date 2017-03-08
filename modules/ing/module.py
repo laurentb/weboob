@@ -17,12 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
+from datetime import timedelta
 
-from weboob.capabilities.bank import CapBank, Account, Recipient
+from weboob.capabilities.bank import CapBankTransfer, Account, AccountNotFound, RecipientNotFound
 from weboob.capabilities.bill import CapDocument, Bill, Subscription,\
     SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.profile import CapProfile
-from weboob.capabilities.base import UserError, find_object, NotAvailable
+from weboob.capabilities.base import find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, ValueDate
 from weboob.browser.exceptions import ServerError
@@ -32,7 +34,7 @@ from .browser import IngBrowser
 __all__ = ['INGModule']
 
 
-class INGModule(Module, CapBank, CapDocument, CapProfile):
+class INGModule(Module, CapBankTransfer, CapDocument, CapProfile):
     NAME = 'ing'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
@@ -78,18 +80,28 @@ class INGModule(Module, CapBank, CapDocument, CapProfile):
     def iter_transfer_recipients(self, account):
         if not isinstance(account, Account):
             account = self.get_account(account)
-        return self.browser.get_recipients(account)
+        return self.browser.iter_recipients(account)
 
-    def transfer(self, account, recipient, amount, reason=None):
-        if reason is None:
-            raise UserError('Reason is mandatory to do a transfer on ING website')
-        if not isinstance(account, Account):
-            account = self.get_account(account)
-        if not isinstance(recipient, Recipient):
-            # Remove weboob identifier prefix (LA-, CC-...)
-            if "-" in recipient:
-                recipient = recipient.split('-')[1]
-        return self.browser.transfer(account, recipient, amount, reason)
+    def init_transfer(self, transfer, **params):
+        self.logger.info('Going to do a new transfer')
+        transfer.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z/\-\?:\(\)\.,\'\+ ]+', '', transfer.label).split()).upper()
+        if transfer.account_iban:
+            account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
+        else:
+            account = find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
+
+        if transfer.recipient_iban:
+            recipient = find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban, error=RecipientNotFound)
+        else:
+            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
+
+        return self.browser.init_transfer(account, recipient, transfer)
+
+    def execute_transfer(self, transfer, **params):
+        return self.browser.execute_transfer(transfer)
+
+    def transfer_check_exec_date(self, old_exec_date, new_exec_date):
+        return old_exec_date <= new_exec_date <= old_exec_date + timedelta(days=2)
 
     def iter_investment(self, account):
         if not isinstance(account, Account):
