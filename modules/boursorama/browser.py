@@ -237,7 +237,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     def get_investment(self, account):
         if '/compte/derive' in account._link:
             return iter([])
-        if not account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
+        if not account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET, Account.TYPE_PEA):
             raise NotImplementedError()
         self.location(account._link)
         # We might deconnect at this point.
