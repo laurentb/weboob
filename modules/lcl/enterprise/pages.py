@@ -61,25 +61,29 @@ class MovementsPage(LoggedPage, HTMLPage):
     @method
     class iter_accounts(ListElement):
         def parse(self, el):
-            multi_xpath = '//form[contains(@action, "changeCompte")]//ul[@class="listeEnfants"]/li/a'
-            self.page.multi = True if self.page.doc.xpath(multi_xpath) else False
-            self.item_xpath = multi_xpath if self.page.multi else '//*[@id="perimetreMandatEnfantLib"]'
+            # is listeEnfants still relevant?
+            multi_xpath = '//form[contains(@action, "changeCompte")]//ul[@class="listeEnfants" or @class="layerEnfants"]/li/a'
+            self.env['multi'] = bool(self.page.doc.xpath(multi_xpath))
+            self.item_xpath = multi_xpath if self.env['multi'] else '//*[@id="perimetreMandatEnfantLib"]'
 
         class item(ItemElement):
             klass = Account
 
-            obj_id = Env('accid')
-            obj_label = Env('label')
+            def obj_id(self):
+                return CleanText('.')(self).strip().replace(' ', '').split('-')[0]
+
+            def obj_label(self):
+                return CleanText('.')(self).split("-")[-1].strip()
+
             obj_type = Account.TYPE_CHECKING
+
             obj_balance = Env('balance')
             obj_currency = Env('currency')
             obj__url = Env('url')
             obj__data = Env('data')
 
             def parse(self, el):
-                page, url, data = self.page.get_changecompte(Link('.')(self)) if self.page.multi else (self.page, None, None)
-                self.env['accid'] = CleanText('.')(self).strip().replace(' ', '').split('-')[0]
-                self.env['label'] = CleanText('.')(self).split("-")[-1].strip()
+                page, url, data = self.page.get_changecompte(Link('.')(self)) if self.env['multi'] else (self.page, None, None)
                 balance_xpath = '//div[contains(text(),"Solde")]/strong'
                 self.env['balance'] = MyDecimal().filter(page.doc.xpath(balance_xpath))
                 self.env['currency'] = Account.get_currency(CleanText().filter(page.doc.xpath(balance_xpath)))

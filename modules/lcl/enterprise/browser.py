@@ -42,7 +42,7 @@ class LCLEnterpriseBrowser(LoginBrowser):
         if self.page.logged:
             self.login.go(page="logout")
             self.login.go(page="logoutOk")
-            assert self.login.is_here(page="logoutOk")
+            assert self.login.is_here(page="logoutOk") or self.login.is_here(page="sessionExpiree")
         super(LCLEnterpriseBrowser, self).deinit()
 
     def do_login(self):
