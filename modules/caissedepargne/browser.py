@@ -21,25 +21,31 @@
 import json
 import urlparse
 import re
+import datetime
 
-from weboob.browser import LoginBrowser, need_login
+from weboob.browser import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
-from weboob.capabilities.bank import Account, TransferError
+from weboob.capabilities.bank import Account, AddRecipientStep, Recipient
+from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
 from weboob.exceptions import BrowserIncorrectPassword
+from weboob.tools.value import Value
+from weboob.tools.decorators import retry
 
 from .pages import IndexPage, ErrorPage, MarketPage, LifeInsurance, GarbagePage, \
                    MessagePage, LoginPage, CenetLoginPage, CenetHomePage, \
                    CenetAccountsPage, CenetAccountHistoryPage, CenetCardsPage, \
-                   TransferPage, ProTransferPage, TransferConfirmPage, TransferSummaryPage
+                   TransferPage, ProTransferPage, TransferConfirmPage, TransferSummaryPage, \
+                   SmsPage, AuthentPage, RecipientPage, CanceledAuth
 
 
 __all__ = ['CaisseEpargne']
 
 
-class CaisseEpargne(LoginBrowser):
+class CaisseEpargne(LoginBrowser, StatesMixin):
     BASEURL = "https://www.caisse-epargne.fr"
+    STATE_DURATION = 5
 
     login = URL('/authentification/manage\?step=identification&identifiant=(?P<login>.*)',
                 'https://.*/login.aspx', LoginPage)
@@ -50,10 +56,12 @@ class CaisseEpargne(LoginBrowser):
     cenet_account_history = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/ChargerHistoriqueCompte', CenetAccountHistoryPage)
     cenet_account_coming = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiCartesBanquaires.asmx/ChargerEnCoursCarte', CenetAccountHistoryPage)
     cenet_cards = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiCartesBanquaires.asmx/ChargerCartes', CenetCardsPage)
+    recipient = URL('https://.*/Portail.aspx.*', RecipientPage)
     transfer = URL('https://.*/Portail.aspx.*', TransferPage)
     transfer_summary = URL('https://.*/Portail.aspx.*', TransferSummaryPage)
     transfer_confirm = URL('https://.*/Portail.aspx.*', TransferConfirmPage)
     pro_transfer = URL('https://.*/Portail.aspx.*', ProTransferPage)
+    authent = URL('https://.*/Portail.aspx.*', AuthentPage)
     home = URL('https://.*/Portail.aspx.*', IndexPage)
     home_tache = URL('https://.*/Portail.aspx\?tache=(?P<tache>).*', IndexPage)
     error = URL('https://.*/login.aspx',
@@ -69,6 +77,9 @@ class CaisseEpargne(LoginBrowser):
                   'https://www.caisse-epargne.fr/particuliers/.*/emprunter.aspx',
                   'https://.*/particuliers/emprunter.*',
                   'https://.*/particuliers/epargner.*', GarbagePage)
+    sms = URL('https://www.icgauth.caisse-epargne.fr/dacswebssoissuer/AuthnRequestServlet', SmsPage)
+
+    __states__ = ('BASEURL', 'multi_type', 'typeAccount', 'is_cenet_website', 'recipient_form')
 
     def __init__(self, nuser, *args, **kwargs):
         self.BASEURL = kwargs.pop('domain', self.BASEURL)
@@ -81,8 +92,14 @@ class CaisseEpargne(LoginBrowser):
         self.loans = None
         self.typeAccount = 'WE'
         self.nuser = nuser
+        self.recipient_form = None
 
         super(CaisseEpargne, self).__init__(*args, **kwargs)
+
+    def load_state(self, state):
+        if 'recipient_form' in state and state['recipient_form'] is not None:
+            super(CaisseEpargne, self).load_state(state)
+            self.logged = True
 
     def do_login(self):
         """
@@ -441,23 +458,12 @@ class CaisseEpargne(LoginBrowser):
 
     @need_login
     def iter_recipients(self, origin_account):
-        if self.is_cenet_website is True:
-            # not available for the moment
-            return iter([])
-        if self.home.is_here():
-            self.page.go_list()
-        else:
-            self.home.go()
-        try:
-            self.page.go_transfer(origin_account)
-        except TransferError:
-            return iter([])
+        self.pre_transfer(origin_account)
         if self.page.transfer_unavailable() or self.page.need_auth() or not self.page.can_transfer(origin_account):
             return iter([])
         return self.page.iter_recipients(account_id=origin_account.id)
 
-    @need_login
-    def init_transfer(self, account, recipient, transfer):
+    def pre_transfer(self, account):
         if self.is_cenet_website is True:
             # not available for the moment
             raise NotImplementedError()
@@ -465,10 +471,13 @@ class CaisseEpargne(LoginBrowser):
             self.page.go_list()
         else:
             self.home.go()
-        self.page.go_transfer()
+        self.page.go_transfer(account)
         if self.pro_transfer.is_here():
             raise NotImplementedError()
 
+    @need_login
+    def init_transfer(self, account, recipient, transfer):
+        self.pre_transfer(account)
         self.page.init_transfer(account, recipient, transfer)
         self.page.continue_transfer(account.label, recipient, transfer.label)
         return self.page.create_transfer(account, recipient, transfer)
@@ -477,3 +486,44 @@ class CaisseEpargne(LoginBrowser):
     def execute_transfer(self, transfer):
         self.page.confirm()
         return self.page.populate_reference(transfer)
+
+    def get_recipient_obj(self, recipient):
+        r = Recipient()
+        r.iban = recipient.iban
+        r.id = recipient.iban
+        r.label = recipient.label
+        r.category = u'Externe'
+        r.enabled_at = datetime.datetime.now().replace(microsecond=0)
+        r.currency = u'EUR'
+        r.bank_name = NotAvailable
+        return r
+
+    def post_sms_password(self, sms_password):
+        data = {}
+        for k, v in self.recipient_form.iteritems():
+            if k != 'url':
+                data[k] = v
+        data['uiAuthCallback__1_'] = sms_password
+        self.location(self.recipient_form['url'], data=data)
+
+    def end_sms_recipient(self, recipient, **params):
+        self.post_sms_password(params['sms_password'])
+        self.recipient_form = None
+        self.page.post_form()
+        self.page.go_on()
+        self.page.post_recipient(recipient)
+        self.page.confirm_recipient()
+        return self.get_recipient_obj(recipient)
+
+    @retry(CanceledAuth)
+    @need_login
+    def new_recipient(self, recipient, **params):
+        if 'sms_password' in params:
+            return self.end_sms_recipient(recipient, **params)
+
+        self.pre_transfer(next(acc for acc in self.get_accounts_list() if acc.type in (Account.TYPE_CHECKING, Account.TYPE_SAVINGS)))
+        # This send sms to user.
+        self.page.go_add_recipient()
+        self.page.check_canceled_auth()
+        self.page.set_browser_form()
+        raise AddRecipientStep(self.get_recipient_obj(recipient), Value('sms_password', label=self.page.get_prompt_text()))

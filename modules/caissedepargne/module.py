@@ -108,3 +108,7 @@ class CaisseEpargneModule(Module, CapBankTransfer, CapContact, CapProfile):
 
     def execute_transfer(self, transfer, **params):
         return self.browser.execute_transfer(transfer)
+
+    def new_recipient(self, recipient, **params):
+        #recipient.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z:\/\-\?\(\)\.,\'\+ ]+', '', recipient.label).split())
+        return self.browser.new_recipient(recipient, **params)

@@ -30,7 +30,8 @@ from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanTex
 from weboob.browser.filters.html import Link, Attr
 from weboob.browser.filters.json import Dict
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Transaction, Investment, Recipient, TransferError, TransferBankError, Transfer
+from weboob.capabilities.bank import Account, Transaction, Investment, Recipient, TransferError, TransferBankError, Transfer,\
+                                     AddRecipientError
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -862,6 +863,13 @@ class TransferPage(TransferErrorPage, IndexPage):
         form[fill('MM$VIREMENT$SAISIE_VIREMENT_%s$m_Virement%s$txtMotif', type_)] = label
         form.submit()
 
+    def go_add_recipient(self):
+        form = self.get_form(name='main')
+        link = self.doc.xpath(u'//a[span[contains(text(), "Ajouter un compte bénéficiaire")]]')[0]
+        m = re.search("PostBackOptions?\([\"']([^\"']+)[\"'],\s*['\"]([^\"']+)?['\"]", link.attrib.get('href', ''))
+        form['__EVENTTARGET'] = m.group(1)
+        form['__EVENTARGUMENT'] = m.group(2)
+        form.submit()
 
 class TransferConfirmPage(TransferErrorPage, IndexPage):
     def is_here(self):
@@ -909,3 +917,66 @@ class ProTransferPage(IndexPage):
 
     def can_transfer(self, account):
         return False
+
+
+class CanceledAuth(Exception):
+    pass
+
+
+class SmsPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        error = CleanText('//p[@class="warning_trials_before"]')(self.doc)
+        if error:
+            raise AddRecipientError('Wrongcode, ' + error)
+
+    def get_prompt_text(self):
+        return CleanText(u'//td[@class="auth_info_prompt"]')(self.doc)
+
+    def post_form(self):
+        form = self.get_form(name='downloadAuthForm')
+        form.submit()
+
+    def check_canceled_auth(self):
+        form = self.doc.xpath('//form[@name="downloadAuthForm"]')
+        if form:
+            self.location('/Pages/Logout.aspx')
+            raise CanceledAuth()
+
+    def set_browser_form(self):
+        form = self.get_form(name='formAuth')
+        self.browser.recipient_form = dict((k, v) for k, v in form.iteritems() if v)
+        self.browser.recipient_form['url'] = form.url
+
+
+class AuthentPage(LoggedPage, HTMLPage):
+    def is_here(self):
+        return bool(CleanText(u'//h2[contains(text(), "Authentification réussie")]')(self.doc))
+
+    def go_on(self):
+        form = self.get_form(name='main')
+        form['__EVENTTARGET'] = 'MM$RETOUR_OK_SOL$m_ChoiceBar$lnkRight'
+        form.submit()
+
+
+class RecipientPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        error = CleanText('//span[@id="MM_LblMessagePopinError"]')(self.doc)
+        if error:
+            raise AddRecipientError(error)
+
+    def is_here(self):
+        return bool(CleanText(u'//h2[contains(text(), "Ajouter un compte bénéficiaire")] |\
+                                //h2[contains(text(), "Confirmer l\'ajout d\'un compte bénéficiaire")]')(self.doc))
+
+    def post_recipient(self, recipient):
+        form = self.get_form(name='main')
+        form['__EVENTTARGET'] = 'MM$WIZARD_AJOUT_COMPTE_EXTERNE$m_WizardBar$m_lnkNext$m_lnkButton'
+        form['MM$WIZARD_AJOUT_COMPTE_EXTERNE$COMPTE_EXTERNE_ADD$m_RibIban$txtTitulaireCompte'] = recipient.label
+        for i in range(len(recipient.iban)/4+1):
+            form['MM$WIZARD_AJOUT_COMPTE_EXTERNE$COMPTE_EXTERNE_ADD$m_RibIban$txtIban%s' % str(i + 1)] = recipient.iban[4*i:4*i+4]
+        form.submit()
+
+    def confirm_recipient(self):
+        form = self.get_form(name='main')
+        form['__EVENTTARGET'] = 'MM$WIZARD_AJOUT_COMPTE_EXTERNE$m_WizardBar$m_lnkNext$m_lnkButton'
+        form.submit()
