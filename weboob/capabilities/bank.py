@@ -60,39 +60,64 @@ class TransferError(UserError):
     A transfer has failed.
     """
 
-    TYPE_OTHER = 0
+    code = 'transferError'
 
-    TYPE_BANK_MESSAGE = 1
+    def __init__(self, description, message=None):
+        """
+        :param message: error message from the bank, if any
+        """
+
+        super(TransferError, self).__init__(message or description)
+        self.message = message
+        self.description = description
+
+
+class TransferBankError(TransferError):
     """The transfer was rejected by the bank with a message."""
 
-    TYPE_INTERNAL_ERROR = 2
-    """Parsing failed or the bank returned an unexpected result."""
+    code = 'bankMessage'
 
-    TYPE_INVALID_RECIPIENT = 3
-    """The emitter cannot transfer to this recipient."""
 
-    TYPE_INVALID_EMITTER = 4
-    """The emitter account cannot be used for transfers."""
-
-    TYPE_INVALID_AMOUNT = 5
-    """This amount is not allowed."""
-
-    TYPE_INVALID_LABEL = 6
+class TransferInvalidLabel(TransferError):
     """The transfer label is invalid."""
 
-    TYPE_INVALID_EXEC_DATE = 7
-    """This execution date cannot be used."""
+    code = 'invalidLabel'
 
-    TYPE_INSUFFICIENT_FUNDS = 8
-    """Not enough funds on emitter account."""
 
-    TYPE_INVALID_CURRENCY = 9
+class TransferInvalidEmitter(TransferError):
+    """The emitter account cannot be used for transfers."""
+
+    code = 'invalidEmitter'
+
+
+class TransferInvalidRecipient(TransferError):
+    """The emitter cannot transfer to this recipient."""
+
+    code = 'invalidRecipient'
+
+
+class TransferInvalidAmount(TransferError):
+    """This amount is not allowed."""
+
+    code = 'invalidAmount'
+
+
+class TransferInvalidCurrency(TransferInvalidAmount):
     """The transfer currency is invalid."""
 
-    def __init__(self, message=None, type=TYPE_OTHER, **kwargs):
-        super(TransferError, self).__init__(message, type, **kwargs)
-        self.message = message
-        self.type = type
+    code = 'invalidCurrency'
+
+
+class TransferInsufficientFunds(TransferInvalidAmount):
+    """Not enough funds on emitter account."""
+
+    code = 'insufficientFunds'
+
+
+class TransferInvalidDate(TransferError):
+    """This execution date cannot be used."""
+
+    code = 'invalidDate'
 
 
 class AddRecipientError(UserError):
@@ -469,7 +494,7 @@ class CapBankTransfer(CapBank):
         """
 
         if not transfer.amount or transfer.amount <= 0:
-            raise TransferError('amount must be strictly positive', TransferError.TYPE_INVALID_AMOUNT)
+            raise TransferInvalidAmount('amount must be strictly positive')
 
         t = self.init_transfer(transfer, **params)
         for key, value in t.iter_fields():
@@ -481,5 +506,5 @@ class CapBankTransfer(CapBank):
                     else:
                         assert transfer_val == value or empty(transfer_val)
                 except AssertionError:
-                    raise TransferError('%s changed during transfer processing (from %s to %s)' % (key, transfer_val, value), TransferError.TYPE_INTERNAL_ERROR)
+                    raise TransferError('%s changed during transfer processing (from %s to %s)' % (key, transfer_val, value))
         return self.execute_transfer(t, **params)
