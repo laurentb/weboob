@@ -306,6 +306,11 @@ class Market(LoggedPage, BasePage, Invest):
     COL_DIFF = 4
 
     def iter_investment(self):
+        not_rounded_valuations = {}
+
+        for inv in self.doc.xpath(u'//table[contains(., "Détail du compte")]//tr[2]//table/tr[position() > 1]'):
+            not_rounded_valuations[CleanText().filter(inv.xpath('.//td[1]/a/text()')[0].split(' - ')[0])] = CleanDecimal(replace_dots=True).filter(inv.xpath('.//td[7]/text()')[0])
+
         doc = self.browser.open('/brs/fisc/fisca10a.html').page.doc
         num_page = None
         try:
@@ -340,7 +345,7 @@ class Market(LoggedPage, BasePage, Invest):
                     inv.quantity = MyDecimal('.')(tr.xpath('./following-sibling::tr/td[2]')[0])
                     inv.unitprice = MyDecimal('.', replace_dots=True)(tr.xpath('./following-sibling::tr/td[3]')[1])
                     inv.unitvalue = MyDecimal('.', replace_dots=True)(tr.xpath('./following-sibling::tr/td[3]')[0])
-                    inv.valuation = MyDecimal('.')(tr.xpath('./following-sibling::tr/td[4]')[0])
+                    inv.valuation = not_rounded_valuations[inv.label]
                     inv.diff = MyDecimal('.')(tr.xpath('./following-sibling::tr/td[5]')[0])
                 else:
                     inv.quantity = MyDecimal('.')(cells[self.COL_QUANTITY])
