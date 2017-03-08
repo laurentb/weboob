@@ -26,7 +26,7 @@ from datetime import datetime
 
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.elements import DictElement, ItemElement, method, ListElement
-from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Eval, Format, Env, Upper
+from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Eval, Format, Env, Upper, Field
 from weboob.browser.filters.html import Link, Attr
 from weboob.browser.filters.json import Dict
 from weboob.capabilities import NotAvailable
@@ -155,7 +155,15 @@ class CenetAccountHistoryPage(LoggedPage, CenetJsonPage):
             obj_rdate = Date(Dict('DateGroupReglement'), dayfirst=True)
 
             def obj_type(self):
-                return self.page.TR_TYPES.get(Dict('TypeMouvement')(self), Transaction.TYPE_UNKNOWN)
+                ret = self.page.TR_TYPES.get(Dict('TypeMouvement')(self), Transaction.TYPE_UNKNOWN)
+                if ret != Transaction.TYPE_UNKNOWN:
+                    return ret
+
+                for pattern, type in Transaction.PATTERNS:
+                    if pattern.match(Field('raw')(self)):
+                        return type
+
+                return Transaction.TYPE_UNKNOWN
 
             def obj_original_currency(self):
                 return CleanText(Dict('Montant/Devise'))(self).upper()
