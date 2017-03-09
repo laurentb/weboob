@@ -21,6 +21,7 @@
 import re, json
 
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account, Transaction
 
@@ -52,7 +53,10 @@ class CmsoParBrowser(LoginBrowser):
 
     def deinit(self):
         if self.page.logged:
-            self.logout.go(method='DELETE')
+            try:
+                self.logout.go(method='DELETE')
+            except ClientError:
+                pass
 
         super(CmsoParBrowser, self).deinit()
 
