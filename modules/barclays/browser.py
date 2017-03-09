@@ -41,7 +41,9 @@ class Barclays(LoginBrowser):
     transactions = URL('https://.*.barclays.fr/barclaysnetV2/releve.do.*',               TransactionsPage)
     card = URL('https://.*.barclays.fr/barclaysnetV2/cartes.do.*',                       CardPage)
     valuation = URL('https://.*.barclays.fr/barclaysnetV2/valuationViewBank.do.*',       ValuationPage)
-    loan = URL('https://.*.barclays.fr/barclaysnetV2/pret.do.*',                         LoanPage)
+    loan = URL('https://.*.barclays.fr/barclaysnetV2/pret.do.*',
+               'https://.*.barclays.fr/barclaysnetV2/revolving.do.*',
+               LoanPage)
     market = URL('https://.*.barclays.fr/barclaysnetV2/titre.do.*',                      MarketPage)
     assurance = URL('https://.*.barclays.fr/barclaysnetV2/assurance.do.*',
                     'https://.*.barclays.fr/barclaysnetV2/assuranceSupports.do.*',       AssurancePage)
