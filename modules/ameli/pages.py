@@ -22,15 +22,19 @@ from datetime import datetime
 import re
 import urllib
 from decimal import Decimal
-from weboob.browser.pages import HTMLPage
+
+from weboob.browser.pages import HTMLPage, RawPage, LoggedPage
 from weboob.capabilities.bill import Subscription, Detail, Bill
 from weboob.browser.filters.standard import CleanText, Regexp
+
 
 # Ugly array to avoid the use of french locale
 FRENCH_MONTHS = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
 
+
 class AmeliBasePage(HTMLPage):
-    def is_logged(self):
+    @property
+    def logged(self):
         if self.doc.xpath('//a[@id="id_lien_deco"]'):
             logged = True
         else:
@@ -42,7 +46,13 @@ class AmeliBasePage(HTMLPage):
         errors = self.doc.xpath(u'//*[@id="r_errors"]')
         if errors:
             return errors[0].text_content()
+
+        errors = CleanText('//p[@class="msg_erreur"]', default='')(self.doc)
+        if errors:
+            return errors
+
         return False
+
 
 class LoginPage(AmeliBasePage):
     def login(self, login, password):
@@ -51,11 +61,14 @@ class LoginPage(AmeliBasePage):
         form['connexioncompte_2codeConfidentiel'] = password.encode('utf8')
         form.submit()
 
+
 class LoginValidationPage(AmeliBasePage):
     pass
 
+
 class HomePage(AmeliBasePage):
     pass
+
 
 class AccountPage(AmeliBasePage):
     def iter_subscription_list(self):
@@ -77,7 +90,8 @@ class PaymentsPage(AmeliBasePage):
         url = "/PortailAS/paiements.do?actionEvt=afficherPaiementsComplementaires&DateDebut=" + dateDebut + "&DateFin=" + dateFin + "&Beneficiaire=tout_selectionner&afficherReleves=false&afficherIJ=false&afficherInva=false&afficherRentes=false&afficherRS=false&indexPaiement=&idNotif="
         return url
 
-class LastPaymentsPage(AmeliBasePage):
+
+class LastPaymentsPage(LoggedPage, AmeliBasePage):
     def iter_last_payments(self):
         elts = self.doc.xpath('//li[@class="rowitem remboursement"]')
         for elt in elts:
@@ -105,6 +119,7 @@ class LastPaymentsPage(AmeliBasePage):
 
     def get_document(self, bill):
         self.location(bill.url, urllib.urlencode(bill._args))
+
 
 class PaymentDetailsPage(AmeliBasePage):
     def iter_payment_details(self, sub):
@@ -194,3 +209,5 @@ class PaymentDetailsPage(AmeliBasePage):
                     yield det
 
 
+class Raw(LoggedPage, RawPage):
+    pass

@@ -19,7 +19,7 @@
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
-from .pages import LoginPage, LoginValidationPage, HomePage, AccountPage, LastPaymentsPage, PaymentsPage, PaymentDetailsPage
+from .pages import LoginPage, LoginValidationPage, HomePage, AccountPage, LastPaymentsPage, PaymentsPage, PaymentDetailsPage, Raw
 
 __all__ = ['AmeliBrowser']
 
@@ -34,17 +34,13 @@ class AmeliBrowser(LoginBrowser):
     paymentsp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_paiements_page', PaymentsPage)
     paymentdetailsp = URL('/PortailAS/paiements.do\?actionEvt=chargerDetailPaiements.*', PaymentDetailsPage)
     lastpaymentsp = URL('/PortailAS/paiements.do\?actionEvt=afficherPaiements.*', LastPaymentsPage)
-
-    logged = False
+    pdf_page = URL(r'PortailAS/PDFServletReleveMensuel.dopdf\?PDF.moisRecherche=.*', Raw)
 
     def do_login(self):
         self.logger.debug('call Browser.do_login')
-        if self.logged:
-            return True
 
         self.loginp.stay_or_go()
         if self.homep.is_here():
-            self.logged = True
             return True
 
         self.page.login(self.username, self.password)
@@ -57,8 +53,6 @@ class AmeliBrowser(LoginBrowser):
 
         if not self.homep.is_here():
             raise BrowserIncorrectPassword()
-
-        self.logged = True
 
     @need_login
     def iter_subscription_list(self):
