@@ -85,7 +85,7 @@ class YomoniBrowser(APIBrowser):
         for project in self.users['projects']:
             me = self.request('/user/%s/project/%s/' % (self.users['userId'], project['projectId']))
 
-            waiting = (me['status'] == 'RETURN_CUSTOMER_SERVICE')
+            waiting = (me['status'] in ('RETURN_CUSTOMER_SERVICE', 'SUBSCRIPTION_STEP_3'))
 
             # Check project in progress
             if not me['numeroContrat'] or not me['dateAdhesion']:
