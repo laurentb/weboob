@@ -79,7 +79,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                     ('vie', Account.TYPE_LIFE_INSURANCE),
                     ('strategie patr.', Account.TYPE_LIFE_INSURANCE),
                     ('essentiel', Account.TYPE_LIFE_INSURANCE),
-                    ('elysees', Account.TYPE_LIFE_INSURANCE),
+                    ('elysee', Account.TYPE_LIFE_INSURANCE),
                     ('abondance', Account.TYPE_LIFE_INSURANCE),
                     ('ely. retraite', Account.TYPE_LIFE_INSURANCE),
                     ('lae option assurance', Account.TYPE_LIFE_INSURANCE),
