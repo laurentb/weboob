@@ -56,11 +56,11 @@ class DocumentsPage(LoggedPage, JsonPage):
     @method
     class iter_bills(DictElement):
         def parse(self, el):
-            for i, sub in enumerate(Dict('0/listOfBillsByAccDTO')(self)):
-                if Dict('accDTO/numAcc')(sub) in Env('subid')(self):
-                    self.item_xpath = "0/listOfBillsByAccDTO/%d/listOfbills" % i
-
-                self.env['bpNumber'] = Dict('0/bpDto/bpNumber')(self)
+            for i, sub in enumerate(self.el):
+                if Dict('listOfBillsByAccDTO/0/accDTO/numAcc')(sub) in Env('subid')(self):
+                    self.item_xpath = "%d/listOfBillsByAccDTO/0/listOfbills" % i
+                    self.env['bpNumber'] = Dict('%d/bpDto/bpNumber' % i)(self)
+                    break
 
         class item(ItemElement):
             klass = Bill
@@ -79,7 +79,7 @@ class DocumentsPage(LoggedPage, JsonPage):
             obj__bp = Env('bpNumber')
 
             def parse(self, el):
-                self.env['price'] = -Decimal(Dict('billAmount')(self))
+                self.env['price'] = Decimal(Dict('billAmount')(self))
                 self.env['numAcc'] = str(int(Env('subid')(self)))
 
             def validate(self, el):
