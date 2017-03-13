@@ -29,6 +29,7 @@ from weboob.capabilities.bank import (
     Account, AccountNotFound, TransferError, TransferInvalidAmount,
     TransferInvalidEmitter, TransferInvalidLabel, TransferInvalidRecipient,
 )
+from weboob.capabilities.contact import Advisor
 from weboob.tools.captcha.virtkeyboard import VirtKeyboardError
 
 from .pages import (
@@ -251,6 +252,14 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     @need_login
     def get_profile(self):
         return self.profile.stay_or_go().get_profile()
+
+    @need_login
+    def get_advisor(self):
+        # same for everyone
+        advisor = Advisor()
+        advisor.name = u"Service clientèle"
+        advisor.phone = u"0146094949"
+        return iter([advisor])
 
     @need_login
     def iter_transfer_recipients(self, account):

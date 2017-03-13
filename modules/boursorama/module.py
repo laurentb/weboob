@@ -22,6 +22,7 @@
 
 from weboob.capabilities.bank import CapBankTransfer, Account, AccountNotFound
 from weboob.capabilities.profile import CapProfile
+from weboob.capabilities.contact import CapContact
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, ValueBool, Value
 
@@ -31,7 +32,7 @@ from .browser import BoursoramaBrowser
 __all__ = ['BoursoramaModule']
 
 
-class BoursoramaModule(Module, CapBankTransfer, CapProfile):
+class BoursoramaModule(Module, CapBankTransfer, CapProfile, CapContact):
     NAME = 'boursorama'
     MAINTAINER = u'Gabriel Kerneis'
     EMAIL = 'gabriel@kerneis.info'
@@ -74,6 +75,9 @@ class BoursoramaModule(Module, CapBankTransfer, CapProfile):
 
     def get_profile(self):
         return self.browser.get_profile()
+
+    def iter_contacts(self):
+        return self.browser.get_advisor()
 
     def iter_transfer_recipients(self, account):
         if not isinstance(account, Account):
