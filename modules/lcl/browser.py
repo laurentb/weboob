@@ -278,7 +278,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         self.page.check_values(recipient.iban, recipient.label)
         # Send sms to user.
         self.open('/outil/UWBE/Otp/envoiCodeOtp?telChoisi=MOBILE')
-        raise AddRecipientStep(self.get_recipient_object(recipient.iban, recipient.label), Value('code', label='Saississez le code.'))
+        raise AddRecipientStep(self.get_recipient_object(recipient.iban, recipient.label), Value('code', label='Saisissez le code.'))
 
     @need_login
     def iter_recipients(self, origin_account):
