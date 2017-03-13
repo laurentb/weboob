@@ -494,7 +494,8 @@ class CapBankTransfer(CapBank):
         :param label: label of the new recipient.
         :type label: :class`str`
         :raises: :class:`BrowserQuestion`
-        rtype: :class:`Recipient`
+        :raises: :class:`AddRecipientError`
+        :rtype: :class:`Recipient`
         """
         if not is_iban_valid(recipient.iban):
             raise AddRecipientError('Iban is not valid.')
