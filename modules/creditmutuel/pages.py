@@ -1105,6 +1105,10 @@ class VerifCodePage(LoggedPage, HTMLPage):
         if error:
             raise AddRecipientError(error)
 
+        action_needed = CleanText(u'//p[contains(text(), "Carte de CLÉS PERSONNELLES révoquée")]')(self.doc)
+        if action_needed:
+            raise ActionNeeded(action_needed)
+
     def get_question(self):
         s = CleanText('//label[@for="txtCle"]')(self.doc)
         key_case = self.HASHES[hashlib.md5(self.browser.open(Attr('//label[@for="txtCle"]/img', 'src')(self.doc)).content).hexdigest()]
