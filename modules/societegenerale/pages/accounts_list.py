@@ -437,6 +437,11 @@ class LifeInsuranceHistory(LifeInsurance):
         # process the data
         date_xpath = '//td[@class="net2g_asv_suiviOperation_element1"]/following-sibling::td'
         vdate_xpath = '//td[@class="net2g_asv_tableau_cell_date"]'
+
+        date = CleanText(date_xpath)(self.doc)
+        if r"Rejet d'intégration" in date:
+            return False
+
         trans.date = self.parse_date(doc, trans, date_xpath, 1)
         trans.rdate = trans.date
         trans.vdate = self.parse_date(doc, trans, vdate_xpath, 0)
