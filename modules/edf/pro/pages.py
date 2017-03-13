@@ -21,6 +21,7 @@
 from datetime import date
 
 from weboob.browser.pages import HTMLPage, JsonPage, RawPage, LoggedPage
+from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.standard import CleanDecimal, CleanText
 from weboob.browser.filters.html import CleanHTML
 from weboob.browser.filters.json import Dict
@@ -40,29 +41,32 @@ class LoginPage(HTMLPage):
 class AuthPage(RawPage):
     pass
 
+
 class SubscriptionsPage(LoggedPage, JsonPage):
     def build_doc(self, text):
         if self.content == 'REDIRECT_CGU':
             raise ActionNeeded(u"Vous devez accepter les conditions générales d'utilisation sur le site de votre banque.")
         return super(SubscriptionsPage, self).build_doc(text)
 
-    def get_subscriptions(self):
-        subscriptions = []
+    @method
+    class get_subscriptions(DictElement):
+        item_xpath = 'listeContrat'
 
-        for contract in self.doc['listeContrat']:
-            sub = Subscription()
+        class item(ItemElement):
+            klass = Subscription
 
-            sub.id = contract['refDevis']
-            sub.label = CleanText().filter(CleanHTML().filter(contract['nomOffreModele']))
-            sub.subscriber = ('%s %s' % (contract['prenomIntPrinc'].lower(), contract['nomIntPrinc'].lower())).title()
+            obj_id = CleanText(Dict('refDevisLabel'))
+            obj__refdevis =  CleanText(Dict('refDevis'))
+            obj_label = CleanText(CleanHTML(Dict('nomOffreModele')))
 
-            subscriptions.append(sub)
+            def obj_subscriber(self):
+                return ('%s %s' % (Dict('prenomIntPrinc')(self).lower(), Dict('nomIntPrinc')(self).lower())).title()
 
-        return subscriptions
 
 class BillsPage(LoggedPage, JsonPage):
     def get_bill_name(self):
         return Dict('nomFichier')(self.doc)
+
 
 class DocumentsPage(LoggedPage, JsonPage):
     def get_documents(self, subid):

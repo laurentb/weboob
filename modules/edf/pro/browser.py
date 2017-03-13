@@ -41,6 +41,12 @@ class EdfproBrowser(LoginBrowser):
     bills = URL('/rest/facturemp/getnomtelechargerfacture', BillsPage)
     documents = URL('/rest/facturemp/recherchefacture', DocumentsPage)
 
+    def __init__(self, *args, **kwargs):
+        super(EdfproBrowser, self).__init__(*args, **kwargs)
+
+        self.cache = {}
+        self.cache['docs'] = {}
+
     def do_login(self):
         self.login.go().login(self.username, self.password)
         self.location(self.absurl('/ice/rest/aiguillagemp/redirect'), allow_redirects=True)
@@ -53,19 +59,27 @@ class EdfproBrowser(LoginBrowser):
 
     @need_login
     def get_subscription_list(self):
-        return self.contracts.go(data=json.dumps({'listeContrat': [{'refDevis': ''}]})) \
-                             .get_subscriptions()
+        if "subs" not in self.cache.keys():
+            self.contracts.go(data=json.dumps({'listeContrat': [{'refDevis': ''}]}))
+
+            self.cache['subs'] = [s for s in self.page.get_subscriptions()]
+        return self.cache['subs']
 
     @need_login
     def iter_documents(self, subscription):
-        try:
-            return self.documents.go(data=json.dumps({'dateDebut': (datetime.now() - timedelta(weeks=156)).strftime('%d/%m/%Y'), \
-                                                      'dateFin': datetime.now().strftime('%d/%m/%Y'), \
-                                                      'element': subscription.id, \
-                                                      'typeElementListe': 'CONTRAT'})) \
-                                 .get_documents(subscription.id)
-        except ServerError:
-            return iter([])
+        if subscription.id not in self.cache['docs']:
+            try:
+                self.documents.go(data=json.dumps({
+                    'dateDebut': (datetime.now() - timedelta(weeks=156)).strftime('%d/%m/%Y'),
+                    'dateFin': datetime.now().strftime('%d/%m/%Y'),
+                    'element': subscription._refdevis,
+                    'typeElementListe': 'CONTRAT'
+                }))
+
+                self.cache['docs'][subscription.id] = [d for d in self.page.get_documents(subid=subscription.id)]
+            except ServerError:
+                self.cache['docs'][subscription.id] = []
+        return self.cache['docs'][subscription.id]
 
     @need_login
     def download_document(self, document):
