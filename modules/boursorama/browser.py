@@ -28,15 +28,18 @@ from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPNotFound
 from weboob.capabilities.bank import (
     Account, AccountNotFound, TransferError, TransferInvalidAmount,
     TransferInvalidEmitter, TransferInvalidLabel, TransferInvalidRecipient,
+    AddRecipientStep, Recipient,
 )
 from weboob.capabilities.contact import Advisor
 from weboob.tools.captcha.virtkeyboard import VirtKeyboardError
+from weboob.tools.value import Value
 
 from .pages import (
     LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,
     MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ProfilePage, ExpertPage,
     CardsNumberPage, CalendarPage, HomePage,
     TransferAccounts, TransferRecipients, TransferCharac, TransferConfirm, TransferSent,
+    AddRecipientPage, RecipientCreated,
 )
 
 
@@ -79,6 +82,11 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
                            TransferConfirm)
     transfer_sent = URL(r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/nouveau/(?P<id>\w+)/5',
                         TransferSent)
+
+    rcpt_created = URL(r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/comptes-externes/nouveau/(?P<id>\w+)/5',
+                       RecipientCreated)
+    rcpt_page = URL(r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/comptes-externes/nouveau/(?P<id>\w+)/\d',
+                    AddRecipientPage)
 
     asv = URL('/compte/assurance-vie/.*', AsvPage)
     saving_history = URL('/compte/cefp/.*/(positions|mouvements)',
@@ -341,3 +349,56 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         assert self.transfer_sent.is_here()
         # the last page contains no info, return the last transfer object from init_transfer
         return transfer
+
+    def build_recipient(self, recipient):
+        r = Recipient()
+        r.iban = recipient.iban
+        r.id = recipient.iban
+        r.label = recipient.label
+        r.category = recipient.category
+        r.enabled_at = date.today()
+        r.currency = u'EUR'
+        r.bank_name = recipient.bank_name
+        return r
+
+    @need_login
+    def new_recipient(self, recipient, **kwargs):
+        if 'code' in kwargs:
+            assert self.rcpt_page.is_here()
+            assert self.page.is_confirm_sms()
+
+            self.page.confirm_sms(kwargs['code'])
+            return self.rcpt_after_sms()
+
+        account = None
+        for account in self.get_accounts_list():
+            if account._link:
+                break
+
+        suffix = 'virements/comptes-externes/nouveau'
+        if account._link.endswith('/'):
+            target = account._link + suffix
+        else:
+            target = account._link + '/' + suffix
+
+        self.location(target)
+        assert self.page.is_charac()
+
+        self.page.submit_recipient(recipient)
+
+        if self.page.is_send_sms():
+            self.page.send_sms()
+            assert self.page.is_confirm_sms()
+            raise AddRecipientStep(self.build_recipient(recipient), Value('code', label='Veuillez saisir le code'))
+        # if the add recipient is restarted after the sms has been confirmed recently, the sms step is not presented again
+
+        return self.rcpt_after_sms()
+
+    def rcpt_after_sms(self):
+        assert self.page.is_confirm()
+
+        ret = self.page.get_recipient()
+        self.page.confirm()
+
+        assert self.rcpt_created.is_here()
+        return ret

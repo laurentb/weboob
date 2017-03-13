@@ -25,7 +25,7 @@ import re
 from io import BytesIO
 from datetime import date
 
-from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage, FormNotFound
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Field, Format, TableCell,
@@ -33,7 +33,7 @@ from weboob.browser.filters.standard import (
     Currency as CleanCurrency,
 )
 from weboob.browser.filters.html import Attr, Link
-from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, AccountNotFound
+from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, AccountNotFound, AddRecipientError
 from weboob.capabilities.base import NotAvailable, empty
 from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -671,4 +671,73 @@ class TransferConfirm(LoggedPage, HTMLPage):
 
 
 class TransferSent(LoggedPage, HTMLPage):
+    pass
+
+
+class AddRecipientPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        super(AddRecipientPage, self).on_load()
+
+        err = CleanText('//div[@class="form-errors"]', default=None)(self.doc)
+        if err:
+            raise AddRecipientError(err)
+
+    def _is_form(self, **kwargs):
+        try:
+            self.get_form(**kwargs)
+        except FormNotFound:
+            return False
+        return True
+
+    def is_charac(self):
+        return self._is_form(name='externalAccountsPrepareType')
+
+    def submit_recipient(self, recipient):
+        form = self.get_form(name='externalAccountsPrepareType')
+        form['externalAccountsPrepareType[type]'] = 'tiers'
+        form['externalAccountsPrepareType[label]'] = recipient.label
+        # names are mandatory and are uneditable...
+        form['externalAccountsPrepareType[beneficiaryLastname]'] = recipient.label
+        form['externalAccountsPrepareType[beneficiaryFirstname]'] = recipient.label
+        form['externalAccountsPrepareType[bank]'] = recipient.bank_name or 'Autre'
+        form['externalAccountsPrepareType[iban]'] = recipient.iban
+        form.submit()
+
+    def is_send_sms(self):
+        return self._is_form(name='otp_prepare')
+
+    def send_sms(self):
+        form = self.get_form(name='otp_prepare')
+        form['otp_prepare[receiveCode]'] = ''
+        form.submit()
+
+    def is_confirm_sms(self):
+        return self._is_form(name='otp_confirm')
+
+    def confirm_sms(self, code):
+        form = self.get_form(name='otp_confirm')
+        form['otp_confirm[otpCode]'] = code
+        form.submit()
+
+    def is_confirm(self):
+        return self._is_form(name='externalAccountsConfirmType')
+
+    def confirm(self):
+        self.get_form(name='externalAccountsConfirmType').submit()
+
+    def get_recipient(self):
+        div = self.doc.xpath('//div[@class="confirmation__text"]')[0]
+
+        ret = Recipient()
+        ret.label = CleanText('//p[b[contains(text(),"Libellé du compte :")]]/text()')(div)
+        ret.iban = CleanText('//p[b[contains(text(),"Iban :")]]/text()')(div)
+        ret.bank_name = CleanText(u'//p[b[contains(text(),"Établissement bancaire :")]]/text()')(div)
+        ret.currency = u'EUR'
+        ret.category = u'Externe'
+        ret.enabled_at = datetime.date.today()
+        assert ret.label
+        return ret
+
+
+class RecipientCreated(LoggedPage, HTMLPage):
     pass
