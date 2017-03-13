@@ -124,7 +124,8 @@ class SocieteGeneraleModule(Module, CapBankTransfer, CapContact, CapProfile):
         else:
             recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
 
-        transfer.amount = transfer.amount.quantize(Decimal('1.'))
+        transfer.amount = transfer.amount.quantize(Decimal('.01'))
+
         return self.browser.init_transfer(account, recipient, transfer)
 
     def execute_transfer(self, transfer, **params):
