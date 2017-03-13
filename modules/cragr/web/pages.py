@@ -540,6 +540,7 @@ class TransactionsPage(MyLoggedPage, BasePage):
 
     TYPES = {'Paiement Par Carte':          Transaction.TYPE_CARD,
              'Remise Carte':                Transaction.TYPE_CARD_SUMMARY,
+             'Prelevement Carte':           Transaction.TYPE_CARD_SUMMARY,
              'Retrait Au Distributeur':     Transaction.TYPE_WITHDRAWAL,
              'Frais':                       Transaction.TYPE_BANK,
              'Cotisation':                  Transaction.TYPE_BANK,
