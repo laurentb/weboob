@@ -62,7 +62,7 @@ class TransferError(UserError):
 
     code = 'transferError'
 
-    def __init__(self, description, message=None):
+    def __init__(self, description=None, message=None):
         """
         :param message: error message from the bank, if any
         """
