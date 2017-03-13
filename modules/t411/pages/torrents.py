@@ -50,7 +50,7 @@ class SearchPage(LoggedPage, HTMLPage):
 
             def obj_url(self):
                 fullid = Regexp(CleanText('./td[3]/a/@href'), '/torrents/nfo/\?id=(.*)')(self)
-                downurl = 'https://www.t411.ch/torrents/download/?id=%s' % fullid
+                downurl = self.page.browser.download.build(id=fullid)
                 return downurl
 
             def obj_size(self):
@@ -78,7 +78,7 @@ class TorrentPage(LoggedPage, HTMLPage):
 
         def obj_url(self):
             fullid = CleanText('//input[@id="torrent-id"][1]/@value')(self)
-            downurl = 'https://www.t411.ch/torrents/download/?id=%s' % fullid
+            downurl = self.page.browser.download.build(id=fullid)
             return downurl
 
         obj_filename = CleanText('//div[@class="accordion"]//tr[th="Torrent"]/td')
