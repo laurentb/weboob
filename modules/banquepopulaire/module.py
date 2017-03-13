@@ -20,6 +20,7 @@
 from collections import OrderedDict
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.contact import CapContact
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -29,7 +30,7 @@ from .browser import BanquePopulaire
 __all__ = ['BanquePopulaireModule']
 
 
-class BanquePopulaireModule(Module, CapBank):
+class BanquePopulaireModule(Module, CapBank, CapContact):
     NAME = 'banquepopulaire'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -88,3 +89,6 @@ class BanquePopulaireModule(Module, CapBank):
 
     def iter_investment(self, account):
         return self.browser.get_investment(account)
+
+    def iter_contacts(self):
+        return self.browser.get_advisor()

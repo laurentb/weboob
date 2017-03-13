@@ -32,7 +32,7 @@ from .pages import (
     LoginPage, IndexPage, AccountsPage, AccountsFullPage, CardsPage, TransactionsPage,
     UnavailablePage, RedirectPage, HomePage, Login2Page, ErrorPage,
     LineboursePage, InvestmentLineboursePage, MessagePage,
-    IbanPage,
+    IbanPage, AdvisorPage,
     NatixisPage, EtnaPage, NatixisInvestPage, NatixisHistoryPage, NatixisErrorPage,
     NatixisDetailsPage,
 )
@@ -144,6 +144,9 @@ class BanquePopulaire(LoginBrowser):
     natixis_invest = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/rest/v2/contratVie/load/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>\w+)', NatixisInvestPage)
     natixis_history = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/rest/v2/contratVie/load-operation/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>\w+)', NatixisHistoryPage)
     natixis_pdf = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/rest/v2/contratVie/load-releve/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>\w+)/(?P<year>\d+)', NatixisDetailsPage)
+
+    advisor = URL(r'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=accueil.*',
+                  r'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=contacter.*', AdvisorPage)
 
     def __init__(self, website, *args, **kwargs):
         self.BASEURL = 'https://%s' % website
@@ -367,6 +370,20 @@ class BanquePopulaire(LoginBrowser):
                     history.sort(reverse=True, key=lambda item: item.date)
                     for tr in history:
                         yield tr
+
+    @retry(LoggedOut)
+    @need_login
+    def get_advisor(self):
+        for taskInfoOID in ['accueil', 'contacter']:
+            data = OrderedDict([('taskInfoOID', taskInfoOID), ('token', self.token)])
+            self.location(self.absurl('/cyber/internet/StartTask.do?%s' % urllib.urlencode(data), base=True))
+            if taskInfoOID == "accueil":
+                advisor = self.page.get_advisor()
+                if not advisor:
+                    break
+            else:
+                self.page.update_agency(advisor)
+        return iter([advisor])
 
 
 class iter_retry(object):

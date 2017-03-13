@@ -25,7 +25,7 @@ import re
 import urllib
 
 from weboob.browser.elements import method, DictElement, ItemElement
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Eval, DateTime, Date
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Eval, DateTime, Date, Field
 from weboob.browser.filters.html import Attr, Link, AttributeNotFound
 from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
@@ -33,6 +33,7 @@ from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound, JsonPage, RawPage
 
 from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.contact import Advisor
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.json import json
@@ -988,3 +989,21 @@ class NatixisDetailsPage(LoggedPage, RawPage):
         if tr is not None:
             use_invest_date(tr)
             yield tr
+
+
+class AdvisorPage(LoggedPage, MyHTMLPage):
+    @method
+    class get_advisor(ItemElement):
+        klass = Advisor
+
+        condition = lambda self: Field('name')(self)
+
+        obj_name = CleanText(u'//div[label[contains(text(), "Votre conseiller")]]/span')
+        obj_agency = CleanText(u'//div[label[contains(text(), "Votre agence")]]/span')
+        obj_email = obj_mobile = NotAvailable
+
+    @method
+    class update_agency(ItemElement):
+        obj_phone = CleanText(u'//div[label[contains(text(), "Téléphone")]]/span', replace=[('.', '')])
+        obj_fax = CleanText(u'//div[label[contains(text(), "Fax")]]/span', replace=[('.', '')])
+        obj_address = CleanText(u'//div[div[contains(text(), "Votre agence")]]/following-sibling::div[1]//div[not(label)]/span')
