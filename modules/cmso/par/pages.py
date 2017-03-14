@@ -57,6 +57,8 @@ class AccountsPage(LoggedPage, JsonPage):
              'vie':                 Account.TYPE_LIFE_INSURANCE,
              'actions':             Account.TYPE_MARKET,
              'titres':              Account.TYPE_MARKET,
+             'ldd cm':              Account.TYPE_SAVINGS,
+             'librissime':          Account.TYPE_SAVINGS,
              'livret':              Account.TYPE_SAVINGS,
              'epargne logement':    Account.TYPE_SAVINGS
             }
