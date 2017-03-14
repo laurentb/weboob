@@ -19,15 +19,18 @@
 
 import re
 
+from decimal import Decimal
+
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.elements import TableElement, ListElement, ItemElement, method
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
-from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, TableCell, Regexp
+from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, TableCell, Regexp, Eval, Date
 from weboob.browser.filters.html import Link
+from weboob.browser.filters.javascript import JSVar
 
 
 class Transaction(FrenchTransaction):
@@ -41,10 +44,20 @@ class Transaction(FrenchTransaction):
                 (re.compile(r'^COTIS\.? (?P<text>.*)'),    FrenchTransaction.TYPE_BANK),
                 (re.compile(r'^REMISE (?P<text>.*)'),      FrenchTransaction.TYPE_DEPOSIT),
                 (re.compile(r'^FACTURES CB (?P<text>.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
-               ]
+                ]
 
 
 class AccountsPage(LoggedPage, HTMLPage):
+    def get_js_url(self):
+        return JSVar(CleanText('//script'), var='url')(self.doc)
+
+    def redirect_li_space(self):
+        form = self.get_form(name='FORM_ERISA')
+
+        form['token'] = JSVar(CleanText('//script'), var='document.FORM_ERISA.token.value')(self.doc)
+
+        form.submit()
+
     def get_frame(self):
         try:
             a = self.doc.xpath(u'//frame["@name=FrameWork"]')[0]
@@ -249,4 +262,78 @@ class LoginPage(HTMLPage):
 
     def useless_form(self):
         form = self.get_form(nr=0)
+        form.submit()
+
+
+class LITransaction(FrenchTransaction):
+    PATTERNS = [(re.compile(u'^(?P<text>Arbitrage.*)'), FrenchTransaction.TYPE_ORDER),
+                (re.compile(u'^(?P<text>Versement.*)'),  FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(r'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+               ]
+
+
+class LifeInsurancesPage(LoggedPage, HTMLPage):
+    @method
+    class iter_history(TableElement):
+        head_xpath = '(//table)[1]/thead/tr/th'
+        item_xpath = '(//table)[1]/tbody/tr'
+
+        col_label = 'Actes'
+        col_vdate = 'Date d\'effet'
+        col_amount = 'Montant net'
+
+        class item(ItemElement):
+            klass = LITransaction
+
+            obj_raw = LITransaction.Raw(CleanText(TableCell('label')))
+            obj_vdate = Date(CleanText(TableCell('vdate')))
+            obj_amount = CleanDecimal(TableCell('amount'))
+
+
+    @method
+    class iter_investments(TableElement):
+        head_xpath = u'//div[contains(., "Détail de vos supports")]/following-sibling::div/table/thead/tr/th'
+        item_xpath = u'//div[contains(., "Détail de vos supports")]/following-sibling::div/table/tbody/tr'
+
+        col_label = 'Support'
+        col_vdate = u'Date de valorisation *'
+        col_quantity = u'Nombre d\'unités de compte'
+        col_portfolio_share = u'Répartition'
+        col_unitvalue = u'Valeur liquidative'
+        col_support_value = u'Valeur support'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText(TableCell('label'))
+            obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
+            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share')))
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), default=Decimal('1'))
+
+            def obj_code(self):
+                if "Fonds en euros" in Field('label')(self):
+                    return NotAvailable
+                return Regexp(Link('.//a'), r'javascript:openSupportPerformanceWindow\(\'(.*?)\', \'(.*?)\'\)', '\\2')(self)
+
+            def obj_quantity(self):
+                return CleanDecimal(TableCell('quantity'), default=CleanDecimal(TableCell('support_value'))(self))(self) # default for euro funds
+
+            def condition(self):
+                return len(self.el.xpath('.//td')) > 1
+
+    def get_lf_attributes(self, lfid):
+        attributes = {}
+
+        # values can be in JS var format but it's not mandatory param so we don't go to get the real value
+        values = Regexp(Link('//a[contains(., "%d")]' % CleanDecimal().filter(lfid)), r'\((.*?)\)')(self.doc).replace(' ', '').replace('\'', '').split(',')
+        keys = Regexp(CleanText('//script'), r'consultationContrat\((.*?)\)')(self.doc).replace(' ', '').split(',')
+
+        for i, key in enumerate(keys):
+            attributes[key] = values[i]
+
+        return attributes
+
+    def disconnect_order(self):
+        form = self.get_form(name='formDeconnexion')
+
         form.submit()
