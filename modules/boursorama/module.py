@@ -44,7 +44,6 @@ class BoursoramaModule(Module, CapBankTransfer, CapProfile, CapContact):
                            ValueBool('enable_twofactors',     label='Send validation sms', default=False),
                            Value('device',                    label='Device name', regexp='\w*', default=''),
                            Value('pin_code',                  label='Sms code', required=False),
-                           Value('recipient_pin_code',        label='Sms code for adding a recipient', required=False),
                           )
     BROWSER = BoursoramaBrowser
 
