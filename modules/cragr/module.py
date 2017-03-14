@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from datetime import date
 from collections import OrderedDict
 import re
 
@@ -106,8 +107,28 @@ class CragrModule(Module, CapBankTransfer, CapContact, CapProfile):
         else:
             raise AccountNotFound()
 
+    def _history_filter(self, account, coming):
+        today = date.today()
+
+        def to_date(obj):
+            if hasattr(obj, 'date'):
+                return obj.date()
+            return obj
+
+        for tr in self.browser.get_history(account):
+            tr_coming = to_date(tr.date) > today
+            if coming == tr_coming:
+                yield tr
+
     def iter_history(self, account):
+        if account.type == Account.TYPE_CARD:
+            return self._history_filter(account, False)
         return self.browser.get_history(account)
+
+    def iter_coming(self, account):
+        if account.type == Account.TYPE_CARD:
+            return self._history_filter(account, True)
+        raise NotImplementedError()
 
     def iter_investment(self, account):
         for inv in self.browser.iter_investment(account):
