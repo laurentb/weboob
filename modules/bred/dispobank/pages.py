@@ -55,7 +55,7 @@ class LoginResultPage(HTMLPage):
                 self.browser.location(m.group(1))
 
         try:
-            form = self.get_form(name='banque')
+            self.get_form(name='banque')
         except FormNotFound:
             pass
         else:
