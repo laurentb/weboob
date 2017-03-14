@@ -48,7 +48,7 @@ class WebsiteNotSupported(Exception):
 
 
 class Cragr(LoginBrowser):
-    home_page = URL('/$', '/particuliers.html', HomePage)
+    home_page = URL('/$', '/particuliers.html', 'https://www.*.fr/Vitrine/jsp/CMDS/b.js', HomePage)
     login_page = URL(r'/stb/entreeBam$',
                      r'/stb/entreeBam\?.*typeAuthentification=CLIC_ALLER.*',
                      LoginPage)
@@ -403,8 +403,8 @@ class Cragr(LoginBrowser):
         # it looks like we have an advisor only on cmds
         if "ca-cmds" in self.first_domain:
             perimetre, agence = self.page.get_codeperimetre().split('-')
-            publickey = self.location(urljoin(self.first_domain, '/Vitrine/jsp/CMDS/b.js')).page.get_publickey()
-            self.location(urljoin(self.first_domain.replace("www.ca", "www.credit-agricole"),
+            publickey = self.location(urljoin('https://' + self.first_domain, '/Vitrine/jsp/CMDS/b.js')).page.get_publickey()
+            self.location(urljoin('https://' + self.first_domain.replace("www.ca", "www.credit-agricole"),
                                   "vitrine/tracking/t/%s-%s.html" % (hashlib.sha1(perimetre + publickey).hexdigest(),
                                                                      agence)))
             yield self.page.get_advisor()
