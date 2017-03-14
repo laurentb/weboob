@@ -20,7 +20,8 @@
 
 import urllib
 import datetime
-from urlparse import parse_qs, urlparse
+from urlparse import parse_qs, urlparse, parse_qsl, urlunparse
+from urllib import urlencode
 from lxml.etree import XML
 from lxml.html import fromstring
 from decimal import Decimal, InvalidOperation
@@ -32,7 +33,7 @@ from weboob.capabilities.contact import Advisor
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, RegexpError
 from weboob.browser.filters.html import Link
 from weboob.browser.pages import JsonPage, LoggedPage
 
@@ -305,19 +306,56 @@ class Market(LoggedPage, BasePage, Invest):
     COL_VALUATION = 3
     COL_DIFF = 4
 
-    def iter_investment(self):
-        not_rounded_valuations = {}
+    def get_not_rounded_valuations(self):
+        def prepare_url(url, fields):
+            components = urlparse(url)
+            query_pairs = [(f, v) for (f, v) in parse_qsl(components.query) if f not in fields.iterkeys()]
 
-        for inv in self.doc.xpath(u'//table[contains(., "Détail du compte")]//tr[2]//table/tr[position() > 1]'):
-            not_rounded_valuations[CleanText().filter(inv.xpath('.//td[1]/a/text()')[0].split(' - ')[0])] = CleanDecimal(replace_dots=True).filter(inv.xpath('.//td[7]/text()')[0])
+            for (field, value) in fields.iteritems():
+                query_pairs.append((field, value))
+
+            new_query_str = urlencode(query_pairs)
+
+            new_components = (
+                components.scheme,
+                components.netloc,
+                components.path,
+                components.params,
+                new_query_str,
+                components.fragment
+            )
+
+            return urlunparse(new_components)
+
+        not_rounded_valuations = {}
+        pages = []
+
+        try:
+            for i in range(1, CleanDecimal(Regexp(CleanText(u'(//table[form[contains(@name, "detailCompteTitresForm")]]//tr[1])[1]/td[3]/text()'), r'\/(.*)'))(self.doc) + 1):
+                pages.append(self.browser.open(prepare_url(self.browser.url, {'action': '11', 'idCptSelect': '1', 'numPage': i})).page)
+        except RegexpError: # no multiple page
+            pages.append(self)
+
+        for page in pages:
+            for inv in page.doc.xpath(u'//table[contains(., "Détail du compte")]//tr[2]//table/tr[position() > 1]'):
+                if len(inv.xpath('.//td')) > 2:
+                    not_rounded_valuations[CleanText('.//td[1]/a/text()')(inv)] = CleanDecimal('.//td[7]/text()', replace_dots=True)(inv)
+
+        return not_rounded_valuations
+
+    def iter_investment(self):
+        not_rounded_valuations = self.get_not_rounded_valuations()
 
         doc = self.browser.open('/brs/fisc/fisca10a.html').page.doc
         num_page = None
+
         try:
             num_page = int(CleanText('.')(doc.xpath(u'.//tr[contains(td[1], "Relevé des plus ou moins values latentes")]/td[2]')[0]).split('/')[1])
         except IndexError:
             pass
+
         docs = [doc]
+
         if num_page:
             for n in range(2, num_page + 1):
                 docs.append(self.browser.open('%s%s' % ('/brs/fisc/fisca10a.html?action=12&numPage=', str(n))).page.doc)
@@ -345,7 +383,12 @@ class Market(LoggedPage, BasePage, Invest):
                     inv.quantity = MyDecimal('.')(tr.xpath('./following-sibling::tr/td[2]')[0])
                     inv.unitprice = MyDecimal('.', replace_dots=True)(tr.xpath('./following-sibling::tr/td[3]')[1])
                     inv.unitvalue = MyDecimal('.', replace_dots=True)(tr.xpath('./following-sibling::tr/td[3]')[0])
-                    inv.valuation = not_rounded_valuations[inv.label]
+
+                    try: # try to get not rounded value
+                        inv.valuation = not_rounded_valuations[inv.label]
+                    except KeyError: # ok.. take it from the page
+                        inv.valuation = MyDecimal('.')(tr.xpath('./following-sibling::tr/td[4]')[0])
+
                     inv.diff = MyDecimal('.')(tr.xpath('./following-sibling::tr/td[5]')[0])
                 else:
                     inv.quantity = MyDecimal('.')(cells[self.COL_QUANTITY])
