@@ -91,6 +91,9 @@ class AdvertPage(HTMLPage):
         def obj_place(self):
             place = CleanText('//span[@itemprop="jobLocation"]', default=None)(self)
             if not place:
+                place = CleanText('//li[@class="job--meta_location"]')(self)
+
+            if not place:
                 place = Regexp(CleanText('//meta[@property="og:title"]/@content'),
                                u'.*\ à (.*)')(self)
             return place
