@@ -18,43 +18,35 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from mechanize import FormNotFoundError
-from weboob.deprecated.mech import ClientForm
-ControlNotFoundError = ClientForm.ControlNotFoundError
-
 from decimal import Decimal, InvalidOperation
 import re
 from collections import OrderedDict
 
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import LoggedPage, HTMLPage, RawPage, FormNotFound
+from weboob.browser.filters.standard import CleanText
 from weboob.tools.misc import to_unicode
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-class LoginPage(Page):
+class LoginPage(HTMLPage):
     def login(self, login, passwd):
         try:
-            length = int(self.document.xpath('//input[@id="pass"]')[0].attrib['maxlength'])
+            length = int(self.doc.xpath('//input[@id="pass"]')[0].attrib['maxlength'])
         except (IndexError,KeyError):
             pass
         else:
             passwd = passwd[:length]
 
-        self.browser.select_form(name='authen')
-        try:
-            self.browser['id'] = login.encode(self.browser.ENCODING)
-            self.browser['pass'] = passwd.encode(self.browser.ENCODING)
-        except ControlNotFoundError:
-            self.browser.controls.append(ClientForm.TextControl('text', 'id', {'value': login.encode(self.browser.ENCODING)}))
-            self.browser.controls.append(ClientForm.TextControl('text', 'pass', {'value': passwd.encode(self.browser.ENCODING)}))
-
-        self.browser.submit(nologin=True)
+        form = self.get_form(name='authen')
+        form['id'] = login.encode(self.encoding)
+        form['pass'] = passwd.encode(self.encoding)
+        form.submit()
 
 
-class LoginResultPage(Page):
-    def on_loaded(self):
-        for script in self.document.xpath('//script'):
+class LoginResultPage(HTMLPage):
+    def on_load(self):
+        for script in self.doc.xpath('//script'):
             text = script.text
             if text is None:
                 continue
@@ -63,13 +55,13 @@ class LoginResultPage(Page):
                 self.browser.location(m.group(1))
 
         try:
-            self.browser.select_form(name='banque')
-        except FormNotFoundError:
+            form = self.get_form(name='banque')
+        except FormNotFound:
             pass
         else:
             self.browser.set_all_readonly(False)
             accounts = OrderedDict()
-            for tr in self.document.getroot().cssselect('table.compteTable > tbody > tr'):
+            for tr in self.doc.getroot().cssselect('table.compteTable > tbody > tr'):
                 if len(tr.findall('td')) == 0:
                     continue
                 attr = tr.xpath('.//a')[0].attrib.get('onclick', '')
@@ -78,7 +70,7 @@ class LoginResultPage(Page):
                     typeCompte = m.group(1)
                     tagName = m.group(3)
                     if tagName is not None:
-                        value = self.document.xpath('//input[@name="%s"]' % m.group(3))[int(m.group(4))].attrib['value']
+                        value = self.doc.xpath('//input[@name="%s"]' % m.group(3))[int(m.group(4))].attrib['value']
                     else:
                         value = typeCompte
                     accounts[value] = (typeCompte, tagName)
@@ -102,7 +94,7 @@ class LoginResultPage(Page):
         self.browser.location('MainAuth?typeDemande=AC', no_login=True)
 
     def get_error(self):
-        error = self.document.xpath('//td[@class="txt_norm2"]')
+        error = self.doc.xpath('//td[@class="txt_norm2"]')
         if len(error) == 0:
             return None
 
@@ -113,11 +105,11 @@ class LoginResultPage(Page):
         return error.text.strip()
 
 
-class EmptyPage(Page):
+class EmptyPage(LoggedPage, RawPage):
     pass
 
 
-class BredBasePage(Page):
+class BredBasePage(LoggedPage, HTMLPage):
     def js2args(self, s):
         cur_arg = None
         args = {}
@@ -135,7 +127,7 @@ class BredBasePage(Page):
 
 class AccountsPage(BredBasePage):
     def get_list(self):
-        for tr in self.document.xpath('//table[@class="compteTable"]/tr'):
+        for tr in self.doc.xpath('//table[@class="compteTable"]/tr'):
             if not tr.attrib.get('class', '').startswith('ligne_'):
                 continue
 
@@ -159,7 +151,7 @@ class AccountsPage(BredBasePage):
 
                     account = Account()
                     account.id = '%s.%s' % (args['numero_compte'], args['numero_poste'])
-                    account.label = u'Carte %s' % self.parser.tocleanstring(a)
+                    account.label = u'Carte %s' % CleanText().filter(a)
                     account.balance = amount
                     account.type = account.TYPE_CARD
                     account.currency = [account.get_currency(txt) for txt in cols[-1].itertext() if len(txt.strip()) > 0][0]
@@ -200,9 +192,11 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class TransactionsPage(Page):
+class TransactionsPage(LoggedPage, HTMLPage):
     def get_history(self):
-        for tr in self.document.xpath('//div[@class="scrollTbody"]/table//tr'):
+        cleaner = CleanText().filter
+
+        for tr in self.doc.xpath('//div[@class="scrollTbody"]/table//tr'):
             cols = tr.findall('td')
 
             if len(cols) < 4:
@@ -212,13 +206,13 @@ class TransactionsPage(Page):
             if col_label.find('a') is not None:
                 col_label = col_label.find('a')
 
-            date = self.parser.tocleanstring(cols[0])
-            label = self.parser.tocleanstring(col_label)
+            date = cleaner(cols[0])
+            label = cleaner(col_label)
 
             t = Transaction(col_label.attrib.get('id', ''))
 
             # an optional tooltip on page contain the second part of the transaction label.
-            tooltip = self.document.xpath('//div[@id="tooltip%s"]' % t.id)
+            tooltip = self.doc.xpath('//div[@id="tooltip%s"]' % t.id)
             raw = label
             if len(tooltip) > 0:
                 raw += u' ' + u' '.join([txt.strip() for txt in tooltip[0].itertext()])
@@ -232,8 +226,8 @@ class TransactionsPage(Page):
             if t.label == t.raw:
                 t.label = label
 
-            debit = self.parser.tocleanstring(cols[-2])
-            credit = self.parser.tocleanstring(cols[-1])
+            debit = cleaner(cols[-2])
+            credit = cleaner(cols[-1])
             t.set_amount(credit, debit)
 
             yield t

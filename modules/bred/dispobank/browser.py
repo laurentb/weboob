@@ -18,9 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import urllib
-
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.browser import LoginBrowser, need_login, URL
+from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import LoginPage, LoginResultPage, AccountsPage, EmptyPage, TransactionsPage
 
@@ -28,22 +27,16 @@ from .pages import LoginPage, LoginResultPage, AccountsPage, EmptyPage, Transact
 __all__ = ['DispoBankBrowser']
 
 
-class DispoBankBrowser(Browser):
-    PROTOCOL = 'https'
-    DOMAIN = 'www.dispobank.fr'
-    CERTHASH = ['9b77dab9c84e1dc9e0798de561a6541ff15f038f60b36ca74c29be1def6c19a3',
-                '375f1fed165d34aacaaf71674ab14ca6c1b38404cf748278714fde3c58385ff0',
-                '0853a056453b56aea6a29085ef3f3721b18db2052aa8e84220720d44e0eb22af',
-                'a2b017a0cecf8e8bacf1e04c10d4fa647f5ade416fe64129bfc034ef95f310f5']
-    ENCODING = 'iso-8859-15'
-    PAGES = {r'https://www.\w+.fr/mylittleform.*':                      LoginPage,
-             r'https://www.\w+.fr/Andromede/MainAuth.*':                LoginResultPage,
-             r'https://www.\w+.fr/Andromede/Main':                      AccountsPage,
-             r'https://www.\w+.fr/Andromede/Ecriture':                  TransactionsPage,
-             r'https://www.\w+.fr/Andromede/applications/index.jsp':    EmptyPage,
-             r'https://www.bred.fr/':                                   EmptyPage,
-             r'https://www.dispobank.fr/?':                             LoginPage,
-            }
+class DispoBankBrowser(LoginBrowser):
+    BASEURL = 'https://www.dispobank.fr'
+    login_page = URL(r'https://www.\w+.fr/mylittleform.*', LoginPage)
+    login_result = URL(r'https://www.\w+.fr/Andromede/MainAuth.*', LoginResultPage)
+    accounts_page = URL(r'https://www.\w+.fr/Andromede/Main', AccountsPage)
+    transactions_page = URL(r'https://www.\w+.fr/Andromede/Ecriture', TransactionsPage)
+    empty_page = URL(r'https://www.\w+.fr/Andromede/applications/index.jsp',
+                     r'https://www.bred.fr/',
+                     EmptyPage)
+    login2 = URL(r'https://www.dispobank.fr/?', LoginPage)
 
     URLS = {'bred': {'home': 'https://www.bred.fr/Andromede/Main',
                      'login': 'https://www.bred.fr/mylittleform?type=1',
@@ -54,42 +47,38 @@ class DispoBankBrowser(Browser):
            }
 
     def __init__(self, accnum, *args, **kwargs):
+        super(DispoBankBrowser, self).__init__(*args, **kwargs)
         self.accnum = accnum
         self.website = 'dispobank'
-        Browser.__init__(self, *args, **kwargs)
-
-    def is_logged(self):
-        return self.page is not None and not self.is_on_page(LoginPage)
 
     def home(self):
-        if not self.is_logged():
-            self.login()
-        else:
-            self.location(self.URLS[self.website]['home'])
+        self.location(self.URLS[self.website]['home'])
 
-    def login(self):
+    def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
-        if not self.is_on_page(LoginPage):
-            self.location(self.URLS[self.website]['login'], no_login=True)
+        if not (self.login_page.is_here() or self.login2.is_here()):
+            self.location(self.URLS[self.website]['login'])
 
         self.page.login(self.username, self.password)
 
-        assert self.is_on_page((LoginResultPage, EmptyPage))
+        assert self.login_result.is_here() or self.empty_page.is_here()
 
-        if self.is_on_page(LoginResultPage):
+        if self.login_result.is_here():
             error = self.page.get_error()
             if error is not None:
                 raise BrowserIncorrectPassword(error)
 
             self.page.confirm()
 
+    @need_login
     def get_accounts_list(self):
-        if not self.is_on_page(AccountsPage):
+        if not self.accounts_page.is_here():
             self.location('https://www.%s.fr/Andromede/Main' % self.website)
         return self.page.get_list()
 
+    @need_login
     def get_account(self, id):
         assert isinstance(id, basestring)
 
@@ -100,6 +89,7 @@ class DispoBankBrowser(Browser):
 
         return None
 
+    @need_login
     def get_history(self, account):
         numero_compte, numero_poste = account.id.split('.')
         data = {'typeDemande':      'recherche',
@@ -112,7 +102,7 @@ class DispoBankBrowser(Browser):
                 'monnaie':          'EUR',
                 'index_hist':       4
                }
-        self.location('https://www.%s.fr/Andromede/Ecriture' % self.website, urllib.urlencode(data))
+        self.location('https://www.%s.fr/Andromede/Ecriture' % self.website, data=data)
 
-        assert self.is_on_page(TransactionsPage)
+        assert self.transactions_page.is_here()
         return self.page.get_history()
