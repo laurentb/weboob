@@ -482,7 +482,7 @@ class LifeInsuranceHistory(LifeInsurance):
         vdate_xpath = '//td[@class="net2g_asv_tableau_cell_date"]'
 
         date = CleanText(date_xpath)(self.doc)
-        if r"Rejet d'intégration" in date:
+        if u"Rejet d'intégration" in date:
             return False
 
         trans.date = self.parse_date(doc, trans, date_xpath, 1)
