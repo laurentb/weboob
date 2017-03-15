@@ -61,10 +61,20 @@ class MovementsPage(LoggedPage, HTMLPage):
     @method
     class iter_accounts(ListElement):
         def parse(self, el):
-            # is listeEnfants still relevant?
-            multi_xpath = '//form[contains(@action, "changeCompte")]//ul[@class="listeEnfants" or @class="layerEnfants"]/li/a'
-            self.env['multi'] = bool(self.page.doc.xpath(multi_xpath))
-            self.item_xpath = multi_xpath if self.env['multi'] else '//*[@id="perimetreMandatEnfantLib"]'
+            # multi accounts separated in multiple companies
+            self.item_xpath = '//form[contains(@action, "changeCompte")]//ul[@class="listeEnfants"]/li/a'
+            self.env['multi'] = bool(self.page.doc.xpath(self.item_xpath))
+            if self.env['multi']:
+                return
+
+            # simple multi accounts
+            self.item_xpath = '//form[contains(@action, "changeCompte")]//ul[@class="layerEnfants"]/li/a'
+            self.env['multi'] = bool(self.page.doc.xpath(self.item_xpath))
+            if self.env['multi']:
+                return
+
+            # single account
+            self.item_xpath = '//*[@id="perimetreMandatEnfantLib"]'
 
         class item(ItemElement):
             klass = Account
