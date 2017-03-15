@@ -281,13 +281,14 @@ class LifeInsurancesPage(LoggedPage, HTMLPage):
         col_label = 'Actes'
         col_vdate = 'Date d\'effet'
         col_amount = 'Montant net'
+        col_gross_amount = 'Montant brut'
 
         class item(ItemElement):
             klass = LITransaction
 
             obj_raw = LITransaction.Raw(CleanText(TableCell('label')))
             obj_vdate = Date(CleanText(TableCell('vdate')))
-            obj_amount = CleanDecimal(TableCell('amount'))
+            obj_amount = Transaction.Amount(TableCell('amount'), TableCell('gross_amount'), replace_dots=False) #CleanDecimal(TableCell('amount'))
 
 
     @method
@@ -325,7 +326,7 @@ class LifeInsurancesPage(LoggedPage, HTMLPage):
         attributes = {}
 
         # values can be in JS var format but it's not mandatory param so we don't go to get the real value
-        values = Regexp(Link('//a[contains(., "%d")]' % CleanDecimal().filter(lfid)), r'\((.*?)\)')(self.doc).replace(' ', '').replace('\'', '').split(',')
+        values = Regexp(Link('//a[contains(., "%s")]' % lfid[:-3].lstrip('0')), r'\((.*?)\)')(self.doc).replace(' ', '').replace('\'', '').split(',')
         keys = Regexp(CleanText('//script'), r'consultationContrat\((.*?)\)')(self.doc).replace(' ', '').split(',')
 
         for i, key in enumerate(keys):
