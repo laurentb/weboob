@@ -273,16 +273,17 @@ class PerimeterPage(MyLoggedPage, BasePage):
                 self.browser.do_login()
         else:
             for table in self.doc.xpath('//table[@class]'):
-                space = ' '.join(table.find('caption').text.lower().split())
+                space = CleanText().filter(table.find('caption').text.lower())
                 for perim in table.xpath('.//label'):
-                    self.browser.perimeters.append(u'%s : %s' % (space, ' '.join(perim.text.lower().split())))
+                    perim = CleanText().filter(perim.text.lower())
+                    self.browser.perimeters.append(u'%s : %s' % (space, perim))
 
     def get_perimeter_link(self, perimeter):
         caption = perimeter.split(' : ')[0].title()
         perim = perimeter.split(' : ')[1]
         for table in self.doc.xpath('//table[@class and caption[contains(text(), "%s")]]' % caption):
             for p in table.xpath(u'.//p[span/a[contains(text(), "Accès")]]'):
-                if perim in ' '.join(p.find('label').text.lower().split()):
+                if perim in CleanText().filter(p.find('label').text.lower()):
                     link = p.xpath('./span/a')[0].attrib['href']
                     return link
 
@@ -293,7 +294,10 @@ class ChgPerimeterPage(PerimeterPage):
             self.logger.debug('Error on ChgPerimeterPage')
             return
         self.get_current()
-        if not self.browser.current_perimeter.lower() in [' '.join(p.lower().split()) for p in self.browser.perimeters]:
+
+        # sometimes the perimeter use " & " and sometimes " et "
+        if not (self.browser.current_perimeter in self.browser.perimeters or
+                self.browser.current_perimeter.replace(' et ', ' & ') in self.browser.perimeters):
             assert len(self.browser.perimeters) == 1
             self.browser.perimeters.append(self.browser.current_perimeter)
 
