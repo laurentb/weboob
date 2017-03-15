@@ -21,7 +21,7 @@ from decimal import Decimal
 from datetime import datetime
 
 from weboob.browser.browsers import DomainBrowser
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import find_object, NotAvailable
 from weboob.capabilities.bank import Account, Transaction, AccountNotFound
 from weboob.browser.filters.standard import CleanText
 from weboob.exceptions import BrowserIncorrectPassword
@@ -74,6 +74,7 @@ class Number26Browser(DomainBrowser):
         a.label = u'Checking account'
 
         a.id = account["id"]
+        a.number = NotAvailable
         a.balance = Decimal(str(account["availableBalance"]))
         a.iban = account["iban"]
 
