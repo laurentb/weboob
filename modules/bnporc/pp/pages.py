@@ -215,7 +215,8 @@ class AccountsPage(BNPPage):
     }
 
     LABEL_TO_TYPE = {
-        u'PEA Espèces':    Account.TYPE_PEA,
+        u'PEA Espèces':                       Account.TYPE_PEA,
+        u'Plan Epargne Retraite Particulier': Account.TYPE_PERP,
     }
 
     def iter_accounts(self, ibans):
@@ -229,7 +230,8 @@ class AccountsPage(BNPPage):
                     'id': a.get('key'),
                     'label': a.get('libellePersoProduit') or a.get('libelleProduit'),
                     'currency': a.get('devise'),
-                    'type': self.LABEL_TO_TYPE.get(a.get('libelleProduit')) or self.FAMILY_TO_TYPE.get(f.get('idFamilleCompte')) or Account.TYPE_UNKNOWN,
+                    'type': self.LABEL_TO_TYPE.get(' '.join(a.get('libelleProduit').split())) or \
+                            self.FAMILY_TO_TYPE.get(f.get('idFamilleCompte')) or Account.TYPE_UNKNOWN,
                     'balance': a.get('soldeDispo'),
                     'coming': a.get('soldeAVenir'),
                     'iban': iban,
