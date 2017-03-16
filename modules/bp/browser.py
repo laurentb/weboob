@@ -70,7 +70,8 @@ class BPBrowser(LoginBrowser, StatesMixin):
                          r'/voscomptes/canalXHTML/assurance/prevoyance/reafficher-assurancePrevoyance.ea(\?numContrat=(?P<id>\w+))?',
                          SavingAccountSummary)
 
-    lifeinsurance_invest = URL(r'/voscomptes/canalXHTML/assurance/vie/valorisation-assuranceVie.ea\?numContrat=(?P<id>\w+)', LifeInsuranceInvest)
+    lifeinsurance_invest = URL(r'/voscomptes/canalXHTML/assurance/vie/valorisation-assuranceVie.ea\?numContrat=(?P<id>\w+)',
+                               r'https://www.labanquepostale.fr/particulier/bel_particuliers/assurance/accueil_cachemire.html', LifeInsuranceInvest)
     lifeinsurance_history = URL(r'/voscomptes/canalXHTML/assurance/vie/historiqueVie-assuranceVie.ea\?numContrat=(?P<id>\w+)', LifeInsuranceHistory)
     lifeinsurance_hist_inv = URL(r'/voscomptes/canalXHTML/assurance/vie/detailMouvement-assuranceVie.ea\?idMouvement=(?P<id>\w+)', LifeInsuranceHistoryInv)
 
@@ -202,12 +203,22 @@ class BPBrowser(LoginBrowser, StatesMixin):
     def iter_investment(self, account):
         if not account.type == Account.TYPE_LIFE_INSURANCE:
             return iter([])
+
         self.lifeinsurance_invest.go(id=account.id)
         assert self.lifeinsurance_invest.is_here()
         if self.page.has_error():
             raise NotImplementedError()
 
-        return self.page.iter_investments()
+        investments = list(self.page.iter_investments())
+
+        # check if life insurance is a cachemire contract
+        page = None
+        if self.page.is_cachemire():
+            # had to put full url to skip redirections.
+            page = self.open('https://www.labanquepostale.fr/particulier/bel_particuliers/assurance/accueil_cachemire.html').page
+            [setattr(inv, 'code', page.get_cachemire_code(inv.label)) for inv in investments]
+
+        return investments
 
     @need_login
     def _iter_card_tr(self):

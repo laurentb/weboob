@@ -163,6 +163,15 @@ class LifeInsuranceInvest(LoggedPage, MyHTMLPage):
     def has_error(self):
         return 'erreur' in CleanText('//p[has-class("titlePage")]')(self.doc)
 
+    def is_cachemire(self):
+        return Link('//a[contains(@title, "espace cachemire")]', default=None)(self.doc)
+
+    def get_cachemire_code(self, label):
+        for tr in self.doc.xpath('//table/tbody/tr[td[2]]'):
+            if CleanText('./th')(tr).upper() == label:
+                return CleanText('./td[1]')(tr)
+        return NotAvailable
+
     @method
     class iter_investments(InvestTable):
         head_xpath = '//table[starts-with(@id, "mouvements")]/thead//th'
