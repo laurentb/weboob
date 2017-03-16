@@ -261,7 +261,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                 transactions.append(tr)
 
         differed_date = None
-        cards = [page.select_card(account.id) for page in account._card_pages] if hasattr(account, '_card_pages') else \
+        cards = [page.select_card(account._card_number) for page in account._card_pages] if hasattr(account, '_card_pages') else \
                 account._card_links if hasattr(account, '_card_links') else []
         for card in cards:
             card_trs = []

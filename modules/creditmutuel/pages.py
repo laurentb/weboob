@@ -395,9 +395,10 @@ class CardsListPage(LoggedPage, HTMLPage):
 
             load_details = Field('_link_id') & AsyncLoad
 
-            obj_id = Env('id', default="")
             obj_number = Field('_link_id') & Regexp(pattern='ctr=(\d+)')
-            obj_label = Format('%s %s %s', CleanText(TableCell('card')), Field('id'), CleanText(TableCell('owner')))
+            obj__card_number = Env('id', default="")
+            obj_id = Format('%s%s', Env('id', default=""), Field('number'))
+            obj_label = Format('%s %s %s', CleanText(TableCell('card')), Env('id', default=""), CleanText(TableCell('owner')))
             obj_balance = CleanDecimal('./td[small][1]', replace_dots=True, default=NotAvailable)
             obj_currency = FrenchTransaction.Currency(CleanText('./td[small][1]'))
             obj_type = Account.TYPE_CARD
@@ -427,8 +428,10 @@ class CardsListPage(LoggedPage, HTMLPage):
                         self.handle_attr(attr, getattr(self, 'obj_%s' % attr))
                         setattr(card, attr, getattr(self.obj, attr))
 
-                    card.id = CleanText('.', replace=[(' ', '')])(option)
-                    card.label = card.label.replace('  ', ' %s ' % card.id)
+                    _id = CleanText('.', replace=[(' ', '')])(option)
+                    card._card_number = _id
+                    card.id = _id + card.number
+                    card.label = card.label.replace('  ', ' %s ' % _id)
                     card.balance = NotAvailable
 
                     self.page.browser.accounts_list.append(card)
