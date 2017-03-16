@@ -316,7 +316,8 @@ class Investment(BaseObject):
     """
 
     label =              StringField('Label of stocks')
-    code =               StringField('Identifier of the stock (ISIN code)')
+    code =               StringField('Identifier of the stock')
+    code_type =          StringField('Type of stock code (ISIN or AMF)')
     description =        StringField('Short description of the stock')
     quantity =           DecimalField('Quantity of stocks')
     unitprice =          DecimalField('Buy price of one stock')
