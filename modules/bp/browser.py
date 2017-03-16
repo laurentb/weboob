@@ -88,6 +88,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
     account_history = URL(r'.*CCP/releves_ccp/releveCPP-releve_ccp\.ea',
                           r'.*CNE/releveCNE/releveCNE-releve_cne\.ea',
                           r'.*CB/releveCB/preparerRecherche-mouvementsCarteDD.ea.*',
+                          r'.*CB/releveCB/init-mouvementsCarteDD.ea.*',
                           AccountHistory)
     cards_list = URL(r'.*CB/releveCB/init-mouvementsCarteDD.ea.*', CardsList)
 
@@ -184,7 +185,6 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
         for card in account._card_links:
             self.location(card)
-
 
             if self.cards_list.is_here():
                 for link in self.page.get_cards():
