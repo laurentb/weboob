@@ -157,6 +157,10 @@ class InvestmentHistoryPage(LoggedPage, HTMLPage):
 
 
 class AccountHistoryPage(LoggedPage, HTMLPage):
+    def build_doc(self, content):
+        content = re.sub(br'\*<E040032TC MSBILL.INFO', b'*', content)
+        return super(AccountHistoryPage, self).build_doc(content)
+
     def get_investments(self):
         return iter([])
 
