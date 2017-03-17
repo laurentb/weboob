@@ -56,11 +56,12 @@ class DocumentsPage(LoggedPage, JsonPage):
     @method
     class iter_bills(DictElement):
         def parse(self, el):
-            for i, sub in enumerate(self.el):
-                if Dict('listOfBillsByAccDTO/0/accDTO/numAcc')(sub) in Env('subid')(self):
-                    self.item_xpath = "%d/listOfBillsByAccDTO/0/listOfbills" % i
-                    self.env['bpNumber'] = Dict('%d/bpDto/bpNumber' % i)(self)
-                    break
+            for i, sub_group in enumerate(self.el):
+                for j, sub in enumerate(Dict('listOfBillsByAccDTO')(sub_group)):
+                    if Dict('accDTO/numAcc')(sub) in Env('subid')(self):
+                        self.item_xpath = "%d/listOfBillsByAccDTO/%d/listOfbills" % (i, j)
+                        self.env['bpNumber'] = Dict('%d/bpDto/bpNumber' % i)(self)
+                        break
 
         class item(ItemElement):
             klass = Bill
