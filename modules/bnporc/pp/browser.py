@@ -136,7 +136,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
             self.market_syn.go(data=JSON({}))
             for account in accounts:
                 for market_acc in self.page.get_list():
-                    if account.number[-4:] == market_acc['securityAccountNumber'][-4:] and account.type == Account.TYPE_MARKET:
+                    if account.number[-4:] == market_acc['securityAccountNumber'][-4:] and account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
                         account.valuation_diff = market_acc['profitLoss']
                         break
                 self.accounts_list.append(account)
@@ -150,7 +150,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     def iter_history(self, account, coming=False):
         if account.type == account.TYPE_LIFE_INSURANCE:
             return self.iter_lifeinsurance_history(account, coming)
-        elif account.type == account.TYPE_MARKET and not coming:
+        elif account.type in (account.TYPE_MARKET, Account.TYPE_PEA) and not coming:
             try:
                 self.market_list.go(data=JSON({}))
             except ServerError:
@@ -201,7 +201,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
                 "ibanCrypte": account.id,
             }))
             return self.page.iter_investments()
-        elif account.type == account.TYPE_MARKET:
+        elif account.type in (account.TYPE_MARKET, account.TYPE_PEA):
             try:
                 self.market_list.go(data=JSON({}))
             except ServerError:

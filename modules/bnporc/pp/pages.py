@@ -216,6 +216,7 @@ class AccountsPage(BNPPage):
 
     LABEL_TO_TYPE = {
         u'PEA Espèces':                       Account.TYPE_PEA,
+        u'PEA Titres':                        Account.TYPE_PEA,
         u'Plan Epargne Retraite Particulier': Account.TYPE_PERP,
     }
 
