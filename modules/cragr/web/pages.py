@@ -162,6 +162,7 @@ class _AccountsPage(MyLoggedPage, BasePage):
              u'LJMO':       Account.TYPE_SAVINGS,
              u'CSL':        Account.TYPE_SAVINGS,
              u'LEP':        Account.TYPE_SAVINGS,
+             u'LEF':        Account.TYPE_SAVINGS,
              u'TIWI':       Account.TYPE_SAVINGS,
              u'CSL LSO':    Account.TYPE_SAVINGS,
              u'CSL CSP':    Account.TYPE_SAVINGS,
