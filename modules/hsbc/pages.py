@@ -279,7 +279,7 @@ class LifeInsurancesPage(LoggedPage, HTMLPage):
         item_xpath = '(//table)[1]/tbody/tr'
 
         col_label = 'Actes'
-        col_vdate = 'Date d\'effet'
+        col_date = 'Date d\'effet'
         col_amount = 'Montant net'
         col_gross_amount = 'Montant brut'
 
@@ -287,7 +287,7 @@ class LifeInsurancesPage(LoggedPage, HTMLPage):
             klass = LITransaction
 
             obj_raw = LITransaction.Raw(CleanText(TableCell('label')))
-            obj_vdate = Date(CleanText(TableCell('vdate')))
+            obj_date = Date(CleanText(TableCell('date')))
             obj_amount = Transaction.Amount(TableCell('amount'), TableCell('gross_amount'), replace_dots=False) #CleanDecimal(TableCell('amount'))
 
 
