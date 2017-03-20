@@ -449,7 +449,7 @@ class CaisseEpargne(LoginBrowser):
         else:
             self.home.go()
         try:
-            self.page.go_transfer()
+            self.page.go_transfer(origin_account)
         except TransferError:
             return iter([])
         if self.page.need_auth() or not self.page.can_transfer(origin_account):

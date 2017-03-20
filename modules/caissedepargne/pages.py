@@ -610,10 +610,20 @@ class IndexPage(LoggedPage, HTMLPage):
 
             form.submit()
 
-    def go_transfer(self):
-        link = self.doc.xpath(u'//a[span[contains(text(), "Effectuer un virement")]] | //a[contains(text(), "Réaliser un virement unitaire")]')[0]
+    def go_transfer_via_history(self, account):
+        self.go_history(account._info)
+        self.browser.page.go_transfer(account)
+
+    def go_transfer(self, account):
+        link = self.doc.xpath(u'//a[span[contains(text(), "Effectuer un virement")]] | //a[contains(text(), "Réaliser un virement unitaire")]')
+        if len(link) == 0:
+            return self.go_transfer_via_history(account)
+        else:
+            link = link[0]
         m = re.search("PostBackOptions?\([\"']([^\"']+)[\"'],\s*['\"]([^\"']+)?['\"]", link.attrib.get('href', ''))
         form = self.get_form(name='main')
+        if 'MM$HISTORIQUE_COMPTE$btnCumul' in form:
+            del form['MM$HISTORIQUE_COMPTE$btnCumul']
         form['__EVENTTARGET'] = m.group(1)
         form['__EVENTARGUMENT'] = m.group(2)
         form.submit()
