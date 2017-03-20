@@ -60,6 +60,9 @@ class Transaction(FrenchTransaction):
 
 
 class AccountHistory(LoggedPage, MyHTMLPage):
+    def is_here(self):
+        return not bool(CleanText(u'//h1[contains(text(), "tail de vos cartes")]')(self.doc))
+
     def get_next_link(self):
         for a in self.doc.xpath('//a[@class="btn_crt"]'):
             txt = u''.join([txt.strip() for txt in a.itertext()])
@@ -128,6 +131,10 @@ class AccountHistory(LoggedPage, MyHTMLPage):
 
 
 class CardsList(LoggedPage, MyHTMLPage):
+    def is_here(self):
+        return bool(CleanText(u'//h1[contains(text(), "tail de vos cartes")]')(self.doc)) and not\
+               bool(CleanText(u'//h1[contains(text(), "tail de vos op")]')(self.doc))
+
     def get_cards(self):
         cards = []
         for tr in self.doc.xpath('//table[@class="dataNum"]/tbody/tr'):
