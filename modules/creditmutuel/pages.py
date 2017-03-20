@@ -154,6 +154,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                     return Account.TYPE_UNKNOWN
 
             obj_id = Env('id')
+            obj__card_number = None
             obj_label = Label(CleanText('./td[1]/a/text() | ./td[1]/a/span[@class and not(contains(@class, "doux"))] | ./td[1]/div/a[has-class("cb")]'))
             obj_coming = Env('coming')
             obj_balance = Env('balance')
@@ -236,6 +237,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                                 continue
 
                             card = Account()
+                            card._card_number = None
                             card.id = card_id
                             card.label = "%s %s %s" % (Regexp(CleanText('.'), 'Carte\s(\w+)')(el), card_id, \
                                                        (Regexp(CleanText('.'), '\d{4}\s([A-Za-z\s]+)', default=None)(el) \
@@ -687,6 +689,7 @@ class LIAccountsPage(LoggedPage, HTMLPage):
             obj__card_links = []
             obj_type = Account.TYPE_LIFE_INSURANCE
             obj__is_inv = True
+            obj__card_number = None
 
     @method
     class iter_history(ListElement):
@@ -760,6 +763,7 @@ class PorPage(LoggedPage, HTMLPage):
                     break
             else:
                 acc = Account()
+                acc._card_number = None
                 acc.id = ele.attrib['value']
                 if acc.id == '9999':
                     # fake account
