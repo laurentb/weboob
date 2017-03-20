@@ -21,6 +21,7 @@
 import ssl
 from datetime import timedelta, date
 from urlparse import parse_qs
+from lxml.etree import XMLSyntaxError
 
 from weboob.tools.date import LinearDateGuesser
 from weboob.capabilities.bank import Account
@@ -164,7 +165,11 @@ class HSBC(LoginBrowser):
             if coming is True:
                 raise NotImplementedError()
 
-            self._go_to_life_insurance(account.id)
+            try:
+                self._go_to_life_insurance(account.id)
+            except XMLSyntaxError:
+                self.quit_li_space()
+                return iter([])
 
             self.life_insurances.go(data={'url_suivant': 'HISTORIQUECONTRATB2C', 'strMonnaie': 'EURO'})
 
@@ -204,7 +209,11 @@ class HSBC(LoginBrowser):
         if account.type != Account.TYPE_LIFE_INSURANCE:
             raise NotImplementedError()
 
-        self._go_to_life_insurance(account.id)
+        try:
+            self._go_to_life_insurance(account.id)
+        except XMLSyntaxError:
+            self.quit_li_space()
+            return iter([])
 
         investments = [i for i in self.page.iter_investments()]
 
