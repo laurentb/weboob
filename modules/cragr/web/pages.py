@@ -33,8 +33,9 @@ from weboob.capabilities.profile import Profile
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.date import parse_french_date, LinearDateGuesser
-from weboob.browser.elements import ItemElement, method
-from weboob.browser.filters.standard import Date, CleanText, CleanDecimal, Currency as CleanCurrency, Regexp, Format
+from weboob.browser.elements import TableElement, ItemElement, method
+from weboob.browser.filters.standard import Date, CleanText, CleanDecimal, Currency as CleanCurrency, \
+                                            Regexp, Format, TableCell, Field
 
 
 class MyLoggedPage(object):
@@ -214,9 +215,12 @@ class _AccountsPage(MyLoggedPage, BasePage):
             balance = cleaner(cols[self.COL_VALUE])
             # we have to ignore those accounts, because using NotAvailable
             # makes boobank and probably many others crash
-            if balance in ('indisponible', ''):
+            # we should consider market accounts without balance and update them after
+            if balance in ('indisponible', '') and account.type is not Account.TYPE_MARKET:
                 continue
-            account.balance = Decimal(Transaction.clean_amount(balance))
+            elif balance:
+                account.balance = Decimal(Transaction.clean_amount(balance))
+
             account.currency = account.get_currency(cleaner(cols[self.COL_CURRENCY]))
             account._link = None
 
@@ -656,7 +660,17 @@ class TransactionsPage(MyLoggedPage, BasePage):
             yield t
 
 
-class MarketPage(MyLoggedPage, BasePage):
+class AutoEncodingMixin(object):
+    def build_doc(self, data):
+        try:
+            data.decode('utf-8')
+            self.forced_encoding = 'utf-8'
+        except UnicodeDecodeError:
+            self.forced_encoding = 'iso8859-15'
+        return super(AutoEncodingMixin, self).build_doc(data)
+
+
+class MarketPage(MyLoggedPage, AutoEncodingMixin, BasePage):
     COL_ID = 1
     COL_QUANTITY = 2
     COL_UNITVALUE = 3
@@ -704,15 +718,27 @@ class MarketPage(MyLoggedPage, BasePage):
 class MarketHomePage(MarketPage):
     COL_ID_LABEL = 1
     COL_VALUATION = 5
-    def update(self, accounts):
-        for line in self.doc.xpath('//table[contains(@class, "tableau_comptes_details")]/tbody/tr'):
-            cells = line.findall('td')
 
-            id  = cells[self.COL_ID_LABEL].find('div[2]').text.strip()
-            for account in accounts:
-                if account.id == id:
-                    account.label = unicode(cells[self.COL_ID_LABEL].find('div/b').text.strip())
-                    account.balance = self.parse_decimal(cells[self.COL_VALUATION].text)
+    @method
+    class get_list(TableElement):
+        item_xpath = '//table[has-class("tableau_comptes_details")]//tr[td[2]]'
+        head_xpath = '//table[has-class("tableau_comptes_details")]//tr/th'
+
+        col_label = u'Comptes'
+        col_balance = re.compile(u'Valorisation')
+
+        class item(ItemElement):
+            klass = Account
+
+            condition = lambda self: Field('id')(self)
+
+            def obj_id(self):
+                return CleanText(default=None).filter(TableCell('label')(self)[0].xpath('./div[2]'))
+
+            def obj_label(self):
+                return CleanText(default=None).filter(TableCell('label')(self)[0].xpath('./div/b'))
+
+            obj_balance = CleanDecimal(TableCell('balance'), replace_dots=True)
 
 
 class LifeInsurancePage(MarketPage):

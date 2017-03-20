@@ -24,6 +24,7 @@ from html2text import unescape
 from datetime import date, timedelta
 
 from weboob.capabilities.bank import Account
+from weboob.capabilities.base import NotLoaded
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.pages import FormNotFound
 from weboob.exceptions import BrowserIncorrectPassword
@@ -296,11 +297,15 @@ class Cragr(LoginBrowser):
                     self.update_sag()
                 else:
                     self.location(new_location)
-                    self.page.update(accounts_list)
+                    for acc in self.page.get_list():
+                        if account.id == acc.id:
+                            account.balance = acc.balance or account.balance
+                            account.label = acc.label or account.label
                     self.quit_market_website()
                     break
 
-        return accounts_list
+        # be sure that we send accounts with balance
+        return [acc for acc in accounts_list if account.balance is not NotLoaded]
 
     @need_login
     def get_account(self, id):
