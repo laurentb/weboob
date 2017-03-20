@@ -22,7 +22,7 @@ from functools import wraps
 import urllib
 
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
-from weboob.browser.exceptions import HTTPNotFound
+from weboob.browser.exceptions import HTTPNotFound, ServerError
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
@@ -365,6 +365,8 @@ class BanquePopulaire(LoginBrowser):
                     for tr in items_from_json:
                         if tr.date.year == year:
                             yield tr
+                except ServerError:
+                    return
                 else:
                     history = list(self.page.get_history())
                     history.sort(reverse=True, key=lambda item: item.date)
