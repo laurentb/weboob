@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from ast import literal_eval
 from decimal import Decimal, ROUND_DOWN
 import re
 
@@ -51,20 +52,41 @@ class PromoPage(LoggedPage, HTMLPage):
 
 class LoginPage(HTMLPage):
     def get_token_and_csrf(self, code):
-        code1 = re.search('(function .*)\(function\(\)', code).group(1)
+        mtc = re.search(r'var (_0x\w{4})=function.*?\};', code)
+        decoder_name = mtc.group(1)
+
+        decoder_code = re.search(r'var _0x\w{4}=\[.*var (_0x\w{4})=function.*?\};', code).group(0)
+        decoder_js = Javascript(decoder_code)
+
+        # clean string obfuscation like: '\x70\x61\x79\x70\x61\x6c\x20\x73\x75\x63\x6b\x73'
+        def basic_decoder(mtc):
+            return repr(literal_eval(mtc.group(0)).encode('utf-8'))
+        cleaner_code = re.sub(r"'(?:\\x[0-9a-f]{2})+'", basic_decoder, code)
+
+        # clean other obfuscation like: _0x1234('0x42')
+        def exec_decoder(mtc):
+            return repr(decoder_js.call(decoder_name, literal_eval(mtc.group(1))).encode('utf-8'))
+        cleaner_code = re.sub(r"%s\(('[^']+')\)" % re.escape(decoder_name), exec_decoder, cleaner_code)
+
+        code1 = re.search(r'(.*function .*?)\(function\(\)', cleaner_code).group(1)
+
         # Another victory for the scrapper team # CommitStrip Data Wars
         code1 = re.sub('return typeof document!="undefined"&&typeof document.createAttribute!="undefined"', 'return 1==1', code1)
         # now it checks if some browsers-only builtin variables are defined:
         # e+=function(e,t){return typeof navigator!="undefined"?e:t}
-        js = Javascript('var window = {}; window.innerWidth = 1; screen = 1; location = {}; location.host = 1; \
-        var navigator = {}; navigator.appName = 1; var document = {}; document.lastModified = 1; \
-        document.getElementsByTagName = 1; document.implementation = 1; document.createAttribute = 1; document.getElementsByName = 1;'+ code1)
+
+        code1 = re.sub(r'if\((?:typeof |document)[^)]*\)', 'if(true)', code1)
+
+        js = Javascript(code1)
         func_name = re.search(r'function (\w+)\(\)', code1).group(1)
+
+        cookie = re.search('xppcts = (\w+);', cleaner_code).group(1)
+        sessionID = re.search(r"%s'([^']+)'" % re.escape("'&_sessionID='+encodeURIComponent("), cleaner_code).group(1)
+        csrf = re.search(r"%s'([^']+)'" % re.escape("'&_csrf='+encodeURIComponent("), cleaner_code).group(1)
+
         token = str(js.call(func_name))
-        csrf = re.search(r'csrf="\+encodeURIComponent\("(.*?)"\)', code).group(1)
-        key, value = re.search(r'"/auth/verifychallenge",[tn],"([^"]+)","([^"]+)"', code).groups()
-        sessionID = re.search(r'_sessionID="\+encodeURIComponent\("(.*?)"\)', code).group(1)
-        return token, csrf, key, value, sessionID
+        key, value = re.findall(r"'(\w+)','(\w+)'", cleaner_code)[-1]
+        return token, csrf, key, value, sessionID, cookie
 
     def login(self, login, password):
         form = self.get_form(name='login')

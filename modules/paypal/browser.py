@@ -22,7 +22,7 @@ import urllib
 import datetime
 from dateutil.relativedelta import relativedelta
 
-from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword
+from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.url import URL
 
@@ -40,6 +40,7 @@ class Paypal(LoginBrowser):
                 '/cgi-bin/webscr\?cmd=_login-submit.+$',
                 '/fr/webapps/mpp/home', LoginPage)
     landing = URL('/home',
+                  '/us/home',
                   '/$', LandingPage)
     useless = URL('/cgi-bin/webscr\?cmd=_login-processing.+$',
                   '/cgi-bin/webscr\?cmd=_account.*$',
@@ -69,7 +70,6 @@ class Paypal(LoginBrowser):
 
     TIMEOUT = 180.0
 
-
     def __init__(self, *args, **kwargs):
         self.BEGINNING = datetime.date.today() - relativedelta(months=24)
         self.account_type = None
@@ -84,7 +84,8 @@ class Paypal(LoginBrowser):
             self.location('/signin/')
 
         response = self.open(self.page.get_script_url())
-        token, csrf, key, value, sessionID = self.page.get_token_and_csrf(response.text)
+        token, csrf, key, value, sessionID, cookie = self.page.get_token_and_csrf(response.text)
+        self.session.cookies.update({'xppcts': cookie})
         data = {}
         data['ads_token_js'] = token
         data['_csrf'] = csrf
@@ -97,14 +98,16 @@ class Paypal(LoginBrowser):
         if 'LoginFailed' in res.content or 'Sorry, we can\'t log you in' in res.content or self.error.is_here():
             raise BrowserIncorrectPassword()
 
+        if '/auth/validatecaptcha' in res.content:
+            raise BrowserUnavailable('captcha')
+
         self.location('/')
         if self.old_website.is_here():
             self.location('https://www.paypal.com/businessexp/summary')
         if self.login.is_here() or self.landing.is_here():
-            raise BrowserIncorrectPassword(u'Impossible de se connecter, le compte nécessite une étape de vérification supplémentaire.')
+            raise BrowserUnavailable('login failed')
         self.detect_account_type()
 
-    @need_login
     def detect_account_type(self):
         self.page.detect_account_type()
 
