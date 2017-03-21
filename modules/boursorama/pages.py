@@ -238,8 +238,9 @@ class AccountsPage(LoggedPage, HTMLPage):
 
 class CalendarPage(LoggedPage, HTMLPage):
     def on_load(self):
-        self.browser.deferred_card_calendar = map(parse_french_date,
-        [CleanText('.')(td) for td in self.doc.xpath('//div[h3[contains(text(), "CALENDRIER")]]//tr[contains(@class, "table__line")]/td[3]')])
+        self.browser.deferred_card_calendar = []
+        for tr in self.doc.xpath('//div[h3[contains(text(), "CALENDRIER")]]//tr[contains(@class, "table__line")]'):
+            self.browser.deferred_card_calendar.append((parse_french_date(CleanText('./td[2]')(tr)), parse_french_date(CleanText('./td[3]')(tr))))
 
 
 class HistoryPage(LoggedPage, HTMLPage):
@@ -287,7 +288,13 @@ class HistoryPage(LoggedPage, HTMLPage):
                     date_text = CleanText(u'//li[h3]/h4[@class="summary__title" and contains(text(), "Solde débité au")and contains(text(), "%s")]' % month,
                                                             replace=[(u'Solde débité au ', '')])(self)
                     if not date_text:
-                        return Date(Attr('.//time', 'datetime'))(self)
+                        date = Date(Attr('.//time', 'datetime'))(self)
+                        if self.page.browser.deferred_card_calendar is None:
+                            self.page.browser.location(Link('//a[contains(text(), "calendrier")]')(self))
+                        closest = self.page.browser.get_debit_date(date)
+                        if closest:
+                            return closest
+                        return date
                     debit_date = parse_french_date(date_text)
                     return debit_date.date()
                 return Date(Attr('.//time', 'datetime'))(self)

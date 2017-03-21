@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import date, timedelta
+from datetime import date
 from dateutil.relativedelta import relativedelta
 from lxml.etree import XMLSyntaxError
 
@@ -165,7 +165,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_accounts_list(self):
-        for x in range(3) :
+        for x in range(3):
             if self.accounts_list is not None:
                 break
             self.accounts_list = []
@@ -190,10 +190,10 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
                 return a
         return None
 
-    def get_closest(self, debit_date):
-        debit_date = [dd for dd in self.deferred_card_calendar if debit_date <= dd <= debit_date + timedelta(days=7)]
-        assert len(debit_date) == 1
-        return debit_date[0]
+    def get_debit_date(self, debit_date):
+        for i, j in zip(self.deferred_card_calendar, self.deferred_card_calendar[1:]):
+            if i[0].date() < debit_date <= j[0].date():
+                return j[1].date()
 
     def get_card_transactions(self, account):
         self.location('%s' % account._link, params={'movementSearch[period]': 'currentPeriod'})
