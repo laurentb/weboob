@@ -75,7 +75,8 @@ class AccountsPage(LoggedPage, BasePage, HTMLPage):
             obj_id = CleanText('.//dt[contains(text(), "contrat")]/following-sibling::dd[1]')
             obj_label = CleanText('.//div[has-class("title")]')
             obj_type = Account.TYPE_LIFE_INSURANCE
-            obj_balance = Async('details') & MyDecimal('.//strong[contains(text(), "Valeur")]/following-sibling::span')
+            obj_balance = Async('details') & MyDecimal('//strong[contains(text(), "Valeur") '
+                'or contains(text(), "Epargne retraite")]/following-sibling::span')
             obj_valuation_diff = Async('details') & MyDecimal('.//a[contains(@title, "diff")]/parent::p')
             obj__link = Link(u'.//a[contains(text(), "Détail")]')
             # Additional waranty : need to know what to do with this
