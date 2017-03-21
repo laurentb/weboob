@@ -168,7 +168,7 @@ class HSBC(LoginBrowser):
             try:
                 self._go_to_life_insurance(account.id)
             except XMLSyntaxError:
-                self.quit_li_space()
+                self._quit_li_space()
                 return iter([])
 
             self.life_insurances.go(data={'url_suivant': 'HISTORIQUECONTRATB2C', 'strMonnaie': 'EURO'})
