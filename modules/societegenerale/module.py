@@ -134,4 +134,4 @@ class SocieteGeneraleModule(Module, CapBankTransfer, CapContact, CapProfile):
         return self.browser.execute_transfer(transfer)
 
     def transfer_check_exec_date(self, old_exec_date, new_exec_date):
-        return old_exec_date == new_exec_date or old_exec_date + timedelta(days=1) == new_exec_date
+        return old_exec_date <= new_exec_date <= old_exec_date + timedelta(days=2)
