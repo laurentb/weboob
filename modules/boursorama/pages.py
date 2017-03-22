@@ -215,8 +215,21 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return id
 
             def obj_type(self):
-                return next((self.page.ACCOUNT_TYPES.get(word) for word in self.obj_label(self).lower().split() if self.page.ACCOUNT_TYPES.get(word)), Account.TYPE_UNKNOWN) \
-                    or self.page.ACCOUNT_TYPES.get(CleanText('./preceding-sibling::tr[has-class("list--accounts--master")]//h4')(self), Account.TYPE_UNKNOWN)
+                for word in Field('label')(self).lower().split():
+                    v = self.page.ACCOUNT_TYPES.get(word)
+                    if v:
+                        return v
+
+                category = CleanText('./preceding-sibling::tr[has-class("list--accounts--master")]//h4')(self)
+                v = self.page.ACCOUNT_TYPES.get(category)
+                if v:
+                    return v
+
+                page = Async('details').loaded_page(self)
+                if isinstance(page, LoanPage):
+                    return Account.TYPE_LOAN
+
+                return Account.TYPE_UNKNOWN
 
             def obj__link(self):
                 link = Attr('.//a[@class="account--name"] | .//a[2]', 'href', default=NotAvailable)(self)
