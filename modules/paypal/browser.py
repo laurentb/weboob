@@ -40,7 +40,7 @@ class Paypal(LoginBrowser):
                 '/cgi-bin/webscr\?cmd=_login-submit.+$',
                 '/fr/webapps/mpp/home', LoginPage)
     landing = URL('/home',
-                  '/us/home',
+                  '/\w+/home', # locale home
                   '/$', LandingPage)
     useless = URL('/cgi-bin/webscr\?cmd=_login-processing.+$',
                   '/cgi-bin/webscr\?cmd=_account.*$',
