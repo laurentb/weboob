@@ -42,7 +42,7 @@ class EntreparticuliersBrowser(PagesBrowser):
 
     RET = {Query.TYPE_RENT: {Query.HOUSE_TYPES.HOUSE: '2',
                              Query.HOUSE_TYPES.APART: '1',
-                             Query.HOUSE_TYPES.LAND: '',
+                             Query.HOUSE_TYPES.LAND: '0',
                              Query.HOUSE_TYPES.PARKING: '4',
                              Query.HOUSE_TYPES.OTHER: '6'},
            Query.TYPE_SALE: {Query.HOUSE_TYPES.HOUSE: '2',
