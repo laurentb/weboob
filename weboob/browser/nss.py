@@ -148,6 +148,13 @@ class Wrapper(object):
         return FileWrapper(self.__obj.makefile(*args, **kwargs))
 
 
+def auth_cert_pinning(sock, check_sig, is_server, path):
+    cert = sock.get_peer_certificate()
+
+    expected = nss.nss.Certificate(nss.nss.read_der_from_file(path, True))
+    return (expected.signed_data.data == cert.signed_data.data)
+
+
 def ssl_wrap_socket(sock, *args, **kwargs):
     # TODO handle more options?
     hostname = kwargs.get('server_hostname')
@@ -167,6 +174,8 @@ def ssl_wrap_socket(sock, *args, **kwargs):
         nsssock.set_hostname(hostname)
     if ossl_ctx and not ossl_ctx.verify_mode:
         nsssock.set_auth_certificate_callback(lambda *args: True)
+    elif kwargs.get('ca_certs') and kwargs['ca_certs'] != '/etc/ssl/certs/ca-certificates.crt':
+        nsssock.set_auth_certificate_callback(auth_cert_pinning, kwargs['ca_certs'])
 
     nsssock.reset_handshake(False) # marks handshake as not-done
     wrapper.send('') # performs handshake
