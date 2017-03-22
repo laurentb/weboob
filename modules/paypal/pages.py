@@ -288,7 +288,11 @@ class PartHistoryPage(HistoryPage, JsonPage):
     def get_transactions(self):
             return self.doc['data']['activity']['transactions']
 
+    def return_detail_page(self, link):
+        return self.browser.open('%s%s' % (self.browser.BASEURL, link.replace(self.browser.BASEURL, '')), headers={'Accept': 'application/json'}).page
+
     def parse_transaction(self, transaction, account):
+        page = None
         if 'id' not in transaction or not transaction['date']:
             return []
         t = FrenchTransaction(transaction['id'])
@@ -302,7 +306,8 @@ class PartHistoryPage(HistoryPage, JsonPage):
                 cc = self.format_amount(transaction['amounts']['conversionFrom']['value'], transaction['isCredit'])
             else:
                 try:
-                    cc = self.browser.convert_amount(account, transaction, transaction['detailsLink'])
+                    page = self.return_detail_page(transaction['detailsLink'])
+                    cc = page.get_converted_amount() if isinstance(page, HistoryDetailsPage) else None
                 except ServerError:
                     self.logger.warning('Unable to go on detail, transaction skipped.')
                     return []
@@ -313,19 +318,32 @@ class PartHistoryPage(HistoryPage, JsonPage):
             t.amount = self.format_amount(cc, transaction['isCredit'])
         else:
             t.amount = self.format_amount(transaction['amounts']['net']['value'], transaction['isCredit'])
-        date = parse_french_date(transaction['date']['formattedDate'] + ' ' + transaction['date']['year'])
+        date = parse_french_date(transaction['date']['formattedDate'] + ' ' + transaction['date']['year']).date()
         raw = transaction.get('counterparty', transaction['displayType'])
         t.parse(date=date, raw=raw)
 
-        return [t]
+        if page is None:
+            page = self.return_detail_page(transaction['detailsLink'])
+        funding_src = page.get_funding_src(t) if isinstance(page, HistoryDetailsPage) else None
 
-class HistoryDetailsPage(LoggedPage, HTMLPage):
-    def get_converted_amount(self, account):
-        find_td = self.doc.xpath('//td[contains(text(),"' + account.currency + '")] | //dd[contains(text(),"' + account.currency + '")]')
-        if len(find_td) > 0 :
-            # In case text is "12,34 EUR = 56.78 USD" or "-£115,62 GBP soit -€163,64 EUR"
-            for f in find_td:
-                for text in re.split('=|soit|equals', CleanText().filter(f)):
-                    if ' %s' % account.currency in text:
-                        return Decimal(FrenchTransaction.clean_amount(text.split(account.currency)[0]))
-        return False
+        return [t] if funding_src is None else ([t] + [funding_src])
+
+class HistoryDetailsPage(LoggedPage, JsonPage):
+    def get_converted_amount(self):
+        try:
+            currency_conversion = self.doc['data']['details']['currencyConversion']
+            assert len(currency_conversion) <= 1
+            return CleanDecimal(replace_dots=True).filter(currency_conversion[0]['sourceAmount'])
+        except KeyError:
+            return None
+
+    # This creates a mirror transaction when payment is not from paypal balance.
+    def get_funding_src(self, t):
+        funding_src_lst = self.doc['data']['details']['fundingSource']['fundingSourceList']
+        assert len(funding_src_lst) <= 1
+        for src in funding_src_lst:
+            tr = FrenchTransaction(t.id+'_fundingSrc')
+            tr.amount = CleanDecimal(replace_dots=True).filter(src['amount'])
+            tr.date = tr.rdate = t.date
+            tr.label = tr.raw = u'Crédit depuis %s' % src['institution']
+            return tr
