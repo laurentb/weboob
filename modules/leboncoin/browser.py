@@ -51,7 +51,7 @@ class LeboncoinBrowser(PagesBrowser):
         if pattern.isdigit():
             zip_code = pattern
         else:
-            city = pattern
+            city = pattern.replace(" ", "_")
 
         return self.city.go(city=city, zip=zip_code).get_cities()
 
