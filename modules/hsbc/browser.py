@@ -183,6 +183,8 @@ class HSBC(LoginBrowser):
             self.location(self.accounts_list[account.id]._link_id)
         except HTTPNotFound: # sometime go to hsbc life insurance space do logout
             self.app_gone = True
+            self.do_logout()
+            self.do_login()
 
         #If we relogin on hsbc, all link have change
         if self.app_gone:
