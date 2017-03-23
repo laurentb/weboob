@@ -24,7 +24,7 @@ from weboob.capabilities.bill import CapDocument, Bill, Subscription,\
 from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.base import UserError, find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.value import ValueBackendPassword, ValueDate
 from weboob.browser.exceptions import ServerError
 
 from .browser import IngBrowser
@@ -45,10 +45,9 @@ class INGModule(Module, CapBank, CapDocument, CapProfile):
                            ValueBackendPassword('password',
                                                 label='Code secret',
                                                 regexp='^(\d{6}|)$'),
-                           ValueBackendPassword('birthday',
-                                                label='Date de naissance',
-                                                regexp='^(\d{2}[/-]?\d{2}[/-]?\d{4}|)$',
-                                                masked=False)
+                           ValueDate('birthday',
+                                     label='Date de naissance',
+                                     format='%d/%m/%Y')
                            )
     BROWSER = IngBrowser
 

@@ -21,7 +21,7 @@
 from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.capabilities.base import find_object
-from weboob.tools.value import ValueBackendPassword, Value
+from weboob.tools.value import ValueBackendPassword, ValueDate
 from .browser import BforbankBrowser
 
 
@@ -37,7 +37,7 @@ class BforbankModule(Module, CapBank):
     VERSION = '1.3'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Code personnel'),
-                           Value('birthdate', label='Date de naissance', regexp='^(\d{2}[/-]?\d{2}[/-]?\d{4}|)$')
+                           ValueDate('birthdate', label='Date de naissance', format='%d/%m/%Y')
                            )
 
     BROWSER = BforbankBrowser
