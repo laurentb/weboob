@@ -167,7 +167,7 @@ class HSBC(LoginBrowser):
 
             try:
                 self._go_to_life_insurance(account.id)
-            except XMLSyntaxError:
+            except (XMLSyntaxError, HTTPNotFound):
                 self._quit_li_space()
                 return iter([])
 
@@ -211,7 +211,7 @@ class HSBC(LoginBrowser):
 
         try:
             self._go_to_life_insurance(account.id)
-        except XMLSyntaxError:
+        except (XMLSyntaxError, HTTPNotFound):
             self._quit_li_space()
             return iter([])
 
