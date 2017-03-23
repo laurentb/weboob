@@ -628,6 +628,9 @@ class IndexPage(LoggedPage, HTMLPage):
         form['__EVENTARGUMENT'] = m.group(2)
         form.submit()
 
+    def transfer_unavailable(self):
+        return CleanText(u'//li[contains(text(), "Pour accéder à cette fonctionnalité, vous devez disposer d’un moyen d’authentification renforcée")]')(self.doc)
+
 
 class MarketPage(LoggedPage, HTMLPage):
     def is_error(self):
