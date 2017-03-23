@@ -101,7 +101,7 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
 
             def parse(self, el):
                 _id = Regexp(CleanText('.', replace=[(' ', '')]), '(\d+)', default=NotAvailable)(self)
-                if _id:
+                if _id and len(_id) >= min(len(acc.id) for acc in self.page.browser.get_accounts_list()):
                     account = find_object(self.page.browser.get_accounts_list(), id=_id)
                     if not account:
                         accounts = [acc for acc in self.page.browser.get_accounts_list() if acc.id in _id]
