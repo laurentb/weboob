@@ -402,33 +402,48 @@ class IndexPage(LoggedPage, HTMLPage):
 
     def get_loan_list(self):
         accounts = OrderedDict()
-        # New website
-        for table in self.doc.xpath('//div[@class="panel"]'):
-            title = table.getprevious()
-            if title is None:
-                continue
-            account_type = self.ACCOUNT_TYPES.get(CleanText('.')(title), Account.TYPE_UNKNOWN)
-            for tr in table.xpath('./table/tbody/tr[contains(@id,"MM_SYNTHESE_CREDITS") and contains(@id,"IdTrGlobal")]'):
-                tds = tr.findall('td')
-                if len(tds) == 0 :
+
+        # Old website
+        for tr in self.doc.xpath('//table[@cellpadding="1"]/tr[not(@class) and td[a]]'):
+            tds = tr.findall('td')
+
+            account = Account()
+            account.id = CleanText('./a')(tds[2]).split('-')[0].strip()
+            account.label = CleanText('./a')(tds[2]).split('-')[-1].strip()
+            account.type = Account.TYPE_LOAN
+            account.balance = -CleanDecimal('./a', replace_dots=True)(tds[4])
+            account.currency = account.get_currency(CleanText('./a')(tds[4]))
+            accounts[account.id] = account
+
+        if len(accounts) == 0:
+            # New website
+            for table in self.doc.xpath('//div[@class="panel"]'):
+                title = table.getprevious()
+                if title is None:
                     continue
-                for i in tds[0].xpath('.//a/strong'):
-                    label = i.text.strip()
-                    break
-                if len(tds) == 3 and Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-2]))) and any(cls in Attr('.', 'id')(tr) for cls in ['dgImmo', 'dgConso']) == False:
-                    # in case of Consumer credit or revolving credit, we substract avalaible amount with max amout
-                    # to get what was spend
-                    balance = Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-2]))) - Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-1])))
-                else:
-                    balance = Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-1])))
-                account = Account()
-                account.id = label.split(' ')[-1]
-                account.label = unicode(label)
-                account.type = account_type
-                account.balance = -abs(balance)
-                account.currency = account.get_currency(CleanText('.')(tds[-1]))
-                account._card_links = []
-                accounts[account.id] = account
+                account_type = self.ACCOUNT_TYPES.get(CleanText('.')(title), Account.TYPE_UNKNOWN)
+                for tr in table.xpath('./table/tbody/tr[contains(@id,"MM_SYNTHESE_CREDITS") and contains(@id,"IdTrGlobal")]'):
+                    tds = tr.findall('td')
+                    if len(tds) == 0 :
+                        continue
+                    for i in tds[0].xpath('.//a/strong'):
+                        label = i.text.strip()
+                        break
+                    if len(tds) == 3 and Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-2]))) and any(cls in Attr('.', 'id')(tr) for cls in ['dgImmo', 'dgConso']) == False:
+                        # in case of Consumer credit or revolving credit, we substract avalaible amount with max amout
+                        # to get what was spend
+                        balance = Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-2]))) - Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-1])))
+                    else:
+                        balance = Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-1])))
+                    account = Account()
+                    account.id = label.split(' ')[-1]
+                    account.label = unicode(label)
+                    account.type = account_type
+                    account.balance = -abs(balance)
+                    account.currency = account.get_currency(CleanText('.')(tds[-1]))
+                    account._card_links = []
+                    accounts[account.id] = account
+
         return accounts.itervalues()
 
     def go_list(self):
