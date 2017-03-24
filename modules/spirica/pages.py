@@ -53,7 +53,11 @@ class LoginPage(HTMLPage):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
-    TYPES = {'Assurance Vie': Account.TYPE_LIFE_INSURANCE, 'Unknown': Account.TYPE_UNKNOWN}
+    TYPES = {
+        'Assurance Vie': Account.TYPE_LIFE_INSURANCE,
+        'Capitalisation': Account.TYPE_MARKET,
+        'Unknown': Account.TYPE_UNKNOWN,
+    }
 
     @method
     class iter_accounts(TableElement):
