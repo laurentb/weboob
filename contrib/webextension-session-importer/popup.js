@@ -50,7 +50,8 @@ function loadCookies() {
 
     var onGetActive = function(tabs) {
         makePromise(browser.cookies.getAll, browser.cookies, {
-            url: tabs[0].url
+            url: tabs[0].url,
+            storeId: tabs[0].cookieStoreId
         }).then(function(cookies) { onGetCookies(tabs[0].url, cookies); });
     };
 
@@ -74,8 +75,8 @@ function clearCookies(cookieStoreId, url) {
         };
 
         makePromise(browser.cookies.getAll, browser.cookies, {
-            url: url
-            /* TODO when FF 52 is out: use cookieStoreId to support private browsing */
+            url: url,
+            storeId: cookieStoreId
         }).then(onGetCookie);
     });
 }
@@ -84,7 +85,7 @@ function setCookies(cookieStoreId, url, objs) {
     return new Promise(function(resolve, reject) {
         var promises = objs.map(function(obj) {
             obj.url = url;
-            /* FF52: use cookieStoreId */
+            obj.storeId = cookieStoreId;
             return makePromise(browser.cookies.set, browser.cookies, obj);
         });
 
