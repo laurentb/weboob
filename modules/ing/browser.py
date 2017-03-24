@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
 import hashlib
 import time
 
@@ -99,7 +98,7 @@ class IngBrowser(LoginBrowser):
     __states__ = ['where']
 
     def __init__(self, *args, **kwargs):
-        self.birthday = re.sub(r'[^\d]', '', kwargs.pop('birthday'))
+        self.birthday = kwargs.pop('birthday')
         self.where = None
         LoginBrowser.__init__(self, *args, **kwargs)
 
