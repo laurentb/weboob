@@ -87,17 +87,23 @@ class CmsoParBrowser(LoginBrowser):
 
     @need_login
     def iter_accounts(self):
+        seen = {}
+
         # First get all checking accounts...
         data = dict(self.infos.stay_or_go().get_typelist())
         self.accounts.go(data=json.dumps(data), type='comptes').check_response()
         for key in self.page.get_keys():
             for a in self.page.iter_accounts(key=key):
                 yield a
+                seen[a._index] = a
 
         # Next, get saving accounts
         numbers = self.page.get_numbers()
         for key in self.accounts.go(data=json.dumps({}), type='epargne').get_keys():
             for a in self.page.iter_products(key=key, numbers=numbers):
+                if a._index in seen:
+                    self.logger.warning('skipping %s because it seems to be a duplicate of %s', a, seen[a._index])
+                    continue
                 yield a
 
         # Then, get loans
