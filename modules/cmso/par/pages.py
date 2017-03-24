@@ -57,6 +57,7 @@ class AccountsPage(LoggedPage, JsonPage):
                          ('preference',          Account.TYPE_LOAN),
                          ('livret',              Account.TYPE_SAVINGS),
                          ('vie',                 Account.TYPE_LIFE_INSURANCE),
+                         ('previ_option',        Account.TYPE_LIFE_INSURANCE),
                          ('actions',             Account.TYPE_MARKET),
                          ('titres',              Account.TYPE_MARKET),
                          ('ldd cm',              Account.TYPE_SAVINGS),
