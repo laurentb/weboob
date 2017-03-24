@@ -278,15 +278,15 @@ class ValueBool(Value):
 
 
 class ValueDate(Value):
-    DEFAULT_FORMATS = ['%Y-%m-%d']
+    DEFAULT_FORMATS = ('%Y-%m-%d',)
 
     def __init__(self, *args, **kwargs):
         Value.__init__(self, *args, **kwargs)
-        self.format = kwargs.get('format', None)
-        self.format_list = filter(None, self.DEFAULT_FORMATS + [self.format])
+        self.formats = tuple(kwargs.get('formats', ()))
+        self.formats_tuple = self.DEFAULT_FORMATS + self.formats
 
     def get_format(self, v=None):
-        for format in self.format_list:
+        for format in self.formats_tuple:
             try:
                 time.strptime(v or self._value, format)
             except ValueError:
@@ -295,10 +295,10 @@ class ValueDate(Value):
 
     def check_valid(self, v):
         Value.check_valid(self, v)
-        if self.format and not self.get_format(v):
-            raise ValueError('Value "%s" does not match format in %s' % (self.show_value(v), self.show_value(self.format_list)))
+        if not self.get_format(v):
+            raise ValueError('Value "%s" does not match format in %s' % (self.show_value(v), self.show_value(self.formats_tuple)))
 
     def get(self):
-        if self.format:
-            self._value = time.strftime(self.format, time.strptime(self._value, self.get_format()))
+        if self.formats:
+            self._value = time.strftime(self.formats[0], time.strptime(self._value, self.get_format()))
         return self._value
