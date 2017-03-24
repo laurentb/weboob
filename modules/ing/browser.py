@@ -60,7 +60,6 @@ def start_with_main_site(f):
 
 class IngBrowser(LoginBrowser):
     BASEURL = 'https://secure.ingdirect.fr'
-    VERIFY = 'certificate.pem'
     TIMEOUT = 60.0
 
     # avoid relogin every time
