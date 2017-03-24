@@ -37,7 +37,7 @@ class BforbankModule(Module, CapBank):
     VERSION = '1.3'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Code personnel'),
-                           ValueDate('birthdate', label='Date de naissance', format='%d/%m/%Y')
+                           ValueDate('birthdate', label='Date de naissance', formats=('%d/%m/%Y',))
                            )
 
     BROWSER = BforbankBrowser
