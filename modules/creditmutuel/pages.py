@@ -1108,7 +1108,7 @@ class VerifCodePage(LoggedPage, HTMLPage):
         }
 
     def on_load(self):
-        error = CleanText(u'//p[contains(text(), "Clé invalide !")]')(self.doc)
+        error = CleanText(u'//p[contains(text(), "Clé invalide !")] | //p[contains(text(), "Vous n\'avez pas saisi de clé!")]')(self.doc)
         if error:
             raise AddRecipientError(error)
 
