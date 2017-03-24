@@ -129,12 +129,9 @@ def install_weboob():
     requirements = [
         'lxml',
         'cssselect',
-        'feedparser',
         'requests>=2.0.0',
         'python-dateutil',
         'PyYAML',
-        'prettytable',
-        'google-api-python-client',
     ]
     try:
         import Image
