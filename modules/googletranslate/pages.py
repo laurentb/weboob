@@ -27,4 +27,4 @@ class TranslatePage(RawPage):
     def get_translation(self):
         m = re.search('\[\[\[\"(.*)\",\".*\",,,\d\]\],,".*"\]', self.doc)
         if m:
-            return unicode(m.group(1))
+            return m.group(1).decode('utf-8')
