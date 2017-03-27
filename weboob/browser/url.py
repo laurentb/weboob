@@ -26,6 +26,7 @@ import re
 import requests
 
 from weboob.tools.regex_helper import normalize
+from weboob.tools.misc import to_unicode
 
 
 class UrlNotResolvable(Exception):
@@ -137,7 +138,7 @@ class URL(object):
             for key in args.keys():  # need to use keys() because of pop()
                 search = '%%(%s)s' % key
                 if search in pattern:
-                    url = url.replace(search, unicode(args.pop(key)))
+                    url = url.replace(search, to_unicode(args.pop(key)))
             # if there are named substitutions left, ignore pattern
             if re.search('%\([A-z_]+\)s', url):
                 continue
