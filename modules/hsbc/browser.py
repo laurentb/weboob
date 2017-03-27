@@ -170,6 +170,9 @@ class HSBC(LoginBrowser):
             except (XMLSyntaxError, HTTPNotFound):
                 self._quit_li_space()
                 return iter([])
+            except HTTPNotFound:
+                self.accounts.go()
+                return iter([])
 
             self.life_insurances.go(data={'url_suivant': 'HISTORIQUECONTRATB2C', 'strMonnaie': 'EURO'})
 
@@ -215,6 +218,9 @@ class HSBC(LoginBrowser):
             self._go_to_life_insurance(account.id)
         except (XMLSyntaxError, HTTPNotFound):
             self._quit_li_space()
+            return iter([])
+        except HTTPNotFound:
+            self.accounts.go()
             return iter([])
 
         investments = [i for i in self.page.iter_investments()]
