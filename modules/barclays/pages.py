@@ -81,7 +81,8 @@ class AccountsPage(LoggedPage, HTMLPage):
                 id = id[id.find('contratId')+len('contratId'):]
 
                 link = tr.cssselect('span.accountLabel a')[0]
-                balance = Decimal(FrenchTransaction.clean_amount(tr.cssselect('span.accountTotal')[0].text))
+
+                balance = CleanDecimal('.//span[@class="accountTotal"]', replace_dots=True)(tr)
 
                 account = Account()
                 account._attached_acc = None
