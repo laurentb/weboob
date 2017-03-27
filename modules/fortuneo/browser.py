@@ -69,7 +69,7 @@ class Fortuneo(LoginBrowser):
     def get_investments(self, account):
         self.location(account._link_id)
 
-        return self.page.get_investments()
+        return self.page.get_investments(account)
 
     @need_login
     def get_history(self, account):

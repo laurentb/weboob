@@ -62,7 +62,12 @@ class PeaHistoryPage(LoggedPage, HTMLPage):
     COL_VALUATION = 5
     COL_PERF = 6
     COL_WEIGHT = 7
-    def get_investments(self):
+
+    def get_investments(self, account):
+        if account is not None:
+            # the balance is highly dynamic, fetch it along with the investments to grab a snapshot
+            account.balance = self.get_balance()
+
         for line in self.doc.xpath('//table[@id="t_intraday"]/tbody/tr'):
             if line.find_class('categorie') or line.find_class('detail') or line.find_class('detail02'):
                 continue
@@ -98,6 +103,11 @@ class PeaHistoryPage(LoggedPage, HTMLPage):
     def get_operations(self, account):
         return iter([])
 
+    def get_balance(self):
+        for tr in self.doc.xpath('//div[@id="valorisation_compte"]//table/tr'):
+            if 'Valorisation totale' in CleanText('.')(tr):
+                return CleanDecimal('./td[2]', replace_dots=True)(tr)
+
 
 class InvestmentHistoryPage(LoggedPage, HTMLPage):
     COL_LABEL = 0
@@ -110,7 +120,7 @@ class InvestmentHistoryPage(LoggedPage, HTMLPage):
     COL_PERF = 7
     COL_PERF_PERCENT = 8
 
-    def get_investments(self):
+    def get_investments(self, account):
         for line in self.doc.xpath('//table[@id="tableau_support"]/tbody/tr'):
             cols = line.findall('td')
 
@@ -161,7 +171,7 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
         content = re.sub(br'\*<E040032TC MSBILL.INFO', b'*', content)
         return super(AccountHistoryPage, self).build_doc(content)
 
-    def get_investments(self):
+    def get_investments(self, account):
         return iter([])
 
     def select_period(self):
@@ -205,7 +215,7 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
 
 
 class CardHistoryPage(LoggedPage, HTMLPage):
-    def get_investments(self):
+    def get_investments(self, account):
         return iter([])
 
     def select_period(self):
@@ -313,13 +323,6 @@ class AccountsList(LoggedPage, HTMLPage):
             account = Account()
             account.id = CleanText(None).filter(number[0]).replace(u'N°', '')
 
-            try:
-                balance = CleanText(None).filter(cpt.xpath('./span[contains(@class, "synthese_solde")]')[0])
-            except IndexError:
-                continue
-
-            account.balance = CleanDecimal(None, replace_dots=True).filter(balance)
-            account.currency = account.get_currency(balance)
             account._link_id = link_id
             account._card_links = []
             account.label = (' '.join([CleanText.clean(part) for part in cpt.xpath('./text()')])).strip(' - ').strip()
@@ -327,6 +330,20 @@ class AccountsList(LoggedPage, HTMLPage):
             for pattern, type in self.ACCOUNT_TYPES.iteritems():
                 if pattern in account._link_id:
                     account.type = type
+
+            try:
+                balance = CleanText(None).filter(cpt.xpath('./span[contains(@class, "synthese_solde")]')[0])
+            except IndexError:
+                continue
+
+            if account.type != Account.TYPE_PEA:
+                account.balance = CleanDecimal(None, replace_dots=True).filter(balance)
+            else:
+                # the balance in the accounts list for a PEA is not updated realtime and can be 1 day old
+                # the latest is on the account page
+                page = self.browser.open(account._link_id).page
+                account.balance = page.get_balance()
+            account.currency = account.get_currency(balance)
 
             if account.type in (Account.TYPE_CHECKING, Account.TYPE_SAVINGS):
                 # Need a token sent by SMS to customers
