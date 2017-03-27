@@ -82,8 +82,12 @@ class CenetJsonPage(JsonPage):
         super(CenetJsonPage, self).__init__(browser, response, *args, **kwargs)
 
         # Why you are so ugly....
-        self.doc = json.loads(Dict('d')(self.doc))
-        self.doc['DonneesSortie'] = json.loads(Dict('DonneesSortie')(self.doc))
+        self.doc = json.loads(self.doc['d'])
+        if self.doc['Erreur'] and self.doc['Erreur']['Titre']:
+            self.logger.warning('error on %r: %s', self.url, self.doc['Erreur']['Titre'])
+            raise BrowserUnavailable(self.doc['Erreur']['Titre'])
+
+        self.doc['DonneesSortie'] = json.loads(self.doc['DonneesSortie'])
 
 
 class CenetAccountsPage(LoggedPage, CenetJsonPage):

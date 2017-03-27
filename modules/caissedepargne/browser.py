@@ -29,7 +29,7 @@ from weboob.capabilities.bank import Account, AddRecipientStep, Recipient
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.value import Value
 from weboob.tools.decorators import retry
 
@@ -191,8 +191,13 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                     raise BrowserIncorrectPassword()
 
                 for account in self.accounts:
-                    account._cards = [card for card in self.cenet_cards.go(data=json.dumps(data), headers=headers).get_cards() \
-                                    if card['Compte']['Numero'] == account.id]
+                    try:
+                        account._cards = [card for card in self.cenet_cards.go(data=json.dumps(data), headers=headers).get_cards() \
+                                        if card['Compte']['Numero'] == account.id]
+                    except BrowserUnavailable:
+                        # for some accounts, the site can throw us an error, during weeks
+                        self.logger.warning('ignoring cards because site is unavailable...')
+                        account._cards = []
             else:
                 if self.home.is_here():
                     self.page.check_no_accounts()
