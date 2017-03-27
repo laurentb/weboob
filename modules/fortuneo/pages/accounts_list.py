@@ -243,10 +243,11 @@ class CardHistoryPage(LoggedPage, HTMLPage):
 
 class AccountsList(LoggedPage, HTMLPage):
     def on_load(self):
-        warn = self.doc.xpath('//div[@id="message_renouvellement_mot_passe"] | \
+        warn = self.doc.xpath(u'//div[@id="message_renouvellement_mot_passe"] | \
                                //span[contains(text(), "Votre identifiant change")] | \
                                //span[contains(text(), "Nouveau mot de passe")] | \
-                               //span[contains(text(), "Renouvellement de votre mot de passe")]')
+                               //span[contains(text(), "Renouvellement de votre mot de passe")] |\
+                               //span[contains(text(), "Mieux vous connaître")]')
         if len(warn) > 0:
             raise ActionNeeded(warn[0].text)
 
