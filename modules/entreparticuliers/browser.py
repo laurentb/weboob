@@ -40,11 +40,11 @@ class EntreparticuliersBrowser(PagesBrowser):
              Query.TYPE_SALE: "4"
              }
 
-    RET = {Query.TYPE_RENT: {Query.HOUSE_TYPES.HOUSE: '2',
-                             Query.HOUSE_TYPES.APART: '1',
+    RET = {Query.TYPE_RENT: {Query.HOUSE_TYPES.HOUSE: '18',
+                             Query.HOUSE_TYPES.APART: '17',
                              Query.HOUSE_TYPES.LAND: '0',
-                             Query.HOUSE_TYPES.PARKING: '4',
-                             Query.HOUSE_TYPES.OTHER: '6'},
+                             Query.HOUSE_TYPES.PARKING: '20',
+                             Query.HOUSE_TYPES.OTHER: '22'},
            Query.TYPE_SALE: {Query.HOUSE_TYPES.HOUSE: '2',
                              Query.HOUSE_TYPES.APART: '1',
                              Query.HOUSE_TYPES.LAND: '5',
@@ -89,6 +89,8 @@ class EntreparticuliersBrowser(PagesBrowser):
 
             data['lstNbChambres'] = None
             data['surface_min'] = area_min if area_min else None
+            data['surface_max'] = area_max if area_max else None
+
             # var localisationType = { "all": -1, "ville": 5, "region": 2, "departement": 4, "pays": 1, "regionUsuelle": 3 };
             data['localisationType'] = 5
             data['reference'] = ''
