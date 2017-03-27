@@ -231,7 +231,7 @@ class DetailsPage(LoggedPage, HTMLPage):
                 return Date(CleanText(TableCell('date')), dayfirst=True, default=Field('vdate')(self))(self)
 
             def condition(self):
-                return u"Validé" in CleanText(TableCell('status'))(self)
+                return u"Validé" in CleanText(TableCell('status'))(self) and u"Arrêté annuel" not in Field('label')(self)
 
             def obj_investments(self):
                 investments = []
