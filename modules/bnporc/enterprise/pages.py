@@ -30,6 +30,7 @@ from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Regex
 from weboob.capabilities.bank import Transaction, Account
 from weboob.capabilities.profile import Profile
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
+from weboob.tools.date import parse_french_date
 from weboob.capabilities import NotAvailable
 from weboob.exceptions import ActionNeeded
 
@@ -133,6 +134,7 @@ def fromtimestamp(page, dict):
 
 class AccountHistoryPage(LoggedPage, JsonPage):
     TYPES = {u'CARTE': Transaction.TYPE_CARD, # Cartes
+             u'FACCB': Transaction.TYPE_CARD, # Cartes
              u'CHEQU': Transaction.TYPE_CHECK, # Chèques
              u'REMCB': Transaction.TYPE_CARD, # Remises cartes
              u'VIREM': Transaction.TYPE_TRANSFER, # Virements
@@ -174,6 +176,13 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                 return fromtimestamp(self, Dict('dateOperation'))
 
             def obj_rdate(self):
+                raw = self.obj_raw()
+                mtc = re.search(r'\bDU (\d{6})\b', raw)
+                if mtc:
+                    date = mtc.group(1)
+                    date = '%s/%s/%s' % (date[0:2], date[2:4], date[4:])
+                    return parse_french_date(date)
+
                 return fromtimestamp(self, Dict('dateCreation'))
 
             def obj_vdate(self):
