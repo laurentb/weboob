@@ -159,3 +159,6 @@ class CragrModule(Module, CapBankTransfer, CapContact, CapProfile):
 
     def execute_transfer(self, transfer, **params):
         return self.browser.execute_transfer(transfer, **params)
+
+    def new_recipient(self, recipient, **params):
+        return self.browser.new_recipient(recipient, **params)

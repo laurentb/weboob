@@ -21,23 +21,27 @@ import re
 import hashlib
 from urlparse import urlparse, urljoin
 from html2text import unescape
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import (
+    Account, AddRecipientStep, AddRecipientError, RecipientInvalidLabel,
+    Recipient,
+)
 from weboob.capabilities.base import NotLoaded
-from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.pages import FormNotFound
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.date import ChaoticDateGuesser, LinearDateGuesser
 from weboob.exceptions import BrowserHTTPError, ActionNeeded
 from weboob.browser.filters.standard import CleanText
+from weboob.tools.value import Value
 
 from .pages import (
     HomePage, LoginPage, LoginErrorPage, AccountsPage,
     SavingsPage, TransactionsPage, AdvisorPage, UselessPage,
     CardsPage, LifeInsurancePage, MarketPage, LoansPage, PerimeterPage,
     ChgPerimeterPage, MarketHomePage, FirstVisitPage, BGPIPage,
-    TransferInit, TransferPage, ProfilePage,
+    TransferInit, TransferPage, RecipientPage, RecipientListPage, ProfilePage,
 )
 
 
@@ -48,7 +52,7 @@ class WebsiteNotSupported(Exception):
     pass
 
 
-class Cragr(LoginBrowser):
+class Cragr(LoginBrowser, StatesMixin):
     home_page = URL('/$', '/particuliers.html', 'https://www.*.fr/Vitrine/jsp/CMDS/b.js', HomePage)
     login_page = URL(r'/stb/entreeBam$',
                      r'/stb/entreeBam\?.*typeAuthentification=CLIC_ALLER.*',
@@ -99,9 +103,20 @@ class Cragr(LoginBrowser):
 
     transfer_init_page = URL(r'/stb/entreeBam\?sessionSAG=(?P<sag>[^&]+)&stbpg=pagePU&act=Virementssepa&stbzn=bnt&actCrt=Virementssepa', TransferInit)
     transfer_page = URL(r'/stb/collecteNI\?fwkaid=([\d_]+)&fwkpid=([\d_]+)$', TransferPage)
+    recipientlist = URL(r'/stb/collecteNI\?.*&act=Vilistedestinataires.*', RecipientListPage)
+    recipient_page = URL(r'/stb/collecteNI\?.*fwkaction=Ajouter.*', RecipientPage)
 
     new_login_domain = []
     new_login = False
+
+    # the state is required for adding recipients: the sms code is linked to a cookie session
+    __states__ = (
+        'first_domain', 'BASEURL',
+        'accounts_url', 'savings_url', 'loans_url', 'advisor_url', 'profile_url',
+        'perimeter_url', 'chg_perimeter_url',
+        'perimeters', 'broken_perimeters', 'code_caisse', '_sag', '_old_sag',
+    )
+    STATE_DURATION = 5
 
     def __init__(self, website, *args, **kwargs):
         super(Cragr, self).__init__(*args, **kwargs)
@@ -579,3 +594,47 @@ class Cragr(LoginBrowser):
 
         assert self.page.is_sent()
         return self.page.get_transfer()
+
+    def build_recipient(self, recipient):
+        r = Recipient()
+        r.iban = recipient.iban
+        r.id = recipient.iban
+        r.label = recipient.label
+        r.category = recipient.category
+        r.enabled_at = datetime.now().replace(microsecond=0)
+        r.currency = u'EUR'
+        r.bank_name = recipient.bank_name
+        return r
+
+    @need_login
+    def new_recipient(self, recipient, **params):
+        if not re.match(u"^[-+.,:/?() éèêëïîñàâäãöôòõùûüÿ0-9a-z']+$", recipient.label, re.I):
+            raise RecipientInvalidLabel('Recipient label contains invalid characters')
+
+        if 'sms_code' in params and not re.match(r'^[a-z0-9]{6}$', params['sms_code'], re.I):
+            raise AddRecipientError('SMS verification code is invalid')
+
+        self.transfer_init_page.go(sag=self.sag)
+        self.location(self.page.url_list_recipients())
+        self.location(self.page.url_add_recipient())
+
+        if not ('sms_code' in params and self.page.can_send_code()):
+            self.page.send_sms()
+            # go to a GET page, so StatesMixin can reload it
+            self.location(self.accounts_url.format(self.sag))
+            raise AddRecipientStep(self.build_recipient(recipient), Value('sms_code', label='Veuillez saisir le code SMS'))
+        else:
+            self.page.submit_code(params['sms_code'])
+
+            err = hasattr(self.page, 'get_sms_error') and self.page.get_sms_error()
+            if err:
+                raise AddRecipientError(message=err)
+
+            self.page.submit_recipient(recipient.label, recipient.iban)
+            self.page.confirm_recipient()
+            self.page.check_recipient_error()
+
+            res = self.page.find_recipient(recipient.iban)
+            if res is None:
+                raise AddRecipientError('Recipient could not be found')
+            return res

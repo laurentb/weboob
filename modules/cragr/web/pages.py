@@ -27,7 +27,10 @@ import re
 from weboob.browser.pages import HTMLPage, FormNotFound
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import Currency
-from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, TransferError, TransferBankError
+from weboob.capabilities.bank import (
+    Account, Investment, Recipient, Transfer, TransferError, TransferBankError,
+    AddRecipientError,
+)
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
@@ -948,8 +951,17 @@ class TransferInit(MyLoggedPage, BasePage):
         form['fwkcodeaction'] = 'Executer'
         form.submit()
 
+    def url_list_recipients(self):
+        return CleanText(u'(//a[contains(text(),"Liste des bénéficiaires")])[1]/@href')(self.doc)
+
+
+class RecipientListPage(MyLoggedPage, BasePage):
+    def url_add_recipient(self):
+        return CleanText(u'//a[contains(text(),"Ajouter un compte destinataire")]/@href')(self.doc)
+
 
 class TransferPage(MyLoggedPage, BasePage):
+    ### for transfers
     def get_step(self):
         return CleanText('//div[@id="etapes"]//li[has-class("encours")]')(self.doc)
 
@@ -1030,6 +1042,84 @@ class TransferPage(MyLoggedPage, BasePage):
         err = CleanText('//div[has-class("blc-choix-erreur")]//p', default='')(self.doc)
         if err:
             raise TransferBankError(message=err)
+
+    ### for adding recipients
+    def send_sms(self):
+        form = self.get_form(name='frm_fwk')
+
+        assert 'code' not in form
+        form['fwkaction'] = 'DemandeCodeSMSVerifID'
+        form['fwkcodeaction'] = 'Executer'
+        form.submit()
+
+    def get_sms_error(self):
+        return CleanText('//div[@class="blc-choix-wrap-erreur"]')(self.doc)
+
+    def submit_recipient(self, label, iban):
+        try:
+            form = self.get_form(name='frm_fwk')
+        except FormNotFound:
+            raise AddRecipientError('An error occurred before sending recipient')
+
+        form['NOM_BENEF'] = label
+        for i in range(9):
+            form['CIBAN%d' % (i + 1)] = iban[i * 4:(i + 1) * 4]
+        form['fwkaction'] = 'VerifCodeIBAN'
+        form['fwkcodeaction'] = 'Executer'
+        form.submit()
+
+    def confirm_recipient(self):
+        try:
+            form = self.get_form(name='frm_fwk')
+        except FormNotFound:
+            raise AddRecipientError('An error occurred before finishing adding recipient')
+
+        form['fwkaction'] = 'ConfirmerAjout'
+        form['fwkcodeaction'] = 'Executer'
+        form.submit()
+
+    def check_recipient_error(self):
+        msg = CleanText('//tr[@bgcolor="#C74545"]', default='')(self.doc) # there is no id, class or anything...
+        if msg:
+            raise AddRecipientError(message=msg)
+
+    def find_recipient(self, iban):
+        for tr in self.doc.xpath('//table[starts-with(@summary,"Nom et IBAN")]/tbody/tr'):
+            iban_text = re.sub(r'\s', '', CleanText('./td[3]')(tr))
+            if iban_text == 'IBAN:%s' % iban:
+                res = Recipient()
+                res.iban = iban
+                res.label = CleanText('./td[2]')(tr)
+                return res
+
+
+class RecipientPage(MyLoggedPage, BasePage):
+    def can_send_code(self):
+        form = self.get_form(name='frm_fwk')
+        return 'code' in form
+
+    def send_sms(self):
+        form = self.get_form(name='frm_fwk')
+
+        if 'code' in form:
+            # a code is still pending, ask a new one
+            form['fwkaction'] = 'NouvelleDemandeCodeSMS'
+            form['fwkcodeaction'] = 'Executer'
+            new_page = form.submit().page
+            assert isinstance(new_page, TransferPage)
+            return new_page.send_sms()
+        else:
+            form['fwkaction'] = 'DemandeCodeSMSVerifID'
+
+        form['fwkcodeaction'] = 'Executer'
+        form.submit()
+
+    def submit_code(self, code):
+        form = self.get_form(name='frm_fwk')
+        form['fwkaction'] = 'Confirmer'
+        form['fwkcodeaction'] = 'Executer'
+        form['code'] = code
+        form.submit()
 
 
 def get_text_lines(el):
