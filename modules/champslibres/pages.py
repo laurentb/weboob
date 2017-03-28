@@ -18,9 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import date
+
+from mechanize import TextControl
+
 from weboob.capabilities.library import Book, Renew
 from weboob.deprecated.browser import Page
-from weboob.deprecated.mech import ClientForm
 from weboob.tools.html import html2text
 
 
@@ -59,8 +61,8 @@ class RentedPage(Page):
         input = self.document.find('//input[@value="%s"]' % id)
         self.browser.select_form("checkout_form")
         self.browser.form.set_all_readonly(False)
-        self.browser.controls.append(ClientForm.TextControl('text', input.attrib['name'], {'value': id}))
-        self.browser.controls.append(ClientForm.TextControl('text', 'requestRenewSome', {'value': 'requestRenewSome'}))
+        self.browser.controls.append(TextControl('text', input.attrib['name'], {'value': id}))
+        self.browser.controls.append(TextControl('text', 'requestRenewSome', {'value': 'requestRenewSome'}))
         self.browser.submit()
 
     def confirm_renew(self):
