@@ -322,7 +322,7 @@ class PartHistoryPage(HistoryPage, JsonPage):
         raw = transaction.get('counterparty', transaction['displayType'])
         t.parse(date=date, raw=raw)
 
-        if page is None:
+        if page is None and t.amount < 0:
             page = self.return_detail_page(transaction['detailsLink'])
         funding_src = page.get_funding_src(t) if isinstance(page, HistoryDetailsPage) else None
 
@@ -339,7 +339,7 @@ class HistoryDetailsPage(LoggedPage, JsonPage):
 
     # This creates a mirror transaction when payment is not from paypal balance.
     def get_funding_src(self, t):
-        funding_src_lst = self.doc['data']['details']['fundingSource']['fundingSourceList']
+        funding_src_lst = [src for src in self.doc['data']['details']['fundingSource']['fundingSourceList'] if src['type'] != 'BALANCE']
         assert len(funding_src_lst) <= 1
         for src in funding_src_lst:
             tr = FrenchTransaction(t.id+'_fundingSrc')
