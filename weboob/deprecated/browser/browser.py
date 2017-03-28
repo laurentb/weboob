@@ -33,30 +33,28 @@ try:
 except ImportError:
     raise ImportError('Please install python-mechanize')
 
-import pickle
 import base64
-import zlib
-import os
-import re
-from threading import RLock
-import ssl
-import httplib
-import socket
 import hashlib
+import httplib
+import logging
+import mimetypes
+import os
+import pickle
+import re
+import socket
+import ssl
 import time
 import urllib
 import urllib2
-import mimetypes
-import logging
+import warnings
+import zlib
 from contextlib import closing
 from gzip import GzipFile
-import warnings
+from threading import RLock
 
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserPasswordExpired, BrowserForbidden, BrowserBanned, BrowserHTTPNotFound, BrowserHTTPError, FormFieldConversionWarning, BrowserSSLError
 from weboob.tools.decorators import retry
 from weboob.tools.log import getLogger
-from weboob.deprecated.mech import ClientForm
-ControlNotFoundError = ClientForm.ControlNotFoundError
 from weboob.deprecated.browser.parsers import get_parser
 
 __all__ = ['BrowserIncorrectPassword', 'BrowserForbidden', 'BrowserBanned', 'BrowserUnavailable', 'BrowserRetry',
@@ -397,7 +395,7 @@ class StandardBrowser(mechanize.Browser):
                     else:
                         value = self.str(args[label])
                 self[field] = value
-        except ControlNotFoundError:
+        except mechanize.ControlNotFoundError:
             return
 
     def lowsslcheck(self, domain, hsh):
