@@ -284,7 +284,18 @@ class IndexPage(LoggedPage, HTMLPage):
         if no_account_message:
             raise NoAccountsException(no_account_message)
 
-    def _get_account_info(self, a):
+    def find_and_replace(self, info, acc_id):
+        # The site might be broken: id in js: 4097800039137N418S00197, id in title: 1379418S001 (N instead of 9)
+        # So we seek for a 1 letter difference and replace if found .... (so sad)
+        for i in range(len(info['id']) - len(acc_id) + 1):
+            sub_part = info['id'][i:i+len(acc_id)]
+            z = zip(sub_part, acc_id)
+            if len([tuple_letter for tuple_letter in z if len(set(tuple_letter)) > 1]) == 1:
+                info['link'] = info['link'].replace(sub_part, acc_id)
+                info['id'] = info['id'].replace(sub_part, acc_id)
+                return
+
+    def _get_account_info(self, a, accounts):
         m = re.search("PostBack(Options)?\([\"'][^\"']+[\"'],\s*['\"]([HISTORIQUE_\w|SYNTHESE_ASSURANCE_CNP|BOURSE|COMPTE_TITRE][\d\w&]+)?['\"]", a.attrib.get('href', ''))
         if m is None:
             return None
@@ -294,23 +305,25 @@ class IndexPage(LoggedPage, HTMLPage):
             link = m.group(2)
             parts = link.split('&')
             info = {}
+            info['link'] = link
+            id = re.search("([\d]+)", a.attrib.get('title'))
             if len(parts) > 1:
                 info['type'] = parts[0]
-                info['id'] = parts[1]
+                info['id'] = info['_id'] = parts[1]
+                if id or info['id'] in [acc._info['_id'] for acc in accounts.values()]:
+                    _id = id.group(1) if id else next(iter({k for k, v in accounts.iteritems() if info['id'] == v._info['_id']}))
+                    self.find_and_replace(info, _id)
             else:
-                id = re.search("([\d]+)", a.attrib.get('title'))
                 info['type'] = link
-                info['id'] = id.group(1)
+                info['id'] = info['_id'] = id.group(1)
             if info['type'] in ('SYNTHESE_ASSURANCE_CNP','SYNTHESE_EPARGNE'):
                 info['acc_type'] = Account.TYPE_LIFE_INSURANCE
             if info['type'] in ('BOURSE', 'COMPTE_TITRE'):
                 info['acc_type'] = Account.TYPE_MARKET
-            info['link'] = link
             return info
 
-
     def _add_account(self, accounts, link, label, account_type, balance):
-        info = self._get_account_info(link)
+        info = self._get_account_info(link, accounts)
         if info is None:
             self.logger.warning('Unable to parse account %r: %r' % (label, link))
             return
