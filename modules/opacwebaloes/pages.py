@@ -18,9 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import date
+
+from mechanize import TextControl
+
 from weboob.capabilities.library import Book
-from weboob.deprecated.browser import Page, BrowserUnavailable
-from weboob.deprecated.mech import ClientForm
+from weboob.deprecated.browser import BrowserUnavailable, Page
 
 
 class SkipPage(Page):
@@ -87,15 +89,15 @@ class LoginPage(Page):
         self.browser['ctl00$ContentPlaceHolder1$ctl00$ctl04$ctl00$TextSaisie'] = login
         self.browser['ctl00$ContentPlaceHolder1$ctl00$ctl04$ctl00$TextPass'] = passwd
         self.browser['ctl00_ScriptManager1_TSM']="%3B%3BSystem.Web.Extensions%2C%20Version%3D1.0.61025.0%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3D31bf3856ad364e35%3Afr-FR%3A1f0f78f9-0731-4ae9-b308-56936732ccb8%3Aea597d4b%3Ab25378d2%3BTelerik.Web.UI%2C%20Version%3D2009.3.1314.20%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3D121fae78165ba3d4%3Afr-FR%3Aec1048f9-7413-49ac-913a-b3b534cde186%3A16e4e7cd%3Aed16cbdc%3Af7645509%3A24ee1bba%3A19620875%3A874f8ea2%3A33108d14%3Abd8f85e4"
-        self.browser.controls.append(ClientForm.TextControl('text', 'RadAJAXControlID', {'value': ''}))
+        self.browser.controls.append(TextControl('text', 'RadAJAXControlID', {'value': ''}))
         self.browser['RadAJAXControlID']="ctl00_ContentPlaceHolder1_ctl00_ctl04_ctl00_RadAjaxPanelConnexion"
-        self.browser.controls.append(ClientForm.TextControl('text', 'ctl00$ScriptManager1', {'value': ''}))
+        self.browser.controls.append(TextControl('text', 'ctl00$ScriptManager1', {'value': ''}))
         self.browser['ctl00$ScriptManager1']="ctl00$ContentPlaceHolder1$ctl00$ctl04$ctl00$ctl00$ContentPlaceHolder1$ctl00$ctl04$ctl00$RadAjaxPanelConnexionPanel|"
-        self.browser.controls.append(ClientForm.TextControl('text', '__EVENTTARGET', {'value': ''}))
-        self.browser.controls.append(ClientForm.TextControl('text', '__EVENTARGUMENT', {'value': ''}))
-        self.browser.controls.append(ClientForm.TextControl('text', 'ctl00$ContentPlaceHolder1$ctl00$ctl04$ctl00$btnImgConnexion.x', {'value': ''}))
+        self.browser.controls.append(TextControl('text', '__EVENTTARGET', {'value': ''}))
+        self.browser.controls.append(TextControl('text', '__EVENTARGUMENT', {'value': ''}))
+        self.browser.controls.append(TextControl('text', 'ctl00$ContentPlaceHolder1$ctl00$ctl04$ctl00$btnImgConnexion.x', {'value': ''}))
         self.browser['ctl00$ContentPlaceHolder1$ctl00$ctl04$ctl00$btnImgConnexion.x']="76"
-        self.browser.controls.append(ClientForm.TextControl('text', 'ctl00$ContentPlaceHolder1$ctl00$ctl04$ctl00$btnImgConnexion.y', {'value': ''}))
+        self.browser.controls.append(TextControl('text', 'ctl00$ContentPlaceHolder1$ctl00$ctl04$ctl00$btnImgConnexion.y', {'value': ''}))
         self.browser['ctl00$ContentPlaceHolder1$ctl00$ctl04$ctl00$btnImgConnexion.y']="10"
 
         try:
