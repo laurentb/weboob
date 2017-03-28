@@ -19,13 +19,14 @@
 
 
 import re
+from datetime import datetime, time, timedelta
 from decimal import Decimal
-from datetime import time, datetime, timedelta
 
+from mechanize import TextControl
+
+from weboob.capabilities.base import Currency, UserError
 from weboob.deprecated.browser import Page
 from weboob.tools.json import json
-from weboob.deprecated.mech import ClientForm
-from weboob.capabilities.base import UserError, Currency
 
 
 class ForeignPage(Page):
@@ -55,7 +56,7 @@ class SearchPage(Page):
         self.browser['PASSENGER_1'] = [age]
         self.browser['PASSENGER_1_CARD'] = [card]
         self.browser['COMFORT_CLASS'] = [str(comfort_class)]
-        self.browser.controls.append(ClientForm.TextControl('text', 'nbAnimalsForTravel', {'value': ''}))
+        self.browser.controls.append(TextControl('text', 'nbAnimalsForTravel', {'value': ''}))
         self.browser['nbAnimalsForTravel'] = '0'
         self.browser.submit()
 
