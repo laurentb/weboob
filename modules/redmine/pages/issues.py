@@ -18,15 +18,16 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
 import datetime
+import re
+
+import mechanize
 
 from weboob.capabilities.bugtracker import IssueError
-from weboob.deprecated.browser import Page, BrokenPageError
+from weboob.deprecated.browser import BrokenPageError, Page
 from weboob.tools.date import parse_french_date
-from weboob.tools.misc import to_unicode
-from weboob.deprecated.mech import ClientForm
 from weboob.tools.json import json
+from weboob.tools.misc import to_unicode
 
 
 class BaseIssuePage(Page):
@@ -255,7 +256,7 @@ class NewIssuePage(BaseIssuePage):
                 self.browser['issue[fixed_version_id]'] = [str(version)]
             else:
                 self.browser['issue[fixed_version_id]'] = ['']
-        except ClientForm.ItemNotFoundError:
+        except mechanize.ItemNotFoundError:
             self.logger.warning('Version not found: %s' % version)
 
     def set_tracker(self, tracker):
@@ -270,7 +271,7 @@ class NewIssuePage(BaseIssuePage):
             #     value = self.browser.create_tracker(self.get_project_name(), tracker, self.get_authenticity_token())
             # if value:
             #     control = self.browser.find_control('issue[tracker_id]')
-            #     ClientForm.Item(control, {'name': tracker, 'value': value})
+            #     mechanize.Item(control, {'name': tracker, 'value': value})
             #     self.browser['issue[tracker_id]'] = [value]
             # else:
             #     self.logger.warning('Tracker "%s" not found' % tracker)
@@ -278,7 +279,7 @@ class NewIssuePage(BaseIssuePage):
         else:
             try:
                 self.browser['issue[tracker_id]'] = ['']
-            except ClientForm.ControlNotFoundError:
+            except mechanize.ControlNotFoundError:
                 self.logger.warning('Tracker item not found')
 
     def set_category(self, category):
@@ -293,14 +294,14 @@ class NewIssuePage(BaseIssuePage):
                 value = self.browser.create_category(self.get_project_name(), category, self.get_authenticity_token())
             if value:
                 control = self.browser.find_control('issue[category_id]')
-                ClientForm.Item(control, {'name': category, 'value': value})
+                mechanize.Item(control, {'name': category, 'value': value})
                 self.browser['issue[category_id]'] = [value]
             else:
                 self.logger.warning('Category "%s" not found' % category)
         else:
             try:
                 self.browser['issue[category_id]'] = ['']
-            except ClientForm.ControlNotFoundError:
+            except mechanize.ControlNotFoundError:
                 self.logger.warning('Category item not found')
 
     def set_status(self, status):
@@ -319,7 +320,7 @@ class NewIssuePage(BaseIssuePage):
             #     value = self.browser.create_priority(self.get_project_name(), priority, self.get_authenticity_token())
             # if value:
             #     control = self.browser.find_control('issue[priority_id]')
-            #     ClientForm.Item(control, {'name': priority, 'value': value})
+            #     mechanize.Item(control, {'name': priority, 'value': value})
             #     self.browser['issue[priority_id]'] = [value]
             # else:
             #     self.logger.warning('Priority "%s" not found' % priority)
@@ -327,7 +328,7 @@ class NewIssuePage(BaseIssuePage):
         else:
             try:
                 self.browser['issue[priority_id]'] = ['']
-            except ClientForm.ControlNotFoundError:
+            except mechanize.ControlNotFoundError:
                 self.logger.warning('Priority item not found')
 
     def set_start(self, start):
@@ -343,14 +344,14 @@ class NewIssuePage(BaseIssuePage):
     def set_note(self, message):
         try:
             self.browser['notes'] = message.encode('utf-8')
-        except ClientForm.ControlNotFoundError:
+        except mechanize.ControlNotFoundError:
             self.browser['issue[notes]'] = message.encode('utf-8')
 
     def set_fields(self, fields):
         for key, div in self.iter_custom_fields():
             try:
                 control = self.browser.find_control(div.attrib['name'], nr=0)
-                if isinstance(control, ClientForm.TextControl):
+                if isinstance(control, mechanize.TextControl):
                     control.value = fields[key]
                 else:
                     item = control.get(label=fields[key].encode("utf-8"), nr=0)
