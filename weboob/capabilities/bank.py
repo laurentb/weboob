@@ -125,6 +125,8 @@ class AddRecipientError(UserError):
     Failed trying to add a recipient.
     """
 
+    code = 'AddRecipientError'
+
     def __init__(self, description=None, message=None):
         """
         :param message: error message from the bank, if any
@@ -133,6 +135,14 @@ class AddRecipientError(UserError):
         super(AddRecipientError, self).__init__(message or description)
         self.message = message
         self.description = description
+
+
+class RecipientInvalidIban(AddRecipientError):
+    code = 'invalidIban'
+
+
+class RecipientInvalidLabel(AddRecipientError):
+    code = 'invalidLabel'
 
 
 class BaseAccount(BaseObject, Currency):
@@ -507,9 +517,9 @@ class CapBankTransfer(CapBank):
         :rtype: :class:`Recipient`
         """
         if not is_iban_valid(recipient.iban):
-            raise AddRecipientError('Iban is not valid.')
+            raise RecipientInvalidIban('Iban is not valid.')
         if not recipient.label:
-            raise AddRecipientError('Recipient label is mandatory.')
+            raise RecipientInvalidLabel('Recipient label is mandatory.')
         return self.new_recipient(recipient, **params)
 
     def init_transfer(self, transfer, **params):
