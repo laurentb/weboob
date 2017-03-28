@@ -125,6 +125,15 @@ class AddRecipientError(UserError):
     Failed trying to add a recipient.
     """
 
+    def __init__(self, description=None, message=None):
+        """
+        :param message: error message from the bank, if any
+        """
+
+        super(AddRecipientError, self).__init__(message or description)
+        self.message = message
+        self.description = description
+
 
 class BaseAccount(BaseObject, Currency):
     """
