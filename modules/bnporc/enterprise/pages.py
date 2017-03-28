@@ -146,7 +146,7 @@ class AccountHistoryPage(LoggedPage, JsonPage):
              u'AUTOP': Transaction.TYPE_UNKNOWN, # Autres opérations
             }
 
-    COMING_TYPES = {u'0083': Transaction.TYPE_DEFERRED_CARD,
+    COMING_TYPES = {u'0083': Transaction.TYPE_CARD,
                     u'0813': Transaction.TYPE_LOAN_PAYMENT,
                     u'0568': Transaction.TYPE_TRANSFER,
                    }
