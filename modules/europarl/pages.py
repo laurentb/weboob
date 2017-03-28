@@ -18,16 +18,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.deprecated.mech import ClientForm
-ControlNotFoundError = ClientForm.ControlNotFoundError
-
-from weboob.deprecated.browser import Page
-
-import re
 import datetime
+import re
 
 from weboob.capabilities.base import NotAvailable
-from weboob.deprecated.browser import BrokenPageError
+from weboob.deprecated.browser import BrokenPageError, Page
 
 from .video import EuroparlVideo
 
