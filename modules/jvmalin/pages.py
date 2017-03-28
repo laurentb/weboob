@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
-import re
 import datetime
+import re
+
+from mechanize import ItemNotFoundError
 
 from weboob.capabilities.travel import RoadmapError
-from weboob.tools.misc import to_unicode
-from weboob.deprecated.mech import ClientForm
 from weboob.deprecated.browser import Page
+from weboob.tools.misc import to_unicode
 
 
 class RoadmapAmbiguity(RoadmapError):
@@ -43,7 +44,7 @@ class RoadmapSearchPage(Page):
                 self.browser['dateFull'] = '%02d/%02d/%d' % (time.day, time.month, time.year)
                 self.browser['hour'] = ['%02d' % time.hour]
                 self.browser['minute'] = ['%02d' % (time.minute - (time.minute % 5))]
-            except ClientForm.ItemNotFoundError:
+            except ItemNotFoundError:
                 raise RoadmapError('Unable to establish a roadmap with %s time at "%s"' % ('departure' if departure_time else 'arrival', time))
         self.browser.submit()
 
