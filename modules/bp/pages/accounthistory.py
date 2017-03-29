@@ -29,7 +29,7 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.browser.pages import LoggedPage
 from weboob.browser.elements import TableElement, ItemElement, method
 from weboob.browser.filters.html import Link
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Eval, TableCell, Async, AsyncLoad, Date
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Eval, TableCell, Field, Async, AsyncLoad, Date
 
 from .base import MyHTMLPage
 
@@ -160,11 +160,15 @@ class AccountHistory(LoggedPage, MyHTMLPage):
         col_amount = re.compile('Valeur')
 
         class item(ItemElement):
-            klass = BaseTransaction
+            klass = Transaction
 
+            obj_raw = Transaction.Raw(Field('label'))
             obj_date = Date(CleanText(TableCell('date')))
             obj_amount = CleanDecimal(TableCell('amount'), replace_dots=True)
             obj__coming = True
+
+            def obj_rdate(self):
+                return datetime.datetime.combine(Field('date')(self), datetime.datetime.min.time())
 
             def obj_label(self):
                 return CleanText(TableCell('label')(self)[0].xpath('./noscript'))(self)

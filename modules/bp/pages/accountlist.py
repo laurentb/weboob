@@ -29,7 +29,7 @@ from weboob.capabilities.contact import Advisor
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.pages import LoggedPage, RawPage
 from weboob.browser.filters.html import Link
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Field
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Field, BrowserURL
 from weboob.exceptions import BrowserUnavailable, NoAccountsException
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -79,6 +79,21 @@ class AccountList(LoggedPage, MyHTMLPage):
                     return -CleanDecimal('.//span[@class="number"]', replace_dots=True)(self)
                 return CleanDecimal('.//span[@class="number"]', replace_dots=True)(self)
 
+            def obj_coming(self):
+                if Field('type')(self) == Account.TYPE_CHECKING:
+                    coming = 0
+
+                    coming_operations = self.page.browser.open(BrowserURL('par_account_checking_coming', accountId=Field('id'))(self))
+
+                    if CleanText('//span[@id="amount_total"]')(coming_operations.page.doc):
+                        coming += CleanDecimal('//span[@id="amount_total"]', replace_dots=True)(coming_operations.page.doc)
+
+                    if CleanText(u'.//dt[contains(., "Débit différé à débiter")]')(self):
+                        coming += CleanDecimal(u'.//dt[contains(., "Débit différé à débiter")]/following-sibling::dd[1]', replace_dots=True)(self)
+
+                    return coming if coming != 0 else NotAvailable
+                return NotAvailable
+
             def obj_iban(self):
                 response = self.page.browser.open('/voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea?compte.numero=%s' % Field('id')(self))
 
@@ -100,8 +115,8 @@ class AccountList(LoggedPage, MyHTMLPage):
 
                 return Account.TYPE_UNKNOWN
 
-            def obj__card_links(self):
-                return []
+            def obj__card(self):
+                return Link(u'.//a[contains(., "Débit différé du mois")]', default=None)(self)
 
     def parse_table(self, what, actype=Account.TYPE_UNKNOWN):
         tables = self.doc.xpath("//table[@id='%s']" % what, smart_strings=False)

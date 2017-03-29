@@ -88,7 +88,8 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     par_account_checking_history = URL('/voscomptes/canalXHTML/comptesCommun/recherche_CCP/init-recherche_ccp.ea\?compte.numero=(?P<accountId>.*)',
                                        '/voscomptes/canalXHTML/comptesCommun/recherche_CCP/valider-recherche_ccp.ea', AccountHistory)
-    par_account_checking_coming = URL('/voscomptes/canalXHTML/CCP/releves_ccp_encours/preparerRecherche-releve_ccp_encours.ea\?compte.numero=(?P<accountId>.*)&typeRecherche=1', AccountHistory)
+    par_account_checking_coming = URL('/voscomptes/canalXHTML/CCP/releves_ccp_encours/preparerRecherche-releve_ccp_encours.ea\?compte.numero=(?P<accountId>.*)&typeRecherche=1',
+                                      '/voscomptes/canalXHTML/CB/releveCB/init-mouvementsCarteDD.ea\?compte.numero=(?P<accountId>.*)&typeListe=1&typeRecherche=10', AccountHistory)
     par_account_savings_and_invests_history = URL('/voscomptes/canalXHTML/comptesCommun/recherche_CNE/init-recherche_cne.ea\?compte.numero=(?P<accountId>.*)',
                                                   '/voscomptes/canalXHTML/comptesCommun/recherche_CNE/validerSaisie-recherche_cne.ea', AccountHistory)
 
@@ -159,7 +160,6 @@ class BPBrowser(LoginBrowser, StatesMixin):
                             account.type = Account.TYPE_LOAN
                         elif list == self.par_accounts_life_insurances:
                             account.type = Account.TYPE_LIFE_INSURANCE
-
                         self.accounts.append(account)
             else:
                 self.location(self.accounts_url)
@@ -208,10 +208,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
         for tr in self.get_coming(account):
             transactions.append(tr)
 
-        try:
-            transactions.sort(key=lambda tr: tr.rdate, reverse=True)
-        except TypeError:
-            transactions.sort(key=lambda tr: tr.date, reverse=True)
+        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
 
         return transactions
 
@@ -227,6 +224,12 @@ class BPBrowser(LoginBrowser, StatesMixin):
                 if self.page.has_coming():
                     for tr in self.page.iter_coming():
                         transactions.append(tr)
+
+                if account._card:
+                    self.location(account._card)
+
+                    for tr in self.page.get_history(deferred=True):
+                        transactions.append(tr)
         else:
             for card in account._card_links:
                 self.location(card)
@@ -241,10 +244,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
                     for tr in self._iter_card_tr():
                         transactions.append(tr)
 
-        try:
-            transactions.sort(key=lambda tr: tr.rdate, reverse=True)
-        except TypeError:
-            transactions.sort(key=lambda tr: tr.date, reverse=True)
+        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
 
         return transactions
 
