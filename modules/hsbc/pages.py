@@ -48,6 +48,11 @@ class Transaction(FrenchTransaction):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        txt = CleanText('//p[@class="debit"]', default='')(self.doc)
+        if u"Vos données d'identification (identifiant - code secret) sont incorrectes" in txt:
+            raise BrowserIncorrectPassword()
+
     def get_js_url(self):
         return JSVar(CleanText('//script'), var='url')(self.doc)
 
