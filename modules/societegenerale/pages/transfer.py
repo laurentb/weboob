@@ -149,6 +149,7 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         data['src'] = re.search('src=(.*?)(&|$)', value).group(1)
         data['sign'] = re.search('sign=(.*?)(&|$)', value).group(1)
 
+        # TODO fetch param names from js function so it's more readable?
         data['cdbqem'] = origin_params[1]
         data['cdguem'] = origin_params[2]
         data['nucpem'] = origin_params[3]
@@ -178,8 +179,8 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
             data['tycpde'] = recipient_params[10]
         data['formatCompteBenef'] = recipient_params[12]
         data['nomBenef'] = recipient_params[13]
-        data['codeBICBenef'] = recipient_params[15]
-        data['codeIBANBenef'] = recipient_params[16]
+        data['codeBICBenef'] = recipient_params[18]
+        data['codeIBANBenef'] = recipient_params[19]
         # This needs the currency to be euro.
         data['mntval'] = int(transfer.amount * 100)
         data['mntcdc'] = '2'
@@ -187,7 +188,7 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         data['datvir'] = transfer.exec_date.strftime('%Y%m%d')
         data['motvir'] = transfer.label
         # Initiate transfer
-        self.browser.location('/lgn/url.html?%s' % '&'.join(['%s=%s' % (k, v) for k, v in data.iteritems()]))
+        self.browser.location('/lgn/url.html', params=data)
 
     def check_data_consistency(self, transfer):
         amount = CleanDecimal('.//td[@headers="virement montant"]', replace_dots=True)(self.doc)
@@ -247,6 +248,7 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
 
 class RecipientJson(LoggedPage, JsonPage):
     pass
+
 
 class AddRecipientPage(LoggedPage, BasePage):
     def on_load(self):
