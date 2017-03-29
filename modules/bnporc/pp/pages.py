@@ -489,6 +489,9 @@ class LifeInsurancesHistoryPage(BNPPage):
                 'amount': op.get('montantNet'),
                 })
 
+            if op.get('statut') == 'Sans suite':
+                continue
+
             tr.parse(date=Date(op.get('dateSaisie')),
                      vdate=Date(op.get('dateEffet')),
                      raw='%s %s' % (op.get('libelleMouvement'), op.get('canalSaisie') or ''))
