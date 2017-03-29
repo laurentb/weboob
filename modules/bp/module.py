@@ -45,6 +45,7 @@ class BPModule(Module, CapBankTransfer, CapContact):
 
     def create_default_browser(self):
         b = {'par': BPBrowser, 'pro': BProBrowser}
+
         self.BROWSER = b[self.config['website'].get()]
 
         return self.create_browser(self.config['login'].get(), self.config['password'].get())

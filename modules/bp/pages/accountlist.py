@@ -26,10 +26,10 @@ from collections import OrderedDict
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.capabilities.contact import Advisor
-from weboob.browser.elements import ItemElement, method
+from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.pages import LoggedPage, RawPage
 from weboob.browser.filters.html import Link
-from weboob.browser.filters.standard import CleanText, Regexp, Env
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Field
 from weboob.exceptions import BrowserUnavailable, NoAccountsException
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -39,9 +39,11 @@ from .base import MyHTMLPage
 class AccountList(LoggedPage, MyHTMLPage):
     def on_load(self):
         MyHTMLPage.on_load(self)
-        if self.doc.xpath(u'//h2[text()="%s"]' % u'ERREUR'):
+        if self.doc.xpath(u'//h2[text()="ERREUR"]'):
             self.browser.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/initialiser-identif.ea')
+
             raise BrowserUnavailable()
+
         self.accounts = OrderedDict()
         self.parse_table('comptes',         Account.TYPE_CHECKING)
         self.parse_table('comptesEpargne',  Account.TYPE_SAVINGS)
@@ -57,6 +59,49 @@ class AccountList(LoggedPage, MyHTMLPage):
         if not self.accounts:
             raise NoAccountsException()
         return self.accounts.itervalues()
+
+    @method
+    class iter_accounts(ListElement):
+        item_xpath = u'//ul/li//div[contains(@class, "account-resume")]'
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_id = CleanText('.//abbr/following-sibling::text()')
+            obj_currency = u"EUR"
+            obj__link_id = Link(u'./a', default=NotAvailable)
+
+            def obj_label(self):
+                return CleanText('.//div[@class="title"]/h3')(self).upper()
+
+            def obj_balance(self):
+                if Field('type')(self) == Account.TYPE_LOAN:
+                    return -CleanDecimal('.//span[@class="number"]', replace_dots=True)(self)
+                return CleanDecimal('.//span[@class="number"]', replace_dots=True)(self)
+
+            def obj_iban(self):
+                response = self.page.browser.open('/voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea?compte.numero=%s' % Field('id')(self))
+
+                return response.page.get_iban()
+
+            def obj_type(self):
+                type = Regexp(CleanText('../../preceding-sibling::div[@class="avoirs"][1]/span[1]'), r'(\d+) (.*)', '\\2')(self)
+
+                types = {'comptes? bancaires?': Account.TYPE_CHECKING,
+                         'livrets?': Account.TYPE_SAVINGS,
+                         'epargnes? logement': Account.TYPE_SAVINGS,
+                         'comptes? titres? et pea': Account.TYPE_MARKET,
+                         'assurances? vie et retraite': Account.TYPE_LIFE_INSURANCE,
+                        }
+
+                for atypetxt, atype in types.iteritems():
+                    if re.findall(atypetxt, type.lower()): # match with/without plurial in type
+                        return atype
+
+                return Account.TYPE_UNKNOWN
+
+            def obj__card_links(self):
+                return []
 
     def parse_table(self, what, actype=Account.TYPE_UNKNOWN):
         tables = self.doc.xpath("//table[@id='%s']" % what, smart_strings=False)

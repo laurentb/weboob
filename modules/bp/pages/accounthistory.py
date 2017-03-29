@@ -21,6 +21,8 @@
 import datetime
 import re
 
+from dateutil.relativedelta import relativedelta
+
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Investment, Transaction as BaseTransaction
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -62,6 +64,18 @@ class Transaction(FrenchTransaction):
 class AccountHistory(LoggedPage, MyHTMLPage):
     def is_here(self):
         return not bool(CleanText(u'//h1[contains(text(), "tail de vos cartes")]')(self.doc))
+
+    def submit_research(self):
+        dformat = "%d/%m/%Y"
+        today = datetime.datetime.now()
+
+        form = self.get_form('//form[@class="recherche"]') # represent
+
+        form['compte.numero'] = self.browser.page.params['accountId']
+        form['dateDebutPeriode'] = (today - relativedelta(months=3)).strftime(dformat)
+        form['dateFinPeriode'] = today.strftime(dformat)
+
+        form.submit()
 
     def get_next_link(self):
         for a in self.doc.xpath('//a[@class="btn_crt"]'):
@@ -107,6 +121,10 @@ class AccountHistory(LoggedPage, MyHTMLPage):
             if not tmp:
                 tmp = mvt.xpath("./td/span")
             amount = None
+
+            if any("null" in t.text for t in tmp): # null amount, why not
+                continue
+
             for t in tmp:
                 if r.search(t.text):
                     amount = t.text
@@ -128,6 +146,28 @@ class AccountHistory(LoggedPage, MyHTMLPage):
 
             operations.append(op)
         return operations
+
+    def has_coming(self):
+        return not CleanText(u'//table[@id="mouvementsTable"]/tbody//tr[contains(., "pas d\'opérations")]')(self.doc)
+
+    @method
+    class iter_coming(TableElement):
+        head_xpath = u'//table[@id="mouvementsTable"]/thead/tr/th/a'
+        item_xpath = u'//table[@id="mouvementsTable"]/tbody/tr'
+
+        col_date = re.compile('Date')
+        col_label = re.compile(u'Libellé')
+        col_amount = re.compile('Valeur')
+
+        class item(ItemElement):
+            klass = BaseTransaction
+
+            obj_date = Date(CleanText(TableCell('date')))
+            obj_amount = CleanDecimal(TableCell('amount'), replace_dots=True)
+            obj__coming = True
+
+            def obj_label(self):
+                return CleanText(TableCell('label')(self)[0].xpath('./noscript'))(self)
 
 
 class CardsList(LoggedPage, MyHTMLPage):

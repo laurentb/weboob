@@ -58,10 +58,11 @@ class BPBrowser(LoginBrowser, StatesMixin):
                         r'.*voscomptes/synthese/3-synthese.ea',
                         RedirectPage)
 
-    accounts_list = URL(r'.*synthese_assurancesEtComptes/afficheSynthese-synthese\.ea',
-                        r'.*synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea',
-                        r'/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/preparerRechercheListePrets-synthese.ea',
-                        AccountList)
+    par_accounts_checking = URL('/voscomptes/canalXHTML/comptesCommun/synthese_ccp/afficheSyntheseCCP-synthese_ccp.ea', AccountList)
+    par_accounts_savings_and_invests = URL('/voscomptes/canalXHTML/comptesCommun/synthese_ep/afficheSyntheseEP-synthese_ep.ea', AccountList)
+    par_accounts_loan = URL('/voscomptes/canalXHTML/pret/encours/consulterPrets-encoursPrets.ea', AccountList)
+    par_accounts_life_insurances = URL('/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/rechercheContratAssuranceDepuisMenu-synthese.ea', AccountList)
+
     accounts_rib = URL(r'.*voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea.*', AccountRIB)
 
     saving_summary = URL(r'/voscomptes/canalXHTML/assurance/vie/reafficher-assuranceVie.ea(\?numContrat=(?P<id>\w+))?',
@@ -70,7 +71,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
                          r'/voscomptes/canalXHTML/assurance/prevoyance/reafficher-assurancePrevoyance.ea(\?numContrat=(?P<id>\w+))?',
                          SavingAccountSummary)
 
-    lifeinsurance_invest = URL(r'/voscomptes/canalXHTML/assurance/vie/valorisation-assuranceVie.ea\?numContrat=(?P<id>\w+)',
+    lifeinsurance_invest = URL(r'/voscomptes/canalXHTML/assurance/retraiteUCEuro/afficherSansDevis-assuranceRetraiteUCEuros.ea\?numContrat=(?P<id>\w+)',
                                r'https://www.labanquepostale.fr/particulier/bel_particuliers/assurance/accueil_cachemire.html', LifeInsuranceInvest)
     lifeinsurance_history = URL(r'/voscomptes/canalXHTML/assurance/vie/historiqueVie-assuranceVie.ea\?numContrat=(?P<id>\w+)', LifeInsuranceHistory)
     lifeinsurance_hist_inv = URL(r'/voscomptes/canalXHTML/assurance/vie/detailMouvement-assuranceVie.ea\?idMouvement=(?P<id>\w+)', LifeInsuranceHistoryInv)
@@ -85,11 +86,12 @@ class BPBrowser(LoginBrowser, StatesMixin):
     pro_history_dl = URL(r'.*voscomptes/telechargercomptes/telechargercomptes.ea.*', ProAccountHistoryDownload)
     pro_history_csv = URL(r'.*voscomptes/telechargercomptes/1-telechargercomptes.ea', ProAccountHistoryCSV) # HistoryParser()?
 
-    account_history = URL(r'.*CCP/releves_ccp/releveCPP-releve_ccp\.ea',
-                          r'.*CNE/releveCNE/releveCNE-releve_cne\.ea',
-                          r'.*CB/releveCB/preparerRecherche-mouvementsCarteDD.ea.*',
-                          r'.*CB/releveCB/init-mouvementsCarteDD.ea.*',
-                          AccountHistory)
+    par_account_checking_history = URL('/voscomptes/canalXHTML/comptesCommun/recherche_CCP/init-recherche_ccp.ea\?compte.numero=(?P<accountId>.*)',
+                                       '/voscomptes/canalXHTML/comptesCommun/recherche_CCP/valider-recherche_ccp.ea', AccountHistory)
+    par_account_checking_coming = URL('/voscomptes/canalXHTML/CCP/releves_ccp_encours/preparerRecherche-releve_ccp_encours.ea\?compte.numero=(?P<accountId>.*)&typeRecherche=1', AccountHistory)
+    par_account_savings_and_invests_history = URL('/voscomptes/canalXHTML/comptesCommun/recherche_CNE/init-recherche_cne.ea\?compte.numero=(?P<accountId>.*)',
+                                                  '/voscomptes/canalXHTML/comptesCommun/recherche_CNE/validerSaisie-recherche_cne.ea', AccountHistory)
+
     cards_list = URL(r'.*CB/releveCB/init-mouvementsCarteDD.ea.*', CardsList)
 
     transfer_choose = URL(r'/voscomptes/canalXHTML/virement/mpiaiguillage/init-saisieComptes.ea', TransferChooseAccounts)
@@ -120,10 +122,13 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     login_url = 'https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&' \
             'ERROR_CODE=0x00000000&URL=%2Fvoscomptes%2FcanalXHTML%2Fidentif.ea%3Forigin%3Dparticuliers'
-    accounts_url = "https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea"
-    accounts_and_loans_url = "https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/preparerRechercheListePrets-synthese.ea"
 
     accounts = None
+
+    def __init__(self, *args, **kwargs):
+        super(BPBrowser, self).__init__(*args, **kwargs)
+
+        self.is_professional = True if 'entreprise' in self.BASEURL else False
 
     def do_login(self):
         self.location(self.login_url)
@@ -143,15 +148,30 @@ class BPBrowser(LoginBrowser, StatesMixin):
             self.accounts = []
             ids = set()
 
-            self.location(self.accounts_url)
-            assert self.accounts_list.is_here() or self.pro_accounts_list.is_here()
-            for account in self.page.get_accounts_list():
-                ids.add(account.id)
-                self.accounts.append(account)
+            if self.is_professional is False: # par space, different method
+                self.par_accounts_checking.go()
 
-            if self.accounts_and_loans_url:
-                self.location(self.accounts_and_loans_url)
-                assert self.accounts_list.is_here() or self.pro_accounts_list.is_here()
+                for list in [self.par_accounts_checking, self.par_accounts_savings_and_invests, self.par_accounts_loan, self.par_accounts_life_insurances]:
+                    list.go()
+
+                    for account in self.page.iter_accounts():
+                        if list == self.par_accounts_loan:
+                            account.type = Account.TYPE_LOAN
+                        elif list == self.par_accounts_life_insurances:
+                            account.type = Account.TYPE_LIFE_INSURANCE
+
+                        self.accounts.append(account)
+            else:
+                self.location(self.accounts_url)
+                assert self.pro_accounts_list.is_here()
+
+                for account in self.page.get_accounts_list():
+                    ids.add(account.id)
+                    self.accounts.append(account)
+
+                if self.accounts_and_loans_url:
+                    self.location(self.accounts_and_loans_url)
+                    assert self.pro_accounts_list.is_here()
 
                 for account in self.page.get_accounts_list():
                     if account.id not in ids:
@@ -161,13 +181,25 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_history(self, account):
-        v = urlsplit(account._link_id)
-        args = dict(parse_qsl(v.query))
-        args['typeRecherche'] = 10
-
-        self.location('%s?%s' % (v.path, urlencode(args)))
-
         transactions = []
+
+        if self.is_professional:
+            v = urlsplit(account._link_id)
+            args = dict(parse_qsl(v.query))
+            args['typeRecherche'] = 10
+
+            self.location('%s?%s' % (v.path, urlencode(args)))
+        else:
+            if account.type is not Account.TYPE_LOAN:
+                self.location(account._link_id)
+
+                history = {Account.TYPE_CHECKING: self.par_account_checking_history,
+                           Account.TYPE_SAVINGS: self.par_account_savings_and_invests_history,
+                           Account.TYPE_MARKET: self.par_account_savings_and_invests_history
+                          }.get(account.type)
+
+                if history is not None:
+                    history.go(accountId=account.id).submit_research()
 
         if hasattr(self.page, 'get_history'):
             for tr in self.page.get_history():
@@ -176,27 +208,44 @@ class BPBrowser(LoginBrowser, StatesMixin):
         for tr in self.get_coming(account):
             transactions.append(tr)
 
-        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        try:
+            transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        except TypeError:
+            transactions.sort(key=lambda tr: tr.date, reverse=True)
+
         return transactions
 
     @need_login
     def get_coming(self, account):
         transactions = []
 
-        for card in account._card_links:
-            self.location(card)
+        if self.is_professional is False:
+            if account.type == Account.TYPE_CHECKING:
+                self.location(account._link_id)
+                self.par_account_checking_coming.go(accountId=account.id)
 
-            if self.cards_list.is_here():
-                for link in self.page.get_cards():
-                    self.location(link)
+                if self.page.has_coming():
+                    for tr in self.page.iter_coming():
+                        transactions.append(tr)
+        else:
+            for card in account._card_links:
+                self.location(card)
 
+                if self.cards_list.is_here():
+                    for link in self.page.get_cards():
+                        self.location(link)
+
+                        for tr in self._iter_card_tr():
+                            transactions.append(tr)
+                else:
                     for tr in self._iter_card_tr():
                         transactions.append(tr)
-            else:
-                for tr in self._iter_card_tr():
-                    transactions.append(tr)
 
-        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        try:
+            transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        except TypeError:
+            transactions.sort(key=lambda tr: tr.date, reverse=True)
+
         return transactions
 
     @need_login
