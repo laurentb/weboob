@@ -306,7 +306,7 @@ class IndexPage(LoggedPage, HTMLPage):
             parts = link.split('&')
             info = {}
             info['link'] = link
-            id = re.search("([\d]+)", a.attrib.get('title'))
+            id = re.search("([\d]+)", a.attrib.get('title', ''))
             if len(parts) > 1:
                 info['type'] = parts[0]
                 info['id'] = info['_id'] = parts[1]
