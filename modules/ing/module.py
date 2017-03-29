@@ -47,7 +47,7 @@ class INGModule(Module, CapBank, CapDocument, CapProfile):
                                                 regexp='^(\d{6}|)$'),
                            ValueDate('birthday',
                                      label='Date de naissance',
-                                     formats=('%d%m%Y', '%d/%m/%Y'))
+                                     formats=('%d%m%Y', '%d/%m/%Y', '%d-%m-%Y'))
                            )
     BROWSER = IngBrowser
 
