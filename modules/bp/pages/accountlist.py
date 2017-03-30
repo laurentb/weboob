@@ -77,7 +77,7 @@ class AccountList(LoggedPage, MyHTMLPage):
             def obj_balance(self):
                 if Field('type')(self) == Account.TYPE_LOAN:
                     return -CleanDecimal('.//span[@class="number"]', replace_dots=True)(self)
-                return CleanDecimal('.//span[@class="number"]', replace_dots=True)(self)
+                return CleanDecimal('.//span[@class="number"]', replace_dots=True, default=NotAvailable)(self)
 
             def obj_coming(self):
                 if Field('type')(self) == Account.TYPE_CHECKING:

@@ -88,6 +88,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     par_account_checking_history = URL('/voscomptes/canalXHTML/comptesCommun/recherche_CCP/init-recherche_ccp.ea\?compte.numero=(?P<accountId>.*)',
                                        '/voscomptes/canalXHTML/comptesCommun/recherche_CCP/valider-recherche_ccp.ea', AccountHistory)
+    par_account_deferred_card_history = URL('/voscomptes/canalXHTML/CB/releveCB/preparerRecherche-mouvementsCarteDD.ea\?typeListe=(?P<type>.*)', AccountHistory)
     par_account_checking_coming = URL('/voscomptes/canalXHTML/CCP/releves_ccp_encours/preparerRecherche-releve_ccp_encours.ea\?compte.numero=(?P<accountId>.*)&typeRecherche=1',
                                       '/voscomptes/canalXHTML/CB/releveCB/init-mouvementsCarteDD.ea\?compte.numero=(?P<accountId>.*)&typeListe=1&typeRecherche=10', AccountHistory)
     par_account_savings_and_invests_history = URL('/voscomptes/canalXHTML/comptesCommun/recherche_CNE/init-recherche_cne.ea\?compte.numero=(?P<accountId>.*)',
@@ -221,15 +222,16 @@ class BPBrowser(LoginBrowser, StatesMixin):
                 self.location(account._link_id)
                 self.par_account_checking_coming.go(accountId=account.id)
 
-                if self.page.has_coming():
+                if self.par_account_checking_coming.is_here() and self.page.has_coming():
                     for tr in self.page.iter_coming():
                         transactions.append(tr)
 
                 if account._card:
                     self.location(account._card)
 
-                    for tr in self.page.get_history(deferred=True):
-                        transactions.append(tr)
+                    for t in range(6):
+                        for tr in self.par_account_deferred_card_history.go(type=t).get_history(deferred=True):
+                            transactions.append(tr)
         else:
             for card in account._card_links:
                 self.location(card)
