@@ -246,8 +246,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             self.home_tache.go(tache='CRESYNT0')
 
             if self.home.is_here():
-                self.page.go_loan_list()
-                self.loans = list(self.page.get_loan_list())
+                if not self.page.is_access_error():
+                    self.page.go_loan_list()
+                    self.loans = list(self.page.get_loan_list())
 
             for _ in range(3):
                 try:

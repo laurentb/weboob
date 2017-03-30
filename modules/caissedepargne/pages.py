@@ -418,6 +418,13 @@ class IndexPage(LoggedPage, HTMLPage):
 
         return accounts.itervalues()
 
+    def is_access_error(self):
+        error_message = u"Vous n'êtes pas autorisé à accéder à cette fonction"
+        if error_message in CleanText('//div[@class="MessageErreur"]')(self.doc):
+           return True
+
+        return False
+
     def get_loan_list(self):
         accounts = OrderedDict()
 
