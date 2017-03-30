@@ -77,6 +77,7 @@ class Number26Browser(DomainBrowser):
         a.number = NotAvailable
         a.balance = Decimal(str(account["availableBalance"]))
         a.iban = account["iban"]
+        a.currency = u'EUR'
 
         return [a]
 
