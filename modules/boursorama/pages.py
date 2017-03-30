@@ -98,7 +98,7 @@ class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(u'^CHQ\. (?P<text>.*)'),        FrenchTransaction.TYPE_CHECK),
                 (re.compile('^(ACHAT|PAIEMENT) CARTE (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_CARD),
-                (re.compile(r'^(?P<text>[\w\s]*)?(ACHAT|PAIEMENT) CARTE (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{4}) (?P<text2>.*)'),
+                (re.compile(r'^(?P<text>[\w\s]+)?(ACHAT|PAIEMENT) CARTE (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{4}) (?P<text2>.*)'),
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile('^(PRLV SEPA |PRLV |TIP )(?P<text>.*)'),
                                                             FrenchTransaction.TYPE_ORDER),
@@ -110,7 +110,7 @@ class Transaction(FrenchTransaction):
                 (re.compile('^AVOIR (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*)'),   FrenchTransaction.TYPE_PAYBACK),
                 (re.compile(r'^(?P<text>[A-Z][\sa-z]* )?AVOIR (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{4}) (?P<text2>.*)'),   FrenchTransaction.TYPE_PAYBACK),
                 (re.compile('^REM CHQ (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile(ur'Relevé différé Carte (.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
+                (re.compile(u'Relevé différé Carte (.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
                ]
 
 
