@@ -48,7 +48,7 @@ class AccountsJsonPage(LoggedPage, JsonPage):
     def iter_accounts(self):
         for classeur in self.doc['donnees']['classeurs']:
             title = classeur['title']
-            for compte in classeur['comptes']:
+            for compte in classeur.get('comptes', []):
                 a = Account()
                 a.label = CleanText().filter(compte['libelle'])
                 a._id = compte['id']
