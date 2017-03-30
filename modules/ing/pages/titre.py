@@ -42,7 +42,7 @@ class TitreValuePage(LoggedPage, HTMLPage):
 
 
 class TitrePage(LoggedPage, RawPage):
-    def iter_investments(self):
+    def iter_investments(self, account):
         # We did not get some html, but something like that (XX is a quantity, YY a price):
         # message='[...]
         # popup=2{6{E:ALO{PAR{{reel{695{380{ALSTOM REGROUPT#XX#YY,YY &euro;#YY,YY &euro;#1 YYY,YY &euro;#-YYY,YY &euro;#-42,42%#-0,98 %#42,42 %#|1|AXA#cotationValeur.php?val=E:CS&amp;pl=6&amp;nc=1&amp;
@@ -74,21 +74,16 @@ class TitrePage(LoggedPage, RawPage):
                 if m:
                     invest.code = unicode(m.group(1) or m.group(2))
 
-            quantity = FrenchTransaction.clean_amount(columns[start + 1])
-            invest.quantity = CleanDecimal(default=NotAvailable).filter(quantity)
-
-            unitprice = FrenchTransaction.clean_amount(columns[start + 2])
-            invest.unitprice = CleanDecimal(default=NotAvailable).filter(unitprice)
-
-            unitvalue = FrenchTransaction.clean_amount(columns[start + 3])
-            invest.unitvalue = CleanDecimal(default=NotAvailable).filter(unitvalue)
-
-            valuation = FrenchTransaction.clean_amount(columns[start + 4])
+            for x, attr in enumerate(['quantity', 'unitprice', 'unitvalue', 'valuation', 'diff'], 1):
+                currency = FrenchTransaction.Currency().filter(columns[start + x])
+                amount = CleanDecimal(default=NotAvailable).filter(FrenchTransaction.clean_amount(columns[start + x]))
+                if currency and currency != account.currency:
+                    invest.original_currency = currency
+                    attr = "original_" + attr
+                setattr(invest, attr, amount)
             # valuation is not nullable, use 0 as default value
-            invest.valuation = CleanDecimal(default=Decimal('0')).filter(valuation)
-
-            diff = FrenchTransaction.clean_amount(columns[start + 5])
-            invest.diff = CleanDecimal(default=NotAvailable).filter(diff)
+            if not invest.valuation:
+                invest.valuation = Decimal('0')
 
             # On some case we have a multine investment with a total column
             # for now we have only see this on 2 lines, we will need to adapt it when o

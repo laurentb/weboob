@@ -311,16 +311,18 @@ class IngBrowser(LoginBrowser):
     def get_investments(self, account):
         if account.type not in (Account.TYPE_MARKET, Account.TYPE_PEA, Account.TYPE_LIFE_INSURANCE):
             raise NotImplementedError()
+
         self.go_investments(account)
 
         if self.where == u'titre':
             self.titrerealtime.go()
+            for inv in self.page.iter_investments(account):
+                yield inv
         elif self.page.asv_has_detail or account._jid:
-            if self.go_on_asv_detail(account, '/b2b2c/epargne/CoeDetCon') is False:
-                return iter([])
-
-            self.where = u"asv"
-        return self.page.iter_investments()
+            if self.go_on_asv_detail(account, '/b2b2c/epargne/CoeDetCon') is not False:
+                self.where = u"asv"
+                for inv in self.page.iter_investments():
+                    yield inv
 
     def get_history_titre(self, account):
         self.go_investments(account)
