@@ -328,6 +328,7 @@ class PartHistoryPage(HistoryPage, JsonPage):
 
         return [t] if funding_src is None else ([t] + [funding_src])
 
+
 class HistoryDetailsPage(LoggedPage, JsonPage):
     def get_converted_amount(self):
         try:
@@ -339,6 +340,9 @@ class HistoryDetailsPage(LoggedPage, JsonPage):
 
     # This creates a mirror transaction when payment is not from paypal balance.
     def get_funding_src(self, t):
+        if 'fundingSource' not in self.doc['data']['details']:
+            return None
+
         funding_src_lst = [src for src in self.doc['data']['details']['fundingSource']['fundingSourceList'] if src['type'] != 'BALANCE']
         assert len(funding_src_lst) <= 1
         for src in funding_src_lst:
