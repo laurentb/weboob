@@ -51,6 +51,7 @@ class Boobooks(ReplApplication):
     DEFAULT_FORMATTER = 'table'
     COMMANDS_FORMATTERS = {'ls':          'rented_list',
                            'list':        'rented_list',
+                           'rented':      'rented_list',
                           }
 
     COLLECTION_OBJECTS = (Book, )
@@ -70,3 +71,13 @@ class Boobooks(ReplApplication):
 
         for renew in self.do('renew_book', id, backends=names):
             self.format(renew)
+
+    def do_rented(self, args):
+        """
+        rented
+
+        List rented books
+        """
+
+        for book in self.do('iter_rented', backends=None):
+            self.format(book)
