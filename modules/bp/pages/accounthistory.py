@@ -25,6 +25,7 @@ from dateutil.relativedelta import relativedelta
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Investment, Transaction as BaseTransaction
+from weboob.exceptions import BrowserUnavailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.browser.pages import LoggedPage
 from weboob.browser.elements import TableElement, ItemElement, method
@@ -62,6 +63,10 @@ class Transaction(FrenchTransaction):
 
 
 class AccountHistory(LoggedPage, MyHTMLPage):
+    def on_load(self):
+        if bool(CleanText(u'//h2[contains(text(), "ERREUR")]')(self.doc)):
+            raise BrowserUnavailable()
+
     def is_here(self):
         return not bool(CleanText(u'//h1[contains(text(), "tail de vos cartes")]')(self.doc))
 
