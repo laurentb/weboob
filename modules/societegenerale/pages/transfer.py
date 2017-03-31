@@ -104,7 +104,7 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
                 if _id and len(_id) >= min(len(acc.id) for acc in self.page.browser.get_accounts_list()):
                     account = find_object(self.page.browser.get_accounts_list(), id=_id)
                     if not account:
-                        accounts = [acc for acc in self.page.browser.get_accounts_list() if acc.id in _id]
+                        accounts = [acc for acc in self.page.browser.get_accounts_list() if acc.id in _id or _id in acc.id]
                         assert len(accounts) == 1
                         account = accounts[0]
                     self.env['id'] = _id
