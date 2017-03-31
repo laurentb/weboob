@@ -81,17 +81,20 @@ class AccountList(LoggedPage, MyHTMLPage):
 
             def obj_coming(self):
                 if Field('type')(self) == Account.TYPE_CHECKING:
+                    has_coming = False
                     coming = 0
 
                     coming_operations = self.page.browser.open(BrowserURL('par_account_checking_coming', accountId=Field('id'))(self))
 
                     if CleanText('//span[@id="amount_total"]')(coming_operations.page.doc):
+                        has_coming = True
                         coming += CleanDecimal('//span[@id="amount_total"]', replace_dots=True)(coming_operations.page.doc)
 
                     if CleanText(u'.//dt[contains(., "Débit différé à débiter")]')(self):
+                        has_coming = True
                         coming += CleanDecimal(u'.//dt[contains(., "Débit différé à débiter")]/following-sibling::dd[1]', replace_dots=True)(self)
 
-                    return coming if coming != 0 else NotAvailable
+                    return coming if has_coming else NotAvailable
                 return NotAvailable
 
             def obj_iban(self):

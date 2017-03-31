@@ -129,7 +129,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
     def __init__(self, *args, **kwargs):
         super(BPBrowser, self).__init__(*args, **kwargs)
 
-        self.is_professional = True if 'entreprise' in self.BASEURL else False
+        self.is_professional = 'entreprise' in self.BASEURL
 
     def do_login(self):
         self.location(self.login_url)
@@ -149,14 +149,15 @@ class BPBrowser(LoginBrowser, StatesMixin):
             self.accounts = []
             ids = set()
 
-            if self.is_professional is False: # par space, different method
+            if not self.is_professional: # par space, different method
                 self.par_accounts_checking.go()
 
-                for list in [self.par_accounts_checking, self.par_accounts_savings_and_invests, self.par_accounts_loan]:
-                    list.go()
+                pages = [self.par_accounts_checking, self.par_accounts_savings_and_invests, self.par_accounts_loan]
+                for page in pages:
+                    page.go()
 
                     for account in self.page.iter_accounts():
-                        if list == self.par_accounts_loan:
+                        if page is self.par_accounts_loan:
                             account.type = Account.TYPE_LOAN
                         self.accounts.append(account)
             else:
@@ -249,7 +250,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_investment(self, account):
-        if not account.type == Account.TYPE_LIFE_INSURANCE:
+        if account.type != Account.TYPE_LIFE_INSURANCE:
             return iter([])
 
         self.lifeinsurance_invest.go(id=account.id)
@@ -264,7 +265,8 @@ class BPBrowser(LoginBrowser, StatesMixin):
         if self.page.is_cachemire():
             # had to put full url to skip redirections.
             page = self.open('https://www.labanquepostale.fr/particulier/bel_particuliers/assurance/accueil_cachemire.html').page
-            [setattr(inv, 'code', page.get_cachemire_code(inv.label)) for inv in investments]
+            for inv in investments:
+                setattr(inv, 'code', page.get_cachemire_code(inv.label))
 
         return investments
 
