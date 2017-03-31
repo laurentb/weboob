@@ -48,8 +48,8 @@ class TorrentPage(HTMLPage):
         klass = Torrent
 
         obj_id = Regexp(CleanText('//div[@class="trackers"]/h2'),  r'hash ([0-9a-f]+)', '\\1')
-        obj_name = CleanText('//div[@class="download"]/h2/span')
-        obj_date = CleanText('//div[@class="download"]/div/span/@title') & Date(default=None)
+        obj_name = CleanText('//div[@class="downlinks"]/h2/span')
+        obj_date = CleanText('//div[@class="downlinks"]/div/span/@title') & Date(default=None)
         obj_size = CleanText('//div[@class="files"]/div/@title', replace=[(',', ''), ('b', '')]) & \
             Type(type=float)
 
@@ -92,13 +92,13 @@ class TorrentPage(HTMLPage):
 
         def obj_magnet(self):
             hsh = Regexp(CleanText('//div[@class="trackers"]/h2'),  r'hash ([0-9a-f]+)', '\\1')(self)
-            name = "dn=%s" % quote_plus(CleanText('//div[@class="download"]/h2/span')(self))
+            name = "dn=%s" % quote_plus(CleanText('//div[@class="downlinks"]/h2/span')(self))
             trackers = ["tr=%s" % _.text for _ in self.xpath('//div[@class="trackers"]/dl/dt')]
             return "&".join(["magnet:?xt=urn:btih:%s" % hsh, name] + trackers)
 
         def obj_description(self):
             return u"Torrent files available at:\n" + \
-                   u"\n\n".join(self.xpath('//div[@class="download"]/dl/dt/a/@href'))
+                   u"\n\n".join(self.xpath('//div[@class="downlinks"]/dl/dt/a/@href'))
 
     def get_torrent_file(self):
         raise MagnetOnly(self.get_torrent().magnet)
