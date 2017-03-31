@@ -176,7 +176,7 @@ class AccountHistory(LoggedPage, MyHTMLPage):
                 return datetime.datetime.combine(Field('date')(self), datetime.datetime.min.time())
 
             def obj_label(self):
-                return CleanText(TableCell('label')(self)[0].xpath('./noscript'))(self)
+                return CleanText(TableCell('label')(self)[0].xpath('./noscript'))(self) or CleanText(TableCell('label'), children=False)(self)
 
 
 class CardsList(LoggedPage, MyHTMLPage):
