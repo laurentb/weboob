@@ -61,7 +61,6 @@ class BPBrowser(LoginBrowser, StatesMixin):
     par_accounts_checking = URL('/voscomptes/canalXHTML/comptesCommun/synthese_ccp/afficheSyntheseCCP-synthese_ccp.ea', AccountList)
     par_accounts_savings_and_invests = URL('/voscomptes/canalXHTML/comptesCommun/synthese_ep/afficheSyntheseEP-synthese_ep.ea', AccountList)
     par_accounts_loan = URL('/voscomptes/canalXHTML/pret/encours/consulterPrets-encoursPrets.ea', AccountList)
-    par_accounts_life_insurances = URL('/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/rechercheContratAssuranceDepuisMenu-synthese.ea', AccountList)
 
     accounts_rib = URL(r'.*voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea.*', AccountRIB)
 
@@ -153,14 +152,12 @@ class BPBrowser(LoginBrowser, StatesMixin):
             if self.is_professional is False: # par space, different method
                 self.par_accounts_checking.go()
 
-                for list in [self.par_accounts_checking, self.par_accounts_savings_and_invests, self.par_accounts_loan, self.par_accounts_life_insurances]:
+                for list in [self.par_accounts_checking, self.par_accounts_savings_and_invests, self.par_accounts_loan]:
                     list.go()
 
                     for account in self.page.iter_accounts():
                         if list == self.par_accounts_loan:
                             account.type = Account.TYPE_LOAN
-                        elif list == self.par_accounts_life_insurances:
-                            account.type = Account.TYPE_LIFE_INSURANCE
                         self.accounts.append(account)
             else:
                 self.location(self.accounts_url)
