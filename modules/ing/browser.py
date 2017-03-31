@@ -119,15 +119,32 @@ class IngBrowser(LoginBrowser):
             raise BrowserIncorrectPassword('Please login on website to fill the form and retry')
         self.page.check_for_action_needed()
 
+    @start_with_main_site
+    def get_market_balance(self, account):
+        self.accountspage.go()
+        self.where = "start"
+        data = self.get_investments_data(account)
+        self.accountspage.go(data=data)
+        self.starttitre.go()
+        self.where = u"titre"
+        self.titrepage.go()
+        self.titrerealtime.go()
+        account.balance = self.page.get_balance() or account.balance
+
     @need_login
     @start_with_main_site
     def get_accounts_list(self, get_iban=True):
         self.accountspage.go()
         self.where = "start"
+
         for acc in self.page.get_list():
             if get_iban and acc.type in [Account.TYPE_CHECKING, Account.TYPE_SAVINGS]:
                 self.go_account_page(acc)
                 acc.iban = self.ibanpage.go().get_iban()
+
+            if get_iban and acc.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
+                self.get_market_balance(acc)
+
             yield acc
 
     def get_account(self, _id):
@@ -266,9 +283,8 @@ class IngBrowser(LoginBrowser):
         except SSLError:
             return False
 
-    def go_investments(self, account):
-        account = self.get_account(account.id)
-        data = {"AJAX:EVENTS_COUNT": 1,
+    def get_investments_data(self, account):
+        return {"AJAX:EVENTS_COUNT": 1,
                 "AJAXREQUEST": "_viewRoot",
                 "ajaxSingle": "index:setAccount",
                 "autoScroll": "",
@@ -277,6 +293,10 @@ class IngBrowser(LoginBrowser):
                 "javax.faces.ViewState": account._jid,
                 "cptnbr": account._id
                 }
+
+    def go_investments(self, account):
+        account = self.get_account(account.id)
+        data = self.get_investments_data(account)
 
         # On ASV pages, data maybe not available.
         for i in range(5):

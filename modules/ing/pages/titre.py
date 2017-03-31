@@ -42,6 +42,9 @@ class TitreValuePage(LoggedPage, HTMLPage):
 
 
 class TitrePage(LoggedPage, RawPage):
+    def get_balance(self):
+        return CleanDecimal(default=None, replace_dots=True).filter(self.doc.split('{')[0])
+
     def iter_investments(self, account):
         # We did not get some html, but something like that (XX is a quantity, YY a price):
         # message='[...]
@@ -101,6 +104,9 @@ class TitrePage(LoggedPage, RawPage):
 
         for invest in invests:
             yield invest
+
+        # the balance is highly dynamic, fetch it along with the investments to grab a snapshot
+        account.balance = self.get_balance() or account.balance
 
 
 class TitreHistory(LoggedPage, HTMLPage):
