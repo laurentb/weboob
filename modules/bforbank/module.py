@@ -36,7 +36,7 @@ class BforbankModule(Module, CapBank):
     LICENSE = 'AGPLv3+'
     VERSION = '1.3'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
-                           ValueBackendPassword('password', label='Code personnel'),
+                           ValueBackendPassword('password', label='Code personnel', regexp=r'\d+$'),
                            ValueDate('birthdate', label='Date de naissance', formats=('%d/%m/%Y',))
                            )
 

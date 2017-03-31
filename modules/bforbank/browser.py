@@ -65,7 +65,9 @@ class BforbankBrowser(LoginBrowser):
     def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
-        assert self.password.isdigit()
+        if not self.password.isdigit():
+            raise BrowserIncorrectPassword()
+
         self.login.stay_or_go()
         assert self.login.is_here()
         self.page.login(self.birthdate, self.username, self.password)
