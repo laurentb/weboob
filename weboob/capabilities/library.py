@@ -74,13 +74,13 @@ class CapBook(CapCollection):
         """
         raise NotImplementedError()
 
-    def get_booked(self, _id):
+    def iter_booked(self):
         raise NotImplementedError()
 
     def renew_book(self, _id):
         raise NotImplementedError()
 
-    def get_rented(self, _id):
+    def iter_rented(self):
         raise NotImplementedError()
 
     def search_books(self, _string):

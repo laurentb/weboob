@@ -46,11 +46,11 @@ class AloesModule(Module, CapBook):
                                    self.config['login'].get(),
                                    self.config['password'].get())
 
-    def get_rented(self):
+    def iter_rented(self):
         for book in self.browser.get_rented_books_list():
             yield book
 
-    def get_booked(self):
+    def iter_booked(self):
         for book in self.browser.get_booked_books_list():
             yield book
 

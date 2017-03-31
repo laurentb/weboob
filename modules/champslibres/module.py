@@ -47,11 +47,11 @@ class ChampslibresModule(Module, CapBook):
         browser.login()
         return browser
 
-    def get_rented(self):
+    def iter_rented(self):
         for book in self.browser.get_rented_books_list():
             yield book
 
-    def get_booked(self):
+    def iter_booked(self):
         raise NotImplementedError()
 
     def renew_book(self, id):
