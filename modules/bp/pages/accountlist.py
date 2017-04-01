@@ -20,8 +20,6 @@
 
 from io import BytesIO
 import re
-from decimal import Decimal
-from collections import OrderedDict
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account
@@ -30,8 +28,7 @@ from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.pages import LoggedPage, RawPage
 from weboob.browser.filters.html import Link
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Field, BrowserURL
-from weboob.exceptions import BrowserUnavailable, NoAccountsException
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.exceptions import BrowserUnavailable
 
 from .base import MyHTMLPage
 
@@ -44,21 +41,9 @@ class AccountList(LoggedPage, MyHTMLPage):
 
             raise BrowserUnavailable()
 
-        self.accounts = OrderedDict()
-        self.parse_table('comptes',         Account.TYPE_CHECKING)
-        self.parse_table('comptesEpargne',  Account.TYPE_SAVINGS)
-        self.parse_table('comptesTitres',   Account.TYPE_MARKET)
-        self.parse_table('comptesVie',      Account.TYPE_LIFE_INSURANCE)
-        self.parse_table('encoursprets',    Account.TYPE_LOAN)
-        # FIXME for loans, the balance may be the loan total, not the loan due??
-        self.parse_table('comptesRetraireEuros')
-        self.parse_table('comptesRetrairePoints')
-        self.parse_table('comptesAssurancePrevoyance')
-
-    def get_accounts_list(self):
-        if not self.accounts:
-            raise NoAccountsException()
-        return self.accounts.itervalues()
+    @property
+    def no_accounts(self):
+        return len(self.doc.xpath('//iframe[contains(@src, "/comptes_contrats/sans_")]')) > 0
 
     @method
     class iter_accounts(ListElement):
@@ -121,55 +106,16 @@ class AccountList(LoggedPage, MyHTMLPage):
             def obj__card(self):
                 return Link(u'.//a[contains(., "Débit différé du mois")]', default=None)(self)
 
-    def parse_table(self, what, actype=Account.TYPE_UNKNOWN):
-        tables = self.doc.xpath("//table[@id='%s']" % what, smart_strings=False)
-        if len(tables) < 1:
-            return
+class LoanAccountList(AccountList):
+    @property
+    def no_accounts(self):
+        return len(self.doc.xpath('//iframe[contains(@src, "/prets_nonclient")]')) > 0
 
-        lines = tables[0].xpath(".//tbody/tr")
-        for line in lines:
-            account = Account()
-            account.label = CleanText('./td[1]')(line)
-            account.type = actype
-            account._link_id = Link('./td[1]//a', default=NotAvailable)(line)
-            if not account._link_id:
-                continue
 
-            if 'BourseEnLigne' in account._link_id:
-                account.type = Account.TYPE_MARKET
-
-            account.id = CleanText('./td[2]')(line)
-            tmp_balance = CleanText('./td[3]')(line)
-
-            account.currency = account.get_currency(tmp_balance)
-            if not account.currency:
-                account.currency = u'EUR'
-
-            if tmp_balance:
-                if any(w in tmp_balance for w in ['non disponible', u'Remboursé intégralement']):
-                    continue
-
-                account.balance = Decimal(FrenchTransaction.clean_amount(tmp_balance))
-            else:
-                # empty balance info should only be for fully-reimbursed loans
-                assert actype == Account.TYPE_LOAN
-                account.balance = Decimal(0)
-
-            if actype == Account.TYPE_LOAN:
-                account.balance = -account.balance
-
-            if account.id in self.accounts:
-                a = self.accounts[account.id]
-                a._card_links.append(account._link_id)
-                if not a.coming:
-                    a.coming = Decimal('0.0')
-                a.coming += account.balance
-            else:
-                account._card_links = []
-                self.accounts[account.id] = account
-
-                response = self.browser.open('/voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea?compte.numero=%s' % account.id)
-                account.iban = response.page.get_iban()
+    def iter_accounts(self):
+        for a in super(LoanAccountList, self).iter_accounts():
+            a.type = Account.TYPE_LOAN
+            yield a
 
 
 class Advisor(LoggedPage, MyHTMLPage):

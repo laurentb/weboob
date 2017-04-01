@@ -23,11 +23,11 @@ from urlparse import urlsplit, parse_qsl
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.browsers import StatesMixin
-from weboob.exceptions import BrowserIncorrectPassword, BrowserBanned
+from weboob.exceptions import BrowserIncorrectPassword, BrowserBanned, NoAccountsException
 
 from .pages import (
     LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate,
-    AccountList, AccountHistory, CardsList, UnavailablePage, AccountRIB, Advisor,
+    LoanAccountList, AccountList, AccountHistory, CardsList, UnavailablePage, AccountRIB, Advisor,
     TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary,
 )
 from .pages.accounthistory import LifeInsuranceInvest, LifeInsuranceHistory, LifeInsuranceHistoryInv, RetirementHistory, SavingAccountSummary
@@ -60,7 +60,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     par_accounts_checking = URL('/voscomptes/canalXHTML/comptesCommun/synthese_ccp/afficheSyntheseCCP-synthese_ccp.ea', AccountList)
     par_accounts_savings_and_invests = URL('/voscomptes/canalXHTML/comptesCommun/synthese_ep/afficheSyntheseEP-synthese_ep.ea', AccountList)
-    par_accounts_loan = URL('/voscomptes/canalXHTML/pret/encours/consulterPrets-encoursPrets.ea', AccountList)
+    par_accounts_loan = URL('/voscomptes/canalXHTML/pret/encours/consulterPrets-encoursPrets.ea', LoanAccountList)
 
     accounts_rib = URL(r'.*voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea.*', AccountRIB)
 
@@ -153,13 +153,22 @@ class BPBrowser(LoginBrowser, StatesMixin):
                 self.par_accounts_checking.go()
 
                 pages = [self.par_accounts_checking, self.par_accounts_savings_and_invests, self.par_accounts_loan]
+                no_accounts = 0
                 for page in pages:
                     page.go()
 
+                    if self.page.no_accounts:
+                        no_accounts += 1
+                        continue
+
                     for account in self.page.iter_accounts():
-                        if page is self.par_accounts_loan:
-                            account.type = Account.TYPE_LOAN
                         self.accounts.append(account)
+
+                # if we are sure there is no accounts on the all visited pages,
+                # it is legit.
+                if no_accounts == len(pages):
+                    raise NoAccountsException()
+
             else:
                 self.location(self.accounts_url)
                 assert self.pro_accounts_list.is_here()
