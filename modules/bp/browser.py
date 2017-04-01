@@ -93,7 +93,9 @@ class BPBrowser(LoginBrowser, StatesMixin):
     par_account_savings_and_invests_history = URL('/voscomptes/canalXHTML/comptesCommun/recherche_CNE/init-recherche_cne.ea\?compte.numero=(?P<accountId>.*)',
                                                   '/voscomptes/canalXHTML/comptesCommun/recherche_CNE/validerSaisie-recherche_cne.ea', AccountHistory)
 
-    cards_list = URL(r'.*CB/releveCB/init-mouvementsCarteDD.ea.*', CardsList)
+    cards_list = URL('/voscomptes/canalXHTML/CB/releveCB/init-mouvementsCarteDD.ea\?compte.numero=(?P<account_id>\w+)',
+                     r'.*CB/releveCB/init-mouvementsCarteDD.ea.*',
+                     CardsList)
 
     transfer_choose = URL(r'/voscomptes/canalXHTML/virement/mpiaiguillage/init-saisieComptes.ea', TransferChooseAccounts)
     transfer_complete = URL(r'/voscomptes/canalXHTML/virement/mpiaiguillage/soumissionChoixComptes-saisieComptes.ea', CompleteTransfer)
@@ -168,7 +170,6 @@ class BPBrowser(LoginBrowser, StatesMixin):
                 # it is legit.
                 if no_accounts == len(pages):
                     raise NoAccountsException()
-
             else:
                 self.location(self.accounts_url)
                 assert self.pro_accounts_list.is_here()
@@ -213,8 +214,9 @@ class BPBrowser(LoginBrowser, StatesMixin):
             for tr in self.page.get_history():
                 transactions.append(tr)
 
-        for tr in self.get_coming(account):
-            transactions.append(tr)
+        for tr in self.iter_card_transactions(account):
+            if not tr._coming:
+                transactions.append(tr)
 
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
 
@@ -233,29 +235,27 @@ class BPBrowser(LoginBrowser, StatesMixin):
                     for tr in self.page.iter_coming():
                         transactions.append(tr)
 
-                if account._card:
-                    self.location(account._card)
-
-                    for t in range(6):
-                        for tr in self.par_account_deferred_card_history.go(type=t).get_history(deferred=True):
-                            transactions.append(tr)
-        else:
-            for card in account._card_links:
-                self.location(card)
-
-                if self.cards_list.is_here():
-                    for link in self.page.get_cards():
-                        self.location(link)
-
-                        for tr in self._iter_card_tr():
-                            transactions.append(tr)
-                else:
-                    for tr in self._iter_card_tr():
-                        transactions.append(tr)
+        for tr in self.iter_card_transactions(account):
+            if tr._coming:
+                transactions.append(tr)
 
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
 
         return transactions
+
+    @need_login
+    def iter_card_transactions(self, account):
+        if not account._has_cards:
+            return
+
+        for link in self.cards_list.go(account_id=account.id).get_cards():
+            self.location(link)
+
+            for t in range(6):
+                for tr in self.par_account_deferred_card_history.go(type=t).get_history(deferred=True):
+                    tr.type = tr.TYPE_CARD
+                    yield tr
+
 
     @need_login
     def iter_investment(self, account):

@@ -59,14 +59,11 @@ class BPModule(Module, CapBankTransfer, CapContact):
     def iter_history(self, account):
         if account.type == Account.TYPE_MARKET:
             raise NotImplementedError()
-        for tr in self.browser.get_history(account):
-            if not tr._coming:
-                yield tr
+
+        return self.browser.get_history(account)
 
     def iter_coming(self, account):
-        for tr in self.browser.get_coming(account):
-            if tr._coming:
-                yield tr
+        return self.browser.get_coming(account)
 
     def iter_investment(self, account):
         return self.browser.iter_investment(account)

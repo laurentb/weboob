@@ -145,7 +145,7 @@ class AccountHistory(LoggedPage, MyHTMLPage):
                 if op.amount > 0:
                     op.amount = - op.amount
 
-            op.rdate = datetime.datetime.combine(op.rdate, datetime.time())
+            op.rdate = op.rdate
 
             op._coming = coming
 
@@ -168,12 +168,10 @@ class AccountHistory(LoggedPage, MyHTMLPage):
             klass = Transaction
 
             obj_raw = Transaction.Raw(Field('label'))
-            obj_date = Date(CleanText(TableCell('date')))
+            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
+            obj_rdate = Date(CleanText(TableCell('date')), dayfirst=True)
             obj_amount = CleanDecimal(TableCell('amount'), replace_dots=True)
             obj__coming = True
-
-            def obj_rdate(self):
-                return datetime.datetime.combine(Field('date')(self), datetime.datetime.min.time())
 
             def obj_label(self):
                 return CleanText(TableCell('label')(self)[0].xpath('./noscript'))(self) or CleanText(TableCell('label'), children=False)(self)

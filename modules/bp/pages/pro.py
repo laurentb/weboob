@@ -64,7 +64,7 @@ class ProAccountsList(LoggedPage, MyHTMLPage):
                 if not a.currency:
                     a.currency = u'EUR'
                 a.balance = Decimal(Transaction.clean_amount(tmp_balance))
-                a._card_links = []
+                a._has_cards = False
                 a._link_id = link.attrib['href']
                 yield a
 

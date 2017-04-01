@@ -103,8 +103,8 @@ class AccountList(LoggedPage, MyHTMLPage):
 
                 return Account.TYPE_UNKNOWN
 
-            def obj__card(self):
-                return Link(u'.//a[contains(., "Débit différé du mois")]', default=None)(self)
+            def obj__has_cards(self):
+                return Link(u'.//a[contains(., "Débit différé")]', default=None)(self)
 
 class LoanAccountList(AccountList):
     @property
