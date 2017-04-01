@@ -21,10 +21,8 @@
 from __future__ import print_function
 
 import sys
-import re
 
 class RboorrentDownload(object):
-
     def __init__(self, _id, no_tracker):
         self.id, self.backend_name = _id.split("@")
         self.no_tracker = no_tracker
@@ -59,8 +57,6 @@ class RboorrentDownload(object):
                     print('Unable to write "%s": %s' % (dest, e))
         except Exception as e:
             print("Could not get torrent file for %s@%s" % (self.id, self.backend_name))
-            
-
 
     def run(self):
         try:
@@ -69,7 +65,7 @@ class RboorrentDownload(object):
                 self.write_meta(torrent)
             else:
                 self.write_torrent(torrent)
-        except HTTPNotFound as e:
+        except HTTPNotFound:
             print("Could not find %s@%s" % (self.id, self.backend_name))
 
 def usage():
@@ -93,7 +89,6 @@ if __name__ == "__main__":
     args = parsed_args()
 
     from weboob.core import Weboob
-    from weboob.capabilities.torrent import CapTorrent
     from weboob.browser.exceptions import HTTPNotFound
 
     r = RboorrentDownload(*args)
