@@ -18,20 +18,21 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import HTMLPage
 
 
-class PhpBBPage(Page):
-    def is_logged(self):
-        return len(self.document.getroot().cssselect('li.icon-register')) == 0
+class PhpBBPage(HTMLPage):
+    @property
+    def logged(self):
+        return len(self.doc.xpath('//li[has-class("icon-register")]')) == 0
 
     def get_feed_url(self):
-        links = self.document.getroot().cssselect('link[type="application/atom+xml"]')
+        links = self.doc.xpath('//link[@type="application/atom+xml"]')
         return links[-1].attrib['href']
 
     def get_error_message(self):
         errors = []
-        for div in self.parser.select(self.document.getroot(), 'div.error,p.error'):
+        for div in self.doc.xpath('//div[has-class("error")] | //p[has-class("error")]'):
             if div.text:
                 errors.append(div.text.strip())
         return ', '.join(errors)

@@ -58,8 +58,7 @@ class PhpBBModule(Module, CapMessages, CapMessagesPost):
     #### CapMessages ##############################################
 
     def _iter_threads(self, root_link=None):
-        with self.browser:
-            links = list(self.browser.iter_links(root_link.url if root_link else None))
+        links = list(self.browser.iter_links(root_link.url if root_link else None))
 
         for link in links:
             if link.type == link.FORUM:
@@ -90,23 +89,22 @@ class PhpBBModule(Module, CapMessages, CapMessagesPost):
         except KeyError:
             last_seen_id = 0
 
-        with self.browser:
-            for post in self.browser.iter_posts(id):
-                if not thread:
-                    thread = Thread(thread_id)
-                    thread.title = post.title
+        for post in self.browser.iter_posts(id):
+            if not thread:
+                thread = Thread(thread_id)
+                thread.title = post.title
 
-                m = self._post2message(thread, post)
-                m.parent = parent
-                if last_seen_id < post.id:
-                    m.flags |= Message.IS_UNREAD
+            m = self._post2message(thread, post)
+            m.parent = parent
+            if last_seen_id < post.id:
+                m.flags |= Message.IS_UNREAD
 
-                if parent:
-                    parent.children = [m]
-                else:
-                    thread.root = m
+            if parent:
+                parent.children = [m]
+            else:
+                thread.root = m
 
-                parent = m
+            parent = m
 
         return thread
 
@@ -128,36 +126,35 @@ class PhpBBModule(Module, CapMessages, CapMessagesPost):
                        flags=Message.IS_HTML)
 
     def iter_unread_messages(self):
-        with self.browser:
-            url = self.browser.get_root_feed_url()
-            for article in Newsfeed(url, rssid).iter_entries():
-                id = url2id(article.link)
-                thread = None
+        url = self.browser.get_root_feed_url()
+        for article in Newsfeed(url, rssid).iter_entries():
+            id = url2id(article.link)
+            thread = None
 
-                try:
-                    last_seen_id = self.storage.get('seen', default={})[id2topic(id)]
-                except KeyError:
-                    last_seen_id = 0
+            try:
+                last_seen_id = self.storage.get('seen', default={})[id2topic(id)]
+            except KeyError:
+                last_seen_id = 0
 
-                child = None
-                iterator = self.browser.riter_posts(id, last_seen_id)
-                if self.config['thread_unread_messages'].get() > 0:
-                    iterator = limit(iterator, self.config['thread_unread_messages'].get())
-                for post in iterator:
-                    if not thread:
-                        thread = Thread('%s.%s' % (post.forum_id, post.topic_id))
-                    message = self._post2message(thread, post)
+            child = None
+            iterator = self.browser.riter_posts(id, last_seen_id)
+            if self.config['thread_unread_messages'].get() > 0:
+                iterator = limit(iterator, self.config['thread_unread_messages'].get())
+            for post in iterator:
+                if not thread:
+                    thread = Thread('%s.%s' % (post.forum_id, post.topic_id))
+                message = self._post2message(thread, post)
 
-                    if child:
-                        message.children.append(child)
-                        child.parent = message
+                if child:
+                    message.children.append(child)
+                    child.parent = message
 
-                    if post.parent:
-                        message.parent = Message(thread=thread,
-                                                 id=post.parent)
-                    else:
-                        thread.root = message
-                    yield message
+                if post.parent:
+                    message.parent = Message(thread=thread,
+                                             id=post.parent)
+                else:
+                    thread.root = message
+                yield message
 
     def set_message_read(self, message):
         try:
@@ -187,10 +184,9 @@ class PhpBBModule(Module, CapMessages, CapMessagesPost):
             except ValueError:
                 raise CantSendMessage('Thread ID must be in form "FORUM_ID[.TOPIC_ID]".')
 
-        with self.browser:
-            return self.browser.post_answer(forum,
-                                            topic,
-                                            message.title,
-                                            message.content)
+        return self.browser.post_answer(forum,
+                                        topic,
+                                        message.title,
+                                        message.content)
 
     OBJECTS = {Thread: fill_thread}

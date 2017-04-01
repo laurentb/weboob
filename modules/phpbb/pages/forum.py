@@ -22,6 +22,7 @@ from time import sleep
 from urlparse import urlsplit, parse_qs
 
 from weboob.deprecated.browser import BrokenPageError
+from weboob.browser.filters.standard import CleanText
 
 from .index import PhpBBPage
 from ..tools import parse_date
@@ -40,14 +41,14 @@ class Link(object):
 
 class ForumPage(PhpBBPage):
     def iter_links(self):
-        for li in self.parser.select(self.document.getroot(), 'ul.forums li.row'):
-            title = li.cssselect('a.forumtitle')[0]
+        for li in self.doc.xpath('//ul[has-class("forums")]//li[has-class("row")]'):
+            title = li.xpath('.//a[has-class("forumtitle")]')[0]
             link = Link(Link.FORUM, title.attrib['href'])
             link.title = title.text.strip()
             yield link
 
-        for li in self.parser.select(self.document.getroot(), 'ul.topics li.row'):
-            title = li.cssselect('a.topictitle')[0]
+        for li in self.doc.xpath('//ul[has-class("topics")]//li[has-class("row")]'):
+            title = li.xpath('.//a[has-class("topictitle")]')[0]
             link = Link(Link.TOPIC, title.attrib['href'])
             link.title = title.text.strip()
             for a in li.find('dl').find('dt').findall('a'):
@@ -63,7 +64,7 @@ class ForumPage(PhpBBPage):
             yield link
 
     def iter_all_forums(self):
-        for option in self.parser.select(self.document.getroot(), 'select#f', 1).findall('option'):
+        for option in self.doc.xpath('//select[@id="f"]//option'):
             value = int(option.attrib['value'])
             if value < 0 or not option.text:
                 continue
@@ -85,14 +86,14 @@ class Post(object):
 
 
 class TopicPage(PhpBBPage):
-    def on_loaded(self):
-        div = self.document.getroot().cssselect('div.pagination')[0]
-        strongs = div.cssselect('strong')
+    def on_load(self):
+        div = self.doc.xpath('//div[has-class("pagination")]')[0]
+        strongs = div.xpath('.//strong')
         self.cur_page = int(strongs[0].text.strip())
         self.tot_pages = int(strongs[1].text.strip())
 
         try:
-            url = self.document.xpath('//h2/a')[-1].attrib['href']
+            url = self.doc.xpath('//h2/a')[-1].attrib['href']
         except BrokenPageError:
             url = self.url
         v = urlsplit(url)
@@ -101,30 +102,31 @@ class TopicPage(PhpBBPage):
         self.forum_id = int(args['f'][0]) if 'f' in args else 0
 
         self.forum_title = u''
-        nav = self.parser.select(self.document.getroot(), 'li.icon-home')
+        nav = self.doc.xpath('//li[has-class("icon-home")]')
         if len(nav) > 0:
-            text = nav[0].findall('a')[-1].text.strip()
+            text = nav[0].xpath('.//a')[-1].text.strip()
             if len(text) >= 20:
                 text = text[:20] + u'…'
             self.forum_title = '[%s] ' % text
 
     def go_reply(self):
-        self.browser.follow_link(url_regex='posting\.php')
+        for url in self.doc.xpath('//a[contains(@href,"posting.php")]/@href'):
+            return self.browser.location(url)
 
     def next_page_url(self):
         try:
-            return self.parser.select(self.document.getroot(), 'a.right-box', 1).attrib['href']
+            return self.doc.xpath('//a[has-class("right-box")]')[0].attrib['href']
         except BrokenPageError:
-            a_list = self.parser.select(self.document.getroot(), 'div.pagination', 1).findall('a')
+            a_list = self.doc.xpath('//div[has-class("pagination")]')[0].findall('a')
             if self.cur_page == self.tot_pages:
                 return '#'
             return a_list[-1].attrib['href']
 
     def prev_page_url(self):
         try:
-            return self.parser.select(self.document.getroot(), 'a.left-box', 1).attrib['href']
+            return self.doc.xpath('//a[has-class("left-box")]')[0].attrib['href']
         except BrokenPageError:
-            a_list = self.parser.select(self.document.getroot(), 'div.pagination', 1).findall('a')
+            a_list = self.doc.xpath('//div[has-class("pagination")]')[0].findall('a')
             if self.cur_page == self.tot_pages:
                 a = a_list[-1]
             else:
@@ -132,16 +134,16 @@ class TopicPage(PhpBBPage):
             return a.attrib['href']
 
     def iter_posts(self):
-        for div in self.parser.select(self.document.getroot(), 'div.post'):
+        for div in self.doc.xpath('//div[has-class("post")]'):
             yield self._get_post(div)
 
     def riter_posts(self):
-        for div in reversed(self.parser.select(self.document.getroot(), 'div.post')):
+        for div in reversed(self.doc.xpath('//div[has-class("post")]')):
             yield self._get_post(div)
 
     def get_post(self, id):
         parent = 0
-        for div in self.parser.select(self.document.getroot(), 'div.post'):
+        for div in self.doc.xpath('//div[has-class("post")]'):
             if div.attrib['id'] == 'p%d' % id:
                 post = self._get_post(div)
                 post.parent = parent
@@ -150,15 +152,15 @@ class TopicPage(PhpBBPage):
                 parent = int(div.attrib['id'][1:])
 
     def _get_post(self, div):
-        body = div.cssselect('div.postbody')[0]
-        profile = div.cssselect('dl.postprofile')[0]
+        body = div.xpath('.//div[has-class("postbody")]')[0]
+        profile = div.xpath('.//dl[has-class("postprofile")]')[0]
 
         id = div.attrib['id'][1:]
         post = Post(self.forum_id, self.topic_id, id)
 
-        title_tags = body.xpath('//h3/a')
+        title_tags = body.xpath('.//h3/a')
         if len(title_tags) == 0:
-            title_tags = self.document.xpath('//h2/a')
+            title_tags = self.doc.xpath('//h2/a')
         if len(title_tags) == 0:
             title = u''
             self.logger.warning('Unable to parse title')
@@ -166,11 +168,11 @@ class TopicPage(PhpBBPage):
             title = title_tags[-1].text.strip()
 
         post.title = self.forum_title + title
-        for a in profile.cssselect('dt a'):
+        for a in profile.xpath('.//dt//a'):
             if a.text:
                 post.author = a.text.strip()
 
-        p_tags = body.cssselect('p.author')
+        p_tags = body.xpath('.//p[has-class("author")]')
         if len(p_tags) == 0:
             p_tags = body.find('p')
         if len(p_tags) == 0:
@@ -180,7 +182,7 @@ class TopicPage(PhpBBPage):
             p = p_tags[0]
             text = p.find('strong') is not None and p.find('strong').tail
             if not text:
-                text = p.text[4:]
+                text = ''.join(t.strip() for t in p.xpath('./text()')).strip()
 
             text = text.strip(u'» \n\r')
             try:
@@ -188,28 +190,27 @@ class TopicPage(PhpBBPage):
             except ValueError:
                 self.logger.warning(u'Unable to parse datetime "%s"' % text)
 
-        post.content = self.parser.tostring(body.cssselect('div.content')[0])
+        post.content = CleanText().filter(body.xpath('.//div[has-class("content")]')[0])
 
-        signature = body.cssselect('div.signature')
+        signature = body.xpath('.//div[has-class("signature")]')
         if len(signature) > 0:
-            post.signature = self.parser.tostring(signature[0])
+            post.signature = CleanText().filter(signature[0])
         return post
 
     def get_last_post_id(self):
         id = 0
-        for div in self.parser.select(self.document.getroot(), 'div.post'):
+        for div in self.doc.xpath('//div[has-class("post")]'):
             id = int(div.attrib['id'][1:])
         return id
 
 
 class PostingPage(PhpBBPage):
     def post(self, title, content):
-        self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'postform')
-        self.browser.set_all_readonly(False)
+        form = self.get_form(id='postform')
 
         if title:
-            self.browser['subject'] = title.encode('utf-8')
-        self.browser['message'] = content.encode('utf-8')
+            form['subject'] = title.encode('utf-8')
+        form['message'] = content.encode('utf-8')
 
         # This code on phpbb:
         #   if ($cancel || ($current_time - $lastclick < 2 && $submit))
@@ -219,7 +220,10 @@ class PostingPage(PhpBBPage):
         #   }
         # To prevent that shit because weboob is too fast, we simulate
         # a value of lastclick 10 seconds before.
-        self.browser['lastclick'] = str(int(self.browser['lastclick']) - 10)
+        form['lastclick'] = str(int(form['lastclick']) - 10)
+        form.setdefault('post', 'Submit')
+        form.pop('save', '')
+        form.pop('preview', '')
 
         # Likewise for create_time, with this check:
         #   $diff = time() - $creation_time;
@@ -229,4 +233,4 @@ class PostingPage(PhpBBPage):
         # change it. But I can wait a second before posting...
         sleep(1)
 
-        self.browser.submit(name='post')
+        form.submit(name='post')

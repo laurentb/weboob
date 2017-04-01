@@ -44,7 +44,7 @@ def url2id(url, nopost=False):
 
 
 def id2url(id):
-    v = id.split('.')
+    v = str(id).split('.')
     if len(v) == 1:
         return 'viewforum.php?f=%d' % int(v[0])
     if len(v) == 2:
@@ -58,7 +58,7 @@ def id2url(id):
 
 def id2topic(id):
     try:
-        return int(id.split('.')[1])
+        return int(str(id).split('.')[1])
     except IndexError:
         return None
 

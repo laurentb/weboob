@@ -19,10 +19,9 @@
 
 
 import re
-import urllib
-from urlparse import urlsplit
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.browser import LoginBrowser, need_login, URL
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.messages import CantSendMessage
 
 from .pages.index import LoginPage
@@ -34,66 +33,57 @@ __all__ = ['PhpBB']
 
 
 # Browser
-class PhpBB(Browser):
-    PAGES = {'https?://.*/index.php':                 ForumPage,
-             'https?://.*/':                          ForumPage,
-             'https?://.*/viewforum.php\?f=(\d+)':    ForumPage,
-             'https?://.*/search.php\?.*':            ForumPage,
-             'https?://.*/viewtopic.php\?.*':         TopicPage,
-             'https?://.*/posting.php\?.*':           PostingPage,
-             'https?://.*/ucp.php\?mode=login.*':     LoginPage,
-            }
+class PhpBB(LoginBrowser):
+    forum = URL(r'.*index.php',
+                r'/$',
+                r'.*viewforum.php\?f=(\d+)',
+                r'.*search.php\?.*',
+                ForumPage)
+    topic = URL(r'.*viewtopic.php\?.*', TopicPage)
+    posting = URL(r'.*posting.php\?.*', PostingPage)
+    login = URL(r'.*ucp.php\?mode=login.*', LoginPage)
 
     last_board_msg_id = None
 
     def __init__(self, url, *args, **kwargs):
-        self.url = url
-        v = urlsplit(url)
-        self.PROTOCOL = v.scheme
-        self.DOMAIN = v.netloc
-        self.BASEPATH = v.path[:v.path.rfind('/')]
-        Browser.__init__(self, *args, **kwargs)
-
-    def absurl(self, rel):
-        return Browser.absurl(self, '%s/%s' % (self.BASEPATH, rel))
+        self.BASEURL = url
+        super(PhpBB, self).__init__(*args, **kwargs)
 
     def home(self):
-        self.location(self.url)
+        self.location(self.BASEURL)
 
-    def is_logged(self):
-        return not self.page or self.page.is_logged()
-
-    def login(self):
+    def do_login(self):
         data = {'login': 'Connexion',
                 'username': self.username,
                 'password': self.password,
                }
-        self.location('%s/ucp.php?mode=login' % self.BASEPATH, urllib.urlencode(data), no_login=True)
+        self.location('ucp.php?mode=login', data=data)
 
-        assert self.is_on_page(LoginPage)
-
-        if not self.page.is_logged():
+        if not self.page.logged:
             raise BrowserIncorrectPassword(self.page.get_error_message())
 
+    @need_login
     def get_root_feed_url(self):
         self.home()
         return self.page.get_feed_url()
 
+    @need_login
     def iter_links(self, url):
         if url:
             self.location(url)
         else:
             self.home()
 
-        assert self.is_on_page(ForumPage)
+        assert self.forum.is_here()
         return self.page.iter_links()
 
+    @need_login
     def iter_posts(self, id, stop_id=None):
         if id.startswith('http'):
             self.location(id)
         else:
-            self.location('%s/%s' % (self.BASEPATH, id2url(id)))
-        assert self.is_on_page(TopicPage)
+            self.location('%s/%s' % (self.BASEURL, id2url(id)))
+        assert self.topic.is_here()
 
         parent = 0
         while True:
@@ -109,12 +99,13 @@ class PhpBB(Browser):
                 return
             self.location(self.page.next_page_url())
 
+    @need_login
     def riter_posts(self, id, stop_id=None):
         if id.startswith('http'):
             self.location(id)
         else:
-            self.location('%s/%s' % (self.BASEPATH, id2url(id)))
-        assert self.is_on_page(TopicPage)
+            self.location('%s/%s' % (self.BASEURL, id2url(id)))
+        assert self.topic.is_here()
 
         child = None
         while True:
@@ -132,13 +123,14 @@ class PhpBB(Browser):
                 return
             self.location(self.page.prev_page_url())
 
+    @need_login
     def get_post(self, id):
         if id.startswith('http'):
             self.location(id)
             id = url2id(id)
         else:
-            self.location('%s/%s' % (self.BASEPATH, id2url(id)))
-        assert self.is_on_page(TopicPage)
+            self.location('%s/%s' % (self.BASEURL, id2url(id)))
+        assert self.topic.is_here()
 
         post = self.page.get_post(int(id.split('.')[-1]))
         if not post:
@@ -150,10 +142,12 @@ class PhpBB(Browser):
 
         return post
 
+    @need_login
     def get_forums(self):
         self.home()
         return dict(self.page.iter_all_forums())
 
+    @need_login
     def post_answer(self, forum_id, topic_id, title, content):
         if topic_id == 0:
             if not forum_id:
@@ -172,21 +166,21 @@ class PhpBB(Browser):
             if not forum_id:
                 raise CantSendMessage('Forum "%s" not found.\n\n%s' % (m.group(1), forums_prompt))
 
-            self.location('%s/posting.php?mode=post&f=%d' % (self.BASEPATH, forum_id))
+            self.location('%s/posting.php?mode=post&f=%d' % (self.BASEURL, forum_id))
 
-            assert self.is_on_page(PostingPage)
+            assert self.posting.is_here()
             self.page.post(title, content)
 
-            assert self.is_on_page(PostingPage)
+            assert self.posting.is_here()
             error = self.page.get_error_message()
             if error:
                 raise CantSendMessage(u'Unable to send message: %s' % error)
         else:
-            self.location('%s/%s' % (self.BASEPATH, id2url(topic_id)))
-            assert self.is_on_page(TopicPage)
+            self.location('%s/%s' % (self.BASEURL, id2url('%s.%s' % (forum_id, topic_id))))
+            assert self.topic.is_here()
 
             self.page.go_reply()
-            assert self.is_on_page(PostingPage)
+            assert self.posting.is_here()
 
             # Don't send title because it isn't needed in real use case
             # and with monboob title is something like:
@@ -195,7 +189,7 @@ class PhpBB(Browser):
                 title = None
             self.page.post(title, content)
 
-            assert self.is_on_page(PostingPage)
+            assert self.posting.is_here() or self.topic.is_here()
             error = self.page.get_error_message()
             if error:
                 raise CantSendMessage(u'Unable to send message: %s' % error)
