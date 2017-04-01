@@ -1,1 +1,0 @@
-../creditcooperatif/pro/pages.py
