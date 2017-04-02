@@ -27,7 +27,7 @@ from weboob.capabilities.contact import Advisor
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.pages import LoggedPage, RawPage
 from weboob.browser.filters.html import Link
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Field, BrowserURL
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Field, BrowserURL, Currency
 from weboob.exceptions import BrowserUnavailable
 
 from .base import MyHTMLPage
@@ -53,7 +53,7 @@ class AccountList(LoggedPage, MyHTMLPage):
             klass = Account
 
             obj_id = CleanText('.//abbr/following-sibling::text()')
-            obj_currency = u"EUR"
+            obj_currency = Currency('.//span[@class="number"]')
             obj__link_id = Link(u'./a', default=NotAvailable)
 
             def obj_label(self):
