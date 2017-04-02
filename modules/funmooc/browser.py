@@ -20,6 +20,8 @@
 from __future__ import unicode_literals
 
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser.exceptions import HTTPNotFound
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.image import Thumbnail
 
 from .pages import PageLogin, PageDashboard, PageChapter, PageSection
@@ -31,7 +33,7 @@ import re
 class FunmoocBrowser(LoginBrowser):
     BASEURL = 'https://www.fun-mooc.fr'
 
-    login = URL('/login', PageLogin)
+    login = URL('/login', '/login_ajax', PageLogin)
     dashboard = URL('/dashboard', PageDashboard)
     course = URL('/courses/(?P<course>[^/]+/[^/]+/[^/]+)/courseware/?$',
                  '/courses/(?P<course>[^/]+/[^/]+/[^/]+)/info/?$',
@@ -41,7 +43,7 @@ class FunmoocBrowser(LoginBrowser):
     section = URL('/courses/(?P<course>[^/]+/[^/]+/[^/]+)/courseware/'
                   '(?P<chapter>[0-9a-f]+)/(?P<section>[0-9a-f]+)/$', PageSection)
 
-    file = URL(r'https://d3gzh2mxagd143\.cloudfront\.net/videos/(?P<id>[^/]+)/'
+    file = URL(r'https://.*\.cloudfront\.net/videos/(?P<id>[^/]+)/'
                r'(?P<quality>\w+)\.mp4')
 
     def __init__(self, username, password, quality='hd', *args, **kwargs):
@@ -53,18 +55,14 @@ class FunmoocBrowser(LoginBrowser):
         csrf = self.session.cookies.get('csrftoken')
         self.page.login(self.username, self.password, csrf)
         self.dashboard.stay_or_go()
+        if not self.page.logged:
+            raise BrowserIncorrectPassword()
 
-    def get_video(self, _id):
-        if re.search('[^a-zA-Z0-9_-]', _id):
-            match = self.file.match(_id)
-            if not match:
-                return None
-            _id = match.group('id')
-
-        v = MoocVideo(_id)
-        v.url = self.file.build(id=_id, quality=self.quality)
+    def get_video(self, url):
+        v = MoocVideo(url)
+        v.url = url
         v.ext = 'mp4'
-        v.title = _id
+        v.title = re.sub(r'[:/"]', '-', url)
         return v
 
     @need_login
@@ -73,7 +71,7 @@ class FunmoocBrowser(LoginBrowser):
         assert self.section.stay_or_go(course=course, chapter=chapter, section=section)
 
         for n, d in enumerate(self.page.iter_videos()):
-            video = self.get_video(d['id'])
+            video = self.get_video(d['url'])
             if d.get('thumbnail'):
                 video.thumbnail = Thumbnail(d['thumbnail'])
             if d.get('title'):
@@ -98,3 +96,19 @@ class FunmoocBrowser(LoginBrowser):
     def iter_courses(self):
         assert self.dashboard.stay_or_go()
         return self.page.iter_courses()
+
+    @need_login
+    def check_collection(self, path):
+        if len(path) == 0:
+            return True
+        elif len(path) > 3:
+            return False
+
+        parts = list(zip(('course', 'chapter', 'section'), path))
+        parts[0] = (parts[0][0], parts[0][1].replace('-', '/'))
+        try:
+            getattr(self, parts[-1][0]).open(**dict(parts))
+        except HTTPNotFound:
+            return False
+
+        return True

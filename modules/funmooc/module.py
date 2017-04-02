@@ -20,7 +20,7 @@
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
-from weboob.capabilities.collection import CapCollection
+from weboob.capabilities.collection import CapCollection, CollectionNotFound
 from weboob.capabilities.video import CapVideo, BaseVideo
 
 from .browser import FunmoocBrowser
@@ -36,9 +36,8 @@ class FunmoocModule(Module, CapVideo, CapCollection):
     LICENSE = 'AGPLv3+'
     VERSION = '1.3'
 
-    CONFIG = BackendConfig(Value('email', label='Email', default=''),
-                           ValueBackendPassword('password', label='Password',
-                                                default=''),
+    CONFIG = BackendConfig(Value('email', label='Email'),
+                           ValueBackendPassword('password', label='Password'),
                            Value('quality', label='Quality', default='HD',
                                  choices=['HD', 'SD', 'LD']))
 
@@ -85,3 +84,7 @@ class FunmoocModule(Module, CapVideo, CapCollection):
                             yield item
                         return
                     queue.append(newpath)
+
+    def validate_collection(self, objs, collection):
+        if not self.browser.check_collection(collection.split_path):
+            raise CollectionNotFound()

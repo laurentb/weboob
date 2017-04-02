@@ -19,20 +19,20 @@
 
 
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.elements import method, ListElement, ItemElement
+from weboob.browser.elements import method, ListElement, ItemElement, SkipItem
 from weboob.capabilities.collection import Collection
 from weboob.browser.filters.standard import CleanText
 
 import re
+from HTMLParser import HTMLParser
 
 class PageLogin(HTMLPage):
     def login(self, email, password, csrf):
-        data = {'email': email, 'password': password, 'remember': 'true'}
-        headers = {'X-CSRFToken': csrf}
         form = self.get_form(xpath='//form[contains(@class,"login-form")]')
-
-        req = self.browser.build_request(form.url, data=data, headers=headers)
-        self.browser.open(req)
+        form['email'] = email
+        form['password'] = password
+        form['csrfmiddlewaretoken'] = csrf
+        form.submit()
 
 
 class PageDashboard(LoggedPage, HTMLPage):
@@ -58,7 +58,10 @@ class PageChapter(LoggedPage, HTMLPage):
 
             def obj_split_path(self):
                 # parse first section link
-                url = self.xpath('./following-sibling::div[has-class("chapter-content-container")]//a')[0].get('href')
+                section_links = self.xpath('./following-sibling::div[has-class("chapter-content-container")]//a')
+                if not section_links:
+                    raise SkipItem()
+                url = section_links[0].get('href')
                 url = self.page.browser.absurl(url)
                 match = self.page.browser.section.match(url)
                 courseid = self.env['course'].replace('/', '-')
@@ -90,6 +93,10 @@ class PageChapter(LoggedPage, HTMLPage):
                 return '-'.join(self.obj_split_path())
 
 
+def unescape(s):
+    return HTMLParser().unescape(s)
+
+
 class PageSection(LoggedPage, HTMLPage):
     video_url = re.compile(r'[^\s;]+/HD\.mp4', re.I)
     video_thumb = re.compile(r'reposter=&#34;(.*?)&#34;')
@@ -102,12 +109,11 @@ class PageSection(LoggedPage, HTMLPage):
         for n, page_match in enumerate(self.video_url.finditer(self.text)):
             url = page_match.group(0)
             match = self.browser.file.match(url)
-            _id = match.group('id')
 
-            if _id in urls:
+            if url in urls:
                 # prevent duplicate urls
                 continue
-            urls.add(_id)
+            urls.add(url)
 
             beforetext = self.text[:page_match.end(0)]
             try:
@@ -115,12 +121,12 @@ class PageSection(LoggedPage, HTMLPage):
             except IndexError:
                 thumb = None
             try:
-                title = list(self.video_title.finditer(beforetext))[-1].group(1)
+                title = unescape(unescape(list(self.video_title.finditer(beforetext))[-1].group(1)))
             except IndexError:
-                title = u'%s - %s' % (_id, n)
+                title = u'%s - %s' % (match.group('id'), n)
 
             yield {
-                'id': _id,
+                'url': url,
                 'title': title,
                 'thumbnail': thumb,
             }
