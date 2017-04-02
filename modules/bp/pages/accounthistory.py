@@ -44,9 +44,9 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_ORDER),
                 (re.compile('^(?P<category>ECHEANCEPRET)(?P<text>.*)'),
                                                             FrenchTransaction.TYPE_LOAN_PAYMENT),
-                (re.compile(r'^CARTE \w+ (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) A (?P<HH>\d+)H(?P<MM>\d+) (?P<category>RETRAIT DAB) (?P<text>.*)'),
+                (re.compile(r'^CARTE \w+ (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) A \d+H\d+ (?P<category>RETRAIT DAB) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile(r'^(?P<category>RETRAIT DAB) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) (?P<HH>\d+)H(?P<MM>\d+) (?P<text>.*)'),
+                (re.compile(r'^(?P<category>RETRAIT DAB) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) \d+H\d+ (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile(r'^(?P<category>RETRAIT) (?P<text>.*) (?P<dd>\d{2})\.(?P<mm>\d{2})\.(?P<yy>\d{2})'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
@@ -144,8 +144,6 @@ class AccountHistory(LoggedPage, MyHTMLPage):
                 # on card page, amounts are without sign
                 if op.amount > 0:
                     op.amount = - op.amount
-
-            op.rdate = op.rdate
 
             op._coming = coming
 
