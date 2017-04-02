@@ -52,6 +52,9 @@ class AccountList(LoggedPage, MyHTMLPage):
         class item(ItemElement):
             klass = Account
 
+            def condition(self):
+                return len(self.el.xpath('.//span[@class="number"]')) > 0
+
             obj_id = CleanText('.//abbr/following-sibling::text()')
             obj_currency = Currency('.//span[@class="number"]')
             obj__link_id = Link(u'./a', default=NotAvailable)
