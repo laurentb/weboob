@@ -34,6 +34,13 @@ class CitiesPage(JsonPage):
 
     ENCODING = u'UTF-8'
 
+    def build_doc(self, content):
+        content = super(CitiesPage, self).build_doc(content)
+        if content:
+            return content
+        else:
+            return [{"locations": []}]
+
     @method
     class get_cities(DictElement):
         item_xpath = '0/locations'
