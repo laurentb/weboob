@@ -61,14 +61,14 @@ class LoginPage(HTMLPage):
         # clean string obfuscation like: '\x70\x61\x79\x70\x61\x6c\x20\x73\x75\x63\x6b\x73'
         def basic_decoder(mtc):
             return repr(literal_eval(mtc.group(0)).encode('utf-8'))
-        cleaner_code = re.sub(r"'(?:\\x[0-9a-f]{2})+'", basic_decoder, code)
+        cleaner_code = re.sub(r"'.*?(?<!\\)'", basic_decoder, code)
 
         # clean other obfuscation like: _0x1234('0x42')
         def exec_decoder(mtc):
             return repr(decoder_js.call(decoder_name, literal_eval(mtc.group(1))).encode('utf-8'))
         cleaner_code = re.sub(r"%s\(('[^']+')\)" % re.escape(decoder_name), exec_decoder, cleaner_code)
 
-        code1 = re.search(r'(.*function .*?)\(function\(\)', cleaner_code).group(1)
+        code1 = re.search(r'(.*function .*?\})\(function\(\)', cleaner_code).group(1)
 
         # Another victory for the scrapper team # CommitStrip Data Wars
         code1 = re.sub('return typeof document!="undefined"&&typeof document.createAttribute!="undefined"', 'return 1==1', code1)
