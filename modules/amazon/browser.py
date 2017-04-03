@@ -104,8 +104,11 @@ class Amazon(LoginBrowser):
         Amazon updates its website in stages: they reroute a random part of
         their users to new pages, and the rest to old ones.
         """
-        return self.to_order_page(order_id).order()
-        self.logger.warning('Order %s not found' % order_id)
+
+        try:
+            return self.to_order_page(order_id).order()
+        except AttributeError:
+            self.logger.warning('Order %s not found' % order_id)
 
     def do_login(self):
         self.session.cookies.clear()
