@@ -30,9 +30,17 @@ from weboob.tools.date import DATE_TRANSLATE_FR, LinearDateGuesser
 from decimal import Decimal
 from datetime import date, timedelta
 import re
+from lxml import etree
 
 
 class CityListPage(HTMLPage):
+
+    def build_doc(self, content):
+        content = super(CityListPage, self).build_doc(content)
+        if content.getroot():
+            return content
+        return etree.Element("html")
+
     @method
     class get_cities(ListElement):
         item_xpath = '//li'
