@@ -400,9 +400,10 @@ class Boobank(ReplApplication):
     def bcall_error_handler(self, backend, error, backtrace):
         if isinstance(error, TransferStep):
             params = {}
-            for key, value in error.fields:
-                if key and value:
-                    params[key] = self.ask(value)
+            for field in error.fields:
+                v = self.ask(field)
+                if v:
+                    params[field.id] = v
             #backend.config['accept_transfer'].set(v)
             params['backends'] = backend
             self.start_format()
