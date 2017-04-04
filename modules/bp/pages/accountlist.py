@@ -36,7 +36,8 @@ from .base import MyHTMLPage
 class AccountList(LoggedPage, MyHTMLPage):
     def on_load(self):
         MyHTMLPage.on_load(self)
-        if self.doc.xpath(u'//h2[text()="ERREUR"]'):
+
+        if self.doc.xpath(u'//h2[text()="ERREUR"]'): # website sometime crash
             self.browser.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/initialiser-identif.ea')
 
             raise BrowserUnavailable()
@@ -64,7 +65,7 @@ class AccountList(LoggedPage, MyHTMLPage):
 
             def obj_balance(self):
                 if Field('type')(self) == Account.TYPE_LOAN:
-                    return -CleanDecimal('.//span[@class="number"]', replace_dots=True)(self)
+                    return -abs(CleanDecimal('.//span[@class="number"]', replace_dots=True)(self))
                 return CleanDecimal('.//span[@class="number"]', replace_dots=True, default=NotAvailable)(self)
 
             def obj_coming(self):

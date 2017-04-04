@@ -93,7 +93,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
     par_account_savings_and_invests_history = URL('/voscomptes/canalXHTML/comptesCommun/recherche_CNE/init-recherche_cne.ea\?compte.numero=(?P<accountId>.*)',
                                                   '/voscomptes/canalXHTML/comptesCommun/recherche_CNE/validerSaisie-recherche_cne.ea', AccountHistory)
 
-    cards_list = URL('/voscomptes/canalXHTML/CB/releveCB/init-mouvementsCarteDD.ea\?compte.numero=(?P<account_id>\w+)',
+    cards_list = URL('/voscomptes/canalXHTML/CB/releveCB/init-mouvementsCarteDD.ea\?compte.numero=(?P<account_id>\w+)$',
                      r'.*CB/releveCB/init-mouvementsCarteDD.ea.*',
                      CardsList)
 
@@ -245,17 +245,27 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_card_transactions(self, account):
+        def iter_transactions(self, link):
+            self.location(link)
+
+            for t in range(6, 0, -1):
+                self.par_account_deferred_card_history.go(type=t)
+
+                if self.par_account_deferred_card_history.is_here():
+                    for tr in self.page.get_history(deferred=True):
+                        tr.type = tr.TYPE_CARD
+                        yield tr
+
         if not account._has_cards:
             return
 
-        for link in self.cards_list.go(account_id=account.id).get_cards():
-            self.location(link)
+        self.cards_list.go(account_id=account.id)
 
-            for t in range(6):
-                for tr in self.par_account_deferred_card_history.go(type=t).get_history(deferred=True):
-                    tr.type = tr.TYPE_CARD
-                    yield tr
-
+        if self.cards_list.is_here():
+            for link in self.page.get_cards():
+                return iter_transactions(self, link)
+        else:
+            return iter_transactions(self, account._has_cards)
 
     @need_login
     def iter_investment(self, account):
