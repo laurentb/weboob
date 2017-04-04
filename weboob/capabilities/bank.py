@@ -314,6 +314,8 @@ class Investment(BaseObject):
     """
     Investment in a financial market.
     """
+    CODE_TYPE_ISIN =     'ISIN'
+    CODE_TYPE_AMF =      'AMF'
 
     label =              StringField('Label of stocks')
     code =               StringField('Identifier of the stock')
