@@ -464,9 +464,12 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_recipients(self, origin_account):
+        if origin_account.type == Account.TYPE_LOAN:
+            return []
+
         self.pre_transfer(origin_account)
         if self.page.transfer_unavailable() or self.page.need_auth() or not self.page.can_transfer(origin_account):
-            return iter([])
+            return []
         return self.page.iter_recipients(account_id=origin_account.id)
 
     def pre_transfer(self, account):
