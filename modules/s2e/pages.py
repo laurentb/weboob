@@ -99,12 +99,12 @@ class LoginPage(HTMLPage):
                else cgu
         return cgu or CleanText('//div[contains(text(), "Erreur")]', default='')(self.doc)
 
-
-class AMFCodePage(XMLPage):
+# AMF codes
+class AMFHSBCPage(XMLPage):
     ENCODING = "UTF-8"
 
     def build_doc(self, content):
-        doc = super(AMFCodePage, self).build_doc(content).getroot()
+        doc = super(AMFHSBCPage, self).build_doc(content).getroot()
         # Remove namespaces
         for el in doc.getiterator():
             if not hasattr(el.tag, 'find'):
@@ -115,12 +115,28 @@ class AMFCodePage(XMLPage):
         objectify.deannotate(doc, cleanup_namespaces=True)
         return doc
 
+    def get_amf_code(self):
+        return CleanText('//AMF_Code', default=NotAvailable)(self.doc)
+
+
+class AMFAmundiPage(HTMLPage):
+    def get_amf_code(self):
+        return CleanDecimal('//span[contains(., "(C)")]', default=NotAvailable)(self.doc)
+
+
+class AMFSGPage(HTMLPage):
+    def get_amf_code(self):
+        return CleanDecimal('//div[@id="header_code"]', default=NotAvailable)(self.doc)
+
 
 class ItemInvestment(ItemElement):
     klass = Investment
 
     obj_unitvalue = Env('unitvalue')
     obj_vdate = Env('vdate')
+
+    def obj_code_type(self):
+        return Investment.CODE_TYPE_AMF if Field('code')(self) != NotAvailable else NotAvailable
 
     def obj_label(self):
         return CleanText(TableCell('label')(self)[0].xpath('.//div[contains(@style, \
@@ -130,23 +146,28 @@ class ItemInvestment(ItemElement):
         return MyDecimal(TableCell('valuation')(self)[0].xpath('.//div[not(.//div)]'))(self)
 
     def obj_code(self):
-        # works only on erehsbc for now
-        if "hsbc.fr" not in self.page.browser.BASEURL:
-            return NotAvailable
-
         link_id = Attr(u'.//a[contains(@title, "détail du fonds")]', 'id', default=None)(self)
         inv_id = Attr('.//a[contains(@id, "linkpdf")]', 'id', default=None)(self)
+
         if link_id and inv_id:
             form = self.page.get_form('//div[@id="operation"]//form')
             form['idFonds'] = inv_id.split('-', 1)[-1]
             form['org.richfaces.ajax.component'] = form[link_id] = link_id
+
             page = self.page.browser.open(form['javax.faces.encodedURL'], data=dict(form)).page
-            m = re.search('fundid=(\w+).+SH=(\w+)', CleanText('//complete', default="")(page.doc))
-            if m:
-                # had to put full url to skip redirections.
-                page = page.browser.open('https://www.assetmanagement.hsbc.com/feedRequest?feed_data=gfcFundData&cod=FR&client=FCPE&fId=%s&SH=%s&lId=fr' % m.groups()).page
-                return CleanText('//AMF_Code', default=NotAvailable)(page.doc)
-        return NotAvailable
+
+            if "hsbc.fr" in self.page.browser.BASEURL: # special space for HSBC
+                m = re.search('fundid=(\w+).+SH=(\w+)', CleanText('//complete', default="")(page.doc))
+
+                if m: # had to put full url to skip redirections.
+                    page = page.browser.open('https://www.assetmanagement.hsbc.com/feedRequest?feed_data=gfcFundData&cod=FR&client=FCPE&fId=%s&SH=%s&lId=fr' % m.groups()).page
+            elif "consulteroperations" not in self.page.browser.url: # not on history
+                page = self.page.browser.open(Regexp(CleanText('//complete'), r'openUrlFichesFonds\(\'(.*?)\'\)')(page.doc)).page
+
+        try: # try to get code, else return NotAvailable
+            return page.get_amf_code()
+        except AttributeError:
+            return NotAvailable
 
     def parse(self, el):
         # Trying to find vdate and unitvalue
@@ -196,6 +217,12 @@ class AccountsPage(LoggedPage, MultiPage):
              'PERCOI': Account.TYPE_PERCO,
              'SWISS': Account.TYPE_MARKET
             }
+
+    CONDITIONS = {u'disponible': Pocket.CONDITION_AVAILABLE,
+                  u'available':  Pocket.CONDITION_AVAILABLE,
+                  u'withdrawal': Pocket.CONDITION_RETIREMENT,
+                  u'retraite':   Pocket.CONDITION_RETIREMENT,
+                 }
 
     @method
     class iter_accounts(TableElement):
@@ -264,12 +291,6 @@ class AccountsPage(LoggedPage, MultiPage):
             def obj_portfolio_share(self):
                 return Eval(lambda x: x / 100, MyDecimal(TableCell('portfolio_share')(self)[0] \
                     .xpath('.//div[has-class("nowrap")]'))(self))(self)
-
-    CONDITIONS = {u'disponible': Pocket.CONDITION_AVAILABLE,
-                  u'available':  Pocket.CONDITION_AVAILABLE,
-                  u'withdrawal': Pocket.CONDITION_RETIREMENT,
-                  u'retraite':   Pocket.CONDITION_RETIREMENT,
-                 }
 
     def update_invs_quantity(self, invs):
         for inv in invs:

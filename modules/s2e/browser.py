@@ -21,7 +21,7 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountsPage, AMFCodePage, HistoryPage, ErrorPage
+from .pages import LoginPage, AccountsPage, AMFHSBCPage, AMFAmundiPage, AMFSGPage, HistoryPage, ErrorPage
 
 
 class S2eBrowser(LoginBrowser):
@@ -29,7 +29,9 @@ class S2eBrowser(LoginBrowser):
                 '/portal/j_security_check', LoginPage)
     accounts = URL('/portal/salarie-(?P<slug>\w+)/monepargne/mesavoirs\?language=(?P<lang>)',
                    '/portal/salarie-(?P<slug>\w+)/monepargne/mesavoirs', AccountsPage)
-    amfcode = URL('https://www.assetmanagement.hsbc.com/feedRequest', AMFCodePage)
+    amfcode_hsbc = URL('https://www.assetmanagement.hsbc.com/feedRequest', AMFHSBCPage)
+    amfcode_amundi = URL('https://www.amundi-ee.com/entr/product', AMFAmundiPage)
+    amfcode_sg = URL('http://sggestion-ede.com/product', AMFSGPage)
     history = URL('/portal/salarie-(?P<slug>\w+)/operations/consulteroperations', HistoryPage)
     error = URL('/maintenance/HSBC/', ErrorPage)
 
