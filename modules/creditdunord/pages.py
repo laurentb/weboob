@@ -224,6 +224,10 @@ class AccountsPage(LoggedPage, CDNBasePage):
         for line in data:
             a = Account()
             a.id = line[self.COL_ID].replace(' ', '')
+
+            if re.match(r'Classement=(.*?):::Banque=(.*?):::Agence=(.*?):::SScompte=(.*?):::Serie=(.*)', a.id):
+                a.id = str(CleanDecimal().filter(a.id))
+
             a._acc_nb = a.id.split('_')[0] if len(a.id.split('_')) > 1 else None
             a.label = MyStrip(line[self.COL_LABEL], xpath='.//div[@class="libelleCompteTDB"]')
             # This account can be multiple life insurance accounts
@@ -376,6 +380,9 @@ class ProAccountsPage(AccountsPage):
 
     def iban_page(self):
         self.browser.location(self.doc.xpath('.//a[contains(text(), "Impression IBAN")]')[0].attrib['href'])
+
+    def has_iban(self):
+        return not bool(CleanText('//*[contains(., "pas de compte vous permettant l\'impression de RIB")]')(self.doc))
 
     @method
     class get_profile(ItemElement):

@@ -95,10 +95,14 @@ class CreditDuNordBrowser(LoginBrowser):
         accounts = list(self._iter_accounts())
 
         self.page.iban_page()
+
         link = self.page.iban_go()
-        for a in [a for a in accounts if a._acc_nb]:
-            self.location(link + a._acc_nb)
-            a.iban = self.page.get_iban()
+
+        if self.page.has_iban():
+            for a in [a for a in accounts if a._acc_nb]:
+                self.location(link + a._acc_nb)
+                a.iban = self.page.get_iban()
+
         return iter(accounts)
 
     def get_account(self, id):
