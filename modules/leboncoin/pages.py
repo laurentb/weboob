@@ -117,8 +117,11 @@ class HousingListPage(HTMLPage):
             obj_cost = CleanDecimal('./section[@class="item_infos"]/*[@class="item_price"]/text()',
                                     replace_dots=(',', '.'),
                                     default=Decimal(0))
+            obj_location = CleanText(
+                './section[@class="item_infos"]/*[@itemtype="http://schema.org/Place"]/text()'
+            )
             obj_currency = Regexp(CleanText('./section[@class="item_infos"]/*[@class="item_price"]'),
-                                  '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+                                  '\d+ ([%s%s%s].*)' % (u'€', u'$', u'£'), default=u'€')
             obj_text = Join(' - ', './/p[@class="item_supp"]')
 
             def obj_date(self):
@@ -137,9 +140,19 @@ class HousingListPage(HTMLPage):
 
             def obj_photos(self):
                 photos = []
-                url = Attr('./div[@class="item_image"]/span/span/img', 'src', default=None)(self)
+                url = Attr(
+                    './div[@class="item_image"]/span/span[@class="lazyload"]',
+                    'data-imgsrc',
+                    default=None
+                )(self)
                 if url:
-                    photos.append(HousingPhoto(url))
+                    photos.append(
+                        HousingPhoto(
+                            "https:{}".format(
+                                url.replace("ad-thumb", "ad-image")
+                            )
+                        )
+                    )
                 return photos
 
 
