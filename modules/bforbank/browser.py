@@ -21,11 +21,12 @@
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.bank import Account, AccountNotFound
+from weboob.capabilities.base import empty
 
 from .pages import (
     LoginPage, ErrorPage, AccountsPage, HistoryPage, LoanHistoryPage, RibPage,
     LifeInsuranceList, LifeInsuranceIframe, LifeInsuranceRedir,
-    BoursePage, CardHistoryPage,
+    BoursePage, CardHistoryPage, CardPage,
 )
 from .spirica_browser import SpiricaBrowser
 
@@ -41,6 +42,7 @@ class BforbankBrowser(LoginBrowser):
     loan_history = URL('/espace-client/livret/consultation.*', LoanHistoryPage)
     history = URL('/espace-client/consultation/operations/.*', HistoryPage)
     card_history = URL('espace-client/consultation/encoursCarte/.*', CardHistoryPage)
+    card_page = URL(r'/espace-client/carte/(?P<account>\d+)$', CardPage)
 
     lifeinsurance_list = URL(r'/client/accounts/lifeInsurance/lifeInsuranceSummary.action', LifeInsuranceList)
     lifeinsurance_iframe = URL(r'/client/accounts/lifeInsurance/consultationDetailSpirica.action', LifeInsuranceIframe)
@@ -78,10 +80,32 @@ class BforbankBrowser(LoginBrowser):
     def iter_accounts(self):
         if self.accounts is None:
             self.home.stay_or_go()
-            self.accounts = list(self.page.iter_accounts())
+            accounts = list(self.page.iter_accounts())
             if self.page.RIB_AVAILABLE:
-                self.rib.go().populate_rib(self.accounts)
+                self.rib.go().populate_rib(accounts)
+
+            self.accounts = []
+            for account in accounts:
+                self.accounts.append(account)
+
+                if account.type == Account.TYPE_CHECKING:
+                    self.card_page.go(account=account.id)
+                    card = self.page.get_card(account.id)
+                    if card is not None:
+                        # if there's a credit card (not debit), create a separate, virtual account
+                        card._link = account._link
+                        card.balance = account._card_balance
+                        assert not empty(card.balance)
+                        account._deferred_account = card
+                        # insert it near its companion checking account
+                        self.accounts.append(card)
+
         return iter(self.accounts)
+
+    def _get_card_transactions(self, account):
+        self.location(account._link.replace('tableauDeBord', 'encoursCarte') + '/0?month=1')
+        assert self.card_history.is_here()
+        return list(self.page.get_operations())
 
     @need_login
     def get_history(self, account):
@@ -100,24 +124,26 @@ class BforbankBrowser(LoginBrowser):
             return self.spirica.iter_history(account)
 
         history = []
-        self.location(account._link.replace('tableauDeBord', 'operations'))
-        assert self.history.is_here() or self.loan_history.is_here()
-        history.extend(self.page.get_operations())
-
-        if account.type == Account.TYPE_CHECKING:
-            # TODO same as get_coming, we should handle more than one card
-            # TODO what if no deferred card?
-            self.location(account._link.replace('tableauDeBord', 'encoursCarte') + '/0?month=1')
-            assert self.card_history.is_here()
+        if account.type != Account.TYPE_CARD:
+            self.location(account._link.replace('tableauDeBord', 'operations'))
+            assert self.history.is_here() or self.loan_history.is_here()
             history.extend(self.page.get_operations())
-            history.sort(reverse=True, key=lambda tr: tr.date or tr.rdate)
 
+        if account.type == Account.TYPE_CARD or (
+           account.type == Account.TYPE_CHECKING and not hasattr(account, '_deferred_account')):
+            # FIXME this page only works for TYPE_CARD?
+            # TODO same as get_coming, we should handle more than one card
+            history.extend(self._get_card_transactions(account))
+
+        history.sort(reverse=True, key=lambda tr: tr.date or tr.rdate)
         return history
 
     @need_login
     def get_coming(self, account):
-        if account.type != Account.TYPE_CHECKING:
+        if account.type not in (Account.TYPE_CHECKING, Account.TYPE_CARD):
             raise NotImplementedError()
+        elif account.type == Account.TYPE_CHECKING and hasattr(account, '_deferred_account'):
+            return []
 
         # TODO there could be multiple cards, how to find the number of cards?
         self.location(account._link.replace('tableauDeBord', 'encoursCarte') + '/0')

@@ -148,9 +148,11 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_currency = FrenchTransaction.Currency('./td//div[contains(@class, "-synthese-num")]')
             obj_type = Map(Regexp(Field('label'), r'^([^ ]*)'), TYPE, default=Account.TYPE_UNKNOWN)
             obj__link = CleanText('./@data-href')
+            obj__card_balance = CleanDecimal('./td//div[@class="synthese-encours"]/div[2]', default=None)
 
             def condition(self):
                 return not len(self.el.xpath('./td[@class="chart"]'))
+
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^(?P<category>VIREMENT)'), FrenchTransaction.TYPE_TRANSFER),
@@ -239,6 +241,32 @@ class CardHistoryPage(LoggedPage, HTMLPage):
             obj_date = Date(Regexp(CleanText('//div[@class="m-tabs-tab-meta"]'),
                                    ur'Ces opérations (?:seront|ont été) débitées sur votre compte le (\d{2}/\d{2}/\d{4})'),
                             dayfirst=True)
+
+
+class CardPage(LoggedPage, HTMLPage):
+    def get_card(self, account_id):
+        divs = self.doc.xpath('//div[@class="content-boxed"]')
+        msg = u'Vous avez fait opposition sur cette carte bancaire.'
+        divs = [d for d in divs if msg not in CleanText('.//div[has-class("alert")]', default='')(d)]
+        divs = [d.xpath('.//div[@class="m-card-infos"]')[0] for d in divs]
+
+        assert len(divs) == 1, 'only one card is handled, not %d' % len(divs)
+        for div in divs:
+            label = CleanText('.//div[@class="m-card-infos-body-title"]')(div)
+            number = CleanText('.//div[@class="m-card-infos-body-num"]', default='')(div)
+            number = re.sub('[^\d*]', '', number).replace('*', 'x')
+            debit = CleanText(u'.//div[@class="m-card-infos-body-text"][contains(text(),"Débit")]')(div)
+            if debit == u'Débit immédiat':
+                self.logger.debug('immediate debit card %s', number)
+                return
+            assert debit == u'Débit différé', 'unrecognized card type %s: %s' % (number, debit)
+
+            card = Account()
+            card.id = '%s.%s' % (account_id, number)
+            card.label = label
+            card.number = number
+            card.type = Account.TYPE_CARD
+            return card
 
 
 class LifeInsuranceList(LoggedPage, HTMLPage):
