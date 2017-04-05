@@ -18,13 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
+import urllib
 from decimal import Decimal
 from datetime import datetime
 from weboob.browser.filters.json import Dict
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.pages import JsonPage, HTMLPage, pagination
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, BrowserURL, Filter, Format
-from weboob.browser.filters.html import CleanHTML, XPath
+from weboob.browser.filters.standard import Async, AsyncLoad, CleanText, CleanDecimal, Regexp, Env, BrowserURL, Filter, Format
+from weboob.browser.filters.html import Attr, CleanHTML, Link, XPath
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.housing import Housing, HousingPhoto, City
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
@@ -73,29 +74,54 @@ class SearchPage(HTMLPage):
 
             obj_id = CleanText('./@data-classified-id')
             obj_title = CleanText('./div/h2[@itemprop="name"]/a')
-            obj_location = CleanText('./div/h2[@itemprop="name"]/span[class="item-localisation"]')
+            obj_location = CleanText('./div/h2[@itemprop="name"]/span[@class="item-localisation"]/span[@class="localisation-label"]/strong')
             obj_cost = CleanDecimal('./div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]',
                                     default=NotAvailable)
             obj_currency = Regexp(CleanText('./div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]'),
-                                  '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+                                  '.*([%s%s%s].*)' % (u'€', u'$', u'£'), default=u'€')
             obj_text = CleanText('./div/div/div[@itemprop="description"]')
             obj_area = CleanDecimal(Regexp(CleanText('./div/h2[@itemprop="name"]/a'),
                                            '(.*?)(\d*) m2(.*?)', '\\2', default=None),
                                     default=NotAvailable)
+            obj_url = Format(
+                "http://www.explorimmo.com%s",
+                Link('./div/div/ul/li/a[has-class("js-goto-classified")]')
+            )
             obj_price_per_meter = PricePerMeterFilter()
 
             def obj_phone(self):
-                phone = CleanText('./div/div/ul/li/span[@class="js-clickphone"]',
+                phone = CleanText('./div/div/ul/li[has-class("js-clickphone")]',
                                   replace=[(u'Téléphoner : ', u'')],
                                   default=NotAvailable)(self)
 
                 if '...' in phone:
                     return NotLoaded
+
                 return phone
 
+            def obj_details(self):
+                charges = CleanText('./div/div/span[@class="price-fees"]',
+                                    default=None)(self)
+                if charges:
+                    return {
+                        "Charges": charges.replace("Charges :", "").strip()
+                    }
+                else:
+                    return NotLoaded
+
             def obj_photos(self):
-                url = CleanText('./div/div/a/img[@itemprop="image"]/@src')(self)
-                return [HousingPhoto(url)]
+                url = Attr(
+                    './div/div/a/div/img[@itemprop="image"]',
+                    'src',
+                    default=None
+                )(self)
+                if url:
+                    url = urllib.unquote(url)
+                    if "http://" in url[3:]:
+                        url = url[url.find("http://", 3):url.rfind("?")]
+                    return [HousingPhoto(url)]
+                else:
+                    return NotAvailable
 
 
 class TypeDecimal(Filter):
