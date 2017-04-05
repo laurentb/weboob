@@ -71,9 +71,32 @@ class SearchResultsPage(HTMLPage):
                                '.* / (.*)')(self)
                 return parse_french_date(_date)
 
-            obj_station = CleanText('./div/div/div[@cladd=metro]', default=NotAvailable)
+            obj_station = CleanText('./div[@class="box-body"]/div/div/p[@class="item-transports"]', default=NotAvailable)
             obj_location = CleanText('./div[@class="box-body"]/div/div/p[@class="item-description"]/strong')
             obj_text = CleanText('./div[@class="box-body"]/div/div/p[@class="item-description"]')
+            obj_rooms = CleanDecimal(
+                './div[@class="box-body"]/div/div/div[@class="clearfix"]/ul[has-class("item-summary")]/li[1]/strong',
+                default=NotAvailable
+            )
+
+            def obj_bedrooms(self):
+                rooms_bedrooms_area = XPath(
+                    './div[@class="box-body"]/div/div/div[@class="clearfix"]/ul[has-class("item-summary")]/li'
+                )(self)
+                if len(rooms_bedrooms_area) > 2:
+                    return CleanDecimal(
+                        './div[@class="box-body"]/div/div/div[@class="clearfix"]/ul[has-class("item-summary")]/li[2]/strong',
+                        default=NotAvailable
+                    )(self)
+                else:
+                    return NotAvailable
+
+            obj_url = Format(
+                u'http://www.pap.fr%s',
+                Link(
+                    './div[@class="box-body"]/div/div/div[@class="clearfix"]/div[@class="float-right"]/a'
+                )
+            )
 
             def obj_photos(self):
                 photos = []
