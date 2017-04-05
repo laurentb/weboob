@@ -257,7 +257,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
                         yield tr
 
         if not account._has_cards:
-            return
+            return iter([])
 
         self.cards_list.go(account_id=account.id)
 
