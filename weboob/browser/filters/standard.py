@@ -426,7 +426,7 @@ class CleanText(Filter):
             if children:
                 txt = [t.strip() for t in txt.itertext()]
             else:
-                txt = [txt.text.strip()]
+                txt = [t.strip() for t in txt.xpath('./text()')]
             txt = u' '.join(txt)  # 'foo   bar'
         if newlines:
             txt = re.compile(u'\s+', flags=re.UNICODE).sub(u' ', txt)  # 'foo bar'
