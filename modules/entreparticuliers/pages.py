@@ -66,17 +66,51 @@ class SearchPage(EntreParticuliersXMLPage):
                             CleanText('./Rubrique'),
                             CleanText('./Source'))
             obj_title = CleanText('./MiniINfos')
-            obj_cost = CleanDecimal('./Prix', default=Decimal(0))
+            obj_location = Format(
+                '%s (%s)',
+                CleanText('./Localisation'),
+                CleanText('./Codepostal')
+            )
+            obj_cost = CleanDecimal('./Prix', default=NotAvailable)
             obj_currency = u'€'
-            obj_text = Format('%s / %s', CleanText('Localisation'),
-                              CleanText('./MiniINfos'))
+            obj_text = CleanText('./Description')
             obj_date = datetime.now
+
+            obj_area = CleanDecimal(
+                Regexp(
+                    CleanText('./MiniINfos'),
+                    '/\s(\d+)\s'
+                ),
+                default=NotAvailable
+            )
+            obj_rooms = CleanDecimal(
+                Regexp(
+                    CleanText('./MiniINfos'),
+                    '^(\d)+ .*'
+                ),
+                default=NotAvailable
+            )
 
             def obj_url(self):
                 url = CleanText('./LienDetail')(self)
                 if not url.startswith('http'):
                     url = u'http://www.entreparticuliers.com%s' % url
                 return url
+
+            def obj_photos(self):
+                photos = []
+                url = CleanText('./LienImage1')(self)
+                if url:
+                    if "leboncoin.fr" in url:
+                        # For leboncoin, use the real image, not the thumbnail
+                        url = url.replace("ad-thumb", "ad-image")
+
+                    photos.append(
+                        HousingPhoto(
+                            url
+                        )
+                    )
+                return photos
 
 
 class HousingPage(EntreParticuliersXMLPage):
