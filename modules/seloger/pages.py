@@ -55,7 +55,16 @@ class SeLogerItem(ItemElement):
     obj_area = CleanDecimal('surface', default=NotAvailable)
     obj_price_per_meter = PricePerMeterFilter()
     obj_text = CleanText('descriptif')
-    obj_location = CleanText('ville')
+
+    def obj_location(self):
+        location = CleanText('adresse', default="")(self)
+        quartier = CleanText('quartier', default=None)(self)
+        if not location and quartier is not None:
+            location = quartier
+        ville = CleanText('ville')(self)
+        cp = CleanText('cp')(self)
+        return u'%s %s (%s)' % (location, ville, cp)
+
     obj_station = CleanText('proximite', default=NotAvailable)
     obj_url = CleanText('permaLien')
 
@@ -72,6 +81,9 @@ class SearchResultsPage(XMLPage):
                 return page
 
         class item(SeLogerItem):
+            obj_rooms = CleanDecimal('nbPiece', default=NotAvailable)
+            obj_bedrooms = CleanDecimal('nbChambre', default=NotAvailable)
+
             def obj_photos(self):
                 photos = []
 
@@ -95,14 +107,6 @@ class HousingPage(XMLPage):
                 photos.append(HousingPhoto(url))
             return photos
 
-        def obj_location(self):
-            location = CleanText('//detailAnnonce/adresse')(self)
-            quartier = CleanText('//detailAnnonce/quartier', default=None)(self)
-            if not location and quartier is not None:
-                location = quartier
-            ville = CleanText('ville')(self)
-            return u'%s %s' % (location, ville)
-
         def obj_details(self):
             details = {}
             for detail in XPath('//detailAnnonce/details/detail')(self):
@@ -112,3 +116,5 @@ class HousingPage(XMLPage):
             return details
 
         obj_phone = CleanText('//contact/telephone')
+        obj_rooms = CleanDecimal('nbPieces', default=NotAvailable)
+        obj_bedrooms = CleanDecimal('nbChambres', default=NotAvailable)

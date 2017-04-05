@@ -44,6 +44,10 @@ class HousingFormatter(IFormatter):
         result += u'Area: %s\n' % area
         if hasattr(obj, 'price_per_meter') and not empty(obj.price_per_meter):
             result += u'Price per square meter: %.2f %s/m²\n' % (obj.price_per_meter, obj.currency)
+        if hasattr(obj, 'rooms') and not empty(obj.rooms):
+            result += u'Rooms: %d\n' % (obj.rooms)
+        if hasattr(obj, 'bedrooms') and not empty(obj.bedrooms):
+            result += u'Bedrooms: %d\n' % (obj.bedrooms)
         if obj.date:
             result += 'Date: %s\n' % obj.date.strftime('%Y-%m-%d')
         result += 'Phone: %s\n' % obj.phone

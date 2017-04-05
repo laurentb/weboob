@@ -69,6 +69,8 @@ class Housing(BaseObject):
     text =            StringField('Text of the housing')
     phone =           StringField('Phone number to contact')
     photos =          Field('List of photos', list)
+    rooms =           DecimalField('Number of rooms')
+    bedrooms =        DecimalField('Number of bedrooms')
     details =         Field('Key/values of details', dict)
 
 
