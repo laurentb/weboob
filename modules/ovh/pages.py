@@ -64,3 +64,4 @@ class BillsPage(LoggedPage, JsonPage):
             obj_type = u"bill"
             obj_price = CleanDecimal(Dict('priceWithTax/value'))
             obj_url = Dict('pdfUrl')
+            obj_label = Format('Facture %s', Dict('orderId'))
