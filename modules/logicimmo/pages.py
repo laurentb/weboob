@@ -17,11 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import Format, CleanText, Regexp, CleanDecimal, Date, Env, BrowserURL
-from weboob.browser.filters.html import XPath, CleanHTML
+from weboob.browser.filters.html import Attr, XPath, CleanHTML
 from weboob.capabilities.housing import Housing, HousingPhoto, City
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
@@ -142,25 +144,108 @@ class SearchPage(HTMLPage):
 
     @method
     class iter_housings(ListElement):
-        item_xpath = '//div[@class="offer-block "]'
+        item_xpath = '//div[has-class("offer-block")]'
 
         class item(ItemElement):
+            offer_details_wrapper = (
+                './div/div/div[has-class("offer-details-wrapper")]'
+            )
             klass = Housing
 
-            obj_id = Format('%s-%s', Regexp(Env('type'), '(.*)-.*'),
-                            CleanText('./@id', replace=[('header-offer-', '')]))
-            obj_title = CleanText('./div/div/div[@class="offer-details-wrapper"]/div/div/p[@class="offer-type"]/span/@title')
-            obj_area = CleanDecimal('./div/div/div[@class="offer-details-wrapper"]/div/div/div/div/h3/a/span[@class="offer-area-number"]',
-                                    default=0)
-            obj_cost = CleanDecimal(Regexp(CleanText('./div/div/div[@class="offer-details-wrapper"]/div/div/p[@class="offer-price"]/span',
-                                                     default=NotAvailable),
-                                           '(.*) [%s%s%s]' % (u'€', u'$', u'£'),
-                                           default=NotAvailable),
-                                    default=0)
-            obj_currency = Regexp(CleanText('./div/div/div[@class="offer-details-wrapper"]/div/div/p[@class="offer-price"]/span',
-                                            default=NotAvailable),
-                                  '.* ([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
-            obj_date = Date(Regexp(CleanText('./div/div/div[has-class("offer-picture-more")]/div/p[@class="offer-update"]'),
-                                   ".*(\d{2}/\d{2}/\d{4}).*"))
-            obj_text = CleanText('./div/div/div[@class="offer-details-wrapper"]/div/div/div/p[has-class("offer-description")]/span')
-            obj_location = CleanText('./div/div/div[@class="offer-details-wrapper"]/div/div/div/div/h2')
+            obj_id = Format(
+                '%s-%s',
+                Regexp(Env('type'), '(.*)-.*'),
+                CleanText('./@id', replace=[('header-offer-', '')])
+            )
+            obj_title = Attr(
+                offer_details_wrapper + '/div/div/p[@class="offer-type"]/a',
+                'title'
+            )
+            obj_url = Format(
+                "http://www.logic-immo.com/%s.htm",
+                CleanText(
+                    './@id',
+                    replace=[('header-offer-', 'detail-location-')]
+                )
+            )
+            obj_area = CleanDecimal(
+                (
+                    offer_details_wrapper +
+                    '/div/div/div[has-class("offer-details-second")]' +
+                    '/div/h3[has-class("offer-attributes")]/span' +
+                    '/span[has-class("offer-area-number")]'
+                ),
+                default=NotAvailable
+            )
+            obj_rooms = CleanDecimal(
+                (
+                    offer_details_wrapper +
+                    '/div/div/div[has-class("offer-details-second")]' +
+                    '/div/h3[has-class("offer-attributes")]' +
+                    '/span[has-class("offer-rooms")]' +
+                    '/span[has-class("offer-rooms-number")]'
+                ),
+                default=NotAvailable
+            )
+            obj_price_per_meter = PricePerMeterFilter()
+            obj_cost = CleanDecimal(
+                Regexp(
+                    CleanText(
+                        (
+                            offer_details_wrapper +
+                            '/div/div/p[@class="offer-price"]/span'
+                        ),
+                        default=NotAvailable
+                    ),
+                    '(.*) [%s%s%s]' % (u'€', u'$', u'£'),
+                    default=NotAvailable
+                ),
+                default=NotAvailable
+            )
+            obj_currency = Regexp(
+                CleanText(
+                    offer_details_wrapper + '/div/div/p[has-class("offer-price")]/span',
+                    default=NotAvailable
+                ),
+                '.* ([%s%s%s])' % (u'€', u'$', u'£'), default=u'€'
+            )
+            obj_date = Date(
+                Regexp(
+                    CleanText(
+                        './div/div/div[has-class("offer-picture-more")]/div/p[has-class("offer-update")]'
+                    ),
+                    ".*(\d{2}/\d{2}/\d{4}).*")
+            )
+            obj_text = CleanText(
+                offer_details_wrapper + '/div/div/div/p[has-class("offer-description")]/span'
+            )
+            obj_location = CleanText(
+                offer_details_wrapper + '/div/div/div/div/h2'
+            )
+
+            def obj_photos(self):
+                photos = []
+                url = Attr(
+                    './div/div/div/div[has-class("picture-wrapper")]/div/img',
+                    'src'
+                )(self)
+                if url:
+                    photos.append(HousingPhoto(url))
+                return photos
+
+            def obj_details(self):
+                details = {}
+                honoraires = CleanText(
+                    (
+                        self.offer_details_wrapper +
+                        '/div/div/p[@class="offer-agency-fees"]'
+                    ),
+                    default=None
+                )(self)
+                if honoraires:
+                    details["Honoraires"] = (
+                        "{} (TTC, en sus)".format(
+                            honoraires.split(":")[1].strip()
+                        )
+                    )
+                return details
