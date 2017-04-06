@@ -93,12 +93,13 @@ class AccountList(LoggedPage, MyHTMLPage):
 
             def obj_type(self):
                 type = Regexp(CleanText('../../preceding-sibling::div[@class="avoirs"][1]/span[1]'), r'(\d+) (.*)', '\\2')(self)
-
                 types = {'comptes? bancaires?': Account.TYPE_CHECKING,
                          'livrets?': Account.TYPE_SAVINGS,
                          'epargnes? logement': Account.TYPE_SAVINGS,
                          'comptes? titres? et pea': Account.TYPE_MARKET,
                          'assurances? vie et retraite': Account.TYPE_LIFE_INSURANCE,
+                         u'prêt': Account.TYPE_LOAN,
+                         u'crédits?': Account.TYPE_LOAN,
                         }
 
                 for atypetxt, atype in types.iteritems():
@@ -109,17 +110,6 @@ class AccountList(LoggedPage, MyHTMLPage):
 
             def obj__has_cards(self):
                 return Link(u'.//a[contains(., "Débit différé")]', default=None)(self)
-
-class LoanAccountList(AccountList):
-    @property
-    def no_accounts(self):
-        return len(self.doc.xpath('//iframe[contains(@src, "/prets_nonclient")]')) > 0
-
-
-    def iter_accounts(self):
-        for a in super(LoanAccountList, self).iter_accounts():
-            a.type = Account.TYPE_LOAN
-            yield a
 
 
 class Advisor(LoggedPage, MyHTMLPage):
