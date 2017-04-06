@@ -135,12 +135,18 @@ class SearchPage(HTMLPage):
                                             default=NotAvailable),
                                   '.* ([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
 
-            obj_text = CleanText('./div/div[@class="content-offer"]/section[has-class("content-desc")]/p/span[has-class("offer-text")]/@title')
+            obj_text = CleanText(
+                './div/div[@class="content-offer"]/section[has-class("content-desc")]/p/span[has-class("offer-text")]/@title',
+                default=NotAvailable
+            )
 
             obj_date = Date(Regexp(CleanText('./div/header/section/p[has-class("update-date")]'),
                                    ".*(\d{2}/\d{2}/\d{4}).*"))
 
-            obj_location = CleanText('(./div/div[@class="content-offer"]/section[has-class("content-desc")]/p)[1]/span/@title')
+            obj_location = CleanText(
+                '(./div/div[@class="content-offer"]/section[has-class("content-desc")]/p)[1]/span/@title',
+                default=NotAvailable
+            )
 
     @method
     class iter_housings(ListElement):
@@ -220,7 +226,8 @@ class SearchPage(HTMLPage):
                 offer_details_wrapper + '/div/div/div/p[has-class("offer-description")]/span'
             )
             obj_location = CleanText(
-                offer_details_wrapper + '/div/div/div/div/h2'
+                offer_details_wrapper +
+                '//div[has-class("offer-places-block")]'
             )
 
             def obj_photos(self):
