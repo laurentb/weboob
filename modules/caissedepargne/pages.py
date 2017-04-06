@@ -855,12 +855,21 @@ class TransferPage(TransferErrorPage, IndexPage):
                     self.env['iban'] = match.iban
                     self.env['bank_name'] = u"Caisse d'Épargne"
                     self.env['label'] = match.label
-                else:
+                # Usual case
+                elif Attr('.', 'value')(self)[1] == '-':
                     # <recipient name> - <account number or iban> - <bank name (optional)> <optional last dash>
                     mtc = re.match('(?P<label>.+) - (?P<id>[^-]+) -(?P<bank> [^-]*)?-?$', CleanText('.')(self))
                     assert mtc
                     self.env['id'] = self.env['iban'] = mtc.group('id')
                     self.env['bank_name'] = (mtc.group('bank') and mtc.group('bank').strip()) or NotAvailable
+                    self.env['label'] = mtc.group('label')
+                # Fcking corner case
+                else:
+                    mtc = re.match('(?P<id>.+) - (?P<label>[^-]+) -( [^-]*)?-?$', CleanText('.')(self))
+                    assert mtc
+                    self.env['id'] = mtc.group('id')
+                    self.env['iban'] = NotAvailable
+                    self.env['bank_name'] = NotAvailable
                     self.env['label'] = mtc.group('label')
 
     def continue_transfer(self, origin_label, recipient, label):
