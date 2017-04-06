@@ -80,6 +80,10 @@ class ConnectionThresholdPage(HTMLPage):
         return True
 
     def on_load(self):
+        # XXX it seems it isn't possible anymore to reset password to previous
+        # one.
+        raise BrowserPasswordExpired()
+
         if not self.looks_legit(self.browser.password):
             # we may not be able to restore the password, so reject it
             raise BrowserPasswordExpired()
