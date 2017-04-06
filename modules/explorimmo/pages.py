@@ -24,7 +24,7 @@ from datetime import datetime
 from weboob.browser.filters.json import Dict
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.pages import JsonPage, HTMLPage, pagination
-from weboob.browser.filters.standard import Async, AsyncLoad, CleanText, CleanDecimal, Regexp, Env, BrowserURL, Filter, Format
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, BrowserURL, Filter, Format
 from weboob.browser.filters.html import Attr, CleanHTML, Link, XPath
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.housing import Housing, HousingPhoto, City
