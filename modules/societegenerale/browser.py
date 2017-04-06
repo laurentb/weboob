@@ -53,7 +53,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     advisor = URL('/com/contacts.html', AdvisorPage)
 
     recipients = URL('/personnalisation/per_cptBen_modifier_liste.html', RecipientsPage)
-    transfer = URL('/virement/pas_vipon_saisie.html', '/lgn/url.html\?dup', TransferPage)
+    transfer = URL('/virement/pas_vipon_saisie.html', '/lgn/url.html', TransferPage)
     add_recipient = URL('/lgn/url.html', AddRecipientPage)
     json_recipient = URL('/sec/getsigninfo.json', '/sec/csa/send.json', '/sec/oob_sendoob.json', '/sec/oob_polling.json', RecipientJson)
 
