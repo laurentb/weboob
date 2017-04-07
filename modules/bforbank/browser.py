@@ -124,7 +124,6 @@ class BforbankBrowser(LoginBrowser):
 
             return self.spirica.iter_history(account)
 
-        history = []
         if account.type != Account.TYPE_CARD:
             self.location(account._link.replace('tableauDeBord', 'operations'))
             assert self.history.is_here() or self.loan_history.is_here()
