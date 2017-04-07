@@ -549,8 +549,16 @@ class CardsOpePage(OperationsPage):
             obj_rdate = Transaction.Date(TableCell('date'))
             obj_date = obj_vdate = Env('date')
             obj__is_coming = Env('_is_coming')
-            obj_amount = CleanDecimal(Env('amount'), replace_dots=True)
+
+            obj__gross_amount = CleanDecimal(Env('amount'), replace_dots=True)
             obj_commission = CleanDecimal(Format('-%s', Env('commission')), replace_dots=True, default=NotAvailable)
+
+            def obj_amount(self):
+                commission = Field('commission')(self)
+                gross = Field('_gross_amount')(self)
+                if empty(commission):
+                    return gross
+                return (abs(gross) - abs(commission)).copy_sign(gross)
 
             def parse(self, el):
                 self.env['date'] = Date(Regexp(CleanText(u'//td[contains(text(), "Total prélevé")]'), ' (\d{2}/\d{2}/\d{4})', \
