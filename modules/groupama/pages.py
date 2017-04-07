@@ -40,7 +40,10 @@ class LoginPage(HTMLPage):
 
 class AccountsPage(LoggedPage, HTMLPage):
     ACCOUNT_TYPES = {u'Solde des comptes bancaires - Groupama Banque':  Account.TYPE_CHECKING,
+                     u'Solde des comptes bancaires':                    Account.TYPE_CHECKING,
                      u'Epargne bancaire constituée - Groupama Banque':  Account.TYPE_SAVINGS,
+                     u'Epargne bancaire constituée':                    Account.TYPE_CHECKING,
+                     u'Mes crédits':                                    Account.TYPE_LOAN,
                      u'Assurance Vie':                                  Account.TYPE_LIFE_INSURANCE}
 
     @method
@@ -60,7 +63,10 @@ class AccountsPage(LoggedPage, HTMLPage):
             def obj_type(self):
                 return self.page.ACCOUNT_TYPES.get(CleanText('.//parent::table/tr[1]/th[1]')(self), Account.TYPE_UNKNOWN)
 
-            obj_balance = CleanDecimal('./td[3]', replace_dots=True, default=NotAvailable)
+            def obj_balance(self):
+                balance = CleanDecimal('./td[3]', replace_dots=True, default=NotAvailable)(self)
+                return -abs(balance) if Field('type')(self) == Account.TYPE_LOAN else balance
+
             obj_currency = u"EUR"
             obj_id = Regexp(Field('label'), u'N° (\w+)')
 
