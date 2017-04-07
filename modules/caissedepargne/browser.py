@@ -25,7 +25,7 @@ import datetime
 
 from weboob.browser import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
-from weboob.capabilities.bank import Account, AddRecipientStep, Recipient
+from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, TransferBankError
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
@@ -467,7 +467,11 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if origin_account.type == Account.TYPE_LOAN:
             return []
 
-        self.pre_transfer(origin_account)
+        # Transfer unavailable
+        try:
+            self.pre_transfer(origin_account)
+        except TransferBankError:
+            return []
         if self.page.transfer_unavailable() or self.page.need_auth() or not self.page.can_transfer(origin_account):
             return []
         return self.page.iter_recipients(account_id=origin_account.id)
