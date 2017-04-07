@@ -382,19 +382,20 @@ class HomePage(LoggedPage, MyHTMLPage):
 
 
 class AccountsPage(LoggedPage, MyHTMLPage):
-    ACCOUNT_TYPES = {u'Mes comptes d\'épargne':        Account.TYPE_SAVINGS,
-                     u'Mon épargne':                   Account.TYPE_SAVINGS,
-                     u'Placements':                    Account.TYPE_SAVINGS,
-                     u'Liste complète de mon épargne': Account.TYPE_SAVINGS,
-                     u'Mes comptes':                   Account.TYPE_CHECKING,
-                     u'Comptes en euros':              Account.TYPE_CHECKING,
-                     u'Liste complète de mes comptes': Account.TYPE_CHECKING,
-                     u'Mes emprunts':                  Account.TYPE_LOAN,
-                     u'Liste complète de mes emprunts':Account.TYPE_LOAN,
-                     u'Financements':                  Account.TYPE_LOAN,
-                     u'Mes services':                  None,    # ignore this kind of accounts (no bank ones)
-                     u'Équipements':                   None,    # ignore this kind of accounts (no bank ones)
-                     u'Synthèse':                      None,    # ignore this title
+    ACCOUNT_TYPES = {u'Mes comptes d\'épargne':            Account.TYPE_SAVINGS,
+                     u'Mon épargne':                       Account.TYPE_SAVINGS,
+                     u'Placements':                        Account.TYPE_SAVINGS,
+                     u'Liste complète de mon épargne':     Account.TYPE_SAVINGS,
+                     u'Mes comptes':                       Account.TYPE_CHECKING,
+                     u'Comptes en euros':                  Account.TYPE_CHECKING,
+                     u'Liste complète de mes comptes':     Account.TYPE_CHECKING,
+                     u'Mes emprunts':                      Account.TYPE_LOAN,
+                     u'Liste complète de mes emprunts':    Account.TYPE_LOAN,
+                     u'Financements':                      Account.TYPE_LOAN,
+                     u'Liste complète de mes engagements': Account.TYPE_LOAN,
+                     u'Mes services':                      None,    # ignore this kind of accounts (no bank ones)
+                     u'Équipements':                       None,    # ignore this kind of accounts (no bank ones)
+                     u'Synthèse':                          None,    # ignore this title
                     }
 
     PATTERN = [(re.compile('.*Titres Pea.*'), Account.TYPE_PEA),
