@@ -186,9 +186,9 @@ class HistoryPage(LoggedPage, HTMLPage):
             klass = Transaction
 
             def condition(self):
-                if 'tr-section' in self.el.attrib['class']:
+                if 'tr-section' in self.el.attrib.get('class', ''):
                     return False
-                elif 'tr-trigger' in self.el.attrib['class']:
+                elif 'tr-trigger' in self.el.attrib.get('class', ''):
                     return True
 
                 return False

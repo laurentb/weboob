@@ -41,6 +41,7 @@ class BforbankBrowser(LoginBrowser):
               '/espace-client/rib/(?P<id>\d+)', RibPage)
     loan_history = URL('/espace-client/livret/consultation.*', LoanHistoryPage)
     history = URL('/espace-client/consultation/operations/.*', HistoryPage)
+    coming = URL(r'/espace-client/consultation/operationsAVenir/(?P<account>\d+)$', HistoryPage)
     card_history = URL('espace-client/consultation/encoursCarte/.*', CardHistoryPage)
     card_page = URL(r'/espace-client/carte/(?P<account>\d+)$', CardPage)
 
@@ -127,27 +128,22 @@ class BforbankBrowser(LoginBrowser):
         if account.type != Account.TYPE_CARD:
             self.location(account._link.replace('tableauDeBord', 'operations'))
             assert self.history.is_here() or self.loan_history.is_here()
-            history.extend(self.page.get_operations())
-
-        if account.type == Account.TYPE_CARD or (
-           account.type == Account.TYPE_CHECKING and not hasattr(account, '_deferred_account')):
-            # FIXME this page only works for TYPE_CARD?
+            return self.page.get_operations()
+        else:
             # TODO same as get_coming, we should handle more than one card
-            history.extend(self._get_card_transactions(account))
-
-        history.sort(reverse=True, key=lambda tr: tr.date or tr.rdate)
-        return history
+            return self._get_card_transactions(account)
 
     @need_login
     def get_coming(self, account):
-        if account.type not in (Account.TYPE_CHECKING, Account.TYPE_CARD):
+        if account.type == Account.TYPE_CHECKING:
+            self.coming.go(account=account.id)
+            return self.page.get_operations()
+        elif account.type == Account.TYPE_CARD:
+            # TODO there could be multiple cards, how to find the number of cards?
+            self.location(account._link.replace('tableauDeBord', 'encoursCarte') + '/0')
+            return self.page.get_operations()
+        else:
             raise NotImplementedError()
-        elif account.type == Account.TYPE_CHECKING and hasattr(account, '_deferred_account'):
-            return []
-
-        # TODO there could be multiple cards, how to find the number of cards?
-        self.location(account._link.replace('tableauDeBord', 'encoursCarte') + '/0')
-        return self.page.get_operations()
 
     def goto_spirica(self, account):
         assert account.type == Account.TYPE_LIFE_INSURANCE
