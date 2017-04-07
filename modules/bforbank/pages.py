@@ -157,6 +157,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^(?P<category>VIREMENT)'), FrenchTransaction.TYPE_TRANSFER),
                 (re.compile('^(?P<category>INTERETS)'), FrenchTransaction.TYPE_BANK),
+                (re.compile('^RETRAIT AU DISTRIBUTEUR'), FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile(u'^Règlement cartes à débit différé du'), FrenchTransaction.TYPE_CARD_SUMMARY),
                ]
 
