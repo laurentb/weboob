@@ -104,20 +104,22 @@ class AccountsPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Account
 
+            condition = lambda self: "LIVRET" not in Dict('accountType')(self.el)
+
             obj_id = Dict('numeroContratSouscrit')
             obj_label = Upper(Dict('lib'))
-            obj_balance = CleanDecimal(Dict('soldeEuro', default="0"))
             obj_currency =  Dict('deviseCompteCode')
             obj_coming = CleanDecimal(Dict('AVenir', default=None), default=NotAvailable)
             # Iban is available without last 5 numbers, or by sms
             obj_iban = NotAvailable
             obj__index = Dict('index')
 
+            def obj_balance(self):
+                balance = CleanDecimal(Dict('soldeEuro', default="0"))(self)
+                return -abs(balance) if Field('type')(self) == Account.TYPE_LOAN else balance
+
             def obj_type(self):
                 return self.page.TYPES.get(Dict('accountType', default=None)(self).lower(), Account.TYPE_UNKNOWN)
-
-            def condition(self):
-                return "LIVRET" not in Dict('accountType')(self)
 
     @method
     class iter_products(DictElement):
@@ -171,8 +173,7 @@ class AccountsPage(LoggedPage, JsonPage):
             obj_type = Account.TYPE_LOAN
 
             def obj_balance(self):
-                return CleanDecimal().filter("-%s" % \
-                    (Dict('montantRestant', default=None)(self) or Dict('montantDisponible')(self)))
+                return -abs(CleanDecimal().filter(Dict('montantRestant', default=None)(self) or Dict('montantDisponible')(self)))
 
 
 class Transaction(FrenchTransaction):
