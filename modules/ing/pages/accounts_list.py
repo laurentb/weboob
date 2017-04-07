@@ -137,9 +137,12 @@ class AccountsList(LoggedPage, HTMLPage):
             obj_label = CleanText('span[@class="title"]')
             obj_id = AddPref(Field('_id'), Field('label'))
             obj_type = AddType(Field('label'))
-            obj_balance = CleanDecimal('span[@class="solde"]/label', replace_dots=True)
             obj_coming = NotAvailable
             obj__jid = Attr('//input[@name="javax.faces.ViewState"]', 'value')
+
+            def obj_balance(self):
+                balance = CleanDecimal('span[@class="solde"]/label', replace_dots=True)(self)
+                return -abs(balance) if Field('type')(self) == Account.TYPE_LOAN else balance
 
             def obj__id(self):
                 return CleanText('span[@class="account-number"]')(self) or CleanText('span[@class="life-insurance-application"]')(self)
