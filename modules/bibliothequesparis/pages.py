@@ -23,6 +23,7 @@ from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, Date, Regexp, Field
 from weboob.browser.filters.html import Link
+from weboob.capabilities.base import UserError
 from weboob.capabilities.library import Book
 
 
@@ -32,13 +33,27 @@ class LoginPage(JsonPage):
         return self.doc['success']
 
 
-class LoansPage(LoggedPage, JsonPage):
+class JsonMixin(JsonPage):
+    def on_load(self):
+        if not self.doc['success']:
+            for err in self.doc.get('errors', []):
+                raise Exception(err['msg'])
+
+        if isinstance(self.doc['d'], list) and self.doc['d']:
+            msg = self.doc['d'][0].get('ErrorMessage')
+            if msg:
+                raise UserError(msg)
+
+
+class LoansPage(LoggedPage, JsonMixin):
     def __init__(self, browser, response, *args, **kwargs):
         super(LoansPage, self).__init__(browser, response, *args, **kwargs)
         self.sub = self.sub_class(browser, response, data=self.sub_data)
 
     @property
     def sub_data(self):
+        if isinstance(self.doc['d'], dict):
+            return b''
         return self.doc['d'].encode('utf-8')
 
     class sub_class(HTMLPage):
@@ -62,3 +77,8 @@ class LoansPage(LoggedPage, JsonPage):
                 obj_date = Date(Regexp(CleanText('.//li[has-class("dateretour")]/span[@class="loan-info-value"]'), r'(\d+/\d+/\d+)'), dayfirst=True)
                 obj_location = CleanText('.//li[has-class("localisation")]/span[@class="loan-info-value"]')
                 obj_author = Regexp(CleanText('.//div[@class="loan-custom-result"]//p[@class="template-info"]'), '^(.*?) - ')
+                obj__renew_data = CleanText('.//span[@class="loan-data"]')
+
+
+class RenewPage(LoggedPage, JsonMixin):
+    pass

@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 from weboob.browser import LoginBrowser, URL, need_login
 
-from .pages import LoginPage, LoansPage
+from .pages import LoginPage, LoansPage, RenewPage
 
 
 class BibliothequesparisBrowser(LoginBrowser):
@@ -29,6 +29,12 @@ class BibliothequesparisBrowser(LoginBrowser):
 
     login = URL(r'/Default/Portal/Recherche/logon.svc/logon', LoginPage)
     bookings = URL('/Default/Portal/Recherche/Search.svc/RenderAccountWebFrame', LoansPage)
+    renew = URL(r'/Default/Portal/Services/ILSClient.svc/RenewLoans', RenewPage)
+
+    json_headers = {
+        'Accept': 'application/json, text/javascript',
+        'Content-Type': 'application/json; charset=utf-8',
+    }
 
     def do_login(self):
         d = {
@@ -37,13 +43,6 @@ class BibliothequesparisBrowser(LoginBrowser):
         }
         self.login.go(data=d)
 
-    @property
-    def json_headers(self):
-        return {
-            'Accept': 'application/json, text/javascript',
-            'Content-Type': 'application/json; charset=utf-8',
-        }
-
     @need_login
     def get_loans(self):
         # do not add any space! the site is so fragile it breaks if even a single whitespace is added...
@@ -51,3 +50,11 @@ class BibliothequesparisBrowser(LoginBrowser):
         self.session.cookies['ErmesSearch_Default'] = '{"mainScenario":"CATALOGUE","mainScenarioText":"Catalogue"}'
         self.bookings.go(data=s, headers=self.json_headers)
         return self.page.sub.get_loans()
+
+    @need_login
+    def do_renew(self, _id):
+        for b in self.get_loans():
+            if b.id == _id:
+                post = u'{"loans":[%s]}' % b._renew_data
+                self.renew.go(data=post.encode('utf-8'), headers=self.json_headers)
+                break

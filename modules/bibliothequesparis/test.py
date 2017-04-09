@@ -27,7 +27,7 @@ class BibliothequesparisTest(BackendTest):
     MODULE = 'bibliothequesparis'
 
     def test_rented(self):
-        books = list(self.backend.get_rented())
+        books = list(self.backend.iter_rented())
         assert books
         for b in books:
             assert b.id
