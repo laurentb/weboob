@@ -58,15 +58,31 @@ class HousingPage(HTMLPage):
         obj_title = CleanText(CleanHTML('//meta[@itemprop="name"]/@content'))
         obj_area = CleanDecimal(Regexp(CleanText(CleanHTML('//meta[@itemprop="name"]/@content')),
                                        '(.*?)(\d*) m\xb2(.*?)', '\\2', default=NotAvailable),
-                                default=0)
+                                default=NotAvailable)
+        obj_rooms = CleanDecimal('//div[has-class("offer-info")]//span[has-class("offer-rooms-number")]',
+                                default=NotAvailable)
         obj_cost = CleanDecimal('//*[@itemprop="price"]', default=0)
-        obj_currency = Regexp(CleanText('//*[@itemprop="price"]'),
-                              '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+        def obj_currency(self):
+            currency = Regexp(
+                CleanText('//*[@itemprop="price"]'),
+                '.*([%s%s%s])' % (u'€', u'$', u'£'),
+                default=u'€'
+            )(self)
+            notes = CleanText('//p[@class="offer-description-notes"]')(self)
+            if "Loyer mensuel charges comprises" in notes:
+                currency += " CC"
+            return currency
         obj_price_per_meter = PricePerMeterFilter()
         obj_date = Date(Regexp(CleanText('//p[@class="offer-description-notes"]|//p[has-class("darkergrey")]'),
-                               u'.* Mis à jour : (\d{2}/\d{2}/\d{4}).*'))
-        obj_text = CleanHTML('//div[@class="offer-description-text"]|//div[has-class("offer-description")]')
+                               u'.* Mis à jour : (\d{2}/\d{2}/\d{4}).*'),
+                        dayfirst=True)
+        obj_text = CleanHTML('//div[has-class("offer-description-text")]/meta[@itemprop="description"]/@content')
         obj_location = CleanText('//*[@itemprop="address"]')
+        obj_station = CleanText(
+            '//div[has-class("offer-description-metro")]',
+            default=NotAvailable
+        )
+
         obj_url = BrowserURL('housing', _id=Env('_id'))
 
         def obj_photos(self):
@@ -77,18 +93,52 @@ class HousingPage(HTMLPage):
 
         def obj_details(self):
             details = {}
-            energy = CleanText('//div[has-class("energy-summary")]/span[@class="section-label"]|//div[has-class("energy-summary")]/div/span[@class="section-label"]',
-                               default='')(self)
-            energy_value = CleanText('//div[has-class("energy-summary")]/span[@class="energy-msg"]', default='')(self)
-            if energy and energy_value:
-                details[energy] = energy_value
+            energy_value = CleanText(
+                '//div[has-class("offer-energy-greenhouseeffect-summary")]//div[has-class("energy-summary")]',
+                default=None
+            )(self)
+            if energy_value and len(energy_value) > 1:
+                energy_value = energy_value.replace("DPE", "").strip()[0]
+                if energy_value not in ["A", "B", "C", "D", "E", "F", "G"]:
+                    energy_value = None
+            if energy_value is None:
+                energy_value = NotAvailable
+            details["DPE"] = energy_value
 
-            greenhouse = CleanText('//div[has-class("greenhouse-summary")]/span[@class="section-label"]|//div[has-class("greenhouse-summary")]/div/span[@class="section-label"]',
-                                   default='')(self)
-            greenhouse_value = CleanText('//div[has-class("greenhouse-summary")]/span[@class="energy-msg"]',
-                                         default='')(self)
-            if greenhouse and greenhouse_value:
-                details[greenhouse] = greenhouse_value
+            greenhouse_value = CleanText(
+                '//div[has-class("offer-energy-greenhouseeffect-summary")]//div[has-class("greenhouse-summary")]',
+                default=None
+            )(self)
+            if greenhouse_value and len(greenhouse_value) > 1:
+                greenhouse_value = greenhouse_value.replace("GES", "").strip()[0]
+                if greenhouse_value not in ["A", "B", "C", "D", "E", "F", "G"]:
+                    greenhouse_value = None
+            if greenhouse_value is None:
+                greenhouse_value = NotAvailable
+            details["GES"] = greenhouse_value
+
+            details["creationDate"] = Date(
+                Regexp(
+                    CleanText(
+                        '//p[@class="offer-description-notes"]|//p[has-class("darkergrey")]'
+                    ),
+                    u'.*Mis en ligne : (\d{2}/\d{2}/\d{4}).*'
+                ),
+                dayfirst=True
+            )(self)
+
+            honoraires = CleanText(
+                (
+                    '//div[has-class("offer-price")]/span[has-class("lbl-agencyfees")]'
+                ),
+                default=None
+            )(self)
+            if honoraires:
+                details["Honoraires"] = (
+                    "{} (TTC, en sus)".format(
+                        honoraires.split(":")[1].strip()
+                    )
+                )
 
             for li in XPath('//ul[@itemprop="description"]/li')(self):
                 label = CleanText('./div[has-class("criteria-label")]')(li)
