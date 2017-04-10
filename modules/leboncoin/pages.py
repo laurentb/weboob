@@ -180,21 +180,43 @@ class HousingPage(HTMLPage):
                 else:
                     key = u'%s' % CleanText('./span[@class="property"]')(item)
                     if 'GES' in key or 'Classe' in key:
-                        details[key] = CleanText('./span[@class="value"]/noscript/a')(item)
+                        value = (
+                            CleanText('./span[@class="value"]')(item).strip()
+                        )
+                        if len(value):
+                            details[key] = value[0]
+                        else:
+                            details[key] = NotAvailable
                     else:
                         details[key] = CleanText('./span[@class="value"]')(item)
 
             self.env['details'] = details
 
         obj_id = Env('_id')
-        obj_title = CleanText('//title')
+        obj_title = CleanText('//h1[@itemprop="name"]')
         obj_cost = CleanDecimal('//h2[@itemprop="price"]/@content', default=Decimal(0))
 
-        obj_currency = Regexp(CleanText('//h2[@itemprop="price"]/span[@class="value"]'),
-                              '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+        def obj_currency(self):
+            currency = Regexp(
+                CleanText(
+                    '//h2[@itemprop="price"]/span[@class="value"]'
+                ),
+                '.*([%s%s%s].*)' % (u'€', u'$', u'£'),
+                default=u'€'
+            )(self)
+            currency = currency.split(" ")
+            if len(currency) > 3:
+                currency = " ".join((currency[0], currency[3]))
+            else:
+                currency = currency[0]
+            return currency
         obj_text = CleanText('//p[@itemprop="description"]')
         obj_location = CleanText('//span[@itemprop="address"]')
         obj_details = Env('details')
+
+        def obj_rooms(self):
+            return int(self.env["details"].get(u"Pièces", NotAvailable))
+
         obj_area = Env('area')
         obj_price_per_meter = PricePerMeterFilter()
         obj_url = BrowserURL('housing', _id=Env('_id'))
@@ -210,7 +232,7 @@ class HousingPage(HTMLPage):
             return DateTime(Env('tmp'), LinearDateGuesser())(self)
 
         def obj_photos(self):
-            items = re.findall(r'images\[\d\]\s*=\s*"([\w/\.]*\.jpg)";',
+            items = re.findall(r'images\[\d\]\s*=\s*"([\w\/\.-]*\.jpg)";',
                                CleanText('//script')(self))
             photos = [HousingPhoto(u'http:%s' % item) for item in items]
             if not photos:
@@ -222,6 +244,7 @@ class HousingPage(HTMLPage):
             return photos
 
 
+# TODO
 class PhonePage(JsonPage):
     def get_phone(self):
         if Dict('utils/status')(self.doc) == u'OK':
