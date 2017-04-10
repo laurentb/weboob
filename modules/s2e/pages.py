@@ -146,6 +146,7 @@ class ItemInvestment(ItemElement):
         return MyDecimal(TableCell('valuation')(self)[0].xpath('.//div[not(.//div)]'))(self)
 
     def obj_code(self):
+        page = None
         link_id = Attr(u'.//a[contains(@title, "détail du fonds")]', 'id', default=None)(self)
         inv_id = Attr('.//a[contains(@id, "linkpdf")]', 'id', default=None)(self)
 
