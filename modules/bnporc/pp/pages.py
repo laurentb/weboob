@@ -56,6 +56,14 @@ class ConnectionThresholdPage(HTMLPage):
             return False
         return True
 
+    def make_date(self, yy, m, d):
+        current = datetime.now().year
+        if yy > current - 2000:
+            yyyy = 1900 + yy
+        else:
+            yyyy = 2000 + yy
+        return datetime(yyyy, m, d)
+
     def looks_legit(self, password):
         # the site says:
         # no more than 2 repeats
@@ -64,8 +72,23 @@ class ConnectionThresholdPage(HTMLPage):
                 return False
 
         # not the birthdate (but we don't know it)
-        if 0 < int(password[2:4]) <= 12 and (0 < int(password[0:2]) <= 31 or 0 < int(password[4:6]) <= 31):
-            return False
+        first, mm, end = map(int, (password[0:2], password[2:4], password[4:6]))
+        now = datetime.now()
+        try:
+            delta = now - self.make_date(first, mm, end)
+        except ValueError:
+            pass
+        else:
+            if 10 < delta.days / 365 < 70:
+                return False
+
+        try:
+            delta = now - self.make_date(end, mm, first)
+        except ValueError:
+            pass
+        else:
+            if 10 < delta.days / 365 < 70:
+                return False
 
         # no sequence (more than 4 digits?)
         password = list(map(int, password))
@@ -80,10 +103,6 @@ class ConnectionThresholdPage(HTMLPage):
         return True
 
     def on_load(self):
-        # XXX it seems it isn't possible anymore to reset password to previous
-        # one.
-        raise BrowserPasswordExpired()
-
         if not self.looks_legit(self.browser.password):
             # we may not be able to restore the password, so reject it
             raise BrowserPasswordExpired()
