@@ -104,7 +104,7 @@ class SearchPage(HTMLPage):
                                     default=None)(self)
                 if charges:
                     return {
-                        "Charges": charges.replace("Charges :", "").strip()
+                        "fees": charges.split(":")[1].strip()
                     }
                 else:
                     return NotLoaded
@@ -147,13 +147,32 @@ class HousingPage2(JsonPage):
         obj_id = Env('_id')
         obj_title = Dict('characteristics/titleWithTransaction')
         obj_location = Format('%s %s %s', Dict('location/address'),
-                              Dict('location/postalCode'), Dict('location/cityLabel'))
+                              Dict('location/cityLabel'),
+                              Dict('location/postalCode'))
         obj_cost = TypeDecimal(Dict('characteristics/price'))
-        obj_currency = u'€'
+
+        def obj_currency(self):
+            currency = u'€'
+            are_fees_included = Dict('characteristics/areFeesIncluded',
+                                     default=None)(self)
+            if are_fees_included:
+                currency += " CC"
+            return currency
+
         obj_text = CleanHTML(Dict('characteristics/description'))
         obj_url = BrowserURL('housing_html', _id=Env('_id'))
         obj_area = TypeDecimal(Dict('characteristics/area'))
         obj_date = FromTimestamp(Dict('characteristics/date'))
+        obj_bedrooms = Dict('characteristics/bedroomCount')
+
+        def obj_rooms(self):
+            # TODO: Why is roomCount a list?
+            rooms = Dict('characteristics/roomCount', default=[])(self)
+            if rooms:
+                return rooms[0]
+            else:
+                return NotAvailable
+
         obj_price_per_meter = PricePerMeterFilter()
 
         def obj_photos(self):
@@ -168,13 +187,54 @@ class HousingPage2(JsonPage):
 
         def obj_details(self):
             details = {}
-            details['fees'] = Dict('characteristics/fees')(self)
-            details['bedrooms'] = Dict('characteristics/bedroomCount')(self)
-            details['energy'] = Dict('characteristics/energyConsumptionCategory')(self)
-            rooms = Dict('characteristics/roomCount')(self)
+            details['fees'] = Dict(
+                'characteristics/fees', default=NotAvailable
+            )(self)
+            details['agencyFees'] = Dict(
+                'characteristics/agencyFees', default=NotAvailable
+            )(self)
+            details['guarantee'] = Dict(
+                'characteristics/guarantee', default=NotAvailable
+            )(self)
+            details['bathrooms'] = Dict(
+                'characteristics/bathroomCount', default=NotAvailable
+            )(self)
+            details['creationDate'] = Dict(
+                'characteristics/creationDate', default=NotAvailable
+            )(self)
+            details['availabilityDate'] = Dict(
+                'characteristics/estateAvailabilityDate', default=NotAvailable
+            )(self)
+            details['exposure'] = Dict(
+                'characteristics/exposure', default=NotAvailable
+            )(self)
+            details['heatingType'] = Dict(
+                'characteristics/heatingType', default=NotAvailable
+            )(self)
+            details['floor'] = Dict(
+                'characteristics/floor', default=NotAvailable
+            )(self)
+            details['bedrooms'] = Dict(
+                'characteristics/bedroomCount', default=NotAvailable
+            )(self)
+            details['isFurnished'] = Dict(
+                'characteristics/isFurnished', default=NotAvailable
+            )(self)
+            details['energy'] = Dict(
+                'characteristics/energyConsumptionCategory',
+                default=NotAvailable
+            )(self)
+            details['greenhouseGasEmission'] = Dict(
+                'characteristics/greenHouseGasEmissionCategory',
+                default=NotAvailable
+            )(self)
+            rooms = Dict('characteristics/roomCount', default=[])(self)
             if len(rooms):
                 details['rooms'] = rooms[0]
-            details['available'] = Dict('characteristics/available', default=NotAvailable)(self)
+            details['available'] = Dict(
+                'characteristics/isAvailable', default=NotAvailable
+            )(self)
+            details['agency'] = Dict('agency', default=NotAvailable)(self)
             return details
 
     def get_total_page(self):
