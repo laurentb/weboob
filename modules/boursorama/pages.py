@@ -98,7 +98,7 @@ class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(u'^CHQ\. (?P<text>.*)'),        FrenchTransaction.TYPE_CHECK),
                 (re.compile('^(ACHAT|PAIEMENT) CARTE (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_CARD),
-                (re.compile(r'^(?P<text>[\w\s]+)?(ACHAT|PAIEMENT) CARTE (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{4}) (?P<text2>.*)'),
+                (re.compile(r'^(?P<text>.*)?(ACHAT|PAIEMENT) CARTE (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{4}) (?P<text2>.*)'),
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile('^(PRLV SEPA |PRLV |TIP )(?P<text>.*)'),
                                                             FrenchTransaction.TYPE_ORDER),
