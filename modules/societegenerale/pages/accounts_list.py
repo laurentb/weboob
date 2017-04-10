@@ -201,6 +201,7 @@ class AccountHistory(LoggedPage, BasePage):
             return
 
         is_deferred_card = bool(self.doc.xpath(u'//div[contains(text(), "Différé")]'))
+        has_summary = False
         while True:
             d = XML(self.browser.open(url).content)
             el = d.xpath('//dataBody')
@@ -212,8 +213,12 @@ class AccountHistory(LoggedPage, BasePage):
             doc = fromstring(s)
 
             for tr in self._iter_transactions(doc):
+                if tr.type == Transaction.TYPE_CARD_SUMMARY:
+                    has_summary = True
                 if is_deferred_card and tr.type is Transaction.TYPE_CARD:
                     tr.type = Transaction.TYPE_DEFERRED_CARD
+                    if not has_summary:
+                        tr._coming = True
                 yield tr
 
             el = d.xpath('//dataHeader')[0]
