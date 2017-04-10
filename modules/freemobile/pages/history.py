@@ -28,6 +28,8 @@ from weboob.browser.filters.standard import Date, CleanText, Filter,\
     CleanDecimal, Regexp, Field, DateTime, Format, Env
 from weboob.browser.filters.html import Attr
 from weboob.capabilities.bill import Detail, Bill
+from weboob.capabilities.base import NotAvailable
+from weboob.exceptions import ParseError
 
 
 class FormatDate(Filter):
@@ -128,17 +130,21 @@ class DetailsPage(LoggedPage, BadUTF8Page):
 
     def get_renew_date(self, subscription):
         div = self.doc.xpath('//div[@login="%s"]' % subscription._login)[0]
-        mydate = Date(CleanText('.//div[@class="resumeConso"]/span[@class="actif"][1]'), dayfirst=True)(div)
-        if mydate.month == 12:
-            mydate = mydate.replace(month=1)
-            mydate = mydate.replace(year=mydate.year + 1)
-        else:
-            try:
-                mydate = mydate.replace(month=mydate.month + 1)
-            except ValueError:
-                lastday = calendar.monthrange(mydate.year, mydate.month + 1)[1]
-                mydate = mydate.replace(month=mydate.month + 1, day=lastday)
-        return mydate
+
+        try:
+            mydate = Date(CleanText('.//div[@class="resumeConso"]/span[@class="actif"][1]'), dayfirst=True)(div)
+            if mydate.month == 12:
+                mydate = mydate.replace(month=1)
+                mydate = mydate.replace(year=mydate.year + 1)
+            else:
+                try:
+                    mydate = mydate.replace(month=mydate.month + 1)
+                except ValueError:
+                    lastday = calendar.monthrange(mydate.year, mydate.month + 1)[1]
+                    mydate = mydate.replace(month=mydate.month + 1, day=lastday)
+            return mydate
+        except ParseError:
+            return NotAvailable
 
     def get_login(self, phonenumber):
         return Attr('.', 'login')(self.doc.xpath('//div[div[contains(text(), "%s")]]' % phonenumber)[0])
