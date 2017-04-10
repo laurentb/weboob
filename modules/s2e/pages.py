@@ -102,6 +102,7 @@ class LoginPage(HTMLPage):
 # AMF codes
 class AMFHSBCPage(XMLPage):
     ENCODING = "UTF-8"
+    CODE_TYPE = Investment.CODE_TYPE_AMF
 
     def build_doc(self, content):
         doc = super(AMFHSBCPage, self).build_doc(content).getroot()
@@ -115,18 +116,29 @@ class AMFHSBCPage(XMLPage):
         objectify.deannotate(doc, cleanup_namespaces=True)
         return doc
 
-    def get_amf_code(self):
+    def get_code(self):
         return CleanText('//AMF_Code', default=NotAvailable)(self.doc)
 
 
 class AMFAmundiPage(HTMLPage):
-    def get_amf_code(self):
-        return CleanDecimal('//span[contains(., "(C)")]', default=NotAvailable)(self.doc)
+    CODE_TYPE = Investment.CODE_TYPE_AMF
+
+    def get_code(self):
+        return CleanText('//span[contains(., "(C)")]', default=NotAvailable)(self.doc)
 
 
 class AMFSGPage(HTMLPage):
-    def get_amf_code(self):
-        return CleanDecimal('//div[@id="header_code"]', default=NotAvailable)(self.doc)
+    CODE_TYPE = Investment.CODE_TYPE_AMF
+
+    def get_code(self):
+        return CleanText('//div[@id="header_code"]', default=NotAvailable)(self.doc)
+
+
+class LyxorfcpePage(LoggedPage, HTMLPage):
+    CODE_TYPE = Investment.CODE_TYPE_ISIN
+
+    def get_code(self):
+        return Regexp(CleanText('//span[@class="isin"]'), 'Code ISIN : (.*)')(self.doc)
 
 
 class ItemInvestment(ItemElement):
@@ -134,9 +146,8 @@ class ItemInvestment(ItemElement):
 
     obj_unitvalue = Env('unitvalue')
     obj_vdate = Env('vdate')
-
-    def obj_code_type(self):
-        return Investment.CODE_TYPE_AMF if Field('code')(self) != NotAvailable else NotAvailable
+    obj_code = Env('code')
+    obj_code_type = Env('code_type')
 
     def obj_label(self):
         return CleanText(TableCell('label')(self)[0].xpath('.//div[contains(@style, \
@@ -145,7 +156,18 @@ class ItemInvestment(ItemElement):
     def obj_valuation(self):
         return MyDecimal(TableCell('valuation')(self)[0].xpath('.//div[not(.//div)]'))(self)
 
-    def obj_code(self):
+    def parse(self, el):
+        # Trying to find vdate and unitvalue
+        unitvalue, vdate = None, None
+        for span in TableCell('label')(self)[0].xpath('.//span'):
+            if unitvalue is None:
+                unitvalue = Regexp(CleanText('.'), '^([\d,]+)$', default=None)(span)
+            if vdate is None:
+                vdate = None if any(x in CleanText('./parent::div')(span) for x in [u"échéance", "Maturity"]) else \
+                        Regexp(CleanText('.'), '^([\d\/]+)$', default=None)(span)
+        self.env['unitvalue'] = MyDecimal().filter(unitvalue) if unitvalue else NotAvailable
+        self.env['vdate'] = Date(dayfirst=True).filter(vdate) if vdate else NotAvailable
+
         page = None
         link_id = Attr(u'.//a[contains(@title, "détail du fonds")]', 'id', default=None)(self)
         inv_id = Attr('.//a[contains(@id, "linkpdf")]', 'id', default=None)(self)
@@ -165,22 +187,13 @@ class ItemInvestment(ItemElement):
             elif "consulteroperations" not in self.page.browser.url: # not on history
                 page = self.page.browser.open(Regexp(CleanText('//complete'), r'openUrlFichesFonds\(\'(.*?)\'\)')(page.doc)).page
 
-        try: # try to get code, else return NotAvailable
-            return page.get_amf_code()
+        try:
+            self.env['code'] = page.get_code()
+            self.env['code_type'] = page.CODE_TYPE
+        # Handle page is None and page has not get_code method
         except AttributeError:
-            return NotAvailable
-
-    def parse(self, el):
-        # Trying to find vdate and unitvalue
-        unitvalue, vdate = None, None
-        for span in TableCell('label')(self)[0].xpath('.//span'):
-            if unitvalue is None:
-                unitvalue = Regexp(CleanText('.'), '^([\d,]+)$', default=None)(span)
-            if vdate is None:
-                vdate = None if any(x in CleanText('./parent::div')(span) for x in [u"échéance", "Maturity"]) else \
-                        Regexp(CleanText('.'), '^([\d\/]+)$', default=None)(span)
-        self.env['unitvalue'] = MyDecimal().filter(unitvalue) if unitvalue else NotAvailable
-        self.env['vdate'] = Date(dayfirst=True).filter(vdate) if vdate else NotAvailable
+            self.env['code'] = NotAvailable
+            self.env['code_type'] = NotAvailable
 
 
 class MultiPage(HTMLPage):
