@@ -265,6 +265,9 @@ class BanquePopulaire(LoginBrowser):
     def get_history(self, account, coming=False):
         account = self.get_account(account.id)
 
+        if account is None:
+            raise BrowserUnavailable()
+
         if account._invest_params:
             for tr in self.get_invest_history(account):
                 yield tr
