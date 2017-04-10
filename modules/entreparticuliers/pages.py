@@ -120,6 +120,8 @@ class HousingPage(EntreParticuliersXMLPage):
 
         obj_title = CleanText('//Titre')
 
+        obj_rooms = CleanText('//Nbpieces')
+
         def obj_cost(self):
             cost = CleanDecimal(Regexp(CleanText('//Prix'),
                                        u'(.*)\&euro;.*',
@@ -130,7 +132,8 @@ class HousingPage(EntreParticuliersXMLPage):
         obj_currency = u'€'
 
         obj_text = CleanText('//Description')
-        obj_location = CleanHTML(CleanText('//Localisation'))
+        def obj_location(self):
+            return CleanHTML(CleanText('//Localisation'))(self).strip()
 
         obj_area = CleanDecimal('//SurfaceBien', replace_dots=True,
                                 default=NotAvailable)
