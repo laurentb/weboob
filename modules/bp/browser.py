@@ -210,13 +210,13 @@ class BPBrowser(LoginBrowser, StatesMixin):
                 if history is not None:
                     history.go(accountId=account.id).submit_research()
 
-        if hasattr(self.page, 'get_history'):
-            for tr in self.page.get_history():
-                transactions.append(tr)
+                if hasattr(self.page, 'get_history'):
+                    for tr in self.page.get_history():
+                        transactions.append(tr)
 
-        for tr in self.iter_card_transactions(account):
-            if not tr._coming:
-                transactions.append(tr)
+                for tr in self.iter_card_transactions(account):
+                    if not tr._coming:
+                        transactions.append(tr)
 
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
 
