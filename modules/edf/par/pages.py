@@ -22,7 +22,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from weboob.browser.pages import LoggedPage, JsonPage
-from weboob.browser.filters.standard import Env, Format, Date, Eval, Field
+from weboob.browser.filters.standard import Env, Format, Date, Eval
 from weboob.browser.elements import ItemElement, DictElement, method
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bill import Bill, Subscription
