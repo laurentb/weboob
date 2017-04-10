@@ -17,14 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 from decimal import Decimal
 
 from weboob.tools.date import parse_french_date
 from weboob.browser.pages import HTMLPage, JsonPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, BrowserURL, Format
-from weboob.browser.filters.html import Link, XPath, CleanHTML
+from weboob.browser.filters.html import Attr, Link, XPath, CleanHTML
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import Housing, City, HousingPhoto
@@ -78,6 +77,7 @@ class SearchResultsPage(HTMLPage):
                 './div[@class="box-body"]/div/div/div[@class="clearfix"]/ul[has-class("item-summary")]/li[1]/strong',
                 default=NotAvailable
             )
+            obj_price_per_meter = PricePerMeterFilter()
 
             def obj_bedrooms(self):
                 rooms_bedrooms_area = XPath(
@@ -111,38 +111,71 @@ class HousingPage(HTMLPage):
         klass = Housing
 
         obj_id = Env('_id')
-        obj_title = CleanText('//h1[@class="clearfix"]/span[@class="title"]')
+        obj_title = CleanText(
+            '//div[has-class("box-header")]/h1[@class="clearfix"]'
+        )
         obj_cost = CleanDecimal('//h1[@class="clearfix"]/span[@class="price"]',
                                 replace_dots=True)
         obj_currency = Regexp(CleanText('//h1[@class="clearfix"]/span[@class="price"]'),
                               '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
         obj_area = CleanDecimal(Regexp(CleanText('//h1[@class="clearfix"]/span[@class="title"]'),
                                 '(.*?)(\d*) m\xb2(.*?)', '\\2'), default=NotAvailable)
+
+        def obj_date(self):
+            date = CleanText(
+                '//div[has-class("box-header")]//p[has-class("date")]'
+            )(self).split("/")[-1].strip()
+            return parse_french_date(date)
+
+        def obj_bedrooms(self):
+            rooms_bedrooms_area = XPath(
+                '//div[has-class("box-body")]//ul[has-class("item-summary")]/li'
+            )(self)
+            if len(rooms_bedrooms_area) > 2:
+                return CleanDecimal(
+                    '//div[has-class("box-body")]//ul[has-class("item-summary")]/li[2]/strong',
+                    default=NotAvailable
+                )(self)
+            else:
+                return NotAvailable
+
+        obj_rooms = CleanText('//ul[has-class("item-summary")]/li[1]/strong',
+                              default=NotAvailable)
         obj_price_per_meter = PricePerMeterFilter()
         obj_location = CleanText('//div[@class="item-geoloc"]/h2')
         obj_text = CleanText(CleanHTML('//p[@class="item-description"]'))
-        obj_station = CleanText('//div[@class="metro"]')
-        obj_phone = CleanHTML('(//div[has-class("tel-wrapper")])[1]')
+
+        def obj_station(self):
+            return ", ".join([
+                station.text
+                for station in XPath(
+                    '//ul[has-class("item-metro")]//span[has-class("label")]'
+                )(self)
+            ])
+
+        def obj_phone(self):
+            phone = CleanHTML('(//div[has-class("tel-wrapper")])[1]')(self)
+            return phone.strip()
+
         obj_url = BrowserURL('housing', _id=Env('_id'))
 
         def obj_details(self):
-            details = dict()
-            for item in XPath('//ul[@class="item-summary"]/li')(self):
-                key = CleanText('.', children=False)(item)
-                value = CleanText('./strong')(item)
-                if value and key:
-                    details[key] = value
-
-            key = CleanText('//div[@class="box energy-box"]/div/div/p[@class="h3"]')(self)
-            value = Format('%s(%s)', CleanText('(//div[@class="box energy-box"]/div/div/p)[2]'),
-                           CleanText('//div[@class="box energy-box"]/div/div/@class',
-                                     replace=[('-', ''), ('rank', '')]))(self)
-            if value and key:
-                details[key] = value
-            return details
+            GES = Attr(
+                '//div[has-class("energy-box")]//div[has-class("rank")]',
+                'class',
+                default=None
+            )(self)
+            if GES:
+                GES = [x.replace("rank-", "").upper()
+                       for x in GES.split() if x.startswith("rank-")][0]
+            else:
+                GES = NotAvailable
+            return {
+                "GES": GES
+            }
 
         def obj_photos(self):
             photos = []
-            for img in XPath('//div[has-class("showcase-thumbnail")]/img/@src')(self):
+            for img in XPath('//div[has-class("owl-carousel-thumbs")]//img/@src')(self):
                 photos.append(HousingPhoto(u'%s' % img))
             return photos
