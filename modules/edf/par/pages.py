@@ -83,9 +83,6 @@ class DocumentsPage(LoggedPage, JsonPage):
                 self.env['price'] = Decimal(Dict('billAmount')(self))
                 self.env['numAcc'] = str(int(Env('subid')(self)))
 
-            def validate(self, el):
-                return Field('price')(self) < 0
-
     def get_bills_informations(self):
         return {
             'bpNumber': Dict('bpNumber')(self.doc),
