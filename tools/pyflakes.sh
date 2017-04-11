@@ -1,4 +1,11 @@
 #!/bin/bash -u
+
+VER=2
+if [ "${1-}" = -3 ]; then
+    VER=3
+    shift
+fi
+
 cd $(dirname $0)
 cd ..
 PYFILES=$(git ls-files|grep '^scripts\|\.py$'|grep -v boilerplate_data|tr '\n' ' ')
@@ -11,26 +18,35 @@ grep -nE "^ *print " ${PYFILES} && echo 'Error: Use the print function' && exit 
 grep -Fn ".has_key" ${PYFILES} && echo 'Error: Deprecated, use operator "in"' && exit 9
 grep -Fn "os.isatty" ${PYFILES} && echo 'Error: Use stream.isatty() instead of os.isatty(stream.fileno())' && exit 10
 grep -Fn "raise StopIteration" ${PYFILES} && echo 'Error: PEP 479' && exit 11
+if [ "$VER" -eq 3 ]; then
+    grep -nE "\.iter(keys|values|items)\(\)" ${PYFILES} | grep -Fv "six.iter" && echo 'Error: iterkeys/itervalues/iteritems is forbidden' && exit 12
+fi
+
 MODULE_FILES=$(git ls-files|grep '^modules/.*\.py$'|tr '\n' ' ')
 grep -nE "^ *print(\(| )" ${MODULE_FILES} && echo 'Error: Use of print in modules is forbidden, use logger instead' && exit 20
+if [ "$VER" -eq 3 ]; then
+    grep -n xrange ${MODULE_FILES} && echo 'Error: xrange is forbidden' && exit 21
+    grep -nE "from (urllib|urlparse) import" ${MODULE_FILES} && echo 'Error: python2 urllib is forbidden' && exit 22
+    grep -nE "import (urllib|urlparse)$" ${MODULE_FILES} && echo 'Error: python2 urllib is forbidden' && exit 22
+fi
 
 FLAKE8=""
 if which flake8 >/dev/null 2>&1; then
     FLAKE8=$(which flake8)
 fi
-if which flake8-python2 >/dev/null 2>&1; then
-    FLAKE8=$(which flake8-python2)
+if which flake8-python3 >/dev/null 2>&1; then
+    FLAKE8=$(which flake8-python$VER)
 fi
 
 if [ -n "${FLAKE8}" ]; then
-    exec env python2 ${FLAKE8} --select=E9,F *.py $PYFILES
+    exec env python$VER ${FLAKE8} --select=E9,F *.py $PYFILES
 else
     PYFLAKES=""
+    if [ "$VER" -eq 3 ] && which pyflakes3 >/dev/null 2>&1; then
+        PYFLAKES=pyflakes3
+    fi
     if which pyflakes >/dev/null 2>&1; then
         PYFLAKES=pyflakes
-    fi
-    if which pyflakes-python2 >/dev/null 2>&1; then
-        PYFLAKES=pyflakes-python2
     fi
     if [ -z "${PYFLAKES}" ]
     then

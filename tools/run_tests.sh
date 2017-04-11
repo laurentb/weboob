@@ -10,6 +10,12 @@
 # stop on failure
 set -e
 
+VER=2
+if [ "$1" = -3 ]; then
+	VER=3
+	shift
+fi
+
 # path to sources
 WEBOOB_DIR=$(cd $(dirname $0)/.. && pwd -P)
 
@@ -59,14 +65,23 @@ fi
 # find executables
 if [ -z "${PYTHON}" ]; then
     which python >/dev/null 2>&1 && PYTHON=$(which python)
-    which python2 >/dev/null 2>&1 && PYTHON=$(which python2)
-    which python2.7 >/dev/null 2>&1 && PYTHON=$(which python2.7)
+    which python$VER >/dev/null 2>&1 && PYTHON=$(which python$VER)
+    if [ $VER -eq 2 ]; then
+        which python2.7 >/dev/null 2>&1 && PYTHON=$(which python2.7)
+    else
+        which python3.4 >/dev/null 2>&1 && PYTHON=$(which python3.4)
+    fi
 fi
 
 if [ -z "${NOSE}" ]; then
     which nosetests >/dev/null 2>&1 && NOSE=$(which nosetests)
-    which nosetests2 >/dev/null 2>&1 && NOSE=$(which nosetests2)
-    which nosetests-python2.7 >/dev/null 2>&1 && NOSE=$(which nosetests-python2.7)
+    which nosetests$VER >/dev/null 2>&1 && NOSE=$(which nosetests$VER)
+    which nosetests-python$VER >/dev/null 2>&1 && NOSE=$(which nosetests-python$VER)
+    if [ $VER -eq 2 ]; then
+        which nosetests-python2.7 >/dev/null 2>&1 && NOSE=$(which nosetests-python2.7)
+    else
+        which nosetests-python3.4 >/dev/null 2>&1 && NOSE=$(which nosetests-python3.4)
+    fi
 fi
 
 if [ -z "${PYTHON}" ]; then

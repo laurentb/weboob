@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import print_function
 
 # Hint: use this script with file:///path/to/local/modules/ in sources.list
