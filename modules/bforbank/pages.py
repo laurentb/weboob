@@ -251,7 +251,7 @@ class CardPage(LoggedPage, HTMLPage):
         divs = [d for d in divs if msg not in CleanText('.//div[has-class("alert")]', default='')(d)]
         divs = [d.xpath('.//div[@class="m-card-infos"]')[0] for d in divs]
 
-        assert len(divs) == 1, 'only one card is handled, not %d' % len(divs)
+        cards = []
         for div in divs:
             label = CleanText('.//div[@class="m-card-infos-body-title"]')(div)
             number = CleanText('.//div[@class="m-card-infos-body-num"]', default='')(div)
@@ -259,7 +259,7 @@ class CardPage(LoggedPage, HTMLPage):
             debit = CleanText(u'.//div[@class="m-card-infos-body-text"][contains(text(),"Débit")]')(div)
             if debit == u'Débit immédiat':
                 self.logger.debug('immediate debit card %s', number)
-                return
+                continue
             assert debit == u'Débit différé', 'unrecognized card type %s: %s' % (number, debit)
 
             card = Account()
@@ -267,7 +267,11 @@ class CardPage(LoggedPage, HTMLPage):
             card.label = label
             card.number = number
             card.type = Account.TYPE_CARD
-            return card
+            cards.append(card)
+
+        # Crash on multiple cards if at least one is deferred
+        assert (len(divs) > 1 and not cards) or len(divs) == 1
+        return cards[0] if cards else None
 
 
 class LifeInsuranceList(LoggedPage, HTMLPage):
