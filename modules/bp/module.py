@@ -48,7 +48,7 @@ class BPModule(Module, CapBankTransfer, CapContact):
 
         self.BROWSER = b[self.config['website'].get()]
 
-        return self.create_browser(self.config['login'].get(), self.config['password'].get())
+        return self.create_browser(self.config['login'].get(), self.config['password'].get(), weboob=self.weboob)
 
     def iter_accounts(self):
         return self.browser.get_accounts_list()
@@ -57,9 +57,6 @@ class BPModule(Module, CapBankTransfer, CapContact):
         return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
 
     def iter_history(self, account):
-        if account.type == Account.TYPE_MARKET:
-            raise NotImplementedError()
-
         return self.browser.get_history(account)
 
     def iter_coming(self, account):

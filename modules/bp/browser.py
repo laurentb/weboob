@@ -31,7 +31,9 @@ from .pages import (
     TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary,
 )
 from .pages.accounthistory import LifeInsuranceInvest, LifeInsuranceHistory, LifeInsuranceHistoryInv, RetirementHistory, SavingAccountSummary
+from .pages.accountlist import MarketLoginPage, UselessPage
 from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, ProAccountHistoryDownload, ProAccountHistoryCSV, DownloadRib, RibPage
+from .linebourse_browser import LinebourseBrowser
 
 from weboob.capabilities.bank import TransferError, Account
 
@@ -74,6 +76,9 @@ class BPBrowser(LoginBrowser, StatesMixin):
                                r'https://www.labanquepostale.fr/particulier/bel_particuliers/assurance/accueil_cachemire.html', LifeInsuranceInvest)
     lifeinsurance_history = URL(r'/voscomptes/canalXHTML/assurance/vie/historiqueVie-assuranceVie.ea\?numContrat=(?P<id>\w+)', LifeInsuranceHistory)
     lifeinsurance_hist_inv = URL(r'/voscomptes/canalXHTML/assurance/vie/detailMouvement-assuranceVie.ea\?idMouvement=(?P<id>\w+)', LifeInsuranceHistoryInv)
+
+    market_login = URL(r'/voscomptes/canalXHTML/bourse/aiguillage/oicFormAutoPost.jsp', MarketLoginPage)
+    useless = URL(r'https://labanquepostale.offrebourse.com/ReroutageSJR', UselessPage)
 
     retirement_hist = URL(r'/voscomptes/canalXHTML/assurance/retraitePoints/historiqueRetraitePoint-assuranceRetraitePoints.ea(\?numContrat=(?P<id>\w+))?',
                           r'/voscomptes/canalXHTML/assurance/retraiteUCEuro/historiqueMouvements-assuranceRetraiteUCEuros.ea(\?numContrat=(?P<id>\w+))?',
@@ -124,7 +129,13 @@ class BPBrowser(LoginBrowser, StatesMixin):
     accounts = None
 
     def __init__(self, *args, **kwargs):
+        self.weboob = kwargs.pop('weboob')
         super(BPBrowser, self).__init__(*args, **kwargs)
+
+        dirname = self.responses_dirname
+        if dirname:
+            dirname += '/bourse'
+        self.linebourse = LinebourseBrowser(self.weboob, 'https://labanquepostale.offrebourse.com/', logger=self.logger, responses_dirname=dirname)
 
     def do_login(self):
         self.location(self.login_url)
@@ -168,6 +179,10 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_history(self, account):
+        if account.type in (account.TYPE_PEA, account.TYPE_MARKET):
+            self.go_linebourse(account)
+            return self.linebourse.iter_history(account.id)
+
         transactions = []
 
         if account.type is not Account.TYPE_LOAN:
@@ -192,6 +207,13 @@ class BPBrowser(LoginBrowser, StatesMixin):
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
 
         return transactions
+
+    @need_login
+    def go_linebourse(self, account):
+        self.location(account._link_id)
+        self.market_login.go()
+        self.linebourse.session.cookies.update(self.session.cookies)
+        self.par_accounts_checking.go()
 
     def _get_coming_transactions(self, account):
         if account.type == Account.TYPE_CHECKING:
@@ -240,6 +262,10 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_investment(self, account):
+        if account.type in (account.TYPE_PEA, account.TYPE_MARKET):
+            self.go_linebourse(account)
+            return self.linebourse.iter_investment(account.id)
+
         if account.type != Account.TYPE_LIFE_INSURANCE:
             return iter([])
 
@@ -314,6 +340,9 @@ class BProBrowser(BPBrowser):
     pro_history_dl = URL(r'.*voscomptes/telechargercomptes/telechargercomptes.ea.*', ProAccountHistoryDownload)
     pro_history_csv = URL(r'.*voscomptes/telechargercomptes/1-telechargercomptes.ea', ProAccountHistoryCSV) # HistoryParser()?
 
+    useless2 = URL(r'.*/voscomptes/bourseenligne/lancementBourseEnLigne-bourseenligne.ea\?numCompte=(?P<account>\d+)', UselessPage)
+    market_login = URL(r'.*/voscomptes/bourseenligne/oicformautopost.jsp', MarketLoginPage)
+
     BASEURL = 'https://banqueenligne.entreprises.labanquepostale.fr'
 
     def set_variables(self):
@@ -323,8 +352,18 @@ class BProBrowser(BPBrowser):
         self.base_url = 'https://banqueenligne.entreprises.labanquepostale.fr/%s' % version
         self.accounts_url = self.base_url + '/voscomptes/synthese/synthese.ea'
 
+    def go_linebourse(self, account):
+        self.location(account._link_id)
+        self.location('../bourseenligne/oicformautopost.jsp')
+        self.linebourse.session.cookies.update(self.session.cookies)
+        self.location(self.accounts_url)
+
     @need_login
     def get_history(self, account):
+        if account.type in (account.TYPE_PEA, account.TYPE_MARKET):
+            self.go_linebourse(account)
+            return self.linebourse.iter_history(account.id)
+
         transactions = []
         v = urlsplit(account._link_id)
         args = dict(parse_qsl(v.query))

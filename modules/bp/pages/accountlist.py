@@ -26,7 +26,7 @@ from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.capabilities.contact import Advisor
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.pages import LoggedPage, RawPage
+from weboob.browser.pages import LoggedPage, RawPage, PartialHTMLPage, HTMLPage
 from weboob.browser.filters.html import Link
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Field, BrowserURL, Currency
 from weboob.exceptions import BrowserUnavailable
@@ -205,3 +205,12 @@ class AccountRIB(LoggedPage, RawPage):
         if m:
             return unicode(m.group(1))
         return None
+
+
+class MarketLoginPage(LoggedPage, PartialHTMLPage):
+    def on_load(self):
+        self.get_form(id='autoSubmit').submit()
+
+
+class UselessPage(LoggedPage, HTMLPage):
+    pass
