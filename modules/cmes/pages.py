@@ -45,7 +45,7 @@ class LoginPage(HTMLPage):
 
 class AccountsPage(LoggedPage, HTMLPage):
     def get_investment_link(self):
-        return Link('//a[contains(text(), "fonds")]', default=None)(self.doc)
+        return Link('//a[contains(text(), "Par fonds")][contains(@href,"GoPositionsParFond")]', default=None)(self.doc)
 
     @method
     class iter_accounts(ListElement):

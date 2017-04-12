@@ -58,7 +58,7 @@ class CmesBrowser(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
-        link = self.history.stay_or_go(subsite=self.subsite).get_link()
+        link = self.history.go(subsite=self.subsite).get_link()
         if link:
             return self.location(link).page.iter_history()
         return iter([])
