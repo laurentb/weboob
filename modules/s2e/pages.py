@@ -199,6 +199,12 @@ class ItemInvestment(ItemElement):
                     self.env['code_type'] = NotAvailable
                     return
 
+                match = re.match(r'http://www.cpr-am.fr/particuliers/product/view/([A-Z0-9]+)', url)
+                if match:
+                    self.env['code'] = match.group(1)
+                    self.env['code_type'] = Investment.CODE_TYPE_ISIN
+                    return
+
                 page = self.page.browser.open(url).page
 
         try:
