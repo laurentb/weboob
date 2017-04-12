@@ -133,6 +133,12 @@ class AMFSGPage(HTMLPage):
     def get_code(self):
         return CleanText('//div[@id="header_code"]', default=NotAvailable)(self.doc)
 
+    def build_doc(self, data):
+        if not data.strip():
+            # sometimes the page is totally blank... prevent an XMLSyntaxError
+            data = b'<html></html>'
+        return super(AMFSGPage, self).build_doc(data)
+
 
 class LyxorfcpePage(LoggedPage, HTMLPage):
     CODE_TYPE = Investment.CODE_TYPE_ISIN
