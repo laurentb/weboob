@@ -404,6 +404,8 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                (re.compile('.*Titres.*'), Account.TYPE_MARKET),
                (re.compile('.*Selection Vie.*'),Account.TYPE_LIFE_INSURANCE),
                (re.compile('^Fructi Pulse.*'), Account.TYPE_MARKET),
+               (re.compile('^(Quintessa|Solevia).*'), Account.TYPE_MARKET),
+               (re.compile('^Plan Epargne Enfant Mul.*'), Account.TYPE_MARKET),
                ]
 
     def pop_up(self):
