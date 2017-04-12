@@ -191,7 +191,15 @@ class ItemInvestment(ItemElement):
                 if m: # had to put full url to skip redirections.
                     page = page.browser.open('https://www.assetmanagement.hsbc.com/feedRequest?feed_data=gfcFundData&cod=FR&client=FCPE&fId=%s&SH=%s&lId=fr' % m.groups()).page
             elif "consulteroperations" not in self.page.browser.url: # not on history
-                page = self.page.browser.open(Regexp(CleanText('//complete'), r'openUrlFichesFonds\(\'(.*?)\'\)')(page.doc)).page
+                url = Regexp(CleanText('//complete'), r"openUrlFichesFonds\('(.*?)'\)", default=NotAvailable)(page.doc)
+                if url is NotAvailable:
+                    # redirection to a useless graphplot page with url like /portal/salarie-sg/fichefonds?idFonds=XXX&source=/portal/salarie-sg/monepargne/mesavoirs
+                    assert CleanText('//redirect/@url')(page.doc)
+                    self.env['code'] = NotAvailable
+                    self.env['code_type'] = NotAvailable
+                    return
+
+                page = self.page.browser.open(url).page
 
         try:
             self.env['code'] = page.get_code()
