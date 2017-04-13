@@ -46,7 +46,7 @@ class AccountsJsonPage(LoggedPage, JsonPage):
             }
 
     def iter_accounts(self):
-        for classeur in self.doc['donnees']['classeurs']:
+        for classeur in self.doc.get('donnees', {}).get('classeurs', {}):
             title = classeur['title']
             for compte in classeur.get('comptes', []):
                 a = Account()
@@ -68,6 +68,8 @@ class AccountsJsonPage(LoggedPage, JsonPage):
 
     def get_error(self):
         if self.doc['commun']['statut'] == 'nok':
+            # warning: 'nok' is case sensitive, for wrongpass at least it's 'nok'
+            # for certain other errors (like no accounts), it's 'NOK'
             return self.doc['commun']['raison']
         return None
 
