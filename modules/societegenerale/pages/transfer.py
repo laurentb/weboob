@@ -24,7 +24,7 @@ from io import BytesIO
 from logging import error
 
 from weboob.browser.pages import LoggedPage, JsonPage, FormNotFound
-from weboob.browser.elements import method, ListElement, ItemElement
+from weboob.browser.elements import method, ListElement, ItemElement, SkipItem
 from weboob.capabilities.bank import (
     Recipient, TransferError, TransferBankError, TransferInvalidCurrency, Transfer,
     AddRecipientError, AddRecipientStep,
@@ -91,7 +91,8 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         item_xpath = '//select[@id="SelectDest"]/optgroup[@label="Vos comptes"]/option | //select[@id="SelectDest"]/optgroup[@label="Procurations"]/option'
 
         class Item(MyRecipient):
-            validate = lambda self, obj: self.obj_id(self) != self.env['account_id']
+            def validate(self, obj):
+                return self.obj.id != self.env['account_id']
 
             obj_id = Env('id')
             obj_label = Env('label')
@@ -109,18 +110,42 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
                         account = accounts[0]
                     self.env['id'] = _id
                 else:
-                    account = find_object(self.page.browser.get_accounts_list(), label=Regexp(CleanText('.'), '- (.*)')(self))
+                    rcpt_label = CleanText('.')(self)
+                    account = None
+
+                    # the recipients selector contains "<type> - <label>"
+                    # the js contains "<part_of_id>", ... "<label>", ... "<type>"
+                    # the accounts list contains "<label>" and the id
+                    # put all this data together
+                    for params in self.page.iter_params_by_type('Emetteurs'):
+                        param_label = '%s - %s' % (params[8], params[5])
+                        if param_label != rcpt_label:
+                            continue
+                        param_id = params[1] + params[2] + params[3]
+                        for ac in self.page.browser.get_accounts_list():
+                            if ac.id in param_id:
+                                account = ac
+                                break
+
+                    if account is None:
+                        self.page.logger.warning('the internal %r recipient could not be found in js or accounts list', rcpt_label)
+                        raise SkipItem()
+
                     self.env['id']= account.id
                 self.env['label'] = account.label
                 self.env['iban'] = account.iban
 
-    def get_params(self, _id, _type):
+    def iter_params_by_type(self, _type):
         for script in [sc for sc in self.doc.xpath('//script') if sc.text]:
             accounts = re.findall('TableauComptes%s.*?\)' % _type, script.text)
             if accounts:
                 break
         for account in accounts:
             params = re.findall('"(.*?)"', account)
+            yield params
+
+    def get_params(self, _id, _type):
+        for params in self.iter_params_by_type(_type):
             if params[2] + params[3] == _id or params[3] + params[4] == _id or params[-2] == _id:
                 return params
         raise TransferError(u'Paramètres pour le compte %s numéro %s introuvable.' % (_type, _id))
