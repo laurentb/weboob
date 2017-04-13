@@ -96,7 +96,7 @@ class BPModule(Module, CapBankTransfer, CapContact):
         except (AssertionError, ValueError):
             raise TransferError('something went wrong')
 
-        return self.browser.init_transfer(account, recipient, amount, transfer.label)
+        return self.browser.init_transfer(account, recipient, amount, transfer)
 
     def execute_transfer(self, transfer, **params):
         return self.browser.execute_transfer(transfer)

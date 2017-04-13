@@ -312,11 +312,11 @@ class BPBrowser(LoginBrowser, StatesMixin):
         return self.transfer_choose.stay_or_go().iter_recipients(account_id=account_id)
 
     @need_login
-    def init_transfer(self, account, recipient, amount, label):
+    def init_transfer(self, account, recipient, amount, transfer):
         self.transfer_choose.stay_or_go()
         self.page.init_transfer(account.id, recipient._value)
-        self.page.complete_transfer(amount, label)
-        return self.page.handle_response(account, recipient, amount, label)
+        self.page.complete_transfer(amount, transfer)
+        return self.page.handle_response(account, recipient, amount, transfer.label)
 
     @need_login
     def execute_transfer(self, transfer, code=None):

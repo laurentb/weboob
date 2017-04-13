@@ -38,7 +38,7 @@ class CheckTransferError(MyHTMLPage):
     def on_load(self):
         MyHTMLPage.on_load(self)
         error = CleanText(u'//span[@class="app_erreur"] | //p[@class="warning"] | //p[contains(text(), "Votre virement n\'a pas pu être enregistré")]')(self.doc)
-        if error:
+        if error and not u'Votre demande de virement a été enregistrée le' in error:
             raise TransferBankError(message=error)
 
 
@@ -119,11 +119,12 @@ class TransferChooseAccounts(LoggedPage, MyHTMLPage):
 
 
 class CompleteTransfer(LoggedPage, CheckTransferError):
-    def complete_transfer(self, amount, label):
+    def complete_transfer(self, amount, transfer):
         form = self.get_form(xpath='//form[@method]')
         form['montant'] = amount
-        if 'commentaire' in form and label:
-            form['commentaire'] = label
+        if 'commentaire' in form and transfer.label:
+            form['commentaire'] = transfer.label
+        form['dateVirement'] = transfer.exec_date.strftime('%d/%m/%Y')
         form.submit()
 
 
@@ -169,5 +170,8 @@ class TransferConfirm(LoggedPage, CheckTransferError):
 
 class TransferSummary(LoggedPage, CheckTransferError):
     def handle_response(self, transfer):
-        transfer.id = Regexp(CleanText('//div[@class="bloc Tmargin"]'), 'Votre virement N.+ (\d+) ')(self.doc)
+        # NotAvailable in case of future exec_date not on a working day.
+        transfer.id = Regexp(CleanText('//div[@class="bloc Tmargin"]'), 'virement N.+ (\d+) ', default=NotAvailable)(self.doc)
+        if not transfer.id:
+            transfer.exec_date = Date(Regexp(CleanText('//div[@class="bloc Tmargin"]'), 'suivant \(([\d\/]+)\)'), dayfirst=True)(self.doc)
         return transfer
