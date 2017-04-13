@@ -786,7 +786,7 @@ class MyRecipient(ItemElement):
 
 class TransferErrorPage(object):
     def on_load(self):
-        error = CleanText('//span[@id="MM_LblMessagePopinError"]/p | //div[h2[contains(text(), "Erreur de saisie")]]/p[1]')(self.doc)
+        error = CleanText('//span[@id="MM_LblMessagePopinError"]/p | //div[h2[contains(text(), "Erreur de saisie")]]/p[1] | //span[@class="error"]/strong')(self.doc)
         if error:
             raise TransferBankError(message=error)
 
