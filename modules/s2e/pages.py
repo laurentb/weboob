@@ -199,7 +199,13 @@ class ItemInvestment(ItemElement):
                     self.env['code_type'] = NotAvailable
                     return
 
-                match = re.match(r'http://www.cpr-am.fr/particuliers/product/view/([A-Z0-9]+)', url)
+                if url.startswith('http://docfinder.is.bnpparibas-ip.com/'):
+                    # pdf... http://docfinder.is.bnpparibas-ip.com/api/files/040d05b3-1776-4991-aa49-f0cd8717dab8/1536
+                    self.env['code'] = NotAvailable
+                    self.env['code_type'] = NotAvailable
+                    return
+
+                match = re.match(r'http://www.cpr-am.fr/fr/fonds_detail.php\?isin=([A-Z0-9]+)', url)
                 if match:
                     self.env['code'] = match.group(1)
                     self.env['code_type'] = Investment.CODE_TYPE_ISIN
