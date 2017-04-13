@@ -260,7 +260,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
         obj_name = CleanText('//div[@id="contacterMaBqMenu"]//p[@id="itemNomContactMaBq"]/span')
         obj_email = obj_mobile = obj_fax = NotAvailable
-        obj_phone = Regexp(CleanText('//div[@id="sousContentAgence"]//p[contains(text(), "Tel")]', replace=[(' ', '')]), '([\s\d]+)')
+        obj_phone = Regexp(CleanText('//div[@id="contacterMaBqMenu"]//p[contains(text(), "Tel")]', replace=[(' ', '')]), '([\s\d]+)', default=NotAvailable)
         obj_agency = CleanText('//div[@id="sousContentAgence"]//p[@class="itemSousTitreMenuMaBq"][1]')
 
         def obj_address(self):
