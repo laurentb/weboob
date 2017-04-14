@@ -81,9 +81,6 @@ class BPBrowser(LoginBrowser, StatesMixin):
                           RetirementHistory)
 
     pro_accounts_list = URL(r'.*voscomptes/synthese/synthese.ea', ProAccountsList)
-    pro_history = URL(r'.*voscomptes/historiqueccp/historiqueccp.ea.*', ProAccountHistory)
-    pro_history_dl = URL(r'.*voscomptes/telechargercomptes/telechargercomptes.ea.*', ProAccountHistoryDownload)
-    pro_history_csv = URL(r'.*voscomptes/telechargercomptes/1-telechargercomptes.ea', ProAccountHistoryCSV) # HistoryParser()?
 
     par_account_checking_history = URL('/voscomptes/canalXHTML/comptesCommun/recherche_CCP/init-recherche_ccp.ea\?compte.numero=(?P<accountId>.*)',
                                        '/voscomptes/canalXHTML/comptesCommun/recherche_CCP/valider-recherche_ccp.ea', AccountHistory)
@@ -192,31 +189,24 @@ class BPBrowser(LoginBrowser, StatesMixin):
     def get_history(self, account):
         transactions = []
 
-        if self.is_professional:
-            v = urlsplit(account._link_id)
-            args = dict(parse_qsl(v.query))
-            args['typeRecherche'] = 10
+        if account.type is not Account.TYPE_LOAN:
+            self.location(account._link_id)
 
-            self.location('%s?%s' % (v.path, urlencode(args)))
-        else:
-            if account.type is not Account.TYPE_LOAN:
-                self.location(account._link_id)
+            history = {Account.TYPE_CHECKING: self.par_account_checking_history,
+                        Account.TYPE_SAVINGS: self.par_account_savings_and_invests_history,
+                        Account.TYPE_MARKET: self.par_account_savings_and_invests_history
+                        }.get(account.type)
 
-                history = {Account.TYPE_CHECKING: self.par_account_checking_history,
-                           Account.TYPE_SAVINGS: self.par_account_savings_and_invests_history,
-                           Account.TYPE_MARKET: self.par_account_savings_and_invests_history
-                          }.get(account.type)
+            if history is not None:
+                history.go(accountId=account.id).submit_research()
 
-                if history is not None:
-                    history.go(accountId=account.id).submit_research()
+            if hasattr(self.page, 'get_history'):
+                for tr in self.page.get_history():
+                    transactions.append(tr)
 
-                if hasattr(self.page, 'get_history'):
-                    for tr in self.page.get_history():
-                        transactions.append(tr)
-
-                for tr in self.iter_card_transactions(account):
-                    if not tr._coming:
-                        transactions.append(tr)
+            for tr in self.iter_card_transactions(account):
+                if not tr._coming:
+                    transactions.append(tr)
 
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
 
@@ -337,6 +327,10 @@ class BProBrowser(BPBrowser):
     login_url = "https://banqueenligne.entreprises.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&ERROR_CODE=0x00000000&URL=%2Fws_q47%2Fvoscomptes%2Fidentification%2Fidentification.ea%3Forigin%3Dprofessionnels"
     accounts_and_loans_url = None
 
+    pro_history = URL(r'.*voscomptes/historiqueccp/historiqueccp.ea.*', ProAccountHistory)
+    pro_history_dl = URL(r'.*voscomptes/telechargercomptes/telechargercomptes.ea.*', ProAccountHistoryDownload)
+    pro_history_csv = URL(r'.*voscomptes/telechargercomptes/1-telechargercomptes.ea', ProAccountHistoryCSV) # HistoryParser()?
+
     BASEURL = 'https://banqueenligne.entreprises.labanquepostale.fr'
 
     def set_variables(self):
@@ -346,6 +340,20 @@ class BProBrowser(BPBrowser):
         self.base_url = 'https://banqueenligne.entreprises.labanquepostale.fr/%s' % version
         self.accounts_url = self.base_url + '/voscomptes/synthese/synthese.ea'
 
+    @need_login
+    def get_history(self, account):
+        transactions = []
+        v = urlsplit(account._link_id)
+        args = dict(parse_qsl(v.query))
+        args['typeRecherche'] = 10
+
+        self.location('%s?%s' % (v.path, urlencode(args)))
+        if hasattr(self.page, 'get_history'):
+            for tr in self.page.get_history():
+                transactions.append(tr)
+        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+
+        return transactions
     @need_login
     def get_accounts_list(self):
         self.set_variables()
