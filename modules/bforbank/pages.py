@@ -247,9 +247,15 @@ class CardHistoryPage(LoggedPage, HTMLPage):
 class CardPage(LoggedPage, HTMLPage):
     def get_card(self, account_id):
         divs = self.doc.xpath('//div[@class="content-boxed"]')
+        assert len(divs)
+
         msg = u'Vous avez fait opposition sur cette carte bancaire.'
         divs = [d for d in divs if msg not in CleanText('.//div[has-class("alert")]', default='')(d)]
         divs = [d.xpath('.//div[@class="m-card-infos"]')[0] for d in divs]
+
+        if not len(divs):
+            self.logger.warning('all cards are cancelled, acting as if there is no card')
+            return
 
         cards = []
         for div in divs:
