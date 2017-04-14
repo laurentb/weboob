@@ -21,6 +21,7 @@ import re
 import datetime
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal
+from urlparse import urljoin
 
 from weboob.browser.filters.standard import CleanText
 from weboob.browser.pages import LoggedPage, CsvPage
@@ -36,16 +37,18 @@ class RedirectPage(LoggedPage, MyHTMLPage):
 
 
 class ProAccountsList(LoggedPage, MyHTMLPage):
-    ACCOUNT_TYPES = {u'Comptes titres': Account.TYPE_MARKET,
-                     u'Comptes Ã©pargne':    Account.TYPE_SAVINGS,
-                     u'Comptes courants':    Account.TYPE_CHECKING,
+    ACCOUNT_TYPES = {u'comptes titres': Account.TYPE_MARKET,
+                     u'comptes Ã©pargne':    Account.TYPE_SAVINGS,
+                     # wtf? ^
+                     u'comptes épargne':     Account.TYPE_SAVINGS,
+                     u'comptes courants':    Account.TYPE_CHECKING,
                     }
     def get_accounts_list(self):
         for table in self.doc.xpath('//div[@class="comptestabl"]/table'):
             try:
-                account_type = self.ACCOUNT_TYPES[table.get('summary')]
+                account_type = self.ACCOUNT_TYPES[table.get('summary').lower()]
                 if not account_type:
-                    account_type = self.ACCOUNT_TYPES[table.xpath('./caption/text()')[0].strip()]
+                    account_type = self.ACCOUNT_TYPES[table.xpath('./caption/text()')[0].strip().lower()]
             except (IndexError,KeyError):
                 account_type = Account.TYPE_UNKNOWN
             for tr in table.xpath('./tbody/tr'):
@@ -65,7 +68,7 @@ class ProAccountsList(LoggedPage, MyHTMLPage):
                     a.currency = u'EUR'
                 a.balance = Decimal(Transaction.clean_amount(tmp_balance))
                 a._has_cards = False
-                a._link_id = link.attrib['href']
+                a._link_id = urljoin(self.url, link.attrib['href'])
                 yield a
 
 

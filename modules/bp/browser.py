@@ -80,8 +80,6 @@ class BPBrowser(LoginBrowser, StatesMixin):
                           r'/voscomptes/canalXHTML/assurance/prevoyance/consulterHistorique-assurancePrevoyance.ea(\?numContrat=(?P<id>\w+))?',
                           RetirementHistory)
 
-    pro_accounts_list = URL(r'.*voscomptes/synthese/synthese.ea', ProAccountsList)
-
     par_account_checking_history = URL('/voscomptes/canalXHTML/comptesCommun/recherche_CCP/init-recherche_ccp.ea\?compte.numero=(?P<accountId>.*)',
                                        '/voscomptes/canalXHTML/comptesCommun/recherche_CCP/valider-recherche_ccp.ea', AccountHistory)
     par_account_deferred_card_history = URL('/voscomptes/canalXHTML/CB/releveCB/preparerRecherche-mouvementsCarteDD.ea\?typeListe=(?P<type>.*)', AccountHistory)
@@ -128,8 +126,6 @@ class BPBrowser(LoginBrowser, StatesMixin):
     def __init__(self, *args, **kwargs):
         super(BPBrowser, self).__init__(*args, **kwargs)
 
-        self.is_professional = 'entreprise' in self.BASEURL
-
     def do_login(self):
         self.location(self.login_url)
 
@@ -145,45 +141,30 @@ class BPBrowser(LoginBrowser, StatesMixin):
     @need_login
     def get_accounts_list(self):
         if self.accounts is None:
-            self.accounts = []
-            ids = set()
+            accounts = []
 
-            if not self.is_professional: # par space, different method
-                self.par_accounts_checking.go()
+            self.par_accounts_checking.go()
 
-                pages = [self.par_accounts_checking, self.par_accounts_savings_and_invests, self.par_accounts_loan]
-                no_accounts = 0
-                for page in pages:
-                    page.go()
+            pages = [self.par_accounts_checking, self.par_accounts_savings_and_invests, self.par_accounts_loan]
+            no_accounts = 0
+            for page in pages:
+                page.go()
 
-                    if self.page.no_accounts:
-                        no_accounts += 1
-                        continue
+                if self.page.no_accounts:
+                    no_accounts += 1
+                    continue
 
-                    for account in self.page.iter_accounts():
-                        self.accounts.append(account)
+                for account in self.page.iter_accounts():
+                    accounts.append(account)
 
-                # if we are sure there is no accounts on the all visited pages,
-                # it is legit.
-                if no_accounts == len(pages):
-                    raise NoAccountsException()
-            else:
-                self.location(self.accounts_url)
-                assert self.pro_accounts_list.is_here()
+            self.accounts = accounts
 
-                for account in self.page.get_accounts_list():
-                    ids.add(account.id)
-                    self.accounts.append(account)
+            # if we are sure there is no accounts on the all visited pages,
+            # it is legit.
+            if no_accounts == len(pages):
+                raise NoAccountsException()
 
-                if self.accounts_and_loans_url:
-                    self.location(self.accounts_and_loans_url)
-                    assert self.pro_accounts_list.is_here()
-
-                for account in self.page.get_accounts_list():
-                    if account.id not in ids:
-                        ids.add(account.id)
-                        self.accounts.append(account)
-        return iter(self.accounts)
+        return self.accounts
 
     @need_login
     def get_history(self, account):
@@ -212,18 +193,18 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
         return transactions
 
+    def _get_coming_transactions(self, account):
+        if account.type == Account.TYPE_CHECKING:
+            self.location(account._link_id)
+            self.par_account_checking_coming.go(accountId=account.id)
+
+            if self.par_account_checking_coming.is_here() and self.page.has_coming():
+                for tr in self.page.iter_coming():
+                    yield tr
+
     @need_login
     def get_coming(self, account):
-        transactions = []
-
-        if self.is_professional is False:
-            if account.type == Account.TYPE_CHECKING:
-                self.location(account._link_id)
-                self.par_account_checking_coming.go(accountId=account.id)
-
-                if self.par_account_checking_coming.is_here() and self.page.has_coming():
-                    for tr in self.page.iter_coming():
-                        transactions.append(tr)
+        transactions = list(self._get_coming_transactions(account))
 
         for tr in self.iter_card_transactions(account):
             if tr._coming:
@@ -327,6 +308,8 @@ class BProBrowser(BPBrowser):
     login_url = "https://banqueenligne.entreprises.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&ERROR_CODE=0x00000000&URL=%2Fws_q47%2Fvoscomptes%2Fidentification%2Fidentification.ea%3Forigin%3Dprofessionnels"
     accounts_and_loans_url = None
 
+    pro_accounts_list = URL(r'.*voscomptes/synthese/synthese.ea', ProAccountsList)
+
     pro_history = URL(r'.*voscomptes/historiqueccp/historiqueccp.ea.*', ProAccountHistory)
     pro_history_dl = URL(r'.*voscomptes/telechargercomptes/telechargercomptes.ea.*', ProAccountHistoryDownload)
     pro_history_csv = URL(r'.*voscomptes/telechargercomptes/1-telechargercomptes.ea', ProAccountHistoryCSV) # HistoryParser()?
@@ -354,15 +337,42 @@ class BProBrowser(BPBrowser):
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
 
         return transactions
+
+    def _get_coming_transactions(self, account):
+        return []
+
     @need_login
     def get_accounts_list(self):
-        self.set_variables()
-        accounts = BPBrowser.get_accounts_list(self)
-        for acc in accounts:
-            self.location('%s/voscomptes/rib/init-rib.ea' % self.base_url)
-            value = self.page.get_rib_value(acc.id)
-            if value:
-                self.location('%s/voscomptes/rib/preparerRIB-rib.ea?%s' % (self.base_url, value))
-                if self.rib.is_here():
-                    acc.iban = self.page.get_iban()
-            yield acc
+        if self.accounts is None:
+            self.set_variables()
+
+            accounts = []
+            ids = set()
+
+            self.location(self.accounts_url)
+            assert self.pro_accounts_list.is_here()
+
+            for account in self.page.get_accounts_list():
+                ids.add(account.id)
+                accounts.append(account)
+
+            if self.accounts_and_loans_url:
+                self.location(self.accounts_and_loans_url)
+                assert self.pro_accounts_list.is_here()
+
+            for account in self.page.get_accounts_list():
+                if account.id not in ids:
+                    ids.add(account.id)
+                    accounts.append(account)
+
+            for acc in accounts:
+                self.location('%s/voscomptes/rib/init-rib.ea' % self.base_url)
+                value = self.page.get_rib_value(acc.id)
+                if value:
+                    self.location('%s/voscomptes/rib/preparerRIB-rib.ea?%s' % (self.base_url, value))
+                    if self.rib.is_here():
+                        acc.iban = self.page.get_iban()
+
+            self.accounts = accounts
+
+        return self.accounts

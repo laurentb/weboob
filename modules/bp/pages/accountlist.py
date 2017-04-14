@@ -20,6 +20,7 @@
 
 from io import BytesIO
 import re
+from urlparse import urljoin
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account
@@ -58,7 +59,12 @@ class AccountList(LoggedPage, MyHTMLPage):
 
             obj_id = CleanText('.//abbr/following-sibling::text()')
             obj_currency = Currency('.//span[@class="number"]')
-            obj__link_id = Link(u'./a', default=NotAvailable)
+
+            def obj__link_id(self):
+                url = Link(u'./a', default=NotAvailable)(self)
+                if url:
+                    return urljoin(self.page.url, url)
+                return url
 
             def obj_label(self):
                 return CleanText('.//div[@class="title"]/h3')(self).upper()
