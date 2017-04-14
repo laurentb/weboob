@@ -28,6 +28,7 @@ __all__ = ['GanAssurances']
 
 class GanAssurances(LoginBrowser):
     login = URL('/wps/portal/login.*',
+                'https://authentification.ganassurances.fr/cas/login.*',
                 '/wps/portal/inscription.*', LoginPage)
     accounts = URL('/wps/myportal/TableauDeBord', AccountsPage)
     transactions = URL('/wps/myportal/!ut.*', TransactionsPage)
@@ -44,7 +45,9 @@ class GanAssurances(LoginBrowser):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
-        self.login.stay_or_go()
+        self.accounts.go()
+
+        assert(self.login.is_here())
 
         self.page.login(self.username, self.password)
 
