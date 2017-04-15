@@ -165,7 +165,6 @@ class ArteBrowser(PagesBrowser):
     def get_arte_cinema_categories(self, cat=[]):
         menu = self.videos_list.go(site=SITE.CINEMA.get('id'), lang=self.lang.get('site'),
                                    cat='').get_arte_cinema_menu()
-
         menuSplit = map(lambda x: x.split("/")[2:], menu)
 
         result = {}
@@ -192,6 +191,8 @@ class ArteBrowser(PagesBrowser):
         else:
             categories = []
             for item in result.keys():
+                if item == "programs":
+                    continue
                 categories.append(Collection([SITE.CINEMA.get('id'), unicode(item)], unicode(item)))
             return categories
 
