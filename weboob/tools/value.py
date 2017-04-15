@@ -96,6 +96,8 @@ class Value(object):
         """
         if self.default is not None and v == self.default:
             return
+        if self.required and v is None:
+            raise ValueError('Value is required and thus must be set')
         if v == '' and self.default != '' and (self.choices is None or v not in self.choices):
             raise ValueError('Value can\'t be empty')
         if self.regexp is not None and not re.match(self.regexp, unicode(v)):
