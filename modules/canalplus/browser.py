@@ -17,13 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import requests
 import urllib
 
-import lxml.etree
-
 from weboob.browser import PagesBrowser, URL
-from weboob.deprecated.browser.decorators import id2url
 
 from .pages import ChannelsPage, VideoPage
 from .video import CanalplusVideo
@@ -33,26 +29,14 @@ from weboob.capabilities.collection import CollectionNotFound
 __all__ = ['CanalplusBrowser']
 
 
-class XMLParser(object):
-    def parse(self, data, encoding=None):
-        if encoding is None:
-            parser = None
-        else:
-            parser = lxml.etree.XMLParser(encoding=encoding, strip_cdata=False)
-        return lxml.etree.XML(data.get_data(), parser)
-
-
 class CanalplusBrowser(PagesBrowser):
     BASEURL = u'http://service.canal-plus.com'
-    ENCODING = 'utf-8'
 
     channels = URL('/video/rest/initPlayer/cplus/', ChannelsPage)
     videos = URL('/video/rest/search/cplus/.*',
                  '/video/rest/getVideosLiees/cplus/(?P<id>.+)',
                  '/video/rest/getMEAs/cplus/.*', VideoPage)
 
-    #We need lxml.etree.XMLParser to read CDATA
-    PARSER = XMLParser()
     FORMATS = {
         'sd': 0,
         'hd': -1,
@@ -70,16 +54,16 @@ class CanalplusBrowser(PagesBrowser):
         self.location('http://service.canal-plus.com/video/rest/search/cplus/' + urllib.quote_plus(pattern.replace('/', '').encode('utf-8')))
         return self.page.iter_results()
 
-    @id2url(CanalplusVideo.id2url)
     def get_video(self, url, video=None):
+        if not url.startswith('http'):
+            url = CanalplusVideo.id2url(url)
         self.location(url)
         video = self.page.get_video(video)
         video.url = u'%s' % self.read_url(video.url)[self.quality]
         return video
 
     def read_url(self, url):
-        r = requests.get(url, stream=True)
-        buf = r.iter_lines()
+        buf = self.open(url).text.split('\n')
         return [line for line in buf if not line.startswith('#')]
 
     def iter_resources(self, split_path):

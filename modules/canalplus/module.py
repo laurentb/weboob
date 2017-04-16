@@ -57,16 +57,13 @@ class CanalplusModule(Module, CapVideo, CapCollection):
     def fill_video(self, video, fields):
         if fields != ['thumbnail']:
             # if we don't want only the thumbnail, we probably want also every fields
-            with self.browser:
-                video = self.browser.get_video(CanalplusVideo.id2url(video.id), video)
+            video = self.browser.get_video(CanalplusVideo.id2url(video.id), video)
         if 'thumbnail' in fields and video.thumbnail:
-            with self.browser:
-                video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
+            video.thumbnail.data = self.browser.open(video.thumbnail.url).content
         return video
 
     OBJECTS = {CanalplusVideo: fill_video}
 
     def iter_resources(self, objs, split_path):
         if BaseVideo in objs:
-            with self.browser:
-                return self.browser.iter_resources(split_path)
+            return self.browser.iter_resources(split_path)

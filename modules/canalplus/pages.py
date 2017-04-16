@@ -29,6 +29,8 @@ from .video import CanalplusVideo
 
 
 class ChannelsPage(XMLPage):
+    ENCODING = 'utf-8'
+
     def get_channels(self):
         """
         Extract all possible channels (paths) from the page
@@ -48,14 +50,16 @@ class ChannelsPage(XMLPage):
         return channels
 
     def _clean_name(self, name):
-        name = unicode(name.strip())
+        name = name.strip()
         if name == name.upper():
             name = name.capitalize()
-        friendly_id = re.sub(ur"['/_ \(\)\-\+]+", u'-', name).strip(u'-').lower()
+        friendly_id = re.sub(r"['/_ \(\)\-\+]+", u'-', name).strip(u'-').lower()
         return friendly_id, name
 
 
 class VideoPage(XMLPage):
+    ENCODING = 'utf-8'
+
     def parse_video(self, el, video=None):
         _id = el.find('ID').text
         if _id == '-1':
@@ -73,7 +77,7 @@ class VideoPage(XMLPage):
             if len(video.title) > 0:
                 video.title += u' — '
             video.title += part.text.strip()
-        video.description = unicode(infos.find('DESCRIPTION').text)
+        video.description = infos.find('DESCRIPTION').text
 
         media = el.find('MEDIA')
         url = media.find('IMAGES').find('PETIT').text
@@ -88,7 +92,7 @@ class VideoPage(XMLPage):
 
             if format.tag == 'HLS':
                 video.ext = u'm3u8'
-                video.url = unicode(format.text)
+                video.url = format.text
                 break
 
         day, month, year = map(int, infos.find('PUBLICATION').find('DATE').text.split('/'))
