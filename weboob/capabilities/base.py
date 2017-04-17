@@ -492,6 +492,11 @@ class BaseObject(with_metaclass(_BaseObjectMeta, StrConv, object)):
         fields_iterator = self.iter_fields()
         return OrderedDict(iter_decorate(fields_iterator))
 
+    def __getstate__(self):
+        d = self.to_dict()
+        d.update((k, v) for k, v in self.__dict__.items() if k != '_fields')
+        return d
+
     @classmethod
     def from_dict(cls, values, backend=None):
         self = cls()
@@ -500,6 +505,11 @@ class BaseObject(with_metaclass(_BaseObjectMeta, StrConv, object)):
             setattr(self, attr, values[attr])
 
         return self
+
+    def __setstate__(self, state):
+        self._fields = deepcopy(self._fields) # because yaml does not call __init__
+        for k in state:
+            setattr(self, k, state[k])
 
 
 class Currency(object):
