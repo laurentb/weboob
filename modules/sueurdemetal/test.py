@@ -31,7 +31,7 @@ class SueurDeMetalTest(BackendTest):
         q.city = u'paris'
         self.assertTrue(len(list(self.backend.search_events(q))) > 0)
 
-        ev = self.backend.search_events(q).next()
+        ev = next(iter(self.backend.search_events(q)))
         self.assertTrue(self.backend.get_event(ev.id))
 
     def test_sueurdemetal_datefrom(self):
@@ -39,7 +39,7 @@ class SueurDeMetalTest(BackendTest):
         later = (datetime.now() + timedelta(days=31))
         q.start_date = later
 
-        ev = self.backend.search_events(q).next()
+        ev = next(iter(self.backend.search_events(q)))
         self.assertTrue(later.date() <= ev.start_date.date())
 
     def test_sueurdemetal_nocategory(self):

@@ -21,8 +21,8 @@ from __future__ import unicode_literals
 
 from weboob.browser.pages import HTMLPage
 from weboob.tools.date import parse_french_date
+from weboob.tools.compat import urljoin
 import re
-from urlparse import urljoin
 
 
 class PageWithConcerts(HTMLPage):
@@ -118,7 +118,7 @@ class PageConcert(PageWithConcerts):
     def parse_price(self, s):
         if not s:
             return
-        parts = filter(None, re.split(r'[^\d.]+', s.strip()))
+        parts = [x for x in re.split(r'[^\d.]+', s.strip()) if x]
         if not parts:
             return
         return float(parts[-1])
