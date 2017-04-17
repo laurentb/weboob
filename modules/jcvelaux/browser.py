@@ -20,7 +20,6 @@
 from __future__ import unicode_literals
 
 import datetime
-from urllib import urlencode
 
 from weboob.browser.browsers import APIBrowser
 
@@ -40,9 +39,7 @@ class VelibBrowser(APIBrowser):
 
     def do_get(self, path, **query):
         query['apiKey'] = self.api_key
-        qs = urlencode(query.items())
-        url = '%s?%s' % (path, qs)
-        return self.request(url)
+        return self.request(path, params=query)
 
     def get_contracts_list(self):
         return self.do_get('contracts')

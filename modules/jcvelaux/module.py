@@ -79,8 +79,8 @@ class jcvelauxModule(Module, CapGauge):
 
     def _make_gauge(self, info):
         gauge = Gauge(info['id'])
-        gauge.name = unicode(info['name'])
-        gauge.city = unicode(info['city'])
+        gauge.name = info['name']
+        gauge.city = info['city']
         gauge.object = 'bikes'
         return gauge
 
