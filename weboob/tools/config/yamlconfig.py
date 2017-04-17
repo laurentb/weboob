@@ -21,6 +21,7 @@
 import logging
 import os
 import tempfile
+import sys
 
 import weboob.tools.date
 import yaml
@@ -71,7 +72,11 @@ class YamlConfig(IConfig):
 
     def save(self):
         # write in a temporary file to avoid corruption problems
-        with tempfile.NamedTemporaryFile(dir=os.path.dirname(self.path), delete=False) as f:
+        if sys.version_info.major == 2:
+            f = tempfile.NamedTemporaryFile(dir=os.path.dirname(self.path), delete=False)
+        else:
+            f = tempfile.NamedTemporaryFile(mode='w', dir=os.path.dirname(self.path), delete=False, encoding='utf-8')
+        with f:
             yaml.dump(self.values, f, Dumper=WeboobDumper, default_flow_style=False)
         if os.path.isfile(self.path):
             os.remove(self.path)
