@@ -286,12 +286,12 @@ class BytesField(Field):
     """
 
     def __init__(self, doc, **kwargs):
-        Field.__init__(self, doc, str, **kwargs)
+        Field.__init__(self, doc, bytes, **kwargs)
 
     def convert(self, value):
         if isinstance(value, unicode):
             value = value.encode('utf-8')
-        return str(value)
+        return bytes(value)
 
 
 class _BaseObjectMeta(type):
