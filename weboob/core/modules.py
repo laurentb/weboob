@@ -133,7 +133,7 @@ class ModulesLoader(object):
             try:
                 self.load_module(existing_module_name)
             except ModuleLoadError as e:
-                self.logger.warning(e)
+                self.logger.warning('could not load module %s: %s', existing_module_name, e)
 
     def load_module(self, module_name):
         if module_name in self.loaded:
