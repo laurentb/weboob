@@ -30,7 +30,7 @@ import hashlib
 from datetime import datetime
 from contextlib import closing
 from compileall import compile_dir
-from io import BytesIO
+from io import BytesIO, StringIO
 
 from weboob.exceptions import BrowserHTTPError, BrowserHTTPNotFound, ModuleInstallError
 from .modules import LoadedModule
@@ -41,6 +41,13 @@ try:
     from ConfigParser import RawConfigParser, DEFAULTSECT
 except ImportError:
     from configparser import RawConfigParser, DEFAULTSECT
+
+
+def open_for_config(filename):
+    if sys.version_info.major == 2:
+        return open(filename, 'wb')
+    else:
+        return open(filename, 'w', encoding='utf-8')
 
 
 class ModuleInfo(object):
@@ -171,7 +178,7 @@ class Repository(object):
         else:
             # This is a remote repository, download file
             try:
-                fp = BytesIO(browser.open(posixpath.join(self.url, self.INDEX)).content)
+                fp = StringIO(browser.open(posixpath.join(self.url, self.INDEX)).text)
             except BrowserHTTPError as e:
                 raise RepositoryUnavailable(unicode(e))
 
@@ -337,9 +344,13 @@ class Repository(object):
         for module in self.modules.values():
             config.add_section(module.name)
             for key, value in module.dump():
-                config.set(module.name, key, to_unicode(value).encode('utf-8'))
+                if sys.version_info.major == 2:
+                    # python2's configparser enforces bytes coercion with str(value)...
+                    config.set(module.name, key, to_unicode(value).encode('utf-8'))
+                else:
+                    config.set(module.name, key, value)
 
-        with open(filename, 'wb') as f:
+        with open_for_config(filename) as f:
             config.write(f)
 
 
@@ -372,7 +383,8 @@ class Versions(object):
         config = RawConfigParser()
         for name, version in self.versions.items():
             config.set(DEFAULTSECT, name, version)
-        with open(os.path.join(self.path, self.VERSIONS_LIST), 'wb') as fp:
+
+        with open_for_config(os.path.join(self.path, self.VERSIONS_LIST)) as fp:
             config.write(fp)
 
 
@@ -451,7 +463,7 @@ class Repositories(object):
         self.repositories = []
 
         if not os.path.exists(self.sources_list):
-            with open(self.sources_list, 'w') as f:
+            with open_for_config(self.sources_list) as f:
                 f.write(DEFAULT_SOURCES_LIST)
             self.update()
         else:
@@ -754,7 +766,7 @@ class Keyring(object):
         if os.path.exists(self.path):
             # Check the file is not empty.
             # This is because there was a bug creating empty keyring files.
-            with open(self.path, 'r') as fp:
+            with open(self.path, 'rb') as fp:
                 if len(fp.read().strip()):
                     return True
         return False
@@ -763,7 +775,7 @@ class Keyring(object):
         with open(self.path, 'wb') as fp:
             fp.write(keyring_data)
         self.version = version
-        with open(self.vpath, 'wb') as fp:
+        with open_for_config(self.vpath) as fp:
             fp.write(str(version))
 
     @staticmethod
@@ -801,7 +813,7 @@ class Keyring(object):
                 sigfile.write(sigdata)
                 sigfile.flush()  # very important
                 sigfile.close()
-                assert isinstance(data, basestring)
+                assert isinstance(data, bytes)
                 # Yes, all of it is necessary
                 proc = subprocess.Popen(verify_command + [
                         '--status-fd', '1',
@@ -818,14 +830,14 @@ class Keyring(object):
                 if gpg:
                     shutil.rmtree(gpg_homedir)
 
-            if return_code or 'GOODSIG' not in out or 'VALIDSIG' not in out:
+            if return_code or b'GOODSIG' not in out or b'VALIDSIG' not in out:
                 print(out, err, file=sys.stderr)
                 return False
         return True
 
     def __str__(self):
         if self.exists():
-            with open(self.path, 'r') as f:
+            with open(self.path, 'rb') as f:
                 h = hashlib.sha1(f.read()).hexdigest()
             return 'Keyring version %s, checksum %s' % (self.version, h)
         return 'NO KEYRING'
