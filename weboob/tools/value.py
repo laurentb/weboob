@@ -39,7 +39,7 @@ class ValuesDict(OrderedDict):
     """
 
     def __init__(self, *values):
-        OrderedDict.__init__(self)
+        super(ValuesDict, self).__init__()
         for v in values:
             self[v.id] = v
 
@@ -155,7 +155,7 @@ class ValueBackendPassword(Value):
     def __init__(self, *args, **kwargs):
         kwargs['masked'] = kwargs.pop('masked', True)
         self.noprompt = kwargs.pop('noprompt', False)
-        Value.__init__(self, *args, **kwargs)
+        super(ValueBackendPassword, self).__init__(*args, **kwargs)
         self.default = kwargs.get('default', '')
 
     def load(self, domain, password, requests):
@@ -239,7 +239,7 @@ class ValueBackendPassword(Value):
 class ValueInt(Value):
     def __init__(self, *args, **kwargs):
         kwargs['regexp'] = '^\d+$'
-        Value.__init__(self, *args, **kwargs)
+        super(ValueInt, self).__init__(*args, **kwargs)
         self.default = kwargs.get('default', 0)
 
     def get(self):
@@ -249,7 +249,7 @@ class ValueInt(Value):
 class ValueFloat(Value):
     def __init__(self, *args, **kwargs):
         kwargs['regexp'] = '^[\d\.]+$'
-        Value.__init__(self, *args, **kwargs)
+        super(ValueFloat, self).__init__(*args, **kwargs)
         self.default = kwargs.get('default', 0.0)
 
     def check_valid(self, v):
@@ -265,7 +265,7 @@ class ValueFloat(Value):
 class ValueBool(Value):
     def __init__(self, *args, **kwargs):
         kwargs['choices'] = {'y': 'True', 'n': 'False'}
-        Value.__init__(self, *args, **kwargs)
+        super(ValueBool, self).__init__(*args, **kwargs)
         self.default = kwargs.get('default', False)
 
     def check_valid(self, v):
@@ -283,7 +283,7 @@ class ValueDate(Value):
     DEFAULT_FORMATS = ('%Y-%m-%d',)
 
     def __init__(self, *args, **kwargs):
-        Value.__init__(self, *args, **kwargs)
+        super(ValueDate, self).__init__(*args, **kwargs)
         self.formats = tuple(kwargs.get('formats', ()))
         self.formats_tuple = self.DEFAULT_FORMATS + self.formats
 
