@@ -20,14 +20,13 @@
 
 from weboob.capabilities.base import empty
 from weboob.exceptions import NoAccountsException
-from weboob.tools.test import BackendTest
 
 
 __all__ = ('BasicTest',)
 
 
-class BasicTest(BackendTest):
-    """Simple tests for CapBank backends.
+class BasicTest(object):
+    """Mixin for simple tests on CapBank backends.
 
     This checks:
     * there are accounts
