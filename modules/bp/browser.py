@@ -74,6 +74,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     lifeinsurance_invest = URL(r'/voscomptes/canalXHTML/assurance/retraiteUCEuro/afficherSansDevis-assuranceRetraiteUCEuros.ea\?numContrat=(?P<id>\w+)',
                                r'https://www.labanquepostale.fr/particulier/bel_particuliers/assurance/accueil_cachemire.html', LifeInsuranceInvest)
+    lifeinsurance_invest2 = URL(r'/voscomptes/canalXHTML/assurance/vie/valorisation-assuranceVie.ea\?numContrat=(?P<id>\w+)', LifeInsuranceInvest)
     lifeinsurance_history = URL(r'/voscomptes/canalXHTML/assurance/vie/historiqueVie-assuranceVie.ea\?numContrat=(?P<id>\w+)', LifeInsuranceHistory)
     lifeinsurance_hist_inv = URL(r'/voscomptes/canalXHTML/assurance/vie/detailMouvement-assuranceVie.ea\?idMouvement=(?P<id>\w+)', LifeInsuranceHistoryInv)
 
@@ -275,6 +276,10 @@ class BPBrowser(LoginBrowser, StatesMixin):
             raise NotImplementedError()
 
         investments = list(self.page.iter_investments())
+
+        if not investments:
+            self.lifeinsurance_invest2.go(id=account.id)
+            investments = list(self.page.iter_investments())
 
         # check if life insurance is a cachemire contract
         page = None

@@ -237,7 +237,7 @@ class LifeInsuranceInvest(LoggedPage, MyHTMLPage):
 
 class LifeInsuranceHistory(LoggedPage, MyHTMLPage):
     @method
-    class iter_transactions(TableElement):
+    class get_history(TableElement):
         head_xpath = '//table[@id="options"]/thead//th'
         item_xpath = '//table[@id="options"]/tbody//tr'
 
@@ -250,7 +250,7 @@ class LifeInsuranceHistory(LoggedPage, MyHTMLPage):
 
             obj_label = CleanText(TableCell('label'))
             obj_amount = CleanDecimal(TableCell('amount'), replace_dots=True)
-            obj_date = Date(CleanText(TableCell('date')))
+            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
             obj__coming = False
 
             load_invs = Link('.//a') & AsyncLoad
