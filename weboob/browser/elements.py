@@ -375,28 +375,16 @@ class DictElement(ListElement):
         else:
             selector = self.item_xpath
 
-        _subdict = False
-        for el in selector:
-            if isinstance(self.el, list):
-                if _subdict:
-                    subdicts = []
-                    for i in range (0, len(self.el)):
-                        _el = int(el) if isinstance(self.el[i], list) else el
-                        subdicts += self.el[i][_el]
-                    self.el = subdicts
-                    _subdict = False
-                    continue
+        bases = [self.el]
+        for key in selector:
+            if key == '*':
+                bases = sum([el if isinstance(el, list) else list(el.values()) for el in bases], [])
+            else:
+                bases = [el[int(key)] if isinstance(el, list) else el[key] for el in bases]
 
-                if el == '*':
-                    _subdict = True
-                    continue
-                elif el.isdigit():
-                    el = int(el) if int(el) < len(self.el) else 0
-
-            self.el = self.el[el]
-
-        for el in self.el:
-            yield el
+        for base in bases:
+            for el in base:
+                yield el
 
 
 def magic_highlight(el, open_browser=True):
