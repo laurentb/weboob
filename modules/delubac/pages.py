@@ -23,7 +23,7 @@ from io import BytesIO
 from weboob.capabilities.bank import Account
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.exceptions import ParseError
+from weboob.exceptions import ParseError, ActionNeeded
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Format, Date, Filter
 from weboob.browser.filters.html import Link
@@ -125,6 +125,11 @@ class LoginPage(HTMLPage):
         form['modeClavier'] = '1'
         form['identifiantDlg'] = ''
         form.submit()
+
+    def on_load(self):
+        error_message = CleanText(u'//td[contains(text(), "Votre adhésion au service WEB est résiliée depuis le")]')(self.doc)
+        if error_message:
+            raise ActionNeeded(error_message)
 
     @property
     def incorrect_auth(self):
