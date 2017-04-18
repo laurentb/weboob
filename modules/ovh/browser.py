@@ -35,6 +35,8 @@ class OvhBrowser(LoginBrowser):
     def do_login(self):
         self.login.go().login(self.username, self.password)
 
+        self.page.check_double_auth()
+
         if not self.page.is_logged():
             raise BrowserIncorrectPassword
 

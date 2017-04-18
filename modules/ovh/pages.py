@@ -24,7 +24,7 @@ from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format
 from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
 from weboob.browser.elements import ListElement, ItemElement, method, DictElement
-
+from weboob.exceptions import ActionNeeded
 
 class LoginPage(HTMLPage):
     def is_logged(self):
@@ -38,6 +38,11 @@ class LoginPage(HTMLPage):
         form[pwd] = password
         form.submit()
 
+    def check_double_auth(self):
+        double_auth = self.doc.xpath('//input[@id="codeSMS"]')
+
+        if double_auth:
+            raise ActionNeeded(CleanText('(//div[contains(., "Two-Factor")])[5]')(self.doc))
 
 class ProfilePage(LoggedPage, JsonPage):
     @method
