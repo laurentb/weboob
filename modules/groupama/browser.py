@@ -36,6 +36,7 @@ class GroupamaBrowser(LoginBrowser):
     BASEURL = 'https://espaceclient.groupama.fr'
 
     login = URL('/wps/portal/login',
+                'https://authentification.groupama.fr/cas/login',
                 '/wps/portal/inscription', LoginPage)
     accounts = URL('/wps/myportal/TableauDeBord', AccountsPage)
     # for life insurance accounts

@@ -16,8 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-
-
+import ast
 import re, requests
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
@@ -32,9 +31,16 @@ from weboob.capabilities.base import NotAvailable
 
 class LoginPage(HTMLPage):
     def login(self, login, passwd):
+        tab = re.search(r'tab = (\[[\d,\s]*\])', self.content).group(1)
+        number_list = ast.literal_eval(tab)
+        key_map = {}
+        for i, number in enumerate(number_list):
+            if number < 10:
+                key_map[number] = chr(ord('A') + i)
+        pass_string = ''.join(key_map[int(n)] for n in passwd)
         form = self.get_form(name='loginForm')
-        form['LoginPortletFormID'] = login
-        form['LoginPortletFormPassword1'] = passwd
+        form['username'] = login
+        form['password'] = pass_string
         form.submit()
 
 
