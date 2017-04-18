@@ -168,6 +168,7 @@ class ValueBackendPassword(Value):
             except subprocess.CalledProcessError as e:
                 raise ValueError(u'The call to the external tool failed: %s' % e)
             else:
+                password = password.decode('utf-8')
                 password = password.partition('\n')[0].strip('\r\n\t')
         self.check_valid(password)
         self._domain = domain
