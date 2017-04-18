@@ -284,6 +284,6 @@ class RetirementHistory(LoggedPage, MyHTMLPage):
             klass = BaseTransaction
 
             obj_label = CleanText(TableCell('label'))
-            obj_date = Date(CleanText(TableCell('date')))
+            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
             obj_amount = CleanDecimal(TableCell('amount'), replace_dots=True)
             obj__coming = False
