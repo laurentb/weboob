@@ -22,7 +22,7 @@ from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env
 from weboob.browser.filters.javascript import JSVar
 from weboob.browser.filters.html import Attr, Link
 from weboob.browser.filters.json import Dict
-from weboob.capabilities.housing import City, Housing, HousingPhoto, Query
+from weboob.capabilities.housing import City, Housing, HousingPhoto, Query, UTILITIES
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 from weboob.tools.date import DATE_TRANSLATE_FR, LinearDateGuesser
@@ -121,7 +121,19 @@ class HousingListPage(HTMLPage):
                 './section[@class="item_infos"]/*[@itemtype="http://schema.org/Place"]/text()'
             )
             obj_currency = Regexp(CleanText('./section[@class="item_infos"]/*[@class="item_price"]'),
-                                  '\d+ ([%s%s%s].*)' % (u'€', u'$', u'£'), default=u'€')
+                                  '\d+ ([%s%s%s]).*' % (u'€', u'$', u'£'), default=u'€')
+
+            def obj_utilities(self):
+                utilities = Regexp(CleanText('./section[@class="item_infos"]/*[@class="item_price"]'),
+                                   '\d+ [%s%s%s](.*)' % (u'€', u'$', u'£'),
+                                   default=u'')(self)
+                if "C.C." in utilities:
+                    return UTILITIES.INCLUDED
+                elif "H.C." in utilities:
+                    return UTILITIES.EXCLUDED
+                else:
+                    return UTILITIES.UNKNOWN
+
             obj_text = Join(' - ', './/p[@class="item_supp"]')
 
             def obj_date(self):
@@ -196,20 +208,29 @@ class HousingPage(HTMLPage):
         obj_title = CleanText('//h1[@itemprop="name"]')
         obj_cost = CleanDecimal('//h2[@itemprop="price"]/@content', default=Decimal(0))
 
-        def obj_currency(self):
-            currency = Regexp(
+        obj_currency = Regexp(
+            CleanText(
+                '//h2[@itemprop="price"]/span[@class="value"]'
+            ),
+            '.*([%s%s%s])' % (u'€', u'$', u'£'),
+            default=u'€'
+        )
+
+        def obj_utilities(self):
+            utilities = Regexp(
                 CleanText(
                     '//h2[@itemprop="price"]/span[@class="value"]'
                 ),
-                '.*([%s%s%s].*)' % (u'€', u'$', u'£'),
-                default=u'€'
+                '.*[%s%s%s](.*)' % (u'€', u'$', u'£'),
+                default=u''
             )(self)
-            currency = currency.split(" ")
-            if len(currency) > 3:
-                currency = " ".join((currency[0], currency[3]))
+            if "C.C." in utilities:
+                return UTILITIES.INCLUDED
+            elif "H.C." in utilities:
+                return UTILITIES.EXCLUDED
             else:
-                currency = currency[0]
-            return currency
+                return UTILITIES.UNKNOWN
+
         obj_text = CleanText('//p[@itemprop="description"]')
         obj_location = CleanText('//span[@itemprop="address"]')
         obj_details = Env('details')

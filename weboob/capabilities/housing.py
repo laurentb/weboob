@@ -22,7 +22,8 @@ from .base import Capability, BaseObject, Field, IntField, DecimalField, \
                   StringField, BytesField, enum, UserError, FloatField
 from .date import DateField
 
-__all__ = ['HousingPhoto', 'Housing', 'Query', 'City', 'CapHousing']
+__all__ = ['HousingPhoto', 'Housing', 'Query', 'City', 'CapHousing',
+           'UTILITIES']
 
 
 class TypeNotSupported(UserError):
@@ -54,6 +55,9 @@ class HousingPhoto(BaseObject):
         return '<HousingPhoto %r data=%do url=%r>' % (self.id, len(self.data) if self.data else 0, self.url)
 
 
+UTILITIES = enum(INCLUDED=u'C.C', EXCLUDED=u'H.C.', UNKNOWN=u'')
+
+
 class Housing(BaseObject):
     """
     Content of a housing.
@@ -63,6 +67,7 @@ class Housing(BaseObject):
     cost =            DecimalField('Cost of housing')
     price_per_meter = FloatField('Price per meter ratio')
     currency =        StringField('Currency of cost')
+    utilities =       Field('Utilities included or not', *UTILITIES.types)
     date =            DateField('Date when the housing has been published')
     location =        StringField('Location of housing')
     station =         StringField('What metro/bus station next to housing')

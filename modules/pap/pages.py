@@ -26,7 +26,7 @@ from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env
 from weboob.browser.filters.html import Attr, Link, XPath, CleanHTML
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.housing import Housing, City, HousingPhoto
+from weboob.capabilities.housing import Housing, City, HousingPhoto, UTILITIES
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
 
@@ -64,6 +64,7 @@ class SearchResultsPage(HTMLPage):
                                     replace_dots=True, default=Decimal(0))
             obj_currency = Regexp(CleanText('./div[has-class("box-header")]/a/span[@class="price"]'),
                                   '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+            obj_utilities = UTILITIES.UNKNOWN
 
             def obj_date(self):
                 _date = Regexp(CleanText('./div[has-class("box-header")]/p[@class="date"]'),
@@ -118,6 +119,7 @@ class HousingPage(HTMLPage):
                                 replace_dots=True)
         obj_currency = Regexp(CleanText('//h1[@class="clearfix"]/span[@class="price"]'),
                               '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+        obj_utilities = UTILITIES.UNKNOWN
         obj_area = CleanDecimal(Regexp(CleanText('//h1[@class="clearfix"]/span[@class="title"]'),
                                 '(.*?)(\d*) m\xb2(.*?)', '\\2'), default=NotAvailable)
 

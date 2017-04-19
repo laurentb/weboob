@@ -27,7 +27,7 @@ from weboob.browser.pages import JsonPage, HTMLPage, pagination
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, BrowserURL, Filter, Format
 from weboob.browser.filters.html import Attr, CleanHTML, Link, XPath
 from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.capabilities.housing import Housing, HousingPhoto, City
+from weboob.capabilities.housing import Housing, HousingPhoto, City, UTILITIES
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
 
@@ -78,7 +78,16 @@ class SearchPage(HTMLPage):
             obj_cost = CleanDecimal('./div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]',
                                     default=NotAvailable)
             obj_currency = Regexp(CleanText('./div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]'),
-                                  '.*([%s%s%s].*)' % (u'€', u'$', u'£'), default=u'€')
+                                  '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+
+            def obj_utilities(self):
+                utilities = Regexp(CleanText('./div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]'),
+                                  '.*[%s%s%s](.*)' % (u'€', u'$', u'£'), default=u'')(self)
+                if "CC" in utilities:
+                    return UTILITIES.INCLUDED
+                else:
+                    return UTILITIES.UNKNOWN
+
             obj_text = CleanText('./div/div/div[@itemprop="description"]')
             obj_area = CleanDecimal(Regexp(CleanText('./div/h2[@itemprop="name"]/a'),
                                            '(.*?)(\d*) m2(.*?)', '\\2', default=None),
@@ -151,13 +160,14 @@ class HousingPage2(JsonPage):
                               Dict('location/postalCode'))
         obj_cost = TypeDecimal(Dict('characteristics/price'))
 
-        def obj_currency(self):
-            currency = u'€'
+        obj_currency = u'€'
+        def obj_utilities(self):
             are_fees_included = Dict('characteristics/areFeesIncluded',
                                      default=None)(self)
             if are_fees_included:
-                currency += " CC"
-            return currency
+                return UTILITIES.INCLUDED
+            else:
+                return UTILITIES.EXCLUDED
 
         obj_text = CleanHTML(Dict('characteristics/description'))
         obj_url = BrowserURL('housing_html', _id=Env('_id'))

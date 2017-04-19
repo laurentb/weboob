@@ -24,7 +24,7 @@ from weboob.browser.elements import ItemElement, ListElement, DictElement, metho
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import Format, CleanText, Regexp, CleanDecimal, Date, Env, BrowserURL
 from weboob.browser.filters.html import Attr, XPath, CleanHTML
-from weboob.capabilities.housing import Housing, HousingPhoto, City
+from weboob.capabilities.housing import Housing, HousingPhoto, City, UTILITIES
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
@@ -62,16 +62,18 @@ class HousingPage(HTMLPage):
         obj_rooms = CleanDecimal('//div[has-class("offer-info")]//span[has-class("offer-rooms-number")]',
                                 default=NotAvailable)
         obj_cost = CleanDecimal('//*[@itemprop="price"]', default=0)
-        def obj_currency(self):
-            currency = Regexp(
-                CleanText('//*[@itemprop="price"]'),
-                '.*([%s%s%s])' % (u'€', u'$', u'£'),
-                default=u'€'
-            )(self)
+        obj_currency = Regexp(
+            CleanText('//*[@itemprop="price"]'),
+            '.*([%s%s%s])' % (u'€', u'$', u'£'),
+            default=u'€'
+        )
+        def obj_utilities(self):
             notes = CleanText('//p[@class="offer-description-notes"]')(self)
             if "Loyer mensuel charges comprises" in notes:
-                currency += " CC"
-            return currency
+                return UTILITIES.INCLUDED
+            else:
+                return UTILITIES.UNKNOWN
+
         obj_price_per_meter = PricePerMeterFilter()
         obj_date = Date(Regexp(CleanText('//p[@class="offer-description-notes"]|//p[has-class("darkergrey")]'),
                                u'.* Mis à jour : (\d{2}/\d{2}/\d{4}).*'),
@@ -183,7 +185,8 @@ class SearchPage(HTMLPage):
             obj_cost = CleanDecimal('./div/header/section/p[@class="price"]', default=0)
             obj_currency = Regexp(CleanText('./div/header/section/p[@class="price"]',
                                             default=NotAvailable),
-                                  '.* ([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+                                  '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+            obj_utilities = UTILITIES.UNKNOWN
 
             obj_text = CleanText(
                 './div/div[@class="content-offer"]/section[has-class("content-desc")]/p/span[has-class("offer-text")]/@title',
@@ -263,8 +266,9 @@ class SearchPage(HTMLPage):
                     offer_details_wrapper + '/div/div/p[has-class("offer-price")]/span',
                     default=NotAvailable
                 ),
-                '.* ([%s%s%s])' % (u'€', u'$', u'£'), default=u'€'
+                '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€'
             )
+            obj_utilities = UTILITIES.UNKNOWN
             obj_date = Date(
                 Regexp(
                     CleanText(

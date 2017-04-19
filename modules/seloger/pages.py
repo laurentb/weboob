@@ -22,9 +22,9 @@ from weboob.browser.pages import XMLPage, JsonPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import XPath
-from weboob.browser.filters.standard import CleanText, CleanDecimal, DateTime, Format
+from weboob.browser.filters.standard import CleanText, CleanDecimal, DateTime, Format, Regexp
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.housing import Housing, HousingPhoto, City
+from weboob.capabilities.housing import Housing, HousingPhoto, City, UTILITIES
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
 
@@ -60,7 +60,10 @@ class SeLogerItem(ItemElement):
     )
     obj_date = DateTime(CleanText('dtFraicheur'))
     obj_cost = CleanDecimal('prix')
-    obj_currency = CleanText('prixUnite')
+
+    obj_currency = Regexp(CleanText('prixUnite'),
+                          '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+
     obj_area = CleanDecimal('surface', default=NotAvailable)
     obj_price_per_meter = PricePerMeterFilter()
     obj_text = CleanText('descriptif')
@@ -100,6 +103,15 @@ class SearchResultsPage(XMLPage):
 
                 return photos
 
+            def obj_utilities(self):
+                currency = CleanText('prixUnite')(self)
+                if "+ch" in currency:
+                    return UTILITIES.EXCLUDED
+                elif "cc*" in currency:
+                    return UTILITIES.INCLUDED
+                else:
+                    return UTILITIES.UNKNOWN
+
 
 class HousingPage(XMLPage):
     @method
@@ -124,3 +136,10 @@ class HousingPage(XMLPage):
             return details
 
         obj_phone = CleanText('//contact/telephone')
+
+        def obj_utilities(self):
+            mention = CleanText('prixMention')(self)
+            if "charges comprises" in mention:
+                return UTILITIES.INCLUDED
+            else:
+                return UTILITIES.EXCLUDED

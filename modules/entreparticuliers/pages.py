@@ -25,7 +25,7 @@ from weboob.browser.elements import ItemElement, ListElement, DictElement, metho
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Format, Regexp
 from weboob.browser.filters.html import CleanHTML
-from weboob.capabilities.housing import Housing, HousingPhoto, City
+from weboob.capabilities.housing import Housing, HousingPhoto, City, UTILITIES
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 from weboob.capabilities.base import NotAvailable
 
@@ -73,6 +73,7 @@ class SearchPage(EntreParticuliersXMLPage):
             )
             obj_cost = CleanDecimal('./Prix', default=NotAvailable)
             obj_currency = u'€'
+            obj_utilities = UTILITIES.UNKNOWN
             obj_text = CleanText('./Description')
             obj_date = datetime.now
 
@@ -130,6 +131,7 @@ class HousingPage(EntreParticuliersXMLPage):
             return cost if cost else CleanDecimal(Regexp(CleanText('//Prix'),
                                                          u'(.*)€'))(self)
         obj_currency = u'€'
+        obj_utilities = UTILITIES.UNKNOWN
 
         obj_text = CleanText('//Description')
         def obj_location(self):

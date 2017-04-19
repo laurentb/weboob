@@ -39,7 +39,7 @@ class HousingFormatter(IFormatter):
         if hasattr(obj, 'url') and obj.url:
             result += 'URL: %s\n' % obj.url
 
-        result += 'Cost: %s%s\n' % (obj.cost, obj.currency)
+        result += 'Cost: %s%s %s\n' % (obj.cost, obj.currency, obj.utilities)
         area = u'%.2fm²' % (obj.area) if obj.area else u'%s' % obj.area
         result += u'Area: %s\n' % area
         if hasattr(obj, 'price_per_meter') and not empty(obj.price_per_meter):
@@ -76,7 +76,7 @@ class HousingListFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'title', 'cost', 'text')
 
     def get_title(self, obj):
-        return '%s%s - %s' % (obj.cost, obj.currency, obj.title)
+        return '%s%s %s - %s' % (obj.cost, obj.currency, obj.utilities, obj.title)
 
     def get_description(self, obj):
         result = u''
