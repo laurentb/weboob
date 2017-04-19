@@ -751,7 +751,9 @@ class LIAccountsPage(LoggedPage, HTMLPage):
 
 
 class PorPage(LoggedPage, HTMLPage):
-    TYPES = {u'PLAN D\'EPARGNE EN ACTIONS': Account.TYPE_PEA}
+    TYPES = {u'PLAN D\'EPARGNE EN ACTIONS': Account.TYPE_PEA,
+             u'P.E.A': Account.TYPE_PEA
+            }
 
     def get_type(self, label):
         for pattern, actype in self.TYPES.iteritems():
