@@ -23,7 +23,7 @@ from weboob.browser import LoginBrowser, URL
 from weboob.exceptions import BrowserUnavailable
 
 from .pages import (
-    UselessPage, InvestmentPage, MessagePage, HistoryPage,
+    UselessPage, InvestmentPage, HistoryPage,
 )
 
 
@@ -31,7 +31,7 @@ class LinebourseBrowser(LoginBrowser):
     BASEURL = 'https://www.linebourse.fr'
 
     invest = URL(r'/Portefeuille$', r'/Portefeuille?compte=(?P<id>[^&]+)', InvestmentPage)
-    message = URL(r'/DetailMessage\?refresh=O', MessagePage)
+    message = URL(r'/DetailMessage\?refresh=O', UselessPage)
     history = URL(r'/HistoriqueOperations',
                   r'/HistoriqueOperations\?compte=(?P<id>[^&]+)&devise=EUR&modeTri=7&sensTri=-1&periode=(?P<period>\d+)',
                   HistoryPage)
