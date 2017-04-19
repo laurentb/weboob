@@ -33,7 +33,8 @@ from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    CBListPage, CBHistoryPage, ContractsPage, BoursePage, \
                    AVPage, AVDetailPage, DiscPage, NoPermissionPage, RibPage, \
                    HomePage, LoansPage, TransferPage, AddRecipientPage, \
-                   RecipientPage, RecipConfirmPage, SmsPage, RecipRecapPage
+                   RecipientPage, RecipConfirmPage, SmsPage, RecipRecapPage, \
+                   LoansProPage
 
 
 __all__ = ['LCLBrowser','LCLProBrowser']
@@ -81,6 +82,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                    '/outil/UWVI/Routage', AVDetailPage)
 
     loans = URL('/outil/UWCR/SynthesePar/', LoansPage)
+    loans_pro = URL('/outil/UWCR/SynthesePro/', LoansProPage)
 
     transfer_page = URL('/outil/UWVS/', TransferPage)
     confirm_transfer = URL('/outil/UWVS/Accueil/redirectView', TransferPage)
@@ -148,6 +150,12 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                     a.iban = iban if iban and a.id[11:] in iban else NotAvailable
                 self.accounts_list.append(a)
             self.loans.stay_or_go()
+            if self.no_perm.is_here():
+                self.logger.warning('Loans are unavailable.')
+            else:
+                for a in self.page.get_list():
+                    self.accounts_list.append(a)
+            self.loans_pro.stay_or_go()
             if self.no_perm.is_here():
                 self.logger.warning('Loans are unavailable.')
             else:

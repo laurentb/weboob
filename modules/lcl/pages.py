@@ -301,6 +301,38 @@ class LoansPage(LoggedPage, HTMLPage):
                 self.env['id'] = "%s%s%s" % (Regexp(CleanText(TableCell('id')), r'(\w+)\s-\s(\w+)', r'\1\2')(self), label.replace(' ', ''), i)
 
 
+class LoansProPage(LoggedPage, HTMLPage):
+    @method
+    class get_list(TableElement):
+        item_xpath = '//table[.//th[contains(text(), "Emprunteur")]]/tbody/tr[td[3]]'
+        head_xpath = '//table[.//th[contains(text(), "Emprunteur")]]/thead/tr/th'
+        flush_at_end = True
+
+        col_id = re.compile('Emprunteur')
+        col_balance = [u'Capital restant dû', re.compile('Sommes totales restant dues')]
+
+        class account(ItemElement):
+            klass = Account
+
+            obj_balance = CleanDecimal(TableCell('balance'), replace_dots=True, sign=lambda x: -1)
+            obj_currency = FrenchTransaction.Currency(TableCell('balance'))
+            obj_type = Account.TYPE_LOAN
+            obj_id = Env('id')
+            obj__transfer_id = None
+
+            def obj_label(self):
+                has_type = CleanText('./ancestor::table[.//th[contains(text(), "Nature libell")]]', default=None)(self)
+                return CleanText('./td[3]')(self) if has_type else CleanText('./ancestor::table/preceding-sibling::div[1]')(self).split(' - ')[0]
+
+            def parse(self, el):
+                label = Field('label')(self)
+                trs = self.xpath('//td[contains(text(), "%s")]/ancestor::tr[1] | ./ancestor::table[1]/tbody/tr' % label)
+                i = [i for i in range(len(trs)) if el == trs[i]]
+                i = i[0] if i else 0
+                label = label.replace(' ', '')
+                self.env['id'] = "%s%s%s" % (Regexp(CleanText(TableCell('id')), r'(\w+)\s-\s(\w+)', r'\1\2')(self), label.replace(' ', ''), i)
+
+
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^(?P<category>CB) (?P<text>RETRAIT) DU (?P<dd>\d+)/(?P<mm>\d+)'),
                                                         FrenchTransaction.TYPE_WITHDRAWAL),
