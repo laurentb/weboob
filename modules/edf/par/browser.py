@@ -73,8 +73,8 @@ class EdfBrowser(LoginBrowser):
         })).get_bills_informations()
 
         return self.bill_download.go(csrf_token=token, \
-                                     dn=bills_informations.get('docName'), \
-                                     pn=bills_informations.get('parNumber'), \
-                                     di=bills_informations.get('docId'), \
+                                     dn='FACTURE', \
+                                     pn=document._par_number, \
+                                     di=document._doc_number, \
                                      bn=bills_informations.get('bpNumber'),
                                      an=bills_informations.get('numAcc')).content

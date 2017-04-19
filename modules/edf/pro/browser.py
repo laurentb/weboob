@@ -76,7 +76,7 @@ class EdfproBrowser(LoginBrowser):
                     'typeElementListe': 'CONTRAT'
                 }))
 
-                self.cache['docs'][subscription.id] = [d for d in self.page.get_documents(subid=subscription.id)]
+                self.cache['docs'][subscription.id] = [d for d in self.page.get_documents()]
             except ServerError:
                 self.cache['docs'][subscription.id] = []
         return self.cache['docs'][subscription.id]

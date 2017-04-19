@@ -69,13 +69,13 @@ class BillsPage(LoggedPage, JsonPage):
 
 
 class DocumentsPage(LoggedPage, JsonPage):
-    def get_documents(self, subid):
+    def get_documents(self):
         documents = []
 
         for document in self.doc:
             doc = Bill()
 
-            doc.id = u'%s_%s' % (subid, document['numFactureLabel'])
+            doc.id = document['numFactureLabel']
             doc.date = date.fromtimestamp(int(document['dateEmission'] / 1000))
             doc.format = u'PDF'
             doc.label = 'Facture %s' % document['numFactureLabel']
