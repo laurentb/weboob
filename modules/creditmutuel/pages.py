@@ -926,6 +926,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
         messages = [u'Le montant du virement doit être positif, veuillez le modifier',
                     u'Montant maximum autorisé au débit pour ce compte',
                     u'Dépassement du montant journalier autorisé',
+                    u'Le solde de votre compte est insuffisant',
                     u'Nom prénom du bénéficiaire différent du titulaire. Utilisez un compte courant']
 
         for message in messages:
