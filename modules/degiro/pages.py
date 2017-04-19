@@ -64,7 +64,7 @@ class AccountsPage(LoggedPage, JsonPage):
 
     @method
     class iter_investment(DictElement):
-        item_xpath = 'portfolio/value/*'
+        item_xpath = 'portfolio/value'
 
         class item(ItemElement):
             klass = Investment
@@ -98,7 +98,7 @@ class Transaction(FrenchTransaction):
 class HistoryPage(LoggedPage, JsonPage):
     @method
     class iter_history(DictElement):
-        item_xpath = 'data/cashMovements/*'
+        item_xpath = 'data/cashMovements'
 
         class item(ItemElement):
             klass = Transaction
@@ -121,7 +121,7 @@ class HistoryPage(LoggedPage, JsonPage):
 
     @method
     class iter_transaction_investments(DictElement):
-        item_xpath = 'data/*'
+        item_xpath = 'data'
 
         class item(ItemElement):
             klass = Investment
