@@ -200,10 +200,6 @@ class HistoryPage(LoggedPage, HTMLPage):
             obj_raw = Transaction.Raw('./td[1]')
             obj_amount = MyDecimal('./td[2]', replace_dots=True)
 
-            def obj_deleted(self):
-                Field('raw')(self)
-                return self.obj.type == Transaction.TYPE_CARD_SUMMARY
-
 
 def add_qs(url, **kwargs):
     parts = list(urlparse(url))

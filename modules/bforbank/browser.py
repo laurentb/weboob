@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from datetime import date, timedelta
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
@@ -97,7 +98,8 @@ class BforbankBrowser(LoginBrowser):
                         card._link = account._link
                         card.balance = account._card_balance
                         assert not empty(card.balance)
-                        account._deferred_account = card
+                        account._card_account = card
+                        card._checking_account = account
                         # insert it near its companion checking account
                         self.accounts.append(card)
 
@@ -127,10 +129,26 @@ class BforbankBrowser(LoginBrowser):
         if account.type != Account.TYPE_CARD:
             self.location(account._link.replace('tableauDeBord', 'operations'))
             assert self.history.is_here() or self.loan_history.is_here()
+
             return self.page.get_operations()
         else:
             # TODO same as get_coming, we should handle more than one card
-            return self._get_card_transactions(account)
+            assert account._checking_account
+
+            # for summary transactions, the transactions must be on both accounts:
+            # negative amount on checking account, positive on card account
+            old = date.today() - timedelta(days=31)
+            transactions = []
+            for tr in self.get_history(account._checking_account):
+                if (tr.rdate or tr.date) < old:
+                    break
+                if tr.type == tr.TYPE_CARD_SUMMARY:
+                    tr.amount = -tr.amount
+                    transactions.append(tr)
+
+            transactions.extend(self._get_card_transactions(account))
+            transactions.sort(reverse=True, key=lambda tr: tr.rdate or tr.date)
+            return transactions
 
     @need_login
     def get_coming(self, account):
