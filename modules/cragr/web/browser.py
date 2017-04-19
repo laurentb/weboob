@@ -308,7 +308,7 @@ class Cragr(LoginBrowser, StatesMixin):
                 try:
                     new_location = self.moveto_market_website(account, home=True)
                 except WebsiteNotSupported:
-                    account._link = None
+                    account.url = None
                     self.update_sag()
                 else:
                     self.location(new_location)
@@ -340,7 +340,7 @@ class Cragr(LoginBrowser, StatesMixin):
             raise NotImplementedError()
 
         # some accounts may exist without a link to any history page
-        if account._link is None or 'CATITRES' in account._link:
+        if account.url is None or 'CATITRES' in account.url:
             return
 
         if account._perimeter != self.current_perimeter:
@@ -351,7 +351,7 @@ class Cragr(LoginBrowser, StatesMixin):
             account = self.get_cards_or_card(account.number)
 
         if account.type != Account.TYPE_CARD or not self.page.is_on_right_detail(account):
-            self.location(account._link.format(self.sag))
+            self.location(account.url.format(self.sag))
 
         if self.cards.is_here():
             date_guesser = ChaoticDateGuesser(date.today()-timedelta(weeks=36))
@@ -385,7 +385,7 @@ class Cragr(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_investment(self, account):
-        if not account._link or account.type not in (Account.TYPE_MARKET, Account.TYPE_PEA, Account.TYPE_LIFE_INSURANCE):
+        if not account.url or account.type not in (Account.TYPE_MARKET, Account.TYPE_PEA, Account.TYPE_LIFE_INSURANCE):
             return
 
         if account._perimeter != self.current_perimeter:
@@ -442,7 +442,7 @@ class Cragr(LoginBrowser, StatesMixin):
 
     @need_login
     def moveto_market_website(self, account, home=False):
-        response = self.open(account._link % self.sag).text
+        response = self.open(account.url % self.sag).text
         self._sag = None
         # https://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.navigation.AccueilBridge?TOKEN_ID=
         m = re.search('document.location="([^"]+)"', response)
@@ -479,14 +479,14 @@ class Cragr(LoginBrowser, StatesMixin):
 
     @need_login
     def moveto_insurance_website(self, account):
-        page = self.open(account._link % self.sag).page
+        page = self.open(account.url % self.sag).page
         self._sag = None
         # POST to https://assurance-personnes.credit-agricole.fr/filiale/ServletReroutageCookie
         try:
             form = page.get_form(name='formulaire')
         except FormNotFound:
             # bgpi-gestionprivee.
-            body = self.open(account._link % self.sag).text
+            body = self.open(account.url % self.sag).text
             return re.search('location="([^"]+)"', body, flags=re.MULTILINE).group(1)
 
         data = {

@@ -186,7 +186,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
         transactions = []
 
         if account.type is not Account.TYPE_LOAN:
-            self.location(account._link_id)
+            self.location(account.url)
 
             history = {Account.TYPE_CHECKING: self.par_account_checking_history,
                         Account.TYPE_SAVINGS: self.par_account_savings_and_invests_history,
@@ -209,14 +209,14 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def go_linebourse(self, account):
-        self.location(account._link_id)
+        self.location(account.url)
         self.market_login.go()
         self.linebourse.session.cookies.update(self.session.cookies)
         self.par_accounts_checking.go()
 
     def _get_coming_transactions(self, account):
         if account.type == Account.TYPE_CHECKING:
-            self.location(account._link_id)
+            self.location(account.url)
             self.par_account_checking_coming.go(accountId=account.id)
 
             if self.par_account_checking_coming.is_here() and self.page.has_coming():
@@ -361,7 +361,7 @@ class BProBrowser(BPBrowser):
         self.accounts_url = self.base_url + '/voscomptes/synthese/synthese.ea'
 
     def go_linebourse(self, account):
-        self.location(account._link_id)
+        self.location(account.url)
         self.location('../bourseenligne/oicformautopost.jsp')
         self.linebourse.session.cookies.update(self.session.cookies)
         self.location(self.accounts_url)
@@ -373,7 +373,7 @@ class BProBrowser(BPBrowser):
             return self.linebourse.iter_history(account.id)
 
         transactions = []
-        v = urlsplit(account._link_id)
+        v = urlsplit(account.url)
         args = dict(parse_qsl(v.query))
         args['typeRecherche'] = 10
 

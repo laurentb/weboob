@@ -24,6 +24,7 @@ from decimal import Decimal
 import re
 from io import BytesIO
 from datetime import date
+from urlparse import urljoin
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage, FormNotFound
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem
@@ -191,7 +192,7 @@ class AccountsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
-            load_details = Field('_link') & AsyncLoad
+            load_details = Field('url') & AsyncLoad
 
             obj_label = CleanText('.//a[@class="account--name"] | .//div[@class="account--name"]')
             obj_balance = CleanDecimal('.//a[has-class("account--balance")]', replace_dots=True)
@@ -231,14 +232,14 @@ class AccountsPage(LoggedPage, HTMLPage):
 
                 return Account.TYPE_UNKNOWN
 
-            def obj__link(self):
+            def obj_url(self):
                 link = Attr('.//a[@class="account--name"] | .//a[2]', 'href', default=NotAvailable)(self)
                 if not self.page.browser.webid:
                     self.page.browser.webid = re.search('\/([^\/|?|$]{32})(\/|\?|$)', link).group(1)
-                return link
+                return urljoin(self.page.url, link)
 
             def obj__webid(self):
-                m = re.search('([a-z\d]{32})', self.obj__link())
+                m = re.search('([a-z\d]{32})', Field('url')(self))
                 if m:
                     return m.group(1)
                 return None
@@ -500,8 +501,8 @@ class AccbisPage(LoggedPage, HTMLPage):
                         acc.balance = balance
                         acc.label = label
                         acc.currency = FrenchTransaction.Currency().filter(balance_el)
-                        acc._link = Link().filter(a.xpath('.'))
-                        acc._history_page = acc._link
+                        acc.url = urljoin(self.url, Link().filter(a.xpath('.')))
+                        acc._history_page = acc.url
                         try:
                             acc.id = acc._webid = Regexp(pattern='carte/(.*)$').filter(Link().filter(a.xpath('.')))
                         except RegexpError:
@@ -515,7 +516,7 @@ class AccbisPage(LoggedPage, HTMLPage):
                             account.type = AccountsPage.ACCOUNT_TYPES.get(title, Account.TYPE_UNKNOWN)
                         account._webid = Attr(None, 'data-account-label').filter(a.xpath('.//span[@class="nav-category__name"]'))
         if cards:
-            self.browser.go_cards_number(cards[0]._link)
+            self.browser.go_cards_number(cards[0].url)
             if self.browser.cards.is_here():
                 self.browser.page.populate_cards_number(cards)
                 accounts.extend(cards)

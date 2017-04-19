@@ -59,7 +59,7 @@ class SpiricaBrowser(LoginBrowser):
     def iter_investment(self, account):
         if account.id not in self.cache['invs']:
             # Get form to show PRM
-            form = self.location(account._link).page.get_investment_form()
+            form = self.location(account.url).page.get_investment_form()
             invs = [i for i in self.location(form.url, data=dict(form)).page.iter_investment()]
             self.cache['invs'][account.id] = invs
         return self.cache['invs'][account.id]
@@ -68,7 +68,7 @@ class SpiricaBrowser(LoginBrowser):
     def iter_history(self, account):
         if account.id not in self.cache['trs']:
             # Get form to go to History's tab
-            form = self.location(account._link).page.get_historytab_form()
+            form = self.location(account.url).page.get_historytab_form()
             # Get form to show all transactions
             form = self.location(form.url, data=dict(form)).page.get_historyallpages_form()
             if form:

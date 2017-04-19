@@ -60,7 +60,7 @@ class AccountList(LoggedPage, MyHTMLPage):
             obj_id = CleanText('.//abbr/following-sibling::text()')
             obj_currency = Currency('.//span[@class="number"]')
 
-            def obj__link_id(self):
+            def obj_url(self):
                 url = Link(u'./a', default=NotAvailable)(self)
                 if url:
                     return urljoin(self.page.url, url)

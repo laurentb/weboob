@@ -22,7 +22,7 @@ import re
 from io import BytesIO
 from PIL import Image
 from urllib import urlencode
-from urlparse import urlparse, urlunparse, parse_qsl
+from urlparse import urlparse, urlunparse, parse_qsl, urljoin
 
 from weboob.browser.pages import LoggedPage, HTMLPage, pagination, AbstractPage
 from weboob.browser.elements import method, ListElement, ItemElement, TableElement
@@ -147,7 +147,10 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_balance = MyDecimal('./td//div[contains(@class, "-synthese-num")]', replace_dots=True)
             obj_currency = FrenchTransaction.Currency('./td//div[contains(@class, "-synthese-num")]')
             obj_type = Map(Regexp(Field('label'), r'^([^ ]*)'), TYPE, default=Account.TYPE_UNKNOWN)
-            obj__link = CleanText('./@data-href')
+
+            def obj_url(self):
+                return urljoin(self.page.url, CleanText('./@data-href')(self))
+
             obj__card_balance = CleanDecimal('./td//div[@class="synthese-encours"]/div[2]', default=None)
 
             def condition(self):
@@ -285,7 +288,9 @@ class LifeInsuranceList(LoggedPage, HTMLPage):
             klass = Account
 
             obj_id = CleanText('./td/a')
-            obj__link = Link('./td/a')
+
+            def obj_url(self):
+                return urljoin(self.page.url, Link('./td/a')(self))
 
 
 class LifeInsuranceIframe(LoggedPage, HTMLPage):

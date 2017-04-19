@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 from datetime import date as ddate, datetime
 from decimal import Decimal
-from urlparse import urlparse
+from urlparse import urlparse, urljoin
 import re
 
 from weboob.browser.pages import HTMLPage, FormNotFound
@@ -225,7 +225,7 @@ class _AccountsPage(MyLoggedPage, BasePage):
                 account.balance = Decimal(Transaction.clean_amount(balance))
 
             account.currency = account.get_currency(cleaner(cols[self.COL_CURRENCY]))
-            account._link = None
+            account.url = None
 
             self.set_link(account, cols)
 
@@ -371,13 +371,13 @@ class CardsPage(MyLoggedPage, BasePage):
 
             if 'link' in xpaths:
                 try:
-                    account._link = table.xpath(xpaths['link'])[-1]
+                    account.url = table.xpath(xpaths['link'])[-1]
                 except IndexError:
-                    account._link = None
+                    account.url = None
                 else:
-                    account._link = re.sub('[\n\r\t]+', '', account._link)
+                    account.url = urljoin(self.url, re.sub('[\n\r\t]+', '', account.url))
             else:
-                account._link = self.url
+                account.url = self.url
             account._idelco = re.search('IDELCO=(\d+)&', self.url).group(1)
             account._perimeter = self.browser.current_perimeter
             yield account
@@ -456,9 +456,9 @@ class AccountsPage(_AccountsPage):
     def set_link(self, account, cols):
         a = cols[0].find('a')
         if a is not None:
-            account._link = a.attrib['href'].replace(' ', '%20')
-            page = self.browser.open(account._link).page
-            account._link = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', account._link)
+            account.url = urljoin(self.url, a.attrib['href'].replace(' ', '%20'))
+            page = self.browser.open(account.url).page
+            account.url = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', account.url)
             url = page.get_iban_url()
             if url:
                 page = self.browser.open(url).page
@@ -483,30 +483,30 @@ class SavingsPage(_AccountsPage):
 
     def set_link(self, account, cols):
         origin = urlparse(self.url)
-        if not account._link:
+        if not account.url:
             a = cols[0].xpath('descendant::a[contains(@href, "CATITRES")]')
             # Sometimes there is no link.
             if a or account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
                 url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&site=CATITRES&typeaction=reroutage_aller'
-                account._link = url % origin.netloc
+                account.url = url % origin.netloc
 
             a = cols[0].xpath("descendant::a[contains(@href, \"'PREDICA','CONTRAT'\")]")
             if a:
                 account.type = Account.TYPE_LIFE_INSURANCE
                 url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&site=PREDICA&' \
                       'typeaction=reroutage_aller&sdt=CONTRAT&parampartenaire=%s'
-                account._link = url % (origin.netloc, account.id)
+                account.url = url % (origin.netloc, account.id)
             a = cols[0].xpath('descendant::a[not(contains(@href, "javascript"))]')
-            if len(a) == 1 and not account._link:
-                account._link = a[0].attrib['href'].replace(' ', '%20')
-                account._link = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', account._link)
+            if len(a) == 1 and not account.url:
+                account.url = urljoin(self.url, a[0].attrib['href'].replace(' ', '%20'))
+                account.url = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', account.url)
             a = cols[0].xpath('descendant::a[(contains(@href, "javascript"))]')
             # This aims to handle bgpi-gestionprivee.
-            if len(a) == 1 and not account._link:
+            if len(a) == 1 and not account.url:
                 m = re.findall("'([^']*)'", a[0].attrib['href'])
                 if len(m) == 3:
                     url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&typeaction=reroutage_aller&site=%s&sdt=%s&parampartenaire=%s'
-                    account._link = url % (origin.netloc, m[0], m[1], m[2])
+                    account.url = url % (origin.netloc, m[0], m[1], m[2])
 
 
 class TransactionsPage(MyLoggedPage, BasePage):

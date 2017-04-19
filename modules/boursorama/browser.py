@@ -196,7 +196,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
                 return j[1].date()
 
     def get_card_transactions(self, account):
-        self.location('%s' % account._link, params={'movementSearch[period]': 'currentPeriod'})
+        self.location(account.url, params={'movementSearch[period]': 'currentPeriod'})
         if self.home.is_here():
             # for some cards, the site redirects us to '/'...
             return
@@ -204,7 +204,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         for t in self.page.iter_history(is_card=True):
             yield t
 
-        self.location('%s' % account._link, params={'movementSearch[period]': 'previousPeriod'})
+        self.location(account.url, params={'movementSearch[period]': 'previousPeriod'})
         for t in self.page.iter_history(is_card=True, is_previous=True):
             yield t
 
@@ -212,7 +212,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         if coming:
             return
         transactions = []
-        self.location('%s/mouvements' % account._link.rstrip('/'))
+        self.location('%s/mouvements' % account.url.rstrip('/'))
         account._history_pages = []
         for t in self.page.iter_history(account=account):
             transactions.append(t)
@@ -227,17 +227,17 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         params['movementSearch[toDate]'] = (date.today() + relativedelta(days=40)).strftime('%d/%m/%Y')
         params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=1)).strftime('%d/%m/%Y')
         params['movementSearch[selectedAccounts][]'] = account._webid
-        self.location('%s/mouvements' % account._link.rstrip('/'), params=params)
+        self.location('%s/mouvements' % account.url.rstrip('/'), params=params)
         for t in self.page.iter_history():
             yield t
         if coming and account.type == Account.TYPE_CHECKING:
-            self.location('%s/mouvements-a-venir' % account._link.rstrip('/'), params=params)
+            self.location('%s/mouvements-a-venir' % account.url.rstrip('/'), params=params)
             for t in self.page.iter_history(coming=True):
                 yield t
 
     @need_login
     def get_history(self, account, coming=False):
-        if account.type is Account.TYPE_LOAN or '/compte/derive' in account._link:
+        if account.type is Account.TYPE_LOAN or '/compte/derive' in account.url:
             return []
         if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
             return self.get_invest_transactions(account, coming)
@@ -247,11 +247,11 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_investment(self, account):
-        if '/compte/derive' in account._link:
+        if '/compte/derive' in account.url:
             return iter([])
         if not account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET, Account.TYPE_PEA):
             raise NotImplementedError()
-        self.location(account._link)
+        self.location(account.url)
         # We might deconnect at this point.
         if self.login.is_here():
             return self.get_investment(account)
@@ -271,11 +271,11 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_transfer_recipients(self, account):
-        assert account._link
-        if account._link.endswith('/'):
-            target = account._link + 'virements'
+        assert account.url
+        if account.url.endswith('/'):
+            target = account.url + 'virements'
         else:
-            target = account._link + '/virements'
+            target = account.url + '/virements'
 
         try:
             self.location(target)
@@ -372,14 +372,14 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
 
         account = None
         for account in self.get_accounts_list():
-            if account._link:
+            if account.url:
                 break
 
         suffix = 'virements/comptes-externes/nouveau'
-        if account._link.endswith('/'):
-            target = account._link + suffix
+        if account.url.endswith('/'):
+            target = account.url + suffix
         else:
-            target = account._link + '/' + suffix
+            target = account.url + '/' + suffix
 
         self.location(target)
         assert self.page.is_charac()

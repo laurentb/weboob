@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from urlparse import urljoin
 import re
 
 from weboob.browser.pages import HTMLPage, LoggedPage
@@ -71,14 +71,16 @@ class AccountsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
-            load_details = Field('_link') & AsyncLoad
+            load_details = Field('url') & AsyncLoad
 
             obj_id = CleanText(TableCell('id'), replace=[(' ', '')])
             obj_label = CleanText(TableCell('label'))
             obj_balance = MyDecimal(TableCell('balance'))
             obj_valuation_diff = Async('details') & MyDecimal('//tr[1]/td[contains(text(), \
                                     "value du contrat")]/following-sibling::td')
-            obj__link = Link('.//a')
+
+            def obj_url(self):
+                return urljoin(self.page.url, Link('.//a')(self))
 
             def obj_type(self):
                 return self.page.TYPES[Async('details', CleanText('//td[contains(text(), \

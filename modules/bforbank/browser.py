@@ -95,7 +95,7 @@ class BforbankBrowser(LoginBrowser):
                     card = self.page.get_card(account.id)
                     if card is not None:
                         # if there's a credit card (not debit), create a separate, virtual account
-                        card._link = account._link
+                        card.url = account.url
                         card.balance = account._card_balance
                         assert not empty(card.balance)
                         account._card_account = card
@@ -106,7 +106,7 @@ class BforbankBrowser(LoginBrowser):
         return iter(self.accounts)
 
     def _get_card_transactions(self, account):
-        self.location(account._link.replace('tableauDeBord', 'encoursCarte') + '/0?month=1')
+        self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/0?month=1')
         assert self.card_history.is_here()
         return list(self.page.get_operations())
 
@@ -127,7 +127,7 @@ class BforbankBrowser(LoginBrowser):
             return self.spirica.iter_history(account)
 
         if account.type != Account.TYPE_CARD:
-            self.location(account._link.replace('tableauDeBord', 'operations'))
+            self.location(account.url.replace('tableauDeBord', 'operations'))
             assert self.history.is_here() or self.loan_history.is_here()
 
             return self.page.get_operations()
@@ -157,7 +157,7 @@ class BforbankBrowser(LoginBrowser):
             return self.page.get_operations()
         elif account.type == Account.TYPE_CARD:
             # TODO there could be multiple cards, how to find the number of cards?
-            self.location(account._link.replace('tableauDeBord', 'encoursCarte') + '/0')
+            self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/0')
             return self.page.get_operations()
         else:
             raise NotImplementedError()
@@ -181,7 +181,7 @@ class BforbankBrowser(LoginBrowser):
             for insurance_account in self.page.iter_accounts():
                 self.logger.debug('testing %r', account)
                 if insurance_account.id == account.id:
-                    self.location(insurance_account._link)
+                    self.location(insurance_account.url)
                     assert self.lifeinsurance_iframe.is_here()
                     break
             else:
@@ -199,7 +199,7 @@ class BforbankBrowser(LoginBrowser):
 
         redir = self.page.get_redir()
         assert redir
-        account._link = self.absurl(redir)
+        account.url = self.absurl(redir)
         self.spirica.session.cookies.update(self.session.cookies)
         self.spirica.logged = True
         return True
