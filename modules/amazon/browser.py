@@ -119,15 +119,18 @@ class Amazon(LoginBrowser):
     def location(self, *args, **kwargs):
         """
         Amazon throws 500 HTTP status code for apparently valid requests
-        from time to time. Requests eventually succeed after retrying.
+        from time to time. Requests eventually succeed after login again and retrying.
         """
         for i in xrange(self.MAX_RETRIES):
             try:
                 return super(Amazon, self).location(*args, **kwargs)
             except (ServerError, Timeout, ConnectionError, TooManyRedirects) as e:
+                self.do_login()
                 self.logger.warning('Exception %s was caught, retry %d' % (type(e).__name__, i))
                 pass
         raise e
+
+
 
     @need_login
     def get_subscription_list(self):
