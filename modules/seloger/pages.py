@@ -22,7 +22,7 @@ from weboob.browser.pages import XMLPage, JsonPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import XPath
-from weboob.browser.filters.standard import CleanText, CleanDecimal, DateTime
+from weboob.browser.filters.standard import CleanText, CleanDecimal, DateTime, Format
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import Housing, HousingPhoto, City
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
@@ -51,7 +51,13 @@ class SeLogerItem(ItemElement):
     klass = Housing
 
     obj_id = CleanText('idAnnonce')
-    obj_title = CleanText('titre')
+    obj_title = Format(
+        "%s %s%s - %s",
+        CleanText('titre'),
+        CleanText('surface'),
+        CleanText('surfaceUnite'),
+        CleanText('ville'),
+    )
     obj_date = DateTime(CleanText('dtFraicheur'))
     obj_cost = CleanDecimal('prix')
     obj_currency = CleanText('prixUnite')
