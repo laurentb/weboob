@@ -55,7 +55,7 @@ class HousingPhoto(BaseObject):
         return '<HousingPhoto %r data=%do url=%r>' % (self.id, len(self.data) if self.data else 0, self.url)
 
 
-UTILITIES = enum(INCLUDED=u'C.C', EXCLUDED=u'H.C.', UNKNOWN=u'')
+UTILITIES = enum(INCLUDED=u'C.C.', EXCLUDED=u'H.C.', UNKNOWN=u'')
 
 
 class Housing(BaseObject):
