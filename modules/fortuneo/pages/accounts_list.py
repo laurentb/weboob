@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from urllib import urlencode
+from urlparse import urljoin
 import re
 from time import sleep
 from datetime import date
@@ -308,7 +309,7 @@ class AccountsList(LoggedPage, HTMLPage):
 
         for cpt in self.doc.xpath('//a[@class="synthese_id_compte" or @class="synthese_carte_differe"]'):
             url_to_parse = cpt.xpath('@href')[0].replace("\n", "")  # link
-            # account._link_id = lien vers historique d'un compte (courant ou livret)
+            # account.url = lien vers historique d'un compte (courant ou livret)
             if '/mes-comptes/livret/' in url_to_parse:
                 compte_id_re = re.compile(r'.*\?(.*)$')
                 link_id = '/fr/prive/mes-comptes/livret/consulter-situation/consulter-solde.jsp?%s' % \
@@ -324,12 +325,12 @@ class AccountsList(LoggedPage, HTMLPage):
             account = Account()
             account.id = CleanText(None).filter(number[0]).replace(u'N°', '')
 
-            account._link_id = link_id
+            account.url = urljoin(self.url, link_id)
             account._card_links = []
             account.label = (' '.join([CleanText.clean(part) for part in cpt.xpath('./text()')])).strip(' - ').strip()
 
             for pattern, type in self.ACCOUNT_TYPES.iteritems():
-                if pattern in account._link_id:
+                if pattern in account.url:
                     account.type = type
 
             try:
@@ -342,7 +343,7 @@ class AccountsList(LoggedPage, HTMLPage):
             else:
                 # the balance in the accounts list for a PEA is not updated realtime and can be 1 day old
                 # the latest is on the account page
-                page = self.browser.open(account._link_id).page
+                page = self.browser.open(account.url).page
                 account.balance = page.get_balance()
             account.currency = account.get_currency(balance)
 
