@@ -142,4 +142,4 @@ class HousingPage(XMLPage):
             if "charges comprises" in mention:
                 return UTILITIES.INCLUDED
             else:
-                return UTILITIES.EXCLUDED
+                return UTILITIES.UNKNOWN
