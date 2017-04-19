@@ -58,6 +58,8 @@ class SeLogerItem(ItemElement):
     obj_area = CleanDecimal('surface', default=NotAvailable)
     obj_price_per_meter = PricePerMeterFilter()
     obj_text = CleanText('descriptif')
+    obj_rooms = CleanDecimal('nbPiece|nbPieces', default=NotAvailable)
+    obj_bedrooms = CleanDecimal('nbChambre|nbChambres', default=NotAvailable)
 
     def obj_location(self):
         location = CleanText('adresse', default="")(self)
@@ -84,9 +86,6 @@ class SearchResultsPage(XMLPage):
                 return page
 
         class item(SeLogerItem):
-            obj_rooms = CleanDecimal('nbPiece', default=NotAvailable)
-            obj_bedrooms = CleanDecimal('nbChambre', default=NotAvailable)
-
             def obj_photos(self):
                 photos = []
 
@@ -119,5 +118,3 @@ class HousingPage(XMLPage):
             return details
 
         obj_phone = CleanText('//contact/telephone')
-        obj_rooms = CleanDecimal('nbPieces', default=NotAvailable)
-        obj_bedrooms = CleanDecimal('nbChambres', default=NotAvailable)
