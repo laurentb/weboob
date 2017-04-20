@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import method, TableElement, ItemElement
 from weboob.browser.filters.standard import (
-    CleanText, Date, TableCell, CleanDecimal, Regexp,
+    CleanText, Date, TableCell, CleanDecimal, Regexp, Eval,
 )
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Investment
@@ -103,7 +103,7 @@ class InvestmentPage(AccountPage):
             obj_unitvalue = MyDecimal(TableCell('unitvalue'), default=NotAvailable)
             obj_unitprice = MyDecimal(TableCell('unitprice'), default=NotAvailable)
             obj_valuation = MyDecimal(TableCell('valuation'))
-            obj_portfolio_share = MyDecimal(TableCell('portfolio_share'))
+            obj_portfolio_share = Eval(lambda x: x / 100, MyDecimal(TableCell('portfolio_share')))
             obj_diff = MyDecimal(TableCell('diff'), default=NotAvailable)
             obj_code_type = u'ISIN'
 
