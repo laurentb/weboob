@@ -23,7 +23,7 @@ from urlparse import urlsplit, parse_qsl
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.browsers import StatesMixin
-from weboob.exceptions import BrowserIncorrectPassword, BrowserBanned, NoAccountsException
+from weboob.exceptions import BrowserIncorrectPassword, BrowserBanned, NoAccountsException, BrowserUnavailable
 
 from .pages import (
     LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate,
@@ -132,7 +132,6 @@ class BPBrowser(LoginBrowser, StatesMixin):
     def __init__(self, *args, **kwargs):
         self.weboob = kwargs.pop('weboob')
         super(BPBrowser, self).__init__(*args, **kwargs)
-
         dirname = self.responses_dirname
         if dirname:
             dirname += '/bourse'
@@ -204,7 +203,6 @@ class BPBrowser(LoginBrowser, StatesMixin):
             for tr in self.iter_card_transactions(account):
                 if not tr._coming:
                     transactions.append(tr)
-
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
 
         return transactions
@@ -242,19 +240,24 @@ class BPBrowser(LoginBrowser, StatesMixin):
         def iter_transactions(self, link):
             self.location(link)
 
-            for t in range(6, 0, -1):
-                self.par_account_deferred_card_history.go(type=t)
+            for t in range(10):
+                try:
+                    self.par_account_deferred_card_history.go(type=t)
+                except BrowserUnavailable:
+                    self.logger.debug("deferred card history stop at %s", t)
+                    break
 
                 if self.par_account_deferred_card_history.is_here():
                     for tr in self.page.get_history(deferred=True):
                         tr.type = tr.TYPE_CARD
                         yield tr
 
+            assert t < 9, "verify if history goes back to 10 months"
+
         if not account._has_cards:
             return iter([])
 
         self.cards_list.go(account_id=account.id)
-
         if self.cards_list.is_here():
             for link in self.page.get_cards():
                 return iter_transactions(self, link)
