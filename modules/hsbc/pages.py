@@ -28,7 +28,8 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.elements import TableElement, ListElement, ItemElement, method
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
-from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, TableCell, Regexp, Eval, Date
+from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, TableCell, Regexp, \
+    Eval, Date
 from weboob.browser.filters.html import Link
 from weboob.browser.filters.javascript import JSVar
 
@@ -146,7 +147,7 @@ class RibPage(LoggedPage, HTMLPage):
             if acc.iban or not acc.type is Account.TYPE_CHECKING:
                 continue
             digit_id = ''.join(re.findall('\d', id))
-            if digit_id in CleanText('//div[strong[contains(text(), "Account number")]]')(self.doc):
+            if digit_id in CleanText('//div[@class="RIB_content"]')(self.doc):
                 acc.iban = re.search('(FR\d{25})', CleanText('//div[strong[contains(text(), "IBAN")]]', replace=[(' ', '')])(self.doc)).group(1)
 
     def get_rib(self, accounts):
