@@ -935,6 +935,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
             if message in content:
                 raise TransferBankError(message=message)
 
+    def check_success(self):
         # look for the known "all right" message
         if not self.doc.xpath(u'//span[contains(text(), "%s")]' % self.READY_FOR_TRANSFER_MSG):
             raise TransferError('The expected message "%s" was not found.' % self.READY_FOR_TRANSFER_MSG)
@@ -954,6 +955,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
 
     def handle_response(self, account, recipient, amount, reason):
         self.check_errors()
+        self.check_success()
 
         exec_date, r_amount, currency = self.check_data_consistency(account.id, recipient.id, amount, reason)
         parsed = urlparse(self.url)
@@ -977,6 +979,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
         return transfer
 
     def create_transfer(self, transfer):
+        self.check_errors()
         # look for the known "everything went well" message
         content = self.get_unicode_content()
         transfer_ok_message = u'Votre virement a &#233;t&#233; ex&#233;cut&#233;'
