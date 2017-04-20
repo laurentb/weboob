@@ -17,34 +17,30 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.deprecated.browser import Browser
+from weboob.browser import PagesBrowser, URL
 from .pages import LivePage, StreamsPage
 
 __all__ = ['NectarineBrowser']
 
 
-class NectarineBrowser(Browser):
-    DOMAIN = 'www.scenemusic.net'
-    PROTOCOL = 'https'
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['desktop_firefox']
-    PAGES = {
-        'https://www\.scenemusic\.net/demovibes/xml/streams/': StreamsPage,
-        'https://www\.scenemusic\.net/demovibes/xml/queue/': LivePage
-    }
+class NectarineBrowser(PagesBrowser):
+    BASEURL = 'https://www.scenemusic.net'
+
+    streams = URL(r'/demovibes/xml/streams/', StreamsPage)
+    live = URL(r'/demovibes/xml/queue/', LivePage)
 
     def home(self):
         self.location('/demovibes/xml/streams/')
 
-        assert self.is_on_page(StreamsPage)
+        assert self.streams.is_here()
 
     def iter_radios_list(self):
         self.location('/demovibes/xml/streams/')
 
-        assert self.is_on_page(StreamsPage)
+        assert self.streams.is_here()
         return self.page.iter_radios_list()
 
     def get_current_emission(self):
         self.location('/demovibes/xml/queue/')
-        assert self.is_on_page(LivePage)
+        assert self.live.is_here()
         return self.page.get_current_emission()
