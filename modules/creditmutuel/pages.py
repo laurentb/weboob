@@ -220,48 +220,46 @@ class AccountsPage(LoggedPage, HTMLPage):
                     # be sure that we don't have that case anymore
                     assert not page.is_fleet()
 
-                    account = self.parent.objects[id]
-                    if not account.coming:
-                        account.coming = Decimal('0.0')
-                    date = parse_french_date(Regexp(Field('label'), 'Fin (.+) (\d{4})', '01 \\1 \\2')(self)) + relativedelta(day=31)
-                    if date > datetime.now() - relativedelta(day=1):
-                        account.coming += balance
-
                     # on old website we want card's history in account's history
                     if not page.browser.is_new_website:
+                        account = self.parent.objects[id]
+                        if not account.coming:
+                            account.coming = Decimal('0.0')
+                        date = parse_french_date(Regexp(Field('label'), 'Fin (.+) (\d{4})', '01 \\1 \\2')(self)) + relativedelta(day=31)
+                        if date > datetime.now() - relativedelta(day=1):
+                            account.coming += balance
                         account._card_links.append(link)
                     else:
-                        card_xpath = u'//*[contains(@id, "MonthSelector")]'
-                        for el in page.doc.xpath(u'%s/li/div/div[1] | %s//span[contains(text(), "Carte")]' % (card_xpath, card_xpath)):
-                            card_id = Regexp(CleanText('.', replace=[(' ', '')]), '(?=\d)([\dx]+)')(el)
-                            if any(a.id == card_id for a in page.browser.accounts_list):
+                        card_xpath = u'//div[contains(@class, "title")]/div//*[self::span or self::option][contains(text(), "Carte")]'
+                        for elem in page.doc.xpath(card_xpath):
+                            card_id = Regexp(CleanText('.', symbols=' '), '([\dx]+)')(elem)
+                            if any(card_id in a.id for a in page.browser.accounts_list):
                                 continue
 
                             card = Account()
-                            card._card_number = None
-                            card.id = card_id
-                            card.label = "%s %s %s" % (Regexp(CleanText('.'), 'Carte\s(\w+)')(el), card_id, \
-                                                       (Regexp(CleanText('.'), '\d{4}\s([A-Za-z\s]+)', default=None)(el) \
-                                                       or CleanText('./following-sibling::div[1]')(el)).strip())
-
-                            #<li id="I1:d1.C:MonthSelectorPanel.F1_0.richlb-item" role="radio" aria-checked="false" aria-label="Carte Business 5136 16xx xxxx 1359" tabindex="-1" class="_c1 ei_richlb_item _c1"><div aria-hidden="true" class="_c1 ei_richlb_content _c1" style="height:30px;">
-                            #<span class="fd ei_sdsf_montant _c1 neg _c1">-36,00 EUR</span><div>
-                            #Carte Business 1234 56xx xxxx 7890
-                            #</div><div class="_c1 doux _c1">
-                            #M MACHIN TRUC
-                            #</div> <span class="_c1 ei_valign _c1"></span>
-                            #</div></li>
-
-                            balance_xpath = './preceding-sibling::span[contains(@class, "montant")]'
-                            card.balance = CleanDecimal(balance_xpath, replace_dots=True, default=NotAvailable)(el)
-                            card.currency = card.get_currency(CleanText(balance_xpath)(el))
-
                             card.type = Account.TYPE_CARD
+                            card.id = card._card_number = card_id
                             card._link_id = link
-                            nextmonth = Link('./following-sibling::tr[contains(@class, "encours")][1]/td[1]//a', default=None)(self)
-                            card._card_pages = [page] if not nextmonth else [page, page.browser.open(nextmonth).page]
-                            card._is_inv = False
-                            card._is_webid = False
+                            card._is_inv = card._is_webid = False
+
+                            pattern = 'Carte\s(\w+).*\d{4}\s([A-Za-z\s]+)(.*)'
+                            m = re.search(pattern, CleanText('.')(elem))
+                            card.label = "%s %s %s" % (m.group(1), card_id, m.group(2))
+                            card.balance = CleanDecimal(replace_dots=True).filter(m.group(3))
+                            card.currency = card.get_currency(m.group(3))
+
+                            card._card_pages = [page]
+                            next_month = Link('./following-sibling::tr[contains(@class, "encours")][1]/td[1]//a', default=None)(self)
+                            if next_month:
+                                card_page = page.browser.open(next_month).page
+                                # retrieving coming from next month matching on id
+                                card.coming = Decimal('0.0')
+                                for e in card_page.doc.xpath(card_xpath):
+                                    if card.id != Regexp(CleanText('.', symbols=' '), '([\dx]+)')(e):
+                                        continue
+                                    m = re.search(pattern, CleanText('.')(e))
+                                    card.coming += CleanDecimal(replace_dots=True).filter(m.group(3))
+                                card._card_pages.append(card_page)
 
                             self.page.browser.accounts_list.append(card)
 
@@ -594,7 +592,7 @@ class CardPage(OperationsPage, LoggedPage):
 
     def select_card(self, card_number):
         for option in self.doc.xpath('//select[@name="Data_SelectedCardItemKey"]/option'):
-            card_id = Regexp(CleanText('.', replace=[(' ', '')]), '(?=\d)([\dx]+)')(option)
+            card_id = Regexp(CleanText('.', symbols=' '), '([\dx]+)')(option)
             if card_id != card_number:
                 continue
             if Attr('.', 'selected', default=None)(option):
