@@ -106,8 +106,8 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         Attempt to log in.
         Note: this method does nothing if we are already logged in.
         """
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
+        if not self.username or not self.password:
+            raise BrowserIncorrectPassword()
 
         # Reset domain to log on pro website if first login attempt failed on personal website.
         if self.multi_type:
