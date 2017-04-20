@@ -84,7 +84,11 @@ function clearCookies(cookieStoreId, url) {
 function setCookies(cookieStoreId, url, objs) {
     return new Promise(function(resolve, reject) {
         var promises = objs.map(function(obj) {
-            obj.url = url;
+            if (obj.domain.startsWith('.')) {
+                obj.url = 'https://' + obj.domain.substring(1);
+            } else {
+                obj.url = 'https://' + obj.domain;
+            }
             obj.storeId = cookieStoreId;
             return makePromise(browser.cookies.set, browser.cookies, obj);
         });
