@@ -76,7 +76,9 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     disc = URL('https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.login.ContextTransferDisconnect',
                '/outil/UAUT/RetourPartenaire/retourCar', DiscPage)
 
-    assurancevie = URL('/outil/UWVI/AssuranceVie/accesSynthese', AVPage)
+    assurancevie = URL('/outil/UWVI/AssuranceVie/accesSynthese',
+                        '/outil/UWVI/AssuranceVie/accesDetail.*',
+                        AVPage)
     avdetail = URL('https://ASSURANCE-VIE-et-prevoyance.secure.lcl.fr.*',
                    'https://assurance-vie-et-prevoyance.secure.lcl.fr.*',
                    '/outil/UWVI/Routage', AVDetailPage)

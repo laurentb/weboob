@@ -583,11 +583,16 @@ class AVPage(LoggedPage, HTMLPage):
             obj__coming_links = []
             obj__transfer_id = None
 
-            def obj_id(self):
+            def load_details(self):
                 _id = CleanText('.//td/a/@id')(self)
                 if not _id:
-                    _id = Regexp(CleanText('.//td/a/@href'), r'ID_CONTRAT=(\d+)')(self)
-                return Format(u'%s%s', CleanText(Field('label'), replace=[(' ', '')]), _id)(self)
+                    ac_details_page = self.page.browser.async_open(Link('.//td/a')(self))
+                else:
+                    split = _id.split('-')
+                    ac_details_page = self.page.browser.async_open('https://particuliers.secure.lcl.fr/outil/UWVI/AssuranceVie/accesDetail?ID_CONTRAT=%s&PRODUCTEUR=%s' % (split[0], split[1]))
+                return ac_details_page
+
+            obj_id = Async('details') & CleanText('(//tr[3])/td[2]')
 
             def obj__form(self):
                 form_id = Attr('.//td/a', 'id', default=None)(self)
