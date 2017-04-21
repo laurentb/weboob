@@ -70,7 +70,7 @@ class AmericanExpressBrowser(LoginBrowser):
 
         for idx, cancelled in self.page.get_idx_list():
             account = self.get_account_by_idx(idx)
-            if account._link or not cancelled:
+            if account.url or not cancelled:
                 yield account
 
     @need_login
@@ -98,7 +98,7 @@ class AmericanExpressBrowser(LoginBrowser):
         if not self.accounts.is_here():
             self.go_on_accounts_list()
 
-        url = account._link
+        url = account.url
         if not url:
             return
 

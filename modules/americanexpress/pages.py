@@ -20,6 +20,7 @@
 
 import datetime
 import re
+from urlparse import urljoin
 
 from weboob.browser.pages import HTMLPage, LoggedPage, PartialHTMLPage
 from weboob.browser.filters.standard import CleanText, CleanDecimal
@@ -65,9 +66,9 @@ class AccountsPage(LoggedPage, PartialHTMLPage):
             # Cancel card don't have a link to watch history
             link = self.doc.xpath('.//div[@class="wide-bar"]/h3/a')
             if len(link) == 1:
-                a._link = link[0].attrib['href']
+                a.url = urljoin(self.url, link[0].attrib['href'])
             else:
-                a._link = None
+                a.url = None
 
             return a
 
