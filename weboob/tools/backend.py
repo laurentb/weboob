@@ -407,10 +407,13 @@ class Module(object):
         if obj is None:
             return obj
 
-        def not_loaded(v):
+        def not_loaded_or_incomplete(v):
             return (v is NotLoaded or isinstance(v, BaseObject) and not v.__iscomplete__())
 
-        def filter_missing_fields(obj, fields):
+        def not_loaded(v):
+            return v is NotLoaded
+
+        def filter_missing_fields(obj, fields, check_cb):
             missing_fields = []
             if fields is None:
                 # Select all fields
@@ -441,7 +444,7 @@ class Module(object):
         if isinstance(fields, basestring):
             fields = (fields,)
 
-        missing_fields = filter_missing_fields(obj, fields)
+        missing_fields = filter_missing_fields(obj, fields, not_loaded_or_incomplete)
 
         if not missing_fields:
             return obj
@@ -450,7 +453,7 @@ class Module(object):
             if isinstance(obj, key):
                 self.logger.debug(u'Fill %r with fields: %s' % (obj, missing_fields))
                 obj = value(self, obj, missing_fields) or obj
-                missing_fields = filter_missing_fields(obj, fields)
+                missing_fields = filter_missing_fields(obj, fields, not_loaded)
                 break
 
         # Object is not supported by backend. Do not notice it to avoid flooding user.
