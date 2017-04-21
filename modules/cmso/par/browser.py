@@ -137,8 +137,8 @@ class CmsoParBrowser(LoginBrowser):
             self.session.headers['Content-Type'] = 'application/json'
 
             return history
-        # Getting a year of history
 
+        # Getting a year of history
         nbs = ["UN", "DEUX", "TROIS", "QUATRE", "CINQ", "SIX", "SEPT", "HUIT", "NEUF", "DIX", "ONZE", "DOUZE"]
         trs = []
 
@@ -168,8 +168,10 @@ class CmsoParBrowser(LoginBrowser):
         self.history.go(data=json.dumps({"index": account._index}), page="pendingListOperations")
 
         for key in self.page.get_keys():
+            self.trs = {'lastdate': None, 'list': []}
             for c in self.page.iter_history(key=key):
-                if "DeferredDebitCard" in key:
+                if hasattr(c, '_deferred_date'):
+                    c.date = c._deferred_date
                     c.type = Transaction.TYPE_DEFERRED_CARD # force deferred card type for comings inside cards
 
                 c.vdate = None # vdate don't work for comings

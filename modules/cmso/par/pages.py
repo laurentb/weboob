@@ -24,7 +24,7 @@ from collections import OrderedDict
 
 from weboob.browser.pages import HTMLPage, JsonPage, RawPage, LoggedPage, pagination
 from weboob.browser.elements import DictElement, ItemElement, TableElement, SkipItem, method
-from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, Format, CleanDecimal, Env, Slugify, TableCell, Field, Eval
+from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, Format, CleanDecimal, Filter, Env, Slugify, TableCell, Field
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, Link
 from weboob.browser.exceptions import ServerError
@@ -163,7 +163,7 @@ class AccountsPage(LoggedPage, JsonPage):
         def parse(self, el):
             self.item_xpath = "%s/*" % Env('key')(self)
             if "Pret" in Env('key')(self):
-                self.item_xpath = "%s/lstPret/*" % self.item_xpath
+                self.item_xpath = "%s/lstPret" % self.item_xpath
 
         class item(ItemElement):
             klass = Account
@@ -212,26 +212,34 @@ class HistoryPage(LoggedPage, JsonPage):
         def parse(self, el):
             # Key only if coming
             key = Env('key', default=None)(self)
-            self.item_xpath = "%s/operationList" % key if key and "CardList" not in key \
-                              else "%s/currentMonthCardList/*/listeOperations/*" % key \
-                              if key else "listOperationProxy"
+            self.item_xpath = "%s/operationList" % key if key and "CardList" not in key else \
+                              "%s/currentMonthCardList/*/listeOperations" % key if key else \
+                              "listOperationProxy"
 
         class item(ItemElement):
             klass = Transaction
 
-            obj_date = Date(Eval(lambda t: dt.fromtimestamp(int(t)/1000).strftime('%Y-%m-%d'), Regexp(Dict('dateOperation'), r'(\d+)', r'\1')))
+            class FromTimestamp(Filter):
+                def filter(self, timestamp):
+                    return dt.fromtimestamp(int(timestamp[:-3])).date()
+
+            obj_date = FromTimestamp(Dict('dateOperation'))
+            obj_raw = Transaction.Raw(Dict('libelleCourt'))
             obj_vdate = Date(Dict('dateValeur'), dayfirst=True)
             obj_amount = CleanDecimal(Dict('montantEnEuro'), default=NotAvailable)
-            obj_raw = Transaction.Raw(Dict('libelleCourt'))
 
             def parse(self, el):
+                key = Env('key', default=None)(self)
+                if key and "DeferredDebit" in key:
+                    deferred_date = Dict('%s/currentMonthCardList/0/dateDiffere' % key)(self.page.doc)
+                    setattr(self.obj, '_deferred_date', self.FromTimestamp().filter(deferred_date))
+
                 # Skip duplicate transactions
                 amount = Dict('montantEnEuro', default=None)(self)
-                if amount is None:
+                tr = Dict('libelleCourt')(self) + Dict('dateOperation')(self) + str(amount)
+                if amount is None or (tr in self.page.browser.trs['list'] and self.page.browser.trs['lastdate'] < Field('date')(self)):
                     raise SkipItem()
-                tr = "%s%s%s" % (Dict('libelleCourt')(self), Dict('dateOperation')(self), amount)
-                if tr in self.page.browser.trs['list'] and self.page.browser.trs['lastdate'] < Field('date')(self):
-                    raise SkipItem()
+
                 self.page.browser.trs['lastdate'] = Field('date')(self)
                 self.page.browser.trs['list'].append(tr)
 
@@ -354,6 +362,8 @@ class MarketPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Investment
 
+            condition = lambda self: not CleanText('//div[has-class("errorConteneur")]', default=None)(self.el)
+
             obj_label = Upper(TableCell('label'))
             obj_code = CleanText(TableCell('code'))
             obj_quantity = CleanDecimal(TableCell('quantity'), default=NotAvailable)
@@ -361,9 +371,6 @@ class MarketPage(LoggedPage, HTMLPage):
             obj_unitvalue = MyDecimal(TableCell('unitvalue'))
             obj_valuation = CleanDecimal(TableCell('valuation'))
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
-
-            def condition(self):
-                return not CleanText('//div[has-class("errorConteneur")]', default=None)(self)
 
 
 class AdvisorPage(LoggedPage, JsonPage):
