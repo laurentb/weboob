@@ -830,7 +830,10 @@ class StatesMixin(object):
             state['url'] = self.page.url
         state['cookies'] = base64.b64encode(zlib.compress(pickle.dumps(self.session.cookies, -1)))
         for attrname in self.__states__:
-            state[attrname] = getattr(self, attrname)
+            try:
+                state[attrname] = getattr(self, attrname)
+            except AttributeError:
+                pass
         if self.STATE_DURATION is not None:
             state['expire'] = unicode((datetime.now() + timedelta(minutes=self.STATE_DURATION)).replace(microsecond=0))
         self.logger.info('Stored cookies into storage')
