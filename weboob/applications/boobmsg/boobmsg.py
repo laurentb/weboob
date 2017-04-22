@@ -416,12 +416,21 @@ class Boobmsg(ReplApplication):
 
         Export the thread identified by ID
         """
-        _id, backend_name = self.parse_id(arg)
+        try:
+            thread = self.threads[int(arg) - 1]
+        except (IndexError, ValueError):
+            _id, backend_name = self.parse_id(arg)
+        else:
+            _id = thread.id
+            backend_name = thread.backend
+
         cmd = self.do('get_thread', _id, backends=backend_name)
         self.start_format()
         for thread in cmd:
             if thread is not None:
+                thread, = self.do('fillobj', thread, None, backends=thread.backend)
                 for msg in thread.iter_all_messages():
+                    msg, = self.do('fillobj', msg, None, backends=thread.backend)
                     self.format(msg)
 
     def do_show(self, arg):
@@ -448,13 +457,17 @@ class Boobmsg(ReplApplication):
                 else:
                     for thread in self.do('get_thread', thread.id, backends=thread.backend):
                         if thread is not None:
+                            if not thread.root:
+                                thread, = self.do('fillobj', thread, ('root',), backends=thread.backend)
                             message = thread.root
             except (IndexError, ValueError):
                 _id, backend_name = self.parse_id(arg)
                 for thread in self.do('get_thread', _id, backends=backend_name):
                     if thread is not None:
+                        if not thread.root:
+                            thread, = self.do('fillobj', thread, ('root',), backends=thread.backend)
                         message = thread.root
-        if message is not None:
+        if not empty(message):
             self.start_format()
             self.format(message)
             self.weboob.do('set_message_read', message, backends=message.backend)
