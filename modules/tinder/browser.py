@@ -125,7 +125,7 @@ class TinderBrowser(APIBrowser):
         if resp['match']:
             self.logger.error('Match with %s!' % profile['name'])
         else:
-            self.logger.info('Liked %s (%r)' % (profile['name'], profile['common_likes']))
+            self.logger.info('Liked %s (%r)' % (profile['name'], profile.get('common_likes', '')))
 
         if len(self.recs) > 0:
             return 1
