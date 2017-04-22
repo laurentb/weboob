@@ -20,6 +20,8 @@
 
 import datetime
 from dateutil.parser import parse as parse_date
+from dateutil.relativedelta import relativedelta
+from dateutil.tz import tzlocal
 
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Thread, Message
 from weboob.capabilities.dating import CapDating, Optimization
@@ -61,6 +63,17 @@ class ProfilesWalker(Optimization):
         next_try = 1
         try:
             next_try = self._browser.like_profile()
+
+            for thread in self._browser.get_threads():
+                if 'person' not in thread:
+                    continue
+
+                other_name = thread['person']['name']
+                if len(thread['messages']) == 0 and \
+                   parse_date(thread['created_date']) < (datetime.datetime.now(tzlocal()) - relativedelta(hours=1)):
+                    self._browser.post_message(thread['_id'], u'Coucou %s :)' % other_name)
+                    self._logger.info(u'Welcome message sent to %s' % other_name)
+
         finally:
             if self._view_cron is not None:
                 self._view_cron = self._sched.schedule(next_try, self.view_profile)
