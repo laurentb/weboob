@@ -100,7 +100,7 @@ class BackendsCall(object):
                 else:
                     self.logger.debug('%s: Called function %s returned: %r', backend, function, result)
 
-                    if hasattr(result, '__iter__') and not isinstance(result, basestring):
+                    if hasattr(result, '__iter__') and not isinstance(result, (bytes, basestring)):
                         # Loop on iterator
                         try:
                             for subresult in result:
