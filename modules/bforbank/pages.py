@@ -245,8 +245,8 @@ class CardPage(LoggedPage, HTMLPage):
         divs = self.doc.xpath('//div[@class="content-boxed"]')
         assert len(divs)
 
-        msg = u'Vous avez fait opposition sur cette carte bancaire.'
-        divs = [d for d in divs if msg not in CleanText('.//div[has-class("alert")]', default='')(d)]
+        msgs = re.compile(u'Vous avez fait opposition sur cette carte bancaire.|Votre carte bancaire a été envoyée.')
+        divs = [d for d in divs if not msgs.search(CleanText('.//div[has-class("alert")]', default='')(d))]
         divs = [d.xpath('.//div[@class="m-card-infos"]')[0] for d in divs]
 
         if not len(divs):
