@@ -104,9 +104,12 @@ class TransferChooseAccounts(LoggedPage, MyHTMLPage):
 
                 else:
                     self.env['id'] = self.env['iban'] = Regexp(CleanText('.'), '- (.*?) -')(el).replace(' ', '')
-                    self.env['label'] = CleanText('.')(el).split('-')[-1].strip()
+                    self.env['label'] = Regexp(CleanText('.'), '- (.*?) - (.*)', template='\\2')(el).strip()
                     first_part = CleanText('.')(el).split('-')[0].strip()
                     self.env['bank_name'] = u'La Banque Postale' if first_part in ['CCP', 'PEL'] else NotAvailable
+
+                if self.env['id'] in self.parent.objects: # user add two recipients with same iban...
+                    raise SkipItem()
 
     def init_transfer(self, account_id, recipient_value):
         matched_values = [Attr('.', 'value')(option) for option in self.doc.xpath('//select[@id="donneesSaisie.idxCompteEmetteur"]/option') \
