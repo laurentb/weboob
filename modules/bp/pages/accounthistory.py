@@ -253,11 +253,15 @@ class LifeInsuranceHistory(LoggedPage, MyHTMLPage):
             obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
             obj__coming = False
 
-            load_invs = Link('.//a') & AsyncLoad
+            load_invs = Link('.//a', default=NotAvailable) & AsyncLoad
 
             def obj_investments(self):
-                page = Async('invs').loaded_page(self)
-                return list(page.iter_investments())
+                try:
+                    page = Async('invs').loaded_page(self)
+
+                    return list(page.iter_investments())
+                except AttributeError:
+                    pass
 
 
 class LifeInsuranceHistoryInv(LoggedPage, MyHTMLPage):
