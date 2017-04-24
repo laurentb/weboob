@@ -40,8 +40,9 @@ class AccountPage(LoggedPage, HTMLPage):
 
     def get_compte(self, account_id):
         values = self.doc.xpath('//option[contains(text(), "%s")]/@value' % account_id)
-        if len(values) != 1:
-            self.logger.warning('could not find account %r', account_id)
+
+        assert len(values) == 1, 'could not find account %r' % account_id
+
         return values[0]
 
 
