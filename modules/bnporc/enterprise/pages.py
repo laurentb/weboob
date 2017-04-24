@@ -36,16 +36,16 @@ from weboob.exceptions import ActionNeeded
 
 
 class BNPVirtKeyboard(MappedVirtKeyboard):
-    symbols = {'0': '91d2887b619ec825bb622c7770d4c2dc',
-               '1': '9fe87bb481bde31b01c5ea434fbb391c',
-               '2': '80c24c1586868830b8f578e41167996a',
-               '3': 'dd4d989b1721506884914edbc1df3b91',
-               '4': '38dd990feb7c40573e526fb69e2f17a9',
-               '5': '579acb65bd5e98fcc413070192477528',
-               '6': 'e133ed4e7c4c0028a2a0a7e9126751b4',
-               '7': 'ae012ad7e1314571aef2343f40235d3c',
-               '8': 'a619519f61da73124a2705544c45fb42',
-               '9': 'fa625a1d4dc8357ec8eb87929bacd197',
+    symbols = {'0': '8adee734aaefb163fb008d26bb9b3a42',
+               '1': 'dad45ef18a75200030073ab102155e2f',
+               '2': '6cb4c69361f5ce32b68b477db98dd0fb',
+               '3': 'aa9f2d90c8112b84805d908938eefff7',
+               '4': '5aa9329aceab4318c2c96130915e87b7',
+               '5': 'd9fbfdf531ad888a9d79855536905d23',
+               '6': '50ce19be233ac07bebb59a16a3b9d4a7',
+               '7': '3a1f932237aab949fa6c59565823218b',
+               '8': 'd46cf28408db75caa915edb871ea573a',
+               '9': '87686fd75d283905d7651e1098db0882',
                }
 
     color = (0, 0, 0)
@@ -62,7 +62,7 @@ class BNPVirtKeyboard(MappedVirtKeyboard):
     def get_symbol_coords(self, coords):
         x1, y1, x2, y2 = coords
 
-        return MappedVirtKeyboard.get_symbol_coords(self, (x1 + 6, y1 + 1, x2 - 6, y2 - 4))
+        return MappedVirtKeyboard.get_symbol_coords(self, (x1 + 10, y1 + 10, x2 - 10, y2 - 10))
 
     def get_symbol_code(self, md5sum):
         m = re.search('(\d+)', MappedVirtKeyboard.get_symbol_code(self, md5sum))
@@ -79,6 +79,7 @@ class LoginPage(HTMLPage):
             vk_passwd = vk.get_string_code(password)
         except VirtKeyboardError as e:
             self.logger.error(e)
+            raise
 
         return vk_passwd
 
