@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import method, TableElement, ItemElement
 from weboob.browser.filters.standard import (
-    CleanText, Date, TableCell, CleanDecimal, Regexp, Eval,
+    CleanText, Date, TableCell, CleanDecimal, Regexp, Eval, Field
 )
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Investment
@@ -99,6 +99,9 @@ class InvestmentPage(AccountPage):
 
         class item(ItemElement):
             klass = Investment
+
+            def condition(self):
+                return Field('quantity')(self) != NotAvailable and Field('quantity')(self) > 0
 
             obj_quantity = MyDecimal(TableCell('quantity'), default=NotAvailable)
             obj_unitvalue = MyDecimal(TableCell('unitvalue'), default=NotAvailable)
