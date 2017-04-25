@@ -55,7 +55,7 @@ class ArteModule(Module, CapVideo, CapCollection):
 
     CONFIG = BackendConfig(Value('lang', label='Lang of videos', choices=lang_choice, default='FRENCH'),
                            Value('order', label='Sort order', choices=order, default='AIRDATE_DESC'),
-                           Value('quality', label='Quality of videos', choices=quality_choice, default=QUALITY.HD),
+                           Value('quality', label='Quality of videos', choices=quality_choice, default='HD'),
                            Value('format', label='Format of videos', choices=format_choice, default=FORMATS.HTTP_MP4),
                            Value('version', label='Version of videos', choices=versions_choice))
 
