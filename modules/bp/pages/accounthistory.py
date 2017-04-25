@@ -260,15 +260,19 @@ class LifeInsuranceHistory(LoggedPage, MyHTMLPage):
                     page = Async('invs').loaded_page(self)
 
                     return list(page.iter_investments())
-                except AttributeError:
-                    pass
+                except AttributeError: # No investments available
+                    return list()
 
 
 class LifeInsuranceHistoryInv(LoggedPage, MyHTMLPage):
     @method
     class iter_investments(InvestTable):
         head_xpath = '//table/thead//th'
-        item_xpath = '//table/tbody//tr[position() > 1 and position() < last()]'
+        item_xpath = '//table/tbody//tr[count(td) >= 1 and count(th) = 1]'
+
+        def parse(self, el):
+            if len(el.xpath('//table/thead//th')) <= 2:
+                raise AttributeError() # Don't handle multiple invests in same tr
 
         class item(InvestItem):
             pass
