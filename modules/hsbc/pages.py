@@ -122,11 +122,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             @property
             def obj_balance(self):
                 if self.el.xpath('./parent::*/tr/th') and self.el.xpath('./parent::*/tr/th')[0].text in [u'Credits', u'Crédits']:
-                    balance = CleanDecimal(replace_dots=True).filter(self.el.xpath('./td[3]'))
-                    if balance < 0:
-                        return balance
-                    else:
-                        return -balance
+                    return CleanDecimal(replace_dots=True, sign=lambda x: -1).filter(self.el.xpath('./td[3]'))
                 return CleanDecimal(replace_dots=True).filter(self.el.xpath('./td[3]'))
 
             @property
