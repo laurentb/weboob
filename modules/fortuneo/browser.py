@@ -43,8 +43,10 @@ class Fortuneo(LoginBrowser):
                           r'.*/prive/mes-comptes/compte-especes.*',
                           AccountHistoryPage)
     card_history = URL(r'.*/prive/mes-comptes/compte-courant/carte-bancaire/encours-debit-differe\.jsp.*', CardHistoryPage)
-    pea_history = URL(r'.*/prive/mes-comptes/compte-titres-.*', r'.*/prive/mes-comptes/pea.*', PeaHistoryPage)
-    invest_history = URL(r'.*/prive/mes-comptes/assurance-vie.*', InvestmentHistoryPage)
+    pea_history = URL(r'.*/prive/mes-comptes/pea/.*',
+                      r'.*/prive/mes-comptes/compte-titres-pea/.*',
+                      r'.*/prive/mes-comptes/ppe/.*', PeaHistoryPage)
+    invest_history = URL(r'.*/prive/mes-comptes/assurance-vie/.*', InvestmentHistoryPage)
 
     def do_login(self):
         assert isinstance(self.username, basestring)
@@ -58,22 +60,20 @@ class Fortuneo(LoginBrowser):
         if self.login_page.is_here():
             raise BrowserIncorrectPassword()
 
-        self.location('/fr/prive/mes-comptes/synthese-mes-comptes.jsp')
-
-        if self.accounts_page.is_here() and self.page.need_reload():
-            self.location('/ReloadContext?action=1&')
-        elif self.accounts_page.is_here() and self.page.need_sms():
+        self.location('/fr/prive/default.jsp?ANav=1')
+        if self.accounts_page.is_here() and self.page.need_sms():
             raise BrowserIncorrectPassword('Authentification with sms is not supported')
 
     @need_login
     def get_investments(self, account):
-        self.location(account.url)
-
-        return self.page.get_investments(account)
+        if hasattr(account, '_investment_link'):
+            self.location(account._investment_link)
+            return self.page.get_investments(account)
+        return iter([])
 
     @need_login
     def get_history(self, account):
-        self.location(account.url)
+        self.location(account._history_link)
 
         if self.page.select_period():
             return self.page.get_operations(account)
@@ -91,9 +91,7 @@ class Fortuneo(LoginBrowser):
     @need_login
     def get_accounts_list(self):
         """accounts list"""
-
-        if not self.accounts_page.is_here():
-            self.location('/fr/prive/mes-comptes/synthese-mes-comptes.jsp')
+        self.location('/fr/prive/default.jsp?ANav=1')
 
         return self.page.get_list()
 

@@ -297,55 +297,52 @@ class AccountsList(LoggedPage, HTMLPage):
         return len(self.doc.xpath('//div[@id="aidesecuforte"]'))
 
     ACCOUNT_TYPES = {'mes-comptes/compte-courant/consulter-situation': Account.TYPE_CHECKING,
+                     'mes-comptes/compte-especes':                     Account.TYPE_SAVINGS,
                      'mes-comptes/compte-courant/carte-bancaire':      Account.TYPE_CARD,
                      'mes-comptes/assurance-vie':                      Account.TYPE_LIFE_INSURANCE,
                      'mes-comptes/livret':                             Account.TYPE_SAVINGS,
                      'mes-comptes/pea':                                Account.TYPE_PEA,
-                     'mes-comptes/compte-titres':                      Account.TYPE_MARKET,
+                     'mes-comptes/ppe':                                Account.TYPE_PEA,
+                     'mes-comptes/compte-titres-pea':                  Account.TYPE_MARKET
                     }
+
     def get_list(self):
         accounts = []
         account = None
 
-        for cpt in self.doc.xpath('//a[@class="synthese_id_compte" or @class="synthese_carte_differe"]'):
-            url_to_parse = cpt.xpath('@href')[0].replace("\n", "")  # link
-            # account.url = lien vers historique d'un compte (courant ou livret)
-            if '/mes-comptes/livret/' in url_to_parse:
-                compte_id_re = re.compile(r'.*\?(.*)$')
-                link_id = '/fr/prive/mes-comptes/livret/consulter-situation/consulter-solde.jsp?%s' % \
-                    (compte_id_re.search(url_to_parse).groups()[0])
-            else:
-                link_id = url_to_parse
-
-            number = cpt.xpath('./span[@class="synthese_numero_compte"]')
-            if len(number) == 0:
-                account._card_links.append(link_id)
-                continue
-
+        for cpt in self.doc.xpath('//div[contains(@class, " compte") and not(contains(@class, "compte_selected"))]'):
             account = Account()
-            account.id = CleanText(None).filter(number[0]).replace(u'N°', '')
+            account._history_link = Link('./ul/li/a[contains(@id, "consulter_solde") '
+                                         'or contains(@id, "historique")'
+                                         'or contains(@id, "assurance_vie_operations")]')(cpt)
 
-            account.url = urljoin(self.url, link_id)
+            number = RawText('./a[contains(@class, "numero_compte")]')(cpt).replace(u'N° ', '')
+
+            account.id = CleanText(None).filter(number).replace(u'N°', '')
+
             account._card_links = []
-            account.label = (' '.join([CleanText.clean(part) for part in cpt.xpath('./text()')])).strip(' - ').strip()
+            card_link = Link('./ul/li/a[contains(text(), "Carte bancaire")]', default='')(cpt)
+            if len(card_link) > 0:
+                account._card_links.append(card_link)
+
+            account.label = CleanText('./a[contains(@class, "numero_compte")]/@title')(cpt)
 
             for pattern, type in self.ACCOUNT_TYPES.iteritems():
-                if pattern in account.url:
+                if pattern in account._history_link:
                     account.type = type
+                    break
 
-            try:
-                balance = CleanText(None).filter(cpt.xpath('./span[contains(@class, "synthese_solde")]')[0])
-            except IndexError:
-                continue
-
-            if account.type != Account.TYPE_PEA:
-                account.balance = CleanDecimal(None, replace_dots=True).filter(balance)
+            if account.type in {Account.TYPE_PEA, Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE}:
+                account._investment_link = Link('./ul/li/a[contains(@id, "portefeuille")]')(cpt)
+                balance = self.browser.open(account._investment_link).page.get_balance(account.type)
             else:
-                # the balance in the accounts list for a PEA is not updated realtime and can be 1 day old
-                # the latest is on the account page
-                page = self.browser.open(account.url).page
-                account.balance = page.get_balance()
-            account.currency = account.get_currency(balance)
+                balance = self.browser.open(account._history_link).page.get_balance()
+
+            if account.type in {Account.TYPE_PEA, Account.TYPE_MARKET}:
+                account.currency = self.browser.open(account._investment_link).page.get_currency()
+            else:
+                account.currency = account.get_currency(balance)
+            account.balance = CleanDecimal(None, replace_dots=True).filter(balance)
 
             if account.type in (Account.TYPE_CHECKING, Account.TYPE_SAVINGS):
                 # Need a token sent by SMS to customers
