@@ -37,7 +37,7 @@ from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    LoansProPage
 
 
-__all__ = ['LCLBrowser','LCLProBrowser']
+__all__ = ['LCLBrowser','LCLProBrowser', 'ELCLBrowser']
 
 
 # Browser
@@ -329,3 +329,14 @@ class LCLProBrowser(LCLBrowser):
     def __init__(self, *args, **kwargs):
         super(LCLProBrowser, self).__init__(*args, **kwargs)
         self.session.cookies.set("lclgen","professionnels")
+
+
+class ELCLBrowser(LCLBrowser):
+    BASEURL = 'https://e.secure.lcl.fr'
+
+    IDENTIFIANT_ROUTING = 'ELCL'
+
+    def __init__(self, *args, **kwargs):
+        super(ELCLBrowser, self).__init__(*args, **kwargs)
+
+        self.session.cookies.set('lclgen', 'ecl')

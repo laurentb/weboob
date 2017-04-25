@@ -558,8 +558,12 @@ class BoursePage(LoggedPage, HTMLPage):
 
 class DiscPage(LoggedPage, HTMLPage):
     def come_back(self):
-        form = self.get_form()
-        form.submit()
+        try:
+            form = self.get_form()
+
+            form.submit()
+        except FormNotFound: # Sometime no form is present, just a redirection
+            pass
 
 
 class NoPermissionPage(LoggedPage, HTMLPage):

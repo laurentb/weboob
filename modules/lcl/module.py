@@ -29,7 +29,7 @@ from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 from weboob.capabilities.base import find_object
 
-from .browser import LCLBrowser, LCLProBrowser
+from .browser import LCLBrowser, LCLProBrowser, ELCLBrowser
 from .enterprise.browser import LCLEnterpriseBrowser, LCLEspaceProBrowser
 
 
@@ -49,13 +49,15 @@ class LCLModule(Module, CapBankTransfer, CapContact, CapProfile):
                                  choices={'par': 'Particuliers',
                                           'pro': 'Professionnels',
                                           'ent': 'Entreprises',
-                                          'esp': 'Espace Pro'}))
+                                          'esp': 'Espace Pro',
+                                          'elcl': 'e.LCL'}))
     BROWSER = LCLBrowser
 
     def create_default_browser(self):
         # assume all `website` option choices are defined here
         browsers = {'par': LCLBrowser,
                     'pro': LCLProBrowser,
+                    'elcl': ELCLBrowser,
                     'ent': LCLEnterpriseBrowser,
                     'esp': LCLEspaceProBrowser}
 
@@ -86,7 +88,7 @@ class LCLModule(Module, CapBankTransfer, CapContact, CapProfile):
         return self.browser.get_investment(account)
 
     def iter_transfer_recipients(self, origin_account):
-        if self.config['website'].get() not in  ['par', 'pro']:
+        if self.config['website'].get() not in  ['par', 'pro', 'elcl']:
             raise NotImplementedError()
         if not isinstance(origin_account, Account):
             origin_account = find_object(self.iter_accounts(), id=origin_account, error=AccountNotFound)
