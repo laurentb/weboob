@@ -51,8 +51,8 @@ class FortuneoModule(Module, CapBank):
         return self.browser.get_accounts_list()
 
     def get_account(self, _id):
-        with self.browser:
-            account = self.browser.get_account(_id)
+        account = self.browser.get_account(_id)
+
         if account:
             return account
         else:
