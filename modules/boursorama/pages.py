@@ -752,7 +752,7 @@ class AddRecipientPage(LoggedPage, HTMLPage):
 
         ret = Recipient()
         ret.label = CleanText('//p[b[contains(text(),"Libellé du compte :")]]/text()')(div)
-        ret.iban = CleanText('//p[b[contains(text(),"Iban :")]]/text()')(div)
+        ret.iban = ret.id = CleanText('//p[b[contains(text(),"Iban :")]]/text()')(div)
         ret.bank_name = CleanText(u'//p[b[contains(text(),"Établissement bancaire :")]]/text()')(div)
         ret.currency = u'EUR'
         ret.category = u'Externe'
