@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from urllib import urlencode
-from urlparse import urljoin
 import re
 from time import sleep
 from datetime import date
@@ -26,7 +25,8 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 from lxml.html import etree
 
-from weboob.browser.filters.standard import CleanText, CleanDecimal
+from weboob.browser.filters.html import Link
+from weboob.browser.filters.standard import CleanText, CleanDecimal, RawText
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound
@@ -67,7 +67,7 @@ class PeaHistoryPage(LoggedPage, HTMLPage):
     def get_investments(self, account):
         if account is not None:
             # the balance is highly dynamic, fetch it along with the investments to grab a snapshot
-            account.balance = self.get_balance()
+            account.balance = CleanDecimal(None, replace_dots=True).filter(self.get_balance(account.type))
 
         for line in self.doc.xpath('//table[@id="t_intraday"]/tbody/tr'):
             if line.find_class('categorie') or line.find_class('detail') or line.find_class('detail02'):
@@ -99,15 +99,46 @@ class PeaHistoryPage(LoggedPage, HTMLPage):
         return CleanDecimal(None, replace_dots=replace_dots, default=NotAvailable).filter(string)
 
     def select_period(self):
+        try:
+            form = self.browser.page.get_form(name='form_historique_titres')
+        except FormNotFound:
+            return False
+        form['dateDebut'] = (date.today() - relativedelta(years=2)).strftime('%d/%m/%Y')
+        form['nbResultats'] = '100'
+        form.submit()
         return True
 
     def get_operations(self, account):
-        return iter([])
+        for tr in self.doc.xpath('//table[@id="tabHistoriqueOperations"]/tbody/tr'):
+            tds = tr.findall('td')
+            if len(CleanText(None).filter(tds[-1])) == 0:
+                continue
+            t = Transaction()
+            t.type = Transaction.TYPE_BANK
+            t.parse(date=CleanText(None).filter(tds[3]),
+                    raw=CleanText(None).filter(tds[1]))
+            t.amount = CleanDecimal(None, replace_dots=True, default=0).filter(tds[-2])
+            t.commission = CleanDecimal(None, replace_dots=True, default=0).filter(tds[-3])
+            investment = Investment()
+            investment.label = CleanText(None).filter(tds[0])
+            investment.quantity = CleanDecimal(None, replace_dots=True, default=0).filter(tds[4])
+            investment.unitvalue = CleanDecimal(None, replace_dots=True, default=0).filter(tds[5])
+            t.investments = [investment]
+            yield t
 
-    def get_balance(self):
+    def get_balance(self, account_type):
+        raw_balance = None
         for tr in self.doc.xpath('//div[@id="valorisation_compte"]//table/tr'):
-            if 'Valorisation totale' in CleanText('.')(tr):
-                return CleanDecimal('./td[2]', replace_dots=True)(tr)
+            if account_type == Account.TYPE_MARKET:
+                if u'Évaluation Titres' in CleanText('.')(tr):
+                    raw_balance = RawText('./td[2]')(tr)
+                    break
+            elif 'Valorisation totale' in CleanText('.')(tr):
+                raw_balance = RawText('./td[2]')(tr)
+        return raw_balance
+
+    def get_currency(self):
+        return Account.get_currency(CleanText('//div[@id="valorisation_compte"]//td[contains(text(), "Solde")]')(self.doc))
 
 
 class InvestmentHistoryPage(LoggedPage, HTMLPage):
@@ -144,14 +175,14 @@ class InvestmentHistoryPage(LoggedPage, HTMLPage):
         return CleanDecimal(None, replace_dots=True).filter(string)
 
     def select_period(self):
-        self.browser.location(self.url.replace('portefeuille-assurance-vie.jsp', 'operations/assurance-vie-operations.jsp'))
         assert isinstance(self.browser.page, type(self))
 
         try:
             form = self.browser.page.get_form(name='OperationsForm')
         except FormNotFound:
             return False
-        form['dateDebut'] = (date.today() - relativedelta(years=1)).strftime('%d/%m/%Y')
+
+        form['dateDebut'] = (date.today() - relativedelta(years=2)).strftime('%d/%m/%Y')
         form['nbrEltsParPage'] = '100'
         form.submit()
         return True
@@ -159,25 +190,40 @@ class InvestmentHistoryPage(LoggedPage, HTMLPage):
     def get_operations(self, account):
         for tr in self.doc.xpath('//table[@id="tableau_histo_opes"]/tbody/tr'):
             tds = tr.findall('td')
-
+            if len(CleanText(None).filter(tds[-1])) == 0:
+                continue
             t = Transaction()
+            t.type = Transaction.TYPE_BANK
             t.parse(date=CleanText(None).filter(tds[1]),
                     raw=CleanText(None).filter(tds[2]))
             t.amount = CleanDecimal(None, replace_dots=True, default=0).filter(tds[-1])
             yield t
 
+    def get_balance(self, account_type):
+        for div in self.doc.xpath('//div[@class="block synthese_vie"]/div/div/div'):
+            if 'Valorisation' in CleanText('.')(div):
+                return RawText('./p/strong')(div)
 
 class AccountHistoryPage(LoggedPage, HTMLPage):
     def build_doc(self, content):
         content = re.sub(br'\*<E040032TC MSBILL.INFO', b'*', content)
         return super(AccountHistoryPage, self).build_doc(content)
 
+    def get_balance(self):
+        for tr in self.doc.xpath('//table[@id="tableauConsultationHisto"]/tbody/tr'):
+            if 'Solde' in CleanText('./td')(tr):
+                return CleanText('./td/strong')(tr)
+
     def get_investments(self, account):
         return iter([])
 
     def select_period(self):
-        form = self.get_form(name='ConsultationHistoriqueOperationsForm')
-        form['dateRechercheDebut'] = (date.today() - relativedelta(years=1)).strftime('%d/%m/%Y')
+        # form = self.get_form(name='ConsultationHistoriqueOperationsForm')
+        form = self.get_form(xpath='//form[@name="ConsultationHistoriqueOperationsForm" '
+                                   ' or @name="form_historique_titres" '
+                                   ' or @name="OperationsForm"]')
+
+        form['dateRechercheDebut'] = (date.today() - relativedelta(years=2)).strftime('%d/%m/%Y')
         form['nbrEltsParPage'] = '100'
         form.submit()
 
@@ -251,8 +297,6 @@ class AccountsList(LoggedPage, HTMLPage):
                                //span[contains(text(), "Mieux vous connaître")]')
         if len(warn) > 0:
             raise ActionNeeded(warn[0].text)
-
-        self.load_async(0)
 
     def load_async(self, time):
         total = 0
