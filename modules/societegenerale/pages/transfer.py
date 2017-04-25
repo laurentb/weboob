@@ -29,11 +29,12 @@ from weboob.capabilities.bank import (
     Recipient, TransferError, TransferBankError, TransferInvalidCurrency, Transfer,
     AddRecipientError, AddRecipientStep,
 )
-from weboob.capabilities.base import find_object, NotAvailable
+from weboob.capabilities.base import find_object, NotAvailable, empty
 from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, \
                                             Env, Date
 from weboob.browser.filters.html import Attr, Link
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.value import Value, ValueBool
 from weboob.tools.json import json
 
@@ -66,6 +67,8 @@ class RecipientsPage(LoggedPage, BasePage):
                 first_label = CleanText('./div[1]/div[3]/span[1]')(self)
                 second_label = CleanText('./div[1]/div[3]/span[2]')(self)
                 return first_label if first_label == second_label else ('%s %s' % (first_label, second_label)).strip()
+
+            validate = lambda self, obj: empty(self.obj_iban(self)) or is_iban_valid(self.obj_iban(self))
 
 
 class TransferPage(LoggedPage, BasePage, PasswordPage):
