@@ -91,6 +91,7 @@ class SearchPage(EntreParticuliersXMLPage):
                 ),
                 default=NotAvailable
             )
+            obj_price_per_meter = PricePerMeterFilter()
 
             def obj_url(self):
                 url = CleanText('./LienDetail')(self)
@@ -163,10 +164,49 @@ class HousingPage(EntreParticuliersXMLPage):
 
             return details
 
+        def obj_url(self):
+            url = CleanText('./LienDetail')(self)
+            if not url.startswith('http'):
+                url = u'http://www.entreparticuliers.com%s' % url
+            return url
+
         def obj_photos(self):
             photos = []
-            for i in range(1, CleanDecimal('//NbPhotos')(self) + 1):
-                img = CleanText('//LienImage%s' % i, replace=[(u'w=69&h=52', u'w=786&h=481')])(self)
-                url = img if img.startswith('http') else u'http://www.entreparticuliers.com%s' % img
-                photos.append(HousingPhoto(url))
-            return photos
+
+            get_url = lambda url: img if img.startswith('http') else u'http://www.entreparticuliers.com%s' % img
+
+            # First image
+            img = CleanText('//LienImage',
+                            replace=[
+                                (u'w=69&h=52', u'w=786&h=481'),
+                                (u'ad-thumb', u'ad-large')
+                            ],
+                            default=None)(self)
+            if img:
+                photos.append(HousingPhoto(get_url(img)))
+
+            i = 1
+            while True:
+                # Iterate manually over possible images as the API is
+                # completely screwed and could return NbPhotos as being zero
+                # although there are some photos.
+                img = CleanText('//LienImage%s' % i,
+                                replace=[
+                                    (u'w=69&h=52', u'w=786&h=481'),
+                                    (u'ad-thumb', u'ad-large')
+                                ],
+                               )(self)
+                if not img:
+                    break
+                photos.append(HousingPhoto(get_url(img)))
+                i += 1
+
+            # Filter out duplicates
+            seen_photos = []
+            filtered_photos = []
+            for photo in photos:
+                if photo.url not in seen_photos:
+                    filtered_photos.append(photo)
+                    seen_photos.append(photo.url)
+
+            return filtered_photos
