@@ -90,7 +90,8 @@ class SearchPage(HTMLPage):
 
             obj_text = CleanText('./div/div/div[@itemprop="description"]')
             obj_area = CleanDecimal(Regexp(CleanText('./div/h2[@itemprop="name"]/a'),
-                                           '(.*?)(\d*) m2(.*?)', '\\2', default=None),
+                                           '(.*?)([\d,\.]*) m2(.*?)', '\\2', default=None),
+                                    replace_dots=True,
                                     default=NotAvailable)
             obj_url = Format(
                 "http://www.explorimmo.com%s",
