@@ -161,9 +161,9 @@ class AccountsPage(LoggedPage, JsonPage):
     @method
     class iter_loans(DictElement):
         def parse(self, el):
-            self.item_xpath = "%s/*" % Env('key')(self)
+            self.item_xpath = Env('key')(self)
             if "Pret" in Env('key')(self):
-                self.item_xpath = "%s/lstPret" % self.item_xpath
+                self.item_xpath = "%s/*/lstPret" % self.item_xpath
 
         class item(ItemElement):
             klass = Account
