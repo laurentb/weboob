@@ -25,8 +25,13 @@ from .pages import CityListPage, HousingListPage, HousingPage, PhonePage
 class LeboncoinBrowser(PagesBrowser):
     BASEURL = 'https://www.leboncoin.fr/'
     city = URL('ajax/location_list.html\?city=(?P<city>.*)&zipcode=(?P<zip>.*)', CityListPage)
-    search = URL('(?P<type>.*)/offres/(?P<region>.*)/occasions/\?(?P<_ps>ps|mrs)=(?P<ps>.*)&(?P<_pe>pe|mre)=(?P<pe>.*)&ros=(?P<ros>.*)&location=(?P<location>.*)&sqs=(?P<sqs>.*)&sqe=(?P<sqe>.*)&ret=(?P<ret>.*)&f=(?P<advert_type>.*)',
-                 '(?P<_type>.*)/offres/(?P<_region>.*)/occasions.*?',
+    # Note: There is "ile_de_france" explicitly mentionned in the URL below.
+    # This was a useful parameter in a previous version of Leboncoin, where
+    # regions actually had some implications on the fetched posts. This is no
+    # longer the case, and we can actually use any valid region to lookup post
+    # in *any* region on Leboncoin. Then, we default to "ile_de_france".
+    search = URL('(?P<type>.*)/offres/ile_de_france/occasions/\?(?P<_ps>ps|mrs)=(?P<ps>.*)&(?P<_pe>pe|mre)=(?P<pe>.*)&ros=(?P<ros>.*)&location=(?P<location>.*)&sqs=(?P<sqs>.*)&sqe=(?P<sqe>.*)&ret=(?P<ret>.*)&f=(?P<advert_type>.*)',
+                 '(?P<_type>.*)/offres/ile_de_france/occasions.*?',
                  HousingListPage)
     housing = URL('ventes_immobilieres/(?P<_id>.*).htm', HousingPage)
     phone = URL('https://api.leboncoin.fr/api/utils/phonenumber.json', PhonePage)
@@ -41,9 +46,8 @@ class LeboncoinBrowser(PagesBrowser):
            Query.HOUSE_TYPES.PARKING: '4',
            Query.HOUSE_TYPES.OTHER: '5'}
 
-    def __init__(self, region, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(LeboncoinBrowser, self).__init__(*args, **kwargs)
-        self.region = region
 
     def get_cities(self, pattern):
         city = ''
@@ -63,8 +67,7 @@ class LeboncoinBrowser(PagesBrowser):
         if len(cities) == 0 or len(ret) == 0:
             return list()
 
-        return self.search.go(region=self.region,
-                              location=cities,
+        return self.search.go(location=cities,
                               ros=nb_rooms,
                               sqs=area_min,
                               sqe=area_max,
@@ -94,7 +97,7 @@ class LeboncoinBrowser(PagesBrowser):
         ret = [self.RET.get(g) for g in query.house_types if g in self.RET]
         _type = self.TYPES.get(query.type)
 
-        self.search.go(_type=_type, _region=self.region)
+        self.search.go(_type=_type)
 
         nb_rooms = '' if not query.nb_rooms else self.page.get_rooms_min(query.nb_rooms)
         area_min = '' if not query.area_min else self.page.get_area_min(query.area_min)
