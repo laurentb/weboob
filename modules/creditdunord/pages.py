@@ -181,11 +181,13 @@ class AccountsPage(LoggedPage, CDNBasePage):
 
     TYPES = {u'CARTE':               Account.TYPE_CARD,
              u'COMPTE COURANT':      Account.TYPE_CHECKING,
+             u'COMPTE ÉPARGNE':      Account.TYPE_SAVINGS,
              u'COMPTE EPARGNE':      Account.TYPE_SAVINGS,
              u'COMPTE SUR LIVRET':   Account.TYPE_SAVINGS,
              u'LIVRET':              Account.TYPE_SAVINGS,
-             u'P.E.A.':              Account.TYPE_PEA,
+             u'PLAN ÉPARGNE':        Account.TYPE_SAVINGS,
              u'PEA':                 Account.TYPE_PEA,
+             u'P.E.A.':              Account.TYPE_PEA,
              u'TITRES':              Account.TYPE_MARKET,
              u'ÉTOILE AVANCE':       Account.TYPE_LOAN,
              u'PRÊT':                Account.TYPE_LOAN,
@@ -194,7 +196,7 @@ class AccountsPage(LoggedPage, CDNBasePage):
             }
 
     def get_account_type(self, label):
-        for pattern, actype in self.TYPES.iteritems():
+        for pattern, actype in sorted(self.TYPES.iteritems()):
             if label.startswith(pattern) or label.endswith(pattern):
                 return actype
 
