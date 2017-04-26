@@ -21,8 +21,6 @@
 import datetime
 import re
 
-from dateutil.relativedelta import relativedelta
-
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Investment, Transaction as BaseTransaction
 from weboob.exceptions import BrowserUnavailable
@@ -58,6 +56,7 @@ class Transaction(FrenchTransaction):
                 (re.compile('^(?P<text>(?P<category>REMUNERATION).*)'),   FrenchTransaction.TYPE_BANK),
                 (re.compile('^(?P<category>REMISE DE CHEQUES?) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
                 (re.compile(u'^(?P<text>DEBIT CARTE BANCAIRE DIFFERE.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
+                (re.compile('^COTISATION TRIMESTRIELLE.*'), FrenchTransaction.TYPE_BANK),
                 (re.compile('^(?P<category>FRAIS (TRIMESTRIELS) DE TENUE DE COMPTE.*)'),   FrenchTransaction.TYPE_BANK)
                ]
 
@@ -69,18 +68,6 @@ class AccountHistory(LoggedPage, MyHTMLPage):
 
     def is_here(self):
         return not bool(CleanText(u'//h1[contains(text(), "tail de vos cartes")]')(self.doc))
-
-    def submit_research(self):
-        dformat = "%d/%m/%Y"
-        today = datetime.datetime.now()
-
-        form = self.get_form('//form[@class="recherche"]') # represent
-
-        form['compte.numero'] = self.browser.page.params['accountId']
-        form['dateDebutPeriode'] = (today - relativedelta(months=3)).strftime(dformat)
-        form['dateFinPeriode'] = today.strftime(dformat)
-
-        form.submit()
 
     def get_next_link(self):
         for a in self.doc.xpath('//a[@class="btn_crt"]'):
@@ -172,7 +159,13 @@ class AccountHistory(LoggedPage, MyHTMLPage):
             obj__coming = True
 
             def obj_label(self):
-                return CleanText(TableCell('label')(self)[0].xpath('./noscript'))(self) or CleanText(TableCell('label'), children=False)(self)
+                raw_label = CleanText(TableCell('label'))(self)
+                label = CleanText(TableCell('label')(self)[0].xpath('./br/following-sibling::text()'))(self)
+
+                if (label and label.split()[0] != raw_label.split()[0]) or not label:
+                    label = raw_label
+
+                return CleanText(TableCell('label')(self)[0].xpath('./noscript'))(self) or label
 
 
 class CardsList(LoggedPage, MyHTMLPage):

@@ -87,13 +87,13 @@ class BPBrowser(LoginBrowser, StatesMixin):
                           r'/voscomptes/canalXHTML/assurance/prevoyance/consulterHistorique-assurancePrevoyance.ea(\?numContrat=(?P<id>\w+))?',
                           RetirementHistory)
 
-    par_account_checking_history = URL('/voscomptes/canalXHTML/comptesCommun/recherche_CCP/init-recherche_ccp.ea\?compte.numero=(?P<accountId>.*)',
-                                       '/voscomptes/canalXHTML/comptesCommun/recherche_CCP/valider-recherche_ccp.ea', AccountHistory)
+    par_account_checking_history = URL('/voscomptes/canalXHTML/CCP/releves_ccp/init-releve_ccp.ea\?typeRecherche=10&compte.numero=(?P<accountId>.*)',
+                                       '/voscomptes/canalXHTML/CCP/releves_ccp/afficher-releve_ccp.ea', AccountHistory)
     par_account_deferred_card_history = URL('/voscomptes/canalXHTML/CB/releveCB/preparerRecherche-mouvementsCarteDD.ea\?typeListe=(?P<type>.*)', AccountHistory)
     par_account_checking_coming = URL('/voscomptes/canalXHTML/CCP/releves_ccp_encours/preparerRecherche-releve_ccp_encours.ea\?compte.numero=(?P<accountId>.*)&typeRecherche=1',
                                       '/voscomptes/canalXHTML/CB/releveCB/init-mouvementsCarteDD.ea\?compte.numero=(?P<accountId>.*)&typeListe=1&typeRecherche=10', AccountHistory)
-    par_account_savings_and_invests_history = URL('/voscomptes/canalXHTML/comptesCommun/recherche_CNE/init-recherche_cne.ea\?compte.numero=(?P<accountId>.*)',
-                                                  '/voscomptes/canalXHTML/comptesCommun/recherche_CNE/validerSaisie-recherche_cne.ea', AccountHistory)
+    par_account_savings_and_invests_history = URL('/voscomptes/canalXHTML/CNE/releveCNE/init-releve_cne.ea\?typeRecherche=10&compte.numero=(?P<accountId>.*)',
+                                                  '/voscomptes/canalXHTML/CNE/releveCNE/releveCNE-releve_cne.ea', AccountHistory)
 
     cards_list = URL('/voscomptes/canalXHTML/CB/releveCB/init-mouvementsCarteDD.ea\?compte.numero=(?P<account_id>\w+)$',
                      r'.*CB/releveCB/init-mouvementsCarteDD.ea.*',
@@ -191,14 +191,18 @@ class BPBrowser(LoginBrowser, StatesMixin):
             self.location(account.url)
 
             history = {Account.TYPE_CHECKING: self.par_account_checking_history,
-                        Account.TYPE_SAVINGS: self.par_account_savings_and_invests_history,
-                        Account.TYPE_MARKET: self.par_account_savings_and_invests_history
-                        }.get(account.type)
+                       Account.TYPE_SAVINGS: self.par_account_savings_and_invests_history,
+                       Account.TYPE_MARKET: self.par_account_savings_and_invests_history
+                      }.get(account.type)
 
             if history is not None:
-                history.go(accountId=account.id).submit_research()
+                history.go(accountId=account.id)
 
-            if hasattr(self.page, 'get_history'):
+                for tr in self.page.iter_coming():
+                    tr._coming = False
+
+                    transactions.append(tr)
+            elif hasattr(self.page, 'get_history'):
                 for tr in self.page.get_history():
                     transactions.append(tr)
 
