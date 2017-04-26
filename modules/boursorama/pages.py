@@ -613,7 +613,7 @@ class TransferRecipients(LoggedPage, HTMLPage):
             klass = Recipient
 
             obj_id = CleanText('.//div[@class="transfer__account-number"]')
-            obj_label = Regexp(CleanText('.//div[@class="transfer__account-name"]'), pattern=r'^(.*) -[^-]*$')
+            obj_label = Regexp(CleanText('.//div[@class="transfer__account-name"]'), pattern=r'^(.*?)(?: -[^-]*)?$')
             obj_bank_name = Regexp(CleanText('.//div[@class="transfer__account-name"]'), pattern=r'- ([^-]*)$', default=NotAvailable)
 
             def obj_category(self):
