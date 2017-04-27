@@ -26,7 +26,7 @@ from io import BytesIO
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.filters.json import Dict
 from weboob.browser.elements import DictElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Regexp, Format, Eval
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Regexp, Format, Eval, BrowserURL, Field
 from weboob.capabilities.bank import Transaction, Account
 from weboob.capabilities.profile import Profile
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
@@ -106,19 +106,18 @@ class AccountsPage(LoggedPage, JsonPage):
             def obj_id(self):
                 return CleanText(Dict('numeroCompte'))(self)[2:]
 
+            obj_balance = Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('soldeComptable')), CleanDecimal(Dict('decSoldeComptable')))
             obj_label = CleanText(Dict('libelleCompte'))
             obj_currency = CleanText(Dict('deviseTenue'))
-
-            def obj_balance(self):
-                return Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('soldeComptable')), CleanDecimal(Dict('decSoldeComptable')))(self)
-
-            def obj_coming(self):
-                return Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('soldePrevisionnel')), CleanDecimal(Dict('decSoldePrevisionnel')))(self)
-
             obj_iban = CleanText(Dict('numeroCompte', default=None), default=NotAvailable)
 
             def obj_type(self):
                 return self.page.TYPES.get(Dict('libelleType')(self), Account.TYPE_UNKNOWN)
+
+            def obj_coming(self):
+                page = self.page.browser.open(BrowserURL('account_coming', identifiant=Field('iban'))(self)).page
+                return Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('infoOperationsAvenir/cumulTotal/montant', default='0')),
+                                                    CleanDecimal(Dict('infoOperationsAvenir/cumulTotal/nb_dec', default='0')))(page.doc)
 
 
 class AccountHistoryViewPage(LoggedPage, HTMLPage):
