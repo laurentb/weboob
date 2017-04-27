@@ -268,7 +268,7 @@ class Cragr(LoginBrowser, StatesMixin):
             self.location(self.page.cards_idelco_or_link(idelco))
             assert self.cards.is_here()
             for account in self.page.get_list():
-                if account_id and account.number == account_id:
+                if account_id and account.id == account_id:
                     return account
                 else:
                     accounts.append(account)
@@ -348,7 +348,7 @@ class Cragr(LoginBrowser, StatesMixin):
 
         # card accounts need to get an updated link
         if account.type == Account.TYPE_CARD:
-            account = self.get_cards_or_card(account.number)
+            account = self.get_cards_or_card(account.id)
 
         if account.type != Account.TYPE_CARD or not self.page.is_on_right_detail(account):
             self.location(account.url.format(self.sag))
