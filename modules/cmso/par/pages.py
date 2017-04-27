@@ -32,7 +32,7 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 
 def MyDecimal(*args, **kwargs):
     kwargs.update(replace_dots=True, default=NotAvailable)
@@ -307,7 +307,11 @@ class MarketPage(LoggedPage, HTMLPage):
         form = self.get_form(name="formCompte")
         form ['indiceCompte'] = ids[0]
         form ['idRacine'] = ids[1]
-        return form.submit()
+        try:
+            return form.submit()
+        except ServerError:
+            raise BrowserUnavailable()
+
 
     def get_full_list(self):
         form = self.get_form(name="formOperation")
