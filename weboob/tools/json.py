@@ -27,6 +27,9 @@ __all__ = ['json', 'mini_jsonpath']
 
 try:
     # try simplejson first because it is faster
+    # However, note that simplejson has very different behaviors from the
+    # stdlib json module. In particular, it is handling Decimal in a very
+    # peculiar way and is not returning a string for them.
     import simplejson as json
 except ImportError:
     # Python 2.6+ has a module similar to simplejson
