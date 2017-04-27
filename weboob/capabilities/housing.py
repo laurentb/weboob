@@ -65,7 +65,7 @@ class Housing(BaseObject):
     title =           StringField('Title of housing')
     area =            DecimalField('Area of housing, in m2')
     cost =            DecimalField('Cost of housing')
-    price_per_meter = FloatField('Price per meter ratio')
+    price_per_meter = DecimalField('Price per meter ratio')
     currency =        StringField('Currency of cost')
     utilities =       Field('Utilities included or not', *UTILITIES.types)
     date =            DateField('Date when the housing has been published')
