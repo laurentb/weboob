@@ -358,6 +358,7 @@ class Pocket(BaseObject):
     CONDITION_EXPIRATION_UNEMPLOYMENT    = 13
     CONDITION_PURCHASE_APARTMENT         = 14
 
+    label =             StringField('Label of pocket')
     amount =            DecimalField('Amount of the pocket')
     quantity =          DecimalField('Quantity of stocks')
     availability_date = DateField('Availability date of the pocket')
