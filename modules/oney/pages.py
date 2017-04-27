@@ -105,7 +105,19 @@ class LoginPage(HTMLPage):
         form.submit()
 
 
-class IndexPage(LoggedPage, HTMLPage):
+class ChoicePage(LoggedPage, HTMLPage):
+    def get_pages(self):
+        for page_attrib in self.doc.xpath('//a[@data-site]/@data-site'):
+            yield self.browser.open('/site/s/login/loginidentifiant.html',
+                                    data={'selectedSite': page_attrib}).page
+
+class DetailPage(LoggedPage, HTMLPage):
+
+    def iter_accounts(self):
+        return []
+
+
+class ClientPage(LoggedPage, HTMLPage):
     is_here = "//div[@id='situation']"
 
     @method
