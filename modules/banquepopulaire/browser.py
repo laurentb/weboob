@@ -334,7 +334,9 @@ class BanquePopulaire(LoginBrowser):
             if self.natixis_error_page.is_here():
                 self.logger.warning("natixis site doesn't work")
                 return False
-            assert self.etna.is_here()
+
+            if not self.etna.is_here():
+                raise BrowserUnavailable
             return True
 
     @retry(LoggedOut)
