@@ -126,6 +126,9 @@ class AccountsList(LoggedPage, HTMLPage):
     def has_error(self):
         return len(self.doc.xpath('//div[has-class("alert-warning")]')) > 0
 
+    def has_link(self):
+        return len(self.doc.xpath('//a[contains(@href, "goTo")]'))
+
     @method
     class get_list(ListElement):
         item_xpath = '//a[@class="mainclic"]'

@@ -120,10 +120,18 @@ class IngBrowser(LoginBrowser):
 
     @start_with_main_site
     def get_market_balance(self, account):
-        self.accountspage.go()
-        self.where = "start"
+        if self.where != "start":
+            self.accountspage.go()
+            self.where = "start"
+
         data = self.get_investments_data(account)
-        self.accountspage.go(data=data)
+        for i in range(5):
+            if i > 0:
+                self.logger.debug('Can\'t get market balance, retrying in %s seconds...', (2**i))
+                time.sleep(2**i)
+            if self.accountspage.go(data=data).has_link():
+                break
+
         self.starttitre.go()
         self.where = u"titre"
         self.titrepage.go()
