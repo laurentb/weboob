@@ -19,6 +19,8 @@
 
 from __future__ import unicode_literals
 
+import re
+
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import method, TableElement, ItemElement
 from weboob.browser.filters.standard import (
@@ -78,7 +80,9 @@ class HistoryPage(AccountPage):
                 inv.code_type = u'ISIN'
 
                 txt = CleanText(TableCell('name'))(self)
-                inv.label, inv.code = txt.rsplit(' - ', 1)
+                match = re.match('(?:(.*) )?- ([^-]+)$', txt)
+                inv.label = match.group(1) or NotAvailable
+                inv.code = match.group(1)
 
                 return [inv]
 
