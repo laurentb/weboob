@@ -492,6 +492,7 @@ class CapCgp(CapBank):
     Capability of cgp website to see accounts and transactions.
     """
 
+
 class CapBankTransfer(CapBank):
     def iter_transfer_recipients(self, account):
         """
@@ -503,27 +504,6 @@ class CapBankTransfer(CapBank):
         :raises: :class:`AccountNotFound`
         """
         raise NotImplementedError()
-
-    def new_recipient(self, recipient, **params):
-        raise NotImplementedError()
-
-    def add_recipient(self, recipient, **params):
-        """
-        Add a recipient to the connection.
-
-        :param iban: iban of the new recipient.
-        :type iban: :class:`str`
-        :param label: label of the new recipient.
-        :type label: :class`str`
-        :raises: :class:`BrowserQuestion`
-        :raises: :class:`AddRecipientError`
-        :rtype: :class:`Recipient`
-        """
-        if not is_iban_valid(recipient.iban):
-            raise RecipientInvalidIban('Iban is not valid.')
-        if not recipient.label:
-            raise RecipientInvalidLabel('Recipient label is mandatory.')
-        return self.new_recipient(recipient, **params)
 
     def init_transfer(self, transfer, **params):
         """
@@ -569,3 +549,26 @@ class CapBankTransfer(CapBank):
                 except AssertionError:
                     raise TransferError('%s changed during transfer processing (from %s to %s)' % (key, transfer_val, value))
         return self.execute_transfer(t, **params)
+
+
+class CapBankTransferAddRecipient(CapBankTransfer):
+    def new_recipient(self, recipient, **params):
+        raise NotImplementedError()
+
+    def add_recipient(self, recipient, **params):
+        """
+        Add a recipient to the connection.
+
+        :param iban: iban of the new recipient.
+        :type iban: :class:`str`
+        :param label: label of the new recipient.
+        :type label: :class`str`
+        :raises: :class:`BrowserQuestion`
+        :raises: :class:`AddRecipientError`
+        :rtype: :class:`Recipient`
+        """
+        if not is_iban_valid(recipient.iban):
+            raise RecipientInvalidIban('Iban is not valid.')
+        if not recipient.label:
+            raise RecipientInvalidLabel('Recipient label is mandatory.')
+        return self.new_recipient(recipient, **params)
