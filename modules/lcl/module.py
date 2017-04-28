@@ -21,7 +21,7 @@
 from decimal import Decimal
 import re
 
-from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, \
+from weboob.capabilities.bank import CapBankTransferAddRecipient, AccountNotFound, \
                                      RecipientNotFound, TransferError, Account
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
@@ -36,7 +36,7 @@ from .enterprise.browser import LCLEnterpriseBrowser, LCLEspaceProBrowser
 __all__ = ['LCLModule']
 
 
-class LCLModule(Module, CapBankTransfer, CapContact, CapProfile):
+class LCLModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile):
     NAME = 'lcl'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

@@ -20,7 +20,7 @@
 from collections import OrderedDict
 import re
 
-from weboob.capabilities.bank import CapBankTransfer, AccountNotFound, Account, RecipientNotFound
+from weboob.capabilities.bank import CapBankTransferAddRecipient, AccountNotFound, Account, RecipientNotFound
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.base import find_object
@@ -33,7 +33,7 @@ from .browser import CaisseEpargne
 __all__ = ['CaisseEpargneModule']
 
 
-class CaisseEpargneModule(Module, CapBankTransfer, CapContact, CapProfile):
+class CaisseEpargneModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile):
     NAME = 'caissedepargne'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

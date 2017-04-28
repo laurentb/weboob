@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.bank import CapBankTransfer
+from weboob.capabilities.bank import CapBankTransferAddRecipient
 from weboob.capabilities.contact import CapContact
 from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -29,7 +29,7 @@ from .browser import CICBrowser
 __all__ = ['CICModule']
 
 
-class CICModule(AbstractModule, CapBankTransfer, CapContact):
+class CICModule(AbstractModule, CapBankTransferAddRecipient, CapContact):
     NAME = 'cic'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'

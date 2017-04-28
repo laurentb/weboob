@@ -21,7 +21,7 @@ from datetime import date
 from collections import OrderedDict
 import re
 
-from weboob.capabilities.bank import Account, AccountNotFound, CapBankTransfer
+from weboob.capabilities.bank import Account, AccountNotFound, CapBankTransferAddRecipient
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
@@ -33,7 +33,7 @@ from .web.browser import Cragr
 __all__ = ['CragrModule']
 
 
-class CragrModule(Module, CapBankTransfer, CapContact, CapProfile):
+class CragrModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile):
     NAME = 'cragr'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
