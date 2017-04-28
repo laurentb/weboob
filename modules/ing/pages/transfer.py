@@ -22,7 +22,7 @@ from datetime import datetime
 from weboob.capabilities.bank import Recipient, Transfer
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Env, Regexp
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Env
 from weboob.browser.filters.html import Attr
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_french_date
@@ -176,5 +176,6 @@ class TransferPage(LoggedPage, HTMLPage):
         t.recipient_iban = recipient.iban
         t.recipient_id = recipient.id
 
-        t.exec_date = parse_french_date(Regexp(CleanText('//p[has-class("exec-date")]', children=False), '\((.*)\)')(self.doc)).date()
+        t.exec_date = parse_french_date(CleanText('//p[has-class("exec-date")]', children=False,
+                replace=[('le', ''), (u'exécuté', ''), ('demain', ''), ('(', ''), (')', '')])(self.doc)).date()
         return t
