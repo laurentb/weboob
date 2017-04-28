@@ -181,8 +181,7 @@ class HousingPage2(JsonPage):
             rooms = Dict('characteristics/roomCount', default=[])(self)
             if rooms:
                 return rooms[0]
-            else:
-                return NotAvailable
+            return NotAvailable
 
         obj_price_per_meter = PricePerMeterFilter()
 
