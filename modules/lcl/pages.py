@@ -151,7 +151,7 @@ class LoginPage(HTMLPage):
 
         form = self.get_form('//form[@id="formAuthenticate"]')
         form['identifiant'] = login
-        form['postClavierXor'] = base64.b64encode(myXOR(password,seed))
+        form['postClavierXor'] = base64.b64encode(myXOR(password, seed))
         try:
             form['identifiantRouting'] = self.browser.IDENTIFIANT_ROUTING
         except AttributeError:
@@ -593,7 +593,7 @@ class AVPage(LoggedPage, HTMLPage):
                     ac_details_page = self.page.browser.async_open(Link('.//td/a')(self))
                 else:
                     split = _id.split('-')
-                    ac_details_page = self.page.browser.async_open('https://particuliers.secure.lcl.fr/outil/UWVI/AssuranceVie/accesDetail?ID_CONTRAT=%s&PRODUCTEUR=%s' % (split[0], split[1]))
+                    ac_details_page = self.page.browser.async_open('/outil/UWVI/AssuranceVie/accesDetail?ID_CONTRAT=%s&PRODUCTEUR=%s' % (split[0], split[1]))
                 return ac_details_page
 
             obj_id = Async('details') & CleanText('(//tr[3])/td[2]')
