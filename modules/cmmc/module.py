@@ -36,7 +36,7 @@ class CmmcModule(Module, CapBank, CapContact):
     MAINTAINER = u'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     VERSION = '1.3'
-    DESCRIPTION = u'Credit Mutuel Massif Central'
+    DESCRIPTION = u'Crédit Mutuel Massif Central'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Mot de passe'),
