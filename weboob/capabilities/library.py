@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from .collection import CapCollection
-from .base import BaseObject, Field, StringField
+from .base import BaseObject, BoolField, StringField
 from .date import DateField
 
 
@@ -33,7 +33,7 @@ class Book(BaseObject):
     author =    StringField('Author of the book')
     location =  StringField('Location')
     date =      DateField('The due date')
-    late =      Field('Are you late?', bool)
+    late =      BoolField('Are you late?')
 
 
 class Renew(BaseObject):

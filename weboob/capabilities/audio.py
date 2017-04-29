@@ -84,7 +84,7 @@ class BaseAudio(BaseFile):
     Represent an audio file
     """
     duration =  Field('file duration', int, long, timedelta)
-    bitrate =   Field('file bit rate in Kbps', int)
+    bitrate =   IntField('file bit rate in Kbps')
     format =    StringField('file format')
     thumbnail = Field('Image associated to the file', Thumbnail)
 

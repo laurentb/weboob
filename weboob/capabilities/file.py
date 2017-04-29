@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import Capability, BaseObject, NotAvailable, Field, StringField, enum
+from .base import Capability, BaseObject, NotAvailable, Field, StringField, IntField, enum
 from .date import DateField
 
 
@@ -47,7 +47,7 @@ class BaseFile(BaseObject):
     author =        StringField('File author')
     description =   StringField('File description')
     date =          DateField('File publication date')
-    size =          Field('File size in bytes',int,long, default=NotAvailable)
+    size =          IntField('File size in bytes', default=NotAvailable)
     rating =        Field('Rating', int, long, float, default=NotAvailable)
     rating_max =    Field('Maximum rating', int, long, float, default=NotAvailable)
     license =       StringField('License name')

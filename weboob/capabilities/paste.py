@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import Capability, BaseObject, NotLoaded, Field, StringField, UserError
+from .base import Capability, BaseObject, NotLoaded, StringField, BoolField, UserError
 
 
 __all__ = ['PasteNotFound', 'BasePaste', 'CapPaste']
@@ -40,7 +40,7 @@ class BasePaste(BaseObject):
     title =         StringField('Title of paste')
     language =      StringField('Language of the paste')
     contents =      StringField('Content of the paste')
-    public =        Field('Is this paste public?', bool)
+    public =        BoolField('Is this paste public?')
 
     def __init__(self, _id, title=NotLoaded, language=NotLoaded, contents=NotLoaded,
             public=NotLoaded, url=None):

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import Capability, BaseObject, StringField, Field
+from .base import Capability, BaseObject, BoolField, StringField
 from .date import DateField
 
 
@@ -42,7 +42,7 @@ class Revision(BaseObject):
     author =        StringField('Author of revision')
     comment =       StringField('Comment log about revision')
     timestamp =     DateField('Date of revision')
-    minor =         Field('Is this change minor?', bool)
+    minor =         BoolField('Is this change minor?')
 
 
 class CapContent(Capability):

@@ -20,7 +20,7 @@
 from collections import OrderedDict
 
 from .base import Capability, BaseObject, Field, StringField, BytesField, IntField, \
-                  UserError
+                  BoolField, UserError
 
 
 __all__ = ['ProfileNode', 'ContactPhoto', 'Contact', 'QueryError', 'Query', 'CapContact']
@@ -52,7 +52,7 @@ class ContactPhoto(BaseObject):
     data =              BytesField('Data of photo')
     thumbnail_url =     StringField('Direct URL to thumbnail')
     thumbnail_data =    BytesField('Data of thumbnail')
-    hidden =            Field('True if the photo is hidden on website', bool)
+    hidden =            BoolField('True if the photo is hidden on website')
 
     def __init__(self, name, url=None):
         BaseObject.__init__(self, name, url)

@@ -20,7 +20,7 @@
 
 from collections import OrderedDict
 
-from .base import NotLoaded, Field, BytesField
+from .base import NotLoaded, Field, BoolField, BytesField
 from .file import CapFile, BaseFile
 
 __all__ = ['BaseImage', 'Thumbnail', 'CapImage']
@@ -59,7 +59,7 @@ class BaseImage(_BaseImage):
     """
     Represents an image file.
     """
-    nsfw =      Field('Is this Not Safe For Work', bool, default=False)
+    nsfw =      BoolField('Is this Not Safe For Work', default=False)
     thumbnail = Field('Thumbnail of the image', Thumbnail)
     data =      BytesField('Data of image')
 
