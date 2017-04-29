@@ -18,29 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.tools.json import json
+from weboob.tools.json import json, WeboobEncoder
 
 from .iformatter import IFormatter
 
 __all__ = ['JsonFormatter', 'JsonLineFormatter']
-
-
-class Encoder(json.JSONEncoder):
-    "generic weboob object encoder"
-
-    def default(self, obj):
-        try:
-            return json.JSONEncoder.default(self, obj)
-        except TypeError:
-            if obj is NotAvailable or obj is NotLoaded:
-                return None
-
-            try:
-                dct = obj.to_dict()
-            except AttributeError:
-                return str(obj)
-            return dct
 
 
 class JsonFormatter(IFormatter):
@@ -53,7 +35,7 @@ class JsonFormatter(IFormatter):
         self.queue = []
 
     def flush(self):
-        self.output(json.dumps(self.queue, cls=Encoder))
+        self.output(json.dumps(self.queue, cls=WeboobEncoder))
 
     def format_dict(self, item):
         self.queue.append(item)
@@ -69,7 +51,7 @@ class JsonLineFormatter(IFormatter):
     """
 
     def format_dict(self, item):
-        self.output(json.dumps(item, cls=Encoder))
+        self.output(json.dumps(item, cls=WeboobEncoder))
 
 
 def test():
