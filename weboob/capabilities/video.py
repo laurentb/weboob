@@ -18,9 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import timedelta
-
-from .base import Field
+from .date import DeltaField
 from .image import CapImage, BaseImage
 
 
@@ -33,7 +31,7 @@ class BaseVideo(BaseImage):
 
     This object has to be inherited to specify how to calculate the URL of the video from its ID.
     """
-    duration =  Field('file duration', int, long, timedelta)
+    duration =  DeltaField('file duration')
 
 
 class CapVideo(CapImage):

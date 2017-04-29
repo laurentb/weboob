@@ -19,10 +19,9 @@
 
 import re
 
-from datetime import timedelta
-
 from .image import Thumbnail
 from .base import Field, StringField, IntField, BaseObject
+from .date import DeltaField
 from .file import CapFile, BaseFile
 
 
@@ -83,7 +82,7 @@ class BaseAudio(BaseFile):
     """
     Represent an audio file
     """
-    duration =  Field('file duration', int, long, timedelta)
+    duration =  DeltaField('file duration')
     bitrate =   IntField('file bit rate in Kbps')
     format =    StringField('file format')
     thumbnail = Field('Image associated to the file', Thumbnail)

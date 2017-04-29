@@ -60,3 +60,8 @@ class DeltaField(Field):
 
     def __init__(self, doc, **kwargs):
         Field.__init__(self, doc, datetime.timedelta, **kwargs)
+
+    def convert(self, value):
+        if isinstance(value, (int, long)):
+            value = datetime.timedelta(seconds=value)
+        return value
