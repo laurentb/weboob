@@ -754,6 +754,7 @@ def need_login(func):
     def inner(browser, *args, **kwargs):
         if browser.page is None or not browser.page.logged:
             browser.do_login()
+            browser.logger.debug('logged in with session: %s', json.dumps(browser.export_session()))
         return func(browser, *args, **kwargs)
 
     return inner
