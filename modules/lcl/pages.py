@@ -29,6 +29,7 @@ from weboob.capabilities.bank import Account, Investment, Recipient, TransferErr
 from weboob.capabilities.contact import Advisor
 from weboob.browser.elements import method, ListElement, TableElement, ItemElement, SkipItem
 from weboob.exceptions import ParseError
+from weboob.browser.exceptions import ServerError
 from weboob.browser.pages import LoggedPage, HTMLPage, FormNotFound, pagination
 from weboob.browser.filters.html import Attr, Link
 from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, Date, \
@@ -575,7 +576,7 @@ class AVPage(LoggedPage, HTMLPage):
     class get_list(ListElement):
         item_xpath = '//table[@class]/tbody/tr'
 
-        class account(ItemElement):
+        class item(ItemElement):
             klass = Account
 
             obj__owner = CleanText('.//td[1]') & Regexp(pattern=r' ([^ ]+)$')
@@ -587,16 +588,24 @@ class AVPage(LoggedPage, HTMLPage):
             obj__coming_links = []
             obj__transfer_id = None
 
-            def load_details(self):
-                _id = CleanText('.//td/a/@id')(self)
-                if not _id:
-                    ac_details_page = self.page.browser.async_open(Link('.//td/a')(self))
-                else:
-                    split = _id.split('-')
-                    ac_details_page = self.page.browser.async_open('/outil/UWVI/AssuranceVie/accesDetail?ID_CONTRAT=%s&PRODUCTEUR=%s' % (split[0], split[1]))
-                return ac_details_page
+            def obj_id(self):
+                try:
+                    _id = CleanText('.//td/a/@id')(self)
+                    if not _id:
+                        ac_details_page = self.page.browser.open(Link('.//td/a')(self)).page
+                    else:
+                        split = _id.split('-')
+                        ac_details_page = self.page.browser.open('/outil/UWVI/AssuranceVie/accesDetail?ID_CONTRAT=%s&PRODUCTEUR=%s' % (split[0], split[1])).page
+                    return CleanText('(//tr[3])/td[2]')(ac_details_page.doc)
+                except ServerError:
+                    # redirection to lifeinsurances accounts and comeback on Lcl original website
+                    self.obj__form().submit()
+                    self.page.browser.page.sub().page.sub()
+                    account_id = self.page.browser.page.get_account_id()
+                    self.page.browser.page.come_back()
+                    self.page.browser.page.submit_simple().page.come_back()
+                    return account_id
 
-            obj_id = Async('details') & CleanText('(//tr[3])/td[2]')
 
             def obj__form(self):
                 form_id = Attr('.//td/a', 'id', default=None)(self)
@@ -609,6 +618,9 @@ class AVPage(LoggedPage, HTMLPage):
 
 
 class AVDetailPage(LoggedPage, LCLBasePage):
+    def get_account_id(self):
+        return Regexp(CleanText('//div[@class="libelletitrepage"]/h1'), ur"N° (\w+)")(self.doc)
+
     def sub(self):
         form = self.get_form(name="formulaire")
         cName = self.get_from_js('.cName.value  = "', '";')
@@ -616,6 +628,10 @@ class AVDetailPage(LoggedPage, LCLBasePage):
             form['cName'] = cName
             form['cValue'] = self.get_from_js('.cValue.value  = "', '";')
             form['cMaxAge'] = '-1'
+        return form.submit()
+
+    def submit_simple(self):
+        form = self.get_form(name="formulaire")
         return form.submit()
 
     def come_back(self):
