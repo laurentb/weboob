@@ -77,7 +77,7 @@ class HistoryPage(AccountPage):
             def obj_investments(self):
                 inv = Investment()
                 inv.quantity = CleanDecimal(TableCell('quantity'), replace_dots=True)(self)
-                inv.code_type = u'ISIN'
+                inv.code_type = Investment.CODE_TYPE_ISIN
 
                 txt = CleanText(TableCell('name'))(self)
                 match = re.match('(?:(.*) )?- ([^-]+)$', txt)
