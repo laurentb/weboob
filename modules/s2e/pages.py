@@ -483,7 +483,7 @@ class HistoryPage(LoggedPage, MultiPage):
                     page = self.page.browser.cache['details'][trid]
 
                 # Check if page is related to the account
-                if not len(page.doc.xpath('//td[contains(text(), "%s")]' % Env('accid')(self))):
+                if not len(page.doc.xpath('//td[contains(text(), $id)]', id=Env('accid')(self))):
                     raise SkipItem()
 
                 self.env['investments'] = list(page.get_investments(accid=Env('accid')(self)))

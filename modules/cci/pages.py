@@ -70,6 +70,6 @@ class SearchPage(HTMLPage):
         obj_publication_date = DateTime(CleanText('div/fieldset/p[@class="dateOffre"]'), dayfirst=True)
 
         def parse(self, el):
-            self.el = el.xpath('//div[@id="%s"]/div' % self.obj.id)[0]
+            self.el = el.xpath('//div[@id=$id]/div', id=self.obj.id)[0]
             self.env['url'] = self.page.url
             self.env['id'] = self.obj.id

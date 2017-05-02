@@ -334,7 +334,7 @@ class PerimeterPage(MyLoggedPage, BasePage):
     def get_perimeter_link(self, perimeter):
         caption = perimeter.split(' : ')[0].title()
         perim = perimeter.split(' : ')[1]
-        for table in self.doc.xpath('//table[@class and caption[contains(text(), "%s")]]' % caption):
+        for table in self.doc.xpath('//table[@class and caption[contains(text(), $caption)]]', caption=caption):
             for p in table.xpath(u'.//p[span/a[contains(text(), "Accès")]]'):
                 if perim in CleanText().filter(p.find('label').text.lower()):
                     link = p.xpath('./span/a')[0].attrib['href']
@@ -509,7 +509,7 @@ class CardsPage(MyLoggedPage, BasePage):
 
     def is_on_right_detail(self, account):
         return len(self.doc.xpath(u'//h1[contains(text(), "Cartes - détail")]')) and\
-               len(self.doc.xpath(u'//td[contains(text(), "%s")] | //td[contains(text(), "%s")] ' % (account.number, account._id)))
+               len(self.doc.xpath(u'//td[contains(text(), $number)] | //td[contains(text(), $id)] ', number=account.number, id=account._id))
 
 
 class AccountsPage(_AccountsPage):

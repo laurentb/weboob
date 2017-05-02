@@ -123,7 +123,7 @@ class TransactionsPage(ITransactionsPage):
     TABLE_NAME = 'operation'
 
     def get_history(self):
-        for tr in self.doc.xpath('//table[@id="%s"]/tbody/tr' % self.TABLE_NAME):
+        for tr in self.doc.xpath('//table[@id=$id]/tbody/tr', id=self.TABLE_NAME):
             tds = tr.findall('td')
 
             get_content = CleanText('.')

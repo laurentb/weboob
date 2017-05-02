@@ -38,10 +38,10 @@ def MyDecimal(*args, **kwargs):
 
 class AccountPage(LoggedPage, HTMLPage):
     def is_on_right_portfolio(self, account_id):
-        return len(self.doc.xpath('//form[@class="choixCompte"]//option[@selected and contains(text(), "%s")]' % account_id))
+        return len(self.doc.xpath('//form[@class="choixCompte"]//option[@selected and contains(text(), $id)]', id=account_id))
 
     def get_compte(self, account_id):
-        values = self.doc.xpath('//option[contains(text(), "%s")]/@value' % account_id)
+        values = self.doc.xpath('//option[contains(text(), $id)]/@value', id=account_id)
 
         assert len(values) == 1, 'could not find account %r' % account_id
 

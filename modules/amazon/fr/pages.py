@@ -87,7 +87,7 @@ class OrderPage(AmazonPage):
         # available.
 
         return bool([x for s in [u'En préparation pour expédition', u'En cours de préparation', u'Commande annulée']  # TODO : Other French status applied ?
-                    for x in self.doc.xpath(u'//*[contains(text(),"%s")]' % s)])
+                    for x in self.doc.xpath(u'//*[contains(text(),$text)]', text=s)])
 
     def decimal_amount(self, amount):
         m = re.match(u'.*EUR ([,0-9]+).*', amount)
@@ -190,7 +190,7 @@ class OrderNewPage(OrderPage):
             return Decimal(sum(
                 self.decimal_amount(amount.strip()) or 0.0
                 for n in names for amount in self.doc.xpath(
-                    '(//span[contains(text(),"%s")]/../..//span)[2]/text()' % n)))
+                    '(//span[contains(text(),$name)]/../..//span)[2]/text()', name=n)))
         except TypeError:
             return NotAvailable
 
@@ -311,7 +311,7 @@ class OrderOldPage(OrderPage):
     def shipments(self):
         # TODO : French translation
         for cue in (u'Shipment #', u'Subscribe and Save Shipment'):
-            for shmt in self.doc.xpath('//b[contains(text(),"%s")]' % cue):
+            for shmt in self.doc.xpath('//b[contains(text(),$cue)]', cue=cue):
                 yield shmt
 
     def items(self):
@@ -349,10 +349,10 @@ class OrderOldPage(OrderPage):
     def amount(self, shmt, name):
         for root in shmt.xpath(u'../../../../../../../..'
                                u'//td[text()="Sous-total articles: "]/../..'):
-            for node in root.xpath(u'tr/td[text()="%s"]' % name):
+            for node in root.xpath(u'tr/td[text()=$name]', name=name):
                 return self.decimal_amount(
                     node.xpath('../td')[-1].text.strip())
-            for node in root.xpath(u'tr/td/b[text()="%s"]' % name):
+            for node in root.xpath(u'tr/td/b[text()=$name]', name=name):
                 return self.decimal_amount(
                     node.xpath('../../td/b')[-1].text.strip())
         return Decimal(0)

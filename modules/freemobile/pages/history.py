@@ -129,7 +129,7 @@ class DetailsPage(LoggedPage, BadUTF8Page):
             obj_price = CleanDecimal('div[@class="montant"]', default=Decimal(0), replace_dots=False)
 
     def get_renew_date(self, subscription):
-        div = self.doc.xpath('//div[@login="%s"]' % subscription._login)[0]
+        div = self.doc.xpath('//div[@login=$login]', login=subscription._login)[0]
 
         try:
             mydate = Date(CleanText('.//div[@class="resumeConso"]/span[@class="actif"][1]'), dayfirst=True)(div)
@@ -147,7 +147,7 @@ class DetailsPage(LoggedPage, BadUTF8Page):
             return NotAvailable
 
     def get_login(self, phonenumber):
-        return Attr('.', 'login')(self.doc.xpath('//div[div[contains(text(), "%s")]]' % phonenumber)[0])
+        return Attr('.', 'login')(self.doc.xpath('//div[div[contains(text(), $phone)]]', phone=phonenumber)[0])
 
 class HistoryPage(LoggedPage, BadUTF8Page):
     @method

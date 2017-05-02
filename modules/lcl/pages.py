@@ -316,7 +316,7 @@ class LoansPage(LoggedPage, HTMLPage):
 
             def parse(self, el):
                 label = Field('label')(self)
-                trs = self.xpath('//td[contains(text(), "%s")]/ancestor::tr[1] | ./ancestor::table[1]/tbody/tr' % label)
+                trs = self.xpath('//td[contains(text(), $label)]/ancestor::tr[1] | ./ancestor::table[1]/tbody/tr', label=label)
                 i = [i for i in range(len(trs)) if el == trs[i]]
                 i = i[0] if i else 0
                 label = label.replace(' ', '')
@@ -348,7 +348,7 @@ class LoansProPage(LoggedPage, HTMLPage):
 
             def parse(self, el):
                 label = Field('label')(self)
-                trs = self.xpath('//td[contains(text(), "%s")]/ancestor::tr[1] | ./ancestor::table[1]/tbody/tr' % label)
+                trs = self.xpath('//td[contains(text(), $label)]/ancestor::tr[1] | ./ancestor::table[1]/tbody/tr', label=label)
                 i = [i for i in range(len(trs)) if el == trs[i]]
                 i = i[0] if i else 0
                 label = label.replace(' ', '')
@@ -565,7 +565,7 @@ class BoursePage(LoggedPage, HTMLPage):
             form = self.page.get_form(id="historyFilter")
             form['PAGE'] = int(form['PAGE']) + 1
             return requests.Request("POST", form.url, data=dict(form)) \
-                   if self.page.doc.xpath('//*[@data-page = "%s"]' % form['PAGE']) else None
+                   if self.page.doc.xpath('//*[@data-page = $page]', page=form['PAGE']) else None
 
         class item(ItemElement):
             klass = Transaction
@@ -804,7 +804,7 @@ class TransferPage(LoggedPage, HTMLPage):
         return False
 
     def get_account_index(self, xpath, account_id):
-        for option in self.doc.xpath('//select[@id="%s"]/option' % xpath):
+        for option in self.doc.xpath('//select[@id=$id]/option', id=xpath):
             if account_id in CleanText('.', replace=[(' ', '')])(option):
                 return option.attrib['value']
         else:

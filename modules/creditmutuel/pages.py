@@ -499,7 +499,7 @@ class OperationsPage(LoggedPage, HTMLPage):
 
     def find_amount(self, title):
         try:
-            td = self.doc.xpath(u'//th[contains(text(), "%s")]/../td' % title)[0]
+            td = self.doc.xpath(u'//th[contains(text(), $title)]/../td', title=title)[0]
         except IndexError:
             return None
         else:
@@ -934,7 +934,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
 
     def check_success(self):
         # look for the known "all right" message
-        if not self.doc.xpath(u'//span[contains(text(), "%s")]' % self.READY_FOR_TRANSFER_MSG):
+        if not self.doc.xpath(u'//span[contains(text(), $msg)]', msg=self.READY_FOR_TRANSFER_MSG):
             raise TransferError('The expected message "%s" was not found.' % self.READY_FOR_TRANSFER_MSG)
 
     def check_data_consistency(self, account_id, recipient_id, amount, reason):

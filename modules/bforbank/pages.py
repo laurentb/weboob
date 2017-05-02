@@ -118,7 +118,7 @@ class RibPage(LoggedPage, HTMLPage):
 
     def get_iban(self, accounts):
         for account in accounts:
-            if self.doc.xpath('//option[@selected and contains(@value, "%s")]' % account.id):
+            if self.doc.xpath('//option[@selected and contains(@value, $id)]', id=account.id):
                 account.iban = CleanText('//td[contains(text(), "IBAN")]/following-sibling::td[1]', replace=[(' ', '')])(self.doc)
 
 

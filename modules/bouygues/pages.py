@@ -94,7 +94,7 @@ class DocumentsPage(HTMLPage):
 
         for option in options:
             for ctr in self.doc.xpath('//div[has-class("eccoetape")]'):
-                if ctr.xpath('.//span[contains(text(), "%s")]' % label):
+                if ctr.xpath('.//span[contains(text(), $label)]', label=label):
                     ref = ctr.xpath('.//a[@id="btnAnciennesFactures"]')
                     if ref:
                         return re.search('reference=([\d]+)', Link().filter(ref)).group(1)

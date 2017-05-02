@@ -255,7 +255,7 @@ class IndexPage(LoggedPage, HTMLPage):
         if account.type != Account.TYPE_LIFE_INSURANCE:
             return NotAvailable
         page = self.go_history(account._info).page
-        balance = page.doc.xpath('.//tr[td[ends-with(@id,"NumContrat")]/a[contains(text(),"%s")]]/td[@class="somme"]' % account.id)
+        balance = page.doc.xpath('.//tr[td[ends-with(@id,"NumContrat")]/a[contains(text(),$id)]]/td[@class="somme"]', id=account.id)
         if len(balance) > 0:
             balance = CleanText('.')(balance[0])
             balance = balance if balance != u'' else NotAvailable
@@ -608,10 +608,10 @@ class MarketPage(LoggedPage, HTMLPage):
         account.valuation_diff = CleanDecimal(Regexp(val, '([^\(\)]+)'), replace_dots=True)(self)
 
     def is_on_right_portfolio(self, account):
-        return len(self.doc.xpath('//form[@class="choixCompte"]//option[@selected and contains(text(), "%s")]' % account._info['id']))
+        return len(self.doc.xpath('//form[@class="choixCompte"]//option[@selected and contains(text(), $id)]', id=account._info['id']))
 
     def get_compte(self, account):
-        return self.doc.xpath('//option[contains(text(), "%s")]/@value' % account._info['id'])[0]
+        return self.doc.xpath('//option[contains(text(), $id)]/@value', id=account._info['id'])[0]
 
     def come_back(self):
         link = Link(u'//div/a[contains(text(), "Accueil accès client")]', default=NotAvailable)(self.doc)
