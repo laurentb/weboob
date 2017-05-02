@@ -382,7 +382,8 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
         return r
 
     def continue_new_recipient(self, recipient, **params):
-        self.page.post_code(params[u'Clé'])
+        if u'Clé' in params:
+            self.page.post_code(params[u'Clé'])
         self.page.add_recipient(recipient)
         if self.page.bic_needed():
             self.page.ask_bic(self.get_recipient_object(recipient))
@@ -431,5 +432,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                 raise AddRecipientError('Recipient category is not on the website available list.')
             self.page.go_list(recipient.category)
         self.page.go_to_add()
-        assert self.verify_pass.is_here()
-        raise AddRecipientStep(self.get_recipient_object(recipient), Value(u'Clé', label=self.page.get_question()))
+        if self.verify_pass.is_here():
+            raise AddRecipientStep(self.get_recipient_object(recipient), Value(u'Clé', label=self.page.get_question()))
+        else:
+            return self.continue_new_recipient(recipient, **params)
