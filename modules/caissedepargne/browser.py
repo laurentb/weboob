@@ -236,6 +236,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     def get_loans_list(self):
         if self.loans is None:
             self.loans = []
+
             if self.is_cenet_website is True:
                 return iter([])
 
@@ -243,7 +244,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 if self.page.check_no_accounts():
                     return iter([])
 
-            self.home_tache.go(tache='CRESYNT0')
+            if not self.page.check_no_loans():
+                self.home_tache.go(tache='CRESYNT0')
+            else:
+                return iter([])
 
             if self.home.is_here():
                 if not self.page.is_access_error():

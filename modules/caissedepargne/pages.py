@@ -257,12 +257,15 @@ class IndexPage(LoggedPage, HTMLPage):
                      u'Compte Courant':             Account.TYPE_CHECKING,
                      u'COMPTE A VUE':               Account.TYPE_CHECKING,
                      u'Mes comptes':                Account.TYPE_CHECKING,
+                     u'CPT DEPOT PART.':            Account.TYPE_CHECKING,
                      u'Mon épargne':                Account.TYPE_SAVINGS,
                      u'Mes autres comptes':         Account.TYPE_SAVINGS,
                      u'Compte Epargne et DAT':      Account.TYPE_SAVINGS,
                      u'Plan et Contrat d\'Epargne': Account.TYPE_SAVINGS,
                      u'COMPTE SUR LIVRET':          Account.TYPE_SAVINGS,
                      u'LIVRET DEV.DURABLE':         Account.TYPE_SAVINGS,
+                     u'LDD Solidaire':              Account.TYPE_SAVINGS,
+                     u'LIVRET A':                   Account.TYPE_SAVINGS,
                      u'Titres':                     Account.TYPE_MARKET,
                      u'Compte titres':              Account.TYPE_MARKET,
                      u'Mes crédits immobiliers':    Account.TYPE_LOAN,
@@ -282,6 +285,9 @@ class IndexPage(LoggedPage, HTMLPage):
 
     def need_auth(self):
         return bool(CleanText(u'//span[contains(text(), "Authentification non rejouable")]')(self.doc))
+
+    def check_no_loans(self):
+        return not bool(CleanText(u'//table[@class="menu"]//div[contains(., "Crédits")]')(self.doc))
 
     def check_no_accounts(self):
         no_account_message = CleanText(u'//span[@id="MM_LblMessagePopinError"]/p[contains(text(), "Aucun compte disponible")]')(self.doc)
