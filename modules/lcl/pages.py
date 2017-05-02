@@ -20,7 +20,6 @@
 import re, requests, base64, math, random
 from decimal import Decimal
 from io import BytesIO
-from urllib import urlencode
 from datetime import datetime, timedelta, date
 
 from weboob.capabilities import NotAvailable
@@ -558,13 +557,12 @@ class BoursePage(LoggedPage, HTMLPage):
 
 
 class DiscPage(LoggedPage, HTMLPage):
-    def come_back(self):
+    def on_load(self):
         try:
             form = self.get_form()
-
             form.submit()
         except FormNotFound: # Sometime no form is present, just a redirection
-            pass
+            self.logger.debug('no form on this page')
 
 
 class NoPermissionPage(LoggedPage, HTMLPage):
@@ -599,13 +597,10 @@ class AVPage(LoggedPage, HTMLPage):
                     return CleanText('(//tr[3])/td[2]')(ac_details_page.doc)
                 except ServerError:
                     # redirection to lifeinsurances accounts and comeback on Lcl original website
-                    self.obj__form().submit()
-                    self.page.browser.page.sub().page.sub()
-                    account_id = self.page.browser.page.get_account_id()
-                    self.page.browser.page.come_back()
-                    self.page.browser.page.submit_simple().page.come_back()
+                    page = self.obj__form().submit().page
+                    account_id = page.get_account_id()
+                    page.come_back()
                     return account_id
-
 
             def obj__form(self):
                 form_id = Attr('.//td/a', 'id', default=None)(self)
@@ -615,6 +610,17 @@ class AVPage(LoggedPage, HTMLPage):
                 form['ID_CONTRAT'] = re.search(r'^(.*?)-', form_id).group(1)
                 form['PRODUCTEUR'] = re.search(r'-(.*?)$', form_id).group(1)
                 return form
+
+
+class Form2Page(LoggedPage, LCLBasePage):
+    def on_load(self):
+        form = self.get_form(name="formulaire")
+        cName = self.get_from_js('.cName.value  = "', '";')
+        if cName:
+            form['cName'] = cName
+            form['cValue'] = self.get_from_js('.cValue.value  = "', '";')
+            form['cMaxAge'] = '-1'
+        return form.submit()
 
 
 class AVDetailPage(LoggedPage, LCLBasePage):
@@ -643,7 +649,7 @@ class AVDetailPage(LoggedPage, LCLBasePage):
         params['typeaction'] = 'reroutage_retour'
         params['site'] = 'LCLI'
         params['stbzn'] = 'bnc'
-        return self.browser.location('https://assurance-vie-et-prevoyance.secure.lcl.fr/filiale/entreeBam?%s' % urlencode(params))
+        return self.browser.location('https://assurance-vie-et-prevoyance.secure.lcl.fr/filiale/entreeBam', params=params)
 
     def get_details(self, account, act=None):
         form = self.get_form(id="frm_fwk")

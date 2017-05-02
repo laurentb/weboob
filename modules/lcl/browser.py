@@ -34,7 +34,7 @@ from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    AVPage, AVDetailPage, DiscPage, NoPermissionPage, RibPage, \
                    HomePage, LoansPage, TransferPage, AddRecipientPage, \
                    RecipientPage, RecipConfirmPage, SmsPage, RecipRecapPage, \
-                   LoansProPage
+                   LoansProPage, Form2Page
 
 
 __all__ = ['LCLBrowser','LCLProBrowser', 'ELCLBrowser']
@@ -74,14 +74,18 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                  'https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.*',
                  '/outil/UWBO.*', BoursePage)
     disc = URL('https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.login.ContextTransferDisconnect',
+               r'https://assurance-vie-et-prevoyance.secure.lcl.fr/filiale/entreeBam\?.*\btypeaction=reroutage_retour\b',
+               r'https://assurance-vie-et-prevoyance.secure.lcl.fr/filiale/ServletReroutageCookie',
                '/outil/UAUT/RetourPartenaire/retourCar', DiscPage)
+
+    form2 = URL(r'/outil/UWVI/Routage/', Form2Page)
 
     assurancevie = URL('/outil/UWVI/AssuranceVie/accesSynthese',
                         '/outil/UWVI/AssuranceVie/accesDetail.*',
                         AVPage)
     avdetail = URL('https://ASSURANCE-VIE-et-prevoyance.secure.lcl.fr.*',
                    'https://assurance-vie-et-prevoyance.secure.lcl.fr.*',
-                   '/outil/UWVI/Routage', AVDetailPage)
+                   AVDetailPage)
 
     loans = URL('/outil/UWCR/SynthesePar/', LoansPage)
     loans_pro = URL('/outil/UWCR/SynthesePro/', LoansProPage)
@@ -127,8 +131,6 @@ class LCLBrowser(LoginBrowser, StatesMixin):
 
     def deconnexion_bourse(self):
         self.disc.stay_or_go()
-        self.page.come_back()
-        self.page.come_back()
 
     @need_login
     def get_accounts_list(self):
@@ -192,10 +194,10 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         elif account.type == Account.TYPE_LIFE_INSURANCE and account._form:
             self.assurancevie.stay_or_go()
             account._form.submit()
-            self.page.sub().page.sub().page.get_details(account, "OHIPU")
+            self.page.get_details(account, "OHIPU")
             for tr in self.page.iter_history():
                 yield tr
-            self.page.come_back().page.sub().page.come_back()
+            self.page.come_back()
 
     @need_login
     def get_cb_operations(self, account, month=0):
@@ -228,10 +230,9 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         if account.type == Account.TYPE_LIFE_INSURANCE and account._form:
             self.assurancevie.stay_or_go()
             account._form.submit()
-            self.page.sub().page.sub()
             for inv in self.page.iter_investment():
                 yield inv
-            self.page.come_back().page.sub().page.come_back()
+            self.page.come_back()
         elif hasattr(account, '_market_link') and account._market_link:
             self.connexion_bourse()
             for inv in self.location(account._market_link).page.iter_investment():
