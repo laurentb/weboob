@@ -26,6 +26,7 @@ from .pages import LoginPage, ProfilPage, DocumentsPage
 
 class OnlinenetBrowser(LoginBrowser):
     BASEURL = 'https://console.online.net/en/'
+    TIMEOUT = 60
 
     login = URL('login', LoginPage)
     profil = URL('account/edit', ProfilPage)
