@@ -21,6 +21,8 @@ import os
 from threading import RLock
 from copy import copy
 
+from six import raise_from
+
 from weboob.capabilities.base import BaseObject, FieldNotFound, \
     Capability, NotLoaded, NotAvailable
 from weboob.tools.misc import iter_fields
@@ -167,8 +169,8 @@ class BackendConfig(ValuesDict):
                 field.load(cfg.instname, value, cfg.weboob.requests)
             except ValueError as v:
                 if not nofail:
-                    raise Module.ConfigError(
-                        'Backend(%s): Configuration error for field "%s": %s' % (cfg.instname, name, v))
+                    raise_from(Module.ConfigError(
+                        'Backend(%s): Configuration error for field "%s": %s' % (cfg.instname, name, v)), v)
 
             cfg[name] = field
         return cfg
@@ -489,7 +491,7 @@ class AbstractModule(Module):
         try:
             parent = weboob.load_or_install_module(cls.PARENT).klass
         except ModuleInstallError as err:
-            raise ModuleInstallError('The module %s depends on %s module but %s\'s installation failed with: %s' % (name, cls.PARENT, cls.PARENT, err))
+            raise_from(ModuleInstallError('The module %s depends on %s module but %s\'s installation failed with: %s' % (name, cls.PARENT, cls.PARENT, err)), err)
 
         cls.__bases__ = tuple([parent] + list(cls.iter_caps()))
         return cls.__new__(cls, weboob, name, config, storage, logger, nofail)

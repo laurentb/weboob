@@ -44,6 +44,8 @@ try:
 except ImportError:
     raise ImportError('Please install python-requests >= 2.0')
 
+from six import raise_from
+
 from weboob.exceptions import BrowserHTTPSDowngrade, ModuleInstallError
 
 from weboob.tools.log import getLogger
@@ -918,7 +920,7 @@ class AbstractBrowser(Browser):
         try:
             module = weboob.load_or_install_module(cls.PARENT)
         except ModuleInstallError as err:
-            raise ModuleInstallError('This module depends on %s module but %s\'s installation failed with: %s' % (cls.PARENT, cls.PARENT, err))
+            raise_from(ModuleInstallError('This module depends on %s module but %s\'s installation failed with: %s' % (cls.PARENT, cls.PARENT, err)), err)
 
         if cls.PARENT_ATTR is None:
             parent = module.klass.BROWSER
