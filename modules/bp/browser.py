@@ -198,12 +198,8 @@ class BPBrowser(LoginBrowser, StatesMixin):
             if history is not None:
                 history.go(accountId=account.id)
 
-                for tr in self.page.iter_coming():
-                    tr._coming = False
-
-                    transactions.append(tr)
-            elif hasattr(self.page, 'get_history'):
-                for tr in self.page.get_history():
+            if hasattr(self.page, 'iter_transactions') and self.page.has_transactions():
+                for tr in self.page.iter_transactions():
                     transactions.append(tr)
 
             for tr in self.iter_card_transactions(account):
@@ -225,8 +221,8 @@ class BPBrowser(LoginBrowser, StatesMixin):
             self.location(account.url)
             self.par_account_checking_coming.go(accountId=account.id)
 
-            if self.par_account_checking_coming.is_here() and self.page.has_coming():
-                for tr in self.page.iter_coming():
+            if self.par_account_checking_coming.is_here() and self.page.has_transactions():
+                for tr in self.page.iter_transactions(coming=True):
                     yield tr
 
     @need_login

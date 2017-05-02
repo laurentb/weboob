@@ -28,7 +28,7 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.browser.pages import LoggedPage
 from weboob.browser.elements import TableElement, ItemElement, method
 from weboob.browser.filters.html import Link
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Eval, TableCell, Field, Async, AsyncLoad, Date
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Eval, TableCell, Field, Async, AsyncLoad, Date, Env
 
 from .base import MyHTMLPage
 
@@ -137,11 +137,11 @@ class AccountHistory(LoggedPage, MyHTMLPage):
             operations.append(op)
         return operations
 
-    def has_coming(self):
-        return not CleanText(u'//table[@id="mouvementsTable"]/tbody//tr[contains(., "pas d\'opérations")]')(self.doc)
+    def has_transactions(self):
+        return not CleanText(u'//table[@id="mouvementsTable"]/tbody//tr[contains(., "pas d\'opérations") or contains(., "Pas d\'opération")]')(self.doc)
 
     @method
-    class iter_coming(TableElement):
+    class iter_transactions(TableElement):
         head_xpath = u'//table[@id="mouvementsTable"]/thead/tr/th/a'
         item_xpath = u'//table[@id="mouvementsTable"]/tbody/tr'
 
@@ -156,7 +156,7 @@ class AccountHistory(LoggedPage, MyHTMLPage):
             obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
             obj_rdate = Date(CleanText(TableCell('date')), dayfirst=True)
             obj_amount = CleanDecimal(TableCell('amount'), replace_dots=True)
-            obj__coming = True
+            obj__coming = Env('coming', False)
 
             def obj_label(self):
                 raw_label = CleanText(TableCell('label'))(self)
