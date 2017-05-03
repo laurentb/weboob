@@ -21,8 +21,7 @@
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 
-from .pages import LoginPage, ClientPage, OperationsPage, ChoicePage
-
+from .pages import LoginPage, ClientPage, OperationsPage, ChoicePage, BadAccountPage
 
 __all__ = ['OneyBrowser']
 
@@ -32,6 +31,7 @@ class OneyBrowser(LoginBrowser):
 
     choice =      URL(r'/site/s/multimarque/choixsite.html', ChoicePage)
     client =      URL(r'/oney/client', ClientPage)
+    bad_account = URL(r'/site/s/detailcompte/', BadAccountPage)
     login =       URL(r'/site/s/login/login.html', LoginPage)
     operations =  URL(r'/oney/client', OperationsPage)
     card_page =   URL(r'/oney/client\?task=Synthese&process=SyntheseMultiCompte&indexSelectionne=(?P<acc_num>/d)')
@@ -45,13 +45,15 @@ class OneyBrowser(LoginBrowser):
 
         self.page.login(self.username, self.password)
 
-        if not (self.client.is_here() or self.choice.is_here()):
+        if not (self.client.is_here() or self.choice.is_here() or self.bad_account.is_here()):
             raise BrowserIncorrectPassword()
         if self.choice.is_here():
             self.multi_site = True
 
     @need_login
     def get_accounts_list(self):
+        if self.bad_account.is_here():
+            return []
         if self.multi_site:
             # other site is ignored for now
             accounts = self.open('/site/s/login/loginidentifiant.html',

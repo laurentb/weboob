@@ -116,6 +116,9 @@ class DetailPage(LoggedPage, HTMLPage):
     def iter_accounts(self):
         return []
 
+# this page is to catch account that have unusable information and that we choosed to ignore for now
+class BadAccountPage(LoggedPage, HTMLPage):
+    pass
 
 class ClientPage(LoggedPage, HTMLPage):
     is_here = "//div[@id='situation']"
