@@ -20,11 +20,13 @@
 from datetime import datetime
 
 from weboob.capabilities.bank import Recipient, Transfer
+from weboob.capabilities import NotAvailable
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Env
 from weboob.browser.filters.html import Attr
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.date import parse_french_date
 
 from .login import INGVirtKeyboard
@@ -49,10 +51,13 @@ class TransferPage(LoggedPage, HTMLPage):
 
             class item(MyRecipient):
 
-                obj_id = obj_iban = Attr('.', 'data-acct-number')
+                obj_id = Attr('.', 'data-acct-number')
                 obj_label = CleanText('.//span[@class="title"]')
                 obj_category = u'Externe'
                 obj_bank_name = CleanText(Attr('.//span[@class="bankname"]', 'title'))
+
+                def obj_iban(self):
+                    return self.obj_id(self) if is_iban_valid(self.obj_id(self)) else NotAvailable
 
         class InternalRecipients(ListElement):
             item_xpath = '//div[@id="internalAccounts"]//td/div[not(has-class("disabled"))]'
