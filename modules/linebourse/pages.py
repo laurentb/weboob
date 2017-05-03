@@ -112,7 +112,7 @@ class InvestmentPage(AccountPage):
             obj_unitprice = MyDecimal(TableCell('unitprice'), default=NotAvailable)
             obj_valuation = MyDecimal(TableCell('valuation'))
             obj_portfolio_share = Eval(lambda x: x / 100 if x else NotAvailable, MyDecimal(TableCell('portfolio_share'), default=NotAvailable))
-            obj_diff = MyDecimal(TableCell('diff'), default=NotAvailable)
+            obj_diff = MyDecimal(TableCell('diff', default=NotAvailable), default=NotAvailable)
             obj_code_type = Investment.CODE_TYPE_ISIN
 
             obj_label = CleanText('./preceding-sibling::tr/td[1]/a/span')
