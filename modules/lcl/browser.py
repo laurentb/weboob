@@ -25,6 +25,7 @@ from datetime import datetime, timedelta
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.exceptions import ServerError
+from weboob.browser.pages import FormNotFound
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account, AddRecipientError, AddRecipientStep, Recipient
 from weboob.tools.value import Value
@@ -194,9 +195,14 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         elif account.type == Account.TYPE_LIFE_INSURANCE and account._form:
             self.assurancevie.stay_or_go()
             account._form.submit()
-            self.page.get_details(account, "OHIPU")
-            for tr in self.page.iter_history():
-                yield tr
+            try:
+                self.page.get_details(account, "OHIPU")
+            except FormNotFound:
+                assert self.page.is_restricted()
+                self.logger.warning('restricted access to account %s', account)
+            else:
+                for tr in self.page.iter_history():
+                    yield tr
             self.page.come_back()
 
     @need_login
@@ -230,8 +236,11 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         if account.type == Account.TYPE_LIFE_INSURANCE and account._form:
             self.assurancevie.stay_or_go()
             account._form.submit()
-            for inv in self.page.iter_investment():
-                yield inv
+            if self.page.is_restricted():
+                self.logger.warning('restricted access to account %s', account)
+            else:
+                for inv in self.page.iter_investment():
+                    yield inv
             self.page.come_back()
         elif hasattr(account, '_market_link') and account._market_link:
             self.connexion_bourse()

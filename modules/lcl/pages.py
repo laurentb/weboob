@@ -559,10 +559,14 @@ class BoursePage(LoggedPage, HTMLPage):
 class DiscPage(LoggedPage, HTMLPage):
     def on_load(self):
         try:
-            form = self.get_form()
+            # when life insurance access is restricted, a complete lcl logout form is present, don't use it
+            # and sometimes there's just no form
+            form = self.get_form(xpath='//form[not(@id="formLogout")]')
             form.submit()
         except FormNotFound: # Sometime no form is present, just a redirection
             self.logger.debug('no form on this page')
+
+        super(DiscPage, self).on_load()
 
 
 class NoPermissionPage(LoggedPage, HTMLPage):
@@ -656,6 +660,11 @@ class AVDetailPage(LoggedPage, LCLBasePage):
         form.submit()
         if act is not None:
             self.browser.location("entreeBam?sessionSAG=%s&act=%s" % (form['sessionSAG'], act))
+
+    def is_restricted(self):
+        msg = CleanText('//div[has-class("titre_libelle_erreur")]')(self.doc)
+        expected = u'Vous n’avez pas accès à l’espace assurances de personnes.'
+        return msg == expected
 
     @method
     class iter_investment(ListElement):
