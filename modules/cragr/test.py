@@ -19,13 +19,8 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.tools.capabilities.bank.test import BankStandardTest
 
 
-class CrAgrTest(BackendTest):
+class CrAgrTest(BankStandardTest, BackendTest):
     MODULE = 'cragr'
-
-    def test_cragr(self):
-        l = list(self.backend.iter_accounts())
-        if len(l) > 0:
-            a = l[0]
-            list(self.backend.iter_history(a))
