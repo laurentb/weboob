@@ -347,15 +347,19 @@ class IndexPage(LoggedPage, HTMLPage):
         account._info = info
         account.label = label
         account.type = self.ACCOUNT_TYPES.get(label, info['acc_type'] if 'acc_type' in info else account_type)
-        account.balance = Decimal(FrenchTransaction.clean_amount(balance)) if balance else self.get_balance(account)
-        account.currency = account.get_currency(balance)
+
+        balance = balance or self.get_balance(account)
+        account.balance = Decimal(FrenchTransaction.clean_amount(balance)) if balance and balance is not NotAvailable else NotAvailable
+
+        account.currency = account.get_currency(balance) if balance and balance is not NotAvailable else NotAvailable
         account._card_links = []
 
         if account._info['type'] == 'HISTORIQUE_CB' and account.id in accounts:
             a = accounts[account.id]
             if not a.coming:
                 a.coming = Decimal('0.0')
-            a.coming += account.balance
+            if account.balance and account.balance is not NotAvailable:
+                a.coming += account.balance
             a._card_links.append(account._info)
             return
 
@@ -368,7 +372,7 @@ class IndexPage(LoggedPage, HTMLPage):
         balance = page.doc.xpath('.//tr[td[ends-with(@id,"NumContrat")]/a[contains(text(),"%s")]]/td[@class="somme"]' % account.id)
         if len(balance) > 0:
             balance = CleanText('.')(balance[0])
-            balance = Decimal(FrenchTransaction.clean_amount(balance)) if balance != u'' else NotAvailable
+            balance = balance if balance != u'' else NotAvailable
         else: # sometimes the accounts are attached but no info is available
             balance = NotAvailable
         self.go_list()
