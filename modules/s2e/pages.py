@@ -147,6 +147,13 @@ class LyxorfcpePage(LoggedPage, HTMLPage):
         return Regexp(CleanText('//span[@class="isin"]'), 'Code ISIN : (.*)')(self.doc)
 
 
+class EcofiPage(LoggedPage, HTMLPage):
+    CODE_TYPE = Investment.CODE_TYPE_ISIN
+
+    def get_code(self):
+        return CleanText('//div[has-class("field-name-CodeISIN")]/div[@class="field-items"]')(self.doc)
+
+
 class ItemInvestment(ItemElement):
     klass = Investment
 
