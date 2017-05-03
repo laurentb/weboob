@@ -47,17 +47,19 @@ class TitrePage(LoggedPage, RawPage):
 
     def iter_investments(self, account):
         # We did not get some html, but something like that (XX is a quantity, YY a price):
-        # message='[...]
+        # "message='<total> &euro;{<total> &euro;{0,01 &euro;{<liquidity> &euro;{0,00{{05/17{{03/05/2017{11:06{-XX &euro;{710TI81000029397EUR{XX &euro;{XX &euro;{|OPHTHOTECH(NASDAQ)#cotationValeur.php?val=OPHT&amp;pl=11&amp;nc=2&amp;
         # popup=2{6{E:ALO{PAR{{reel{695{380{ALSTOM REGROUPT#XX#YY,YY &euro;#YY,YY &euro;#1 YYY,YY &euro;#-YYY,YY &euro;#-42,42%#-0,98 %#42,42 %#|1|AXA#cotationValeur.php?val=E:CS&amp;pl=6&amp;nc=1&amp;
         # popup=2{6{E:CS{PAR{{reel{695{380{AXA#XX#YY,YY &euro;#YY,YYY &euro;#YYY,YY &euro;#YY,YY &euro;#3,70%#42,42 %#42,42 %#|1|blablablab #cotationValeur.php?val=P:CODE&amp;pl=6&amp;nc=1&amp;
         # [...]
-        lines = self.doc.split("|1|")
+        data = self.browser.cache["investments_data"].get(account.id, self.doc)
+        lines = data.split("|1|")
+        message = lines[0]
         if len(lines) > 1:
             start = 1
             lines[0] = lines[0].split("|")[1]
         else:
             start = 0
-            lines = self.doc.split("popup=2")
+            lines = data.split("popup=2")
             lines.pop(0)
         invests = []
         for line in lines:
@@ -102,11 +104,14 @@ class TitrePage(LoggedPage, RawPage):
 
             invests.append(invest)
 
+        #We also have to get the liquidity as an investment.
+        invest = Investment()
+        invest.label = unicode("Liquidités", 'utf-8')
+        invest.code = unicode("XX-liquidity")
+        invest.valuation = CleanDecimal(None, True).filter(message.split('&')[3].replace('euro;{','').strip())
+        invests.append(invest)
         for invest in invests:
             yield invest
-
-        # the balance is highly dynamic, fetch it along with the investments to grab a snapshot
-        account.balance = self.get_balance() or account.balance
 
 
 class TitreHistory(LoggedPage, HTMLPage):

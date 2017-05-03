@@ -99,6 +99,8 @@ class IngBrowser(LoginBrowser):
         self.birthday = kwargs.pop('birthday')
         self.where = None
         LoginBrowser.__init__(self, *args, **kwargs)
+        self.cache = {}
+        self.cache["investments_data"] = {}
 
     def do_login(self):
         assert isinstance(self.username, basestring)
@@ -137,6 +139,7 @@ class IngBrowser(LoginBrowser):
         self.titrepage.go()
         self.titrerealtime.go()
         account.balance = self.page.get_balance() or account.balance
+        self.cache["investments_data"][account.id] = self.page.doc or None
 
     @need_login
     @start_with_main_site
@@ -324,7 +327,8 @@ class IngBrowser(LoginBrowser):
         self.go_investments(account)
 
         if self.where == u'titre':
-            self.titrerealtime.go()
+            if self.cache["investments_data"].get(account.id) == None:
+                self.titrerealtime.go()
             for inv in self.page.iter_investments(account):
                 yield inv
         elif self.page.asv_has_detail or account._jid:
