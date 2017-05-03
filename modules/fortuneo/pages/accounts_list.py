@@ -357,6 +357,11 @@ class AccountsList(LoggedPage, HTMLPage):
         accounts = []
 
         for cpt in self.doc.xpath('//div[contains(@class, " compte") and not(contains(@class, "compte_selected"))]'):
+
+            # ignore auto assurance accounts
+            if 'aut' in cpt.get('class'):
+                continue
+
             account = Account()
             account._history_link = Link('./ul/li/a[contains(@id, "consulter_solde") '
                                          'or contains(@id, "historique") '
