@@ -219,9 +219,12 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
 
     def select_period(self):
         # form = self.get_form(name='ConsultationHistoriqueOperationsForm')
-        form = self.get_form(xpath='//form[@name="ConsultationHistoriqueOperationsForm" '
-                                   ' or @name="form_historique_titres" '
-                                   ' or @name="OperationsForm"]')
+        try:
+            form = self.get_form(xpath='//form[@name="ConsultationHistoriqueOperationsForm" '
+                                       ' or @name="form_historique_titres" '
+                                       ' or @name="OperationsForm"]')
+        except FormNotFound:
+            return False
 
         form['dateRechercheDebut'] = (date.today() - relativedelta(years=2)).strftime('%d/%m/%Y')
         form['nbrEltsParPage'] = '100'
@@ -352,12 +355,11 @@ class AccountsList(LoggedPage, HTMLPage):
 
     def get_list(self):
         accounts = []
-        account = None
 
         for cpt in self.doc.xpath('//div[contains(@class, " compte") and not(contains(@class, "compte_selected"))]'):
             account = Account()
             account._history_link = Link('./ul/li/a[contains(@id, "consulter_solde") '
-                                         'or contains(@id, "historique")'
+                                         'or contains(@id, "historique") '
                                          'or contains(@id, "assurance_vie_operations")]')(cpt)
 
             number = RawText('./a[contains(@class, "numero_compte")]')(cpt).replace(u'N° ', '')
@@ -394,7 +396,6 @@ class AccountsList(LoggedPage, HTMLPage):
 
             if (account.label, account.id, account.balance) not in [(a.label, a.id, a.balance) for a in accounts]:
                 accounts.append(account)
-
         return iter(accounts)
 
 
