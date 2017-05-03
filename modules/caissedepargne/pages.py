@@ -258,6 +258,7 @@ class IndexPage(LoggedPage, HTMLPage):
                      u'COMPTE A VUE':               Account.TYPE_CHECKING,
                      u'Mes comptes':                Account.TYPE_CHECKING,
                      u'CPT DEPOT PART.':            Account.TYPE_CHECKING,
+                     u'CPT DEPOT PROF.':            Account.TYPE_CHECKING,
                      u'Mon épargne':                Account.TYPE_SAVINGS,
                      u'Mes autres comptes':         Account.TYPE_SAVINGS,
                      u'Compte Epargne et DAT':      Account.TYPE_SAVINGS,
@@ -661,7 +662,7 @@ class IndexPage(LoggedPage, HTMLPage):
         self.browser.page.go_transfer(account)
 
     def go_transfer(self, account):
-        link = self.doc.xpath(u'//a[span[contains(text(), "Effectuer un virement")]] | //a[contains(text(), "Réaliser un virement unitaire")]')
+        link = self.doc.xpath(u'//a[span[contains(text(), "Effectuer un virement")]] | //a[contains(text(), "Réaliser un virement")]')
         if len(link) == 0:
             return self.go_transfer_via_history(account)
         else:

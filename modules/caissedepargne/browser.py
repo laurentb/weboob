@@ -241,13 +241,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 return iter([])
 
             if self.home.is_here():
-                if self.page.check_no_accounts():
+                if self.page.check_no_accounts() or self.page.check_no_loans():
                     return iter([])
 
-            if not self.page.check_no_loans():
-                self.home_tache.go(tache='CRESYNT0')
-            else:
-                return iter([])
+            self.home_tache.go(tache='CRESYNT0')
 
             if self.home.is_here():
                 if not self.page.is_access_error():
