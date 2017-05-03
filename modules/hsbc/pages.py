@@ -22,7 +22,7 @@ import re
 from decimal import Decimal
 
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.bank import Account, Investment, AccountNotFound
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 from weboob.exceptions import BrowserIncorrectPassword
@@ -30,7 +30,7 @@ from weboob.browser.elements import TableElement, ListElement, ItemElement, meth
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, TableCell, Regexp, \
     Eval, Date
-from weboob.browser.filters.html import Link
+from weboob.browser.filters.html import Link, XPathNotFound
 from weboob.browser.filters.javascript import JSVar
 
 
@@ -328,7 +328,11 @@ class LifeInsurancesPage(LoggedPage, HTMLPage):
         attributes = {}
 
         # values can be in JS var format but it's not mandatory param so we don't go to get the real value
-        values = Regexp(Link('//a[contains(., "%s")]' % lfid[:-3].lstrip('0')), r'\((.*?)\)')(self.doc).replace(' ', '').replace('\'', '').split(',')
+        try:
+            values = Regexp(Link('//a[contains(., "%s")]' % lfid[:-3].lstrip('0')), r'\((.*?)\)')(self.doc).replace(' ', '').replace('\'', '').split(',')
+        except XPathNotFound:
+            self.logger.error('cannot find account id %s on life insurance site', lfid)
+            raise AccountNotFound()
         keys = Regexp(CleanText('//script'), r'consultationContrat\((.*?)\)')(self.doc).replace(' ', '').split(',')
 
         for i, key in enumerate(keys):

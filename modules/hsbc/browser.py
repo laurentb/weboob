@@ -24,7 +24,7 @@ from urlparse import parse_qs
 from lxml.etree import XMLSyntaxError
 
 from weboob.tools.date import LinearDateGuesser
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import HTTPNotFound
@@ -167,7 +167,7 @@ class HSBC(LoginBrowser):
 
             try:
                 self._go_to_life_insurance(account.id)
-            except (XMLSyntaxError, HTTPNotFound):
+            except (XMLSyntaxError, HTTPNotFound, AccountNotFound):
                 self._quit_li_space()
                 return iter([])
             except HTTPNotFound:
@@ -216,7 +216,7 @@ class HSBC(LoginBrowser):
 
         try:
             self._go_to_life_insurance(account.id)
-        except (XMLSyntaxError, HTTPNotFound):
+        except (XMLSyntaxError, HTTPNotFound, AccountNotFound):
             self._quit_li_space()
             return iter([])
         except HTTPNotFound:
