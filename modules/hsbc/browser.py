@@ -110,7 +110,7 @@ class HSBC(LoginBrowser):
     def update_accounts_list(self):
         for a in list(self.accounts.stay_or_go().iter_accounts()):
             try:
-                self.accounts_list[a.id]._link_id = a._link_id
+                self.accounts_list[a.id].url = a.url
             except KeyError:
                 self.accounts_list[a.id] = a
 
@@ -155,10 +155,10 @@ class HSBC(LoginBrowser):
 
     @need_login
     def get_history(self, account, coming=False):
-        if account._link_id is None:
-            return
+        if account.url is None:
+            return []
 
-        if account._link_id.startswith('javascript') or '&Crd=' in account._link_id:
+        if account.url.startswith('javascript') or '&Crd=' in account.url:
             raise NotImplementedError()
 
         if account.type == Account.TYPE_LIFE_INSURANCE:
@@ -169,10 +169,7 @@ class HSBC(LoginBrowser):
                 self._go_to_life_insurance(account.id)
             except (XMLSyntaxError, HTTPNotFound, AccountNotFound):
                 self._quit_li_space()
-                return iter([])
-            except HTTPNotFound:
-                self.accounts.go()
-                return iter([])
+                return []
 
             self.life_insurances.go(data={'url_suivant': 'HISTORIQUECONTRATB2C', 'strMonnaie': 'EURO'})
 
@@ -183,7 +180,7 @@ class HSBC(LoginBrowser):
             return history
 
         try:
-            self.location(self.accounts_list[account.id]._link_id)
+            self.location(self.accounts_list[account.id].url)
         except HTTPNotFound: # sometime go to hsbc life insurance space do logout
             self.app_gone = True
             self.do_logout()
@@ -193,7 +190,7 @@ class HSBC(LoginBrowser):
         if self.app_gone:
             self.app_gone = False
             self.update_accounts_list()
-            self.location(self.accounts_list[account.id]._link_id)
+            self.location(self.accounts_list[account.id].url)
 
         if self.page is None:
             return
@@ -218,10 +215,7 @@ class HSBC(LoginBrowser):
             self._go_to_life_insurance(account.id)
         except (XMLSyntaxError, HTTPNotFound, AccountNotFound):
             self._quit_li_space()
-            return iter([])
-        except HTTPNotFound:
-            self.accounts.go()
-            return iter([])
+            return []
 
         investments = [i for i in self.page.iter_investments()]
 

@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
-
 from decimal import Decimal
+from urlparse import urljoin
 
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, AccountNotFound
@@ -115,7 +115,10 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_label = Label(CleanText('./td[1]/a'))
             obj_coming = Env('coming')
             obj_currency = FrenchTransaction.Currency('./td[2]')
-            obj__link_id = Link('./td[1]/a')
+
+            def obj_url(self):
+                return urljoin(self.page.url, Link('./td[1]/a')(self))
+
             obj_type = Type(Field('label'))
             obj_coming = NotAvailable
 
