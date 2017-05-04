@@ -367,6 +367,12 @@ class AccountsList(LoggedPage, HTMLPage):
                                          'or contains(@id, "historique") '
                                          'or contains(@id, "assurance_vie_operations")]')(cpt)
 
+            # this is to test if there is a redirection to a form for recently created profiles
+            if len(accounts) == 0:
+                message = self.browser.open(account._history_link).page.doc.xpath('//div[@id="as_renouvellementMIFID.do_"]')
+                if message:
+                    raise ActionNeeded(CleanText('./div[contains(text(), "Bonjour")]')(message[0]))
+
             number = RawText('./a[contains(@class, "numero_compte")]')(cpt).replace(u'N° ', '')
 
             account.id = CleanText(None).filter(number).replace(u'N°', '')
