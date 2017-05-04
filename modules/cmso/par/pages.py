@@ -298,7 +298,7 @@ class MarketPage(LoggedPage, HTMLPage):
     def get_list(self, acclabel):
         # Check if history is present
         if CleanText(default=None).filter(self.doc.xpath('//body/p[contains(text(), "indisponible pour le moment")]')):
-           return False
+            return False
         ids = None
         for a in self.doc.xpath('//a[contains(@onclick, "indiceCompte")]'):
             self.logger.debug("get investment from onclick")
@@ -314,13 +314,12 @@ class MarketPage(LoggedPage, HTMLPage):
                     self.logger.debug("assign value to ids: {}".format(ids))
                     break
         form = self.get_form(name="formCompte")
-        form ['indiceCompte'] = ids[0]
-        form ['idRacine'] = ids[1]
+        form['indiceCompte'] = ids[0]
+        form['idRacine'] = ids[1]
         try:
             return form.submit()
         except ServerError:
             return False
-
 
     def get_full_list(self):
         form = self.get_form(name="formOperation")
