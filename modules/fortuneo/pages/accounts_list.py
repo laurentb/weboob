@@ -372,11 +372,14 @@ class AccountsList(LoggedPage, HTMLPage):
                                          'or contains(@id, "historique") '
                                          'or contains(@id, "assurance_vie_operations")]')(cpt)
 
-            # this is to test if there is a redirection to a form for recently created profiles
+            # this is to test if access to the accounts info is blocked for different reasons
             if len(accounts) == 0:
-                message = self.browser.open(account._history_link).page.doc.xpath('//div[@id="as_renouvellementMIFID.do_"]')
+                page = self.browser.open(account._history_link).page
+                message = page.doc.xpath('//div[@id="as_renouvellementMIFID.do_"]/div[contains(text(), "Bonjour")] '
+                                         '| //div[@id="as_afficherMessageBloquantMigration.do_"]//div[@class="content_message"] '
+                                         '| //div[@id="as_renouvellementMotDePasse.do_"]//p[contains(text(), "votre mot de passe")]')
                 if message:
-                    raise ActionNeeded(CleanText('./div[contains(text(), "Bonjour")]')(message[0]))
+                    raise ActionNeeded(CleanText('.')(message[0]))
 
             number = RawText('./a[contains(@class, "numero_compte")]')(cpt).replace(u'N° ', '')
 
