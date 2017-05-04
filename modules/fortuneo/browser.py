@@ -48,6 +48,11 @@ class Fortuneo(LoginBrowser):
                       r'.*/prive/mes-comptes/ppe/.*', PeaHistoryPage)
     invest_history = URL(r'.*/prive/mes-comptes/assurance-vie/.*', InvestmentHistoryPage)
 
+    def __init__(self, *args, **kwargs):
+        LoginBrowser.__init__(self, *args, **kwargs)
+        self.cache = {}
+        self.cache["investments"] = {}
+
     def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
@@ -67,8 +72,11 @@ class Fortuneo(LoginBrowser):
     @need_login
     def get_investments(self, account):
         if hasattr(account, '_investment_link'):
-            self.location(account._investment_link)
-            return self.page.get_investments(account)
+            if self.cache["investments"].get(account.id) == None:
+                self.location(account._investment_link)
+                return self.page.get_investments(account)
+            else:
+                return iter(self.cache["investments"].get(account.id))
         return iter([])
 
     @need_login

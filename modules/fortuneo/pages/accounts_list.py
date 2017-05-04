@@ -91,6 +91,11 @@ class PeaHistoryPage(LoggedPage, HTMLPage):
                 inv.diff = CleanDecimal(None, replace_dots=True).filter(diff)
 
             yield inv
+        inv = Investment()
+        inv.code = unicode("XX-liquidity")
+        inv.label = unicode("Liquidités", 'utf-8')
+        inv.valuation = CleanDecimal(None, True).filter(self.doc.xpath('//*[@id="valorisation_compte"]/table/tr[3]/td[2]'))
+        yield inv
 
     def parse_decimal(self, string, replace_dots):
         string = CleanText(None).filter(string)
@@ -392,6 +397,8 @@ class AccountsList(LoggedPage, HTMLPage):
             if account.type in {Account.TYPE_PEA, Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE}:
                 account._investment_link = Link('./ul/li/a[contains(@id, "portefeuille")]')(cpt)
                 balance = self.browser.open(account._investment_link).page.get_balance(account.type)
+                if account.type in {Account.TYPE_PEA, Account.TYPE_MARKET}:
+                    self.browser.cache["investments"][account.id] = list(self.browser.open(account._investment_link).page.get_investments(account))
             else:
                 balance = self.browser.open(account._history_link).page.get_balance()
 
