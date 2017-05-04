@@ -32,7 +32,7 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword
 
 def MyDecimal(*args, **kwargs):
     kwargs.update(replace_dots=True, default=NotAvailable)
@@ -299,18 +299,27 @@ class MarketPage(LoggedPage, HTMLPage):
         # Check if history is present
         if CleanText(default=None).filter(self.doc.xpath('//body/p[contains(text(), "indisponible pour le moment")]')):
            return False
+        ids = None
         for a in self.doc.xpath('//a[contains(@onclick, "indiceCompte")]'):
+            self.logger.debug("get investment from onclick")
             if CleanText().filter(a.xpath('.')) == acclabel:
-                ids = re.search('indiceCompte[^\d]+(\d+).*idRacine[^\d]+(\d+)', \
-                      Attr(None, 'onclick').filter(a.xpath('.'))).groups()
+                ids = re.search(r'indiceCompte[^\d]+(\d+).*idRacine[^\d]+(\d+)', Attr('.', 'onclick')(a)).groups()
+                self.logger.debug("assign value to ids: {}".format(ids))
                 break
+        if ids is None:
+            for a in self.doc.xpath('//a[contains(@href, "indiceCompte")]'):
+                self.logger.debug("get investment from href")
+                if CleanText('.')(a) == acclabel:
+                    ids = re.search(r'indiceCompte[^\d]+(\d+).*idRacine[^\d]+(\d+)', Attr('.', 'href')(a)).groups()
+                    self.logger.debug("assign value to ids: {}".format(ids))
+                    break
         form = self.get_form(name="formCompte")
         form ['indiceCompte'] = ids[0]
         form ['idRacine'] = ids[1]
         try:
             return form.submit()
         except ServerError:
-            raise BrowserUnavailable()
+            return False
 
 
     def get_full_list(self):
