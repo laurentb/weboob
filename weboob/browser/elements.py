@@ -387,17 +387,24 @@ class DictElement(ListElement):
                 yield el
 
 
-def magic_highlight(el, open_browser=True):
+def magic_highlight(els, open_browser=True):
     """Open a web browser with the document open and the element highlighted"""
 
     import lxml.html
     import webbrowser
     import tempfile
 
-    old = el.attrib.get('style', '')
-    el.attrib['style'] = 'color: white !important; background: red !important;'
+    if not isinstance(els, (list, tuple)):
+        els = [els]
+
+    saved = {}
+    for el in els:
+        saved[el] = el.attrib.get('style', '')
+        el.attrib['style'] = 'color: white !important; background: red !important;'
+
     html = lxml.html.tostring(el.xpath('/*')[0])
-    el.attrib['style'] = old
+    for el in els:
+        el.attrib['style'] = saved[el]
 
     _, fn = tempfile.mkstemp(dir='/tmp', prefix='weboob-highlight', suffix='.html')
     with open(fn, 'w') as fd:
