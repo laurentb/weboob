@@ -19,11 +19,10 @@
 
 
 from io import BytesIO
-import re
 
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, NoAccountsException
 from weboob.browser.pages import LoggedPage
-from weboob.browser.filters.standard import CleanText
+from weboob.browser.filters.standard import CleanText, Regexp
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard
 
 from .base import MyHTMLPage
@@ -50,13 +49,10 @@ class Keyboard(VirtKeyboard):
     color=(0xff, 0xff, 0xff)
 
     def __init__(self, page):
-        m = re.search(r'.*background:url\((.*?)\).*', ''.join(page.doc.xpath('//style[1]/text()')))
-
-
-        if m:
-            img_url = m.group(1)
-            size = 252
-        else:
+        img_url = Regexp(CleanText('//style'), r'background:url\((.*?)\)', default=None)(page.doc) or \
+                  Regexp(CleanText('//script'), r'IMG_ALL = "(.*?)"', default=None)(page.doc)
+        size = 252
+        if not img_url:
             img_url = page.doc.xpath('//img[@id="imageCVS"]')[0].attrib['src']
             size = 146
         coords = {}
