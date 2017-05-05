@@ -315,7 +315,8 @@ class HistoryPage(LoggedPage, HTMLPage):
 
             # These are on deffered cards accounts.
             def condition(self):
-                return not len(self.xpath(u'.//span[has-class("icon-carte-bancaire")]'))
+                return not len(self.xpath(u'.//span[has-class("icon-carte-bancaire")]')) and \
+                       not len(self.xpath(u'.//a[contains(@href, "/carte")]'))
 
     def get_cards_number_link(self):
         return Link('//a[small[span[contains(text(), "carte bancaire")]]]', default=NotAvailable)(self.doc)
