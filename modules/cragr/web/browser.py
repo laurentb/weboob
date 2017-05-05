@@ -354,7 +354,7 @@ class Cragr(LoginBrowser, StatesMixin):
             self.location(account.url.format(self.sag))
 
         if self.cards.is_here():
-            date_guesser = ChaoticDateGuesser(date.today()-timedelta(weeks=36))
+            date_guesser = ChaoticDateGuesser(date.today()-timedelta(weeks=42))
             url = self.page.url
             state = None
             notfirst = False
