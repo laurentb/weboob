@@ -199,16 +199,18 @@ class CPTOperationPage(LoggedPage, HTMLPage):
             if script.text is None or script.text.find('\nCL(0') < 0:
                 continue
 
-            prev_date = None
+            first_history = None
             for m in re.finditer(r"CL\((\d+),'(.+)','(.+)','(.+)','([\d -\.,]+)',('([\d -\.,]+)',)?'\d+','\d+','[\w\s]+'\);", script.text, flags=re.MULTILINE):
                 op = Transaction()
                 op.parse(date=m.group(3), raw=re.sub(u'[ ]+', u' ', m.group(4).replace(u'\n', u' ')))
                 op.set_amount(m.group(5))
                 op._coming = (re.match(r'\d+/\d+/\d+', m.group(2)) is None)
-                op.deleted = True if op.type == Transaction.TYPE_CARD_SUMMARY else False
-                if prev_date is not None and prev_date < op.date:
+                op.deleted = (op.type == Transaction.TYPE_CARD_SUMMARY)
+                if first_history is None:
+                    first_history = op.to_dict()
+                elif first_history == op.to_dict():
+                    self.logger.warning("Find already used line {}".format(first_history))
                     break
-                prev_date = op.date
                 yield op
 
 
