@@ -119,5 +119,10 @@ class InvestmentPage(AccountPage):
             obj_code = Regexp(CleanText('./preceding-sibling::tr/td[1]/a'), '- (.*)')
 
 
-class UselessPage(LoggedPage, HTMLPage):
-    pass
+class MessagePage(LoggedPage, HTMLPage):
+    def submit(self):
+        # taken from linebourse implementation in caissedepargne module
+        form = self.get_form(name='leForm')
+        form['signatur1'] = 'on'
+        form.submit()
+

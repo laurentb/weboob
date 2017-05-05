@@ -25,7 +25,7 @@ from weboob.browser import LoginBrowser, URL
 from weboob.exceptions import BrowserUnavailable
 
 from .pages import (
-    UselessPage, InvestmentPage, HistoryPage,
+    MessagePage, InvestmentPage, HistoryPage,
 )
 
 
@@ -33,11 +33,11 @@ class LinebourseBrowser(LoginBrowser):
     BASEURL = 'https://www.linebourse.fr'
 
     invest = URL(r'/Portefeuille$', r'/Portefeuille?compte=(?P<id>[^&]+)', InvestmentPage)
-    message = URL(r'/DetailMessage\?refresh=O', UselessPage)
+    message = URL(r'/DetailMessage.*', MessagePage)
     history = URL(r'/HistoriqueOperations',
                   r'/HistoriqueOperations\?compte=(?P<id>[^&]+)&devise=EUR&modeTri=7&sensTri=-1&periode=(?P<period>\d+)',
                   HistoryPage)
-    useless = URL(r'/ReroutageSJR', UselessPage)
+    useless = URL(r'/ReroutageSJR', MessagePage)
 
     def __init__(self, baseurl, *args, **kwargs):
         super(LinebourseBrowser, self).__init__('', '', *args, **kwargs)
@@ -48,6 +48,10 @@ class LinebourseBrowser(LoginBrowser):
 
     def iter_investment(self, account_id):
         self.invest.go()
+        if self.message.is_here():
+            self.page.submit()
+            self.invest.go()
+
         assert self.invest.is_here()
         if not self.page.is_on_right_portfolio(account_id):
             self.invest.go(id=self.page.get_compte(account_id))
@@ -55,6 +59,10 @@ class LinebourseBrowser(LoginBrowser):
 
     def iter_history(self, account_id):
         self.history.go()
+        if self.message.is_here():
+            self.page.submit()
+            self.history.go()
+
         assert self.history.is_here()
 
         if not self.page.is_on_right_portfolio(account_id):
