@@ -356,7 +356,7 @@ class BProBrowser(BPBrowser):
     BASEURL = 'https://banqueenligne.entreprises.labanquepostale.fr'
 
     def set_variables(self):
-        v = urlsplit(self.page.url)
+        v = urlsplit(self.url)
         version = v.path.split('/')[1]
 
         self.base_url = 'https://banqueenligne.entreprises.labanquepostale.fr/%s' % version
