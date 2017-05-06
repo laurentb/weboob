@@ -375,6 +375,8 @@ class BaseObject(object):
     def copy(self):
         obj = copy(self)
         obj._fields = copy(self._fields)
+        for k in obj._fields:
+            obj._fields[k] = copy(obj._fields[k])
         return obj
 
     def __deepcopy__(self, memo):
