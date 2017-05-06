@@ -50,7 +50,9 @@ class Keyboard(VirtKeyboard):
     color=(0xff, 0xff, 0xff)
 
     def __init__(self, page):
-        m = re.search(r'background:url\("(.*?)"\)', ''.join(page.doc.xpath('//script/text()')))
+        m = re.search(r'.*background:url\((.*?)\).*', ''.join(page.doc.xpath('//style[1]/text()')))
+
+
         if m:
             img_url = m.group(1)
             size = 252
