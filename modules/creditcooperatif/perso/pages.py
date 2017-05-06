@@ -52,7 +52,9 @@ class AddType(Filter):
     types = {u'COMPTE NEF': Account.TYPE_CHECKING,
              u'CPTE A VUE': Account.TYPE_CHECKING,
              u'LIVRET AGIR': Account.TYPE_SAVINGS,
-             u'LIVRET A PART': Account.TYPE_SAVINGS}
+             u'LIVRET A PART': Account.TYPE_SAVINGS,
+             u'PEL': Account.TYPE_SAVINGS,
+             }
 
     def filter(self, str_type):
         for key, acc_type in self.types.items():
