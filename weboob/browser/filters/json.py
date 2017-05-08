@@ -19,7 +19,7 @@
 
 from weboob.tools.compat import basestring, with_metaclass
 
-from .standard import _Filter, _NO_DEFAULT, Filter, ParseError
+from .standard import _Filter, _NO_DEFAULT, Filter, ParseError, debug
 
 __all__ = ['Dict']
 
@@ -52,6 +52,7 @@ class Dict(with_metaclass(_DictMeta, Filter)):
         self.selector.append(name)
         return self
 
+    @debug()
     def filter(self, elements):
         if elements is not _NOT_FOUND:
             return elements
