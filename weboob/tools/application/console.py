@@ -97,6 +97,8 @@ class ConsoleApplication(Application):
         super(ConsoleApplication, self).__init__(option_parser)
         self.weboob.requests.register('login', self.login_cb)
         self.enabled_backends = set()
+        self._parser.add_option('--auto-update', action='store_true',
+                                help='Automatically check for updates when a bug in a module is encountered')
 
     def login_cb(self, backend_name, value):
         return self.ask('[%s] %s' % (backend_name,
@@ -623,15 +625,18 @@ class ConsoleApplication(Application):
 
             minfo = self.weboob.repositories.get_module_info(backend.NAME)
             if minfo and not minfo.is_local():
-                self.weboob.repositories.update_repositories(ConsoleProgress(self))
+                if self.options.auto_update:
+                    self.weboob.repositories.update_repositories(ConsoleProgress(self))
 
-                # minfo of the new available module
-                minfo = self.weboob.repositories.get_module_info(backend.NAME)
-                if minfo and minfo.version > self.weboob.repositories.versions.get(minfo.name) and \
-                   self.ask('A new version of %s is available. Do you want to install it?' % minfo.name, default=True) and \
-                   self.install_module(minfo):
-                    print('New version of module %s has been installed. Retry to call the command.' % minfo.name)
-                    return
+                    # minfo of the new available module
+                    minfo = self.weboob.repositories.get_module_info(backend.NAME)
+                    if minfo and minfo.version > self.weboob.repositories.versions.get(minfo.name) and \
+                       self.ask('A new version of %s is available. Do you want to install it?' % minfo.name, default=True) and \
+                       self.install_module(minfo):
+                        print('New version of module %s has been installed. Retry to call the command.' % minfo.name)
+                        return
+                else:
+                    print('(If --auto-update is passed on the command-line, new versions of the module will be checked automatically)')
 
             if logging.root.level <= logging.DEBUG:
                 print(backtrace, file=self.stderr)
