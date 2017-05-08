@@ -74,6 +74,7 @@ class SueurDeMetalModule(Module, CapCalendarEvent):
     def _make_event(self, d):
         event = Concert(d['id'])
         event.category = CATEGORIES.CONCERT
+        event.timezone = 'Europe/Paris'
         event.start_date = d['date']
         event.end_date = datetime.datetime.combine(event.start_date.date(), datetime.time.max)
         event.summary = d['summary']
