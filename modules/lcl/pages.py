@@ -667,18 +667,40 @@ class AVDetailPage(LoggedPage, LCLBasePage):
         return msg == expected
 
     @method
-    class iter_investment(ListElement):
-        item_xpath = '//div[@id="mandatEnVigueur"]//table[@class="table"]/tbody/tr[td[6]]'
+    class iter_investment(TableElement):
+        def parsxe(self, el):
+            import weboob
+            weboob.browser.elements.magic_highlight(self.page.doc.xpath('//table[@class="table"][ends-with(@id,"CD_UCT")]'))
+
+        head_xpath = '//table[@class="table"][ends-with(@id,"CD_UCT")]/thead//th'
+        item_xpath = '//table[@class="table"][ends-with(@id,"CD_UCT")]/tbody/tr'
+
+        col_label = 'Le(s) support(s) financier(s) de votre contrat'
+        col_unitvalue = 'Valeur de la part'
+        col_vdate = 'En date du :'
+        col_quantity = 'Nombre de parts'
+        col_valuation = 'Total'
+        col_portfolio_share = u'Répartition'
 
         class item(ItemElement):
             klass = Investment
 
-            obj_label = CleanText('.//td[1]/a | .//td[1]/span ')
-            obj_code = CleanText('.//td[1]/a/@id') & Regexp(pattern='^([^ ]+).*', default=NotAvailable)
-            obj_quantity = MyDecimal('.//td[4]/span')
-            obj_unitvalue = MyDecimal('.//td[2]/span')
-            obj_valuation = MyDecimal('.//td[5]/span')
-            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal('.//td[6]/span', replace_dots=True))
+            obj_label = CleanText(TableCell('label'))
+
+            def obj_code(self):
+                td = TableCell('label')(self)[0]
+                return Attr('.//a', 'id', default=NotAvailable)(td)
+
+            obj_code_type = Investment.CODE_TYPE_ISIN
+
+            def obj_quantity(self):
+                return MyDecimal(TableCell('quantity'))(self) or NotAvailable
+
+            def obj_unitvalue(self):
+                return MyDecimal(TableCell('unitvalue'))(self) or NotAvailable
+
+            obj_valuation = MyDecimal(TableCell('valuation'))
+            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share'), replace_dots=True))
 
     @pagination
     @method
