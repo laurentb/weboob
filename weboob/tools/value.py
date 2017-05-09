@@ -290,7 +290,9 @@ class ValueDate(Value):
     def get_format(self, v=None):
         for format in self.formats_tuple:
             try:
-                time.strptime(v or self._value, format)
+                dateval = time.strptime(v or self._value, format)
+                # year < 1900 is handled by strptime but not strftime, check it
+                time.strftime(self.formats_tuple[0], dateval)
             except ValueError:
                 continue
             return format
