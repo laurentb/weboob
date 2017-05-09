@@ -21,8 +21,11 @@
 import re
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
-from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, Date, Regexp, CleanDecimal, Env, Eval, Field, Async, AsyncLoad
+from weboob.browser.elements import ListElement, ItemElement, method, TableElement
+from weboob.browser.filters.standard import (
+    CleanText, Date, Regexp, CleanDecimal, Env, Eval, Field, Async, AsyncLoad,
+    TableCell,
+)
 from weboob.browser.filters.html import Attr
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
@@ -68,16 +71,30 @@ class AccountsPage(LoggedPage, HTMLPage):
 
 class InvestmentPage(LoggedPage, HTMLPage):
     @method
-    class iter_investment(ListElement):
+    class iter_investment(TableElement):
         item_xpath = '//table/tbody/tr[td[2]]'
+        head_xpath = '//table/thead//th'
+
+        col_label = 'Nom des supports'
+        col_valuation = 'Date de valorisation'
+        col_vdate = 'Date de valorisation'
+        col_portfolio_share = u'Répartition'
 
         class item(ItemElement):
             klass = Investment
 
-            obj_label = CleanText('./td[1]/text()')
-            obj_valuation = CleanDecimal('./td[2]/strong')
-            obj_vdate = Date(CleanText('./td[2]/span'), dayfirst=True, default=NotAvailable)
-            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal('./td[1]/strong'))
+            obj_label = CleanText(TableCell('label'))
+
+            def obj_valuation(self):
+                td = TableCell('valuation')(self)[0]
+                return CleanDecimal('./span')(td)
+
+            def obj_vdate(self):
+                td = TableCell('vdate')(self)[0]
+                txt = CleanText('./text()')(td)
+                return Date('.', dayfirst=True, default=NotAvailable).filter(txt)
+
+            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share')))
 
 
 class Transaction(FrenchTransaction):
