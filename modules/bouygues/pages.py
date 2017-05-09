@@ -52,7 +52,7 @@ class ProfilePage(JsonPage, LoggedPage):
         class item(ItemElement):
             klass = Subscription
 
-            obj_id = CleanText(Dict('num_ligne'))
+            obj_id = Format('%s-%s', CleanText(Dict('num_ligne')), CleanText(Dict('date-activation')))
             obj__type = CleanText(Dict('type'))
             obj_label = Env('label')
             obj_subscriber = Format("%s %s %s", CleanText(Dict('civilite')),
@@ -60,7 +60,7 @@ class ProfilePage(JsonPage, LoggedPage):
 
             def parse(self, el):
                 # add spaces
-                number = iter(self.obj_id(el))
+                number = iter(self.obj_id(el).split('-')[0])
                 self.env['label'] = ' '.join(a+b for a, b in zip(number, number))
 
 
