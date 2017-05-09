@@ -17,13 +17,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-import urllib
 import re
 import hashlib
 import lxml
 
-from weboob.deprecated.browser import Browser, BrowserHTTPNotFound, BrowserHTTPError, BrowserIncorrectPassword, BrokenPageError
+from requests.exceptions import HTTPError
+
+from weboob.browser import LoginBrowser, need_login, URL
+from weboob.browser.exceptions import HTTPNotFound
+from weboob.exceptions import BrowserIncorrectPassword, ParseError
 from weboob.capabilities.messages import CantSendMessage
 
 from .pages.index import IndexPage, LoginPage
@@ -35,29 +37,31 @@ from .tools import id2url, url2id
 # Browser
 
 
-class DLFP(Browser):
-    DOMAIN = 'linuxfr.org'
-    PROTOCOL = 'https'
-    PAGES = {'https?://[^/]*linuxfr\.org/?': IndexPage,
-             'https?://[^/]*linuxfr\.org/compte/connexion': LoginPage,
-             'https?://[^/]*linuxfr\.org/news/[^\.]+': ContentPage,
-             'https?://[^/]*linuxfr\.org/wiki/(?!nouveau)[^/]+': ContentPage,
-             'https?://[^/]*linuxfr\.org/wiki': WikiEditPage,
-             'https?://[^/]*linuxfr\.org/wiki/nouveau': WikiEditPage,
-             'https?://[^/]*linuxfr\.org/wiki/[^\.]+/modifier': WikiEditPage,
-             'https?://[^/]*linuxfr\.org/suivi/[^\.]+': ContentPage,
-             'https?://[^/]*linuxfr\.org/sondages/[^\.]+': ContentPage,
-             'https?://[^/]*linuxfr\.org/users/[^\./]+/journaux/[^\.]+': ContentPage,
-             'https?://[^/]*linuxfr\.org/forums/[^\./]+/posts/[^\.]+': ContentPage,
-             'https?://[^/]*linuxfr\.org/nodes/(\d+)/comments/(\d+)': CommentPage,
-             'https?://[^/]*linuxfr\.org/nodes/(\d+)/comments/nouveau': NewCommentPage,
-             'https?://[^/]*linuxfr\.org/nodes/(\d+)/comments': NodePage,
-             'https?://[^/]*linuxfr\.org/nodes/(\d+)/tags/nouveau': NewTagPage,
-             'https?://[^/]*linuxfr\.org/board/index.xml': BoardIndexPage,
-             'https?://[^/]*linuxfr\.org/nodes/(\d+)/comments.atom': RSSComment,
-            }
+class DLFP(LoginBrowser):
+    BASEURL = 'https://linuxfr.org/'
+
+    index = URL(r'/?$', IndexPage)
+    login = URL(r'/compte/connexion', LoginPage)
+    content = URL(r'/news/.+',
+                  r'/wiki/(?!nouveau)[^/]+',
+                  r'/suivi/[^\.]+',
+                  r'/sondages/[^\.]+',
+                  r'/users/[^\./]+/journaux/[^\.]+',
+                  r'/forums/[^\./]+/posts/[^\.]+',
+                  ContentPage)
+    wiki_edit = URL(r'/wiki$',
+                    r'/wiki/nouveau',
+                    r'/wiki/[^\.]+/modifier',
+                    WikiEditPage)
+    comment = URL(r'/nodes/(\d+)/comments/(\d+)', CommentPage)
+    new_comment = URL(r'/nodes/(\d+)/comments/nouveau', NewCommentPage)
+    node = URL(r'/nodes/(\d+)/comments', NodePage)
+    new_tag = URL(r'/nodes/(\d+)/tags/nouveau', NewTagPage)
+    board_index = URL(r'/board/index.xml', BoardIndexPage)
+    rss_comment = URL(r'/nodes/(\d+)/comments.atom', RSSComment)
 
     last_board_msg_id = None
+    _token = None
 
     def parse_id(self, _id):
         if re.match('^https?://.*linuxfr.org/nodes/\d+/comments/\d+$', _id):
@@ -80,10 +84,10 @@ class DLFP(Browser):
 
         try:
             self.location('%s/modifier' % url)
-        except BrowserHTTPNotFound:
+        except HTTPNotFound:
             return ''
 
-        assert self.is_on_page(WikiEditPage)
+        assert self.wiki_edit.is_here()
 
         return self.page.get_body()
 
@@ -101,16 +105,17 @@ class DLFP(Browser):
 
         try:
             self.location('%s/modifier' % url)
-        except BrowserHTTPNotFound:
+        except HTTPNotFound:
             self.location('/wiki/nouveau')
             new = True
         else:
             new = False
 
-        assert self.is_on_page(WikiEditPage)
+        assert self.wiki_edit.is_here()
 
         return new
 
+    @need_login
     def set_wiki_content(self, name, content, message):
         new = self._go_on_wiki_edit_page(name)
         if new is None:
@@ -123,20 +128,21 @@ class DLFP(Browser):
 
         self.page.post_content(title, content, message)
 
+    @need_login
     def get_wiki_preview(self, name, content):
         if self._go_on_wiki_edit_page(name) is None:
             return None
 
         self.page.post_preview(content)
-        if self.is_on_page(WikiEditPage):
+        if self.wiki_edit.is_here():
             return self.page.get_preview_html()
-        elif self.is_on_page(ContentPage):
+        elif self.content.is_here():
             return self.page.get_article().body
 
     def get_hash(self, url):
         self.location(url)
-        if self.page.document.xpath('//entry'):
-            myhash = hashlib.md5(lxml.etree.tostring(self.page.document)).hexdigest()
+        if self.page.doc.xpath('//entry'):
+            myhash = hashlib.md5(lxml.etree.tostring(self.page.doc)).hexdigest()
             return myhash
         else:
             return None
@@ -148,18 +154,17 @@ class DLFP(Browser):
             return None
 
         self.location(url)
-        self.page.url = self.absurl(url)
 
-        if self.is_on_page(CommentPage):
+        if self.comment.is_here():
             content = self.page.get_comment()
-        elif self.is_on_page(ContentPage):
+        elif self.content.is_here():
             m = re.match('.*#comment-(\d+)$', url)
             if m:
                 content = self.page.get_comment(int(m.group(1)))
             else:
                 content = self.page.get_article()
         else:
-            raise BrokenPageError('Not on a content or comment page (%r)' % self.page)
+            raise ParseError('Not on a content or comment page (%r)' % self.page)
 
         if _id is not None:
             content.id = _id
@@ -168,15 +173,16 @@ class DLFP(Browser):
     def _is_comment_submit_form(self, form):
         return 'comment_new' in form.action
 
+    @need_login
     def post_comment(self, thread, reply_id, title, message):
         url = id2url(thread)
         if url is None:
             raise CantSendMessage('%s is not a right ID' % thread)
 
         self.location(url)
-        assert self.is_on_page(ContentPage)
+        assert self.content.is_here()
         self.location(self.page.get_post_comment_url())
-        assert self.is_on_page(NewCommentPage)
+        assert self.new_comment.is_here()
 
         self.select_form(predicate=self._is_comment_submit_form)
         self.set_all_readonly(False)
@@ -189,17 +195,17 @@ class DLFP(Browser):
 
         try:
             self.submit()
-        except BrowserHTTPError as e:
+        except HTTPError as e:
             raise CantSendMessage('Unable to send message to %s.%s: %s' % (thread, reply_id, e))
 
-        if self.is_on_page(NodePage):
+        if self.node.is_here():
             errors = self.page.get_errors()
             if len(errors) > 0:
                 raise CantSendMessage('Unable to send message: %s' % ', '.join(errors))
 
         return None
 
-    def login(self):
+    def do_login(self):
         if self.username is None:
             return
 
@@ -210,17 +216,17 @@ class DLFP(Browser):
                 'account[remember_me]': 1,
                 #'authenticity_token': self.page.get_login_token(),
                }
-        self.location('/compte/connexion', urllib.urlencode(data), no_login=True)
+        self.location('/compte/connexion', data=data)
         if not self.is_logged():
             raise BrowserIncorrectPassword()
-        self._token = self.page.document.xpath('//input[@name="authenticity_token"]')
+        self._token = self.page.doc.xpath('//input[@name="authenticity_token"]')
 
     def is_logged(self):
         return (self.username is None or (self.page and self.page.is_logged()))
 
     def close_session(self):
         if self._token:
-            self.openurl('/compte/deconnexion', urllib.urlencode({'authenticity_token': self._token[0].attrib['value']}))
+            self.open('/compte/deconnexion', data={'authenticity_token': self._token[0].attrib['value']})
 
     def plusse(self, url):
         return self.relevance(url, 'for')
@@ -228,6 +234,7 @@ class DLFP(Browser):
     def moinse(self, url):
         return self.relevance(url, 'against')
 
+    @need_login
     def relevance(self, url, what):
         comment = self.get_content(url)
 
@@ -237,35 +244,35 @@ class DLFP(Browser):
         if comment.relevance_token is None:
             return False
 
-        res = self.readurl('%s%s' % (comment.relevance_url, what),
-                           urllib.urlencode({'authenticity_token': comment.relevance_token}))
+        res = self.open('%s%s' % (comment.relevance_url, what),
+                        data={'authenticity_token': comment.relevance_token}).content
 
         return res
 
     def iter_new_board_messages(self):
         self.location('/board/index.xml')
-        assert self.is_on_page(BoardIndexPage)
+        assert self.board_index.is_here()
 
         msgs = self.page.get_messages(self.last_board_msg_id)
         for msg in reversed(msgs):
             self.last_board_msg_id = msg.id
             yield msg
 
+    @need_login
     def board_post(self, msg):
-        request = self.request_class(self.absurl('/board/'),
-                                     urllib.urlencode({'board[message]': msg}),
-                                     {'Referer': self.absurl('/')})
-        self.readurl(request)
+        self.open(self.absurl('/board/'), data={'board[message]': msg},
+                  headers={'Referer': self.absurl('/')})
 
+    @need_login
     def add_tag(self, _id, tag):
         url, _id = self.parse_id(_id)
         if url is None:
             return None
 
         self.location(url)
-        assert self.is_on_page(ContentPage)
+        assert self.content.is_here()
 
         self.location(self.page.get_tag_url())
-        assert self.is_on_page(NewTagPage)
+        assert self.new_tag.is_here()
 
         self.page.tag(tag)

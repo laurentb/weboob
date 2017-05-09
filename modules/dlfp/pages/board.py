@@ -21,7 +21,7 @@
 import re
 from logging import warning
 
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import HTMLPage, LoggedPage
 
 
 class Message(object):
@@ -43,13 +43,10 @@ class Message(object):
             warning('Unable to parse timestamp "%s"' % timestamp)
 
 
-class BoardIndexPage(Page):
-    def is_logged(self):
-        return True
-
+class BoardIndexPage(LoggedPage, HTMLPage):
     def get_messages(self, last=None):
         msgs = []
-        for post in self.parser.select(self.document.getroot(), 'post'):
+        for post in self.doc.xpath('//post'):
             m = Message(int(post.attrib['id']),
                         post.attrib['time'],
                         post.find('login').text,

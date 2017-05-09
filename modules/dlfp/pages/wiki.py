@@ -17,41 +17,38 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.deprecated.browser import BrokenPageError
+import lxml.html
+
+from weboob.browser.filters.standard import CleanText
 
 from .index import DLFPPage
 
 
 class WikiEditPage(DLFPPage):
     def get_body(self):
-        try:
-            return self.parser.select(self.document.getroot(), 'textarea#wiki_page_wiki_body', 1).text
-        except BrokenPageError:
-            return ''
+        return CleanText('//textarea[has-class("wiki_page_wiki_body")]', default='')(self)
 
-    def _is_wiki_form(self, form):
-        return form.attrs.get('class', '') in ('new_wiki_page', 'edit_wiki_page')
+    form_xpath = '//form[@class="new_wiki_page" or @class="edit_wiki_page"]'
 
     def post_content(self, title, body, message):
-        self.browser.select_form(predicate=self._is_wiki_form)
-        self.browser.set_all_readonly(False)
+        form = self.get_form(xpath=self.form_xpath)
 
         if title is not None:
-            self.browser['wiki_page[title]'] = title.encode('utf-8')
-            self.browser['commit'] = 'Créer'
+            form['wiki_page[title]'] = title.encode('utf-8')
+            form['commit'] = 'Créer'
         else:
-            self.browser['commit'] = 'Mettre à jour'
-        self.browser['wiki_page[wiki_body]'] = body.encode('utf-8')
+            form['commit'] = 'Mettre à jour'
+        form['wiki_page[wiki_body]'] = body.encode('utf-8')
         if message is not None:
-            self.browser['wiki_page[message]'] = message.encode('utf-8')
+            form['wiki_page[message]'] = message.encode('utf-8')
 
-        self.browser.submit()
+        form.submit()
 
     def post_preview(self, body):
-        self.browser.select_form(predicate=self._is_wiki_form)
-        self.browser['wiki_page[wiki_body]'] = body
-        self.browser.submit()
+        form = self.get_form(xpath=self.form_xpath)
+        form['wiki_page[wiki_body]'] = body
+        form.submit()
 
     def get_preview_html(self):
-        body = self.parser.select(self.document.getroot(), 'article.wikipage div.content', 1)
-        return self.parser.tostring(body)
+        body = self.doc.xpath('//article[has-class("wikipage")]//div[has-class("content")]')[0]
+        return lxml.html.tostring(body)

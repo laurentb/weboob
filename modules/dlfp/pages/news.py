@@ -17,18 +17,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 from datetime import datetime
 
-from weboob.deprecated.browser import BrokenPageError
-from weboob.tools.date import local2utc
-from ..tools import url2id
+import lxml.html
 
+from weboob.tools.date import local2utc
+
+from ..tools import url2id
 from .index import DLFPPage
 
 
 class RSSComment(DLFPPage):
-    def on_loaded(self):
+    def on_load(self):
         pass
 
 
@@ -69,35 +69,35 @@ class Comment(Content):
 
     def parse(self):
         self.url = '%s#%s' % (self.preurl, self.div.attrib['id'])
-        self.title = unicode(self.browser.parser.select(self.div.find('h2'), 'a.title', 1).text)
+        self.title = unicode(self.div.find('h2').xpath('.//a[has-class("title")]')[0].text)
         try:
-            a = self.browser.parser.select(self.div.find('p'), 'a[rel=author]', 1)
-        except BrokenPageError:
+            a = self.div.find('p').xpath('.//a[@rel="author"]')[0]
+        except IndexError:
             self.author = 'Anonyme'
             self.username = None
         else:
             self.author = unicode(a.text)
             self.username = unicode(a.attrib['href'].split('/')[2])
-        self.date = datetime.strptime(self.browser.parser.select(self.div.find('p'), 'time', 1).attrib['datetime'].split('+')[0],
+        self.date = datetime.strptime(self.div.find('p').xpath('.//time')[0].attrib['datetime'].split('+')[0],
                                       '%Y-%m-%dT%H:%M:%S')
         self.date = local2utc(self.date)
 
         content = self.div.find('div')
         try:
-            signature = self.browser.parser.select(content, 'p.signature', 1)
-        except BrokenPageError:
+            signature = content.xpath('.//p[has-class("signature")]')[0]
+        except IndexError:
             # No signature.
             pass
         else:
             content.remove(signature)
-            self.signature = self.browser.parser.tostring(signature)
-        self.body = self.browser.parser.tostring(content)
+            self.signature = lxml.html.tostring(signature)
+        self.body = lxml.html.tostring(content)
 
-        self.score = int(self.browser.parser.select(self.div.find('p'), 'span.score', 1).text)
-        forms = self.browser.parser.select(self.div.find('footer'), 'form.button_to')
+        self.score = int(self.div.find('p').xpath('.//span[has-class("score")]')[0].text)
+        forms = self.div.find('footer').xpath('.//form[has-class("button_to")]')
         if len(forms) > 0:
             self.relevance_url = forms[0].attrib['action'].rstrip('for').rstrip('against')
-            self.relevance_token = self.browser.parser.select(forms[0], 'input[name=authenticity_token]', 1).attrib['value']
+            self.relevance_token = forms[0].xpath('.//input[@name="authenticity_token"]')[0].attrib['value']
 
     def iter_all_comments(self):
         for comment in self.comments:
@@ -123,26 +123,26 @@ class Article(Content):
         header = tree.find('header')
         self.title = u' — '.join([a.text for a in header.find('h1').xpath('.//a')])
         try:
-            a = self.browser.parser.select(header, 'a[rel=author]', 1)
-        except BrokenPageError:
+            a = header.xpath('.//a[@rel="author"]')[0]
+        except IndexError:
             self.author = 'Anonyme'
             self.username = None
         else:
             self.author = unicode(a.text)
             self.username = unicode(a.attrib['href'].split('/')[2])
-        self.body = self.browser.parser.tostring(self.browser.parser.select(tree, 'div.content', 1))
+        self.body = lxml.html.tostring(tree.xpath('.//div[has-class("content")]')[0])
         try:
-            self.date = datetime.strptime(self.browser.parser.select(header, 'time', 1).attrib['datetime'].split('+')[0],
+            self.date = datetime.strptime(header.xpath('.//time')[0].attrib['datetime'].split('+')[0],
                                           '%Y-%m-%dT%H:%M:%S')
             self.date = local2utc(self.date)
-        except BrokenPageError:
+        except IndexError:
             pass
-        for form in self.browser.parser.select(tree.find('footer'), 'form.button_to'):
+        for form in tree.find('footer').xpath('//form[has-class("button_to")]'):
             if form.attrib['action'].endswith('/for'):
                 self.relevance_url = form.attrib['action'].rstrip('for').rstrip('against')
-                self.relevance_token = self.browser.parser.select(form, 'input[name=authenticity_token]', 1).attrib['value']
+                self.relevance_token = form.xpath('.//input[@name="authenticity_token"]')[0].attrib['value']
 
-        self.score = int(self.browser.parser.select(tree, 'div.figures figure.score', 1).text)
+        self.score = int(tree.xpath('.//div[has-class("figures")]//figure[has-class("score")]')[0].text)
 
     def append_comment(self, comment):
         self.comments.append(comment)
@@ -157,12 +157,11 @@ class Article(Content):
 class CommentPage(DLFPPage):
     def get_comment(self):
         article = Article(self.browser, self.url, None)
-        return Comment(article, self.parser.select(self.document.getroot(), 'li.comment', 1), 0)
+        return Comment(article, self.doc.xpath('li[has-class("comment")]')[0], 0)
 
 
 class ContentPage(DLFPPage):
-    def on_loaded(self):
-        self.article = None
+    article = None
 
     def is_taggable(self):
         return True
@@ -170,8 +169,8 @@ class ContentPage(DLFPPage):
     def get_comment(self, id):
         article = Article(self.browser, self.url, None)
         try:
-            li = self.parser.select(self.document.getroot(), 'li#comment-%s' % id, 1)
-        except BrokenPageError:
+            li = self.doc.xpath('//li[has-class("comment-%s")]' % id)[0]
+        except IndexError:
             return None
         else:
             return Comment(article, li, 0)
@@ -180,11 +179,11 @@ class ContentPage(DLFPPage):
         if not self.article:
             self.article = Article(self.browser,
                                    self.url,
-                                   self.parser.select(self.document.getroot(), 'main#contents article', 1))
+                                   self.doc.xpath('//main[@id="contents"]//article')[0])
 
             try:
-                threads = self.parser.select(self.document.getroot(), 'ul.threads', 1)
-            except BrokenPageError:
+                threads = self.doc.xpath('//ul[has-class("threads")]')[0]
+            except IndexError:
                 pass # no comments
             else:
                 for comment in threads.findall('li'):
@@ -193,10 +192,10 @@ class ContentPage(DLFPPage):
         return self.article
 
     def get_post_comment_url(self):
-        return self.parser.select(self.document.getroot(), 'p#send-comment', 1).find('a').attrib['href']
+        return self.doc.xpath('p[@id="send-comment"]')[0].find('a').attrib['href']
 
     def get_tag_url(self):
-        return self.parser.select(self.document.getroot(), 'div.tag_in_place', 1).find('a').attrib['href']
+        return self.doc.xpath('//div[has-class("tag_in_place")]')[0].find('a').attrib['href']
 
 
 class NewCommentPage(DLFPPage):
@@ -216,8 +215,8 @@ class NewTagPage(DLFPPage):
 class NodePage(DLFPPage):
     def get_errors(self):
         try:
-            div = self.parser.select(self.document.getroot(), 'div.errors', 1)
-        except BrokenPageError:
+            div = self.doc.xpath('//div[has-class("errors")]')[0]
+        except IndexError:
             return []
 
         l = []

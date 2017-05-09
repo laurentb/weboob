@@ -18,24 +18,23 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import HTMLPage, FormNotFound
 
 
-class DLFPPage(Page):
-    def is_logged(self):
-        for form in self.document.getiterator('form'):
-            if form.attrib.get('id', None) == 'new_account_sidebar':
-                return False
-
-        return True
+class DLFPPage(HTMLPage):
+    @property
+    def logged(self):
+        try:
+            self.get_form(id='new_account_sidebar')
+            return False
+        except FormNotFound:
+            return True
 
 
 class IndexPage(DLFPPage):
     def get_login_token(self):
-        form = self.parser.select(self.document.getroot(), 'form#new_account_sidebar', 1)
-        for i in form.find('div').getiterator('input'):
-            if i.attrib['name'] == 'authenticity_token':
-                return i.attrib['value']
+        form = self.get_form(id="new_account_sidebar")
+        return form.get('authenticity_token')
 
 
 class LoginPage(DLFPPage):

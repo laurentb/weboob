@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 import time
 
 from weboob.tools.backend import Module, BackendConfig
-from weboob.deprecated.browser import BrowserForbidden
+from weboob.exceptions import BrowserForbidden
 from weboob.tools.newsfeed import Newsfeed
 from weboob.tools.value import Value, ValueBool, ValueBackendPassword
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Message, Thread, CantSendMessage
@@ -74,8 +74,7 @@ class DLFPModule(Module, CapMessages, CapMessagesPost, CapContent):
         if not self._browser:
             return
 
-        with self.browser:
-            self.browser.close_session()
+        self.browser.close_session()
 
     #### CapMessages ##############################################
 
@@ -107,8 +106,7 @@ class DLFPModule(Module, CapMessages, CapMessagesPost, CapContent):
                 self.storage.set('date', id, thread.date)
                 self.storage.save()
 
-        with self.browser:
-            content = self.browser.get_content(id)
+        content = self.browser.get_content(id)
 
         if not content:
             return None
@@ -179,9 +177,8 @@ class DLFPModule(Module, CapMessages, CapMessagesPost, CapContent):
     def iter_unread_messages(self):
         for thread in self.iter_threads():
             # Check if we have seen all comments of this thread.
-            with self.browser:
-                oldhash = self.storage.get('hash', thread.id, default="")
-                newhash = self.browser.get_hash(thread._rsscomment)
+            oldhash = self.storage.get('hash', thread.id, default="")
+            newhash = self.browser.get_hash(thread._rsscomment)
             if oldhash != newhash:
                 self.storage.set('hash', thread.id, newhash)
                 self.storage.save()
@@ -231,11 +228,10 @@ class DLFPModule(Module, CapMessages, CapMessagesPost, CapContent):
 
         assert message.thread
 
-        with self.browser:
-            return self.browser.post_comment(message.thread.id,
-                                             message.parent.id,
-                                             message.title,
-                                             message.content)
+        return self.browser.post_comment(message.thread.id,
+                                         message.parent.id,
+                                         message.title,
+                                         message.content)
 
     #### CapContent ###############################################
     def get_content(self, _id, revision=None):
@@ -247,8 +243,8 @@ class DLFPModule(Module, CapMessages, CapMessagesPost, CapContent):
 
         if revision:
             raise NotImplementedError('Website does not provide access to older revisions sources.')
-        with self.browser:
-            data = self.browser.get_wiki_content(_id)
+
+        data = self.browser.get_wiki_content(_id)
 
         if data is None:
             return None
@@ -259,11 +255,9 @@ class DLFPModule(Module, CapMessages, CapMessagesPost, CapContent):
     def push_content(self, content, message=None, minor=False):
         if not self.browser.username:
             raise BrowserForbidden()
-        with self.browser:
-            return self.browser.set_wiki_content(content.id, content.content, message)
+        return self.browser.set_wiki_content(content.id, content.content, message)
 
     def get_content_preview(self, content):
-        with self.browser:
-            return self.browser.get_wiki_preview(content.id, content.content)
+        return self.browser.get_wiki_preview(content.id, content.content)
 
     OBJECTS = {Thread: fill_thread}
