@@ -343,3 +343,42 @@ def get_pdf_rows(data, miner_layout=True):
 
         yield textrows
     device.close()
+
+# Export part #
+
+def html_to_pdf(browser, url=None, data=None, extra_options=None):
+    """
+    Convert html to PDF.
+
+    :param browser: browser instance
+    :param url: link to the html ressource
+    :param data: HTML content
+    :return: the document converted in PDF
+    :rtype: str
+    """
+    try:
+        import pdfkit # https://pypi.python.org/pypi/pdfkit
+    except ImportError:
+        raise ImportError('Please install python-pdfkit')
+
+    assert (url or data) and not (url and data), 'Please give only url or data parameter'
+
+    callback = pdfkit.from_url if url else pdfkit.from_string
+
+    options = {
+        'quiet': '', # do not print conversion steps
+    }
+
+    try:
+        cookies = browser.session.cookies
+    except AttributeError:
+        pass
+    else:
+        options.update({
+            'cookie': [(cookie, value) for cookie, value in cookies.items() if value], # cookies of browser
+        })
+
+    if extra_options:
+        options.update(extra_options)
+
+    return callback(url or data, False, options=options)

@@ -158,6 +158,16 @@ class CapDocument(CapCollection):
         """
         raise NotImplementedError()
 
+    def download_document_pdf(self, id):
+        """
+        Download a document and convert it to PDF.
+
+        :param id: ID of document
+        :rtype: str
+        :raises: :class:`DocumentNotFound`
+        """
+        raise NotImplementedError()
+
     def iter_documents(self, subscription):
         """
         Iter documents.

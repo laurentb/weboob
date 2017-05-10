@@ -172,7 +172,7 @@ class Boobill(ReplApplication):
         """
         self.exec_method(id, 'iter_bills')
 
-    def do_download(self, line):
+    def do_download(self, line, force_pdf=False):
         """
         download [ID | all] [FILENAME]
 
@@ -196,23 +196,27 @@ class Boobill(ReplApplication):
             return 2
 
         names = (backend_name,) if backend_name is not None else None
+
         # Special keywords, download all documents of all subscriptions
         if id == "all":
+            callback = self.download_all if not force_pdf else self.download_all_pdf
+
             if dest is None:
                 for subscription in self.do('iter_subscription', backends=names):
-                    self.download_all(subscription.id, names)
+                    callback(subscription.id, names)
                 return
             else:
-                self.download_all(dest, names)
+                callback(dest, names)
                 return
 
         if dest is None:
             for document in self.do('get_document', id, backends=names):
-                dest = id + "." + document.format
+                dest = id + "." + (document.format if not force_pdf else 'pdf')
 
         if 'document' not in locals():
             document = id
-        for buf in self.do('download_document', document, backends=names):
+
+        for buf in self.do('download_document' if not force_pdf else 'download_document_pdf', document, backends=names):
             if buf:
                 if dest == "-":
                     print(buf)
@@ -225,11 +229,22 @@ class Boobill(ReplApplication):
                         return 1
                 return
 
-    def download_all(self, id, names):
+    def do_download_pdf(self, line):
+        """
+        download_pdf [id | all]
+
+        download function with forced PDF conversion.
+        """
+
+        return self.do_download(line, force_pdf=True)
+
+    def download_all(self, id, names, force_pdf=False):
         id, backend_name = self.parse_id(id)
+
         for document in self.do('iter_documents', id, backends=names):
-            dest = document.id + "." + document.format
-            for buf in self.do('download_document', document, backends=names):
+            dest = document.id + "." + (document.format if not force_pdf else 'pdf')
+
+            for buf in self.do('download_document' if not force_pdf else 'download_document_pdf', document, backends=names):
                 if buf:
                     if dest == "-":
                         print(buf)
@@ -240,5 +255,13 @@ class Boobill(ReplApplication):
                         except IOError as e:
                             print('Unable to write bill in "%s": %s' % (dest, e), file=self.stderr)
                             return 1
-
         return
+
+    def download_all_pdf(self, id, names):
+        """
+        download_pdf all
+
+        download_all function with forced PDF conversion.
+        """
+
+        return self.download_all(id, names, force_pdf=True)
