@@ -37,7 +37,7 @@ from weboob.tools.value import Value
 from .pages import (
     LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,
     MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ProfilePage, ExpertPage,
-    CardsNumberPage, CalendarPage, HomePage,
+    CardsNumberPage, CalendarPage, HomePage, PEPPage,
     TransferAccounts, TransferRecipients, TransferCharac, TransferConfirm, TransferSent,
     AddRecipientPage, RecipientCreated,
 )
@@ -69,6 +69,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     budget_transactions = URL('/budget/compte/(?P<webid>.*)/mouvements.*', HistoryPage)
     other_transactions = URL('/compte/cav/(?P<webid>.*)/mouvements.*', HistoryPage)
     saving_transactions = URL('/compte/epargne/csl/(?P<webid>.*)/mouvements.*', HistoryPage)
+    saving_pep = URL('/compte/epargne/pep',  PEPPage)
     incident = URL('/compte/cav/(?P<webid>.*)/mes-incidents.*', IncidentPage)
 
     transfer_accounts = URL(r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/nouveau/(?P<id>\w+)/1',
@@ -238,6 +239,8 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     @need_login
     def get_history(self, account, coming=False):
         if account.type is Account.TYPE_LOAN or '/compte/derive' in account.url:
+            return []
+        if account.type is Account.TYPE_SAVINGS and u"PLAN D'\xc9PARGNE POPULAIRE" in account.label:
             return []
         if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
             return self.get_invest_transactions(account, coming)

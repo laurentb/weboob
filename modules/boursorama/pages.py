@@ -767,3 +767,7 @@ class AddRecipientPage(LoggedPage, HTMLPage):
 
 class RecipientCreated(LoggedPage, HTMLPage):
     pass
+
+
+class PEPPage(LoggedPage, HTMLPage):
+    pass
