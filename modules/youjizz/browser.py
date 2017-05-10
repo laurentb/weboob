@@ -36,6 +36,7 @@ class YoujizzBrowser(PagesBrowser):
                 IndexPage)
     search = URL(r'/search/(?P<pattern>.+)-(?P<pagenum>\d+).html', IndexPage)
     video = URL(r'/videos/(?P<id>.*).html', VideoPage)
+    video_url = URL(r'/videos/embed/\d+', VideoPage)
 
     @video.id2url
     def get_video(self, url, video=None):

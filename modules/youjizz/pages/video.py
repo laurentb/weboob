@@ -18,13 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
-
 from weboob.browser.pages import HTMLPage
 from weboob.browser.elements import ItemElement, method
-from weboob.browser.filters.standard import CleanText, Env, Duration
+from weboob.browser.filters.standard import CleanText, Env, Async, AsyncLoad, Regexp, Format
+from weboob.browser.filters.html import Attr
 from weboob.capabilities.video import BaseVideo
-from weboob.tools.misc import to_unicode
 
 
 class VideoPage(HTMLPage):
@@ -36,20 +34,6 @@ class VideoPage(HTMLPage):
         obj_title = CleanText('//title')
         obj_nsfw = True
         obj_ext = u'flv'
-        obj_duration = CleanText('//div[@id="video_text"]') & Duration
 
-        def obj_url(self):
-            real_id = int(self.env['id'].split('-')[-1])
-            response = self.page.browser.open('https://www.youjizz.com/videos/embed/%s' % real_id)
-            data = response.text
-
-            video_file_urls = re.findall(r'"((?:https?:)?//[^",]+\.(?:flv|mp4)(?:\?[^"]*)?)"', data)
-            if len(video_file_urls) == 0:
-                raise ValueError('Video URL not found')
-            elif len(video_file_urls) > 1:
-                raise ValueError('Many video file URL found')
-            else:
-                url = to_unicode(video_file_urls[0])
-                if url.startswith('//'):
-                    url = u'https:' + url
-                return url
+        load_url = Format('https://www.youjizz.com/videos/embed/%s', Regexp(Env('id'), '.*-(.+)$')) & AsyncLoad
+        obj_url = Async('url') & Format('https:%s', Attr('(//div[has-class("desktop-only")]/video//source)[last()]', 'src'))
