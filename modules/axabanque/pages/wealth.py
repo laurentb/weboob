@@ -94,7 +94,7 @@ class InvestmentPage(LoggedPage, HTMLPage):
                 txt = CleanText('./text()')(td)
                 return Date('.', dayfirst=True, default=NotAvailable).filter(txt)
 
-            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share')))
+            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share'), replace_dots=True))
 
 
 class Transaction(FrenchTransaction):
