@@ -19,8 +19,10 @@
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
+from weboob.capabilities.bank import Account
+from weboob.capabilities.base import empty
 
-from .pages import LoginPage, AccountsPage, TransactionsPage
+from .pages import LoginPage, AccountsPage, TransactionsPage, AVBalancePage, AVHistoryPage, FormPage
 
 
 __all__ = ['GanAssurances']
@@ -30,8 +32,11 @@ class GanAssurances(LoginBrowser):
     login = URL('/wps/portal/login.*',
                 'https://authentification.ganassurances.fr/cas/login.*',
                 '/wps/portal/inscription.*', LoginPage)
+    form_balance = URL('/wps/myportal/assurancevie/rivage/!ut/p/a1/.*', FormPage)
     accounts = URL('/wps/myportal/TableauDeBord', AccountsPage)
     transactions = URL('/wps/myportal/!ut.*', TransactionsPage)
+    av_balance = URL('https://secure-rivage.ganassurances.fr/contratVie.rivage.syntheseContratEparUc.gsi', AVBalancePage)
+    av_history = URL('https://secure-rivage.ganassurances.fr/contratVie.rivage.mesOperations.gsi', AVHistoryPage)
 
     def __init__(self, website, *args, **kwargs):
         self.BASEURL = 'https://%s' % website
@@ -55,19 +60,33 @@ class GanAssurances(LoginBrowser):
             # sometimes ganassurances may be redirected to groupama.../login
             raise BrowserIncorrectPassword()
 
+    # For life asssurance accounts, to get balance we use the link from the account.
+    # And to get history (or other) we need to use the link again but the link works only once.
+    # So we get balance only for iter_account to not use the new link each time.
     @need_login
-    def get_accounts_list(self):
+    def get_accounts_list(self, balance=True):
         self.accounts.stay_or_go()
-        return self.page.get_list()
+        a = self.page.get_list()
+        for account in a:
+            if account.type == Account.TYPE_LIFE_INSURANCE and balance:
+                assert empty(account.balance)
+                self.location(account._link)
+                self.page.balance_form()
+                account.balance = self.page.get_av_balance()
+                self.location(self.BASEURL)
+        return a
 
     def get_history(self, account):
-        accounts = self.get_accounts_list()
+        accounts = self.get_accounts_list(balance=False)
         for a in accounts:
             if a.id == account.id:
                 self.location(a._link)
+                if a.type == Account.TYPE_LIFE_INSURANCE:
+                    self.page.balance_form()
+                    self.av_history.go()
+                    return self.page.get_av_history()
                 assert self.transactions.is_here()
                 return self.page.get_history(accid=account.id)
-
         return iter([])
 
     def get_coming(self, account):

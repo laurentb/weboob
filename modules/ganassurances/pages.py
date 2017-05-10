@@ -22,10 +22,11 @@ import re
 import requests
 import ast
 
-from weboob.browser.pages import HTMLPage, pagination
-from weboob.browser.elements import method
-from weboob.browser.filters.standard import Env
+from weboob.browser.pages import HTMLPage, pagination, LoggedPage
+from weboob.browser.elements import method, TableElement, ItemElement
+from weboob.browser.filters.standard import Env, CleanDecimal, CleanText, TableCell, Date
 from weboob.browser.filters.html import Attr
+from weboob.browser.filters.javascript import JSVar
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -49,6 +50,7 @@ class AccountsPage(HTMLPage):
     logged = True
     ACCOUNT_TYPES = {u'Solde des comptes bancaires - Groupama Banque':  Account.TYPE_CHECKING,
                      u'Epargne bancaire constituée - Groupama Banque':  Account.TYPE_SAVINGS,
+                     u'Assurance Vie':  Account.TYPE_LIFE_INSURANCE,
                     }
 
     def get_list(self):
@@ -61,24 +63,28 @@ class AccountsPage(HTMLPage):
                 continue
 
             tds = tr.findall('td')
+            a = tds[0].find('a')
 
             balance = tds[-1].text.strip()
-            if balance == '':
-                continue
 
             account = Account()
             account.label = u' '.join([txt.strip() for txt in tds[0].itertext()])
             account.label = re.sub(u'[ \xa0\u2022\r\n\t]+', u' ', account.label).strip()
             account.id = re.findall('(\d+)', account.label)[0]
-            account.balance = Decimal(FrenchTransaction.clean_amount(balance))
-            account.currency = account.get_currency(balance)
             account.type = account_type
-            m = re.search(r"javascript:submitForm\(([\w_]+),'([^']+)'\);", tds[0].find('a').attrib['onclick'])
-            if not m:
-                self.logger.warning('Unable to find link for %r' % account.label)
-                account._link = None
+            if balance:
+                account.balance = Decimal(FrenchTransaction.clean_amount(balance))
+                account.currency = account.get_currency(balance)
+
+            if 'onclick' in a.attrib:
+                m = re.search(r"javascript:submitForm\(([\w_]+),'([^']+)'\);", a.attrib['onclick'])
+                if not m:
+                    self.logger.warning('Unable to find link for %r' % account.label)
+                    account._link = None
+                else:
+                    account._link = m.group(2)
             else:
-                account._link = m.group(2)
+                account._link = a.attrib['href'].strip()
 
             accounts.append(account)
 
@@ -133,3 +139,43 @@ class TransactionsPage(HTMLPage):
         return re.sub('[ \t\r\n]+', '', a.attrib['href'])
 
 
+class AVBalancePage(LoggedPage, HTMLPage):
+    def get_av_balance(self):
+        return CleanDecimal('//td[@class="total"][1]')(self.doc)
+
+
+class AVHistoryPage(LoggedPage, HTMLPage):
+    @method
+    class get_av_history(TableElement):
+        item_xpath = '//table[@id="enteteTableSupports"]/tbody/tr'
+        head_xpath = '//table[@id="enteteTableSupports"]/thead/tr/th'
+
+        col_date = 'Date'
+        col_label = 'Type de mouvement'
+        col_debit = u'Montant Désinvesti'
+        col_credit = 'Montant investi'
+
+        class item(ItemElement):
+            klass = Transaction
+
+            def condition(self):
+                return CleanText(TableCell('date'))(self) != 'en cours'
+
+            obj_label = CleanText(TableCell('label'))
+            obj_type = Transaction.TYPE_BANK
+            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
+
+            def obj_amount(self):
+                debit = CleanDecimal(TableCell('debit'), default=Decimal(0))(self)
+                credit = CleanDecimal(TableCell('credit'), default=Decimal(0))(self)
+                return credit - abs(debit)
+
+
+class FormPage(LoggedPage, HTMLPage):
+    def balance_form(self):
+        form = self.get_form('//form[@id="formGoToRivage"]')
+        form['gfr_numeroContrat'] = JSVar(var='numContrat').filter(CleanText('//script[contains(text(), "var numContrat")]')(self.doc))
+        form['gfr_data'] = JSVar(var='pCryptage').filter(CleanText('//script[contains(text(), "var pCryptage")]')(self.doc))
+        form['gfr_adrSite'] = 'https://espaceclient.ganassurances.fr'
+        form.url = 'https://secure-rivage.ganassurances.fr/contratVie.rivage.syntheseContratEparUc.gsi'
+        form.submit()
