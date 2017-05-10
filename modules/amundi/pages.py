@@ -26,6 +26,7 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.pages import LoggedPage, JsonPage
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
+from weboob.exceptions import NoAccountsException
 
 
 class LoginPage(JsonPage):
@@ -42,6 +43,10 @@ class AccountsPage(LoggedPage, JsonPage):
 
     @method
     class iter_accounts(DictElement):
+        def parse(self, el):
+            if not el.get('count', 42):
+                raise NoAccountsException()
+
         item_xpath = "listPositionsSalarieFondsDto/*/positionsSalarieDispositifDto"
 
         class item(ItemElement):
