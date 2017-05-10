@@ -734,6 +734,18 @@ class RibPage(LoggedPage, LCLBasePage):
         if (self.doc.xpath('//div[contains(@class, "rib_cadre")]//div[contains(@class, "rib_internat")]')):
             return CleanText().filter(self.doc.xpath('//div[contains(@class, "rib_cadre")]//div[contains(@class, "rib_internat")]//p//strong')[0].text).replace(' ','')
 
+    def check_iban_by_account(self, account_id):
+        iban_account_id = CleanText().filter(self.doc.xpath('(//td[@class[contains(., "guichet-")]]/following-sibling::*)[1]/strong'))
+        iban_guichet_id = CleanText().filter(self.doc.xpath('(//td[@class[contains(., "guichet-")]]/strong)[1]'))
+        iban_account = "%s%s" % (iban_guichet_id, iban_account_id[4:])
+
+        if account_id == iban_account:
+            return CleanText().filter(self.doc.xpath('//div[contains(@class, "rib_cadre")]//div[contains(@class, "rib_internat")]//p//strong')[0].text).replace(' ', '')
+        else:
+            return None
+
+    def has_iban_choice(self):
+        return False if self.doc.xpath('(//strong[contains(., "RELEVE D\'IDENTITE BANCAIRE")])[1]') else True
 
 class HomePage(LoggedPage, HTMLPage):
     pass

@@ -65,6 +65,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                   AccountHistoryPage)
     rib = URL('/outil/UWRI/Accueil/detailRib',
               '/outil/UWRI/Accueil/listeRib', RibPage)
+    finalrib = URL('/outil/UWRI/Accueil/', RibPage)
     cb_list = URL('/outil/UWCB/UWCBEncours.*/listeCBCompte.*', CBListPage)
     cb_history = URL('/outil/UWCB/UWCBEncours.*/listeOperations.*', CBHistoryPage)
     skip = URL('/outil/UAUT/Contrat/selectionnerContrat.*',
@@ -149,10 +150,14 @@ class LCLBrowser(LoginBrowser, StatesMixin):
             self.accounts.stay_or_go()
             for a in self.page.get_list():
                 self.location('/outil/UWRI/Accueil/')
-                self.rib.go(data={'compte': '%s/%s/%s' % (a.id[0:5], a.id[5:11], a.id[11:])})
-                if self.rib.is_here():
-                    iban = self.page.get_iban()
-                    a.iban = iban if iban and a.id[11:] in iban else NotAvailable
+                if self.page.has_iban_choice():
+                    self.rib.go(data={'compte': '%s/%s/%s' % (a.id[0:5], a.id[5:11], a.id[11:])})
+                    if self.rib.is_here():
+                        iban = self.page.get_iban()
+                        a.iban = iban if iban and a.id[11:] in iban else NotAvailable
+                else:
+                    iban = self.page.check_iban_by_account(a.id)
+                    a.iban = iban if iban is not None else NotAvailable
                 self.accounts_list.append(a)
             self.loans.stay_or_go()
             if self.no_perm.is_here():
