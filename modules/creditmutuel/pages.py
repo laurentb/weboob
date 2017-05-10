@@ -816,7 +816,7 @@ class IbanPage(LoggedPage, HTMLPage):
     def fill_iban(self, accounts):
 
         # Old website
-        for ele in self.doc.xpath('//table[@class="liste"]/tr[@class]/td[1]'):
+        for ele in self.doc.xpath('//table[has-class("liste")]/tr[@class]/td[1]'):
             for a in accounts:
                 if a._is_webid:
                     if a.label in CleanText('.//div[1]')(ele).title():
@@ -829,7 +829,7 @@ class IbanPage(LoggedPage, HTMLPage):
                         a.iban = CleanText('.//div[5]/em', replace=[(' ', '')])(ele)
 
         # New website
-        for ele in self.doc.xpath('//table[@class="liste"]//tr[not(@class)]/td[1]'):
+        for ele in self.doc.xpath('//table[has-class("liste")]//tr[not(@class)]/td[1]'):
             for a in accounts:
                 if a.id.split('EUR')[0] in CleanText('.//em[2]', replace=[(' ', '')])(ele):
                     a.iban = CleanText('.//em[2]', replace=[(' ', '')])(ele)
