@@ -374,8 +374,8 @@ class CardsListPage(LoggedPage, HTMLPage):
     @pagination
     @method
     class iter_cards(TableElement):
-        item_xpath = '//table[@class="liste"]/tbody/tr'
-        head_xpath = '//table[@class="liste"]/thead//tr/th'
+        item_xpath = '//table[has-class("liste")]/tbody/tr'
+        head_xpath = '//table[has-class("liste")]/thead//tr/th'
 
         col_owner = 'Porteur'
         col_card = 'Carte'
@@ -443,7 +443,7 @@ class CardsListPage(LoggedPage, HTMLPage):
 
                 # 1 card : we have to check on another page to get id
                 page = page.browser.open(Link('//form//a[text()="Contrat"]')(page.doc)).page
-                xpath = '//table[@class="liste"]/tbody/tr'
+                xpath = '//table[has-class("liste")]/tbody/tr'
                 active_card = CleanText('%s[td[text()="Active"]][1]/td[2]' % xpath, replace=[(' ', '')], default=None)(page.doc)
 
                 if not active_card and len(page.doc.xpath(xpath)) != 1:
@@ -473,8 +473,8 @@ class Transaction(FrenchTransaction):
 class OperationsPage(LoggedPage, HTMLPage):
     @method
     class get_history(Pagination, Transaction.TransactionsElement):
-        head_xpath = '//table[@class="liste"]//thead//tr/th'
-        item_xpath = '//table[@class="liste"]//tbody/tr'
+        head_xpath = '//table[has-class("liste")]//thead//tr/th'
+        item_xpath = '//table[has-class("liste")]//tbody/tr'
 
         class item(Transaction.TransactionElement):
             condition = lambda self: len(self.el.xpath('./td')) >= 3 and len(self.el.xpath('./td[@class="i g" or @class="p g" or contains(@class, "_c1")]')) > 0
@@ -519,7 +519,7 @@ class OperationsPage(LoggedPage, HTMLPage):
 class CardsOpePage(OperationsPage):
     def select_card(self, card_number):
         if CleanText('//select[@id="iso"]', default=None)(self.doc):
-            form = self.get_form('//p[@class="restriction"]')
+            form = self.get_form('//p[has-class("restriction")]')
             card_number = ' '.join([card_number[j*4:j*4+4] for j in xrange(len(card_number)/4+1)]).strip()
             form['iso'] = Attr('//option[text()="%s"]' % card_number, 'value')(self.doc)
             moi = Attr('//select[@id="moi"]/option[@selected]', 'value', default=None)(self.doc)
@@ -530,8 +530,8 @@ class CardsOpePage(OperationsPage):
 
     @method
     class get_history(Pagination, Transaction.TransactionsElement):
-        head_xpath = '//table[@class="liste"]//thead//tr/th'
-        item_xpath = '//table[@class="liste"]/tr'
+        head_xpath = '//table[has-class("liste")]//thead//tr/th'
+        item_xpath = '//table[has-class("liste")]/tr'
 
         col_city = u'Ville'
         col_original_amount = u'Montant d\'origine'
@@ -566,7 +566,7 @@ class CardsOpePage(OperationsPage):
                         d = CleanText(u'//select[@id="moi"]/option[@selected]')(self) or \
                             re.search('pour le mois de (.*)', ''.join(w.strip() for w in self.page.doc.xpath('//div[@class="a_blocongfond"]/text()'))).group(1)
                     except AttributeError:
-                        d = Regexp(CleanText('//p[@class="restriction"]'), 'pour le mois de ((?:\w+\s+){2})', flags=re.UNICODE)(self)
+                        d = Regexp(CleanText('//p[has-class("restriction")]'), 'pour le mois de ((?:\w+\s+){2})', flags=re.UNICODE)(self)
                     self.env['date'] = (parse_french_date('%s %s' % ('1', d)) + relativedelta(day=31)).date()
                 self.env['_is_coming'] = date.today() < self.env['date']
                 amount = CleanText(TableCell('amount'))(self).split('dont frais')
@@ -577,8 +577,8 @@ class CardsOpePage(OperationsPage):
 class ComingPage(OperationsPage, LoggedPage):
     @method
     class get_history(Pagination, Transaction.TransactionsElement):
-        head_xpath = '//table[@class="liste"]//thead//tr/th/text()'
-        item_xpath = '//table[@class="liste"]//tbody/tr'
+        head_xpath = '//table[has-class("liste")]//thead//tr/th/text()'
+        item_xpath = '//table[has-class("liste")]//tbody/tr'
 
         col_date = u"Date de l'annonce"
 
@@ -588,7 +588,7 @@ class ComingPage(OperationsPage, LoggedPage):
 
 class CardPage(OperationsPage, LoggedPage):
     def is_fleet(self):
-        return len(self.doc.xpath('//table[@class="liste"]/tbody/tr/td/a')) >= 5
+        return len(self.doc.xpath('//table[has-class("liste")]/tbody/tr/td/a')) >= 5
 
     def select_card(self, card_number):
         for option in self.doc.xpath('//select[@name="Data_SelectedCardItemKey"]/option'):
@@ -608,7 +608,7 @@ class CardPage(OperationsPage, LoggedPage):
     @method
     class get_history(Pagination, ListElement):
         class list_cards(ListElement):
-            item_xpath = '//table[@class="liste"]/tbody/tr/td/a'
+            item_xpath = '//table[has-class("liste")]/tbody/tr/td/a'
 
             class item(ItemElement):
                 def __iter__(self):
@@ -619,8 +619,8 @@ class CardPage(OperationsPage, LoggedPage):
                         yield op
 
         class list_history(Transaction.TransactionsElement):
-            head_xpath = '//table[@class="liste"]//thead/tr/th'
-            item_xpath = '//table[@class="liste"]/tbody/tr'
+            head_xpath = '//table[has-class("liste")]//thead/tr/th'
+            item_xpath = '//table[has-class("liste")]/tbody/tr'
 
             col_commerce = u'Commerce'
             col_ville = u'Ville'
@@ -700,7 +700,7 @@ class LIAccountsPage(LoggedPage, HTMLPage):
 
     @method
     class iter_history(ListElement):
-        item_xpath = '//table[@class="liste"]/tbody/tr'
+        item_xpath = '//table[has-class("liste")]/tbody/tr'
 
         class item(ItemElement):
             klass = FrenchTransaction
@@ -720,8 +720,8 @@ class LIAccountsPage(LoggedPage, HTMLPage):
 
     @method
     class iter_investment(TableElement):
-        item_xpath = '//table[@class="liste"]/tbody/tr[count(td)>7]'
-        head_xpath = '//table[@class="liste"]/thead/tr/th'
+        item_xpath = '//table[has-class("liste")]/tbody/tr[count(td)>7]'
+        head_xpath = '//table[has-class("liste")]/thead/tr/th'
 
         col_label = u'Support'
         col_unitprice = re.compile(r'^Prix d\'achat moyen')
@@ -786,7 +786,7 @@ class PorPage(LoggedPage, HTMLPage):
 
     def fill(self, acc):
         self.send_form(acc)
-        ele = self.browser.page.doc.xpath('.//table[@class="fiche bourse"]')[0]
+        ele = self.browser.page.doc.xpath('.//table[has-class("fiche bourse")]')[0]
         balance = CleanDecimal(ele.xpath('.//td[contains(@id, "Valorisation")]'), default=Decimal(0), replace_dots=True)(ele)
         acc.balance = balance + acc.balance if acc.balance else balance
         acc.currency = FrenchTransaction.Currency('.')(ele)
