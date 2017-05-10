@@ -39,7 +39,7 @@ class CmsoProBrowser(LoginBrowser):
     useless = URL('/domiweb/prive/particulier/modificationMotDePasse/0-expirationMotDePasse.act', UselessPage)
 
     investment = URL('/domiweb/prive/particulier/portefeuilleSituation/0-situationPortefeuille.act', InvestmentPage)
-    invest_account = URL(r'/domiweb/prive/particulier/portefeuilleSituation/2-situationPortefeuille.act\?indiceCompte=(?P<idx>\d+)&idRacine=(?P<idroot>\d+)', InvestmentAccountPage)
+    invest_account = URL(r'/domiweb/prive/particulier/portefeuilleSituation/2-situationPortefeuille.act\?(?:csrf=[^&]*&)?indiceCompte=(?P<idx>\d+)&idRacine=(?P<idroot>\d+)', InvestmentAccountPage)
 
     def __init__(self, website, *args, **kwargs):
         super(CmsoProBrowser, self).__init__(*args, **kwargs)
@@ -61,6 +61,7 @@ class CmsoProBrowser(LoginBrowser):
     def fetch_areas(self):
         if self.areas is None:
             self.subscription.go()
+            self.areas = list(self.page.get_areas())
 
     @need_login
     def iter_accounts(self):
@@ -115,11 +116,17 @@ class CmsoProBrowser(LoginBrowser):
     def iter_investment(self, account):
         self.fetch_areas()
 
+        self.subscription.go()
+        self.location(account._area)
+
         self.investment.go()
         assert self.investment.is_here()
         for page_account in self.page.iter_accounts():
             if page_account.id == account.id:
-                self.page.go_account(*page_account._formdata)
+                if page_account._formdata:
+                    self.page.go_account(*page_account._formdata)
+                else:
+                    self.location(page_account.url)
                 break
         else:
             # not an investment account

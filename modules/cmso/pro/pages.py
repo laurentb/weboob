@@ -50,14 +50,14 @@ class SubscriptionPage(HTMLPage):
         if u"Vous ne disposez d'aucun contrat sur cet accès." in CleanText(u'.')(self.doc):
             raise BrowserIncorrectPassword()
 
-        self.browser.areas = []
+    def get_areas(self):
         for div in self.doc.xpath('//div[@class="listeAbonnementsBox"]'):
             site_type = div.xpath('./div[1]')[0].text
             if site_type != 'Particulier':
                 for link in div.xpath('./div/@onclick'):
                     m = re.search(r"href='(.*)'", link)
                     if m:
-                        self.browser.areas.append(m.group(1))
+                        yield m.group(1)
 
 class LoginPage(HTMLPage):
     def login(self, username, password):
@@ -83,6 +83,8 @@ class CmsoListElement(ListElement):
 
 class AccountsPage(CMSOPage):
     TYPES = {u'COMPTE CHEQUES':               Account.TYPE_CHECKING,
+             u'COMPTE TITRES':                Account.TYPE_MARKET,
+             u"ACTIV'EPARGNE":                Account.TYPE_SAVINGS,
             }
 
     @method
@@ -99,31 +101,37 @@ class AccountsPage(CMSOPage):
 
             obj__history_url = Link('./td[1]/a')
             obj_label = CleanText('./td[1]')
-            obj_id = Env('id', default=None)
             obj_balance = CleanDecimal('./td[2]', replace_dots=True)
             obj_type = Type(Field('label'))
             # Last numbers replaced with XX... or we have to send sms to get RIB.
             obj_iban = NotAvailable
 
-            def validate(self, obj):
-                if obj.id is None:
-                    obj.id = obj.label.replace(' ', '')
-                return True
-
-            def parse(self, el):
+            def obj_id(self):
                 history_url = Field('_history_url')(self)
                 if history_url.startswith('javascript:'):
                     # Market account
                     page = self.page.browser.investment.go()
+
+                    area_id = Regexp(CleanText('//span[@class="CelMnTiersT1"]'), r'\((\d+)\)', default='')(page.doc)
+
                     for tr in page.doc.xpath('.//table/tr[not(has-class("LnTit")) and not(has-class("LnTot"))]'):
                         # Try to match account with id and balance.
                         if CleanText('./td[2]//a')(tr) == Field('label')(self) \
                             and CleanDecimal('./td[3]//a')(tr) == Field('balance')(self):
-                            assert 'id' not in self.env
-                            self.env['id'] = CleanText('./td[1]', replace=[(' ', '')])(tr)
+
+                            acc_id = CleanText('./td[1]', replace=[(' ', '')])(tr)
+                            if area_id:
+                                # because the acc_id can be the same between multiple areas
+                                return '%s.%s' % (area_id, acc_id)
+                            return acc_id
                 else:
                     page = self.page.browser.open(history_url).page
-                    self.env['id'] = Regexp(CleanText('//span[has-class("Rappel")]'), '(\d{18}) | (\d{3}\w\d{15})')(page.doc)
+                    return Regexp(CleanText('//span[has-class("Rappel")]'), '(\d{18}) | (\d{3}\w\d{15})')(page.doc)
+
+            def validate(self, obj):
+                if obj.id is None:
+                    obj.id = obj.label.replace(' ', '')
+                return True
 
     def on_load(self):
         if self.doc.xpath('//p[contains(text(), "incident technique")]'):
@@ -137,15 +145,25 @@ class InvestmentPage(CMSOPage):
         class item(ItemElement):
             klass = Account
 
-            obj_id = Regexp(CleanText('./td[1]'), r'(\d+)\s*(\d+)', r'\1\2')
+            def obj_id(self):
+                area_id = Regexp(CleanText('//span[@class="CelMnTiersT1"]'), r'\((\d+)\)', default='')(self)
+                acc_id = Regexp(CleanText('./td[1]'), r'(\d+)\s*(\d+)', r'\1\2')(self)
+                if area_id:
+                    return '%s.%s' % (area_id, acc_id)
+                return acc_id
+
             def obj__formdata(self):
-                js = Attr('./td/a[1]', 'onclick')(self)
+                js = Attr('./td/a[1]', 'onclick', default=None)(self)
+                if js is None:
+                    return
                 args = re.search(r'\((.*)\)', js).group(1).split(',')
 
                 form = args[0].strip().split('.')[1]
                 idx = args[2].strip()
                 idroot = args[4].strip().replace("'", "")
                 return (form, idx, idroot)
+
+            obj_url = Link('./td/a[1]', default=None)
 
     def go_account(self, form, idx, idroot):
         form = self.get_form(name=form)
