@@ -27,7 +27,8 @@ from weboob.capabilities.bank import (
     Account, AddRecipientStep, AddRecipientError, RecipientInvalidLabel,
     Recipient,
 )
-from weboob.capabilities.base import NotLoaded
+from weboob.capabilities.base import NotLoaded, find_object
+from weboob.capabilities.bank import AccountNotFound
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.pages import FormNotFound
 from weboob.exceptions import BrowserIncorrectPassword
@@ -42,6 +43,7 @@ from .pages import (
     CardsPage, LifeInsurancePage, MarketPage, LoansPage, PerimeterPage,
     ChgPerimeterPage, MarketHomePage, FirstVisitPage, BGPIPage,
     TransferInit, TransferPage, RecipientPage, RecipientListPage, ProfilePage,
+    HistoryPostPage, RecipientMiscPage,
 )
 
 
@@ -83,6 +85,7 @@ class Cragr(LoginBrowser, StatesMixin):
     transactions = URL(r'/stb/.*act=Releves.*',
                        r'/stb/collecteNI\?.*sessionAPP=Releves.*',
                        TransactionsPage)
+    transactions_post = URL(r'/stb/collecteNI\?fwkaid=([\d_]+)&fwkpid=([\d_]+)$', HistoryPostPage)
 
     advisor = URL(r'/stb/entreeBam\?.*act=Contact',
                   r'https://.*/vitrine/tracking/t/', AdvisorPage)
@@ -103,6 +106,8 @@ class Cragr(LoginBrowser, StatesMixin):
 
     transfer_init_page = URL(r'/stb/entreeBam\?sessionSAG=(?P<sag>[^&]+)&stbpg=pagePU&act=Virementssepa&stbzn=bnt&actCrt=Virementssepa', TransferInit)
     transfer_page = URL(r'/stb/collecteNI\?fwkaid=([\d_]+)&fwkpid=([\d_]+)$', TransferPage)
+
+    recipient_misc = URL(r'/stb/collecteNI\?fwkaid=([\d_]+)&fwkpid=([\d_]+)$', RecipientMiscPage)
     recipientlist = URL(r'/stb/collecteNI\?.*&act=Vilistedestinataires.*', RecipientListPage)
     recipient_page = URL(r'/stb/collecteNI\?.*fwkaction=Ajouter.*', RecipientPage)
 
@@ -340,17 +345,25 @@ class Cragr(LoginBrowser, StatesMixin):
             raise NotImplementedError()
 
         # some accounts may exist without a link to any history page
-        if account.url is None or 'CATITRES' in account.url:
+        if not hasattr(account, '_form') and (not account.url or 'CATITRES' in account.url):
             return
 
         if account._perimeter != self.current_perimeter:
             self.go_perimeter(account._perimeter)
 
+        if hasattr(account, '_form'):
+            # the account needs a form submission to go to the history
+            # but we need to get the latest form data
+            self.location(self.accounts_url.format(self.sag))
+            accounts = self.page.get_list(use_links=False)
+            new_account = find_object(accounts, AccountNotFound, id=account.id)
+            self.location(new_account._form.request)
+
         # card accounts need to get an updated link
         if account.type == Account.TYPE_CARD:
             account = self.get_cards_or_card(account.id)
 
-        if account.type != Account.TYPE_CARD or not self.page.is_on_right_detail(account):
+        if account.url and (account.type != Account.TYPE_CARD or not self.page.is_on_right_detail(account)):
             self.location(account.url.format(self.sag))
 
         if self.cards.is_here():

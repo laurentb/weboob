@@ -72,6 +72,26 @@ class BasePage(HTMLPage):
         return self.get_error() is None
 
 
+class CollectePageMixin(object):
+    """
+    Multiple pages have the same url pattern: "/stb/collecteNI?fwkaid=...&fwkpid=...".
+    Use some page text to determine which page it is.
+    """
+
+    IS_HERE_TEXT = None
+
+    def is_here(self):
+        for el in self.doc.xpath('//div[@class="boutons-act"]//h1'):
+            labels = self.IS_HERE_TEXT
+            if not isinstance(labels, (list, tuple)):
+                labels = [labels]
+
+            for label in labels:
+                if label in CleanText('.')(el):
+                    return True
+        return False
+
+
 class HomePage(BasePage):
     ENCODING = 'iso8859-15'
 
@@ -191,7 +211,10 @@ class _AccountsPage(MyLoggedPage, BasePage):
 
             }
 
-    def get_list(self):
+    def get_list(self, use_links=True):
+        # use_links: some info needs to be fetched on a dedicated account page
+        # but sometimes the page url/form works only once, so we may want to keep it for later
+
         account_type = Account.TYPE_UNKNOWN
 
         for tr in self.doc.xpath('//table[@class="ca-table"]/tr'):
@@ -227,7 +250,7 @@ class _AccountsPage(MyLoggedPage, BasePage):
             account.currency = account.get_currency(cleaner(cols[self.COL_CURRENCY]))
             account.url = None
 
-            self.set_link(account, cols)
+            self.set_link(account, cols, use_links)
 
             account._perimeter = self.browser.current_perimeter
             yield account
@@ -239,7 +262,7 @@ class _AccountsPage(MyLoggedPage, BasePage):
             for account in self.browser.page.get_list():
                 yield account
 
-    def set_link(self, account, cols):
+    def set_link(self, account, cols, use_link):
         raise NotImplementedError()
 
     def cards_idelco_or_link(self, account_idelco=None):
@@ -453,12 +476,34 @@ class CardsPage(MyLoggedPage, BasePage):
 
 
 class AccountsPage(_AccountsPage):
-    def set_link(self, account, cols):
-        a = cols[0].find('a')
-        if a is not None:
+    def history_form(self, name):
+        form = self.get_form(name=name)
+        form['fwkaction'] = 'Releves'
+        form['fwkcodeaction'] = 'Executer'
+        return form
+
+    def set_link(self, account, cols, use_link):
+        try:
+            a = cols[0].xpath('.//a')[0]
+        except IndexError:
+            return
+
+        if a.attrib['href'].startswith('javascript:'):
+            form_name = re.search(r'frm\d+', a.attrib['href']).group(0)
+
+            accounts_page = self.browser.open(self.browser.accounts_url.format(self.browser.sag)).page
+            account._form = accounts_page.history_form(form_name)
+            if use_link:
+                page = self.browser.open(account._form.request).page
+        else:
             account.url = urljoin(self.url, a.attrib['href'].replace(' ', '%20'))
-            page = self.browser.open(account.url).page
-            account.url = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', account.url)
+
+            if use_link:
+                page = self.browser.open(account.url).page
+                account.url = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', account.url)
+
+        if use_link:
+            # TODO move this code to avoid the use_link stuff?
             url = page.get_iban_url()
             if url:
                 page = self.browser.open(url).page
@@ -474,14 +519,14 @@ class LoansPage(_AccountsPage):
 
     NB_COLS = 6
 
-    def set_link(self, account, cols):
+    def set_link(self, account, cols, use_link):
         account.balance = -abs(account.balance)
 
 
 class SavingsPage(_AccountsPage):
     COL_ID = 1
 
-    def set_link(self, account, cols):
+    def set_link(self, account, cols, use_link):
         origin = urlparse(self.url)
         if not account.url:
             a = cols[0].xpath('descendant::a[contains(@href, "CATITRES")]')
@@ -661,6 +706,10 @@ class TransactionsPage(MyLoggedPage, BasePage):
             t.label = re.sub('(.*)  .*', r'\1', t.label).strip()
             t.set_amount(credit, debit)
             yield t
+
+
+class HistoryPostPage(CollectePageMixin, TransactionsPage):
+    IS_HERE_TEXT = ('Consultation des comptes', 'Relevé')
 
 
 class AutoEncodingMixin(object):
@@ -960,7 +1009,9 @@ class RecipientListPage(MyLoggedPage, BasePage):
         return CleanText(u'//a[contains(text(),"Ajouter un compte destinataire")]/@href')(self.doc)
 
 
-class TransferPage(MyLoggedPage, BasePage):
+class TransferPage(CollectePageMixin, MyLoggedPage, BasePage):
+    IS_HERE_TEXT = 'Virement'
+
     ### for transfers
     def get_step(self):
         return CleanText('//div[@id="etapes"]//li[has-class("encours")]')(self.doc)
@@ -1042,6 +1093,10 @@ class TransferPage(MyLoggedPage, BasePage):
         err = CleanText('//div[has-class("blc-choix-erreur")]//p', default='')(self.doc)
         if err:
             raise TransferBankError(message=err)
+
+
+class RecipientMiscPage(CollectePageMixin, MyLoggedPage, BasePage):
+    IS_HERE_TEXT = 'Liste des comptes bénéficiaires'
 
     ### for adding recipients
     def send_sms(self):
