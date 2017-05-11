@@ -56,7 +56,7 @@ class OuiFMModule(Module, CapRadio, CapCollection):
                                u'http://rockinde.stream.ouifm.fr/ouifm5.mp3', 128),
                'ganja':       (u"OÜI FM Ganja",
                                u'OÜI FM - Ganja',
-                               u'http://ganja.stream.ouifm.fr/ouifmganja-128.mp3', 128)
+                               u'http://ganja.stream.ouifm.fr/ouifmganja-128.mp3', 128),
                'rock60s':     (u"OÜI FM Rock 60's",
                                u'OÜI FM - Rock 60\'s',
                                u'http://rock60s.stream.ouifm.fr/ouifmsixties.mp3', 128),
