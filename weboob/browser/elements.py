@@ -394,6 +394,9 @@ def magic_highlight(els, open_browser=True):
     import webbrowser
     import tempfile
 
+    if not els:
+        raise Exception('no elements to highlight')
+
     if not isinstance(els, (list, tuple)):
         els = [els]
 
