@@ -377,7 +377,8 @@ class AccountsList(LoggedPage, HTMLPage):
                 page = self.browser.open(account._history_link).page
                 message = page.doc.xpath('//div[@id="as_renouvellementMIFID.do_"]/div[contains(text(), "Bonjour")] '
                                          '| //div[@id="as_afficherMessageBloquantMigration.do_"]//div[@class="content_message"] '
-                                         '| //div[@id="as_renouvellementMotDePasse.do_"]//p[contains(text(), "votre mot de passe")]')
+                                         '| //div[@id="as_renouvellementMotDePasse.do_"]//p[contains(text(), "votre mot de passe")]'
+                                         '| //div[@id="as_afficherSecuriteForteOTPIdentification.do_"]//span[contains(text(), "Pour valider ")]')
                 if message:
                     raise ActionNeeded(CleanText('.')(message[0]))
 
