@@ -23,10 +23,12 @@ import re
 from datetime import datetime
 from io import BytesIO
 
+from decimal import Decimal
+
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.filters.json import Dict
-from weboob.browser.elements import DictElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Regexp, Format, Eval, BrowserURL, Field
+from weboob.browser.elements import DictElement, ItemElement, method, SkipItem
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Regexp, Format, Eval, BrowserURL, Field, Env
 from weboob.capabilities.bank import Transaction, Account
 from weboob.capabilities.profile import Profile
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
@@ -103,6 +105,8 @@ class AccountsPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Account
 
+            obj__has_cards = Dict('encoursCB')
+
             def obj_id(self):
                 return CleanText(Dict('numeroCompte'))(self)[2:]
 
@@ -116,8 +120,18 @@ class AccountsPage(LoggedPage, JsonPage):
 
             def obj_coming(self):
                 page = self.page.browser.open(BrowserURL('account_coming', identifiant=Field('iban'))(self)).page
-                return Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('infoOperationsAvenir/cumulTotal/montant', default='0')),
+                coming = Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('infoOperationsAvenir/cumulTotal/montant', default='0')),
                                                     CleanDecimal(Dict('infoOperationsAvenir/cumulTotal/nb_dec', default='0')))(page.doc)
+
+                # this so that card coming transactions aren't accounted twice in the total incoming amount
+                for el in Dict('infoOperationsAvenir/natures')(page.doc):
+                    if Dict('nature/libelle')(el) == "Factures / Retraits cartes":
+                        coming_carte = Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('cumulNatureMere/montant', default='0')),
+                                                    CleanDecimal(Dict('cumulNatureMere/nb_dec', default='0')))(el)
+                        coming -= coming_carte
+                        break
+
+                return coming
 
 
 class AccountHistoryViewPage(LoggedPage, HTMLPage):
@@ -131,6 +145,30 @@ class AccountHistoryViewPage(LoggedPage, HTMLPage):
 def fromtimestamp(page, dict):
     return datetime.fromtimestamp(float(dict(page) / 1000))
 
+
+class BnpHistoryItem(ItemElement):
+
+    def obj_raw(self):
+        if self.el.get('nature.libelle') and self.el.get('libelle'):
+            return "%s %s" % (CleanText(Dict('nature/libelle'))(self), CleanText(Dict('libelle'))(self))
+        elif self.el.get('libelle'):
+            return CleanText(Dict('libelle'))(self)
+        else:
+            return CleanText(Dict('nature/libelle'))(self)
+
+    def obj_rdate(self):
+        raw = self.obj_raw()
+        mtc = re.search(r'\bDU (\d{6})\b', raw)
+        if mtc:
+            date = mtc.group(1)
+            date = '%s/%s/%s' % (date[0:2], date[2:4], date[4:])
+            return parse_french_date(date)
+
+        return fromtimestamp(self, Dict('dateCreation'))
+
+    @staticmethod
+    def calculate_decimal(x, y):
+        return x / 10 ** y
 
 class AccountHistoryPage(LoggedPage, JsonPage):
     TYPES = {u'CARTE': Transaction.TYPE_CARD, # Cartes
@@ -213,3 +251,44 @@ class AccountHistoryPage(LoggedPage, JsonPage):
 
             def obj_amount(self):
                 return Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('montantMvmt/montant')), CleanDecimal(Dict('montantMvmt/nb_dec')))(self)
+
+            def parse(self, obj):
+                if Dict('natureLibelleMvt')(self) == 'FACTURE CARTE':
+                    raise SkipItem
+
+
+class CardListPage(LoggedPage, JsonPage):
+    @method
+    class iter_accounts(DictElement):
+        item_xpath = 'listEncourCartes'
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_type = Account.TYPE_CARD
+            obj_number = Dict('numCarte')
+            obj_id = Format('%s.%s', Env('account_id'), Dict('numCarte'))
+            obj_label = Dict('nomPorteur')
+            obj__index = Dict('idCarte')
+            obj__parent_iban = Env('parent_iban')
+            obj_coming = Eval(lambda x: Decimal(x)/100, Dict('montant/montant'))
+
+class CardHistoryPage(LoggedPage, JsonPage):
+
+    @method
+    class iter_coming(DictElement):
+        item_xpath = 'listOperationCarteDataBean'
+
+        class item(BnpHistoryItem):
+            klass = Transaction
+
+            obj_type = Transaction.TYPE_DEFERRED_CARD
+            obj_vdate = Date(Dict('valeur'))
+            obj_date = obj_vdate
+
+
+            def obj_amount(self):
+                if self.el.get('debit'):
+                    return - Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('debit/montant')), CleanDecimal(Dict('debit/nb_dec')))(self)
+                else:
+                    return Eval(lambda x, y: x / 10 ** y, CleanDecimal(Dict('credit/montant')), CleanDecimal(Dict('credit/nb_dec')))(self)
