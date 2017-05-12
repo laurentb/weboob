@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ClientError
 from weboob.capabilities.base import NotAvailable
@@ -25,9 +24,9 @@ from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 
 from .pages.login import KeyboardPage, LoginPage, ChangepasswordPage, PredisconnectedPage
 from .pages.bank import AccountsPage as BankAccountsPage, CBTransactionsPage, \
-                        TransactionsPage, UnavailablePage, IbanPage
+                        TransactionsPage, UnavailablePage, IbanPage, LifeInsuranceIframe
 from .pages.wealth import AccountsPage as WealthAccountsPage, InvestmentPage, HistoryPage
-
+from weboob.capabilities.bank import Account
 
 class AXABrowser(LoginBrowser):
     # Login
@@ -86,6 +85,9 @@ class AXABanque(AXABrowser):
     history = URL('https://espaceclient.axa.fr/.*accueil/savings/(\w+)/contract',
                   'https://espaceclient.axa.fr/#', HistoryPage)
 
+    lifeinsurance_iframe = URL('https://assurance-vie.axabanque.fr/Consultation/SituationContrat.aspx',
+                               'Consultation/SituationContrat.aspx', LifeInsuranceIframe)
+
     def __init__(self, *args, **kwargs):
         super(AXABanque, self).__init__(*args, **kwargs)
         self.cache = {}
@@ -108,6 +110,10 @@ class AXABanque(AXABrowser):
                             continue
                         ids.add(a.id)
 
+                        #The url giving life insurrance investments seems to be temporary.
+                        #That's why we have to get them now
+                        if a.type == a.TYPE_LIFE_INSURANCE:
+                            self.cache['invs'][a.id] = list(self.open(a._url).page.iter_investment())
                         args = a._args
                         # Trying to get IBAN for checking accounts
                         if a.type == a.TYPE_CHECKING and 'paramCodeFamille' in args:
@@ -172,6 +178,8 @@ class AXABanque(AXABrowser):
 
     @need_login
     def iter_history(self, account):
+        if account.type is Account.TYPE_LOAN:
+            return
         # Side investment's website
         if account._acctype == "investment":
             pagination_link = self.location(self.wealth_accounts.urls[0][:-1] + account._link).page.get_pagination_link()

@@ -24,12 +24,16 @@ from decimal import Decimal, InvalidOperation
 from weboob.exceptions import BrowserUnavailable
 from weboob.browser.pages import HTMLPage, PDFPage, LoggedPage
 from weboob.browser.elements import ItemElement, TableElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell
+from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell, Currency
 from weboob.browser.filters.html import Attr
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
+
+def MyDecimal(*args, **kwargs):
+    kwargs.update(replace_dots=True, default=NotAvailable)
+    return CleanDecimal(*args, **kwargs)
 
 class UnavailablePage(HTMLPage):
     def on_load(self):
@@ -109,6 +113,21 @@ class AccountsPage(LoggedPage, MyHTMLPage):
         for table in self.has_accounts():
             tds = table.xpath('./tbody/tr')[0].findall('td')
             if len(tds) < 3:
+                if tds[0].text_content() == u'Pr\xeat Personnel':
+
+                    account = Account()
+                    args = self.js2args(table.xpath('.//a')[0].attrib['onclick'])
+                    account._args = args
+                    loan_details = self.browser.open("/webapp/axabanque/jsp/panorama.faces",data=args)
+                    account.label = CleanText().filter(self.doc.xpath('//*[@id="table-panorama"]/table[1]/caption'))
+                    account.id = account.label.split()[-1] + args['paramNumContrat']
+                    account.balance = -CleanDecimal().filter(loan_details.page.doc.xpath('//*[@id="table-detail"]/tbody/tr/td[7]/text()'))
+                    account.currency = Currency().filter(loan_details.page.doc.xpath('//*[@id="table-detail"]/tbody/tr/td[7]/text()'))
+                    account.type = Account.TYPE_LOAN
+                    account._acctype = "bank"
+                    account._hasinv = False
+                    yield account
+
                 continue
 
             boxes = table.xpath('./tbody//tr[not(.//strong[contains(text(), "Total")])]')
@@ -116,6 +135,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
 
             for box in boxes:
                 account = Account()
+                account._url = None
 
                 if len(box.xpath('.//a')) != 0 and 'onclick' in box.xpath('.//a')[0].attrib:
                     args = self.js2args(box.xpath('.//a')[0].attrib['onclick'])
@@ -128,41 +148,63 @@ class AccountsPage(LoggedPage, MyHTMLPage):
 
                 self.logger.debug('Args: %r' % args)
                 if 'paramNumCompte' not in args:
+                    #The displaying of life insurances is very different from the other
+                    if args.get('idPanorama:_idcl').split(":")[1] == 'tableaux-direct-solution-vie':
+                        account_details = self.browser.open("#", data=args)
+                        scripts = account_details.page.doc.xpath('//script[@type="text/javascript"]/text()')
+                        script = filter(lambda x: "src" in x, scripts)[0]
+                        iframe_url = re.search("src:(.*),", script).group()[6:-2]
+                        account_details_iframe = self.browser.open(iframe_url, data=args)
+                        account.id = account_details_iframe.page.doc.xpath('//span[contains(@id,"NumeroContrat")]/text()')[0]
+                        account._url = iframe_url
+                        account.type = account.TYPE_LIFE_INSURANCE
+                        account.balance = MyDecimal().filter(account_details_iframe.page.doc.xpath('//span[contains(@id,"MontantEpargne")]/text()')[0])
+                        account._acctype = "bank"
+                    else:
+                        try:
+                            label = unicode(table.xpath('./caption')[0].text.strip())
+                        except Exception:
+                            label = 'Unable to determine'
+                        self.logger.warning('Unable to get account ID for %r' % label)
+                        continue
+
+                if account.type != account.TYPE_LIFE_INSURANCE:
                     try:
-                        label = unicode(table.xpath('./caption')[0].text.strip())
-                    except Exception:
-                        label = 'Unable to determine'
-                    self.logger.warning('Unable to get account ID for %r' % label)
-                    continue
-                try:
-                    account.id = args['paramNumCompte'] + args['paramNumContrat']
-                    if 'Visa' in account.label:
-                        card_id = re.search('(\d+)', box.xpath('./td[2]')[0].text.strip())
-                        if card_id:
-                            account.id += card_id.group(1)
-                    if 'Valorisation' in account.label or u'Liquidités' in account.label:
-                        account.id += args[next(k for k in args.keys() if "_idcl" in k)].split('Jsp')[-1]
+                        account.id = args['paramNumCompte'] + args['paramNumContrat']
+                        if 'Visa' in account.label:
+                            card_id = re.search('(\d+)', box.xpath('./td[2]')[0].text.strip())
+                            if card_id:
+                                account.id += card_id.group(1)
+                        if u'Valorisation' in account.label or u'Liquidités' in account.label:
+                            account.id += args[next(k for k in args.keys() if "_idcl" in k)].split('Jsp')[-1]
+                    except KeyError:
+                        account.id = args['paramNumCompte']
 
-                except KeyError:
-                    account.id = args['paramNumCompte']
+                    try:
+                        account.balance = Decimal(FrenchTransaction.clean_amount(self.parse_number(u''.join([txt.strip() for txt in box.cssselect("td.montant")[0].itertext()]))))
+                    except InvalidOperation:
+                        #The account doesn't have a amount
+                        pass
 
-                for l in table.attrib['class'].split(' '):
-                    if 'tableaux-comptes-' in l:
-                        account_type_str =  l[len('tableaux-comptes-'):].lower()
-                        break
-                else:
-                    account_type_str = ''
+                    for l in table.attrib['class'].split(' '):
+                        if 'tableaux-comptes-' in l:
+                            account_type_str = l[len('tableaux-comptes-'):].lower()
+                            break
+                    else:
+                        account_type_str = ''
+                    for pattern, type in self.ACCOUNT_TYPES.iteritems():
+                        if pattern in account_type_str or pattern in account.label.lower():
+                            account.type = type
+                            break
+                    else:
+                        account.type = Account.TYPE_UNKNOWN
 
-                for pattern, type in self.ACCOUNT_TYPES.iteritems():
-                    if pattern in account_type_str or pattern in account.label.lower():
-                        account.type = type
-                        break
-                else:
-                    account.type = Account.TYPE_UNKNOWN
+                    account.type = Account.TYPE_MARKET if "Valorisation" in account.label else \
+                        Account.TYPE_CARD if "Visa" in account.label else \
+                            account.type
 
-                account.type = Account.TYPE_MARKET if "Valorisation" in account.label else \
-                               Account.TYPE_CARD if "Visa" in account.label else \
-                               account.type
+                    account._url = self.doc.xpath('//form[contains(@action, "panorama")]/@action')[0]
+                    account._acctype = "bank"
 
                 currency_title = table.xpath('./thead//th[@class="montant"]')[0].text.strip()
                 m = re.match('Montant \((\w+)\)', currency_title)
@@ -171,19 +213,13 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                 else:
                     account.currency = account.get_currency(m.group(1))
 
-                try:
-                    account.balance = Decimal(FrenchTransaction.clean_amount(self.parse_number(u''.join([txt.strip() for txt in box.cssselect("td.montant")[0].itertext()]))))
-                except InvalidOperation:
-                    #The account doesn't have a amount
-                    pass
                 account._args = args
-                account._acctype = "bank"
                 account._hasinv = True if "Valorisation" in account.label else False
-                account._url = self.doc.xpath('//form[contains(@action, "panorama")]/@action')[0]
+
                 yield account
 
     def get_form_action(self, form_name):
-        return self.get_form(id=form_name).url
+        return self.get_form(id=form_name, submit='(//input[@type="submit" and contains(@name,"idPanorama:_idJsp")])[1]').url
 
 
 class IbanPage(PDFPage):
@@ -361,3 +397,29 @@ class CBTransactionsPage(TransactionsPage):
 
         transactions.sort(key=lambda transaction: transaction.date, reverse=True)
         return iter(transactions)
+
+
+class LifeInsuranceIframe(LoggedPage, HTMLPage):
+    @method
+    class iter_investment(TableElement):
+        item_xpath = '//table[contains(@id,"dgListSupports")]//tr[@class="AltItem" or @class="Item"]'
+        head_xpath = '//table[contains(@id,"dgListSupports")]//tr[@class="Header"]/td'
+
+        col_label = re.compile('Supports')
+        col_quantity = "Nbre d'UC"
+        col_unitprice = re.compile('PMPA')
+        col_unitvalue = re.compile('Valeur')
+        col_diff = re.compile('Evolution')
+        col_valuation = re.compile('Montant')
+        col_code = 'Code ISIN'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText(TableCell('label'))
+            obj_quantity = MyDecimal(TableCell('quantity'))
+            obj_unitprice = MyDecimal(TableCell('unitprice'))
+            obj_unitvalue = MyDecimal(TableCell('unitvalue'))
+            obj_valuation = MyDecimal(TableCell('valuation'))
+            obj_diff = MyDecimal(TableCell('diff'))
+            obj_code = CleanText(TableCell('code'))
