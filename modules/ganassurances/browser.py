@@ -91,7 +91,7 @@ class GanAssurances(LoginBrowser):
 
     def get_coming(self, account):
         if account.type == Account.TYPE_LIFE_INSURANCE:
-            return []
+            return iter([])
         accounts = self.get_accounts_list()
         for a in accounts:
             if a.id == account.id:
