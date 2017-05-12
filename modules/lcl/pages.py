@@ -600,6 +600,9 @@ class AVPage(LoggedPage, HTMLPage):
                         ac_details_page = self.page.browser.open('/outil/UWVI/AssuranceVie/accesDetail?ID_CONTRAT=%s&PRODUCTEUR=%s' % (split[0], split[1])).page
                     return CleanText('(//tr[3])/td[2]')(ac_details_page.doc)
                 except ServerError:
+                    self.logger.debug("link didn't work, trying with the form instead")
+                    # the above server error can cause the form to fail, so we may have to go back on the accounts list before submitting
+                    self.page.browser.open(self.page.url)
                     # redirection to lifeinsurances accounts and comeback on Lcl original website
                     page = self.obj__form().submit().page
                     account_id = page.get_account_id()
