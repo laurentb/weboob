@@ -232,6 +232,28 @@ class Account(BaseAccount):
     def __repr__(self):
         return "<Account id=%r label=%r>" % (self.id, self.label)
 
+class Loan(Account):
+
+    name = StringField('Person Name')
+    total_amount = DecimalField('Total Amount')
+    available_amount = DecimalField('Amount availalble')
+    used_amount = DecimalField('Amount already used')
+    subscription_date = DateField('Date of subscription of the loan')
+    maturity_date = DateField('Estimated end date of the loan')
+    next_payment_amount = DecimalField('Amount of next payment')
+    next_payment_date = DateField('Date of the next payment')
+
+    rate = DecimalField('Rate of the loan')
+    nb_payments_left = IntField('Number of payments still due')
+    nb_payments_done = IntField('Number of payments already done')
+    nb_payments_total = IntField('Number total of payments')
+
+    last_payment_amount = DecimalField('Amount of the last payment done')
+    last_payment_date = DateField('Date of the last payment done')
+
+    account_label = StringField('Label of the debited account')
+    insurance_label = StringField('Label of the insurance')
+    duration = StringField('Duration of the loan')
 
 class Transaction(BaseObject):
     """
