@@ -69,7 +69,8 @@ class BanquePopulaireModule(Module, CapBank, CapContact):
         website = reduce(lambda a, kv: a.replace(*kv), repls, self.config['website'].get())
         return self.create_browser(website,
                                    self.config['login'].get(),
-                                   self.config['password'].get())
+                                   self.config['password'].get(),
+                                   weboob=self.weboob)
 
     def iter_accounts(self):
         return self.browser.get_accounts_list()

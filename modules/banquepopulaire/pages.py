@@ -759,44 +759,6 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
         return url, params if url and params else None
 
 
-class LineboursePage(LoggedPage, HTMLPage):
-    pass
-
-
-class InvestmentLineboursePage(LoggedPage, HTMLPage):
-    COL_LABEL = 0
-    COL_QUANTITY = 1
-    COL_UNITVALUE = 2
-    COL_VALUATION = 3
-    COL_UNITPRICE = 4
-    COL_PERF_PERCENT = 5
-    COL_PERF = 6
-
-    def get_investments(self):
-        for line in self.doc.xpath('//table[contains(@summary, "Contenu")]/tbody/tr[@class="color4"]'):
-            cols1 = line.findall('td')
-            cols2 = line.xpath('./following-sibling::tr')[0].findall('td')
-
-            cleaner = CleanText(None).filter
-
-            inv = Investment()
-            inv.label = cleaner(cols1[self.COL_LABEL].xpath('.//span')[0])
-            inv.code = cleaner(cols1[self.COL_LABEL].xpath('./a')[0]).split(' ')[-1]
-            inv.quantity = self.parse_decimal(cols2[self.COL_QUANTITY])
-            inv.unitprice = self.parse_decimal(cols2[self.COL_UNITPRICE])
-            inv.unitvalue = self.parse_decimal(cols2[self.COL_UNITVALUE])
-            inv.valuation = self.parse_decimal(cols2[self.COL_VALUATION])
-            inv.diff = self.parse_decimal(cols2[self.COL_PERF])
-
-            yield inv
-
-    def parse_decimal(self, string):
-        value = CleanText(None).filter(string)
-        if value == '':
-            return NotAvailable
-        return Decimal(Transaction.clean_amount(value))
-
-
 class NatixisPage(LoggedPage, HTMLPage):
     def submit_form(self):
         form = self.get_form(name="formRoutage")
@@ -805,16 +767,6 @@ class NatixisPage(LoggedPage, HTMLPage):
 
 class NatixisErrorPage(LoggedPage, HTMLPage):
     pass
-
-
-class MessagePage(LoggedPage, HTMLPage):
-    def skip(self):
-        try:
-            form = self.get_form(name="leForm")
-        except FormNotFound:
-            pass
-        else:
-            form.submit()
 
 
 class IbanPage(LoggedPage, MyHTMLPage):

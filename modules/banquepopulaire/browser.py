@@ -17,9 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+
+import re
+import urllib
+
 from collections import OrderedDict
 from functools import wraps
-import urllib
 
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.browser.exceptions import HTTPNotFound, ServerError
@@ -31,11 +34,12 @@ from .pages import (
     LoggedOut,
     LoginPage, IndexPage, AccountsPage, AccountsFullPage, CardsPage, TransactionsPage,
     UnavailablePage, RedirectPage, HomePage, Login2Page, ErrorPage,
-    LineboursePage, InvestmentLineboursePage, MessagePage,
     IbanPage, AdvisorPage,
     NatixisPage, EtnaPage, NatixisInvestPage, NatixisHistoryPage, NatixisErrorPage,
     NatixisDetailsPage,
 )
+
+from .linebourse_browser import LinebourseBrowser
 
 
 __all__ = ['BanquePopulaire']
@@ -113,6 +117,7 @@ class BanquePopulaire(LoginBrowser):
     transactions_page = URL(r'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SELECTION_ENCOURS_CARTE.*',
                             r'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SOLDE.*',
                             r'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=CONTRAT.*',
+                            r'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=ordreBourseCTJ.*',
                             r'https://[^/]+/cyber/internet/Page.do\?.*',
                             r'https://[^/]+/cyber/internet/Sort.do\?.*',
                             TransactionsPage)
@@ -130,11 +135,6 @@ class BanquePopulaire(LoginBrowser):
 
     login2_page = URL(r'https://[^/]+/WebSSO_BP/_(?P<bankid>\d+)/index.html\?transactionID=(?P<transactionID>.*)', Login2Page)
 
-    # linebourse
-    linebourse_page = URL(r'https://www.linebourse.fr/ReroutageSJR', LineboursePage)
-    message_page = URL(r'https://www.linebourse.fr/DetailMessage.*', MessagePage)
-    invest_linebourse_page = URL(r'https://www.linebourse.fr/Portefeuille', InvestmentLineboursePage)
-
     # natixis
     natixis_page = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/views/common.*', NatixisPage)
     etna = URL(r'https://www.assurances.natixis.fr/etna-ihs-bp/#/contratVie/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>\w+).*', EtnaPage)
@@ -151,8 +151,13 @@ class BanquePopulaire(LoginBrowser):
     def __init__(self, website, *args, **kwargs):
         self.BASEURL = 'https://%s' % website
         self.token = None
-
+        self.weboob = kwargs.pop('weboob')
         super(BanquePopulaire, self).__init__(*args, **kwargs)
+
+        dirname = self.responses_dirname
+        if dirname:
+            dirname += '/bourse'
+        self.linebourse = LinebourseBrowser(self.weboob, 'https://www.linebourse.fr', logger=self.logger, responses_dirname=dirname)
 
     #def home(self):
     #    self.do_login()
@@ -268,7 +273,7 @@ class BanquePopulaire(LoginBrowser):
         if account is None:
             raise BrowserUnavailable()
 
-        if account._invest_params:
+        if account._invest_params or (account.id.startswith('TIT') and account._params):
             for tr in self.get_invest_history(account):
                 yield tr
             return
@@ -309,13 +314,21 @@ class BanquePopulaire(LoginBrowser):
 
     @need_login
     def go_investments(self, account):
-        if not account._invest_params:
+        if not account._invest_params and not account.id.startswith('TIT'):
             raise NotImplementedError()
 
         account = self.get_account(account.id)
-        params = account._invest_params
-        params['token'] = self.page.build_token(params['token'])
-        self.location(self.absurl('/cyber/internet/ContinueTask.do', base=True), data=params)
+
+        if account._params:
+            params = {'taskInfoOID':            "ordreBourseCTJ",
+                      'controlPanelTaskAction': "true",
+                      'token':                  self.page.build_token(account._params['token'])
+                     }
+            self.location(self.absurl('/cyber/internet/StartTask.do', base=True), params=params)
+        else:
+            params = account._invest_params
+            params['token'] = self.page.build_token(params['token'])
+            self.location(self.absurl('/cyber/internet/ContinueTask.do', base=True), data=params)
 
         if self.error_page.is_here():
             raise NotImplementedError()
@@ -323,31 +336,31 @@ class BanquePopulaire(LoginBrowser):
         url, params = self.page.get_investment_page_params()
         if params:
             self.location(url, data=params)
-            if self.linebourse_page.is_here():
-                self.location('https://www.linebourse.fr/Portefeuille')
-                while self.message_page.is_here():
-                    self.page.skip()
-                    self.location('https://www.linebourse.fr/Portefeuille')
+
+            if "linebourse" in self.url:
+                self.linebourse.session.cookies.update(self.session.cookies)
+                self.linebourse.invest.go()
+                self.logged = True
             elif self.natixis_page.is_here():
                 self.page.submit_form()
+                if not self.etna.is_here():
+                    raise BrowserUnavailable
 
             if self.natixis_error_page.is_here():
                 self.logger.warning("natixis site doesn't work")
                 return False
-
-            if not self.etna.is_here():
-                raise BrowserUnavailable
-            return True
+        return True
 
     @retry(LoggedOut)
     @need_login
     def get_investment(self, account):
-        if not self.go_investments(account):
-            return iter([])
-
-        if self.etna.is_here():
-            self.natixis_invest.go(**self.page.params)
-        return self.page.get_investments()
+        if self.go_investments(account):
+            if self.etna.is_here():
+                self.natixis_invest.go(**self.page.params)
+                return self.page.get_investments()
+            elif "linebourse" in self.url:
+                return self.linebourse.iter_investment(re.sub('[^0-9]', '', account.id))
+        return iter([])
 
     @need_login
     def get_invest_history(self, account):
@@ -377,6 +390,9 @@ class BanquePopulaire(LoginBrowser):
                     history.sort(reverse=True, key=lambda item: item.date)
                     for tr in history:
                         yield tr
+        elif "linebourse" in self.url:
+            for tr in self.linebourse.iter_history(re.sub('[^0-9]', '', account.id)):
+                yield tr
 
     @retry(LoggedOut)
     @need_login
