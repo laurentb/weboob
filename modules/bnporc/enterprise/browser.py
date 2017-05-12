@@ -24,6 +24,7 @@ from dateutil.rrule import rrule, MONTHLY
 from dateutil.relativedelta import relativedelta
 
 from weboob.browser import LoginBrowser, need_login
+from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.url import URL
@@ -158,4 +159,6 @@ class BNPEnterprise(LoginBrowser):
 
     @need_login
     def get_profile(self):
-        return self.account_history_view.go().get_profile()
+        profile = self.account_history_view.go().get_profile()
+        if profile.name is NotAvailable:
+            raise NotImplementedError

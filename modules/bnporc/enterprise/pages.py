@@ -139,7 +139,7 @@ class AccountHistoryViewPage(LoggedPage, HTMLPage):
     class get_profile(ItemElement):
         klass = Profile
 
-        obj_name = Regexp(CleanText('//table[@class="table_info_connecte"]//td'), '(.+?)\s-')
+        obj_name = Regexp(CleanText('//table[@class="table_info_connecte"]//td'), '(.+?)\s-', default=NotAvailable)
 
 
 def fromtimestamp(page, dict):
