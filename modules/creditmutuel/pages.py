@@ -765,7 +765,8 @@ class PorPage(LoggedPage, HTMLPage):
     def add_por_accounts(self, accounts):
         for ele in self.doc.xpath('//select[contains(@name, "POR_Synthese")]/option'):
             for a in accounts:
-                if a.id.startswith(ele.attrib['value']):
+                # we have to create another account instead of just update it
+                if a.id.startswith(ele.attrib['value']) and not a.balance:
                     a._is_inv = True
                     a.type = self.get_type(a.label)
                     self.fill(a)
