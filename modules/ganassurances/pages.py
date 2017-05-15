@@ -141,7 +141,7 @@ class TransactionsPage(HTMLPage):
 
 class AVBalancePage(LoggedPage, HTMLPage):
     def get_av_balance(self):
-        return CleanDecimal('//td[@class="total"][1]')(self.doc)
+        return CleanDecimal(u'//p[contains(text(),"Épargne constituée au")]/span')(self.doc)
 
 
 class AVHistoryPage(LoggedPage, HTMLPage):
@@ -153,7 +153,9 @@ class AVHistoryPage(LoggedPage, HTMLPage):
         col_date = 'Date'
         col_label = 'Type de mouvement'
         col_debit = u'Montant Désinvesti'
-        col_credit = 'Montant investi'
+        col_credit = ['Montant investi', u'Montant Net Perçu']
+        # There is several types of life insurances, so multiple columns
+        col_credit2 = [u'Montant Brut Versé']
 
         class item(ItemElement):
             klass = Transaction
@@ -166,9 +168,10 @@ class AVHistoryPage(LoggedPage, HTMLPage):
             obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
 
             def obj_amount(self):
-                debit = CleanDecimal(TableCell('debit'), default=Decimal(0))(self)
+                debit = CleanDecimal(TableCell('debit', default=None), default=Decimal(0))(self)
                 credit = CleanDecimal(TableCell('credit'), default=Decimal(0))(self)
-                return credit - abs(debit)
+                credit2 = CleanDecimal(TableCell('credit2'), default=Decimal(0))(self)
+                return credit + credit2 - abs(debit)
 
 
 class FormPage(LoggedPage, HTMLPage):
