@@ -208,7 +208,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
                 self.logger.warning("An Internal Server Error occured")
                 return iter([])
             for market_acc in self.page.get_list():
-                if account.number[-4:] == market_acc['securityAccountNumber'][-4:]:
+                if account.number[-4:] == market_acc['securityAccountNumber'][-4:] and not account.iban:
                     # Sometimes generate an Internal Server Error ...
                     try:
                         self.market.go(data=JSON({
