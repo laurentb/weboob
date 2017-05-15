@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from decimal import Decimal
 from datetime import datetime
 
 from weboob.browser.pages import JsonPage, XMLPage

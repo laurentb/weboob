@@ -19,7 +19,7 @@
 
 
 from .base import Capability, BaseObject, Field, IntField, DecimalField, \
-                  StringField, BytesField, enum, UserError, FloatField
+                  StringField, BytesField, enum, UserError
 from .date import DateField
 
 __all__ = ['HousingPhoto', 'Housing', 'Query', 'City', 'CapHousing',
