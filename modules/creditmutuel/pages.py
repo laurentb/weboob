@@ -108,6 +108,7 @@ class AccountsPage(LoggedPage, HTMLPage):
              u'Livret':                  Account.TYPE_SAVINGS,
              u'Nouveau Prêt':            Account.TYPE_LOAN,
              u'Pret':                    Account.TYPE_LOAN,
+             u'Eco-Prêt':                Account.TYPE_LOAN,
              u'Cic Immo':                Account.TYPE_LOAN,
              u'Passeport Credit':        Account.TYPE_LOAN,
              u'Credit':                  Account.TYPE_LOAN,
