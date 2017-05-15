@@ -349,7 +349,7 @@ class AccountsList(LoggedPage, HTMLPage):
         return len(self.doc.xpath('//div[@id="aidesecuforte"]'))
 
     ACCOUNT_TYPES = {'mes-comptes/compte-courant/consulter-situation': Account.TYPE_CHECKING,
-                     'mes-comptes/compte-especes':                     Account.TYPE_SAVINGS,
+                     'mes-comptes/compte-especes':                     Account.TYPE_CHECKING,
                      'mes-comptes/compte-courant/carte-bancaire':      Account.TYPE_CARD,
                      'mes-comptes/assurance-vie':                      Account.TYPE_LIFE_INSURANCE,
                      'mes-comptes/livret':                             Account.TYPE_SAVINGS,
