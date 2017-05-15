@@ -140,7 +140,7 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
 
     def iter_params_by_type(self, _type):
         for script in [sc for sc in self.doc.xpath('//script') if sc.text]:
-            accounts = re.findall('TableauComptes%s.*?\)' % _type, script.text)
+            accounts = re.findall('TableauComptes%s.*?\);' % _type, script.text)
             if accounts:
                 break
         for account in accounts:
