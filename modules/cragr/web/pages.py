@@ -596,7 +596,7 @@ class TransactionsPage(MyLoggedPage, BasePage):
     COL_CREDIT = -1
 
     TYPES = {'Paiement Par Carte':          Transaction.TYPE_CARD,
-             'Remise Carte':                Transaction.TYPE_CARD_SUMMARY,
+             'Remise Carte':                Transaction.TYPE_CARD,
              'Prelevement Carte':           Transaction.TYPE_CARD_SUMMARY,
              'Retrait Au Distributeur':     Transaction.TYPE_WITHDRAWAL,
              'Frais':                       Transaction.TYPE_BANK,
