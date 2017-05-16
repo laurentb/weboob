@@ -421,5 +421,8 @@ class LifeInsuranceIframe(LoggedPage, HTMLPage):
             obj_unitprice = MyDecimal(TableCell('unitprice'))
             obj_unitvalue = MyDecimal(TableCell('unitvalue'))
             obj_valuation = MyDecimal(TableCell('valuation'))
-            obj_diff = MyDecimal(TableCell('diff'))
             obj_code = CleanText(TableCell('code'))
+
+            def obj_diff_percent(self):
+                diff_percent = MyDecimal(TableCell('diff')(self)[0])(self)
+                return diff_percent/100 if diff_percent != NotAvailable else diff_percent
