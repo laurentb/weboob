@@ -402,10 +402,22 @@ class MarketPage(LoggedPage, HTMLPage):
                         raise SkipItem()
 
     @method
-    class iter_investment(Myiter_investment):
+    class get_investment(Myiter_investment):
         class item (Myitem):
             def obj_unitvalue(self):
                 return CleanDecimal(replace_dots=True, default=NotAvailable).filter((TableCell('unitvalue')(self)[0]).xpath('./span[not(@class)]'))
+
+    def iter_investment(self):
+        valuation = CleanDecimal('//li[h4[contains(text(), "Solde Espèces")]]/h3', replace_dots=True, default=None)(self.doc)
+        if valuation:
+            inv = Investment()
+            inv.code = u"XX-liquidity"
+            inv.label = u"Liquidités"
+            inv.valuation = valuation
+            yield inv
+
+        for inv in self.get_investment():
+            yield inv
 
     def get_transactions_from_detail(self, account):
         for label, page in account._history_pages:
