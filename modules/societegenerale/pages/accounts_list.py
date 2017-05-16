@@ -311,6 +311,9 @@ class Market(LoggedPage, BasePage, Invest):
     COL_VALUATION = 3
     COL_DIFF = 4
 
+    def get_balance(self, account_type):
+        return CleanDecimal('//form[@id="listeCTForm"]/table//tr[td[5]]/td[@width="15%"][1]', replace_dots=True, default=None)(self.doc)
+
     def get_not_rounded_valuations(self):
         def prepare_url(url, fields):
             components = urlparse(url)

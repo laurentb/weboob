@@ -107,6 +107,10 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                 for account in self.accounts_list:
                     account._rib_url = self.page.get_rib_url(account)
                 for account in self.accounts_list:
+                    if account.type is Account.TYPE_MARKET:
+                        self.location(account._link_id)
+                        if isinstance(self.page, Market):
+                            account.balance = self.page.get_balance(account.type) or account.balance
                     if account._rib_url:
                         self.location(account._rib_url)
                         account.iban = self.page.get_iban()
