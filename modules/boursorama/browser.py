@@ -180,6 +180,10 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
                 self.accounts_list = None
                 continue
             for account in self.accounts_list:
+                if account.type in [Account.TYPE_PEA, Account.TYPE_LIFE_INSURANCE]:
+                    self.location(account.url)
+                    if isinstance(self.page, MarketPage):
+                        account.balance = self.page.get_balance(account.type) or account.balance
                 account.iban = self.iban.go(webid=account._webid).get_iban()
         return iter(self.accounts_list)
 

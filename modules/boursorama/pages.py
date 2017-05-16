@@ -369,6 +369,10 @@ def my_pagination(func):
 
 
 class MarketPage(LoggedPage, HTMLPage):
+    def get_balance(self, account_type):
+        txt = u"Solde au" if account_type is Account.TYPE_LIFE_INSURANCE else u"Total Portefeuille"
+        return CleanDecimal('//li[h4[contains(text(), "%s")]]/h3' % txt, replace_dots=True, default=None)(self.doc)
+
     @my_pagination
     @method
     class iter_history(TableElement):
