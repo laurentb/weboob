@@ -18,8 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import date
+from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
+from dateutil import parser
 from lxml.etree import XMLSyntaxError
 
 from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
@@ -53,6 +54,7 @@ class BrowserIncorrectAuthenticationCode(BrowserIncorrectPassword):
 class BoursoramaBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://clients.boursorama.com'
     TIMEOUT = 60.0
+    STATE_DURATION = 10
 
     home = URL('/$', HomePage)
     keyboard = URL('/connexion/clavier-virtuel\?_hinclude=300000', VirtKeyboardPage)
@@ -119,6 +121,10 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         kwargs['username'] = self.config['login'].get()
         kwargs['password'] = self.config['password'].get()
         super(BoursoramaBrowser, self).__init__(*args, **kwargs)
+
+    def load_state(self, state):
+        if ('expire' in state and parser.parse(state['expire']) > datetime.now()) or state.get('auth_token'):
+            return super(BoursoramaBrowser, self).load_state(state)
 
     def handle_authentication(self):
         if self.authentication.is_here():
