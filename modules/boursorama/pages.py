@@ -216,7 +216,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return id
 
             def obj_type(self):
-                for word in Field('label')(self).lower().split():
+                for word in Field('label')(self).replace('_', ' ').lower().split():
                     v = self.page.ACCOUNT_TYPES.get(word)
                     if v:
                         return v
