@@ -98,16 +98,23 @@ class AccountList(LoggedPage, MyHTMLPage):
                 return response.page.get_iban()
 
             def obj_type(self):
-                type = Regexp(CleanText('../../preceding-sibling::div[@class="avoirs"][1]/span[1]'), r'(\d+) (.*)', '\\2')(self)
-                types = {'comptes? bancaires?': Account.TYPE_CHECKING,
-                         'livrets?': Account.TYPE_SAVINGS,
-                         'epargnes? logement': Account.TYPE_SAVINGS,
-                         'comptes? titres? et pea': Account.TYPE_MARKET,
+                types = {'comptes? bancaires?':         Account.TYPE_CHECKING,
+                         'livrets?':                    Account.TYPE_SAVINGS,
+                         'epargnes? logement':          Account.TYPE_SAVINGS,
+                         'comptes? titres? et pea':     Account.TYPE_MARKET,
                          'assurances? vie et retraite': Account.TYPE_LIFE_INSURANCE,
-                         u'prêt': Account.TYPE_LOAN,
-                         u'crédits?': Account.TYPE_LOAN,
+                         u'prêt':                       Account.TYPE_LOAN,
+                         u'crédits?':                   Account.TYPE_LOAN,
+                         'plan d\'epargne en actions':  Account.TYPE_PEA
                         }
 
+                # first trying to match with label
+                label = Field('label')(self)
+                for atypetxt, atype in types.iteritems():
+                    if re.findall(atypetxt, label.lower()): # match with/without plurial in type
+                        return atype
+                # then by type
+                type = Regexp(CleanText('../../preceding-sibling::div[@class="avoirs"][1]/span[1]'), r'(\d+) (.*)', '\\2')(self)
                 for atypetxt, atype in types.iteritems():
                     if re.findall(atypetxt, type.lower()): # match with/without plurial in type
                         return atype
