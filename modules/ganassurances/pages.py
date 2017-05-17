@@ -65,6 +65,10 @@ class AccountsPage(HTMLPage):
             tds = tr.findall('td')
             a = tds[0].find('a')
 
+            # Skip accounts that can't be accessed
+            if a == None:
+                continue
+
             balance = tds[-1].text.strip()
 
             account = Account()
@@ -170,8 +174,13 @@ class AVHistoryPage(LoggedPage, HTMLPage):
             def obj_amount(self):
                 debit = CleanDecimal(TableCell('debit', default=None), default=Decimal(0))(self)
                 credit = CleanDecimal(TableCell('credit'), default=Decimal(0))(self)
-                credit2 = CleanDecimal(TableCell('credit2'), default=Decimal(0))(self)
-                return credit + credit2 - abs(debit)
+
+                # Different types of life insurances, use different columns.
+                if debit == 0:
+                    credit2 = CleanDecimal(TableCell('credit2'), default=Decimal(0))(self)
+                    return credit + credit2
+                else:
+                    return credit - abs(debit)
 
 
 class FormPage(LoggedPage, HTMLPage):
