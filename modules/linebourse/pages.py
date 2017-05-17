@@ -63,6 +63,9 @@ class HistoryPage(AccountPage):
         head_xpath = u'//table[@summary="Historique operations"]//tr[th]/th'
         item_xpath = u'//table[@summary="Historique operations"]//tr[not(th)]'
 
+        def parse(self, el):
+            self.labels = {}
+
         class item(ItemElement):
             def condition(self):
                 text = CleanText('td')(self)
@@ -83,6 +86,13 @@ class HistoryPage(AccountPage):
                 match = re.match('(?:(.*) )?- ([^-]+)$', txt)
                 inv.label = match.group(1) or NotAvailable
                 inv.code = match.group(2)
+
+                if inv.code in self.parent.labels:
+                    inv.label = inv.label or self.parent.labels[inv.code]
+                elif inv.label:
+                    self.parent.labels[inv.code] = inv.label
+                else:
+                    inv.label = inv.code
 
                 return [inv]
 
