@@ -159,6 +159,8 @@ class BanquePopulaire(LoginBrowser):
             dirname += '/bourse'
         self.linebourse = LinebourseBrowser(self.weboob, 'https://www.linebourse.fr', logger=self.logger, responses_dirname=dirname)
 
+        self.investments = {}
+
     #def home(self):
     #    self.do_login()
 
@@ -243,6 +245,11 @@ class BanquePopulaire(LoginBrowser):
         if get_iban:
             for a in accounts:
                 a.iban = self.get_iban_number(a)
+            for a in accounts:
+                # force investments here to get most updated balance
+                self.get_investment(a)
+                if self.investments[a.id]:
+                    a.balance = sum(i.valuation for i in self.investments[a.id]) or a.balance
                 yield a
 
     @need_login
@@ -313,11 +320,12 @@ class BanquePopulaire(LoginBrowser):
             self.location('/cyber/internet/Page.do?%s' % urllib.urlencode(next_params))
 
     @need_login
-    def go_investments(self, account):
+    def go_investments(self, account, get_account=False):
         if not account._invest_params and not account.id.startswith('TIT'):
             raise NotImplementedError()
 
-        account = self.get_account(account.id)
+        if get_account:
+            account = self.get_account(account.id)
 
         if account._params:
             params = {'taskInfoOID':            "ordreBourseCTJ",
@@ -351,16 +359,26 @@ class BanquePopulaire(LoginBrowser):
                 return False
         return True
 
-    @retry(LoggedOut)
     @need_login
     def get_investment(self, account):
-        if self.go_investments(account):
-            if self.etna.is_here():
-                self.natixis_invest.go(**self.page.params)
-                return self.page.get_investments()
-            elif "linebourse" in self.url:
-                return self.linebourse.iter_investment(re.sub('[^0-9]', '', account.id))
-        return iter([])
+        if account.id in self.investments.keys() and self.investments[account.id] is False:
+            raise NotImplementedError()
+
+        if account.id not in self.investments.keys():
+            self.investments[account.id] = []
+            try:
+                if self.go_investments(account, get_account=True):
+                    if self.etna.is_here():
+                        self.natixis_invest.go(**self.page.params)
+                        self.investments[account.id] = list(self.page.get_investments())
+                    elif "linebourse" in self.url:
+                        for inv in self.linebourse.iter_investment(re.sub('[^0-9]', '', account.id)):
+                            # skip liquidity from linebourse, it's on another account
+                            if inv.code != "XX-liquidity":
+                                self.investments[account.id].append(inv)
+            except NotImplementedError:
+                self.investments[account.id] = False
+        return self.investments[account.id]
 
     @need_login
     def get_invest_history(self, account):
