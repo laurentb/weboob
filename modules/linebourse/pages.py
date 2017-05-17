@@ -82,7 +82,7 @@ class HistoryPage(AccountPage):
                 txt = CleanText(TableCell('name'))(self)
                 match = re.match('(?:(.*) )?- ([^-]+)$', txt)
                 inv.label = match.group(1) or NotAvailable
-                inv.code = match.group(1)
+                inv.code = match.group(2)
 
                 return [inv]
 
