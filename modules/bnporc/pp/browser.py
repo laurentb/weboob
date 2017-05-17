@@ -136,7 +136,9 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
             self.market_syn.go(data=JSON({}))
             for account in accounts:
                 for market_acc in self.page.get_list():
-                    if account.number[-4:] == market_acc['securityAccountNumber'][-4:] and account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
+                    if account.number[-4:] == market_acc['securityAccountNumber'][-4:] and \
+                        account.type in (Account.TYPE_MARKET, Account.TYPE_PEA) and not account.iban:
+                        account.balance = market_acc.get('valorisation', account.balance)
                         account.valuation_diff = market_acc['profitLoss']
                         break
                 self.accounts_list.append(account)
