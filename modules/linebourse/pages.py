@@ -89,7 +89,7 @@ class HistoryPage(AccountPage):
 
 class InvestmentPage(AccountPage):
     @method
-    class iter_investment(TableElement):
+    class get_investment(TableElement):
         col_label = 'Valeur'
         col_quantity = u'Quantité'
         col_valuation = u'Valorisation EUR'
@@ -117,6 +117,18 @@ class InvestmentPage(AccountPage):
 
             obj_label = CleanText('./preceding-sibling::tr/td[1]/a/span')
             obj_code = Regexp(CleanText('./preceding-sibling::tr/td[1]/a'), '- (.*)')
+
+    def iter_investment(self):
+        valuation = CleanDecimal('//td[contains(text(), "Liquidités")]/following-sibling::td[1]', replace_dots=True, default=None)(self.doc)
+        if valuation:
+            inv = Investment()
+            inv.code = u"XX-liquidity"
+            inv.label = u"Liquidités"
+            inv.valuation = valuation
+            yield inv
+
+        for inv in self.get_investment():
+            yield inv
 
 
 class MessagePage(LoggedPage, HTMLPage):
