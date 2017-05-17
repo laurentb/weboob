@@ -181,10 +181,9 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_label = Format('%s %s', Field('_title'), Field('_nature'))
             obj_currency = FrenchTransaction.Currency('./td[@class="ColonneCode"]')
             obj_id = CleanText('td[@class="ColonneLibelle"][1]/a')
-            obj_balance = CleanDecimal('td[@class="ColonneNumerique"]', replace_dots=True)
             obj__link = Link('td[@class="ColonneLibelle"][1]/a')
             obj_type = Type(Field('label'))
-
+            obj_balance = CleanDecimal('td[@class="ColonneNumerique"]/nobr', replace_dots=True, default=NotAvailable)
 
 class HistoryPage(LoggedPage, HTMLPage):
     is_here = u'//title[text() = "Liste des opérations sur un compte"]'
@@ -222,6 +221,7 @@ class HistoryPage(LoggedPage, HTMLPage):
             return NotAvailable
         self.browser.location(iban_link)
         return self.browser.page.get_iban()
+
 
 class IbanPage(LoggedPage, HTMLPage):
     def get_iban(self):

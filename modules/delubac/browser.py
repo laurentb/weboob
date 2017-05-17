@@ -23,7 +23,8 @@ import time
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import AccountNotFound
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import find_object, NotLoaded
+
 
 from .pages import LoginPage, MenuPage, AccountsPage, HistoryPage, IbanPage
 
@@ -54,11 +55,13 @@ class DelubacBrowser(LoginBrowser):
     @need_login
     def iter_accounts(self):
         self.menu.go(date=int(time.time()*1000))
-
         self.location(self.page.accounts_url)
         for account in self.page.get_list():
             self.location(account._link)
-            account.iban = self.page.get_iban()
+            try:
+                account.iban = self.page.get_iban()
+            except AttributeError:
+                account.iban = NotLoaded
             yield account
 
     @need_login
