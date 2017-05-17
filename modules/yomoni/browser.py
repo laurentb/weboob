@@ -81,11 +81,10 @@ class YomoniBrowser(APIBrowser):
             return
 
         waiting = False
-
         for project in self.users['projects']:
             me = self.request('/user/%s/project/%s/' % (self.users['userId'], project['projectId']))
 
-            waiting = (me['status'] in ('RETURN_CUSTOMER_SERVICE', 'SUBSCRIPTION_STEP_3'))
+            waiting = (me['status'] in ('RETURN_CUSTOMER_SERVICE', 'SUBSCRIPTION_STEP_3', 'SUBSCRIPTION_STEP_4'))
 
             # Check project in progress
             if not me['numeroContrat'] or not me['dateAdhesion']:
@@ -110,7 +109,7 @@ class YomoniBrowser(APIBrowser):
             yield a
 
         if not self.accounts and waiting:
-            raise ActionNeeded("Le service client Yomoni est en attente d'un retour de votre part")
+            raise ActionNeeded("Le service client Yomoni est en attente d'un retour de votre part.")
 
     @need_login
     def iter_investment(self, account, invs=None):
