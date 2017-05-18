@@ -41,18 +41,19 @@ class LoginPage(JsonPage):
     def get_information(self, information):
         return Dict(information, default=None)(self.doc)
 
+
 class AccountsPage(LoggedPage, JsonPage):
     @method
-    class iter_accounts(ItemElement):
+    class get_account(ItemElement):
         klass = Account
 
         obj_balance = CleanDecimal(Dict('totalPortfolio/value/2/value'))
 
         def obj_id(self):
-            return str(self.page.browser.cache['client']['intAccount'])
+            return str(self.page.browser.intAccount)
 
         def obj_label(self):
-            return '%s DEGIRO' % self.page.browser.cache['client']['name'].title()
+            return '%s DEGIRO' % self.page.browser.name.title()
 
         def obj_type(self):
             return Account.TYPE_MARKET
@@ -75,10 +76,8 @@ class AccountsPage(LoggedPage, JsonPage):
             obj_valuation = CleanDecimal(Dict('value/6/value'))
 
             def obj_code(self):
-                return Dict('isin')(Env('product')(self))
-
-            def parse(self, el):
-                self.env['product'] = self.page.browser.search_product(Field('_product_id')(self)).doc['data'][Field('_product_id')(self)]
+                s = Field('_product_id')(self)
+                return self.page.browser.search_product(s)
 
             def condition(self):
                 return Field('quantity')(self) > 0
@@ -107,17 +106,14 @@ class HistoryPage(LoggedPage, JsonPage):
             obj_date = Date(CleanText(Dict('date')), dayfirst=True)
             obj_amount = CleanDecimal(Dict('change'))
 
-            def obj__isin(self):
-                return Regexp(Dict('description'), r'\((.*?)\)', default=None)(self)
+            obj__isin = Regexp(Dict('description'), r'\((.*?)\)', default=None)
 
-            def obj__datetime(self):
-                return Dict('date')(self)
+            obj__datetime = Dict('date')
 
             def obj_investments(self):
                 if Field('_isin')(self):
-                    return [i for i in Env('transaction_investments')(self) if i.code == Field('_isin')(self) and i._action == Field('raw')(self)[0] and i._datetime == Field('_datetime')(self)]
+                    return [inv for inv in Env('transaction_investments')(self).v if inv.code == Field('_isin')(self) and inv._action == Field('raw')(self)[0] and inv._datetime == Field('_datetime')(self)]
                 return []
-
 
     @method
     class iter_transaction_investments(DictElement):
@@ -132,11 +128,8 @@ class HistoryPage(LoggedPage, JsonPage):
             obj_vdate = Date(CleanText(Dict('date')), dayfirst=True)
             obj__action = Dict('buysell')
 
+            obj__datetime = Dict('date')
+
             def obj_code(self):
-                return Dict('isin')(Env('product')(self))
-
-            def obj__datetime(self):
-                return Dict('date')(self)
-
-            def parse(self, el):
-                self.env['product'] = self.page.browser.search_product(str(Field('_product_id')(self))).doc['data'][str(Field('_product_id')(self))]
+                s = str(Field('_product_id')(self))
+                return self.page.browser.search_product(s)

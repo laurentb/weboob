@@ -35,41 +35,29 @@ class DegiroBrowser(LoginBrowser):
     login = URL('/login/secure/login', LoginPage)
     client = URL('/pa/secure/client\?sessionId=(?P<sessionId>.*)', LoginPage)
     product = URL('/product_search/secure/v4/product/info\?intAccount=(?P<accountId>.*)&sessionId=(?P<sessionId>.*)', InvestmentPage)
-    accounts = URL('/trading/secure/v5/update/(?P<accountId>.*);jsessionid=(?P<sessionId>.*)\?historicalOrders=0' + \
-                   '&orders=0' + \
-                   '&portfolio=0' + \
-                   '&totalPortfolio=0' + \
-                   '&transactions=0' + \
-                   '&alerts=0' + \
-                   '&cashFunds=0' + \
-                   '&currencyExchange=0&', AccountsPage)
-    transaction_investments = URL('/reporting/secure/v4/transactions\?fromDate=(?P<fromDate>.*)' + \
-                                  '&groupTransactionsByOrder=false' + \
-                                  '&intAccount=(?P<accountId>.*)' + \
-                                  '&orderId=' + \
-                                  '&product=' + \
-                                  '&sessionId=(?P<sessionId>.*)' + \
-                                  '&toDate=(?P<toDate>.*)', HistoryPage)
-    history = URL('/reporting/secure/v4/accountoverview\?fromDate=(?P<fromDate>.*)' + \
-                  '&groupTransactionsByOrder=false' + \
-                  '&intAccount=(?P<accountId>.*)' + \
-                  '&orderId=' + \
-                  '&product=' + \
-                  '&sessionId=(?P<sessionId>.*)' + \
-                  '&toDate=(?P<toDate>.*)', HistoryPage)
+    accounts = URL('/trading(?P<staging>\w*)/secure/v5/update/(?P<accountId>.*);jsessionid=(?P<sessionId>.*)\?historicalOrders=0' +
+                   '&orders=0&portfolio=0&totalPortfolio=0&transactions=0&alerts=0&cashFunds=0&currencyExchange=0&',
+                   AccountsPage)
+    transaction_investments = URL('/reporting/secure/v4/transactions\?fromDate=(?P<fromDate>.*)' +
+                                  '&groupTransactionsByOrder=false&intAccount=(?P<accountId>.*)' +
+                                  '&orderId=&product=&sessionId=(?P<sessionId>.*)' +
+                                  '&toDate=(?P<toDate>.*)',
+                                  HistoryPage)
+    history = URL('/reporting/secure/v4/accountoverview\?fromDate=(?P<fromDate>.*)' +
+                  '&groupTransactionsByOrder=false&intAccount=(?P<accountId>.*)' +
+                  '&orderId=&product=&sessionId=(?P<sessionId>.*)&toDate=(?P<toDate>.*)',
+                   HistoryPage)
 
     def __init__(self, *args, **kwargs):
         super(DegiroBrowser, self).__init__(*args, **kwargs)
 
-        self.cache = {
-            'invs': {},
-            'trs': {},
-            'sessionId': None,
-            'client': {
-                'intAccount': None,
-                'name': None
-            }
-        }
+        self.intAccount = None
+        self.name = None
+        self.sessionId = None
+        self.account = None
+        self.invs = {}
+        self.trs = {}
+        self.products = {}
 
     def do_login(self):
         try:
@@ -79,48 +67,63 @@ class DegiroBrowser(LoginBrowser):
                 raise BrowserIncorrectPassword()
             raise
 
-        self.cache['sessionId'] = self.page.get_session_id()
+        self.sessionId = self.page.get_session_id()
 
-        self.client.go(sessionId=self.cache['sessionId'])
+        self.client.go(sessionId=self.sessionId)
 
-        self.cache['client']['intAccount'] = self.page.get_information('intAccount')
-        self.cache['client']['name'] = self.page.get_information('displayName')
+        self.intAccount = self.page.get_information('intAccount')
+        self.name = self.page.get_information('displayName')
 
     @need_login
     def iter_accounts(self):
-        if 'accs' not in self.cache.keys():
-            self.cache['accs'] = self.accounts.stay_or_go(accountId=self.cache['client']['intAccount'], sessionId=self.cache['sessionId']).iter_accounts()
-        yield self.cache['accs']
+        if self.account is None:
+            staging = '_s' if 'staging' in self.sessionId else ''
+            self.accounts.stay_or_go(staging=staging, accountId=self.intAccount, sessionId=self.sessionId)
+            self.account = self.page.get_account()
+        yield self.account
 
     @need_login
     def iter_investment(self, account):
-        if account.id not in self.cache['invs']:
-            self.cache['invs'][account.id] = [i for i in self.accounts.stay_or_go(accountId=self.cache['client']['intAccount'], sessionId=self.cache['sessionId']).iter_investment()]
-        return self.cache['invs'][account.id]
+        if account.id not in self.invs:
+            staging = '_s' if 'staging' in self.sessionId else ''
+            self.accounts.stay_or_go(staging=staging, accountId=self.intAccount, sessionId=self.sessionId)
+            self.invs[account.id] = list(self.page.iter_investment())
+        return self.invs[account.id]
 
     @need_login
     def iter_history(self, account):
-        if account.id not in self.cache['trs']:
+        if account.id not in self.trs:
             dateFmt = "%d/%m/%Y"
             toDate = datetime.datetime.now()
             fromDate = toDate - relativedelta(years=1)
 
-            transaction_investments = [t for t in self.transaction_investments.go(fromDate=fromDate.strftime(dateFmt), \
-                                                                  accountId=self.cache['client']['intAccount'], \
-                                                                  sessionId=self.cache['sessionId'], \
-                                                                  toDate=toDate.strftime(dateFmt)).iter_transaction_investments()]
+            self.transaction_investments.go(fromDate=fromDate.strftime(dateFmt), toDate=toDate.strftime(dateFmt),
+                                            accountId=self.intAccount, sessionId=self.sessionId)
+            transaction_investments = list(self.page.iter_transaction_investments())
 
-            trs = [t for t in self.history.go(fromDate=fromDate.strftime(dateFmt), \
-                                             accountId=self.cache['client']['intAccount'], \
-                                             sessionId=self.cache['sessionId'], \
-                                             toDate=toDate.strftime(dateFmt)).iter_history(transaction_investments=transaction_investments)]
-
-            self.cache['trs'][account.id] = trs
-        return self.cache['trs'][account.id]
+            self.history.go(fromDate=fromDate.strftime(dateFmt), toDate=toDate.strftime(dateFmt),
+                            accountId=self.intAccount, sessionId=self.sessionId)
+            trs = list(self.page.iter_history(transaction_investments=NoCopy(transaction_investments)))
+            self.trs[account.id] = trs
+        return self.trs[account.id]
 
     @need_login
     def search_product(self, productId):
-        return self.product.go(data=json.dumps([productId]), \
-                               accountId=self.cache['client']['intAccount'], \
-                               sessionId=self.cache['sessionId'], \
-                               headers={'Content-Type': 'application/json;charset=UTF-8'})
+        if productId not in self.products:
+            self.product.go(data=json.dumps([productId]),
+                            accountId=self.intAccount,
+                            sessionId=self.sessionId,
+                            headers={'Content-Type': 'application/json;charset=UTF-8'})
+            self.products[productId] = self.page.doc['data'][productId]['isin']
+        return self.products[productId]
+
+
+class NoCopy(object):
+    # params passed to a @method are deepcopied, in each iteration of ItemElement
+    # so we want to avoid repeatedly copying objects since we don't intend to modify them
+
+    def __init__(self, v):
+        self.v = v
+
+    def __deepcopy__(self, memo):
+        return self
