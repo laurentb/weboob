@@ -118,9 +118,11 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                     account = Account()
                     args = self.js2args(table.xpath('.//a')[0].attrib['onclick'])
                     account._args = args
-                    loan_details = self.browser.open("/webapp/axabanque/jsp/panorama.faces",data=args)
-                    account.label = CleanText().filter(self.doc.xpath('//*[@id="table-panorama"]/table[1]/caption'))
+                    account.label = CleanText().filter(tds[0].xpath('./ancestor::table[has-class("tableaux-pret-personnel")]/caption'))
                     account.id = account.label.split()[-1] + args['paramNumContrat']
+                    loan_details = self.browser.open("/webapp/axabanque/jsp/panorama.faces",data=args)
+                    # Need to go back on home page after open
+                    self.browser.bank_accounts.open()
                     account.balance = -CleanDecimal().filter(loan_details.page.doc.xpath('//*[@id="table-detail"]/tbody/tr/td[7]/text()'))
                     account.currency = Currency().filter(loan_details.page.doc.xpath('//*[@id="table-detail"]/tbody/tr/td[7]/text()'))
                     account.type = Account.TYPE_LOAN
