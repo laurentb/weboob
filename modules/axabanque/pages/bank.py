@@ -219,7 +219,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                 yield account
 
     def get_form_action(self, form_name):
-        return self.get_form(id=form_name, submit='(//input[@type="submit" and contains(@name,"idPanorama:_idJsp")])[1]').url
+        return self.get_form(id=form_name).url
 
 
 class IbanPage(PDFPage):
