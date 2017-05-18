@@ -268,13 +268,13 @@ class CardListPage(LoggedPage, JsonPage):
             obj_type = Account.TYPE_CARD
             obj_number = Dict('numCarte')
             obj_id = Format('%s.%s', Env('account_id'), Dict('numCarte'))
-            obj_label = Dict('nomPorteur')
+            obj_label = Format('%s %s', Dict('typeCarte'), Dict('nomPorteur'))
             obj__index = Dict('idCarte')
             obj__parent_iban = Env('parent_iban')
             obj_coming = Eval(lambda x: Decimal(x)/100, Dict('montant/montant'))
 
-class CardHistoryPage(LoggedPage, JsonPage):
 
+class CardHistoryPage(LoggedPage, JsonPage):
     @method
     class iter_coming(DictElement):
         item_xpath = 'listOperationCarteDataBean'
@@ -283,12 +283,8 @@ class CardHistoryPage(LoggedPage, JsonPage):
             klass = Transaction
 
             obj_type = Transaction.TYPE_DEFERRED_CARD
-            obj_vdate = Date(Dict('valeur'))
-            obj_date = obj_vdate
-
+            obj_date = obj_vdate = Date(Dict('valeur'), dayfirst=True)
 
             def obj_amount(self):
-                if self.el.get('debit'):
-                    return - Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('debit/montant')), CleanDecimal(Dict('debit/nb_dec')))(self)
-                else:
-                    return Eval(lambda x, y: x / 10 ** y, CleanDecimal(Dict('credit/montant')), CleanDecimal(Dict('credit/nb_dec')))(self)
+                amount = Dict('debit', default=None)(self) or Dict('credit')(self)
+                return Eval(lambda x, y: x / 10**y, Decimal(amount['montant']), Decimal(amount['nb_dec']))(self)
