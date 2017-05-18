@@ -61,6 +61,13 @@ class BoursoramaModule(Module, CapBankTransferAddRecipient, CapProfile, CapConta
             raise AccountNotFound()
 
     def iter_history(self, account):
+        if account.type == Account.TYPE_CARD and not self.browser.regular_transactions_got:
+            for acc in self.browser.get_accounts_list():
+                if acc.type == Account.TYPE_CHECKING:
+                    # we call this function here to make sure we have
+                    # summary_card list from all checking account
+                    list(self.browser.get_history(acc))
+
         for tr in self.browser.get_history(account):
             if not tr._is_coming:
                 yield tr

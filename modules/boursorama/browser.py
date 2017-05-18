@@ -40,7 +40,7 @@ from .pages import (
     MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ProfilePage, ExpertPage,
     CardsNumberPage, CalendarPage, HomePage, PEPPage,
     TransferAccounts, TransferRecipients, TransferCharac, TransferConfirm, TransferSent,
-    AddRecipientPage, RecipientCreated,
+    AddRecipientPage, RecipientCreated, Transaction
 )
 
 
@@ -118,6 +118,8 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         self.webid = None
         self.accounts_list = None
         self.deferred_card_calendar = None
+        self.summary_card_list = []
+        self.regular_transactions_got = False
         kwargs['username'] = self.config['login'].get()
         kwargs['password'] = self.config['password'].get()
         super(BoursoramaBrowser, self).__init__(*args, **kwargs)
@@ -206,6 +208,28 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
             if i[0].date() < debit_date <= j[0].date():
                 return j[1].date()
 
+    def get_summary_card_list(self, card_account, date=None):
+        sub_summary_card_list = [
+            sc for sc in self.summary_card_list if card_account.number in sc.label]
+        if date:
+            sub_summary_card_list = [
+                sc for sc in sub_summary_card_list if sc.date == date]
+
+        return sub_summary_card_list
+
+    @classmethod
+    def _get_summary_card_copy(cls, summary_card):
+        summary_card_copy = Transaction()
+        summary_card_copy.raw = summary_card.raw
+        summary_card_copy.label = summary_card.label
+        summary_card_copy.amount = -summary_card.amount
+        summary_card_copy.date = summary_card.date
+        summary_card_copy.rdate = summary_card.rdate
+        summary_card_copy.type = summary_card.type
+        summary_card_copy._is_coming = False
+
+        return summary_card_copy
+
     def get_card_transactions(self, account):
         self.location(account.url, params={'movementSearch[period]': 'currentPeriod'})
         if self.home.is_here():
@@ -215,8 +239,14 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         for t in self.page.iter_history(is_card=True):
             yield t
 
+        current_date_list = []
         self.location(account.url, params={'movementSearch[period]': 'previousPeriod'})
         for t in self.page.iter_history(is_card=True, is_previous=True):
+            if t.date not in current_date_list:
+                current_date_list.append(t.date)
+                for summary_card in self.get_summary_card_list(account, t.date):
+                    yield BoursoramaBrowser._get_summary_card_copy(summary_card)
+
             yield t
 
     def get_invest_transactions(self, account, coming):
@@ -239,11 +269,16 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=1)).strftime('%d/%m/%Y')
         params['movementSearch[selectedAccounts][]'] = account._webid
         self.location('%s/mouvements' % account.url.rstrip('/'), params=params)
+        self.regular_transactions_got = True
         for t in self.page.iter_history():
+            if t.type == Transaction.TYPE_CARD_SUMMARY and t not in self.summary_card_list:
+                self.summary_card_list.append(t)
             yield t
         if coming and account.type == Account.TYPE_CHECKING:
             self.location('%s/mouvements-a-venir' % account.url.rstrip('/'), params=params)
             for t in self.page.iter_history(coming=True):
+                if t.type == Transaction.TYPE_CARD_SUMMARY and t not in self.summary_card_list:
+                    self.summary_card_list.append(t)
                 yield t
 
     @need_login
