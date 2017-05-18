@@ -76,7 +76,7 @@ class InvestmentPage(LoggedPage, HTMLPage):
         head_xpath = '//table/thead//th'
 
         col_label = 'Nom des supports'
-        col_valuation = 'Date de valorisation'
+        col_valuation = 'Date Montant'
         col_vdate = 'Date de valorisation'
         col_portfolio_share = u'Répartition'
 
@@ -87,7 +87,7 @@ class InvestmentPage(LoggedPage, HTMLPage):
 
             def obj_valuation(self):
                 td = TableCell('valuation')(self)[0]
-                return CleanDecimal('./span')(td)
+                return CleanDecimal('.')(td)
 
             def obj_vdate(self):
                 td = TableCell('vdate')(self)[0]
