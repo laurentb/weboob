@@ -66,7 +66,7 @@ class AccountsPage(HTMLPage):
             a = tds[0].find('a')
 
             # Skip accounts that can't be accessed
-            if a == None:
+            if a is None:
                 continue
 
             balance = tds[-1].text.strip()
