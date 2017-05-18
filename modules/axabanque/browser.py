@@ -135,6 +135,9 @@ class AXABanque(AXABrowser):
             self.wealth_accounts.go()
             if self.wealth_accounts.is_here():
                 accounts.extend(list(self.page.iter_accounts()))
+            else:
+                # it probably didn't work, go back on a regular page to avoid being logged out
+                self.transactions.go()
 
             self.cache['accs'] = accounts
         return self.cache['accs']
