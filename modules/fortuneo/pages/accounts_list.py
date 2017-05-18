@@ -373,14 +373,17 @@ class AccountsList(LoggedPage, HTMLPage):
                                          'or contains(@id, "assurance_vie_operations")]')(cpt)
 
             # this is to test if access to the accounts info is blocked for different reasons
+            page = self.browser.open(account._history_link).page
             if len(accounts) == 0:
-                page = self.browser.open(account._history_link).page
-                message = page.doc.xpath('//div[@id="as_renouvellementMIFID.do_"]/div[contains(text(), "Bonjour")] '
-                                         '| //div[@id="as_afficherMessageBloquantMigration.do_"]//div[@class="content_message"] '
-                                         '| //div[@id="as_renouvellementMotDePasse.do_"]//p[contains(text(), "votre mot de passe")]'
-                                         '| //div[@id="as_afficherSecuriteForteOTPIdentification.do_"]//span[contains(text(), "Pour valider ")]')
-                if message:
-                    raise ActionNeeded(CleanText('.')(message[0]))
+                global_error_message = page.doc.xpath('//div[@id="as_renouvellementMIFID.do_"]/div[contains(text(), "Bonjour")] '
+                                                      '| //div[@id="as_afficherMessageBloquantMigration.do_"]//div[@class="content_message"] '
+                                                      '| //div[@id="as_renouvellementMotDePasse.do_"]//p[contains(text(), "votre mot de passe")]'
+                                                      '| //div[@id="as_afficherSecuriteForteOTPIdentification.do_"]//span[contains(text(), "Pour valider ")]')
+                if global_error_message:
+                    raise ActionNeeded(CleanText('.')(global_error_message[0]))
+            local_error_message = page.doc.xpath('//div[@id="error"]/p[@class="erreur_texte1"]')
+            if local_error_message:
+                raise BrowserUnavailable(CleanText('.')(local_error_message[0]))
 
             number = RawText('./a[contains(@class, "numero_compte")]')(cpt).replace(u'N° ', '')
 
