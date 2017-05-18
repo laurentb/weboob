@@ -26,6 +26,7 @@ from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import Currency
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
+from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 from .pages import Transaction
@@ -52,10 +53,15 @@ class AccountsJsonPage(LoggedPage, JsonPage):
                 a = Account()
                 a.label = CleanText().filter(compte['libelle'])
                 a._id = compte['id']
-                a.iban = compte['iban'].replace(' ', '')
-                # id based on iban to match ids in database.
-                a.id = a.iban[4:-2] if len(a.iban) == 27 else a.iban
                 a.type = self.obj_type(a.label)
+                a.number = compte['iban'].replace(' ', '')
+                # for some account that don't have Iban the account number is store under this variable in the Json
+                if not is_iban_valid(a.number):
+                    a.iban = NotAvailable
+                else:
+                    a.iban = a.number
+                # id based on iban to match ids in database.
+                a.id = a.number[4:-2] if len(a.number) == 27 else a.number
                 a._agency = compte['agenceGestionnaire']
                 a._title = title
                 yield a
