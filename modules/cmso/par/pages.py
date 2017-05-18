@@ -168,7 +168,7 @@ class AccountsPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Account
 
-            obj_id = Dict('identifiantTechnique')
+            obj_id = Dict('numeroContratSouscrit')
             obj_label = Dict('libelle')
             obj_currency = u'EUR'
             obj_type = Account.TYPE_LOAN
