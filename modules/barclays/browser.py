@@ -125,6 +125,9 @@ class Barclays(LoginBrowser):
             for a in accounts:
                 if ibans and a.id in ibans['list']:
                     ibans['form']['checkaccount'] = ibans['list'][a.id]
+                    if ibans['form'].req:
+                        # this form has been submitted and whe have to rebuild data
+                        ibans['form'].req.data['checkaccount'] = ibans['list'][a.id]
                     ibans['form'].submit()
                     a.iban = self.page.get_iban()
                 else:
