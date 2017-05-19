@@ -288,7 +288,8 @@ class IndexPage(LoggedPage, HTMLPage):
         return bool(CleanText(u'//span[contains(text(), "Authentification non rejouable")]')(self.doc))
 
     def check_no_loans(self):
-        return not bool(CleanText(u'//table[@class="menu"]//div[contains(., "Crédits")]')(self.doc))
+        return not bool(CleanText(u'//table[@class="menu"]//div[contains(., "Crédits")]')(self.doc)) and \
+               not bool(CleanText(u'//table[@class="header-navigation_main"]//a[contains(., "Crédits")]')(self.doc))
 
     def check_no_accounts(self):
         no_account_message = CleanText(u'//span[@id="MM_LblMessagePopinError"]/p[contains(text(), "Aucun compte disponible")]')(self.doc)
