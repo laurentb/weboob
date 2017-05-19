@@ -606,7 +606,7 @@ class Boobank(ReplApplication):
         transfer.account_id = account.id
         transfer.recipient_id = id_to
         transfer.amount = amount
-        transfer.label = reason
+        transfer.label = reason or ''
         transfer.exec_date = exec_date
 
         next(iter(self.do('transfer', transfer, backends=account.backend)))
