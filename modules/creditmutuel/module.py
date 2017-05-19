@@ -42,7 +42,7 @@ class CreditMutuelModule(Module, CapBankTransferAddRecipient, CapContact, CapPro
     VERSION = '1.3'
     DESCRIPTION = u'Crédit Mutuel'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', regexp='^\d{1,13}\w$', masked=False),
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Mot de passe'))
     BROWSER = CreditMutuelBrowser
 
