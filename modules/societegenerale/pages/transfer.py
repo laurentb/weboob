@@ -80,7 +80,10 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         return Regexp(Link('//a[img[@src="/img/personnalisation/btn_ajouter_beneficiaire.jpg"]]'), 'javascript:window.location="([^"]+)"')(self.doc)
 
     def on_load(self):
-        excluded_errors = [u"Vous n'avez pas la possibilité d'accéder à cette fonction. Veuillez prendre contact avec votre Conseiller."]
+        excluded_errors = [
+            u"Vous n'avez pas la possibilité d'accéder à cette fonction. Veuillez prendre contact avec votre Conseiller.",
+            u"Aucun compte de la liste n'est autorisé à la passation d'ordres de virement.",
+        ]
         error_msg = CleanText('//span[@class="error_msg"]')(self.doc)
         if error_msg and error_msg not in excluded_errors:
             raise TransferBankError(error_msg)
