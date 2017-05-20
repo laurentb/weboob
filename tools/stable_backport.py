@@ -108,6 +108,15 @@ class ImportErrorError(Error):
         self.reimport_module(module)
 
 
+def replace_all(expr, dest):
+    system(r"""for file in $(git ls-files modules | grep '\.py$');
+               do
+                   sed -i -e "s/""" + expr + '/' + dest + """/g" $file
+               done""")
+
+
+
+
 class StableBackport(object):
     errors = {'E0611': NoNameInModuleError,
               'E0401': ImportErrorError,
@@ -118,10 +127,8 @@ class StableBackport(object):
             system('git checkout --theirs %s modules' % DEVEL_BRANCH)
 
         with log('Replacing version number'):
-            system(r"""for file in $(git ls-files modules | grep '\.py$');
-                       do
-                           sed -i -e "s/^\(\s*\)\(VERSION\)\( *\)=\( *\)[\"'][0-9]\+\..\+[\"']\(,\?\)$/\1\2\3=\4'""" + STABLE_VERSION + r"""'\5/g" $file
-                       done""")
+            replace_all(r"""^\(\s*\)\(VERSION\)\( *\)=\( *\)[\"'][0-9]\+\..\+[\"']\(,\?\)$""",
+                        r"""\1\2\3=\4'""" + STABLE_VERSION + r"""'\5""")
 
         with log('Removing staling data'):
             system('tools/stale_pyc.py')
@@ -152,6 +159,11 @@ class StableBackport(object):
                 for error in errors:
                     error.fixup()
                 system('git add %s' % compat_dirname)
+
+        with log('Custom fixups'):
+            replace_all(r'Investment.CODE_TYPE_\([A-Z]\+\)', r"'\1'")
+
+        system('git add -u')
 
 
 if __name__ == '__main__':
