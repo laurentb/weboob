@@ -17,15 +17,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 import re
 
 from weboob.tools.json import json
-from weboob.capabilities.bank import Account, NotAvailable
+from weboob.capabilities.bank import Account, NotAvailable, Recipient, TransferBankError, Transfer
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
-from weboob.browser.filters.standard import Filter, Format, CleanText, CleanDecimal, \
-                                            BrowserURL, Field, Async, AsyncLoad
+from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage, PartialHTMLPage
+from weboob.browser.filters.html import Attr
+from weboob.browser.filters.standard import (
+    Filter, Format, CleanText, CleanDecimal, BrowserURL, Field, Async, AsyncLoad,
+    Date, Regexp,
+)
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.exceptions import ServerError
 
@@ -166,3 +168,77 @@ class ComingTransactionsPage(LoggedPage, HTMLPage):
             t.parse(tr[self.ROW_DATE], tr[self.ROW_TEXT])
             t.set_amount(tr[self.ROW_CREDIT], tr[self.ROW_DEBIT])
             yield t
+
+
+class RecipientsPage(LoggedPage, PartialHTMLPage):
+    @method
+    class iter_recipients(ListElement):
+        item_xpath = '//ul[@class="accountListe"]/li'
+
+        class item(ItemElement):
+            klass = Recipient
+
+            obj_label = Format('%s - %s (%s)',
+                               CleanText('.//div[@class="crediteur"]/span[@class="crediteurDetail"]/strong'),
+                               CleanText('.//div[@class="crediteur"]/span[@class="crediteurDetail"]/span/strong'),
+                               CleanText('.//div[@class="crediteur"]/span[@class="crediteurDetail"]/small[@class="smallTxt"]'))
+
+            obj_id = Attr('.//input[@name="nCompteCred"]', 'value')
+
+
+class EmittersPage(LoggedPage, PartialHTMLPage):
+    @method
+    class iter_emitters(ListElement):
+        item_xpath = '//ul[@class="accountListe"]/li'
+
+        class item(ItemElement):
+            klass = Recipient
+
+            obj_id = Attr('.//input[@name="nCompteDeb"]', 'value')
+
+
+class TransferPage(LoggedPage, HTMLPage):
+    def prepare_form(self, transfer, date):
+        form = self.get_form(id='formCreateVir')
+        form['typevirradio'] = 'ponct'
+        form['isBenef'] = 'false'
+        form['nCompteDeb'] = form['numCptDeb'] = transfer.account_id
+        form['nCompteCred'] = form['numCptCred'] = transfer.recipient_id
+        form['dtponct'] = date.strftime('%d/%m/%Y')
+        form['montant'] = str(transfer.amount)
+        form['intitule'] = transfer.label or ''
+        form.req = None
+        return form
+
+
+class TransferDatesPage(LoggedPage, PartialHTMLPage):
+    def iter_dates(self):
+        for opt in self.doc.xpath('//select[@name="dtponct"]/option'):
+            yield Date(CleanText('./@value'), dayfirst=True)(opt)
+
+
+class TransferValidatePage(LoggedPage, PartialHTMLPage):
+    def on_load(self):
+        msg = CleanText('//li')(self.doc)
+        if msg:
+            raise TransferBankError(message=msg)
+
+
+class TransferPostPage(LoggedPage, PartialHTMLPage):
+    @method
+    class get_transfer(ItemElement):
+        klass = Transfer
+
+        obj_amount = CleanDecimal('//p[@class="tabTxt tabTxt2"]/strong[1]', replace_dots=True)
+        obj_exec_date = Date(CleanText('//p[@class="tabTxt tabTxt2"]/strong[2]'))
+        obj_label = Regexp(CleanText('//p[@class="tabTxt tabTxt2"]/strong[3]'), u'« (.*) »')
+        obj_account_id = Regexp(CleanText('//div[@class="transAction"]/div[@class="inner"]/div[@class="first"]//small'), ur'N°(\w+)')
+        obj_recipient_id = Regexp(CleanText('//div[@class="transAction"]/div[@class="inner"]/div[not(@class="first")]//small'), ur'N°(\w+)')
+
+    def finish(self):
+        self.get_form(id='form').submit()
+
+
+class TransferFinishPage(LoggedPage, PartialHTMLPage):
+    def on_load(self):
+        assert b'Votre demande a bien &eacute;t&eacute; prise en compte' in self.data

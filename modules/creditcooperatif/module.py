@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankTransfer, AccountNotFound
 from weboob.tools.backend import Module, BackendConfig
+from weboob.tools.date import new_date
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .perso.browser import CreditCooperatif as CreditCooperatifPerso
@@ -30,7 +30,7 @@ from .pro.browser import CreditCooperatif as CreditCooperatifPro
 __all__ = ['CreditCooperatifModule']
 
 
-class CreditCooperatifModule(Module, CapBank):
+class CreditCooperatifModule(Module, CapBankTransfer):
     NAME = 'creditcooperatif'
     MAINTAINER = u'Kevin Pouget'
     EMAIL = 'weboob@kevin.pouget.me'
@@ -42,7 +42,7 @@ class CreditCooperatifModule(Module, CapBank):
                  'strong': "Sesame (pro)"}
     CONFIG = BackendConfig(Value('auth_type', label='Type de compte', choices=auth_type, default="particular"),
                            ValueBackendPassword('login', label='Code utilisateur', masked=False),
-                           ValueBackendPassword('password', label='Code confidentiel ou code PIN'))
+                           ValueBackendPassword('password', label='Code confidentiel ou code PIN', required=False))
 
     def create_default_browser(self):
         if self.config['auth_type'].get() == 'particular':
@@ -67,3 +67,19 @@ class CreditCooperatifModule(Module, CapBank):
 
     def iter_coming(self, account):
         return self.browser.get_coming(account)
+
+    def iter_transfer_recipients(self, account):
+        assert self.browser
+        if self.BROWSER is not CreditCooperatifPerso:
+            raise NotImplementedError()
+        return self.browser.iter_recipients(account)
+
+    def init_transfer(self, transfer, **kwargs):
+        return self.browser.init_transfer(transfer, **kwargs)
+
+    def execute_transfer(self, transfer, **kwargs):
+        return self.browser.execute_transfer(transfer, **kwargs)
+
+    def transfer_check_exec_date(self, old, new):
+        delta = new_date(new) - new_date(old)
+        return delta.days <= 2
