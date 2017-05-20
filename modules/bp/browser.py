@@ -242,7 +242,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
         def iter_transactions(self, link):
             self.location(link)
 
-            for t in range(10):
+            for t in range(6):
                 try:
                     self.par_account_deferred_card_history.go(type=t)
                 except BrowserUnavailable:
