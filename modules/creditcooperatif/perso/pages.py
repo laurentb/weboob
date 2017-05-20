@@ -172,8 +172,8 @@ class ComingTransactionsPage(LoggedPage, HTMLPage):
 
 class RecipientsPage(LoggedPage, PartialHTMLPage):
     @method
-    class iter_recipients(ListElement):
-        item_xpath = '//ul[@class="accountListe"]/li'
+    class iter_internal_recipients(ListElement):
+        item_xpath = '//div[@class="internAcount"]//ul[@class="accountListe"]/li'
 
         class item(ItemElement):
             klass = Recipient
@@ -184,6 +184,32 @@ class RecipientsPage(LoggedPage, PartialHTMLPage):
                                CleanText('.//div[@class="crediteur"]/span[@class="crediteurDetail"]/small[@class="smallTxt"]'))
 
             obj_id = Attr('.//input[@name="nCompteCred"]', 'value')
+
+            obj_category = u'Interne'
+            obj_bank_name = u'Crédit Coopératif'
+
+    @method
+    class iter_external_recipients(ListElement):
+        item_xpath = '//div[@class="externAcount"]//ul[@class="accountListe"]/li'
+
+        class item(ItemElement):
+            klass = Recipient
+
+            obj_label = CleanText('.//span[@class="tabTxt"]/strong')
+            obj_id = Attr('.//input[@name="nCompteCred"]', 'value')
+
+            obj_category = u'Externe'
+
+            obj_bank_name = CleanText('.//small/span[3]')
+
+            def obj_iban(self):
+                return CleanText('.//small/span[2]')(self).replace(' ', '')
+
+    def iter_recipients(self):
+        for r in self.iter_internal_recipients():
+            yield r
+        for r in self.iter_external_recipients():
+            yield r
 
 
 class EmittersPage(LoggedPage, PartialHTMLPage):
@@ -233,7 +259,11 @@ class TransferPostPage(LoggedPage, PartialHTMLPage):
         obj_exec_date = Date(CleanText('//p[@class="tabTxt tabTxt2"]/strong[2]'))
         obj_label = Regexp(CleanText('//p[@class="tabTxt tabTxt2"]/strong[3]'), u'« (.*) »')
         obj_account_id = Regexp(CleanText('//div[@class="transAction"]/div[@class="inner"]/div[@class="first"]//small'), ur'N°(\w+)')
-        obj_recipient_id = Regexp(CleanText('//div[@class="transAction"]/div[@class="inner"]/div[not(@class="first")]//small'), ur'N°(\w+)')
+        obj_recipient_id = Regexp(CleanText('//div[@class="transAction"]/div[@class="inner"]/div[not(@class="first")]//small'), ur'N°(\w+)', default=None)
+
+        def obj_recipient_iban(self):
+            if Field('recipient_id')(self) is None:
+                return CleanText('//div[@class="transAction"]/div[@class="inner"]/div[not(@class="first")]//span[@class="tabTxt"]')(self).replace(' ', '')
 
     def finish(self):
         self.get_form(id='form').submit()

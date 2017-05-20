@@ -21,6 +21,7 @@ from datetime import datetime
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.capabilities.base import find_object
+from weboob.capabilities.bank import TransferInvalidDate
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.date import new_date
 
@@ -110,7 +111,9 @@ class CreditCooperatif(LoginBrowser, StatesMixin):
     @need_login
     def iter_recipients(self, account_id):
         self.transfer_start.go()
-        self.emitters.go(data={'typevirradio': 'ponct'})
+        self.emitters.go(data={
+            'typevirradio': 'ponct',
+        })
         if find_object(self.page.iter_emitters(), id=account_id) is None:
             return []
 
@@ -134,6 +137,7 @@ class CreditCooperatif(LoginBrowser, StatesMixin):
             'typevirradio': 'ponct',
             'nCompteDeb': transfer.account_id,
         })
+        all_recipients = list(self.page.iter_recipients())
 
         self.transfer_date.go(data={
             'nCompteCred': transfer.recipient_id,
@@ -144,7 +148,7 @@ class CreditCooperatif(LoginBrowser, StatesMixin):
                 date = page_date
                 break
         else:
-            assert False, 'no appropriate date'
+            raise TransferInvalidDate('The bank proposes no date greater or equal to the desired date')
 
         form = transfer_page.prepare_form(transfer=transfer, date=page_date)
         form.url = self.transfer_validate.build()
@@ -156,7 +160,13 @@ class CreditCooperatif(LoginBrowser, StatesMixin):
         form.submit()
         assert self.transfer_post.is_here()
 
-        return self.page.get_transfer()
+        ret = self.page.get_transfer()
+        if ret.recipient_iban:
+            assert not ret.recipient_id # it's nowhere on the page
+            recipient = find_object(all_recipients, iban=ret.recipient_iban)
+            assert recipient
+            ret.recipient_id = recipient.id
+        return ret
 
     @need_login
     def execute_transfer(self, transfer):
