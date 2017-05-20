@@ -126,7 +126,7 @@ class TinderModule(Module, CapMessages, CapMessagesPost, CapDating):
             signature = u'Age: %d (%s)' % ((datetime.date.today() - birthday).days / 365.25, birthday)
             signature += u'\nLast ping: %s' % parse_date(thread['person']['ping_time']).strftime('%Y-%m-%d %H:%M:%S')
             signature += u'\nPhotos:\n\t%s' % '\n\t'.join([photo['url'] for photo in thread['person']['photos']])
-            signature += u'\n\n%s' % thread['person']['bio']
+            signature += u'\n\n%s' % thread['person'].get('bio', '')
 
             t.root = Message(thread=t, id=1, title=t.title,
                              sender=unicode(thread['person']['name']),
