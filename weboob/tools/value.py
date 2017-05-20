@@ -176,7 +176,7 @@ class ValueBackendPassword(Value):
         if passwd == '':
             # always allow empty passwords
             return True
-        return Value.check_valid(self, passwd)
+        return super(ValueBackendPassword, self).check_valid(passwd)
 
     def set(self, passwd):
         if self.is_command(passwd):
@@ -296,7 +296,7 @@ class ValueDate(Value):
             return format
 
     def check_valid(self, v):
-        Value.check_valid(self, v)
+        super(ValueDate, self).check_valid(v)
         if not self.get_format(v):
             raise ValueError('Value "%s" does not match format in %s' % (self.show_value(v), self.show_value(self.formats_tuple)))
 
