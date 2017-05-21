@@ -19,13 +19,13 @@
 
 from __future__ import unicode_literals
 
-
-from weboob.tools.test import BackendTest
+from weboob.tools.test import BackendTest, skip_without_config
 
 
 class TumblrTest(BackendTest):
     MODULE = 'tumblr'
 
+    @skip_without_config('url')
     def test_tumblr(self):
         gall = self.backend.get_gallery('noname')
         assert gall

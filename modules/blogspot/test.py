@@ -19,12 +19,13 @@
 
 from __future__ import unicode_literals
 
-from weboob.tools.test import BackendTest
+from weboob.tools.test import BackendTest, skip_without_config
 
 
 class BlogspotTest(BackendTest):
     MODULE = 'blogspot'
 
+    @skip_without_config('url')
     def test_blog(self):
         threads = list(self.backend.iter_threads())
         assert threads
