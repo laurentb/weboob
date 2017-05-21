@@ -22,6 +22,7 @@ import warnings
 import re
 from decimal import Decimal
 from copy import deepcopy, copy
+import sys
 
 from weboob.tools.compat import unicode, long, with_metaclass, StrConv
 from weboob.tools.misc import to_unicode
@@ -510,6 +511,10 @@ class BaseObject(with_metaclass(_BaseObjectMeta, StrConv, object)):
         self._fields = deepcopy(self._fields) # because yaml does not call __init__
         for k in state:
             setattr(self, k, state[k])
+
+    if sys.version_info.major >= 3:
+        def __dir__(self):
+            return list(super(BaseObject, self).__dir__()) + list(self._fields.keys())
 
 
 class Currency(object):

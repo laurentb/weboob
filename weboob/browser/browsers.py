@@ -758,6 +758,10 @@ class PagesBrowser(with_metaclass(_PagesBrowserMeta, DomainBrowser)):
             else:
                 return
 
+    if sys.version_info.major >= 3:
+        def __dir__(self):
+            return list(super(PagesBrowser, self).__dir__()) + list(self._urls.keys())
+
 
 def need_login(func):
     """
