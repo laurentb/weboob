@@ -19,7 +19,7 @@
 
 from datetime import datetime
 
-from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
+from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import TransferInvalidDate
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
@@ -36,7 +36,7 @@ from .pages import (
 __all__ = ['CreditCooperatif']
 
 
-class CreditCooperatif(LoginBrowser, StatesMixin):
+class CreditCooperatif(LoginBrowser):
     BASEURL = "https://www.credit-cooperatif.coop"
 
     loginpage = URL('/portail//particuliers/login.do', LoginPage)
