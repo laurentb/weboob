@@ -48,9 +48,7 @@ class BilletreducBrowser(PagesBrowser):
         start = q.start_date or datetime.now()
         start = start.replace(second=0, microsecond=0)
 
-        end = q.end_date
-        if end is None:
-            end = start + timedelta(days=7)
+        end = q.end_date or start + timedelta(days=7)
 
         for date in iter_days(start, end):
             q.start_date = date
