@@ -38,8 +38,9 @@ class GanAssurancesModule(Module, CapBank):
     DESCRIPTION = u'Groupama'
     LICENSE = 'AGPLv3+'
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
-        'espaceclient.groupama.fr':    u'Groupama Banque',
-        'espaceclient.ganassurances.fr':   u'Gan Assurances',
+        'espaceclient.groupama.fr':             u'Groupama Banque',
+        'espaceclient.ganassurances.fr':        u'Gan Assurances',
+        'espaceclient.ganpatrimoine.fr':        U'Gan Patrimoine',
         }.iteritems(), key=lambda k_v: (k_v[1], k_v[0]))])
     CONFIG = BackendConfig(Value('website',  label='Banque', choices=website_choices, default='espaceclient.ganassurances.fr'),
                            ValueBackendPassword('login',    label=u'Numéro client', masked=False),
@@ -62,3 +63,6 @@ class GanAssurancesModule(Module, CapBank):
 
     def iter_coming(self, account):
         return self.browser.get_coming(account)
+
+    def iter_investment(self, account):
+        return self.browser.get_investment(account)

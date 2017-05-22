@@ -17,12 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
+
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import empty
 
-from .pages import LoginPage, AccountsPage, TransactionsPage, AVBalancePage, AVHistoryPage, FormPage
+from .pages import LoginPage, AccountsPage, TransactionsPage, AVAccountPage, AVHistoryPage, FormPage
 
 
 __all__ = ['GanAssurances']
@@ -30,16 +32,18 @@ __all__ = ['GanAssurances']
 
 class GanAssurances(LoginBrowser):
     login = URL('/wps/portal/login.*',
-                'https://authentification.ganassurances.fr/cas/login.*',
+                'https://authentification.(ganassurances|ganpatrimoine).fr/cas/login.*',
                 '/wps/portal/inscription.*', LoginPage)
-    form_balance = URL('/wps/myportal/assurancevie/rivage/!ut/p/a1/.*', FormPage)
     accounts = URL('/wps/myportal/TableauDeBord', AccountsPage)
     transactions = URL('/wps/myportal/!ut.*', TransactionsPage)
-    av_balance = URL('https://secure-rivage.ganassurances.fr/contratVie.rivage.syntheseContratEparUc.gsi', AVBalancePage)
-    av_history = URL('https://secure-rivage.ganassurances.fr/contratVie.rivage.mesOperations.gsi', AVHistoryPage)
+    av_account_form = URL('/wps/myportal/assurancevie/rivage/!ut/p/a1/.*', FormPage)
+    av_account = URL('https://secure-rivage.(ganassurances|ganpatrimoine).fr/contratVie.rivage.syntheseContratEparUc.gsi', AVAccountPage)
+    av_history = URL('https://secure-rivage.(?P<website>.*).fr/contratVie.rivage.mesOperations.gsi', AVHistoryPage)
 
     def __init__(self, website, *args, **kwargs):
         self.BASEURL = 'https://%s' % website
+        self.website = re.findall('espaceclient.(.*?).fr', self.BASEURL)[0]
+
         super(GanAssurances, self).__init__(*args, **kwargs)
 
     def do_login(self):
@@ -71,7 +75,7 @@ class GanAssurances(LoginBrowser):
             if account.type == Account.TYPE_LIFE_INSURANCE and balance:
                 assert empty(account.balance)
                 self.location(account._link)
-                self.page.balance_form()
+                self.page.av_account_form()
                 account.balance = self.page.get_av_balance()
                 self.location(self.BASEURL)
         return a
@@ -82,8 +86,8 @@ class GanAssurances(LoginBrowser):
             if a.id == account.id:
                 self.location(a._link)
                 if a.type == Account.TYPE_LIFE_INSURANCE:
-                    self.page.balance_form()
-                    self.av_history.go()
+                    self.page.av_account_form()
+                    self.av_history.go(website=self.website)
                     return self.page.get_av_history()
                 assert self.transactions.is_here()
                 return self.page.get_history(accid=account.id)
@@ -106,3 +110,13 @@ class GanAssurances(LoginBrowser):
                     return self.page.get_history(accid=account.id)
 
         return iter([])
+
+    def get_investment(self, account):
+        if account.type != Account.TYPE_LIFE_INSURANCE:
+            return iter([])
+        accounts = self.get_accounts_list(balance=False)
+        for a in accounts:
+            if a.id == account.id:
+                self.location(a._link)
+                self.page.av_account_form()
+                return self.page.get_av_investments()

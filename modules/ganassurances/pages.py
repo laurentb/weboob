@@ -24,10 +24,11 @@ import ast
 
 from weboob.browser.pages import HTMLPage, pagination, LoggedPage
 from weboob.browser.elements import method, TableElement, ItemElement
-from weboob.browser.filters.standard import Env, CleanDecimal, CleanText, TableCell, Date
-from weboob.browser.filters.html import Attr
+from weboob.browser.filters.standard import Env, CleanDecimal, CleanText, TableCell, Date, Regexp, Eval, Field
+from weboob.browser.filters.html import Attr, Link
 from weboob.browser.filters.javascript import JSVar
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -49,7 +50,9 @@ class LoginPage(HTMLPage):
 class AccountsPage(HTMLPage):
     logged = True
     ACCOUNT_TYPES = {u'Solde des comptes bancaires - Groupama Banque':  Account.TYPE_CHECKING,
+                     u'Solde des comptes bancaires': Account.TYPE_CHECKING,
                      u'Epargne bancaire constituée - Groupama Banque':  Account.TYPE_SAVINGS,
+                     u'Epargne bancaire constituée':  Account.TYPE_SAVINGS,
                      u'Assurance Vie':  Account.TYPE_LIFE_INSURANCE,
                     }
 
@@ -74,7 +77,7 @@ class AccountsPage(HTMLPage):
             account = Account()
             account.label = u' '.join([txt.strip() for txt in tds[0].itertext()])
             account.label = re.sub(u'[ \xa0\u2022\r\n\t]+', u' ', account.label).strip()
-            account.id = re.findall('(\d+)', account.label)[0]
+            account.id = Regexp(pattern=u'N° ((.*?) |(.*))').filter(account.label).strip()
             account.type = account_type
             if balance:
                 account.balance = Decimal(FrenchTransaction.clean_amount(balance))
@@ -143,9 +146,32 @@ class TransactionsPage(HTMLPage):
         return re.sub('[ \t\r\n]+', '', a.attrib['href'])
 
 
-class AVBalancePage(LoggedPage, HTMLPage):
+class AVAccountPage(LoggedPage, HTMLPage):
     def get_av_balance(self):
         return CleanDecimal(u'//p[contains(text(),"Épargne constituée au")]/span')(self.doc)
+
+    @method
+    class get_av_investments(TableElement):
+        item_xpath = '//table[@id="repartition_epargne3"]/tr[position() > 1]'
+        head_xpath = '//table[@id="repartition_epargne3"]/tr/th[position() > 1]'
+
+        col_quantity = u'Nombre d’unités de compte'
+        col_unitvalue = u"Valeur de l’unité de compte"
+        col_valuation = u'Épargne constituée en euros'
+        col_portfolio_share = u'Répartition %'
+
+        class item(ItemElement):
+            klass = Investment
+            def condition(self):
+                return Field('quantity')(self) is not NotAvailable
+
+            obj_label = CleanText('./th')
+            obj_quantity = CleanDecimal(TableCell('quantity'), default=NotAvailable)
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'))
+            obj_valuation = CleanDecimal(TableCell('valuation'))
+            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share')))
+            obj_code = Regexp(Link('./th/a'), r'isin=(.*)')
+            obj_code_type = Investment.CODE_TYPE_ISIN
 
 
 class AVHistoryPage(LoggedPage, HTMLPage):
@@ -184,10 +210,10 @@ class AVHistoryPage(LoggedPage, HTMLPage):
 
 
 class FormPage(LoggedPage, HTMLPage):
-    def balance_form(self):
+    def av_account_form(self):
         form = self.get_form('//form[@id="formGoToRivage"]')
         form['gfr_numeroContrat'] = JSVar(var='numContrat').filter(CleanText('//script[contains(text(), "var numContrat")]')(self.doc))
         form['gfr_data'] = JSVar(var='pCryptage').filter(CleanText('//script[contains(text(), "var pCryptage")]')(self.doc))
-        form['gfr_adrSite'] = 'https://espaceclient.ganassurances.fr'
-        form.url = 'https://secure-rivage.ganassurances.fr/contratVie.rivage.syntheseContratEparUc.gsi'
+        form['gfr_adrSite'] = 'https://espaceclient.%s.fr' % self.browser.website
+        form.url = 'https://secure-rivage.%s.fr/contratVie.rivage.syntheseContratEparUc.gsi' % self.browser.website
         form.submit()
