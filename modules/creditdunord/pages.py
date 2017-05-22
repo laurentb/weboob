@@ -19,6 +19,7 @@
 
 
 import re
+import ast
 
 from urllib import quote
 from decimal import Decimal
@@ -472,7 +473,7 @@ class TransactionsPage(LoggedPage, CDNBasePage):
                 # No history on this account
                 return
 
-        data = json.loads('[%s]' % txt.replace('"', '\\"').replace("'", '"'))
+        data = ast.literal_eval('[%s]' % txt.replace('"', '\\"'))
 
         for line in data:
             t = Transaction()
