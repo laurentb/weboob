@@ -175,15 +175,26 @@ class ContractsPage(LoginPage):
             raise BrowserIncorrectPassword()
         self.select_contract()
 
-    def select_contract(self):
-        # XXX We select automatically the default contract in list. We should let user
-        # ask what contract he wants to see, or display accounts for all contracts.
+    def select_contract(self, id_contract=None):
         link = self.doc.xpath('//a[contains(text(), "Votre situation globale")]')
-        if len(link):
+        if not id_contract and len(link):
             self.browser.location(link[0].attrib['href'])
         else:
             form = self.get_form(nr=0)
+            if 'contratId' in form:
+                if id_contract:
+                    form['contratId'] = id_contract
+                self.browser.current_contract = form['contratId']
             form.submit()
+
+
+class ContractsChoicePage(ContractsPage):
+    def on_load(self):
+        if self.is_error():
+            raise BrowserIncorrectPassword()
+        self.browser.contracts = self.doc.xpath('//input[@name="contratId"]/@value')
+        if not self.logged and not self.browser.current_contract:
+            self.select_contract()
 
 
 class AccountsPage(LoggedPage, HTMLPage):

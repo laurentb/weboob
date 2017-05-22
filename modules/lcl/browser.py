@@ -21,6 +21,7 @@
 import urllib
 from urlparse import urlsplit, parse_qsl
 from datetime import datetime, timedelta
+from functools import wraps
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
@@ -31,7 +32,7 @@ from weboob.capabilities.bank import Account, AddRecipientError, AddRecipientSte
 from weboob.tools.value import Value
 
 from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
-                   CBListPage, CBHistoryPage, ContractsPage, BoursePage, \
+                   CBListPage, CBHistoryPage, ContractsPage, ContractsChoicePage, BoursePage, \
                    AVPage, AVDetailPage, DiscPage, NoPermissionPage, RibPage, \
                    HomePage, LoansPage, TransferPage, AddRecipientPage, \
                    RecipientPage, RecipConfirmPage, SmsPage, RecipRecapPage, \
@@ -55,8 +56,8 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                     '/outil/UAUT/Contract/getContract.*',
                     '/outil/UAUT/Contract/selectContracts.*',
                     '/outil/UAUT/Accueil/preRoutageLogin',
-                    '.*outil/UAUT/Contract/routing',
                     ContractsPage)
+    contracts_choice = URL('.*outil/UAUT/Contract/routing', ContractsChoicePage)
     home = URL('/outil/UWHO/Accueil/', HomePage)
     accounts = URL('/outil/UWSP/Synthese', AccountsPage)
     history = URL('/outil/UWLM/ListeMouvements.*/accesListeMouvements.*',
@@ -100,6 +101,8 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     send_sms = URL('/outil/UWBE/Otp/envoiCodeOtp\?telChoisi=MOBILE', '/outil/UWBE/Otp/getValidationCodeOtp\?codeOtp', SmsPage)
     recip_recap = URL('/outil/UWBE/Creation/executeCreation', RecipRecapPage)
 
+    __states__ = ('contracts', 'current_contract',)
+
     accounts_list = None
 
     def do_login(self):
@@ -108,6 +111,9 @@ class LCLBrowser(LoginBrowser, StatesMixin):
 
         if not self.password.isdigit():
             raise BrowserIncorrectPassword()
+
+        self.contracts = []
+        self.current_contract = None
 
         # we force the browser to go to login page so it's work even
         # if the session expire
@@ -134,51 +140,90 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     def deconnexion_bourse(self):
         self.disc.stay_or_go()
 
+    def select_contract(self, id_contract, logout=False):
+        if self.current_contract and id_contract != self.current_contract:
+            # when we go on bourse page, we can't change contract anymore... we have to logout.
+            if logout:
+                self.location('/outil/UAUT/Login/logout')
+                # we already passed all checks on do_login so we consider it's ok.
+                self.login.go().login(self.username, self.password)
+            self.contracts_choice.go().select_contract(id_contract)
+
+    def go_contract(f):
+        @wraps(f)
+        def wrapper(self, account, *args, **kwargs):
+            self.select_contract(account._contract, logout=True)
+            return f(self, account, *args, **kwargs)
+        return wrapper
+
+    def check_accounts(self, account):
+        return all(account.id != acc.id for acc in self.accounts_list)
+
+    def update_accounts(self, account):
+        if self.check_accounts(account):
+            account._contract = self.current_contract
+            self.accounts_list.append(account)
+
+    @need_login
+    def get_accounts(self):
+        self.assurancevie.stay_or_go()
+        # This is required in case the browser is left in the middle of add_recipient and the session expires.
+        if self.login.is_here():
+            return self.get_accounts_list()
+
+        if self.accounts_list is None:
+            self.accounts_list = []
+        if self.no_perm.is_here():
+            self.logger.warning('Life insurances are unavailable.')
+        else:
+            for a in self.page.get_list():
+                self.update_accounts(a)
+        self.accounts.stay_or_go()
+        for a in self.page.get_list():
+            if not self.check_accounts(a):
+                continue
+            self.location('/outil/UWRI/Accueil/')
+            if self.page.has_iban_choice():
+                self.rib.go(data={'compte': '%s/%s/%s' % (a.id[0:5], a.id[5:11], a.id[11:])})
+                if self.rib.is_here():
+                    iban = self.page.get_iban()
+                    a.iban = iban if iban and a.id[11:] in iban else NotAvailable
+            else:
+                iban = self.page.check_iban_by_account(a.id)
+                a.iban = iban if iban is not None else NotAvailable
+            self.update_accounts(a)
+        self.loans.stay_or_go()
+        if self.no_perm.is_here():
+            self.logger.warning('Loans are unavailable.')
+        else:
+            for a in self.page.get_list():
+                self.update_accounts(a)
+        self.loans_pro.stay_or_go()
+        if self.no_perm.is_here():
+            self.logger.warning('Loans are unavailable.')
+        else:
+            for a in self.page.get_list():
+                self.update_accounts(a)
+        if self.connexion_bourse():
+            for a in self.page.get_list():
+                self.update_accounts(a)
+            self.deconnexion_bourse()
+            # Disconnecting from bourse portal before returning account list
+            # to be sure that we are on the banque portal
+
     @need_login
     def get_accounts_list(self):
         if self.accounts_list is None:
-            self.assurancevie.stay_or_go()
-            # This is required in case the browser is left in the middle of add_recipient and the session expires.
-            if self.login.is_here():
-                return self.get_accounts_list()
-            self.accounts_list = []
-            if self.no_perm.is_here():
-                self.logger.warning('Life insurances are unavailable.')
+            if self.contracts and self.current_contract:
+                for id_contract in self.contracts:
+                    self.select_contract(id_contract)
+                    self.get_accounts()
             else:
-                for a in self.page.get_list():
-                    self.accounts_list.append(a)
-            self.accounts.stay_or_go()
-            for a in self.page.get_list():
-                self.location('/outil/UWRI/Accueil/')
-                if self.page.has_iban_choice():
-                    self.rib.go(data={'compte': '%s/%s/%s' % (a.id[0:5], a.id[5:11], a.id[11:])})
-                    if self.rib.is_here():
-                        iban = self.page.get_iban()
-                        a.iban = iban if iban and a.id[11:] in iban else NotAvailable
-                else:
-                    iban = self.page.check_iban_by_account(a.id)
-                    a.iban = iban if iban is not None else NotAvailable
-                self.accounts_list.append(a)
-            self.loans.stay_or_go()
-            if self.no_perm.is_here():
-                self.logger.warning('Loans are unavailable.')
-            else:
-                for a in self.page.get_list():
-                    self.accounts_list.append(a)
-            self.loans_pro.stay_or_go()
-            if self.no_perm.is_here():
-                self.logger.warning('Loans are unavailable.')
-            else:
-                for a in self.page.get_list():
-                    self.accounts_list.append(a)
-            if self.connexion_bourse():
-                for a in self.page.get_list():
-                    self.accounts_list.append(a)
-                self.deconnexion_bourse()
-                # Disconnecting from bourse portal before returning account list
-                # to be sure that we are on the banque portal
+                self.get_accounts()
+
         return iter(self.accounts_list)
 
+    @go_contract
     @need_login
     def get_history(self, account):
         if hasattr(account, '_market_link') and account._market_link:
@@ -210,6 +255,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                     yield tr
             self.page.come_back()
 
+    @go_contract
     @need_login
     def get_cb_operations(self, account, month=0):
         """
@@ -236,6 +282,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 for tr in self.page.get_operations():
                     yield tr
 
+    @go_contract
     @need_login
     def get_investment(self, account):
         if account.type == Account.TYPE_LIFE_INSURANCE and account._form:
@@ -305,6 +352,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         self.open('/outil/UWBE/Otp/envoiCodeOtp?telChoisi=MOBILE')
         raise AddRecipientStep(self.get_recipient_object(recipient.iban, recipient.label), Value('code', label='Saisissez le code.'))
 
+    @go_contract
     @need_login
     def iter_recipients(self, origin_account):
         if origin_account._transfer_id is None:
@@ -316,6 +364,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         for recipient in self.page.iter_recipients(account_transfer_id=origin_account._transfer_id):
             yield recipient
 
+    @go_contract
     @need_login
     def init_transfer(self, account, recipient, amount, reason=None):
         self.transfer_page.go()
