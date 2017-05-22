@@ -125,8 +125,8 @@ class InvestmentPage(AccountPage):
             obj_diff = MyDecimal(TableCell('diff', default=NotAvailable), default=NotAvailable)
             obj_code_type = Investment.CODE_TYPE_ISIN
 
-            obj_label = CleanText('./preceding-sibling::tr/td[1]/a/span')
-            obj_code = Regexp(CleanText('./preceding-sibling::tr/td[1]/a'), '- (.*)')
+            obj_label = CleanText(Regexp(CleanText('./preceding-sibling::tr/td[1]'), '(.*)- .*'))
+            obj_code = Regexp(CleanText('./preceding-sibling::tr/td[1]'), '- (.*)')
 
     def iter_investment(self):
         valuation = CleanDecimal('//td[contains(text(), "Liquidités")]/following-sibling::td[1]', replace_dots=True, default=None)(self.doc)
