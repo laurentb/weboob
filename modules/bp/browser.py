@@ -138,6 +138,10 @@ class BPBrowser(LoginBrowser, StatesMixin):
             dirname += '/bourse'
         self.linebourse = LinebourseBrowser(self.weboob, 'https://labanquepostale.offrebourse.com/', logger=self.logger, responses_dirname=dirname)
 
+    def deinit(self):
+        super(BPBrowser, self).deinit()
+        self.linebourse.deinit()
+
     def do_login(self):
         self.location(self.login_url)
 

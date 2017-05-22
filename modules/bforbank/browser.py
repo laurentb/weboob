@@ -66,6 +66,10 @@ class BforbankBrowser(LoginBrowser):
                                       'https://assurance-vie.bforbank.com:443/',
                                       None, None, *args, **kwargs)
 
+    def deinit(self):
+        super(BforbankBrowser, self).deinit()
+        self.spirica.deinit()
+
     def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)

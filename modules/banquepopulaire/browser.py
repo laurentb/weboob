@@ -161,6 +161,10 @@ class BanquePopulaire(LoginBrowser):
 
         self.investments = {}
 
+    def deinit(self):
+        super(BanquePopulaire, self).deinit()
+        self.linebourse.deinit()
+
     #def home(self):
     #    self.do_login()
 
