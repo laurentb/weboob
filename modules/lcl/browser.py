@@ -140,19 +140,18 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     def deconnexion_bourse(self):
         self.disc.stay_or_go()
 
-    def select_contract(self, id_contract, logout=False):
+    def select_contract(self, id_contract):
         if self.current_contract and id_contract != self.current_contract:
             # when we go on bourse page, we can't change contract anymore... we have to logout.
-            if logout:
-                self.location('/outil/UAUT/Login/logout')
-                # we already passed all checks on do_login so we consider it's ok.
-                self.login.go().login(self.username, self.password)
+            self.location('/outil/UAUT/Login/logout')
+            # we already passed all checks on do_login so we consider it's ok.
+            self.login.go().login(self.username, self.password)
             self.contracts_choice.go().select_contract(id_contract)
 
     def go_contract(f):
         @wraps(f)
         def wrapper(self, account, *args, **kwargs):
-            self.select_contract(account._contract, logout=True)
+            self.select_contract(account._contract)
             return f(self, account, *args, **kwargs)
         return wrapper
 
@@ -220,7 +219,6 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                     self.get_accounts()
             else:
                 self.get_accounts()
-
         return iter(self.accounts_list)
 
     @go_contract
