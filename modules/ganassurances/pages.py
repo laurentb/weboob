@@ -147,8 +147,16 @@ class TransactionsPage(HTMLPage):
 
 
 class AVAccountPage(LoggedPage, HTMLPage):
+    """
+    Get balance
+
+    :return: decimal balance, currency
+    :rtype: tuple
+    """
     def get_av_balance(self):
-        return CleanDecimal(u'//p[contains(text(),"Épargne constituée au")]/span')(self.doc)
+        balance_xpath = u'//p[contains(text(), "Épargne constituée")]/span'
+
+        return (CleanDecimal(balance_xpath)(self.doc), Account.get_currency(CleanText(balance_xpath)(self.doc)))
 
     @method
     class get_av_investments(TableElement):
@@ -162,6 +170,7 @@ class AVAccountPage(LoggedPage, HTMLPage):
 
         class item(ItemElement):
             klass = Investment
+
             def condition(self):
                 return Field('quantity')(self) is not NotAvailable
 

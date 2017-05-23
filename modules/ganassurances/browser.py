@@ -76,7 +76,7 @@ class GanAssurances(LoginBrowser):
                 assert empty(account.balance)
                 self.location(account._link)
                 self.page.av_account_form()
-                account.balance = self.page.get_av_balance()
+                account.balance, account.currency = self.page.get_av_balance()
                 self.location(self.BASEURL)
         return a
 
