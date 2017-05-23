@@ -25,6 +25,7 @@ from urlparse import urljoin
 
 from weboob.browser.filters.standard import CleanText
 from weboob.browser.pages import LoggedPage, CsvPage
+from weboob.exceptions import BrowserUnavailable
 from weboob.capabilities.bank import Account
 
 from .accounthistory import Transaction
@@ -88,6 +89,10 @@ class ProAccountHistoryDownload(LoggedPage, MyHTMLPage):
 
 
 class ProAccountHistoryCSV(LoggedPage, CsvPage):
+    def on_load(self):
+        if isinstance(self.doc, list) and any(u"service" and "indisponible" in e for x in self.doc for e in x):
+            raise BrowserUnavailable()
+
     def decode_row(self, row, encoding):
         try:
             return [unicode(cell, encoding) for cell in row]
