@@ -32,7 +32,7 @@ from .pages import (
 class LinebourseBrowser(LoginBrowser):
     BASEURL = 'https://www.linebourse.fr'
 
-    invest = URL(r'/Portefeuille$', r'/Portefeuille?compte=(?P<id>[^&]+)', InvestmentPage)
+    invest = URL(r'/Portefeuille$', r'/Portefeuille\?compte=(?P<id>[^&]+)', InvestmentPage)
     message = URL(r'/DetailMessage.*', MessagePage)
     history = URL(r'/HistoriqueOperations',
                   r'/HistoriqueOperations\?compte=(?P<id>[^&]+)&devise=EUR&modeTri=7&sensTri=-1&periode=(?P<period>\d+)',
