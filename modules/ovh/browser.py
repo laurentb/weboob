@@ -22,15 +22,17 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import LoginPage, ProfilePage, BillsPage
-
+from datetime import datetime, timedelta
+import time
 
 class OvhBrowser(LoginBrowser):
     BASEURL = 'https://www.ovh.com'
 
     login = URL('/auth/',
                 '/manager/web/index.html', LoginPage)
-    profile = URL('/manager/dedicated/api/proxypass/me', ProfilePage)
-    billspage = URL('/manager/web/api/billing/bills', BillsPage)
+    profile = URL('/engine/api/me', ProfilePage)
+    documents = URL('/engine/2api/sws/billing/bills\?count=0&date=(?P<fromDate>.*)&dateTo=(?P<toDate>.*)&offset=0', BillsPage)
+
 
     def do_login(self):
         self.login.go().login(self.username, self.password)
@@ -46,4 +48,5 @@ class OvhBrowser(LoginBrowser):
 
     @need_login
     def iter_documents(self, subscription):
-        return self.billspage.stay_or_go().get_documents(subid=subscription.id)
+        return self.documents.stay_or_go(fromDate=(datetime.now() - timedelta(days=2*365)).strftime("%Y-%m-%dT00:00:00Z"),
+                                         toDate=time.strftime("%Y-%m-%dT%H:%M:%S.999Z")).get_documents(subid=subscription.id)
