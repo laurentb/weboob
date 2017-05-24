@@ -80,7 +80,7 @@ class GanAssurances(LoginBrowser):
                 self.location(self.BASEURL)
         return a
 
-    def get_history(self, account):
+    def _get_history(self, account):
         accounts = self.get_accounts_list(balance=False)
         for a in accounts:
             if a.id == account.id:
@@ -92,6 +92,15 @@ class GanAssurances(LoginBrowser):
                 assert self.transactions.is_here()
                 return self.page.get_history(accid=account.id)
         return iter([])
+
+    # Duplicate line in case of arbitration because the site has only one line for the 2 transactions (debit and credit on the same line)
+    def get_history(self, account):
+        for tr in self._get_history(account):
+            yield tr
+            if getattr(tr, '_arbitration', False):
+                tr = tr.copy()
+                tr.amount = -tr.amount
+                yield tr
 
     def get_coming(self, account):
         if account.type == Account.TYPE_LIFE_INSURANCE:

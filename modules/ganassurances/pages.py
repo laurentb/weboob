@@ -205,17 +205,24 @@ class AVHistoryPage(LoggedPage, HTMLPage):
             obj_label = CleanText(TableCell('label'))
             obj_type = Transaction.TYPE_BANK
             obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
+            obj__arbitration = False
 
             def obj_amount(self):
-                debit = CleanDecimal(TableCell('debit', default=None), default=Decimal(0))(self)
                 credit = CleanDecimal(TableCell('credit'), default=Decimal(0))(self)
-
                 # Different types of life insurances, use different columns.
-                if debit == 0:
-                    credit2 = CleanDecimal(TableCell('credit2'), default=Decimal(0))(self)
-                    return credit + credit2
+                if TableCell('debit', default=None)(self):
+                    debit = CleanDecimal(TableCell('debit'), default=Decimal(0))(self)
+                    # In case of financial arbitration, both columns are equal
+                    if credit and debit:
+                        assert credit == debit
+                        self.obj._arbitration = True
+                        return credit
+                    else:
+                        return credit - abs(debit)
                 else:
-                    return credit - abs(debit)
+                    credit2 = CleanDecimal(TableCell('credit2'), default=Decimal(0))(self)
+                    assert not (credit and credit2)
+                    return credit + credit2
 
 
 class FormPage(LoggedPage, HTMLPage):
