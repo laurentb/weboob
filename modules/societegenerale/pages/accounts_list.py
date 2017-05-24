@@ -347,6 +347,9 @@ class Market(LoggedPage, BasePage, Invest):
         for page in pages:
             for inv in page.doc.xpath(u'//table[contains(., "Détail du compte")]//tr[2]//table/tr[position() > 1]'):
                 if len(inv.xpath('.//td')) > 2:
+                    amt = CleanText('.//td[7]/text()')(inv)
+                    if amt == 'Indisponible':
+                        continue
                     not_rounded_valuations[CleanText('.//td[1]/a/text()')(inv)] = CleanDecimal('.//td[7]/text()', replace_dots=True)(inv)
 
         return not_rounded_valuations
