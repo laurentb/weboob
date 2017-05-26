@@ -373,7 +373,11 @@ class BanquePopulaire(LoginBrowser):
             try:
                 if self.go_investments(account, get_account=True):
                     if self.etna.is_here():
-                        self.natixis_invest.go(**self.page.params)
+                        # Broken website .. nothing to do.
+                        try:
+                            self.natixis_invest.go(**self.page.params)
+                        except ServerError:
+                            raise BrowserUnavailable()
                         self.investments[account.id] = list(self.page.get_investments())
                     elif "linebourse" in self.url:
                         for inv in self.linebourse.iter_investment(re.sub('[^0-9]', '', account.id)):
