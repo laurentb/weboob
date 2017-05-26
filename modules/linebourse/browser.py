@@ -25,7 +25,7 @@ from weboob.browser import LoginBrowser, URL
 from weboob.exceptions import BrowserUnavailable
 
 from .pages import (
-    MessagePage, InvestmentPage, HistoryPage,
+    MessagePage, InvestmentPage, HistoryPage, BrokenPage
 )
 
 
@@ -38,6 +38,7 @@ class LinebourseBrowser(LoginBrowser):
                   r'/HistoriqueOperations\?compte=(?P<id>[^&]+)&devise=EUR&modeTri=7&sensTri=-1&periode=(?P<period>\d+)',
                   HistoryPage)
     useless = URL(r'/ReroutageSJR', MessagePage)
+    broken = URL(r'.*/timeout.html$', BrokenPage)
 
     def __init__(self, baseurl, *args, **kwargs):
         super(LinebourseBrowser, self).__init__('', '', *args, **kwargs)
@@ -51,6 +52,9 @@ class LinebourseBrowser(LoginBrowser):
         if self.message.is_here():
             self.page.submit()
             self.invest.go()
+
+        if self.broken.is_here():
+            return iter([])
 
         assert self.invest.is_here()
         if not self.page.is_on_right_portfolio(account_id):

@@ -148,3 +148,6 @@ class MessagePage(LoggedPage, HTMLPage):
         form['signatur1'] = 'on'
         form.submit()
 
+
+class BrokenPage(LoggedPage, HTMLPage):
+    pass
