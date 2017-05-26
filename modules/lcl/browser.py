@@ -52,11 +52,11 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 '/outil/UWER/Accueil/majicER',
                 '/outil/UWER/Enregistrement/forwardAcc',
                 LoginPage)
-    contracts = URL('/outil/UAUT/Contrat/choixContrat.*',
-                    '/outil/UAUT/Contract/getContract.*',
-                    '/outil/UAUT/Contract/selectContracts.*',
-                    '/outil/UAUT/Accueil/preRoutageLogin',
-                    ContractsPage)
+    contracts_page = URL('/outil/UAUT/Contrat/choixContrat.*',
+                         '/outil/UAUT/Contract/getContract.*',
+                         '/outil/UAUT/Contract/selectContracts.*',
+                         '/outil/UAUT/Accueil/preRoutageLogin',
+                         ContractsPage)
     contracts_choice = URL('.*outil/UAUT/Contract/routing', ContractsChoicePage)
     home = URL('/outil/UWHO/Accueil/', HomePage)
     accounts = URL('/outil/UWSP/Synthese', AccountsPage)
@@ -103,7 +103,11 @@ class LCLBrowser(LoginBrowser, StatesMixin):
 
     __states__ = ('contracts', 'current_contract',)
 
-    accounts_list = None
+    def __init__(self, *args, **kwargs):
+        super(LCLBrowser, self).__init__(*args, **kwargs)
+        self.accounts_list = None
+        self.current_contract = None
+        self.contracts = None
 
     def do_login(self):
         assert isinstance(self.username, basestring)
@@ -121,7 +125,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
 
         if not self.page.login(self.username, self.password) or \
            (self.login.is_here() and self.page.is_error()) :
-            raise BrowserIncorrectPassword("invalid login/password.\nIf you did not change anything, be sure to check for password renewal request\non the original web site.\nAutomatic renewal will be implemented later.")
+            raise BrowserIncorrectPassword("invalid login/password.\nIf you did not change anything, be sure to check for password renewal request on the original web site.")
 
         self.accounts_list = None
         self.accounts.stay_or_go()
