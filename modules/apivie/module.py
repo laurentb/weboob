@@ -45,17 +45,13 @@ class ApivieModule(Module, CapBankWealth):
                                    self.config['password'].get())
 
     def iter_accounts(self):
-        with self.browser:
-            return self.browser.iter_accounts()
+        return self.browser.iter_accounts()
 
     def get_account(self, _id):
-        with self.browser:
-            return self.browser.get_account(_id)
+        return self.browser.get_account(_id)
 
     def iter_investment(self, account):
-        with self.browser:
-            return self.browser.iter_investment(account)
+        return self.browser.iter_investment(account)
 
     def iter_history(self, account):
-        with self.browser:
-            return self.browser.iter_history(account)
+        return self.browser.iter_history(account)
