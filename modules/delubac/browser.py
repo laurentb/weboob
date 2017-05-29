@@ -26,7 +26,7 @@ from weboob.capabilities.bank import AccountNotFound
 from weboob.capabilities.base import find_object, NotLoaded
 
 
-from .pages import LoginPage, MenuPage, AccountsPage, HistoryPage, IbanPage
+from .pages import LoginPage, MenuPage, AccountsPage, HistoryPage, IbanPage, ErrorPage
 
 
 __all__ = ['DelubacBrowser']
@@ -41,6 +41,7 @@ class DelubacBrowser(LoginBrowser):
     menu = URL('/es@b/fr/menuConnecte1.jsp\?c&deploye=false&pulseMenu=false&styleLien=false&dummyDate=(?P<date>.*)', MenuPage)
     accounts = URL('/es@b/servlet/internet0.ressourceWeb.servlet.EsabServlet.*', AccountsPage)
     history = URL('/es@b/servlet/internet0.ressourceWeb.servlet.ListeDesMouvementsServlet.*', HistoryPage)
+    error = URL('/es@b/servlet/internet0.ressourceWeb.servlet.*', ErrorPage)
     iban = URL('/es@b/fr/rib.jsp', IbanPage)
 
     def do_login(self):
@@ -71,4 +72,6 @@ class DelubacBrowser(LoginBrowser):
     @need_login
     def iter_history(self, account):
         self.location(account._link)
+        if self.error.is_here():
+            return iter([])
         return self.page.get_transactions()

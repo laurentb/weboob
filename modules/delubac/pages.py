@@ -226,3 +226,6 @@ class HistoryPage(LoggedPage, HTMLPage):
 class IbanPage(LoggedPage, HTMLPage):
     def get_iban(self):
         return CleanText('//td[contains(text(), "IBAN") and @class="ColonneCode"]', replace=[('IBAN', ''), (' ', '')])(self.doc)
+
+class ErrorPage(LoggedPage, HTMLPage):
+    is_here = u'//div[contains(., "Une erreur technique s\'est produite dans l\'application ")]'
