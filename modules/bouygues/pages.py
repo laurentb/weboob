@@ -24,11 +24,10 @@ from weboob.capabilities.messages import CantSendMessage
 from weboob.capabilities.bill import Bill, Subscription
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Regexp
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Regexp, Field
 from weboob.browser.filters.html import Link
 from weboob.browser.elements import DictElement, ItemElement, ListElement, method
 from weboob.tools.date import parse_french_date
-
 
 class LoginPage(HTMLPage):
     def login(self, login, password):
@@ -52,15 +51,20 @@ class ProfilePage(JsonPage, LoggedPage):
         class item(ItemElement):
             klass = Subscription
 
-            obj_id = Format('%s-%s', CleanText(Dict('num_ligne')), CleanText(Dict('date-activation')))
             obj__type = CleanText(Dict('type'))
             obj_label = Env('label')
             obj_subscriber = Format("%s %s %s", CleanText(Dict('civilite')),
                                     CleanText(Dict('prenom')), CleanText(Dict('nom')))
 
+            def obj_id(self):
+                if Dict('date-activation')(self) is not None:
+                    return Format('%s-%s', Dict('num_ligne'), Dict('date-activation'))(self)
+                else:
+                    return Format('%s', Dict('num_ligne'))(self)
+
             def parse(self, el):
                 # add spaces
-                number = iter(self.obj_id(el).split('-')[0])
+                number = iter(Field('id')(self).split('-')[0])
                 self.env['label'] = ' '.join(a+b for a, b in zip(number, number))
 
 
